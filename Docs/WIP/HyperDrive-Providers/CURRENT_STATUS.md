@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Turso now uses the shared graph write plan and writes the entire planned graph in one parameterized libSQL statement. Native acknowledgement controls the reported count and publication of generated IDs. Avatar-detail and holon reads now publish their loaded counts, and metadata and ownership exports propagate native read errors. Exact shared-suite qualification and avatar-detail deletion remain open. The earlier [concurrent deletion regression](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44020548498) passed against official libSQL.
+
 2026-11-17 UTC — Turso now runs the shared 26-check storage suite through each of its synchronous and asynchronous entry points on disposable libSQL. The first implementation batch makes single-record saves require one affected row and makes avatar reads distinguish native absence from transport failure. The shared graph, collection, import/export and avatar-detail lifecycle checks still require qualification.
 
 2026-11-17 UTC — Turso task revision `90efc6f1db67` replaces holon deletion's read and update with one conditional Hrana statement returning the deleted payload. The [native concurrent deletion regression](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44020548498) is queued. It requires one acknowledged deletion and one `RecordNotFound` for two callers acting on the same holon. This change is on the task branch pending qualification.

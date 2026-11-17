@@ -15,6 +15,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
@@ -377,8 +378,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             {
                 var res = await ExecuteSqlAsync("SELECT data_json FROM oasis_avatar_details WHERE id=? LIMIT 1", new List<LibSqlArg> { Arg(id.ToString()) });
                 var rows = ResultToRows(res);
-                if (rows.Count == 0) { OASISErrorHandling.HandleError(ref result, $"TursoOASIS: No avatar detail found for ID '{id}'."); return result; }
-                result.Result = Des<AvatarDetail>(rows[0].GetValueOrDefault("data_json")); result.IsError = false; result.Message = $"TursoOASIS: AvatarDetail loaded for ID '{id}'.";
+                if (rows.Count == 0)
+                    return MissingRecord<IAvatarDetail>($"TursoOASIS: No avatar detail found for ID '{id}'.");
+                result.Result = Des<AvatarDetail>(rows[0].GetValueOrDefault("data_json"))
+                    ?? throw new InvalidOperationException("Turso returned an empty avatar detail payload.");
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
+                result.Message = $"TursoOASIS: AvatarDetail loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error loading avatar detail '{id}': {ex.Message}"); }
             return result;
@@ -393,8 +399,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             {
                 var res = await ExecuteSqlAsync("SELECT data_json FROM oasis_avatar_details WHERE username=? LIMIT 1", new List<LibSqlArg> { Arg(username) });
                 var rows = ResultToRows(res);
-                if (rows.Count == 0) { OASISErrorHandling.HandleError(ref result, $"TursoOASIS: No avatar detail found for username '{username}'."); return result; }
-                result.Result = Des<AvatarDetail>(rows[0].GetValueOrDefault("data_json")); result.IsError = false; result.Message = $"TursoOASIS: AvatarDetail loaded for username '{username}'.";
+                if (rows.Count == 0)
+                    return MissingRecord<IAvatarDetail>($"TursoOASIS: No avatar detail found for username '{username}'.");
+                result.Result = Des<AvatarDetail>(rows[0].GetValueOrDefault("data_json"))
+                    ?? throw new InvalidOperationException("Turso returned an empty avatar detail payload.");
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
+                result.Message = $"TursoOASIS: AvatarDetail loaded for username '{username}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error loading avatar detail by username '{username}': {ex.Message}"); }
             return result;
@@ -409,8 +420,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             {
                 var res = await ExecuteSqlAsync("SELECT data_json FROM oasis_avatar_details WHERE email=? LIMIT 1", new List<LibSqlArg> { Arg(email) });
                 var rows = ResultToRows(res);
-                if (rows.Count == 0) { OASISErrorHandling.HandleError(ref result, $"TursoOASIS: No avatar detail found for email '{email}'."); return result; }
-                result.Result = Des<AvatarDetail>(rows[0].GetValueOrDefault("data_json")); result.IsError = false; result.Message = $"TursoOASIS: AvatarDetail loaded for email '{email}'.";
+                if (rows.Count == 0)
+                    return MissingRecord<IAvatarDetail>($"TursoOASIS: No avatar detail found for email '{email}'.");
+                result.Result = Des<AvatarDetail>(rows[0].GetValueOrDefault("data_json"))
+                    ?? throw new InvalidOperationException("Turso returned an empty avatar detail payload.");
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
+                result.Message = $"TursoOASIS: AvatarDetail loaded for email '{email}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error loading avatar detail by email '{email}': {ex.Message}"); }
             return result;
@@ -437,22 +453,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var result = new OASISResult<IHolon>();
-            try
+            var saved = await SaveHolonsAsync(new[] { holon }, saveChildren, recursive, maxChildDepth,
+                continueOnError: continueOnError, saveChildrenOnProvider: saveChildrenOnProvider).ConfigureAwait(false);
+            return new OASISResult<IHolon>
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.TursoOASIS] = holon.Id.ToString();
-                await WriteOneAsync(
-                    "INSERT INTO oasis_holons(id,parent_holon_id,holon_type,is_deleted,data_json) VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET parent_holon_id=excluded.parent_holon_id,holon_type=excluded.holon_type,is_deleted=excluded.is_deleted,data_json=excluded.data_json",
-                    new List<LibSqlArg> { Arg(holon.Id.ToString()), Arg(holon.ParentHolonId == Guid.Empty ? null : holon.ParentHolonId.ToString()), ArgInt((int)holon.HolonType), ArgInt(holon.IsDeleted ? 1 : 0), Arg(Ser(holon)) });
-                result.Result = holon;
-                result.IsSaved = true;
-                result.SavedCount = 1;
-                result.Message = $"TursoOASIS: Holon '{holon.Name}' saved.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error saving holon '{holon.Name}': {ex.Message}"); }
-            return result;
+                Result = saved.Result?.SingleOrDefault(), IsSaved = saved.IsSaved, SavedCount = saved.SavedCount,
+                IsError = saved.IsError, ErrorCount = saved.ErrorCount, ErrorCode = saved.ErrorCode,
+                Exception = saved.Exception, Message = saved.Message
+            };
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
@@ -461,9 +469,54 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>(); var errors = new List<string>();
-            foreach (var holon in holons) { var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (r.IsError) errors.Add(r.Message ?? ""); else if (r.Result != null) saved.Add(r.Result); }
-            result.Result = saved; result.IsError = errors.Count > 0; result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"TursoOASIS: {saved.Count} holon(s) saved.";
+            try
+            {
+                var plan = HolonGraphWritePlan.CreateForSave(holons, saveChildren, recursive, maxChildDepth, curentChildDepth);
+                var rows = plan.Nodes.Select(node =>
+                {
+                    var snapshot = node.Snapshot;
+                    snapshot.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                    snapshot.ProviderUniqueStorageKey[Core.Enums.ProviderType.TursoOASIS] = snapshot.Id.ToString();
+                    return new
+                    {
+                        id = snapshot.Id,
+                        parent = snapshot.ParentHolonId == Guid.Empty ? (Guid?)null : snapshot.ParentHolonId,
+                        type = (int)snapshot.HolonType,
+                        deleted = snapshot.IsDeleted ? 1 : 0,
+                        payload = Ser(snapshot)
+                    };
+                }).ToArray();
+
+                if (rows.Length > 0)
+                {
+                    var saved = await ExecuteSqlAsync("""
+                        INSERT INTO oasis_holons(id,parent_holon_id,holon_type,is_deleted,data_json)
+                        SELECT json_extract(value,'$.id'), json_extract(value,'$.parent'),
+                            json_extract(value,'$.type'), json_extract(value,'$.deleted'), json_extract(value,'$.payload')
+                        FROM json_each(?) WHERE 1
+                        ON CONFLICT(id) DO UPDATE SET parent_holon_id=excluded.parent_holon_id,
+                            holon_type=excluded.holon_type,is_deleted=excluded.is_deleted,data_json=excluded.data_json
+                        """, new List<LibSqlArg> { Arg(Ser(rows)) }).ConfigureAwait(false);
+                    if (saved.AffectedRowCount != rows.Length)
+                        throw new InvalidOperationException("Turso did not acknowledge every planned holon write.");
+                }
+
+                foreach (var node in plan.Nodes)
+                {
+                    node.Source.Id = node.Snapshot.Id;
+                    node.Source.ParentHolonId = node.Snapshot.ParentHolonId;
+                    node.Source.ProviderUniqueStorageKey = node.Snapshot.ProviderUniqueStorageKey;
+                }
+                result.Result = plan.Roots;
+                result.IsSaved = true;
+                result.SavedCount = rows.Length;
+                result.Message = $"TursoOASIS: {rows.Length} holon(s) saved.";
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error saving holon graph: {ex.Message}");
+            }
             return result;
         }
 
@@ -484,8 +537,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             try
             {
                 var holons = await QueryHolonsAsync("SELECT data_json FROM oasis_holons WHERE id=? AND is_deleted=0 LIMIT 1", new List<LibSqlArg> { Arg(id.ToString()) });
-                if (holons.Count == 0) { OASISErrorHandling.HandleError(ref result, $"TursoOASIS: No holon found for ID '{id}'."); return result; }
-                result.Result = holons[0]; result.IsError = false; result.Message = $"TursoOASIS: Holon loaded for ID '{id}'.";
+                if (holons.Count == 0)
+                    return MissingRecord<IHolon>($"TursoOASIS: No holon found for ID '{id}'.");
+                result.Result = holons[0];
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
+                result.Message = $"TursoOASIS: Holon loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error loading holon '{id}': {ex.Message}"); }
             return result;
@@ -511,7 +568,10 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                 string sql = type == HolonType.All ? "SELECT data_json FROM oasis_holons WHERE is_deleted=0" : "SELECT data_json FROM oasis_holons WHERE is_deleted=0 AND holon_type=?";
                 var args = type == HolonType.All ? null : new List<LibSqlArg> { ArgInt((int)type) };
                 var holons = await QueryHolonsAsync(sql, args);
-                result.Result = holons; result.IsError = false; result.Message = $"TursoOASIS: Loaded {holons.Count} holon(s).";
+                result.Result = holons;
+                result.IsLoaded = true;
+                result.LoadedCount = holons.Count;
+                result.Message = $"TursoOASIS: Loaded {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error loading all holons: {ex.Message}"); }
             return result;
@@ -528,7 +588,10 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                 string sql = type == HolonType.All ? "SELECT data_json FROM oasis_holons WHERE parent_holon_id=? AND is_deleted=0" : "SELECT data_json FROM oasis_holons WHERE parent_holon_id=? AND is_deleted=0 AND holon_type=?";
                 var args = type == HolonType.All ? new List<LibSqlArg> { Arg(id.ToString()) } : new List<LibSqlArg> { Arg(id.ToString()), ArgInt((int)type) };
                 var holons = await QueryHolonsAsync(sql, args);
-                result.Result = holons; result.IsError = false; result.Message = $"TursoOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
+                result.Result = holons;
+                result.IsLoaded = true;
+                result.LoadedCount = holons.Count;
+                result.Message = $"TursoOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error loading holons for parent '{id}': {ex.Message}"); }
             return result;
@@ -613,8 +676,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var all = await LoadAllHolonsAsync(type);
+            if (all.IsError)
+                return all;
             var holons = all.Result?.Where(h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var v) && v?.ToString() == metaValue).ToList() ?? new List<IHolon>();
-            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"TursoOASIS: Loaded {holons.Count} holon(s) where {metaKey}={metaValue}." };
+            return new OASISResult<IEnumerable<IHolon>>
+            {
+                Result = holons, IsLoaded = true, LoadedCount = holons.Count,
+                Message = $"TursoOASIS: Loaded {holons.Count} holon(s) where {metaKey}={metaValue}."
+            };
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -623,9 +692,15 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var all = await LoadAllHolonsAsync(type);
+            if (all.IsError)
+                return all;
             bool IsMatch(IHolon h) { if (h.MetaData == null) return false; var checks = metaKeyValuePairs.Select(kvp => h.MetaData.TryGetValue(kvp.Key, out var v) && v?.ToString() == kvp.Value); return metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any ? checks.Any(c => c) : checks.All(c => c); }
             var holons = all.Result?.Where(IsMatch).ToList() ?? new List<IHolon>();
-            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"TursoOASIS: Loaded {holons.Count} holon(s) matching metadata filter." };
+            return new OASISResult<IEnumerable<IHolon>>
+            {
+                Result = holons, IsLoaded = true, LoadedCount = holons.Count,
+                Message = $"TursoOASIS: Loaded {holons.Count} holon(s) matching metadata filter."
+            };
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -633,7 +708,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
 
         // ─── Import / Export ──────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = !s.IsError, IsError = s.IsError, Message = s.Message }; }
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        {
+            var saved = await SaveHolonsAsync(holons).ConfigureAwait(false);
+            return new OASISResult<bool>
+            {
+                Result = saved.IsSaved, IsSaved = saved.IsSaved, SavedCount = saved.SavedCount,
+                IsError = saved.IsError, ErrorCount = saved.ErrorCount, ErrorCode = saved.ErrorCode,
+                Exception = saved.Exception, Message = saved.Message
+            };
+        }
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync();
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
@@ -641,8 +725,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
             var all = await LoadAllHolonsAsync();
+            if (all.IsError)
+                return all;
             var holons = all.Result?.Where(h => h.CreatedByAvatarId == avatarId).ToList() ?? new List<IHolon>();
-            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"TursoOASIS: Exported {holons.Count} holon(s) for avatar '{avatarId}'." };
+            return new OASISResult<IEnumerable<IHolon>>
+            {
+                Result = holons, IsLoaded = true, LoadedCount = holons.Count,
+                Message = $"TursoOASIS: Exported {holons.Count} holon(s) for avatar '{avatarId}'."
+            };
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
