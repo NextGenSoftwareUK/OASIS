@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Turso task revision `90efc6f1db67` replaces holon deletion's read and update with one conditional Hrana statement returning the deleted payload. The [native concurrent deletion regression](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44020548498) is queued. It requires one acknowledged deletion and one `RecordNotFound` for two callers acting on the same holon. This change is on the task branch pending qualification.
+
 2026-11-17 UTC — Development fast-forwarded from `baa5bdf51b74` to verified Turso storage revision `961b6a881ae4`. The [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44017772140) published digest `sha256:e1b68d9701247173ca4b362ea033f71666c144ff85e82019b19ae8c4546cc081`. All seven predecessor Railway dev services had succeeded. Railway queued WEB4–WEB10 for `961b6a881ae4` at 04:51:30 UTC. Verify the deployed revision and WEB4 health before recording live acceptance. Review the next shared Development batch after 05:21:30 UTC.
 
 2026-11-17 UTC — The Turso authenticated BootLoader candidate `1a5e674789f8` sits directly above the deployed storage candidate on `work/hyperdrive-turso-bootloader-qualification`. Its [exact native activation run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44019422953) passed. The [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44020086386) queued after the shared image queue cleared. The BootLoader change still requires Development integration and hosted acceptance.
