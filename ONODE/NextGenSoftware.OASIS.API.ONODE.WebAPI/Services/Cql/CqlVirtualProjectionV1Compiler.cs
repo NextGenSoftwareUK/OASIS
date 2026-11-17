@@ -53,6 +53,20 @@ public static partial class CqlV1Compiler
             if (filter == null || filter.Field != null || filter.MetadataPath is not { Length: 1 })
                 throw new ArgumentException("Mixed projection requires a direct mapped scalar metadata field.");
             RequireVirtualField(filter.MetadataPath[0]);
+            if (filter.Operator is CqlV1Operator.Contains or CqlV1Operator.StartsWith or CqlV1Operator.EndsWith)
+            {
+                if (filter.Function != null || filter.Scalar != CqlV1Scalar.String)
+                    throw new ArgumentException("Virtual string matches require one declared string input.");
+                var method = filter.Operator switch
+                {
+                    CqlV1Operator.Contains => NativeRecordFunction.Contains,
+                    CqlV1Operator.StartsWith => NativeRecordFunction.StartsWith,
+                    _ => NativeRecordFunction.EndsWith
+                };
+                return new NativeRecordFilter(filter.MetadataPath[0],
+                    NextGenSoftware.OASIS.API.Core.Queries.CosmicQueryComparisonOperator.Equal,
+                    Literal(filter.Value, typeof(string)).Value, method);
+            }
             var operation = filter.Operator switch
             {
                 CqlV1Operator.Equal => NextGenSoftware.OASIS.API.Core.Queries.CosmicQueryComparisonOperator.Equal,

@@ -182,6 +182,16 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     var units = NeoCqlTranslator.Utf16LengthUnits(property, "$" + pattern);
                     predicates.Add($"CASE WHEN {property} IS :: STRING THEN {units} {symbol} ${parameter} ELSE false END");
                 }
+                else if (match.Function is NativeRecordFunction.Contains or NativeRecordFunction.StartsWith or NativeRecordFunction.EndsWith)
+                {
+                    var method = match.Function switch
+                    {
+                        NativeRecordFunction.Contains => "CONTAINS",
+                        NativeRecordFunction.StartsWith => "STARTS WITH",
+                        _ => "ENDS WITH"
+                    };
+                    predicates.Add($"CASE WHEN {property} IS :: STRING THEN {property} {method} ${parameter} ELSE false END");
+                }
                 else
                     predicates.Add($"{property} IS :: {type} AND {property} {symbol} ${parameter}");
                 parameters.Add(parameter, match.Value);

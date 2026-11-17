@@ -206,6 +206,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     };
                     if (match.Function == NativeRecordFunction.Utf16Length)
                         predicates.Add($"CASE WHEN typeof({column}) = 'text' THEN {SqliteCqlReadBudget.TextStringLengthFunction}({column}) {symbol} $match{index} ELSE 0 END");
+                    else if (match.Function is NativeRecordFunction.Contains or NativeRecordFunction.StartsWith or NativeRecordFunction.EndsWith)
+                    {
+                        predicates.Add($"CASE WHEN typeof({column}) = 'text' THEN {SqliteCqlReadBudget.TextStringMatchFunction}({column}, $match{index}, $function{index}) ELSE 0 END");
+                        command.Parameters.AddWithValue($"$function{index}", (long)match.Function);
+                    }
                     else
                     {
                         var atomic = $"typeof({column}) = $type{index} AND {column} COLLATE BINARY {symbol} $match{index}";

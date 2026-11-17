@@ -350,18 +350,29 @@ internal sealed partial class MongoCqlTranslator
             });
             case CosmicQueryStringLength length: return At(length.Path, value =>
                 Utf16LengthComparison(value, length.Operator, length.Value));
-            case CosmicQueryStringMatch match:return At(match.Path,value=>{
-                BsonValue content=Literal(match.Value);BsonValue expression;
-                if(match.Operator==CosmicQueryStringOperator.EndsWith)
-                {
-                    var offset=Op("$subtract",new BsonDocument("$strLenBytes",value),new BsonDocument("$strLenBytes",content));
-                    expression=Choose(Op("$gte",offset,Literal(0)),Op("$eq",Op("$indexOfBytes",value,content,offset),offset),Literal(false));
-                }
-                else expression=Op(match.Operator==CosmicQueryStringOperator.Contains?"$gte":"$eq",Op("$indexOfBytes",value,content),Literal(0));
-                return Choose(Domain(value,typeof(string)),expression,Literal(false));
-            });
+            case CosmicQueryStringMatch match: return At(match.Path, value =>
+                OrdinalStringMatch(value, match.Operator, match.Value));
             default:throw new NotSupportedException("MongoDB CQL predicate is unsupported.");
         }
+    }
+
+    // Stored and mapped strings use one native ordinal match expression.
+    internal static BsonValue OrdinalStringMatch(BsonValue value,
+        CosmicQueryStringOperator operation, string text)
+    {
+        BsonValue content = Literal(text);
+        BsonValue expression;
+        if (operation == CosmicQueryStringOperator.EndsWith)
+        {
+            var offset = Op("$subtract", new BsonDocument("$strLenBytes", value),
+                new BsonDocument("$strLenBytes", content));
+            expression = Choose(Op("$gte", offset, Literal(0)),
+                Op("$eq", Op("$indexOfBytes", value, content, offset), offset), Literal(false));
+        }
+        else
+            expression = Op(operation == CosmicQueryStringOperator.Contains ? "$gte" : "$eq",
+                Op("$indexOfBytes", value, content), Literal(0));
+        return Choose(Domain(value, typeof(string)), expression, Literal(false));
     }
 
     // Stored and mapped native rows must count the same UTF-16 units.
