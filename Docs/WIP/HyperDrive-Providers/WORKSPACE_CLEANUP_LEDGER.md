@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Sandbox routing/discovery source and compiled-artifact regression were prepared without a local .NET build/runtime/environment or database. Syntax checks reused the installed host compiler. Exact candidate 7756987c72e8 used one private Git index, removed in finally with any lock; its dependency manifest check passed. One remote CI run selects the newly changed discovery case, avoiding the accepted thousand-case rerun. CI owns its build outputs. No local result archive or fixture was created; the existing policy-blocked browser directory remains recorded.
+
 2026-11-17 UTC — Concurrent dev integration and contract repair used Git merge/tree objects and sole private indexes removed in finally. Exact combined tests and full tracked JS endpoint scan read Git blobs in memory; no hydrated source copy, dependency install, environment, local build, result artifact or fixture was created. API specs were fetched into memory; only the tracked generated endpoint map is retained as source. No additional browser profile was created. The separately tracked 15.44 MiB policy-blocked stopped-browser profile remains unresolved.
 
 2026-11-17 UTC — Public health sample and zero-latency ordering regression used existing Python/Node in memory with no fixture, download, report or environment. Scoped successor construction removed its sole temporary Git index/lock in finally. No new browser profile was created. Previously recorded policy-blocked profile remains tracked, not claimed removed.
