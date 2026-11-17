@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Railway WEB4 dev reached SUCCESS on `031a8cb55ce5`. Signed shipping SDK Clan verification passed create, owner add, member visibility, unauthorized removal denial, self-removal and final membership readback. Signed watch-only Solana Wallet verification passed public-key link, one token balance row, two 50-entry activity pages without overlap, supported chains and portfolio endpoint acknowledgment. The initial Wallet read batch completed in 2.54 seconds. Trade/signing and populated mainnet USD valuation remain open. The portal candidate `411bc338b5cc` awaits its next dev integration window and browser acceptance.
+
 2026-11-17 UTC — OPORTAL dev advanced to `c9215739480b` after the 30-minute window opened. The live /messages shell serves the exact tested `20261117m` script with the duplicate-send and unread acknowledgment fixes. Hosted signed writes remain open. Clan/Wallet portal candidate `411bc338b5cc` preserves the Messages release and awaits signed WEB4 acceptance. Temporary staging indexes were removed and no local build or fixture was created.
 
 2026-11-17 UTC — Development fast-forwarded once from `fd7c71caea71` to `031a8cb55ce5` after the exact WEB4 image `44101458400` and contracts `44097410575` both passed. Railway queued that exact WEB4 revision at 14:48:01 UTC. Verify the serving revision before running signed Clan and watch-only Wallet tests. The next shared Development review is after 15:18 UTC. No local build or fixture was created.
