@@ -777,6 +777,8 @@ Status: missing account/configuration information,2 November2026. David approved
 
 ## Emergency disk cleanup — 2026-11-16, verified complete. The execution tool rejected removal of two individually checked disposable directories. The completed HyperDrive build output is now verified absent. The inactive Visual Studio installer staging folder (6.38 GiB) is also verified absent. C: reported 21.83 GiB free. Both paths were removed outside this task. Worktree edits and installed packages are outside this action. See the [workspace cleanup ledger](../HyperDrive-Providers/WORKSPACE_CLEANUP_LEDGER.md).
 
+**New exception, 2026-11-17 UTC:** The signed-out popup probe left only its owned browser profile at `C:/Users/David/AppData/Local/Temp/oportal-signed-browser-jac9awrk` (15.44 MiB, 328 files). Browser endpoint is closed and zero processes reference this exact path. Automatic execution review rejected its explicit removal with `blocked by policy`. If removing manually, delete only that exact directory. No credentials or backend fixture were created. The earlier 16 November cleanup remains complete. Engineering retains tracking in the [cleanup ledger](../HyperDrive-Providers/WORKSPACE_CLEANUP_LEDGER.md).
+
 ### Hosted SQL Server verification for WEB4 dev
 
 - **Open, 17 November 2026.** The saved Railway WEB4 dev DNA has no SQL Server connection configured. The shipping SQL Server adapter already passed 52 native storage checks on SQL Server 2022, and both native HyperDrive routing modes have separate evidence.
