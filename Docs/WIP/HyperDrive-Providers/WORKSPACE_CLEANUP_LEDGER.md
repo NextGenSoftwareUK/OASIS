@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Progressive popup loader/binding checks use existing Node, in-memory deferred HTTP replies and DOM fixtures. No downloaded package, runtime environment, browser profile, local build output, screenshot, result artifact or backend fixture was created. Retained only the source regression; no generated resources require removal.
+
 2026-11-17 UTC — Subscription order contract changes used existing Node and in-memory regression responses only; no downloads, environment, builds, reports or hosted fixtures. The first scoped shared-subscription candidate construction stopped on an indentation-sensitive assertion before creating a commit; its temporary Git index was removed in finally. Corrected construction created candidate 3ba797a5bcad on current portal dev with only shared read validation/cache key/test and removed its index. That candidate predates aaeac7d and is not deployed or full acceptance of the combined subscription increment. Free disk last observed 26.41 GiB.
 
 2026-11-17 UTC — Shared subscription validation and regression used existing Node with in-memory replies. Sparse tracked HTML was read from Git in memory for the existing suite. No dependencies, runtime environment, downloads, browser processes/profiles, local build output, result artifact or backend fixtures were created.
