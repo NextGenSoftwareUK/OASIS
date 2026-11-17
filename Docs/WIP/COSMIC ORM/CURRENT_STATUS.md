@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. The first WEB4 virtual mapping read route resolves an existing private mapping definition from its authoritative OASIS store. It checks the avatar and source provider before opening the named connection, and returns detached results from the shipping reader. Registration, mixed CQL and live verification remain open.
+
 17 November UTC. WEB4 Development `a3270f07875a` passed 24 populated SQL-like CQL checks against MongoDB, SQLite and Neo4j. Each returned three null-safe text matches and six distinct pairs for canonical and mapped text, three rows for each outer join including two unmatched rows, and the exact requested page for adjacent UInt64 and UTC values. Queries took 0.46–0.99 seconds. Web4Site `6667ae197060` passed all 281 tests and was pushed to the existing sandbox branch. Hosted website preview acceptance is pending.
 
 17 November UTC. The virtual mapping query binds approved metadata aliases to a bounded native equality and projection, checks owner and source connection identity before dispatch, and returns detached rows with mapping provenance. Saved mapping registration, app-scoped policy and mixed CQL execution remain open.
