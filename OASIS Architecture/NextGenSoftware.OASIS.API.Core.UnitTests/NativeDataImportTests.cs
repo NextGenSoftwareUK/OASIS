@@ -37,6 +37,17 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
             Assert.Equal(fetched, next.FetchedAt);
             Assert.Single(first.MetaData);
             Assert.Equal("fresh", first.MetaData["Name"]);
+            var snapshot = first.PrepareSnapshot(Owner);
+            Assert.Equal(first.Id, snapshot.Id);
+            Assert.Equal(Owner, snapshot.CreatedByAvatarId);
+            Assert.False(snapshot.IsPublic);
+            Assert.Equal("fresh", snapshot.MetaData["Name"]);
+            Assert.False(snapshot.MetaData.ContainsKey("secret"));
+            var provenance = Assert.IsType<Dictionary<string, object>>(snapshot.MetaData["oasis.virtual.snapshot"]);
+            Assert.Equal(mapping.ToString("D"), provenance["mappingId"]);
+            Assert.Equal(1, provenance["mappingVersion"]);
+            Assert.Equal("MongoDBOASIS", provenance["provider"]);
+            Assert.Throws<ArgumentException>(() => first.PrepareSnapshot(Guid.NewGuid()));
             Assert.NotEqual(first.Id, VirtualHolonRead.FromNative(Guid.NewGuid(), ProviderType.MongoDBOASIS,
                 mapping, 1, connection, "people", fetched, row, fields).Id);
             Assert.Throws<ArgumentException>(() => VirtualHolonRead.FromNative(Owner, ProviderType.MongoDBOASIS,
@@ -88,7 +99,11 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
             Assert.Equal("people", definition.MetaData["oasis.virtual.source"]);
             Assert.DoesNotContain(authority, definition.MetaData.Values.OfType<string>());
 
+            Assert.Throws<ArgumentException>(() => VirtualHolonMapping.FromDefinitionHolon(Owner, definition, authority));
+            definition.Version = 7; // The authoritative version is assigned by the conditional Holon store.
+            definition.MetaData["oasis.virtual.version"] = "99";
             var restored = VirtualHolonMapping.FromDefinitionHolon(Owner, definition, authority);
+            Assert.Equal(7, restored.Version);
             Assert.Equal(mapping.Id, restored.Id);
             Assert.Equal("label", restored.Fields["Name"]);
             Assert.Throws<ArgumentException>(() => VirtualHolonMapping.FromDefinitionHolon(Guid.NewGuid(),

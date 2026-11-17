@@ -124,7 +124,7 @@ public static partial class CqlV1Endpoint
             }
         }
         return JsonResponse(new OASISResult<object>(new { version = "cql-projection-v1", provider = selected.ToString(),
-            columns = SelectedWireColumns(intent.Columns), rows, provenance }) { IsLoaded = true });
+            columns = SelectedWireColumns(intent.Columns), rows, provenance, canPrepareSnapshot = true }) { IsLoaded = true });
     }
 
     private static object SelectedWireColumns(IReadOnlyList<CosmicProjectionColumn> columns)

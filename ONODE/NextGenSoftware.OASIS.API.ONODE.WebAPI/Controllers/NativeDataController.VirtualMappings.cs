@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +23,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             public JsonElement MatchValue { get; set; }
             public string[] Select { get; set; }
             public int Take { get; set; }
+        }
+
+        public sealed class VirtualMappingSnapshotRequest
+        {
+            public Guid RowId { get; set; }
+            public VirtualMappingQueryRequest Query { get; set; }
         }
 
         public sealed class VirtualMappingDefinitionRequest
@@ -83,16 +90,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (request == null || id == Guid.Empty)
                 return BadRequest(VirtualReadError("VIRTUAL_HOLON_QUERY_INVALID", "A mapping ID and query are required."));
 
-            object match = (request.MatchType, request.MatchValue.ValueKind) switch
-            {
-                ("String", JsonValueKind.String) => request.MatchValue.GetString(),
-                ("Boolean", JsonValueKind.True or JsonValueKind.False) => request.MatchValue.GetBoolean(),
-                ("Int32", JsonValueKind.Number) when request.MatchValue.TryGetInt32(out var number) => number,
-                ("Int64", JsonValueKind.String) when long.TryParse(request.MatchValue.GetString(),
-                    System.Globalization.NumberStyles.AllowLeadingSign,
-                    System.Globalization.CultureInfo.InvariantCulture, out var number) => number,
-                _ => null
-            };
+            var match = ParseVirtualMatch(request);
             if (match == null)
                 return BadRequest(VirtualReadError("VIRTUAL_HOLON_QUERY_INVALID", "Provide a typed String, Boolean, Int32 or decimal-string Int64 match."));
 
@@ -104,6 +102,59 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return StatusCode(503, result);
             return Respond(result);
         }
+
+        [HttpPost("{providerType}/virtual-mappings/{id:guid}/snapshot/prepare")]
+        public async Task<ActionResult<OASISResult<Holon>>> PrepareVirtualSnapshot(
+            ProviderType providerType, Guid id, [FromBody] VirtualMappingSnapshotRequest request,
+            CancellationToken cancellationToken)
+        {
+            var avatar = Avatar;
+            if (avatar == null)
+                return Unauthorized();
+            if (id == Guid.Empty || request == null || request.RowId == Guid.Empty || request.Query == null ||
+                ParseVirtualMatch(request.Query) is not { } match)
+                return BadRequest(SnapshotError("VIRTUAL_SNAPSHOT_INVALID", "Provide a mapping, selected row and typed query."));
+
+            var query = request.Query;
+            var rows = await CqlV1Providers.QueryOwnedVirtualMappingAsync(HolonManager,
+                ProviderManager.Instance.CurrentStorageProvider, id, avatar, providerType, query.MatchField,
+                match, query.Select, query.Take, cancellationToken);
+            if (rows.IsError)
+            {
+                var error = SnapshotError(rows.ErrorCode, rows.Message);
+                return rows.ErrorCode switch
+                {
+                    "VIRTUAL_MAPPING_NOT_FOUND" => NotFound(error),
+                    "VIRTUAL_HOLON_QUERY_INVALID" or "NATIVE_QUERY_INVALID" or "VIRTUAL_HOLON_CONNECTION_CHANGED" => BadRequest(error),
+                    "NATIVE_QUERY_PAYLOAD_LIMIT" => StatusCode(413, error),
+                    _ => StatusCode(503, error)
+                };
+            }
+            var row = rows.Result.SingleOrDefault(value => value.Id == request.RowId);
+            if (row == null)
+                return NotFound(SnapshotError("VIRTUAL_SNAPSHOT_ROW_NOT_FOUND", "The selected row is outside the current query result."));
+
+            try { return Ok(new OASISResult<Holon>(row.PrepareSnapshot(avatar.Id))); }
+            catch (ArgumentException)
+            {
+                return BadRequest(SnapshotError("VIRTUAL_SNAPSHOT_INVALID", "The selected fields cannot form a private snapshot."));
+            }
+        }
+
+        private static OASISResult<Holon> SnapshotError(string code, string message) =>
+            new OASISResult<Holon> { IsError = true, ErrorCode = code, Message = message };
+
+        private static object ParseVirtualMatch(VirtualMappingQueryRequest request) =>
+            (request.MatchType, request.MatchValue.ValueKind) switch
+            {
+                ("String", JsonValueKind.String) => request.MatchValue.GetString(),
+                ("Boolean", JsonValueKind.True or JsonValueKind.False) => request.MatchValue.GetBoolean(),
+                ("Int32", JsonValueKind.Number) when request.MatchValue.TryGetInt32(out var number) => number,
+                ("Int64", JsonValueKind.String) when long.TryParse(request.MatchValue.GetString(),
+                    System.Globalization.NumberStyles.AllowLeadingSign,
+                    System.Globalization.CultureInfo.InvariantCulture, out var number) => number,
+                _ => null
+            };
 
         private static OASISResult<IReadOnlyList<VirtualHolonRead>> VirtualReadError(string code, string message) =>
             new OASISResult<IReadOnlyList<VirtualHolonRead>> { IsError = true, ErrorCode = code, Message = message };
