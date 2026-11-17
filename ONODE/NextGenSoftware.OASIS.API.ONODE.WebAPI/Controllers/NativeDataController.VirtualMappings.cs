@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.Common;
 
@@ -20,6 +21,56 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             public JsonElement MatchValue { get; set; }
             public string[] Select { get; set; }
             public int Take { get; set; }
+        }
+
+        public sealed class VirtualMappingDefinitionRequest
+        {
+            public Guid Id { get; set; }
+            public string SourceName { get; set; }
+            public string ConnectionName { get; set; }
+            public Dictionary<string, string> Fields { get; set; }
+        }
+
+        /// <summary>Builds a private definition for the caller to commit through the conditional Holon save route.</summary>
+        [HttpPost("{providerType}/virtual-mappings/prepare")]
+        public async Task<ActionResult<OASISResult<Holon>>> PrepareVirtualMapping(
+            ProviderType providerType, [FromBody] VirtualMappingDefinitionRequest request)
+        {
+            if (Avatar == null)
+                return Unauthorized();
+            if (request == null || request.Id == Guid.Empty || string.IsNullOrWhiteSpace(request.SourceName) ||
+                request.SourceName.Length > 128 || string.IsNullOrWhiteSpace(request.ConnectionName) ||
+                request.ConnectionName.Length > 128)
+                return BadRequest(new OASISResult<Holon> { IsError = true, ErrorCode = "VIRTUAL_MAPPING_INVALID",
+                    Message = "A mapping ID, source name and named connection are required." });
+
+            if (OASISBootLoader.NativeImportReaders.Create(providerType) is not INativeDataQueryProvider reader)
+                return BadRequest(new OASISResult<Holon> { IsError = true, ErrorCode = "VIRTUAL_HOLON_SOURCE_UNAVAILABLE",
+                    Message = "The provider does not support virtual mapping queries." });
+
+            var actor = AvatarId;
+            var connection = await Program.SettingsManager.GetNativeImportConnectionAsync(actor, providerType, request.ConnectionName);
+            if (connection.IsError || connection.Result == null)
+                return BadRequest(new OASISResult<Holon> { IsError = true, ErrorCode = "VIRTUAL_HOLON_SOURCE_UNAVAILABLE",
+                    Message = "The named connection is unavailable." });
+
+            try
+            {
+                var identity = reader.DescribeNativeConnection(connection.Result);
+                var mapping = new VirtualHolonMapping(request.Id, 1, actor, providerType, request.SourceName,
+                    request.ConnectionName, identity, request.Fields);
+                return Ok(new OASISResult<Holon>(mapping.ToDefinitionHolon()));
+            }
+            catch (NativeConnectionRefusedException)
+            {
+                return BadRequest(new OASISResult<Holon> { IsError = true, ErrorCode = "VIRTUAL_HOLON_SOURCE_UNAVAILABLE",
+                    Message = "The named connection cannot be used for a virtual mapping." });
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest(new OASISResult<Holon> { IsError = true, ErrorCode = "VIRTUAL_MAPPING_INVALID",
+                    Message = "Use one to 32 unique approved metadata bindings." });
+            }
         }
 
         [HttpPost("{providerType}/virtual-mappings/{id:guid}/query")]
