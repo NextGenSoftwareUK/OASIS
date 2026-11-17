@@ -63,7 +63,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
         private class PipelineResponse { [JsonPropertyName("results")] public List<PipelineResult>? Results { get; set; } }
         private class PipelineResult { [JsonPropertyName("type")] public string Type { get; set; } = ""; [JsonPropertyName("response")] public PipelineResultBody? Response { get; set; } }
         private class PipelineResultBody { [JsonPropertyName("type")] public string Type { get; set; } = ""; [JsonPropertyName("result")] public LibSqlResult? Result { get; set; } }
-        private class LibSqlResult { [JsonPropertyName("cols")] public List<LibSqlCol>? Cols { get; set; } [JsonPropertyName("rows")] public List<List<LibSqlValue>>? Rows { get; set; } }
+        private class LibSqlResult
+        {
+            [JsonPropertyName("cols")] public List<LibSqlCol>? Cols { get; set; }
+            [JsonPropertyName("rows")] public List<List<LibSqlValue>>? Rows { get; set; }
+            [JsonPropertyName("affected_row_count")] public ulong? AffectedRowCount { get; set; }
+        }
         private class LibSqlCol { [JsonPropertyName("name")] public string Name { get; set; } = ""; }
         private class LibSqlValue { [JsonPropertyName("type")] public string Type { get; set; } = ""; [JsonPropertyName("value")] public string? Value { get; set; } }
 
@@ -254,11 +259,22 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete)
-                    await ExecAsync("UPDATE oasis_avatars SET is_deleted=1 WHERE id=?", new List<LibSqlArg> { Arg(id.ToString()) });
-                else
-                    await ExecAsync("DELETE FROM oasis_avatars WHERE id=?", new List<LibSqlArg> { Arg(id.ToString()) });
-                result.Result = true; result.IsError = false; result.Message = $"TursoOASIS: Avatar '{id}' {(softDelete ? "soft" : "hard")}-deleted.";
+                var deleted = await ExecuteSqlAsync(
+                    softDelete ? "UPDATE oasis_avatars SET is_deleted=1 WHERE id=? AND is_deleted=0"
+                        : "DELETE FROM oasis_avatars WHERE id=?",
+                    new List<LibSqlArg> { Arg(id.ToString()) }).ConfigureAwait(false);
+                if (deleted.AffectedRowCount == 0)
+                    return new OASISResult<bool>
+                    {
+                        IsError = true, ErrorCount = 1, ErrorCode = OASISResultErrorCodes.RecordNotFound,
+                        Message = "Turso found no matching avatar to delete."
+                    };
+                if (deleted.AffectedRowCount != 1)
+                    throw new InvalidOperationException("Turso did not acknowledge exactly one avatar deletion.");
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.Message = $"TursoOASIS: Avatar '{id}' {(softDelete ? "soft" : "hard")}-deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error deleting avatar '{id}': {ex.Message}"); }
             return result;

@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.TursoOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
@@ -76,6 +77,40 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
                 var statement = json.RootElement.GetProperty("results")[0];
                 Assert.AreEqual("ok", statement.GetProperty("type").GetString());
                 return statement.GetProperty("response").GetProperty("result").Clone();
+            }
+        }
+
+        [TestMethod]
+        public async Task NativeAvatarDeletionRequiresOneAffectedRow()
+        {
+            if (Environment.GetEnvironmentVariable("TURSOOASIS_URL") != "http://127.0.0.1:19693" ||
+                Environment.GetEnvironmentVariable("OASIS_TURSO_OWNED_STORAGE_FIXTURE") != "1")
+                Assert.Inconclusive("This test requires the isolated native libSQL runner.");
+            RequireLive();
+            var avatar = new Avatar { Id = Guid.NewGuid(), Username = "native-delete-" + Guid.NewGuid().ToString("N") };
+            Assert.IsFalse((await _provider.SaveAvatarAsync(avatar)).IsError);
+            try
+            {
+                var soft = await _provider.DeleteAvatarAsync(avatar.Id);
+                Assert.IsTrue(soft.IsDeleted, soft.Message);
+                Assert.AreEqual(1, soft.DeletedCount);
+                var hidden = await _provider.LoadAvatarAsync(avatar.Id);
+                Assert.IsNull(hidden.Result);
+
+                var repeatedSoft = await _provider.DeleteAvatarAsync(avatar.Id);
+                Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, repeatedSoft.ErrorCode);
+                Assert.IsFalse(repeatedSoft.IsDeleted);
+
+                var hard = await _provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
+                Assert.IsTrue(hard.IsDeleted, hard.Message);
+                Assert.AreEqual(1, hard.DeletedCount);
+                var repeatedHard = await _provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
+                Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, repeatedHard.ErrorCode);
+                Assert.IsFalse(repeatedHard.IsDeleted);
+            }
+            finally
+            {
+                await _provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
             }
         }
 
