@@ -115,7 +115,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             return statement;
         }
 
-        private async Task ExecAsync(string sql, List<LibSqlArg>? args = null) => await ExecuteSqlAsync(sql, args);
+        private async Task WriteOneAsync(string sql, List<LibSqlArg> args)
+        {
+            var write = await ExecuteSqlAsync(sql, args).ConfigureAwait(false);
+            if (write.AffectedRowCount != 1)
+                throw new InvalidOperationException("Turso did not acknowledge exactly one saved record.");
+        }
 
         private List<Dictionary<string, string?>> ResultToRows(LibSqlResult? result)
         {
@@ -126,6 +131,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
 
         private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
         private static T? Des<T>(string? json) => json == null ? default : JsonSerializer.Deserialize<T>(json, _jsonOpts);
+
+        private static OASISResult<T> MissingRecord<T>(string message) => new()
+        {
+            IsError = true, ErrorCount = 1, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = message
+        };
 
         // ─── Schema bootstrap ─────────────────────────────────────────────────────
 
@@ -181,10 +191,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                 if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
                 if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.TursoOASIS] = avatar.Id.ToString();
-                await ExecAsync(
+                await WriteOneAsync(
                     "INSERT INTO oasis_avatars(id,username,email,is_deleted,data_json) VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET username=excluded.username,email=excluded.email,is_deleted=excluded.is_deleted,data_json=excluded.data_json",
                     new List<LibSqlArg> { Arg(avatar.Id.ToString()), Arg(avatar.Username), Arg(avatar.Email), ArgInt(avatar.IsDeleted ? 1 : 0), Arg(Ser(avatar)) });
-                result.Result = avatar; result.IsError = false; result.Message = $"TursoOASIS: Avatar '{avatar.Username}' saved.";
+                result.Result = avatar;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = $"TursoOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error saving avatar: {ex.Message}"); }
             return result;
@@ -208,8 +221,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             try
             {
                 var avatar = await QueryAvatarAsync("SELECT data_json FROM oasis_avatars WHERE id=? AND is_deleted=0 LIMIT 1", new List<LibSqlArg> { Arg(id.ToString()) });
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"TursoOASIS: No avatar found for ID '{id}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"TursoOASIS: Avatar loaded for ID '{id}'.";
+                if (avatar == null)
+                    return MissingRecord<IAvatar>($"TursoOASIS: No avatar found for ID '{id}'.");
+                result.Result = avatar;
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
+                result.Message = $"TursoOASIS: Avatar loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error loading avatar '{id}': {ex.Message}"); }
             return result;
@@ -223,8 +240,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             try
             {
                 var avatar = await QueryAvatarAsync("SELECT data_json FROM oasis_avatars WHERE username=? AND is_deleted=0 LIMIT 1", new List<LibSqlArg> { Arg(username) });
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"TursoOASIS: No avatar found for username '{username}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"TursoOASIS: Avatar loaded for username '{username}'.";
+                if (avatar == null)
+                    return MissingRecord<IAvatar>($"TursoOASIS: No avatar found for username '{username}'.");
+                result.Result = avatar;
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
+                result.Message = $"TursoOASIS: Avatar loaded for username '{username}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error loading avatar by username '{username}': {ex.Message}"); }
             return result;
@@ -238,8 +259,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             try
             {
                 var avatar = await QueryAvatarAsync("SELECT data_json FROM oasis_avatars WHERE email=? AND is_deleted=0 LIMIT 1", new List<LibSqlArg> { Arg(avatarEmail) });
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"TursoOASIS: No avatar found for email '{avatarEmail}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"TursoOASIS: Avatar loaded for email '{avatarEmail}'.";
+                if (avatar == null)
+                    return MissingRecord<IAvatar>($"TursoOASIS: No avatar found for email '{avatarEmail}'.");
+                result.Result = avatar;
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
+                result.Message = $"TursoOASIS: Avatar loaded for email '{avatarEmail}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error loading avatar by email '{avatarEmail}': {ex.Message}"); }
             return result;
@@ -331,10 +356,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             try
             {
                 if (avatarDetail.Id == Guid.Empty) avatarDetail.Id = Guid.NewGuid();
-                await ExecAsync(
+                await WriteOneAsync(
                     "INSERT INTO oasis_avatar_details(id,username,email,data_json) VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET username=excluded.username,email=excluded.email,data_json=excluded.data_json",
                     new List<LibSqlArg> { Arg(avatarDetail.Id.ToString()), Arg(avatarDetail.Username), Arg(avatarDetail.Email), Arg(Ser(avatarDetail)) });
-                result.Result = avatarDetail; result.IsError = false; result.Message = "TursoOASIS: AvatarDetail saved.";
+                result.Result = avatarDetail;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = "TursoOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error saving avatar detail: {ex.Message}"); }
             return result;
@@ -415,10 +443,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
                 if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.TursoOASIS] = holon.Id.ToString();
-                await ExecAsync(
+                await WriteOneAsync(
                     "INSERT INTO oasis_holons(id,parent_holon_id,holon_type,is_deleted,data_json) VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET parent_holon_id=excluded.parent_holon_id,holon_type=excluded.holon_type,is_deleted=excluded.is_deleted,data_json=excluded.data_json",
                     new List<LibSqlArg> { Arg(holon.Id.ToString()), Arg(holon.ParentHolonId == Guid.Empty ? null : holon.ParentHolonId.ToString()), ArgInt((int)holon.HolonType), ArgInt(holon.IsDeleted ? 1 : 0), Arg(Ser(holon)) });
-                result.Result = holon; result.IsError = false; result.Message = $"TursoOASIS: Holon '{holon.Name}' saved.";
+                result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = $"TursoOASIS: Holon '{holon.Name}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error saving holon '{holon.Name}': {ex.Message}"); }
             return result;

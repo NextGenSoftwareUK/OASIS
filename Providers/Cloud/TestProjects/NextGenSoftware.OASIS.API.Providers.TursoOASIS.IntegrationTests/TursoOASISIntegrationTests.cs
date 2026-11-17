@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.TursoOASIS;
+using NextGenSoftware.OASIS.Providers.TestSupport;
 
 namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
 {
@@ -86,6 +87,40 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             Assert.IsTrue(_provider.IsProviderActivated);
             var schema = await ExecuteFixtureSql(client, "SELECT name FROM sqlite_master WHERE name IN ('oasis_avatars', 'oasis_avatar_details', 'oasis_holons', 'idx_avatars_username', 'idx_avatars_email', 'idx_holons_parent', 'idx_holons_type')");
             Assert.AreEqual(7, schema.GetProperty("rows").GetArrayLength());
+        }
+
+        [DataTestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task CoreStorageSuiteAgainstNativeLibSql(bool synchronous)
+        {
+            RequireOwnedFixture();
+            using var client = new HttpClient();
+            var report = await CoreStorageConformance.RunAsync(
+                _provider, nameof(TursoOASIS), "native", synchronous, _ => Task.CompletedTask,
+                cleanupSoftDeletedFixture: async (id, _) =>
+                {
+                    var deleted = await ExecuteFixtureSql(client, $"DELETE FROM oasis_holons WHERE id = '{id:D}' AND is_deleted = 1");
+                    var count = deleted.GetProperty("affected_row_count").GetInt32();
+                    return new OASISResult<bool> { Result = count == 1, IsDeleted = count == 1, DeletedCount = count };
+                },
+                expectedDefaultDeletion: "soft",
+                observeNativeTombstone: async (id, owner, name) =>
+                {
+                    var readback = await ExecuteFixtureSql(client, $"SELECT data_json FROM oasis_holons WHERE id = '{id:D}' AND is_deleted = 1");
+                    var rows = readback.GetProperty("rows");
+                    if (rows.GetArrayLength() == 0)
+                        return false;
+                    Assert.AreEqual(1, rows.GetArrayLength());
+                    using var payload = JsonDocument.Parse(rows[0][0].GetProperty("value").GetString()!);
+                    Assert.AreEqual(owner, payload.RootElement.GetProperty("createdByAvatarId").GetGuid());
+                    Assert.AreEqual(name, payload.RootElement.GetProperty("name").GetString());
+                    return true;
+                });
+            Assert.IsTrue(report.Succeeded,
+                $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}; {report.Passed.Count} checks passed.");
+            Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+            Assert.IsTrue(report.FixtureCleanupComplete);
         }
 
         private void RequireOwnedFixture()
