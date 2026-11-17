@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Traced the watch-only Wallet import error to KeyManager creating and encrypting an unrelated random recovery phrase during public-key linking. Core branch `work/hyperdrive-watch-only-wallet` commit `43cca09c` removes that credential generation and skips decryption when no phrase exists. Existing encrypted credentials still require their retained key. Build and signed hosted verification remain open. The Clan contract and shared image builds were still running.
+
 2026-11-17 UTC — Exact Clan root-only candidate `2e2c91395f64` is in [contract CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44095447025). Its Core gitlink and Railway pin match. Read-only WEB4 catalogue inspection confirmed that both failed Clan creates persisted as `947d6d2c-541a-400a-bf6a-5f1e1a6fcc5b` and `544ab861-d337-4352-b0b7-4634b8f9294a`. The existing owner action now lists the exact IDs for scoped cleanup.
 
 2026-11-17 UTC — The exact deployed Clan manager selected recursive child saves on creation although the Clan payload has no child graph and stores membership and inventory in root metadata. Its update and inventory paths already save only the root. Core qualification branch `ce64d920` uses the same root-only save for creation while retaining HyperDrive replication. Compile and live signed verification remain open. The public Wallet import failure is covered by the existing WEB4 dev wallet key owner action; no credential changes were made.
