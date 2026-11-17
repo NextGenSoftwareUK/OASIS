@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — WEB4 acknowledged deletion of the disposable avatar used to exercise the staged HyperDrive popup. SDK and popup verification ran in memory without retained files.
+
 2026-11-17 UTC — Removed the temporary Git index for the scoped HyperDrive popup release. The focused popup test used memory and created no local build output or backend fixtures.
 
 2026-11-17 UTC — Staged the Messaging and CQL merge using Git objects and removed its temporary index. No checkout, downloaded build output or test fixtures were retained.
