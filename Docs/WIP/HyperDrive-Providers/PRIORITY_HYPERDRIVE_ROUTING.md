@@ -1,5 +1,7 @@
 # Priority provider HyperDrive routing evidence
 
+2026-11-17 UTC — Hosted HoloOASIS housekeeping and recovery verified on Railway dev WEB4 4d0d2022170c. Removed 134 unused listeners and restarted the exact deployment. The original wallet-guard cell retained one canonical listener, including after a signed public CQL query returned three distinct rows in 810 ms. The verified result covers listener cleanup, restart and hosted public read. Hosted authority-bound graph writes and replication remain open. [Native restart regression](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43983803407).
+
 12 November 2026. This ledger tracks automatic routing for the priority providers. A direct provider lifecycle pass is evidence that a backend can store the fixture. A routing pass also requires the shipping HyperDrive entry point and evidence of the provider that served the request or received the replica.
 
 | Priority provider | Existing evidence carried forward | Remaining verification |
