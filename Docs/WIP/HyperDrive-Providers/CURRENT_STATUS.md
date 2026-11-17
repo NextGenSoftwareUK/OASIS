@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — One signed dev sandbox dashboard probe returned successful WEB4 results from all ten initial reads. Concurrent completion was 357–400 ms, including subscriptions at 381 ms. This measures API requests from the workstation on a fresh avatar and leaves signed browser rendering and populated-account timing open. The avatar delete request returned HTTP 200 but the probe did not normalize the delete response envelope, so successful cleanup could not be confirmed.
+
 2026-11-17 UTC — OPORTAL dev advanced to `eed9305ae2fa` for the signed dashboard rank and menu rendering fixes. All 23 checks passed on the exact candidate. Vercel deployment `7853894226` succeeded and the dev shell served both versioned scripts byte-for-byte. Signed browser acceptance remains open. The matching Clan/Wallet WEB4 contract run `44086044968` passed; the image `44086400455` is still building. Rebase the staged portal Clan/Wallet changes on the new portal dev revision after WEB4 is ready.
 
 2026-11-17 UTC — OPORTAL task `388dd91` waits for a signed WEB5 session and card visibility before issuing a single dashboard Competition rank request. The dashboard suite confirmed both gates and rendered the acknowledged rank. All 23 checks passed with verification pages read from the dev Git revision because they are absent from the task checkout. Hosted rank remains open. The test used Git blobs in memory with no generated local files.
