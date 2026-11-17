@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL task f7bfd4d polls Chat only when its tab and browser document are visible and allows one history request at a time. It restarts polling when Chat becomes visible, clears the session on logout and rejects old-session results. The focused deferred check passed overlap suppression, hidden tab/page, visibility resume, stale-token suppression, empty rendering and logout. Publication and hosted Chat remain open. No backend fixtures or local outputs were created.
+
 2026-11-17 UTC — OPORTAL task e6eb771 wires Chat session creation to a participant ID array and sends message content as the JSON string WEB4 expects. The active avatar is included, with the entered recipient when supplied. Failed sends preserve the draft and show the application error. A focused check passed both body contracts, failed draft retention and acknowledged clearing. Hosted Chat and dev publication remain open. No real chat or local artifact was created.
 
 2026-11-17 UTC — OPORTAL dev advanced to 6d13b2419426 after its 30-minute window. Hosted Messages 20261117u and dashboard 20261117t exactly match the tested script blobs. Corrected WEB4 image 44133558977 and contracts 44133551601 passed. Development fast-forwarded to 3527154a118d and Railway queued that WEB4 revision at 17:27:06 UTC. Verify the running revision before hosted Messaging reads. Signed delivery and earlier cleanup remain open.
