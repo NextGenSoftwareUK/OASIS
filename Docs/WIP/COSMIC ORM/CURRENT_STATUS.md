@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. The virtual mapping query binds approved metadata aliases to a bounded native equality and projection, checks owner and source connection identity before dispatch, and returns detached rows with mapping provenance. Saved mapping registration, app-scoped policy and mixed CQL execution remain open.
+
 17 November UTC. The virtual read contract now gives the shipping native query provider a shared capability and binds detached rows to the same owner/provider/connection/source/key identity as explicit import. It preserves mapping revision and fetch time and returns only projected metadata. The repository tests cover import-compatible identity, owner separation and projection. Saved mapping admission and mixed execution remain open.
 
 17 November UTC. The first virtual mapping candidate adds bounded native scalar equality and explicit field projection to the shipping MongoDB provider. It uses the existing native connection admission and scalar normalizer. The isolated fixture checks case and type behavior against array false positives, exclusion of unprojected fields, live source edits and stable native keys. Provider CI, saved mapping admission, ephemeral Holon identity and CQL/WEB4 integration remain open.
