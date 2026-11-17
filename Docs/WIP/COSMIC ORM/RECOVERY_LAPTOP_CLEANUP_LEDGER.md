@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. Three live mixed conjunction browser checks reused installed Chrome and bundled Node. Each signed out, removed its profile and verified absence of its four test Holons. The stores were sampled read-only. No downloads, provider database copies or local builds were created. The attempted two-copy command exceeded the Windows command length before process start. The actual checks used one script with a sequential provider loop.
+
 17 November UTC. Named-connection test commits used disposable Git indexes. The website test run reused installed Node with a temporary Git snapshot removed on exit. The MongoDB CI report was inspected in memory. No provider fixture, browser profile or build output was created locally in these checks.
 
 17 November UTC. The field-name browser regression reused the installed Chrome and bundled Node. No definition Holon was created, the visitor signed out, and the owned Chrome profile was removed. No provider data, package downloads or local build outputs were created.
