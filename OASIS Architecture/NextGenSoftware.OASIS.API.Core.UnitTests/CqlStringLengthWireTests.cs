@@ -97,10 +97,16 @@ public sealed class CqlStringLengthWireTests
     }
 
     [Fact]
-    public void VirtualEqualityCannotSilentlyDiscardTheFunction()
+    public void VirtualLengthPreservesTheInputAndExactBound()
     {
         var filter = Request("2", metadata: true).Filters[0];
         filter.Operator = CqlV1Operator.Equal;
+        var native = Assert.Single(CqlV1Compiler.CompileVirtualMatches(new[] { filter }));
+        Assert.Equal(NextGenSoftware.OASIS.API.Core.Objects.NativeData.NativeRecordFunction.Utf16Length, native.Function);
+        Assert.Equal(typeof(string), native.InputType);
+        Assert.Equal(2L, Assert.IsType<long>(native.Value));
+        Assert.Equal("title", native.Field);
+        filter.Function = (CqlV1Function)99;
         Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileVirtualMatches(new[] { filter }));
     }
 

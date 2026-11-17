@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.API.Core.Queries;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -114,17 +115,38 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             QueryNativeRecordsAsync(sourceName, new[] { new KeyValuePair<string, object>(matchField, matchValue) },
                 fields, limit, connection, cancellationToken);
 
-        public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
+        public Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
             string sourceName, IReadOnlyList<KeyValuePair<string, object>> matches, IReadOnlyList<string> fields, int limit,
             NativeConnection connection = null, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(sourceName) ||
-                matches == null || matches.Count is < 1 or > 8 ||
-                matches.Any(match => !IsVirtualField(match.Key) ||
-                    match.Value is not (string { Length: <= 4096 } or bool)) ||
-                fields == null || fields.Count is < 1 or > 32 || fields.Any(field => !IsVirtualField(field)) ||
-                fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || limit is < 1 or > 100)
-                return RefuseVirtual("NATIVE_QUERY_INVALID", "Use an admitted Cosmos container, exact String or Boolean matches and bounded fields.");
+            try
+            {
+                return QueryNativePredicateRecordsAsync(sourceName, NativeRecordFilter.CaptureEqualities(matches),
+                    fields, limit, connection, cancellationToken);
+            }
+            catch (ArgumentException)
+            {
+                return Task.FromResult(RefuseVirtual("NATIVE_QUERY_INVALID", "One to eight typed scalar matches are required."));
+            }
+        }
+
+        public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativePredicateRecordsAsync(
+            string sourceName, IReadOnlyList<NativeRecordFilter> matches, IReadOnlyList<string> fields, int limit,
+            NativeConnection connection = null, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(sourceName))
+                return RefuseVirtual("NATIVE_QUERY_INVALID", "Select an admitted Cosmos container.");
+            QueryDefinition query;
+            try
+            {
+                matches = NativeRecordFilter.Capture(matches);
+                fields = fields?.ToArray();
+                query = NativeVirtualQuery(matches, fields, limit);
+            }
+            catch (ArgumentException)
+            {
+                return RefuseVirtual("NATIVE_QUERY_INVALID", "Use bounded String or Boolean equality/inequality with this Cosmos reader.");
+            }
 
             try
             {
@@ -137,7 +159,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 if (!HasStableVirtualIdentity(properties.PartitionKeyPaths))
                     return RefuseVirtual("NATIVE_QUERY_INVALID", "Virtual Cosmos queries require /id as the partition key to preserve import identity.");
 
-                using var iterator = container.GetItemQueryIterator<JObject>(NativeVirtualQuery(matches, fields, limit),
+                using var iterator = container.GetItemQueryIterator<JObject>(query,
                     requestOptions: new QueryRequestOptions { MaxItemCount = limit });
                 var records = new List<NativeRecord>(limit);
                 long remainingBytes = 1024 * 1024;
@@ -175,16 +197,29 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             !field.StartsWith("_", StringComparison.Ordinal) && !field.Any(char.IsControl);
 
         internal static QueryDefinition NativeVirtualQuery(IReadOnlyList<KeyValuePair<string, object>> matches,
+            IReadOnlyList<string> fields, int limit) =>
+            NativeVirtualQuery(NativeRecordFilter.CaptureEqualities(matches), fields, limit);
+
+        internal static QueryDefinition NativeVirtualQuery(IReadOnlyList<NativeRecordFilter> matches,
             IReadOnlyList<string> fields, int limit)
         {
+            if (matches == null || matches.Count is < 1 or > 8 ||
+                matches.Any(match => match == null || !IsVirtualField(match.Field) ||
+                    match.Function != NativeRecordFunction.None ||
+                    match.Operator is not (CosmicQueryComparisonOperator.Equal or CosmicQueryComparisonOperator.NotEqual) ||
+                    match.Value is not (string { Length: <= 4096 } or bool)) ||
+                fields == null || fields.Count is < 1 or > 32 || fields.Any(field => !IsVirtualField(field)) ||
+                fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || limit is < 1 or > 100)
+                throw new ArgumentException("This Cosmos reader admits bounded String or Boolean equality/inequality.");
             static string Property(string field) => "c[" + JsonConvert.ToString(field) + "]";
             var columns = fields.Prepend("id").Distinct(StringComparer.Ordinal)
                 .Select(field => JsonConvert.ToString(field) + ": " + Property(field));
             var predicates = matches.Select((match, index) =>
             {
-                var property = Property(match.Key);
+                var property = Property(match.Field);
                 var type = match.Value is string ? "IS_STRING" : "IS_BOOL";
-                return $"{type}({property}) AND {property} = @match{index}";
+                var symbol = match.Operator == CosmicQueryComparisonOperator.Equal ? "=" : "!=";
+                return $"{type}({property}) AND {property} {symbol} @match{index}";
             });
             var query = new QueryDefinition($"SELECT TOP @take VALUE {{{string.Join(", ", columns)}}} FROM c " +
                 $"WHERE {string.Join(" AND ", predicates)} ORDER BY c.id").WithParameter("@take", limit);

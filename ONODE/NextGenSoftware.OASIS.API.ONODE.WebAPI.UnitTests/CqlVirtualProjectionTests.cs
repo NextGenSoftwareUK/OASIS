@@ -18,7 +18,7 @@ public sealed class CqlVirtualProjectionTests
         var request = Request();
         var projection = CqlV1Compiler.CompileVirtualProjection(request);
         var match = Assert.Single(projection.Matches);
-        Assert.Equal("category", match.Key);
+        Assert.Equal("category", match.Field);
         Assert.Equal("coffee", match.Value);
         Assert.Equal(new[] { "stock" }, projection.ProjectedFields);
 
@@ -88,10 +88,10 @@ public sealed class CqlVirtualProjectionTests
             Value = JsonSerializer.SerializeToElement(true) }).ToArray();
 
         var projection = CqlV1Compiler.CompileVirtualProjection(request);
-        Assert.Equal(new[] { "category", "active" }, projection.Matches.Select(match => match.Key));
+        Assert.Equal(new[] { "category", "active" }, projection.Matches.Select(match => match.Field));
         Assert.Equal(true, Assert.IsType<bool>(projection.Matches[1].Value));
         Assert.Equal(new[] { "name", "category", "active" },
-            NativeDataController.VirtualSnapshotFields(projection.Matches.Select(match => match.Key), new[] { "name" }));
+            NativeDataController.VirtualSnapshotFields(projection.Matches.Select(match => match.Field), new[] { "name" }));
     }
 
     [Fact]
