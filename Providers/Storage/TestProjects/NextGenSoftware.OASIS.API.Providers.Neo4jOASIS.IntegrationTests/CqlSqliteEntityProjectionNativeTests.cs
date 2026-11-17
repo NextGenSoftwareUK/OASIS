@@ -297,19 +297,24 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var orderingSelection = orderingJoin.Result.Select((left, right) => new
         {
             LeftId = left.Id,
-            Amount = CosmicQueryMetadata.Value<long?>(right, "i64")
+            Amount = CosmicQueryMetadata.Value<long?>(right, "i64"),
+            Unsigned = CosmicQueryMetadata.Value<ulong?>(right, "u64"),
+            Occurred = CosmicQueryMetadata.Value<DateTime?>(right, "distinctUtc")
         });
         Assert.IsFalse(orderingSelection.IsError, orderingSelection.Message);
-        var descendingAmount = orderingSelection.Result.OrderByOutput("Amount", descending: true);
-        Assert.IsFalse(descendingAmount.IsError, descendingAmount.Message);
-        var amountPage = descendingAmount.Result.PageOutput(1, 1);
-        Assert.IsFalse(amountPage.IsError, amountPage.Message);
-        var amountPlan = CosmicJoinPlanner.Plan(amountPage.Result, native.QueryProviderType,
-            new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
-        Assert.IsFalse(amountPlan.IsError, amountPlan.Message);
-        var amountRows = await manager.ExecuteJoinQueryAsync(amountPlan.Result, new[] { native });
-        Assert.IsFalse(amountRows.IsError, amountRows.Message + amountRows.Exception);
-        Assert.AreEqual(lowerId, amountRows.Result.Providers.Single().Rows.Single().Value.LeftId);
+        foreach (var (alias, expectedId) in new[] { ("Amount", lowerId), ("Unsigned", lowerId), ("Occurred", parentId) })
+        {
+            var descending = orderingSelection.Result.OrderByOutput(alias, descending: true);
+            Assert.IsFalse(descending.IsError, descending.Message);
+            var page = descending.Result.PageOutput(1, 1);
+            Assert.IsFalse(page.IsError, page.Message);
+            var orderingPlan = CosmicJoinPlanner.Plan(page.Result, native.QueryProviderType,
+                new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
+            Assert.IsFalse(orderingPlan.IsError, orderingPlan.Message);
+            var orderedRows = await manager.ExecuteJoinQueryAsync(orderingPlan.Result, new[] { native });
+            Assert.IsFalse(orderedRows.IsError, orderedRows.Message + orderedRows.Exception);
+            Assert.AreEqual(expectedId, orderedRows.Result.Providers.Single().Rows.Single().Value.LeftId, alias);
+        }
 
         var wireActor = Guid.NewGuid();
         var access = CosmicQueryReadAccess.OwnerOrPublic(wireActor).Result;
