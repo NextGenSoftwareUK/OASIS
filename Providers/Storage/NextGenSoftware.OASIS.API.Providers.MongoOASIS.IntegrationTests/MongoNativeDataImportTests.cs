@@ -103,6 +103,12 @@ public sealed class MongoNativeDataImportTests
             Assert.Equal(new[] { "old", "second" }, selected.Result.Select(row => row.Fields["label"]));
             Assert.All(selected.Result, row => Assert.Single(row.Fields));
 
+            var conjunction = await provider.QueryNativeRecordsAsync("virtual_items",
+                new[] { new KeyValuePair<string, object>("code", "Case"),
+                    new KeyValuePair<string, object>("label", "second") }, new[] { "label" }, 1);
+            Assert.False(conjunction.IsError, conjunction.Message);
+            Assert.Equal(selected.Result[1].NativeKey, Assert.Single(conjunction.Result).NativeKey);
+
             var owner = Guid.NewGuid();
             var identity = provider.DescribeVirtualQueryConnection(null);
             var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, owner, provider.NativeDataProviderType,
