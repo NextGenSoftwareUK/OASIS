@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL dev advanced to `4b67efe7d790` with independent Avatar Search mounting. All 23 automated checks passed on that revision, including readiness while an unrelated popup was still loading. Vercel deployment `7856016520` succeeded, and the `/search` shell served the exact `20261117f` component loader. Signed browser timing remains open. Clan/Wallet frontend candidate `429207e5494b` now sits atop this portal revision and remains staged while its matching WEB4 image builds.
+
 2026-11-17 UTC — Read the component loader referenced by the deployed OPORTAL dev shell and fetched all 48 distinct HTML fragments it references. All returned nonempty markup without a portal shell rewrite. This checks asset availability. Modal rendering, authenticated interaction and browser timing remain open. No fixtures or files were created.
 
 2026-11-17 UTC — The rebased Clan/Wallet [contract run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44097410575) passed for `031a8cb55ce5`. The shared slot cleared after the superseded image passed. Dispatched one [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44101458400) at 14:15 UTC. Development was still at `fd7c71caea71`, and the seven Railway dev services last reported SUCCESS on that base. No Development or portal push, local build or test fixture for this step.

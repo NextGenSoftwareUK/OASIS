@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed both temporary Git indexes used to stage Avatar Search and rebase the Clan/Wallet portal files. Exact revision checks and live asset comparison used memory only. No local build, downloads or test records were retained.
+
 2026-11-17 UTC — Removed the temporary indexes used to compose combined and rebased Clan/Wallet qualification revisions. Restored the task checkout Core to its recorded gitlink after publishing both scoped Core changes. No local build output, environment or fixture was created.
 
 2026-11-17 UTC — Removed the temporary Git index used to stage the Clan Core pin. The live catalogue read confirmed the two residual Clan fixtures `947d6d2c-541a-400a-bf6a-5f1e1a6fcc5b` and `544ab861-d337-4352-b0b7-4634b8f9294a`; both have deleted owners and await authorized Wizard cleanup. No new test records, downloads or local builds were created.
