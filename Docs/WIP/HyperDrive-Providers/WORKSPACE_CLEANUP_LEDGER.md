@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed the temporary Messaging qualification index and restored the recorded Core gitlink. No local build, dependency, environment or fixture was retained.
+
 2026-11-17 UTC — Signed devnet valuation check cleared its disposable watch-only wallet, read back zero wallets and confirmed self-deletion of the test avatar. No local files or on-chain writes were created.
 
 2026-11-17 UTC — Signed Clan rerun confirmed deletion of its exact Clan and two test avatars. Signed watch-only Wallet rerun cleared the test wallet, verified an empty list and confirmed its avatar deletion. Historical Clan cleanup items remain tracked separately. No local build output, downloads or test files were created.

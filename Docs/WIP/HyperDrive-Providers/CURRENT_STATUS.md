@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Staged Messaging root persistence and stable inbox ordering with address-only Wallet linking on Development `031a8cb55ce5`. Candidate `c280c5fa8ddb` pins Core `9c84f60a9fb0`. [Exact contracts](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44111727677) are running. Shared image run `44105503856` occupies the slot.
+
 2026-11-17 UTC — Signed watch-only devnet Wallet valuation returned incomplete, one unpriced wallet, and no total or priced USD amount. This verifies that WEB4 does not assign mainnet USD prices to devnet holdings. Populated mainnet pricing remains open. The OPORTAL Messages deployment was recorded at 14:54:02 UTC, so use that confirmed timestamp for the next portal cadence check if no earlier push timestamp is available.
 
 2026-11-17 UTC — Railway WEB4 dev reached SUCCESS on `031a8cb55ce5`. Signed shipping SDK Clan verification passed create, owner add, member visibility, unauthorized removal denial, self-removal and final membership readback. Signed watch-only Solana Wallet verification passed public-key link, one token balance row, two 50-entry activity pages without overlap, supported chains and portfolio endpoint acknowledgment. The initial Wallet read batch completed in 2.54 seconds. Trade/signing and populated mainnet USD valuation remain open. The portal candidate `411bc338b5cc` awaits its next dev integration window and browser acceptance.
