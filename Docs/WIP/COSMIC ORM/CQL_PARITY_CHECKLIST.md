@@ -133,7 +133,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | Q06 | Field-to-field comparisons | [✅][O] | [✅][O] | [✅][O] | **DEMO** — Native true/false Int64 path comparisons, canonical-to-metadata Guid and canonical field equality; examples 64–67. Declared path domains only. [All-three native gate][G]. |
 | Q07 | Contains membership over bounded constant sets | [✅][O] | [✅][O] | [✅][O] | **DEMO** — Bounded name/Int64 sets, empty sets, duplicate constants and exact >2^53 values; examples 68–71. [All-three native gate][G]. |
 | Q08 | String Contains/StartsWith/EndsWith translation | [✅][O] | [✅][O] | [✅][O] | **DEMO** — Ordinal Contains/StartsWith/EndsWith: literal metacharacters, empty patterns, case/normalization sensitivity and Unicode fixture; examples 72–88. No culture/ignore-case overload claim. [All-three native gate][G]. |
-| Q09 | String length/case/substring/trim/replace functions | ❌ | ❌ | ❌ | General method translation unverified. |
+| Q09 | String length/case/substring/trim/replace functions | ❌ | ❌ | ❌ | Next implementation starts with UTF-16 string length. Native proof must cover supplementary characters, combining sequences, embedded NUL, empty/missing/null values, typed metadata and filtering before paging. .NET counts UTF-16 units including NUL, MongoDB $strLenCP counts code points, SQLite length stops at NUL, and Neo4j size counts Unicode characters. Direct substitution is insufficient for the .NET contract. See the string-function contract below. |
 | Q10 | Native selected scalar columns / flat records | [✅][D10] | [✅][D10] | [✅][D10] | V1 example10; this is not arbitrary DTO construction. |
 | Q11 | Arbitrary constructor/record/member-init DTO materialization | ❌ | ❌ | ❌ | [Native fixture step](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43624999099/job/132538761529) passed 47 checks per store on candidate 32d5323d06b0, including public positional record projection and exact Int64 constructor binding. [Native fixture step](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43628972019/job/132551098949) passed all 48 checks per store on 712f05c9703e, including a positional record with an init-only property populated from Version. The [Development candidate native gate](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43656275077) passed 50 checks per store including a DTO constructor binding exact Int64 to a read-only public field. [51 native checks per store](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43660806755) also prove constructor inputs without matching member names and a computed DTO result. [Native CI on the current Development graph](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43700814299) passed 53 fixture assertions per store, including a nested DTO constructor and init-only fields from exact native scalar cells. [Exact protocol run 43705396868](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43705396868) passed 54 assertions and fixture cleanup per store, including a nested anonymous member used in a later filter, order and reselection. The full row remains open for broader DTO expressions and post-projection composition over computed members. |
 | Q12 | OrderBy/OrderByDescending with declared scalar domains | [✅][F] | [✅][F] | [✅][F] | Native federation order/tie cases and SDK demo. |
@@ -472,3 +472,31 @@ Provider-breadth milestone1November2026: [ChainLink hosted proof](CHAINLINK_PUBL
 15 November UTC. Core c7a4b39d44aa and feature a6da5d77457f preserve constructor inputs for terminal projection and require explicit member binding to compose over those inputs. The shared native fixture checks the actual transformed terminal value and rejection of native substitution for that member. It was added to MongoDB, SQLite and Neo4j qualification. Computed DTO-member composition remains open.
 
 15 November UTC. The exact Development candidate d7807ff87c7c passed the transformed constructor-member regression, with 52 native projection checks and fixture cleanup per SQLite, MongoDB and Neo4j in [protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43681071778). The [exact image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43682040315) is queued. Computed DTO-member composition remains open.
+
+
+### Q09 string-function contract
+
+The first length translation preserves the observable .NET String.Length result on
+admitted strings. A supplementary character such as U+1F600 has length 2. The
+sequence e plus U+0301 also has length 2. The string abc plus U+0000 plus def has
+length 7. Empty input has length 0. Missing fields, nulls and values from an
+incorrect scalar domain must follow the existing CQL declared-domain and null
+contract. Keep source permissions and filters ahead of paging and terminal
+operations.
+
+The provider compiler must implement this contract within its query execution
+owner. MongoDB $strLenCP and Neo4j size count Unicode code points or characters.
+SQLite length counts code points up to the first NUL. These primitives need a
+translation that preserves the .NET result. Native verification must exercise the
+Unicode and NUL examples on MongoDB, SQLite and Neo4j before enrolling support.
+
+Length is the first increment of Q09. Case conversion, substring indexing and
+bounds, trim character rules and replacement semantics each need their own
+declared behavior and native evidence before the entire row can be accepted.
+
+The .NET length and embedded-NUL behavior is defined in
+[Microsoft documentation](https://learn.microsoft.com/en-us/dotnet/api/system.string.length?view=net-10.0).
+Native semantics are described in
+[MongoDB $strLenCP](https://www.mongodb.com/docs/manual/reference/operator/aggregation/strlencp/),
+[SQLite length](https://www.sqlite.org/lang_corefunc.html#length) and
+[Neo4j size](https://neo4j.com/docs/cypher-manual/current/functions/scalar/#functions-size).
