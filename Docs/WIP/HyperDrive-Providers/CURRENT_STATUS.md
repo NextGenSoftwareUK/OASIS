@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL task `388dd91` waits for a signed WEB5 session and card visibility before issuing a single dashboard Competition rank request. The dashboard suite confirmed both gates and rendered the acknowledged rank. All 23 checks passed with verification pages read from the dev Git revision because they are absent from the task checkout. Hosted rank remains open. The test used Git blobs in memory with no generated local files.
+
 2026-11-17 UTC — OPORTAL task commit `160624a` renders the signed-in account name and menu popup content as plain text. A focused check verified markup-shaped input is displayed literally in both places. No browser environment, dependencies or test files were created. This fix awaits portal deployment.
 
 2026-11-17 UTC — Staged OPORTAL Clan and Wallet candidate `620e4d4ebc20502f01afcc2096113a42a6b19843` atop deployed portal dev `f72e8fb3fa60`. All 23 dashboard and popup behavior checks passed on the staged revision, as did focused Clan editing and Wallet pagination checks. The [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44086400455) for `9295a89892aa` is building. Portal promotion awaits the matching WEB4 deployment and signed hosted checks. Dashboard and popup acceptance remains open, including paid subscription checkout and populated Wallet flows.
