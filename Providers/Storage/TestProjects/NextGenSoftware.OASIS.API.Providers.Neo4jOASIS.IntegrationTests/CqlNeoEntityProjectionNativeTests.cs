@@ -10,15 +10,17 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public sealed partial class CqlProjectedAllAcceptanceTests
 {
     [TestMethod]
+    [DoNotParallelize]
     public async Task NativeNeoEntityProjectionPreservesStagesAndProofBeforeDtoConstruction()
     {
         var rootPath=Environment.GetEnvironmentVariable("OASIS_CQL_NEO_ENTITY_PROJECTION_ROOT")
             ?? throw new InvalidOperationException("Use the explicit Neo entity-projection runner.");
         const string uri="bolt://127.0.0.1:17687";
+        const string username="neo4j", password="oasis-local-test-only";
         var state=Path.Combine(rootPath,"LocalState/COSMIC/NeoEntityProjectionCurrent");Directory.CreateDirectory(state);
         var journal=Path.Combine(state,"fixture.pending.json");
         Assert.IsFalse(File.Exists(journal),"Preserve/reconcile prior projection fixture; never replay creates.");
-        using var driver=GraphDatabase.Driver(uri,AuthTokens.Basic("neo4j","oasis-local-test-only"));
+        using var driver=GraphDatabase.Driver(uri,AuthTokens.Basic(username,password));
         await using var inspection=driver.AsyncSession();
         async Task<long> Count()=> (await (await inspection.RunAsync("MATCH(h:Holon) RETURN count(h) AS n")).SingleAsync())["n"].As<long>();
         Assert.AreEqual(0L,await Count(),"Preserve unexpected native data.");
@@ -31,11 +33,12 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             if(!first)File.Move(next,journal,true);
         }
         await Checkpoint("before-create",true);
-        var provider=new Neo4jOASIS(uri,"neo4j","oasis-local-test-only"){IsVersionControlEnabled=false};var active=false;
+        var provider=new Neo4jOASIS(uri,username,password){IsVersionControlEnabled=false};var active=false;
         try
         {
             var activation=await provider.ActivateProviderAsync();Assert.IsFalse(activation.IsError,activation.Message);active=true;
-            await VerifyVirtualNativeLabel(provider, inspection, actor);
+            await VerifyVirtualNativeLabel(provider, inspection, actor,
+                new NativeConnection { ["uri"] = uri, ["username"] = username, ["password"] = password });
             var saved=await provider.SaveHolonAsync(CreateEntityProjectionFixture(ids,actor,other),saveChildren:true);
             Assert.IsFalse(saved.IsError,saved.Message+saved.Exception);Assert.AreEqual(5L,await Count());
             await Checkpoint("created-awaiting-projection-verification");
@@ -51,7 +54,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             await VerifyNativeFlattening(provider,ids[0],ids[1],checks);
             await VerifyChildSource(provider, actor, ids[0], ids[1], checks);
             await VerifyJoinOutputOrdering(provider, ids, checks);
-            Assert.AreEqual(66,checks.Count);
+            await VerifyNativeStringLength(provider, ids, checks);
+            Assert.AreEqual(100,checks.Count);
             var deactivation=await provider.DeActivateProviderAsync();Assert.IsFalse(deactivation.IsError,deactivation.Message);active=false;
             await Checkpoint("before-exact-cleanup");
             var deleted=await (await inspection.RunAsync("MATCH(h:Holon) WHERE h.Id IN $ids DETACH DELETE h",new{ids=ids.Select(id=>id.ToString("D")).ToArray()})).ConsumeAsync();
@@ -63,7 +67,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         finally{if(active)Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError);}
     }
 
-    private static async Task VerifyVirtualNativeLabel(Neo4jOASIS provider, IAsyncSession inspection, Guid actor)
+    private static async Task VerifyVirtualNativeLabel(Neo4jOASIS provider, IAsyncSession inspection, Guid actor, NativeConnection named)
     {
         var label = "VirtualFixture_" + Guid.NewGuid().ToString("N");
         var precedingLabels = provider.NativeImportLabels;
@@ -111,6 +115,32 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                     new KeyValuePair<string, object>("name", gold.Result[1].Fields["name"]) }, new[] { "name" }, 1);
             Assert.IsFalse(conjunction.IsError, conjunction.Message);
             Assert.AreEqual(gold.Result[1].NativeKey, conjunction.Result.Single().NativeKey);
+
+            // Only this serial test permits its disposable loopback Neo4j fixture.
+            named["labels"] = label;
+            var identity = provider.DescribeVirtualQueryConnection(named);
+            var namedMapping = new VirtualHolonMapping(Guid.NewGuid(), 1, actor, provider.NativeDataProviderType,
+                label, "owned-ci-graph", identity, mapping.Fields);
+            var definition = namedMapping.ToDefinitionHolon();
+            definition.Version = 1;
+            Assert.IsFalse(definition.MetaData.Values.OfType<string>().Any(value => value.Contains(named["password"])));
+            var reopened = VirtualHolonMapping.FromDefinitionHolon(actor, definition, identity);
+            var previousPrivatePolicy = NativeConnectionGuard.AllowPrivateOverride;
+            try
+            {
+                NativeConnectionGuard.AllowPrivateOverride = true;
+                var matching = await reopened.QueryAsync(actor, provider, named, "tier", "Gold", new[] { "name" }, 2);
+                Assert.IsFalse(matching.IsError, matching.Message);
+                CollectionAssert.AreEquivalent(new[] { "Ada updated", "Second Gold" },
+                    matching.Result.Select(result => (string)result.MetaData["name"]).ToArray());
+                var retargeted = new NativeConnection(named) { ["database"] = "other" };
+                var refused = await reopened.QueryAsync(actor, provider, retargeted, "tier", "Gold", new[] { "name" }, 2);
+                Assert.AreEqual("VIRTUAL_HOLON_CONNECTION_CHANGED", refused.ErrorCode);
+            }
+            finally
+            {
+                NativeConnectionGuard.AllowPrivateOverride = previousPrivatePolicy;
+            }
         }
         finally
         {

@@ -393,6 +393,11 @@ public static partial class CqlV1Compiler
     {
         if (filter == null || !Enum.IsDefined(filter.Operator) || !Enum.IsDefined(filter.Scalar))
             throw new ArgumentException("Defined filter operator and scalar required.");
+        if (filter.Function.HasValue && (filter.Function != CqlV1Function.Utf16Length
+            || filter.Operator is not (CqlV1Operator.Equal or CqlV1Operator.NotEqual
+                or CqlV1Operator.GreaterThan or CqlV1Operator.GreaterThanOrEqual
+                or CqlV1Operator.LessThan or CqlV1Operator.LessThanOrEqual)))
+            throw new ArgumentException("Utf16Length requires an integer comparison.");
         var presenceTest = filter.Operator is CqlV1Operator.Exists or CqlV1Operator.IsNull
             or CqlV1Operator.IsMissing or CqlV1Operator.IsNotNull;
         Expression path;
@@ -444,6 +449,13 @@ public static partial class CqlV1Compiler
                 return filter.Operator == CqlV1Operator.IsNull
                     ? Expression.Equal(path, absent) : Expression.NotEqual(path, absent);
             }
+        }
+
+        if (filter.Function == CqlV1Function.Utf16Length)
+        {
+            if (path.Type != typeof(string))
+                throw new ArgumentException("Utf16Length requires a declared string path.");
+            path = Expression.Convert(Expression.Property(path, nameof(string.Length)), typeof(long));
         }
 
         if (filter.Operator == CqlV1Operator.In)
