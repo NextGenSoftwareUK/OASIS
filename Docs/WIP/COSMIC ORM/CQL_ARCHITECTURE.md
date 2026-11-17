@@ -16,6 +16,10 @@ requires authorized access to the native provider.
 Hybrid mode would add explicitly selected cached or persisted records.
 An explicit snapshot save creates an owned Holon with source provenance.
 A source update requires its own authorization and write capability.
+OPORTAL policy is scoped per avatar or application. HyperDrive placement and CQL
+routing enforce that policy server-side. Query results preserve logical identity,
+authoritative source, representation, mapping revision and freshness when
+virtual results, cached fields and full Holons share a collection.
 
 Host-owned read-source activation recovery is explicit per CqlReadSourceProfile. Blockscout opts into at most2awaited health checks, one5s delay, shared30s aggregate deadline, and only typedHTTP500/502/503/504. Other profiles default to1attempt. No user query/write/signing operation, auth/rate-limit error, malformed data or timeout is retried. Failed attempts are logged with safe typed event4831 and recovery event4832; exhausted recovery remains unavailable.
 

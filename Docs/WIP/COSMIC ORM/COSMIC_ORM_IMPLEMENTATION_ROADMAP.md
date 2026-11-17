@@ -30,6 +30,25 @@ zero source-row Holons or replication obligations. Follow with virtual plus mate
 federation, explicit snapshots and opt-in hybrid caching. Grow provider coverage using
 each provider's verified operation capabilities.
 
+### Hybrid policy in OPORTAL
+
+Allow the owner to configure source, placement, caching and replication policy
+per avatar or application, with collection and record selectors for exceptions.
+A single collection may return ephemeral Holons, serve selected cached records,
+and hold explicitly materialized Holons under the same policy. Show which
+representation served a result, its authority and freshness, and the policy
+that selected it. Define how queries deduplicate virtual and saved copies using
+logical identity and provenance.
+
+Start with deterministic rules for selection, TTL, maximum cached bytes, data
+sensitivity, allowed replica providers and separate write intent. Use measured
+read frequency and latency to recommend cache placement. AI recommendations
+must obey policy and require explicit authorization for persistent copies,
+external writes, or broader replication. Frequently updated data needs an
+explicit authority and conflict policy before enabling automatic placement.
+HyperDrive can replicate approved full Holons and separately replicate mapping
+definitions. A mapping does not establish a payload replica.
+
 Updated 2 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state and the exact next action.
 
 1. Complete breadth-first live provider demos: **100 locally integrated query types,
