@@ -89,6 +89,11 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
             Assert.Equal(imported[0].NativeKey, row.NativeKey);
             Assert.Equal("A", row.Fields["sku"]);
             Assert.Single(row.Fields);
+            var conjunction = await provider.QueryNativeRecordsAsync("lines",
+                new[] { new KeyValuePair<string, object>("orderId", 10L),
+                    new KeyValuePair<string, object>("sku", "B") }, new[] { "sku" }, 1);
+            Assert.False(conjunction.IsError, conjunction.Message);
+            Assert.Equal(imported[1].NativeKey, Assert.Single(conjunction.Result).NativeKey);
             Assert.Empty((await provider.QueryNativeRecordsAsync("lines", "sku", "a", new[] { "sku" }, 2)).Result);
             Assert.Empty((await provider.QueryNativeRecordsAsync("lines", "orderId", "10", new[] { "sku" }, 2)).Result);
             Assert.Equal(new[] { "A", "B" }, (await provider.QueryNativeRecordsAsync("lines", "orderId",
