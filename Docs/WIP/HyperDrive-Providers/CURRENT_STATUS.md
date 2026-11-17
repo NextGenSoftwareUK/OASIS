@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Exact staged OPORTAL `a3d84e4463e1` Competition script used the deployed WEB5 SDK in a controlled DOM with a real signed session. Opening made one leaderboard GET at 435 ms. Selecting My Rank and Tournaments made one GET each at 165 and 152 ms. All three returned HTTP 200 and their panels settled without errors. Real browser and persisted tournament join acceptance remain open.
+
 2026-11-17 UTC — OPORTAL task commit `c745a72` waits for session setup before tournament joins, ignores repeated clicks on the disabled control and suppresses join feedback after a tab change or sign-out. The regression holds a join in flight, verifies one post, signs out and verifies no late success message. All 22 groups passed on exact combined candidate `a3d84e4463e1672b8c0698b634d1b3d09a76fbcd`. Dev publication and a live disposable tournament join remain open.
 
 2026-11-17 UTC — OPORTAL task commit `0ae016b` requests only the selected Competition tab and suppresses superseded and signed-out responses. Opening Competition now makes one leaderboard request. My Rank requests the combined stats response when selected, preserving zero scores. All 22 groups passed on exact combined candidate `7e216030c8bd970bfcb1ad2fe7081422f6055abe`; endpoint drift passed on the task branch. Dev publication, browser acceptance and tournament joins remain open. PocketBase image 44052922237 was still running.
