@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Scoped dashboard release used one temporary Git index, removed in finally together with any index lock. Exact candidate tests and HTTP byte comparisons ran in memory. No extra worktree, environment, dependency, download, browser profile, build output, result artifact or backend fixture was created. Portal deployment reused its existing Git integration; no local build.
+
 2026-11-17 UTC — NFT dashboard contract check used existing Node and an in-memory VM. No downloaded dependencies, runtime environment, build output, test result file or hosted records were created. Retained only the focused source regression. No local generated resources require removal.
 
 2026-11-17 UTC — Dashboard session-event fix and regression used the existing Node runtime and read sparse tracked HTML from Git in memory. No environment, dependency, browser profile, build output, report file or backend fixture was created. Preserved the dashboard source original byte encoding while making the scoped edit. Disk free observed 26.51 GiB. Task commit 9f4ea14 pushed; no extra shared deployment was requested.
