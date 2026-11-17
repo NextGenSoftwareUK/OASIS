@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/qualify-web4-wallet.yml'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/WalletController.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/HyperDriveWalletTokenBindingTests.cs'
 
 permissions:
