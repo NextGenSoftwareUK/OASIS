@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Both disposable Competition verification avatars were deleted with confirmed acknowledgements. The candidate removed its alternate index. No downloads, browser profile, or generated report was created.
+
 2026-11-17 UTC — The signed OPORTAL Games SDK probe confirmed deletion of its disposable avatar. Its bundle and responses stayed in memory. PocketBase job 133934929890 verified removal of its owned runtime, database and test output.
 
 2026-11-17 UTC — Removed the temporary Games candidate index. Regression fixtures ran from existing source and Git objects. No local build artifact, browser profile or download was created.
