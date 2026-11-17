@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed the temporary Core and parent Git indexes and the controller-only route scan export. No extra worktree, local build or download was retained.
+
 2026-11-17 UTC — Public market quotes and Solana network identities were checked in memory. No accounts, downloads, response exports or build files were created.
 
 2026-11-17 UTC — The Solana recent-activity probe and Wallet view checks used cached SDK assemblies and in-memory data. No transaction, test account, runtime download or build output was created.
