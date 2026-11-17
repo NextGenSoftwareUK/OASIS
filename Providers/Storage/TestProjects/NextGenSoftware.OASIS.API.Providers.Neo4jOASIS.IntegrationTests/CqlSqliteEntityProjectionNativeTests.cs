@@ -414,6 +414,52 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         await VerifyNullComparison("IsDistinctFrom", CosmicJoinComparison.NullSafeNotEqual,
             new (Guid?, Guid?)[] { (parentId, missingId), (missingId, lowerId) });
 
+        request.Keys[0].Operator = "Equal";
+        request.Keys = new[]
+        {
+            request.Keys[0],
+            new CqlJoinKey { Alias = "SameId", Left = new() { Field = "Id" }, Right = new() { Field = "Id" } }
+        };
+        request.MatchAnyKey = true;
+        var anyKey = CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access);
+        Assert.IsTrue(anyKey.Join.MatchesAnyKey);
+        var anyKeyPlan = CosmicJoinPlanner.Plan(anyKey, native.QueryProviderType,
+            new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
+        Assert.IsFalse(anyKeyPlan.IsError, anyKeyPlan.Message);
+        var anyKeyRows = await manager.ExecuteJoinQueryAsync(anyKeyPlan.Result, new[] { native });
+        Assert.IsFalse(anyKeyRows.IsError, anyKeyRows.Message + anyKeyRows.Exception);
+        CollectionAssert.AreEquivalent(new (Guid?, Guid?)[] { (parentId, lowerId), (missingId, missingId) },
+            anyKeyRows.Result.Providers.Single().Rows.Select(row => ((Guid?)row.Value["LeftId"], (Guid?)row.Value["RightId"])).ToArray());
+
+        request.Right.Filters = new[] { KeySet(new[] { lowerId, ids[3] }) };
+        await VerifyAlternativeRows(new (Guid?, Guid?)[] { (parentId, lowerId), (missingId, null), (null, ids[3]) });
+
+        request.Right.Filters = new[] { KeySet(rightKeys) };
+        await VerifyAlternativeRows(new (Guid?, Guid?)[] { (parentId, parentId), (missingId, missingId) });
+
+        async Task VerifyAlternativeRows((Guid?, Guid?)[] expected)
+        {
+            var selection = CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access);
+            var alternativePlan = CosmicJoinPlanner.Plan(selection, native.QueryProviderType,
+                new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
+            Assert.IsFalse(alternativePlan.IsError, alternativePlan.Message);
+            var result = await manager.ExecuteJoinQueryAsync(alternativePlan.Result, new[] { native });
+            Assert.IsFalse(result.IsError, result.Message + result.Exception);
+            CollectionAssert.AreEquivalent(expected, result.Result.Providers.Single().Rows
+                .Select(row => ((Guid?)row.Value["LeftId"], (Guid?)row.Value["RightId"])).ToArray());
+        }
+
+        var disjunctiveLinq = await flagRows.SelectMany(leftValue => flagRows.Where(rightValue =>
+                rightValue.Id == leftValue.Id ||
+                CosmicQueryMetadata.Value<bool?>(rightValue, "nullableJoinFlag") !=
+                CosmicQueryMetadata.Value<bool?>(leftValue, "nullableJoinFlag")),
+            (leftValue, rightValue) => new { Left = leftValue.Id, Right = rightValue.Id }).ToCosmicListAsync();
+        Assert.IsFalse(disjunctiveLinq.IsError, disjunctiveLinq.Message + disjunctiveLinq.Exception);
+        CollectionAssert.AreEquivalent(new[]
+            {
+                (parentId, parentId), (parentId, missingId), (missingId, parentId), (missingId, missingId)
+            }, disjunctiveLinq.Result.Select(row => (row.Left, row.Right)).ToArray());
+
         request.Keys[0].Operator = "Invalid";
         Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access));
 
