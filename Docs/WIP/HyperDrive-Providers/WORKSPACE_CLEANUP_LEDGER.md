@@ -4,6 +4,8 @@
 
 2026-11-17 UTC — HoloNET metadata and release workflow preparation used temporary alternate Git indexes, which were automatically removed. The existing shared HoloNET checkout changes were untouched. Package builds and tests finished on GitHub runner 43991651595. No local package build, dependency installation, download to disk, or new checkout was created. GitHub Actions artifact 14288483237 (1.04 GB remote, expires 2027-02-15) is retained for its immutable source graph and the pending OASIS publication receipt. Public release assets are published deliverables.
 
+2026-11-17 UTC — The OPORTAL personal billing plan check confirmed native self-deletion for each of three signed disposable avatars. The first registration attempt returned HTTP 400 before creating a fixture. Probes and exact candidate tests ran in memory. The candidate temporary Git index and patch were removed. No local build, dependencies or test results were retained.
+
 2026-11-17 UTC — OPORTAL Usage and Billing candidate ff12fcb2cb8b used one temporary alternate Git index and patch, both removed in the same operation. Tests read the exact Git blobs in memory and live asset verification retained no downloads, reports or build outputs.
 
 2026-11-17 UTC — OPORTAL subscription checks ran with the existing Node installation. Temporarily included two tracked test inputs in the existing sparse checkout, then restored its original selection. No build, dependency installation, browser profile or local results were created.
