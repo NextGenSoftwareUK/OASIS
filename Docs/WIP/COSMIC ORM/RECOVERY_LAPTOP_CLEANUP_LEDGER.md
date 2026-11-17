@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. The three live mixed API checks and three Chrome checks removed and verified absence of 12 owned fixture Holons. Chrome profiles cosmic-mixed-browser-BECOaw, cosmic-mixed-browser-VjEUea and cosmic-mixed-browser-j3hmrC were removed. The initial Mongo HTTP test reused a cookie jar. It revoked the second visitor but could not confirm the first visitor's revocation. Its nonsecret journal cql-mixed-virtual-live-60cc5419-54ed-4b2a-946a-e853d0e21334.json records both fixtures verified absent and remains available for reconciliation. SQLite and Neo4j used independent cookie jars and confirmed all session revocations. Website snapshots and disposable Git indexes from the latest changes were removed at process exit. No new runtime or local build output.
+
 17 November UTC. Exact live mixed Virtual Holon retest removed both private MongoDB fixture Holons and verified their IDs absent. The probe revoked its visitor and removed the journal. The absent-ID control created no fixtures and revoked its visitor. No Chrome profile or build output was created.
 
 17 November UTC. Temporary Git indexes for the Core reconciliation and the Development successor candidate were removed at process exit. CI owns the build outputs. The previously recorded .NET file-app cache remains after the execution policy rejected the exact-path recursive removal again. No local runtime, database copy or build output was added.
