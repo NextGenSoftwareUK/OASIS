@@ -363,6 +363,24 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         CollectionAssert.AreEquivalent(new[] { (parentId, parentId), (missingId, missingId) },
             matchingFlags.Result.Select(row => (row.Left, row.Right)).ToArray());
 
+        request.Keys[0].Left.MetadataPath = new[] { "nullableJoinGuid" };
+        request.Keys[0].Right.MetadataPath = new[] { "nullableJoinGuid" };
+        request.Keys[0].Left.ValueType = request.Keys[0].Right.ValueType = "Guid";
+        request.Left.Filters = new[] { KeySet(rightKeys) };
+        await VerifyNullComparison("IsNotDistinctFrom", CosmicJoinComparison.NullSafeEqual,
+            new (Guid?,Guid?)[] { (parentId,parentId), (missingId,missingId) });
+        request.Left.Filters = new[] { KeySet(leftKeys) };
+        await VerifyNullComparison("IsDistinctFrom", CosmicJoinComparison.NullSafeNotEqual,
+            new (Guid?,Guid?)[] { (parentId,missingId), (lowerId,parentId), (lowerId,missingId) });
+
+        var matchingGuids = await flagRows.SelectMany(leftGuid => flagRows.Where(rightGuid =>
+                CosmicQueryMetadata.Value<Guid?>(rightGuid, "nullableJoinGuid") ==
+                CosmicQueryMetadata.Value<Guid?>(leftGuid, "nullableJoinGuid")),
+            (leftGuid, rightGuid) => new { Left = leftGuid.Id, Right = rightGuid.Id }).ToCosmicListAsync();
+        Assert.IsFalse(matchingGuids.IsError, matchingGuids.Message + matchingGuids.Exception);
+        CollectionAssert.AreEquivalent(new[] { (parentId, parentId), (missingId, missingId) },
+            matchingGuids.Result.Select(row => (row.Left, row.Right)).ToArray());
+
         request.Keys[0].Operator = "Invalid";
         Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access));
 
