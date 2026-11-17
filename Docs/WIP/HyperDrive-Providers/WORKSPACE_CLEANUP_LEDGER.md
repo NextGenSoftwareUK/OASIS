@@ -2300,3 +2300,6 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 
 
 2026-11-17 UTC — Designer export tested against an in-memory Blob; the temporary object URL was revoked and no file downloaded. Seven optional-popup groups use controlled in-memory responses/timers without network writes. Candidate 514affb52b6d temporary index/lock removed. Retained regression scripts are source, not generated artifacts. No local builds, environments, profiles or disposable databases.
+
+
+2026-11-17 UTC — Messaging-contact graph SDK check and exact-candidate 23-group suite used in-memory Git blobs/responses. No actual contacts, messages or avatars were created. Hydrated social-graph.html is tracked UI source. Candidate 07ba90ea2435 temporary index/lock removed. No downloads, retained reports, databases, browser profiles or build outputs.
