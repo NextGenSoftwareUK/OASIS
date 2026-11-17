@@ -755,6 +755,8 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Open, 2026-11-17.** The signed OPORTAL probe left one disposable Clan after the SDK rejected its delete route before dispatch and the test owner was deleted. A read-only WEB4 catalogue check found fixture `5ab55321-61df-4e78-98b8-2f9f7ef34017` with description `Disposable OPORTAL acceptance fixture`.
 - **David action** Use an authorized dev Wizard session to delete this exact Clan via `DELETE /api/clan/5ab55321-61df-4e78-98b8-2f9f7ef34017`. Confirm the response acknowledges deletion and a subsequent catalogue read omits the ID. The agent owns follow-up verification and ledger reconciliation. [WEB4 dev API](https://dev.api.web4.oasisomniverse.one/swagger)
 
+- **Update, 2026-11-17.** The WEB4 dev catalogue confirmed two additional disposable Clan fixtures, `947d6d2c-541a-400a-bf6a-5f1e1a6fcc5b` and `544ab861-d337-4352-b0b7-4634b8f9294a`, with description `Disposable OPORTAL membership acceptance fixture`. Both owner avatars acknowledged deletion. Use the same authorized Wizard delete and readback for each exact ID. This action covers the three listed fixtures only.
+
 ### WEB4 dev wallet encryption key
 
 - **Open, 15 November 2026.** A disposable avatar's Solana wallet creation reached WEB4 and failed because wallet encryption was enabled with no configured key. The avatar was deleted.

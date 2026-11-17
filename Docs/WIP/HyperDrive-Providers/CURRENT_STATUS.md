@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Exact Clan root-only candidate `2e2c91395f64` is in [contract CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44095447025). Its Core gitlink and Railway pin match. Read-only WEB4 catalogue inspection confirmed that both failed Clan creates persisted as `947d6d2c-541a-400a-bf6a-5f1e1a6fcc5b` and `544ab861-d337-4352-b0b7-4634b8f9294a`. The existing owner action now lists the exact IDs for scoped cleanup.
+
 2026-11-17 UTC — The exact deployed Clan manager selected recursive child saves on creation although the Clan payload has no child graph and stores membership and inventory in root metadata. Its update and inventory paths already save only the root. Core qualification branch `ce64d920` uses the same root-only save for creation while retaining HyperDrive replication. Compile and live signed verification remain open. The public Wallet import failure is covered by the existing WEB4 dev wallet key owner action; no credential changes were made.
 
 2026-11-17 UTC — Railway WEB4 reached SUCCESS on Clan/Wallet revision `9295a89892aa`. Signed Clan create returned `HYPERDRIVE_COMMITTED_EVIDENCE_INVALID` semantics: primary persistence acknowledged, but the committed payload could not be captured for replication. The SDK exposed no Clan ID. Membership checks cannot follow until the capture failure is fixed. Signed Wallet public-key linking returned an encryption-related application error, so balances and pagination could not run. Portal candidate remains staged.
