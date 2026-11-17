@@ -1,5 +1,24 @@
 # Current provider status
 
+## OPORTAL acceptance snapshot — 17 November 2026
+
+OPORTAL remains incomplete. Portal dev is at 9c85d745fb97 and the serving dev API fleet is at 3527154a118d. The latest exact portal candidate passed 23 regression groups. Signed browser verification remains open because the desktop browser runtime fails to initialize.
+
+| Area | Verified evidence | Remaining acceptance |
+|---|---|---|
+| Dashboard | Deployed client-change guard; earlier signed empty-account API batch completed in 357–400 ms | Signed browser render timing and populated-account results |
+| Subscriptions | October hosted Stripe test checkout, webhook activation, invoices and billing navigation; latest portal regression groups passed | Current signed browser regression, real Wizard administrator session and remaining owner actions |
+| Messages | Current signed empty inbox, conversation and summary reads; deployed grouping, unread and session guards | Successful persisted send/readback and cleanup of the earlier two-avatar fixture |
+| Live Chat | Deployed recipient field, request shapes, draft retention and bounded visible polling; controlled checks passed | New server participant checks and persisted termination need qualification and deployment, followed by hosted round trip |
+| Wallet | Signed address-only link/readback and prior watch-only balances/activity checks; fixtures cleaned | Signing, trading, populated mainnet valuation and browser interaction |
+| Clan | Signed create, membership, owner denial and deletion flow passed; UI deployed | Browser interaction and three historical fixture cleanups |
+| NFT / GeoNFT / OLAND | Deployed independent popup reads; application subscription denial was verified for attempted mint/transfer | Eligible account native mint/transfer receipt, populated lists and browser interaction |
+| HyperDrive | Deployed status/metrics popup; signed controlled read returned status and 18 provider cards | Browser settings/delivery interaction and complete real-provider reliability acceptance |
+| Games / Quests / Missions / Competition | Deployed reads; signed empty catalogue and selected-tab probes recorded below | Populated results, supported writes and browser interaction |
+| Karma / Map / Data / Files / Search / Settings / ONET / ONODE / Developer / Admin | Route and fragment availability checks plus individual source and regression work recorded below | Each authenticated screen's populated reads, actions, authorization and browser rendering |
+
+The open owner actions are maintained in [ACTIONS-FOR-DAVID.md](../Release%20and%20Status/ACTIONS-FOR-DAVID.md). Engineering owns remaining code, deployment, testing-tool and fixture-recovery diagnosis. The provider programme remains part of the active goal after OPORTAL completion.
+
 2026-11-17 UTC — Requested cancellation of superseded access-only contracts 44144522724 and dispatched final combined Chat [qualification 44146529783](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44146529783) on d51ef1e77854. The final run is active; cancellation of the old run had not reached terminal status at review. Final qualification covers both participant access and persisted termination. The shared image remains a separate active build; no duplicate image was queued.
 
 2026-11-17 UTC — Scoped portal termination candidate 0862b5698df6 is based on live dev 9c85d745fb97 and contains only the tested script and cache key change. Publish it after matching WEB4 termination support is serving. Access qualification 44144522724 passed the method inventory gate and is compiling the controller artifact. Shared image run 44142971678 remains active. Final backend d51ef1e77854 awaits its exact qualification after that prior run completes.
