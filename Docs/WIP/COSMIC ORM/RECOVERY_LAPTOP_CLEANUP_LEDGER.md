@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. Field validation qualification used temporary Git indexes, removed after use. A no-write browser check was syntax-checked from standard input with the existing Node executable. No Chrome profile, package download or local build output was created.
+
 17 November UTC. SQLite and Neo4j browser checks reused installed Chrome and bundled Node. Each run deleted and verified absence of its three test Holons in the isolated visitor scope, signed out and removed its owned Chrome profile. No installs, downloads or local provider copies were required.
 
 17 November UTC. Live MongoDB snapshot and paging check used installed Chrome and the existing bundled Node runtime. The initial Node 18 launch stopped before any signed requests because it lacked WebSocket. The retry passed. Both owned Chrome profiles were removed. The successful run verified absence of the mapping, stored fixture and snapshot Holons after cleanup, and signed out. No downloads, build files or test database copies were created.
