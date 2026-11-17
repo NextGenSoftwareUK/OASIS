@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. The OR acceptance probe used nine private fixtures on Development WEB4 and one temporary signed visitor. All nine were conditionally removed by exact provider revision, and the original providers confirmed absence before the journal was removed. Session revocation was acknowledged. The laptop temp folder contained zero cql-or-live JSON files afterward. The exact grouped qualification revision used a temporary Git index, removed after commit creation. No local databases or build artifacts were created.
+
 17 November UTC. The live scalar acceptance and two-row representation diagnosis created 20 private synthetic holons in four temporary sessions. All 20 were conditionally hard-deleted by provider revision, verified absent against their original provider, and all four sessions were revoked. Removed the corresponding cql-scalar-live operation journals after verification. The grouped website suite used one temporary exact snapshot per run and both were removed. No local build trees, database installations or credentials were retained. The previous Boolean test journals remain pending the scheduled sandbox sweep.
 
 17 November UTC. The OR join backend and website changes used temporary Git indexes and one disposable exact website snapshot for 272 tests. Their owning processes exited and the directories were removed. Native and image qualification runs on GitHub Actions. No local runtime, browser profile, build output or database was created for this batch.
