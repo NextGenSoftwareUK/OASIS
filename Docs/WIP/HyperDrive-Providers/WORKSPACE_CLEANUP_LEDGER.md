@@ -2303,3 +2303,6 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 
 
 2026-11-17 UTC — Messaging-contact graph SDK check and exact-candidate 23-group suite used in-memory Git blobs/responses. No actual contacts, messages or avatars were created. Hydrated social-graph.html is tracked UI source. Candidate 07ba90ea2435 temporary index/lock removed. No downloads, retained reports, databases, browser profiles or build outputs.
+
+
+2026-11-17 UTC — Three signed-out Edge runs (initial visibility failure, missing-body diagnosis, corrected-template verification) each removed owned browser process/profile and temporary websocket dependency. No avatar, account, message, settings holon or backend record was created. Exact ten-popup template check reads sparse source blobs in memory. Candidate e9d4586caba2 temporary index/lock removed; disabled auto-GC only on the candidate Git commands to avoid unnecessary packing while qualifying. Source retained. Final hosted recheck is limited to the two changed templates.
