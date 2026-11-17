@@ -482,6 +482,15 @@ The exact image 44171724090 is building; hosted null-or-empty acceptance remains
 Typed mapped-source predicates are being implemented separately in 44173913395;
 they are not yet accepted as mixed CQL query support. The full Q09 row remains open.
 
+### Typed virtual predicate checkpoint
+
+Three-store provider qualification 44176969998 passed before mixed wiring. Core/native
+mapping and CQL/snapshot wiring are implemented in d9b92db5b2af and under fresh exact
+qualification 44185335106. The website ce85998abf95 passed 296 tests, including single
+function snapshot capture. Explicit-null versus missing-field string inequality has
+new native regression cases. Do not claim hosted mixed-function acceptance until
+that candidate is qualified, built, serving and checked. The full Q09 row remains open.
+
 ### Q09 string-function contract
 
 The native qualification for 284391263af1 passed 93 checks per store, including
