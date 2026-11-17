@@ -1,5 +1,7 @@
 # CQL / COSMIC ORM EF and NHibernate parity checklist
 
+17 November UTC. On SQLite, MongoDB and Neo4j, native joined All passed for a preserved-side predicate before pagination. The three providers also passed joined FirstOrDefault, LastOrDefault and SingleOrDefault with caller-supplied defaults, including filtered and empty sequences. The supplied value is used only after the native query proves absence. Multiple rows remain an error for SingleOrDefault. These checks support the scoped overloads. General optional-side and post-pagination joined filters remain open. [All evidence](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44058635990) · [Explicit defaults evidence](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44079179634).
+
 17 November UTC. Native MongoDB, SQLite and Neo4j passed ordered joined filters and predicate terminal overloads on scoped equijoins in [44053948991](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44053948991). The suite checks exact Count/LongCount/Any, First/Last, empty SingleOrDefault, unmatched rows, and rejection after Take. General optional-side predicates and post-page filtering remain open.
 
 Baseline: 26 October 2026. Scope: SQLite, MongoDB and Neo4j through the shared
