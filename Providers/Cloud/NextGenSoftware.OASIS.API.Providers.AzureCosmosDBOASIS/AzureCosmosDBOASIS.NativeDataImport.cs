@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
     /// order. Reads use <see cref="NativeImportDatabaseName"/>, and when that is the OASIS database the OASIS containers are
     /// refused, so native import can never read or re-import OASIS's own records.
     /// </summary>
-    public partial class AzureCosmosDBOASIS : INativeDataImportProvider
+    public partial class AzureCosmosDBOASIS : INativeDataQueryProvider
     {
         private readonly object _nativeClientGate = new object();
         private CosmosClient _nativeClient;
@@ -98,6 +98,95 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             return result;
         }
+
+        public string DescribeVirtualQueryConnection(NativeConnection connection) =>
+            DescribeNativeConnection(connection) ??
+            throw new NativeConnectionRefusedException("Virtual Cosmos queries require a named read-only connection.");
+
+        public Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
+            string sourceName, string matchField, object matchValue, IReadOnlyList<string> fields, int limit,
+            NativeConnection connection = null, CancellationToken cancellationToken = default) =>
+            QueryNativeRecordsAsync(sourceName, new[] { new KeyValuePair<string, object>(matchField, matchValue) },
+                fields, limit, connection, cancellationToken);
+
+        public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
+            string sourceName, IReadOnlyList<KeyValuePair<string, object>> matches, IReadOnlyList<string> fields, int limit,
+            NativeConnection connection = null, CancellationToken cancellationToken = default)
+        {
+            if (connection == null || string.IsNullOrWhiteSpace(sourceName) ||
+                matches == null || matches.Count is < 1 or > 8 ||
+                matches.Any(match => !IsVirtualField(match.Key) ||
+                    match.Value is not (string { Length: <= 4096 } or bool)) ||
+                fields == null || fields.Count is < 1 or > 32 || fields.Any(field => !IsVirtualField(field)) ||
+                fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || limit is < 1 or > 100)
+                return RefuseVirtual("NATIVE_QUERY_INVALID", "Use a named Cosmos container, exact String or Boolean matches and bounded fields.");
+
+            try
+            {
+                using var native = await OpenNativeAsync(connection, cancellationToken);
+                if (!native.Containers.Contains(sourceName, StringComparer.Ordinal))
+                    return RefuseVirtual("NATIVE_QUERY_INVALID", "The connection does not admit that container.");
+
+                var container = native.Client.GetContainer(native.Database, sourceName);
+                var properties = (await container.ReadContainerAsync(cancellationToken: cancellationToken)).Resource;
+                if (properties.PartitionKeyPaths is not { Count: 1 } paths || paths[0] != "/id")
+                    return RefuseVirtual("NATIVE_QUERY_INVALID", "Virtual Cosmos queries require /id as the partition key to preserve import identity.");
+
+                using var iterator = container.GetItemQueryIterator<JObject>(NativeVirtualQuery(matches, fields, limit),
+                    requestOptions: new QueryRequestOptions { MaxItemCount = limit });
+                var records = new List<NativeRecord>(limit);
+                long remainingBytes = 1024 * 1024;
+                while (iterator.HasMoreResults)
+                {
+                    foreach (var document in await iterator.ReadNextAsync(cancellationToken))
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        remainingBytes -= System.Text.Encoding.UTF8.GetByteCount(document.ToString(Formatting.None));
+                        if (remainingBytes < 0 || records.Count == limit)
+                            return RefuseVirtual("NATIVE_QUERY_PAYLOAD_LIMIT", "The native Cosmos result exceeds its projection budget.");
+
+                        var record = ToNativeRecord(sourceName, document);
+                        records.Add(new NativeRecord(sourceName, record.NativeKey, record.Fields
+                            .Where(field => fields.Contains(field.Key, StringComparer.Ordinal))
+                            .ToDictionary(field => field.Key, field => field.Value, StringComparer.Ordinal)));
+                    }
+                }
+                return new OASISResult<IReadOnlyList<NativeRecord>>(records.AsReadOnly()) { IsLoaded = true };
+            }
+            catch (NativeConnectionRefusedException)
+            {
+                return RefuseVirtual("NATIVE_IMPORT_CONNECTION_REFUSED", "The named Cosmos connection cannot be used.");
+            }
+            catch (Exception cause) when (cause is CosmosException or InvalidOperationException or ArgumentException or FormatException)
+            {
+                return RefuseVirtual("NATIVE_QUERY_FAILED", "The native Cosmos query failed.");
+            }
+        }
+
+        private static bool IsVirtualField(string field) => field is { Length: >= 1 and <= 128 } &&
+            !field.StartsWith("_", StringComparison.Ordinal) && !field.Any(char.IsControl);
+
+        internal static QueryDefinition NativeVirtualQuery(IReadOnlyList<KeyValuePair<string, object>> matches,
+            IReadOnlyList<string> fields, int limit)
+        {
+            static string Property(string field) => "c[" + JsonConvert.ToString(field) + "]";
+            var columns = fields.Prepend("id").Distinct(StringComparer.Ordinal)
+                .Select(field => JsonConvert.ToString(field) + ": " + Property(field));
+            var predicates = matches.Select((match, index) =>
+            {
+                var property = Property(match.Key);
+                var type = match.Value is string ? "IS_STRING" : "IS_BOOL";
+                return $"{type}({property}) AND {property} = @match{index}";
+            });
+            var query = new QueryDefinition($"SELECT TOP @take VALUE {{{string.Join(", ", columns)}}} FROM c " +
+                $"WHERE {string.Join(" AND ", predicates)} ORDER BY c.id").WithParameter("@take", limit);
+            for (var index = 0; index < matches.Count; index++)
+                query.WithParameter($"@match{index}", matches[index].Value);
+            return query;
+        }
+
+        private static OASISResult<IReadOnlyList<NativeRecord>> RefuseVirtual(string code, string message) =>
+            new OASISResult<IReadOnlyList<NativeRecord>> { IsError = true, ErrorCode = code, Message = message };
 
         internal static QueryDefinition NativePageQuery(string after, int pageSize)
         {
