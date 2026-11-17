@@ -486,15 +486,15 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(1, join.Result.Count);
         Assert.IsTrue(join.Result.All(pair => pair.Left == pair.Right));
 
-        var composite = await flagRows.Join(flagRows,
+        var compositeJoin = await flagRows.Join(flagRows,
             leftValue => new { leftValue.Id, leftValue.Version },
             rightValue => new { rightValue.Id, rightValue.Version },
             (leftValue, rightValue) => new { Left = leftValue.Id, Right = rightValue.Id })
             .ToCosmicListAsync();
-        Assert.IsFalse(composite.IsError, composite.Message + composite.Exception);
+        Assert.IsFalse(compositeJoin.IsError, compositeJoin.Message + compositeJoin.Exception);
         CollectionAssert.AreEquivalent(new[] { (parentId, parentId), (missingId, missingId) },
-            composite.Result.Select(row => (row.Left, row.Right)).ToArray());
-        Assert.IsTrue(composite.Result.All(pair => pair.Left == pair.Right));
+            compositeJoin.Result.Select(row => (row.Left, row.Right)).ToArray());
+        Assert.IsTrue(compositeJoin.Result.All(pair => pair.Left == pair.Right));
 
         var nullable = await flagRows.Join(flagRows,
             row => CosmicQueryMetadata.Value<bool?>(row, "nullableJoinFlag"),
