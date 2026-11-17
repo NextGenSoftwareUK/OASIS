@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. The attached integrated WEB4 roadmap edit used two owned temporary directories: `cosmic-virtual-roadmap-92407fd3-fa00-40d3-a104-6d811d8c7922` and `cosmic-virtual-roadmap-83314808-bb40-4491-a9a2-701bbd8b8457`. Verified all four pages, published the reviewed DOCX over the original, and removed both directories, including the temporary DOCX copies, PDF and PNGs. Used existing Word and Poppler.
+
 17 November UTC. The combined Turso baseline, Core ordering edits and acceptance tests used disposable Git indexes removed at exit. Website qualification used a disposable `cosmic-join-order-domains-site-*` snapshot. Live plans compiled from standard input and created no data or local runtime output.
 
 17 November UTC. The INT64 live probe verified all nine private fixture IDs absent, revoked the test session and removed its journal. A follow-up search found no matching journal. The disposable INT64 and text editor test snapshots, the outer join reconciliation indexes and the native acceptance test edit indexes were removed on exit. No new local SDK or build output.
