@@ -65,6 +65,19 @@ public sealed class CqlVirtualProjectionTests
         Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileVirtualProjection(request));
     }
 
+    [Theory]
+    [InlineData("customer name", true)]
+    [InlineData(" ", false)]
+    [InlineData("OASIS.Native.key", false)]
+    [InlineData("oasis.virtual.snapshot", false)]
+    [InlineData("name\nline", false)]
+    public void MappingAndQueryUseTheSameMetadataAliases(string field, bool allowed)
+    {
+        Assert.Equal(allowed, CqlV1Compiler.IsVirtualField(field));
+        Assert.True(CqlV1Compiler.IsVirtualField(new string('a', 64)));
+        Assert.False(CqlV1Compiler.IsVirtualField(new string('a', 65)));
+    }
+
     [Fact]
     public void SnapshotRetainsTheFilterFieldWithoutExceedingTheNativeProjectionLimit()
     {
