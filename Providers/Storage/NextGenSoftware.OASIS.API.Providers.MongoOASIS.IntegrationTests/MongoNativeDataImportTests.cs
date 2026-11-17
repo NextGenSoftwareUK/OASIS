@@ -103,6 +103,18 @@ public sealed class MongoNativeDataImportTests
             Assert.Equal(new[] { "old", "second" }, selected.Result.Select(row => row.Fields["label"]));
             Assert.All(selected.Result, row => Assert.Single(row.Fields));
 
+            var owner = Guid.NewGuid();
+            var identity = provider.DescribeVirtualQueryConnection(null);
+            var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, owner, provider.NativeDataProviderType,
+                "virtual_items", VirtualHolonMapping.SandboxConnectionName, identity,
+                new Dictionary<string, string> { ["Code"] = "code", ["Label"] = "label" });
+            var mapped = await mapping.QueryAsync(owner, provider, null, "Code", "Case", new[] { "Label" }, 2);
+            Assert.False(mapped.IsError, mapped.Message);
+            Assert.Equal(NativeRecordHolonMapper.StableHolonId(owner, provider.NativeDataProviderType,
+                "virtual_items", selected.Result[0].NativeKey), mapped.Result[0].Id);
+            Assert.Equal("old", mapped.Result[0].MetaData["Label"]);
+
+
             await items.UpdateOneAsync(new BsonDocument("_id", 1), new BsonDocument("$set", new BsonDocument("label", "fresh")));
             var refreshed = await provider.QueryNativeRecordsAsync("virtual_items", "code", "Case", new[] { "label" }, 1);
             Assert.False(refreshed.IsError, refreshed.Message);

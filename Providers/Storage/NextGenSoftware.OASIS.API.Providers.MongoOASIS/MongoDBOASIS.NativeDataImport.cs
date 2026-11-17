@@ -122,6 +122,20 @@ public partial class MongoDBOASIS : INativeDataQueryProvider
         return result;
     }
 
+    public string DescribeVirtualQueryConnection(NativeConnection connection)
+    {
+        if (connection != null)
+            return DescribeNativeConnection(connection);
+        if (!IsProviderActivated || Database?.MongoClient == null ||
+            string.IsNullOrWhiteSpace(NativeImportDatabaseName) ||
+            string.Equals(NativeImportDatabaseName, DBName, StringComparison.Ordinal))
+            throw new NativeConnectionRefusedException("The configured native MongoDB source is unavailable.");
+
+        var servers = Database.MongoClient.Settings.Servers.Select(server => server.ToString().ToLowerInvariant())
+            .OrderBy(server => server, StringComparer.Ordinal);
+        return "mongodb-configured://" + string.Join(",", servers) + "/" + NativeImportDatabaseName;
+    }
+
     /// <summary>Reads an explicitly projected, exact scalar match from the authoritative native collection.</summary>
     public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
         string sourceName, string matchField, object matchValue, IReadOnlyList<string> fields, int limit,
