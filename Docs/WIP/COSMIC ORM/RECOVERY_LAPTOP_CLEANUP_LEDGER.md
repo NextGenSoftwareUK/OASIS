@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. Development Boolean join acceptance retained two small nonsecret operation journals under C:/Users/David/AppData/Local/Temp: cql-boolean-live-4c61816a-e27d-4eed-a624-605a1e31e33d.json contains one unverified save outcome, and cql-boolean-live-86e63afb-3cbd-4c69-b805-6098493b4f0e.json contains nine acknowledged private synthetic fixtures and their rejected conditional delete operations. Both temporary visitor sessions were revoked. Preserve these journals until exact provider reconciliation. No PIPER records were queried or mutated. The empty-window checks kept all data in memory. GUID candidate scratch indexes and website test snapshots were confirmed gone. C: measured 21.79 GiB free before this test batch.
+
 17 November UTC. Nullable GUID changes used disposable Git indexes and one temporary exact website snapshot for 271 Node tests. Temporary directories were removed after their owning processes exited. The backend uses the shared remote GitHub Actions native suite. No local provider databases, runtime installs, browser profiles or build trees were created.
 
 17 November UTC. Removed the temporary source snapshots for the exact Web4Site 271-test suite and focused 30-test Ask Your Data suite after Node exited. Temporary Git indexes used to publish the prompt and status changes were scoped to OS-temp directories and removed on completion. No packages, model weights, browser profiles, databases or local build outputs were created for these checks.
