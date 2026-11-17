@@ -54,7 +54,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Verify native schema rollback and recovery
+      - name: Verify native Turso storage and activation
         shell: bash
         env:
           VERIFY_BOOTLOADER: ${{ inputs.activation }}

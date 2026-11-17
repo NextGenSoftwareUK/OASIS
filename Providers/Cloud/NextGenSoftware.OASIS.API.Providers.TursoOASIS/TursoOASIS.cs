@@ -154,6 +154,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                 CREATE INDEX IF NOT EXISTS idx_avatars_email ON oasis_avatars(email);
                 CREATE INDEX IF NOT EXISTS idx_holons_parent ON oasis_holons(parent_holon_id);
                 CREATE INDEX IF NOT EXISTS idx_holons_type ON oasis_holons(holon_type);
+                CREATE INDEX IF NOT EXISTS idx_holons_owner
+                    ON oasis_holons(json_extract(data_json,'$.createdByAvatarId') COLLATE NOCASE)
+                    WHERE is_deleted=0;
                 CREATE TRIGGER IF NOT EXISTS oasis_avatars_delete_detail
                     AFTER DELETE ON oasis_avatars
                     BEGIN
@@ -729,15 +732,24 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
-            var all = await LoadAllHolonsAsync();
-            if (all.IsError)
-                return all;
-            var holons = all.Result?.Where(h => h.CreatedByAvatarId == avatarId).ToList() ?? new List<IHolon>();
-            return new OASISResult<IEnumerable<IHolon>>
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
             {
-                Result = holons, IsLoaded = true, LoadedCount = holons.Count,
-                Message = $"TursoOASIS: Exported {holons.Count} holon(s) for avatar '{avatarId}'."
-            };
+                var holons = await QueryHolonsAsync("""
+                    SELECT data_json FROM oasis_holons
+                    WHERE is_deleted=0 AND json_extract(data_json,'$.createdByAvatarId') COLLATE NOCASE = ?
+                    """, new List<LibSqlArg> { Arg(avatarId.ToString()) }).ConfigureAwait(false);
+                result.Result = holons;
+                result.IsLoaded = true;
+                result.LoadedCount = holons.Count;
+                result.Message = $"TursoOASIS: Exported {holons.Count} holon(s) for avatar '{avatarId}'.";
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error exporting holons for avatar '{avatarId}': {ex.Message}");
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
