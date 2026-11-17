@@ -1,5 +1,9 @@
 # Current provider status
 
+2026-11-17 UTC — Development fast-forwarded from `b226ff3740c1` to qualified Turso candidate `5877c9e3bc9b` after native storage and exact image acceptance and seven successful predecessor deployments. Railway queued WEB4 deployment `24f4b434-5cdd-426a-aedf-9cfad82f2bdb` at 06:31:15 UTC. Exact fleet rollout and health verification are pending. Review the next scoped Development batch after 07:01:15 UTC.
+
+2026-11-17 UTC — The exact [combined Turso WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44028920352) passed for `5877c9e3bc9b`, publishing `sha256:1ab52b4e6176467168512095d3e611fede65ce6a12a245249856425c2ed9178e`. It is ready for the next shared Development review once the parent and fleet are rechecked. [Native wallet and legacy credential readback](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44031051567) also passed on the separate task revision `9456a819fc9f`.
+
 2026-11-17 UTC — Turso wallet-key selectors now use the native wallet JSON arrays via the shipping storage interface. Each lookup binds the key and returns at most two live matches, preserving ambiguity and missing results. The isolated public and private key test is pending. The SQL still scans native records.
 
 2026-11-17 UTC — Turso avatars now use the shared stored-record serializer so interface-backed wallets retain their concrete type. The storage query recognizes both canonical and older camel-case credential fields. Native qualification covers a wallet-bearing avatar and an independently inserted legacy credential payload. Legacy records with populated wallets and no type metadata remain unverified.
