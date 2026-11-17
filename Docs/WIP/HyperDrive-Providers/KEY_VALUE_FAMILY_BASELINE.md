@@ -1,8 +1,8 @@
 # Key-value family checkpoint
 
-## 11 November native evidence
+## Native evidence reviewed 17 November
 
-Valkey 9.0.4 passed the full shared storage suite and ended with zero native keys. Development carries the verified batch at fa8f81332c. KeyDB and Dragonfly passed four native storage smoke cases each. The separate CQL restart and federation passes carry forward. See the [provider matrix](PROVIDER_MATRIX.md) for each scope.
+Valkey 9.0.4, KeyDB 6.3.4, Dragonfly 2.0.2 and Garnet 2.2.5 each passed the full 52-check native shared storage suite through StackExchange.Redis. Each run independently verified zero keys after cleanup. The separate CQL restart and federation evidence carries forward. Hosted TLS and legacy plaintext migration remain open. [Provider matrix](PROVIDER_MATRIX.md) · [KeyDB run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43286531112) · [Dragonfly run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43286941356) · [Garnet run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43289726927).
 
 Updated 28 October 2026. Scope: share record policy and native protocol invariants; hosted acceptance remains provider-specific.
 

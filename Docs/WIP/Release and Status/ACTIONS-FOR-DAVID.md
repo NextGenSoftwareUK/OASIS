@@ -769,3 +769,9 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Context** [Atlas storage and sign-in incident](../HyperDrive-Providers/ATLAS_STORAGE_AND_LOGIN_INCIDENT.md).
 
 ## Emergency disk cleanup — 2026-11-16, verified complete. The execution tool rejected removal of two individually checked disposable directories. The completed HyperDrive build output is now verified absent. The inactive Visual Studio installer staging folder (6.38 GiB) is also verified absent. C: reported 21.83 GiB free. Both paths were removed outside this task. Worktree edits and installed packages are outside this action. See the [workspace cleanup ledger](../HyperDrive-Providers/WORKSPACE_CLEANUP_LEDGER.md).
+
+### Hosted SQL Server verification for WEB4 dev
+
+- **Open, 17 November 2026.** The saved Railway WEB4 dev DNA has no SQL Server connection configured. The shipping SQL Server adapter already passed 52 native storage checks on SQL Server 2022, and both native HyperDrive routing modes have separate evidence.
+- **David action** Identify the protected location or custodian of an existing isolated SQL Server fixture that WEB4 dev may use. Share only the location or custodian. Engineering can configure the authorized dev secret and verify provider activation, a disposable lifecycle and cleanup.
+- **Reason** The hosted WEB4 process still needs an isolated SQL Server database to prove its connection, authentication and deployed provider path. [Native storage evidence](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43050650521) · [Current status](../HyperDrive-Providers/CURRENT_STATUS.md).
