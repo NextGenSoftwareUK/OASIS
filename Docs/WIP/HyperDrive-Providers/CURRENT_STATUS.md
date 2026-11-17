@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL task e74520e discards Conversations and Notifications results when avatar, token or WEB4 client changes during the request. The deferred-response check passed sign-out, changed avatar, changed token and replaced client, plus a current-session empty read. Include this script and cache key 20261117u in the next portal batch. Desktop browser initialization still failed after kernel reset with a missing runtime path. Browser acceptance remains open. No hosted fixtures or local outputs were created.
+
 2026-11-17 UTC — Combined portal candidate 9a0da4a2442b contains only the tested Messaging participant/unread change, dashboard client-change guard and their asset keys over dev 016e2b815c75. Exact script blobs match the tested task revisions. The next portal dev window remains 17:24:24 UTC. WEB4 contracts 44133551601 and image 44133558977 are active.
 
 2026-11-17 UTC — OPORTAL dashboard task 27c23d7 invalidates an old dashboard session when the authenticated WEB4 client changes, even for the same avatar. The focused in-memory check verified duplicate startup suppression, one replacement startup, observer cleanup and stale-session rejection. Dev promotion and signed browser timing remain open. No build outputs or fixtures were created.
