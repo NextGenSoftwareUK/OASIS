@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — The corrected signed Clan probe confirmed both record and avatar deletion. An earlier probe created Clan `5ab55321-61df-4e78-98b8-2f9f7ef34017`, then the SDK rejected the incorrectly named delete route argument before sending a request. The test owner was deleted, and a read-only catalogue check found that exact Clan still present. Wizard cleanup is pending. The temporary portal candidate index was removed and no files, credentials, downloads or build outputs were retained locally.
+
 2026-11-17 UTC — Exported only the two source directories and scripts needed for the exact My Eggs manifest checks. Temporary exports and Git indexes were removed. No worktree, local build or runtime was created.
 
 2026-11-17 UTC — Clan popup authorization checks ran in memory. The disposable portal candidate index was removed automatically. No fixtures, dependencies, reports or local build outputs were retained.

@@ -750,6 +750,11 @@ Status: missing account/configuration information,2 November2026. David approved
 - **David action** Fund a disposable Algorand account on the official TestNet dispenser and add its mnemonic to the OASIS GitHub Actions secrets as `OASIS_ALGORAND_TESTNET_MNEMONIC`. Keep it out of chat and Git. The job needs the account's minimum balance plus one 1,000 microALGO fee.
 - **Reason** The opt-in test signs one zero-value self-payment and independently verifies the native Indexer receipt. Engineering owns running the job and recording the result. [Algorand TestNet funding](https://dev.algorand.co/algokit/deployment/) · [Provider status](../HyperDrive-Providers/CURRENT_STATUS.md)
 
+### WEB4 dev disposable Clan cleanup
+
+- **Open, 2026-11-17.** The signed OPORTAL probe left one disposable Clan after the SDK rejected its delete route before dispatch and the test owner was deleted. A read-only WEB4 catalogue check found fixture `5ab55321-61df-4e78-98b8-2f9f7ef34017` with description `Disposable OPORTAL acceptance fixture`.
+- **David action** Use an authorized dev Wizard session to delete this exact Clan via `DELETE /api/clan/5ab55321-61df-4e78-98b8-2f9f7ef34017`. Confirm the response acknowledges deletion and a subsequent catalogue read omits the ID. The agent owns follow-up verification and ledger reconciliation. [WEB4 dev API](https://dev.api.web4.oasisomniverse.one/swagger)
+
 ### WEB4 dev wallet encryption key
 
 - **Open, 15 November 2026.** A disposable avatar's Solana wallet creation reached WEB4 and failed because wallet encryption was enabled with no configured key. The avatar was deleted.
