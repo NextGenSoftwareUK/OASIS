@@ -11,6 +11,8 @@ internal sealed class SqliteCqlReadBudget : IDisposable
     private static readonly Encoding StrictUtf8 = new UTF8Encoding(false, true);
     private const string Utf8Function = "cosmic_cql_utf8_valid";
     internal const string StringLengthFunction = "cosmic_cql_utf16_length";
+    internal const string TextStringLengthFunction = "cosmic_cql_text_utf16_length";
+    internal const string TextStringMatchFunction = "cosmic_cql_text_ordinal_match";
     private static bool ValidUtf8(byte[] bytes)
     {
         if (bytes == null) return false;
@@ -29,6 +31,28 @@ internal sealed class SqliteCqlReadBudget : IDisposable
     private long steps;
     private int stopped;
     private bool disposed;
+    private bool TextStringMatch(string text, string value, long operation)
+    {
+        Check();
+        var match = text != null && value != null && ((NextGenSoftware.OASIS.API.Core.Objects.NativeData.NativeRecordFunction)operation switch
+        {
+            NextGenSoftware.OASIS.API.Core.Objects.NativeData.NativeRecordFunction.Contains => text.IndexOf(value, StringComparison.Ordinal) >= 0,
+            NextGenSoftware.OASIS.API.Core.Objects.NativeData.NativeRecordFunction.StartsWith => text.StartsWith(value, StringComparison.Ordinal),
+            NextGenSoftware.OASIS.API.Core.Objects.NativeData.NativeRecordFunction.EndsWith => text.EndsWith(value, StringComparison.Ordinal),
+            _ => throw new ArgumentOutOfRangeException(nameof(operation))
+        });
+        Check();
+        return match;
+    }
+
+    private long? TextUtf16Length(string text)
+    {
+        Check();
+        var units = text == null ? (long?)null : text.Length;
+        Check();
+        return units;
+    }
+
     private long? Utf16Length(byte[] bytes)
     {
         Check();
@@ -59,6 +83,8 @@ internal sealed class SqliteCqlReadBudget : IDisposable
             SQLitePCL.raw.sqlite3_progress_handler(connection.Handle,Interval,callback,null);
             connection.CreateFunction<byte[], bool>(Utf8Function, ValidUtf8, isDeterministic: true);
             connection.CreateFunction<byte[], long?>(StringLengthFunction, Utf16Length, isDeterministic: false);
+            connection.CreateFunction<string, long?>(TextStringLengthFunction, TextUtf16Length, isDeterministic: false);
+            connection.CreateFunction<string, string, long, bool>(TextStringMatchFunction, TextStringMatch, isDeterministic: false);
             connection.CreateFunction<string, string>(SqliteCqlDecimal.Function, DecimalKey, isDeterministic: false);
             connection.CreateFunction<string, string>(SqliteCqlFloating.DoubleFunction, DoubleKey, isDeterministic: false);
             connection.CreateFunction<string, string>(SqliteCqlFloating.SingleFunction, SingleKey, isDeterministic: false);
@@ -67,6 +93,8 @@ internal sealed class SqliteCqlReadBudget : IDisposable
         {
             connection.CreateFunction<byte[], bool>(Utf8Function, null);
             connection.CreateFunction<byte[], long?>(StringLengthFunction, null);
+            connection.CreateFunction<string, long?>(TextStringLengthFunction, null);
+            connection.CreateFunction<string, string, long, bool>(TextStringMatchFunction, null);
             connection.CreateFunction<string, string>(SqliteCqlDecimal.Function, null);
             connection.CreateFunction<string, string>(SqliteCqlFloating.DoubleFunction, null);
             connection.CreateFunction<string, string>(SqliteCqlFloating.SingleFunction, null);
@@ -106,6 +134,8 @@ internal sealed class SqliteCqlReadBudget : IDisposable
         {
             connection.CreateFunction<byte[], bool>(Utf8Function, null);
             connection.CreateFunction<byte[], long?>(StringLengthFunction, null);
+            connection.CreateFunction<string, long?>(TextStringLengthFunction, null);
+            connection.CreateFunction<string, string, long, bool>(TextStringMatchFunction, null);
             connection.CreateFunction<string, string>(SqliteCqlDecimal.Function, null);
             connection.CreateFunction<string, string>(SqliteCqlFloating.DoubleFunction, null);
             connection.CreateFunction<string, string>(SqliteCqlFloating.SingleFunction, null);

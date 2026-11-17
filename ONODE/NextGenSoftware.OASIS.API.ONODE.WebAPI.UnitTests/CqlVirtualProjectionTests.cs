@@ -18,7 +18,7 @@ public sealed class CqlVirtualProjectionTests
         var request = Request();
         var projection = CqlV1Compiler.CompileVirtualProjection(request);
         var match = Assert.Single(projection.Matches);
-        Assert.Equal("category", match.Key);
+        Assert.Equal("category", match.Field);
         Assert.Equal("coffee", match.Value);
         Assert.Equal(new[] { "stock" }, projection.ProjectedFields);
 
@@ -37,7 +37,26 @@ public sealed class CqlVirtualProjectionTests
     {
         var request = Request();
         Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileProjection(request, Guid.NewGuid(), ProviderType.MongoDBOASIS));
-        request.Filters[0].Operator = CqlV1Operator.Contains;
+        request.Filters[0].Operator = CqlV1Operator.NotContains;
+        Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileVirtualProjection(request));
+    }
+
+    [Theory]
+    [InlineData(CqlV1Operator.Contains, NativeRecordFunction.Contains)]
+    [InlineData(CqlV1Operator.StartsWith, NativeRecordFunction.StartsWith)]
+    [InlineData(CqlV1Operator.EndsWith, NativeRecordFunction.EndsWith)]
+    public void MixedStringMatchKeepsItsLiteralAndInputDomain(CqlV1Operator operation, NativeRecordFunction function)
+    {
+        var request = Request();
+        request.Filters[0].Operator = operation;
+        request.Filters[0].Value = JsonSerializer.SerializeToElement("$.*'\u0000\U0001F600");
+        var match = Assert.Single(CqlV1Compiler.CompileVirtualProjection(request).Matches);
+        Assert.Equal(function, match.Function);
+        Assert.Equal("$.*'\u0000\U0001F600", match.Value);
+        request.Filters[0].Scalar = CqlV1Scalar.Integer;
+        Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileVirtualProjection(request));
+        request.Filters[0].Scalar = CqlV1Scalar.String;
+        request.Filters[0].Function = CqlV1Function.Utf16Length;
         Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileVirtualProjection(request));
     }
 
@@ -88,10 +107,10 @@ public sealed class CqlVirtualProjectionTests
             Value = JsonSerializer.SerializeToElement(true) }).ToArray();
 
         var projection = CqlV1Compiler.CompileVirtualProjection(request);
-        Assert.Equal(new[] { "category", "active" }, projection.Matches.Select(match => match.Key));
+        Assert.Equal(new[] { "category", "active" }, projection.Matches.Select(match => match.Field));
         Assert.Equal(true, Assert.IsType<bool>(projection.Matches[1].Value));
         Assert.Equal(new[] { "name", "category", "active" },
-            NativeDataController.VirtualSnapshotFields(projection.Matches.Select(match => match.Key), new[] { "name" }));
+            NativeDataController.VirtualSnapshotFields(projection.Matches.Select(match => match.Field), new[] { "name" }));
     }
 
     [Fact]
@@ -123,4 +142,22 @@ public sealed class CqlVirtualProjectionTests
             new CqlProjectionV1Column { Alias = "Stock", MetadataPath = new[] { "stock" }, ValueType = "Int64" }
         }
     };
+
+    [Fact]
+    public void LengthSnapshotRetainsTheStringFieldAndOriginalValue()
+    {
+        var filter = new CqlV1Filter { MetadataPath = new[] { "title" }, Scalar = CqlV1Scalar.String,
+            Function = CqlV1Function.Utf16Length, Operator = CqlV1Operator.GreaterThanOrEqual,
+            Value = JsonSerializer.SerializeToElement("2") };
+        var filters = CqlV1Compiler.CompileVirtualMatches(new[] { filter });
+        Assert.Equal(new[] { "name", "title" }, NativeDataController.VirtualSnapshotFields(
+            filters.Select(item => item.Field), new[] { "name" }));
+        var owner = Guid.NewGuid();
+        var native = new NativeRecord("items", "one", new Dictionary<string, object>
+            { ["title"] = "\U0001F600", ["name"] = "selected" });
+        var row = VirtualHolonRead.FromNative(owner, ProviderType.MongoDBOASIS, Guid.NewGuid(), 1,
+            "mongodb://example.test/fixture", "items", DateTimeOffset.UtcNow, native,
+            new Dictionary<string, string> { ["title"] = "title", ["name"] = "name" });
+        Assert.Equal("\U0001F600", row.PrepareSnapshot(owner).MetaData["title"]);
+    }
 }

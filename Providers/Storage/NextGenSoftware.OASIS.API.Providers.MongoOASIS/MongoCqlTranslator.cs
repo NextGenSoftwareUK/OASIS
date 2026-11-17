@@ -349,7 +349,36 @@ internal sealed partial class MongoCqlTranslator
                 return Choose(guard,Op("$in",guid?GuidOperand(value):value,Literal(values)),Literal(false));
             });
             case CosmicQueryStringLength length: return At(length.Path, value =>
-            {
+                Utf16LengthComparison(value, length.Operator, length.Value));
+            case CosmicQueryStringMatch match: return At(match.Path, value =>
+                OrdinalStringMatch(value, match.Operator, match.Value));
+            default:throw new NotSupportedException("MongoDB CQL predicate is unsupported.");
+        }
+    }
+
+    // Stored and mapped strings use one native ordinal match expression.
+    internal static BsonValue OrdinalStringMatch(BsonValue value,
+        CosmicQueryStringOperator operation, string text)
+    {
+        BsonValue content = Literal(text);
+        BsonValue expression;
+        if (operation == CosmicQueryStringOperator.EndsWith)
+        {
+            var offset = Op("$subtract", new BsonDocument("$strLenBytes", value),
+                new BsonDocument("$strLenBytes", content));
+            expression = Choose(Op("$gte", offset, Literal(0)),
+                Op("$eq", Op("$indexOfBytes", value, content, offset), offset), Literal(false));
+        }
+        else
+            expression = Op(operation == CosmicQueryStringOperator.Contains ? "$gte" : "$eq",
+                Op("$indexOfBytes", value, content), Literal(0));
+        return Choose(Domain(value, typeof(string)), expression, Literal(false));
+    }
+
+    // Stored and mapped native rows must count the same UTF-16 units.
+    internal static BsonValue Utf16LengthComparison(BsonValue value,
+        CosmicQueryComparisonOperator operation, long bound)
+    {
                 var supplementary = new BsonDocument("$regexFindAll", new BsonDocument
                 {
                     { "input", value },
@@ -357,7 +386,7 @@ internal sealed partial class MongoCqlTranslator
                 });
                 var units = Op("$add", new BsonDocument("$strLenCP", value),
                     new BsonDocument("$size", supplementary));
-                var symbol = length.Operator switch
+                var symbol = operation switch
                 {
                     CosmicQueryComparisonOperator.Equal => "$eq",
                     CosmicQueryComparisonOperator.NotEqual => "$ne",
@@ -367,20 +396,8 @@ internal sealed partial class MongoCqlTranslator
                     CosmicQueryComparisonOperator.LessThanOrEqual => "$lte",
                     _ => throw new NotSupportedException("Unknown string length comparison.")
                 };
-                return Choose(Domain(value, typeof(string)), Op(symbol, units, Literal(length.Value)), Literal(false));
-            });
-            case CosmicQueryStringMatch match:return At(match.Path,value=>{
-                BsonValue content=Literal(match.Value);BsonValue expression;
-                if(match.Operator==CosmicQueryStringOperator.EndsWith)
-                {
-                    var offset=Op("$subtract",new BsonDocument("$strLenBytes",value),new BsonDocument("$strLenBytes",content));
-                    expression=Choose(Op("$gte",offset,Literal(0)),Op("$eq",Op("$indexOfBytes",value,content,offset),offset),Literal(false));
-                }
-                else expression=Op(match.Operator==CosmicQueryStringOperator.Contains?"$gte":"$eq",Op("$indexOfBytes",value,content),Literal(0));
-                return Choose(Domain(value,typeof(string)),expression,Literal(false));
-            });
-            default:throw new NotSupportedException("MongoDB CQL predicate is unsupported.");
-        }
+                return Choose(Domain(value, typeof(string)), Op(symbol, units, Literal(bound)), Literal(false));
+
     }
 }
 internal sealed class MongoCqlLimitException():Exception("MongoDB CQL exceeds its node, BSON-depth, one-MiB query, result-count or 64-MiB projected-payload budget.");

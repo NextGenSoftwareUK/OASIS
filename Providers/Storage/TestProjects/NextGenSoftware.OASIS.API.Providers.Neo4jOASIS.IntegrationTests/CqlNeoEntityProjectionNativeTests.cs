@@ -37,12 +37,13 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         try
         {
             var activation=await provider.ActivateProviderAsync();Assert.IsFalse(activation.IsError,activation.Message);active=true;
+            var checks=new List<object>();
             await VerifyVirtualNativeLabel(provider, inspection, actor,
-                new NativeConnection { ["uri"] = uri, ["username"] = username, ["password"] = password });
+                new NativeConnection { ["uri"] = uri, ["username"] = username, ["password"] = password }, checks);
             var saved=await provider.SaveHolonAsync(CreateEntityProjectionFixture(ids,actor,other),saveChildren:true);
             Assert.IsFalse(saved.IsError,saved.Message+saved.Exception);Assert.AreEqual(5L,await Count());
             await Checkpoint("created-awaiting-projection-verification");
-            var checks=new List<object>();
+
             await VerifyEntityProjection((ICosmicQueryEntityProjectionStorageProvider)provider,ids[0],checks);
             await VerifyStandardEntityProjection((ICosmicQueryEntityProjectionStorageProvider)provider,ids[0],checks);
             await VerifyEntitySelectedComposition((ICosmicQueryEntityProjectionCompositionStorageProvider)provider,ids[0],ids,checks);
@@ -55,7 +56,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             await VerifyChildSource(provider, actor, ids[0], ids[1], checks);
             await VerifyJoinOutputOrdering(provider, ids, checks);
             await VerifyNativeStringLength(provider, ids, checks);
-            Assert.AreEqual(106,checks.Count);
+            Assert.AreEqual(118,checks.Count);
             var deactivation=await provider.DeActivateProviderAsync();Assert.IsFalse(deactivation.IsError,deactivation.Message);active=false;
             await Checkpoint("before-exact-cleanup");
             var deleted=await (await inspection.RunAsync("MATCH(h:Holon) WHERE h.Id IN $ids DETACH DELETE h",new{ids=ids.Select(id=>id.ToString("D")).ToArray()})).ConsumeAsync();
@@ -67,15 +68,56 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         finally{if(active)Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError);}
     }
 
-    private static async Task VerifyVirtualNativeLabel(Neo4jOASIS provider, IAsyncSession inspection, Guid actor, NativeConnection named)
+    private static async Task VerifyVirtualNativeLabel(Neo4jOASIS provider, IAsyncSession inspection, Guid actor, NativeConnection named, List<object> checks)
     {
         var label = "VirtualFixture_" + Guid.NewGuid().ToString("N");
         var precedingLabels = provider.NativeImportLabels;
         provider.NativeImportLabels = label;
         try
         {
-            await (await inspection.RunAsync($"CREATE (:`{label}` {{ tier:'Gold', name:'Ada', hidden:'private' }}), " +
-                $"(:`{label}` {{ tier:'gold', name:'Grace' }}), (:`{label}` {{ tier:1, name:'Alan' }})")).ConsumeAsync();
+            await (await inspection.RunAsync($"CREATE (:`{label}` {{ tier:'Gold', name:'Ada', hidden:'private', text:$emoji }}), " +
+                $"(:`{label}` {{ tier:'gold', name:'Grace', text:$nul }}), (:`{label}` {{ tier:1, name:'Alan', text:[$emoji] }})",
+                new { emoji = "\U0001F600", nul = "abc\u0000def" })).ConsumeAsync();
+            var typedCases = new[]
+            {
+                new NativeRecordFilter("text", CosmicQueryComparisonOperator.Equal, 2L, NativeRecordFunction.Utf16Length),
+                new NativeRecordFilter("text", CosmicQueryComparisonOperator.GreaterThan, 2L, NativeRecordFunction.Utf16Length),
+                new NativeRecordFilter("tier", CosmicQueryComparisonOperator.GreaterThan, 0L),
+                new NativeRecordFilter("tier", CosmicQueryComparisonOperator.NotEqual, "Gold")
+            };
+            var expected = new[] { "Ada", "Grace", "Alan", "Grace" };
+            for (var index = 0; index < typedCases.Length; index++)
+            {
+                var started = System.Diagnostics.Stopwatch.StartNew();
+                var selected = await provider.QueryNativePredicateRecordsAsync(label, new[] { typedCases[index] },
+                    new[] { "name" }, 1);
+                Assert.IsFalse(selected.IsError, selected.Message + selected.Exception);
+                Assert.AreEqual(expected[index], selected.Result.Single().Fields["name"]);
+                Assert.AreEqual(1, selected.Result.Single().Fields.Count);
+                checks.Add(new { provider = "Neo4jOASIS", nativePredicate = index,
+                    elapsedMilliseconds = started.ElapsedMilliseconds });
+            }
+            var stringCases = new (NativeRecordFunction Function, string Field, string Value, string[] Expected)[]
+            {
+                (NativeRecordFunction.Contains, "text", "\u0000", new[] { "Grace" }),
+                (NativeRecordFunction.StartsWith, "text", "abc", new[] { "Grace" }),
+                (NativeRecordFunction.EndsWith, "text", "def", new[] { "Grace" }),
+                (NativeRecordFunction.Contains, "text", "\U0001F600", new[] { "Ada" }),
+                (NativeRecordFunction.Contains, "text", "", new[] { "Ada", "Grace" }),
+                (NativeRecordFunction.Contains, "name", "ADA", Array.Empty<string>())
+            };
+            foreach (var item in stringCases)
+            {
+                var read = await provider.QueryNativePredicateRecordsAsync(label,
+                    new[] { new NativeRecordFilter(item.Field, CosmicQueryComparisonOperator.Equal, item.Value, item.Function) },
+                    new[] { "name" }, 10);
+                Assert.IsFalse(read.IsError, read.Message + read.Exception);
+                CollectionAssert.AreEqual(item.Expected.OrderBy(value => value, StringComparer.Ordinal).ToArray(),
+                    read.Result.Select(row => (string)row.Fields["name"]).OrderBy(value => value, StringComparer.Ordinal).ToArray());
+                checks.Add(new { provider = "Neo4jOASIS", nativePredicate = "ordinal string " + item.Function, literal = item.Value });
+            }
+            var sourceCount = await (await inspection.RunAsync($"MATCH (n:`{label}`) RETURN count(n) AS n")).SingleAsync();
+            Assert.AreEqual(3L, sourceCount["n"].As<long>(), "Native source queries must not write records.");
 
             var native = await provider.ReadNativeRecordsAsync(label, null, 5);
             Assert.IsFalse(native.IsError, native.Message);
@@ -83,6 +125,23 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, actor, provider.NativeDataProviderType,
                 label, VirtualHolonMapping.SandboxConnectionName, provider.DescribeVirtualQueryConnection(null),
                 new Dictionary<string, string> { ["tier"] = "tier", ["name"] = "name" });
+            var lengthMapping = new VirtualHolonMapping(Guid.NewGuid(), 1, actor, provider.NativeDataProviderType,
+                label, VirtualHolonMapping.SandboxConnectionName, provider.DescribeVirtualQueryConnection(null),
+                new Dictionary<string, string> { ["name"] = "name", ["textAlias"] = "text" });
+            var mappedLength = await lengthMapping.QueryAsync(actor, provider, null,
+                new[] { new NativeRecordFilter("textAlias", CosmicQueryComparisonOperator.Equal, 2L, NativeRecordFunction.Utf16Length) },
+                new[] { "name", "textAlias" }, 2);
+            Assert.IsFalse(mappedLength.IsError, mappedLength.Message + mappedLength.Exception);
+            Assert.AreEqual("Ada", mappedLength.Result.Single().MetaData["name"]);
+            Assert.AreEqual("\U0001F600", mappedLength.Result.Single().PrepareSnapshot(actor).MetaData["textAlias"]);
+            checks.Add(new { provider = "Neo4jOASIS", nativePredicate = "mapped length and unchanged snapshot field" });
+            var mappedMatch = await lengthMapping.QueryAsync(actor, provider, null,
+                new[] { new NativeRecordFilter("textAlias", CosmicQueryComparisonOperator.Equal, "\u0000", NativeRecordFunction.Contains) },
+                new[] { "name", "textAlias" }, 2);
+            Assert.IsFalse(mappedMatch.IsError, mappedMatch.Message + mappedMatch.Exception);
+            Assert.AreEqual("Grace", mappedMatch.Result.Single().MetaData["name"]);
+            Assert.AreEqual("abc\u0000def", mappedMatch.Result.Single().PrepareSnapshot(actor).MetaData["textAlias"]);
+            checks.Add(new { provider = "Neo4jOASIS", nativePredicate = "mapped string match and unchanged snapshot" });
             var query = await mapping.QueryAsync(actor, provider, null, "tier", "Gold", new[] { "name" }, 2);
             Assert.IsFalse(query.IsError, query.Message);
             var row = query.Result.Single();
