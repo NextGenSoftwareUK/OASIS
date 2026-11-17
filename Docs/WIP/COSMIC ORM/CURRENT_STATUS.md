@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. Grouped ORDER BY binds repeated selected aggregate and metadata expressions to the same native result columns as aliases or positions. The [preview](https://vercel.com/oasis-team/web4-site/GaNN4P2WpsXMLoxxGB3NfHvEB7o8) built from `cd632804e5b0`, with 278 website tests passing. The live alias-equivalent two-key sort and OFFSET page on WEB4 Development `baa5bdf51b74` returned stock 9/count 1 on each of MongoDB, SQLite and Neo4j in 0.48–0.85 s.
+
 17 November UTC. SQL HAVING now binds selected aggregate calls, typed metadata expressions and selected source fields to their existing native result columns. The [preview](https://vercel.com/oasis-team/web4-site/2EkSZEP5CgvgwHxSQ7rM16eRqbjq) built from `3968314eb653` and all 277 site tests passed. On WEB4 Development `baa5bdf51b74`, HAVING COUNT(1) and a repeated CAST produced the same request as the selected aliases. MongoDB, SQLite and Neo4j each returned the expected stock 7/count 2 in 0.44–0.93 s.
 
 17 November UTC. The SQL text editor accepts selected aliases in GROUP BY, including typed metadata. Explicit source field names take precedence on a name collision. The [preview](https://vercel.com/oasis-team/web4-site/HK2FvcFf7eh6mQXGn9UFRyVNJRvs) built from `4faf5e6bed97` and all 276 website tests passed. On WEB4 Development `baa5bdf51b74`, the alias and explicit CAST compiled to identical native requests. MongoDB, SQLite and Neo4j each returned exactly stock 7/count 2 after HAVING (0.43–1.11 s).

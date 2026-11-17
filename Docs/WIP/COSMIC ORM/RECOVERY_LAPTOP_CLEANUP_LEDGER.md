@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. Grouped ORDER BY used one disposable website snapshot and one signed Development session. All nine private test fixture IDs were verified absent, the session was revoked and the journal removed. A follow-up search found no matching temporary journals. The recovery laptop had 15.6 GiB free.
+
 17 November UTC. HAVING expression verification used disposable `cosmic-group-alias-*` website test snapshots and one signed sandbox test. The snapshots and indexes were removed, all nine fixture IDs were verified absent, and the session and temporary journal were removed. No download, SDK installation or local build output.
 
 17 November UTC. GROUP BY alias website snapshots and indexes used `cosmic-group-alias-*` and were removed. Both Development probe attempts verified all nine fixtures absent and revoked their sessions. The first probe decoded the grouped response with the flat join row shape and was corrected before the second run. No fixtures, test sessions, probe journals or build outputs were retained.
