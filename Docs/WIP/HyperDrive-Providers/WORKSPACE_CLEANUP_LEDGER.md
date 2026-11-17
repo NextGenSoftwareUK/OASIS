@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — OPORTAL removed the temporary candidate index immediately after composition. The task and exact candidate regressions read fixtures from the existing checkout and Git objects. No downloads, browser profiles, build outputs or test-report files were generated. C: had 23.66 GiB free after the checks.
+
 2026-11-17 UTC — The two OPORTAL candidate composition attempts removed their temporary indexes. The exact 17-group regression read Git blobs in memory. No local browser profile, downloads, builds or generated test reports were created.
 
 2026-11-17 UTC — Turso BootLoader run 44018421883 removed its disposable libSQL container, volume, image, test DNA, temporary signing material and harness outputs. The fixture credential was scoped to the removed server. No local dependencies, downloads or builds were created.
