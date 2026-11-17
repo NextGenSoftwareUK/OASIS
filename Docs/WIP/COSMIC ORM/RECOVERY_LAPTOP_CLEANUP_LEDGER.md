@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. Combined Turso baseline reconciliation used disposable `cosmic-reconcile-index-*` indexes removed on exit. The INT64 probe plan ran from standard input and created no fixtures, downloads, local build or test output.
+
 17 November UTC. Both joined-order Development probe attempts verified all nine fixture IDs absent and revoked their sessions. No `cql-join-order-live-*` journal remains. Website test snapshots used `cosmic-join-order-*` and were removed. The INT64 Core and test edits used a disposable Git index, removed on exit. No new local build or SDK.
 
 17 November UTC. The corrected native join test and exact candidate used disposable `cosmic-queryable-join-index-*` Git indexes removed on exit. Superseded exact CI and image runs were cancelled. Build and failure output stayed remote, and no local SDK, database or build output was created.
