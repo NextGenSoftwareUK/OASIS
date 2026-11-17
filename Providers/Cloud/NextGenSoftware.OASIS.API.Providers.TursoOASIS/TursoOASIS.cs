@@ -522,10 +522,25 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var loaded = await LoadHolonAsync(id);
-                if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"TursoOASIS: No holon found with ID '{id}'."); return result; }
-                await ExecAsync("UPDATE oasis_holons SET is_deleted=1 WHERE id=?", new List<LibSqlArg> { Arg(id.ToString()) });
-                result.Result = loaded.Result; result.IsError = false; result.Message = $"TursoOASIS: Holon '{id}' soft-deleted.";
+                var deleted = await ExecuteSqlAsync(
+                    "UPDATE oasis_holons SET is_deleted=1 WHERE id=? AND is_deleted=0 RETURNING data_json",
+                    new List<LibSqlArg> { Arg(id.ToString()) }).ConfigureAwait(false);
+                if (deleted.AffectedRowCount == 0)
+                    return new OASISResult<IHolon>
+                    {
+                        IsError = true, ErrorCount = 1, ErrorCode = OASISResultErrorCodes.RecordNotFound,
+                        Message = "Turso found no matching live holon to delete."
+                    };
+
+                var rows = ResultToRows(deleted);
+                if (deleted.AffectedRowCount != 1 || rows.Count != 1)
+                    throw new InvalidOperationException("Turso did not acknowledge exactly one holon deletion.");
+
+                result.Result = Des<Holon>(rows[0].GetValueOrDefault("data_json"))
+                    ?? throw new InvalidOperationException("Turso did not return the deleted holon.");
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.Message = $"TursoOASIS: Holon '{id}' soft-deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;

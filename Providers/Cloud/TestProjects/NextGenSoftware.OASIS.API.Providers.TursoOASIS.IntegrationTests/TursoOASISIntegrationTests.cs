@@ -186,6 +186,26 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
         }
 
         [TestMethod]
+        public async Task ConcurrentHolonDeletes_AcknowledgeOnlyTheWinningWrite()
+        {
+            RequireLive();
+            var holon = new Holon { Id = Guid.NewGuid(), Name = "Concurrent Turso deletion" };
+            var saved = await _provider.SaveHolonAsync(holon);
+            Assert.IsFalse(saved.IsError, saved.Message);
+
+            var attempts = await Task.WhenAll(_provider.DeleteHolonAsync(holon.Id), _provider.DeleteHolonAsync(holon.Id));
+            var winner = Array.Find(attempts, attempt => attempt.IsDeleted);
+            var other = Array.Find(attempts, attempt => !attempt.IsDeleted);
+            Assert.IsNotNull(winner);
+            Assert.IsNotNull(other);
+            Assert.IsFalse(winner.IsError, winner.Message);
+            Assert.AreEqual(1, winner.DeletedCount);
+            Assert.AreEqual(holon.Id, winner.Result!.Id);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, other.ErrorCode);
+            Assert.IsNull((await _provider.LoadHolonAsync(holon.Id)).Result);
+        }
+
+        [TestMethod]
         public async Task SaveAndLoadHolon_RoundTrips()
         {
             RequireLive();
