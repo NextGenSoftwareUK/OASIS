@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. Development advanced to 2c1a3232b9f9 for the scoped mixed Virtual Holon lookup repair. The next COSMIC Core candidate incorporates the Development Core tree and contains exactly the three Virtual Holon query, named connection and joined LINQ files under feature qualification. This carries forward the Development avatar authority and HyperDrive changes. The next release still requires an exact composed source and image check.
+
 17 November UTC. Joined LINQ All with a preserved-side predicate passed the native three-store test stage [44058635990](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44058635990) at source 774bcbff74fa. The fixture applies All through native filtering and covers true, false, empty input and rejection after paging. The exact pre-All Neo4j virtual fixture and configured SQLite virtual tests passed [44056785008](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44056785008). These source checks do not change the live scope. The private named connection guard and avatar-scoped credential regression are in [44060633192](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44060633192).
 
 17 November UTC. Private named Virtual Holon connections now use the already authenticated avatar for encrypted connection resolution. JWT middleware loads that avatar ahead of the CQL execution scope. The mapping lookup still enforces owner and provider, and the connection still must match the mapping identity. Exact CI and live named-connection evidence are pending.
