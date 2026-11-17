@@ -86,6 +86,18 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 label, imported.NativeKey), row.Id);
             Assert.AreEqual("Ada", row.MetaData["name"]);
             Assert.AreEqual(1, row.MetaData.Count);
+
+            var snapshot = row.PrepareSnapshot(actor);
+            var changed = await (await inspection.RunAsync(
+                $"MATCH (item:`{label}` {{tier:'Gold'}}) SET item.name = 'Ada updated'")).ConsumeAsync();
+            Assert.AreEqual(1, changed.Counters.PropertiesSet);
+            var after = await mapping.QueryAsync(actor, provider, null, "tier", "Gold", new[] { "name" }, 2);
+            Assert.IsFalse(after.IsError, after.Message);
+            var refreshed = after.Result.Single();
+            Assert.AreEqual(row.Id, refreshed.Id);
+            Assert.AreEqual("Ada updated", refreshed.MetaData["name"]);
+            Assert.AreEqual("Ada", snapshot.MetaData["name"]);
+
             var integer = await provider.QueryNativeRecordsAsync(label, "tier", 1L, new[] { "name" }, 2);
             Assert.IsFalse(integer.IsError, integer.Message);
             Assert.AreEqual("Alan", integer.Result.Single().Fields["name"]);

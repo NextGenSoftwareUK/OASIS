@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -94,6 +95,31 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
                 10L, new[] { "sku" }, 2)).Result.Select(item => item.Fields["sku"]));
             Assert.Equal("NATIVE_QUERY_INVALID",
                 (await provider.QueryNativeRecordsAsync("lines", "sku", "A", new[] { "missing" }, 2)).ErrorCode);
+            var actor = Guid.NewGuid();
+            var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, actor, provider.NativeDataProviderType,
+                "lines", VirtualHolonMapping.SandboxConnectionName, provider.DescribeVirtualQueryConnection(null),
+                new Dictionary<string, string> { ["orderId"] = "orderId", ["sku"] = "sku" });
+            var before = await mapping.QueryAsync(actor, provider, null, "orderId", 10L, new[] { "sku" }, 1);
+            Assert.False(before.IsError, before.Message);
+            var original = Assert.Single(before.Result);
+            var snapshot = original.PrepareSnapshot(actor);
+            Assert.Equal("A", snapshot.MetaData["sku"]);
+
+            using (var connection = new SqliteConnection($"Data Source={NativePath}"))
+            {
+                await connection.OpenAsync();
+                using var command = connection.CreateCommand();
+                command.CommandText = "UPDATE lines SET sku = 'A-updated' WHERE orderId = 10 AND lineNo = 1";
+                Assert.Equal(1, await command.ExecuteNonQueryAsync());
+            }
+
+            var after = await mapping.QueryAsync(actor, provider, null, "orderId", 10L, new[] { "sku" }, 1);
+            Assert.False(after.IsError, after.Message);
+            var refreshed = Assert.Single(after.Result);
+            Assert.Equal(original.Id, refreshed.Id);
+            Assert.Equal("A-updated", refreshed.MetaData["sku"]);
+            Assert.Equal("A", snapshot.MetaData["sku"]);
+
         }
 
         [Fact]
