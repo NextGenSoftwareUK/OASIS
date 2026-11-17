@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -689,6 +690,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return RejectWalletAccess<List<IProviderWallet>>("Only the authenticated wallet owner can read wallets by chain.");
 
             var providerName = chain?.Trim();
+            if (string.Equals(providerName, "bnb", StringComparison.OrdinalIgnoreCase))
+                providerName = nameof(ProviderType.BNBChainOASIS);
             if (!string.IsNullOrEmpty(providerName) && !providerName.EndsWith("OASIS", StringComparison.OrdinalIgnoreCase))
                 providerName += "OASIS";
 
@@ -798,25 +801,33 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public OASISResult<List<object>> GetSupportedChains()
         {
-            // This would need to be implemented in WalletManager
-            // For now, return a demo response
+            var chains = ProviderManager.Instance.GetAllRegisteredProviders()
+                .OfType<IOASISBlockchainStorageProvider>()
+                .OrderBy(provider => provider.ProviderType.Value.ToString(), StringComparer.Ordinal)
+                .Select(provider =>
+                {
+                    var type = provider.ProviderType.Value;
+                    var providerName = type.ToString();
+                    const string suffix = "OASIS";
+                    var name = providerName.EndsWith(suffix, StringComparison.Ordinal)
+                        ? providerName[..^suffix.Length]
+                        : providerName;
+                    var id = type == ProviderType.BNBChainOASIS ? "bnb" : name.ToLowerInvariant();
+                    return (object)new
+                    {
+                        id,
+                        name,
+                        symbol = TokenHelper.GetTokenForProvider(type),
+                        providerType = providerName,
+                        isActive = provider.IsProviderActivated
+                    };
+                }).ToList();
+
             return new OASISResult<List<object>>
             {
-                Result = new List<object>
-                {
-                    new { id = "ethereum", name = "Ethereum", symbol = "ETH", icon = "ethereum.png", isActive = true },
-                    new { id = "bitcoin", name = "Bitcoin", symbol = "BTC", icon = "bitcoin.png", isActive = true },
-                    new { id = "solana", name = "Solana", symbol = "SOL", icon = "solana.png", isActive = true },
-                    new { id = "polygon", name = "Polygon", symbol = "MATIC", icon = "polygon.png", isActive = true },
-                    new { id = "arbitrum", name = "Arbitrum", symbol = "ARB", icon = "arbitrum.png", isActive = true },
-                    new { id = "optimism", name = "Optimism", symbol = "OP", icon = "optimism.png", isActive = true },
-                    new { id = "base", name = "Base", symbol = "BASE", icon = "base.png", isActive = true },
-                    new { id = "avalanche", name = "Avalanche", symbol = "AVAX", icon = "avalanche.png", isActive = true },
-                    new { id = "bnb", name = "BNB Chain", symbol = "BNB", icon = "bnb.png", isActive = true },
-                    new { id = "fantom", name = "Fantom", symbol = "FTM", icon = "fantom.png", isActive = true }
-                },
+                Result = chains,
                 IsLoaded = true,
-                Message = "Supported chains retrieved successfully"
+                LoadedCount = chains.Count
             };
         }
 
