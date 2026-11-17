@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL branch 79dabb7 now displays unavailability in Conversations and Notifications and leaves their counters unknown on a failed read. A focused in-memory check verified both failures and genuine successful empty lists. The UI and API changes await scoped dev promotion. No new test records or local outputs were retained.
+
 2026-11-17 UTC — Live Messaging controller audit found that the inbox, conversation and notifications reads could discard real errors and return successful empty test data. All three now return the manager result directly on the work branch. Route and parameter declarations are unchanged and checked by source comparison. Build qualification and hosted verification are pending. Runtime log matches for the two disposable avatar IDs contained no application error code, so the cause of the earlier send test remains unconfirmed. No fixture was replayed.
 
 2026-11-17 UTC — Railway WEB4 reached SUCCESS on dd9989649bca. A signed Messaging probe did not establish delivery. Its cleanup exception masked the original functional error and neither inbox discovery nor conditional delete resolved cleanup. Preserved the two disposable identities for authorized recovery. The probe now reports the original functional error and sanitized cleanup status independently. Do not replay this operation. See the cleanup ledger and the owner action.
