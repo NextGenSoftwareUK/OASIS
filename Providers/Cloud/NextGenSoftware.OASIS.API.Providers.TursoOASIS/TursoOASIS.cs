@@ -795,7 +795,18 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                 var matches = new SearchResults();
                 matches.SearchResultAvatars.AddRange(avatars.Where(avatar => StoredRecordSearch.Matches(avatar, true, searchParams, holons)));
                 if (searchHolons)
-                    matches.SearchResultHolons.AddRange(holons.Where(holon => StoredRecordSearch.Matches(holon, false, searchParams, holons)));
+                {
+                    bool MatchesHolon(IHolon holon) => StoredRecordSearch.Matches(holon, false, searchParams, holons);
+                    var selected = holons.Where(MatchesHolon).ToList();
+                    if (loadChildren && selected.Count > 0)
+                    {
+                        var depth = !recursive ? 1 : maxChildDepth == 0 ? -1 : maxChildDepth;
+                        var ids = Ser(selected.Select(holon => holon.Id));
+                        var trees = await LoadCollectionTreesAsync(HolonType.All, depth, ids).ConfigureAwait(false);
+                        selected = trees.Where(MatchesHolon).ToList();
+                    }
+                    matches.SearchResultHolons.AddRange(selected);
+                }
                 if (searchParams.SearchOnlyForCurrentAvatar)
                 {
                     var scoped = new OASISResult<IEnumerable<IHolon>> { Result = matches.SearchResultHolons, IsLoaded = true };

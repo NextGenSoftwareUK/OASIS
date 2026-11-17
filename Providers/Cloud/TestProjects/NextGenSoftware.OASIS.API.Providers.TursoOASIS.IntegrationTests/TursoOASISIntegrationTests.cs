@@ -234,12 +234,15 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             var owner = Guid.NewGuid();
             var root = new Holon { Name = "Search fixture root", CreatedByAvatarId = owner };
             var selected = new Holon { Name = "Matching fixture", CreatedByAvatarId = owner, MetaData = new() { ["scope"] = "selected" } };
+            var ownedChild = new Holon { Name = "Owned child", CreatedByAvatarId = owner };
+            selected.Children.Add(ownedChild);
+            selected.Children.Add(new Holon { Name = "Private child", CreatedByAvatarId = Guid.NewGuid() });
             root.Children.Add(selected);
             root.Children.Add(new Holon { Name = selected.Name, CreatedByAvatarId = Guid.NewGuid(), MetaData = selected.MetaData });
             root.Children.Add(new Holon { Name = selected.Name, CreatedByAvatarId = owner, MetaData = new() { ["scope"] = "excluded" } });
             var saved = await _provider.SaveHolonAsync(root);
             Assert.IsTrue(saved.IsSaved, saved.Message);
-            Assert.AreEqual(4, saved.SavedCount);
+            Assert.AreEqual(6, saved.SavedCount);
 
             var query = new SearchParams
             {
@@ -254,7 +257,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             Assert.IsTrue(results.IsLoaded, results.Message);
             Assert.AreEqual(1, results.LoadedCount);
             Assert.AreEqual(selected.Id, results.Result!.SearchResultHolons.Single().Id);
+            Assert.AreEqual(0, results.Result.SearchResultHolons.Single().Children.Count);
             Assert.AreEqual(0, results.Result.SearchResultAvatars.Count);
+
+            var expanded = await _provider.SearchAsync(query, loadChildren: true, maxChildDepth: 1);
+            Assert.IsTrue(expanded.IsLoaded, expanded.Message);
+            Assert.AreEqual(1, expanded.LoadedCount);
+            Assert.AreEqual(ownedChild.Id, expanded.Result!.SearchResultHolons.Single().Children.Single().Id);
         }
 
         [TestMethod]
