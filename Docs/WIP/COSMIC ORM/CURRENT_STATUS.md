@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. Exact mixed Virtual Holon release candidate `b60a1b576bf6` is based on Development `323922c64d9e` and preserves the Turso follow-up and current dependency pins. The [full qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44046877685) and [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44046899422) are running. The offline SQL walkthrough is ready to verify one stored row, live mapped rows, no per-row persistence, and a second-avatar denial after the exact rollout. The website patch passed 284 tests and awaits live API acceptance.
+
 17 November UTC. Virtual mapping preparation and both WEB4 read paths now share sandbox fixture admission. The configured source is available only on sandbox-enabled hosts for the approved MongoDB sample collections and scalar fields. Named user connections retain owner-vault admission. The website demo and exact CI are pending.
 
 17 November UTC. The virtual query contract can now bind the built-in MongoDB fixture connection while preserving the IDs used by full fixture imports. Its authority fingerprint tracks the configured store and the integration test checks that virtual and materialized identity agree. The WEB4 sandbox-only route still needs to restrict this capability to its approved sample collections.
