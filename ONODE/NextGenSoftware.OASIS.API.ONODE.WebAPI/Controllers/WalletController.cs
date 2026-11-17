@@ -15,6 +15,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -847,21 +848,37 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<List<object>>> GetWalletTokensAsync(Guid avatarId, Guid walletId)
         {
-            // NOT IMPLEMENTED - see GetPortfolioValueAsync. This reported 2.5 ETH on empty wallets.
-            if (!UseTestDataWhenLiveDataNotAvailable)
-                return NotImplementedResult<List<object>>("Wallet token balances");
+            if (!OwnsWalletAvatar(avatarId))
+                return RejectWalletAccess<List<object>>("Only the authenticated wallet owner can view its token balances.");
 
-            return new OASISResult<List<object>>
+            var loaded = await WalletManager.LoadProviderWalletsForAvatarByIdAsync(avatarId, showPrivateKeys: false, showSecretWords: false);
+            if (loaded.IsError)
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Dictionary<ProviderType, List<IProviderWallet>>, List<object>>(loaded);
+
+            var matching = WalletManager.ResolveWalletsForProvider(loaded.Result, ProviderType.All)
+                .Where(wallet => walletId != Guid.Empty && (wallet.WalletId == walletId || wallet.Id == walletId)).Take(2).ToArray();
+            if (matching.Length != 1)
             {
-                Result = new List<object>
+                Response.StatusCode = matching.Length == 0 ? StatusCodes.Status404NotFound : StatusCodes.Status409Conflict;
+                return new OASISResult<List<object>>
                 {
-                    new { symbol = "ETH", name = "Ethereum", amount = "2.5", value = 5000, usdValue = 5000, chain = "ethereum" },
-                    new { symbol = "USDC", name = "USD Coin", amount = "1000", value = 1000, usdValue = 1000, chain = "ethereum" },
-                    new { symbol = "USDT", name = "Tether", amount = "500", value = 500, usdValue = 500, chain = "ethereum" }
-                },
-                IsLoaded = true,
-                Message = "SAMPLE DATA - not real token balances (UseTestDataWhenLiveDataNotAvailable is enabled)."
-            };
+                    IsError = true,
+                    Message = matching.Length == 0 ? "Wallet not found." : "The wallet identity is ambiguous."
+                };
+            }
+
+            var wallet = matching[0];
+            if (wallet.ProviderType != ProviderType.SolanaOASIS)
+                return NotImplementedResult<List<object>>("Token balance enumeration for this wallet network");
+
+            var provider = await GetAndActivateProviderAsync(wallet.ProviderType, false);
+            if (provider.IsError || provider.Result is not SolanaOASIS solana)
+            {
+                Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                return new OASISResult<List<object>> { IsError = true, Message = "The Solana wallet provider is unavailable." };
+            }
+
+            return await solana.ReadWalletAssetsAsync(wallet.WalletAddress, HttpContext.RequestAborted);
         }
 
         /// <summary>
