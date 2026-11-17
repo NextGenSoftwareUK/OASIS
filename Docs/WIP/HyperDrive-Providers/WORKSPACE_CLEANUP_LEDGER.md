@@ -2032,3 +2032,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-17 UTC — Removed the temporary alternate index used to assemble Turso BootLoader candidate `1a5e674789f8`. The native job runs on GitHub. No local worktree, runtime, database or log was created for qualification.
 
 2026-11-17 UTC — Verified Turso graph insert and update SQL against an in-memory SQLite database. The process exited with no database file or generated output. Railway health and deployment checks retained no local artifacts.
+
+2026-11-17 UTC — Checked Turso deletion rollback and the owner export query plan with in-memory SQLite. Both processes exited without database files. GitHub failure logs were inspected in memory.

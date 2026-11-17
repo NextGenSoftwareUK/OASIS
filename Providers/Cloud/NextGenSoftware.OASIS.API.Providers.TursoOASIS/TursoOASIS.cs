@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
@@ -367,7 +368,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                 if (avatarDetail.Id == Guid.Empty) avatarDetail.Id = Guid.NewGuid();
                 await WriteOneAsync(
                     "INSERT INTO oasis_avatar_details(id,username,email,data_json) VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET username=excluded.username,email=excluded.email,data_json=excluded.data_json",
-                    new List<LibSqlArg> { Arg(avatarDetail.Id.ToString()), Arg(avatarDetail.Username), Arg(avatarDetail.Email), Arg(Ser(avatarDetail)) });
+                    new List<LibSqlArg> { Arg(avatarDetail.Id.ToString()), Arg(avatarDetail.Username), Arg(avatarDetail.Email), Arg(StoredRecordJson.Serialize(avatarDetail)) });
                 result.Result = avatarDetail;
                 result.IsSaved = true;
                 result.SavedCount = 1;
@@ -388,7 +389,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                 var rows = ResultToRows(res);
                 if (rows.Count == 0)
                     return MissingRecord<IAvatarDetail>($"TursoOASIS: No avatar detail found for ID '{id}'.");
-                result.Result = Des<AvatarDetail>(rows[0].GetValueOrDefault("data_json"))
+                result.Result = StoredRecordJson.DeserializeStored<AvatarDetail>(rows[0].GetValueOrDefault("data_json")!)
                     ?? throw new InvalidOperationException("Turso returned an empty avatar detail payload.");
                 result.IsLoaded = true;
                 result.LoadedCount = 1;
@@ -409,7 +410,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                 var rows = ResultToRows(res);
                 if (rows.Count == 0)
                     return MissingRecord<IAvatarDetail>($"TursoOASIS: No avatar detail found for username '{username}'.");
-                result.Result = Des<AvatarDetail>(rows[0].GetValueOrDefault("data_json"))
+                result.Result = StoredRecordJson.DeserializeStored<AvatarDetail>(rows[0].GetValueOrDefault("data_json")!)
                     ?? throw new InvalidOperationException("Turso returned an empty avatar detail payload.");
                 result.IsLoaded = true;
                 result.LoadedCount = 1;
@@ -430,7 +431,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                 var rows = ResultToRows(res);
                 if (rows.Count == 0)
                     return MissingRecord<IAvatarDetail>($"TursoOASIS: No avatar detail found for email '{email}'.");
-                result.Result = Des<AvatarDetail>(rows[0].GetValueOrDefault("data_json"))
+                result.Result = StoredRecordJson.DeserializeStored<AvatarDetail>(rows[0].GetValueOrDefault("data_json")!)
                     ?? throw new InvalidOperationException("Turso returned an empty avatar detail payload.");
                 result.IsLoaded = true;
                 result.LoadedCount = 1;
@@ -448,8 +449,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             try
             {
                 var res = await ExecuteSqlAsync("SELECT data_json FROM oasis_avatar_details");
-                var details = ResultToRows(res).Select(r => Des<AvatarDetail>(r.GetValueOrDefault("data_json"))).Where(d => d != null).Cast<IAvatarDetail>().ToList();
-                result.Result = details; result.IsError = false; result.Message = $"TursoOASIS: Loaded {details.Count} avatar detail(s).";
+                var details = ResultToRows(res).Select(row =>
+                    (IAvatarDetail)(StoredRecordJson.DeserializeStored<AvatarDetail>(row.GetValueOrDefault("data_json")!)
+                        ?? throw new InvalidOperationException("Turso returned an empty avatar detail payload."))).ToList();
+                result.Result = details;
+                result.IsLoaded = true;
+                result.LoadedCount = details.Count;
+                result.Message = $"TursoOASIS: Loaded {details.Count} avatar detail(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error loading all avatar details: {ex.Message}"); }
             return result;

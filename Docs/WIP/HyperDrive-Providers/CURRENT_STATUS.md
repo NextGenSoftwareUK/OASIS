@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — [Native run 44022131312](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44022131312) compiled and reached avatar-detail readback in both modes. The rollback test confirmed that native rejection preserved the avatar and also reached detail readback. Turso now uses the shared OASIS stored-record serializer for avatar details so interface-backed fields carry their supported representations. Native verification and compatibility with any pre-existing detail payload without type metadata remain open.
+
 2026-11-17 UTC — Turso owner exports now use an indexed native query over live holons. libSQL selects the requested owner's rows before any payloads cross the network. The shared native suite exercises the same export entry point. Exact qualification is pending.
 
 2026-11-17 UTC — The [first native shared storage run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44021056535) passed six checks in each mode and stopped at avatar-detail read acknowledgement. The task branch already contains that read fix. The [next run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44021495641) found a C# build error comparing libSQL's unsigned affected-row count to the signed array length. The comparison now uses the protocol's unsigned type. Native verification of the graph and deletion changes is pending.
