@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — The dashboard rank and menu deployment used a temporary Git index that was removed. The exact revision tests and hosted asset comparison ran in memory. No local build, downloads or test data were retained.
+
 2026-11-17 UTC — Removed the temporary Git index used to compose the OPORTAL candidate. The exact dashboard, Clan and Wallet checks read Git blobs in memory. Hosted qualification retained no local dependencies, test reports or images.
 
 2026-11-17 UTC — Removed the temporary Core and parent Git indexes and the controller-only route scan export. No extra worktree, local build or download was retained.

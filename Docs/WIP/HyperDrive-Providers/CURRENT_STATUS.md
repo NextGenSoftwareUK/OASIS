@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL dev advanced to `eed9305ae2fa` for the signed dashboard rank and menu rendering fixes. All 23 checks passed on the exact candidate. Vercel deployment `7853894226` succeeded and the dev shell served both versioned scripts byte-for-byte. Signed browser acceptance remains open. The matching Clan/Wallet WEB4 contract run `44086044968` passed; the image `44086400455` is still building. Rebase the staged portal Clan/Wallet changes on the new portal dev revision after WEB4 is ready.
+
 2026-11-17 UTC — OPORTAL task `388dd91` waits for a signed WEB5 session and card visibility before issuing a single dashboard Competition rank request. The dashboard suite confirmed both gates and rendered the acknowledged rank. All 23 checks passed with verification pages read from the dev Git revision because they are absent from the task checkout. Hosted rank remains open. The test used Git blobs in memory with no generated local files.
 
 2026-11-17 UTC — OPORTAL task commit `160624a` renders the signed-in account name and menu popup content as plain text. A focused check verified markup-shaped input is displayed literally in both places. No browser environment, dependencies or test files were created. This fix awaits portal deployment.
