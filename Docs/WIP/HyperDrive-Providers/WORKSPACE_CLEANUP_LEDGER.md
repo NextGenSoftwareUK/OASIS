@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — The signed Eggs read probe confirmed disposable avatar deletion. The candidate temporary index was removed. No egg was hatched and no download, profile or local generated output was retained.
+
 2026-11-17 UTC — Exact Competition SDK verification acknowledged deletion of its disposable avatar. It read source, SDK and responses in memory and created no local files or tournament writes.
 
 2026-11-17 UTC — Removed the temporary tournament join candidate index. Qualification used in-memory fixtures. No accounts, tournament changes or generated files were created.
