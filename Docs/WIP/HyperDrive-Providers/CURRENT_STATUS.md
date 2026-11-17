@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL task fb2598c gives Live Chat its own labeled recipient avatar ID input next to Start Chat Session. Startup reads that input directly. The changed fragment, component-loader reference and script have versioned cache keys. JavaScript syntax and diff checks passed. Refresh the staged Chat candidate with all four files before promotion. Hosted Chat and browser layout remain open. No subscription reads were repeated, because their current session guards were confirmed in source.
+
 2026-11-17 UTC — OPORTAL task b4d8bc7 serializes Chat session creation and checks the active avatar, token and API client before showing startup results. Deferred checks passed repeated startup, response after sign-out and a later successful startup. Scoped candidate 77f2ef266d48 contains the tested Chat script and cache key 20261117y. Dev window remains 17:54:41 UTC. Hosted Chat and full browser verification remain open.
 
 2026-11-17 UTC — OPORTAL task a0684f6 prevents overlapping submissions of a Chat draft and restores the send control after completion. Deferred checks passed duplicate suppression, retry after rejected acknowledgment and preserving text edited during a successful send. Updated scoped Chat candidate 4f253bf53dae includes all tested Chat changes and cache key 20261117x. Dev review remains 17:54:41 UTC. Hosted Chat acceptance is open.
