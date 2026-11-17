@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. The grouped sandbox example tests used a disposable `cosmic-group-demo-*` snapshot and index. Both were removed automatically. No live fixture, runtime or build output was created.
+
 17 November UTC. Projected CAST sort verification removed its website snapshot and index, verified all nine Development fixtures absent, revoked the one temporary session and removed its journal. Follow-up found no matching journal.
 
 17 November UTC. Grouped ORDER BY used one disposable website snapshot and one signed Development session. All nine private test fixture IDs were verified absent, the session was revoked and the journal removed. A follow-up search found no matching temporary journals. The recovery laptop had 15.6 GiB free.
