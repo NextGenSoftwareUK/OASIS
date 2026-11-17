@@ -20,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
     /// applications. Each label is a source, each node a record keyed by its element id, in element-id order, through a
     /// read-only session.
     /// </summary>
-    public partial class Neo4jOASIS : INativeDataImportProvider
+    public partial class Neo4jOASIS : INativeDataQueryProvider
     {
         private static readonly Regex LabelPattern = new Regex("^[A-Za-z_][A-Za-z0-9_]{0,99}$", RegexOptions.CultureInvariant);
         private static readonly string[] ConnectionSettings = { "uri", "username", "password", "database", "labels" };
@@ -98,6 +98,89 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 result.ErrorCode = cause is InvalidOperationException ? "NATIVE_IMPORT_UNAVAILABLE" : "NATIVE_IMPORT_READ_FAILED";
             }
             return result;
+        }
+
+        public string DescribeVirtualQueryConnection(NativeConnection connection)
+        {
+            if (connection != null)
+                return DescribeNativeConnection(connection);
+            if (!IsProviderActivated || _driver == null)
+                throw new NativeConnectionRefusedException("The configured Neo4j source is unavailable.");
+            var uri = ConnectionUri(Host);
+            return $"neo4j-configured://{uri.Host.ToLowerInvariant()}:{(uri.Port < 0 ? 7687 : uri.Port)}/default";
+        }
+
+        public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
+            string sourceName, string matchField, object matchValue, IReadOnlyList<string> fields, int limit,
+            NativeConnection connection = null, CancellationToken cancellationToken = default)
+        {
+            var result = new OASISResult<IReadOnlyList<NativeRecord>>();
+            var type = matchValue switch
+            {
+                string text when text.Length <= 4096 => "STRING",
+                bool => "BOOLEAN",
+                long => "INTEGER",
+                _ => null
+            };
+            if (sourceName == null || !LabelPattern.IsMatch(sourceName) || matchField == null ||
+                !LabelPattern.IsMatch(matchField) || type == null || fields == null || fields.Count is < 1 or > 32 ||
+                fields.Any(field => field == null || !LabelPattern.IsMatch(field)) ||
+                fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || limit is < 1 or > 100)
+                return Error("NATIVE_QUERY_INVALID", "Select a native label, exact scalar equality, fields and a row limit.");
+
+            try
+            {
+                await using var lease = await OpenNativeAsync(connection, cancellationToken);
+                if (!(await LabelsAsync(lease, connection, cancellationToken)).Contains(sourceName, StringComparer.Ordinal))
+                    return Error("NATIVE_QUERY_INVALID", "The connection does not admit that source label.");
+
+                using var transaction = await lease.Session.BeginTransactionAsync(options => options.WithTimeout(NativeImportOptions.ReadTimeout));
+                var property = $"n.`{matchField}`";
+                var columns = string.Join(", ", fields.Select((field, index) => $"n.`{field}` AS f{index}"));
+                var cursor = await transaction.RunAsync(
+                    $"MATCH (n:`{sourceName}`) WHERE {property} IS :: {type} AND {property} = $match " +
+                    $"RETURN elementId(n) AS key, {columns} ORDER BY key LIMIT $take",
+                    new { match = matchValue, take = limit });
+                var records = new List<NativeRecord>(limit);
+                long remainingBytes = 1024 * 1024;
+                while (await cursor.FetchAsync())
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var key = cursor.Current["key"].As<string>();
+                    remainingBytes -= System.Text.Encoding.UTF8.GetByteCount(key);
+                    var metadata = new Dictionary<string, object>(StringComparer.Ordinal);
+                    for (var index = 0; index < fields.Count; index++)
+                    {
+                        var value = cursor.Current["f" + index];
+                        if (value is not (null or string or bool or int or long or double))
+                            return Error("NATIVE_QUERY_INVALID", "Virtual Neo4j projections support scalar properties.");
+                        remainingBytes -= value is string text ? System.Text.Encoding.UTF8.GetByteCount(text) : sizeof(long);
+                        if (remainingBytes < 0)
+                            return Error("NATIVE_QUERY_PAYLOAD_LIMIT", "The native Neo4j projection exceeds the virtual query byte limit.");
+                        metadata.Add(fields[index], ToScalar(value));
+                    }
+                    records.Add(new NativeRecord(sourceName, key, metadata));
+                }
+                await transaction.CommitAsync();
+                result.Result = records.AsReadOnly();
+                result.IsLoaded = true;
+                return result;
+            }
+            catch (NativeConnectionRefusedException)
+            {
+                return Error("NATIVE_IMPORT_CONNECTION_REFUSED", "The native Neo4j connection cannot be used.");
+            }
+            catch (Exception cause) when (cause is Neo4jException or InvalidOperationException or ArgumentException)
+            {
+                return Error("NATIVE_QUERY_FAILED", "The native Neo4j query failed.");
+            }
+
+            OASISResult<IReadOnlyList<NativeRecord>> Error(string code, string message)
+            {
+                OASISErrorHandling.HandleError(ref result, message);
+                result.ErrorCode = code;
+                return result;
+            }
         }
 
         internal static object ToScalar(object value) => value switch
