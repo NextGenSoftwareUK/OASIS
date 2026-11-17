@@ -308,6 +308,31 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
         public override OASISResult<IAvatar> LoadAvatarByRefreshToken(string refreshToken, int version = 0)
             => LoadAvatarByRefreshTokenAsync(refreshToken, version).GetAwaiter().GetResult();
 
+        public Task<OASISResult<IAvatar>> LoadAvatarByPublicKeyAsync(string publicKey, int version = 0)
+            => LoadAvatarByWalletCredentialAsync("PublicKey", "publicKey", publicKey, version);
+
+        public OASISResult<IAvatar> LoadAvatarByPublicKey(string publicKey, int version = 0)
+            => LoadAvatarByPublicKeyAsync(publicKey, version).GetAwaiter().GetResult();
+
+        public Task<OASISResult<IAvatar>> LoadAvatarByPrivateKeyAsync(string privateKey, int version = 0)
+            => LoadAvatarByWalletCredentialAsync("PrivateKey", "privateKey", privateKey, version);
+
+        public OASISResult<IAvatar> LoadAvatarByPrivateKey(string privateKey, int version = 0)
+            => LoadAvatarByPrivateKeyAsync(privateKey, version).GetAwaiter().GetResult();
+
+        private Task<OASISResult<IAvatar>> LoadAvatarByWalletCredentialAsync(
+            string canonicalProperty, string legacyProperty, string selector, int version)
+            => LoadAvatarCredentialAsync($$"""
+                EXISTS (
+                    SELECT 1
+                    FROM json_each(COALESCE(json_extract(data_json,'$.ProviderWallets'),
+                        json_extract(data_json,'$.providerWallets'))) AS wallet_groups
+                    JOIN json_each(CASE WHEN wallet_groups.type='array' THEN wallet_groups.value END) AS wallet
+                    WHERE COALESCE(json_extract(wallet.value,'$.{{canonicalProperty}}'),
+                        json_extract(wallet.value,'$.{{legacyProperty}}'))=?
+                )
+                """, selector, version);
+
         private async Task<OASISResult<IAvatar>> LoadAvatarCredentialAsync(string predicate, string selector, int version)
         {
             if (string.IsNullOrWhiteSpace(selector) || version != 0)

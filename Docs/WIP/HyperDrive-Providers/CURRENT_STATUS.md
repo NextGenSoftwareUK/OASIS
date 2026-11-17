@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Turso wallet-key selectors now use the native wallet JSON arrays via the shipping storage interface. Each lookup binds the key and returns at most two live matches, preserving ambiguity and missing results. The isolated public and private key test is pending. The SQL still scans native records.
+
 2026-11-17 UTC — Turso avatars now use the shared stored-record serializer so interface-backed wallets retain their concrete type. The storage query recognizes both canonical and older camel-case credential fields. Native qualification covers a wallet-bearing avatar and an independently inserted legacy credential payload. Legacy records with populated wallets and no type metadata remain unverified.
 
 2026-11-17 UTC — [Native Turso owner export qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44030358459) passed. It proved owner-only results and distinct missing-owner and database-failure outcomes for the supported aliases. All seven Railway dev services reported SUCCESS for predecessor `b226ff3740c1` from 05:58:45 UTC. The [combined Turso image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44028920352) is building. The next shared Development review starts at 06:28:45 UTC.

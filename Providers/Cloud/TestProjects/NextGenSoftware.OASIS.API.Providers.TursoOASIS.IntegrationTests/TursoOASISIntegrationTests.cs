@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
@@ -490,6 +491,35 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             Assert.AreEqual(legacy.Id, (await _provider.LoadAvatarByRefreshTokenAsync(legacyRefresh)).Result?.Id);
             Assert.IsTrue((await _provider.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsDeleted);
             Assert.IsTrue((await _provider.DeleteAvatarAsync(legacy.Id, softDelete: false)).IsDeleted);
+        }
+
+        [TestMethod]
+        public async Task NativeWalletSelectorsMatchOnlyOneLiveAvatar()
+        {
+            RequireOwnedFixture();
+            IOASISStorageProvider storage = _provider;
+            var publicKey = Guid.NewGuid().ToString("N");
+            var privateKey = Guid.NewGuid().ToString("N");
+            var first = new Avatar { Id = Guid.NewGuid(), Username = "wallet-selector-first" };
+            first.ProviderWallets[ProviderType.TursoOASIS] = new()
+            {
+                new ProviderWallet { WalletId = Guid.NewGuid(), PublicKey = publicKey, PrivateKey = privateKey }
+            };
+            var second = new Avatar { Id = Guid.NewGuid(), Username = "wallet-selector-second" };
+            second.ProviderWallets[ProviderType.TursoOASIS] = new()
+            {
+                new ProviderWallet { WalletId = Guid.NewGuid(), PublicKey = publicKey }
+            };
+            Assert.IsTrue((await storage.SaveAvatarAsync(first)).IsSaved);
+            Assert.AreEqual(first.Id, (await storage.LoadAvatarByPublicKeyAsync(publicKey)).Result?.Id);
+            Assert.AreEqual(first.Id, storage.LoadAvatarByPrivateKey(privateKey).Result?.Id);
+            Assert.IsTrue((await storage.SaveAvatarAsync(second)).IsSaved);
+            Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity, storage.LoadAvatarByPublicKey(publicKey).ErrorCode);
+            Assert.IsTrue((await storage.DeleteAvatarAsync(first.Id)).IsDeleted);
+            Assert.AreEqual(second.Id, storage.LoadAvatarByPublicKey(publicKey).Result?.Id);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await storage.LoadAvatarByPrivateKeyAsync(privateKey)).ErrorCode);
+            Assert.IsTrue((await storage.DeleteAvatarAsync(first.Id, softDelete: false)).IsDeleted);
+            Assert.IsTrue((await storage.DeleteAvatarAsync(second.Id, softDelete: false)).IsDeleted);
         }
 
         private void RequireOwnedFixture()
