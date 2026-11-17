@@ -47,6 +47,7 @@
     <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Models\Data\CqlProjectionV1Request.cs" Link="Web4\CqlProjectionV1Request.cs" />
     <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Services\Cql\CqlProjectionV1Compiler.cs" Link="Web4\CqlProjectionV1Compiler.cs" />
     <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Services\Cql\CqlProjectionV1Endpoint.cs" Link="Web4\CqlProjectionV1Endpoint.cs" />
+    <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Services\Cql\CqlVirtualProjectionV1Compiler.cs" Link="Web4\CqlVirtualProjectionV1Compiler.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonAccess.cs" Link="Web4/HolonAccess.cs" />
