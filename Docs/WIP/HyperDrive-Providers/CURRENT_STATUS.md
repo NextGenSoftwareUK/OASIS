@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — [Wallet supported-chain CI 44070469591](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44070469591) passed on `0587cbcb3115`. Hosted verification remains open. Added Clan boundary assertions for storage failure, explicit absence, owner, Wizard, self-removal and unauthorized callers. The existing focused WEB4 controller workflow now runs those assertions on Clan changes. The exact My Eggs image remains active. No local test outputs were generated.
+
 2026-11-17 UTC — While tracing the hosted Clan write flow, found three WEB4 actions that could continue to mutation after an unsuccessful ownership read. Delete, add member and remove member now verify ownership on the requested provider before dispatch. Removing oneself and Wizard authority remain supported after a valid clan read. An inconclusive read returns service unavailable unless storage supplies an explicit record-not-found code. Qualification and signed Clan mutations remain open.
 
 2026-11-17 UTC — The deployed OPORTAL WEB5 SDK exercised signed Quest and Mission catalogue and search on the real dev backend. All four returned HTTP 200 and successful empty arrays for the test conditions. Quest catalogue and search took 1,197 ms and 678 ms. Mission catalogue and search took 172 ms and 166 ms. The separate My Quests and My Missions reads were previously verified. Populated results and signed browser rendering remain open. WEB4 acknowledged sandbox avatar deletion. The exact My Eggs image and supported-chain CI remained active.

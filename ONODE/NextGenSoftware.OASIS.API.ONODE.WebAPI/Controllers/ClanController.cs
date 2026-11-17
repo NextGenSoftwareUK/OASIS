@@ -273,6 +273,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             ProviderType storageProvider, Guid? leavingAvatarId = null)
         {
             var clan = await ClanManager.LoadClanAsync(clanId, storageProvider);
+            return GetClanMutationRefusal(clan, AvatarId, Avatar?.AvatarType?.Value == AvatarType.Wizard, leavingAvatarId);
+        }
+
+        internal static OASISHttpResponseMessage<bool> GetClanMutationRefusal(OASISResult<IClan> clan,
+            Guid callerId, bool isWizard, Guid? leavingAvatarId = null)
+        {
             if (clan.IsError || clan.Result == null)
                 return HttpResponseHelper.FormatResponse(new OASISResult<bool>
                 {
@@ -281,8 +287,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     Message = clan.Message ?? "Could not verify clan ownership."
                 }, clan.ErrorCode == OASISResultErrorCodes.RecordNotFound ? HttpStatusCode.NotFound : HttpStatusCode.ServiceUnavailable);
 
-            if (AvatarId != Guid.Empty && (clan.Result.OwnerAvatarId == AvatarId || leavingAvatarId == AvatarId ||
-                Avatar?.AvatarType?.Value == AvatarType.Wizard))
+            if (callerId != Guid.Empty && (clan.Result.OwnerAvatarId == callerId || leavingAvatarId == callerId || isWizard))
                 return null;
 
             return HttpResponseHelper.FormatResponse(new OASISResult<bool>
