@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed the temporary manager-inventory staging index and inspected selected CI failure lines in memory. No local log archive, build, download or Chat fixture was created.
+
 2026-11-17 UTC — Removed temporary indexes used for the Core Chat access and parent qualification commits. Changes were composed with Git objects. No local build, download, report or hosted Chat fixture was created.
 
 2026-11-17 UTC — Hosted Chat release verification compared shell and three assets in memory. No downloads, reports, builds or new hosted fixtures were retained.
