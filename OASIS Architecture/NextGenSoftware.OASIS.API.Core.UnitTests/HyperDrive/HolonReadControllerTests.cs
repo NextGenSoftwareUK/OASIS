@@ -38,9 +38,9 @@ public class HolonReadControllerTests
             var action = type.GetMethod("LoadHolon", new[] { requestType })!;
             var task = Assert.IsAssignableFrom<Task>(action.Invoke(Activator.CreateInstance(type), new[] { request }));
             task.GetAwaiter().GetResult();
-            var rejected = Assert.IsType<OASISHttpResponseMessage<Holon>>(task.GetType().GetProperty("Result")!.GetValue(task));
-            Assert.True(rejected.Result.IsError);
-            Assert.Contains("invalid-child-type", rejected.Result.Message);
+            var rejected = ResponseResult<Holon>(task.GetType().GetProperty("Result")!.GetValue(task));
+            Assert.True(rejected.IsError);
+            Assert.Contains("invalid-child-type", rejected.Message);
         });
     }
 
@@ -60,17 +60,17 @@ public class HolonReadControllerTests
             var action = type.GetMethod("LoadAllHolons", new[] { requestType })!;
             var task = Assert.IsAssignableFrom<Task>(action.Invoke(controller, new[] { request }));
             task.GetAwaiter().GetResult();
-            var response = Assert.IsType<OASISHttpResponseMessage<IEnumerable<Holon>>>(task.GetType().GetProperty("Result")!.GetValue(task));
-            Assert.True(response.Result.IsError);
-            Assert.Contains(invalid, response.Result.Message);
+            var response = ResponseResult<IEnumerable<Holon>>(task.GetType().GetProperty("Result")!.GetValue(task));
+            Assert.True(response.IsError);
+            Assert.Contains(invalid, response.Message);
             if (parent)
             {
                 var shorthand = type.GetMethod("LoadAllHolons", new[] { typeof(string) })!;
                 var shortTask = Assert.IsAssignableFrom<Task>(shorthand.Invoke(controller, new object[] { invalid }));
                 shortTask.GetAwaiter().GetResult();
-                var shortResponse = Assert.IsType<OASISHttpResponseMessage<IEnumerable<Holon>>>(shortTask.GetType().GetProperty("Result")!.GetValue(shortTask));
-                Assert.True(shortResponse.Result.IsError);
-                Assert.Contains(invalid, shortResponse.Result.Message);
+                var shortResponse = ResponseResult<IEnumerable<Holon>>(shortTask.GetType().GetProperty("Result")!.GetValue(shortTask));
+                Assert.True(shortResponse.IsError);
+                Assert.Contains(invalid, shortResponse.Message);
             }
         });
     }
@@ -84,33 +84,45 @@ public class HolonReadControllerTests
         {
             var method = type.GetMethod("FormatHolonListRead", BindingFlags.NonPublic | BindingFlags.Static);
             Assert.NotNull(method);
-            OASISHttpResponseMessage<IEnumerable<Holon>> Format(OASISResult<IEnumerable<IHolon>>? input) =>
-                Assert.IsType<OASISHttpResponseMessage<IEnumerable<Holon>>>(method!.Invoke(null, new object?[] { input, detailed }));
+            object Format(OASISResult<IEnumerable<IHolon>>? input) =>
+                Assert.IsAssignableFrom<System.Net.Http.HttpResponseMessage>(method!.Invoke(null, new object?[] { input, detailed }));
 
-            Assert.True(Format(null).Result.IsError);
-            Assert.True(Format(new OASISResult<IEnumerable<IHolon>>()).Result.IsError);
+            Assert.True(ResponseResult<IEnumerable<Holon>>(Format(null)).IsError);
+            Assert.True(ResponseResult<IEnumerable<Holon>>(Format(new OASISResult<IEnumerable<IHolon>>())).IsError);
             var empty = Format(new OASISResult<IEnumerable<IHolon>> { Result = Array.Empty<IHolon>() });
-            Assert.False(empty.Result.IsError);
-            Assert.Empty(empty.Result.Result);
-            Assert.Equal(detailed, empty.ShowDetailedSettings);
+            var emptyResult = ResponseResult<IEnumerable<Holon>>(empty);
+            Assert.False(emptyResult.IsError);
+            Assert.Empty(emptyResult.Result);
+            Assert.Equal(detailed, Assert.IsType<bool>(empty.GetType().GetProperty("ShowDetailedSettings")!.GetValue(empty)));
 
             var failed = Format(new OASISResult<IEnumerable<IHolon>> {
                 IsError = true, ErrorCode = "REAL_PROVIDER_ERROR", Message = "The storage read failed."
             });
-            Assert.True(failed.Result.IsError);
-            Assert.Equal("REAL_PROVIDER_ERROR", failed.Result.ErrorCode);
-            Assert.Equal("The storage read failed.", failed.Result.Message);
-            Assert.Equal(System.Net.HttpStatusCode.BadRequest, failed.StatusCode);
+            var failedResult = ResponseResult<IEnumerable<Holon>>(failed);
+            Assert.True(failedResult.IsError);
+            Assert.Equal("REAL_PROVIDER_ERROR", failedResult.ErrorCode);
+            Assert.Equal("The storage read failed.", failedResult.Message);
+            Assert.Equal(System.Net.HttpStatusCode.BadRequest, Assert.IsAssignableFrom<System.Net.Http.HttpResponseMessage>(failed).StatusCode);
             var withoutMessage = Format(new OASISResult<IEnumerable<IHolon>> { IsError = true, Message = null });
-            Assert.True(withoutMessage.Result.IsError);
+            Assert.True(ResponseResult<IEnumerable<Holon>>(withoutMessage).IsError);
 
             var id = Guid.NewGuid();
-            var real = Format(new OASISResult<IEnumerable<IHolon>> {
+            var real = ResponseResult<IEnumerable<Holon>>(Format(new OASISResult<IEnumerable<IHolon>> {
                 Result = new IHolon[] { new Holon { Id = id, Name = "Persisted holon" } }
-            });
-            Assert.False(real.Result.IsError);
-            Assert.Equal(id, Assert.Single(real.Result.Result).Id);
+            }));
+            Assert.False(real.IsError);
+            Assert.Equal(id, Assert.Single(real.Result).Id);
         });
+    }
+
+    private static OASISResult<T> ResponseResult<T>(object? response)
+    {
+        Assert.NotNull(response);
+        Assert.Equal("NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.OASISHttpResponseMessage`1",
+            response!.GetType().GetGenericTypeDefinition().FullName);
+        var property = response.GetType().GetProperty("Result");
+        Assert.NotNull(property);
+        return Assert.IsType<OASISResult<T>>(property!.GetValue(response));
     }
 
     private static void WithController(Action<Type> check)
