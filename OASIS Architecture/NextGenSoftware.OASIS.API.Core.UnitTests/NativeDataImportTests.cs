@@ -41,6 +41,9 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
                 mapping, 1, connection, "people", fetched, row, fields).Id);
             Assert.Throws<ArgumentException>(() => VirtualHolonRead.FromNative(Owner, ProviderType.MongoDBOASIS,
                 mapping, 1, connection, "orders", fetched, row, fields));
+            var aliases = new Dictionary<string, string> { ["absent"] = "Name", ["label"] = "Name" };
+            Assert.Throws<ArgumentException>(() => VirtualHolonRead.FromNative(Owner, ProviderType.MongoDBOASIS,
+                mapping, 1, connection, "people", fetched, row, aliases));
         }
 
         [Fact]
