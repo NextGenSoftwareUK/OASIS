@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. GROUP BY alias website snapshots and indexes used `cosmic-group-alias-*` and were removed. Both Development probe attempts verified all nine fixtures absent and revoked their sessions. The first probe decoded the grouped response with the flat join row shape and was corrected before the second run. No fixtures, test sessions, probe journals or build outputs were retained.
+
 17 November UTC. Exact WEB4 Development grouped and typed metadata checks used two fresh sandbox sessions. The probes hard-deleted all eighteen private fixtures using their recorded provider-native revisions, verified every fixture ID absent, revoked both sessions and removed both temporary journals. Probes ran from standard input. No local downloads, SDK installation or build output were needed.
 
 17 November UTC. Temporary Ask Your Data edit and test snapshots (`cosmic-ask-example-*` and `cosmic-ask-all-*`) were removed by their temporary-directory contexts after the focused and full suites passed. The grouped and typed scalar query plan checks ran from standard input. No local SDK, database or build output was added.
