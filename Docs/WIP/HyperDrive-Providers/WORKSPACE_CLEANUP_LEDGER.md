@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — The exact manager manifest verification exported only the Core Managers source to a temporary directory. Removed that directory and both candidate indexes. CI logs were read in memory and no local build or runtime was generated.
+
 2026-11-17 UTC — Removed the My Eggs parent candidate temporary index. Qualification runs on GitHub. No local build, download or extra worktree was created.
 
 2026-11-17 UTC — Removed the temporary Core index used for the Eggs correction. The diagnostic sandbox avatar deletion was acknowledged. Only sanitized failure categories were printed. No build, report, download or additional worktree was created.
