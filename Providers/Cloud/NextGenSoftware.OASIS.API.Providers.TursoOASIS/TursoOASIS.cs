@@ -502,7 +502,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                         ON CONFLICT(id) DO UPDATE SET parent_holon_id=excluded.parent_holon_id,
                             holon_type=excluded.holon_type,is_deleted=excluded.is_deleted,data_json=excluded.data_json
                         """, new List<LibSqlArg> { Arg(Ser(rows)) }).ConfigureAwait(false);
-                    if (saved.AffectedRowCount != rows.Length)
+                    if (saved.AffectedRowCount != (ulong)rows.Length)
                         throw new InvalidOperationException("Turso did not acknowledge every planned holon write.");
                 }
 

@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — The [first native shared storage run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44021056535) passed six checks in each mode and stopped at avatar-detail read acknowledgement. The task branch already contains that read fix. The [next run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44021495641) found a C# build error comparing libSQL's unsigned affected-row count to the signed array length. The comparison now uses the protocol's unsigned type. Native verification of the graph and deletion changes is pending.
+
 2026-11-17 UTC — Railway dev WEB4–WEB10 all reported SUCCESS for Turso storage revision `961b6a881ae4`. The public WEB4 health endpoint returned HTTP 200 and healthy at 05:06 UTC. This confirms the rollout. Managed Turso access remains open.
 
 2026-11-17 UTC — Hard avatar deletion now deletes its matching detail in the same native statement through a transactionally installed trigger. The regression rejects detail deletion inside libSQL and requires both original rows to remain. It then removes the rejection and verifies a single acknowledged deletion and detail absence. Native qualification is pending.
