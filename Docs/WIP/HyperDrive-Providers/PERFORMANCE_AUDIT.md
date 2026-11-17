@@ -28,6 +28,8 @@
 
 2026-11-16 UTC — The live Developer Portal HTML fragment measured 356,942 decoded bytes. Commit `a044a6b` removes it from startup. A controlled check using the live fragment confirmed zero initial fragment requests, one GET across rapid opens, dismissal preserved during loading, and reuse on reopen. Changed scripts passed syntax checks. Browser deep-link and Back behavior remain to be verified on dev.
 
+
+2026-11-17 UTC — OPORTAL Usage and Billing now shares pending usage-summary and statement reads across repeated opens for the same SDK client and token. A confirmed overage change invalidates both lookups before refreshing. The browser-side regression opens the tab twice while session refresh is pending and asserts three GETs total across usage, pricing and statements. All 16 subscription checks passed on task revision 2c53a76. Exact dev publication and signed timings remain pending.
 15 November Cancun time. Wallet modal startup now sends two signed WEB4 reads and defers portfolio, token and analytics calls to the selected Portfolio tab. The wallet networks list reuses the current wallet results. A signed sandbox check verified the request count and empty-wallet portfolio behavior. Measured populated wallet and browser latency remain open.
 
 15 November Cancun time. Holon History makes no request when opened without an ID. A valid ID makes one bounded-to-ID STARNET versions request. The previous path also requested the current record. The signed probe verified those request counts. Browser paint remains unmeasured.
