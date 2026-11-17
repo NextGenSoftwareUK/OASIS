@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. The combined Turso baseline, Core ordering edits and acceptance tests used disposable Git indexes removed at exit. Website qualification used a disposable `cosmic-join-order-domains-site-*` snapshot. Live plans compiled from standard input and created no data or local runtime output.
+
 17 November UTC. The INT64 live probe verified all nine private fixture IDs absent, revoked the test session and removed its journal. A follow-up search found no matching journal. The disposable INT64 and text editor test snapshots, the outer join reconciliation indexes and the native acceptance test edit indexes were removed on exit. No new local SDK or build output.
 
 17 November UTC. A standalone .NET 10 file-app probe determined the compiler's lifted-null expression shape. Its disposable source directory was removed. The SDK created `C:/Users/David/AppData/Local/Temp/dotnet/runfile/Program-6b93a5189dc11f22df072947c501f8a4ebf7d3b4319f607a11fcd3b640264ec0`. Its runtime configuration verified ownership by this probe. The execution policy rejected recursive removal before launch, so this exact cache remains on disk. No shared build outputs were used.
