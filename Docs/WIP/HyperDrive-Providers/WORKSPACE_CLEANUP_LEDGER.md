@@ -2306,3 +2306,6 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 
 
 2026-11-17 UTC — Three signed-out Edge runs (initial visibility failure, missing-body diagnosis, corrected-template verification) each removed owned browser process/profile and temporary websocket dependency. No avatar, account, message, settings holon or backend record was created. Exact ten-popup template check reads sparse source blobs in memory. Candidate e9d4586caba2 temporary index/lock removed; disabled auto-GC only on the candidate Git commands to avoid unnecessary packing while qualifying. Source retained. Final hosted recheck is limited to the two changed templates.
+
+
+2026-11-17 UTC — Final unmodified hosted Edge recheck ran only Global Search and Holon Browser after the corrective templates served. Both passed; owned process tree, browser profile and temporary dependency removed. No sandbox identity or backend records created. Hosted byte checks fetched only the changed loader and two templates into memory.
