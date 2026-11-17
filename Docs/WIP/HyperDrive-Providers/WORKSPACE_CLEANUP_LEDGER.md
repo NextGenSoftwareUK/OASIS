@@ -2270,3 +2270,6 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-17 UTC — Removed and verified absence of the temporary alternate index for Turso identity candidate `fc64cdd43585`. The native workflow runs on GitHub. No local build or test database was created.
 
 2026-11-17 UTC — Removed the temporary Git indexes used for OPORTAL candidate `9775d0000abf`, including the failed patch attempts. The exact portal tests and public fragment probe read data in memory. No local build, downloaded browser or generated report was retained.
+
+
+2026-11-17 UTC — Settings SDK acknowledgment checks ran entirely in memory. No reset email, account, database, download or build output was created. The scoped Git-tree candidate used one temporary index; index and lock were removed in finally. Retained only source Git objects. Sandbox cleanup audit: earlier browser avatar deletion does not prove removal of its derived holon; do not record backend fixture cleanup as complete. Future probes must delete owned holons before avatar teardown; independent subscription expiry is a separate lifecycle.
