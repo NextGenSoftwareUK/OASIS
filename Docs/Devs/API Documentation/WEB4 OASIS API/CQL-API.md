@@ -85,6 +85,37 @@ one read. The mixed projection supports one typed metadata equality predicate,
 a shared selected-column shape and ascending ID order. If either branch exceeds
 its bounded result window, narrow the predicate before retrying.
 
+### Save an explicit snapshot
+
+When the mixed response includes `canPrepareSnapshot: true`, use the provider and
+mapping ID from the selected row's provenance. Prepare the row with the same
+match and selected fields:
+
+```http
+POST /api/native-data/MongoDBOASIS/virtual-mappings/2fef1cbc-feb8-4ed3-b7de-5f406f769149/snapshot/prepare
+Authorization: Bearer YOUR_TOKEN
+Content-Type: application/json
+
+{
+  "rowId": "43b88e30-7afb-47e9-a1f4-5a27f5cb35f2",
+  "query": {
+    "matchField": "tier",
+    "matchType": "String",
+    "matchValue": "gold",
+    "select": ["name"],
+    "take": 100
+  }
+}
+```
+
+Preparation rereads the authorized source and returns a private Holon with the
+same logical ID, the requested fields and snapshot provenance. Use the returned
+Holon in `POST /api/data/save-holon` with a new `operationId` and
+`expectedRevisions` mapping the row ID to `null` to create the copy conditionally.
+This protects an existing Holon with that ID. Preparation itself saves no data.
+When the two copies match the next mixed query, it returns one row with
+`alsoMaterialized: true` in the virtual provenance.
+
 ## STAR CLI
 
 `star cql variants`, `star cql example`, `star cql run <variant> --file query.json [--web4 <url>] [--idempotency-key <key>]`.
