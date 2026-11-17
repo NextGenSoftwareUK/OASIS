@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. Multi-filter provider, Core and API commits used disposable Git indexes. The two complete website suites reused installed Node, each using an approximately 2.1 MB temporary Git snapshot removed on exit. The live conjunction check was syntax-checked from standard input. No local provider database, browser profile, runtime install or build output was created.
+
 17 November UTC. Field validation qualification used temporary Git indexes, removed after use. A no-write browser check was syntax-checked from standard input with the existing Node executable. No Chrome profile, package download or local build output was created.
 
 17 November UTC. SQLite and Neo4j browser checks reused installed Chrome and bundled Node. Each run deleted and verified absence of its three test Holons in the isolated visitor scope, signed out and removed its owned Chrome profile. No installs, downloads or local provider copies were required.
