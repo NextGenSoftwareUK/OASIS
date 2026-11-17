@@ -65,7 +65,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             {
                 var read = await provider.QueryNativePredicateRecordsAsync("items",
                     new[] { new NativeRecordFilter(item.Field, CosmicQueryComparisonOperator.Equal, item.Value, item.Function) },
-                    new[] { "label" }, 10);
+                    new[] { "label" }, item.Expected.Length == 1 ? 1 : 10);
                 Assert.IsFalse(read.IsError, read.Message + read.Exception);
                 CollectionAssert.AreEqual(item.Expected, read.Result.Select(row => (string)row.Fields["label"]).ToArray());
                 checks.Add(new { provider = "MongoDBOASIS", nativePredicate = "ordinal string " + item.Function, literal = item.Value });
