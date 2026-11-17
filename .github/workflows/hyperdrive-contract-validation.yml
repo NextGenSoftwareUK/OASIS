@@ -12,10 +12,21 @@ on:
       - 'Scripts/verify_web4_hyperdrive_route_manifest.ps1'
       - '.github/workflows/hyperdrive-contract-validation.yml'
   workflow_dispatch:
+    inputs:
+      native_seal:
+        description: 'Run only the real MongoDB/SQLite seal-routing regression.'
+        required: false
+        default: false
+        type: boolean
+      contract_filter:
+        description: 'VSTest filter; select changed contracts to avoid repeating accepted cases.'
+        required: false
+        default: 'FullyQualifiedName~HyperDrive'
+        type: string
 
 jobs:
   manifests-and-contracts:
-    runs-on: windows-latest
+    runs-on: ${{ inputs.native_seal && 'ubuntu-latest' || 'windows-latest' }}
     defaults:
       run:
         working-directory: OASIS
@@ -74,6 +85,7 @@ jobs:
         run: ./Scripts/verify_hyperdrive_v2_operation_contracts.ps1
 
       - name: Build the WEB4 artifact the controller contracts load
+        if: ${{ !inputs.native_seal }}
         shell: pwsh
         run: >-
           dotnet build
@@ -82,14 +94,50 @@ jobs:
           /m:2 /nr:false /p:UseSharedCompilation=false
 
       - name: Run HyperDrive behavioral contracts
+        if: ${{ !inputs.native_seal }}
         shell: pwsh
+        env:
+          OASIS_HYPERDRIVE_TEST_FILTER: ${{ inputs.contract_filter || 'FullyQualifiedName~HyperDrive' }}
         run: >-
           dotnet test
           'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/NextGenSoftware.OASIS.API.Core.UnitTests.csproj'
           --configuration Release
-          --filter 'FullyQualifiedName~HyperDrive'
+          --filter "$env:OASIS_HYPERDRIVE_TEST_FILTER"
           --logger 'trx;LogFileName=hyperdrive-contracts.trx'
           --results-directory artifacts/hyperdrive-contract-validation
+
+      - name: Start owned native seal routing fixture
+        if: ${{ inputs.native_seal }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --detach --name seal-routing-mongo -p 27029:27029 mongo:8.0.15 --port 27029 --replSet oasisRecoveryRs --bind_ip_all
+          for attempt in $(seq 1 60); do
+            if docker exec seal-routing-mongo mongosh --port 27029 --quiet --eval 'db.adminCommand({ping:1})' >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          docker exec seal-routing-mongo mongosh --port 27029 --quiet --eval 'rs.initiate({_id:"oasisRecoveryRs",members:[{_id:0,host:"127.0.0.1:27029"}]})'
+          for attempt in $(seq 1 60); do
+            if docker exec seal-routing-mongo mongosh --port 27029 --quiet --eval 'if(!db.hello().isWritablePrimary) quit(1)' >/dev/null 2>&1; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+
+      - name: Verify real seal routing without repeating accepted contracts
+        if: ${{ inputs.native_seal }}
+        shell: pwsh
+        env:
+          SUBSCRIPTION_TEST_MONGODB_URI: mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner seal-routing-native-ci -Operation {
+            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SealVerificationPreservesNativeRouting' --logger 'trx;LogFileName=seal-routing-native.trx' --results-directory artifacts/hyperdrive-contract-validation
+            if ($LASTEXITCODE) { throw 'Native seal routing verification failed.' }
+          }
+
+      - name: Stop owned native seal routing fixture
+        if: ${{ always() && inputs.native_seal }}
+        shell: bash
+        run: docker rm --force seal-routing-mongo
 
       - name: Preserve HyperDrive behavioral evidence
         if: always()
