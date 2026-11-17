@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. Private named Virtual Holon connections now use the already authenticated avatar for encrypted connection resolution. JWT middleware loads that avatar ahead of the CQL execution scope. The mapping lookup still enforces owner and provider, and the connection still must match the mapping identity. Exact CI and live named-connection evidence are pending.
+
 17 November UTC. The scoped virtual mapping repair passed exact source qualification [44056784952](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44056784952). PocketBase WEB4 deployment f103b70b-758c-487c-911f-133d76e4353e succeeded on the preceding revision. Exact image qualification and the rollout window still gate the mixed demo. The first live proof uses the approved sample collection. Named private connections need a separate real browser proof: source inspection found that the credential lookup loads the owning avatar through ordinary HyperDrive routing inside the admitted CQL request. Verify the execution for a dedicated test avatar before claiming general mixed-query support.
 
 17 November UTC. The joined LINQ parity candidate evaluates All on a preserved-side predicate as the absence of a counterexample through the existing native filter. The shared fixture checks true, false, empty input and rejection after paging. Exact native qualification is pending.

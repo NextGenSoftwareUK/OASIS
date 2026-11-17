@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         /// <summary>Builds a private definition for the caller to commit through the conditional Holon save route.</summary>
         [HttpPost("{providerType}/virtual-mappings/prepare")]
-        public async Task<ActionResult<OASISResult<Holon>>> PrepareVirtualMapping(
+        public ActionResult<OASISResult<Holon>> PrepareVirtualMapping(
             ProviderType providerType, [FromBody] VirtualMappingDefinitionRequest request)
         {
             if (Avatar == null)
@@ -53,8 +53,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     return BadRequest(new OASISResult<Holon> { IsError = true, ErrorCode = "VIRTUAL_MAPPING_INVALID",
                         Message = "Use the approved sample collection fields for sandbox mappings." });
 
-                var binding = await CqlV1Providers.ResolveVirtualConnectionAsync(
-                    actor, providerType, request.SourceName, request.ConnectionName);
+                var binding = CqlV1Providers.ResolveVirtualConnection(
+                    Avatar, providerType, request.SourceName, request.ConnectionName);
                 if (binding == null)
                     return BadRequest(new OASISResult<Holon> { IsError = true, ErrorCode = "VIRTUAL_HOLON_SOURCE_UNAVAILABLE",
                         Message = "The named connection is unavailable." });
@@ -96,7 +96,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (match == null)
                 return BadRequest(VirtualReadError("VIRTUAL_HOLON_QUERY_INVALID", "Provide a typed String, Boolean, Int32 or decimal-string Int64 match."));
 
-            var result = await CqlV1Providers.QueryOwnedVirtualMappingAsync(HolonManager, ProviderManager.Instance.CurrentStorageProvider, id, AvatarId,
+            var result = await CqlV1Providers.QueryOwnedVirtualMappingAsync(HolonManager, ProviderManager.Instance.CurrentStorageProvider, id, Avatar,
                 providerType, request.MatchField, match, request.Select, request.Take, cancellationToken);
             if (result.ErrorCode == "VIRTUAL_MAPPING_NOT_FOUND")
                 return NotFound();

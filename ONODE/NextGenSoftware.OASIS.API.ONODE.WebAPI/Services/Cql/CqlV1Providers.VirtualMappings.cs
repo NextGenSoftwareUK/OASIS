@@ -17,18 +17,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 public sealed partial class CqlV1Providers
 {
     Task<OASISResult<IReadOnlyList<VirtualHolonRead>>> ICqlVirtualMappingReader.QueryVirtualMappingAsync(
-        Guid mappingId, Guid actor, CqlVirtualProjection projection, CancellationToken cancellationToken)
+        Guid mappingId, IAvatar avatar, CqlVirtualProjection projection, CancellationToken cancellationToken)
     {
         var authority = Resolve(null);
-        return QueryOwnedVirtualMappingAsync(CreateManager(authority), authority, mappingId, actor, null,
+        return QueryOwnedVirtualMappingAsync(CreateManager(authority), authority, mappingId, avatar, null,
             projection.MatchField, projection.MatchValue, projection.ProjectedFields, CqlVirtualProjection.MaximumRows,
             cancellationToken);
     }
 
     internal static async Task<OASISResult<IReadOnlyList<VirtualHolonRead>>> QueryOwnedVirtualMappingAsync(
-        HolonManager manager, IOASISProvider authority, Guid mappingId, Guid actor, ProviderType? requestedSource, string matchField, object matchValue,
+        HolonManager manager, IOASISProvider authority, Guid mappingId, IAvatar avatar, ProviderType? requestedSource, string matchField, object matchValue,
         IReadOnlyList<string> selectedFields, int limit, CancellationToken cancellationToken)
     {
+        var actor = avatar.Id;
         if (authority is not ICosmicQueryStorageProvider adapter ||
             authority.ProviderType?.Value != adapter.QueryProviderType)
             return Refuse("VIRTUAL_HOLON_STORE_UNAVAILABLE", "The mapping's authoritative store cannot query its definition.");
@@ -78,7 +79,7 @@ public sealed partial class CqlV1Providers
 
         try
         {
-            var binding = await ResolveVirtualConnectionAsync(actor, source, definition.Name, connectionName);
+            var binding = ResolveVirtualConnection(avatar, source, definition.Name, connectionName);
             cancellationToken.ThrowIfCancellationRequested();
             if (binding == null)
                 return Refuse("VIRTUAL_HOLON_SOURCE_UNAVAILABLE", "The mapping's native connection is unavailable.");
@@ -102,8 +103,8 @@ public sealed partial class CqlV1Providers
 
     internal sealed record VirtualConnectionBinding(INativeDataQueryProvider Reader, NativeConnection Connection, string Identity);
 
-    internal static async Task<VirtualConnectionBinding> ResolveVirtualConnectionAsync(
-        Guid actor, ProviderType provider, string sourceName, string connectionName)
+    internal static VirtualConnectionBinding ResolveVirtualConnection(
+        IAvatar avatar, ProviderType provider, string sourceName, string connectionName)
     {
         if (connectionName == VirtualHolonMapping.SandboxConnectionName)
         {
@@ -117,7 +118,7 @@ public sealed partial class CqlV1Providers
 
         if (OASISBootLoader.NativeImportReaders.Create(provider) is not INativeDataQueryProvider reader)
             return null;
-        var connection = await Program.SettingsManager.GetNativeImportConnectionAsync(actor, provider, connectionName);
+        var connection = SettingsManager.OpenNativeImportConnection(avatar, provider, connectionName);
         return !connection.IsError && connection.Result != null
             ? new VirtualConnectionBinding(reader, connection.Result, reader.DescribeVirtualQueryConnection(connection.Result))
             : null;
