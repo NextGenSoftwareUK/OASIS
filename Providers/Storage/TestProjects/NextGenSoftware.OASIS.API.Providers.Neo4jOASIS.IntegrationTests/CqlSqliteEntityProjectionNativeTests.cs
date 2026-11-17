@@ -290,6 +290,27 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         CollectionAssert.AreEquivalent(new (Guid?, Guid?)[] { (parentId, null), (lowerId, parentId), (null, missingId) },
             comparedRows.Select(row => (row.Value.Left, row.Value.Right)).ToArray());
         Assert.AreEqual(3, comparedRows.Count);
+        var orderedIds = new[] { parentId, lowerId, missingId };
+        var orderingInput = source.Where(row => orderedIds.Contains(row.Id)).Result;
+        var orderingJoin = orderingInput.Join(orderingInput, left => left.Id, right => right.Id);
+        Assert.IsFalse(orderingJoin.IsError, orderingJoin.Message);
+        var orderingSelection = orderingJoin.Result.Select((left, right) => new
+        {
+            LeftId = left.Id,
+            Amount = CosmicQueryMetadata.Value<long?>(right, "i64")
+        });
+        Assert.IsFalse(orderingSelection.IsError, orderingSelection.Message);
+        var descendingAmount = orderingSelection.Result.OrderByOutput("Amount", descending: true);
+        Assert.IsFalse(descendingAmount.IsError, descendingAmount.Message);
+        var amountPage = descendingAmount.Result.PageOutput(1, 1);
+        Assert.IsFalse(amountPage.IsError, amountPage.Message);
+        var amountPlan = CosmicJoinPlanner.Plan(amountPage.Result, native.QueryProviderType,
+            new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
+        Assert.IsFalse(amountPlan.IsError, amountPlan.Message);
+        var amountRows = await manager.ExecuteJoinQueryAsync(amountPlan.Result, new[] { native });
+        Assert.IsFalse(amountRows.IsError, amountRows.Message + amountRows.Exception);
+        Assert.AreEqual(lowerId, amountRows.Result.Providers.Single().Rows.Single().Value.LeftId);
+
         var wireActor = Guid.NewGuid();
         var access = CosmicQueryReadAccess.OwnerOrPublic(wireActor).Result;
         var request = new CqlJoinRequest
