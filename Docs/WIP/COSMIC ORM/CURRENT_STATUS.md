@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. Development advanced to the exact PocketBase baseline `75dee7c9fe64`. The mixed-query repair candidate `2c1a3232b9f9` is its direct child and preserves its manifest and Core pin. Native join predicate terminals passed [44053948991](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44053948991) and remain on the feature branch. SQLite and Neo4j sandbox website edits passed all 285 local tests on their staged candidate.
+
 17 November UTC. Neo4j virtual mapping admission now uses the configured sandbox loyalty fixture label and its four approved scalar properties. The native run covers exact equality and identity with an isolated label. The scoped MongoDB lookup repair is being qualified on the PocketBase baseline in [CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44056784952) and [WEB4 image CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44056870896).
 
 17 November UTC. The shipping Neo4j provider now has a scoped Virtual Holon candidate using its existing native read-only connection and label admission. Cypher applies exact String, Boolean or Int64 equality and explicit scalar projection before the row limit, preserves the import element identity and rejects an oversized response. Host admission and native qualification remain pending.

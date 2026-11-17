@@ -1,5 +1,7 @@
 # CQL / COSMIC ORM EF and NHibernate parity checklist
 
+17 November UTC. Native MongoDB, SQLite and Neo4j passed ordered joined filters and predicate terminal overloads on scoped equijoins in [44053948991](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44053948991). The suite checks exact Count/LongCount/Any, First/Last, empty SingleOrDefault, unmatched rows, and rejection after Take. General optional-side predicates and post-page filtering remain open.
+
 Baseline: 26 October 2026. Scope: SQLite, MongoDB and Neo4j through the shared
 COSMIC ORM / CQL APIs. This is the work queue and completion denominator; the
 older chronological roadmap is supporting history, not the source of green status.
