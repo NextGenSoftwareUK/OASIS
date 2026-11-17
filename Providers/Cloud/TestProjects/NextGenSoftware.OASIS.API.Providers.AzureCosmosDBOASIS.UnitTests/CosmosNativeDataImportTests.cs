@@ -1,3 +1,5 @@
+using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
+using NextGenSoftware.OASIS.API.Core.Queries;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
 
@@ -93,5 +95,35 @@ public class CosmosNativeDataImportTests
 
         var notListed = await Provider("shop", "customers").ReadNativeRecordsAsync("orders", null, 5);
         Assert.AreEqual("NATIVE_IMPORT_READ_FAILED", notListed.ErrorCode);
+    }
+
+    [TestMethod]
+    public void TypedStringInequalityPreservesExplicitNullAndBoundParameters()
+    {
+        const string value = "Gold' OR true";
+        var query = AzureCosmosDBOASIS.NativeVirtualQuery(
+            new[] { new NativeRecordFilter("tier", CosmicQueryComparisonOperator.NotEqual, value) },
+            new[] { "name" }, 10);
+        StringAssert.Contains(query.QueryText, "(IS_STRING(c[\"tier\"]) AND c[\"tier\"] != @match0 OR IS_NULL(c[\"tier\"]))");
+        Assert.IsFalse(query.QueryText.Contains(value));
+        Assert.AreEqual(value, query.GetQueryParameters().Single(p => p.Name == "@match0").Value);
+    }
+
+    [TestMethod]
+    public async Task UnadmittedTypedFunctionsAndNumericDomainsRefuseBeforeOpeningTheSource()
+    {
+        var provider = Provider("shop", "customers");
+        foreach (var filter in new[]
+        {
+            new NativeRecordFilter("name", CosmicQueryComparisonOperator.Equal, 2L, NativeRecordFunction.Utf16Length),
+            new NativeRecordFilter("points", CosmicQueryComparisonOperator.GreaterThan, 9007199254740993L)
+        })
+        {
+            var read = await provider.QueryNativePredicateRecordsAsync("customers", new[] { filter }, new[] { "name" }, 1);
+            Assert.IsTrue(read.IsError);
+            Assert.AreEqual("NATIVE_QUERY_INVALID", read.ErrorCode);
+            Assert.IsFalse(read.IsLoaded);
+            Assert.IsNull(read.Result);
+        }
     }
 }
