@@ -2291,3 +2291,6 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 
 
 2026-11-17 UTC — Optional popup regression checks ran in memory with no real backend writes. Retained regression script is source; no generated reports, browser profiles or downloads. Scoped candidate fb41f8f8974a temporary index and lock removed in finally. No local builds or database copies.
+
+
+2026-11-17 UTC — Extended retained optional-popup regression source covers four screens and activity timer shutdown. Checks use in-memory responses and timers, without backend writes or actual intervals/processes. Candidate 51b3f58b95d0 temporary index and lock removed. No downloads, browser profiles, build outputs or generated reports.
