@@ -2279,3 +2279,6 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 
 
 2026-11-17 UTC — Six root reset-page cases executed inline without real network requests or password changes. Scoped candidate 51209336fdd4 temporary index and lock removed. Hydrated reset-password.html is tracked source and retained. No downloaded tools, database copies, local builds or generated reports.
+
+
+2026-11-17 UTC — OAPP map checks used the shipped SDK with in-memory responses; no backend writes or browser profiles. Qualified candidate 936a3d71b632 used one temporary Git index, removed with lock. No runtime downloads, build outputs or retained test files. Only tracked source and compact documentation were retained.
