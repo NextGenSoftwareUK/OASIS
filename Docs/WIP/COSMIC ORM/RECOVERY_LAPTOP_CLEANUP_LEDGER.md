@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. A standalone .NET 10 file-app probe determined the compiler's lifted-null expression shape. Its disposable source directory was removed. The SDK created `C:/Users/David/AppData/Local/Temp/dotnet/runfile/Program-6b93a5189dc11f22df072947c501f8a4ebf7d3b4319f607a11fcd3b640264ec0`. Its runtime configuration verified ownership by this probe. The execution policy rejected recursive removal before launch, so this exact cache remains on disk. No shared build outputs were used.
+
 17 November UTC. RightJoin source and native regression changes used disposable `cosmic-queryable-join-index-*` indexes, removed at context exit. CI builds remotely, and the parity count was computed from Git in memory.
 
 17 November UTC. LeftJoin source and test commits used disposable `cosmic-queryable-join-index-*` Git indexes, removed on exit. The feature qualification runs remotely and generated no local provider fixtures or SDK build outputs.

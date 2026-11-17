@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. Native LeftJoin initially failed on all three providers because the C# expression tree represents a nullable null literal as Convert(null, Nullable<T>). Core now recognizes that exact conversion in the optional side guard. The [corrected qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44027505985) also includes RightJoin and null-safe ordinal text comparisons. The separate combined LINQ and INT64 candidate `b226ff3740c1` passed protocol and image CI.
+
 17 November UTC. The current machine-readable parity checklist contains 164 feature rows and marks 50 verified for each of MongoDB, SQLite and Neo4j. The standard LINQ RightJoin implementation reuses native left-outer semantics after swapping the input roles. [Native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44026320919) checks unmatched right rows and preserved right source order. None of the in-flight tests was counted as new full parity.
 
 17 November UTC. Standard LINQ LeftJoin now has a native feature-branch implementation for supported scalar keys and right-null guarded projections. The [native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44025278390) checks an unmatched left row. Filtering after an outer join and GroupJoin remain open. The earlier [exact INT64 feature test](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44023793052) passed the three-store stage.
