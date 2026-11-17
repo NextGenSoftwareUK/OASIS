@@ -561,12 +561,41 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                 """, new List<LibSqlArg> { Arg(id.ToString()), ArgInt(maxDepth), ArgInt(maxDepth) }).ConfigureAwait(false);
             if (holons.Count == 0)
                 return null;
+            AttachDescendants(holons, holons.Skip(1));
+            return holons[0];
+        }
+
+        private static void AttachDescendants(List<IHolon> holons, IEnumerable<IHolon> descendants)
+        {
             var byId = holons.ToDictionary(holon => holon.Id);
             foreach (var holon in holons)
                 holon.Children = new List<IHolon>();
-            foreach (var child in holons.Skip(1))
+            foreach (var child in descendants)
                 byId[child.ParentHolonId].Children.Add(child);
-            return holons[0];
+        }
+
+        private async Task<List<IHolon>> LoadParentTreesAsync(Guid parentId, HolonType type, int maxDepth, int currentDepth)
+        {
+            var holons = await QueryHolonsAsync("""
+                WITH RECURSIVE graph(id, data_json, depth, visited) AS (
+                    SELECT id, data_json, ?+1, ',' || parent_holon_id || ',' || id || ','
+                    FROM oasis_holons WHERE parent_holon_id=? AND is_deleted=0 AND id<>parent_holon_id
+                        AND (? IS NULL OR holon_type=?)
+                    UNION ALL
+                    SELECT child.id, child.data_json, graph.depth+1, graph.visited || child.id || ','
+                    FROM graph JOIN oasis_holons child ON child.parent_holon_id=graph.id
+                    WHERE child.is_deleted=0 AND (?=0 OR graph.depth<?)
+                        AND instr(graph.visited, ',' || child.id || ',')=0
+                )
+                SELECT data_json FROM graph ORDER BY depth
+                """, new List<LibSqlArg>
+                {
+                    ArgInt(currentDepth), Arg(parentId.ToString()), ArgInt(type == HolonType.All ? null : (int)type),
+                    ArgInt((int)type), ArgInt(maxDepth), ArgInt(maxDepth)
+                }).ConfigureAwait(false);
+            var roots = holons.Where(holon => holon.ParentHolonId == parentId).ToList();
+            AttachDescendants(holons, holons.Where(holon => holon.ParentHolonId != parentId));
+            return roots;
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -628,7 +657,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             {
                 string sql = type == HolonType.All ? "SELECT data_json FROM oasis_holons WHERE parent_holon_id=? AND is_deleted=0" : "SELECT data_json FROM oasis_holons WHERE parent_holon_id=? AND is_deleted=0 AND holon_type=?";
                 var args = type == HolonType.All ? new List<LibSqlArg> { Arg(id.ToString()) } : new List<LibSqlArg> { Arg(id.ToString()), ArgInt((int)type) };
-                var holons = await QueryHolonsAsync(sql, args);
+                var holons = loadChildren && recursive
+                    ? await LoadParentTreesAsync(id, type, maxChildDepth, curentChildDepth).ConfigureAwait(false)
+                    : await QueryHolonsAsync(sql, args).ConfigureAwait(false);
                 result.Result = holons;
                 result.IsLoaded = true;
                 result.LoadedCount = holons.Count;

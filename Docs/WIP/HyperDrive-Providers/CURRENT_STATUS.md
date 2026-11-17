@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Turso parent collection reads now expand all selected child trees in one indexed native traversal when requested. Direct child type filters apply to the returned roots, and nested children retain their own types. Flat parent reads keep their existing select. Native qualification covers typed, bounded and flat entry points. Full collection and metadata child expansion remain open.
+
 2026-11-17 UTC — Turso point reads now honor explicit child loading through one recursive, depth-limited libSQL query. Flat reads still use the single-row query. In-memory SQLite confirmed depth limits, exclusion of deleted subtrees and cycle termination. Native sync and async entry-point qualification is pending. Collection child expansion and historical payload acceptance remain open.
 
 2026-11-17 UTC — Railway dev WEB4–WEB10 all reported SUCCESS for Turso BootLoader revision `1a5e674789f8`. Public WEB4 health returned HTTP 200 and healthy at 05:37 UTC. Managed Turso activation remains open. The separate Turso shared-conformance WEB4 image is still pending.

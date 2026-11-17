@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.TursoOASIS;
@@ -159,8 +160,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
         {
             RequireOwnedFixture();
             var root = new Holon { Id = Guid.NewGuid(), Name = "root" };
-            var child = new Holon { Id = Guid.NewGuid(), Name = "child" };
-            var grandchild = new Holon { Id = Guid.NewGuid(), Name = "grandchild" };
+            var child = new Holon { Id = Guid.NewGuid(), Name = "child", HolonType = HolonType.Holon };
+            var grandchild = new Holon { Id = Guid.NewGuid(), Name = "grandchild", HolonType = HolonType.Quest };
             child.Children.Add(grandchild);
             root.Children.Add(child);
             var saved = await _provider.SaveHolonAsync(root);
@@ -180,6 +181,17 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             var recursive = await _provider.LoadHolonAsync(root.Id, loadChildren: true);
             Assert.IsTrue(recursive.IsLoaded, recursive.Message);
             Assert.AreEqual(grandchild.Id, recursive.Result!.Children.Single().Children.Single().Id);
+
+            var parentSelection = await _provider.LoadHolonsForParentAsync(root.Id, HolonType.Holon, loadChildren: true);
+            Assert.IsTrue(parentSelection.IsLoaded, parentSelection.Message);
+            Assert.AreEqual(1, parentSelection.LoadedCount);
+            Assert.AreEqual(grandchild.Id, parentSelection.Result!.Single().Children.Single().Id);
+            var boundedSelection = _provider.LoadHolonsForParent(root.Id, loadChildren: true, maxChildDepth: 1);
+            Assert.IsTrue(boundedSelection.IsLoaded, boundedSelection.Message);
+            Assert.AreEqual(0, boundedSelection.Result!.Single().Children.Count);
+            var flatSelection = await _provider.LoadHolonsForParentAsync(root.Id, loadChildren: false);
+            Assert.IsTrue(flatSelection.IsLoaded, flatSelection.Message);
+            Assert.AreEqual(0, flatSelection.Result!.Single().Children.Count);
 
             Assert.IsTrue((await _provider.DeleteHolonAsync(child.Id)).IsDeleted);
             var afterDelete = await _provider.LoadHolonAsync(root.Id, loadChildren: true);
