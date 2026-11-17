@@ -120,4 +120,34 @@ public sealed class CqlStringLengthWireTests
         request.Filters[0].Function = null;
         Assert.DoesNotContain("\"function\"", JsonSerializer.Serialize(request, options));
     }
+
+    [Theory]
+    [InlineData(CqlV1Operator.Equal, CosmicQueryComparisonOperator.Equal)]
+    [InlineData(CqlV1Operator.NotEqual, CosmicQueryComparisonOperator.NotEqual)]
+    [InlineData(CqlV1Operator.GreaterThan, CosmicQueryComparisonOperator.GreaterThan)]
+    [InlineData(CqlV1Operator.GreaterThanOrEqual, CosmicQueryComparisonOperator.GreaterThanOrEqual)]
+    [InlineData(CqlV1Operator.LessThan, CosmicQueryComparisonOperator.LessThan)]
+    [InlineData(CqlV1Operator.LessThanOrEqual, CosmicQueryComparisonOperator.LessThanOrEqual)]
+    public void VirtualLengthRetainsAllComparisonsAndExactBounds(CqlV1Operator operation,
+        CosmicQueryComparisonOperator expected)
+    {
+        foreach (var bound in new[] { long.MinValue, 9007199254740993L, long.MaxValue })
+        {
+            var request = Request(bound.ToString(System.Globalization.CultureInfo.InvariantCulture), metadata: true);
+            request.Filters[0].Operator = operation;
+            var filter = Assert.Single(CqlV1Compiler.CompileVirtualMatches(request.Filters));
+            Assert.Equal(expected, filter.Operator);
+            Assert.Equal(bound, Assert.IsType<long>(filter.Value));
+            Assert.Equal(typeof(string), filter.InputType);
+        }
+    }
+
+    [Fact]
+    public void VirtualSnapshotRetainsTheOriginalStringFilterField()
+    {
+        var filters = CqlV1Compiler.CompileVirtualMatches(Request("2", metadata: true).Filters);
+        Assert.Equal(new[] { "name", "title" },
+            NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.NativeDataController.VirtualSnapshotFields(
+                filters.Select(filter => filter.Field), new[] { "name" }));
+    }
 }
