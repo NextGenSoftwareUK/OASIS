@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. Removed `cosmic-virtual-ui-P1w5Fd` after the exact Virtual Holon UI Chrome preflight and signed out its temporary session. No query or data write was sent. The website test snapshot and temporary index were removed. No browser or runtime was installed.
+
 17 November UTC. Removed the two owned Chrome profiles `cosmic-order-browser-X9qcJW` and `cosmic-order-browser-hPCq5K` after the exact SQL editor probe. The first harness supplied string metadata and correctly received a type error. The corrected harness sent exact numeric JSON. Four fixture IDs were verified absent and both temporary sessions signed out. Used existing Chrome and Node with no downloads.
 
 17 November UTC. The text preflight run and corrected rerun plus the UInt64/UTC live probes verified all 27 fixture IDs absent and revoked three temporary visitor sessions. The failed preflight harness called lower() on the expected outer null and still cleaned up. All probe journals, the disposable website snapshot and its temporary Git index were removed. No downloads or persistent local build outputs.

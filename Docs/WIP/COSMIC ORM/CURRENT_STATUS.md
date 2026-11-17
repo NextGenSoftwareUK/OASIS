@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. WEB4 site `2c5b533d8a84` passed all 284 tests and built its [Virtual Holon preview](https://vercel.com/oasis-team/web4-site/9B2JGp8a6tn8vzqRni73fcxefyS2). Chrome on the existing public origin with exact preview assets compiled the customer query shape and accepted a mapping ID without dispatching the query or writing rows. The exact bounded [backend qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44047916062) passed and the [WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44048463219) is still building. Separately the ordered native join filter passed the [three-store parity step](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44048317423).
+
 17 November UTC. Chrome used the published WEB4 sandbox origin with site revision `6667ae197060` supplied only to the isolated test browser. The real Run CQL control submitted a joined UInt64 ORDER BY and OFFSET request to Development `323922c64d9e`. The result rendered the expected second record and exact 18446744073709551614 in 1,233 ms. This verifies the SQL editor against the live API and does not publish the site preview to the public origin.
 
 17 November UTC. The parity follow-up retains native joined ordering when a supported Where is composed before any output page. The outer join fixture checks ordered matches, preservation of the unmatched optional side, and rejection of a predicate after Take. Exact qualification is pending.
