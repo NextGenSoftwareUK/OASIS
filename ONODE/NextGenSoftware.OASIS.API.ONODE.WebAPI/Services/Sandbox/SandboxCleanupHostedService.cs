@@ -101,10 +101,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Sandbox
                 async (holonId, avatarId, provider) =>
                 {
                     var deleted = await holonManagers[provider].DeleteHolonAsync(holonId, avatarId, softDelete: false, providerType: provider);
-                    if (deleted == null || deleted.IsError)
+                    if (deleted == null || deleted.IsError || deleted.Result?.Id != holonId)
                         _logger.LogWarning("Sandbox holon cleanup failed on {Provider}; code {Code}.",
                             provider, deleted?.ErrorCode ?? "CLEANUP_NOT_ACKNOWLEDGED");
-                    return deleted != null && !deleted.IsError;
+                    return deleted != null && !deleted.IsError && deleted.Result?.Id == holonId;
                 },
                 async (avatarId, provider) =>
                 {
