@@ -67,10 +67,11 @@ internal sealed partial class MongoCqlTranslator
                     : Op("$and",bothPresent,matchedValues);
             }
         }
-        var keyOperator = query.Join.MatchesAnyKey ? "$or" : "$and";
+        BsonValue CombineKeys(IReadOnlyList<BsonValue> values) => query.Join.CombineKeyPredicates(
+            values, group => Op("$and", group), groups => Op("$or", groups));
         // Matching follows the right source's window, not its unpaged collection.
         if (query.Join.Kind != CosmicJoinKind.Cross)
-            lookup.Add(new("$match", new BsonDocument("$expr", Op(keyOperator, equality.ToArray()))));
+            lookup.Add(new("$match", new BsonDocument("$expr", CombineKeys(equality))));
         var selectedOrders = query.OutputOrdering.Select((term, index) =>
         {
             var column = query.Columns[term.Column];
@@ -121,7 +122,7 @@ internal sealed partial class MongoCqlTranslator
             // Match from the right window against the same left window at the session's snapshot time.
             // Only an existence probe is needed to exclude right rows already emitted by the left join.
             var antiProbe = Plain(left);
-            antiProbe.Add(new("$match", new BsonDocument("$expr", Op(keyOperator, reverse.ToArray()))));
+            antiProbe.Add(new("$match", new BsonDocument("$expr", CombineKeys(reverse))));
             antiProbe.Add(new("$project", new BsonDocument { { "_id", 0 }, { "id", 1 } }));
             antiProbe.Add(new("$limit", 1));
             var unmatchedRight = Plain(right);
