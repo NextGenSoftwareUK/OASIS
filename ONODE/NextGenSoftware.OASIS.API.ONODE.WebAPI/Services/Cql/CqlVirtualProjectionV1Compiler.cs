@@ -20,7 +20,7 @@ public static partial class CqlV1Compiler
             request.AnyOf is not { Length: 0 } || request.AnyChildren is not { Length: 0 } ||
             request.AnyDescendants is not { Length: 0 } ||
             request.Columns is not { Length: >= 2 and <= 32 })
-            throw new ArgumentException("Mixed projection requires native equality, Id ordering and a bounded result.");
+            throw new ArgumentException("Mixed projection requires supported native predicates, Id ordering and a bounded result.");
 
         var matches = CompileVirtualMatches(request.Filters);
 
@@ -44,27 +44,40 @@ public static partial class CqlV1Compiler
         return new CqlVirtualProjection(matches, columns);
     }
 
-    internal static KeyValuePair<string, object>[] CompileVirtualMatches(CqlV1Filter[] filters)
+    internal static NativeRecordFilter[] CompileVirtualMatches(CqlV1Filter[] filters)
     {
         if (filters is not { Length: >= 1 and <= 8 })
             throw new ArgumentException("Mixed projection supports one to eight typed metadata filters.");
         return filters.Select(filter =>
         {
-            if (filter == null || filter.Function != null || filter.Field != null || filter.MetadataPath is not { Length: 1 } ||
-                filter.Operator != CqlV1Operator.Equal)
-                throw new ArgumentException("Mixed projection requires equality on one scalar metadata field.");
+            if (filter == null || filter.Field != null || filter.MetadataPath is not { Length: 1 })
+                throw new ArgumentException("Mixed projection requires a direct mapped scalar metadata field.");
             RequireVirtualField(filter.MetadataPath[0]);
-
-            // These are the exact domains supported by both the CQL metadata predicate
-            // and the first native virtual reader.
+            var operation = filter.Operator switch
+            {
+                CqlV1Operator.Equal => NextGenSoftware.OASIS.API.Core.Queries.CosmicQueryComparisonOperator.Equal,
+                CqlV1Operator.NotEqual => NextGenSoftware.OASIS.API.Core.Queries.CosmicQueryComparisonOperator.NotEqual,
+                CqlV1Operator.GreaterThan => NextGenSoftware.OASIS.API.Core.Queries.CosmicQueryComparisonOperator.GreaterThan,
+                CqlV1Operator.GreaterThanOrEqual => NextGenSoftware.OASIS.API.Core.Queries.CosmicQueryComparisonOperator.GreaterThanOrEqual,
+                CqlV1Operator.LessThan => NextGenSoftware.OASIS.API.Core.Queries.CosmicQueryComparisonOperator.LessThan,
+                CqlV1Operator.LessThanOrEqual => NextGenSoftware.OASIS.API.Core.Queries.CosmicQueryComparisonOperator.LessThanOrEqual,
+                _ => throw new ArgumentException("Use an admitted scalar comparison with this virtual mapping.")
+            };
+            if (filter.Function != null)
+            {
+                if (filter.Function != CqlV1Function.Utf16Length || filter.Scalar != CqlV1Scalar.String)
+                    throw new ArgumentException("Virtual LENGTH requires a string input.");
+                return new NativeRecordFilter(filter.MetadataPath[0], operation,
+                    Literal(filter.Value, typeof(long)).Value, NativeRecordFunction.Utf16Length);
+            }
             var matchType = filter.Scalar switch
             {
                 CqlV1Scalar.String => typeof(string),
                 CqlV1Scalar.Boolean => typeof(bool),
                 CqlV1Scalar.Integer => typeof(long),
-                _ => throw new ArgumentException("This virtual source supports String, Boolean and Int64 equality.")
+                _ => throw new ArgumentException("This virtual source supports String, Boolean and Int64 scalar predicates.")
             };
-            return new KeyValuePair<string, object>(filter.MetadataPath[0], Literal(filter.Value, matchType).Value);
+            return new NativeRecordFilter(filter.MetadataPath[0], operation, Literal(filter.Value, matchType).Value);
         }).ToArray();
     }
 
@@ -82,7 +95,7 @@ public static partial class CqlV1Compiler
 
 internal sealed record CqlVirtualColumn(string Field, Type Type, bool Nullable);
 
-internal sealed record CqlVirtualProjection(KeyValuePair<string, object>[] Matches, CqlVirtualColumn[] Columns)
+internal sealed record CqlVirtualProjection(NativeRecordFilter[] Matches, CqlVirtualColumn[] Columns)
 {
     // A full branch at this limit cannot prove absence of further rows.
     internal const int MaximumRows = 100;
