@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — [WEB4 image run 44024926154](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44024926154) was accepted for exact Turso conformance candidate `18bd03c1ade1` after the preceding shared image job moved into execution. The candidate is pending in the shared queue. Railway dev WEB5–WEB9 reported SUCCESS for the preceding BootLoader revision `1a5e674789f8`. WEB4 and WEB10 were building.
+
 2026-11-17 UTC — Turso shared-conformance candidate `18bd03c1ade1` applies the exact provider and test files qualified at `73a6fe155029` on Development `1a5e674789f8`. The five-path delta preserves COSMIC revisions and Railway pins. [Exact native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44024403432) passed both 26-check modes and the deletion rollback test with zero skips and verified teardown. A [queued build](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44024471585) occupies the shared WEB4 image queue. The preceding BootLoader rollout is still building on Railway dev WEB4.
 
 2026-11-17 UTC — Development fast-forwarded to qualified Turso BootLoader revision `1a5e674789f8` after the seven predecessor services reported SUCCESS. Railway queued exact WEB4 deployment `c622cdb9-a88b-4751-906c-1e6afe204272` at 05:25:27 UTC. Verify the fleet and health before recording rollout completion. Review the next shared Development batch after 05:55:27 UTC.
