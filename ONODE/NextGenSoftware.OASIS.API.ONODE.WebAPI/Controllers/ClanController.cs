@@ -186,7 +186,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        /// <summary>Delete a clan. Typically only the owner may delete (idempotent if not found).</summary>
+        /// <summary>Delete a clan as its owner or a Wizard.</summary>
         [HttpDelete("{clanId:guid}")]
         [Authorize]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
@@ -195,10 +195,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var loadResult = await ClanManager.LoadClanAsync(clanId);
-                if (!loadResult.IsError && loadResult.Result != null && loadResult.Result.OwnerAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
-                    return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "Unauthorized. Only the clan owner can delete it." }, HttpStatusCode.Unauthorized);
-                var result = await ClanManager.DeleteClanAsync(clanId, providerType ?? ProviderType.Default);
+                var storageProvider = providerType ?? ProviderType.Default;
+                var refusal = await RefuseUnauthorizedClanMutationAsync(clanId, storageProvider);
+                if (refusal != null)
+                    return refusal;
+                var result = await ClanManager.DeleteClanAsync(clanId, storageProvider);
                 if (result.IsError && !result.Result)
                     return HttpResponseHelper.FormatResponse(result, HttpStatusCode.NotFound);
                 return HttpResponseHelper.FormatResponse(result);
@@ -223,10 +224,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var loadResult = await ClanManager.LoadClanAsync(clanId);
-                if (!loadResult.IsError && loadResult.Result != null && loadResult.Result.OwnerAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
-                    return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "Unauthorized. Only the clan owner can add members." }, HttpStatusCode.Unauthorized);
-                var result = await ClanManager.AddAvatarToClanAsync(clanId, avatarId, providerType ?? ProviderType.Default);
+                var storageProvider = providerType ?? ProviderType.Default;
+                var refusal = await RefuseUnauthorizedClanMutationAsync(clanId, storageProvider);
+                if (refusal != null)
+                    return refusal;
+                var result = await ClanManager.AddAvatarToClanAsync(clanId, avatarId, storageProvider);
                 return HttpResponseHelper.FormatResponse(result);
             }
             catch (Exception ex)
@@ -249,10 +251,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var loadResult = await ClanManager.LoadClanAsync(clanId);
-                if (!loadResult.IsError && loadResult.Result != null && loadResult.Result.OwnerAvatarId != AvatarId && avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
-                    return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "Unauthorized. Only the clan owner can remove members (or a member may remove themselves)." }, HttpStatusCode.Unauthorized);
-                var result = await ClanManager.RemoveAvatarFromClanAsync(clanId, avatarId, providerType ?? ProviderType.Default);
+                var storageProvider = providerType ?? ProviderType.Default;
+                var refusal = await RefuseUnauthorizedClanMutationAsync(clanId, storageProvider, avatarId);
+                if (refusal != null)
+                    return refusal;
+                var result = await ClanManager.RemoveAvatarFromClanAsync(clanId, avatarId, storageProvider);
                 return HttpResponseHelper.FormatResponse(result);
             }
             catch (Exception ex)
@@ -264,6 +267,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     Exception = ex
                 }, HttpStatusCode.InternalServerError);
             }
+        }
+
+        private async Task<OASISHttpResponseMessage<bool>> RefuseUnauthorizedClanMutationAsync(Guid clanId,
+            ProviderType storageProvider, Guid? leavingAvatarId = null)
+        {
+            var clan = await ClanManager.LoadClanAsync(clanId, storageProvider);
+            if (clan.IsError || clan.Result == null)
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                {
+                    IsError = true,
+                    ErrorCode = clan.ErrorCode,
+                    Message = clan.Message ?? "Could not verify clan ownership."
+                }, clan.ErrorCode == OASISResultErrorCodes.RecordNotFound ? HttpStatusCode.NotFound : HttpStatusCode.ServiceUnavailable);
+
+            if (AvatarId != Guid.Empty && (clan.Result.OwnerAvatarId == AvatarId || leavingAvatarId == AvatarId ||
+                Avatar?.AvatarType?.Value == AvatarType.Wizard))
+                return null;
+
+            return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+            {
+                IsError = true,
+                Message = "This avatar is not authorized to change the clan."
+            }, HttpStatusCode.Unauthorized);
         }
 
         /// <summary>Get clan member avatar Ids.</summary>
