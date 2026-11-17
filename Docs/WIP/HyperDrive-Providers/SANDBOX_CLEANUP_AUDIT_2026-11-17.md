@@ -44,3 +44,9 @@ The new compiled API regression covers independent/duplicate replicas, conflicti
 ## Qualification boundary review
 
 Run 44192504510 stopped at the inherited public-manager manifest before API compilation; the new discovery case did not execute. Review added the specialized native seal audit method and three sealed-history controller actions without changing inherited rows. Exact retry `80084c61edcd` is running in [44195119239](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44195119239), still selecting only the new case. Manifest classification is not behavioral acceptance: the seal verifier currently uses global provider activation, which remains an agent-owned routing concern. The cleanup repair has not been deployed and physical reclamation is still unproved.
+
+## Compiled discovery acceptance
+
+Focused run44195119239 passed on80084c61edcd: one compiled API discovery test, zero failed or skipped. It confirms duplicate/independent identity handling and rejection of conflicting owner markers or malformed IDs. Native missing-record reconciliation and physical purge remain open.
+
+The separate native seal-routing concern is fixed in Core1047ee77be8f and passed real MongoDB/SQLite run44199944286 (one case, four concurrent calls). Core8707529f27fa preserves the later shared netstandard compatibility fix without changing that method. This does not replace the outstanding native cleanup tests or establish that the hosted cleanup worker has been upgraded.

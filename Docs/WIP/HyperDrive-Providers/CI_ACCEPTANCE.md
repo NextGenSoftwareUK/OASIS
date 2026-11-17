@@ -1,5 +1,7 @@
 # Provider batch CI acceptance
 
+2026-11-17 UTC — [Cleanup discovery44195119239](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44195119239): exact80084c61edcd, one compiled-artifact case passed with no failures/skips; physical reclamation is not accepted. [Native seal routing44199944286](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44199944286): exactf86405b75cbc/Core1047ee77be8f, one real MongoDB/SQLite case passed with no failures/skips. It produced/verified a seal via the production policy, preserved shared provider selection across concurrent calls, verified fixture database deletion and stopped the owned container. Two older contract steps were skipped to avoid repeated accepted tests. Evidence archives were inspected in memory only. Later Core8707529f27fa adds the shared conditional netstandard shim; no fresh native run is claimed for that successor.
+
 Updated 2026-10-28. [PR495](https://github.com/NextGenSoftwareUK/OASIS/pull/495) was observed already merged at2026-10-27T08:37:44Z, merge `a797a3c8fe2cba6241b228962726d65204596135`; this agent did not issue that merge. Final head `6dd6298c07b8dc2fc5d08678b01f90c03777e996` has no pending checks but five failed checks. Azure local52/52 and111controls do not imply CI green.
 
 ## Observed failures and root fixes
