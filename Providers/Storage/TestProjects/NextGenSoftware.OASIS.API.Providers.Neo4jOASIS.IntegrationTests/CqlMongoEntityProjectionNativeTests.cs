@@ -28,7 +28,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var actor=Guid.NewGuid();var other=Guid.NewGuid();
         await using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough))
         {
-            await JsonSerializer.SerializeAsync(file,new{database,ids,actor,other,stage="before-create"});file.Flush(true);
+            await JsonSerializer.SerializeAsync(file,new{database,nativeDatabase=database+"_native_filters",ids,actor,other,stage="before-create"});file.Flush(true);
         }
         var provider=new MongoProvider(uri,database){IsVersionControlEnabled=false};
         var active=false;
@@ -40,7 +40,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             var acknowledged=journal+".next";
             await using(var file=new FileStream(acknowledged,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough))
             {
-                await JsonSerializer.SerializeAsync(file,new{database,ids,actor,other,stage="created-awaiting-projection-verification"});file.Flush(true);
+                await JsonSerializer.SerializeAsync(file,new{database,nativeDatabase=database+"_native_filters",ids,actor,other,stage="created-awaiting-projection-verification"});file.Flush(true);
             }
             File.Move(acknowledged,journal,true);
             var checks=new List<object>();
@@ -56,7 +56,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             await VerifyChildSource(provider, actor, ids[0], ids[1], checks);
             await VerifyJoinOutputOrdering(provider, ids, checks);
             await VerifyNativeStringLength(provider, ids, checks);
-            Assert.AreEqual(106,checks.Count);
+            await VerifyMongoNativePredicates(provider, client, database, checks);
+            Assert.AreEqual(110,checks.Count);
             var deactivated=await provider.DeActivateProviderAsync();Assert.IsFalse(deactivated.IsError,deactivated.Message);active=false;
             await client.DropDatabaseAsync(database);
             using var remaining=await client.ListDatabaseNamesAsync();Assert.IsFalse((await remaining.ToListAsync()).Contains(database));
