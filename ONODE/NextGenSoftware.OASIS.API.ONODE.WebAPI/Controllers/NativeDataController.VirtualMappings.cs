@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.Common;
@@ -95,7 +96,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (match == null)
                 return BadRequest(VirtualReadError("VIRTUAL_HOLON_QUERY_INVALID", "Provide a typed String, Boolean, Int32 or decimal-string Int64 match."));
 
-            var result = await CqlV1Providers.QueryOwnedVirtualMappingAsync(HolonManager, id, AvatarId,
+            var result = await CqlV1Providers.QueryOwnedVirtualMappingAsync(HolonManager, ProviderManager.Instance.CurrentStorageProvider, id, AvatarId,
                 providerType, request.MatchField, match, request.Select, request.Take, cancellationToken);
             if (result.ErrorCode == "VIRTUAL_MAPPING_NOT_FOUND")
                 return NotFound();
