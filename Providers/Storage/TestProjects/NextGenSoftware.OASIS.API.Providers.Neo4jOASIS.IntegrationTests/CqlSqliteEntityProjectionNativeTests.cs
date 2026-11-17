@@ -297,19 +297,24 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var orderingSelection = orderingJoin.Result.Select((left, right) => new
         {
             LeftId = left.Id,
-            Amount = CosmicQueryMetadata.Value<long?>(right, "i64")
+            Amount = CosmicQueryMetadata.Value<long?>(right, "i64"),
+            Unsigned = CosmicQueryMetadata.Value<ulong?>(right, "u64"),
+            Occurred = CosmicQueryMetadata.Value<DateTime?>(right, "distinctUtc")
         });
         Assert.IsFalse(orderingSelection.IsError, orderingSelection.Message);
-        var descendingAmount = orderingSelection.Result.OrderByOutput("Amount", descending: true);
-        Assert.IsFalse(descendingAmount.IsError, descendingAmount.Message);
-        var amountPage = descendingAmount.Result.PageOutput(1, 1);
-        Assert.IsFalse(amountPage.IsError, amountPage.Message);
-        var amountPlan = CosmicJoinPlanner.Plan(amountPage.Result, native.QueryProviderType,
-            new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
-        Assert.IsFalse(amountPlan.IsError, amountPlan.Message);
-        var amountRows = await manager.ExecuteJoinQueryAsync(amountPlan.Result, new[] { native });
-        Assert.IsFalse(amountRows.IsError, amountRows.Message + amountRows.Exception);
-        Assert.AreEqual(lowerId, amountRows.Result.Providers.Single().Rows.Single().Value.LeftId);
+        foreach (var (alias, expectedId) in new[] { ("Amount", lowerId), ("Unsigned", lowerId), ("Occurred", parentId) })
+        {
+            var descending = orderingSelection.Result.OrderByOutput(alias, descending: true);
+            Assert.IsFalse(descending.IsError, descending.Message);
+            var page = descending.Result.PageOutput(1, 1);
+            Assert.IsFalse(page.IsError, page.Message);
+            var orderingPlan = CosmicJoinPlanner.Plan(page.Result, native.QueryProviderType,
+                new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
+            Assert.IsFalse(orderingPlan.IsError, orderingPlan.Message);
+            var orderedRows = await manager.ExecuteJoinQueryAsync(orderingPlan.Result, new[] { native });
+            Assert.IsFalse(orderedRows.IsError, orderedRows.Message + orderedRows.Exception);
+            Assert.AreEqual(expectedId, orderedRows.Result.Providers.Single().Rows.Single().Value.LeftId, alias);
+        }
 
         var wireActor = Guid.NewGuid();
         var access = CosmicQueryReadAccess.OwnerOrPublic(wireActor).Result;
@@ -333,6 +338,24 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             },
             MaximumLeftRows = 2, MaximumRightRows = 2, MaximumPairs = 4, MaximumResults = 4
         };
+        var textJoinIds = new[] { parentId, lowerId, missingId };
+        var textInput = source.Where(row => textJoinIds.Contains(row.Id)).Result;
+        var textJoin = textInput.Join(textInput,
+            row => CosmicQueryMetadata.Value<string>(row, "caseJoinGuid"),
+            row => CosmicQueryMetadata.Value<string>(row, "caseJoinGuid"));
+        Assert.IsFalse(textJoin.IsError, textJoin.Message);
+        var textNullSafe = textJoin.Result.CompareKey(textJoin.Result.Keys.Single().Alias, CosmicJoinComparison.NullSafeEqual);
+        Assert.IsFalse(textNullSafe.IsError, textNullSafe.Message);
+        var textSelection = textNullSafe.Result.Select((left, right) => new { Left = left.Id, Right = right.Id });
+        Assert.IsFalse(textSelection.IsError, textSelection.Message);
+        var textPlan = CosmicJoinPlanner.Plan(textSelection.Result, native.QueryProviderType,
+            new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
+        Assert.IsFalse(textPlan.IsError, textPlan.Message);
+        var textMatches = await manager.ExecuteJoinQueryAsync(textPlan.Result, new[] { native });
+        Assert.IsFalse(textMatches.IsError, textMatches.Message + textMatches.Exception);
+        CollectionAssert.AreEquivalent(textJoinIds.Select(id => (id, id)).ToArray(),
+            textMatches.Result.Providers.Single().Rows.Select(row => (row.Value.Left, row.Value.Right)).ToArray());
+
         var wire = CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access);
         Assert.AreEqual(CosmicJoinComparison.LessThan, wire.Join.Keys.Single().Comparison);
         var wirePlan = CosmicJoinPlanner.Plan(wire, native.QueryProviderType,
@@ -532,6 +555,45 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(named.IsError, named.Message + named.Exception);
         CollectionAssert.AreEquivalent(new[] { (parentId, parentId), (missingId, missingId) },
             named.Result.Select(row => (row.Left, row.Right)).ToArray());
+
+        var leftJoinRows = await flagRows.LeftJoin(flagRows.Where(row => row.Id == parentId),
+            left => left.Id, right => right.Id,
+            (left, right) => new { Left = left.Id, Right = right == null ? (Guid?)null : right.Id })
+            .ToCosmicListAsync();
+        Assert.IsFalse(leftJoinRows.IsError, leftJoinRows.Message + leftJoinRows.Exception);
+        CollectionAssert.AreEquivalent(new (Guid, Guid?)[] { (parentId, parentId), (missingId, null) },
+            leftJoinRows.Result.Select(row => (row.Left, row.Right)).ToArray());
+
+        var querySyntaxLeftJoin =
+            from leftRow in flagRows
+            join rightRow in flagRows.Where(row => row.Id == parentId) on leftRow.Id equals rightRow.Id into matches
+            from rightRow in matches.DefaultIfEmpty()
+            select new { Left = leftRow.Id, Right = rightRow == null ? (Guid?)null : rightRow.Id };
+        var querySyntaxMatches = await querySyntaxLeftJoin.ToCosmicListAsync();
+        Assert.IsFalse(querySyntaxMatches.IsError, querySyntaxMatches.Message + querySyntaxMatches.Exception);
+        CollectionAssert.AreEquivalent(new (Guid, Guid?)[] { (parentId, parentId), (missingId, null) },
+            querySyntaxMatches.Result.Select(row => (row.Left, row.Right)).ToArray());
+
+        var rightInput = flagRows.OrderBy(row => row.Id);
+        var rightJoinRows = await flagRows.Where(row => row.Id == parentId).RightJoin(rightInput,
+            left => left.Id, right => right.Id,
+            (left, right) => new { Left = left == null ? (Guid?)null : left.Id, Right = right.Id })
+            .ToCosmicListAsync();
+        Assert.IsFalse(rightJoinRows.IsError, rightJoinRows.Message + rightJoinRows.Exception);
+        var compositeTextJoin = await flagRows.Join(flagRows,
+            row => new { row.Id, Text = CosmicQueryMetadata.Value<string>(row, "caseJoinGuid") },
+            row => new { row.Id, Text = CosmicQueryMetadata.Value<string>(row, "caseJoinGuid") },
+            (left, right) => new { Left = left.Id, Right = right.Id }).ToCosmicListAsync();
+        Assert.IsFalse(compositeTextJoin.IsError, compositeTextJoin.Message + compositeTextJoin.Exception);
+        CollectionAssert.AreEquivalent(new[] { (parentId, parentId), (missingId, missingId) },
+            compositeTextJoin.Result.Select(row => (row.Left, row.Right)).ToArray());
+
+        var expectedRightRows = await rightInput.ToCosmicListAsync();
+        Assert.IsFalse(expectedRightRows.IsError, expectedRightRows.Message + expectedRightRows.Exception);
+        CollectionAssert.AreEqual(expectedRightRows.Result.Select(row => row.Id).ToArray(),
+            rightJoinRows.Result.Select(row => row.Right).ToArray());
+        CollectionAssert.AreEquivalent(new (Guid?, Guid)[] { (parentId, parentId), (null, missingId) },
+            rightJoinRows.Result.Select(row => (row.Left, row.Right)).ToArray());
 
         request.MatchAnyKey = false;
         request.KeyGroupStarts = new[] { 0, 2 };
