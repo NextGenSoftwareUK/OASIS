@@ -1,5 +1,14 @@
 # COSMIC ORM / CQL current status
 
+### Outer join filtering candidate
+
+Native LINQ now translates a post-join predicate on the preserved side into a native input
+filter when the source is unpaged and the join output has no ordering or paging. The
+shared MongoDB, SQLite and Neo4j fixture checks that the unmatched row still appears
+with a null optional side. Exact CI verification is pending. Predicates on the optional
+side and filtering after input or output paging remain open.
+
+
 17 November UTC. The [native UINT64 and UTC output-ordering stage](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44031273933) passed MongoDB, SQLite and Neo4j. The tests preserve the correct second ordered row for adjacent values at UInt64.MaxValue and adjacent UTC ticks with a missing third value. Candidate `a3270f07875a` retains the new Turso lifecycle parent `5877c9e3bc9b` and is in [exact combined CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44032437921) and [image CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44032542851). The matching editor draft passed 281 tests and the live ordering and null-safe text plans compile. Publication and runtime acceptance await exact deployment.
 
 17 November UTC. Exact WEB4 Development `b226ff3740c1` deployed successfully as `01f53eea-c30b-425c-80c8-82f37775d31d`. Signed live INT64 join ordering and OFFSET returned the exact expected second row for two adjacent integers above JavaScript's safe precision and a missing value, on MongoDB, SQLite and Neo4j (0.70–0.99 s). The matching [WEB4 preview](https://vercel.com/oasis-team/web4-site/F78Ac1VmnNPnWXC19dqPHrY6zmKc) built from `8a33a45b78d8` and all 280 website tests passed. Outer joins, query-syntax left joins and null-safe text are in [updated exact CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44029909304). Its regression now executes the newly supported text equality that the older suite expected to reject.
