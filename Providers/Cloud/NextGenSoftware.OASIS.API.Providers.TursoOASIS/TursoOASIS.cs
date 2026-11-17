@@ -310,49 +310,40 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
 
         // ─── Avatar deletion ──────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+            => DeleteAvatarMatchingAsync("?", id.ToString(), softDelete);
+
+        private async Task<OASISResult<bool>> DeleteAvatarMatchingAsync(string idSelection, string identity, bool softDelete)
         {
             var result = new OASISResult<bool>();
             try
             {
                 var deleted = await ExecuteSqlAsync(
-                    softDelete ? "UPDATE oasis_avatars SET is_deleted=1 WHERE id=? AND is_deleted=0"
-                        : "DELETE FROM oasis_avatars WHERE id=?",
-                    new List<LibSqlArg> { Arg(id.ToString()) }).ConfigureAwait(false);
+                    softDelete ? $"UPDATE oasis_avatars SET is_deleted=1 WHERE id={idSelection} AND is_deleted=0"
+                        : $"DELETE FROM oasis_avatars WHERE id={idSelection}",
+                    new List<LibSqlArg> { Arg(identity) }).ConfigureAwait(false);
                 if (deleted.AffectedRowCount == 0)
-                    return new OASISResult<bool>
-                    {
-                        IsError = true, ErrorCount = 1, ErrorCode = OASISResultErrorCodes.RecordNotFound,
-                        Message = "Turso found no matching avatar to delete."
-                    };
+                    return MissingRecord<bool>("Turso found no matching avatar to delete.");
                 if (deleted.AffectedRowCount != 1)
                     throw new InvalidOperationException("Turso did not acknowledge exactly one avatar deletion.");
                 result.Result = true;
                 result.IsDeleted = true;
                 result.DeletedCount = 1;
-                result.Message = $"TursoOASIS: Avatar '{id}' {(softDelete ? "soft" : "hard")}-deleted.";
+                result.Message = $"TursoOASIS: Avatar {(softDelete ? "soft" : "hard")}-deleted.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error deleting avatar '{id}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error deleting avatar: {ex.Message}"); }
             return result;
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
 
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
-        {
-            var a = await LoadAvatarByUsernameAsync(username);
-            if (a.IsError || a.Result == null) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, $"TursoOASIS: Avatar '{username}' not found."); return r; }
-            return await DeleteAvatarAsync(a.Result.Id, softDelete);
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
+            => DeleteAvatarMatchingAsync("(SELECT id FROM oasis_avatars WHERE username=? AND is_deleted=0 LIMIT 1)", username, softDelete);
 
         public override OASISResult<bool> DeleteAvatarByUsername(string username, bool softDelete = true) => DeleteAvatarByUsernameAsync(username, softDelete).Result;
 
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
-        {
-            var a = await LoadAvatarByEmailAsync(email);
-            if (a.IsError || a.Result == null) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, $"TursoOASIS: Avatar with email '{email}' not found."); return r; }
-            return await DeleteAvatarAsync(a.Result.Id, softDelete);
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
+            => DeleteAvatarMatchingAsync("(SELECT id FROM oasis_avatars WHERE email=? AND is_deleted=0 LIMIT 1)", email, softDelete);
 
         public override OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true) => DeleteAvatarByEmailAsync(email, softDelete).Result;
 

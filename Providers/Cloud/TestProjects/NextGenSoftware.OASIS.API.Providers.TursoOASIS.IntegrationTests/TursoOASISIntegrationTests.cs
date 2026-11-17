@@ -356,6 +356,31 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             }
         }
 
+        [TestMethod]
+        public async Task NativeAliasDeletionAffectsOnlyTheSelectedLiveAvatar()
+        {
+            RequireOwnedFixture();
+            var first = new Avatar { Id = Guid.NewGuid(), Username = "O'Brien", Email = "one@example.invalid" };
+            var second = new Avatar { Id = Guid.NewGuid(), Username = "Other", Email = "two@example.invalid" };
+            Assert.IsTrue((await _provider.SaveAvatarAsync(first)).IsSaved);
+            Assert.IsTrue((await _provider.SaveAvatarAsync(second)).IsSaved);
+            Assert.IsTrue((await _provider.SaveAvatarDetailAsync(new AvatarDetail { Id = second.Id, Email = second.Email })).IsSaved);
+
+            var removedByName = await _provider.DeleteAvatarByUsernameAsync(first.Username);
+            Assert.IsTrue(removedByName.IsDeleted, removedByName.Message);
+            Assert.AreEqual(1, removedByName.DeletedCount);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await _provider.LoadAvatarAsync(first.Id)).ErrorCode);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await _provider.DeleteAvatarByUsernameAsync(first.Username)).ErrorCode);
+            Assert.IsTrue((await _provider.LoadAvatarAsync(second.Id)).IsLoaded);
+
+            var removedByEmail = _provider.DeleteAvatarByEmail(second.Email, softDelete: false);
+            Assert.IsTrue(removedByEmail.IsDeleted, removedByEmail.Message);
+            Assert.AreEqual(1, removedByEmail.DeletedCount);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await _provider.LoadAvatarDetailAsync(second.Id)).ErrorCode);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, _provider.DeleteAvatarByEmail(second.Email).ErrorCode);
+            Assert.IsTrue((await _provider.DeleteAvatarAsync(first.Id, softDelete: false)).IsDeleted);
+        }
+
         private void RequireOwnedFixture()
         {
             if (Environment.GetEnvironmentVariable("TURSOOASIS_URL") != OwnedFixture ||

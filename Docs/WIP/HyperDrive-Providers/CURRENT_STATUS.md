@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Turso username and email deletion now bind the alias in the native mutation, replacing a separate lookup and write. The native regression covers a quoted username, repeated removal, and atomic hard deletion of the matching avatar and detail. [Native scoped search child projection](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44028953289) passed, including exclusion of another avatar's private child.
+
 2026-11-17 UTC — Turso avatar listing now returns a loaded acknowledgement and the exact live row count. The isolated native regression verifies that both public entry points include the live avatar and exclude the soft-deleted one. Qualification is pending.
 
 2026-11-17 UTC — Exact [native run 44028383230](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44028383230) passed both shared storage modes and avatar deletion rollback for candidate `5877c9e3bc9b`. The [metadata selection test](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44028023331) passed on the same Turso provider and test sources. The [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44028920352) is pending behind the earlier build. The follow-up search projection is being checked in [native run 44028953289](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44028953289).
