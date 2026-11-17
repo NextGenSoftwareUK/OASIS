@@ -35,8 +35,9 @@ public static partial class CqlV1Compiler
             throw new ArgumentException("SelectedOrder requires one to eight aliases, OrderBy None and Skip 0–1000.");
 
         var source = CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
-            request.AnyDescendants, request.Graph, order == null ? request.OrderBy : "Id", request.Descending,
-            order == null ? request.Skip : 0, order == null ? request.Take : null, access, includeCloudReadProfile: true);
+            request.AnyDescendants, request.Graph, order == null ? request.OrderBy : "Id", branchLimit == null && request.Descending,
+            order == null && branchLimit == null ? request.Skip : 0, order == null ? branchLimit ?? request.Take : null, access,
+            includeCloudReadProfile: true);
         var columns = request.Columns.Select(ProjectionColumn).ToArray();
         if (order != null)
         {

@@ -14,7 +14,8 @@ public static partial class CqlV1Compiler
 {
     internal static CqlVirtualProjection CompileVirtualProjection(CqlProjectionV1Request request)
     {
-        if (request == null || request.OrderBy != "Id" || request.Descending || request.Skip != 0 ||
+        if (request == null || request.OrderBy != "Id" || request.SelectedOrder != null ||
+            request.Skip is < 0 or >= CqlVirtualProjection.MaximumRows * 2 ||
             request.Take is < 1 or > CqlVirtualProjection.MaximumRows || request.Graph != null ||
             request.AnyOf is not { Length: 0 } || request.AnyChildren is not { Length: 0 } ||
             request.AnyDescendants is not { Length: 0 } ||
