@@ -154,6 +154,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                 CREATE INDEX IF NOT EXISTS idx_avatars_email ON oasis_avatars(email);
                 CREATE INDEX IF NOT EXISTS idx_holons_parent ON oasis_holons(parent_holon_id);
                 CREATE INDEX IF NOT EXISTS idx_holons_type ON oasis_holons(holon_type);
+                CREATE TRIGGER IF NOT EXISTS oasis_avatars_delete_detail
+                    AFTER DELETE ON oasis_avatars
+                    BEGIN
+                        DELETE FROM oasis_avatar_details WHERE id=OLD.id;
+                    END;
                 COMMIT;
                 """ }).ConfigureAwait(false);
         }

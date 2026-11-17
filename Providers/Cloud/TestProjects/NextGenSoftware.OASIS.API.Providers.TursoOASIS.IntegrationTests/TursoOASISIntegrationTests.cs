@@ -123,6 +123,37 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             Assert.IsTrue(report.FixtureCleanupComplete);
         }
 
+        [TestMethod]
+        public async Task NativeAvatarDetailDeletionRollsBackWithAvatar()
+        {
+            RequireOwnedFixture();
+            using var client = new HttpClient();
+            var id = Guid.NewGuid();
+            var marker = $"avatar-detail-delete-{id:N}";
+            Assert.IsTrue((await _provider.SaveAvatarAsync(
+                new Avatar { Id = id, Username = marker, Email = marker + "@example.invalid" })).IsSaved);
+            Assert.IsTrue((await _provider.SaveAvatarDetailAsync(new AvatarDetail { Id = id, Username = marker })).IsSaved);
+
+            await ExecuteFixtureSql(client, $"CREATE TRIGGER oasis_test_protect_detail BEFORE DELETE ON oasis_avatar_details WHEN OLD.id = '{id:D}' BEGIN SELECT RAISE(ABORT, 'isolated detail deletion rejection'); END");
+            try
+            {
+                var rejected = await _provider.DeleteAvatarAsync(id, softDelete: false);
+                Assert.IsTrue(rejected.IsError);
+                Assert.IsFalse(rejected.IsDeleted);
+                Assert.IsTrue((await _provider.LoadAvatarAsync(id)).IsLoaded);
+                Assert.IsTrue((await _provider.LoadAvatarDetailAsync(id)).IsLoaded);
+            }
+            finally
+            {
+                await ExecuteFixtureSql(client, "DROP TRIGGER oasis_test_protect_detail");
+            }
+
+            var deleted = await _provider.DeleteAvatarAsync(id, softDelete: false);
+            Assert.IsTrue(deleted.IsDeleted, deleted.Message);
+            Assert.AreEqual(1, deleted.DeletedCount);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await _provider.LoadAvatarDetailAsync(id)).ErrorCode);
+        }
+
         private void RequireOwnedFixture()
         {
             if (Environment.GetEnvironmentVariable("TURSOOASIS_URL") != OwnedFixture ||

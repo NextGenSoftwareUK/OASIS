@@ -1,5 +1,9 @@
 # Current provider status
 
+2026-11-17 UTC — Railway dev WEB4–WEB10 all reported SUCCESS for Turso storage revision `961b6a881ae4`. The public WEB4 health endpoint returned HTTP 200 and healthy at 05:06 UTC. This confirms the rollout. Managed Turso access remains open.
+
+2026-11-17 UTC — Hard avatar deletion now deletes its matching detail in the same native statement through a transactionally installed trigger. The regression rejects detail deletion inside libSQL and requires both original rows to remain. It then removes the rejection and verifies a single acknowledged deletion and detail absence. Native qualification is pending.
+
 2026-11-17 UTC — Turso now uses the shared graph write plan and writes the entire planned graph in one parameterized libSQL statement. Native acknowledgement controls the reported count and publication of generated IDs. Avatar-detail and holon reads now publish their loaded counts, and metadata and ownership exports propagate native read errors. Exact shared-suite qualification and avatar-detail deletion remain open. The earlier [concurrent deletion regression](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44020548498) passed against official libSQL.
 
 2026-11-17 UTC — Turso now runs the shared 26-check storage suite through each of its synchronous and asynchronous entry points on disposable libSQL. The first implementation batch makes single-record saves require one affected row and makes avatar reads distinguish native absence from transport failure. The shared graph, collection, import/export and avatar-detail lifecycle checks still require qualification.
