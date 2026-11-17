@@ -594,6 +594,10 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(1, orderedOuter.Count(row => row.Left == missingId));
         Assert.AreEqual(1L, orderedOuter.LongCount(row => row.Left == missingId));
         Assert.IsTrue(orderedOuter.Any(row => row.Left == missingId));
+        Assert.IsTrue(orderedOuter.All(row => row.Left != Guid.Empty));
+        Assert.IsFalse(orderedOuter.All(row => row.Left == missingId));
+        Assert.IsTrue(orderedOuter.Where(row => row.Left == Guid.Empty).All(row => row.Left == missingId));
+        Assert.ThrowsException<CosmicLinqException>(() => orderedOuter.Take(1).All(row => row.Left != Guid.Empty));
         Assert.IsNull(orderedOuter.First(row => row.Left == missingId).Right);
         Assert.AreEqual(missingId, orderedOuter.Last(row => row.Left == missingId).Left);
         Assert.IsNull(orderedOuter.SingleOrDefault(row => row.Left == Guid.Empty));

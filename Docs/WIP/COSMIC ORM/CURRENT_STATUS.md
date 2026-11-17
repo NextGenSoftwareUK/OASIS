@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. The joined LINQ parity candidate evaluates All on a preserved-side predicate as the absence of a counterexample through the existing native filter. The shared fixture checks true, false, empty input and rejection after paging. Exact native qualification is pending.
+
 17 November UTC. Development advanced to the exact PocketBase baseline `75dee7c9fe64`. The mixed-query repair candidate `2c1a3232b9f9` is its direct child and preserves its manifest and Core pin. Native join predicate terminals passed [44053948991](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44053948991) and remain on the feature branch. SQLite and Neo4j sandbox website edits passed all 285 local tests on their staged candidate.
 
 17 November UTC. Neo4j virtual mapping admission now uses the configured sandbox loyalty fixture label and its four approved scalar properties. The native run covers exact equality and identity with an isolated label. The scoped MongoDB lookup repair is being qualified on the PocketBase baseline in [CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44056784952) and [WEB4 image CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44056870896).
