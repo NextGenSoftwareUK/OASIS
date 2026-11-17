@@ -1,6 +1,15 @@
 {
   "schemaVersion": 1,
   "verifiedNativeCiRuns": {
+    "PocketBaseOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "Official PocketBase 0.40.6 through its REST API with the transactional batch endpoint enabled",
+      "runId": 44035134925,
+      "jobId": 133876094486,
+      "revision": "453f8b4375dbb78875ac9286e6ac613fd8a9f0b8",
+      "passed": {"async": 26, "sync": 26},
+      "cleanup": "Each mode verified owned fixture cleanup. The runner stopped PocketBase and removed its runtime, database and test output."
+    },
     "GarnetOASIS": {
       "suite": "core-storage-v2",
       "backend": "Garnet 2.2.5 via the shipping StackExchange.Redis adapter with Lua transaction mode",
@@ -231,9 +240,9 @@
     "TursoOASIS": {
       "suite": "core-storage-v2",
       "backend": "Official libSQL server through Hrana HTTP v2",
-      "runId": 44022749636,
-      "jobId": 133835788737,
-      "revision": "73a6fe155029f861dd2888c9ea185aeabb783eb0",
+      "runId": 44042401831,
+      "jobId": 133899878100,
+      "revision": "323922c64d9e646203b72eb9aafd7c5e66e22e36",
       "passed": {
         "async": 26,
         "sync": 26
@@ -848,7 +857,7 @@
     "AppwriteOASIS": [
       "Appwrite REST read boundary:19 controlled unit cases pass;13 targeted regressions reproduced red before fixes. HTTP point/page failures and malformed/incomplete envelopes now fail visibly; boolean selector array syntax fixed. Native service, shared-suite run, deployed API query/pagination compatibility and full interfaces remain open."
     ],
-    "PocketBaseOASIS": ["The shipping REST adapter passed the earlier 24 controlled cases and native holon lifecycle and avatar save, username and soft-delete cases. Official PocketBase 0.40.6 passed five additional native tests on 3504ec3dba72 with zero skips. These cover avatar listing and soft-delete filtering, generated avatar-detail identity and readback, hard deletion, quoted username lookup and committed batch prefix on error. [Native run 44005270419](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44005270419). The runner removed its runtime, database and test outputs. Reading the original historical avatar-detail payload, the full shared storage suite, hosted API authorization and remaining capability coverage are open."],
+    "PocketBaseOASIS": ["The shipping REST adapter passed the earlier 24 controlled cases and native holon lifecycle and avatar save, username and soft-delete cases. Official PocketBase 0.40.6 passed five additional native tests on 3504ec3dba72 with zero skips. These cover avatar listing and soft-delete filtering, generated avatar-detail identity and readback, hard deletion, quoted username lookup and committed batch prefix on error. [Native run 44005270419](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44005270419). The runner removed its runtime, database and test outputs. Reading the original historical avatar-detail payload and hosted API authorization remain open. Paired hard deletion requires the transactional batch endpoint."],
     "ConvexOASIS": ["Native official retained engine core-storage-v2 52/52; real bundled internal companion and shared encrypted record policy, five revision-conflict controls,105-row native paging, independent empty-table checks and24controlled tests. A native companion recovery check passed on the official Linux engine after initial activation failed on an empty deployment (GitHub Actions run 43017572009, Development eed714ba35). Local source-matched cohort includes owner working Core; hosted IAM, immutable release, full relevant interfaces and global routing remain open. The BootLoader and its project references compiled at 97a7c75829. The hosted WEB4 build and ONODE activation through an isolated real backend remain open."],
     "NeonOASIS": ["Native official Neon PostgreSQL 16 compute passed both modes through shipping Npgsql with exact tombstone cleanup and empty tables (run 43022056613, Development 8207703684). Thin PostgreSqlFamilyProviderBase adapter with existing Npgsql9.0.3;10 controlled cases pass,4 regressions red before fix. Correct pooler hostname/port behavior and verified TLS on known single Neon hosts. Hosted native suite, schema compatibility and full interfaces remain open. The BootLoader and its project references compiled at 97a7c75829. The hosted WEB4 build and ONODE activation through an isolated real backend remain open."],
     "FaunaOASIS": [

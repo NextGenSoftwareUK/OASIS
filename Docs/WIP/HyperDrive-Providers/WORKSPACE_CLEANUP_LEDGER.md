@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Verified [PocketBase job 133876094486](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44035134925/job/133876094486) removed its owned runtime, data and test output. Retrieved compact CI evidence and generated the tracked matrix with Python bytecode disabled. No local builds or runtimes were created.
+
 2026-11-17 UTC — Removed the temporary replacement Gifts candidate index. Its checks read existing Git blobs. No download, browser profile, test report, hosted avatar or persisted gift was created.
 
 2026-11-17 UTC — Removed the temporary exact Gifts candidate index. The fixture read Git blobs in memory. No browser profile, hosted avatar, downloads or generated output was created.
