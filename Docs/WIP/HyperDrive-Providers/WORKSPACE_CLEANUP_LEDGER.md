@@ -2028,3 +2028,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the OPORTAL cancellation candidate index. The Node tests read tracked fixture blobs and created no profile, dependency cache or generated report.
 
 2026-11-16 UTC — Removed the OPORTAL shared-dismissal candidate index. Exact subscription tests read tracked Git blobs and retained no generated files.
+
+2026-11-17 UTC — Removed the temporary alternate index used to assemble Turso BootLoader candidate `1a5e674789f8`. The native job runs on GitHub. No local worktree, runtime, database or log was created for qualification.
