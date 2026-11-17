@@ -80,4 +80,37 @@ public class CosmicStringLengthTests
         Assert.True(capabilities.WithMetadataRoots(new[] { "other" })
             .AdmitPredicates(new[] { predicate }).IsError);
     }
+
+    [Fact]
+    public void IsNullOrEmptyCompilesToNativeNullAndEmptyComparisons()
+    {
+        var result = CosmicQueryExpression.Compile<Holon>(row => string.IsNullOrEmpty(row.Name));
+        Assert.False(result.IsError, result.Message);
+        var either = Assert.IsType<CosmicQueryLogical>(result.Result);
+        Assert.False(either.IsAnd);
+        var missing = Assert.IsType<CosmicQueryComparison>(either.Left);
+        var empty = Assert.IsType<CosmicQueryComparison>(either.Right);
+        Assert.Equal(CosmicQueryScalarKind.Null, missing.Literal.Kind);
+        Assert.Equal(string.Empty, empty.Literal.Value);
+        Assert.Equal(CosmicQueryComparisonOperator.Equal, missing.Operator);
+        Assert.Equal(CosmicQueryComparisonOperator.Equal, empty.Operator);
+        Assert.Equal(new[] { nameof(Holon.Name) }, missing.Path.Segments);
+        Assert.Equal(missing.Path.Segments, empty.Path.Segments);
+    }
+
+    [Fact]
+    public void IsNullOrEmptyPreservesNegationAndMetadataDomain()
+    {
+        var result = CosmicQueryExpression.Compile<Holon>(
+            row => !string.IsNullOrEmpty(CosmicQueryMetadata.Value<string>(row, "label")));
+        Assert.False(result.IsError, result.Message);
+        var not = Assert.IsType<CosmicQueryNot>(result.Result);
+        var either = Assert.IsType<CosmicQueryLogical>(not.Operand);
+        var value = Assert.IsType<CosmicQueryComparison>(either.Left);
+        Assert.True(value.Path.IsMetadata);
+        Assert.Equal(typeof(string), value.Path.ValueType);
+        Assert.Equal(new[] { "label" }, value.Path.Segments);
+        Assert.True(CosmicQueryExpression.Compile<Holon>(
+            row => string.IsNullOrEmpty(row.Name.Trim())).IsError);
+    }
 }
