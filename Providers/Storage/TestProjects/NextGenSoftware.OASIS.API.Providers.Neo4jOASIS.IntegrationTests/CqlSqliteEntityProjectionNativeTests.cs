@@ -478,6 +478,40 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(parenthesizedLinq.IsError, parenthesizedLinq.Message + parenthesizedLinq.Exception);
         Assert.AreEqual(0, parenthesizedLinq.Result.Count);
 
+        var join = await flagRows.Join(flagRows.OrderBy(row => row.Id).Take(1),
+            leftValue => leftValue.Id, rightValue => rightValue.Id,
+            (leftValue, rightValue) => new { Left = leftValue.Id, Right = rightValue.Id })
+            .ToCosmicListAsync();
+        Assert.IsFalse(join.IsError, join.Message + join.Exception);
+        Assert.AreEqual(1, join.Result.Count);
+        Assert.IsTrue(join.Result.All(pair => pair.Left == pair.Right));
+
+        var compositeJoin = await flagRows.Join(flagRows,
+            leftValue => new { leftValue.Id, leftValue.Version },
+            rightValue => new { rightValue.Id, rightValue.Version },
+            (leftValue, rightValue) => new { Left = leftValue.Id, Right = rightValue.Id })
+            .ToCosmicListAsync();
+        Assert.IsFalse(compositeJoin.IsError, compositeJoin.Message + compositeJoin.Exception);
+        CollectionAssert.AreEquivalent(new[] { (parentId, parentId), (missingId, missingId) },
+            compositeJoin.Result.Select(row => (row.Left, row.Right)).ToArray());
+        Assert.IsTrue(compositeJoin.Result.All(pair => pair.Left == pair.Right));
+
+        var nullable = await flagRows.Join(flagRows,
+            row => CosmicQueryMetadata.Value<bool?>(row, "nullableJoinFlag"),
+            row => CosmicQueryMetadata.Value<bool?>(row, "nullableJoinFlag"),
+            (leftValue, rightValue) => new { Left = leftValue.Id, Right = rightValue.Id })
+            .ToCosmicListAsync();
+        Assert.IsFalse(nullable.IsError, nullable.Message + nullable.Exception);
+        CollectionAssert.AreEqual(new[] { (parentId, parentId) },
+            nullable.Result.Select(row => (row.Left, row.Right)).ToArray());
+
+        var named = await flagRows.Join(flagRows, row => row.Name, row => row.Name,
+            (leftValue, rightValue) => new { Left = leftValue.Id, Right = rightValue.Id })
+            .ToCosmicListAsync();
+        Assert.IsFalse(named.IsError, named.Message + named.Exception);
+        CollectionAssert.AreEquivalent(new[] { (parentId, parentId), (missingId, missingId) },
+            named.Result.Select(row => (row.Left, row.Right)).ToArray());
+
         request.MatchAnyKey = false;
         request.KeyGroupStarts = new[] { 0, 2 };
         request.Right.Filters = new[] { KeySet(new[] { lowerId, missingId }) };
