@@ -129,7 +129,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
                 var container = native.Client.GetContainer(native.Database, sourceName);
                 var properties = (await container.ReadContainerAsync(cancellationToken: cancellationToken)).Resource;
-                if (properties.PartitionKeyPaths is not { Count: 1 } paths || paths[0] != "/id")
+                if (!HasStableVirtualIdentity(properties.PartitionKeyPaths))
                     return RefuseVirtual("NATIVE_QUERY_INVALID", "Virtual Cosmos queries require /id as the partition key to preserve import identity.");
 
                 using var iterator = container.GetItemQueryIterator<JObject>(NativeVirtualQuery(matches, fields, limit),
@@ -162,6 +162,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 return RefuseVirtual("NATIVE_QUERY_FAILED", "The native Cosmos query failed.");
             }
         }
+
+        internal static bool HasStableVirtualIdentity(IReadOnlyList<string> partitionKeyPaths) =>
+            partitionKeyPaths is { Count: 1 } && partitionKeyPaths[0] == "/id";
 
         private static bool IsVirtualField(string field) => field is { Length: >= 1 and <= 128 } &&
             !field.StartsWith("_", StringComparison.Ordinal) && !field.Any(char.IsControl);
