@@ -56,6 +56,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await ChatManager.Instance.SendMessageAsync(sessionId, Avatar.Id, message);
         }
 
+        /// <summary>End a persisted chat session as an authenticated participant.</summary>
+        [Authorize]
+        [HttpPost("end-chat-session/{sessionId}")]
+        public Task<OASISResult<bool>> EndChatSession(string sessionId) =>
+            ChatManager.Instance.EndChatSessionAsync(sessionId, Avatar.Id);
+
         /// <summary>
         /// Get chat session history
         /// </summary>
