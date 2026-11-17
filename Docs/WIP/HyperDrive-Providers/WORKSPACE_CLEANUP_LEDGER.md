@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — The OPORTAL superseded provider-copy open test read exact Git blobs in memory. Temporary candidate patches and indexes were removed during composition. No browser profile, server fixture, build output or download was created.
+
 2026-11-17 UTC — OPORTAL candidate 6b944d8087c2 removed its alternate indexes and the temporary source directory used for the endpoint gate. Portal checks used exact Git blobs. No browser profile, downloads, build outputs or test fixture persisted locally.
 
 2026-11-17 UTC — OPORTAL copy deadline and endpoint recovery removed their alternate indexes and temporary patches. The endpoint generator output and the exact source directory used for the drift gate were removed. No dependencies, payment fixtures or local build outputs were created.

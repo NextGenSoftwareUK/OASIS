@@ -781,3 +781,9 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Open, 17 November 2026.** The saved WEB4 dev service has no PocketBase URL or process credentials configured. The shipping BootLoader has authenticated and activated against an isolated official PocketBase server in CI.
 - **David action** Identify the protected location or custodian of an existing isolated PocketBase service that WEB4 dev may use. Share the location or custodian only. Engineering can configure the service URL and process credentials in Railway after the source passes Development qualification.
 - **Reason** A hosted fixture permits real HTTPS authentication and a disposable storage lifecycle through the deployed API. [Native activation](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44006470301) · [DNA reference](../../Devs/OASIS_DNA_Reference.md).
+
+### Signed OPORTAL provider copy
+
+- **Open, 17 November 2026.** WEB4 requires an authenticated Wizard for both the provider list and copy. Ordinary avatar refusal, the native transfer manager and the deployed portal assets already have separate evidence.
+- **David action** Identify an authorized Wizard operator and a disposable holon graph with two approved dev providers for a live portal copy. Share the operator or protected fixture location only.
+- **Reason** A signed hosted copy needs a privileged operator and permission to copy and remove the isolated fixtures. Engineering can verify the matching acknowledgement, read both native stores and clean up. [OPORTAL dev](https://dev.oportal.oasisomniverse.one/) · [Current status](../HyperDrive-Providers/CURRENT_STATUS.md).
