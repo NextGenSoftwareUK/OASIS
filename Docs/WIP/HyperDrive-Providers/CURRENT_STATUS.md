@@ -1,13 +1,15 @@
 # Current provider status
 
+2026-11-17 UTC — Public installed Edge headless browser opened the deployed /subscription route. The subscription popup was selected and its Plans panel rendered exactly five cards for Free, Bronze, Silver, Gold and Enterprise, with GBP pricing and no load-error text. The owned temporary browser profile was removed after exit. This proves public plan rendering; signed subscriber controls and checkout remain separate acceptance items.
+
 ## OPORTAL acceptance snapshot — 17 November 2026
 
-OPORTAL remains incomplete. Portal dev is at 9c85d745fb97 and the serving dev API fleet is at 3527154a118d. The latest exact portal candidate passed 23 regression groups. Signed browser verification remains open because the desktop browser runtime fails to initialize.
+OPORTAL remains incomplete. Portal dev is at 9c85d745fb97 and the serving dev API fleet is at 3527154a118d. The latest exact portal candidate passed 23 regression groups. Signed browser verification remains open. The desktop browser runtime fails to initialize; a separate public headless Edge check now verifies the selected subscription popup.
 
 | Area | Verified evidence | Remaining acceptance |
 |---|---|---|
 | Dashboard | Deployed client-change guard; earlier signed empty-account API batch completed in 357–400 ms | Signed browser render timing and populated-account results |
-| Subscriptions | October hosted Stripe test checkout, webhook activation, invoices and billing navigation; latest portal regression groups passed | Current signed browser regression, real Wizard administrator session and remaining owner actions |
+| Subscriptions | October hosted Stripe test checkout, webhook activation, invoices and billing navigation; current public Edge renders five plan cards with GBP pricing; latest portal regression groups passed | Current signed browser regression, real Wizard administrator session and remaining owner actions |
 | Messages | Current signed empty inbox, conversation and summary reads; deployed grouping, unread and session guards | Successful persisted send/readback and cleanup of the earlier two-avatar fixture |
 | Live Chat | Deployed recipient field, request shapes, draft retention and bounded visible polling; controlled checks passed | New server participant checks and persisted termination need qualification and deployment, followed by hosted round trip |
 | Wallet | Signed address-only link/readback and prior watch-only balances/activity checks; fixtures cleaned | Signing, trading, populated mainnet valuation and browser interaction |

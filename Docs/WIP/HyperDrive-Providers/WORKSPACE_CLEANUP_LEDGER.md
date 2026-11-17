@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Both public subscription Edge probes exited and removed their exact temporary profiles. They used the preinstalled browser and standard Python only. No websocket dependency, browser download, screenshot, report or backend fixture was created.
+
 2026-11-17 UTC — Removed the temporary index for the scoped portal End Session release. No build, dependency, hosted Chat fixture or retained test output was created.
 
 2026-11-17 UTC — Removed the temporary Chat termination endpoint index. Controlled popup checks created no real chat sessions, downloads, builds or retained test outputs.
