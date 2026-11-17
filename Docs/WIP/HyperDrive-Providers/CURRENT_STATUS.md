@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Messaging/address-only Wallet contract run `44114047771` compiled and failed three existing behavioral checks whose fixtures expected recursive message saves. Candidate `e534b5550f51` updates only those fixture expectations to root-only saves; persistence, restart and failure assertions remain. [Corrected contracts](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44117599134) are running. Image `44116108464` builds the same shipping source and dependency pins from `617a9f4ea70a`. Development remained at `e474f7b664e0`.
+
 2026-11-17 UTC — Signed hosted WEB4 SDK probes reached both NFT mint and transfer endpoints using a disposable unsubscribed avatar. Both returned HTTP 200 with explicit subscription application errors and no native receipt. The subscription gate runs before the controller Wizard role for this account. Wizard eligibility and native execution remain open.
 
 2026-11-17 UTC — Dispatched one [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44116108464) for Messaging/address-only Wallet candidate `617a9f4ea70a` after the shared slot cleared. Its contracts `44114047771` remained active. NFT review confirmed the native Solana workflow currently qualifies wallet SOL transfers and provider storage. OPORTAL NFT mint and transfer acceptance still needs a shipping WEB4 request through an owned wallet to chain receipt. No new native fixture or local artifacts were created.
