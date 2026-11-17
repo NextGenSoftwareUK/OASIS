@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed the portal read-deadline candidate's temporary index. The OpenAPI response and regression fixtures remained in memory. No downloads, test reports, browser profiles or builds were created.
+
 2026-11-17 UTC — WEB4 config readback used a disposable sandbox avatar and verified its deletion acknowledgement. Only non-secret policy fields were printed. No configuration, downloads, local outputs or test credentials were retained.
 
 2026-11-17 UTC — Removed the temporary Global Search candidate index. Qualification used existing Git blobs in memory. No downloads, accounts, browser profile or generated output was created.
