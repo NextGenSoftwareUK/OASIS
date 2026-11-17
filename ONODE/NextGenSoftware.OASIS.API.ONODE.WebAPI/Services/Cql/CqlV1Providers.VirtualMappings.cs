@@ -21,12 +21,13 @@ public sealed partial class CqlV1Providers
     {
         var authority = Resolve(null);
         return QueryOwnedVirtualMappingAsync(CreateManager(authority), authority, mappingId, avatar, null,
-            projection.MatchField, projection.MatchValue, projection.ProjectedFields, CqlVirtualProjection.MaximumRows,
+            projection.Matches, projection.ProjectedFields, CqlVirtualProjection.MaximumRows,
             cancellationToken);
     }
 
     internal static async Task<OASISResult<IReadOnlyList<VirtualHolonRead>>> QueryOwnedVirtualMappingAsync(
-        HolonManager manager, IOASISProvider authority, Guid mappingId, IAvatar avatar, ProviderType? requestedSource, string matchField, object matchValue,
+        HolonManager manager, IOASISProvider authority, Guid mappingId, IAvatar avatar, ProviderType? requestedSource,
+        IReadOnlyList<KeyValuePair<string, object>> matches,
         IReadOnlyList<string> selectedFields, int limit, CancellationToken cancellationToken)
     {
         var actor = avatar.Id;
@@ -88,7 +89,7 @@ public sealed partial class CqlV1Providers
             if (binding.Connection == null && !IsSandboxVirtualMapping(source, mapping.SourceName, mapping.Fields))
                 return Refuse("VIRTUAL_HOLON_QUERY_INVALID", "Use the approved sample collection fields for sandbox mappings.");
 
-            return await mapping.QueryAsync(actor, binding.Reader, binding.Connection, matchField, matchValue,
+            return await mapping.QueryAsync(actor, binding.Reader, binding.Connection, matches,
                 selectedFields, limit, cancellationToken);
         }
         catch (ArgumentException)

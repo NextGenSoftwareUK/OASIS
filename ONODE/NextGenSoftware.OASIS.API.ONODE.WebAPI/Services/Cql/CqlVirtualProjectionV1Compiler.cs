@@ -19,24 +19,10 @@ public static partial class CqlV1Compiler
             request.Take is < 1 or > CqlVirtualProjection.MaximumRows || request.Graph != null ||
             request.AnyOf is not { Length: 0 } || request.AnyChildren is not { Length: 0 } ||
             request.AnyDescendants is not { Length: 0 } ||
-            request.Filters is not { Length: 1 } || request.Columns is not { Length: >= 2 and <= 32 })
+            request.Columns is not { Length: >= 2 and <= 32 })
             throw new ArgumentException("Mixed projection requires native equality, Id ordering and a bounded result.");
 
-        var filter = request.Filters[0];
-        if (filter == null || filter.Field != null || filter.MetadataPath is not { Length: 1 } ||
-            filter.Operator != CqlV1Operator.Equal)
-            throw new ArgumentException("Mixed projection requires equality on one scalar metadata field.");
-        RequireVirtualField(filter.MetadataPath[0]);
-
-        // These are the exact domains supported by both the CQL metadata predicate
-        // and the first native virtual reader.
-        var matchType = filter.Scalar switch
-        {
-            CqlV1Scalar.String => typeof(string),
-            CqlV1Scalar.Boolean => typeof(bool),
-            CqlV1Scalar.Integer => typeof(long),
-            _ => throw new ArgumentException("This virtual source supports String, Boolean and Int64 equality.")
-        };
+        var matches = CompileVirtualMatches(request.Filters);
 
         if (request.Columns[0] is not { Field: "Id", MetadataPath: null })
             throw new ArgumentException("Select Id first so both representations can share one logical identity.");
@@ -55,7 +41,31 @@ public static partial class CqlV1Compiler
             };
             return new CqlVirtualColumn(column.MetadataPath[0], type, type == typeof(string) || column.Nullable == true);
         }).ToArray();
-        return new CqlVirtualProjection(filter.MetadataPath[0], Literal(filter.Value, matchType).Value, columns);
+        return new CqlVirtualProjection(matches, columns);
+    }
+
+    internal static KeyValuePair<string, object>[] CompileVirtualMatches(CqlV1Filter[] filters)
+    {
+        if (filters is not { Length: >= 1 and <= 8 })
+            throw new ArgumentException("Mixed projection supports one to eight typed metadata filters.");
+        return filters.Select(filter =>
+        {
+            if (filter == null || filter.Field != null || filter.MetadataPath is not { Length: 1 } ||
+                filter.Operator != CqlV1Operator.Equal)
+                throw new ArgumentException("Mixed projection requires equality on one scalar metadata field.");
+            RequireVirtualField(filter.MetadataPath[0]);
+
+            // These are the exact domains supported by both the CQL metadata predicate
+            // and the first native virtual reader.
+            var matchType = filter.Scalar switch
+            {
+                CqlV1Scalar.String => typeof(string),
+                CqlV1Scalar.Boolean => typeof(bool),
+                CqlV1Scalar.Integer => typeof(long),
+                _ => throw new ArgumentException("This virtual source supports String, Boolean and Int64 equality.")
+            };
+            return new KeyValuePair<string, object>(filter.MetadataPath[0], Literal(filter.Value, matchType).Value);
+        }).ToArray();
     }
 
     internal static bool IsVirtualField(string field) =>
@@ -72,7 +82,7 @@ public static partial class CqlV1Compiler
 
 internal sealed record CqlVirtualColumn(string Field, Type Type, bool Nullable);
 
-internal sealed record CqlVirtualProjection(string MatchField, object MatchValue, CqlVirtualColumn[] Columns)
+internal sealed record CqlVirtualProjection(KeyValuePair<string, object>[] Matches, CqlVirtualColumn[] Columns)
 {
     // A full branch at this limit cannot prove absence of further rows.
     internal const int MaximumRows = 100;

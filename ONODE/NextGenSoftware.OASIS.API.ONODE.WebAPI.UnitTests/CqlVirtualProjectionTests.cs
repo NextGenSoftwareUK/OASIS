@@ -17,8 +17,9 @@ public sealed class CqlVirtualProjectionTests
     {
         var request = Request();
         var projection = CqlV1Compiler.CompileVirtualProjection(request);
-        Assert.Equal("category", projection.MatchField);
-        Assert.Equal("coffee", projection.MatchValue);
+        var match = Assert.Single(projection.Matches);
+        Assert.Equal("category", match.Key);
+        Assert.Equal("coffee", match.Value);
         Assert.Equal(new[] { "stock" }, projection.ProjectedFields);
 
         var row = VirtualHolonRead.FromNative(Guid.NewGuid(), ProviderType.MongoDBOASIS,
@@ -79,16 +80,31 @@ public sealed class CqlVirtualProjectionTests
     }
 
     [Fact]
+    public void MixedProjectionPreservesAllTypedPredicatesAndSnapshotBindings()
+    {
+        var request = Request();
+        request.Filters = request.Filters.Append(new CqlV1Filter { MetadataPath = new[] { "active" },
+            Scalar = CqlV1Scalar.Boolean, Operator = CqlV1Operator.Equal,
+            Value = JsonSerializer.SerializeToElement(true) }).ToArray();
+
+        var projection = CqlV1Compiler.CompileVirtualProjection(request);
+        Assert.Equal(new[] { "category", "active" }, projection.Matches.Select(match => match.Key));
+        Assert.Equal(true, Assert.IsType<bool>(projection.Matches[1].Value));
+        Assert.Equal(new[] { "name", "category", "active" },
+            NativeDataController.VirtualSnapshotFields(projection.Matches.Select(match => match.Key), new[] { "name" }));
+    }
+
+    [Fact]
     public void SnapshotRetainsTheFilterFieldWithoutExceedingTheNativeProjectionLimit()
     {
-        Assert.Equal(new[] { "name", "tier" }, NativeDataController.VirtualSnapshotFields("tier", new[] { "name" }));
-        Assert.Equal(new[] { "tier", "name" }, NativeDataController.VirtualSnapshotFields("tier", new[] { "tier", "name" }));
-        Assert.Null(NativeDataController.VirtualSnapshotFields("tier", new[] { "name", "name" }));
-        Assert.Null(NativeDataController.VirtualSnapshotFields("tier", new[] { "" }));
+        Assert.Equal(new[] { "name", "tier" }, NativeDataController.VirtualSnapshotFields(new[] { "tier" }, new[] { "name" }));
+        Assert.Equal(new[] { "tier", "name" }, NativeDataController.VirtualSnapshotFields(new[] { "tier" }, new[] { "tier", "name" }));
+        Assert.Null(NativeDataController.VirtualSnapshotFields(new[] { "tier" }, new[] { "name", "name" }));
+        Assert.Null(NativeDataController.VirtualSnapshotFields(new[] { "tier" }, new[] { "" }));
 
         var maximum = Enumerable.Range(1, 32).Select(index => "field" + index).ToArray();
-        Assert.Null(NativeDataController.VirtualSnapshotFields("tier", maximum));
-        Assert.Equal(maximum, NativeDataController.VirtualSnapshotFields("field32", maximum));
+        Assert.Null(NativeDataController.VirtualSnapshotFields(new[] { "tier" }, maximum));
+        Assert.Equal(maximum, NativeDataController.VirtualSnapshotFields(new[] { "field32" }, maximum));
     }
 
     private static CqlProjectionV1Request Request() => new()

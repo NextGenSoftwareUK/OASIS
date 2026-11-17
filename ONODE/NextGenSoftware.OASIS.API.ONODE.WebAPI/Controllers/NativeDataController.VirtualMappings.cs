@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
@@ -18,6 +19,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         public sealed class VirtualMappingQueryRequest
         {
+            public CqlV1Filter[] Filters { get; set; }
             public string MatchField { get; set; }
             public string MatchType { get; set; }
             public JsonElement MatchValue { get; set; }
@@ -94,12 +96,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (request == null || id == Guid.Empty)
                 return BadRequest(VirtualReadError("VIRTUAL_HOLON_QUERY_INVALID", "A mapping ID and query are required."));
 
-            var match = ParseVirtualMatch(request);
-            if (match == null)
-                return BadRequest(VirtualReadError("VIRTUAL_HOLON_QUERY_INVALID", "Provide a typed String, Boolean, Int32 or decimal-string Int64 match."));
+            var matches = ParseVirtualMatches(request);
+            if (matches == null)
+                return BadRequest(VirtualReadError("VIRTUAL_HOLON_QUERY_INVALID", "Provide typed CQL equality filters or one direct native match."));
 
             var result = await CqlV1Providers.QueryOwnedVirtualMappingAsync(HolonManager, ProviderManager.Instance.CurrentStorageProvider, id, Avatar,
-                providerType, request.MatchField, match, request.Select, request.Take, cancellationToken);
+                providerType, matches, request.Select, request.Take, cancellationToken);
             if (result.ErrorCode == "VIRTUAL_MAPPING_NOT_FOUND")
                 return NotFound();
             if (result.ErrorCode == "VIRTUAL_HOLON_STORE_UNAVAILABLE")
@@ -116,16 +118,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (avatar == null)
                 return Unauthorized();
             if (id == Guid.Empty || request == null || request.RowId == Guid.Empty || request.Query == null ||
-                ParseVirtualMatch(request.Query) is not { } match)
+                ParseVirtualMatches(request.Query) is not { } matches)
                 return BadRequest(SnapshotError("VIRTUAL_SNAPSHOT_INVALID", "Provide a mapping, selected row and typed query."));
 
             var query = request.Query;
-            var fields = VirtualSnapshotFields(query.MatchField, query.Select);
+            var fields = VirtualSnapshotFields(matches.Select(match => match.Key), query.Select);
             if (fields == null)
                 return BadRequest(SnapshotError("VIRTUAL_SNAPSHOT_INVALID", "Select up to 32 unique mapped fields including the match field."));
             var rows = await CqlV1Providers.QueryOwnedVirtualMappingAsync(HolonManager,
-                ProviderManager.Instance.CurrentStorageProvider, id, avatar, providerType, query.MatchField,
-                match, fields, query.Take, cancellationToken);
+                ProviderManager.Instance.CurrentStorageProvider, id, avatar, providerType, matches,
+                fields, query.Take, cancellationToken);
             if (rows.IsError)
             {
                 var error = SnapshotError(rows.ErrorCode, rows.Message);
@@ -148,21 +150,36 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        internal static string[] VirtualSnapshotFields(string matchField, string[] selected)
+        internal static string[] VirtualSnapshotFields(IEnumerable<string> matchFields, string[] selected)
         {
-            if (string.IsNullOrWhiteSpace(matchField) || selected == null || selected.Length is < 1 or > 32 ||
+            if (matchFields == null || selected == null || selected.Length is < 1 or > 32 ||
                 selected.Any(string.IsNullOrWhiteSpace) ||
                 selected.Distinct(StringComparer.Ordinal).Count() != selected.Length)
                 return null;
 
+            var matches = matchFields.ToArray();
+            if (matches.Length == 0 || matches.Any(string.IsNullOrWhiteSpace))
+                return null;
             // Keep the same CQL filter meaningful after the row is saved.
-            if (selected.Contains(matchField, StringComparer.Ordinal))
-                return selected;
-            return selected.Length < 32 ? selected.Append(matchField).ToArray() : null;
+            var fields = selected.Union(matches, StringComparer.Ordinal).ToArray();
+            return fields.Length <= 32 ? fields : null;
         }
 
         private static OASISResult<Holon> SnapshotError(string code, string message) =>
             new OASISResult<Holon> { IsError = true, ErrorCode = code, Message = message };
+
+        private static KeyValuePair<string, object>[] ParseVirtualMatches(VirtualMappingQueryRequest request)
+        {
+            if (request.Filters == null)
+            {
+                var value = ParseVirtualMatch(request);
+                return value == null ? null : new[] { new KeyValuePair<string, object>(request.MatchField, value) };
+            }
+            if (request.MatchField != null || request.MatchType != null || request.MatchValue.ValueKind != JsonValueKind.Undefined)
+                return null;
+            try { return CqlV1Compiler.CompileVirtualMatches(request.Filters); }
+            catch (ArgumentException) { return null; }
+        }
 
         private static object ParseVirtualMatch(VirtualMappingQueryRequest request) =>
             (request.MatchType, request.MatchValue.ValueKind) switch
