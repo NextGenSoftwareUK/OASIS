@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Two disposable NFT authorization probe avatars acknowledged self-deletion. Both mint and transfer requests were refused before a native receipt. No NFT, on-chain transaction or local artifact was created.
+
 2026-11-17 UTC — Removed the temporary Git indexes used to stage the portal release and rebase Messaging qualification. Portal tests and live asset comparison used memory only. No local build, download or fixture was retained.
 
 2026-11-17 UTC — Cross-avatar Wallet test cleared its disposable public-key link, read back an empty wallet list and confirmed both avatar deletions. No local files or on-chain writes were created.

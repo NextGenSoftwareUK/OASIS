@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Signed hosted WEB4 SDK probes reached both NFT mint and transfer endpoints using a disposable unsubscribed avatar. Both returned HTTP 200 with explicit subscription application errors and no native receipt. The subscription gate runs before the controller Wizard role for this account. Wizard eligibility and native execution remain open.
+
 2026-11-17 UTC — Dispatched one [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44116108464) for Messaging/address-only Wallet candidate `617a9f4ea70a` after the shared slot cleared. Its contracts `44114047771` remained active. NFT review confirmed the native Solana workflow currently qualifies wallet SOL transfers and provider storage. OPORTAL NFT mint and transfer acceptance still needs a shipping WEB4 request through an owned wallet to chain receipt. No new native fixture or local artifacts were created.
 
 2026-11-17 UTC — OPORTAL NFT progressive rendering is staged at `fda20d957de4` over live dev `79102a7c63fd`. Scoped changes preserved the current mint and transfer behavior. The exact-tree check held both OLAND requests pending and saw NFT and GeoNFT sections render first. Live timing remains open. Temporary Git indexes were removed and no test data was created.
