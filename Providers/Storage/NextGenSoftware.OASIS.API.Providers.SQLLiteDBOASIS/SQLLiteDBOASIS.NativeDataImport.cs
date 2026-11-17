@@ -20,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
     /// Either way the file is opened read-only and the OASIS database is refused. Rows page in rowid order; a table's declared
     /// primary key (as a JSON array of its values) is the native key when it has one, otherwise its rowid.
     /// </summary>
-    public partial class SQLLiteDBOASIS : INativeDataImportProvider
+    public partial class SQLLiteDBOASIS : INativeDataQueryProvider
     {
         /// <summary>The largest SQLite file a caller may upload (DNA OASIS.NativeImport.MaximumSqliteUploadMegabytes).</summary>
         public static int MaximumUploadBytes => NativeImportOptions.MegabytesToBytes(NativeImportOptions.Current.MaximumSqliteUploadMegabytes, nameof(NativeImportSettings.MaximumSqliteUploadMegabytes));
@@ -126,6 +126,100 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             return result;
         }
 
+        public string DescribeVirtualQueryConnection(NativeConnection connection)
+        {
+            if (connection != null || string.IsNullOrWhiteSpace(NativeImportConnectionString))
+                throw new NativeConnectionRefusedException("Virtual SQLite reads require a configured external source.");
+            var settings = new SqliteConnectionStringBuilder(NativeImportConnectionString);
+            return "sqlite-configured:" + Path.GetFullPath(settings.DataSource);
+        }
+
+        public Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
+            string sourceName, string matchField, object matchValue, IReadOnlyList<string> fields, int limit,
+            NativeConnection connection = null, CancellationToken cancellationToken = default) =>
+            QueryNativeRecordsAsync(sourceName, new[] { new KeyValuePair<string, object>(matchField, matchValue) },
+                fields, limit, connection, cancellationToken);
+
+        public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
+            string sourceName, IReadOnlyList<KeyValuePair<string, object>> matches, IReadOnlyList<string> fields, int limit,
+            NativeConnection connection = null, CancellationToken cancellationToken = default)
+        {
+            var result = new OASISResult<IReadOnlyList<NativeRecord>>();
+            if (connection != null || string.IsNullOrWhiteSpace(sourceName) ||
+                matches == null || matches.Count is < 1 or > 8 ||
+                matches.Any(match => string.IsNullOrWhiteSpace(match.Key) || match.Value is not (string or long)) ||
+                fields == null || fields.Count is < 1 or > 32 || fields.Any(string.IsNullOrWhiteSpace) ||
+                fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || limit is < 1 or > 100)
+                return Error("NATIVE_QUERY_INVALID", "Select a configured table, one to eight exact String or Int64 matches, fields and a row limit.");
+
+            try
+            {
+                using var lease = await OpenNativeAsync(null, cancellationToken);
+                var schema = await NativeTableColumnsAsync(lease.Connection, sourceName, cancellationToken);
+                var columns = schema.Select(column => column.Name).ToHashSet(StringComparer.Ordinal);
+                if (matches.Any(match => !columns.Contains(match.Key)) || fields.Any(field => !columns.Contains(field)))
+                    return Error("NATIVE_QUERY_INVALID", "The filter and projection must select named table columns.");
+
+                var keyColumns = schema.Where(column => column.Position > 0).OrderBy(column => column.Position)
+                    .Select(column => column.Name).ToArray();
+                var projected = fields.Concat(keyColumns).Distinct(StringComparer.Ordinal).ToArray();
+                using var command = lease.Connection.CreateCommand();
+                command.CommandTimeout = Math.Max(1, (int)Math.Ceiling(NativeImportOptions.ReadTimeout.TotalSeconds));
+                var predicates = new List<string>(matches.Count);
+                for (var index = 0; index < matches.Count; index++)
+                {
+                    var match = matches[index];
+                    var column = Quote(match.Key);
+                    predicates.Add($"typeof({column}) = $type{index} AND {column} COLLATE BINARY = $match{index}");
+                    command.Parameters.AddWithValue($"$type{index}", match.Value is string ? "text" : "integer");
+                    command.Parameters.AddWithValue($"$match{index}", match.Value);
+                }
+                command.CommandText = $"SELECT rowid, {string.Join(", ", projected.Select(Quote))} FROM {Quote(sourceName)} " +
+                    $"WHERE {string.Join(" AND ", predicates)} ORDER BY rowid LIMIT $take";
+                command.Parameters.AddWithValue("$take", limit);
+
+                var records = new List<NativeRecord>(limit);
+                long remainingBytes = 1024 * 1024;
+                using var reader = await command.ExecuteReaderAsync(cancellationToken);
+                while (await reader.ReadAsync(cancellationToken))
+                {
+                    var values = new Dictionary<string, object>(StringComparer.Ordinal);
+                    for (var index = 0; index < projected.Length; index++)
+                    {
+                        var value = reader.GetValue(index + 1);
+                        remainingBytes -= value switch
+                        {
+                            string text => System.Text.Encoding.UTF8.GetByteCount(text),
+                            byte[] bytes => ((bytes.LongLength + 2) / 3) * 4,
+                            _ => sizeof(long)
+                        };
+                        if (remainingBytes < 0)
+                            return Error("NATIVE_QUERY_PAYLOAD_LIMIT", "The native SQLite projection exceeds the virtual query byte limit.");
+                        values.Add(projected[index], ToScalar(value));
+                    }
+                    var key = keyColumns.Length == 0
+                        ? "rowid:" + reader.GetInt64(0).ToString(System.Globalization.CultureInfo.InvariantCulture)
+                        : System.Text.Json.JsonSerializer.Serialize(keyColumns.Select(name => values[name]));
+                    records.Add(new NativeRecord(sourceName, key, fields.ToDictionary(field => field,
+                        field => values[field], StringComparer.Ordinal)));
+                }
+                result.Result = records.AsReadOnly();
+                result.IsLoaded = true;
+                return result;
+            }
+            catch (Exception cause) when (cause is SqliteException or InvalidOperationException or ArgumentException or IOException)
+            {
+                return Error("NATIVE_QUERY_FAILED", "The configured native SQLite query failed.");
+            }
+
+            OASISResult<IReadOnlyList<NativeRecord>> Error(string code, string message)
+            {
+                OASISErrorHandling.HandleError(ref result, message);
+                result.ErrorCode = code;
+                return result;
+            }
+        }
+
         internal static object ToScalar(object value) => value switch
         {
             null or DBNull => null,
@@ -141,7 +235,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
         }
 
         /// <summary>Declared primary-key columns in key order; empty when the table has none. Refuses unknown and WITHOUT ROWID tables.</summary>
-        private static async Task<IReadOnlyList<string>> PrimaryKeyAsync(SqliteConnection connection, string table, CancellationToken cancellationToken)
+        private static async Task<IReadOnlyList<string>> PrimaryKeyAsync(SqliteConnection connection, string table, CancellationToken cancellationToken) =>
+            (await NativeTableColumnsAsync(connection, table, cancellationToken))
+                .Where(column => column.Position > 0).OrderBy(column => column.Position).Select(column => column.Name).ToList();
+
+        private static async Task<IReadOnlyList<(int Position, string Name)>> NativeTableColumnsAsync(
+            SqliteConnection connection, string table, CancellationToken cancellationToken)
         {
             using (var exists = connection.CreateCommand())
             {
@@ -157,8 +256,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             info.CommandText = $"PRAGMA table_info({Quote(table)})";
             using var reader = await info.ExecuteReaderAsync(cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
-                if (reader.GetInt32(5) > 0) columns.Add((reader.GetInt32(5), reader.GetString(1)));
-            return columns.OrderBy(column => column.Position).Select(column => column.Name).ToList();
+                columns.Add((reader.GetInt32(5), reader.GetString(1)));
+            return columns;
         }
 
         /// <summary>An open read-only connection; a caller's uploaded file lives in a private temporary copy that is deleted on dispose.</summary>

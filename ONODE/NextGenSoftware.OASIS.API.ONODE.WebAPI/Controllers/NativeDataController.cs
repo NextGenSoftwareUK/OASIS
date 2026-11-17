@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [Route("api/native-data")]
     [ApiController]
     [Authorize]
-    public class NativeDataController : OASISControllerBase
+    public partial class NativeDataController : OASISControllerBase
     {
 
         HolonManager _holonManager;

@@ -8,6 +8,19 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public class CosmicFederationIntentFingerprintTests
 {
+    [Fact]
+    public void Utf16LengthFingerprintBindsPathBoundAndOperator()
+    {
+        CosmicQuery<Holon> Query(System.Linq.Expressions.Expression<Func<Holon, bool>> predicate)
+            => CosmicQuery<Holon>.Create(CosmicQueryScope.AllEligible).Where(predicate).Result;
+        var first = Fingerprint(Plan(Query(row => row.Name.Length > 2)));
+        Assert.Equal(first, Fingerprint(Plan(Query(row => 2 < row.Name.Length))));
+        Assert.NotEqual(first, Fingerprint(Plan(Query(row => row.Name.Length >= 2))));
+        Assert.NotEqual(first, Fingerprint(Plan(Query(row => row.Name.Length > 3))));
+        Assert.NotEqual(first, Fingerprint(Plan(Query(row => row.Description.Length > 2))));
+    }
+
+
     private static readonly ProviderType[] Providers = { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS };
     private static readonly CosmicQueryCapabilities Capabilities = new(
         Enum.GetValues<CosmicQueryFeatures>().Aggregate(CosmicQueryFeatures.None, (value, feature) => value | feature),

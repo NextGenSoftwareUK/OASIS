@@ -1,0 +1,184 @@
+name: PocketBase native storage gaps
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS/**'
+      - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests/PocketBaseOASISIntegrationTests.cs'
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      activation:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the pinned companion revisions
+        id: dependencies
+        run: |
+          libraries="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          holochain="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$libraries" =~ ^[a-f0-9]{40}$ && "$holochain" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$libraries" >> "$GITHUB_OUTPUT"
+          echo "holochain=$holochain" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify native PocketBase
+        shell: bash
+        env:
+          VERIFY_BOOTLOADER: ${{ inputs.activation }}
+        run: |
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-pocketbase.XXXXXXXX")"
+          server=""
+          cleanup() {
+            status=$?
+            if [[ -n "$server" ]]; then
+              if kill -0 "$server" 2>/dev/null; then kill "$server"; fi
+              wait "$server" || true
+            fi
+            [[ "$fixture" == "$RUNNER_TEMP"/oasis-pocketbase.* ]] && rm -rf -- "$fixture"
+            if [[ -e "$fixture" ]]; then status=1; else echo "Removed the owned PocketBase runtime, data and test output."; fi
+            exit "$status"
+          }
+          trap cleanup EXIT
+          curl -fsSL 'https://github.com/pocketbase/pocketbase/releases/download/v0.40.6/pocketbase_0.40.6_linux_amd64.zip' -o "$fixture/runtime.zip"
+          (cd "$fixture"; echo '0e1f609158ed945f809f8a02ae012aa0427129c66ebb63c1aee76f2c0309373f  runtime.zip' | sha256sum -c)
+          unzip -q "$fixture/runtime.zip" pocketbase -d "$fixture"
+          rm -- "$fixture/runtime.zip"
+          chmod +x "$fixture/pocketbase"
+          "$fixture/pocketbase" --version | grep -F '0.40.6'
+          export OASIS_POCKETBASE_STORAGE_TEST=1
+          export POCKETBASEOASIS_BASEURL='http://127.0.0.1:19692'
+          export POCKETBASEOASIS_ADMINEMAIL='storage-fixture@example.invalid'
+          export POCKETBASEOASIS_ADMINPASSWORD="$(openssl rand -hex 24)"
+          echo "::add-mask::$POCKETBASEOASIS_ADMINPASSWORD"
+          "$fixture/pocketbase" superuser create "$POCKETBASEOASIS_ADMINEMAIL" "$POCKETBASEOASIS_ADMINPASSWORD" --dir="$fixture/data"
+          "$fixture/pocketbase" serve --http=127.0.0.1:19692 --dir="$fixture/data" >"$fixture/server.log" 2>&1 &
+          server=$!
+          for attempt in {1..30}; do
+            kill -0 "$server"
+            if curl -fsS "$POCKETBASEOASIS_BASEURL/api/health" >/dev/null; then break; fi
+            [[ "$attempt" != 30 ]]
+            sleep 1
+          done
+          if [[ "$VERIFY_BOOTLOADER" == true ]]; then
+            export OASIS_POCKETBASE_ADMIN_EMAIL="$POCKETBASEOASIS_ADMINEMAIL"
+            export OASIS_POCKETBASE_ADMIN_PASSWORD="$POCKETBASEOASIS_ADMINPASSWORD"
+            export POCKETBASE_BOOT_FIXTURE="$fixture"
+            pwsh -NoProfile -Command '
+              $name = "PocketBaseOASIS"
+              $storage = @{
+                OASISProviderBootType = "Warm"
+                AutoFailOverEnabled = $false
+                AutoFailOverLocalProvidersEnabled = $false
+                AutoReplicationEnabled = $false
+                AutoLoadBalanceEnabled = $false
+                PocketBaseOASIS = @{ ConnectionString = $env:POCKETBASEOASIS_BASEURL }
+              }
+              foreach ($key in @(
+                "AutoFailOverProviders", "AutoFailOverLocalProviders", "AutoReplicationProviders",
+                "AutoLoadBalanceProviders", "AutoFailOverProvidersForAvatarLogin",
+                "AutoFailOverProvidersForCheckIfEmailAlreadyInUse",
+                "AutoFailOverProvidersForCheckIfUsernameAlreadyInUse",
+                "AutoFailOverProvidersForCheckIfOASISSystemAccountExists"
+              )) { $storage[$key] = $name }
+              $dna = @{ OASIS = @{
+                HyperDriveMode = "OASISHyperDrive2"
+                Logging = @{ LoggingFramework = "Default"; LogToConsole = $false; LogToFile = $false }
+                ErrorHandling = @{ LogAllErrors = $false; LogAllWarnings = $false }
+                Security = @{ SecretKey = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32)) }
+                StorageProviders = $storage
+                OASISHyperDriveConfig = @{
+                  AutoFailoverEnabled = $false; AutoReplicationEnabled = $false; AutoLoadBalancingEnabled = $false
+                  EnabledProviders = @($name); AutoFailoverProviders = @($name)
+                  AutoReplicationProviders = @($name); LoadBalancingProviders = @($name)
+                }
+              } }
+              $dnaPath = Join-Path $env:POCKETBASE_BOOT_FIXTURE "dna.json"
+              $output = Join-Path $env:POCKETBASE_BOOT_FIXTURE "harness"
+              $harness = "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.TestHarness"
+              $dna | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $dnaPath
+              ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-PocketBaseBootLoader -Operation {
+                dotnet build $harness -o $output /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+                if ($LASTEXITCODE -ne 0) { throw "PocketBase BootLoader build failed." }
+                dotnet (Join-Path $output "NextGenSoftware.OASIS.OASISBootLoader.TestHarness.dll") $dnaPath $name
+                if ($LASTEXITCODE -ne 0) { throw "PocketBase BootLoader activation failed." }
+              }'
+            exit 0
+          fi
+          python3 - <<'PY'
+          import json
+          import os
+          from urllib.request import Request, urlopen
+
+          base = os.environ["POCKETBASEOASIS_BASEURL"]
+          def post(path, value, token=None, method="POST"):
+              headers = {"Content-Type": "application/json"}
+              if token:
+                  headers["Authorization"] = token
+              with urlopen(Request(base + path, data=json.dumps(value).encode(), headers=headers, method=method), timeout=15) as response:
+                  return json.load(response)
+
+          token = post("/api/collections/_superusers/auth-with-password", {
+              "identity": os.environ["POCKETBASEOASIS_ADMINEMAIL"],
+              "password": os.environ["POCKETBASEOASIS_ADMINPASSWORD"],
+          })["token"]
+          post("/api/settings", {"batch": {"enabled": True, "maxRequests": 2, "timeout": 3, "maxBodySize": 65536}}, token, "PATCH")
+          for collection, fields in {
+              "oasis_avatars": {"username": "text", "email": "text", "is_deleted": "bool"},
+              "oasis_avatar_details": {"username": "text", "email": "text"},
+              "oasis_holons": {"parent_holon_id": "text", "holon_type": "number", "is_deleted": "bool"},
+          }.items():
+              post("/api/collections", {
+                  "name": collection, "type": "base",
+                  "fields": [{"name": "oasis_id", "type": "text", "required": True},
+                             {"name": "data_json", "type": "text", "max": 4000000}]
+                            + [{"name": name, "type": kind} for name, kind in fields.items()],
+                  "indexes": [f"CREATE UNIQUE INDEX idx_{collection}_id ON {collection} (oasis_id)"],
+              }, token)
+          PY
+          export POCKETBASE_TEST_RESULTS="$fixture/results"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-PocketBaseStorage -Operation {
+              dotnet test "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests" --filter "FullyQualifiedName~CoreStorageSuiteAgainstNativePocketBase" /m:2 /nr:false /p:UseSharedCompilation=false --logger "trx;LogFileName=pocketbase.trx" --results-directory $env:POCKETBASE_TEST_RESULTS
+              if ($LASTEXITCODE -ne 0) { throw "PocketBase native storage verification failed." }
+            }'
+          python3 - "$POCKETBASE_TEST_RESULTS/pocketbase.trx" <<'PY'
+          import sys
+          import xml.etree.ElementTree as ET
+
+          results = ET.parse(sys.argv[1]).findall(".//{*}UnitTestResult")
+          assert len(results) == 2 and all(r.get("outcome") == "Passed" for r in results)
+          print("Both native PocketBase shared storage modes passed with zero skips.")
+          PY

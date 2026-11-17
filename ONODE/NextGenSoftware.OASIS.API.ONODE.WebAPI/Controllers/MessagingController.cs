@@ -57,46 +57,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("messages")]
-        public async Task<OASISResult<List<Message>>> GetMessages([FromQuery] int limit = 50, [FromQuery] int offset = 0)
-        {
-            try
-            {
-                // Use MessagingManager for business logic
-                var result = await MessagingManager.Instance.GetMessagesAsync(Avatar.Id, limit, offset);
-
-                // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
-                {
-                    return new OASISResult<List<Message>>
-                    {
-                        Result = new List<Message>(),
-                        IsError = false,
-                        Message = "Messages retrieved successfully (using test data)"
-                    };
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    return new OASISResult<List<Message>>
-                    {
-                        Result = new List<Message>(),
-                        IsError = false,
-                        Message = "Messages retrieved successfully (using test data)"
-                    };
-                }
-                return new OASISResult<List<Message>>
-                {
-                    IsError = true,
-                    Message = $"Error retrieving messages: {ex.Message}",
-                    Exception = ex
-                };
-            }
-        }
+        public Task<OASISResult<List<Message>>> GetMessages([FromQuery] int limit = 50, [FromQuery] int offset = 0) =>
+            MessagingManager.Instance.GetMessagesAsync(Avatar.Id, limit, offset);
 
         /// <summary>
         /// Get conversation between current avatar and another avatar
@@ -107,46 +69,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("conversation/{otherAvatarId}")]
-        public async Task<OASISResult<List<Message>>> GetConversation(Guid otherAvatarId, [FromQuery] int limit = 50, [FromQuery] int offset = 0)
-        {
-            try
-            {
-                // Use MessagingManager for business logic
-                var result = await MessagingManager.Instance.GetConversationAsync(Avatar.Id, otherAvatarId, limit, offset);
-
-                // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
-                {
-                    return new OASISResult<List<Message>>
-                    {
-                        Result = new List<Message>(),
-                        IsError = false,
-                        Message = "Conversation retrieved successfully (using test data)"
-                    };
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    return new OASISResult<List<Message>>
-                    {
-                        Result = new List<Message>(),
-                        IsError = false,
-                        Message = "Conversation retrieved successfully (using test data)"
-                    };
-                }
-                return new OASISResult<List<Message>>
-                {
-                    IsError = true,
-                    Message = $"Error retrieving conversation: {ex.Message}",
-                    Exception = ex
-                };
-            }
-        }
+        public Task<OASISResult<List<Message>>> GetConversation(Guid otherAvatarId, [FromQuery] int limit = 50, [FromQuery] int offset = 0) =>
+            MessagingManager.Instance.GetConversationAsync(Avatar.Id, otherAvatarId, limit, offset);
 
         /// <summary>
         /// Mark messages as read
@@ -171,54 +95,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("notifications")]
-        public async Task<OASISResult<List<Notification>>> GetNotifications([FromQuery] int limit = 20, [FromQuery] int offset = 0)
-        {
-            try
-            {
-                OASISResult<List<Notification>> result = null;
-                try
-                {
-                    // Use MessagingManager for business logic
-                    result = await MessagingManager.Instance.GetNotificationsAsync(Avatar.Id, limit, offset);
-                }
-                catch
-                {
-                    // If real data unavailable, use test data
-                }
-
-                // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
-                {
-                    return new OASISResult<List<Notification>>
-                    {
-                        Result = new List<Notification>(),
-                        IsError = false,
-                        Message = "Notifications retrieved successfully (using test data)"
-                    };
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    return new OASISResult<List<Notification>>
-                    {
-                        Result = new List<Notification>(),
-                        IsError = false,
-                        Message = "Notifications retrieved successfully (using test data)"
-                    };
-                }
-                return new OASISResult<List<Notification>>
-                {
-                    IsError = true,
-                    Message = $"Error retrieving notifications: {ex.Message}",
-                    Exception = ex
-                };
-            }
-        }
+        public Task<OASISResult<List<Notification>>> GetNotifications([FromQuery] int limit = 20, [FromQuery] int offset = 0) =>
+            MessagingManager.Instance.GetNotificationsAsync(Avatar.Id, limit, offset);
 
         /// <summary>
         /// Mark notifications as read

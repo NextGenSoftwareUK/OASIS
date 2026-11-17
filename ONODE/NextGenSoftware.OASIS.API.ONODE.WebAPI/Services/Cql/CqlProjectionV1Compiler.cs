@@ -18,6 +18,14 @@ public static partial class CqlV1Compiler
     public static CosmicProjectionQuery<Holon, CosmicProjectionRecord> CompileProjection(
         CqlProjectionV1Request request, Guid actor, ProviderType? provider,CosmicQueryReadAccess access)
     {
+        if (request?.VirtualMappingId.HasValue == true)
+            throw new ArgumentException("A virtual mapping requires the direct mixed projection route.");
+        return CompileProjection(request, actor, provider, access, null);
+    }
+
+    internal static CosmicProjectionQuery<Holon, CosmicProjectionRecord> CompileProjection(
+        CqlProjectionV1Request request, Guid actor, ProviderType? provider, CosmicQueryReadAccess access, int? branchLimit)
+    {
         if (request == null || request.Take is < 0 or > 100 || request.Columns == null
             || request.Columns.Length is < 1 or > CosmicProjectionQuery<Holon, CosmicProjectionRecord>.MaximumColumns)
             throw new ArgumentException("Projection requires one to32 columns and Take0–100.");
@@ -27,8 +35,9 @@ public static partial class CqlV1Compiler
             throw new ArgumentException("SelectedOrder requires one to eight aliases, OrderBy None and Skip 0–1000.");
 
         var source = CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
-            request.AnyDescendants, request.Graph, order == null ? request.OrderBy : "Id", request.Descending,
-            order == null ? request.Skip : 0, order == null ? request.Take : null, access, includeCloudReadProfile: true);
+            request.AnyDescendants, request.Graph, order == null ? request.OrderBy : "Id", branchLimit == null && request.Descending,
+            order == null && branchLimit == null ? request.Skip : 0, order == null ? branchLimit ?? request.Take : null, access,
+            includeCloudReadProfile: true);
         var columns = request.Columns.Select(ProjectionColumn).ToArray();
         if (order != null)
         {

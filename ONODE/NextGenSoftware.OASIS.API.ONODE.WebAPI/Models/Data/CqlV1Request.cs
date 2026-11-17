@@ -70,6 +70,9 @@ public enum CqlV1Scalar { String, Integer, Boolean, Guid, DateTime, UInt64, Deci
 [JsonConverter(typeof(JsonStringEnumConverter<CqlV1Operator>))]
 public enum CqlV1Operator { Equal, NotEqual, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, Contains, StartsWith, EndsWith, Exists, IsNull, In, IsMissing, IsNotNull, NotContains, NotStartsWith, NotEndsWith }
 
+[JsonConverter(typeof(JsonStringEnumConverter<CqlV1Function>))]
+public enum CqlV1Function { Utf16Length }
+
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class CqlV1Filter
 {
@@ -78,6 +81,9 @@ public sealed class CqlV1Filter
     public string[]? MetadataPath { get; set; }
     public CqlV1Scalar Scalar { get; set; }
     public CqlV1Operator Operator { get; set; }
+    // Utf16Length compares a string's UTF-16 code-unit count with an exact Int64 bound.
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CqlV1Function? Function { get; set; }
     // In accepts an array of1–100 exact literals; other value operators accept one literal.
     public JsonElement Value { get; set; }
 }

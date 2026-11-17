@@ -378,6 +378,13 @@ public partial class HolonRepository
             return alias + ".value" + (type == typeof(Guid) ? " COLLATE NOCASE" : type == typeof(string) ? " COLLATE BINARY" : "");
         }
 
+        private string StringLength(string column, CosmicQueryStringLength length)
+        {
+            var units = SqliteCqlReadBudget.StringLengthFunction + "(CAST(" + column + " AS BLOB))";
+            return "(CASE WHEN typeof(" + column + ") = 'text' THEN "
+                + units + ComparisonSymbol(length.Operator) + Bind(length.Value) + " ELSE 0 END)";
+        }
+
         private string StringMatch(string column, CosmicQueryStringMatch match)
         {
             var bytes = "CAST(" + column + " AS BLOB)";
@@ -469,6 +476,18 @@ public partial class HolonRepository
                 }
                 else if (memberField.ValueType == typeof(string)) memberColumn += " COLLATE BINARY";
                 return Membership(memberColumn, memberField.ValueType, membership.Values);
+            }
+            if (predicate is CosmicQueryStringLength length)
+            {
+                if (length.Path.IsMetadata)
+                    return MetadataPredicate(length.Path.Segments, alias => "("
+                        + MetadataTypeGuard(typeof(string), alias) + " AND "
+                        + StringLength(alias + ".value", length) + ")");
+                if (length.Path.Segments.Count != 1
+                    || !SqliteCqlContract.Fields.TryGetValue(length.Path.Segments[0], out var lengthField)
+                    || lengthField.ValueType != typeof(string))
+                    throw new NotSupportedException("SQLite CQL string length path is unsupported.");
+                return StringLength(CanonicalColumn(lengthField.Name), length);
             }
             if (predicate is CosmicQueryStringMatch match)
             {

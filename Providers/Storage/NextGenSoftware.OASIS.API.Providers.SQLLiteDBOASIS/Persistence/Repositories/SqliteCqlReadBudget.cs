@@ -10,6 +10,7 @@ internal sealed class SqliteCqlReadBudget : IDisposable
 {
     private static readonly Encoding StrictUtf8 = new UTF8Encoding(false, true);
     private const string Utf8Function = "cosmic_cql_utf8_valid";
+    internal const string StringLengthFunction = "cosmic_cql_utf16_length";
     private static bool ValidUtf8(byte[] bytes)
     {
         if (bytes == null) return false;
@@ -28,6 +29,14 @@ internal sealed class SqliteCqlReadBudget : IDisposable
     private long steps;
     private int stopped;
     private bool disposed;
+    private long? Utf16Length(byte[] bytes)
+    {
+        Check();
+        var units = bytes == null ? (long?)null : StrictUtf8.GetCharCount(bytes);
+        Check();
+        return units;
+    }
+
     internal SqliteCqlReadBudget(SqliteConnection connection,CancellationToken cancellation,
         long maximumSteps=50000000,TimeSpan? deadline=null)
     {
@@ -49,6 +58,7 @@ internal sealed class SqliteCqlReadBudget : IDisposable
         {
             SQLitePCL.raw.sqlite3_progress_handler(connection.Handle,Interval,callback,null);
             connection.CreateFunction<byte[], bool>(Utf8Function, ValidUtf8, isDeterministic: true);
+            connection.CreateFunction<byte[], long?>(StringLengthFunction, Utf16Length, isDeterministic: false);
             connection.CreateFunction<string, string>(SqliteCqlDecimal.Function, DecimalKey, isDeterministic: false);
             connection.CreateFunction<string, string>(SqliteCqlFloating.DoubleFunction, DoubleKey, isDeterministic: false);
             connection.CreateFunction<string, string>(SqliteCqlFloating.SingleFunction, SingleKey, isDeterministic: false);
@@ -56,6 +66,7 @@ internal sealed class SqliteCqlReadBudget : IDisposable
         catch
         {
             connection.CreateFunction<byte[], bool>(Utf8Function, null);
+            connection.CreateFunction<byte[], long?>(StringLengthFunction, null);
             connection.CreateFunction<string, string>(SqliteCqlDecimal.Function, null);
             connection.CreateFunction<string, string>(SqliteCqlFloating.DoubleFunction, null);
             connection.CreateFunction<string, string>(SqliteCqlFloating.SingleFunction, null);
@@ -94,6 +105,7 @@ internal sealed class SqliteCqlReadBudget : IDisposable
         try
         {
             connection.CreateFunction<byte[], bool>(Utf8Function, null);
+            connection.CreateFunction<byte[], long?>(StringLengthFunction, null);
             connection.CreateFunction<string, string>(SqliteCqlDecimal.Function, null);
             connection.CreateFunction<string, string>(SqliteCqlFloating.DoubleFunction, null);
             connection.CreateFunction<string, string>(SqliteCqlFloating.SingleFunction, null);

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -75,6 +76,60 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
             Assert.Equal(new[] { "[10,1]", "[10,2]" }, lines.Select(record => record.NativeKey));
             var notes = (await provider.ReadNativeRecordsAsync("notes", null, 10)).Result.Records;
             Assert.Equal(new[] { "rowid:1", "rowid:2" }, notes.Select(record => record.NativeKey));
+        }
+
+        [Fact]
+        public async Task VirtualProjectionUsesTheSameCompositeKeyAndExactNativeFilter()
+        {
+            var provider = Provider();
+            var imported = (await provider.ReadNativeRecordsAsync("lines", null, 10)).Result.Records;
+            var result = await provider.QueryNativeRecordsAsync("lines", "sku", "A", new[] { "sku" }, 1);
+            Assert.False(result.IsError, result.Message);
+            var row = Assert.Single(result.Result);
+            Assert.Equal(imported[0].NativeKey, row.NativeKey);
+            Assert.Equal("A", row.Fields["sku"]);
+            Assert.Single(row.Fields);
+            var conjunction = await provider.QueryNativeRecordsAsync("lines",
+                new[] { new KeyValuePair<string, object>("orderId", 10L),
+                    new KeyValuePair<string, object>("sku", "B") }, new[] { "sku" }, 1);
+            Assert.False(conjunction.IsError, conjunction.Message);
+            Assert.Equal(imported[1].NativeKey, Assert.Single(conjunction.Result).NativeKey);
+            Assert.Empty((await provider.QueryNativeRecordsAsync("lines", "sku", "a", new[] { "sku" }, 2)).Result);
+            Assert.Empty((await provider.QueryNativeRecordsAsync("lines", "orderId", "10", new[] { "sku" }, 2)).Result);
+            Assert.Equal(new[] { "A", "B" }, (await provider.QueryNativeRecordsAsync("lines", "orderId",
+                10L, new[] { "sku" }, 2)).Result.Select(item => item.Fields["sku"]));
+            Assert.Equal("NATIVE_QUERY_INVALID",
+                (await provider.QueryNativeRecordsAsync("lines", "sku", "A", new[] { "missing" }, 2)).ErrorCode);
+            var actor = Guid.NewGuid();
+            var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, actor, provider.NativeDataProviderType,
+                "lines", VirtualHolonMapping.SandboxConnectionName, provider.DescribeVirtualQueryConnection(null),
+                new Dictionary<string, string> { ["orderId"] = "orderId", ["sku"] = "sku" });
+            var mappedConjunction = await mapping.QueryAsync(actor, provider, null,
+                new[] { new KeyValuePair<string, object>("orderId", 10L),
+                    new KeyValuePair<string, object>("sku", "B") }, new[] { "sku" }, 1);
+            Assert.False(mappedConjunction.IsError, mappedConjunction.Message);
+            Assert.Equal("B", Assert.Single(mappedConjunction.Result).MetaData["sku"]);
+            var before = await mapping.QueryAsync(actor, provider, null, "orderId", 10L, new[] { "sku" }, 1);
+            Assert.False(before.IsError, before.Message);
+            var original = Assert.Single(before.Result);
+            var snapshot = original.PrepareSnapshot(actor);
+            Assert.Equal("A", snapshot.MetaData["sku"]);
+
+            using (var connection = new SqliteConnection($"Data Source={NativePath}"))
+            {
+                await connection.OpenAsync();
+                using var command = connection.CreateCommand();
+                command.CommandText = "UPDATE lines SET sku = 'A-updated' WHERE orderId = 10 AND lineNo = 1";
+                Assert.Equal(1, await command.ExecuteNonQueryAsync());
+            }
+
+            var after = await mapping.QueryAsync(actor, provider, null, "orderId", 10L, new[] { "sku" }, 1);
+            Assert.False(after.IsError, after.Message);
+            var refreshed = Assert.Single(after.Result);
+            Assert.Equal(original.Id, refreshed.Id);
+            Assert.Equal("A-updated", refreshed.MetaData["sku"]);
+            Assert.Equal("A", snapshot.MetaData["sku"]);
+
         }
 
         [Fact]

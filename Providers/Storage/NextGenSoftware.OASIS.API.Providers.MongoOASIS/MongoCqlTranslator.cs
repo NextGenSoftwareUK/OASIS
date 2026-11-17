@@ -28,7 +28,7 @@ internal sealed partial class MongoCqlTranslator
         CosmicQueryLogical logical => IsRootLocal(logical.Left) && IsRootLocal(logical.Right),
         CosmicQueryNot not => IsRootLocal(not.Operand),
         CosmicQueryBoolean or CosmicQueryFieldComparison or CosmicQueryMetadataTest or
-            CosmicQueryComparison or CosmicQueryMembership or CosmicQueryStringMatch => true,
+            CosmicQueryComparison or CosmicQueryMembership or CosmicQueryStringMatch or CosmicQueryStringLength => true,
         _ => false
     };
 
@@ -347,6 +347,27 @@ internal sealed partial class MongoCqlTranslator
                 var values=new BsonArray(membership.Values.SelectMany(item=>guid&&item.Kind==CosmicQueryScalarKind.Guid
                     ?GuidLiterals((Guid)item.Value):new[]{((BsonDocument)Constant(item))["$literal"]}));
                 return Choose(guard,Op("$in",guid?GuidOperand(value):value,Literal(values)),Literal(false));
+            });
+            case CosmicQueryStringLength length: return At(length.Path, value =>
+            {
+                var supplementary = new BsonDocument("$regexFindAll", new BsonDocument
+                {
+                    { "input", value },
+                    { "regex", Literal(@"[\x{10000}-\x{10FFFF}]") }
+                });
+                var units = Op("$add", new BsonDocument("$strLenCP", value),
+                    new BsonDocument("$size", supplementary));
+                var symbol = length.Operator switch
+                {
+                    CosmicQueryComparisonOperator.Equal => "$eq",
+                    CosmicQueryComparisonOperator.NotEqual => "$ne",
+                    CosmicQueryComparisonOperator.GreaterThan => "$gt",
+                    CosmicQueryComparisonOperator.GreaterThanOrEqual => "$gte",
+                    CosmicQueryComparisonOperator.LessThan => "$lt",
+                    CosmicQueryComparisonOperator.LessThanOrEqual => "$lte",
+                    _ => throw new NotSupportedException("Unknown string length comparison.")
+                };
+                return Choose(Domain(value, typeof(string)), Op(symbol, units, Literal(length.Value)), Literal(false));
             });
             case CosmicQueryStringMatch match:return At(match.Path,value=>{
                 BsonValue content=Literal(match.Value);BsonValue expression;

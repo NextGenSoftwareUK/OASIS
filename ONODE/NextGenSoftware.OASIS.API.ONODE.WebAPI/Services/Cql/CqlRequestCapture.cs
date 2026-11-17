@@ -71,7 +71,7 @@ internal static class CqlRequestCapture
             return new CqlV1Filter
             {
                 Field = filter.Field, MetadataPath = filter.MetadataPath == null ? null : Array(filter.MetadataPath, 8, item => item),
-                Scalar = filter.Scalar, Operator = filter.Operator,
+                Scalar = filter.Scalar, Operator = filter.Operator, Function = filter.Function,
                 Value = scalar.ValueKind == JsonValueKind.Undefined ? default : scalar.Clone()
             };
         }

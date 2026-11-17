@@ -90,6 +90,40 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
+                        case ProviderType.PocketBaseOASIS:
+                            var pocketBaseUrl = OASISDNA?.OASIS?.StorageProviders?.PocketBaseOASIS?.ConnectionString;
+                            if (!Uri.TryCreate(pocketBaseUrl, UriKind.Absolute, out var pocketBaseEndpoint) ||
+                                (pocketBaseEndpoint.Scheme != Uri.UriSchemeHttps &&
+                                 (pocketBaseEndpoint.Scheme != Uri.UriSchemeHttp || !pocketBaseEndpoint.IsLoopback)) ||
+                                pocketBaseEndpoint.UserInfo.Length != 0 || pocketBaseEndpoint.Query.Length != 0 ||
+                                pocketBaseEndpoint.Fragment.Length != 0)
+                                throw new InvalidOperationException("PocketBase registration requires an HTTPS service URL or a loopback HTTP URL.");
+                            if (overrideConnectionString != null && !string.Equals(overrideConnectionString, pocketBaseUrl, StringComparison.Ordinal))
+                                throw new ArgumentException("PocketBase registration requires the configured service URL.", nameof(overrideConnectionString));
+                            var pocketBaseEmail = Environment.GetEnvironmentVariable("OASIS_POCKETBASE_ADMIN_EMAIL");
+                            var pocketBasePassword = Environment.GetEnvironmentVariable("OASIS_POCKETBASE_ADMIN_PASSWORD");
+                            if (string.IsNullOrWhiteSpace(pocketBaseEmail) || string.IsNullOrWhiteSpace(pocketBasePassword))
+                                throw new InvalidOperationException("PocketBase registration requires its administrator credentials in the process environment.");
+                            result.Result = new API.Providers.PocketBaseOASIS.PocketBaseOASIS(
+                                pocketBaseUrl, pocketBaseEmail, pocketBasePassword);
+                            break;
+
+                        case ProviderType.TursoOASIS:
+                            var tursoUrl = OASISDNA?.OASIS?.StorageProviders?.TursoOASIS?.ConnectionString;
+                            if (!Uri.TryCreate(tursoUrl, UriKind.Absolute, out var tursoEndpoint) ||
+                                (tursoEndpoint.Scheme != Uri.UriSchemeHttps &&
+                                 (tursoEndpoint.Scheme != Uri.UriSchemeHttp || !tursoEndpoint.IsLoopback)) ||
+                                tursoEndpoint.UserInfo.Length != 0 || tursoEndpoint.Query.Length != 0 ||
+                                tursoEndpoint.Fragment.Length != 0)
+                                throw new InvalidOperationException("Turso registration requires an HTTPS service URL or a loopback HTTP URL.");
+                            if (overrideConnectionString != null && !string.Equals(overrideConnectionString, tursoUrl, StringComparison.Ordinal))
+                                throw new ArgumentException("Turso registration requires the configured service URL.", nameof(overrideConnectionString));
+                            var tursoToken = Environment.GetEnvironmentVariable("OASIS_TURSO_AUTH_TOKEN");
+                            if (string.IsNullOrWhiteSpace(tursoToken))
+                                throw new InvalidOperationException("Turso registration requires an authentication token in the process environment.");
+                            result.Result = new API.Providers.TursoOASIS.TursoOASIS(tursoUrl, tursoToken);
+                            break;
+
                         case ProviderType.SQLServerDBOASIS:
                             result.Result = new API.Providers.SQLServerDBOASIS.SQLServerDBOASIS(
                                 overrideConnectionString ?? OASISDNA?.OASIS?.StorageProviders?.SQLServerDBOASIS?.ConnectionString);
