@@ -212,6 +212,21 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
                 new[] { "value" }, 10);
             Assert.False(wrongCase.IsError, wrongCase.Message + wrongCase.Exception);
             Assert.Empty(wrongCase.Result);
+            var negativeCases = new (NativeRecordFunction Function, string Field, string Value, long[] Expected)[]
+            {
+                (NativeRecordFunction.Contains, "value", "\u0000", new long[] { 1, 2, 3 }),
+                (NativeRecordFunction.StartsWith, "value", "abc", new long[] { 1, 2, 3 }),
+                (NativeRecordFunction.EndsWith, "value", "def", new long[] { 1, 2, 3 }),
+                (NativeRecordFunction.Contains, "nullableCategory", "Case", new long[] { 2, 4 })
+            };
+            foreach (var item in negativeCases)
+            {
+                var read = await provider.QueryNativePredicateRecordsAsync("records",
+                    new[] { new NativeRecordFilter(item.Field, CosmicQueryComparisonOperator.NotEqual, item.Value, item.Function) },
+                    new[] { "id" }, 10);
+                Assert.False(read.IsError, read.Message + read.Exception);
+                Assert.Equal(item.Expected, read.Result.Select(row => Convert.ToInt64(row.Fields["id"])));
+            }
             Assert.Equal(before, File.ReadAllBytes(file));
         }
 

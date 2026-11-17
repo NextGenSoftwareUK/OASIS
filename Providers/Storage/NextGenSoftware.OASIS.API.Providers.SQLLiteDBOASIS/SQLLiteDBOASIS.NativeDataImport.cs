@@ -208,7 +208,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                         predicates.Add($"CASE WHEN typeof({column}) = 'text' THEN {SqliteCqlReadBudget.TextStringLengthFunction}({column}) {symbol} $match{index} ELSE 0 END");
                     else if (match.Function is NativeRecordFunction.Contains or NativeRecordFunction.StartsWith or NativeRecordFunction.EndsWith)
                     {
-                        predicates.Add($"CASE WHEN typeof({column}) = 'text' THEN {SqliteCqlReadBudget.TextStringMatchFunction}({column}, $match{index}, $function{index}) ELSE 0 END");
+                        var expression = $"CASE WHEN typeof({column}) = 'text' THEN {SqliteCqlReadBudget.TextStringMatchFunction}({column}, $match{index}, $function{index}) ELSE 0 END";
+                        predicates.Add(match.Operator == CosmicQueryComparisonOperator.NotEqual ? $"NOT ({expression})" : expression);
                         command.Parameters.AddWithValue($"$function{index}", (long)match.Function);
                     }
                     else

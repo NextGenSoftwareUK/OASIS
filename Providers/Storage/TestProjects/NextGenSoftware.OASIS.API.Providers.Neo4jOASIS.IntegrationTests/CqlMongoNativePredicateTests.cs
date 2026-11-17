@@ -70,6 +70,24 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 CollectionAssert.AreEqual(item.Expected, read.Result.Select(row => (string)row.Fields["label"]).ToArray());
                 checks.Add(new { provider = "MongoDBOASIS", nativePredicate = "ordinal string " + item.Function, literal = item.Value });
             }
+            var negativeCases = new (NativeRecordFunction Function, string Field, string Value, string[] Expected)[]
+            {
+                (NativeRecordFunction.Contains, "text", "\u0000", new[] { "emoji", "short", "array" }),
+                (NativeRecordFunction.StartsWith, "text", "abc", new[] { "emoji", "short", "array" }),
+                (NativeRecordFunction.EndsWith, "text", "def", new[] { "emoji", "short", "array" }),
+                (NativeRecordFunction.Contains, "nullableCode", "Case", new[] { "short", "array", "nul" })
+            };
+            foreach (var item in negativeCases)
+            {
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                var read = await provider.QueryNativePredicateRecordsAsync("items",
+                    new[] { new NativeRecordFilter(item.Field, CosmicQueryComparisonOperator.NotEqual, item.Value, item.Function) },
+                    new[] { "label" }, 10);
+                Assert.IsFalse(read.IsError, read.Message + read.Exception);
+                CollectionAssert.AreEqual(item.Expected, read.Result.Select(row => (string)row.Fields["label"]).ToArray());
+                checks.Add(new { provider = "MongoDBOASIS", nativePredicate = "total negative string " + item.Function,
+                    field = item.Field, elapsedMilliseconds = watch.ElapsedMilliseconds });
+            }
             var nullable = await provider.QueryNativePredicateRecordsAsync("items",
                 new[] { new NativeRecordFilter("nullableCode", CosmicQueryComparisonOperator.NotEqual, "Case") },
                 new[] { "label" }, 10);

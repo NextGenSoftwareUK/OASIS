@@ -56,7 +56,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             await VerifyChildSource(provider, actor, ids[0], ids[1], checks);
             await VerifyJoinOutputOrdering(provider, ids, checks);
             await VerifyNativeStringLength(provider, ids, checks);
-            Assert.AreEqual(118,checks.Count);
+            Assert.AreEqual(126,checks.Count);
             var deactivation=await provider.DeActivateProviderAsync();Assert.IsFalse(deactivation.IsError,deactivation.Message);active=false;
             await Checkpoint("before-exact-cleanup");
             var deleted=await (await inspection.RunAsync("MATCH(h:Holon) WHERE h.Id IN $ids DETACH DELETE h",new{ids=ids.Select(id=>id.ToString("D")).ToArray()})).ConsumeAsync();
@@ -115,6 +115,25 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 CollectionAssert.AreEqual(item.Expected.OrderBy(value => value, StringComparer.Ordinal).ToArray(),
                     read.Result.Select(row => (string)row.Fields["name"]).OrderBy(value => value, StringComparer.Ordinal).ToArray());
                 checks.Add(new { provider = "Neo4jOASIS", nativePredicate = "ordinal string " + item.Function, literal = item.Value });
+            }
+            var negativeCases = new (NativeRecordFunction Function, string Field, string Value, string[] Expected)[]
+            {
+                (NativeRecordFunction.Contains, "text", "\u0000", new[] { "Ada", "Alan" }),
+                (NativeRecordFunction.StartsWith, "text", "abc", new[] { "Ada", "Alan" }),
+                (NativeRecordFunction.EndsWith, "text", "def", new[] { "Ada", "Alan" }),
+                (NativeRecordFunction.Contains, "missing", "Case", new[] { "Ada", "Grace", "Alan" })
+            };
+            foreach (var item in negativeCases)
+            {
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                var read = await provider.QueryNativePredicateRecordsAsync(label,
+                    new[] { new NativeRecordFilter(item.Field, CosmicQueryComparisonOperator.NotEqual, item.Value, item.Function) },
+                    new[] { "name" }, 10);
+                Assert.IsFalse(read.IsError, read.Message + read.Exception);
+                CollectionAssert.AreEqual(item.Expected.OrderBy(value => value, StringComparer.Ordinal).ToArray(),
+                    read.Result.Select(row => (string)row.Fields["name"]).OrderBy(value => value, StringComparer.Ordinal).ToArray());
+                checks.Add(new { provider = "Neo4jOASIS", nativePredicate = "total negative string " + item.Function,
+                    field = item.Field, elapsedMilliseconds = watch.ElapsedMilliseconds });
             }
             var sourceCount = await (await inspection.RunAsync($"MATCH (n:`{label}`) RETURN count(n) AS n")).SingleAsync();
             Assert.AreEqual(3L, sourceCount["n"].As<long>(), "Native source queries must not write records.");
