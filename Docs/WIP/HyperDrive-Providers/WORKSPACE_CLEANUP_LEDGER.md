@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Concurrent dev integration and contract repair used Git merge/tree objects and sole private indexes removed in finally. Exact combined tests and full tracked JS endpoint scan read Git blobs in memory; no hydrated source copy, dependency install, environment, local build, result artifact or fixture was created. API specs were fetched into memory; only the tracked generated endpoint map is retained as source. No additional browser profile was created. The separately tracked 15.44 MiB policy-blocked stopped-browser profile remains unresolved.
+
 2026-11-17 UTC — Public health sample and zero-latency ordering regression used existing Python/Node in memory with no fixture, download, report or environment. Scoped successor construction removed its sole temporary Git index/lock in finally. No new browser profile was created. Previously recorded policy-blocked profile remains tracked, not claimed removed.
 
 2026-11-17 UTC — Monitor lifecycle regressions used existing Node, controlled deferred health replies and in-memory DOM/observers; no network requests or fixtures. Combined candidate ba89f9850e3d used one temporary Git index, removed in finally along with any lock. No downloads, environment, build output, result artifact or additional browser profile was created. The separately recorded 15.44 MiB stopped-browser profile remains policy-blocked and is not claimed removed.
