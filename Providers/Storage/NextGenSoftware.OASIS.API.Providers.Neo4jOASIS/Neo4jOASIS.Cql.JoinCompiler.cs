@@ -35,7 +35,7 @@ public partial class Neo4jOASIS
         var leftCount=binder.Bind(limits.MaximumLeftRows);var rightCount=binder.Bind(limits.MaximumRightRows);
         var leftBytes=binder.Bind(limits.MaximumLeftPayloadBytes);var rightBytes=binder.Bind(limits.MaximumRightPayloadBytes);
         var outer = binder.Bind(query.Join.Kind is CosmicJoinKind.Left or CosmicJoinKind.Full);
-        var equality=string.Join(" AND ",query.Join.Keys.Select((key,index) =>
+        var equality = string.Join(query.Join.MatchesAnyKey ? " OR " : " AND ", query.Join.Keys.Select((key,index) =>
         {
             var comparison = key.Comparison switch
             {
@@ -53,10 +53,11 @@ public partial class Neo4jOASIS
             var rightPresent = rcell + ".s=2";
             var present = leftPresent + " AND " + rightPresent;
             var valuesMatch = lcell + ".v" + comparison + rcell + ".v";
-            return key.Comparison is CosmicJoinComparison.NullSafeEqual or CosmicJoinComparison.NullSafeNotEqual
+            var predicate = key.Comparison is CosmicJoinComparison.NullSafeEqual or CosmicJoinComparison.NullSafeNotEqual
                 ? "(CASE WHEN " + present + " THEN " + valuesMatch + " ELSE (" + leftPresent + ")"
                     + comparison + "(" + rightPresent + ") END)"
                 : present + " AND " + valuesMatch;
+            return "(" + predicate + ")";
         }));
         var valid="size(leftInput)<="+leftCount+" AND size(rightInput)<="+rightCount
             +" AND all(x IN leftInput+rightInput WHERE x.valid AND x.domainValid AND NOT(x.cycle OR x.traversalLimit OR x.payloadLimit))"

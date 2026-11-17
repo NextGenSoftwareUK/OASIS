@@ -62,11 +62,12 @@ public partial class HolonRepository
             };
             equality.Add($"l.k{index}s=2 AND r.k{index}s=2 AND l.k{index}v{collation}{comparison}r.k{index}v{collation}");
         }
+        var keyPredicate = string.Join(selection.Join.MatchesAnyKey ? " OR " : " AND ", equality.Select(value => "(" + value + ")"));
         var join = selection.Join.Kind switch
         {
-            CosmicJoinKind.Left => " LEFT JOIN r ON " + string.Join(" AND ", equality.Select(value => "(" + value + ")")),
-            CosmicJoinKind.Inner => " INNER JOIN r ON " + string.Join(" AND ", equality.Select(value => "(" + value + ")")),
-            CosmicJoinKind.Full => " FULL OUTER JOIN r ON " + string.Join(" AND ", equality.Select(value => "(" + value + ")")),
+            CosmicJoinKind.Left => " LEFT JOIN r ON " + keyPredicate,
+            CosmicJoinKind.Inner => " INNER JOIN r ON " + keyPredicate,
+            CosmicJoinKind.Full => " FULL OUTER JOIN r ON " + keyPredicate,
             CosmicJoinKind.Cross => " CROSS JOIN r",
             _ => throw new NotSupportedException("Unknown native SQLite join kind.")
         };

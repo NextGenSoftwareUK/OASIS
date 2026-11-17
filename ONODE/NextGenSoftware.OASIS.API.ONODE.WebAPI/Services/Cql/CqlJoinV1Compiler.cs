@@ -47,6 +47,7 @@ public static partial class CqlV1Compiler
             _=>left.JoinColumns(right,leftKeys,rightKeys,options)
         };
         var join=RequiredJoin(captured);
+        if (request.MatchAnyKey) join = RequiredJoin(join.MatchAnyKey());
         foreach (var key in request.Keys)
         {
             var comparison = key.Operator switch
