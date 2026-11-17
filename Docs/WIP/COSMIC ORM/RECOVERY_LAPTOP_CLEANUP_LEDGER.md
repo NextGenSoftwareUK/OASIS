@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. RightJoin source and native regression changes used disposable `cosmic-queryable-join-index-*` indexes, removed at context exit. CI builds remotely, and the parity count was computed from Git in memory.
+
 17 November UTC. LeftJoin source and test commits used disposable `cosmic-queryable-join-index-*` Git indexes, removed on exit. The feature qualification runs remotely and generated no local provider fixtures or SDK build outputs.
 
 17 November UTC. Combined Turso baseline reconciliation used disposable `cosmic-reconcile-index-*` indexes removed on exit. The INT64 probe plan ran from standard input and created no fixtures, downloads, local build or test output.
