@@ -1,5 +1,24 @@
 # CQL architecture
 
+## Multiple predicates over stored and virtual Holons
+
+The current mixed route supports a single typed metadata equality. Extend it
+through the shipping native reader contract so both branches receive the same
+AND expression before applying their independent completeness caps. Preserve
+exact BSON types and simple collation in MongoDB, SQLite storage classes and
+binary text comparison, and the explicit Neo4j scalar type predicates. Apply
+the user-visible ordering and page only after merging the logical IDs.
+
+Snapshot preparation must use the same predicate and preserve every mapped
+field referenced by it within the existing projection budget. This keeps a
+saved copy queryable by the same filter and retains its original provenance.
+Exercise the ordinary and mixed routes independently in each native store.
+Put nonmatching rows before the first real match in provider order and use a
+small page to prove that native filtering occurs before the limit. Verify
+type-mismatched values, a matching private snapshot, a second avatar's denial
+and result ordering after deduplication. Extend the SQL-like sandbox editor
+when the timed WEB4 Development checks pass.
+
 ## Virtual Holon mapping boundary
 
 See the [Virtual Holons import proposal](OASIS_Virtual_Holons_Import_Proposal.docx). Materialized import persists owned Holon payloads for
