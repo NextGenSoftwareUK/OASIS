@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Combined portal candidate 9a0da4a2442b contains only the tested Messaging participant/unread change, dashboard client-change guard and their asset keys over dev 016e2b815c75. Exact script blobs match the tested task revisions. The next portal dev window remains 17:24:24 UTC. WEB4 contracts 44133551601 and image 44133558977 are active.
+
 2026-11-17 UTC — OPORTAL dashboard task 27c23d7 invalidates an old dashboard session when the authenticated WEB4 client changes, even for the same avatar. The focused in-memory check verified duplicate startup suppression, one replacement startup, observer cleanup and stale-session rejection. Dev promotion and signed browser timing remain open. No build outputs or fixtures were created.
 
 2026-11-17 UTC — Messaging image 44131607608 failed compilation because Guid still requires using System. Restored the import on the task and exact qualification branches. Corrected revision 3527154a118d is running [contracts](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44133551601) and [image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44133558977). No Development push.
