@@ -381,6 +381,39 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         CollectionAssert.AreEquivalent(new[] { (parentId, parentId), (missingId, missingId) },
             matchingGuids.Result.Select(row => (row.Left, row.Right)).ToArray());
 
+        foreach (var (metadata, wireType) in new[] { ("u64", "UInt64"), ("decimal", "Decimal"), ("distinctUtc", "DateTime") })
+        {
+            request.Keys[0].Left.MetadataPath = new[] { metadata };
+            request.Keys[0].Right.MetadataPath = new[] { metadata };
+            request.Keys[0].Left.ValueType = request.Keys[0].Right.ValueType = wireType;
+            request.Left.Filters = new[] { KeySet(rightKeys) };
+            await VerifyNullComparison("IsNotDistinctFrom", CosmicJoinComparison.NullSafeEqual,
+                new (Guid?, Guid?)[] { (parentId, parentId), (missingId, missingId) });
+            request.Left.Filters = new[] { KeySet(leftKeys) };
+            var different = metadata == "decimal"
+                ? new (Guid?, Guid?)[] { (parentId, missingId), (lowerId, parentId) }
+                : new (Guid?, Guid?)[] { (parentId, missingId), (lowerId, parentId), (lowerId, missingId) };
+            await VerifyNullComparison("IsDistinctFrom", CosmicJoinComparison.NullSafeNotEqual, different);
+        }
+
+        var matchingDecimals = await flagRows.SelectMany(leftValue => flagRows.Where(rightValue =>
+                CosmicQueryMetadata.Value<decimal?>(rightValue, "decimal") ==
+                CosmicQueryMetadata.Value<decimal?>(leftValue, "decimal")),
+            (leftValue, rightValue) => new { Left = leftValue.Id, Right = rightValue.Id }).ToCosmicListAsync();
+        Assert.IsFalse(matchingDecimals.IsError, matchingDecimals.Message + matchingDecimals.Exception);
+        CollectionAssert.AreEquivalent(new[] { (parentId, parentId), (missingId, missingId) },
+            matchingDecimals.Result.Select(row => (row.Left, row.Right)).ToArray());
+
+        request.Keys[0].Left.MetadataPath = new[] { "caseJoinGuid" };
+        request.Keys[0].Right.MetadataPath = new[] { "caseJoinGuid" };
+        request.Keys[0].Left.ValueType = request.Keys[0].Right.ValueType = "Guid";
+        request.Left.Filters = new[] { KeySet(rightKeys) };
+        request.Right.Filters = new[] { KeySet(new[] { lowerId, missingId }) };
+        await VerifyNullComparison("IsNotDistinctFrom", CosmicJoinComparison.NullSafeEqual,
+            new (Guid?, Guid?)[] { (parentId, lowerId), (missingId, missingId) });
+        await VerifyNullComparison("IsDistinctFrom", CosmicJoinComparison.NullSafeNotEqual,
+            new (Guid?, Guid?)[] { (parentId, missingId), (missingId, lowerId) });
+
         request.Keys[0].Operator = "Invalid";
         Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access));
 
