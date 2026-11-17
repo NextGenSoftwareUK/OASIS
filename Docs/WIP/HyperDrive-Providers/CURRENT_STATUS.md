@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Chat image 44148463730 passed, but the rollout guard found Development and serving Railway WEB4 already at 919790a8548c with concurrent Cosmos/protocol changes. Clean merged candidate 2f7558d1177a preserves those changes. The Chat controller, complete ONODE/OASIS Architecture source, Core pin and Railway manifest match qualified d51ef1e77854; retain its 996-contract evidence. [Combined exact image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44152558339) is running. No new Development push. Hosted acceptance awaits that combined deployment.
+
 2026-11-17 UTC — Installed Edge opened deployed /messages, /wallet and /hyperdrive while signed out. Each rendered a visible modal with only the login block selected and a real login form. This verifies protected-route browser navigation. Authenticated feature behavior remains open. The shared temporary browser profile was removed after the three checks.
 
 2026-11-17 UTC — Combined portal candidate d829f699450e stages persisted End Session and paged conversation/reply navigation over live dev 9c85d745fb97. All 23 existing portal regression groups passed against its exact Git tree. The candidate contains only Messaging JavaScript and its cache key 20261118b. Matching WEB4 d51ef1e77854 must serve before portal promotion. Exact backend contracts passed; image 44148463730 remains active. Hosted populated threads and Chat persistence remain open.
