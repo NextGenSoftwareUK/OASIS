@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Scoped OPORTAL conversation fix e8669520a73e is staged over dev 016e2b815c75 with the tested script and cache key 20261117s. The next portal dev push window opens 17:24:24 UTC. Exact Messaging backend contracts 44131477682 and image 44131607608 remained active.
+
 2026-11-17 UTC — OPORTAL task fb9e6c3 groups received and sent messages by the other participant and counts only unread messages addressed to the active avatar. The controlled check covered mixed-case participant IDs, a sent latest preview, received-only unread and excluding unrelated messages. Dev promotion and signed round-trip verification remain open. No files or backend fixtures were created by the check.
 
 2026-11-17 UTC — OPORTAL dev advanced to 016e2b815c75 after its 30-minute window. Hosted /messages serves the exact tested JavaScript with cache key 20261117r. The WEB4 controller-only candidate 2bacab794176 has [contracts](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44131477682) and [image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44131607608) running. It preserves current Development and dependency pins. Signed Messaging acceptance and fixture cleanup remain open.
