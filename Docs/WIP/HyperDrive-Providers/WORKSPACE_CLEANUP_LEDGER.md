@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — OPORTAL candidate 6b944d8087c2 removed its alternate indexes and the temporary source directory used for the endpoint gate. Portal checks used exact Git blobs. No browser profile, downloads, build outputs or test fixture persisted locally.
+
 2026-11-17 UTC — OPORTAL copy deadline and endpoint recovery removed their alternate indexes and temporary patches. The endpoint generator output and the exact source directory used for the drift gate were removed. No dependencies, payment fixtures or local build outputs were created.
 
 2026-11-17 UTC — The temporary indexes and patch used to construct PocketBase candidate d0024e00d4d0 were removed by their owning processes. The qualification ref points to a Git commit and uses no extra local worktree. Native run 44008013711 confirmed removal of its PocketBase process, runtime, database, DNA and test outputs. The image build runs on GitHub. No local runtime or build outputs were created.
