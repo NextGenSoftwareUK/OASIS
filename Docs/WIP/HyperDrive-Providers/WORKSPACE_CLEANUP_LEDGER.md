@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed the two temporary Git indexes used to compose and review the Clan/Wallet candidate. Remote qualification retained no local dependencies, images or test reports.
+
 2026-11-17 UTC — Wallet selection and delayed render checks ran in memory. No test records or local artifacts were retained.
 
 2026-11-17 UTC — Wallet token rendering and delayed analytics were checked in memory. No wallet, test records, dependencies or build files were created.
