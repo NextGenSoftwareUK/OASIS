@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed the temporary replacement Gifts candidate index. Its checks read existing Git blobs. No download, browser profile, test report, hosted avatar or persisted gift was created.
+
 2026-11-17 UTC — Removed the temporary exact Gifts candidate index. The fixture read Git blobs in memory. No browser profile, hosted avatar, downloads or generated output was created.
 
 2026-11-17 UTC — The OPORTAL dashboard Quest and Mission SDK check confirmed deletion of its disposable sandbox avatar. The hosted SDK bundle and responses were consumed in memory. No local downloads, browser profile, build output or test report was written.
