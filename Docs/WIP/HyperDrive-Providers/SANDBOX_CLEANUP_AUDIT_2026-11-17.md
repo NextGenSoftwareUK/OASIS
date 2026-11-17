@@ -47,6 +47,6 @@ Run 44192504510 stopped at the inherited public-manager manifest before API comp
 
 ## Compiled discovery acceptance
 
-Focused run44195119239 passed on80084c61edcd: one compiled API discovery test, zero failed or skipped. It confirms duplicate/independent identity handling and rejection of conflicting owner markers or malformed IDs. Native missing-record reconciliation and physical purge remain open.
+Focused run 44195119239 passed on `80084c61edcd`: one compiled API discovery test, zero failed or skipped. It confirms duplicate/independent identity handling and rejection of conflicting owner markers or malformed IDs. Native missing-record reconciliation and physical purge remain open.
 
-The separate native seal-routing concern is fixed in Core1047ee77be8f and passed real MongoDB/SQLite run44199944286 (one case, four concurrent calls). Core8707529f27fa preserves the later shared netstandard compatibility fix without changing that method. This does not replace the outstanding native cleanup tests or establish that the hosted cleanup worker has been upgraded.
+The separate native seal-routing concern is fixed in Core `1047ee77be8f` and passed real MongoDB/SQLite run 44199944286 (one case, four concurrent calls). Core `8707529f27fa` preserves the later shared netstandard compatibility fix without changing that method. This does not replace the outstanding native cleanup tests or establish that the hosted cleanup worker has been upgraded.
