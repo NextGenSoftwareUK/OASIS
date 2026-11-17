@@ -2288,3 +2288,6 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 
 
 2026-11-17 UTC — Global Search checks ran in memory. Missing sparse verification HTML was read from tracked Git objects rather than hydrated/downloaded. No browser profile, database/avatar/holon writes, emails or retained reports. Scoped candidate 761f54503578 temporary index and lock removed in finally. Only changed source/tests/docs retained.
+
+
+2026-11-17 UTC — Optional popup regression checks ran in memory with no real backend writes. Retained regression script is source; no generated reports, browser profiles or downloads. Scoped candidate fb41f8f8974a temporary index and lock removed in finally. No local builds or database copies.
