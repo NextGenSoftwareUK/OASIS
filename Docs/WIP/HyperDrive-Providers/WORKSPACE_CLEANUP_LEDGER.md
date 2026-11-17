@@ -2312,3 +2312,6 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 
 
 2026-11-17 UTC — Holon-read correction uses retained source and parent-repo artifact tests. Both qualification candidates used one temporary index each, removed with lock in finally after pushes. No local build/test workers, runtime downloads, database copies, browser profiles or backend records. Exact CI qualification is remote; no artifacts downloaded. Superseded qualification cancelled and confirmed terminal. No image build was queued before compile/contract acceptance.
+
+
+2026-11-17 UTC — Cleanup evidence correction: the shipping avatar self-delete route uses softDelete=true. Historical acknowledgments must not be counted as physical reclamation, even when owned holons were separately removed. Native hard-purge/absence proof remains open. No new fixture created during this audit. Collection-routing candidate 0aac189914ad temporary index/lock removed in finally; no local builds, downloads or generated artifacts. Existing remote CI 44168988180 is for preceding source e189, not final policy source.
