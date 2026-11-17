@@ -63,6 +63,34 @@ Each use case combines the strengths of several platforms in a way no single pla
 | AI | **One data layer for AI agents** | Agents need a separate integration for every system | Agents read and act across every connected system through one interface |
 | AI | **Trustworthy AI training data** | No record of where data came from | Provenance and consent recorded for every piece of data |
 
+## Query data where it lives
+
+Virtual Holons let a collection participate in CQL while its records stay in
+the source. A mapping stores the field names, types, access rules and source
+reference once for the collection. A million-row customer table with 30 fields
+needs one mapping that describes all 30 fields. A query for Name and City on 20
+customers reads those values from the source and can return them without saving
+20 new Holons. The storage savings grow with row count, record size and the
+number of copies that a full import would create.
+
+| Use case | What WEB4 would do |
+|---|---|
+| Live supplier inventory and resilient orders | Keep the supplier catalogue virtual and store the app's critical orders as full Holons. Use one CQL query across both and show which results were read live and which came from OASIS. |
+| Search or analytics across existing systems | Map approved fields from customer, support or inventory sources and query them through CQL under each source's permissions. |
+| Gradual migration | Start by mapping an existing database. Import selected records as full Holons when OASIS should own them or the app needs eligible redundant copies. |
+| Fast repeat reads | Use hybrid policy to cache selected fields or records. Cached data consumes space and needs an explicit size and freshness policy. |
+
+HyperDrive can replicate full Holons, fail over to an eligible copy, and
+load-balance reads when available copies satisfy the query's completeness and
+freshness requirements. A replicated mapping preserves the reference. Virtual
+payloads still depend on the authorized source or a separately approved cache
+or replica. Controls are planned in OPORTAL per avatar or app, with explicit
+write authority for frequently updated records.
+
+The [COSMIC ORM roadmap](WIP/COSMIC%20ORM/COSMIC_ORM_IMPLEMENTATION_ROADMAP.md)
+tracks Virtual Holon development, including a WEB4 sandbox demo for full
+import, virtual mapping and one mixed CQL query.
+
 ## Spotlight: paying for a coffee with Bitcoin
 
 Bitcoin payments can take minutes to confirm and cost more in fees than a coffee. WEB4 removes both problems by using Web2 and Web3 together:

@@ -21,6 +21,21 @@ routing enforce that policy server-side. Query results preserve logical identity
 authoritative source, representation, mapping revision and freshness when
 virtual results, cached fields and full Holons share a collection.
 
+For a million-row customer table with 30 fields, each mapping has up to 30
+field definitions and one set of collection settings. Selecting Name and City
+for 20 matching rows sends only those two record values per row through the
+native projection, plus the source key needed for identity. Query execution
+does not create persistent row Holons. Full imports, persistent caches and
+per-row indexes have their own storage footprint, multiplied by any physical
+copies. Benchmark mapping, query and replica bytes separately.
+
+For a concrete mixed query, combine live supplier inventory from a virtual
+mapping with replicated order Holons. Use one logical CQL filter and projection,
+retain source provenance, and reconcile overlapping logical IDs. The virtual
+source has its own visibility and failure semantics. HyperDrive may load-balance
+an imported read or fail over only if the eligible provider can meet that
+query's completeness and freshness requirements.
+
 Host-owned read-source activation recovery is explicit per CqlReadSourceProfile. Blockscout opts into at most2awaited health checks, one5s delay, shared30s aggregate deadline, and only typedHTTP500/502/503/504. Other profiles default to1attempt. No user query/write/signing operation, auth/rate-limit error, malformed data or timeout is retried. Failed attempts are logged with safe typed event4831 and recovery event4832; exhausted recovery remains unavailable.
 
 Blockscout uses shared query/read-only activation contracts with bounded configured address lookup and full validation before paging. Exact nullable balances/update heights and a public metadata allowlist avoid fabricated zeroes/private-field leakage. Explorer instance is part of source provenance/projected IDs. [Contract and limits](../../Devs/BLOCKSCOUT_PUBLIC_ADDRESS_CQL_GUIDE.md). Original read timeout preserved; successful read-only completion is functional proof, not reliability certification.
