@@ -14,6 +14,14 @@ providers in popularity order. This matches the latest user-edited goal. OLID
 means SOLID; ActibityPub means ActivityPub; HetraGraph means Hedera/Hashgraph
 (HashgraphOASIS).
 
+Supabase is an additional top-priority Development demo provider. The shipping
+WEB4 provider already passed the isolated PostgREST/PostgreSQL lifecycle suite
+(52/52) and Supabase/SQLite HyperDrive routing checks. Hosted enrollment requires
+the dedicated HTTPS teaching project and restricted reader recorded in
+[Actions for David](../Release%20and%20Status/ACTIONS-FOR-DAVID.md). Carry
+forward the native evidence and qualify the managed source once available.
+[Supabase status](SUPABASE_CQL_MVP.md).
+
 Solana, Ethereum, Polygon, Arbitrum, NEAR, Cosmos and Polkadot retain accepted
 scoped live HTTP and browser evidence. IPFS and ActivityPub also retain live HTTP
 and browser proofs. SOLID, TON, Hedera and EOS retain accepted live HTTP and
