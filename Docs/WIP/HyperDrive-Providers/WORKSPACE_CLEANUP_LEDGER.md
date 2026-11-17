@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Exact dashboard regression and WEB4 image evidence were read in memory. The temporary portal candidate index was removed. No Docker images, builds, downloads or reports were retained on the workstation.
+
 2026-11-17 UTC — Clan delete UI checks ran in memory. The release candidate Git index was deleted automatically. No live records, local dependencies, test reports or build files were created.
 
 2026-11-17 UTC — Member form checks ran in memory and the candidate Git index was removed. No test avatar, Clan fixture, local dependency or build output was created.
