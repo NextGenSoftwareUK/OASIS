@@ -36,7 +36,10 @@ public class NativeRecordFilterTests
         Assert.Equal(value, filter.WithField("source").Value);
         Assert.Equal(function, filter.WithField("source").Function);
         Assert.Throws<ArgumentException>(() => new NativeRecordFilter("x", CosmicQueryComparisonOperator.Equal, 1L, function));
-        Assert.Throws<ArgumentException>(() => new NativeRecordFilter("x", CosmicQueryComparisonOperator.NotEqual, value, function));
+        var negative = new NativeRecordFilter("x", CosmicQueryComparisonOperator.NotEqual, value, function);
+        Assert.Equal(CosmicQueryComparisonOperator.NotEqual, negative.WithField("rebound").Operator);
+        Assert.Equal(function, negative.WithField("rebound").Function);
+        Assert.Throws<ArgumentException>(() => new NativeRecordFilter("x", CosmicQueryComparisonOperator.LessThan, value, function));
         Assert.Throws<ArgumentException>(() => new NativeRecordFilter("x", CosmicQueryComparisonOperator.Equal, new string('a', 4097), function));
     }
 

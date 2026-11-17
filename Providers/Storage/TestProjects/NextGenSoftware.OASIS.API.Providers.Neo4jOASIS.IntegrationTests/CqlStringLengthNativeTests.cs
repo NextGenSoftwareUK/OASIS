@@ -101,6 +101,24 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(0, wrong.Ids.Length);
         checks.Add(new { provider = adapter.QueryProviderType.ToString(),
             utf16Length = "missing, null and wrong scalar domains", elapsedMilliseconds = wrong.Milliseconds });
+        Expression<Func<Holon, bool>>[] negativeStrings =
+        {
+            row => !CosmicQueryMetadata.Value<string>(row, "nullOrEmptyValue").Contains("\U0001F600"),
+            row => !CosmicQueryMetadata.Value<string>(row, "nullOrEmptyValue").StartsWith("x"),
+            row => !CosmicQueryMetadata.Value<string>(row, "nullOrEmptyValue").EndsWith("x"),
+            row => !CosmicQueryMetadata.Value<string>(row, "notString").Contains("")
+        };
+        Guid[][] negativeExpected =
+        {
+            new[] { ids[0], ids[1], ids[2], ids[4] }, ids.Take(4).ToArray(), ids.Take(4).ToArray(), ids
+        };
+        for (var index = 0; index < negativeStrings.Length; index++)
+        {
+            var actual = await Read(native.Result.Where(negativeStrings[index]));
+            CollectionAssert.AreEquivalent(negativeExpected[index], actual.Ids);
+            checks.Add(new { provider = adapter.QueryProviderType.ToString(),
+                totalNegativeString = index, elapsedMilliseconds = actual.Milliseconds });
+        }
         await VerifyNativeStringLengthWire(adapter, ids, checks);
         Expression<Func<Holon, bool>>[] emptyPredicates =
         {

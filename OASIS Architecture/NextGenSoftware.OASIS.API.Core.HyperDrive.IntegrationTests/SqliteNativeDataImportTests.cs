@@ -171,9 +171,12 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
                 new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, "\u0000", NativeRecordFunction.Contains),
                 new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, "abc", NativeRecordFunction.StartsWith),
                 new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, "def", NativeRecordFunction.EndsWith),
-                new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, "\U0001F600", NativeRecordFunction.Contains)
+                new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, "\U0001F600", NativeRecordFunction.Contains),
+                new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, 7L, NativeRecordFunction.Utf16Length),
+                new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, "abc\u0000", NativeRecordFunction.StartsWith),
+                new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, "\u0000def", NativeRecordFunction.EndsWith)
             };
-            var expected = new[] { "\U0001F600", "abc\u0000def", "abc\u0000def", "x", "abc\u0000def", "abc\u0000def", "abc\u0000def", "\U0001F600" };
+            var expected = new[] { "\U0001F600", "abc\u0000def", "abc\u0000def", "x", "abc\u0000def", "abc\u0000def", "abc\u0000def", "\U0001F600", "abc\u0000def", "abc\u0000def", "abc\u0000def" };
             for (var index = 0; index < filters.Length; index++)
             {
                 var read = await provider.QueryNativePredicateRecordsAsync("records", new[] { filters[index] },
@@ -212,6 +215,21 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
                 new[] { "value" }, 10);
             Assert.False(wrongCase.IsError, wrongCase.Message + wrongCase.Exception);
             Assert.Empty(wrongCase.Result);
+            var negativeCases = new (NativeRecordFunction Function, string Field, string Value, long[] Expected)[]
+            {
+                (NativeRecordFunction.Contains, "value", "\u0000", new long[] { 1, 2, 3 }),
+                (NativeRecordFunction.StartsWith, "value", "abc", new long[] { 1, 2, 3 }),
+                (NativeRecordFunction.EndsWith, "value", "def", new long[] { 1, 2, 3 }),
+                (NativeRecordFunction.Contains, "nullableCategory", "Case", new long[] { 2, 4 })
+            };
+            foreach (var item in negativeCases)
+            {
+                var read = await provider.QueryNativePredicateRecordsAsync("records",
+                    new[] { new NativeRecordFilter(item.Field, CosmicQueryComparisonOperator.NotEqual, item.Value, item.Function) },
+                    new[] { "id" }, 10);
+                Assert.False(read.IsError, read.Message + read.Exception);
+                Assert.Equal(item.Expected, read.Result.Select(row => Convert.ToInt64(row.Fields["id"])));
+            }
             Assert.Equal(before, File.ReadAllBytes(file));
         }
 

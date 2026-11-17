@@ -37,7 +37,7 @@ public sealed class CqlVirtualProjectionTests
     {
         var request = Request();
         Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileProjection(request, Guid.NewGuid(), ProviderType.MongoDBOASIS));
-        request.Filters[0].Operator = CqlV1Operator.NotContains;
+        request.Filters[0].Operator = CqlV1Operator.In;
         Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileVirtualProjection(request));
     }
 
@@ -45,6 +45,9 @@ public sealed class CqlVirtualProjectionTests
     [InlineData(CqlV1Operator.Contains, NativeRecordFunction.Contains)]
     [InlineData(CqlV1Operator.StartsWith, NativeRecordFunction.StartsWith)]
     [InlineData(CqlV1Operator.EndsWith, NativeRecordFunction.EndsWith)]
+    [InlineData(CqlV1Operator.NotContains, NativeRecordFunction.Contains)]
+    [InlineData(CqlV1Operator.NotStartsWith, NativeRecordFunction.StartsWith)]
+    [InlineData(CqlV1Operator.NotEndsWith, NativeRecordFunction.EndsWith)]
     public void MixedStringMatchKeepsItsLiteralAndInputDomain(CqlV1Operator operation, NativeRecordFunction function)
     {
         var request = Request();
@@ -52,6 +55,9 @@ public sealed class CqlVirtualProjectionTests
         request.Filters[0].Value = JsonSerializer.SerializeToElement("$.*'\u0000\U0001F600");
         var match = Assert.Single(CqlV1Compiler.CompileVirtualProjection(request).Matches);
         Assert.Equal(function, match.Function);
+        Assert.Equal(operation is CqlV1Operator.NotContains or CqlV1Operator.NotStartsWith or CqlV1Operator.NotEndsWith
+            ? NextGenSoftware.OASIS.API.Core.Queries.CosmicQueryComparisonOperator.NotEqual
+            : NextGenSoftware.OASIS.API.Core.Queries.CosmicQueryComparisonOperator.Equal, match.Operator);
         Assert.Equal("$.*'\u0000\U0001F600", match.Value);
         request.Filters[0].Scalar = CqlV1Scalar.Integer;
         Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileVirtualProjection(request));

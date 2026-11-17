@@ -190,7 +190,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                         NativeRecordFunction.StartsWith => "STARTS WITH",
                         _ => "ENDS WITH"
                     };
-                    predicates.Add($"CASE WHEN {property} IS :: STRING THEN {property} {method} ${parameter} ELSE false END");
+                    var expression = $"CASE WHEN {property} IS NOT NULL AND {property} IS :: STRING THEN {property} {method} ${parameter} ELSE false END";
+                    predicates.Add(match.Operator == CosmicQueryComparisonOperator.NotEqual ? $"NOT ({expression})" : expression);
                 }
                 else
                     predicates.Add($"{property} IS :: {type} AND {property} {symbol} ${parameter}");

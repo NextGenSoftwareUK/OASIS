@@ -186,8 +186,11 @@ public partial class MongoDBOASIS : INativeDataQueryProvider
                     NativeRecordFunction.StartsWith => CosmicQueryStringOperator.StartsWith,
                     _ => CosmicQueryStringOperator.EndsWith
                 };
-                filters.Add(new BsonDocument("$expr", MongoCqlTranslator.OrdinalStringMatch(
-                    new BsonString("$" + match.Field), operation, (string)match.Value)));
+                var expression = MongoCqlTranslator.OrdinalStringMatch(
+                    new BsonString("$" + match.Field), operation, (string)match.Value);
+                if (match.Operator == CosmicQueryComparisonOperator.NotEqual)
+                    expression = new BsonDocument("$not", new BsonArray { expression });
+                filters.Add(new BsonDocument("$expr", expression));
                 continue;
             }
             if (match.Function == NativeRecordFunction.Utf16Length)

@@ -208,7 +208,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                         predicates.Add($"CASE WHEN typeof({column}) = 'text' THEN {SqliteCqlReadBudget.TextStringLengthFunction}({column}) {symbol} $match{index} ELSE 0 END");
                     else if (match.Function is NativeRecordFunction.Contains or NativeRecordFunction.StartsWith or NativeRecordFunction.EndsWith)
                     {
-                        predicates.Add($"CASE WHEN typeof({column}) = 'text' THEN {SqliteCqlReadBudget.TextStringMatchFunction}({column}, $match{index}, $function{index}) ELSE 0 END");
+                        var expression = $"CASE WHEN typeof({column}) = 'text' THEN {SqliteCqlReadBudget.TextStringMatchFunction}({column}, $match{index}, $function{index}) ELSE 0 END";
+                        predicates.Add(match.Operator == CosmicQueryComparisonOperator.NotEqual ? $"NOT ({expression})" : expression);
                         command.Parameters.AddWithValue($"$function{index}", (long)match.Function);
                     }
                     else
@@ -225,36 +226,46 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     $"WHERE {string.Join(" AND ", predicates)} ORDER BY rowid LIMIT $take";
                 command.Parameters.AddWithValue("$take", limit);
 
-                var records = new List<NativeRecord>(limit);
-                long remainingBytes = 1024 * 1024;
-                using var reader = await command.ExecuteReaderAsync(cancellationToken);
-                while (await reader.ReadAsync(cancellationToken))
+                try
                 {
-                    budget.Check();
-                    var values = new Dictionary<string, object>(StringComparer.Ordinal);
-                    for (var index = 0; index < projected.Length; index++)
+                    var records = new List<NativeRecord>(limit);
+                    long remainingBytes = 1024 * 1024;
+                    using var reader = await command.ExecuteReaderAsync(cancellationToken);
+                    while (await reader.ReadAsync(cancellationToken))
                     {
-                        var value = reader.GetValue(index + 1);
-                        remainingBytes -= value switch
+                        budget.Check();
+                        var values = new Dictionary<string, object>(StringComparer.Ordinal);
+                        for (var index = 0; index < projected.Length; index++)
                         {
-                            string text => System.Text.Encoding.UTF8.GetByteCount(text),
-                            byte[] bytes => ((bytes.LongLength + 2) / 3) * 4,
-                            _ => sizeof(long)
-                        };
-                        if (remainingBytes < 0)
-                            return Error("NATIVE_QUERY_PAYLOAD_LIMIT", "The native SQLite projection exceeds the virtual query byte limit.");
-                        values.Add(projected[index], ToScalar(value));
+                            var value = reader.GetValue(index + 1);
+                            remainingBytes -= value switch
+                            {
+                                string text => System.Text.Encoding.UTF8.GetByteCount(text),
+                                byte[] bytes => ((bytes.LongLength + 2) / 3) * 4,
+                                _ => sizeof(long)
+                            };
+                            if (remainingBytes < 0)
+                                return Error("NATIVE_QUERY_PAYLOAD_LIMIT", "The native SQLite projection exceeds the virtual query byte limit.");
+                            values.Add(projected[index], ToScalar(value));
+                        }
+                        var key = keyColumns.Length == 0
+                            ? "rowid:" + reader.GetInt64(0).ToString(System.Globalization.CultureInfo.InvariantCulture)
+                            : System.Text.Json.JsonSerializer.Serialize(keyColumns.Select(name => values[name]));
+                        records.Add(new NativeRecord(sourceName, key, fields.ToDictionary(field => field,
+                            field => values[field], StringComparer.Ordinal)));
                     }
-                    var key = keyColumns.Length == 0
-                        ? "rowid:" + reader.GetInt64(0).ToString(System.Globalization.CultureInfo.InvariantCulture)
-                        : System.Text.Json.JsonSerializer.Serialize(keyColumns.Select(name => values[name]));
-                    records.Add(new NativeRecord(sourceName, key, fields.ToDictionary(field => field,
-                        field => values[field], StringComparer.Ordinal)));
+                    budget.Check();
+                    result.Result = records.AsReadOnly();
+                    result.IsLoaded = true;
+                    return result;
                 }
-                budget.Check();
-                result.Result = records.AsReadOnly();
-                result.IsLoaded = true;
-                return result;
+                catch (SqliteException)
+                {
+                    // Re-throw the original managed budget/domain error captured at
+                    // the native callback boundary; unrelated SQLite errors remain SQLite errors.
+                    budget.Check();
+                    throw;
+                }
             }
             catch (SqliteCqlDeadlineException)
             {
