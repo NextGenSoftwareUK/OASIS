@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Railway WEB4 dev dd9989649bca passed the shipping OPORTAL SDK address-only Solana link and signed wallet readback. Exactly one link was present and neither the link response nor readback supplied a recovery phrase. Clearing the disposable wallet list and self-deleting the avatar were acknowledged. No on-chain transaction was sent. Wallet signing and mainnet valuation remain open.
+
 2026-11-17 UTC — Scoped OPORTAL conversation fix e8669520a73e is staged over dev 016e2b815c75 with the tested script and cache key 20261117s. The next portal dev push window opens 17:24:24 UTC. Exact Messaging backend contracts 44131477682 and image 44131607608 remained active.
 
 2026-11-17 UTC — OPORTAL task fb9e6c3 groups received and sent messages by the other participant and counts only unread messages addressed to the active avatar. The controlled check covered mixed-case participant IDs, a sent latest preview, received-only unread and excluding unrelated messages. Dev promotion and signed round-trip verification remain open. No files or backend fixtures were created by the check.
