@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL dev advanced to 7060badbee82 after the 16:22:50 UTC window. Hosted /hyperdrive references 20261117q and the served JavaScript exactly matches the tested Git blob. The earlier signed controlled popup check used this same script. Full browser acceptance remains open.
+
 2026-11-17 UTC — Exact staged HyperDrive popup 7060badbee82 ran with the shipping OPORTAL SDK, a real signed Railway WEB4 dev session and an in-memory DOM. It made exactly two calls: metrics HTTP 200 in 299 ms and status HTTP 200 in 309 ms. It rendered 18 provider cards with observed measurements and the actual mode label OASISHyperDrive2. A probe assertion expected the shorthand V2 and exited nonzero after those observations. Self-delete was acknowledged. Real browser verification remains open.
 
 2026-11-17 UTC — Staged OPORTAL HyperDrive metrics feedback on exact dev candidate 7060badbee82 over fda20d957de4. The candidate contains the byte-identical focused-tested script and the sole shell change is its cache key 20261117q. The next confirmed portal dev write window is 16:22:50 UTC. Combined backend contracts and image were still compiling at review.
