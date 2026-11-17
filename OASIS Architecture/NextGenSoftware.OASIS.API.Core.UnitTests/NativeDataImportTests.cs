@@ -37,6 +37,17 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
             Assert.Equal(fetched, next.FetchedAt);
             Assert.Single(first.MetaData);
             Assert.Equal("fresh", first.MetaData["Name"]);
+            var snapshot = first.PrepareSnapshot(Owner);
+            Assert.Equal(first.Id, snapshot.Id);
+            Assert.Equal(Owner, snapshot.CreatedByAvatarId);
+            Assert.False(snapshot.IsPublic);
+            Assert.Equal("fresh", snapshot.MetaData["Name"]);
+            Assert.False(snapshot.MetaData.ContainsKey("secret"));
+            var provenance = Assert.IsType<Dictionary<string, object>>(snapshot.MetaData["oasis.virtual.snapshot"]);
+            Assert.Equal(mapping.ToString("D"), provenance["mappingId"]);
+            Assert.Equal(1, provenance["mappingVersion"]);
+            Assert.Equal("MongoDBOASIS", provenance["provider"]);
+            Assert.Throws<ArgumentException>(() => first.PrepareSnapshot(Guid.NewGuid()));
             Assert.NotEqual(first.Id, VirtualHolonRead.FromNative(Guid.NewGuid(), ProviderType.MongoDBOASIS,
                 mapping, 1, connection, "people", fetched, row, fields).Id);
             Assert.Throws<ArgumentException>(() => VirtualHolonRead.FromNative(Owner, ProviderType.MongoDBOASIS,

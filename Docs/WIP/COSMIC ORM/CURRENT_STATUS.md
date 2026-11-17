@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. The hybrid snapshot candidate prepares one private Holon from a selected, freshly queried, owned Virtual Holon row. It keeps the existing logical ID and adds the mapping revision, source and fetch time. The caller must use the existing conditional Holon save to persist it. Preparation performs no save or replication. Source qualification and live browser integration are pending.
+
 17 November UTC. Development published the qualified three-attempt mixed CQL source 5af519f1c0c7 with its saved admission settings. Live verification awaits Railway deployment f9aad765-1c65-4844-af13-759d2d1eb2e2. The feature branch also has a follow-on mapping revision candidate. Virtual read provenance uses the version committed by the definition's authoritative Holon store, which prevents edited metadata from claiming a different revision. This follow-on is outside the active deployment.
 
 17 November UTC. Exact mixed-route candidate 5af519f1c0c7 is in [source qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44066969648) and [image qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44066975783). The matching website source 42f1935baabc passed all 285 tests. The API guide now records the request example, provenance, and route budgets. Development still requires the qualified revision, saved admission policy, and live browser verification.
