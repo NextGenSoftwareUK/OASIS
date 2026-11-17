@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Ran the combined popup candidate checks in memory. The temporary Git index was removed on exit. No local dependencies, reports or build outputs were generated.
+
 2026-11-17 UTC — Read the My Eggs TRX directly from its archived bytes in memory and automatically removed the disposable Git index used to compose the shallow-read test candidate. No local build, test archive or environment was retained.
 
 2026-11-17 UTC — Exact Clan and My Eggs candidate composition used disposable Git indexes that were removed automatically. Regression checks and CI log review used memory. No installs, builds or test downloads were retained locally.
