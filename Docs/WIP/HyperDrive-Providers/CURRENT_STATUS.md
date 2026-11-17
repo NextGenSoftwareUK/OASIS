@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — The [Turso native point-read test](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44025926242) passed. Parent collection qualification is in [run 44026297710](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44026297710). Turso search now propagates native read errors and reports an empty result only after a successful read. The new isolated test temporarily renames the fixture table and verifies the distinction. Full search filter coverage remains open.
+
 2026-11-17 UTC — Turso parent collection reads now expand all selected child trees in one indexed native traversal when requested. Direct child type filters apply to the returned roots, and nested children retain their own types. Flat parent reads keep their existing select. Native qualification covers typed, bounded and flat entry points. Full collection and metadata child expansion remain open.
 
 2026-11-17 UTC — Turso point reads now honor explicit child loading through one recursive, depth-limited libSQL query. Flat reads still use the single-row query. In-memory SQLite confirmed depth limits, exclusion of deleted subtrees and cycle termination. Native sync and async entry-point qualification is pending. Collection child expansion and historical payload acceptance remain open.

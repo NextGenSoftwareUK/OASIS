@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.TursoOASIS;
 using NextGenSoftware.OASIS.Providers.TestSupport;
@@ -197,6 +198,32 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             var afterDelete = await _provider.LoadHolonAsync(root.Id, loadChildren: true);
             Assert.IsTrue(afterDelete.IsLoaded, afterDelete.Message);
             Assert.AreEqual(0, afterDelete.Result!.Children.Count);
+        }
+
+        [TestMethod]
+        [DoNotParallelize]
+        public async Task NativeSearchDoesNotTreatSqlFailureAsEmptyResults()
+        {
+            RequireOwnedFixture();
+            using var client = new HttpClient();
+            var query = new SearchParams();
+            var empty = await _provider.SearchAsync(query, loadChildren: false);
+            Assert.IsTrue(empty.IsLoaded, empty.Message);
+            Assert.AreEqual(0, empty.LoadedCount);
+
+            await ExecuteFixtureSql(client, "ALTER TABLE oasis_holons RENAME TO oasis_test_unavailable_holons");
+            try
+            {
+                var failed = await _provider.SearchAsync(query, loadChildren: false);
+                Assert.IsTrue(failed.IsError);
+                Assert.IsFalse(failed.IsLoaded);
+                Assert.IsNull(failed.Result);
+                Assert.IsNotNull(failed.Exception);
+            }
+            finally
+            {
+                await ExecuteFixtureSql(client, "ALTER TABLE oasis_test_unavailable_holons RENAME TO oasis_holons");
+            }
         }
 
         private void RequireOwnedFixture()

@@ -730,11 +730,20 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             try
             {
                 string? q = searchParams.SearchGroups?.OfType<SearchTextGroup>().FirstOrDefault()?.SearchQuery?.ToLower();
-                var all = await LoadAllHolonsAsync();
+                var all = await LoadAllHolonsAsync(loadChildren: loadChildren, recursive: recursive,
+                    maxChildDepth: maxChildDepth, continueOnError: continueOnError, version: version).ConfigureAwait(false);
+                if (all.IsError)
+                    return new OASISResult<ISearchResults>
+                    {
+                        IsError = true, ErrorCount = all.ErrorCount, ErrorCode = all.ErrorCode,
+                        Exception = all.Exception, Message = all.Message
+                    };
                 var holons = all.Result?.ToList() ?? new List<IHolon>();
                 if (!string.IsNullOrEmpty(q)) holons = holons.Where(h => h.Name?.ToLower().Contains(q) == true || h.Description?.ToLower().Contains(q) == true).ToList();
                 result.Result = new SearchResults { SearchResultHolons = holons, NumberOfResults = holons.Count };
-                result.IsError = false; result.Message = $"TursoOASIS: Found {holons.Count} holon(s).";
+                result.IsLoaded = true;
+                result.LoadedCount = holons.Count;
+                result.Message = $"TursoOASIS: Found {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
