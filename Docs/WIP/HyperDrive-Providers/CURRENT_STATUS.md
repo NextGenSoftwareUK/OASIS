@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Staged OPORTAL HyperDrive metrics feedback on exact dev candidate 7060badbee82 over fda20d957de4. The candidate contains the byte-identical focused-tested script and the sole shell change is its cache key 20261117q. The next confirmed portal dev write window is 16:22:50 UTC. Combined backend contracts and image were still compiling at review.
+
 2026-11-17 UTC — Messaging contracts 44121234095 passed with the corrected settings fixture. Exact [combined contracts](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44123847813) and [combined image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44122674423) are running on dd9989649bca. OPORTAL task eb0044b makes HyperDrive metrics loading, failure and an empty successful response visibly distinct while routing status renders independently. The focused in-memory check passed the delayed response, rejection, empty result and successful refresh cases. OPORTAL dev promotion and signed browser acceptance remain open. No local artifacts or test records were created.
 
 2026-11-17 UTC — The shared WEB4 image slot was available. Dispatched [exact combined Messaging, Wallet and CQL image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44122674423) on dd9989649bca. It is running. The preceding Messaging contract run 44121234095 was still building the WEB4 controller artifact at review. No local build or fixture was created and Development stayed at ffb6084cbd13.

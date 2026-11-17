@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed the temporary Git index for the scoped HyperDrive popup release. The focused popup test used memory and created no local build output or backend fixtures.
+
 2026-11-17 UTC — Staged the Messaging and CQL merge using Git objects and removed its temporary index. No checkout, downloaded build output or test fixtures were retained.
 
 2026-11-17 UTC — Read selected Messaging CI log lines in memory and removed the temporary Git index used for the corrected fixture commit. No local log archive, dependency or test output was retained.
