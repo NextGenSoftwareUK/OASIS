@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Exact Turso run 44042401831 confirmed removal of its owned libSQL container, database and test output. Hosted OPORTAL release bytes and production/dev OpenAPI checks ran in memory with no local output files.
+
 2026-11-17 UTC — Removed the temporary index from the Turso identity requalification over current Development. The exact candidate uses a Git ref with no separate worktree. Native and image qualification use hosted runners. WEB4 OpenAPI inspection retained no file and made no signup request. C: had 23.65 GiB free.
 
 2026-11-17 UTC — The WEB4 signup validation check submitted an empty payload that failed model validation and created no user. Both live responses and exact test fixtures were read in memory. The replacement dev candidate removed its temporary Git index.
