@@ -30,6 +30,50 @@ zero source-row Holons or replication obligations. Follow with virtual plus mate
 federation, explicit snapshots and opt-in hybrid caching. Grow provider coverage using
 each provider's verified operation capabilities.
 
+### One world of data
+
+CQL gives an application one query language for the data it is authorized to
+use across connected sources. Each source keeps its own records, permissions,
+and update lifecycle. OASIS can store a collection-level schema and field map
+once, then resolve matching rows through the provider when queried. When a
+workflow needs a stored copy, it can save that record as a full Holon and
+configure HyperDrive replication for it.
+
+- **Supply chain.** Keep a product catalog at a supplier and store purchase
+  orders as owned Holons. A CQL view can bring supplier details and owned
+  orders together by an approved product key where the query and provider
+  support that relationship. Save a supplier record when an audit needs an
+  exact historical snapshot.
+- **Large files and media.** Map document titles, tags, file sizes and source
+  IDs from an object store. Search those fields through CQL and fetch the
+  original file from the source when opened. Materialize selected documents
+  when the workflow needs to retain and replicate their contents.
+- **Frequently read records.** Keep a large supplier catalog virtual, cache
+  popular records within a freshness and size policy, and persist selected
+  records as full Holons. An app or avatar owner can choose those policies in
+  the planned OPORTAL controls.
+
+The storage saving depends on what is copied. A field map stores definitions
+such as the source field, CQL field and type once per collection. A source ID
+or locally indexed metadata can add storage per row. Copying most values into
+local metadata or indexes can approach the size of a full import for small
+records. Leaving large payloads, attachments and seldom-used values at the
+source avoids storing and replicating those bytes in OASIS.
+
+HyperDrive can replicate full Holons and use eligible replicas for failover
+or load balancing according to policy. A virtual read still depends on an
+authorized and reachable source, or on a cache or equivalent source replica
+that satisfies the query's freshness and completeness requirements. A partial
+replica result cannot stand in for a complete collection. Source permissions
+and provider capabilities determine which fields and operations are available.
+
+The WEB4 demo uses the same CQL query to return matching stored and virtual
+rows, including provenance. Saving a virtual row creates an owned snapshot
+that can appear in a later query without duplicating its logical record.
+General cross-source joins, automatic hybrid placement, and OPORTAL controls
+are roadmap scope. See [current verification](CURRENT_STATUS.md) for the
+specific sandbox flows that have been verified.
+
 ### WEB4 sandbox acceptance
 
 Expose Full import and Virtual mapping in the sandbox import flow. Full import
