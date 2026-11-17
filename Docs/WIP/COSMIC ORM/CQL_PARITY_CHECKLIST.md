@@ -133,7 +133,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | Q06 | Field-to-field comparisons | [✅][O] | [✅][O] | [✅][O] | **DEMO** — Native true/false Int64 path comparisons, canonical-to-metadata Guid and canonical field equality; examples 64–67. Declared path domains only. [All-three native gate][G]. |
 | Q07 | Contains membership over bounded constant sets | [✅][O] | [✅][O] | [✅][O] | **DEMO** — Bounded name/Int64 sets, empty sets, duplicate constants and exact >2^53 values; examples 68–71. [All-three native gate][G]. |
 | Q08 | String Contains/StartsWith/EndsWith translation | [✅][O] | [✅][O] | [✅][O] | **DEMO** — Ordinal Contains/StartsWith/EndsWith: literal metacharacters, empty patterns, case/normalization sensitivity and Unicode fixture; examples 72–88. No culture/ignore-case overload claim. [All-three native gate][G]. |
-| Q09 | String length/case/substring/trim/replace functions | ❌ | ❌ | ❌ | Next implementation starts with UTF-16 string length. Native proof must cover supplementary characters, combining sequences, embedded NUL, empty/missing/null values, typed metadata and filtering before paging. .NET counts UTF-16 units including NUL, MongoDB $strLenCP counts code points, SQLite length stops at NUL, and Neo4j size counts Unicode characters. Direct substitution is insufficient for the .NET contract. See the string-function contract below. |
+| Q09 | String length/case/substring/trim/replace functions | ❌ | ❌ | ❌ | UTF-16 length in entity source predicates passed 27 native cases per store, alongside 66 existing cases, on 284391263af1 in [44149979612](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44149979612). Six comparisons, canonical and typed metadata fields, Unicode/NUL, domain guards and paging are covered. SQL-like text length, projected length and remaining string functions are open. See the contract and measurements below. |
 | Q10 | Native selected scalar columns / flat records | [✅][D10] | [✅][D10] | [✅][D10] | V1 example10; this is not arbitrary DTO construction. |
 | Q11 | Arbitrary constructor/record/member-init DTO materialization | ❌ | ❌ | ❌ | [Native fixture step](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43624999099/job/132538761529) passed 47 checks per store on candidate 32d5323d06b0, including public positional record projection and exact Int64 constructor binding. [Native fixture step](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43628972019/job/132551098949) passed all 48 checks per store on 712f05c9703e, including a positional record with an init-only property populated from Version. The [Development candidate native gate](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43656275077) passed 50 checks per store including a DTO constructor binding exact Int64 to a read-only public field. [51 native checks per store](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43660806755) also prove constructor inputs without matching member names and a computed DTO result. [Native CI on the current Development graph](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43700814299) passed 53 fixture assertions per store, including a nested DTO constructor and init-only fields from exact native scalar cells. [Exact protocol run 43705396868](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43705396868) passed 54 assertions and fixture cleanup per store, including a nested anonymous member used in a later filter, order and reselection. The full row remains open for broader DTO expressions and post-projection composition over computed members. |
 | Q12 | OrderBy/OrderByDescending with declared scalar domains | [✅][F] | [✅][F] | [✅][F] | Native federation order/tie cases and SDK demo. |
@@ -475,6 +475,23 @@ Provider-breadth milestone1November2026: [ChainLink hosted proof](CHAINLINK_PUBL
 
 
 ### Q09 string-function contract
+
+The native qualification for 284391263af1 passed 93 checks per store, including
+27 new UTF-16 length cases. The retained reports verified exact cleanup for MongoDB
+and Neo4j and disposal of the SQLite in-memory fixture. The table gives measured
+reads over the small owned CI fixtures, including the query execution and result
+materialization. Hosted performance remains a separate measurement.
+[Native evidence](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44149979612).
+
+| Provider | Median (ms) | 95th percentile (ms) | Maximum (ms) |
+| --- | --- | --- | --- |
+| MongoDB | 3 | 5 | 5 |
+| SQLite | 5 | 7 | 7 |
+| Neo4j | 111 | 132 | 137 |
+
+Combined candidate 9824693586e1 preserves the concurrent Chat changes and is under
+fresh qualification in 44154143969. The full Q09 row remains open.
+
 
 The first length translation preserves the observable .NET String.Length result on
 admitted strings. A supplementary character such as U+1F600 has length 2. The
