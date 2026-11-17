@@ -88,6 +88,7 @@ public static partial class CqlV1Endpoint
             return Failure(native.ErrorCode switch
             {
                 "VIRTUAL_MAPPING_NOT_FOUND" => 404,
+                "NATIVE_QUERY_PAYLOAD_LIMIT" => 413,
                 "VIRTUAL_HOLON_QUERY_INVALID" or "NATIVE_QUERY_INVALID" or "VIRTUAL_HOLON_CONNECTION_CHANGED" => 400,
                 _ => 503
             }, native.ErrorCode, native.Message);

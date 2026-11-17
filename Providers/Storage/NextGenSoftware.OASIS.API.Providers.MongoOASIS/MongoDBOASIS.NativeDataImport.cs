@@ -177,12 +177,32 @@ public partial class MongoDBOASIS : INativeDataQueryProvider
             foreach (var field in fields)
                 projection.Add(field, 1);
 
-            var documents = await resolved.Database.GetCollection<BsonDocument>(sourceName)
-                .Find(filter, new FindOptions { MaxTime = NativeOperationLimit, Collation = new Collation("simple") })
+            const int maximumProjectionBytes = 1024 * 1024;
+            using var cursor = await resolved.Database.GetCollection<BsonDocument>(sourceName)
+                .Find(filter, new FindOptions
+                {
+                    MaxTime = NativeOperationLimit,
+                    Collation = new Collation("simple"),
+                    BatchSize = 8
+                })
                 .Sort(Builders<BsonDocument>.Sort.Ascending("_id"))
                 .Limit(limit).Project<BsonDocument>(projection)
-                .ToListAsync(cancellationToken).ConfigureAwait(false);
-            result.Result = documents.Select(document => ToNativeRecord(sourceName, document)).ToArray();
+                .ToCursorAsync(cancellationToken).ConfigureAwait(false);
+            var records = new List<NativeRecord>(limit);
+            var remainingBytes = maximumProjectionBytes;
+            while (await cursor.MoveNextAsync(cancellationToken).ConfigureAwait(false))
+            {
+                foreach (var document in cursor.Current)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    remainingBytes -= document.ToBson().Length;
+                    if (remainingBytes < 0)
+                        return Refuse(result, "The projected native MongoDB data exceeds the virtual query byte limit.",
+                            "NATIVE_QUERY_PAYLOAD_LIMIT");
+                    records.Add(ToNativeRecord(sourceName, document));
+                }
+            }
+            result.Result = records.AsReadOnly();
             result.IsLoaded = true;
             return result;
         }

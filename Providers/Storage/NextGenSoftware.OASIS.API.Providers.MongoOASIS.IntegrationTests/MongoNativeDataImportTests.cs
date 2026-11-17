@@ -121,6 +121,16 @@ public sealed class MongoNativeDataImportTests
             Assert.Equal("fresh", Assert.Single(refreshed.Result).Fields["label"]);
             Assert.Equal(selected.Result[0].NativeKey, refreshed.Result[0].NativeKey);
             Assert.Equal(4L, await items.CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+
+            await items.InsertManyAsync(new[]
+            {
+                new BsonDocument { { "_id", 5 }, { "code", "large" }, { "label", new string('a', 600_000) } },
+                new BsonDocument { { "_id", 6 }, { "code", "large" }, { "label", new string('b', 600_000) } }
+            });
+            var oversized = await provider.QueryNativeRecordsAsync("virtual_items", "code", "large", new[] { "label" }, 2);
+            Assert.Equal("NATIVE_QUERY_PAYLOAD_LIMIT", oversized.ErrorCode);
+            Assert.Null(oversized.Result);
+
             Assert.Equal("NATIVE_QUERY_INVALID",
                 (await provider.QueryNativeRecordsAsync("virtual_items", "$secret", "private", new[] { "label" }, 1)).ErrorCode);
 
