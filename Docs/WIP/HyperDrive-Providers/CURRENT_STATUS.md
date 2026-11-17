@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — [Native Turso owner export qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44030358459) passed. It proved owner-only results and distinct missing-owner and database-failure outcomes for the supported aliases. All seven Railway dev services reported SUCCESS for predecessor `b226ff3740c1` from 05:58:45 UTC. The [combined Turso image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44028920352) is building. The next shared Development review starts at 06:28:45 UTC.
+
 2026-11-17 UTC — Turso exports by username and email now preserve lookup errors and only export data after resolving a live owner. The native regression covers exclusion of foreign data, `RecordNotFound` for an unknown alias, and propagation of a database failure. Native qualification is pending.
 
 2026-11-17 UTC — Turso verification, password-reset and refresh token lookups now bind the credential in libSQL and return at most two matching live rows. This removes the full avatar payload transfer and preserves missing, ambiguous, invalid and historical-selector errors. Native qualification is pending. The SQL predicates still scan native records and were not benchmarked at managed scale.
