@@ -320,6 +320,27 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
                     throw new InvalidDataException("PocketBase lookup returned another logical identity.");
 
                 var path = $"{_baseUrl}/api/collections/oasis_avatars/records/{rec.Id}";
+                var detail = softDelete ? null : await GetFirstAsync("oasis_avatar_details", $"oasis_id='{id}'");
+                if (detail != null)
+                {
+                    if (detail.OasisId != rec.OasisId)
+                        throw new InvalidDataException("PocketBase returned an avatar detail for another identity.");
+                    using var batch = await _http.PostAsync($"{_baseUrl}/api/batch", JsonContent(new
+                    {
+                        requests = new[]
+                        {
+                            new { method = "DELETE", url = $"/api/collections/oasis_avatars/records/{Uri.EscapeDataString(rec.Id)}" },
+                            new { method = "DELETE", url = $"/api/collections/oasis_avatar_details/records/{Uri.EscapeDataString(detail.Id)}" }
+                        }
+                    }));
+                    batch.EnsureSuccessStatusCode();
+                    using var receipt = JsonDocument.Parse(await batch.Content.ReadAsStringAsync());
+                    if (receipt.RootElement.ValueKind != JsonValueKind.Array || receipt.RootElement.GetArrayLength() != 2 ||
+                        receipt.RootElement.EnumerateArray().Any(item => !item.TryGetProperty("status", out var status) ||
+                            !status.TryGetInt32(out var code) || code != 204))
+                        throw new InvalidDataException("PocketBase did not acknowledge both record deletes.");
+                    return new OASISResult<bool> { Result = true, IsDeleted = true, DeletedCount = 1 };
+                }
                 using var response = softDelete
                     ? await _http.PatchAsync(path, JsonContent(new { is_deleted = true }))
                     : await _http.DeleteAsync(path);

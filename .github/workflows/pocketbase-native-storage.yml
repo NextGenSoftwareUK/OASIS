@@ -143,17 +143,18 @@ jobs:
           from urllib.request import Request, urlopen
 
           base = os.environ["POCKETBASEOASIS_BASEURL"]
-          def post(path, value, token=None):
+          def post(path, value, token=None, method="POST"):
               headers = {"Content-Type": "application/json"}
               if token:
                   headers["Authorization"] = token
-              with urlopen(Request(base + path, data=json.dumps(value).encode(), headers=headers), timeout=15) as response:
+              with urlopen(Request(base + path, data=json.dumps(value).encode(), headers=headers, method=method), timeout=15) as response:
                   return json.load(response)
 
           token = post("/api/collections/_superusers/auth-with-password", {
               "identity": os.environ["POCKETBASEOASIS_ADMINEMAIL"],
               "password": os.environ["POCKETBASEOASIS_ADMINPASSWORD"],
           })["token"]
+          post("/api/settings", {"batch": {"enabled": True, "maxRequests": 2, "timeout": 3, "maxBodySize": 65536}}, token, "PATCH")
           for collection, fields in {
               "oasis_avatars": {"username": "text", "email": "text", "is_deleted": "bool"},
               "oasis_avatar_details": {"username": "text", "email": "text"},
