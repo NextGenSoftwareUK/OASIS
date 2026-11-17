@@ -19,6 +19,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
@@ -458,28 +459,38 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
 
         // ─── Holon saving ─────────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, 0);
+
+        private async Task<OASISResult<IHolon>> SaveHolonGraphAsync(IHolon holon, bool saveChildren, bool recursive, int maxChildDepth, int currentDepth)
         {
             var result = new OASISResult<IHolon>();
             try
             {
-                ArgumentNullException.ThrowIfNull(holon);
-                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
-                // Serialize a detached projection using the same canonical codec.
-                // Failed/uncertain writes cannot publish a new ID or provider key.
-                var canonical = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
-                canonical["id"] = id.ToString("D");
-                var keys = canonical["providerUniqueStorageKey"]?.AsObject() ?? new JsonObject();
-                keys["PocketBaseOASIS"] = id.ToString("D");
-                canonical["providerUniqueStorageKey"] = keys;
-                var row = new { oasis_id = id.ToString("D"), parent_holon_id = holon.ParentHolonId == Guid.Empty ? "" : holon.ParentHolonId.ToString(),
-                    holon_type = (int)holon.HolonType, is_deleted = holon.IsDeleted, data_json = canonical.ToJsonString(_jsonOpts) };
-                await UpsertAsync("oasis_holons", id.ToString("D"), row);
-                holon.Id = id;
-                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.PocketBaseOASIS] = id.ToString("D");
-                result.Result = holon; result.IsSaved = true; result.SavedCount = 1;
-                result.Message = $"PocketBaseOASIS: Holon '{holon.Name}' saved.";
+                var plan = HolonGraphWritePlan.CreateForSave(new[] { holon }, saveChildren, recursive, maxChildDepth, currentDepth);
+                foreach (var node in plan.Nodes)
+                {
+                    var snapshot = node.Snapshot;
+                    var id = snapshot.Id.ToString("D");
+                    snapshot.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                    snapshot.ProviderUniqueStorageKey[Core.Enums.ProviderType.PocketBaseOASIS] = id;
+                    var row = new
+                    {
+                        oasis_id = id,
+                        parent_holon_id = snapshot.ParentHolonId == Guid.Empty ? "" : snapshot.ParentHolonId.ToString("D"),
+                        holon_type = (int)snapshot.HolonType,
+                        is_deleted = snapshot.IsDeleted,
+                        data_json = Serialize(snapshot)
+                    };
+                    await UpsertAsync("oasis_holons", id, row).ConfigureAwait(false);
+                    node.Source.Id = snapshot.Id;
+                    node.Source.ParentHolonId = snapshot.ParentHolonId;
+                    node.Source.ProviderUniqueStorageKey = snapshot.ProviderUniqueStorageKey;
+                    result.Result = holon;
+                    result.IsSaved = true;
+                    result.SavedCount++;
+                }
+                result.Message = $"PocketBaseOASIS: {result.SavedCount} holon(s) saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error saving holon '{holon?.Name}': {ex.Message}"); }
             return result;
@@ -495,23 +506,25 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             var errors = new List<string>();
             foreach (var holon in holons)
             {
-                var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                var write = await SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth).ConfigureAwait(false);
+                if (write.IsSaved && write.Result != null)
+                {
+                    saved.Add(write.Result);
+                    result.SavedCount += write.SavedCount;
+                }
                 if (write.IsError)
                 {
                     errors.Add(write.Message);
                     result.Exception ??= write.Exception;
                     if (!continueOnError) break;
                 }
-                else if (write.IsSaved && write.Result != null)
-                    saved.Add(write.Result);
             }
 
             result.Result = saved;
             result.IsSaved = saved.Count > 0;
-            result.SavedCount = saved.Count;
             result.IsError = errors.Count > 0;
             result.ErrorCount = errors.Count;
-            result.Message = result.IsError ? string.Join("; ", errors) : $"PocketBaseOASIS: {saved.Count} holon(s) saved.";
+            result.Message = result.IsError ? string.Join("; ", errors) : $"PocketBaseOASIS: {result.SavedCount} holon(s) saved.";
             return result;
         }
 

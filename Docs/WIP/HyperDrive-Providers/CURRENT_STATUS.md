@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — PocketBase's [first shared native run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44033221728) passed nine checks in each mode and stopped at graph save. The shipping adapter now plans and writes each selected node with its native parent key and publishes identities and counts only for acknowledged writes. The existing batch stop-on-error contract reports the committed prefix. Exact native requalification is pending.
+
 2026-11-17 UTC — After checking the COSMIC worktree's status, PocketBase now runs the shared 26-check storage suite in both modes against the existing isolated official server. The test independently reads owned soft-deleted records and hard-cleans only those IDs over native REST. Baseline results are pending. The five previously qualified focused cases retain their existing evidence.
 
 2026-11-17 UTC — [Exact Turso native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44032246323) passed both 26-check modes, avatar deletion rollback, and wallet selectors on `fc64cdd43585`, with zero skips and verified runner cleanup. The [shared image queue](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44032542851) has another pending build, so the Turso follow-up image has yet to be dispatched. The preceding Railway rollout is still in progress.
