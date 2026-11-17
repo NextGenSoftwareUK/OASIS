@@ -234,6 +234,36 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
         }
 
         [Fact]
+        public async Task InvalidNativeTextCannotPublishPartialRowsOrPoisonTheNextRead()
+        {
+            var file = Path.Combine(_folder, "invalid-native-text.db");
+            Assert.False(File.Exists(file));
+            using (var connection = new SqliteConnection($"Data Source={file}"))
+            {
+                await connection.OpenAsync();
+                using var create = connection.CreateCommand();
+                create.CommandText = "CREATE TABLE records (id INTEGER PRIMARY KEY, label TEXT, value TEXT); " +
+                    "INSERT INTO records VALUES (1, 'good', 'valid'), (2, 'bad', CAST(X'80' AS TEXT));";
+                await create.ExecuteNonQueryAsync();
+            }
+            var before = File.ReadAllBytes(file);
+            var provider = new SQLLiteDBOASIS($"Data Source={OasisPath}")
+                { NativeImportConnectionString = $"Data Source={file}" };
+            var failed = await provider.QueryNativePredicateRecordsAsync("records",
+                new[] { new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, "", NativeRecordFunction.Contains) },
+                new[] { "label" }, 10);
+            Assert.True(failed.IsError);
+            Assert.Equal("NATIVE_QUERY_FAILED", failed.ErrorCode);
+            Assert.Null(failed.Result);
+            var next = await provider.QueryNativePredicateRecordsAsync("records",
+                new[] { new NativeRecordFilter("id", CosmicQueryComparisonOperator.Equal, 1L) },
+                new[] { "label" }, 1);
+            Assert.False(next.IsError, next.Message + next.Exception);
+            Assert.Equal("good", Assert.Single(next.Result).Fields["label"]);
+            Assert.Equal(before, File.ReadAllBytes(file));
+        }
+
+        [Fact]
         public async Task RefusesTheOasisDatabaseUnknownTablesAndMissingFiles()
         {
             var same = new SQLLiteDBOASIS($"Data Source={NativePath}") { NativeImportConnectionString = $"Data Source={NativePath}" };

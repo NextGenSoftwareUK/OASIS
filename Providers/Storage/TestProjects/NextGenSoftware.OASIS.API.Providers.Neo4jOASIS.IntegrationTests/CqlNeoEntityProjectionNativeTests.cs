@@ -108,13 +108,14 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             };
             foreach (var item in stringCases)
             {
+                var stringWatch = System.Diagnostics.Stopwatch.StartNew();
                 var read = await provider.QueryNativePredicateRecordsAsync(label,
                     new[] { new NativeRecordFilter(item.Field, CosmicQueryComparisonOperator.Equal, item.Value, item.Function) },
                     new[] { "name" }, item.Expected.Length == 1 ? 1 : 10);
                 Assert.IsFalse(read.IsError, read.Message + read.Exception);
                 CollectionAssert.AreEqual(item.Expected.OrderBy(value => value, StringComparer.Ordinal).ToArray(),
                     read.Result.Select(row => (string)row.Fields["name"]).OrderBy(value => value, StringComparer.Ordinal).ToArray());
-                checks.Add(new { provider = "Neo4jOASIS", nativePredicate = "ordinal string " + item.Function, literal = item.Value });
+                checks.Add(new { provider = "Neo4jOASIS", nativePredicate = "ordinal string " + item.Function, literal = item.Value, elapsedMilliseconds = stringWatch.ElapsedMilliseconds });
             }
             var negativeCases = new (NativeRecordFunction Function, string Field, string Value, string[] Expected)[]
             {
