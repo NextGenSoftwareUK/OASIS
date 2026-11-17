@@ -46,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         /// <summary>
         /// Load's a holon data object for the given id.
-        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
         /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
         /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
         /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -175,7 +175,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         /// <summary>
         /// Load's a holon data object for the given id.
-        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
         /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
         /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
         /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -205,7 +205,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         /// <summary>
         /// Load's a holon data object for the given id.
-        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
         /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
         /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
         /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -243,7 +243,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
       
         /// <summary>
         /// Load's a holon data object for the given id.
-        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
         /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
         /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
         /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -300,7 +300,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         /// <summary>
         /// Load's all holons for the given HolonType. Use 'All' to load all holons.
-        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
         /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
         /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
         /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -331,11 +331,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
                 try
                 {
+                    var manager = HolonManager;
+                    HolonRequestContext requestContext = null;
+                    if (configResult.RequestRoutingPolicy != null)
+                    {
+                        var context = manager.CreateRequestContext(configResult.RequestRoutingPolicy.ToOverrides(),
+                            configResult.RequestProviderType, routeDefaultProvider: configResult.RequestRoutingPolicy.AutoLoadBalancingEnabled);
+                        if (context.IsError)
+                        {
+                            var error = RequestContextError<IEnumerable<Holon>>(context);
+                            var status = HolonWriteEndpoint.Status(error);
+                            Response.StatusCode = (int)status;
+                            return HttpResponseHelper.FormatResponse(error, status, request.ShowDetailedSettings);
+                        }
+                        requestContext = context.Result;
+                        manager = requestContext.Manager;
+                    }
                     int safeMaxChildDepth = request.MaxChildDepth > 0 ? Math.Min(request.MaxChildDepth, 5) : 0;
-                    var result = await HolonManager.LoadAllHolonsAsync(holonType, request.LoadChildren, request.Recursive,
+                    var result = await manager.LoadAllHolonsAsync(holonType, request.LoadChildren, request.Recursive,
                         safeMaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType,
                         request.Version, avatarId: AvatarId, includePublic: request.IncludePublic);
-                    return FormatHolonListRead(result, request.ShowDetailedSettings);
+                    var formatted = FormatHolonListRead(result, request.ShowDetailedSettings);
+                    return requestContext == null ? formatted : formatted.BindRoutingPolicy(requestContext.Policy);
                 }
                 finally
                 {
@@ -375,7 +392,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         /// <summary>
         /// Load's all holons for the given HolonType. Use 'All' to load all holons.
-        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
         /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
         /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
         /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -414,7 +431,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
        
       /// <summary>
       /// Load's all holons for the given HolonType. Use 'All' to load all holons.
-      /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+      /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
       /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
       /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
       /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -450,7 +467,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
       /// <summary>
       /// Load's all holons for the given HolonType. Use 'All' to load all holons.
-      /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+      /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
       /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
       /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
       /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -507,7 +524,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
       /// <summary>
       /// Load's all holons for the given parent and the given HolonType. Use 'All' to load all holons.
-      /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+      /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
       /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
       /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
       /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -581,7 +598,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
       
      /// <summary>
      /// Load's all holons for the given parent and the given HolonType. Use 'All' to load all holons.
-     /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+     /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
      /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
      /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
      /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -621,7 +638,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
      /// <summary>
      /// Load's all holons for the given parent and the given HolonType. Use 'All' to load all holons.
-     /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+     /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
      /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
      /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
      /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -662,7 +679,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
      /// <summary>
      /// Load's all holons for the given parent and the given HolonType. Use 'All' to load all holons.
-     /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+     /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
      /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
      /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
      /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
