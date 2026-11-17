@@ -101,6 +101,16 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             var integer = await provider.QueryNativeRecordsAsync(label, "tier", 1L, new[] { "name" }, 2);
             Assert.IsFalse(integer.IsError, integer.Message);
             Assert.AreEqual("Alan", integer.Result.Single().Fields["name"]);
+
+            await (await inspection.RunAsync($"CREATE (:`{label}` {{ tier:'Gold', name:'Second Gold' }})")).ConsumeAsync();
+            var gold = await provider.QueryNativeRecordsAsync(label, "tier", "Gold", new[] { "name" }, 2);
+            Assert.IsFalse(gold.IsError, gold.Message);
+            Assert.AreEqual(2, gold.Result.Count);
+            var conjunction = await provider.QueryNativeRecordsAsync(label,
+                new[] { new KeyValuePair<string, object>("tier", "Gold"),
+                    new KeyValuePair<string, object>("name", gold.Result[1].Fields["name"]) }, new[] { "name" }, 1);
+            Assert.IsFalse(conjunction.IsError, conjunction.Message);
+            Assert.AreEqual(gold.Result[1].NativeKey, conjunction.Result.Single().NativeKey);
         }
         finally
         {
