@@ -460,6 +460,40 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 (parentId, parentId), (parentId, missingId), (missingId, parentId), (missingId, missingId)
             }, disjunctiveLinq.Result.Select(row => (row.Left, row.Right)).ToArray());
 
+        var groupedLinq = await flagRows.SelectMany(leftValue => flagRows.Where(rightValue =>
+                (rightValue.Id == leftValue.Id && rightValue.Version > leftValue.Version) ||
+                CosmicQueryMetadata.Value<bool?>(rightValue, "nullableJoinFlag") !=
+                CosmicQueryMetadata.Value<bool?>(leftValue, "nullableJoinFlag")),
+            (leftValue, rightValue) => new { Left = leftValue.Id, Right = rightValue.Id }).ToCosmicListAsync();
+        Assert.IsFalse(groupedLinq.IsError, groupedLinq.Message + groupedLinq.Exception);
+        CollectionAssert.AreEquivalent(new[] { (parentId, missingId), (missingId, parentId) },
+            groupedLinq.Result.Select(row => (row.Left, row.Right)).ToArray());
+
+        var parenthesizedLinq = await flagRows.SelectMany(leftValue => flagRows.Where(rightValue =>
+                rightValue.Id == leftValue.Id &&
+                (rightValue.Version > leftValue.Version ||
+                 CosmicQueryMetadata.Value<bool?>(rightValue, "nullableJoinFlag") !=
+                 CosmicQueryMetadata.Value<bool?>(leftValue, "nullableJoinFlag"))),
+            (leftValue, rightValue) => new { Left = leftValue.Id, Right = rightValue.Id }).ToCosmicListAsync();
+        Assert.IsFalse(parenthesizedLinq.IsError, parenthesizedLinq.Message + parenthesizedLinq.Exception);
+        Assert.AreEqual(0, parenthesizedLinq.Result.Count);
+
+        request.MatchAnyKey = false;
+        request.KeyGroupStarts = new[] { 0, 2 };
+        request.Right.Filters = new[] { KeySet(new[] { lowerId, missingId }) };
+        request.Keys = new[]
+        {
+            request.Keys[0],
+            new CqlJoinKey { Alias = "SameVersion", Operator = "LessThanOrEqual", Left = new() { Field = "Version" }, Right = new() { Field = "Version" } },
+            request.Keys[1]
+        };
+        await VerifyAlternativeRows(new (Guid?, Guid?)[] { (parentId, lowerId), (missingId, missingId) });
+        request.Keys[1].Operator = "GreaterThan";
+        await VerifyAlternativeRows(new (Guid?, Guid?)[] { (parentId, null), (null, lowerId), (missingId, missingId) });
+        request.KeyGroupStarts = new[] { 0, 0 };
+        Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access));
+        request.KeyGroupStarts = new[] { 0, 2 };
+
         request.Keys[0].Operator = "Invalid";
         Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access));
 

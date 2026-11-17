@@ -51,6 +51,20 @@ public class CosmicGenericMetadataPrecisionTests
         }
     }
 
+    [Theory]
+    [InlineData("9223372036854775808")]
+    [InlineData("18446744073709551614")]
+    [InlineData("18446744073709551615")]
+    public void LargeUnsignedMetadataRemainsAnIntegerAfterRecordMaterialization(string token)
+    {
+        var original = System.Text.Json.JsonSerializer.Deserialize<Holon>("{\"MetaData\":{\"counter\":" + token + "}}");
+        var restored = StoredRecordJson.Deserialize<Holon>(StoredRecordJson.Serialize(original));
+
+        restored.MetaData["counter"].Should().BeOfType<ulong>();
+        using var stored = System.Text.Json.JsonDocument.Parse(StoredRecordJson.Serialize(restored.MetaData));
+        stored.RootElement.GetProperty("counter").GetRawText().Should().Be(token);
+    }
+
     [Fact]
     public void TypedMetadataCollectionsRetainTheirRestrictedCanonicalContract()
     {

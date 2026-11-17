@@ -14,6 +14,7 @@ public sealed class CqlJoinV1Request
     public CqlJoinV1Source Right { get; set; } = new();
     public CqlJoinV1Key[] Keys { get; set; } = Array.Empty<CqlJoinV1Key>();
     public bool MatchAnyKey { get; set; }
+    public int[]? KeyGroupStarts { get; set; }
     public CqlJoinV1Column[] Columns { get; set; } = Array.Empty<CqlJoinV1Column>();
     public int MaximumLeftRows { get; set; } = 100;
     public int MaximumRightRows { get; set; } = 100;
