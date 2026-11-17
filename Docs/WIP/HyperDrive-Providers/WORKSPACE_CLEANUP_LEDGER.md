@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — The WEB4 signup validation check submitted an empty payload that failed model validation and created no user. Both live responses and exact test fixtures were read in memory. The replacement dev candidate removed its temporary Git index.
+
 2026-11-17 UTC — The signup candidate removed its temporary Git index. Exact tests read Git blobs in memory. No live signup account, downloads, browser profile or generated output was created.
 
 2026-11-17 UTC — OPORTAL delayed-popup history candidate removed its temporary Git index. Test fixtures were read from existing source and in-memory Git objects. No downloads or generated build and test files were retained.
