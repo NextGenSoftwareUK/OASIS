@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. A LINQ parity follow-on admits caller-supplied defaults for joined FirstOrDefault, LastOrDefault and SingleOrDefault. The default is returned only after a native empty result. Native ambiguity remains an error. The native regression covers predicate and non-predicate forms and is outside the snapshot rollout.
+
 17 November UTC. The isolated native SQLite and Neo4j freshness test stages passed [44075936244](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44075936244). Fresh reads returned the source edits under the same ID, and previously prepared snapshots retained their values. My Eggs advanced Development to 1d108dec84a3. The new snapshot candidate 9fcbca7ff56d preserves that Core change and includes the two native freshness fixtures. Exact qualification and runtime acceptance are pending.
 
 17 November UTC. Exact snapshot source 4e3b1439259a passed [44074187935](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44074187935). Its WEB4 image [44074193160](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44074193160) is queued behind the HyperDrive My Eggs image. Development remains on their common baseline 5af519f1c0c7. Revalidate the live predecessor and reconcile any intervening Core update before a snapshot rollout. The exact website preview ffdb611fac49 passed 286 tests, and the live probe will verify that preparation inserts nothing, explicit save keeps the row identity, and mixed CQL reports one deduplicated row with a stored copy.

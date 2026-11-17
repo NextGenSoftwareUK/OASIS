@@ -601,6 +601,13 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsNull(orderedOuter.First(row => row.Left == missingId).Right);
         Assert.AreEqual(missingId, orderedOuter.Last(row => row.Left == missingId).Left);
         Assert.IsNull(orderedOuter.SingleOrDefault(row => row.Left == Guid.Empty));
+        var suppliedDefault = querySyntaxMatches.Result.Single(row => row.Left == parentId);
+        Assert.AreSame(suppliedDefault, orderedOuter.Where(row => row.Left == Guid.Empty).FirstOrDefault(suppliedDefault));
+        Assert.AreSame(suppliedDefault, orderedOuter.LastOrDefault(row => row.Left == Guid.Empty, suppliedDefault));
+        Assert.AreSame(suppliedDefault, orderedOuter.SingleOrDefault(row => row.Left == Guid.Empty, suppliedDefault));
+        Assert.AreEqual(missingId, orderedOuter.FirstOrDefault(row => row.Left == missingId, suppliedDefault).Left);
+        Assert.ThrowsException<CosmicLinqException>(() => orderedOuter.SingleOrDefault(suppliedDefault));
+
         Assert.ThrowsException<CosmicLinqException>(() => orderedOuter.Take(1).Any(row => row.Left == missingId));
 
 
