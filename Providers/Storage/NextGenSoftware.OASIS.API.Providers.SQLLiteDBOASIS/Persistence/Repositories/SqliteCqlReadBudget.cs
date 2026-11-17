@@ -59,9 +59,10 @@ internal sealed class SqliteCqlReadBudget : IDisposable
             if (result.HasValue) SQLitePCL.raw.sqlite3_result_int64(context, result.Value);
             else SQLitePCL.raw.sqlite3_result_null(context);
         }
-        catch (Exception cause) when (cause is ArgumentException or OperationCanceledException
-            or SqliteCqlDeadlineException or SqliteCqlResourceException)
+        catch (Exception cause)
         {
+            // Exceptions cannot escape an unmanaged callback. Preserve the real
+            // cause for Check(), and fail this SQLite evaluation explicitly.
             textFailure = cause;
             SQLitePCL.raw.sqlite3_result_error(context, "Native CQL text evaluation failed.");
         }
@@ -104,6 +105,8 @@ internal sealed class SqliteCqlReadBudget : IDisposable
         this.deadline=deadline??TimeSpan.FromSeconds(30);
         if(this.deadline<TimeSpan.Zero || this.deadline>TimeSpan.FromSeconds(30))throw new ArgumentOutOfRangeException(nameof(deadline));
         this.connection=connection;this.cancellation=cancellation;this.maximumSteps=maximumSteps;
+        textLengthCallback = (context, _, values) => NativeText(context, values, false);
+        textMatchCallback = (context, _, values) => NativeText(context, values, true);
         textLengthCallback = (context, state, values) => NativeText(context, values, false);
         textMatchCallback = (context, state, values) => NativeText(context, values, true);
         previousLength=SQLitePCL.raw.sqlite3_limit(connection.Handle,SQLitePCL.raw.SQLITE_LIMIT_LENGTH,-1);
