@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. The exact Cosmos WEB4 browser-source test copied 15 tracked files (691,208 bytes) to a temporary directory named cosmic-web4-exact-pmnjm7zo under the recovery laptop user temp. The test reused installed Node and removed the complete snapshot on exit. No dependency installs, browser profiles or local build outputs were created.
+
 17 November UTC. Cosmos virtual query work used temporary Git indexes, removed at commit exit. The retained Windows runner expects a stopped Podman container in Ubuntu WSL, which is absent on this recovery laptop. No replacement runtime, image, database or build output was installed or created locally. CI pulls the pinned emulator image on its disposable runner, binds only loopback and removes the owned container after the focused test.
 
 17 November UTC. Three live mixed conjunction browser checks reused installed Chrome and bundled Node. Each signed out, removed its profile and verified absence of its four test Holons. The stores were sampled read-only. No downloads, provider database copies or local builds were created. The attempted two-copy command exceeded the Windows command length before process start. The actual checks used one script with a sequential provider loop.
