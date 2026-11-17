@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL task revision `d9d1963` replaces the Quest and Mission dashboard dashes with signed WEB5 counts loaded once when each card becomes visible. Tests verify zero is distinct from unavailable and offscreen cards issue no requests. The portal regression suite and API drift check passed. This follow-up is awaiting dev integration. The preceding dev revision `9775d0000abf` serves both the distinct Avatar popup and standalone profile over HTTP 200, with all three revised scripts matching exact Git bytes.
+
 2026-11-17 UTC — OPORTAL dev advanced to `9775d0000abf` with the dashboard owned-OAPP view and distinct Avatar popup deep link. All 17 exact portal regression groups passed before the push. The prior dev subscription performance settings and unrelated script pins remain in the candidate. Live deployment and signed acceptance are pending.
 
 2026-11-17 UTC — PocketBase [native run 44035134925](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44035134925) passed all 52 shared storage checks across both modes after hard deletion moved avatar and detail into one native transaction. The result applies to the isolated PocketBase server with batch enabled. Hosted acceptance and exact Development integration remain open.
