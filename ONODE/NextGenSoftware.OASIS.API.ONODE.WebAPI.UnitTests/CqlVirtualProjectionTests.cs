@@ -123,4 +123,22 @@ public sealed class CqlVirtualProjectionTests
             new CqlProjectionV1Column { Alias = "Stock", MetadataPath = new[] { "stock" }, ValueType = "Int64" }
         }
     };
+
+    [Fact]
+    public void LengthSnapshotRetainsTheStringFieldAndOriginalValue()
+    {
+        var filter = new CqlV1Filter { MetadataPath = new[] { "title" }, Scalar = CqlV1Scalar.String,
+            Function = CqlV1Function.Utf16Length, Operator = CqlV1Operator.GreaterThanOrEqual,
+            Value = JsonSerializer.SerializeToElement("2") };
+        var filters = CqlV1Compiler.CompileVirtualMatches(new[] { filter });
+        Assert.Equal(new[] { "name", "title" }, NativeDataController.VirtualSnapshotFields(
+            filters.Select(item => item.Field), new[] { "name" }));
+        var owner = Guid.NewGuid();
+        var native = new NativeRecord("items", "one", new Dictionary<string, object>
+            { ["title"] = "\U0001F600", ["name"] = "selected" });
+        var row = VirtualHolonRead.FromNative(owner, ProviderType.MongoDBOASIS, Guid.NewGuid(), 1,
+            "mongodb://example.test/fixture", "items", DateTimeOffset.UtcNow, native,
+            new Dictionary<string, string> { ["title"] = "title", ["name"] = "name" });
+        Assert.Equal("\U0001F600", row.PrepareSnapshot(owner).MetaData["title"]);
+    }
 }

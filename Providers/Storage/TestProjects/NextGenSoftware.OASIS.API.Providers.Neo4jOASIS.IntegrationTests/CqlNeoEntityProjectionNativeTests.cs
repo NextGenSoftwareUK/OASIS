@@ -56,7 +56,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             await VerifyChildSource(provider, actor, ids[0], ids[1], checks);
             await VerifyJoinOutputOrdering(provider, ids, checks);
             await VerifyNativeStringLength(provider, ids, checks);
-            Assert.AreEqual(110,checks.Count);
+            Assert.AreEqual(111,checks.Count);
             var deactivation=await provider.DeActivateProviderAsync();Assert.IsFalse(deactivation.IsError,deactivation.Message);active=false;
             await Checkpoint("before-exact-cleanup");
             var deleted=await (await inspection.RunAsync("MATCH(h:Holon) WHERE h.Id IN $ids DETACH DELETE h",new{ids=ids.Select(id=>id.ToString("D")).ToArray()})).ConsumeAsync();
@@ -106,6 +106,16 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, actor, provider.NativeDataProviderType,
                 label, VirtualHolonMapping.SandboxConnectionName, provider.DescribeVirtualQueryConnection(null),
                 new Dictionary<string, string> { ["tier"] = "tier", ["name"] = "name" });
+            var lengthMapping = new VirtualHolonMapping(Guid.NewGuid(), 1, actor, provider.NativeDataProviderType,
+                label, VirtualHolonMapping.SandboxConnectionName, provider.DescribeVirtualQueryConnection(null),
+                new Dictionary<string, string> { ["name"] = "name", ["textAlias"] = "text" });
+            var mappedLength = await lengthMapping.QueryAsync(actor, provider, null,
+                new[] { new NativeRecordFilter("textAlias", CosmicQueryComparisonOperator.Equal, 2L, NativeRecordFunction.Utf16Length) },
+                new[] { "name", "textAlias" }, 2);
+            Assert.IsFalse(mappedLength.IsError, mappedLength.Message + mappedLength.Exception);
+            Assert.AreEqual("Ada", mappedLength.Result.Single().MetaData["name"]);
+            Assert.AreEqual("\U0001F600", mappedLength.Result.Single().PrepareSnapshot(actor).MetaData["textAlias"]);
+            checks.Add(new { provider = "Neo4jOASIS", nativePredicate = "mapped length and unchanged snapshot field" });
             var query = await mapping.QueryAsync(actor, provider, null, "tier", "Gold", new[] { "name" }, 2);
             Assert.IsFalse(query.IsError, query.Message);
             var row = query.Result.Single();

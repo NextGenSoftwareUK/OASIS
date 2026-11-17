@@ -184,6 +184,15 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
                 new[] { "value" }, 10);
             Assert.False(nullable.IsError, nullable.Message + nullable.Exception);
             Assert.Equal(new[] { "x", "abc\u0000def" }, nullable.Result.Select(row => (string)row.Fields["value"]));
+            var owner = Guid.NewGuid();
+            var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, owner, provider.NativeDataProviderType,
+                "records", VirtualHolonMapping.SandboxConnectionName, provider.DescribeVirtualQueryConnection(null),
+                new Dictionary<string, string> { ["textAlias"] = "value" });
+            var mapped = await mapping.QueryAsync(owner, provider, null,
+                new[] { new NativeRecordFilter("textAlias", CosmicQueryComparisonOperator.Equal, 2L, NativeRecordFunction.Utf16Length) },
+                new[] { "textAlias" }, 2);
+            Assert.False(mapped.IsError, mapped.Message + mapped.Exception);
+            Assert.Equal("\U0001F600", Assert.Single(mapped.Result).PrepareSnapshot(owner).MetaData["textAlias"]);
             Assert.Equal(before, File.ReadAllBytes(file));
         }
 

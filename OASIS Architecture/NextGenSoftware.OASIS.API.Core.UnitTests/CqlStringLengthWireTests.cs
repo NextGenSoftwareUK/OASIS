@@ -142,12 +142,5 @@ public sealed class CqlStringLengthWireTests
         }
     }
 
-    [Fact]
-    public void VirtualSnapshotRetainsTheOriginalStringFilterField()
-    {
-        var filters = CqlV1Compiler.CompileVirtualMatches(Request("2", metadata: true).Filters);
-        Assert.Equal(new[] { "name", "title" },
-            NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.NativeDataController.VirtualSnapshotFields(
-                filters.Select(filter => filter.Field), new[] { "name" }));
-    }
+
 }

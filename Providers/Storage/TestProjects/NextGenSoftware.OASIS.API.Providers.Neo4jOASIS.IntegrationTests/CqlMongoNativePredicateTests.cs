@@ -59,6 +59,28 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             CollectionAssert.AreEqual(new[] { "short", "nul" },
                 nullable.Result.Select(row => (string)row.Fields["label"]).ToArray());
             checks.Add(new { provider = "MongoDBOASIS", nativePredicate = "explicit null, not missing" });
+            var owner = Guid.NewGuid();
+            var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, owner, provider.NativeDataProviderType,
+                "items", VirtualHolonMapping.SandboxConnectionName, provider.DescribeVirtualQueryConnection(null),
+                new Dictionary<string, string> { ["caption"] = "label", ["textAlias"] = "text" });
+            var filter = new NativeRecordFilter("textAlias", CosmicQueryComparisonOperator.Equal, 2L, NativeRecordFunction.Utf16Length);
+            var mapped = await mapping.QueryAsync(owner, provider, null, new[] { filter }, new[] { "caption", "textAlias" }, 2);
+            Assert.IsFalse(mapped.IsError, mapped.Message + mapped.Exception);
+            Assert.AreEqual("emoji", mapped.Result.Single().MetaData["caption"]);
+            Assert.AreEqual("\U0001F600", mapped.Result.Single().PrepareSnapshot(owner).MetaData["textAlias"]);
+            checks.Add(new { provider = "MongoDBOASIS", nativePredicate = "mapped length and unchanged snapshot field" });
+            var denied = await mapping.QueryAsync(Guid.NewGuid(), provider, null, new[] { filter }, new[] { "caption" }, 2);
+            Assert.AreEqual("VIRTUAL_HOLON_FORBIDDEN", denied.ErrorCode);
+            Assert.IsNull(denied.Result);
+            checks.Add(new { provider = "MongoDBOASIS", nativePredicate = "mapped predicate owner boundary" });
+            var invalidMapping = new VirtualHolonMapping(Guid.NewGuid(), 1, owner, provider.NativeDataProviderType,
+                "items", VirtualHolonMapping.SandboxConnectionName, provider.DescribeVirtualQueryConnection(null),
+                new Dictionary<string, string> { ["alias"] = new string('a', 129) });
+            var invalid = await invalidMapping.QueryAsync(owner, provider, null,
+                new[] { new NativeRecordFilter("alias", CosmicQueryComparisonOperator.Equal, "Case") }, new[] { "alias" }, 1);
+            Assert.AreEqual("VIRTUAL_HOLON_QUERY_INVALID", invalid.ErrorCode);
+            Assert.IsNull(invalid.Result);
+            checks.Add(new { provider = "MongoDBOASIS", nativePredicate = "invalid mapped source field returns an error" });
             Assert.AreEqual(4L, await items.CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty),
                 "Mapped source queries must not write records.");
             complete = true;
