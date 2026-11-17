@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL dev advanced to `fda20d957de4` in the next 30-minute window. The hosted /nft shell references `20261117p` and the served script exactly matches the tested Git blob. In the controlled popup test, NFT and GeoNFT rendered while both OLAND reads were pending, then the OLAND content rendered. Signed browser acceptance and native mint/transfer remain open. Messaging contracts 44117599134 and image 44116108464 both remained running at this check.
+
 2026-11-17 UTC — Messaging/address-only Wallet contract run `44114047771` compiled and failed three existing behavioral checks whose fixtures expected recursive message saves. Candidate `e534b5550f51` updates only those fixture expectations to root-only saves; persistence, restart and failure assertions remain. [Corrected contracts](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44117599134) are running. Image `44116108464` builds the same shipping source and dependency pins from `617a9f4ea70a`. Development remained at `e474f7b664e0`.
 
 2026-11-17 UTC — Signed hosted WEB4 SDK probes reached both NFT mint and transfer endpoints using a disposable unsubscribed avatar. Both returned HTTP 200 with explicit subscription application errors and no native receipt. The subscription gate runs before the controller Wizard role for this account. Wizard eligibility and native execution remain open.

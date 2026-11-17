@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Verified the hosted NFT release shell and script bytes in memory. No local download, fixture, dependency or build output was created.
+
 2026-11-17 UTC — Inspected selected GitHub CI failure lines in memory and removed the temporary index for the Messaging test correction. No local log archive, dependency download or build output was retained.
 
 2026-11-17 UTC — Two disposable NFT authorization probe avatars acknowledged self-deletion. Both mint and transfer requests were refused before a native receipt. No NFT, on-chain transaction or local artifact was created.
