@@ -31,6 +31,49 @@ internal sealed class SqliteCqlReadBudget : IDisposable
     private long steps;
     private int stopped;
     private bool disposed;
+    private Exception textFailure;
+    private readonly SQLitePCL.delegate_function_scalar textLengthCallback;
+    private readonly SQLitePCL.delegate_function_scalar textMatchCallback;
+
+    // value_text ensures UTF-8, but its wrapper is NUL-terminated. Read the
+    // complete byte span after conversion, before performing any other conversion.
+    private static string CompleteText(SQLitePCL.sqlite3_value value)
+    {
+        if (SQLitePCL.raw.sqlite3_value_type(value) == SQLitePCL.raw.SQLITE_NULL) return null;
+        if (SQLitePCL.raw.sqlite3_value_type(value) != SQLitePCL.raw.SQLITE_TEXT)
+            throw new ArgumentException("A native text function requires a text argument.");
+        SQLitePCL.raw.sqlite3_value_text(value);
+        return StrictUtf8.GetString(SQLitePCL.raw.sqlite3_value_blob(value));
+    }
+
+    private void NativeText(SQLitePCL.sqlite3_context context, SQLitePCL.sqlite3_value[] values, bool match)
+    {
+        try
+        {
+            Check();
+            var text = CompleteText(values[0]);
+            long? result = match
+                ? (TextStringMatch(text, CompleteText(values[1]), SQLitePCL.raw.sqlite3_value_int64(values[2])) ? 1L : 0L)
+                : text == null ? null : (long)text.Length;
+            Check();
+            if (result.HasValue) SQLitePCL.raw.sqlite3_result_int64(context, result.Value);
+            else SQLitePCL.raw.sqlite3_result_null(context);
+        }
+        catch (Exception cause) when (cause is ArgumentException or OperationCanceledException
+            or SqliteCqlDeadlineException or SqliteCqlResourceException)
+        {
+            textFailure = cause;
+            SQLitePCL.raw.sqlite3_result_error(context, "Native CQL text evaluation failed.");
+        }
+    }
+
+    private void SetTextFunction(string name, int arity, SQLitePCL.delegate_function_scalar function)
+    {
+        var code = SQLitePCL.raw.sqlite3_create_function(connection.Handle, name, arity, 0, null, function);
+        if (code != SQLitePCL.raw.SQLITE_OK)
+            throw new SqliteException("Native CQL text function registration failed.", code);
+    }
+
     private bool TextStringMatch(string text, string value, long operation)
     {
         Check();
@@ -43,14 +86,6 @@ internal sealed class SqliteCqlReadBudget : IDisposable
         });
         Check();
         return match;
-    }
-
-    private long? TextUtf16Length(string text)
-    {
-        Check();
-        var units = text == null ? (long?)null : text.Length;
-        Check();
-        return units;
     }
 
     private long? Utf16Length(byte[] bytes)
@@ -69,6 +104,8 @@ internal sealed class SqliteCqlReadBudget : IDisposable
         this.deadline=deadline??TimeSpan.FromSeconds(30);
         if(this.deadline<TimeSpan.Zero || this.deadline>TimeSpan.FromSeconds(30))throw new ArgumentOutOfRangeException(nameof(deadline));
         this.connection=connection;this.cancellation=cancellation;this.maximumSteps=maximumSteps;
+        textLengthCallback = (context, state, values) => NativeText(context, values, false);
+        textMatchCallback = (context, state, values) => NativeText(context, values, true);
         previousLength=SQLitePCL.raw.sqlite3_limit(connection.Handle,SQLitePCL.raw.SQLITE_LIMIT_LENGTH,-1);
         callback=_=> {
             steps+=Interval;
@@ -83,8 +120,8 @@ internal sealed class SqliteCqlReadBudget : IDisposable
             SQLitePCL.raw.sqlite3_progress_handler(connection.Handle,Interval,callback,null);
             connection.CreateFunction<byte[], bool>(Utf8Function, ValidUtf8, isDeterministic: true);
             connection.CreateFunction<byte[], long?>(StringLengthFunction, Utf16Length, isDeterministic: false);
-            connection.CreateFunction<string, long?>(TextStringLengthFunction, TextUtf16Length, isDeterministic: false);
-            connection.CreateFunction<string, string, long, bool>(TextStringMatchFunction, TextStringMatch, isDeterministic: false);
+            SetTextFunction(TextStringLengthFunction, 1, textLengthCallback);
+            SetTextFunction(TextStringMatchFunction, 3, textMatchCallback);
             connection.CreateFunction<string, string>(SqliteCqlDecimal.Function, DecimalKey, isDeterministic: false);
             connection.CreateFunction<string, string>(SqliteCqlFloating.DoubleFunction, DoubleKey, isDeterministic: false);
             connection.CreateFunction<string, string>(SqliteCqlFloating.SingleFunction, SingleKey, isDeterministic: false);
@@ -93,8 +130,8 @@ internal sealed class SqliteCqlReadBudget : IDisposable
         {
             connection.CreateFunction<byte[], bool>(Utf8Function, null);
             connection.CreateFunction<byte[], long?>(StringLengthFunction, null);
-            connection.CreateFunction<string, long?>(TextStringLengthFunction, null);
-            connection.CreateFunction<string, string, long, bool>(TextStringMatchFunction, null);
+            SetTextFunction(TextStringLengthFunction, 1, null);
+            SetTextFunction(TextStringMatchFunction, 3, null);
             connection.CreateFunction<string, string>(SqliteCqlDecimal.Function, null);
             connection.CreateFunction<string, string>(SqliteCqlFloating.DoubleFunction, null);
             connection.CreateFunction<string, string>(SqliteCqlFloating.SingleFunction, null);
@@ -124,6 +161,7 @@ internal sealed class SqliteCqlReadBudget : IDisposable
     internal void Check()
     {
         cancellation.ThrowIfCancellationRequested();
+        if (textFailure != null) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(textFailure).Throw();
         if(stopped==2 || elapsed.Elapsed>=deadline)throw new SqliteCqlDeadlineException();
         if(stopped==3)throw new SqliteCqlResourceException("SQLite CQL exceeds its native instruction budget.");
     }
@@ -134,8 +172,8 @@ internal sealed class SqliteCqlReadBudget : IDisposable
         {
             connection.CreateFunction<byte[], bool>(Utf8Function, null);
             connection.CreateFunction<byte[], long?>(StringLengthFunction, null);
-            connection.CreateFunction<string, long?>(TextStringLengthFunction, null);
-            connection.CreateFunction<string, string, long, bool>(TextStringMatchFunction, null);
+            SetTextFunction(TextStringLengthFunction, 1, null);
+            SetTextFunction(TextStringMatchFunction, 3, null);
             connection.CreateFunction<string, string>(SqliteCqlDecimal.Function, null);
             connection.CreateFunction<string, string>(SqliteCqlFloating.DoubleFunction, null);
             connection.CreateFunction<string, string>(SqliteCqlFloating.SingleFunction, null);

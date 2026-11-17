@@ -171,9 +171,12 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
                 new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, "\u0000", NativeRecordFunction.Contains),
                 new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, "abc", NativeRecordFunction.StartsWith),
                 new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, "def", NativeRecordFunction.EndsWith),
-                new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, "\U0001F600", NativeRecordFunction.Contains)
+                new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, "\U0001F600", NativeRecordFunction.Contains),
+                new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, 7L, NativeRecordFunction.Utf16Length),
+                new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, "abc\u0000", NativeRecordFunction.StartsWith),
+                new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, "\u0000def", NativeRecordFunction.EndsWith)
             };
-            var expected = new[] { "\U0001F600", "abc\u0000def", "abc\u0000def", "x", "abc\u0000def", "abc\u0000def", "abc\u0000def", "\U0001F600" };
+            var expected = new[] { "\U0001F600", "abc\u0000def", "abc\u0000def", "x", "abc\u0000def", "abc\u0000def", "abc\u0000def", "\U0001F600", "abc\u0000def", "abc\u0000def", "abc\u0000def" };
             for (var index = 0; index < filters.Length; index++)
             {
                 var read = await provider.QueryNativePredicateRecordsAsync("records", new[] { filters[index] },
