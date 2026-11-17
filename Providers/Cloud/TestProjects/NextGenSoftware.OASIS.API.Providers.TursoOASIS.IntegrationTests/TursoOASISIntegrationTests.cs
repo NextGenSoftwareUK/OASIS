@@ -289,6 +289,39 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             Assert.AreEqual(grandchild.Id, recursive.Result!.Single(holon => holon.Id == root.Id).Children.Single().Children.Single().Id);
         }
 
+        [TestMethod]
+        public async Task NativeMetadataOnlyExpandsSelectedRoots()
+        {
+            RequireOwnedFixture();
+            var root = new Holon { Name = "Matching root", MetaData = new() { ["scope"] = "selected", ["team"] = "one" } };
+            var child = new Holon { Name = "Owned child" };
+            root.Children.Add(child);
+            var unrelated = new Holon { Name = "Unrelated root", MetaData = new() { ["scope"] = "other", ["team"] = "one" } };
+            unrelated.Children.Add(new Holon { Name = "Unrelated child" });
+            var saved = await _provider.SaveHolonsAsync(new[] { root, unrelated });
+            Assert.IsTrue(saved.IsSaved, saved.Message);
+            Assert.AreEqual(4, saved.SavedCount);
+
+            var flat = await _provider.LoadHolonsByMetaDataAsync("scope", "selected", loadChildren: false);
+            Assert.IsTrue(flat.IsLoaded, flat.Message);
+            Assert.AreEqual(1, flat.LoadedCount);
+            Assert.AreEqual(0, flat.Result!.Single().Children.Count);
+
+            var expanded = await _provider.LoadHolonsByMetaDataAsync("scope", "selected", loadChildren: true);
+            Assert.IsTrue(expanded.IsLoaded, expanded.Message);
+            Assert.AreEqual(1, expanded.LoadedCount);
+            Assert.AreEqual(child.Id, expanded.Result!.Single().Children.Single().Id);
+
+            var pairs = new System.Collections.Generic.Dictionary<string, string> { ["scope"] = "selected", ["team"] = "one" };
+            var byAll = _provider.LoadHolonsByMetaData(pairs, MetaKeyValuePairMatchMode.All, loadChildren: true, maxChildDepth: 1);
+            Assert.IsTrue(byAll.IsLoaded, byAll.Message);
+            Assert.AreEqual(root.Id, byAll.Result!.Single().Id);
+            Assert.AreEqual(child.Id, byAll.Result!.Single().Children.Single().Id);
+            var byAny = await _provider.LoadHolonsByMetaDataAsync(pairs, MetaKeyValuePairMatchMode.Any, loadChildren: true);
+            Assert.IsTrue(byAny.IsLoaded, byAny.Message);
+            Assert.AreEqual(2, byAny.LoadedCount);
+        }
+
         private void RequireOwnedFixture()
         {
             if (Environment.GetEnvironmentVariable("TURSOOASIS_URL") != OwnedFixture ||

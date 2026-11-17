@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Turso metadata queries filter flat records before expanding any children. The selected IDs seed a single indexed native traversal, and the returned root is checked against the metadata predicate again in case it changed between reads. The native test exercises single-key and all/any matching, flat reads and selected child expansion. Qualification is pending.
+
 2026-11-17 UTC — Turso full collection reads now use one native query when child trees are requested. Each returned root has an independent depth-bound tree, even when the same holon is also a child of another selected root. Flat collection, export and search inputs stay flat. Native qualification is pending. Search and metadata result expansion still need their own filtered child-loading path.
 
 2026-11-17 UTC — OPORTAL dev advanced to `2f7c7fcea30c` after the 30-minute window. Vercel reported success at 05:52 UTC. The live subscription route and revised usage script returned HTTP 200, and the script matched the exact tested Git bytes, SHA-256 `3510032c678505cef2fc7b6632fa9136ec2a0bc042f940406884fc4a2bfc4f11`. Signed hosted acceptance remains open.

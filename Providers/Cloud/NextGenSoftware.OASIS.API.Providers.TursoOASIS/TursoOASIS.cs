@@ -598,13 +598,24 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             return roots;
         }
 
-        private async Task<List<IHolon>> LoadCollectionTreesAsync(HolonType type, int remainingDepth)
+        private async Task<List<IHolon>> LoadCollectionTreesAsync(HolonType type, int remainingDepth, string? selectedIds = null)
         {
-            var result = await ExecuteSqlAsync("""
+            var args = new List<LibSqlArg> { ArgInt(type == HolonType.All ? null : (int)type), ArgInt((int)type) };
+            var selectedFilter = "";
+            if (selectedIds != null)
+            {
+                selectedFilter = "AND id IN (SELECT value FROM json_each(?))";
+                args.Add(Arg(selectedIds));
+            }
+            args.Add(ArgInt(remainingDepth));
+            args.Add(ArgInt(remainingDepth));
+
+            var result = await ExecuteSqlAsync($$"""
                 WITH RECURSIVE graph(root_id, id, data_json, depth, visited) AS (
                     SELECT id, id, data_json, 0, ',' || id || ','
                     FROM oasis_holons
                     WHERE is_deleted=0 AND (? IS NULL OR holon_type=?)
+                        {{selectedFilter}}
                     UNION ALL
                     SELECT graph.root_id, child.id, child.data_json, graph.depth+1, graph.visited || child.id || ','
                     FROM graph JOIN oasis_holons child ON child.parent_holon_id=graph.id
@@ -612,11 +623,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                         AND instr(graph.visited, ',' || child.id || ',')=0
                 )
                 SELECT root_id, data_json FROM graph ORDER BY root_id, depth
-                """, new List<LibSqlArg>
-                {
-                    ArgInt(type == HolonType.All ? null : (int)type), ArgInt((int)type),
-                    ArgInt(remainingDepth), ArgInt(remainingDepth)
-                }).ConfigureAwait(false);
+                """, args).ConfigureAwait(false);
             var roots = new List<IHolon>();
             foreach (var group in ResultToRows(result).GroupBy(row => row["root_id"]))
             {
@@ -815,15 +822,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var all = await LoadAllHolonsAsync(type, loadChildren: false, version: version).ConfigureAwait(false);
-            if (all.IsError)
-                return all;
-            var holons = all.Result?.Where(h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var v) && v?.ToString() == metaValue).ToList() ?? new List<IHolon>();
-            return new OASISResult<IEnumerable<IHolon>>
-            {
-                Result = holons, IsLoaded = true, LoadedCount = holons.Count,
-                Message = $"TursoOASIS: Loaded {holons.Count} holon(s) where {metaKey}={metaValue}."
-            };
+            return await LoadMatchingHolonsAsync(
+                holon => holon.MetaData != null && holon.MetaData.TryGetValue(metaKey, out var value) && value?.ToString() == metaValue,
+                type, loadChildren, recursive, maxChildDepth, curentChildDepth, version).ConfigureAwait(false);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -831,16 +832,47 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var all = await LoadAllHolonsAsync(type, loadChildren: false, version: version).ConfigureAwait(false);
-            if (all.IsError)
-                return all;
-            bool IsMatch(IHolon h) { if (h.MetaData == null) return false; var checks = metaKeyValuePairs.Select(kvp => h.MetaData.TryGetValue(kvp.Key, out var v) && v?.ToString() == kvp.Value); return metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any ? checks.Any(c => c) : checks.All(c => c); }
-            var holons = all.Result?.Where(IsMatch).ToList() ?? new List<IHolon>();
-            return new OASISResult<IEnumerable<IHolon>>
+            return await LoadMatchingHolonsAsync(IsMatch, type, loadChildren, recursive,
+                maxChildDepth, curentChildDepth, version).ConfigureAwait(false);
+
+            bool IsMatch(IHolon holon)
             {
-                Result = holons, IsLoaded = true, LoadedCount = holons.Count,
-                Message = $"TursoOASIS: Loaded {holons.Count} holon(s) matching metadata filter."
-            };
+                if (holon.MetaData == null)
+                    return false;
+                var checks = metaKeyValuePairs.Select(pair =>
+                    holon.MetaData.TryGetValue(pair.Key, out var value) && value?.ToString() == pair.Value);
+                return metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any ? checks.Any(match => match) : checks.All(match => match);
+            }
+        }
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> LoadMatchingHolonsAsync(
+            Func<IHolon, bool> isMatch, HolonType type, bool loadChildren, bool recursive, int maxDepth, int currentDepth, int version)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                var all = await LoadAllHolonsAsync(type, loadChildren: false, version: version).ConfigureAwait(false);
+                if (all.IsError)
+                    return all;
+                var holons = all.Result.Where(isMatch).ToList();
+                if (loadChildren && holons.Count > 0)
+                {
+                    var remainingDepth = maxDepth > 0 ? Math.Max(0, maxDepth - currentDepth) : -1;
+                    var selectedIds = Ser(holons.Select(holon => holon.Id));
+                    var trees = await LoadCollectionTreesAsync(type, recursive ? remainingDepth : 1, selectedIds).ConfigureAwait(false);
+                    holons = trees.Where(isMatch).ToList();
+                }
+                result.Result = holons;
+                result.IsLoaded = true;
+                result.LoadedCount = holons.Count;
+                result.Message = $"TursoOASIS: Loaded {holons.Count} holon(s) matching metadata filter.";
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error loading holons by metadata: {ex.Message}");
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
