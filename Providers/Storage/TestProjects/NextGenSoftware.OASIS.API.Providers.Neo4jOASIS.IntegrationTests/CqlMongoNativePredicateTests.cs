@@ -16,6 +16,9 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         using (var existing = await client.ListDatabaseNamesAsync())
             Assert.IsFalse((await existing.ToListAsync()).Contains(nativeDatabase),
                 "Never overwrite an existing native predicate fixture.");
+        using (var names = await client.ListDatabaseNamesAsync())
+            Assert.IsFalse((await names.ToListAsync()).Contains(database + "_native_filters"),
+                "Never reuse or reset an existing native predicate fixture database.");
         var previous = provider.NativeImportDatabaseName;
         var complete = false;
         try

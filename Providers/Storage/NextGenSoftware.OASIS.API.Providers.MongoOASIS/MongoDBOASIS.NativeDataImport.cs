@@ -174,6 +174,7 @@ public partial class MongoDBOASIS : INativeDataQueryProvider
                 "NATIVE_QUERY_INVALID");
 
         matches = NativeRecordFilter.Capture(matches);
+        fields = fields.ToArray();
         var filters = new List<BsonDocument>(matches.Count);
         foreach (var match in matches)
         {
