@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — [Exact Turso native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44032246323) passed both 26-check modes, avatar deletion rollback, and wallet selectors on `fc64cdd43585`, with zero skips and verified runner cleanup. The [shared image queue](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44032542851) has another pending build, so the Turso follow-up image has yet to be dispatched. The preceding Railway rollout is still in progress.
+
 2026-11-17 UTC — The [native Turso wallet-key test](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44031441928) passed through the storage interface for public and private lookups, including ambiguity and deleted records. Follow-up candidate `fc64cdd43585` stages the verified identity, export and search changes directly above Development `5877c9e3bc9b`. [Exact native run 44032246323](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44032246323) is queued. The underlying Railway rollout is queued or building. The follow-up still needs exact WEB4 image qualification.
 
 2026-11-17 UTC — Development fast-forwarded from `b226ff3740c1` to qualified Turso candidate `5877c9e3bc9b` after native storage and exact image acceptance and seven successful predecessor deployments. Railway queued WEB4 deployment `24f4b434-5cdd-426a-aedf-9cfad82f2bdb` at 06:31:15 UTC. Exact fleet rollout and health verification are pending. Review the next scoped Development batch after 07:01:15 UTC.
