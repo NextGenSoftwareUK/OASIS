@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. Cosmos virtual query work used temporary Git indexes, removed at commit exit. The retained Windows runner expects a stopped Podman container in Ubuntu WSL, which is absent on this recovery laptop. No replacement runtime, image, database or build output was installed or created locally. CI pulls the pinned emulator image on its disposable runner, binds only loopback and removes the owned container after the focused test.
+
 17 November UTC. Three live mixed conjunction browser checks reused installed Chrome and bundled Node. Each signed out, removed its profile and verified absence of its four test Holons. The stores were sampled read-only. No downloads, provider database copies or local builds were created. The attempted two-copy command exceeded the Windows command length before process start. The actual checks used one script with a sequential provider loop.
 
 17 November UTC. Named-connection test commits used disposable Git indexes. The website test run reused installed Node with a temporary Git snapshot removed on exit. The MongoDB CI report was inspected in memory. No provider fixture, browser profile or build output was created locally in these checks.
