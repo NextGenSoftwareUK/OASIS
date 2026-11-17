@@ -4,10 +4,14 @@ on:
   push:
     branches: [work/hyperdrive-provider-completion]
     paths:
-      - '.github/workflows/pocketbase-native-storage.yml'
       - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS/**'
       - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests/PocketBaseOASISIntegrationTests.cs'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      activation:
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -50,8 +54,10 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Verify the five previously unqualified storage cases
+      - name: Verify native PocketBase
         shell: bash
+        env:
+          VERIFY_BOOTLOADER: ${{ inputs.activation }}
         run: |
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-pocketbase.XXXXXXXX")"
           server=""
@@ -86,6 +92,51 @@ jobs:
             [[ "$attempt" != 30 ]]
             sleep 1
           done
+          if [[ "$VERIFY_BOOTLOADER" == true ]]; then
+            export OASIS_POCKETBASE_ADMIN_EMAIL="$POCKETBASEOASIS_ADMINEMAIL"
+            export OASIS_POCKETBASE_ADMIN_PASSWORD="$POCKETBASEOASIS_ADMINPASSWORD"
+            export POCKETBASE_BOOT_FIXTURE="$fixture"
+            pwsh -NoProfile -Command '
+              $name = "PocketBaseOASIS"
+              $storage = @{
+                OASISProviderBootType = "Warm"
+                AutoFailOverEnabled = $false
+                AutoFailOverLocalProvidersEnabled = $false
+                AutoReplicationEnabled = $false
+                AutoLoadBalanceEnabled = $false
+                PocketBaseOASIS = @{ ConnectionString = $env:POCKETBASEOASIS_BASEURL }
+              }
+              foreach ($key in @(
+                "AutoFailOverProviders", "AutoFailOverLocalProviders", "AutoReplicationProviders",
+                "AutoLoadBalanceProviders", "AutoFailOverProvidersForAvatarLogin",
+                "AutoFailOverProvidersForCheckIfEmailAlreadyInUse",
+                "AutoFailOverProvidersForCheckIfUsernameAlreadyInUse",
+                "AutoFailOverProvidersForCheckIfOASISSystemAccountExists"
+              )) { $storage[$key] = $name }
+              $dna = @{ OASIS = @{
+                HyperDriveMode = "OASISHyperDrive2"
+                Logging = @{ LoggingFramework = "Default"; LogToConsole = $false; LogToFile = $false }
+                ErrorHandling = @{ LogAllErrors = $false; LogAllWarnings = $false }
+                Security = @{ SecretKey = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32)) }
+                StorageProviders = $storage
+                OASISHyperDriveConfig = @{
+                  AutoFailoverEnabled = $false; AutoReplicationEnabled = $false; AutoLoadBalancingEnabled = $false
+                  EnabledProviders = @($name); AutoFailoverProviders = @($name)
+                  AutoReplicationProviders = @($name); LoadBalancingProviders = @($name)
+                }
+              } }
+              $dnaPath = Join-Path $env:POCKETBASE_BOOT_FIXTURE "dna.json"
+              $output = Join-Path $env:POCKETBASE_BOOT_FIXTURE "harness"
+              $harness = "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.TestHarness"
+              $dna | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $dnaPath
+              ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-PocketBaseBootLoader -Operation {
+                dotnet build $harness -o $output /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+                if ($LASTEXITCODE -ne 0) { throw "PocketBase BootLoader build failed." }
+                dotnet (Join-Path $output "NextGenSoftware.OASIS.OASISBootLoader.TestHarness.dll") $dnaPath $name
+                if ($LASTEXITCODE -ne 0) { throw "PocketBase BootLoader activation failed." }
+              }'
+            exit 0
+          fi
           python3 - <<'PY'
           import json
           import os
