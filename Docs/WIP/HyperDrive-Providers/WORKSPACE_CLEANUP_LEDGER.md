@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed the My Eggs parent candidate temporary index. Qualification runs on GitHub. No local build, download or extra worktree was created.
+
 2026-11-17 UTC — Removed the temporary Core index used for the Eggs correction. The diagnostic sandbox avatar deletion was acknowledged. Only sanitized failure categories were printed. No build, report, download or additional worktree was created.
 
 2026-11-17 UTC — The signed Eggs read probe confirmed disposable avatar deletion. The candidate temporary index was removed. No egg was hatched and no download, profile or local generated output was retained.
