@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
@@ -36,6 +38,19 @@ public sealed class CqlVirtualProjectionTests
         Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileProjection(request, Guid.NewGuid(), ProviderType.MongoDBOASIS));
         request.Filters[0].Operator = CqlV1Operator.Contains;
         Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileVirtualProjection(request));
+    }
+
+    [Fact]
+    public void SnapshotRetainsTheFilterFieldWithoutExceedingTheNativeProjectionLimit()
+    {
+        Assert.Equal(new[] { "name", "tier" }, NativeDataController.VirtualSnapshotFields("tier", new[] { "name" }));
+        Assert.Equal(new[] { "tier", "name" }, NativeDataController.VirtualSnapshotFields("tier", new[] { "tier", "name" }));
+        Assert.Null(NativeDataController.VirtualSnapshotFields("tier", new[] { "name", "name" }));
+        Assert.Null(NativeDataController.VirtualSnapshotFields("tier", new[] { "" }));
+
+        var maximum = Enumerable.Range(1, 32).Select(index => "field" + index).ToArray();
+        Assert.Null(NativeDataController.VirtualSnapshotFields("tier", maximum));
+        Assert.Equal(maximum, NativeDataController.VirtualSnapshotFields("field32", maximum));
     }
 
     private static CqlProjectionV1Request Request() => new()
