@@ -99,9 +99,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             return result;
         }
 
-        public string DescribeVirtualQueryConnection(NativeConnection connection) =>
-            DescribeNativeConnection(connection) ??
-            throw new NativeConnectionRefusedException("Virtual Cosmos queries require a named read-only connection.");
+        public string DescribeVirtualQueryConnection(NativeConnection connection)
+        {
+            if (connection != null)
+                return DescribeNativeConnection(connection);
+            if (serviceEndpoint == null || string.IsNullOrWhiteSpace(NativeImportDatabaseName))
+                throw new NativeConnectionRefusedException("The configured Cosmos virtual source is unavailable.");
+            return "cosmos-configured://" + serviceEndpoint.Authority.ToLowerInvariant() + "/" + NativeImportDatabaseName;
+        }
 
         public Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
             string sourceName, string matchField, object matchValue, IReadOnlyList<string> fields, int limit,
@@ -113,13 +118,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             string sourceName, IReadOnlyList<KeyValuePair<string, object>> matches, IReadOnlyList<string> fields, int limit,
             NativeConnection connection = null, CancellationToken cancellationToken = default)
         {
-            if (connection == null || string.IsNullOrWhiteSpace(sourceName) ||
+            if (string.IsNullOrWhiteSpace(sourceName) ||
                 matches == null || matches.Count is < 1 or > 8 ||
                 matches.Any(match => !IsVirtualField(match.Key) ||
                     match.Value is not (string { Length: <= 4096 } or bool)) ||
                 fields == null || fields.Count is < 1 or > 32 || fields.Any(field => !IsVirtualField(field)) ||
                 fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || limit is < 1 or > 100)
-                return RefuseVirtual("NATIVE_QUERY_INVALID", "Use a named Cosmos container, exact String or Boolean matches and bounded fields.");
+                return RefuseVirtual("NATIVE_QUERY_INVALID", "Use an admitted Cosmos container, exact String or Boolean matches and bounded fields.");
 
             try
             {
