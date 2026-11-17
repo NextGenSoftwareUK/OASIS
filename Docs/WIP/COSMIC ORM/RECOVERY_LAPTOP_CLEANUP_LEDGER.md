@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. Projected CAST sort verification removed its website snapshot and index, verified all nine Development fixtures absent, revoked the one temporary session and removed its journal. Follow-up found no matching journal.
+
 17 November UTC. Grouped ORDER BY used one disposable website snapshot and one signed Development session. All nine private test fixture IDs were verified absent, the session was revoked and the journal removed. A follow-up search found no matching temporary journals. The recovery laptop had 15.6 GiB free.
 
 17 November UTC. HAVING expression verification used disposable `cosmic-group-alias-*` website test snapshots and one signed sandbox test. The snapshots and indexes were removed, all nine fixture IDs were verified absent, and the session and temporary journal were removed. No download, SDK installation or local build output.
