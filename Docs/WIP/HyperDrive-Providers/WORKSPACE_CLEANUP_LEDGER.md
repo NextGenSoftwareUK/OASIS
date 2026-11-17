@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed the temporary PocketBase candidate index. Native and image jobs use hosted runners and an exact Git ref. No local runtime, worktree or build output was created.
+
 2026-11-17 UTC — Removed the temporary combined portal candidate index. Public asset verification and exact regression checks read responses and Git objects in memory. No downloads, profiles, builds or test reports were created.
 
 2026-11-17 UTC — The exact OPORTAL request-deadline probe read Git blobs and used stalled transports in memory. No API request, profile, local report, download or build output was created.
