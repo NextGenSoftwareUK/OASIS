@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Final Chat qualification 44146529783 passed all 996 behavioral contracts with zero failures and zero skips on d51ef1e77854. The run includes the extended restart contract exercising participant history access and outsider/empty-avatar denial. Exact image 44148463730 is still building. Scoped portal termination candidate 0862b5698df6 matches the tested task script and contains only that script plus its cache key. Deployment and hosted verification remain open.
+
 2026-11-17 UTC — Shared image 44142971678 reached terminal state and the image slot cleared. Dispatched one [final Chat image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44148463730) for d51ef1e77854; it is active. Exact contracts 44146529783 are also active. No Development push or local build was made.
 
 2026-11-17 UTC — Public installed Edge headless browser opened the deployed /subscription route. The subscription popup was selected and its Plans panel rendered exactly five cards for Free, Bronze, Silver, Gold and Enterprise, with GBP pricing and no load-error text. The owned temporary browser profile was removed after exit. This proves public plan rendering; signed subscriber controls and checkout remain separate acceptance items.
