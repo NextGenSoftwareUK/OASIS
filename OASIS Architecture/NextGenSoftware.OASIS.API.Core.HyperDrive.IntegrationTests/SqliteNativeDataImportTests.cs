@@ -104,6 +104,11 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
             var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, actor, provider.NativeDataProviderType,
                 "lines", VirtualHolonMapping.SandboxConnectionName, provider.DescribeVirtualQueryConnection(null),
                 new Dictionary<string, string> { ["orderId"] = "orderId", ["sku"] = "sku" });
+            var mappedConjunction = await mapping.QueryAsync(actor, provider, null,
+                new[] { new KeyValuePair<string, object>("orderId", 10L),
+                    new KeyValuePair<string, object>("sku", "B") }, new[] { "sku" }, 1);
+            Assert.False(mappedConjunction.IsError, mappedConjunction.Message);
+            Assert.Equal("B", Assert.Single(mappedConjunction.Result).MetaData["sku"]);
             var before = await mapping.QueryAsync(actor, provider, null, "orderId", 10L, new[] { "sku" }, 1);
             Assert.False(before.IsError, before.Message);
             var original = Assert.Single(before.Result);
