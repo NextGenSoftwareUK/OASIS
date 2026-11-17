@@ -1,4 +1,7 @@
 using System;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -33,6 +36,47 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             if (!_live)
                 Assert.Inconclusive(
                     "No live TursoOASIS backend configured - set the TURSOOASIS_* environment variables to run this.");
+        }
+
+        [TestMethod]
+        public async Task NativeStatementRejectionCannotAcknowledgeAvatarSave()
+        {
+            const string fixture = "http://127.0.0.1:19693";
+            if (Environment.GetEnvironmentVariable("TURSOOASIS_URL") != fixture ||
+                Environment.GetEnvironmentVariable("OASIS_TURSO_OWNED_STORAGE_FIXTURE") != "1")
+                Assert.Inconclusive("This test requires the isolated native libSQL runner.");
+            RequireLive();
+            using var client = new HttpClient();
+            var avatar = new Avatar { Id = Guid.NewGuid(), Username = "rejected-native-write" };
+            await Execute("CREATE TRIGGER oasis_test_reject BEFORE INSERT ON oasis_avatars BEGIN SELECT RAISE(ABORT, 'isolated native rejection'); END");
+            try
+            {
+                var result = await _provider.SaveAvatarAsync(avatar);
+                Assert.IsTrue(result.IsError);
+                Assert.IsFalse(result.IsSaved);
+                Assert.IsNull(result.Result);
+                var readback = await Execute($"SELECT count(*) AS total FROM oasis_avatars WHERE id = '{avatar.Id:D}'");
+                Assert.AreEqual("0", readback.GetProperty("rows")[0][0].GetProperty("value").GetString());
+            }
+            finally
+            {
+                await Execute("DROP TRIGGER oasis_test_reject");
+                Assert.IsFalse((await _provider.DeActivateProviderAsync()).IsError);
+                Assert.IsFalse(_provider.IsProviderActivated);
+            }
+
+            async Task<JsonElement> Execute(string sql)
+            {
+                using var response = await client.PostAsJsonAsync(fixture + "/v2/pipeline", new
+                {
+                    requests = new object[] { new { type = "execute", stmt = new { sql } }, new { type = "close" } }
+                });
+                response.EnsureSuccessStatusCode();
+                using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                var statement = json.RootElement.GetProperty("results")[0];
+                Assert.AreEqual("ok", statement.GetProperty("type").GetString());
+                return statement.GetProperty("response").GetProperty("result").Clone();
+            }
         }
 
         [TestMethod]

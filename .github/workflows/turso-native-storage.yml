@@ -1,0 +1,99 @@
+name: Turso native SQL acknowledgements
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/turso-native-storage.yml'
+      - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.TursoOASIS/**'
+      - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests/TursoOASISIntegrationTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the pinned companion revisions
+        id: dependencies
+        run: |
+          libraries="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          holochain="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$libraries" =~ ^[a-f0-9]{40}$ && "$holochain" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$libraries" >> "$GITHUB_OUTPUT"
+          echo "holochain=$holochain" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify native SQL rejection and readback
+        shell: bash
+        env:
+          TURSOOASIS_URL: http://127.0.0.1:19693
+          TURSOOASIS_AUTHTOKEN: fixture-local
+          OASIS_TURSO_OWNED_STORAGE_FIXTURE: '1'
+        run: |
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-turso.XXXXXXXX")"
+          container="oasis-turso-$GITHUB_RUN_ID"
+          image="ghcr.io/tursodatabase/libsql-server@sha256:1bc51611928ccc51229bdc40ca0defcb915907f8f9f6a664b43529de0ca45fab"
+          cleanup() {
+            status=$?
+            if docker container inspect "$container" >/dev/null 2>&1; then
+              docker rm --force --volumes "$container" >/dev/null || status=1
+            fi
+            if docker image inspect "$image" >/dev/null 2>&1; then
+              docker image rm "$image" >/dev/null || status=1
+            fi
+            [[ "$fixture" == "$RUNNER_TEMP"/oasis-turso.* ]] && rm -rf -- "$fixture"
+            if [[ -e "$fixture" ]] || docker container inspect "$container" >/dev/null 2>&1; then
+              status=1
+            else
+              echo "Removed the owned libSQL container, database and test output."
+            fi
+            exit "$status"
+          }
+          trap cleanup EXIT
+          docker run --detach --name "$container" --publish 127.0.0.1:19693:8080 --env SQLD_NODE=standalone "$image"
+          for attempt in {1..40}; do
+            if curl -fsS "$TURSOOASIS_URL/v2" >/dev/null; then break; fi
+            [[ "$attempt" != 40 ]]
+            sleep 1
+          done
+          export TURSO_TEST_RESULTS="$fixture/results"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-TursoStorage -Operation {
+              dotnet test "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests" --filter "FullyQualifiedName~NativeStatementRejectionCannotAcknowledgeAvatarSave|FullyQualifiedName~SaveAndLoadAvatar_RoundTrips|FullyQualifiedName~SaveAndLoadHolon_RoundTrips" /m:2 /nr:false /p:UseSharedCompilation=false --logger "trx;LogFileName=turso.trx" --results-directory $env:TURSO_TEST_RESULTS
+              if ($LASTEXITCODE -ne 0) { throw "Native libSQL qualification failed." }
+            }'
+          python3 - "$TURSO_TEST_RESULTS/turso.trx" <<'PY'
+          import sys
+          import xml.etree.ElementTree as ET
+
+          results = ET.parse(sys.argv[1]).findall(".//{*}UnitTestResult")
+          assert len(results) == 3 and all(r.get("outcome") == "Passed" for r in results)
+          print("Three native libSQL checks passed with zero skips.")
+          PY

@@ -70,7 +70,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
         private static LibSqlArg Arg(string? value) => new LibSqlArg { Type = value == null ? "null" : "text", Value = value };
         private static LibSqlArg ArgInt(long? value) => new LibSqlArg { Type = value == null ? "null" : "integer", Value = value?.ToString() };
 
-        private async Task<LibSqlResult?> ExecuteSqlAsync(string sql, List<LibSqlArg>? args = null)
+        private async Task<LibSqlResult> ExecuteSqlAsync(string sql, List<LibSqlArg>? args = null)
         {
             var payload = new PipelineRequest
             {
@@ -80,12 +80,20 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                     new PipelineStmt { Type = "close" }
                 }
             };
-            var content = new StringContent(JsonSerializer.Serialize(payload, _jsonOpts), Encoding.UTF8, "application/json");
-            var response = await _http.PostAsync(_pipelineUrl, content);
+            using var content = new StringContent(JsonSerializer.Serialize(payload, _jsonOpts), Encoding.UTF8, "application/json");
+            using var response = await _http.PostAsync(_pipelineUrl, content).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
             var json = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode) throw new Exception($"TursoOASIS HTTP {(int)response.StatusCode}: {json}");
-            var pr = JsonSerializer.Deserialize<PipelineResponse>(json, _jsonOpts);
-            return pr?.Results?.FirstOrDefault()?.Response?.Result;
+            var results = JsonSerializer.Deserialize<PipelineResponse>(json, _jsonOpts)?.Results;
+            if (results?.Count != 2)
+                throw new InvalidOperationException("Turso returned an incomplete SQL pipeline result.");
+            if (results[0].Type == "error")
+                throw new InvalidOperationException("Turso rejected the SQL statement.");
+            if (results[0] is not { Type: "ok", Response: { Type: "execute", Result: { } statement } })
+                throw new InvalidOperationException("Turso did not acknowledge SQL execution.");
+            if (results[1] is not { Type: "ok", Response.Type: "close" })
+                throw new InvalidOperationException("Turso did not acknowledge closure of the SQL stream.");
+            return statement;
         }
 
         private async Task ExecAsync(string sql, List<LibSqlArg>? args = null) => await ExecuteSqlAsync(sql, args);
@@ -124,15 +132,20 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             try
             {
                 await EnsureTablesAsync();
+                IsProviderActivated = true;
                 result.Result = true; result.IsError = false;
                 result.Message = "TursoOASIS activated — tables ready in Turso (libSQL).";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error activating provider — {ex.Message}"); }
+            catch (Exception ex) { IsProviderActivated = false; result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error activating provider — {ex.Message}"); }
             return result;
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() => await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "TursoOASIS deactivated." });
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool> { Result = true, Message = "TursoOASIS deactivated." });
+        }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         // ─── Avatar saving ────────────────────────────────────────────────────────
