@@ -997,7 +997,7 @@ Open 13 November. Approve the Vercel OASIS team access request when a fresh one-
 
 ### WEB4 and WEB6 sandbox DNS
 
-- **Status (16 November UTC)** Open. Vercel verified both project assignments. NameSilo DNS records are pending. David chose the sandbox names for consistency with HoloNET. The earlier dev.web4 record request is superseded.
+- **Status (17 November UTC)** Open. The previous Vercel project assignments are documented below. Both sandbox names still return NXDOMAIN. Development WEB4 already permits credentialed browser sessions for the intended WEB4 sandbox origin. The generated Vercel preview origin permits bearer requests through wildcard CORS, without session cookies. David chose the sandbox names for consistency with HoloNET. The earlier dev.web4 record request is superseded.
 - **David action** Add two CNAME records in the existing NameSilo zone for oasisomniverse.one.
   - Host sandbox.web4 points to 6022d70f3a03e68f.vercel-dns-017.com.
   - Host sandbox.web6 points to d8f3f9dacdc03719.vercel-dns-017.com.
