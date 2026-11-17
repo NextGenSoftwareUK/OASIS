@@ -20,6 +20,55 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
             => new NativeRecord("people", key, fields.ToDictionary(field => field.Name, field => field.Value));
 
         [Fact]
+        public void VirtualRowsShareImportIdentityAndReturnOnlyMappedMetadata()
+        {
+            const string connection = "mongodb://example.test/retail";
+            var mapping = Guid.NewGuid();
+            var fetched = DateTimeOffset.UtcNow;
+            var row = Record("1", ("label", "fresh"), ("secret", "private"));
+            var fields = new Dictionary<string, string> { ["label"] = "Name" };
+            var first = VirtualHolonRead.FromNative(Owner, ProviderType.MongoDBOASIS, mapping, 1,
+                connection, "people", fetched, row, fields);
+            var next = VirtualHolonRead.FromNative(Owner, ProviderType.MongoDBOASIS, mapping, 2,
+                connection, "people", fetched, row, fields);
+            Assert.Equal(NativeRecordHolonMapper.StableHolonId(Owner, ProviderType.MongoDBOASIS, "people", "1", connection), first.Id);
+            Assert.Equal(first.Id, next.Id);
+            Assert.Equal(2, next.MappingVersion);
+            Assert.Equal(fetched, next.FetchedAt);
+            Assert.Single(first.MetaData);
+            Assert.Equal("fresh", first.MetaData["Name"]);
+            Assert.NotEqual(first.Id, VirtualHolonRead.FromNative(Guid.NewGuid(), ProviderType.MongoDBOASIS,
+                mapping, 1, connection, "people", fetched, row, fields).Id);
+            Assert.Throws<ArgumentException>(() => VirtualHolonRead.FromNative(Owner, ProviderType.MongoDBOASIS,
+                mapping, 1, connection, "orders", fetched, row, fields));
+            var aliases = new Dictionary<string, string> { ["absent"] = "Name", ["label"] = "Name" };
+            Assert.Throws<ArgumentException>(() => VirtualHolonRead.FromNative(Owner, ProviderType.MongoDBOASIS,
+                mapping, 1, connection, "people", fetched, row, aliases));
+        }
+
+        [Fact]
+        public void VirtualMappingDefinitionIsPrivateAndContainsOnlySourceMetadata()
+        {
+            const string authority = "mongodb://example.test/retail";
+            var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, Owner, ProviderType.MongoDBOASIS,
+                "people", "retail", authority, new Dictionary<string, string> { ["Name"] = "label" });
+            var definition = mapping.ToDefinitionHolon();
+            Assert.False(definition.IsPublic);
+            Assert.Equal(Owner, definition.CreatedByAvatarId);
+            Assert.Equal("MongoDBOASIS", definition.MetaData["oasis.virtual.provider"]);
+            Assert.Equal("people", definition.MetaData["oasis.virtual.source"]);
+            Assert.DoesNotContain(authority, definition.MetaData.Values.OfType<string>());
+
+            var restored = VirtualHolonMapping.FromDefinitionHolon(Owner, definition, authority);
+            Assert.Equal(mapping.Id, restored.Id);
+            Assert.Equal("label", restored.Fields["Name"]);
+            Assert.Throws<ArgumentException>(() => VirtualHolonMapping.FromDefinitionHolon(Guid.NewGuid(),
+                definition, authority));
+            Assert.Throws<ArgumentException>(() => VirtualHolonMapping.FromDefinitionHolon(Owner, definition,
+                "mongodb://other.test/retail"));
+        }
+
+        [Fact]
         public void StableIdDependsOnlyOnProviderSourceAndKey()
         {
             var id = NativeRecordHolonMapper.StableHolonId(Owner, ProviderType.MongoDBOASIS, "people", "1");

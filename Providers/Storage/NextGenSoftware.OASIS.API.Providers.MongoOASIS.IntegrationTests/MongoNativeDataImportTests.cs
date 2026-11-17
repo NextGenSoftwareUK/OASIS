@@ -89,6 +89,51 @@ public sealed class MongoNativeDataImportTests
 
             Assert.Equal(3, pages);
             Assert.Equal(new[] { "One", "Three", "Ay", "Bee", "Oid" }, names);
+
+            var items = client.GetDatabase(nativeDatabase).GetCollection<BsonDocument>("virtual_items");
+            await items.InsertManyAsync(new[]
+            {
+                new BsonDocument { { "_id", 1 }, { "code", "Case" }, { "label", "old" }, { "secret", "private" } },
+                new BsonDocument { { "_id", 2 }, { "code", "case" }, { "label", "different case" } },
+                new BsonDocument { { "_id", 3 }, { "code", new BsonArray { "Case" } }, { "label", "array" } },
+                new BsonDocument { { "_id", 4 }, { "code", "Case" }, { "label", "second" } }
+            });
+            var selected = await provider.QueryNativeRecordsAsync("virtual_items", "code", "Case", new[] { "label" }, 2);
+            Assert.False(selected.IsError, selected.Message);
+            Assert.Equal(new[] { "old", "second" }, selected.Result.Select(row => row.Fields["label"]));
+            Assert.All(selected.Result, row => Assert.Single(row.Fields));
+
+            var owner = Guid.NewGuid();
+            var identity = provider.DescribeVirtualQueryConnection(null);
+            var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, owner, provider.NativeDataProviderType,
+                "virtual_items", VirtualHolonMapping.SandboxConnectionName, identity,
+                new Dictionary<string, string> { ["Code"] = "code", ["Label"] = "label" });
+            var mapped = await mapping.QueryAsync(owner, provider, null, "Code", "Case", new[] { "Label" }, 2);
+            Assert.False(mapped.IsError, mapped.Message);
+            Assert.Equal(NativeRecordHolonMapper.StableHolonId(owner, provider.NativeDataProviderType,
+                "virtual_items", selected.Result[0].NativeKey), mapped.Result[0].Id);
+            Assert.Equal("old", mapped.Result[0].MetaData["Label"]);
+
+
+            await items.UpdateOneAsync(new BsonDocument("_id", 1), new BsonDocument("$set", new BsonDocument("label", "fresh")));
+            var refreshed = await provider.QueryNativeRecordsAsync("virtual_items", "code", "Case", new[] { "label" }, 1);
+            Assert.False(refreshed.IsError, refreshed.Message);
+            Assert.Equal("fresh", Assert.Single(refreshed.Result).Fields["label"]);
+            Assert.Equal(selected.Result[0].NativeKey, refreshed.Result[0].NativeKey);
+            Assert.Equal(4L, await items.CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+
+            await items.InsertManyAsync(new[]
+            {
+                new BsonDocument { { "_id", 5 }, { "code", "large" }, { "label", new string('a', 600_000) } },
+                new BsonDocument { { "_id", 6 }, { "code", "large" }, { "label", new string('b', 600_000) } }
+            });
+            var oversized = await provider.QueryNativeRecordsAsync("virtual_items", "code", "large", new[] { "label" }, 2);
+            Assert.Equal("NATIVE_QUERY_PAYLOAD_LIMIT", oversized.ErrorCode);
+            Assert.Null(oversized.Result);
+
+            Assert.Equal("NATIVE_QUERY_INVALID",
+                (await provider.QueryNativeRecordsAsync("virtual_items", "$secret", "private", new[] { "label" }, 1)).ErrorCode);
+
         }
         finally
         {

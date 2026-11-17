@@ -18,6 +18,14 @@ public static partial class CqlV1Compiler
     public static CosmicProjectionQuery<Holon, CosmicProjectionRecord> CompileProjection(
         CqlProjectionV1Request request, Guid actor, ProviderType? provider,CosmicQueryReadAccess access)
     {
+        if (request?.VirtualMappingId.HasValue == true)
+            throw new ArgumentException("A virtual mapping requires the direct mixed projection route.");
+        return CompileProjection(request, actor, provider, access, null);
+    }
+
+    internal static CosmicProjectionQuery<Holon, CosmicProjectionRecord> CompileProjection(
+        CqlProjectionV1Request request, Guid actor, ProviderType? provider, CosmicQueryReadAccess access, int? branchLimit)
+    {
         if (request == null || request.Take is < 0 or > 100 || request.Columns == null
             || request.Columns.Length is < 1 or > CosmicProjectionQuery<Holon, CosmicProjectionRecord>.MaximumColumns)
             throw new ArgumentException("Projection requires one to32 columns and Take0–100.");
