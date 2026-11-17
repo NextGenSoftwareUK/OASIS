@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Shared image 44142971678 reached terminal state and the image slot cleared. Dispatched one [final Chat image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44148463730) for d51ef1e77854; it is active. Exact contracts 44146529783 are also active. No Development push or local build was made.
+
 2026-11-17 UTC — Public installed Edge headless browser opened the deployed /subscription route. The subscription popup was selected and its Plans panel rendered exactly five cards for Free, Bronze, Silver, Gold and Enterprise, with GBP pricing and no load-error text. The owned temporary browser profile was removed after exit. This proves public plan rendering; signed subscriber controls and checkout remain separate acceptance items.
 
 ## OPORTAL acceptance snapshot — 17 November 2026
