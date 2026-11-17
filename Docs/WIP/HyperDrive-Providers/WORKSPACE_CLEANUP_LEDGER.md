@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed temporary indexes used for the Core Chat access and parent qualification commits. Changes were composed with Git objects. No local build, download, report or hosted Chat fixture was created.
+
 2026-11-17 UTC — Hosted Chat release verification compared shell and three assets in memory. No downloads, reports, builds or new hosted fixtures were retained.
 
 2026-11-17 UTC — Exact-candidate portal regression suite read Git blobs in memory. It retained no test reports, build outputs, dependencies or fixtures. The standard TEMP and TMP directories exist; desktop browser runtime initialization remains an engineering tooling issue.
