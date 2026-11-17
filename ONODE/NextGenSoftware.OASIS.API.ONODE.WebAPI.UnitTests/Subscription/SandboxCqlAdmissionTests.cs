@@ -78,6 +78,22 @@ public class SandboxCqlAdmissionTests
     }
 
     [Fact]
+    public void MixedProjectionRefusesAOneAttemptRouteAtStartup()
+    {
+        var profile = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(
+            Path.Combine(AppContext.BaseDirectory, "cql-free-admission.json")))!;
+        var mixed = profile["routes"]!.AsArray().Single(route =>
+            route!["path"]!.GetValue<string>() == "/api/data/query-cql/projection/mixed");
+        mixed!["policy"]!["maximumProviderAttempts"] = 1;
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> {
+            ["PREPARED_STORAGE_ADMISSION_JSON"] = profile.ToJsonString()
+        }).Build();
+
+        Assert.Throws<InvalidOperationException>(() => new ServiceCollection()
+            .AddConfiguredStorageAdmission(configuration, true, _ => null));
+    }
+
+    [Fact]
     public async Task ShippedDemoProfileStartsWithoutGrantingUnconfiguredOperationRecovery()
     {
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> {
