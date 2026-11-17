@@ -9,6 +9,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 public sealed class CqlProjectionV1Request
 {
     public string? Provider { get; set; }
+    public Guid? VirtualMappingId { get; set; }
     public CqlV1Filter[] Filters { get; set; } = Array.Empty<CqlV1Filter>();
     public CqlV1Filter[] AnyOf { get; set; } = Array.Empty<CqlV1Filter>();
     public CqlV1ChildExists[] AnyChildren { get; set; } = Array.Empty<CqlV1ChildExists>();
