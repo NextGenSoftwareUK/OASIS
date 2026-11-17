@@ -2273,3 +2273,6 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 
 
 2026-11-17 UTC — Settings SDK acknowledgment checks ran entirely in memory. No reset email, account, database, download or build output was created. The scoped Git-tree candidate used one temporary index; index and lock were removed in finally. Retained only source Git objects. Sandbox cleanup audit: earlier browser avatar deletion does not prove removal of its derived holon; do not record backend fixture cleanup as complete. Future probes must delete owned holons before avatar teardown; independent subscription expiry is a separate lifecycle.
+
+
+2026-11-17 UTC — Twenty recovery cases ran in memory without network calls, emails, avatars or database writes. Scoped portal candidate 4a94caa7ecf3 used a single temporary Git index, removed with its lock in finally. Hydrated only six small tracked HTML source files needed for cache reference synchronization; retained source, no generated build/test reports. Chat image built remotely; no local image download.
