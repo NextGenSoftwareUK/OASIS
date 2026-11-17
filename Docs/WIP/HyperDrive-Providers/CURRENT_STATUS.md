@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Exact combined image 44177895693 passed on 9302000060fc, and the completed job SOURCE_SHA matched that revision. Integration rechecked retained controller contracts, source ancestry, all seven healthy predecessor deployments on 8f826af5c797, cadence and candidate dependency pins. The first gate stopped before pushing because PowerShell converted an ISO deployment date to a locale-dependent display string; corrected the automation to retain JSON date strings and parse invariantly. The rerun passed. Development fast-forwarded 8f826af5c797 → 9302000060fc, preserving qualified peer null/empty work. Railway WEB4 queued that revision at 21:34:34 UTC. Running-source and real hosted read acceptance are still pending. No cleanup diagnostic/purge changes were swept into this batch.
+
 2026-11-17 UTC — Cleanup diagnostic task 3f46972be60c is pushed. The host now logs the native provider name and ErrorCode when holon/avatar cleanup is not acknowledged, retaining the existing false/error outcome and omitting record IDs, contents, exception messages and credentials from the new line. CreateCleanup is instance-owned to use the injected logger. Syntax parsing and diff checks passed; compiled/deployed diagnostic acceptance is pending. This is not a purge fix and is not included in frozen read image candidate 9302000060fc.
 
 2026-11-17 UTC — Further cleanup source trace confirms SQLite returns RecordNotFound when no avatar matches, but the runtime warning does not expose whether that was this failure. The explicit single-provider HyperDrive aggregation route already exists and must be considered for authoritative maintenance observations; ordinary preferred-provider calls alone are not absence evidence. Do not turn missing/unavailable deletion callbacks into success without pinned observation and verified target state. Image 44177895693 remains active on frozen combined read/CQL source; no extra build or Development push was requested.
@@ -84,7 +86,7 @@
 
 ## OPORTAL acceptance snapshot — 17 November 2026
 
-OPORTAL remains incomplete. Portal dev is at e9d4586caba2 and all seven dev APIs serve 2f7558d1177a. The latest exact portal candidate passed 23 regression groups. A signed headless Edge probe now passed fresh-account dashboard and Subscription/Messages/HyperDrive navigation using an API-issued sandbox session loaded into browser storage. Populated accounts, writes and normal interactive sign-in remain separate checks. The desktop browser tool still fails to initialize.
+OPORTAL remains incomplete. Portal dev is at e9d4586caba2 and all seven dev APIs were confirmed healthy on predecessor 8f826af5c797 before combined 9302000060fc queued; running-source acceptance for that rollout remains pending. The latest exact portal candidate passed 23 regression groups. A signed headless Edge probe now passed fresh-account dashboard and Subscription/Messages/HyperDrive navigation using an API-issued sandbox session loaded into browser storage. Populated accounts, writes and normal interactive sign-in remain separate checks. The desktop browser tool still fails to initialize.
 
 | Area | Verified evidence | Remaining acceptance |
 |---|---|---|
