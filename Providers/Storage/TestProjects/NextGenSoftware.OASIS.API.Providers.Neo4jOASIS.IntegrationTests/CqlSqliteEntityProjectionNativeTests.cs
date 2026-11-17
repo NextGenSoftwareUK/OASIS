@@ -335,10 +335,11 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         };
         var textJoinIds = new[] { parentId, lowerId, missingId };
         var textInput = source.Where(row => textJoinIds.Contains(row.Id)).Result;
-        var textKeys = new[] { CosmicProjectionSelection<Holon>.Create("Text",
-            row => CosmicQueryMetadata.Value<string>(row, "caseJoinGuid")).Result };
-        var textJoin = textInput.JoinColumns(textInput, textKeys, textKeys).Result;
-        var textNullSafe = textJoin.CompareKey("Text", CosmicJoinComparison.NullSafeEqual);
+        var textJoin = textInput.Join(textInput,
+            row => CosmicQueryMetadata.Value<string>(row, "caseJoinGuid"),
+            row => CosmicQueryMetadata.Value<string>(row, "caseJoinGuid"));
+        Assert.IsFalse(textJoin.IsError, textJoin.Message);
+        var textNullSafe = textJoin.Result.CompareKey(textJoin.Result.Keys.Single().Alias, CosmicJoinComparison.NullSafeEqual);
         Assert.IsFalse(textNullSafe.IsError, textNullSafe.Message);
         var textSelection = textNullSafe.Result.Select((left, right) => new { Left = left.Id, Right = right.Id });
         Assert.IsFalse(textSelection.IsError, textSelection.Message);
