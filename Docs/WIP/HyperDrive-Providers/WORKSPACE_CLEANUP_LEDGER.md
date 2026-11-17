@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Signed My Eggs read used one disposable sandbox avatar. WEB4 returned the nested deletion receipt. The SDK and probe ran in memory, and no test files, runtimes or build outputs were retained.
+
 2026-11-17 UTC — Dashboard map and GeoNFT checks ran in memory. The disposable Git candidate index was removed automatically. No local downloads, installation, test reports or build outputs were retained.
 
 2026-11-17 UTC — Exact dashboard regression and WEB4 image evidence were read in memory. The temporary portal candidate index was removed. No Docker images, builds, downloads or reports were retained on the workstation.
