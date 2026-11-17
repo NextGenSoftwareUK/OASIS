@@ -474,6 +474,14 @@ Provider-breadth milestone1November2026: [ChainLink hosted proof](CHAINLINK_PUBL
 15 November UTC. The exact Development candidate d7807ff87c7c passed the transformed constructor-member regression, with 52 native projection checks and fixture cleanup per SQLite, MongoDB and Neo4j in [protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43681071778). The [exact image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43682040315) is queued. Computed DTO-member composition remains open.
 
 
+### Null-or-empty native increment
+
+Exact source qualification 44168142745 passed on a919e86c2a8f: 106 checks per store,
+including six new native null-or-empty cases on MongoDB, SQLite and Neo4j.
+The exact image 44171724090 is building; hosted null-or-empty acceptance remains open.
+Typed mapped-source predicates are being implemented separately in 44173913395;
+they are not yet accepted as mixed CQL query support. The full Q09 row remains open.
+
 ### Q09 string-function contract
 
 The native qualification for 284391263af1 passed 93 checks per store, including
