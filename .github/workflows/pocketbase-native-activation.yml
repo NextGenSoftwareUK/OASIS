@@ -2,7 +2,7 @@ name: PocketBase native BootLoader activation
 
 on:
   push:
-    branches: [work/hyperdrive-provider-completion]
+    branches: [work/hyperdrive-pocketbase-qualification]
     paths:
       - '.github/workflows/pocketbase-native-activation.yml'
       - 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.Register.cs'
