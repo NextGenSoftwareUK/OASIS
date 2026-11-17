@@ -1,5 +1,7 @@
 # Priority provider HyperDrive routing evidence
 
+2026-11-17 UTC — Running Railway WEB4 dev `323922c64d9e` returned its loaded V2 configuration with automatic balancing enabled, Auto strategy and MongoDB/SQLite. The signed request used a sandbox avatar whose effective override additionally lists Neo4j. The read verifies the active process configuration. Provider selection for ordinary traffic requires its own per-response routing receipts.
+
 2026-11-17 UTC — Hosted HoloOASIS housekeeping and recovery verified on Railway dev WEB4 4d0d2022170c. Removed 134 unused listeners and restarted the exact deployment. The original wallet-guard cell retained one canonical listener, including after a signed public CQL query returned three distinct rows in 810 ms. The verified result covers listener cleanup, restart and hosted public read. Hosted authority-bound graph writes and replication remain open. [Native restart regression](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43983803407).
 
 12 November 2026. This ledger tracks automatic routing for the priority providers. A direct provider lifecycle pass is evidence that a backend can store the fixture. A routing pass also requires the shipping HyperDrive entry point and evidence of the provider that served the request or received the replica.

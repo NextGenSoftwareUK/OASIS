@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — WEB4 config readback used a disposable sandbox avatar and verified its deletion acknowledgement. Only non-secret policy fields were printed. No configuration, downloads, local outputs or test credentials were retained.
+
 2026-11-17 UTC — Removed the temporary Global Search candidate index. Qualification used existing Git blobs in memory. No downloads, accounts, browser profile or generated output was created.
 
 2026-11-17 UTC — The OPORTAL Avatar Search candidate removed its temporary index. The regression worked with in-memory fixtures. No accounts, downloads, browser profiles or generated files were created.
