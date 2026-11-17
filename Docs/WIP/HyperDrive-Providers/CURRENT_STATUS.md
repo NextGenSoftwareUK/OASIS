@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Installed Edge verified signed-out /avatar-popup, /nft, /karma, /search, /settings and /admin. Every route showed a visible modal with only the login block selected and its real login form. Together with prior Messages/Wallet/HyperDrive checks, all nine protected popup routes passed signed-out browser navigation. Authenticated interactions remain open. All seven Railway dev APIs report SUCCESS on 919790a8548c; the acceptance snapshot now reflects that serving revision.
+
 2026-11-17 UTC — Chat image 44148463730 passed, but the rollout guard found Development and serving Railway WEB4 already at 919790a8548c with concurrent Cosmos/protocol changes. Clean merged candidate 2f7558d1177a preserves those changes. The Chat controller, complete ONODE/OASIS Architecture source, Core pin and Railway manifest match qualified d51ef1e77854; retain its 996-contract evidence. [Combined exact image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44152558339) is running. No new Development push. Hosted acceptance awaits that combined deployment.
 
 2026-11-17 UTC — Installed Edge opened deployed /messages, /wallet and /hyperdrive while signed out. Each rendered a visible modal with only the login block selected and a real login form. This verifies protected-route browser navigation. Authenticated feature behavior remains open. The shared temporary browser profile was removed after the three checks.
@@ -16,14 +18,14 @@
 
 ## OPORTAL acceptance snapshot — 17 November 2026
 
-OPORTAL remains incomplete. Portal dev is at 9c85d745fb97 and the serving dev API fleet is at 3527154a118d. The latest exact portal candidate passed 23 regression groups. Signed browser verification remains open. The desktop browser runtime fails to initialize; a separate public headless Edge check now verifies the selected subscription popup.
+OPORTAL remains incomplete. Portal dev is at 9c85d745fb97 and the serving dev API fleet is at 919790a8548c. The latest exact portal candidate passed 23 regression groups. Signed browser verification remains open. The desktop browser runtime fails to initialize; a separate public headless Edge check now verifies the selected subscription popup.
 
 | Area | Verified evidence | Remaining acceptance |
 |---|---|---|
 | Dashboard | Deployed client-change guard; earlier signed empty-account API batch completed in 357–400 ms | Signed browser render timing and populated-account results |
 | Subscriptions | October hosted Stripe test checkout, webhook activation, invoices and billing navigation; current public Edge renders five plan cards with GBP pricing; latest portal regression groups passed | Current signed browser regression, real Wizard administrator session and remaining owner actions |
 | Messages | Current signed empty inbox, conversation and summary reads; deployed grouping, unread and session guards | Successful persisted send/readback and cleanup of the earlier two-avatar fixture |
-| Live Chat | Deployed recipient field, request shapes, draft retention and bounded visible polling; controlled checks passed | New server participant checks and persisted termination need qualification and deployment, followed by hosted round trip |
+| Live Chat | Deployed recipient field, request shapes, draft retention and bounded visible polling; controlled checks passed | Server participant checks and persisted termination passed contracts; combined image build and deployment precede hosted round trip |
 | Wallet | Signed address-only link/readback and prior watch-only balances/activity checks; fixtures cleaned | Signing, trading, populated mainnet valuation and browser interaction |
 | Clan | Signed create, membership, owner denial and deletion flow passed; UI deployed | Browser interaction and three historical fixture cleanups |
 | NFT / GeoNFT / OLAND | Deployed independent popup reads; application subscription denial was verified for attempted mint/transfer | Eligible account native mint/transfer receipt, populated lists and browser interaction |
