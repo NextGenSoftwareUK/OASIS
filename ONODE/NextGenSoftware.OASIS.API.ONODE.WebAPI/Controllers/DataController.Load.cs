@@ -86,11 +86,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             OASISHttpResponseMessage<Holon> response;
             (response, HolonType childHolonType) = ValidateHolonType<Holon>(request.ChildHolonType);
+            if (response.Result.IsError) return response;
 
             OASISConfigResult<Holon> configResult = await ConfigureOASISEngineAsync<Holon>(request);
 
-            if (configResult.IsError && configResult.Response != null)
-                return configResult.Response;
+            if (configResult.IsError)
+                return configResult.Response ?? TestDataHelper.CreateErrorResponse<Holon>("Could not configure the holon read.");
 
             OASISResult<IHolon> result = null;
             try
@@ -116,17 +117,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
                 result = await manager.LoadHolonAsync(request.Id, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType, request.Version, ProviderType.Default, allowMissing: false, strategy: strategy);
 
-                ResetOASISSettings(request, configResult);
-
-                // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+                var mapped = MapHolonRead(result);
+                if (mapped.IsError)
                 {
-                    var testHolon = TestDataHelper.GetTestHolon(request.Id);
-                    return TestDataHelper.CreateSuccessResponse<Holon>(testHolon, "Holon loaded successfully (using test data)", System.Net.HttpStatusCode.OK);
+                    var failed = HttpResponseHelper.FormatResponse(mapped, System.Net.HttpStatusCode.BadRequest, request.ShowDetailedSettings);
+                    return requestContext == null ? failed : failed.BindRoutingPolicy(requestContext.Policy);
                 }
-
-                OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
-                var holon = (Holon)result.Result;
+                var holon = mapped.Result;
 
                 // Non-Wizards may only read holons they created, that are public, or that were shared with them
                 if (holon != null && Avatar?.AvatarType?.Value != AvatarType.Wizard)
@@ -138,23 +135,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                             "Forbidden. You do not have permission to access this holon.", null, System.Net.HttpStatusCode.Forbidden);
                 }
 
-                response.Result.Result = holon;
+                mapped.Result = holon;
 
-                var formatted = HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
+                var formatted = HttpResponseHelper.FormatResponse(mapped, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
                 return requestContext == null ? formatted : formatted.BindRoutingPolicy(requestContext.Policy);
             }
             catch (Exception ex)
             {
-                ResetOASISSettings(request, configResult);
-
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    var testHolon = TestDataHelper.GetTestHolon(request.Id);
-                    return TestDataHelper.CreateSuccessResponse<Holon>(testHolon, "Holon loaded successfully (using test data)", System.Net.HttpStatusCode.OK);
-                }
                 return TestDataHelper.CreateErrorResponse<Holon>($"Error loading holon: {ex.Message}", ex, System.Net.HttpStatusCode.BadRequest);
             }
+            finally
+            {
+                ResetOASISSettings(request, configResult);
+            }
+        }
+
+        private static OASISResult<Holon> MapHolonRead(OASISResult<IHolon> result)
+        {
+            if (result == null || (!result.IsError && result.Result == null))
+                return new OASISResult<Holon> { IsError = true, Message = "The provider returned no holon read result." };
+            var response = new OASISResult<Holon>();
+            OASISResultHelper<IHolon, Holon>.CopyResult(result, response);
+            if (!result.IsError) response.Result = (Holon)result.Result;
+            return response;
         }
 
 

@@ -10,6 +10,40 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 [Collection("Admitted key manager controllers")]
 public class HolonReadControllerTests
 {
+    [Fact]
+    public void CompiledSingleReadPreservesProviderFailureAndExactHolon()
+    {
+        WithController(type =>
+        {
+            var method = type.GetMethod("MapHolonRead", BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.NotNull(method);
+            OASISResult<Holon> Map(OASISResult<IHolon>? result) =>
+                Assert.IsType<OASISResult<Holon>>(method!.Invoke(null, new object?[] { result }));
+            Assert.True(Map(null).IsError);
+            Assert.True(Map(new OASISResult<IHolon>()).IsError);
+            var failure = Map(new OASISResult<IHolon> {
+                IsError = true, ErrorCode = "REAL_SINGLE_READ_ERROR", Message = "Storage lookup failed."
+            });
+            Assert.True(failure.IsError);
+            Assert.Equal("REAL_SINGLE_READ_ERROR", failure.ErrorCode);
+            Assert.Equal("Storage lookup failed.", failure.Message);
+            var holon = new Holon { Id = Guid.NewGuid(), Name = "Real lookup" };
+            var success = Map(new OASISResult<IHolon> { Result = holon });
+            Assert.False(success.IsError);
+            Assert.Same(holon, success.Result);
+
+            var requestType = type.Assembly.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.LoadHolonRequest", true)!;
+            var request = Activator.CreateInstance(requestType)!;
+            requestType.GetProperty("ChildHolonType")!.SetValue(request, "invalid-child-type");
+            var action = type.GetMethod("LoadHolon", new[] { requestType })!;
+            var task = Assert.IsAssignableFrom<Task>(action.Invoke(Activator.CreateInstance(type), new[] { request }));
+            task.GetAwaiter().GetResult();
+            var rejected = Assert.IsType<OASISHttpResponseMessage<Holon>>(task.GetType().GetProperty("Result")!.GetValue(task));
+            Assert.True(rejected.Result.IsError);
+            Assert.Contains("invalid-child-type", rejected.Result.Message);
+        });
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
