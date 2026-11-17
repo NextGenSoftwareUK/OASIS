@@ -203,7 +203,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.TursoOASIS] = avatar.Id.ToString();
                 await WriteOneAsync(
                     "INSERT INTO oasis_avatars(id,username,email,is_deleted,data_json) VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET username=excluded.username,email=excluded.email,is_deleted=excluded.is_deleted,data_json=excluded.data_json",
-                    new List<LibSqlArg> { Arg(avatar.Id.ToString()), Arg(avatar.Username), Arg(avatar.Email), ArgInt(avatar.IsDeleted ? 1 : 0), Arg(Ser(avatar)) });
+                    new List<LibSqlArg> { Arg(avatar.Id.ToString()), Arg(avatar.Username), Arg(avatar.Email), ArgInt(avatar.IsDeleted ? 1 : 0), Arg(StoredRecordJson.Serialize(avatar)) });
                 result.Result = avatar;
                 result.IsSaved = true;
                 result.SavedCount = 1;
@@ -222,8 +222,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             var res = await ExecuteSqlAsync(sql, args);
             var rows = ResultToRows(res);
             if (rows.Count == 0) return null;
-            return Des<Avatar>(rows[0].GetValueOrDefault("data_json"));
+            return ReadStoredAvatar(rows[0]["data_json"]);
         }
+
+        private static Avatar ReadStoredAvatar(string? payload) =>
+            StoredRecordJson.DeserializeStored<Avatar>(payload!)
+                ?? throw new InvalidOperationException("Turso returned an empty avatar payload.");
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
         {
@@ -282,6 +286,89 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => LoadAvatarByEmailAsync(avatarEmail, version).Result;
 
+        public override Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string verificationToken, int version = 0)
+            => LoadAvatarCredentialAsync("COALESCE(json_extract(data_json,'$.VerificationToken'),json_extract(data_json,'$.verificationToken'))=?", verificationToken, version);
+
+        public override OASISResult<IAvatar> LoadAvatarByVerificationToken(string verificationToken, int version = 0)
+            => LoadAvatarByVerificationTokenAsync(verificationToken, version).GetAwaiter().GetResult();
+
+        public override Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string resetToken, int version = 0)
+            => LoadAvatarCredentialAsync("COALESCE(json_extract(data_json,'$.ResetToken'),json_extract(data_json,'$.resetToken'))=?", resetToken, version);
+
+        public override OASISResult<IAvatar> LoadAvatarByResetToken(string resetToken, int version = 0)
+            => LoadAvatarByResetTokenAsync(resetToken, version).GetAwaiter().GetResult();
+
+        public override Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string refreshToken, int version = 0)
+            => LoadAvatarCredentialAsync("""
+                EXISTS (SELECT 1 FROM json_each(COALESCE(json_extract(data_json,'$.RefreshTokens'),
+                    json_extract(data_json,'$.refreshTokens'))) AS refresh
+                    WHERE COALESCE(json_extract(refresh.value,'$.Token'),json_extract(refresh.value,'$.token'))=?)
+                """, refreshToken, version);
+
+        public override OASISResult<IAvatar> LoadAvatarByRefreshToken(string refreshToken, int version = 0)
+            => LoadAvatarByRefreshTokenAsync(refreshToken, version).GetAwaiter().GetResult();
+
+        public Task<OASISResult<IAvatar>> LoadAvatarByPublicKeyAsync(string publicKey, int version = 0)
+            => LoadAvatarByWalletCredentialAsync("PublicKey", "publicKey", publicKey, version);
+
+        public OASISResult<IAvatar> LoadAvatarByPublicKey(string publicKey, int version = 0)
+            => LoadAvatarByPublicKeyAsync(publicKey, version).GetAwaiter().GetResult();
+
+        public Task<OASISResult<IAvatar>> LoadAvatarByPrivateKeyAsync(string privateKey, int version = 0)
+            => LoadAvatarByWalletCredentialAsync("PrivateKey", "privateKey", privateKey, version);
+
+        public OASISResult<IAvatar> LoadAvatarByPrivateKey(string privateKey, int version = 0)
+            => LoadAvatarByPrivateKeyAsync(privateKey, version).GetAwaiter().GetResult();
+
+        private Task<OASISResult<IAvatar>> LoadAvatarByWalletCredentialAsync(
+            string canonicalProperty, string legacyProperty, string selector, int version)
+            => LoadAvatarCredentialAsync($$"""
+                EXISTS (
+                    SELECT 1
+                    FROM json_each(COALESCE(json_extract(data_json,'$.ProviderWallets'),
+                        json_extract(data_json,'$.providerWallets'))) AS wallet_groups
+                    JOIN json_each(CASE WHEN wallet_groups.type='array' THEN wallet_groups.value END) AS wallet
+                    WHERE COALESCE(json_extract(wallet.value,'$.{{canonicalProperty}}'),
+                        json_extract(wallet.value,'$.{{legacyProperty}}'))=?
+                )
+                """, selector, version);
+
+        private async Task<OASISResult<IAvatar>> LoadAvatarCredentialAsync(string predicate, string selector, int version)
+        {
+            if (string.IsNullOrWhiteSpace(selector) || version != 0)
+                return new OASISResult<IAvatar>
+                {
+                    IsError = true, ErrorCount = 1, ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID",
+                    Message = "Invalid avatar credential selector or version."
+                };
+
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                var records = await ExecuteSqlAsync(
+                    $"SELECT data_json FROM oasis_avatars WHERE is_deleted=0 AND ({predicate}) LIMIT 2",
+                    new List<LibSqlArg> { Arg(selector) }).ConfigureAwait(false);
+                var rows = ResultToRows(records);
+                if (rows.Count == 0)
+                    return MissingRecord<IAvatar>("Turso found no live avatar for the credential.");
+                if (rows.Count > 1)
+                    return new OASISResult<IAvatar>
+                    {
+                        IsError = true, ErrorCount = 1, ErrorCode = OASISResultErrorCodes.AmbiguousIdentity,
+                        Message = "More than one live avatar matches the credential."
+                    };
+                result.Result = ReadStoredAvatar(rows[0]["data_json"]);
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, "Turso avatar credential lookup failed.");
+            }
+            return result;
+        }
+
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
             if (Guid.TryParse(providerKey, out Guid id)) return await LoadAvatarAsync(id, version);
@@ -296,8 +383,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             try
             {
                 var res = await ExecuteSqlAsync("SELECT data_json FROM oasis_avatars WHERE is_deleted=0");
-                var avatars = ResultToRows(res).Select(r => Des<Avatar>(r.GetValueOrDefault("data_json"))).Where(a => a != null).Cast<IAvatar>().ToList();
-                result.Result = avatars; result.IsError = false; result.Message = $"TursoOASIS: Loaded {avatars.Count} avatar(s).";
+                var avatars = ResultToRows(res).Select(row => (IAvatar)ReadStoredAvatar(row["data_json"])).ToList();
+                result.Result = avatars;
+                result.IsLoaded = true;
+                result.LoadedCount = avatars.Count;
+                result.Message = $"TursoOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error loading all avatars: {ex.Message}"); }
             return result;
@@ -307,49 +397,40 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
 
         // ─── Avatar deletion ──────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+            => DeleteAvatarMatchingAsync("?", id.ToString(), softDelete);
+
+        private async Task<OASISResult<bool>> DeleteAvatarMatchingAsync(string idSelection, string identity, bool softDelete)
         {
             var result = new OASISResult<bool>();
             try
             {
                 var deleted = await ExecuteSqlAsync(
-                    softDelete ? "UPDATE oasis_avatars SET is_deleted=1 WHERE id=? AND is_deleted=0"
-                        : "DELETE FROM oasis_avatars WHERE id=?",
-                    new List<LibSqlArg> { Arg(id.ToString()) }).ConfigureAwait(false);
+                    softDelete ? $"UPDATE oasis_avatars SET is_deleted=1 WHERE id={idSelection} AND is_deleted=0"
+                        : $"DELETE FROM oasis_avatars WHERE id={idSelection}",
+                    new List<LibSqlArg> { Arg(identity) }).ConfigureAwait(false);
                 if (deleted.AffectedRowCount == 0)
-                    return new OASISResult<bool>
-                    {
-                        IsError = true, ErrorCount = 1, ErrorCode = OASISResultErrorCodes.RecordNotFound,
-                        Message = "Turso found no matching avatar to delete."
-                    };
+                    return MissingRecord<bool>("Turso found no matching avatar to delete.");
                 if (deleted.AffectedRowCount != 1)
                     throw new InvalidOperationException("Turso did not acknowledge exactly one avatar deletion.");
                 result.Result = true;
                 result.IsDeleted = true;
                 result.DeletedCount = 1;
-                result.Message = $"TursoOASIS: Avatar '{id}' {(softDelete ? "soft" : "hard")}-deleted.";
+                result.Message = $"TursoOASIS: Avatar {(softDelete ? "soft" : "hard")}-deleted.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error deleting avatar '{id}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error deleting avatar: {ex.Message}"); }
             return result;
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
 
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
-        {
-            var a = await LoadAvatarByUsernameAsync(username);
-            if (a.IsError || a.Result == null) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, $"TursoOASIS: Avatar '{username}' not found."); return r; }
-            return await DeleteAvatarAsync(a.Result.Id, softDelete);
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
+            => DeleteAvatarMatchingAsync("(SELECT id FROM oasis_avatars WHERE username=? AND is_deleted=0 LIMIT 1)", username, softDelete);
 
         public override OASISResult<bool> DeleteAvatarByUsername(string username, bool softDelete = true) => DeleteAvatarByUsernameAsync(username, softDelete).Result;
 
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
-        {
-            var a = await LoadAvatarByEmailAsync(email);
-            if (a.IsError || a.Result == null) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, $"TursoOASIS: Avatar with email '{email}' not found."); return r; }
-            return await DeleteAvatarAsync(a.Result.Id, softDelete);
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
+            => DeleteAvatarMatchingAsync("(SELECT id FROM oasis_avatars WHERE email=? AND is_deleted=0 LIMIT 1)", email, softDelete);
 
         public override OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true) => DeleteAvatarByEmailAsync(email, softDelete).Result;
 
@@ -795,7 +876,18 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                 var matches = new SearchResults();
                 matches.SearchResultAvatars.AddRange(avatars.Where(avatar => StoredRecordSearch.Matches(avatar, true, searchParams, holons)));
                 if (searchHolons)
-                    matches.SearchResultHolons.AddRange(holons.Where(holon => StoredRecordSearch.Matches(holon, false, searchParams, holons)));
+                {
+                    bool MatchesHolon(IHolon holon) => StoredRecordSearch.Matches(holon, false, searchParams, holons);
+                    var selected = holons.Where(MatchesHolon).ToList();
+                    if (loadChildren && selected.Count > 0)
+                    {
+                        var depth = !recursive ? 1 : maxChildDepth == 0 ? -1 : maxChildDepth;
+                        var ids = Ser(selected.Select(holon => holon.Id));
+                        var trees = await LoadCollectionTreesAsync(HolonType.All, depth, ids).ConfigureAwait(false);
+                        selected = trees.Where(MatchesHolon).ToList();
+                    }
+                    matches.SearchResultHolons.AddRange(selected);
+                }
                 if (searchParams.SearchOnlyForCurrentAvatar)
                 {
                     var scoped = new OASISResult<IEnumerable<IHolon>> { Result = matches.SearchResultHolons, IsLoaded = true };
@@ -918,10 +1010,32 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string u, int version = 0) { var a = await LoadAvatarByUsernameAsync(u); if (a.IsError || a.Result == null) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, $"TursoOASIS: Avatar '{u}' not found."); return r; } return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version); }
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string u, int version = 0) => ExportAllDataForAvatarByUsernameAsync(u, version).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string e, int version = 0) { var a = await LoadAvatarByEmailAsync(e); if (a.IsError || a.Result == null) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, $"TursoOASIS: Avatar with email '{e}' not found."); return r; } return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version); }
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string e, int version = 0) => ExportAllDataForAvatarByEmailAsync(e, version).Result;
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string u, int version = 0)
+        {
+            var owner = await LoadAvatarByUsernameAsync(u, version).ConfigureAwait(false);
+            return await ExportForResolvedAvatarAsync(owner, version).ConfigureAwait(false);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string u, int version = 0)
+            => ExportAllDataForAvatarByUsernameAsync(u, version).GetAwaiter().GetResult();
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string e, int version = 0)
+        {
+            var owner = await LoadAvatarByEmailAsync(e, version).ConfigureAwait(false);
+            return await ExportForResolvedAvatarAsync(owner, version).ConfigureAwait(false);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string e, int version = 0)
+            => ExportAllDataForAvatarByEmailAsync(e, version).GetAwaiter().GetResult();
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> ExportForResolvedAvatarAsync(OASISResult<IAvatar> owner, int version)
+        {
+            if (owner.IsError)
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar, IEnumerable<IHolon>>(owner);
+            if (owner.Result == null)
+                return MissingRecord<IEnumerable<IHolon>>("Turso found no live avatar for the export.");
+            return await ExportAllDataForAvatarByIdAsync(owner.Result.Id, version).ConfigureAwait(false);
+        }
 
         public bool IsVersionControlEnabled { get; set; } = false;
     }
