@@ -58,11 +58,14 @@ public static partial class CqlV1Compiler
         return new CqlVirtualProjection(filter.MetadataPath[0], Literal(filter.Value, matchType).Value, columns);
     }
 
+    internal static bool IsVirtualField(string field) =>
+        !string.IsNullOrWhiteSpace(field) && field.Length <= 64 && !field.Any(char.IsControl) &&
+        !field.StartsWith("oasis.native.", StringComparison.OrdinalIgnoreCase) &&
+        !field.StartsWith("oasis.virtual.", StringComparison.OrdinalIgnoreCase);
+
     private static void RequireVirtualField(string field)
     {
-        if (string.IsNullOrEmpty(field) || field.Length > 64 || field.Any(char.IsControl) ||
-            field.StartsWith("oasis.native.", StringComparison.OrdinalIgnoreCase) ||
-            field.StartsWith("oasis.virtual.", StringComparison.OrdinalIgnoreCase))
+        if (!IsVirtualField(field))
             throw new ArgumentException("A direct non-reserved mapped metadata name is required.");
     }
 }
