@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — PocketBase run 44047637729 stopped its official native runtime and verified removal of the runtime, data and test output. The OPORTAL dashboard-renewal candidate removed its temporary index. Regression fixtures were read in memory and no local runtime or build artifact was created.
+
 2026-11-17 UTC — The PocketBase candidate composition removed its temporary Git index. The qualification ref uses the existing worktree and runs native fixtures on GitHub. OPORTAL dev asset verification read responses in memory. No local download, build or report was created.
 
 2026-11-17 UTC — Verified [PocketBase job 133876094486](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44035134925/job/133876094486) removed its owned runtime, data and test output. Retrieved compact CI evidence and generated the tracked matrix with Python bytecode disabled. No local builds or runtimes were created.
