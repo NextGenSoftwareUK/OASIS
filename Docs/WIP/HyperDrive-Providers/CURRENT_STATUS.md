@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Development fast-forwarded once from `fd7c71caea71` to `031a8cb55ce5` after the exact WEB4 image `44101458400` and contracts `44097410575` both passed. Railway queued that exact WEB4 revision at 14:48:01 UTC. Verify the serving revision before running signed Clan and watch-only Wallet tests. The next shared Development review is after 15:18 UTC. No local build or fixture was created.
+
 2026-11-17 UTC — Core Messaging follow-up `8df94b64` saves message holons without child traversal. Its build and hosted verification remain open. Source review found the message holon ID equals the API message ID; notifications and counters are stored in per-avatar messaging settings holons with deterministic IDs and recorded avatar ownership. A hosted fixture can identify those exact records for authorized delete and readback before avatar teardown. No test data was created during this review.
 
 2026-11-17 UTC — OPORTAL Messages fixes `8ea6bd7` and `3d51db6` are staged together as portal candidate `c9215739480b` over dev `4b67efe7d790`. Focused checks proved one in-flight send, retry after rejection, paged owned unread IDs and acknowledgment handling. Hosted message and notification writes remain unverified. The current portal deployment cadence window has not opened.
