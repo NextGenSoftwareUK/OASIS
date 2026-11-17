@@ -15,6 +15,16 @@ public sealed record SolanaWalletAsset(string Mint, string Symbol, string Amount
 
 public partial class SolanaOASIS
 {
+    public async Task<OASISResult<bool>> VerifyWalletMainnetAsync(CancellationToken cancellationToken)
+    {
+        const string mainnetGenesis = "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d";
+        var genesis = await _rpcClient.GetGenesisHashAsync().WaitAsync(cancellationToken);
+        if (!genesis.WasSuccessful || string.IsNullOrEmpty(genesis.Result))
+            return new OASISResult<bool> { IsError = true, Message = "The Solana wallet network could not be verified." };
+
+        return new OASISResult<bool>(string.Equals(genesis.Result, mainnetGenesis, StringComparison.Ordinal));
+    }
+
     public async Task<OASISResult<object>> ReadRecentWalletActivityAsync(string walletAddress, CancellationToken cancellationToken)
     {
         const int pageSize = 50;

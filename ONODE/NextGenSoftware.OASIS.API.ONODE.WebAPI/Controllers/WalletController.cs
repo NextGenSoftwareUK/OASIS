@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +18,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
@@ -643,32 +647,66 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<object>> GetPortfolioValueAsync(Guid avatarId)
         {
-            // NOT IMPLEMENTED: there is no on-chain balance/price aggregation behind this yet. It previously
-            // returned hardcoded figures (totalValue 15420.50 etc.) as IsLoaded=true with a success message,
-            // so a brand-new empty wallet reported a five-figure portfolio. Sample data is now only returned
-            // when the operator explicitly opts in, and is labelled as sample data.
-            if (!UseTestDataWhenLiveDataNotAvailable)
-                return NotImplementedResult<object>("Portfolio valuation");
+            if (!OwnsWalletAvatar(avatarId))
+                return RejectWalletAccess<object>("Only the authenticated wallet owner can view its portfolio.");
 
-            return new OASISResult<object>
+            var loaded = await WalletManager.LoadProviderWalletsForAvatarByIdAsync(avatarId, showPrivateKeys: false, showSecretWords: false);
+            if (loaded.IsError)
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Dictionary<ProviderType, List<IProviderWallet>>, object>(loaded);
+            if (loaded.Result == null)
+                return new OASISResult<object> { IsError = true, Message = "The wallet provider returned no wallet groups." };
+
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(HttpContext.RequestAborted);
+            deadline.CancelAfter(TimeSpan.FromSeconds(15));
+            try
             {
-                Result = new
+                var wallets = WalletManager.ResolveWalletsForProvider(loaded.Result, ProviderType.All);
+                var addresses = wallets.Where(wallet => wallet.ProviderType == ProviderType.SolanaOASIS)
+                    .Select(wallet => wallet.WalletAddress).Distinct(StringComparer.Ordinal).ToArray();
+                var unpricedWallets = wallets.Count(wallet => wallet.ProviderType != ProviderType.SolanaOASIS);
+                var assets = new List<SolanaWalletAsset>();
+                if (addresses.Length > 0)
                 {
-                    totalValue = 15420.50,
-                    totalValueUSD = 15420.50,
-                    currency = "USD",
-                    lastUpdated = DateTime.UtcNow.ToString("O"),
-                    breakdown = new
+                    var provider = await GetAndActivateProviderAsync(ProviderType.SolanaOASIS, false).WaitAsync(deadline.Token);
+                    if (provider.IsError || provider.Result is not SolanaOASIS solana)
+                        return new OASISResult<object> { IsError = true, Message = "The Solana wallet provider is unavailable." };
+
+                    var mainnet = await solana.VerifyWalletMainnetAsync(deadline.Token);
+                    if (mainnet.IsError)
+                        return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, object>(mainnet);
+                    if (mainnet.Result)
                     {
-                        ethereum = new { value = 8500.25, usdValue = 8500.25, count = 3 },
-                        bitcoin = new { value = 3200.15, usdValue = 3200.15, count = 1 },
-                        solana = new { value = 2100.10, usdValue = 2100.10, count = 2 },
-                        polygon = new { value = 1620.00, usdValue = 1620.00, count = 1 }
+                        foreach (var address in addresses)
+                        {
+                            var balances = await solana.ReadWalletAssetsAsync(address, deadline.Token);
+                            if (balances.IsError)
+                                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<List<SolanaWalletAsset>, object>(balances);
+                            assets.AddRange(balances.Result);
+                        }
                     }
-                },
-                IsLoaded = true,
-                Message = "SAMPLE DATA - not a real on-chain valuation (UseTestDataWhenLiveDataNotAvailable is enabled)."
-            };
+                    else unpricedWallets += addresses.Length;
+                }
+
+                var prices = await SolanaWalletValuation.ReadAsync(assets, deadline.Token);
+                var complete = unpricedWallets == 0 && prices.Unpriced == 0;
+                return new OASISResult<object>(new
+                {
+                    value = complete ? (decimal?)prices.Value : null,
+                    pricedValueUsd = prices.Priced > 0 ? (decimal?)prices.Value : null,
+                    currency = "USD",
+                    complete,
+                    unpricedWallets,
+                    unpricedAssets = prices.Unpriced
+                }) { IsLoaded = true };
+            }
+            catch (OperationCanceledException) when (!HttpContext.RequestAborted.IsCancellationRequested)
+            {
+                return new OASISResult<object> { IsError = true, Message = "Portfolio valuation timed out." };
+            }
+            catch (Exception error) when (error is HttpRequestException or JsonException or OverflowException)
+            {
+                return new OASISResult<object> { IsError = true, Message = "Portfolio valuation could not be calculated." };
+            }
         }
 
         /// <summary>
