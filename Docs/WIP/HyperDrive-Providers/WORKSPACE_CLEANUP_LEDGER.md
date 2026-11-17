@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — The Solana wallet probes loaded the existing cached Solnet assemblies and inspected public finalized reads in memory. No account was created, no transaction was sent, and no dependency, response export or build output was created.
+
 2026-11-17 UTC — Signed My Eggs read used one disposable sandbox avatar. WEB4 returned the nested deletion receipt. The SDK and probe ran in memory, and no test files, runtimes or build outputs were retained.
 
 2026-11-17 UTC — Dashboard map and GeoNFT checks ran in memory. The disposable Git candidate index was removed automatically. No local downloads, installation, test reports or build outputs were retained.

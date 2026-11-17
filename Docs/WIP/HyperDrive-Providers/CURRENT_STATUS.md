@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Pinned Solnet RPC 6.1.0 completed finalized native SOL, SPL Token and Token-2022 requests against public Solana devnet. The populated token payload contained 31,467 accounts across 8,598 mints. All decoded rows had unique accounts, the requested owner, exact unsigned amounts and consistent mint decimals. This qualifies the SDK wire model and data assumptions. The compiled WEB4 route with an owned wallet and other network implementations remain open. The focused wallet build and competing shared WEB4 image were active.
+
 2026-11-17 UTC — OPORTAL dev advanced once at 12:05 UTC to `f72e8fb3fa607a7b3f70289efb0507f37fdb4c47`. Vercel deployment `7852745495` succeeded. The live shell references dashboard `20261117e`, and the served script matches the tested Git blob. The offline visibility test verified one read each when the map and GeoNFT cards become visible. Signed hosted dashboard timing remains open. Next portal review is after 12:35:43 UTC.
 
 2026-11-17 UTC — Railway WEB4 dev succeeded on exact My Eggs revision `1d108dec84a3d`. The deployed OPORTAL WEB4 SDK made one signed `GET /api/eggs/my-eggs`. It returned HTTP 200 in 384 ms and a successful empty array. WEB4 confirmed avatar deletion. Discover and hatch with a populated collection and hosted browser rendering remain open. The Solana wallet focused build and boundary checks were queued as [run 44079738020](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44079738020). Shared image `44078425184` was active before Clan dispatch.
