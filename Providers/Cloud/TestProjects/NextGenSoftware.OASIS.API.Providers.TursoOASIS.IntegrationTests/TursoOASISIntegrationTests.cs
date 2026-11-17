@@ -413,6 +413,46 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             Assert.IsTrue((await _provider.DeleteAvatarAsync(duplicate.Id, softDelete: false)).IsDeleted);
         }
 
+        [TestMethod]
+        [DoNotParallelize]
+        public async Task NativeAliasExportPreservesOwnerAndLookupFailure()
+        {
+            RequireOwnedFixture();
+            using var client = new HttpClient();
+            var owner = new Avatar { Id = Guid.NewGuid(), Username = "export-owner", Email = "export-owner@example.invalid" };
+            var owned = new Holon { Name = "Owner payload", CreatedByAvatarId = owner.Id };
+            var foreign = new Holon { Name = "Foreign payload", CreatedByAvatarId = Guid.NewGuid() };
+            Assert.IsTrue((await _provider.SaveAvatarAsync(owner)).IsSaved);
+            Assert.IsTrue((await _provider.SaveHolonsAsync(new[] { owned, foreign })).IsSaved);
+
+            foreach (var export in new[]
+            {
+                await _provider.ExportAllDataForAvatarByUsernameAsync(owner.Username),
+                _provider.ExportAllDataForAvatarByEmail(owner.Email)
+            })
+            {
+                Assert.IsTrue(export.IsLoaded, export.Message);
+                Assert.AreEqual(1, export.LoadedCount);
+                Assert.AreEqual(owned.Id, export.Result!.Single().Id);
+            }
+            var missing = await _provider.ExportAllDataForAvatarByEmailAsync("missing@example.invalid");
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, missing.ErrorCode);
+
+            await ExecuteFixtureSql(client, "ALTER TABLE oasis_avatars RENAME TO oasis_test_unavailable_avatars");
+            try
+            {
+                var failed = await _provider.ExportAllDataForAvatarByUsernameAsync(owner.Username);
+                Assert.IsTrue(failed.IsError);
+                Assert.AreNotEqual(OASISResultErrorCodes.RecordNotFound, failed.ErrorCode);
+                Assert.IsNotNull(failed.Exception);
+                Assert.IsNull(failed.Result);
+            }
+            finally
+            {
+                await ExecuteFixtureSql(client, "ALTER TABLE oasis_test_unavailable_avatars RENAME TO oasis_avatars");
+            }
+        }
+
         private void RequireOwnedFixture()
         {
             if (Environment.GetEnvironmentVariable("TURSOOASIS_URL") != OwnedFixture ||

@@ -981,10 +981,32 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string u, int version = 0) { var a = await LoadAvatarByUsernameAsync(u); if (a.IsError || a.Result == null) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, $"TursoOASIS: Avatar '{u}' not found."); return r; } return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version); }
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string u, int version = 0) => ExportAllDataForAvatarByUsernameAsync(u, version).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string e, int version = 0) { var a = await LoadAvatarByEmailAsync(e); if (a.IsError || a.Result == null) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, $"TursoOASIS: Avatar with email '{e}' not found."); return r; } return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version); }
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string e, int version = 0) => ExportAllDataForAvatarByEmailAsync(e, version).Result;
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string u, int version = 0)
+        {
+            var owner = await LoadAvatarByUsernameAsync(u, version).ConfigureAwait(false);
+            return await ExportForResolvedAvatarAsync(owner, version).ConfigureAwait(false);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string u, int version = 0)
+            => ExportAllDataForAvatarByUsernameAsync(u, version).GetAwaiter().GetResult();
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string e, int version = 0)
+        {
+            var owner = await LoadAvatarByEmailAsync(e, version).ConfigureAwait(false);
+            return await ExportForResolvedAvatarAsync(owner, version).ConfigureAwait(false);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string e, int version = 0)
+            => ExportAllDataForAvatarByEmailAsync(e, version).GetAwaiter().GetResult();
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> ExportForResolvedAvatarAsync(OASISResult<IAvatar> owner, int version)
+        {
+            if (owner.IsError)
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar, IEnumerable<IHolon>>(owner);
+            if (owner.Result == null)
+                return MissingRecord<IEnumerable<IHolon>>("Turso found no live avatar for the export.");
+            return await ExportAllDataForAvatarByIdAsync(owner.Result.Id, version).ConfigureAwait(false);
+        }
 
         public bool IsVersionControlEnabled { get; set; } = false;
     }
