@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. Both joined-order Development probe attempts verified all nine fixture IDs absent and revoked their sessions. No `cql-join-order-live-*` journal remains. Website test snapshots used `cosmic-join-order-*` and were removed. The INT64 Core and test edits used a disposable Git index, removed on exit. No new local build or SDK.
+
 17 November UTC. The corrected native join test and exact candidate used disposable `cosmic-queryable-join-index-*` Git indexes removed on exit. Superseded exact CI and image runs were cancelled. Build and failure output stayed remote, and no local SDK, database or build output was created.
 
 17 November UTC. The Queryable Join source, regression update and reconciliation used disposable `cosmic-queryable-join-index-*` and `cosmic-reconcile-index-*` indexes, removed on exit. No local SDK, test database or build output was added. Qualification builds run remotely.
