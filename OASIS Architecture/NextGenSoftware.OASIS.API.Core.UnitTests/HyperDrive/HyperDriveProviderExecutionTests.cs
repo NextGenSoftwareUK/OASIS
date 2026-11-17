@@ -1998,7 +1998,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         DeclareLeafChildReadContract(provider);
         provider.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>(), false, true, 0, true, false, 0))
             .ReturnsAsync((Guid id, bool children, bool recursive, int depth, bool keepGoing, bool native, int version) => new OASISResult<IHolon>(new Holon { Id=id, MetaData = new Dictionary<string, object>() }));
-        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), false, false, 0, true, false))
             .ReturnsAsync(new OASISResult<IHolon> { IsError = true, Message = "write rejected" });
         providerManager.RegisterProvider(provider.Object);
         providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
@@ -2009,7 +2009,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         result.IsError.Should().BeTrue();
         result.Result.Should().BeFalse();
         result.Message.Should().Contain("could not be persisted");
-        provider.Verify(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false), Times.Once);
+        provider.Verify(x => x.SaveHolonAsync(It.IsAny<IHolon>(), false, false, 0, true, false), Times.Once);
     }
 
     [Fact]
@@ -2026,7 +2026,7 @@ public sealed partial class HyperDriveProviderExecutionTests
                 It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()))
             .ReturnsAsync((Guid id, bool _, bool _, int _, bool _, bool _, int _) =>
                 new OASISResult<IHolon> { Result = stored.TryGetValue(id, out var holon) ? holon : null! });
-        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), false, false, 0, true, false))
             .ReturnsAsync((IHolon holon, bool _, bool _, int _, bool _, bool _) =>
             {
                 stored[holon.Id] = holon;
@@ -2071,7 +2071,7 @@ public sealed partial class HyperDriveProviderExecutionTests
                 It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()))
             .ReturnsAsync((Guid id, bool _, bool _, int _, bool _, bool _, int _) =>
                 new OASISResult<IHolon> { Result = stored.TryGetValue(id, out var holon) ? holon : null! });
-        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), false, false, 0, true, false))
             .ReturnsAsync((IHolon holon, bool _, bool _, int _, bool _, bool _) =>
             {
                 stored[holon.Id] = holon;
@@ -2088,7 +2088,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         var send = await new MessagingManager(null, dna, providerManager)
             .SendMessageToAvatarAsync(senderId, recipientId, "reject read");
         var message = (await new MessagingManager(null, dna, providerManager).GetMessagesAsync(recipientId)).Result.Single();
-        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), false, false, 0, true, false))
             .ReturnsAsync(new OASISResult<IHolon> { IsError = true, Message = "read write rejected" });
 
         var mark = await new MessagingManager(null, dna, providerManager)
