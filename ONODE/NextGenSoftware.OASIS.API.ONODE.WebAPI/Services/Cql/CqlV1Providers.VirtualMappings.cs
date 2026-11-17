@@ -26,7 +26,7 @@ public sealed partial class CqlV1Providers
     }
 
     internal static async Task<OASISResult<IReadOnlyList<VirtualHolonRead>>> QueryOwnedVirtualMappingAsync(
-        HolonManager manager, IOASISStorageProvider authority, Guid mappingId, Guid actor, ProviderType? requestedSource, string matchField, object matchValue,
+        HolonManager manager, IOASISProvider authority, Guid mappingId, Guid actor, ProviderType? requestedSource, string matchField, object matchValue,
         IReadOnlyList<string> selectedFields, int limit, CancellationToken cancellationToken)
     {
         if (authority is not ICosmicQueryStorageProvider adapter ||
