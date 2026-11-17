@@ -21,6 +21,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
     [TestClass]
     public class TursoOASISIntegrationTests
     {
+        private const string OwnedFixture = "http://127.0.0.1:19693";
         private TursoOASIS _provider = null!;
         private bool _live;
 
@@ -42,51 +43,76 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
         [TestMethod]
         public async Task NativeStatementRejectionCannotAcknowledgeAvatarSave()
         {
-            const string fixture = "http://127.0.0.1:19693";
-            if (Environment.GetEnvironmentVariable("TURSOOASIS_URL") != fixture ||
-                Environment.GetEnvironmentVariable("OASIS_TURSO_OWNED_STORAGE_FIXTURE") != "1")
-                Assert.Inconclusive("This test requires the isolated native libSQL runner.");
-            RequireLive();
+            RequireOwnedFixture();
             using var client = new HttpClient();
             var avatar = new Avatar { Id = Guid.NewGuid(), Username = "rejected-native-write" };
-            await Execute("CREATE TRIGGER oasis_test_reject BEFORE INSERT ON oasis_avatars BEGIN SELECT RAISE(ABORT, 'isolated native rejection'); END");
+            await ExecuteFixtureSql(client, "CREATE TRIGGER oasis_test_reject BEFORE INSERT ON oasis_avatars BEGIN SELECT RAISE(ABORT, 'isolated native rejection'); END");
             try
             {
                 var result = await _provider.SaveAvatarAsync(avatar);
                 Assert.IsTrue(result.IsError);
                 Assert.IsFalse(result.IsSaved);
                 Assert.IsNull(result.Result);
-                var readback = await Execute($"SELECT count(*) AS total FROM oasis_avatars WHERE id = '{avatar.Id:D}'");
+                var readback = await ExecuteFixtureSql(client, $"SELECT count(*) AS total FROM oasis_avatars WHERE id = '{avatar.Id:D}'");
                 Assert.AreEqual("0", readback.GetProperty("rows")[0][0].GetProperty("value").GetString());
             }
             finally
             {
-                await Execute("DROP TRIGGER oasis_test_reject");
+                await ExecuteFixtureSql(client, "DROP TRIGGER oasis_test_reject");
                 Assert.IsFalse((await _provider.DeActivateProviderAsync()).IsError);
                 Assert.IsFalse(_provider.IsProviderActivated);
             }
 
-            async Task<JsonElement> Execute(string sql)
+        }
+
+        [TestMethod]
+        public async Task NativeBootstrapRollsBackOnSchemaError()
+        {
+            RequireOwnedFixture();
+            using var client = new HttpClient();
+            await ExecuteFixtureSql(client, "DROP TABLE oasis_avatar_details");
+            await ExecuteFixtureSql(client, "DROP TABLE oasis_holons");
+            await ExecuteFixtureSql(client, "DROP TABLE oasis_avatars");
+            await ExecuteFixtureSql(client, "CREATE TABLE oasis_avatars (id TEXT PRIMARY KEY)");
+
+            var rejected = await _provider.ActivateProviderAsync();
+            Assert.IsTrue(rejected.IsError);
+            Assert.IsFalse(_provider.IsProviderActivated);
+            var rollback = await ExecuteFixtureSql(client, "SELECT name FROM sqlite_master WHERE name IN ('oasis_avatar_details', 'oasis_holons')");
+            Assert.AreEqual(0, rollback.GetProperty("rows").GetArrayLength());
+
+            await ExecuteFixtureSql(client, "DROP TABLE oasis_avatars");
+            Assert.IsFalse((await _provider.ActivateProviderAsync()).IsError);
+            Assert.IsTrue(_provider.IsProviderActivated);
+            var schema = await ExecuteFixtureSql(client, "SELECT name FROM sqlite_master WHERE name IN ('oasis_avatars', 'oasis_avatar_details', 'oasis_holons', 'idx_avatars_username', 'idx_avatars_email', 'idx_holons_parent', 'idx_holons_type')");
+            Assert.AreEqual(7, schema.GetProperty("rows").GetArrayLength());
+        }
+
+        private void RequireOwnedFixture()
+        {
+            if (Environment.GetEnvironmentVariable("TURSOOASIS_URL") != OwnedFixture ||
+                Environment.GetEnvironmentVariable("OASIS_TURSO_OWNED_STORAGE_FIXTURE") != "1")
+                Assert.Inconclusive("This test requires the isolated native libSQL runner.");
+            RequireLive();
+        }
+
+        private static async Task<JsonElement> ExecuteFixtureSql(HttpClient client, string sql)
+        {
+            using var response = await client.PostAsJsonAsync(OwnedFixture + "/v2/pipeline", new
             {
-                using var response = await client.PostAsJsonAsync(fixture + "/v2/pipeline", new
-                {
-                    requests = new object[] { new { type = "execute", stmt = new { sql } }, new { type = "close" } }
-                });
-                response.EnsureSuccessStatusCode();
-                using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-                var statement = json.RootElement.GetProperty("results")[0];
-                Assert.AreEqual("ok", statement.GetProperty("type").GetString());
-                return statement.GetProperty("response").GetProperty("result").Clone();
-            }
+                requests = new object[] { new { type = "execute", stmt = new { sql } }, new { type = "close" } }
+            });
+            response.EnsureSuccessStatusCode();
+            using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var statement = json.RootElement.GetProperty("results")[0];
+            Assert.AreEqual("ok", statement.GetProperty("type").GetString());
+            return statement.GetProperty("response").GetProperty("result").Clone();
         }
 
         [TestMethod]
         public async Task NativeAvatarDeletionRequiresOneAffectedRow()
         {
-            if (Environment.GetEnvironmentVariable("TURSOOASIS_URL") != "http://127.0.0.1:19693" ||
-                Environment.GetEnvironmentVariable("OASIS_TURSO_OWNED_STORAGE_FIXTURE") != "1")
-                Assert.Inconclusive("This test requires the isolated native libSQL runner.");
-            RequireLive();
+            RequireOwnedFixture();
             var avatar = new Avatar { Id = Guid.NewGuid(), Username = "native-delete-" + Guid.NewGuid().ToString("N") };
             Assert.IsFalse((await _provider.SaveAvatarAsync(avatar)).IsError);
             try

@@ -57,7 +57,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
         // ─── Pipeline execution ───────────────────────────────────────────────────
 
         private class PipelineRequest { [JsonPropertyName("requests")] public List<PipelineStmt> Requests { get; set; } = new(); }
-        private class PipelineStmt { [JsonPropertyName("type")] public string Type { get; set; } = "execute"; [JsonPropertyName("stmt")] public LibSqlStmt? Stmt { get; set; } }
+        private class PipelineStmt
+        {
+            [JsonPropertyName("type")] public string Type { get; set; } = "execute";
+            [JsonPropertyName("stmt")] public LibSqlStmt? Stmt { get; set; }
+            [JsonPropertyName("sql")] public string? Sql { get; set; }
+        }
         private class LibSqlStmt { [JsonPropertyName("sql")] public string Sql { get; set; } = ""; [JsonPropertyName("args")] public List<LibSqlArg>? Args { get; set; } }
         private class LibSqlArg { [JsonPropertyName("type")] public string Type { get; set; } = "text"; [JsonPropertyName("value")] public string? Value { get; set; } }
         private class PipelineResponse { [JsonPropertyName("results")] public List<PipelineResult>? Results { get; set; } }
@@ -77,24 +82,33 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
 
         private async Task<LibSqlResult> ExecuteSqlAsync(string sql, List<LibSqlArg>? args = null)
         {
+            var response = await ExecutePipelineAsync(new PipelineStmt
+            {
+                Stmt = new LibSqlStmt { Sql = sql, Args = args }
+            }).ConfigureAwait(false);
+            return response.Result ?? throw new InvalidOperationException("Turso did not return the SQL statement result.");
+        }
+
+        private async Task<PipelineResultBody> ExecutePipelineAsync(PipelineStmt request)
+        {
             var payload = new PipelineRequest
             {
                 Requests = new List<PipelineStmt>
                 {
-                    new PipelineStmt { Type = "execute", Stmt = new LibSqlStmt { Sql = sql, Args = args } },
+                    request,
                     new PipelineStmt { Type = "close" }
                 }
             };
             using var content = new StringContent(JsonSerializer.Serialize(payload, _jsonOpts), Encoding.UTF8, "application/json");
             using var response = await _http.PostAsync(_pipelineUrl, content).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
-            var json = await response.Content.ReadAsStringAsync();
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var results = JsonSerializer.Deserialize<PipelineResponse>(json, _jsonOpts)?.Results;
             if (results?.Count != 2)
                 throw new InvalidOperationException("Turso returned an incomplete SQL pipeline result.");
             if (results[0].Type == "error")
                 throw new InvalidOperationException("Turso rejected the SQL statement.");
-            if (results[0] is not { Type: "ok", Response: { Type: "execute", Result: { } statement } })
+            if (results[0] is not { Type: "ok", Response: { } statement } || statement.Type != request.Type)
                 throw new InvalidOperationException("Turso did not acknowledge SQL execution.");
             if (results[1] is not { Type: "ok", Response.Type: "close" })
                 throw new InvalidOperationException("Turso did not acknowledge closure of the SQL stream.");
@@ -117,16 +131,20 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
 
         private async Task EnsureTablesAsync()
         {
-            await ExecAsync(@"CREATE TABLE IF NOT EXISTS oasis_avatars (
-                id TEXT PRIMARY KEY, username TEXT, email TEXT, is_deleted INTEGER DEFAULT 0, data_json TEXT)");
-            await ExecAsync(@"CREATE TABLE IF NOT EXISTS oasis_avatar_details (
-                id TEXT PRIMARY KEY, username TEXT, email TEXT, data_json TEXT)");
-            await ExecAsync(@"CREATE TABLE IF NOT EXISTS oasis_holons (
-                id TEXT PRIMARY KEY, parent_holon_id TEXT, holon_type INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, data_json TEXT)");
-            await ExecAsync("CREATE INDEX IF NOT EXISTS idx_avatars_username ON oasis_avatars(username)");
-            await ExecAsync("CREATE INDEX IF NOT EXISTS idx_avatars_email ON oasis_avatars(email)");
-            await ExecAsync("CREATE INDEX IF NOT EXISTS idx_holons_parent ON oasis_holons(parent_holon_id)");
-            await ExecAsync("CREATE INDEX IF NOT EXISTS idx_holons_type ON oasis_holons(holon_type)");
+            await ExecutePipelineAsync(new PipelineStmt { Type = "sequence", Sql = """
+                BEGIN;
+                CREATE TABLE IF NOT EXISTS oasis_avatars (
+                    id TEXT PRIMARY KEY, username TEXT, email TEXT, is_deleted INTEGER DEFAULT 0, data_json TEXT);
+                CREATE TABLE IF NOT EXISTS oasis_avatar_details (
+                    id TEXT PRIMARY KEY, username TEXT, email TEXT, data_json TEXT);
+                CREATE TABLE IF NOT EXISTS oasis_holons (
+                    id TEXT PRIMARY KEY, parent_holon_id TEXT, holon_type INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, data_json TEXT);
+                CREATE INDEX IF NOT EXISTS idx_avatars_username ON oasis_avatars(username);
+                CREATE INDEX IF NOT EXISTS idx_avatars_email ON oasis_avatars(email);
+                CREATE INDEX IF NOT EXISTS idx_holons_parent ON oasis_holons(parent_holon_id);
+                CREATE INDEX IF NOT EXISTS idx_holons_type ON oasis_holons(holon_type);
+                COMMIT;
+                """ }).ConfigureAwait(false);
         }
 
         // ─── Activation ───────────────────────────────────────────────────────────
