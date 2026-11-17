@@ -82,7 +82,9 @@ public static partial class CqlV1Endpoint
 
         if (providers is not ICqlVirtualMappingReader virtualReader)
             return Failure(503, "VIRTUAL_HOLON_SOURCE_UNAVAILABLE", "Virtual mapping queries are unavailable on this host.");
-        var native = await virtualReader.QueryVirtualMappingAsync(request.VirtualMappingId.Value, actor,
+        if (http.Items["Avatar"] is not IAvatar avatar || avatar.Id != actor || actor == Guid.Empty)
+            return Failure(401, "CQL_AUTHENTICATION_REQUIRED", "Sign in to use a private virtual mapping.");
+        var native = await virtualReader.QueryVirtualMappingAsync(request.VirtualMappingId.Value, avatar,
             virtualProjection, cancellationToken);
         if (native.IsError)
             return Failure(native.ErrorCode switch

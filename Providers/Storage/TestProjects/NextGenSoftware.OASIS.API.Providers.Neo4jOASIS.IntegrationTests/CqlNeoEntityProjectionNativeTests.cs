@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo4j.Driver;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.Core.Queries;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
@@ -34,6 +35,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         try
         {
             var activation=await provider.ActivateProviderAsync();Assert.IsFalse(activation.IsError,activation.Message);active=true;
+            await VerifyVirtualNativeLabel(provider, inspection, actor);
             var saved=await provider.SaveHolonAsync(CreateEntityProjectionFixture(ids,actor,other),saveChildren:true);
             Assert.IsFalse(saved.IsError,saved.Message+saved.Exception);Assert.AreEqual(5L,await Count());
             await Checkpoint("created-awaiting-projection-verification");
@@ -59,5 +61,39 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             File.Delete(journal);
         }
         finally{if(active)Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError);}
+    }
+
+    private static async Task VerifyVirtualNativeLabel(Neo4jOASIS provider, IAsyncSession inspection, Guid actor)
+    {
+        var label = "VirtualFixture_" + Guid.NewGuid().ToString("N");
+        var precedingLabels = provider.NativeImportLabels;
+        provider.NativeImportLabels = label;
+        try
+        {
+            await (await inspection.RunAsync($"CREATE (:`{label}` {{ tier:'Gold', name:'Ada', hidden:'private' }}), " +
+                $"(:`{label}` {{ tier:'gold', name:'Grace' }}), (:`{label}` {{ tier:1, name:'Alan' }})")).ConsumeAsync();
+
+            var native = await provider.ReadNativeRecordsAsync(label, null, 5);
+            Assert.IsFalse(native.IsError, native.Message);
+            var imported = native.Result.Records.Single(record => Equals(record.Fields["name"], "Ada"));
+            var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, actor, provider.NativeDataProviderType,
+                label, VirtualHolonMapping.SandboxConnectionName, provider.DescribeVirtualQueryConnection(null),
+                new Dictionary<string, string> { ["tier"] = "tier", ["name"] = "name" });
+            var query = await mapping.QueryAsync(actor, provider, null, "tier", "Gold", new[] { "name" }, 2);
+            Assert.IsFalse(query.IsError, query.Message);
+            var row = query.Result.Single();
+            Assert.AreEqual(NativeRecordHolonMapper.StableHolonId(actor, provider.NativeDataProviderType,
+                label, imported.NativeKey), row.Id);
+            Assert.AreEqual("Ada", row.MetaData["name"]);
+            Assert.AreEqual(1, row.MetaData.Count);
+            var integer = await provider.QueryNativeRecordsAsync(label, "tier", 1L, new[] { "name" }, 2);
+            Assert.IsFalse(integer.IsError, integer.Message);
+            Assert.AreEqual("Alan", integer.Result.Single().Fields["name"]);
+        }
+        finally
+        {
+            provider.NativeImportLabels = precedingLabels;
+            await (await inspection.RunAsync($"MATCH (n:`{label}`) DETACH DELETE n")).ConsumeAsync();
+        }
     }
 }

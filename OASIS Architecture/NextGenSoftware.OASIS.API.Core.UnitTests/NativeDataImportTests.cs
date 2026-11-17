@@ -47,6 +47,35 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
         }
 
         [Fact]
+        public void OpensOnlyTheNamedConnectionOnTheAuthenticatedAvatar()
+        {
+            var caller = new NextGenSoftware.OASIS.API.Core.Holons.Avatar
+            {
+                Id = Owner,
+                MetaData = new Dictionary<string, object>
+                {
+                    ["preferences"] = new Dictionary<string, object>
+                    {
+                        ["nativeImportConnections"] = new Dictionary<string, object>
+                        {
+                            ["MongoDBOASIS/retail"] = "{\"uri\":\"mongodb://example.test/retail\"}"
+                        }
+                    }
+                }
+            };
+            var anotherAvatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = Guid.NewGuid() };
+
+            var unsealed = SettingsManager.OpenNativeImportConnection(caller, ProviderType.MongoDBOASIS, "retail");
+            Assert.Equal("NATIVE_IMPORT_CONNECTION_UNREADABLE", unsealed.ErrorCode);
+            Assert.Null(unsealed.Result);
+
+            var wrongProvider = SettingsManager.OpenNativeImportConnection(caller, ProviderType.Neo4jOASIS, "retail");
+            Assert.Equal("NATIVE_IMPORT_CONNECTION_NOT_FOUND", wrongProvider.ErrorCode);
+            var wrongAvatar = SettingsManager.OpenNativeImportConnection(anotherAvatar, ProviderType.MongoDBOASIS, "retail");
+            Assert.Equal("NATIVE_IMPORT_CONNECTION_NOT_FOUND", wrongAvatar.ErrorCode);
+        }
+
+        [Fact]
         public void VirtualMappingDefinitionIsPrivateAndContainsOnlySourceMetadata()
         {
             const string authority = "mongodb://example.test/retail";
