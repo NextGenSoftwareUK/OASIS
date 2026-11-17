@@ -122,6 +122,72 @@ public partial class MongoDBOASIS : INativeDataImportProvider
         return result;
     }
 
+    /// <summary>Reads an explicitly projected, exact scalar match from the authoritative native collection.</summary>
+    public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
+        string sourceName, string matchField, object matchValue, IReadOnlyList<string> fields, int limit,
+        NativeConnection connection = null, CancellationToken cancellationToken = default)
+    {
+        var result = new OASISResult<IReadOnlyList<NativeRecord>>();
+        if (string.IsNullOrWhiteSpace(sourceName) || sourceName.StartsWith("system.", StringComparison.Ordinal)
+            || !IsNativeScalarField(matchField) || fields == null || fields.Count is < 1 or > 32
+            || fields.Any(field => field == "_id" || !IsNativeScalarField(field))
+            || fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || limit is < 1 or > 100)
+            return Refuse(result, "A native collection, exact scalar field, one to 32 unique fields and a limit of one to 100 are required.",
+                "NATIVE_QUERY_INVALID");
+
+        var (literal, type) = matchValue switch
+        {
+            string text when text.Length <= 4096 => ((BsonValue)new BsonString(text), "string"),
+            bool flag => (new BsonBoolean(flag), "bool"),
+            int number => (new BsonInt32(number), "int"),
+            long number => (new BsonInt64(number), "long"),
+            _ => (null, null)
+        };
+        if (literal == null)
+            return Refuse(result, "The exact match requires a string, Boolean, Int32 or Int64.", "NATIVE_QUERY_INVALID");
+
+        IDisposable lease = null;
+        try
+        {
+            var resolved = await ResolveNativeDatabaseAsync(connection, cancellationToken).ConfigureAwait(false);
+            lease = resolved.Lease;
+            // The ordinary equality can use a native index. The expression excludes array matches
+            // and numeric coercion between BSON types before the ordered limit is applied.
+            var filter = new BsonDocument
+            {
+                { matchField, literal },
+                { "$expr", new BsonDocument("$eq", new BsonArray
+                    { new BsonDocument("$type", "$" + matchField), type }) }
+            };
+            var projection = new BsonDocument("_id", 1);
+            foreach (var field in fields)
+                projection.Add(field, 1);
+
+            var documents = await resolved.Database.GetCollection<BsonDocument>(sourceName)
+                .Find(filter, new FindOptions { MaxTime = NativeOperationLimit, Collation = new Collation("simple") })
+                .Sort(Builders<BsonDocument>.Sort.Ascending("_id"))
+                .Limit(limit).Project<BsonDocument>(projection)
+                .ToListAsync(cancellationToken).ConfigureAwait(false);
+            result.Result = documents.Select(document => ToNativeRecord(sourceName, document)).ToArray();
+            result.IsLoaded = true;
+            return result;
+        }
+        catch (NativeConnectionRefusedException cause)
+        {
+            return Refuse(result, Redact(connection, cause.Message), "NATIVE_IMPORT_CONNECTION_REFUSED");
+        }
+        catch (Exception cause) when (cause is MongoException or InvalidOperationException or FormatException or OverflowException)
+        {
+            return Refuse(result, "The native MongoDB query failed.", "NATIVE_QUERY_FAILED");
+        }
+        finally { lease?.Dispose(); }
+    }
+
+    private static bool IsNativeScalarField(string field) =>
+        field is { Length: > 0 and <= 128 } &&
+        (char.IsAsciiLetter(field[0]) || field[0] == '_') &&
+        field.All(character => char.IsAsciiLetterOrDigit(character) || character == '_');
+
     internal static NativeRecord ToNativeRecord(string sourceName, BsonDocument document)
     {
         if (!document.TryGetValue("_id", out var id))

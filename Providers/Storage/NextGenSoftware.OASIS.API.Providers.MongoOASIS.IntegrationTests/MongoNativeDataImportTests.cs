@@ -89,6 +89,29 @@ public sealed class MongoNativeDataImportTests
 
             Assert.Equal(3, pages);
             Assert.Equal(new[] { "One", "Three", "Ay", "Bee", "Oid" }, names);
+
+            var items = client.GetDatabase(nativeDatabase).GetCollection<BsonDocument>("virtual_items");
+            await items.InsertManyAsync(new[]
+            {
+                new BsonDocument { { "_id", 1 }, { "code", "Case" }, { "label", "old" }, { "secret", "private" } },
+                new BsonDocument { { "_id", 2 }, { "code", "case" }, { "label", "different case" } },
+                new BsonDocument { { "_id", 3 }, { "code", new BsonArray { "Case" } }, { "label", "array" } },
+                new BsonDocument { { "_id", 4 }, { "code", "Case" }, { "label", "second" } }
+            });
+            var selected = await provider.QueryNativeRecordsAsync("virtual_items", "code", "Case", new[] { "label" }, 2);
+            Assert.False(selected.IsError, selected.Message);
+            Assert.Equal(new[] { "old", "second" }, selected.Result.Select(row => row.Fields["label"]));
+            Assert.All(selected.Result, row => Assert.Single(row.Fields));
+
+            await items.UpdateOneAsync(new BsonDocument("_id", 1), new BsonDocument("$set", new BsonDocument("label", "fresh")));
+            var refreshed = await provider.QueryNativeRecordsAsync("virtual_items", "code", "Case", new[] { "label" }, 1);
+            Assert.False(refreshed.IsError, refreshed.Message);
+            Assert.Equal("fresh", Assert.Single(refreshed.Result).Fields["label"]);
+            Assert.Equal(selected.Result[0].NativeKey, refreshed.Result[0].NativeKey);
+            Assert.Equal(4L, await items.CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+            Assert.Equal("NATIVE_QUERY_INVALID",
+                (await provider.QueryNativeRecordsAsync("virtual_items", "$secret", "private", new[] { "label" }, 1)).ErrorCode);
+
         }
         finally
         {

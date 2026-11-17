@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. The first virtual mapping candidate adds bounded native scalar equality and explicit field projection to the shipping MongoDB provider. It uses the existing native connection admission and scalar normalizer. The isolated fixture checks case and type behavior against array false positives, exclusion of unprojected fields, live source edits and stable native keys. Provider CI, saved mapping admission, ephemeral Holon identity and CQL/WEB4 integration remain open.
+
 17 November UTC. Virtual Holon metadata mapping is a top priority alongside the live SQL-like CQL and Ask Your Data demo. The first acceptance target is one isolated MongoDB collection via the shipping provider. Existing native import can read and map external records but calls the Holon save path. Reuse its connection admission and scalar normalization where appropriate. The virtual query needs bounded native predicate pushdown and an ephemeral result boundary with stable identity, access isolation and zero row persistence. See the [implementation roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md).
 
 ### Outer join filtering candidate
