@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. Chrome used the published WEB4 sandbox origin with site revision `6667ae197060` supplied only to the isolated test browser. The real Run CQL control submitted a joined UInt64 ORDER BY and OFFSET request to Development `323922c64d9e`. The result rendered the expected second record and exact 18446744073709551614 in 1,233 ms. This verifies the SQL editor against the live API and does not publish the site preview to the public origin.
+
 17 November UTC. The parity follow-up retains native joined ordering when a supported Where is composed before any output page. The outer join fixture checks ordered matches, preservation of the unmatched optional side, and rejection of a predicate after Take. Exact qualification is pending.
 
 17 November UTC. The shipping MongoDB virtual reader now streams native projection batches and rejects projected BSON over 1 MiB without returning a partial page. A native regression uses two individually smaller records that exceed the combined budget. The exact earlier candidate is still in CI, and the byte-limit follow-up requires qualification before the public virtual query rollout.
