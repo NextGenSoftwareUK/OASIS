@@ -79,6 +79,16 @@ includes a provenance entry at the same index as every row. It identifies the
 provider and representation. Virtual rows also identify the mapping revision and
 fetch time. The read resolves native records on demand without saving their payloads.
 
+In the WEB4 sandbox SQL-like editor, the same request can name its saved mapping
+directly. Replace the sample GUID with your mapping ID.
+
+```sql
+SELECT Id, CAST(metadata.name AS STRING) AS Label
+FROM MongoDBOASIS WITH VIRTUAL MAPPING '2fef1cbc-feb8-4ed3-b7de-5f406f769149'
+WHERE metadata.tier = 'gold'
+ORDER BY Id LIMIT 10
+```
+
 The mixed route admits three measured provider reads for the stored projection,
 the owner-scoped definition and the native source. Ordinary projection permits
 one read. The mixed projection supports one typed metadata equality predicate,
