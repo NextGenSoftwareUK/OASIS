@@ -55,6 +55,33 @@ public class CosmosNativeDataImportTests
     }
 
     [TestMethod]
+    public void VirtualQueryProjectsOnlySelectedFieldsAndBindsTheWholeConjunction()
+    {
+        const string literal = "Gold' OR true";
+        var query = AzureCosmosDBOASIS.NativeVirtualQuery(
+            new[] { new KeyValuePair<string, object>("tier", literal),
+                new KeyValuePair<string, object>("active", true) }, new[] { "name" }, 1);
+
+        StringAssert.StartsWith(query.QueryText, "SELECT TOP @take VALUE ");
+        StringAssert.Contains(query.QueryText, """{"id": c["id"], "name": c["name"]}""");
+        StringAssert.Contains(query.QueryText, """WHERE IS_STRING(c["tier"]) AND c["tier"] = @match0 AND IS_BOOL(c["active"]) AND c["active"] = @match1 ORDER BY c.id""");
+        Assert.IsFalse(query.QueryText.Contains(literal));
+        var parameters = query.GetQueryParameters().ToDictionary(parameter => parameter.Name, parameter => parameter.Value);
+        Assert.AreEqual(1, parameters["@take"]);
+        Assert.AreEqual(literal, parameters["@match0"]);
+        Assert.AreEqual(true, parameters["@match1"]);
+    }
+
+    [TestMethod]
+    public void VirtualIdentityRequiresIdAsTheOnlyPartitionKey()
+    {
+        Assert.IsTrue(AzureCosmosDBOASIS.HasStableVirtualIdentity(new[] { "/id" }));
+        Assert.IsFalse(AzureCosmosDBOASIS.HasStableVirtualIdentity(new[] { "/tenant" }));
+        Assert.IsFalse(AzureCosmosDBOASIS.HasStableVirtualIdentity(new[] { "/tenant", "/id" }));
+        Assert.IsFalse(AzureCosmosDBOASIS.HasStableVirtualIdentity(Array.Empty<string>()));
+    }
+
+    [TestMethod]
     public async Task UnconfiguredAndOasisOwnedSourcesAreRefusedBeforeAnyRead()
     {
         Assert.AreEqual("NATIVE_IMPORT_UNAVAILABLE", (await Provider(null, "customers").ListNativeDataSourcesAsync()).ErrorCode);

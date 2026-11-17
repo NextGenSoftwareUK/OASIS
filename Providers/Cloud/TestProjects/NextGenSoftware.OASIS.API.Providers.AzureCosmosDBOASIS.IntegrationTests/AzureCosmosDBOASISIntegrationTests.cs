@@ -1,6 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
 using System;
 using System.Collections.Generic;
@@ -43,6 +44,41 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTest
             var activation = await _provider.ActivateProviderAsync();
             Assert.IsFalse(activation.IsError, activation.Message);
             Assert.IsTrue(activation.Result, activation.Message);
+        }
+
+        [TestMethod]
+        public async Task VirtualNativeQueryFiltersBeforeLimitAndProtectsImportIdentity()
+        {
+            var name = "oasis-virtual-" + Guid.NewGuid().ToString("N");
+            var database = (await _client.CreateDatabaseAsync(name)).Database;
+            try
+            {
+                var eligible = (await database.CreateContainerAsync("items", "/id")).Container;
+                await database.CreateContainerAsync("byTenant", "/tenant");
+                await eligible.CreateItemAsync(new { id = "a", tier = "Gold", active = false, name = "excluded" },
+                    new PartitionKey("a"));
+                await eligible.CreateItemAsync(new { id = "b", tier = "Gold", active = true, name = "included" },
+                    new PartitionKey("b"));
+                _provider.NativeImportDatabaseName = name;
+                _provider.NativeImportContainers = "items,byTenant";
+                var filters = new[] { new KeyValuePair<string, object>("tier", "Gold"),
+                    new KeyValuePair<string, object>("active", true) };
+
+                var read = await _provider.QueryNativeRecordsAsync("items", filters, new[] { "name" }, 1);
+                Assert.IsFalse(read.IsError, read.Message);
+                Assert.AreEqual(1, read.Result.Count);
+                Assert.AreEqual("b", read.Result[0].NativeKey);
+                Assert.AreEqual("included", read.Result[0].Fields["name"]);
+                Assert.AreEqual(1, read.Result[0].Fields.Count);
+
+                var refused = await _provider.QueryNativeRecordsAsync("byTenant", filters, new[] { "name" }, 1);
+                Assert.AreEqual("NATIVE_QUERY_INVALID", refused.ErrorCode);
+                StringAssert.Contains(refused.Message, "/id");
+            }
+            finally
+            {
+                await database.DeleteAsync();
+            }
         }
 
         [TestMethod]
