@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Subscription order contract changes used existing Node and in-memory regression responses only; no downloads, environment, builds, reports or hosted fixtures. The first scoped shared-subscription candidate construction stopped on an indentation-sensitive assertion before creating a commit; its temporary Git index was removed in finally. Corrected construction created candidate 3ba797a5bcad on current portal dev with only shared read validation/cache key/test and removed its index. That candidate predates aaeac7d and is not deployed or full acceptance of the combined subscription increment. Free disk last observed 26.41 GiB.
+
 2026-11-17 UTC — Shared subscription validation and regression used existing Node with in-memory replies. Sparse tracked HTML was read from Git in memory for the existing suite. No dependencies, runtime environment, downloads, browser processes/profiles, local build output, result artifact or backend fixtures were created.
 
 2026-11-17 UTC — Scoped dashboard release used one temporary Git index, removed in finally together with any index lock. Exact candidate tests and HTTP byte comparisons ran in memory. No extra worktree, environment, dependency, download, browser profile, build output, result artifact or backend fixture was created. Portal deployment reused its existing Git integration; no local build.
