@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Dashboard session-event fix and regression used the existing Node runtime and read sparse tracked HTML from Git in memory. No environment, dependency, browser profile, build output, report file or backend fixture was created. Preserved the dashboard source original byte encoding while making the scoped edit. Disk free observed 26.51 GiB. Task commit 9f4ea14 pushed; no extra shared deployment was requested.
+
 2026-11-17 UTC — First signed-browser attempt timed out on an overly strict document-complete wait before creating an avatar, then removed its profile and temporary websocket-client dependency. Corrected attempt acknowledged sandbox-avatar deletion and removed its owned Edge process tree, profile and temporary dependency. No raw browser state, token, screenshot or report was retained. Provisioned sandbox entitlement lifecycle follows the sandbox cleanup mechanism; deletion of all derived records was not separately proved.
 
 2026-11-17 UTC — Six additional signed-out Edge routes reused one temporary profile and confirmed its removal after all browser processes exited. No dependencies, downloads, screenshots, reports or backend fixtures were created.
