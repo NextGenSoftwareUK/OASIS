@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. String-length implementation and native test preparation used Git blobs and temporary indexes removed on exit. No local build, fixture, download or environment was created. CI reuses its owned MongoDB, SQLite and Neo4j fixtures, with the existing explicit cleanup after the new cases.
+
 17 November UTC. Cosmos qualification used Microsoft emulator only on disposable CI. The workflow removes its owned container in finally. Candidate and evidence commits used temporary Git indexes removed on exit. No local image, SDK, database or build output was downloaded. The website preview was checked in memory using the existing authenticated Vercel CLI.
 
 17 November UTC. The exact Cosmos WEB4 browser-source test copied 15 tracked files (691,208 bytes) to a temporary directory named cosmic-web4-exact-pmnjm7zo under the recovery laptop user temp. The test reused installed Node and removed the complete snapshot on exit. No dependency installs, browser profiles or local build outputs were created.
