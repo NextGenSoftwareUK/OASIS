@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. Named-connection test commits used disposable Git indexes. The website test run reused installed Node with a temporary Git snapshot removed on exit. The MongoDB CI report was inspected in memory. No provider fixture, browser profile or build output was created locally in these checks.
+
 17 November UTC. The field-name browser regression reused the installed Chrome and bundled Node. No definition Holon was created, the visitor signed out, and the owned Chrome profile was removed. No provider data, package downloads or local build outputs were created.
 
 17 November UTC. Multi-filter provider, Core and API commits used disposable Git indexes. The two complete website suites reused installed Node, each using an approximately 2.1 MB temporary Git snapshot removed on exit. The live conjunction check was syntax-checked from standard input. No local provider database, browser profile, runtime install or build output was created.
