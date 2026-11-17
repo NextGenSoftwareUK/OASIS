@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. The SQL LENGTH website suite used the installed Node executable and an exact 704,073-byte source snapshot under the owned cosmic-web4-length-* temp directory, removed automatically after all 293 tests. No runtime/package was installed. The seven new native wire cases reuse existing CI fixtures. Candidate commits used temporary Git indexes removed on exit.
+
 17 November UTC. Read GitHub artifact 14358743512 (632,300 bytes) directly into memory and inspected only the three compact native JSON reports. No archive or extracted report was written to disk. Confirmed all three owned CI fixtures reported cleanup. Source/candidate commits used temporary Git indexes removed on exit.
 
 17 November UTC. String-length implementation and native test preparation used Git blobs and temporary indexes removed on exit. No local build, fixture, download or environment was created. CI reuses its owned MongoDB, SQLite and Neo4j fixtures, with the existing explicit cleanup after the new cases.

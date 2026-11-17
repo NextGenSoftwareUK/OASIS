@@ -73,8 +73,12 @@ public sealed class CqlStringLengthWireTests
     [InlineData(CqlV1Operator.Exists)]
     public void NoncomparisonFunctionShapesAreRejected(CqlV1Operator operation)
     {
-        var request = Request("2");
+        var request = Request("2", metadata: operation == CqlV1Operator.Exists);
         request.Filters[0].Operator = operation;
+        if (operation is CqlV1Operator.Exists or CqlV1Operator.IsNull)
+            request.Filters[0].Value = default;
+        if (operation == CqlV1Operator.In)
+            request.Filters[0].Value = JsonSerializer.SerializeToElement(new[] { "1", "2" });
         Assert.Throws<ArgumentException>(() => CqlV1Compiler.Compile(request, Guid.NewGuid(), null));
     }
 
