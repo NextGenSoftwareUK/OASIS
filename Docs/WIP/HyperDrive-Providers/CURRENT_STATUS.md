@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL dev advanced to `79102a7c63fd` after the verified 30-minute push window. Live portal serves the exact Clan `20261117c`, Wallet `20261117b` and Messaging `20261117n` scripts. Signed backend Clan and watch-only Wallet acceptance preceded this release. Browser verification remains open. Development advanced independently to `e474f7b664e0` with CQL validation and the same Core pin. Rebased Messaging and address-only Wallet candidate `617a9f4ea70a` preserves those changes. [Exact contracts](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44114047771) queued.
+
 2026-11-17 UTC — Signed WEB4 dev Wallet ownership check on `031a8cb55ce5` denied another avatar access to the linked wallet token balances, activity and portfolio. All three returned HTTP 403 without wallet data. Portal deployment remains staged until its cadence opens.
 
 2026-11-17 UTC — Staged Messaging root persistence and stable inbox ordering with address-only Wallet linking on Development `031a8cb55ce5`. Candidate `c280c5fa8ddb` pins Core `9c84f60a9fb0`. [Exact contracts](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44111727677) are running. Shared image run `44105503856` occupies the slot.
