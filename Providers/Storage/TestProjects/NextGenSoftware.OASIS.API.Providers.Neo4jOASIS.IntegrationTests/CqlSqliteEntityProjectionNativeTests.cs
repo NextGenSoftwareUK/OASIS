@@ -496,6 +496,22 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             composite.Result.Select(row => (row.Left, row.Right)).ToArray());
         Assert.IsTrue(composite.Result.All(pair => pair.Left == pair.Right));
 
+        var nullable = await flagRows.Join(flagRows,
+            row => CosmicQueryMetadata.Value<bool?>(row, "nullableJoinFlag"),
+            row => CosmicQueryMetadata.Value<bool?>(row, "nullableJoinFlag"),
+            (leftValue, rightValue) => new { Left = leftValue.Id, Right = rightValue.Id })
+            .ToCosmicListAsync();
+        Assert.IsFalse(nullable.IsError, nullable.Message + nullable.Exception);
+        CollectionAssert.AreEqual(new[] { (parentId, parentId) },
+            nullable.Result.Select(row => (row.Left, row.Right)).ToArray());
+
+        var named = await flagRows.Join(flagRows, row => row.Name, row => row.Name,
+            (leftValue, rightValue) => new { Left = leftValue.Id, Right = rightValue.Id })
+            .ToCosmicListAsync();
+        Assert.IsFalse(named.IsError, named.Message + named.Exception);
+        CollectionAssert.AreEquivalent(new[] { (parentId, parentId), (missingId, missingId) },
+            named.Result.Select(row => (row.Left, row.Right)).ToArray());
+
         request.MatchAnyKey = false;
         request.KeyGroupStarts = new[] { 0, 2 };
         request.Right.Filters = new[] { KeySet(new[] { lowerId, missingId }) };
