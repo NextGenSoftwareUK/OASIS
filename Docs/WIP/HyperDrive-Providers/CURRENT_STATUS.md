@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL NFT progressive rendering is staged at `fda20d957de4` over live dev `79102a7c63fd`. Scoped changes preserved the current mint and transfer behavior. The exact-tree check held both OLAND requests pending and saw NFT and GeoNFT sections render first. Live timing remains open. Temporary Git indexes were removed and no test data was created.
+
 2026-11-17 UTC — OPORTAL dev advanced to `79102a7c63fd` after the verified 30-minute push window. Live portal serves the exact Clan `20261117c`, Wallet `20261117b` and Messaging `20261117n` scripts. Signed backend Clan and watch-only Wallet acceptance preceded this release. Browser verification remains open. Development advanced independently to `e474f7b664e0` with CQL validation and the same Core pin. Rebased Messaging and address-only Wallet candidate `617a9f4ea70a` preserves those changes. [Exact contracts](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44114047771) queued.
 
 2026-11-17 UTC — Signed WEB4 dev Wallet ownership check on `031a8cb55ce5` denied another avatar access to the linked wallet token balances, activity and portfolio. All three returned HTTP 403 without wallet data. Portal deployment remains staged until its cadence opens.
