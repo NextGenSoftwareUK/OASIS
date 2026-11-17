@@ -57,35 +57,62 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
         // ─── Pipeline execution ───────────────────────────────────────────────────
 
         private class PipelineRequest { [JsonPropertyName("requests")] public List<PipelineStmt> Requests { get; set; } = new(); }
-        private class PipelineStmt { [JsonPropertyName("type")] public string Type { get; set; } = "execute"; [JsonPropertyName("stmt")] public LibSqlStmt? Stmt { get; set; } }
+        private class PipelineStmt
+        {
+            [JsonPropertyName("type")] public string Type { get; set; } = "execute";
+            [JsonPropertyName("stmt")] public LibSqlStmt? Stmt { get; set; }
+            [JsonPropertyName("sql")] public string? Sql { get; set; }
+        }
         private class LibSqlStmt { [JsonPropertyName("sql")] public string Sql { get; set; } = ""; [JsonPropertyName("args")] public List<LibSqlArg>? Args { get; set; } }
         private class LibSqlArg { [JsonPropertyName("type")] public string Type { get; set; } = "text"; [JsonPropertyName("value")] public string? Value { get; set; } }
         private class PipelineResponse { [JsonPropertyName("results")] public List<PipelineResult>? Results { get; set; } }
         private class PipelineResult { [JsonPropertyName("type")] public string Type { get; set; } = ""; [JsonPropertyName("response")] public PipelineResultBody? Response { get; set; } }
         private class PipelineResultBody { [JsonPropertyName("type")] public string Type { get; set; } = ""; [JsonPropertyName("result")] public LibSqlResult? Result { get; set; } }
-        private class LibSqlResult { [JsonPropertyName("cols")] public List<LibSqlCol>? Cols { get; set; } [JsonPropertyName("rows")] public List<List<LibSqlValue>>? Rows { get; set; } }
+        private class LibSqlResult
+        {
+            [JsonPropertyName("cols")] public List<LibSqlCol>? Cols { get; set; }
+            [JsonPropertyName("rows")] public List<List<LibSqlValue>>? Rows { get; set; }
+            [JsonPropertyName("affected_row_count")] public ulong? AffectedRowCount { get; set; }
+        }
         private class LibSqlCol { [JsonPropertyName("name")] public string Name { get; set; } = ""; }
         private class LibSqlValue { [JsonPropertyName("type")] public string Type { get; set; } = ""; [JsonPropertyName("value")] public string? Value { get; set; } }
 
         private static LibSqlArg Arg(string? value) => new LibSqlArg { Type = value == null ? "null" : "text", Value = value };
         private static LibSqlArg ArgInt(long? value) => new LibSqlArg { Type = value == null ? "null" : "integer", Value = value?.ToString() };
 
-        private async Task<LibSqlResult?> ExecuteSqlAsync(string sql, List<LibSqlArg>? args = null)
+        private async Task<LibSqlResult> ExecuteSqlAsync(string sql, List<LibSqlArg>? args = null)
+        {
+            var response = await ExecutePipelineAsync(new PipelineStmt
+            {
+                Stmt = new LibSqlStmt { Sql = sql, Args = args }
+            }).ConfigureAwait(false);
+            return response.Result ?? throw new InvalidOperationException("Turso did not return the SQL statement result.");
+        }
+
+        private async Task<PipelineResultBody> ExecutePipelineAsync(PipelineStmt request)
         {
             var payload = new PipelineRequest
             {
                 Requests = new List<PipelineStmt>
                 {
-                    new PipelineStmt { Type = "execute", Stmt = new LibSqlStmt { Sql = sql, Args = args } },
+                    request,
                     new PipelineStmt { Type = "close" }
                 }
             };
-            var content = new StringContent(JsonSerializer.Serialize(payload, _jsonOpts), Encoding.UTF8, "application/json");
-            var response = await _http.PostAsync(_pipelineUrl, content);
-            var json = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode) throw new Exception($"TursoOASIS HTTP {(int)response.StatusCode}: {json}");
-            var pr = JsonSerializer.Deserialize<PipelineResponse>(json, _jsonOpts);
-            return pr?.Results?.FirstOrDefault()?.Response?.Result;
+            using var content = new StringContent(JsonSerializer.Serialize(payload, _jsonOpts), Encoding.UTF8, "application/json");
+            using var response = await _http.PostAsync(_pipelineUrl, content).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var results = JsonSerializer.Deserialize<PipelineResponse>(json, _jsonOpts)?.Results;
+            if (results?.Count != 2)
+                throw new InvalidOperationException("Turso returned an incomplete SQL pipeline result.");
+            if (results[0].Type == "error")
+                throw new InvalidOperationException("Turso rejected the SQL statement.");
+            if (results[0] is not { Type: "ok", Response: { } statement } || statement.Type != request.Type)
+                throw new InvalidOperationException("Turso did not acknowledge SQL execution.");
+            if (results[1] is not { Type: "ok", Response.Type: "close" })
+                throw new InvalidOperationException("Turso did not acknowledge closure of the SQL stream.");
+            return statement;
         }
 
         private async Task ExecAsync(string sql, List<LibSqlArg>? args = null) => await ExecuteSqlAsync(sql, args);
@@ -104,16 +131,20 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
 
         private async Task EnsureTablesAsync()
         {
-            await ExecAsync(@"CREATE TABLE IF NOT EXISTS oasis_avatars (
-                id TEXT PRIMARY KEY, username TEXT, email TEXT, is_deleted INTEGER DEFAULT 0, data_json TEXT)");
-            await ExecAsync(@"CREATE TABLE IF NOT EXISTS oasis_avatar_details (
-                id TEXT PRIMARY KEY, username TEXT, email TEXT, data_json TEXT)");
-            await ExecAsync(@"CREATE TABLE IF NOT EXISTS oasis_holons (
-                id TEXT PRIMARY KEY, parent_holon_id TEXT, holon_type INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, data_json TEXT)");
-            await ExecAsync("CREATE INDEX IF NOT EXISTS idx_avatars_username ON oasis_avatars(username)");
-            await ExecAsync("CREATE INDEX IF NOT EXISTS idx_avatars_email ON oasis_avatars(email)");
-            await ExecAsync("CREATE INDEX IF NOT EXISTS idx_holons_parent ON oasis_holons(parent_holon_id)");
-            await ExecAsync("CREATE INDEX IF NOT EXISTS idx_holons_type ON oasis_holons(holon_type)");
+            await ExecutePipelineAsync(new PipelineStmt { Type = "sequence", Sql = """
+                BEGIN;
+                CREATE TABLE IF NOT EXISTS oasis_avatars (
+                    id TEXT PRIMARY KEY, username TEXT, email TEXT, is_deleted INTEGER DEFAULT 0, data_json TEXT);
+                CREATE TABLE IF NOT EXISTS oasis_avatar_details (
+                    id TEXT PRIMARY KEY, username TEXT, email TEXT, data_json TEXT);
+                CREATE TABLE IF NOT EXISTS oasis_holons (
+                    id TEXT PRIMARY KEY, parent_holon_id TEXT, holon_type INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, data_json TEXT);
+                CREATE INDEX IF NOT EXISTS idx_avatars_username ON oasis_avatars(username);
+                CREATE INDEX IF NOT EXISTS idx_avatars_email ON oasis_avatars(email);
+                CREATE INDEX IF NOT EXISTS idx_holons_parent ON oasis_holons(parent_holon_id);
+                CREATE INDEX IF NOT EXISTS idx_holons_type ON oasis_holons(holon_type);
+                COMMIT;
+                """ }).ConfigureAwait(false);
         }
 
         // ─── Activation ───────────────────────────────────────────────────────────
@@ -124,15 +155,20 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             try
             {
                 await EnsureTablesAsync();
+                IsProviderActivated = true;
                 result.Result = true; result.IsError = false;
                 result.Message = "TursoOASIS activated — tables ready in Turso (libSQL).";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error activating provider — {ex.Message}"); }
+            catch (Exception ex) { IsProviderActivated = false; result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error activating provider — {ex.Message}"); }
             return result;
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() => await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "TursoOASIS deactivated." });
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool> { Result = true, Message = "TursoOASIS deactivated." });
+        }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         // ─── Avatar saving ────────────────────────────────────────────────────────
@@ -241,11 +277,22 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete)
-                    await ExecAsync("UPDATE oasis_avatars SET is_deleted=1 WHERE id=?", new List<LibSqlArg> { Arg(id.ToString()) });
-                else
-                    await ExecAsync("DELETE FROM oasis_avatars WHERE id=?", new List<LibSqlArg> { Arg(id.ToString()) });
-                result.Result = true; result.IsError = false; result.Message = $"TursoOASIS: Avatar '{id}' {(softDelete ? "soft" : "hard")}-deleted.";
+                var deleted = await ExecuteSqlAsync(
+                    softDelete ? "UPDATE oasis_avatars SET is_deleted=1 WHERE id=? AND is_deleted=0"
+                        : "DELETE FROM oasis_avatars WHERE id=?",
+                    new List<LibSqlArg> { Arg(id.ToString()) }).ConfigureAwait(false);
+                if (deleted.AffectedRowCount == 0)
+                    return new OASISResult<bool>
+                    {
+                        IsError = true, ErrorCount = 1, ErrorCode = OASISResultErrorCodes.RecordNotFound,
+                        Message = "Turso found no matching avatar to delete."
+                    };
+                if (deleted.AffectedRowCount != 1)
+                    throw new InvalidOperationException("Turso did not acknowledge exactly one avatar deletion.");
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.Message = $"TursoOASIS: Avatar '{id}' {(softDelete ? "soft" : "hard")}-deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error deleting avatar '{id}': {ex.Message}"); }
             return result;
