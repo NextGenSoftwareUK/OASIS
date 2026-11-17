@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed the temporary Git index for the final staged dashboard and Messages batch. Exact script comparisons used Git objects in memory and created no fixtures or build outputs.
+
 2026-11-17 UTC — Removed the temporary index for the combined dashboard and Messaging portal candidate. No new fixture, download or build output was created.
 
 2026-11-17 UTC — Removed the temporary index used for the corrected Messaging candidate. Inspected compiler diagnostics in memory. No local build or log archive was retained.

@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Corrected Messaging contracts 44133551601 passed on 3527154a118d. Matching image 44133558977 remains active. Combined portal candidate 6d13b2419426 includes dashboard client-change and Messaging grouping, unread and session guards over dev 016e2b815c75. Both script blobs equal their tested task revisions; shell keys are 20261117t and 20261117u. The portal push window opens 17:24:24 UTC.
+
 2026-11-17 UTC — OPORTAL task e74520e discards Conversations and Notifications results when avatar, token or WEB4 client changes during the request. The deferred-response check passed sign-out, changed avatar, changed token and replaced client, plus a current-session empty read. Include this script and cache key 20261117u in the next portal batch. Desktop browser initialization still failed after kernel reset with a missing runtime path. Browser acceptance remains open. No hosted fixtures or local outputs were created.
 
 2026-11-17 UTC — Combined portal candidate 9a0da4a2442b contains only the tested Messaging participant/unread change, dashboard client-change guard and their asset keys over dev 016e2b815c75. Exact script blobs match the tested task revisions. The next portal dev window remains 17:24:24 UTC. WEB4 contracts 44133551601 and image 44133558977 are active.
