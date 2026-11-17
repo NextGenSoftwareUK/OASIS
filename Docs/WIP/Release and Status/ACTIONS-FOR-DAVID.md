@@ -1020,3 +1020,34 @@ Open 13 November. Approve the Vercel OASIS team access request when a fresh one-
 - **Status (2026-11-16 UTC)** Development session and scoped CQL writes recovered. The original visitor renewed successfully and nine owned SQL fixtures were saved and conditionally deleted across the three providers. Engineering still needs to verify the subscription and worker paths. Railway dev deployment 887a53d4 previously logged MongoDB insert and findAndModify rejections at 512 MB of 512 MB. Two disposable sandbox sign-in attempts returned HTTP 400 during avatar creation, before issuing a session.
 - **David action** Restore writable storage for the MongoDB deployment backing Railway WEB4 dev. Increase its storage quota, or identify the exact disposable development collection or records that an administrator can remove to recover capacity. If identifying data, provide collection names and their retention scope only.
 - **Reason** The quota blocks disposable sandbox avatar creation and other MongoDB writes. Engineering will verify sandbox sign-in, subscriptions and HyperDrive after capacity is restored. Railway continues to log rejected writes from the WEB4 usage settlement and reconciliation workers. Engineering will verify both worker cycles after storage recovery. Railway deployment 3480bc4b subsequently crashed at startup when Atlas rejected subscription index initialization at the same quota. 16 November follow-up: the subscription and outbox index startup repair restored public WEB4 health on Railway 506283cd. MongoDB quota rejections still gate sandbox sign-in, usage worker verification and write-dependent CQL acceptance. [WEB4 dev deployment](https://railway.com/) · [Current status](../HyperDrive-Providers/CURRENT_STATUS.md)
+
+## PIPER parent collection routing and load-balancing decision
+
+16 November Cancun time. The owner confirmed that disabling automatic load balancing restored PIPER's missing records. Development `4d0d2022170c` includes the authoritative-parent routing and async visibility fixes. Exact image CI 43981891022 passed. Development WEB4 deployment `b41caa36-ffb0-41cd-a956-f9b86aaa2948` is queued. The real SA, SLP and student-service results remain separate verification items, and the owner has retained the decision to turn load balancing back on.
+
+The saved `OASIS_DNA_JSON` settings on all 21 Railway copies were checked read-only. `OASIS.StorageProviders.AutoLoadBalanceEnabled` is false and `AutoFailOverEnabled` is true in Development, staging and production. Each environment has the same seven service copies: WEB4 OASIS API, WEB5 STAR API, WEB6 AI API, WEB7 SYMBIOTIC API, WEB8 IGN API, WEB9 SINGULARITIY API and WEB10 THE SOURCE API. Existing active staging and production WEB4 deployments predate the saved flag changes. Promote a verified release snapshot with reachable dependency pins after approval, starting with staging. Railway restart reuses the existing deployment and its configuration.
+
+If the owner elects to re-enable the setting after verification, review these exact source paths changed by `dc9230c41cf1`, plus `Docs/Devs/OASIS_DNA_Reference.md`. Preserve the typed default and any intentional isolated fixture settings. This inventory records the mitigation and does not authorize flipping any copy.
+
+- `Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.TestHarness/OASIS_DNA.json`
+- `OASIS Architecture/NextGenSoftware.OASIS.API.DNA/Default/OASIS_DNA.json`
+- `OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.Development.json`
+- `ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.TestHarness/OASIS_DNA.json`
+- `Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness/OASIS_DNA.Development.json`
+- `Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.IntegrationTests/OASIS_DNA.Development.json`
+- `Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.TestHarness/OASIS_DNA.Development.json`
+- `Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BaseOASIS.IntegrationTests/OASIS_DNA.Development.json`
+- `Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BaseOASIS.TestHarness/OASIS_DNA.Development.json`
+- `Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.COSMOSOASIS.TestHarness/OASIS_DNA.json`
+- `Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness/OASIS_DNA.json`
+- `Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness/OASIS_DNA.Development.json`
+- `Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.RadixOASIS.TestHarness/OASIS_DNA.json`
+- `Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness/OASIS_DNA.json`
+- `Providers/Network/NextGenSoftware.OASIS.API.Providers.PinataOASIS.TestHarnes/OASIS_DNA.json`
+- `Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests/OASIS_DNA.Development.json`
+- `Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.TestHarness/OASIS_DNA.Development.json`
+- `Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.TestHarness/OASIS_DNA.json`
+- `Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests/OASIS_DNA.Development.json`
+- `Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.TestHarness/OASIS_DNA.Development.json`
+- `Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.TelegramOASIS.TestHarness/OASIS_DNA.json`
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.TestHarness/OASIS_DNA.json`
