@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed the temporary exact Gifts candidate index. The fixture read Git blobs in memory. No browser profile, hosted avatar, downloads or generated output was created.
+
 2026-11-17 UTC — The OPORTAL dashboard Quest and Mission SDK check confirmed deletion of its disposable sandbox avatar. The hosted SDK bundle and responses were consumed in memory. No local downloads, browser profile, build output or test report was written.
 
 2026-11-17 UTC — Exact Turso run 44042401831 confirmed removal of its owned libSQL container, database and test output. Hosted OPORTAL release bytes and production/dev OpenAPI checks ran in memory with no local output files.
