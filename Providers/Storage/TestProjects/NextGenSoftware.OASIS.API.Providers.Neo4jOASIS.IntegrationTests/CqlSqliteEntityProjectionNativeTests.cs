@@ -541,6 +541,19 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         CollectionAssert.AreEquivalent(new (Guid, Guid?)[] { (parentId, parentId), (missingId, null) },
             leftJoinRows.Result.Select(row => (row.Left, row.Right)).ToArray());
 
+        var rightInput = flagRows.OrderBy(row => row.Id);
+        var rightJoinRows = await flagRows.Where(row => row.Id == parentId).RightJoin(rightInput,
+            left => left.Id, right => right.Id,
+            (left, right) => new { Left = left == null ? (Guid?)null : left.Id, Right = right.Id })
+            .ToCosmicListAsync();
+        Assert.IsFalse(rightJoinRows.IsError, rightJoinRows.Message + rightJoinRows.Exception);
+        var expectedRightRows = await rightInput.ToCosmicListAsync();
+        Assert.IsFalse(expectedRightRows.IsError, expectedRightRows.Message + expectedRightRows.Exception);
+        CollectionAssert.AreEqual(expectedRightRows.Result.Select(row => row.Id).ToArray(),
+            rightJoinRows.Result.Select(row => row.Right).ToArray());
+        CollectionAssert.AreEquivalent(new (Guid?, Guid)[] { (parentId, parentId), (null, missingId) },
+            rightJoinRows.Result.Select(row => (row.Left, row.Right)).ToArray());
+
         request.MatchAnyKey = false;
         request.KeyGroupStarts = new[] { 0, 2 };
         request.Right.Filters = new[] { KeySet(new[] { lowerId, missingId }) };
