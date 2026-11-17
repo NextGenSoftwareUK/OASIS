@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.TursoOASIS;
+using NextGenSoftware.OASIS.Providers.TestSupport;
 
 namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
 {
@@ -86,6 +87,71 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             Assert.IsTrue(_provider.IsProviderActivated);
             var schema = await ExecuteFixtureSql(client, "SELECT name FROM sqlite_master WHERE name IN ('oasis_avatars', 'oasis_avatar_details', 'oasis_holons', 'idx_avatars_username', 'idx_avatars_email', 'idx_holons_parent', 'idx_holons_type')");
             Assert.AreEqual(7, schema.GetProperty("rows").GetArrayLength());
+        }
+
+        [DataTestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task CoreStorageSuiteAgainstNativeLibSql(bool synchronous)
+        {
+            RequireOwnedFixture();
+            using var client = new HttpClient();
+            var report = await CoreStorageConformance.RunAsync(
+                _provider, nameof(TursoOASIS), "native", synchronous, _ => Task.CompletedTask,
+                cleanupSoftDeletedFixture: async (id, _) =>
+                {
+                    var deleted = await ExecuteFixtureSql(client, $"DELETE FROM oasis_holons WHERE id = '{id:D}' AND is_deleted = 1");
+                    var count = deleted.GetProperty("affected_row_count").GetInt32();
+                    return new OASISResult<bool> { Result = count == 1, IsDeleted = count == 1, DeletedCount = count };
+                },
+                expectedDefaultDeletion: "soft",
+                observeNativeTombstone: async (id, owner, name) =>
+                {
+                    var readback = await ExecuteFixtureSql(client, $"SELECT data_json FROM oasis_holons WHERE id = '{id:D}' AND is_deleted = 1");
+                    var rows = readback.GetProperty("rows");
+                    if (rows.GetArrayLength() == 0)
+                        return false;
+                    Assert.AreEqual(1, rows.GetArrayLength());
+                    using var payload = JsonDocument.Parse(rows[0][0].GetProperty("value").GetString()!);
+                    Assert.AreEqual(owner, payload.RootElement.GetProperty("createdByAvatarId").GetGuid());
+                    Assert.AreEqual(name, payload.RootElement.GetProperty("name").GetString());
+                    return true;
+                });
+            Assert.IsTrue(report.Succeeded,
+                $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}; {report.Passed.Count} checks passed.");
+            Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+            Assert.IsTrue(report.FixtureCleanupComplete);
+        }
+
+        [TestMethod]
+        public async Task NativeAvatarDetailDeletionRollsBackWithAvatar()
+        {
+            RequireOwnedFixture();
+            using var client = new HttpClient();
+            var id = Guid.NewGuid();
+            var marker = $"avatar-detail-delete-{id:N}";
+            Assert.IsTrue((await _provider.SaveAvatarAsync(
+                new Avatar { Id = id, Username = marker, Email = marker + "@example.invalid" })).IsSaved);
+            Assert.IsTrue((await _provider.SaveAvatarDetailAsync(new AvatarDetail { Id = id, Username = marker })).IsSaved);
+
+            await ExecuteFixtureSql(client, $"CREATE TRIGGER oasis_test_protect_detail BEFORE DELETE ON oasis_avatar_details WHEN OLD.id = '{id:D}' BEGIN SELECT RAISE(ABORT, 'isolated detail deletion rejection'); END");
+            try
+            {
+                var rejected = await _provider.DeleteAvatarAsync(id, softDelete: false);
+                Assert.IsTrue(rejected.IsError);
+                Assert.IsFalse(rejected.IsDeleted);
+                Assert.IsTrue((await _provider.LoadAvatarAsync(id)).IsLoaded);
+                Assert.IsTrue((await _provider.LoadAvatarDetailAsync(id)).IsLoaded);
+            }
+            finally
+            {
+                await ExecuteFixtureSql(client, "DROP TRIGGER oasis_test_protect_detail");
+            }
+
+            var deleted = await _provider.DeleteAvatarAsync(id, softDelete: false);
+            Assert.IsTrue(deleted.IsDeleted, deleted.Message);
+            Assert.AreEqual(1, deleted.DeletedCount);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await _provider.LoadAvatarDetailAsync(id)).ErrorCode);
         }
 
         private void RequireOwnedFixture()
@@ -183,6 +249,26 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             Assert.AreEqual(avatar.Id, found.Result!.Id);
 
             await _provider.DeleteAvatarAsync(avatar.Id, softDelete: true);
+        }
+
+        [TestMethod]
+        public async Task ConcurrentHolonDeletes_AcknowledgeOnlyTheWinningWrite()
+        {
+            RequireLive();
+            var holon = new Holon { Id = Guid.NewGuid(), Name = "Concurrent Turso deletion" };
+            var saved = await _provider.SaveHolonAsync(holon);
+            Assert.IsFalse(saved.IsError, saved.Message);
+
+            var attempts = await Task.WhenAll(_provider.DeleteHolonAsync(holon.Id), _provider.DeleteHolonAsync(holon.Id));
+            var winner = Array.Find(attempts, attempt => attempt.IsDeleted);
+            var other = Array.Find(attempts, attempt => !attempt.IsDeleted);
+            Assert.IsNotNull(winner);
+            Assert.IsNotNull(other);
+            Assert.IsFalse(winner.IsError, winner.Message);
+            Assert.AreEqual(1, winner.DeletedCount);
+            Assert.AreEqual(holon.Id, winner.Result!.Id);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, other.ErrorCode);
+            Assert.IsNull((await _provider.LoadHolonAsync(holon.Id)).Result);
         }
 
         [TestMethod]
