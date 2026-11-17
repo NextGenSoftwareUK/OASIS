@@ -13,6 +13,10 @@
 
 The Data API provides comprehensive data management services for the OASIS ecosystem. It handles data storage, retrieval, processing, and analytics with support for multiple data types, real-time updates, and advanced security features.
 
+## Saving typed UTC holon metadata
+
+On WEB4 revisions that support `utcMetadataKeys`, include an optional array of exact top-level keys in the body of `POST /api/data/save-holon`. Each named key must exist in `holon.metaData`. Its value may be null or an ISO UTC timestamp ending in `Z` with up to seven fractional digits. For example, `utcMetadataKeys: ["observedAt"]` declares the value `"2021-01-01T00:00:00.0000001Z"` as a timestamp that a typed CQL date query can read. Omitted keys retain their submitted types. Add this field alongside the normal save operation ID, provider, and expected revisions.
+
 ## Data Management
 
 ### Get All Data
