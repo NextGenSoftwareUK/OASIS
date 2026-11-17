@@ -104,7 +104,9 @@ public static partial class CqlV1Endpoint
         var live = native.Result.ToDictionary(row => row.Id);
         var rows = new List<object[]>();
         var provenance = new List<object>();
-        foreach (var id in imported.Keys.Union(live.Keys).OrderBy(id => id).Take(request.Take))
+        var ids = imported.Keys.Union(live.Keys);
+        var ordered = request.Descending ? ids.OrderByDescending(id => id) : ids.OrderBy(id => id);
+        foreach (var id in ordered.Skip(request.Skip).Take(request.Take))
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (live.TryGetValue(id, out var row))
