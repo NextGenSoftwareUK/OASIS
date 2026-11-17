@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — The two OPORTAL candidate composition attempts removed their temporary indexes. The exact 17-group regression read Git blobs in memory. No local browser profile, downloads, builds or generated test reports were created.
+
 2026-11-17 UTC — Turso BootLoader run 44018421883 removed its disposable libSQL container, volume, image, test DNA, temporary signing material and harness outputs. The fixture credential was scoped to the removed server. No local dependencies, downloads or builds were created.
 
 2026-11-17 UTC — Turso schema verification run 44017296378 removed its native libSQL container, volume, image and test output. The temporary Development candidate index was removed. Exact qualification runs on GitHub, and no local runtime, build or additional worktree was created.
