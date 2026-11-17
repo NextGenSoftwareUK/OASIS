@@ -25,8 +25,8 @@ public sealed partial class HyperDriveProviderExecutionTests
         var provider=CreateActiveProvider();var dna=CreateDna(HyperDriveModes.V2);
         var providers=new ProviderManager(null,dna) {IsAutoFailOverEnabled=false,IsAutoLoadBalanceEnabled=false,IsAutoReplicationEnabled=false};
         providers.RegisterProvider(provider.Object);
-        provider.Setup(value=>value.LoadHolon(It.IsAny<Guid>(),true,true,0,true,false,0)).Returns(()=>ColdSettingsReadFailure(kind));
-        provider.Setup(value=>value.LoadHolonAsync(It.IsAny<Guid>(),true,true,0,true,false,0)).ReturnsAsync(()=>ColdSettingsReadFailure(kind));
+        provider.Setup(value=>value.LoadHolon(It.IsAny<Guid>(),false,true,0,true,false,0)).Returns(()=>ColdSettingsReadFailure(kind));
+        provider.Setup(value=>value.LoadHolonAsync(It.IsAny<Guid>(),false,true,0,true,false,0)).ReturnsAsync(()=>ColdSettingsReadFailure(kind));
         provider.Setup(value=>value.SaveHolon(It.IsAny<IHolon>(),true,true,0,true,false))
             .Returns((IHolon row,bool a,bool b,int c,bool d,bool e)=>new OASISResult<IHolon>(row) {IsSaved=true,SavedCount=1});
         provider.Setup(value=>value.SaveHolonAsync(It.IsAny<IHolon>(),true,true,0,true,false))
@@ -48,7 +48,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         var provider=CreateActiveProvider();var dna=CreateDna(HyperDriveModes.V2);
         var providers=new ProviderManager(null,dna) {IsAutoFailOverEnabled=false,IsAutoLoadBalanceEnabled=false,IsAutoReplicationEnabled=false};
         providers.RegisterProvider(provider.Object);
-        provider.Setup(value=>value.LoadHolonAsync(It.IsAny<Guid>(),true,true,0,true,false,0)).ReturnsAsync(()=>ColdSettingsReadFailure(kind));
+        provider.Setup(value=>value.LoadHolonAsync(It.IsAny<Guid>(),false,true,0,true,false,0)).ReturnsAsync(()=>ColdSettingsReadFailure(kind));
         var manager=new HolonManager(provider.Object,dna,providers);
         var result=await manager.LoadHolonAsync(Guid.NewGuid(),allowMissing:allowMissing);
         // V2 ConvertResult already normalizes authoritative absence for both

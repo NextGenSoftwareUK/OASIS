@@ -41,9 +41,9 @@ public sealed partial class HyperDriveProviderExecutionTests
         DeclareLeafChildReadContract(provider);
         OASISResult<IHolon> Read(Guid id)=>new(LeafSettingsObservation(id,new Holon {
             MetaData=new() {{"totalKarma",463L},{"history",history}} }));
-        provider.Setup(value=>value.LoadHolonAsync(It.IsAny<Guid>(),true,true,0,true,false,0))
+        provider.Setup(value=>value.LoadHolonAsync(It.IsAny<Guid>(),false,true,0,true,false,0))
             .ReturnsAsync((Guid id,bool a,bool b,int c,bool d,bool e,int f)=>Read(id));
-        provider.Setup(value=>value.LoadHolon(It.IsAny<Guid>(),true,true,0,true,false,0))
+        provider.Setup(value=>value.LoadHolon(It.IsAny<Guid>(),false,true,0,true,false,0))
             .Returns((Guid id,bool a,bool b,int c,bool d,bool e,int f)=>Read(id));
         var dna=CreateDna(HyperDriveModes.V2);var providers=new ProviderManager(null,dna)
             {IsAutoFailOverEnabled=false,IsAutoLoadBalanceEnabled=false,IsAutoReplicationEnabled=false};
@@ -79,9 +79,9 @@ public sealed partial class HyperDriveProviderExecutionTests
             stored[row.Id]=StoredRecordJson.Serialize(row);
             return new OASISResult<IHolon>(Decode(stored[row.Id])) {IsSaved=true,SavedCount=1};
         }
-        provider.Setup(value=>value.LoadHolon(It.IsAny<Guid>(),true,true,0,true,false,0))
+        provider.Setup(value=>value.LoadHolon(It.IsAny<Guid>(),false,true,0,true,false,0))
             .Returns((Guid id,bool a,bool b,int c,bool d,bool e,int f)=>Read(id));
-        provider.Setup(value=>value.LoadHolonAsync(It.IsAny<Guid>(),true,true,0,true,false,0))
+        provider.Setup(value=>value.LoadHolonAsync(It.IsAny<Guid>(),false,true,0,true,false,0))
             .ReturnsAsync((Guid id,bool a,bool b,int c,bool d,bool e,int f)=>Read(id));
         foreach(var children in new[] {false,true})
         {
