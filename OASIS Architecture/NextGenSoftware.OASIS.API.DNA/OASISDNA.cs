@@ -33,6 +33,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public SandboxSettings Sandbox { get; set; } = new SandboxSettings();
         /// <summary>Opt-in record of who read a holon (ids only). Off by default.</summary>
         public AccessLogSettings AccessLog { get; set; } = new AccessLogSettings();
+        /// <summary>Opt-in tamper-evident holon version history: master switch and key. Off by default; avatars and apps choose per owner/app.</summary>
+        public HolonSealSettings HolonSeal { get; set; } = new HolonSealSettings();
         /// <summary>Owner usage views, usage warnings (with email) and app pay-as-you-go. Node defaults; people and apps can override.</summary>
         public UsageVisibilitySettings UsageVisibility { get; set; } = new UsageVisibilitySettings();
         public OLandCommerceSettings OLand { get; set; } = new OLandCommerceSettings();

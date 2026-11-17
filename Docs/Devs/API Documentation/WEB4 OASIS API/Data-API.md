@@ -710,6 +710,8 @@ A readable history of a holon, built from the versions OASIS already keeps every
 
 `POST /api/data/holon-audit-trail/{id}` (same result; optional body below)
 
+The response also carries `seal`: the result of the opt-in tamper-evidence check (status, `brokenAtVersion`, per-version `versionStatus`, `latestSeal`). See `Docs/Devs/SEALED_HOLON_HISTORY.md`. A separate check without the trail: `GET /api/data/holon-seal/verify/{id}`.
+
 ```json
 {
   "fieldLabels": { "goals": "Therapy goals" },

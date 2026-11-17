@@ -68,6 +68,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public bool? WarningsEnabled { get; set; }
         /// <summary>Record who read this app's holons even when the node default is off (or stop recording when it is on).</summary>
         public bool? AccessLogEnabled { get; set; }
+        /// <summary>Seal every version of data saved through this app (tamper-evident history) even when the owner has not; null/false = the app does not require it. Needs HolonSeal.Enabled and a key on the node.</summary>
+        public bool? SealedHistoryEnabled { get; set; }
     }
 
     public interface IAppAccountRepository

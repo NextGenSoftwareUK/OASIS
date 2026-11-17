@@ -7,6 +7,13 @@
     }
   },
   "OASIS": {
+    "HolonSeal": {
+      "Enabled": false,
+      "Key": "",
+      "KeyId": "k1",
+      "RetiredKeys": {},
+      "RefreshIntervalSeconds": 30
+    },
     "Terms": "Please be kind and respectful to everyone including animals and nature and work hard to co-create a better world for all! Enjoy your stay! :)",
     "Logging": {
       "LoggingFramework": "Default",

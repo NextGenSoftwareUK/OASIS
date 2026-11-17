@@ -31,5 +31,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data
         public int Offset { get; set; }
         /// <summary>Newest first.</summary>
         public List<HolonAuditEntry> Entries { get; set; } = new List<HolonAuditEntry>();
+        /// <summary>Tamper-evidence check of this holon's saved versions (status, where it breaks, per-version sealed/unsealed/broken). Null only if the check itself failed.</summary>
+        public NextGenSoftware.OASIS.API.Core.Holons.HolonSealVerification Seal { get; set; }
     }
 }

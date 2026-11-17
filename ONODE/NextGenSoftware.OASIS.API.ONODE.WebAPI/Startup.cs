@@ -450,6 +450,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddSingleton(_ => new Services.AccessLog.AccessLogService(() => OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.AccessLog,
                 new Services.AccessLog.MongoAccessLogStore(() => OASISBootLoader.OASISBootLoader.OASISDNA)));
             services.AddHostedService<Services.AccessLog.AccessLogFlushHostedService>();
+            // Opt-in sealed (tamper-evident) holon history: OASIS.HolonSeal in OASIS_DNA.json, off by default; avatars and apps choose.
+            services.AddSingleton(_ => new Services.Seal.HolonSealPolicy(() => OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HolonSeal));
+            services.AddSingleton<Services.Seal.IHolonSealStore>(_ => new Services.Seal.MongoHolonSealStore(() => OASISBootLoader.OASISBootLoader.OASISDNA));
+            services.AddHostedService<Services.Seal.HolonSealRefreshHostedService>();
             services.AddScoped<Services.AccessLog.AccessLogFilter>();
             services.AddSingleton(_ => new Services.Mfa.MfaService(() => OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Security?.Mfa,
                 new Services.Mfa.MongoMfaStore(() => OASISBootLoader.OASISBootLoader.OASISDNA), OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Security?.SecretKey));
@@ -1004,6 +1008,12 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseRateLimiter();
 
             app.UseMiddleware<OASISRequestContextMiddleware>();
+            // The calling app (verified elsewhere; here it can only ADD sealing) flows to the storage write so an app's sealed-history switch applies.
+            app.Use(async (context, next) =>
+            {
+                if (context.Request.Headers.TryGetValue("X-OASIS-App-Id", out var sealAppId)) NextGenSoftware.OASIS.API.Core.Holons.HolonSealing.CurrentAppId = sealAppId.ToString();
+                await next();
+            });
             app.UseMiddleware<OASISMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
             // API key gate: disabled by default (OASISDNA.OASIS.Security.RequireApiKey = false)

@@ -1,5 +1,12 @@
 {
   "OASIS": {
+    "HolonSeal": {
+      "Enabled": false,
+      "Key": "",
+      "KeyId": "k1",
+      "RetiredKeys": {},
+      "RefreshIntervalSeconds": 30
+    },
     "UsageVisibility": {
       "OwnerViewEnabled": true,
       "WarningsEnabled": true,

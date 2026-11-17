@@ -99,6 +99,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     Offset = offset,
                     Entries = trail.Skip(offset).Take(limit).ToList()
                 };
+                // Never fails the trail: an unconfigured node or a provider without seals just reports Unavailable/Unsealed.
+                try { response.Seal = await HolonManager.VerifyHolonSealAsync(id); } catch (Exception) { response.Seal = null; }
                 var result = new OASISResult<HolonAuditTrailResponse> { Result = response, IsLoaded = true, Message = "Audit trail loaded." };
                 return HttpResponseHelper.FormatResponse(result, System.Net.HttpStatusCode.OK, false);
             }
