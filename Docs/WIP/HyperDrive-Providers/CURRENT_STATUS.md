@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — After checking the COSMIC worktree's status, PocketBase now runs the shared 26-check storage suite in both modes against the existing isolated official server. The test independently reads owned soft-deleted records and hard-cleans only those IDs over native REST. Baseline results are pending. The five previously qualified focused cases retain their existing evidence.
+
 2026-11-17 UTC — [Exact Turso native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44032246323) passed both 26-check modes, avatar deletion rollback, and wallet selectors on `fc64cdd43585`, with zero skips and verified runner cleanup. The [shared image queue](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44032542851) has another pending build, so the Turso follow-up image has yet to be dispatched. The preceding Railway rollout is still in progress.
 
 2026-11-17 UTC — The [native Turso wallet-key test](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44031441928) passed through the storage interface for public and private lookups, including ambiguity and deleted records. Follow-up candidate `fc64cdd43585` stages the verified identity, export and search changes directly above Development `5877c9e3bc9b`. [Exact native run 44032246323](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44032246323) is queued. The underlying Railway rollout is queued or building. The follow-up still needs exact WEB4 image qualification.

@@ -1,11 +1,17 @@
 using System;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.TestSupport;
 
 namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
 {
@@ -34,6 +40,63 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
             var activated = await _provider.ActivateProviderAsync();
             Assert.IsFalse(activated.IsError, activated.Exception?.GetType().Name);
             Assert.IsTrue(_provider.IsProviderActivated);
+        }
+
+        [DataTestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        [DoNotParallelize]
+        public async Task CoreStorageSuiteAgainstNativePocketBase(bool synchronous)
+        {
+            var url = Environment.GetEnvironmentVariable("POCKETBASEOASIS_BASEURL");
+            Assert.AreEqual("http://127.0.0.1:19692", url);
+            using var client = new HttpClient { BaseAddress = new Uri(url!) };
+            using var login = await client.PostAsJsonAsync("/api/collections/_superusers/auth-with-password", new
+            {
+                identity = Environment.GetEnvironmentVariable("POCKETBASEOASIS_ADMINEMAIL"),
+                password = Environment.GetEnvironmentVariable("POCKETBASEOASIS_ADMINPASSWORD")
+            });
+            login.EnsureSuccessStatusCode();
+            var auth = await login.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.IsTrue(client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", auth.GetProperty("token").GetString()));
+
+            var report = await CoreStorageConformance.RunAsync(
+                _provider, nameof(PocketBaseOASIS), "native", synchronous, _ => Task.CompletedTask,
+                cleanupSoftDeletedFixture: async (id, _) =>
+                {
+                    var row = await FindTombstoneAsync(id);
+                    if (!row.HasValue)
+                        return new OASISResult<bool>();
+                    var recordId = Uri.EscapeDataString(row.Value.GetProperty("id").GetString()!);
+                    using var response = await client.DeleteAsync($"/api/collections/oasis_holons/records/{recordId}");
+                    var deleted = response.StatusCode == HttpStatusCode.NoContent && !((await FindTombstoneAsync(id)).HasValue);
+                    return new OASISResult<bool> { Result = deleted, IsDeleted = deleted, DeletedCount = deleted ? 1 : 0 };
+                },
+                expectedDefaultDeletion: "soft",
+                observeNativeTombstone: async (id, owner, name) =>
+                {
+                    var row = await FindTombstoneAsync(id);
+                    if (!row.HasValue)
+                        return false;
+                    using var payload = JsonDocument.Parse(row.Value.GetProperty("data_json").GetString()!);
+                    Assert.AreEqual(id, payload.RootElement.GetProperty("id").GetGuid());
+                    Assert.AreEqual(owner, payload.RootElement.GetProperty("createdByAvatarId").GetGuid());
+                    Assert.AreEqual(name, payload.RootElement.GetProperty("name").GetString());
+                    return true;
+                });
+            Assert.IsTrue(report.Succeeded,
+                $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}; {report.Passed.Count} checks passed.");
+            Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+            Assert.IsTrue(report.FixtureCleanupComplete);
+
+            async Task<JsonElement?> FindTombstoneAsync(Guid id)
+            {
+                var filter = Uri.EscapeDataString($"oasis_id='{id:D}' && is_deleted=true");
+                var rows = await client.GetFromJsonAsync<JsonElement>($"/api/collections/oasis_holons/records?filter={filter}&perPage=2");
+                var items = rows.GetProperty("items");
+                Assert.IsTrue(items.GetArrayLength() <= 1);
+                return items.GetArrayLength() == 0 ? null : items[0];
+            }
         }
 
         [TestMethod]
