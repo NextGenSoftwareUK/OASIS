@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL dev advanced to 016e2b815c75 after its 30-minute window. Hosted /messages serves the exact tested JavaScript with cache key 20261117r. The WEB4 controller-only candidate 2bacab794176 has [contracts](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44131477682) and [image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44131607608) running. It preserves current Development and dependency pins. Signed Messaging acceptance and fixture cleanup remain open.
+
 2026-11-17 UTC — OPORTAL branch 79dabb7 now displays unavailability in Conversations and Notifications and leaves their counters unknown on a failed read. A focused in-memory check verified both failures and genuine successful empty lists. The UI and API changes await scoped dev promotion. No new test records or local outputs were retained.
 
 2026-11-17 UTC — Live Messaging controller audit found that the inbox, conversation and notifications reads could discard real errors and return successful empty test data. All three now return the manager result directly on the work branch. Route and parameter declarations are unchanged and checked by source comparison. Build qualification and hosted verification are pending. Runtime log matches for the two disposable avatar IDs contained no application error code, so the cause of the earlier send test remains unconfirmed. No fixture was replayed.
