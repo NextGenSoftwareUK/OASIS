@@ -431,6 +431,17 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         CollectionAssert.AreEquivalent(new (Guid?, Guid?)[] { (parentId, lowerId), (missingId, missingId) },
             anyKeyRows.Result.Providers.Single().Rows.Select(row => ((Guid?)row.Value["LeftId"], (Guid?)row.Value["RightId"])).ToArray());
 
+        var disjunctiveLinq = await flagRows.SelectMany(leftValue => flagRows.Where(rightValue =>
+                rightValue.Id == leftValue.Id ||
+                CosmicQueryMetadata.Value<bool?>(rightValue, "nullableJoinFlag") !=
+                CosmicQueryMetadata.Value<bool?>(leftValue, "nullableJoinFlag")),
+            (leftValue, rightValue) => new { Left = leftValue.Id, Right = rightValue.Id }).ToCosmicListAsync();
+        Assert.IsFalse(disjunctiveLinq.IsError, disjunctiveLinq.Message + disjunctiveLinq.Exception);
+        CollectionAssert.AreEquivalent(new[]
+            {
+                (parentId, parentId), (parentId, missingId), (missingId, parentId), (missingId, missingId)
+            }, disjunctiveLinq.Result.Select(row => (row.Left, row.Right)).ToArray());
+
         request.Keys[0].Operator = "Invalid";
         Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access));
 
