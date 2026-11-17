@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — All four disposable avatars from Clan and Wallet probes acknowledged self-delete. The Wallet list was cleared and read back empty. Two Clan creates returned application errors without Clan IDs and may have persisted on the primary. Do not replay these mutations. The failed creates used the portal-clan-membership name prefix and the Disposable OPORTAL membership acceptance fixture description. No local artifacts were created.
+
 2026-11-17 UTC — The signed Competition rank probe used one disposable sandbox avatar and confirmed its self-delete with the nested successful boolean acknowledgment. This confirmation applies to the rank fixture. The earlier dashboard timing fixture remains unconfirmed. No local artifacts were created.
 
 2026-11-17 UTC — The signed dashboard timing probe created one temporary dev sandbox avatar, then issued its authorized delete in a finally block. The delete returned HTTP 200. The probe did not verify the nested acknowledgment and retained neither identifier nor token. Cleanup remains unconfirmed. No downloads, test output files or local build artifacts were created.
