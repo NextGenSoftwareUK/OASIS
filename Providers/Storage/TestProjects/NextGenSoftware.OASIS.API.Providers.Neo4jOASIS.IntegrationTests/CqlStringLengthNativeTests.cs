@@ -104,8 +104,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Expression<Func<Holon, bool>>[] negativeStrings =
         {
             row => !CosmicQueryMetadata.Value<string>(row, "nullOrEmptyValue").Contains("\U0001F600"),
-            row => !CosmicQueryMetadata.Value<string>(row, "nullOrEmptyValue").StartsWith("x"),
-            row => !CosmicQueryMetadata.Value<string>(row, "nullOrEmptyValue").EndsWith("x"),
+            row => !CosmicQueryMetadata.Value<string>(row, "nullOrEmptyValue").StartsWith("x", StringComparison.Ordinal),
+            row => !CosmicQueryMetadata.Value<string>(row, "nullOrEmptyValue").EndsWith("x", StringComparison.Ordinal),
             row => !CosmicQueryMetadata.Value<string>(row, "notString").Contains("")
         };
         Guid[][] negativeExpected =
