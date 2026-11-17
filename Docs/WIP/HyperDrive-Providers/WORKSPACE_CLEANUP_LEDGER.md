@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — The signed Wallet probe created one disposable sandbox avatar `20378284-3c23-41b7-95a1-d320578b99d8`. Its sole DELETE returned HTTP 200. The probe checked a flat Boolean and did not capture the nested deletion acknowledgement, so cleanup is unconfirmed. Reconcile by read-only observation or the existing sandbox expiry sweep. No DELETE retry, wallet creation, funds movement, local credentials, downloads or build outputs were retained.
+
 2026-11-17 UTC — Verified the Wallet candidate and hosted API route inventory in memory. The temporary candidate index was removed. No wallet, transaction, download or build output was created.
 
 2026-11-17 UTC — Removed the disposable Files/Gifts qualification and Quest/Mission release indexes automatically. The popup checks ran in memory, with no downloads, builds or test reports retained locally.
