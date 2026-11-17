@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. Virtual mapping preparation and both WEB4 read paths now share sandbox fixture admission. The configured source is available only on sandbox-enabled hosts for the approved MongoDB sample collections and scalar fields. Named user connections retain owner-vault admission. The website demo and exact CI are pending.
+
 17 November UTC. The virtual query contract can now bind the built-in MongoDB fixture connection while preserving the IDs used by full fixture imports. Its authority fingerprint tracks the configured store and the integration test checks that virtual and materialized identity agree. The WEB4 sandbox-only route still needs to restrict this capability to its approved sample collections.
 
 17 November UTC. The WEB4 projection candidate accepts a virtual mapping ID alongside an admitted materialized source. It uses the same typed equality and projection in both native reads, rejects saturated branches, and returns an Id-ordered page with row provenance. For overlapping identity it returns the live mapped value and indicates the stored copy. Exact CI and live mixed sandbox acceptance are pending.

@@ -4,10 +4,10 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
@@ -44,21 +44,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return BadRequest(new OASISResult<Holon> { IsError = true, ErrorCode = "VIRTUAL_MAPPING_INVALID",
                     Message = "A mapping ID, source name and named connection are required." });
 
-            if (OASISBootLoader.NativeImportReaders.Create(providerType) is not INativeDataQueryProvider reader)
-                return BadRequest(new OASISResult<Holon> { IsError = true, ErrorCode = "VIRTUAL_HOLON_SOURCE_UNAVAILABLE",
-                    Message = "The provider does not support virtual mapping queries." });
-
             var actor = AvatarId;
-            var connection = await Program.SettingsManager.GetNativeImportConnectionAsync(actor, providerType, request.ConnectionName);
-            if (connection.IsError || connection.Result == null)
-                return BadRequest(new OASISResult<Holon> { IsError = true, ErrorCode = "VIRTUAL_HOLON_SOURCE_UNAVAILABLE",
-                    Message = "The named connection is unavailable." });
-
             try
             {
-                var identity = reader.DescribeNativeConnection(connection.Result);
+                if (request.ConnectionName == VirtualHolonMapping.SandboxConnectionName &&
+                    !CqlV1Providers.IsSandboxVirtualMapping(providerType, request.SourceName, request.Fields))
+                    return BadRequest(new OASISResult<Holon> { IsError = true, ErrorCode = "VIRTUAL_MAPPING_INVALID",
+                        Message = "Use the approved sample collection fields for sandbox mappings." });
+
+                var binding = await CqlV1Providers.ResolveVirtualConnectionAsync(
+                    actor, providerType, request.SourceName, request.ConnectionName);
+                if (binding == null)
+                    return BadRequest(new OASISResult<Holon> { IsError = true, ErrorCode = "VIRTUAL_HOLON_SOURCE_UNAVAILABLE",
+                        Message = "The named connection is unavailable." });
                 var mapping = new VirtualHolonMapping(request.Id, 1, actor, providerType, request.SourceName,
-                    request.ConnectionName, identity, request.Fields);
+                    request.ConnectionName, binding.Identity, request.Fields);
                 return Ok(new OASISResult<Holon>(mapping.ToDefinitionHolon()));
             }
             catch (NativeConnectionRefusedException)
@@ -95,54 +95,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (match == null)
                 return BadRequest(VirtualReadError("VIRTUAL_HOLON_QUERY_INVALID", "Provide a typed String, Boolean, Int32 or decimal-string Int64 match."));
 
-            if (OASISBootLoader.NativeImportReaders.Create(providerType) is not INativeDataQueryProvider reader)
-                return BadRequest(VirtualReadError("VIRTUAL_HOLON_SOURCE_UNAVAILABLE", "The provider does not support virtual mapping queries."));
-
-            var actor = AvatarId;
-            var context = HolonManager.CreateRequestContext(new ProviderRoutingOverrides(
-                autoFailoverEnabled: false, autoLoadBalancingEnabled: false));
-            if (context.IsError)
-                return StatusCode(503, VirtualReadError("VIRTUAL_HOLON_STORE_UNAVAILABLE", "The mapping's authoritative store is unavailable."));
-
-            var loaded = await context.Result.Manager.LoadHolonAsync(id, loadChildren: false, recursive: false, allowMissing: true);
-            if (loaded.ErrorCode == OASISResultErrorCodes.RecordNotFound)
+            var result = await CqlV1Providers.QueryOwnedVirtualMappingAsync(HolonManager, id, AvatarId,
+                providerType, request.MatchField, match, request.Select, request.Take, cancellationToken);
+            if (result.ErrorCode == "VIRTUAL_MAPPING_NOT_FOUND")
                 return NotFound();
-            if (loaded.IsError)
-                return StatusCode(503, VirtualReadError("VIRTUAL_HOLON_STORE_UNAVAILABLE", "The mapping's authoritative store is unavailable."));
-            if (loaded.Result == null || loaded.Result.Id != id || !loaded.Result.IsActive)
-                return NotFound();
-
-            string connectionName;
-            try
-            {
-                connectionName = VirtualHolonMapping.GetDefinitionConnectionName(actor, loaded.Result, providerType);
-            }
-            catch (ArgumentException)
-            {
-                return NotFound();
-            }
-
-            var connection = await Program.SettingsManager.GetNativeImportConnectionAsync(actor, providerType, connectionName);
-            if (connection.IsError || connection.Result == null)
-                return BadRequest(VirtualReadError("VIRTUAL_HOLON_SOURCE_UNAVAILABLE", "The mapping's named connection is unavailable."));
-
-            VirtualHolonMapping mapping;
-            try
-            {
-                var identity = reader.DescribeNativeConnection(connection.Result);
-                mapping = VirtualHolonMapping.FromDefinitionHolon(actor, loaded.Result, identity);
-            }
-            catch (ArgumentException)
-            {
-                return BadRequest(VirtualReadError("VIRTUAL_HOLON_CONNECTION_CHANGED", "The mapping no longer matches the named connection."));
-            }
-            catch (NativeConnectionRefusedException)
-            {
-                return BadRequest(VirtualReadError("VIRTUAL_HOLON_SOURCE_UNAVAILABLE", "The mapping's named connection is unavailable."));
-            }
-
-            return Respond(await mapping.QueryAsync(actor, reader, connection.Result, request.MatchField, match,
-                request.Select, request.Take, cancellationToken));
+            if (result.ErrorCode == "VIRTUAL_HOLON_STORE_UNAVAILABLE")
+                return StatusCode(503, result);
+            return Respond(result);
         }
 
         private static OASISResult<IReadOnlyList<VirtualHolonRead>> VirtualReadError(string code, string message) =>
