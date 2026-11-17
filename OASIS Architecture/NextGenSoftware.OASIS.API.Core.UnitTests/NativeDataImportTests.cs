@@ -88,7 +88,11 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
             Assert.Equal("people", definition.MetaData["oasis.virtual.source"]);
             Assert.DoesNotContain(authority, definition.MetaData.Values.OfType<string>());
 
+            Assert.Throws<ArgumentException>(() => VirtualHolonMapping.FromDefinitionHolon(Owner, definition, authority));
+            definition.Version = 7; // The authoritative version is assigned by the conditional Holon store.
+            definition.MetaData["oasis.virtual.version"] = "99";
             var restored = VirtualHolonMapping.FromDefinitionHolon(Owner, definition, authority);
+            Assert.Equal(7, restored.Version);
             Assert.Equal(mapping.Id, restored.Id);
             Assert.Equal("label", restored.Fields["Name"]);
             Assert.Throws<ArgumentException>(() => VirtualHolonMapping.FromDefinitionHolon(Guid.NewGuid(),
