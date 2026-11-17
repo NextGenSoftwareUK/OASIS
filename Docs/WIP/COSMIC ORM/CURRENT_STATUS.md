@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+2026-11-17 UTC — The replacement emulator image started and passed the readiness probe. [Native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44127833698) stopped at integration-project compilation before querying data. Its wildcard-linked WEB4 CQL files required provider dependencies unavailable in the test assembly. The Cosmos integration project now references the actual WEB4 project for the existing controller acceptance checks. Native SDK and Development acceptance remain open.
+
 2026-11-17 UTC — WEB4 now offers virtual mapping for saved Azure Cosmos DB connections on [website feature revision 4c95f373](https://github.com/NextGenSoftwareUK/Web4Site/commit/4c95f373998bceb1d2148e515d1f1512b12d4269). The form documents the sole /id partition key requirement and still limits demo fixtures to MongoDB, SQLite and Neo4j. All 288 website tests passed from that exact Git snapshot, and the focused form check covered saved, unsaved and demo modes. [Native SDK qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44127833698) and hosted verification remain open.
 
 2026-11-17 UTC — Azure Cosmos DB query and identity unit checks passed. The [native emulator run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44125972024) stopped before running the SDK test because MCR returned 404 for the image digest. Updated the pin to the classic emulator manifest that returned HTTP 200 by digest. Native query and Development verification remain open. No local emulator was installed.
