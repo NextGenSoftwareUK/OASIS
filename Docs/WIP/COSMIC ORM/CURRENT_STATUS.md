@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. Standard LINQ Join now translates through native COSMIC joins for supported scalar and anonymous composite keys. The candidate covers independently bounded right inputs plus text and nullable scalar keys, including null exclusion. Exact Development candidate `1ec2306c1207` preserves the Turso baseline `961b6a881ae4`. [Native and protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44021516466) and [WEB4 image CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44021595884) are pending. GroupJoin and full parity remain open.
+
 17 November UTC. The [WEB4 sandbox preview](https://vercel.com/oasis-team/web4-site/FkCwxooniXJonKFgfk7fZEEqVnK7) built from `b0cfd17358d2`. The grouped demo now shows aggregate calls in HAVING and ORDER BY. All 279 site tests passed.
 
 17 November UTC. SQL projected ORDER BY now accepts a selected typed CAST as well as the alias. The [preview](https://vercel.com/oasis-team/web4-site/GvZUdbJTDzw84d1X4BqcJz3mYrWh) built from `25f2d08adb83` and all 279 site tests passed. On WEB4 Development `baa5bdf51b74`, the alias and repeated expression produced the same two-key native ordering request. All three stores returned the expected row at OFFSET 1 in 0.46–0.89 s.
