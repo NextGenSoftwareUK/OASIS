@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL dev advanced to 9c85d745fb97 after the 17:54:41 UTC window. Hosted /messages references 20261117z. The served Chat script, component loader and Messaging fragment exactly match the qualified Git blobs. This publishes the dedicated recipient, request wiring, draft retention, duplicate submission guards and visible serialized history polling. Full browser and hosted Chat persistence remain open; publication alone does not establish message delivery.
+
 2026-11-17 UTC — All 23 existing portal regression groups passed against exact staged Chat candidate 9c85d745fb97, including checkout return, subscription shared reads, billing, Orders, Usage and delayed popup routing. Tracked blobs were read in memory to accommodate the sparse checkout. All seven Railway dev APIs report SUCCESS on 3527154a118d. Full signed browser and hosted Chat acceptance remain open.
 
 2026-11-17 UTC — Refreshed scoped Chat candidate 9c85d745fb97 includes the dedicated recipient field, Chat script, versioned fragment loader and portal references. It preserves live CSS and provider-migration cache keys. The exact-tree controlled check verified the labeled input supplies the two participants, the Send tab input cannot select them, and failed startup restores the button. Dev window remains 17:54:41 UTC. Hosted Chat remains open.
