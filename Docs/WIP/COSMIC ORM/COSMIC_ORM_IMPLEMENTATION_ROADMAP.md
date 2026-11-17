@@ -30,6 +30,20 @@ zero source-row Holons or replication obligations. Follow with virtual plus mate
 federation, explicit snapshots and opt-in hybrid caching. Grow provider coverage using
 each provider's verified operation capabilities.
 
+### WEB4 sandbox acceptance
+
+Expose Full import and Virtual mapping in the sandbox import flow. Full import
+persists the selected records under the existing ownership and replication rules.
+Virtual mapping registers the collection and approved metadata fields. Its read
+path resolves those fields from the source and does not persist one Holon per row.
+
+Use one CQL request to return both imported and virtual Holons using the same typed
+filter and projection. Verify exact results, tenant isolation, stable logical
+identity, deduplication when physical copies overlap, and provenance on every row.
+Edit a fixture at the external source and repeat the query to demonstrate live
+resolution. Measure stored bytes and query latency for both modes and verify
+that virtual reads produce zero row saves or HyperDrive replication obligations.
+
 ### Hybrid policy in OPORTAL
 
 Allow the owner to configure source, placement, caching and replication policy
