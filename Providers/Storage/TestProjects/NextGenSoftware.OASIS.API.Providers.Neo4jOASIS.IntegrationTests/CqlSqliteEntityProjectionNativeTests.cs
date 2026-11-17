@@ -460,6 +460,24 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 (parentId, parentId), (parentId, missingId), (missingId, parentId), (missingId, missingId)
             }, disjunctiveLinq.Result.Select(row => (row.Left, row.Right)).ToArray());
 
+        var groupedLinq = await flagRows.SelectMany(leftValue => flagRows.Where(rightValue =>
+                (rightValue.Id == leftValue.Id && rightValue.Version > leftValue.Version) ||
+                CosmicQueryMetadata.Value<bool?>(rightValue, "nullableJoinFlag") !=
+                CosmicQueryMetadata.Value<bool?>(leftValue, "nullableJoinFlag")),
+            (leftValue, rightValue) => new { Left = leftValue.Id, Right = rightValue.Id }).ToCosmicListAsync();
+        Assert.IsFalse(groupedLinq.IsError, groupedLinq.Message + groupedLinq.Exception);
+        CollectionAssert.AreEquivalent(new[] { (parentId, missingId), (missingId, parentId) },
+            groupedLinq.Result.Select(row => (row.Left, row.Right)).ToArray());
+
+        var parenthesizedLinq = await flagRows.SelectMany(leftValue => flagRows.Where(rightValue =>
+                rightValue.Id == leftValue.Id &&
+                (rightValue.Version > leftValue.Version ||
+                 CosmicQueryMetadata.Value<bool?>(rightValue, "nullableJoinFlag") !=
+                 CosmicQueryMetadata.Value<bool?>(leftValue, "nullableJoinFlag"))),
+            (leftValue, rightValue) => new { Left = leftValue.Id, Right = rightValue.Id }).ToCosmicListAsync();
+        Assert.IsFalse(parenthesizedLinq.IsError, parenthesizedLinq.Message + parenthesizedLinq.Exception);
+        Assert.AreEqual(0, parenthesizedLinq.Result.Count);
+
         request.MatchAnyKey = false;
         request.KeyGroupStarts = new[] { 0, 2 };
         request.Right.Filters = new[] { KeySet(new[] { lowerId, missingId }) };
