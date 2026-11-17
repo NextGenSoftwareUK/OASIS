@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Exported only the two source directories and scripts needed for the exact My Eggs manifest checks. Temporary exports and Git indexes were removed. No worktree, local build or runtime was created.
+
 2026-11-17 UTC — Clan popup authorization checks ran in memory. The disposable portal candidate index was removed automatically. No fixtures, dependencies, reports or local build outputs were retained.
 
 2026-11-17 UTC — The signed Quest and Mission catalogue probe used one disposable avatar. WEB4 acknowledged its deletion with a nested Boolean receipt. The SDK, session and diagnostics stayed in memory. No test accounts, files or downloads from this probe were retained locally.
