@@ -208,7 +208,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                         predicates.Add($"CASE WHEN typeof({column}) = 'text' THEN {SqliteCqlReadBudget.TextStringLengthFunction}({column}) {symbol} $match{index} ELSE 0 END");
                     else
                     {
-                        predicates.Add($"typeof({column}) = $type{index} AND {column} COLLATE BINARY {symbol} $match{index}");
+                        var atomic = $"typeof({column}) = $type{index} AND {column} COLLATE BINARY {symbol} $match{index}";
+                        if (match.Operator == CosmicQueryComparisonOperator.NotEqual && match.Value is string)
+                            atomic = $"({atomic}) OR {column} IS NULL";
+                        predicates.Add("(" + atomic + ")");
                         command.Parameters.AddWithValue($"$type{index}", match.Value is string ? "text" : "integer");
                     }
                     command.Parameters.AddWithValue($"$match{index}", match.Value);

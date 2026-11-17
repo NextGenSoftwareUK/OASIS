@@ -219,7 +219,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 var property = Property(match.Field);
                 var type = match.Value is string ? "IS_STRING" : "IS_BOOL";
                 var symbol = match.Operator == CosmicQueryComparisonOperator.Equal ? "=" : "!=";
-                return $"{type}({property}) AND {property} {symbol} @match{index}";
+                var atomic = $"{type}({property}) AND {property} {symbol} @match{index}";
+                return match.Operator == CosmicQueryComparisonOperator.NotEqual && match.Value is string
+                    ? $"({atomic} OR IS_NULL({property}))" : atomic;
             });
             var query = new QueryDefinition($"SELECT TOP @take VALUE {{{string.Join(", ", columns)}}} FROM c " +
                 $"WHERE {string.Join(" AND ", predicates)} ORDER BY c.id").WithParameter("@take", limit);

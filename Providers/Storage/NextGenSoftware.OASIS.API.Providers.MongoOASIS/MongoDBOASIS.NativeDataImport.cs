@@ -206,12 +206,19 @@ public partial class MongoDBOASIS : INativeDataQueryProvider
                 return Refuse(result, "The exact match requires a string, Boolean, Int32 or Int64.", "NATIVE_QUERY_INVALID");
 
             // Native comparisons can use a source index. The exact type guard excludes arrays and numeric coercion.
-            filters.Add(new BsonDocument
+            var atomic = new BsonDocument
             {
                 { match.Field, new BsonDocument(symbol, literal) },
                 { "$expr", new BsonDocument("$eq", new BsonArray
                     { new BsonDocument("$type", "$" + match.Field), type }) }
-            });
+            };
+            if (match.Operator == CosmicQueryComparisonOperator.NotEqual && match.Value is string)
+                atomic = new BsonDocument("$or", new BsonArray
+                {
+                    atomic, new BsonDocument("$expr", new BsonDocument("$eq", new BsonArray
+                        { new BsonDocument("$type", "$" + match.Field), "null" }))
+                });
+            filters.Add(atomic);
         }
         var filter = filters.Count == 1 ? filters[0] : new BsonDocument("$and", new BsonArray(filters));
 

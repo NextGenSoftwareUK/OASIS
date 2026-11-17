@@ -27,11 +27,11 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             var items = client.GetDatabase(nativeDatabase).GetCollection<BsonDocument>("items");
             await items.InsertManyAsync(new[]
             {
-                new BsonDocument { { "_id", 1 }, { "code", "Case" }, { "label", "emoji" }, { "text", "\U0001F600" } },
-                new BsonDocument { { "_id", 2 }, { "code", "case" }, { "label", "short" }, { "text", "x" } },
+                new BsonDocument { { "_id", 1 }, { "code", "Case" }, { "label", "emoji" }, { "nullableCode", "Case" }, { "text", "\U0001F600" } },
+                new BsonDocument { { "_id", 2 }, { "code", "case" }, { "label", "short" }, { "nullableCode", BsonNull.Value }, { "text", "x" } },
                 new BsonDocument { { "_id", 3 }, { "code", new BsonArray { "Case" } }, { "label", "array" },
                     { "text", new BsonArray { "\U0001F600" } } },
-                new BsonDocument { { "_id", 4 }, { "code", "Case" }, { "label", "nul" }, { "text", "abc\u0000def" } }
+                new BsonDocument { { "_id", 4 }, { "code", "Case" }, { "label", "nul" }, { "nullableCode", "case" }, { "text", "abc\u0000def" } }
             });
             var cases = new[]
             {
@@ -52,6 +52,13 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 checks.Add(new { provider = "MongoDBOASIS", nativePredicate = index,
                     elapsedMilliseconds = started.ElapsedMilliseconds });
             }
+            var nullable = await provider.QueryNativePredicateRecordsAsync("items",
+                new[] { new NativeRecordFilter("nullableCode", CosmicQueryComparisonOperator.NotEqual, "Case") },
+                new[] { "label" }, 10);
+            Assert.IsFalse(nullable.IsError, nullable.Message + nullable.Exception);
+            CollectionAssert.AreEqual(new[] { "short", "nul" },
+                nullable.Result.Select(row => (string)row.Fields["label"]).ToArray());
+            checks.Add(new { provider = "MongoDBOASIS", nativePredicate = "explicit null, not missing" });
             Assert.AreEqual(4L, await items.CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty),
                 "Mapped source queries must not write records.");
             complete = true;

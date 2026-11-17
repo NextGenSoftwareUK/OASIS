@@ -145,16 +145,17 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
             {
                 await connection.OpenAsync();
                 using var create = connection.CreateCommand();
-                create.CommandText = $"PRAGMA encoding='{encoding}'; CREATE TABLE records (id INTEGER PRIMARY KEY, value, category TEXT);";
+                create.CommandText = $"PRAGMA encoding='{encoding}'; CREATE TABLE records (id INTEGER PRIMARY KEY, value, category TEXT, nullableCategory TEXT);";
                 await create.ExecuteNonQueryAsync();
                 object[] values = { "\U0001F600", "x", new byte[] { 0xf0, 0x9f, 0x98, 0x80 }, "abc\u0000def" };
                 for (var index = 0; index < values.Length; index++)
                 {
                     using var insert = connection.CreateCommand();
-                    insert.CommandText = "INSERT INTO records VALUES ($id, $value, $category)";
+                    insert.CommandText = "INSERT INTO records VALUES ($id, $value, $category, $nullable)";
                     insert.Parameters.AddWithValue("$id", index + 1);
                     insert.Parameters.AddWithValue("$value", values[index]);
                     insert.Parameters.AddWithValue("$category", index == 1 ? "case" : "Case");
+                    insert.Parameters.AddWithValue("$nullable", index == 1 ? (object)DBNull.Value : index == 3 ? "case" : "Case");
                     Assert.Equal(1, await insert.ExecuteNonQueryAsync());
                 }
             }
@@ -178,6 +179,11 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
                 Assert.Equal(expected[index], row.Fields["value"]);
                 Assert.Single(row.Fields);
             }
+            var nullable = await provider.QueryNativePredicateRecordsAsync("records",
+                new[] { new NativeRecordFilter("nullableCategory", CosmicQueryComparisonOperator.NotEqual, "Case") },
+                new[] { "value" }, 10);
+            Assert.False(nullable.IsError, nullable.Message + nullable.Exception);
+            Assert.Equal(new[] { "x", "abc\u0000def" }, nullable.Result.Select(row => (string)row.Fields["value"]));
             Assert.Equal(before, File.ReadAllBytes(file));
         }
 
