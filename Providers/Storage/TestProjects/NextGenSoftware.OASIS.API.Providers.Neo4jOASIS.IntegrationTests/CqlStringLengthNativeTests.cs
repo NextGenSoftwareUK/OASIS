@@ -25,6 +25,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             holon.MetaData ??= new Dictionary<string, object>();
             holon.Name = prefix + values[index];
             holon.MetaData["lengthValue"] = values[index];
+            holon.MetaData["nullOrEmptyValue"] = new string[] { null, "", " ", "\U0001F600", "x" }[index];
             if (index == 0) holon.MetaData["notString"] = 3L;
             else if (index == 1) holon.MetaData["notString"] = null;
             else if (index == 2) holon.MetaData["notString"] = true;
@@ -101,5 +102,27 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         checks.Add(new { provider = adapter.QueryProviderType.ToString(),
             utf16Length = "missing, null and wrong scalar domains", elapsedMilliseconds = wrong.Milliseconds });
         await VerifyNativeStringLengthWire(adapter, ids, checks);
+        Expression<Func<Holon, bool>>[] emptyPredicates =
+        {
+            row => string.IsNullOrEmpty(row.Name),
+            row => !string.IsNullOrEmpty(row.Name),
+            row => string.IsNullOrEmpty(CosmicQueryMetadata.Value<string>(row, "lengthValue")),
+            row => !string.IsNullOrEmpty(CosmicQueryMetadata.Value<string>(row, "lengthValue")),
+            row => string.IsNullOrEmpty(CosmicQueryMetadata.Value<string>(row, "nullOrEmptyValue")),
+            row => !string.IsNullOrEmpty(CosmicQueryMetadata.Value<string>(row, "nullOrEmptyValue"))
+        };
+        Guid[][] emptyExpected =
+        {
+            Array.Empty<Guid>(), ids, new[] { ids[0] }, ids.Skip(1).ToArray(),
+            ids.Take(2).ToArray(), ids.Skip(2).ToArray()
+        };
+        for (var index = 0; index < emptyPredicates.Length; index++)
+        {
+            var actual = await Read(native.Result.Where(emptyPredicates[index]));
+            CollectionAssert.AreEquivalent(emptyExpected[index], actual.Ids);
+            checks.Add(new { provider = adapter.QueryProviderType.ToString(),
+                nullOrEmpty = index, elapsedMilliseconds = actual.Milliseconds });
+        }
+
     }
 }
