@@ -792,13 +792,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
-        public async Task<OASISResult<object>> GetWalletAnalyticsAsync(Guid avatarId, Guid walletId)
+        public async Task<OASISResult<object>> GetWalletAnalyticsAsync(Guid avatarId, Guid walletId, [FromQuery] string before = null)
         {
+            if (!OwnsWalletAvatar(avatarId))
+                return RejectWalletAccess<object>("Only the authenticated wallet owner can view its activity.");
+            if (before != null && (before.Length < 64 || before.Length > 88 ||
+                before.Any(character => !"123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".Contains(character))))
+            {
+                Response.StatusCode = StatusCodes.Status400BadRequest;
+                return new OASISResult<object> { IsError = true, Message = "The wallet activity cursor is invalid." };
+            }
+
             var wallet = await ResolveOwnedSolanaWalletAsync<object>(avatarId, walletId, "Wallet activity");
             if (wallet.Error != null)
                 return wallet.Error;
 
-            return await wallet.Provider.ReadRecentWalletActivityAsync(wallet.Address, HttpContext.RequestAborted);
+            return await wallet.Provider.ReadWalletActivityPageAsync(wallet.Address, before, HttpContext.RequestAborted);
         }
 
         /// <summary>

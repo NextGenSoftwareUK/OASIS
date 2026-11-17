@@ -25,7 +25,7 @@ public partial class SolanaOASIS
         return new OASISResult<bool>(string.Equals(genesis.Result, mainnetGenesis, StringComparison.Ordinal));
     }
 
-    public async Task<OASISResult<object>> ReadRecentWalletActivityAsync(string walletAddress, CancellationToken cancellationToken)
+    public async Task<OASISResult<object>> ReadWalletActivityPageAsync(string walletAddress, string before, CancellationToken cancellationToken)
     {
         const int pageSize = 50;
         var result = new OASISResult<object>();
@@ -37,7 +37,7 @@ public partial class SolanaOASIS
 
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             deadline.CancelAfter(TimeSpan.FromSeconds(10));
-            var history = await _rpcClient.GetSignaturesForAddressAsync(address.Key, pageSize + 1, null, null, Commitment.Finalized)
+            var history = await _rpcClient.GetSignaturesForAddressAsync(address.Key, pageSize + 1, before, null, Commitment.Finalized)
                 .WaitAsync(deadline.Token);
             if (!history.WasSuccessful || history.Result == null)
                 throw new InvalidOperationException("Solana RPC did not return finalized wallet activity.");
@@ -45,7 +45,7 @@ public partial class SolanaOASIS
             var signatures = new HashSet<string>(StringComparer.Ordinal);
             var recent = history.Result.Take(pageSize).Select(entry =>
             {
-                if (entry == null || string.IsNullOrEmpty(entry.Signature) || !signatures.Add(entry.Signature))
+                if (entry == null || string.IsNullOrEmpty(entry.Signature) || entry.Signature == before || !signatures.Add(entry.Signature))
                     throw new InvalidOperationException("Solana RPC returned an invalid transaction signature.");
 
                 return new
@@ -63,6 +63,7 @@ public partial class SolanaOASIS
                 recentActivity = recent,
                 recentTransactionCount = recent.Length,
                 hasMore = history.Result.Count > pageSize,
+                nextBefore = history.Result.Count > pageSize ? recent[^1].signature : null,
                 lastActivity = recent.FirstOrDefault()?.finalizedAt
             };
             result.IsLoaded = true;
