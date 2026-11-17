@@ -26,7 +26,7 @@ using HederaProvider = NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.Hashgr
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 /// <summary>Read the existing host registry. Missing/inactive providers do not trigger activation or failover.</summary>
-public sealed class CqlV1Providers : ICqlV1Providers
+public sealed partial class CqlV1Providers : ICqlV1Providers, ICqlVirtualMappingReader
 {
     private readonly ICqlHostedSourceRegistry sources;
     public CqlV1Providers(ICqlHostedSourceRegistry sources = null) => this.sources = sources;

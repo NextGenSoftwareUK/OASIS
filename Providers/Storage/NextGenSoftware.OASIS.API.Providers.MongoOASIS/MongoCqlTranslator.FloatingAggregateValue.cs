@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
 internal sealed partial class MongoCqlTranslator
 {
-    private static void AddFloatingAggregate(BsonDocument preparation, BsonDocument shifts, BsonDocument publication,
+    internal static void AddFloatingAggregate(BsonDocument preparation, BsonDocument shifts, BsonDocument publication,
         string output, BsonValue parts, BsonValue count, bool average, bool single)
     {
         var compiler = new FloatingAggregateCompiler(single);
