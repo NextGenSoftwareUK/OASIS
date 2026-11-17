@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Exact combined WEB4 image 44122674423 and contracts 44123847813 passed. Development fast-forwarded from ffb6084cbd13 to dd9989649bca after confirming the prior Railway WEB4 deployment and push cadence. Railway queued the exact new WEB4 revision at 16:32:41 UTC. Signed Messaging and address-only Wallet acceptance await the serving revision. No local artifacts or fixtures were created.
+
 2026-11-17 UTC — Exact combined Messaging, Wallet and CQL [contracts](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44123847813) passed on dd9989649bca. [The matching image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44122674423) was still building. Source review confirmed live Messaging fixture cleanup requires original provider revision from provider metadata and a stable COSMIC operation ID. No hosted test writes or local artifacts were made.
 
 2026-11-17 UTC — OPORTAL dev advanced to 7060badbee82 after the 16:22:50 UTC window. Hosted /hyperdrive references 20261117q and the served JavaScript exactly matches the tested Git blob. The earlier signed controlled popup check used this same script. Full browser acceptance remains open.
