@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Verified the Wallet candidate and hosted API route inventory in memory. The temporary candidate index was removed. No wallet, transaction, download or build output was created.
+
 2026-11-17 UTC — Removed the disposable Files/Gifts qualification and Quest/Mission release indexes automatically. The popup checks ran in memory, with no downloads, builds or test reports retained locally.
 
 2026-11-17 UTC — Checked hosted popup asset bytes and contract CI errors in memory. No test artifact, download or local build output was retained.
