@@ -119,7 +119,7 @@ Content-Type: application/json
 ```
 
 Preparation rereads the authorized source and returns a private Holon with the
-same logical ID, the requested fields and snapshot provenance. Use the returned
+same logical ID, the requested fields, the mapped filter field and snapshot provenance. Use the returned
 Holon in `POST /api/data/save-holon` with a new `operationId` and
 `expectedRevisions` mapping the row ID to `null` to create the copy conditionally.
 This protects an existing Holon with that ID. Preparation itself saves no data.

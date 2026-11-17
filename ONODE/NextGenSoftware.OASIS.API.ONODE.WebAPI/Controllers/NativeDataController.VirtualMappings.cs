@@ -116,9 +116,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return BadRequest(SnapshotError("VIRTUAL_SNAPSHOT_INVALID", "Provide a mapping, selected row and typed query."));
 
             var query = request.Query;
+            if (string.IsNullOrWhiteSpace(query.MatchField) || query.Select == null ||
+                query.Select.Length is < 1 or > 32 ||
+                query.Select.Distinct(StringComparer.Ordinal).Count() != query.Select.Length)
+                return BadRequest(SnapshotError("VIRTUAL_SNAPSHOT_INVALID", "Select unique mapped fields and a match field."));
+
+            // Preserve membership in the same CQL filter, even if its column is not displayed.
+            var fields = query.Select.Contains(query.MatchField, StringComparer.Ordinal)
+                ? query.Select : query.Select.Append(query.MatchField).ToArray();
             var rows = await CqlV1Providers.QueryOwnedVirtualMappingAsync(HolonManager,
                 ProviderManager.Instance.CurrentStorageProvider, id, avatar, providerType, query.MatchField,
-                match, query.Select, query.Take, cancellationToken);
+                match, fields, query.Take, cancellationToken);
             if (rows.IsError)
             {
                 var error = SnapshotError(rows.ErrorCode, rows.Message);
