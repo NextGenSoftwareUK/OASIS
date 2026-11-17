@@ -20,6 +20,30 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
             => new NativeRecord("people", key, fields.ToDictionary(field => field.Name, field => field.Value));
 
         [Fact]
+        public void VirtualRowsShareImportIdentityAndReturnOnlyMappedMetadata()
+        {
+            const string connection = "mongodb://example.test/retail";
+            var mapping = Guid.NewGuid();
+            var fetched = DateTimeOffset.UtcNow;
+            var row = Record("1", ("label", "fresh"), ("secret", "private"));
+            var fields = new Dictionary<string, string> { ["label"] = "Name" };
+            var first = VirtualHolonRead.FromNative(Owner, ProviderType.MongoDBOASIS, mapping, 1,
+                connection, "people", fetched, row, fields);
+            var next = VirtualHolonRead.FromNative(Owner, ProviderType.MongoDBOASIS, mapping, 2,
+                connection, "people", fetched, row, fields);
+            Assert.Equal(NativeRecordHolonMapper.StableHolonId(Owner, ProviderType.MongoDBOASIS, "people", "1", connection), first.Id);
+            Assert.Equal(first.Id, next.Id);
+            Assert.Equal(2, next.MappingVersion);
+            Assert.Equal(fetched, next.FetchedAt);
+            Assert.Single(first.MetaData);
+            Assert.Equal("fresh", first.MetaData["Name"]);
+            Assert.NotEqual(first.Id, VirtualHolonRead.FromNative(Guid.NewGuid(), ProviderType.MongoDBOASIS,
+                mapping, 1, connection, "people", fetched, row, fields).Id);
+            Assert.Throws<ArgumentException>(() => VirtualHolonRead.FromNative(Owner, ProviderType.MongoDBOASIS,
+                mapping, 1, connection, "orders", fetched, row, fields));
+        }
+
+        [Fact]
         public void StableIdDependsOnlyOnProviderSourceAndKey()
         {
             var id = NativeRecordHolonMapper.StableHolonId(Owner, ProviderType.MongoDBOASIS, "people", "1");

@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 /// <see cref="NativeConnection"/> (<c>uri</c> and <c>database</c>) it reads whatever the caller points it at; with none it
 /// reads <see cref="NativeImportDatabaseName"/> on this deployment, which must not be the OASIS database.
 /// </summary>
-public partial class MongoDBOASIS : INativeDataImportProvider
+public partial class MongoDBOASIS : INativeDataQueryProvider
 {
     private static readonly JsonWriterSettings CanonicalJson = new() { OutputMode = JsonOutputMode.CanonicalExtendedJson };
     private static readonly JsonWriterSettings ReadableJson = new() { OutputMode = JsonOutputMode.RelaxedExtendedJson };
@@ -135,7 +135,7 @@ public partial class MongoDBOASIS : INativeDataImportProvider
             return Refuse(result, "A native collection, exact scalar field, one to 32 unique fields and a limit of one to 100 are required.",
                 "NATIVE_QUERY_INVALID");
 
-        var (literal, type) = matchValue switch
+        (BsonValue literal, string type) = matchValue switch
         {
             string text when text.Length <= 4096 => ((BsonValue)new BsonString(text), "string"),
             bool flag => (new BsonBoolean(flag), "bool"),
