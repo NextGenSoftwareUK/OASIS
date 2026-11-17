@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed the temporary exact WEB4 controller export and both route-review indexes. CI logs were read in memory. No local build, downloads or extra worktree were created.
+
 2026-11-17 UTC — The exact manager manifest verification exported only the Core Managers source to a temporary directory. Removed that directory and both candidate indexes. CI logs were read in memory and no local build or runtime was generated.
 
 2026-11-17 UTC — Removed the My Eggs parent candidate temporary index. Qualification runs on GitHub. No local build, download or extra worktree was created.
