@@ -6,7 +6,7 @@
   },
   "AllowedHosts": "*",
 
-  "OASIS": { "UsageVisibility": {"OwnerViewEnabled": true, "WarningsEnabled": true, "EmailEnabled": true, "DefaultWarningPercents": [80, 100], "AppPayAsYouGoEnabled": true}, "AccessLog": {"Enabled": false, "Apps": [], "HolonTypes": [], "Operations": [], "CaptureIp": false, "RetentionDays": 365, "QueueCapacity": 10000, "FlushIntervalSeconds": 5, "BatchSize": 500, "MaxHolonIdsPerEvent": 200},
+  "OASIS": { "HolonSeal": {"Enabled": false, "Key": "", "KeyId": "k1", "RetiredKeys": {}, "RefreshIntervalSeconds": 30}, "UsageVisibility": {"OwnerViewEnabled": true, "WarningsEnabled": true, "EmailEnabled": true, "DefaultWarningPercents": [80, 100], "AppPayAsYouGoEnabled": true}, "AccessLog": {"Enabled": false, "Apps": [], "HolonTypes": [], "Operations": [], "CaptureIp": false, "RetentionDays": 365, "QueueCapacity": 10000, "FlushIntervalSeconds": 5, "BatchSize": 500, "MaxHolonIdsPerEvent": 200},
     "Secret": "",
     "Email": {
       "EmailFrom": "",
