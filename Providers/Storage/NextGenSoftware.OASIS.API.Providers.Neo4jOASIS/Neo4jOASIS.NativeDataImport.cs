@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.API.Core.Queries;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -116,18 +117,38 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             QueryNativeRecordsAsync(sourceName, new[] { new KeyValuePair<string, object>(matchField, matchValue) },
                 fields, limit, connection, cancellationToken);
 
-        public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
+        public Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
             string sourceName, IReadOnlyList<KeyValuePair<string, object>> matches, IReadOnlyList<string> fields, int limit,
+            NativeConnection connection = null, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                return QueryNativePredicateRecordsAsync(sourceName, NativeRecordFilter.CaptureEqualities(matches),
+                    fields, limit, connection, cancellationToken);
+            }
+            catch (ArgumentException)
+            {
+                var invalid = new OASISResult<IReadOnlyList<NativeRecord>>();
+                OASISErrorHandling.HandleError(ref invalid, "One to eight typed scalar matches are required.");
+                invalid.ErrorCode = "NATIVE_QUERY_INVALID";
+                return Task.FromResult(invalid);
+            }
+        }
+
+        public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativePredicateRecordsAsync(
+            string sourceName, IReadOnlyList<NativeRecordFilter> matches, IReadOnlyList<string> fields, int limit,
             NativeConnection connection = null, CancellationToken cancellationToken = default)
         {
             var result = new OASISResult<IReadOnlyList<NativeRecord>>();
             if (sourceName == null || !LabelPattern.IsMatch(sourceName) || matches == null || matches.Count is < 1 or > 8 ||
-                matches.Any(match => match.Key == null || !LabelPattern.IsMatch(match.Key)) ||
+                matches.Any(match => match == null || match.Field == null || !LabelPattern.IsMatch(match.Field)) ||
                 fields == null || fields.Count is < 1 or > 32 ||
                 fields.Any(field => field == null || !LabelPattern.IsMatch(field)) ||
                 fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || limit is < 1 or > 100)
                 return Error("NATIVE_QUERY_INVALID", "Select a native label, exact scalar equality, fields and a row limit.");
 
+            matches = NativeRecordFilter.Capture(matches);
+            fields = fields.ToArray();
             var predicates = new List<string>(matches.Count);
             var parameters = new Dictionary<string, object> { ["take"] = limit };
             for (var index = 0; index < matches.Count; index++)
@@ -137,14 +158,32 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 {
                     string text when text.Length <= 4096 => "STRING",
                     bool => "BOOLEAN",
-                    long => "INTEGER",
+                    int or long => "INTEGER",
                     _ => null
                 };
                 if (type == null)
                     return Error("NATIVE_QUERY_INVALID", "Use exact String, Boolean or Int64 equality.");
-                var property = $"n.`{match.Key}`";
+                var property = $"n.`{match.Field}`";
                 var parameter = $"match{index}";
-                predicates.Add($"{property} IS :: {type} AND {property} = ${parameter}");
+                var symbol = match.Operator switch
+                {
+                    CosmicQueryComparisonOperator.Equal => "=",
+                    CosmicQueryComparisonOperator.NotEqual => "<>",
+                    CosmicQueryComparisonOperator.GreaterThan => ">",
+                    CosmicQueryComparisonOperator.GreaterThanOrEqual => ">=",
+                    CosmicQueryComparisonOperator.LessThan => "<",
+                    CosmicQueryComparisonOperator.LessThanOrEqual => "<=",
+                    _ => throw new ArgumentException("Unknown native comparison.")
+                };
+                if (match.Function == NativeRecordFunction.Utf16Length)
+                {
+                    var pattern = $"utf16Pattern{index}";
+                    parameters.Add(pattern, @"[\x{10000}-\x{10FFFF}]");
+                    var units = NeoCqlTranslator.Utf16LengthUnits(property, "$" + pattern);
+                    predicates.Add($"CASE WHEN {property} IS :: STRING THEN {units} {symbol} ${parameter} ELSE false END");
+                }
+                else
+                    predicates.Add($"{property} IS :: {type} AND {property} {symbol} ${parameter}");
                 parameters.Add(parameter, match.Value);
             }
 
