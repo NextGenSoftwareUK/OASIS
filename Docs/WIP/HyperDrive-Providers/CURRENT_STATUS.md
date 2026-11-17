@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL task b4d8bc7 serializes Chat session creation and checks the active avatar, token and API client before showing startup results. Deferred checks passed repeated startup, response after sign-out and a later successful startup. Scoped candidate 77f2ef266d48 contains the tested Chat script and cache key 20261117y. Dev window remains 17:54:41 UTC. Hosted Chat and full browser verification remain open.
+
 2026-11-17 UTC — OPORTAL task a0684f6 prevents overlapping submissions of a Chat draft and restores the send control after completion. Deferred checks passed duplicate suppression, retry after rejected acknowledgment and preserving text edited during a successful send. Updated scoped Chat candidate 4f253bf53dae includes all tested Chat changes and cache key 20261117x. Dev review remains 17:54:41 UTC. Hosted Chat acceptance is open.
 
 2026-11-17 UTC — Railway WEB4 reached SUCCESS on 3527154a118d. Fresh signed dev reads returned HTTP 200, successful empty arrays from Messages and Conversation, and a successful message-summary object. None reported test data. The read-only probe avatar self-deletion was acknowledged. Populated message delivery, history authorization and earlier fixture cleanup remain open.

@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed the temporary Chat-start staging index. Controlled startup checks created no real sessions or retained artifacts.
+
 2026-11-17 UTC — Removed the temporary Chat-send staging index. Duplicate-send checks used a controlled in-memory request and created no real messages or retained outputs.
 
 2026-11-17 UTC — Signed Messaging read probe acknowledged deletion of its fresh sandbox avatar. It sent no message, loaded no notifications settings and retained no local file or build output.
