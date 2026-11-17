@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed the temporary Git index used to refresh the Chat recipient release. Recipient checks ran in memory without requests to hosted storage or retained files.
+
 2026-11-17 UTC — Removed the temporary Git index for the Chat release candidate. Recipient validation review created no local outputs or hosted fixture.
 
 2026-11-17 UTC — Compared both deployed portal scripts and shells with Git blobs entirely in memory. No test records, downloaded files or local build output were created during publication.
