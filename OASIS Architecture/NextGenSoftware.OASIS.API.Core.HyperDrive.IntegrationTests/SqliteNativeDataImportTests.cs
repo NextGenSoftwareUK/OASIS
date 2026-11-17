@@ -89,6 +89,11 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
             Assert.Equal(imported[0].NativeKey, row.NativeKey);
             Assert.Equal("A", row.Fields["sku"]);
             Assert.Single(row.Fields);
+            var conjunction = await provider.QueryNativeRecordsAsync("lines",
+                new[] { new KeyValuePair<string, object>("orderId", 10L),
+                    new KeyValuePair<string, object>("sku", "B") }, new[] { "sku" }, 1);
+            Assert.False(conjunction.IsError, conjunction.Message);
+            Assert.Equal(imported[1].NativeKey, Assert.Single(conjunction.Result).NativeKey);
             Assert.Empty((await provider.QueryNativeRecordsAsync("lines", "sku", "a", new[] { "sku" }, 2)).Result);
             Assert.Empty((await provider.QueryNativeRecordsAsync("lines", "orderId", "10", new[] { "sku" }, 2)).Result);
             Assert.Equal(new[] { "A", "B" }, (await provider.QueryNativeRecordsAsync("lines", "orderId",
@@ -99,6 +104,11 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
             var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, actor, provider.NativeDataProviderType,
                 "lines", VirtualHolonMapping.SandboxConnectionName, provider.DescribeVirtualQueryConnection(null),
                 new Dictionary<string, string> { ["orderId"] = "orderId", ["sku"] = "sku" });
+            var mappedConjunction = await mapping.QueryAsync(actor, provider, null,
+                new[] { new KeyValuePair<string, object>("orderId", 10L),
+                    new KeyValuePair<string, object>("sku", "B") }, new[] { "sku" }, 1);
+            Assert.False(mappedConjunction.IsError, mappedConjunction.Message);
+            Assert.Equal("B", Assert.Single(mappedConjunction.Result).MetaData["sku"]);
             var before = await mapping.QueryAsync(actor, provider, null, "orderId", 10L, new[] { "sku" }, 1);
             Assert.False(before.IsError, before.Message);
             var original = Assert.Single(before.Result);

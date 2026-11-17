@@ -134,35 +134,48 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             return "sqlite-configured:" + Path.GetFullPath(settings.DataSource);
         }
 
-        public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
+        public Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
             string sourceName, string matchField, object matchValue, IReadOnlyList<string> fields, int limit,
+            NativeConnection connection = null, CancellationToken cancellationToken = default) =>
+            QueryNativeRecordsAsync(sourceName, new[] { new KeyValuePair<string, object>(matchField, matchValue) },
+                fields, limit, connection, cancellationToken);
+
+        public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
+            string sourceName, IReadOnlyList<KeyValuePair<string, object>> matches, IReadOnlyList<string> fields, int limit,
             NativeConnection connection = null, CancellationToken cancellationToken = default)
         {
             var result = new OASISResult<IReadOnlyList<NativeRecord>>();
-            if (connection != null || string.IsNullOrWhiteSpace(sourceName) || string.IsNullOrWhiteSpace(matchField) ||
+            if (connection != null || string.IsNullOrWhiteSpace(sourceName) ||
+                matches == null || matches.Count is < 1 or > 8 ||
+                matches.Any(match => string.IsNullOrWhiteSpace(match.Key) || match.Value is not (string or long)) ||
                 fields == null || fields.Count is < 1 or > 32 || fields.Any(string.IsNullOrWhiteSpace) ||
-                fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || limit is < 1 or > 100 ||
-                matchValue is not (string or long))
-                return Error("NATIVE_QUERY_INVALID", "Select a configured table, exact String or Int64 match, fields and row limit.");
+                fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || limit is < 1 or > 100)
+                return Error("NATIVE_QUERY_INVALID", "Select a configured table, one to eight exact String or Int64 matches, fields and a row limit.");
 
             try
             {
                 using var lease = await OpenNativeAsync(null, cancellationToken);
                 var schema = await NativeTableColumnsAsync(lease.Connection, sourceName, cancellationToken);
                 var columns = schema.Select(column => column.Name).ToHashSet(StringComparer.Ordinal);
-                if (!columns.Contains(matchField) || fields.Any(field => !columns.Contains(field)))
+                if (matches.Any(match => !columns.Contains(match.Key)) || fields.Any(field => !columns.Contains(field)))
                     return Error("NATIVE_QUERY_INVALID", "The filter and projection must select named table columns.");
 
                 var keyColumns = schema.Where(column => column.Position > 0).OrderBy(column => column.Position)
                     .Select(column => column.Name).ToArray();
                 var projected = fields.Concat(keyColumns).Distinct(StringComparer.Ordinal).ToArray();
-                var nativeField = Quote(matchField);
                 using var command = lease.Connection.CreateCommand();
                 command.CommandTimeout = Math.Max(1, (int)Math.Ceiling(NativeImportOptions.ReadTimeout.TotalSeconds));
+                var predicates = new List<string>(matches.Count);
+                for (var index = 0; index < matches.Count; index++)
+                {
+                    var match = matches[index];
+                    var column = Quote(match.Key);
+                    predicates.Add($"typeof({column}) = $type{index} AND {column} COLLATE BINARY = $match{index}");
+                    command.Parameters.AddWithValue($"$type{index}", match.Value is string ? "text" : "integer");
+                    command.Parameters.AddWithValue($"$match{index}", match.Value);
+                }
                 command.CommandText = $"SELECT rowid, {string.Join(", ", projected.Select(Quote))} FROM {Quote(sourceName)} " +
-                    $"WHERE typeof({nativeField}) = $type AND {nativeField} COLLATE BINARY = $match ORDER BY rowid LIMIT $take";
-                command.Parameters.AddWithValue("$type", matchValue is string ? "text" : "integer");
-                command.Parameters.AddWithValue("$match", matchValue);
+                    $"WHERE {string.Join(" AND ", predicates)} ORDER BY rowid LIMIT $take";
                 command.Parameters.AddWithValue("$take", limit);
 
                 var records = new List<NativeRecord>(limit);

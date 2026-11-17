@@ -110,23 +110,43 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             return $"neo4j-configured://{uri.Host.ToLowerInvariant()}:{(uri.Port < 0 ? 7687 : uri.Port)}/default";
         }
 
-        public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
+        public Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
             string sourceName, string matchField, object matchValue, IReadOnlyList<string> fields, int limit,
+            NativeConnection connection = null, CancellationToken cancellationToken = default) =>
+            QueryNativeRecordsAsync(sourceName, new[] { new KeyValuePair<string, object>(matchField, matchValue) },
+                fields, limit, connection, cancellationToken);
+
+        public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
+            string sourceName, IReadOnlyList<KeyValuePair<string, object>> matches, IReadOnlyList<string> fields, int limit,
             NativeConnection connection = null, CancellationToken cancellationToken = default)
         {
             var result = new OASISResult<IReadOnlyList<NativeRecord>>();
-            var type = matchValue switch
-            {
-                string text when text.Length <= 4096 => "STRING",
-                bool => "BOOLEAN",
-                long => "INTEGER",
-                _ => null
-            };
-            if (sourceName == null || !LabelPattern.IsMatch(sourceName) || matchField == null ||
-                !LabelPattern.IsMatch(matchField) || type == null || fields == null || fields.Count is < 1 or > 32 ||
+            if (sourceName == null || !LabelPattern.IsMatch(sourceName) || matches == null || matches.Count is < 1 or > 8 ||
+                matches.Any(match => match.Key == null || !LabelPattern.IsMatch(match.Key)) ||
+                fields == null || fields.Count is < 1 or > 32 ||
                 fields.Any(field => field == null || !LabelPattern.IsMatch(field)) ||
                 fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || limit is < 1 or > 100)
                 return Error("NATIVE_QUERY_INVALID", "Select a native label, exact scalar equality, fields and a row limit.");
+
+            var predicates = new List<string>(matches.Count);
+            var parameters = new Dictionary<string, object> { ["take"] = limit };
+            for (var index = 0; index < matches.Count; index++)
+            {
+                var match = matches[index];
+                var type = match.Value switch
+                {
+                    string text when text.Length <= 4096 => "STRING",
+                    bool => "BOOLEAN",
+                    long => "INTEGER",
+                    _ => null
+                };
+                if (type == null)
+                    return Error("NATIVE_QUERY_INVALID", "Use exact String, Boolean or Int64 equality.");
+                var property = $"n.`{match.Key}`";
+                var parameter = $"match{index}";
+                predicates.Add($"{property} IS :: {type} AND {property} = ${parameter}");
+                parameters.Add(parameter, match.Value);
+            }
 
             try
             {
@@ -135,12 +155,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     return Error("NATIVE_QUERY_INVALID", "The connection does not admit that source label.");
 
                 using var transaction = await lease.Session.BeginTransactionAsync(options => options.WithTimeout(NativeImportOptions.ReadTimeout));
-                var property = $"n.`{matchField}`";
                 var columns = string.Join(", ", fields.Select((field, index) => $"n.`{field}` AS f{index}"));
                 var cursor = await transaction.RunAsync(
-                    $"MATCH (n:`{sourceName}`) WHERE {property} IS :: {type} AND {property} = $match " +
-                    $"RETURN elementId(n) AS key, {columns} ORDER BY key LIMIT $take",
-                    new { match = matchValue, take = limit });
+                    $"MATCH (n:`{sourceName}`) WHERE {string.Join(" AND ", predicates)} " +
+                    $"RETURN elementId(n) AS key, {columns} ORDER BY key LIMIT $take", parameters);
                 var records = new List<NativeRecord>(limit);
                 long remainingBytes = 1024 * 1024;
                 while (await cursor.FetchAsync())

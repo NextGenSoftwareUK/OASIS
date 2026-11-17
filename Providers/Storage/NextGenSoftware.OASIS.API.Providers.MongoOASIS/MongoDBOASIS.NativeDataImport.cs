@@ -137,42 +137,54 @@ public partial class MongoDBOASIS : INativeDataQueryProvider
     }
 
     /// <summary>Reads an explicitly projected, exact scalar match from the authoritative native collection.</summary>
-    public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
+    public Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
         string sourceName, string matchField, object matchValue, IReadOnlyList<string> fields, int limit,
+        NativeConnection connection = null, CancellationToken cancellationToken = default) =>
+        QueryNativeRecordsAsync(sourceName, new[] { new KeyValuePair<string, object>(matchField, matchValue) },
+            fields, limit, connection, cancellationToken);
+
+    public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
+        string sourceName, IReadOnlyList<KeyValuePair<string, object>> matches, IReadOnlyList<string> fields, int limit,
         NativeConnection connection = null, CancellationToken cancellationToken = default)
     {
         var result = new OASISResult<IReadOnlyList<NativeRecord>>();
         if (string.IsNullOrWhiteSpace(sourceName) || sourceName.StartsWith("system.", StringComparison.Ordinal)
-            || !IsNativeScalarField(matchField) || fields == null || fields.Count is < 1 or > 32
+            || matches == null || matches.Count is < 1 or > 8
+            || matches.Any(match => !IsNativeScalarField(match.Key)) || fields == null || fields.Count is < 1 or > 32
             || fields.Any(field => field == "_id" || !IsNativeScalarField(field))
             || fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || limit is < 1 or > 100)
-            return Refuse(result, "A native collection, exact scalar field, one to 32 unique fields and a limit of one to 100 are required.",
+            return Refuse(result, "A native collection, one to eight exact scalar matches, one to 32 unique fields and a limit of one to 100 are required.",
                 "NATIVE_QUERY_INVALID");
 
-        (BsonValue literal, string type) = matchValue switch
+        var filters = new List<BsonDocument>(matches.Count);
+        foreach (var match in matches)
         {
-            string text when text.Length <= 4096 => ((BsonValue)new BsonString(text), "string"),
-            bool flag => (new BsonBoolean(flag), "bool"),
-            int number => (new BsonInt32(number), "int"),
-            long number => (new BsonInt64(number), "long"),
-            _ => (null, null)
-        };
-        if (literal == null)
-            return Refuse(result, "The exact match requires a string, Boolean, Int32 or Int64.", "NATIVE_QUERY_INVALID");
+            (BsonValue literal, string type) = match.Value switch
+            {
+                string text when text.Length <= 4096 => ((BsonValue)new BsonString(text), "string"),
+                bool flag => (new BsonBoolean(flag), "bool"),
+                int number => (new BsonInt32(number), "int"),
+                long number => (new BsonInt64(number), "long"),
+                _ => (null, null)
+            };
+            if (literal == null)
+                return Refuse(result, "The exact match requires a string, Boolean, Int32 or Int64.", "NATIVE_QUERY_INVALID");
+
+            // Equality can use a native index. The type check excludes arrays and BSON numeric coercion.
+            filters.Add(new BsonDocument
+            {
+                { match.Key, literal },
+                { "$expr", new BsonDocument("$eq", new BsonArray
+                    { new BsonDocument("$type", "$" + match.Key), type }) }
+            });
+        }
+        var filter = filters.Count == 1 ? filters[0] : new BsonDocument("$and", new BsonArray(filters));
 
         IDisposable lease = null;
         try
         {
             var resolved = await ResolveNativeDatabaseAsync(connection, cancellationToken).ConfigureAwait(false);
             lease = resolved.Lease;
-            // The ordinary equality can use a native index. The expression excludes array matches
-            // and numeric coercion between BSON types before the ordered limit is applied.
-            var filter = new BsonDocument
-            {
-                { matchField, literal },
-                { "$expr", new BsonDocument("$eq", new BsonArray
-                    { new BsonDocument("$type", "$" + matchField), type }) }
-            };
             var projection = new BsonDocument("_id", 1);
             foreach (var field in fields)
                 projection.Add(field, 1);
