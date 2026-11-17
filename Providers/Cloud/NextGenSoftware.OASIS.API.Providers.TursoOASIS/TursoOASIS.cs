@@ -297,7 +297,10 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             {
                 var res = await ExecuteSqlAsync("SELECT data_json FROM oasis_avatars WHERE is_deleted=0");
                 var avatars = ResultToRows(res).Select(r => Des<Avatar>(r.GetValueOrDefault("data_json"))).Where(a => a != null).Cast<IAvatar>().ToList();
-                result.Result = avatars; result.IsError = false; result.Message = $"TursoOASIS: Loaded {avatars.Count} avatar(s).";
+                result.Result = avatars;
+                result.IsLoaded = true;
+                result.LoadedCount = avatars.Count;
+                result.Message = $"TursoOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error loading all avatars: {ex.Message}"); }
             return result;

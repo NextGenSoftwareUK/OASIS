@@ -331,6 +331,31 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             Assert.AreEqual(2, byAny.LoadedCount);
         }
 
+        [TestMethod]
+        public async Task NativeAvatarListingAcknowledgesOnlyLiveRecords()
+        {
+            RequireOwnedFixture();
+            var live = new Avatar { Id = Guid.NewGuid(), Username = "live-list-fixture", Email = "live-list@example.invalid" };
+            var removed = new Avatar { Id = Guid.NewGuid(), Username = "removed-list-fixture", Email = "removed-list@example.invalid" };
+            try
+            {
+                Assert.IsTrue((await _provider.SaveAvatarAsync(live)).IsSaved);
+                Assert.IsTrue((await _provider.SaveAvatarAsync(removed)).IsSaved);
+                Assert.IsTrue((await _provider.DeleteAvatarAsync(removed.Id, softDelete: true)).IsDeleted);
+                foreach (var list in new[] { await _provider.LoadAllAvatarsAsync(), _provider.LoadAllAvatars() })
+                {
+                    Assert.IsTrue(list.IsLoaded, list.Message);
+                    Assert.AreEqual(1, list.LoadedCount);
+                    Assert.AreEqual(live.Id, list.Result!.Single().Id);
+                }
+            }
+            finally
+            {
+                await _provider.DeleteAvatarAsync(live.Id, softDelete: false);
+                await _provider.DeleteAvatarAsync(removed.Id, softDelete: false);
+            }
+        }
+
         private void RequireOwnedFixture()
         {
             if (Environment.GetEnvironmentVariable("TURSOOASIS_URL") != OwnedFixture ||
