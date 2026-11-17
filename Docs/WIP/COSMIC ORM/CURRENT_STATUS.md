@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. The native joined LINQ candidate composes predicate overloads of Count, LongCount, Any and the First, Last and Single families through the verified Where plan before applying the terminal. The shared fixture checks retained ordering and unmatched rows and rejects predicates after a result page. Exact native qualification is pending.
+
 17 November UTC. Exact website `2c5b533d8a84` on the existing public origin started a fresh Free visitor, selected the reviewed HoloOASIS example and submitted one real Ask Your Data draft to Development WEB6. WEB6 reported no available Free route and the page displayed the expected message in 1.23 s. No CQL execution, paid model or temporary entitlement was used. The existing ACTIONS-FOR-DAVID entry still tracks configured inference and catalogue publication.
 
 17 November UTC. WEB4 site `2c5b533d8a84` passed all 284 tests and built its [Virtual Holon preview](https://vercel.com/oasis-team/web4-site/9B2JGp8a6tn8vzqRni73fcxefyS2). Chrome on the existing public origin with exact preview assets compiled the customer query shape and accepted a mapping ID without dispatching the query or writing rows. The exact bounded [backend qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44047916062) passed and the [WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44048463219) is still building. Separately the ordered native join filter passed the [three-store parity step](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44048317423).
