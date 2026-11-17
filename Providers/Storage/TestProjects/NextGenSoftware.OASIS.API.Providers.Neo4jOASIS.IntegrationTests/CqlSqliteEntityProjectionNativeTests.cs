@@ -533,6 +533,14 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         CollectionAssert.AreEquivalent(new[] { (parentId, parentId), (missingId, missingId) },
             named.Result.Select(row => (row.Left, row.Right)).ToArray());
 
+        var leftJoinRows = await flagRows.LeftJoin(flagRows.Where(row => row.Id == parentId),
+            left => left.Id, right => right.Id,
+            (left, right) => new { Left = left.Id, Right = right == null ? (Guid?)null : right.Id })
+            .ToCosmicListAsync();
+        Assert.IsFalse(leftJoinRows.IsError, leftJoinRows.Message + leftJoinRows.Exception);
+        CollectionAssert.AreEquivalent(new (Guid, Guid?)[] { (parentId, parentId), (missingId, null) },
+            leftJoinRows.Result.Select(row => (row.Left, row.Right)).ToArray());
+
         request.MatchAnyKey = false;
         request.KeyGroupStarts = new[] { 0, 2 };
         request.Right.Filters = new[] { KeySet(new[] { lowerId, missingId }) };
