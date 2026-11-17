@@ -782,6 +782,12 @@ Status: missing account/configuration information,2 November2026. David approved
 - **David action** Identify the protected location or custodian of an existing isolated PocketBase service that WEB4 dev may use. Share the location or custodian only. Engineering can configure the service URL and process credentials in Railway after the source passes Development qualification.
 - **Reason** A hosted fixture permits real HTTPS authentication and a disposable storage lifecycle through the deployed API. [Native activation](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44006470301) · [DNA reference](../../Devs/OASIS_DNA_Reference.md).
 
+### Managed Turso storage verification
+
+- **Open, 17 November 2026.** Saved Railway WEB4 dev configuration has no Turso storage URL or write credential. The COSMIC teaching reader has a separate read scope.
+- **David action** Identify the protected location or custodian of an isolated Turso database and a scoped credential that can create and write its test tables. Share only the location or custodian. Engineering will configure and verify the storage binding after source qualification.
+- **Reason** The managed HTTPS storage and deployed lifecycle need a writable database isolated from the teaching dataset. [Native storage verification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44017296378) · [DNA reference](../../Devs/OASIS_DNA_Reference.md).
+
 ### Signed OPORTAL provider copy
 
 - **Open, 17 November 2026.** WEB4 requires an authenticated Wizard for both the provider list and copy. Ordinary avatar refusal, the native transfer manager and the deployed portal assets already have separate evidence.

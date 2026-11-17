@@ -144,6 +144,7 @@ Complete documentation for every setting in `OASIS_DNA.json`. Status column indi
 | `PolygonOASIS` | ⚠️ Test keys exposed | Amoy testnet. Same shared private key. |
 | `SQLLiteDBOASIS` | ✅ | Local SQLite file — used as local fallback/test. Works in dev, not useful in Railway. |
 | `PocketBaseOASIS` | Optional | Set `OASIS.StorageProviders.PocketBaseOASIS.ConnectionString` to the PocketBase HTTPS service URL. HTTP is supported for loopback fixtures. Supply `OASIS_POCKETBASE_ADMIN_EMAIL` and `OASIS_POCKETBASE_ADMIN_PASSWORD` through the service's secret environment. |
+| `TursoOASIS` | Optional | Set `OASIS.StorageProviders.TursoOASIS.ConnectionString` to the Turso HTTPS database URL. HTTP is supported for loopback fixtures. Set `OASIS_TURSO_AUTH_TOKEN` in the service's secret environment with permission to create the storage schema and mutate its records. |
 | `IPFSOASIS` | 🔧 Points to localhost | `localhost:5001` — IPFS daemon not running in prod. Bypassed by failover. |
 | `Neo4jOASIS` | 🔧 Points to localhost | Local Bolt connection — not prod. |
 | `SolanaOASIS` | ⚠️ | Devnet connection string. Private/public keys differ between DEV and LIVE backups — verify which is correct before mainnet use. |
