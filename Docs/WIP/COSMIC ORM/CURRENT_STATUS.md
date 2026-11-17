@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. The mixed-route Free admission dry check preserved all ten existing WEB4 Development route policies and all 107 query tariffs. It adds only a three-attempt POST projection/mixed policy. No hosted settings changed. WEB4 feature CI caught a stale parent AutoMapper 16.2.0 pin after the Core alignment. The feature pin now matches the serving Development project at 16.3.0.
+
 17 November UTC. Mixed Virtual Holon CQL now has an explicit three-attempt candidate route. The stored projection, definition lookup and mapped native source each use the admitted attempt owner. The ordinary projection retains exactly one attempt. The Free profile, client route selection and matching live rollout must be verified together.
 
 17 November UTC. Exact WEB4 Development 2c1a3232b9f9 reached SUCCESS. Live mixed MongoDB CQL discovered the private mapping, then returned 503 VIRTUAL_HOLON_STORE_UNAVAILABLE from the native definition read. A separate read-only absent-ID probe reproduced that branch in 0.522 seconds. The deployed Free projection profile is a one-provider-attempt contract and the mixed execution currently asks for a second attempt after the stored projection. The next change must admit and measure the additional reads, keeping ordinary projection bounded. Browser mixed acceptance remains open.
