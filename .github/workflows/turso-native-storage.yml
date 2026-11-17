@@ -167,7 +167,7 @@ jobs:
           export TURSO_TEST_RESULTS="$fixture/results"
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-TursoStorage -Operation {
-              dotnet test "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests" --filter "FullyQualifiedName~CoreStorageSuiteAgainstNativeLibSql|FullyQualifiedName~NativeAvatarDetailDeletionRollsBackWithAvatar" /m:2 /nr:false /p:UseSharedCompilation=false --logger "trx;LogFileName=turso.trx" --results-directory $env:TURSO_TEST_RESULTS
+              dotnet test "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests" --filter "FullyQualifiedName~NativePointReadHonorsChildLoadingAndDepth" /m:2 /nr:false /p:UseSharedCompilation=false --logger "trx;LogFileName=turso.trx" --results-directory $env:TURSO_TEST_RESULTS
               if ($LASTEXITCODE -ne 0) { throw "Native libSQL qualification failed." }
             }'
           python3 - "$TURSO_TEST_RESULTS/turso.trx" <<'PY'
@@ -175,6 +175,6 @@ jobs:
           import xml.etree.ElementTree as ET
 
           results = ET.parse(sys.argv[1]).findall(".//{*}UnitTestResult")
-          assert len(results) == 3 and all(result.get("outcome") == "Passed" for result in results)
-          print("Native libSQL shared storage conformance and avatar deletion rollback passed with zero skips.")
+          assert len(results) == 1 and results[0].get("outcome") == "Passed"
+          print("Native libSQL point-read child loading passed with zero skips.")
           PY

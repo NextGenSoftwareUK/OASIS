@@ -545,15 +545,42 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             return ResultToRows(res).Select(r => Des<Holon>(r.GetValueOrDefault("data_json"))).Where(h => h != null).Cast<IHolon>().ToList();
         }
 
+        private async Task<IHolon?> LoadHolonTreeAsync(Guid id, int maxDepth)
+        {
+            var holons = await QueryHolonsAsync("""
+                WITH RECURSIVE graph(id, data_json, depth, visited) AS (
+                    SELECT id, data_json, 0, ',' || id || ','
+                    FROM oasis_holons WHERE id=? AND is_deleted=0
+                    UNION ALL
+                    SELECT child.id, child.data_json, graph.depth+1, graph.visited || child.id || ','
+                    FROM graph JOIN oasis_holons child ON child.parent_holon_id=graph.id
+                    WHERE child.is_deleted=0 AND (?=0 OR graph.depth<?)
+                        AND instr(graph.visited, ',' || child.id || ',')=0
+                )
+                SELECT data_json FROM graph ORDER BY depth
+                """, new List<LibSqlArg> { Arg(id.ToString()), ArgInt(maxDepth), ArgInt(maxDepth) }).ConfigureAwait(false);
+            if (holons.Count == 0)
+                return null;
+            var byId = holons.ToDictionary(holon => holon.Id);
+            foreach (var holon in holons)
+                holon.Children = new List<IHolon>();
+            foreach (var child in holons.Skip(1))
+                byId[child.ParentHolonId].Children.Add(child);
+            return holons[0];
+        }
+
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IHolon>();
             try
             {
-                var holons = await QueryHolonsAsync("SELECT data_json FROM oasis_holons WHERE id=? AND is_deleted=0 LIMIT 1", new List<LibSqlArg> { Arg(id.ToString()) });
-                if (holons.Count == 0)
+                var holon = loadChildren
+                    ? await LoadHolonTreeAsync(id, recursive ? maxChildDepth : 1).ConfigureAwait(false)
+                    : (await QueryHolonsAsync("SELECT data_json FROM oasis_holons WHERE id=? AND is_deleted=0 LIMIT 1",
+                        new List<LibSqlArg> { Arg(id.ToString()) }).ConfigureAwait(false)).SingleOrDefault();
+                if (holon == null)
                     return MissingRecord<IHolon>($"TursoOASIS: No holon found for ID '{id}'.");
-                result.Result = holons[0];
+                result.Result = holon;
                 result.IsLoaded = true;
                 result.LoadedCount = 1;
                 result.Message = $"TursoOASIS: Holon loaded for ID '{id}'.";

@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Turso point reads now honor explicit child loading through one recursive, depth-limited libSQL query. Flat reads still use the single-row query. In-memory SQLite confirmed depth limits, exclusion of deleted subtrees and cycle termination. Native sync and async entry-point qualification is pending. Collection child expansion and historical payload acceptance remain open.
+
 2026-11-17 UTC — Railway dev WEB4–WEB10 all reported SUCCESS for Turso BootLoader revision `1a5e674789f8`. Public WEB4 health returned HTTP 200 and healthy at 05:37 UTC. Managed Turso activation remains open. The separate Turso shared-conformance WEB4 image is still pending.
 
 2026-11-17 UTC — OPORTAL task revision `67176b1` renders app settings and billing independently. A user can save settings while billing is still loading, and a billing error stays in its own panel. Saves remain serialized. Exact dev candidate `2f7c7fcea30c` passed all 16 subscription checks. The worktree passed the API endpoint drift check. Dev deployment and signed acceptance remain open.

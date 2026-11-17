@@ -2040,3 +2040,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-17 UTC — Removed and verified absence of the temporary alternate index for Turso conformance candidate `18bd03c1ade1`. Exact native qualification runs on GitHub. No local environment, build or database was created.
 
 2026-11-17 UTC — Removed the temporary alternate index for OPORTAL dev candidate `2f7c7fcea30c`. Tests consumed exact tracked Git blobs in memory. No dependency installation, browser profile or generated report was retained.
+
+2026-11-17 UTC — Verified the Turso recursive query in an in-memory SQLite database and exited without a database file. Native qualification uses an owned disposable CI container.

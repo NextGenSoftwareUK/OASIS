@@ -154,6 +154,39 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await _provider.LoadAvatarDetailAsync(id)).ErrorCode);
         }
 
+        [TestMethod]
+        public async Task NativePointReadHonorsChildLoadingAndDepth()
+        {
+            RequireOwnedFixture();
+            var root = new Holon { Id = Guid.NewGuid(), Name = "root" };
+            var child = new Holon { Id = Guid.NewGuid(), Name = "child" };
+            var grandchild = new Holon { Id = Guid.NewGuid(), Name = "grandchild" };
+            child.Children.Add(grandchild);
+            root.Children.Add(child);
+            var saved = await _provider.SaveHolonAsync(root);
+            Assert.IsTrue(saved.IsSaved, saved.Message);
+            Assert.AreEqual(3, saved.SavedCount);
+
+            var flat = await _provider.LoadHolonAsync(root.Id, loadChildren: false);
+            Assert.IsTrue(flat.IsLoaded, flat.Message);
+            Assert.AreEqual(0, flat.Result!.Children.Count);
+            var direct = _provider.LoadHolon(root.Id, loadChildren: true, recursive: false);
+            Assert.IsTrue(direct.IsLoaded, direct.Message);
+            Assert.AreEqual(child.Id, direct.Result!.Children.Single().Id);
+            Assert.AreEqual(0, direct.Result.Children.Single().Children.Count);
+            var bounded = await _provider.LoadHolonAsync(root.Id, loadChildren: true, maxChildDepth: 1);
+            Assert.IsTrue(bounded.IsLoaded, bounded.Message);
+            Assert.AreEqual(0, bounded.Result!.Children.Single().Children.Count);
+            var recursive = await _provider.LoadHolonAsync(root.Id, loadChildren: true);
+            Assert.IsTrue(recursive.IsLoaded, recursive.Message);
+            Assert.AreEqual(grandchild.Id, recursive.Result!.Children.Single().Children.Single().Id);
+
+            Assert.IsTrue((await _provider.DeleteHolonAsync(child.Id)).IsDeleted);
+            var afterDelete = await _provider.LoadHolonAsync(root.Id, loadChildren: true);
+            Assert.IsTrue(afterDelete.IsLoaded, afterDelete.Message);
+            Assert.AreEqual(0, afterDelete.Result!.Children.Count);
+        }
+
         private void RequireOwnedFixture()
         {
             if (Environment.GetEnvironmentVariable("TURSOOASIS_URL") != OwnedFixture ||
