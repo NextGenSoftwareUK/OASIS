@@ -116,9 +116,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return BadRequest(SnapshotError("VIRTUAL_SNAPSHOT_INVALID", "Provide a mapping, selected row and typed query."));
 
             var query = request.Query;
+            var fields = VirtualSnapshotFields(query.MatchField, query.Select);
+            if (fields == null)
+                return BadRequest(SnapshotError("VIRTUAL_SNAPSHOT_INVALID", "Select up to 32 unique mapped fields including the match field."));
             var rows = await CqlV1Providers.QueryOwnedVirtualMappingAsync(HolonManager,
                 ProviderManager.Instance.CurrentStorageProvider, id, avatar, providerType, query.MatchField,
-                match, query.Select, query.Take, cancellationToken);
+                match, fields, query.Take, cancellationToken);
             if (rows.IsError)
             {
                 var error = SnapshotError(rows.ErrorCode, rows.Message);
@@ -139,6 +142,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 return BadRequest(SnapshotError("VIRTUAL_SNAPSHOT_INVALID", "The selected fields cannot form a private snapshot."));
             }
+        }
+
+        internal static string[] VirtualSnapshotFields(string matchField, string[] selected)
+        {
+            if (string.IsNullOrWhiteSpace(matchField) || selected == null || selected.Length is < 1 or > 32 ||
+                selected.Any(string.IsNullOrWhiteSpace) ||
+                selected.Distinct(StringComparer.Ordinal).Count() != selected.Length)
+                return null;
+
+            // Keep the same CQL filter meaningful after the row is saved.
+            if (selected.Contains(matchField, StringComparer.Ordinal))
+                return selected;
+            return selected.Length < 32 ? selected.Append(matchField).ToArray() : null;
         }
 
         private static OASISResult<Holon> SnapshotError(string code, string message) =>
