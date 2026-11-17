@@ -151,6 +151,7 @@
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/BridgeController.cs","274","BridgeController","VerifyProof","POST","proofs/verify","CoveredFeatureManagerDelegation"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ChatController.cs","32","ChatController","StartNewChatSession","POST","start-new-chat-session","CoveredFeatureManagerDelegation"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ChatController.cs","48","ChatController","SendMessage","POST","send-message/{sessionId}","CoveredFeatureManagerDelegation"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ChatController.cs","61","ChatController","EndChatSession","POST","end-chat-session/{sessionId}","CoveredFeatureManagerDelegation"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ChatController.cs","63","ChatController","GetChatHistory","GET","history/{sessionId}","CoveredFeatureManagerDelegation"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ClanController.cs","29","ClanController","Create","POST","","CoveredFeatureManagerDelegation"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ClanController.cs","68","ClanController","Update","PUT","{clanId:guid}","CoveredFeatureManagerDelegation"

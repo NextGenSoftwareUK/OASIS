@@ -34,7 +34,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             if (participantIds == null || participantIds.Count == 0)
                 return new OASISResult<string> { IsError = true, Message = "The request body is required. Please provide a valid JSON array of participant IDs (at least one)." };
-            // Use ChatManager for business logic
+            if (!participantIds.Contains(Avatar.Id))
+                return new OASISResult<string> { IsError = true, ErrorCode = "CHAT_SESSION_FORBIDDEN",
+                    Message = "The authenticated avatar must be a participant in the new chat session." };
             return await ChatManager.Instance.StartNewChatSessionAsync(participantIds, sessionName);
         }
 
@@ -54,6 +56,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await ChatManager.Instance.SendMessageAsync(sessionId, Avatar.Id, message);
         }
 
+        /// <summary>End a persisted chat session as an authenticated participant.</summary>
+        [Authorize]
+        [HttpPost("end-chat-session/{sessionId}")]
+        public Task<OASISResult<bool>> EndChatSession(string sessionId) =>
+            ChatManager.Instance.EndChatSessionAsync(sessionId, Avatar.Id);
+
         /// <summary>
         /// Get chat session history
         /// </summary>
@@ -61,45 +69,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("history/{sessionId}")]
-        public async Task<OASISResult<List<ChatMessage>>> GetChatHistory(string sessionId, [FromQuery] int limit = 50, [FromQuery] int offset = 0)
-        {
-            try
-            {
-                // Use ChatManager for business logic
-                var result = await ChatManager.Instance.GetChatHistoryAsync(sessionId, limit, offset);
-
-                // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
-                {
-                    return new OASISResult<List<ChatMessage>>
-                    {
-                        Result = new List<ChatMessage>(),
-                        IsError = false,
-                        Message = "Chat history retrieved successfully (using test data)"
-                    };
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    return new OASISResult<List<ChatMessage>>
-                    {
-                        Result = new List<ChatMessage>(),
-                        IsError = false,
-                        Message = "Chat history retrieved successfully (using test data)"
-                    };
-                }
-                return new OASISResult<List<ChatMessage>>
-                {
-                    IsError = true,
-                    Message = $"Error retrieving chat history: {ex.Message}",
-                    Exception = ex
-                };
-            }
-        }
+        public Task<OASISResult<List<ChatMessage>>> GetChatHistory(string sessionId, [FromQuery] int limit = 50, [FromQuery] int offset = 0) =>
+            ChatManager.Instance.GetChatHistoryAsync(sessionId, Avatar.Id, limit, offset);
     }
 }

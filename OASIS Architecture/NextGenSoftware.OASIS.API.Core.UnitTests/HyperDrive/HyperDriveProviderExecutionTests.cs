@@ -3315,7 +3315,14 @@ public sealed partial class HyperDriveProviderExecutionTests
         var send = await first.SendMessageAsync(start.Result, participantId, "survives restart");
         var restarted = new ChatManager(null, dna, providerManager);
         var active = await restarted.GetActiveSessionsAsync(participantId);
-        var history = await restarted.GetChatHistoryAsync(start.Result);
+        var history = await restarted.GetChatHistoryAsync(start.Result, participantId);
+        var denied = await restarted.GetChatHistoryAsync(start.Result, Guid.NewGuid());
+        var anonymous = await restarted.GetChatHistoryAsync(start.Result, Guid.Empty);
+        denied.IsError.Should().BeTrue();
+        denied.ErrorCode.Should().Be("CHAT_SESSION_FORBIDDEN");
+        denied.Result.Should().BeNull();
+        anonymous.IsError.Should().BeTrue();
+        anonymous.ErrorCode.Should().Be("CHAT_SESSION_FORBIDDEN");
 
         start.IsError.Should().BeFalse(start.Message);
         send.IsError.Should().BeFalse(send.Message);
