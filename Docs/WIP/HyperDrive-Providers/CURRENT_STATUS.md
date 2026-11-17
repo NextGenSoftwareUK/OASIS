@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Dispatched one [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44116108464) for Messaging/address-only Wallet candidate `617a9f4ea70a` after the shared slot cleared. Its contracts `44114047771` remained active. NFT review confirmed the native Solana workflow currently qualifies wallet SOL transfers and provider storage. OPORTAL NFT mint and transfer acceptance still needs a shipping WEB4 request through an owned wallet to chain receipt. No new native fixture or local artifacts were created.
+
 2026-11-17 UTC — OPORTAL NFT progressive rendering is staged at `fda20d957de4` over live dev `79102a7c63fd`. Scoped changes preserved the current mint and transfer behavior. The exact-tree check held both OLAND requests pending and saw NFT and GeoNFT sections render first. Live timing remains open. Temporary Git indexes were removed and no test data was created.
 
 2026-11-17 UTC — OPORTAL dev advanced to `79102a7c63fd` after the verified 30-minute push window. Live portal serves the exact Clan `20261117c`, Wallet `20261117b` and Messaging `20261117n` scripts. Signed backend Clan and watch-only Wallet acceptance preceded this release. Browser verification remains open. Development advanced independently to `e474f7b664e0` with CQL validation and the same Core pin. Rebased Messaging and address-only Wallet candidate `617a9f4ea70a` preserves those changes. [Exact contracts](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44114047771) queued.
