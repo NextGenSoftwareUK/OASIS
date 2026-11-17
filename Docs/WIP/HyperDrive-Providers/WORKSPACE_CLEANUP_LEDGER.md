@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed the temporary tournament join candidate index. Qualification used in-memory fixtures. No accounts, tournament changes or generated files were created.
+
 2026-11-17 UTC — Removed the final Competition and Games candidate's temporary index. Regression fixtures used Git objects in memory. No runtime, profiles, downloads or generated reports were created.
 
 2026-11-17 UTC — Both disposable Competition verification avatars were deleted with confirmed acknowledgements. The candidate removed its alternate index. No downloads, browser profile, or generated report was created.
