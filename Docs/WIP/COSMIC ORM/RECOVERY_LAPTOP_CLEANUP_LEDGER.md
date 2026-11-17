@@ -1,3 +1,5 @@
+2026-11-17 UTC — SQL LENGTH candidate 8f826af5c7977b5dd49dc7d2f27ea35773b040a7 has running exact-source qualification 44161622068 and image build 44161803403. No Development push or live LENGTH acceptance is claimed. Website 5ed85ecff1e2a1b0784bc442fba4934b97583dbd has a successful Vercel deployment after 293 exact-source tests; its hosted cql-text.js matches source bytes. HTML response comparison remains open. Restored the unchanged old local roadmap from its newer published feature-branch blob, including One world of data examples. Local CRLF normalization was verified before restoring. No environment or build output was created.
+
 # COSMIC cleanup ledger for the recovery laptop
 
 17 November UTC. The SQL LENGTH website suite used the installed Node executable and an exact 704,073-byte source snapshot under the owned cosmic-web4-length-* temp directory, removed automatically after all 293 tests. No runtime/package was installed. The seven new native wire cases reuse existing CI fixtures. Candidate commits used temporary Git indexes removed on exit.
