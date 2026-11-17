@@ -491,6 +491,14 @@ function snapshot capture. Explicit-null versus missing-field string inequality 
 new native regression cases. Do not claim hosted mixed-function acceptance until
 that candidate is qualified, built, serving and checked. The full Q09 row remains open.
 
+Mixed native mapping verification passed on d9b92db5b2af (44185335106): MongoDB 114,
+Neo4j 111, SQLite 106 stored-query checks plus configured-file tests. Mapped
+UTF-16 filters retain the source string in prepared snapshots. Website snapshot
+transport additionally passed 308 tests and a controlled installed-Chrome check
+for exact numeric metadata. The newer sealing-preserving candidate 5156842037f6
+still needs its own qualification/image and hosted acceptance. These increments
+do not close full Q09 or EF/NHibernate parity.
+
 ### Q09 string-function contract
 
 The native qualification for 284391263af1 passed 93 checks per store, including
