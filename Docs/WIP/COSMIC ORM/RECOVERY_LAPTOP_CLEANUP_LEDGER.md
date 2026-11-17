@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. The text preflight run and corrected rerun plus the UInt64/UTC live probes verified all 27 fixture IDs absent and revoked three temporary visitor sessions. The failed preflight harness called lower() on the expected outer null and still cleaned up. All probe journals, the disposable website snapshot and its temporary Git index were removed. No downloads or persistent local build outputs.
+
 17 November UTC. The attached integrated WEB4 roadmap edit used two owned temporary directories: `cosmic-virtual-roadmap-92407fd3-fa00-40d3-a104-6d811d8c7922` and `cosmic-virtual-roadmap-83314808-bb40-4491-a9a2-701bbd8b8457`. Verified all four pages, published the reviewed DOCX over the original, and removed both directories, including the temporary DOCX copies, PDF and PNGs. Used existing Word and Poppler.
 
 17 November UTC. The combined Turso baseline, Core ordering edits and acceptance tests used disposable Git indexes removed at exit. Website qualification used a disposable `cosmic-join-order-domains-site-*` snapshot. Live plans compiled from standard input and created no data or local runtime output.

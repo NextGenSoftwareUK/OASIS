@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. WEB4 Development `a3270f07875a` passed 24 populated SQL-like CQL checks against MongoDB, SQLite and Neo4j. Each returned three null-safe text matches and six distinct pairs for canonical and mapped text, three rows for each outer join including two unmatched rows, and the exact requested page for adjacent UInt64 and UTC values. Queries took 0.46–0.99 seconds. Web4Site `6667ae197060` passed all 281 tests and was pushed to the existing sandbox branch. Hosted website preview acceptance is pending.
+
 17 November UTC. The virtual mapping query binds approved metadata aliases to a bounded native equality and projection, checks owner and source connection identity before dispatch, and returns detached rows with mapping provenance. Saved mapping registration, app-scoped policy and mixed CQL execution remain open.
 
 17 November UTC. The virtual read contract now gives the shipping native query provider a shared capability and binds detached rows to the same owner/provider/connection/source/key identity as explicit import. It preserves mapping revision and fetch time and returns only projected metadata. The repository tests cover import-compatible identity, owner separation and projection. Saved mapping admission and mixed execution remain open.
