@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. The exact website test snapshot was removed automatically after all 274 tests passed. Nested LINQ and PocketBase reconciliation used temporary Git indexes (`cosmic-linq-index-*` and `cosmic-reconcile-index-*`), removed at context exit. CI builds remotely. No local SDK, database or build output was added.
+
 17 November UTC. The disposable `cosmic-web4-join-repeat-*` website snapshot and index were checked after publishing `827352038021`. No matching temporary directories remained. The preview was built remotely, with no local runtime installation.
 
 17 November UTC. The parenthesized editor suite used a temporary exact snapshot and index. Both were removed after the 273-test check. Preparation of nine live parenthesized/grouped requests and twelve UTC/UInt64 requests kept their compiler output in memory and produced no hosted writes. The nested LINQ work used temporary Git indexes removed immediately after commit creation. No local provider, build output or credentials were staged. The two older Boolean journals still await scheduled reconciliation.
