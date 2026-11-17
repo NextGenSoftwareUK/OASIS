@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Turso schema verification run 44017296378 removed its native libSQL container, volume, image and test output. The temporary Development candidate index was removed. Exact qualification runs on GitHub, and no local runtime, build or additional worktree was created.
+
 2026-11-17 UTC — Turso avatar deletion run 44016415188 removed its owned libSQL database, container, image and test output. The exact OPORTAL endpoint check removed its temporary source directory. Live asset verification used memory only.
 
 2026-11-17 UTC — Turso native run 44015030804 removed its disposable libSQL container, volume and native image, and verified its test output directory was gone. No test output was uploaded. No local download, runtime or build was created.
