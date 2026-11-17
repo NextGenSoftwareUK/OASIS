@@ -65,7 +65,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Sandbox
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { }
         }
 
-        private static SandboxAvatarCleanup CreateCleanup()
+        private SandboxAvatarCleanup CreateCleanup()
         {
             var settings = SandboxOptions.Current;
             return new SandboxAvatarCleanup(
@@ -83,11 +83,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Sandbox
                     if (loaded.IsError) throw new InvalidOperationException($"Listing {provider} holons of {avatarId} failed: {loaded.Message}");
                     return (IReadOnlyList<IHolon>)(loaded.Result ?? Enumerable.Empty<IHolon>()).ToList();
                 },
-                async (holonId, avatarId, provider) => !(await HolonManager.Instance.DeleteHolonAsync(holonId, avatarId, softDelete: false, providerType: provider)).IsError,
+                async (holonId, avatarId, provider) =>
+                {
+                    var deleted = await HolonManager.Instance.DeleteHolonAsync(holonId, avatarId, softDelete: false, providerType: provider);
+                    if (deleted == null || deleted.IsError)
+                        _logger.LogWarning("Sandbox holon cleanup failed on {Provider}; code {Code}.",
+                            provider, deleted?.ErrorCode ?? "CLEANUP_NOT_ACKNOWLEDGED");
+                    return deleted != null && !deleted.IsError;
+                },
                 async (avatarId, provider) =>
                 {
                     var deleted = await Program.AvatarManager.DeleteAvatarAsync(avatarId, softDelete: false, providerType: provider);
-                    return !deleted.IsError && deleted.Result;
+                    if (deleted == null || deleted.IsError || !deleted.Result)
+                        _logger.LogWarning("Sandbox avatar cleanup failed on {Provider}; code {Code}.",
+                            provider, deleted?.ErrorCode ?? "CLEANUP_NOT_ACKNOWLEDGED");
+                    return deleted != null && !deleted.IsError && deleted.Result;
                 },
                 SandboxOptions.Providers(), settings.DemoAvatarUsernamePrefix, settings.DemoAvatarEmailDomain, SandboxOptions.Retention,
                 SandboxOptions.AtLeastOne(settings.MaximumAvatarsRemovedPerSweep, nameof(settings.MaximumAvatarsRemovedPerSweep)));
