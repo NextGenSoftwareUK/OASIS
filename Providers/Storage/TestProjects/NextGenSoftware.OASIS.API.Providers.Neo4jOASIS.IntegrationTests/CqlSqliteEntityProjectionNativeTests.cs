@@ -580,6 +580,17 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         CollectionAssert.AreEqual(new (Guid, Guid?)[] { (missingId, null) },
             preservedMatches.Result.Select(row => (row.Left, row.Right)).ToArray());
 
+        var orderedOuter = querySyntaxLeftJoin.OrderByDescending(row => row.Left);
+        var filteredOrder = await orderedOuter.Where(row => row.Left != Guid.Empty).ToCosmicListAsync();
+        Assert.IsFalse(filteredOrder.IsError, filteredOrder.Message + filteredOrder.Exception);
+        CollectionAssert.AreEqual(new[] { parentId, missingId }.OrderByDescending(id => id).ToArray(),
+            filteredOrder.Result.Select(row => row.Left).ToArray());
+        var orderedMissing = await orderedOuter.Where(row => row.Left == missingId).ToCosmicListAsync();
+        Assert.IsFalse(orderedMissing.IsError, orderedMissing.Message + orderedMissing.Exception);
+        CollectionAssert.AreEqual(new (Guid, Guid?)[] { (missingId, null) },
+            orderedMissing.Result.Select(row => (row.Left, row.Right)).ToArray());
+        Assert.ThrowsException<CosmicLinqException>(() => orderedOuter.Take(1).Where(row => row.Left == missingId));
+
         var rightInput = flagRows.OrderBy(row => row.Id);
         var rightJoinRows = await flagRows.Where(row => row.Id == parentId).RightJoin(rightInput,
             left => left.Id, right => right.Id,

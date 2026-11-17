@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. The parity follow-up retains native joined ordering when a supported Where is composed before any output page. The outer join fixture checks ordered matches, preservation of the unmatched optional side, and rejection of a predicate after Take. Exact qualification is pending.
+
 17 November UTC. The shipping MongoDB virtual reader now streams native projection batches and rejects projected BSON over 1 MiB without returning a partial page. A native regression uses two individually smaller records that exceed the combined budget. The exact earlier candidate is still in CI, and the byte-limit follow-up requires qualification before the public virtual query rollout.
 
 17 November UTC. Exact mixed Virtual Holon release candidate `b60a1b576bf6` is based on Development `323922c64d9e` and preserves the Turso follow-up and current dependency pins. The [full qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44046877685) and [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44046899422) are running. The offline SQL walkthrough is ready to verify one stored row, live mapped rows, no per-row persistence, and a second-avatar denial after the exact rollout. The website patch passed 284 tests and awaits live API acceptance.
