@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — PocketBase BootLoader run 44006470301 stopped its owned loopback PocketBase process and confirmed removal of the runtime, database, test DNA and harness outputs. No local runtime, build, credential file or download was created.
+
 2026-11-17 UTC — GitHub Actions run 44005270419 stopped its owned PocketBase 0.40.6 process and verified removal of the temporary runtime, database, log and test reports. No test artifact was uploaded. The original retained fixture was left untouched. No local runtime, test build, credential or download was created.
 
 2026-11-17 UTC — The initial and corrected Usage and Billing checks used separate disposable sandbox avatars and verified each avatar deletion from the nested WEB4 response. Diagnostics ran in memory and left no local reports, environments or build outputs.

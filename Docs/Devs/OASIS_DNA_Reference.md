@@ -143,6 +143,7 @@ Complete documentation for every setting in `OASIS_DNA.json`. Status column indi
 | `RootstockOASIS` | ⚠️ Test keys exposed | RSK testnet. Same shared private key. |
 | `PolygonOASIS` | ⚠️ Test keys exposed | Amoy testnet. Same shared private key. |
 | `SQLLiteDBOASIS` | ✅ | Local SQLite file — used as local fallback/test. Works in dev, not useful in Railway. |
+| `PocketBaseOASIS` | Optional | Set `OASIS.StorageProviders.PocketBaseOASIS.ConnectionString` to the PocketBase HTTPS service URL. HTTP is supported for loopback fixtures. Supply `OASIS_POCKETBASE_ADMIN_EMAIL` and `OASIS_POCKETBASE_ADMIN_PASSWORD` through the service's secret environment. |
 | `IPFSOASIS` | 🔧 Points to localhost | `localhost:5001` — IPFS daemon not running in prod. Bypassed by failover. |
 | `Neo4jOASIS` | 🔧 Points to localhost | Local Bolt connection — not prod. |
 | `SolanaOASIS` | ⚠️ | Devnet connection string. Private/public keys differ between DEV and LIVE backups — verify which is correct before mainnet use. |
