@@ -47,7 +47,12 @@ public static partial class CqlV1Compiler
             _=>left.JoinColumns(right,leftKeys,rightKeys,options)
         };
         var join=RequiredJoin(captured);
-        if (request.MatchAnyKey) join = RequiredJoin(join.MatchAnyKey());
+        if (request.KeyGroupStarts != null)
+        {
+            if (request.MatchAnyKey) throw new ArgumentException("Specify either grouped keys or MatchAnyKey.");
+            join = RequiredJoin(join.MatchKeyGroups(request.KeyGroupStarts));
+        }
+        else if (request.MatchAnyKey) join = RequiredJoin(join.MatchAnyKey());
         foreach (var key in request.Keys)
         {
             var comparison = key.Operator switch

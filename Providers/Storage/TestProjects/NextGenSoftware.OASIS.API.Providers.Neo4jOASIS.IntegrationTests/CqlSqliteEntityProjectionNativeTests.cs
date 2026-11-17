@@ -460,6 +460,22 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 (parentId, parentId), (parentId, missingId), (missingId, parentId), (missingId, missingId)
             }, disjunctiveLinq.Result.Select(row => (row.Left, row.Right)).ToArray());
 
+        request.MatchAnyKey = false;
+        request.KeyGroupStarts = new[] { 0, 2 };
+        request.Right.Filters = new[] { KeySet(new[] { lowerId, missingId }) };
+        request.Keys = new[]
+        {
+            request.Keys[0],
+            new CqlJoinKey { Alias = "SameVersion", Operator = "LessThanOrEqual", Left = new() { Field = "Version" }, Right = new() { Field = "Version" } },
+            request.Keys[1]
+        };
+        await VerifyAlternativeRows(new (Guid?, Guid?)[] { (parentId, lowerId), (missingId, missingId) });
+        request.Keys[1].Operator = "GreaterThan";
+        await VerifyAlternativeRows(new (Guid?, Guid?)[] { (parentId, null), (null, lowerId), (missingId, missingId) });
+        request.KeyGroupStarts = new[] { 0, 0 };
+        Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access));
+        request.KeyGroupStarts = new[] { 0, 2 };
+
         request.Keys[0].Operator = "Invalid";
         Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access));
 

@@ -43,8 +43,13 @@ public static partial class CqlV1Compiler
     {
         value = default;
         if (json.ValueKind != JsonValueKind.String) return false;
-        var text = json.GetString();
-        return text.Length is >= 20 and <= 28 && DateTime.TryParseExact(text, UtcDateFormats,
+        return TryUtcDate(json.GetString(), out value);
+    }
+
+    internal static bool TryUtcDate(string text, out DateTime value)
+    {
+        value = default;
+        return text?.Length is >= 20 and <= 28 && DateTime.TryParseExact(text, UtcDateFormats,
             CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out value);
     }
     // Share the exact source/group literal contract. Decimal.TryParse alone can

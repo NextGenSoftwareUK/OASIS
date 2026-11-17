@@ -62,7 +62,8 @@ public partial class HolonRepository
             };
             equality.Add($"l.k{index}s=2 AND r.k{index}s=2 AND l.k{index}v{collation}{comparison}r.k{index}v{collation}");
         }
-        var keyPredicate = string.Join(selection.Join.MatchesAnyKey ? " OR " : " AND ", equality.Select(value => "(" + value + ")"));
+        var keyPredicate = selection.Join.CombineKeyPredicates(equality.Select(value => "(" + value + ")").ToArray(),
+            group => "(" + string.Join(" AND ", group) + ")", groups => "(" + string.Join(" OR ", groups) + ")");
         var join = selection.Join.Kind switch
         {
             CosmicJoinKind.Left => " LEFT JOIN r ON " + keyPredicate,

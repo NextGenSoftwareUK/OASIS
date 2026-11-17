@@ -35,7 +35,7 @@ public partial class Neo4jOASIS
         var leftCount=binder.Bind(limits.MaximumLeftRows);var rightCount=binder.Bind(limits.MaximumRightRows);
         var leftBytes=binder.Bind(limits.MaximumLeftPayloadBytes);var rightBytes=binder.Bind(limits.MaximumRightPayloadBytes);
         var outer = binder.Bind(query.Join.Kind is CosmicJoinKind.Left or CosmicJoinKind.Full);
-        var equality = string.Join(query.Join.MatchesAnyKey ? " OR " : " AND ", query.Join.Keys.Select((key,index) =>
+        var predicates = query.Join.Keys.Select((key,index) =>
         {
             var comparison = key.Comparison switch
             {
@@ -58,7 +58,9 @@ public partial class Neo4jOASIS
                     + comparison + "(" + rightPresent + ") END)"
                 : present + " AND " + valuesMatch;
             return "(" + predicate + ")";
-        }));
+        }).ToArray();
+        var equality = query.Join.CombineKeyPredicates(predicates, group => "(" + string.Join(" AND ", group) + ")",
+            groups => "(" + string.Join(" OR ", groups) + ")");
         var valid="size(leftInput)<="+leftCount+" AND size(rightInput)<="+rightCount
             +" AND all(x IN leftInput+rightInput WHERE x.valid AND x.domainValid AND NOT(x.cycle OR x.traversalLimit OR x.payloadLimit))"
             +" AND reduce(total=0,x IN leftInput | total+x.bytes)<="+leftBytes
