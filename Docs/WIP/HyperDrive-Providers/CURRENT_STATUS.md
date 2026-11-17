@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Railway WEB4 reached SUCCESS on 3527154a118d. Fresh signed dev reads returned HTTP 200, successful empty arrays from Messages and Conversation, and a successful message-summary object. None reported test data. The read-only probe avatar self-deletion was acknowledged. Populated message delivery, history authorization and earlier fixture cleanup remain open.
+
 2026-11-17 UTC — Corrected Chat candidate 0f3a0fbf6d13 now includes the distinct recipient requirement. The focused check rejected missing, invalid and own-avatar IDs without a request, and emitted exactly one valid two-participant JSON array. Candidate script equals task 5169e84. Publication awaits 17:54:41 UTC. WEB4 3527154a118d remained building. Hosted Chat session creation, send and history remain open.
 
 2026-11-17 UTC — Chat manager review confirms two participants are required. OPORTAL task 5169e84 validates a distinct recipient GUID before starting a session. The staged Chat candidate 3a21cf09dfc6 must be refreshed with this correction before promotion. The next portal dev window is 17:54:41 UTC. WEB4 3527154a118d is still building. Hosted Chat remains unverified.

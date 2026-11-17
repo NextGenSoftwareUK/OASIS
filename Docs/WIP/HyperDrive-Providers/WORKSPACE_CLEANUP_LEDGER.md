@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Signed Messaging read probe acknowledged deletion of its fresh sandbox avatar. It sent no message, loaded no notifications settings and retained no local file or build output.
+
 2026-11-17 UTC — Removed the temporary Git index used to refresh the Chat recipient release. Recipient checks ran in memory without requests to hosted storage or retained files.
 
 2026-11-17 UTC — Removed the temporary Git index for the Chat release candidate. Recipient validation review created no local outputs or hosted fixture.
