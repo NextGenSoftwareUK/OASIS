@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Core Messaging follow-up `8df94b64` saves message holons without child traversal. Its build and hosted verification remain open. Source review found the message holon ID equals the API message ID; notifications and counters are stored in per-avatar messaging settings holons with deterministic IDs and recorded avatar ownership. A hosted fixture can identify those exact records for authorized delete and readback before avatar teardown. No test data was created during this review.
+
 2026-11-17 UTC — OPORTAL Messages fixes `8ea6bd7` and `3d51db6` are staged together as portal candidate `c9215739480b` over dev `4b67efe7d790`. Focused checks proved one in-flight send, retry after rejection, paged owned unread IDs and acknowledgment handling. Hosted message and notification writes remain unverified. The current portal deployment cadence window has not opened.
 
 2026-11-17 UTC — OPORTAL dev advanced to `4b67efe7d790` with independent Avatar Search mounting. All 23 automated checks passed on that revision, including readiness while an unrelated popup was still loading. Vercel deployment `7856016520` succeeded, and the `/search` shell served the exact `20261117f` component loader. Signed browser timing remains open. Clan/Wallet frontend candidate `429207e5494b` now sits atop this portal revision and remains staged while its matching WEB4 image builds.
