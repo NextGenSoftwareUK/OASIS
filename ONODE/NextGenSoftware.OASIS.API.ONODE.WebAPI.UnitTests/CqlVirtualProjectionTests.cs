@@ -41,6 +41,22 @@ public sealed class CqlVirtualProjectionTests
     }
 
     [Fact]
+    public void MixedProjectionPreservesTheStoredBranchBudgetUntilAfterMerge()
+    {
+        var request = Request();
+        request.Take = 1;
+        var actor = Guid.NewGuid();
+        var mixed = CqlV1Compiler.CompileProjection(request, actor, ProviderType.MongoDBOASIS,
+            null, CqlVirtualProjection.MaximumRows);
+        Assert.Equal(CqlVirtualProjection.MaximumRows, mixed.Source.Limit);
+        Assert.Equal(1, request.Take);
+
+        request.VirtualMappingId = null;
+        var ordinary = CqlV1Compiler.CompileProjection(request, actor, ProviderType.MongoDBOASIS);
+        Assert.Equal(1, ordinary.Source.Limit);
+    }
+
+    [Fact]
     public void SnapshotRetainsTheFilterFieldWithoutExceedingTheNativeProjectionLimit()
     {
         Assert.Equal(new[] { "name", "tier" }, NativeDataController.VirtualSnapshotFields("tier", new[] { "name" }));
