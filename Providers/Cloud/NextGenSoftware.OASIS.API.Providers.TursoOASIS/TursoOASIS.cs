@@ -729,21 +729,48 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             var result = new OASISResult<ISearchResults>();
             try
             {
-                string? q = searchParams.SearchGroups?.OfType<SearchTextGroup>().FirstOrDefault()?.SearchQuery?.ToLower();
-                var all = await LoadAllHolonsAsync(loadChildren: loadChildren, recursive: recursive,
-                    maxChildDepth: maxChildDepth, continueOnError: continueOnError, version: version).ConfigureAwait(false);
-                if (all.IsError)
-                    return new OASISResult<ISearchResults>
-                    {
-                        IsError = true, ErrorCount = all.ErrorCount, ErrorCode = all.ErrorCode,
-                        Exception = all.Exception, Message = all.Message
-                    };
-                var holons = all.Result?.ToList() ?? new List<IHolon>();
-                if (!string.IsNullOrEmpty(q)) holons = holons.Where(h => h.Name?.ToLower().Contains(q) == true || h.Description?.ToLower().Contains(q) == true).ToList();
-                result.Result = new SearchResults { SearchResultHolons = holons, NumberOfResults = holons.Count };
+                StoredRecordSearch.Validate(searchParams, version, maxChildDepth);
+                searchParams = StoredRecordJson.Project<SearchParams>(searchParams);
+                StoredRecordSearch.Validate(searchParams, version, maxChildDepth);
+                var groups = searchParams.SearchGroups ?? new List<ISearchGroupBase>();
+                var searchAvatars = groups.Count == 0 || groups.Any(group => group.SearchAvatars || !group.SearchHolons);
+                var searchHolons = groups.Count == 0 || groups.Any(group => group.SearchHolons || !group.SearchAvatars);
+                var avatars = new List<IAvatar>();
+                var holons = new List<IHolon>();
+                if (searchAvatars)
+                {
+                    var all = await LoadAllAvatarsAsync(version).ConfigureAwait(false);
+                    if (all.IsError)
+                        return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IAvatar>, ISearchResults>(all);
+                    avatars = all.Result.ToList();
+                }
+                if (searchHolons || searchParams.ParentId != Guid.Empty)
+                {
+                    var all = await LoadAllHolonsAsync(loadChildren: loadChildren, recursive: recursive,
+                        maxChildDepth: maxChildDepth, continueOnError: continueOnError, version: version).ConfigureAwait(false);
+                    if (all.IsError)
+                        return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>, ISearchResults>(all);
+                    holons = all.Result.ToList();
+                }
+
+                var matches = new SearchResults();
+                matches.SearchResultAvatars.AddRange(avatars.Where(avatar => StoredRecordSearch.Matches(avatar, true, searchParams, holons)));
+                if (searchHolons)
+                    matches.SearchResultHolons.AddRange(holons.Where(holon => StoredRecordSearch.Matches(holon, false, searchParams, holons)));
+                if (searchParams.SearchOnlyForCurrentAvatar)
+                {
+                    var scoped = new OASISResult<IEnumerable<IHolon>> { Result = matches.SearchResultHolons, IsLoaded = true };
+                    var visible = IOASISStorageProvider.ProjectVisibleHolons(scoped, searchParams.AvatarId, false);
+                    if (visible.IsError)
+                        return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>, ISearchResults>(visible);
+                    matches.SearchResultHolons = visible.Result.ToList();
+                }
+
+                matches.NumberOfResults = matches.SearchResultAvatars.Count + matches.SearchResultHolons.Count;
+                result.Result = matches;
                 result.IsLoaded = true;
-                result.LoadedCount = holons.Count;
-                result.Message = $"TursoOASIS: Found {holons.Count} holon(s).";
+                result.LoadedCount = matches.NumberOfResults;
+                result.Message = $"TursoOASIS: Found {matches.NumberOfResults} record(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;

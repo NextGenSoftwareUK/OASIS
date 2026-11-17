@@ -206,7 +206,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
         {
             RequireOwnedFixture();
             using var client = new HttpClient();
-            var query = new SearchParams();
+            var query = new SearchParams { SearchOnlyForCurrentAvatar = false };
             var empty = await _provider.SearchAsync(query, loadChildren: false);
             Assert.IsTrue(empty.IsLoaded, empty.Message);
             Assert.AreEqual(0, empty.LoadedCount);
@@ -224,6 +224,37 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             {
                 await ExecuteFixtureSql(client, "ALTER TABLE oasis_test_unavailable_holons RENAME TO oasis_holons");
             }
+        }
+
+        [TestMethod]
+        [DoNotParallelize]
+        public async Task NativeSearchHonorsOwnerParentAndMetadata()
+        {
+            RequireOwnedFixture();
+            var owner = Guid.NewGuid();
+            var root = new Holon { Name = "Search fixture root", CreatedByAvatarId = owner };
+            var selected = new Holon { Name = "Matching fixture", CreatedByAvatarId = owner, MetaData = new() { ["scope"] = "selected" } };
+            root.Children.Add(selected);
+            root.Children.Add(new Holon { Name = selected.Name, CreatedByAvatarId = Guid.NewGuid(), MetaData = selected.MetaData });
+            root.Children.Add(new Holon { Name = selected.Name, CreatedByAvatarId = owner, MetaData = new() { ["scope"] = "excluded" } });
+            var saved = await _provider.SaveHolonAsync(root);
+            Assert.IsTrue(saved.IsSaved, saved.Message);
+            Assert.AreEqual(4, saved.SavedCount);
+
+            var query = new SearchParams
+            {
+                AvatarId = owner,
+                ParentId = root.Id,
+                SearchOnlyForCurrentAvatar = true,
+                FilterByMetaData = new() { ["scope"] = "selected" },
+                MetaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All,
+                SearchGroups = new() { new SearchTextGroup { SearchHolons = true, SearchQuery = "matching", HolonType = HolonType.All } }
+            };
+            var results = await _provider.SearchAsync(query, loadChildren: false);
+            Assert.IsTrue(results.IsLoaded, results.Message);
+            Assert.AreEqual(1, results.LoadedCount);
+            Assert.AreEqual(selected.Id, results.Result!.SearchResultHolons.Single().Id);
+            Assert.AreEqual(0, results.Result.SearchResultAvatars.Count);
         }
 
         private void RequireOwnedFixture()
