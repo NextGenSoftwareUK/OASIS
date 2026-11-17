@@ -1,5 +1,9 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL dev advanced to `2f7c7fcea30c` after the 30-minute window. Vercel reported success at 05:52 UTC. The live subscription route and revised usage script returned HTTP 200, and the script matched the exact tested Git bytes, SHA-256 `3510032c678505cef2fc7b6632fa9136ec2a0bc042f940406884fc4a2bfc4f11`. Signed hosted acceptance remains open.
+
+2026-11-17 UTC — Turso [native search run 44026900703](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44026900703) passed the combined owner, parent, text and metadata scope test on task revision `6915681acb35`. The earlier [native search failure test](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44026597025) passed. Development integration of the search and graph changes is pending.
+
 2026-11-17 UTC — Turso search now uses shared OASIS validation, group matching and current-avatar visibility projection. The provider reads only the requested record families, except when holon ancestry is needed for a parent filter. Native qualification covers owner, parent, text and metadata scope. [Parent collection qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44026297710) passed.
 
 2026-11-17 UTC — The [Turso native point-read test](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44025926242) passed. Parent collection qualification is in [run 44026297710](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44026297710). Turso search now propagates native read errors and reports an empty result only after a successful read. The new isolated test temporarily renames the fixture table and verifies the distinction. Full search filter coverage remains open.
