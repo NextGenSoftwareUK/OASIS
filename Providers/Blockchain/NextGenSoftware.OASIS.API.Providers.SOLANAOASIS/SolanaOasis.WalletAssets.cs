@@ -13,6 +13,60 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 
 public partial class SolanaOASIS
 {
+    public async Task<OASISResult<object>> ReadRecentWalletActivityAsync(string walletAddress, CancellationToken cancellationToken)
+    {
+        const int pageSize = 50;
+        var result = new OASISResult<object>();
+        try
+        {
+            var address = new PublicKey(walletAddress);
+            if (address.KeyBytes.Length != 32)
+                throw new ArgumentException("Invalid Solana wallet address.");
+
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            deadline.CancelAfter(TimeSpan.FromSeconds(10));
+            var history = await _rpcClient.GetSignaturesForAddressAsync(address.Key, pageSize + 1, null, null, Commitment.Finalized)
+                .WaitAsync(deadline.Token);
+            if (!history.WasSuccessful || history.Result == null)
+                throw new InvalidOperationException("Solana RPC did not return finalized wallet activity.");
+
+            var signatures = new HashSet<string>(StringComparer.Ordinal);
+            var recent = history.Result.Take(pageSize).Select(entry =>
+            {
+                if (entry == null || string.IsNullOrEmpty(entry.Signature) || !signatures.Add(entry.Signature))
+                    throw new InvalidOperationException("Solana RPC returned an invalid transaction signature.");
+
+                return new
+                {
+                    signature = entry.Signature,
+                    slot = entry.Slot,
+                    finalizedAt = entry.BlockTime.HasValue
+                        ? (DateTimeOffset?)DateTimeOffset.FromUnixTimeSeconds(checked((long)entry.BlockTime.Value)) : null,
+                    succeeded = entry.Error == null
+                };
+            }).ToArray();
+
+            result.Result = new
+            {
+                recentActivity = recent,
+                recentTransactionCount = recent.Length,
+                hasMore = history.Result.Count > pageSize,
+                lastActivity = recent.FirstOrDefault()?.finalizedAt
+            };
+            result.IsLoaded = true;
+            result.LoadedCount = recent.Length;
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            OASISErrorHandling.HandleError(ref result, "The Solana wallet activity read timed out.");
+        }
+        catch (Exception error) when (error is not OperationCanceledException)
+        {
+            OASISErrorHandling.HandleError(ref result, "Unable to read finalized Solana wallet activity.", error);
+        }
+        return result;
+    }
+
     public async Task<OASISResult<List<object>>> ReadWalletAssetsAsync(string walletAddress, CancellationToken cancellationToken)
     {
         const string splToken = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";

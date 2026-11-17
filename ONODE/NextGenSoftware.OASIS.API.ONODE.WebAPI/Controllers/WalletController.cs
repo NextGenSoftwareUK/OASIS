@@ -756,37 +756,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<object>> GetWalletAnalyticsAsync(Guid avatarId, Guid walletId)
         {
-            // NOT IMPLEMENTED - see GetPortfolioValueAsync. This reported 45 transactions for wallets that
-            // had never transacted.
-            if (!UseTestDataWhenLiveDataNotAvailable)
-                return NotImplementedResult<object>("Wallet analytics");
+            var wallet = await ResolveOwnedSolanaWalletAsync<object>(avatarId, walletId, "Wallet activity");
+            if (wallet.Error != null)
+                return wallet.Error;
 
-            return new OASISResult<object>
-            {
-                Result = new
-                {
-                    walletId = walletId,
-                    totalTransactions = 45,
-                    totalVolume = 12500.75,
-                    averageTransaction = 277.79,
-                    lastActivity = DateTime.UtcNow.ToString("O"),
-                    topTokens = new[]
-                    {
-                        new { symbol = "ETH", amount = "2.5", value = 5000 },
-                        new { symbol = "USDC", amount = "1000", value = 1000 },
-                        new { symbol = "BTC", amount = "0.1", value = 3200 }
-                    },
-                    monthlyActivity = new[]
-                    {
-                        new { month = "Jan", transactions = 12, volume = 3200 },
-                        new { month = "Feb", transactions = 8, volume = 2100 },
-                        new { month = "Mar", transactions = 15, volume = 4500 },
-                        new { month = "Apr", transactions = 10, volume = 2700 }
-                    }
-                },
-                IsLoaded = true,
-                Message = "SAMPLE DATA - not real wallet analytics (UseTestDataWhenLiveDataNotAvailable is enabled)."
-            };
+            return await wallet.Provider.ReadRecentWalletActivityAsync(wallet.Address, HttpContext.RequestAborted);
         }
 
         /// <summary>
@@ -848,37 +822,47 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<List<object>>> GetWalletTokensAsync(Guid avatarId, Guid walletId)
         {
+            var wallet = await ResolveOwnedSolanaWalletAsync<List<object>>(avatarId, walletId, "Token balance enumeration");
+            if (wallet.Error != null)
+                return wallet.Error;
+
+            return await wallet.Provider.ReadWalletAssetsAsync(wallet.Address, HttpContext.RequestAborted);
+        }
+
+        private async Task<(SolanaOASIS Provider, string Address, OASISResult<T> Error)> ResolveOwnedSolanaWalletAsync<T>(
+            Guid avatarId, Guid walletId, string operation)
+        {
             if (!OwnsWalletAvatar(avatarId))
-                return RejectWalletAccess<List<object>>("Only the authenticated wallet owner can view its token balances.");
+                return (null, null, RejectWalletAccess<T>("Only the authenticated wallet owner can view these wallet details."));
 
             var loaded = await WalletManager.LoadProviderWalletsForAvatarByIdAsync(avatarId, showPrivateKeys: false, showSecretWords: false);
             if (loaded.IsError)
-                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Dictionary<ProviderType, List<IProviderWallet>>, List<object>>(loaded);
+                return (null, null, OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Dictionary<ProviderType, List<IProviderWallet>>, T>(loaded));
 
             var matching = WalletManager.ResolveWalletsForProvider(loaded.Result, ProviderType.All)
                 .Where(wallet => walletId != Guid.Empty && (wallet.WalletId == walletId || wallet.Id == walletId)).Take(2).ToArray();
             if (matching.Length != 1)
             {
                 Response.StatusCode = matching.Length == 0 ? StatusCodes.Status404NotFound : StatusCodes.Status409Conflict;
-                return new OASISResult<List<object>>
+                return (null, null, new OASISResult<T>
                 {
                     IsError = true,
                     Message = matching.Length == 0 ? "Wallet not found." : "The wallet identity is ambiguous."
-                };
+                });
             }
 
             var wallet = matching[0];
             if (wallet.ProviderType != ProviderType.SolanaOASIS)
-                return NotImplementedResult<List<object>>("Token balance enumeration for this wallet network");
+                return (null, null, NotImplementedResult<T>(operation + " for this wallet network"));
 
             var provider = await GetAndActivateProviderAsync(wallet.ProviderType, false);
             if (provider.IsError || provider.Result is not SolanaOASIS solana)
             {
                 Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
-                return new OASISResult<List<object>> { IsError = true, Message = "The Solana wallet provider is unavailable." };
+                return (null, null, new OASISResult<T> { IsError = true, Message = "The Solana wallet provider is unavailable." });
             }
 
-            return await solana.ReadWalletAssetsAsync(wallet.WalletAddress, HttpContext.RequestAborted);
+            return (solana, wallet.WalletAddress, null);
         }
 
         /// <summary>

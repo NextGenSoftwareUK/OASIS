@@ -134,6 +134,17 @@ public class HyperDriveWalletTokenBindingTests
         Assert.Null(result.Result);
     }
 
+    [Fact]
+    public async Task WalletActivityRejectsAnotherAvatarBeforeReadingStorageOrChain()
+    {
+        var controller = CreateWalletOwnerController();
+        var result = await controller.GetWalletAnalyticsAsync(Guid.NewGuid(), Guid.NewGuid());
+
+        Assert.Equal(StatusCodes.Status403Forbidden, controller.Response.StatusCode);
+        Assert.Equal("AVATAR_OPERATION_FORBIDDEN", result.ErrorCode);
+        Assert.Null(result.Result);
+    }
+
     [Theory]
     [InlineData("All")]
     [InlineData("1")]
