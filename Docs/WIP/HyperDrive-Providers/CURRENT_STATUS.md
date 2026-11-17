@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL task cf52aaf makes conversation rows keyboard-accessible and opens real SDK conversation history in pages of 50. It suppresses overlapping page reads, rejects old-thread/session results, escapes message content, supports retry and selects the other participant for Reply. Controlled checks passed paging, escaping, isolation, retry and reply selection. Source syntax and diff checks passed. Combine with the staged termination change before portal promotion. Hosted populated threads and browser interaction remain open. No real messages, downloads or build outputs were created.
+
 2026-11-17 UTC — Final Chat qualification 44146529783 passed all 996 behavioral contracts with zero failures and zero skips on d51ef1e77854. The run includes the extended restart contract exercising participant history access and outsider/empty-avatar denial. Exact image 44148463730 is still building. Scoped portal termination candidate 0862b5698df6 matches the tested task script and contains only that script plus its cache key. Deployment and hosted verification remain open.
 
 2026-11-17 UTC — Shared image 44142971678 reached terminal state and the image slot cleared. Dispatched one [final Chat image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44148463730) for d51ef1e77854; it is active. Exact contracts 44146529783 are also active. No Development push or local build was made.
