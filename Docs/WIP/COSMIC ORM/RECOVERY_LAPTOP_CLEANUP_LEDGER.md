@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. Exact WEB4 Development grouped and typed metadata checks used two fresh sandbox sessions. The probes hard-deleted all eighteen private fixtures using their recorded provider-native revisions, verified every fixture ID absent, revoked both sessions and removed both temporary journals. Probes ran from standard input. No local downloads, SDK installation or build output were needed.
+
 17 November UTC. Temporary Ask Your Data edit and test snapshots (`cosmic-ask-example-*` and `cosmic-ask-all-*`) were removed by their temporary-directory contexts after the focused and full suites passed. The grouped and typed scalar query plan checks ran from standard input. No local SDK, database or build output was added.
 
 17 November UTC. The exact website test snapshot was removed automatically after all 274 tests passed. Nested LINQ and PocketBase reconciliation used temporary Git indexes (`cosmic-linq-index-*` and `cosmic-reconcile-index-*`), removed at context exit. CI builds remotely. No local SDK, database or build output was added.
