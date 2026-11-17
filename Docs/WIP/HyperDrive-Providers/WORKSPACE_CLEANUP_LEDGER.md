@@ -2044,3 +2044,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-17 UTC — Verified the Turso recursive query in an in-memory SQLite database and exited without a database file. Native qualification uses an owned disposable CI container.
 
 2026-11-17 UTC — Verified Turso parent and full-collection traversal SQL in in-memory SQLite. No database file, local build or test report was created.
+
+2026-11-17 UTC — Removed and verified absence of the temporary index that assembled Turso combined candidate `5877c9e3bc9b`. The metadata selection query plan was checked in memory. No extra worktree, database or local build output was created.

@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Development moved to COSMIC revision `b226ff3740c1`, which advances the Core gitlink and Railway pin. The earlier Turso image targets the previous parent. Combined Turso candidate `5877c9e3bc9b` places the verified storage changes and task graph, search and metadata paths on the new Core pin without changing the COSMIC source or deployment pins. [Native full-collection tests](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44027658820) passed. [Exact combined qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44028383230) is queued. It and the targeted [metadata test](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44028023331) are still required before integration.
+
 2026-11-17 UTC — Turso metadata queries filter flat records before expanding any children. The selected IDs seed a single indexed native traversal, and the returned root is checked against the metadata predicate again in case it changed between reads. The native test exercises single-key and all/any matching, flat reads and selected child expansion. Qualification is pending.
 
 2026-11-17 UTC — Turso full collection reads now use one native query when child trees are requested. Each returned root has an independent depth-bound tree, even when the same holon is also a child of another selected root. Flat collection, export and search inputs stay flat. Native qualification is pending. Search and metadata result expansion still need their own filtered child-loading path.
