@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. Removed the temporary source snapshots for the exact Web4Site 271-test suite and focused 30-test Ask Your Data suite after Node exited. Temporary Git indexes used to publish the prompt and status changes were scoped to OS-temp directories and removed on completion. No packages, model weights, browser profiles, databases or local build outputs were created for these checks.
+
 16 November Cancun time. Verified the previously retained HyperDrive scratch build C:/Source/OASIS2-hyperdrive/.hosted-probe-build-84005f026d03 and both owned OS-temp browser profiles web4-exact-browser-LjwGMM and web4-exact-browser-ChjeS6 are now absent. C: had 21.83 GiB free at this measurement. This session observed the removals and did not perform them. Nullable Boolean qualification used GitHub Actions, two temporary Git indexes and one exact website test snapshot. The indexes and snapshot were removed. No workstation build, packages or model weights were installed.
 
 16 November Cancun time. Disk pressure review measured C: free at 7.89 GiB, then 9.08 GiB and 9.38 GiB. No files were removed by this review. The temporary MongoDB client C:/Source/OASIS2/LocalState/COSMIC/piper-mongo-read-4qwzdwjt was verified absent; removal was not attributed to this session. The retained disposable Edge profiles web4-exact-browser-LjwGMM and web4-exact-browser-ChjeS6 measured 17.30 and 18.22 MiB. A second browser proof reused the latter profile and all owned Edge processes exited.
