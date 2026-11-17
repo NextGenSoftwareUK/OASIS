@@ -800,3 +800,8 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Open, 17 November 2026.** WEB4 requires an authenticated Wizard for both the provider list and copy. Ordinary avatar refusal, the native transfer manager and the deployed portal assets already have separate evidence.
 - **David action** Identify an authorized Wizard operator and a disposable holon graph with two approved dev providers for a live portal copy. Share the operator or protected fixture location only.
 - **Reason** A signed hosted copy needs a privileged operator and permission to copy and remove the isolated fixtures. Engineering can verify the matching acknowledgement, read both native stores and clean up. [OPORTAL dev](https://dev.oportal.oasisomniverse.one/) · [Current status](../HyperDrive-Providers/CURRENT_STATUS.md).
+
+### WEB4 dev disposable Messaging cleanup
+
+- **Open, 2026-11-17.** Signed acceptance left sender a27ed220-8539-43ee-8377-3ee69fd57439 and recipient 28f513ee-e998-48c1-b03b-1a96e2751fa9 on WEB4 dev revision dd9989649bca. Recipient settings holon 84eaa213-535a-a6c9-ba1a-34b8ae8c15b3 was observed, but its conditional deletion was rejected. Message identity and persistence were unconfirmed.
+- **Authorized access needed.** Use an existing dev Wizard session to read that exact settings holon and search for a message matching both disposable participant IDs. Use the observed provider revision and a new operation ID for each verified fixture deletion. Confirm removal before deleting the two disposable avatars. Engineering owns diagnosis and a new acceptance run after cleanup. [Current status](../HyperDrive-Providers/CURRENT_STATUS.md).

@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Messaging acceptance left disposable WEB4 dev avatars a27ed220-8539-43ee-8377-3ee69fd57439 and 28f513ee-e998-48c1-b03b-1a96e2751fa9. Recipient settings holon 84eaa213-535a-a6c9-ba1a-34b8ae8c15b3 was observed and conditional deletion was rejected. A message ID was not recovered. No local files were retained. Exact fixture recovery is tracked in ACTIONS-FOR-DAVID.md.
+
 2026-11-17 UTC — Verified hosted HyperDrive shell and asset bytes in memory. No local download, fixture or build output was created.
 
 2026-11-17 UTC — WEB4 acknowledged deletion of the disposable avatar used to exercise the staged HyperDrive popup. SDK and popup verification ran in memory without retained files.
