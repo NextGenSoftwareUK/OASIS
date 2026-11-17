@@ -157,8 +157,9 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var reordered = root.SelectMany(left => multi.Where(right => left.Id == right.Id),
             (left, right) => right.Id);
         CollectionAssert.AreEqual(new[] { rootId }, reordered.ToArray());
-        Assert.ThrowsException<CosmicLinqException>(() => root.SelectMany(left =>
-            multi.Where(right => left.Name == right.Name), (left, right) => right.Id));
+        var textCorrelation = root.SelectMany(left =>
+            multi.Where(right => left.Name == right.Name), (left, right) => right.Id);
+        CollectionAssert.AreEqual(new[] { rootId }, textCorrelation.ToArray());
         checks.Add(new { provider = adapter.QueryProviderType.ToString(), linq = "correlated SelectMany exact keys" });
     }
 
