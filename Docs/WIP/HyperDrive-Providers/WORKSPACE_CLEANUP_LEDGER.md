@@ -2276,3 +2276,6 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 
 
 2026-11-17 UTC — Twenty recovery cases ran in memory without network calls, emails, avatars or database writes. Scoped portal candidate 4a94caa7ecf3 used a single temporary Git index, removed with its lock in finally. Hydrated only six small tracked HTML source files needed for cache reference synchronization; retained source, no generated build/test reports. Chat image built remotely; no local image download.
+
+
+2026-11-17 UTC — Six root reset-page cases executed inline without real network requests or password changes. Scoped candidate 51209336fdd4 temporary index and lock removed. Hydrated reset-password.html is tracked source and retained. No downloaded tools, database copies, local builds or generated reports.
