@@ -5,9 +5,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using CleanupRouter = NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISHyperDrive;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Sandbox
 {
@@ -65,32 +68,86 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Sandbox
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { }
         }
 
-        private static SandboxAvatarCleanup CreateCleanup()
+        private SandboxAvatarCleanup CreateCleanup()
         {
             var settings = SandboxOptions.Current;
+            var providers = SandboxOptions.Providers();
+            var holonManagers = providers.ToDictionary(provider => provider, CreatePinnedHolonManager);
+            var routing = new CleanupRouter(ProviderManager.Instance);
             return new SandboxAvatarCleanup(
                 async () =>
                 {
-                    var loaded = await Program.AvatarManager.LoadAllAvatarsAsync(loadPrivateKeys: false, hideAuthDetails: true);
-                    if (loaded.IsError) throw new InvalidOperationException($"Listing avatars failed: {loaded.Message}");
-                    return (IReadOnlyList<IAvatar>)(loaded.Result ?? Enumerable.Empty<IAvatar>()).ToList();
+                    var copies = new List<IAvatar>();
+                    foreach (var provider in providers)
+                    {
+                        var loaded = await routing.RouteRequestToProviderAsync<IEnumerable<IAvatar>>(
+                            new StorageOperationRequest { Operation = "LoadAllAvatars", Version = 0,
+                                PreferredProvider = provider, RequirePreferredProvider = true, AutoReplicate = false }, provider);
+                        if (loaded == null || loaded.IsError || loaded.Result == null)
+                            throw new InvalidOperationException($"Listing sandbox avatars failed on {provider}; code {loaded?.ErrorCode ?? "CLEANUP_NOT_ACKNOWLEDGED"}.");
+                        copies.AddRange(loaded.Result);
+                    }
+                    return MergeAvatarCopies(copies);
                 },
                 async (avatarId, provider) =>
                 {
-                    var loaded = await HolonManager.Instance.LoadAllHolonsAsync(HolonType.All, loadChildren: false, recursive: false, maxChildDepth: 0,
+                    var loaded = await holonManagers[provider].LoadAllHolonsAsync(HolonType.All, loadChildren: false, recursive: false, maxChildDepth: 0,
                         continueOnError: true, loadChildrenFromProvider: false, childHolonType: HolonType.All, version: 0, providerType: provider,
                         avatarId: avatarId, includePublic: false);
-                    if (loaded.IsError) throw new InvalidOperationException($"Listing {provider} holons of {avatarId} failed: {loaded.Message}");
-                    return (IReadOnlyList<IHolon>)(loaded.Result ?? Enumerable.Empty<IHolon>()).ToList();
+                    if (loaded == null || loaded.IsError || loaded.Result == null)
+                        throw new InvalidOperationException($"Listing sandbox holons failed on {provider}; code {loaded?.ErrorCode ?? "CLEANUP_NOT_ACKNOWLEDGED"}.");
+                    return (IReadOnlyList<IHolon>)loaded.Result.ToList();
                 },
-                async (holonId, avatarId, provider) => !(await HolonManager.Instance.DeleteHolonAsync(holonId, avatarId, softDelete: false, providerType: provider)).IsError,
+                async (holonId, avatarId, provider) =>
+                {
+                    var deleted = await holonManagers[provider].DeleteHolonAsync(holonId, avatarId, softDelete: false, providerType: provider);
+                    if (deleted == null || deleted.IsError || deleted.Result?.Id != holonId)
+                        _logger.LogWarning("Sandbox holon cleanup failed on {Provider}; code {Code}.",
+                            provider, deleted?.ErrorCode ?? "CLEANUP_NOT_ACKNOWLEDGED");
+                    return deleted != null && !deleted.IsError && deleted.Result?.Id == holonId;
+                },
                 async (avatarId, provider) =>
                 {
-                    var deleted = await Program.AvatarManager.DeleteAvatarAsync(avatarId, softDelete: false, providerType: provider);
-                    return !deleted.IsError && deleted.Result;
+                    var deleted = await routing.RouteRequestToProviderAsync<bool>(new StorageOperationRequest
+                        { Operation = "DeleteAvatar", AvatarId = avatarId, SoftDelete = false,
+                            PreferredProvider = provider, RequirePreferredProvider = true, AutoReplicate = false }, provider);
+                    if (deleted == null || deleted.IsError || !deleted.Result)
+                        _logger.LogWarning("Sandbox avatar cleanup failed on {Provider}; code {Code}.",
+                            provider, deleted?.ErrorCode ?? "CLEANUP_NOT_ACKNOWLEDGED");
+                    return deleted != null && !deleted.IsError && deleted.Result;
                 },
-                SandboxOptions.Providers(), settings.DemoAvatarUsernamePrefix, settings.DemoAvatarEmailDomain, SandboxOptions.Retention,
+                providers, settings.DemoAvatarUsernamePrefix, settings.DemoAvatarEmailDomain, SandboxOptions.Retention,
                 SandboxOptions.AtLeastOne(settings.MaximumAvatarsRemovedPerSweep, nameof(settings.MaximumAvatarsRemovedPerSweep)));
+        }
+
+        private static HolonManager CreatePinnedHolonManager(ProviderType provider)
+        {
+            var context = HolonManager.Instance.CreateRequestContext(new ProviderRoutingOverrides(
+                autoFailoverEnabled: false, autoReplicationEnabled: false, autoLoadBalancingEnabled: false), provider);
+            if (context == null || context.IsError || context.Result == null)
+                throw new InvalidOperationException($"Sandbox routing context failed on {provider}; code {context?.ErrorCode ?? "CLEANUP_NOT_ACKNOWLEDGED"}.");
+            return context.Result.Manager;
+        }
+
+        private static IReadOnlyList<IAvatar> MergeAvatarCopies(IEnumerable<IAvatar> copies)
+        {
+            var merged = new Dictionary<Guid, IAvatar>();
+            foreach (var avatar in copies)
+            {
+                if (avatar == null || avatar.Id == Guid.Empty)
+                    throw new InvalidOperationException("A sandbox provider returned an invalid avatar identity.");
+                if (merged.TryGetValue(avatar.Id, out var previous))
+                {
+                    // Never choose an expired demo copy over a conflicting real/current identity.
+                    if (!string.Equals(previous.Username, avatar.Username, StringComparison.Ordinal)
+                        || !string.Equals(previous.Email, avatar.Email, StringComparison.OrdinalIgnoreCase)
+                        || previous.AvatarType?.Value != avatar.AvatarType?.Value
+                        || previous.CreatedDate.ToUniversalTime() != avatar.CreatedDate.ToUniversalTime())
+                        throw new InvalidOperationException("Sandbox avatar identity differs between configured providers.");
+                }
+                else merged.Add(avatar.Id, avatar);
+            }
+            return merged.Values.ToList();
         }
     }
 }

@@ -11,6 +11,44 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 public class HolonReadControllerTests
 {
     [Fact]
+    public void CompiledSandboxDiscoveryRetainsIndependentReplicasAndRejectsConflictingOwnerMarkers()
+    {
+        WithController(controller =>
+        {
+            var type = controller.Assembly.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Sandbox.SandboxCleanupHostedService", true)!;
+            var method = type.GetMethod("MergeAvatarCopies", BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.NotNull(method);
+            IReadOnlyList<IAvatar> Merge(params IAvatar[] copies) =>
+                Assert.IsAssignableFrom<IReadOnlyList<IAvatar>>(method!.Invoke(null, new object[] { copies }));
+            var id = Guid.NewGuid();
+            Avatar Copy() => new Avatar { Id = id, Username = "sandbox-contract", Email = "sandbox-contract@sandbox.example.org",
+                AvatarType = new NextGenSoftware.Utilities.EnumValue<NextGenSoftware.OASIS.API.Core.Enums.AvatarType>(NextGenSoftware.OASIS.API.Core.Enums.AvatarType.User),
+                CreatedDate = new DateTime(2026, 11, 1, 0, 0, 0, DateTimeKind.Utc) };
+            var first = Copy();
+            var independent = Copy(); independent.Id = Guid.NewGuid();
+            var merged = Merge(first, Copy(), independent);
+            Assert.Equal(2, merged.Count);
+            Assert.Same(first, merged[0]);
+            Assert.Same(independent, merged[1]);
+            Assert.Empty(Merge());
+            foreach (var marker in new[] { "username", "email", "type", "age" })
+            {
+                var changed = Copy();
+                if (marker == "username") changed.Username = "real-owner";
+                if (marker == "email") changed.Email = "real-owner@example.org";
+                if (marker == "type") changed.AvatarType = new NextGenSoftware.Utilities.EnumValue<NextGenSoftware.OASIS.API.Core.Enums.AvatarType>(NextGenSoftware.OASIS.API.Core.Enums.AvatarType.Wizard);
+                if (marker == "age") changed.CreatedDate = changed.CreatedDate.AddDays(1);
+                var error = Assert.Throws<TargetInvocationException>(() => Merge(first, changed));
+                Assert.IsType<InvalidOperationException>(error.InnerException);
+                Assert.DoesNotContain(changed.Email, error.InnerException!.Message);
+            }
+            Assert.IsType<InvalidOperationException>(Assert.Throws<TargetInvocationException>(() => Merge(new IAvatar[] { null! })).InnerException);
+            var emptyIdentity = Copy(); emptyIdentity.Id = Guid.Empty;
+            Assert.IsType<InvalidOperationException>(Assert.Throws<TargetInvocationException>(() => Merge(emptyIdentity)).InnerException);
+        });
+    }
+
+    [Fact]
     public void CompiledSingleReadPreservesProviderFailureAndExactHolon()
     {
         WithController(type =>
@@ -135,7 +173,7 @@ public class HolonReadControllerTests
         Assert.Contains(configuration, new[] { "Debug", "Release" });
         var artifact = Path.Combine(project, "bin", configuration!, "net10.0", "NextGenSoftware.OASIS.API.ONODE.WebAPI.dll");
         Assert.True(File.Exists(artifact), "Build the retained WEB4 artifact first.");
-        foreach (var source in new[] { "Controllers/DataController.Load.cs", "Helpers/HttpResponseHelper.cs" })
+        foreach (var source in new[] { "Controllers/DataController.Load.cs", "Helpers/HttpResponseHelper.cs", "Services/Sandbox/SandboxCleanupHostedService.cs" })
             Assert.True(File.GetLastWriteTimeUtc(artifact) >= File.GetLastWriteTimeUtc(Path.Combine(project, source)), "WEB4 artifact is stale.");
         var resolver = new AssemblyDependencyResolver(artifact);
         Assembly? Resolve(AssemblyLoadContext context, AssemblyName name)

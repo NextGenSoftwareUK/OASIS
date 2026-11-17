@@ -12,6 +12,12 @@ on:
       - 'Scripts/verify_web4_hyperdrive_route_manifest.ps1'
       - '.github/workflows/hyperdrive-contract-validation.yml'
   workflow_dispatch:
+    inputs:
+      contract_filter:
+        description: 'VSTest filter; select changed contracts to avoid repeating accepted cases.'
+        required: false
+        default: 'FullyQualifiedName~HyperDrive'
+        type: string
 
 jobs:
   manifests-and-contracts:
@@ -83,11 +89,13 @@ jobs:
 
       - name: Run HyperDrive behavioral contracts
         shell: pwsh
+        env:
+          OASIS_HYPERDRIVE_TEST_FILTER: ${{ inputs.contract_filter || 'FullyQualifiedName~HyperDrive' }}
         run: >-
           dotnet test
           'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/NextGenSoftware.OASIS.API.Core.UnitTests.csproj'
           --configuration Release
-          --filter 'FullyQualifiedName~HyperDrive'
+          --filter "$env:OASIS_HYPERDRIVE_TEST_FILTER"
           --logger 'trx;LogFileName=hyperdrive-contracts.trx'
           --results-directory artifacts/hyperdrive-contract-validation
 
