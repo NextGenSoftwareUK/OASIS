@@ -7,9 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Configuration;
-using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -55,7 +52,7 @@ public static partial class CqlV1Endpoint
             if (output.Provider != selected) return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "Projection provenance differs from its admitted provider.");
             if (virtualProjection != null)
                 return await CompleteVirtualProjectionAsync(http, request, intent, output.Rows, virtualProjection,
-                    providers.CreateManager(providers.Resolve(null)), actor, selected, deadline.Token);
+                    providers, actor, selected, deadline.Token);
             var columns = SelectedWireColumns(intent.Columns);
             var rows = SelectedWireRows(output.Rows, deadline.Token);
             deadline.Token.ThrowIfCancellationRequested();
@@ -78,65 +75,22 @@ public static partial class CqlV1Endpoint
     private static async Task<IActionResult> CompleteVirtualProjectionAsync(HttpContext http,
         CqlProjectionV1Request request, CosmicProjectionQuery<Holon, CosmicProjectionRecord> intent,
         IReadOnlyList<CosmicProjectionRecord> materialized, CqlVirtualProjection virtualProjection,
-        HolonManager manager, Guid actor, ProviderType selected, CancellationToken cancellationToken)
+        ICqlV1Providers providers, Guid actor, ProviderType selected, CancellationToken cancellationToken)
     {
         if (materialized.Count >= CqlVirtualProjection.MaximumRows)
             return Failure(400, "CQL_VIRTUAL_SOURCE_LIMIT", "Narrow the filter so both branches fit the mixed projection budget.");
 
-        var context = manager.CreateRequestContext(new ProviderRoutingOverrides(
-            autoFailoverEnabled: false, autoLoadBalancingEnabled: false));
-        if (context.IsError)
-            return Failure(503, "VIRTUAL_HOLON_STORE_UNAVAILABLE", "The mapping's authoritative store is unavailable.");
-
-        cancellationToken.ThrowIfCancellationRequested();
-        var loaded = await context.Result.Manager.LoadHolonAsync(request.VirtualMappingId.Value,
-            loadChildren: false, recursive: false, allowMissing: true);
-        if (loaded.ErrorCode == OASISResultErrorCodes.RecordNotFound)
-            return Failure(404, "VIRTUAL_MAPPING_NOT_FOUND", "The mapping is unavailable.");
-        if (loaded.IsError)
-            return Failure(503, "VIRTUAL_HOLON_STORE_UNAVAILABLE", "The mapping's authoritative store is unavailable.");
-        if (loaded.Result == null || loaded.Result.Id != request.VirtualMappingId.Value || !loaded.Result.IsActive)
-            return Failure(404, "VIRTUAL_MAPPING_NOT_FOUND", "The mapping is unavailable.");
-
-        // The first shipping virtual reader is the MongoDB native source. The
-        // imported branch retains its independently admitted provider selection.
-        const ProviderType source = ProviderType.MongoDBOASIS;
-        string connectionName;
-        try
-        {
-            connectionName = VirtualHolonMapping.GetDefinitionConnectionName(actor, loaded.Result, source);
-        }
-        catch (ArgumentException)
-        {
-            return Failure(404, "VIRTUAL_MAPPING_NOT_FOUND", "The mapping is unavailable.");
-        }
-
-        var connection = await Program.SettingsManager.GetNativeImportConnectionAsync(actor, source, connectionName);
-        cancellationToken.ThrowIfCancellationRequested();
-        if (connection.IsError || connection.Result == null ||
-            OASISBootLoader.NativeImportReaders.Create(source) is not INativeDataQueryProvider reader)
-            return Failure(503, "VIRTUAL_HOLON_SOURCE_UNAVAILABLE", "The mapping's native connection is unavailable.");
-
-        VirtualHolonMapping mapping;
-        try
-        {
-            mapping = VirtualHolonMapping.FromDefinitionHolon(actor, loaded.Result,
-                reader.DescribeNativeConnection(connection.Result));
-        }
-        catch (ArgumentException)
-        {
-            return Failure(400, "VIRTUAL_HOLON_CONNECTION_CHANGED", "The mapping no longer matches the named connection.");
-        }
-        catch (NativeConnectionRefusedException)
-        {
-            return Failure(503, "VIRTUAL_HOLON_SOURCE_UNAVAILABLE", "The mapping's native connection is unavailable.");
-        }
-
-        var native = await mapping.QueryAsync(actor, reader, connection.Result, virtualProjection.MatchField,
-            virtualProjection.MatchValue, virtualProjection.ProjectedFields, CqlVirtualProjection.MaximumRows, cancellationToken);
+        if (providers is not ICqlVirtualMappingReader virtualReader)
+            return Failure(503, "VIRTUAL_HOLON_SOURCE_UNAVAILABLE", "Virtual mapping queries are unavailable on this host.");
+        var native = await virtualReader.QueryVirtualMappingAsync(request.VirtualMappingId.Value, actor,
+            virtualProjection, cancellationToken);
         if (native.IsError)
-            return Failure(native.ErrorCode is "VIRTUAL_HOLON_QUERY_INVALID" or "NATIVE_QUERY_INVALID" ? 400 : 503,
-                native.ErrorCode, "The virtual query did not complete.");
+            return Failure(native.ErrorCode switch
+            {
+                "VIRTUAL_MAPPING_NOT_FOUND" => 404,
+                "VIRTUAL_HOLON_QUERY_INVALID" or "NATIVE_QUERY_INVALID" or "VIRTUAL_HOLON_CONNECTION_CHANGED" => 400,
+                _ => 503
+            }, native.ErrorCode, native.Message);
         if (native.Result.Count >= CqlVirtualProjection.MaximumRows)
             return Failure(400, "CQL_VIRTUAL_SOURCE_LIMIT", "Narrow the filter so both branches fit the mixed projection budget.");
 

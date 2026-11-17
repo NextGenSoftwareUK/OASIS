@@ -1,7 +1,11 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
@@ -83,4 +87,10 @@ internal sealed record CqlVirtualProjection(string MatchField, object MatchValue
         }
         return values;
     }
+}
+
+internal interface ICqlVirtualMappingReader
+{
+    Task<OASISResult<IReadOnlyList<VirtualHolonRead>>> QueryVirtualMappingAsync(
+        Guid mappingId, Guid actor, CqlVirtualProjection projection, CancellationToken cancellationToken);
 }
