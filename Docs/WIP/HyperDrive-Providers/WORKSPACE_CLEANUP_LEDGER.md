@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Clan popup authorization checks ran in memory. The disposable portal candidate index was removed automatically. No fixtures, dependencies, reports or local build outputs were retained.
+
 2026-11-17 UTC — The signed Quest and Mission catalogue probe used one disposable avatar. WEB4 acknowledged its deletion with a nested Boolean receipt. The SDK, session and diagnostics stayed in memory. No test accounts, files or downloads from this probe were retained locally.
 
 2026-11-17 UTC — Quest and Mission hosted asset comparison and exact contract log checks ran in memory. No local downloads, dependencies, reports or test outputs were created.
