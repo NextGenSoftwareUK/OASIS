@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed the temporary index used for the corrected Messaging candidate. Inspected compiler diagnostics in memory. No local build or log archive was retained.
+
 2026-11-17 UTC — Address-only Wallet acceptance cleared its disposable wallet list, read back zero wallets and acknowledged avatar self-deletion. The SDK check ran in memory and created no files or on-chain transaction.
 
 2026-11-17 UTC — Removed the temporary Git index for the scoped Messaging conversations release. No downloads, builds or disposable avatars were created.
