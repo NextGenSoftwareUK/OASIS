@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. Focused website tests used the existing Node executable and three source files from Git in a temporary directory. Python removed that directory and the temporary Git indexes on exit. The browser paging check was syntax-checked from standard input. No browser profile, build outputs, reusable runtime or database was created. CI retains the exact source run and registry image for the next Development batch.
+
 17 November UTC. Created the combined snapshot and Clan/Wallet qualification revisions using two temporary Git indexes. Both index directories were removed on exit. The exact Core and parent qualification tags are retained for CI source retrieval. No local runtime, browser profile, database or build output was created.
 
 17 November UTC. The initial snapshot trial and all three passing snapshot trials verified absence of their private mapping, stored test row and saved snapshot after conditional cleanup. Temporary Chrome profiles cosmic-mixed-browser-lBXRjs, cosmic-mixed-browser-TWRr5d, cosmic-mixed-browser-H6Kk7p and cosmic-mixed-browser-DLsbhe were removed. Sessions signed out through WEB4. Disposable website test snapshots and Git indexes were removed at process exit. No new runtime or local build output.
