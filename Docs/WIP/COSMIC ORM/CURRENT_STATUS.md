@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. Scoped mixed-query repair candidate `6c0e85793d7c` sits directly on Development `67a37fa9489b` and keeps the same Core pin. It changes the two WEB4 mapping files only. [Exact source qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44055069469) is queued. The shared WEB4 image runner is serving another candidate. The MongoDB demo fix remains the next COSMIC Development batch after verification and a fresh branch comparison. SQLite and newer LINQ steps retain their separate qualification.
+
 17 November UTC. WEB4 Development `67a37fa9489b` accepted the private mapping save and CQL metadata discovery. Mixed retrieval failed because the definition read entered ordinary Holon routing inside an admitted CQL execution. An absent-ID control returned 404 on the standalone route and 503 on the mixed route. The fix uses an exact actor-scoped native CQL lookup on the mapping authority and keeps provider-attempt measurement intact. The live probe removed its two fixtures and the control and probe sessions were revoked. Exact fix qualification remains pending.
 
 17 November UTC. The SQLite suppliers fixture can be selected through the same virtual mapping admission as the MongoDB samples. Mixed CQL reads the saved mapping's provider independently of the imported Holon provider. Source admission is still sandbox-only for the configured SQLite file. Exact native SQLite tests and the separate live rollout remain pending.

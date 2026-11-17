@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. Live mixed Virtual Holon test verified the private mapping and stored fixture absent after the definition lookup failed. The diagnostic control only queried an absent ID. Both sessions were revoked and the nonsecret journal was removed. Temporary indexes used for the scoped repair were removed. No build output or database copy was created on the recovery laptop.
+
 17 November UTC. The live Free WEB6 browser probe signed out the temporary visitor and removed `cosmic-free-web6-ui-cgdP1P`. Used installed Chrome and managed Node. No provider keys, extra runtime or data Holons were persisted locally.
 
 17 November UTC. Removed `cosmic-virtual-ui-P1w5Fd` after the exact Virtual Holon UI Chrome preflight and signed out its temporary session. No query or data write was sent. The website test snapshot and temporary index were removed. No browser or runtime was installed.
