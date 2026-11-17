@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL task commit `901afc5` mounts Subscription Admin independently and binds analytics and app-usage controls when its own panel arrives. The regression held Gifts, verified Admin readiness, and checked that a Wallet event did not bind Admin before its own event. All 17 groups passed on exact four-file dev candidate `5acd165026b1d597e8e5443f13af158c309efa97`; endpoint drift passed on the task branch. Dev publication and signed administrative workflows remain open.
+
 2026-11-17 UTC — OPORTAL dev fast-forwarded once at 07:31 UTC from `9775d0000abf` to `02abb9e0475c`. [Vercel deployment](https://vercel.com/oasis-team/oportal/9H7NWWARmdMkKw77epi2Qy9TUjXC) reported success. The live Avatar popup shell referenced all ten changed JavaScript assets and each matched its exact Git blob. The release covers independent Avatar, Wallet, OAPPs, Quests, Missions, Settings, Karma and Map panels and visibility-triggered Quest and Mission dashboard counts. Signed-in browser and production acceptance remain open. Live asset checks took place in memory with no generated files.
 
 2026-11-17 UTC — OPORTAL task commit `0567dfa` makes Settings, Karma and Map ready as their own panels arrive. A held Gifts response no longer delays their readiness. Exact combined candidate `02abb9e0475c8723b5b3822cb9586b7dd0d77304` replaces `3873c8eed50a` and passed all 17 regression groups. The task branch endpoint drift check also passed. Dev publication and signed-in browser verification remain open.
