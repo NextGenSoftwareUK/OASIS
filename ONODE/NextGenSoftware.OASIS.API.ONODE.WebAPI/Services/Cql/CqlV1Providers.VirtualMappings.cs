@@ -17,18 +17,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 public sealed partial class CqlV1Providers
 {
     Task<OASISResult<IReadOnlyList<VirtualHolonRead>>> ICqlVirtualMappingReader.QueryVirtualMappingAsync(
-        Guid mappingId, Guid actor, CqlVirtualProjection projection, CancellationToken cancellationToken)
+        Guid mappingId, IAvatar avatar, CqlVirtualProjection projection, CancellationToken cancellationToken)
     {
         var authority = Resolve(null);
-        return QueryOwnedVirtualMappingAsync(CreateManager(authority), authority, mappingId, actor, ProviderType.MongoDBOASIS,
+        return QueryOwnedVirtualMappingAsync(CreateManager(authority), authority, mappingId, avatar, null,
             projection.MatchField, projection.MatchValue, projection.ProjectedFields, CqlVirtualProjection.MaximumRows,
             cancellationToken);
     }
 
     internal static async Task<OASISResult<IReadOnlyList<VirtualHolonRead>>> QueryOwnedVirtualMappingAsync(
-        HolonManager manager, IOASISProvider authority, Guid mappingId, Guid actor, ProviderType source, string matchField, object matchValue,
+        HolonManager manager, IOASISProvider authority, Guid mappingId, IAvatar avatar, ProviderType? requestedSource, string matchField, object matchValue,
         IReadOnlyList<string> selectedFields, int limit, CancellationToken cancellationToken)
     {
+        var actor = avatar.Id;
         if (authority is not ICosmicQueryStorageProvider adapter ||
             authority.ProviderType?.Value != adapter.QueryProviderType)
             return Refuse("VIRTUAL_HOLON_STORE_UNAVAILABLE", "The mapping's authoritative store cannot query its definition.");
@@ -63,8 +64,12 @@ public sealed partial class CqlV1Providers
             return Refuse("VIRTUAL_MAPPING_NOT_FOUND", "The mapping is unavailable.");
 
         string connectionName;
+        ProviderType source;
         try
         {
+            source = VirtualHolonMapping.GetDefinitionProvider(actor, definition);
+            if (requestedSource.HasValue && requestedSource.Value != source)
+                return Refuse("VIRTUAL_MAPPING_NOT_FOUND", "The mapping is unavailable.");
             connectionName = VirtualHolonMapping.GetDefinitionConnectionName(actor, definition, source);
         }
         catch (ArgumentException)
@@ -74,7 +79,7 @@ public sealed partial class CqlV1Providers
 
         try
         {
-            var binding = await ResolveVirtualConnectionAsync(actor, source, definition.Name, connectionName);
+            var binding = ResolveVirtualConnection(avatar, source, definition.Name, connectionName);
             cancellationToken.ThrowIfCancellationRequested();
             if (binding == null)
                 return Refuse("VIRTUAL_HOLON_SOURCE_UNAVAILABLE", "The mapping's native connection is unavailable.");
@@ -98,12 +103,12 @@ public sealed partial class CqlV1Providers
 
     internal sealed record VirtualConnectionBinding(INativeDataQueryProvider Reader, NativeConnection Connection, string Identity);
 
-    internal static async Task<VirtualConnectionBinding> ResolveVirtualConnectionAsync(
-        Guid actor, ProviderType provider, string sourceName, string connectionName)
+    internal static VirtualConnectionBinding ResolveVirtualConnection(
+        IAvatar avatar, ProviderType provider, string sourceName, string connectionName)
     {
         if (connectionName == VirtualHolonMapping.SandboxConnectionName)
         {
-            if (!ProviderFaultGate.IsEnabled || provider != ProviderType.MongoDBOASIS || SandboxFields(sourceName) == null)
+            if (!ProviderFaultGate.IsEnabled || SandboxFields(provider, sourceName) == null)
                 return null;
             var resolved = ProviderManager.Instance.ResolveStorageProvider(provider);
             return !resolved.IsError && resolved.Result is INativeDataQueryProvider configured
@@ -113,7 +118,7 @@ public sealed partial class CqlV1Providers
 
         if (OASISBootLoader.NativeImportReaders.Create(provider) is not INativeDataQueryProvider reader)
             return null;
-        var connection = await Program.SettingsManager.GetNativeImportConnectionAsync(actor, provider, connectionName);
+        var connection = SettingsManager.OpenNativeImportConnection(avatar, provider, connectionName);
         return !connection.IsError && connection.Result != null
             ? new VirtualConnectionBinding(reader, connection.Result, reader.DescribeVirtualQueryConnection(connection.Result))
             : null;
@@ -121,15 +126,17 @@ public sealed partial class CqlV1Providers
 
     internal static bool IsSandboxVirtualMapping(ProviderType provider, string sourceName,
         IReadOnlyDictionary<string, string> fields) =>
-        ProviderFaultGate.IsEnabled && provider == ProviderType.MongoDBOASIS &&
-        SandboxFields(sourceName) is { } approved && fields != null &&
+        ProviderFaultGate.IsEnabled && SandboxFields(provider, sourceName) is { } approved && fields != null &&
         fields.Values.All(field => approved.Contains(field, StringComparer.Ordinal));
 
-    private static string[] SandboxFields(string sourceName) => sourceName switch
+    private static string[] SandboxFields(ProviderType provider, string sourceName) => (provider, sourceName) switch
     {
-        "customers" => new[] { "name", "city", "tier", "marketingOptIn" },
-        "products" => new[] { "title", "summary", "inStock" },
-        "orders" => new[] { "status" },
+        (ProviderType.MongoDBOASIS, "customers") => new[] { "name", "city", "tier", "marketingOptIn" },
+        (ProviderType.MongoDBOASIS, "products") => new[] { "title", "summary", "inStock" },
+        (ProviderType.MongoDBOASIS, "orders") => new[] { "status" },
+        (ProviderType.SQLLiteDBOASIS, "suppliers") => new[] { "name", "country", "description" },
+        (ProviderType.Neo4jOASIS, var label) when label == SandboxOptions.Current.DemoNeo4jLabel =>
+            new[] { "handle", "name", "tier", "points" },
         _ => null
     };
 

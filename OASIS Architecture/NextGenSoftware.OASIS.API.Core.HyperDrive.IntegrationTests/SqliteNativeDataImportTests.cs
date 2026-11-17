@@ -78,6 +78,25 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
         }
 
         [Fact]
+        public async Task VirtualProjectionUsesTheSameCompositeKeyAndExactNativeFilter()
+        {
+            var provider = Provider();
+            var imported = (await provider.ReadNativeRecordsAsync("lines", null, 10)).Result.Records;
+            var result = await provider.QueryNativeRecordsAsync("lines", "sku", "A", new[] { "sku" }, 1);
+            Assert.False(result.IsError, result.Message);
+            var row = Assert.Single(result.Result);
+            Assert.Equal(imported[0].NativeKey, row.NativeKey);
+            Assert.Equal("A", row.Fields["sku"]);
+            Assert.Single(row.Fields);
+            Assert.Empty((await provider.QueryNativeRecordsAsync("lines", "sku", "a", new[] { "sku" }, 2)).Result);
+            Assert.Empty((await provider.QueryNativeRecordsAsync("lines", "orderId", "10", new[] { "sku" }, 2)).Result);
+            Assert.Equal(new[] { "A", "B" }, (await provider.QueryNativeRecordsAsync("lines", "orderId",
+                10L, new[] { "sku" }, 2)).Result.Select(item => item.Fields["sku"]));
+            Assert.Equal("NATIVE_QUERY_INVALID",
+                (await provider.QueryNativeRecordsAsync("lines", "sku", "A", new[] { "missing" }, 2)).ErrorCode);
+        }
+
+        [Fact]
         public async Task RefusesTheOasisDatabaseUnknownTablesAndMissingFiles()
         {
             var same = new SQLLiteDBOASIS($"Data Source={NativePath}") { NativeImportConnectionString = $"Data Source={NativePath}" };

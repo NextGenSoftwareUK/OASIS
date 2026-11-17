@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.Common;
@@ -92,5 +93,5 @@ internal sealed record CqlVirtualProjection(string MatchField, object MatchValue
 internal interface ICqlVirtualMappingReader
 {
     Task<OASISResult<IReadOnlyList<VirtualHolonRead>>> QueryVirtualMappingAsync(
-        Guid mappingId, Guid actor, CqlVirtualProjection projection, CancellationToken cancellationToken);
+        Guid mappingId, IAvatar avatar, CqlVirtualProjection projection, CancellationToken cancellationToken);
 }
