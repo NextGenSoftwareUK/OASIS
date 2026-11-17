@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Chat manager review confirms two participants are required. OPORTAL task 5169e84 validates a distinct recipient GUID before starting a session. The staged Chat candidate 3a21cf09dfc6 must be refreshed with this correction before promotion. The next portal dev window is 17:54:41 UTC. WEB4 3527154a118d is still building. Hosted Chat remains unverified.
+
 2026-11-17 UTC — OPORTAL task f7bfd4d polls Chat only when its tab and browser document are visible and allows one history request at a time. It restarts polling when Chat becomes visible, clears the session on logout and rejects old-session results. The focused deferred check passed overlap suppression, hidden tab/page, visibility resume, stale-token suppression, empty rendering and logout. Publication and hosted Chat remain open. No backend fixtures or local outputs were created.
 
 2026-11-17 UTC — OPORTAL task e6eb771 wires Chat session creation to a participant ID array and sends message content as the JSON string WEB4 expects. The active avatar is included, with the entered recipient when supplied. Failed sends preserve the draft and show the application error. A focused check passed both body contracts, failed draft retention and acknowledged clearing. Hosted Chat and dev publication remain open. No real chat or local artifact was created.
