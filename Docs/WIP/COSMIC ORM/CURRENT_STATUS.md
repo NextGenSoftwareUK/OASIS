@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. The shipping SQLite provider has a scoped Virtual Holon candidate for bounded native projections over a configured read-only external database. It uses verified column names, bound String or Int64 equality, a byte limit and the existing import key scheme. Browser admission and exact native qualification are pending. Uploaded connection files remain on the import path.
+
 17 November UTC. The native joined LINQ candidate composes predicate overloads of Count, LongCount, Any and the First, Last and Single families through the verified Where plan before applying the terminal. The shared fixture checks retained ordering and unmatched rows and rejects predicates after a result page. Exact native qualification is pending.
 
 17 November UTC. Exact website `2c5b533d8a84` on the existing public origin started a fresh Free visitor, selected the reviewed HoloOASIS example and submitted one real Ask Your Data draft to Development WEB6. WEB6 reported no available Free route and the page displayed the expected message in 1.23 s. No CQL execution, paid model or temporary entitlement was used. The existing ACTIONS-FOR-DAVID entry still tracks configured inference and catalogue publication.
