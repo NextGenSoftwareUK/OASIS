@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL dashboard task 27c23d7 invalidates an old dashboard session when the authenticated WEB4 client changes, even for the same avatar. The focused in-memory check verified duplicate startup suppression, one replacement startup, observer cleanup and stale-session rejection. Dev promotion and signed browser timing remain open. No build outputs or fixtures were created.
+
 2026-11-17 UTC — Messaging image 44131607608 failed compilation because Guid still requires using System. Restored the import on the task and exact qualification branches. Corrected revision 3527154a118d is running [contracts](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44133551601) and [image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44133558977). No Development push.
 
 2026-11-17 UTC — Railway WEB4 dev dd9989649bca passed the shipping OPORTAL SDK address-only Solana link and signed wallet readback. Exactly one link was present and neither the link response nor readback supplied a recovery phrase. Clearing the disposable wallet list and self-deleting the avatar were acknowledged. No on-chain transaction was sent. Wallet signing and mainnet valuation remain open.
