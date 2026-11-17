@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Compared both deployed portal scripts and shells with Git blobs entirely in memory. No test records, downloaded files or local build output were created during publication.
+
 2026-11-17 UTC — Removed the temporary Git index for the final staged dashboard and Messages batch. Exact script comparisons used Git objects in memory and created no fixtures or build outputs.
 
 2026-11-17 UTC — Removed the temporary index for the combined dashboard and Messaging portal candidate. No new fixture, download or build output was created.

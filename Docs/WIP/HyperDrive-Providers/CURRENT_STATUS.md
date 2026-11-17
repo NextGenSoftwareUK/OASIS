@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL dev advanced to 6d13b2419426 after its 30-minute window. Hosted Messages 20261117u and dashboard 20261117t exactly match the tested script blobs. Corrected WEB4 image 44133558977 and contracts 44133551601 passed. Development fast-forwarded to 3527154a118d and Railway queued that WEB4 revision at 17:27:06 UTC. Verify the running revision before hosted Messaging reads. Signed delivery and earlier cleanup remain open.
+
 2026-11-17 UTC — Corrected Messaging contracts 44133551601 passed on 3527154a118d. Matching image 44133558977 remains active. Combined portal candidate 6d13b2419426 includes dashboard client-change and Messaging grouping, unread and session guards over dev 016e2b815c75. Both script blobs equal their tested task revisions; shell keys are 20261117t and 20261117u. The portal push window opens 17:24:24 UTC.
 
 2026-11-17 UTC — OPORTAL task e74520e discards Conversations and Notifications results when avatar, token or WEB4 client changes during the request. The deferred-response check passed sign-out, changed avatar, changed token and replaced client, plus a current-session empty read. Include this script and cache key 20261117u in the next portal batch. Desktop browser initialization still failed after kernel reset with a missing runtime path. Browser acceptance remains open. No hosted fixtures or local outputs were created.
