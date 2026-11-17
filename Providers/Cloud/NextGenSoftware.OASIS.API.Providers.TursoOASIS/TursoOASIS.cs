@@ -203,7 +203,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.TursoOASIS] = avatar.Id.ToString();
                 await WriteOneAsync(
                     "INSERT INTO oasis_avatars(id,username,email,is_deleted,data_json) VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET username=excluded.username,email=excluded.email,is_deleted=excluded.is_deleted,data_json=excluded.data_json",
-                    new List<LibSqlArg> { Arg(avatar.Id.ToString()), Arg(avatar.Username), Arg(avatar.Email), ArgInt(avatar.IsDeleted ? 1 : 0), Arg(Ser(avatar)) });
+                    new List<LibSqlArg> { Arg(avatar.Id.ToString()), Arg(avatar.Username), Arg(avatar.Email), ArgInt(avatar.IsDeleted ? 1 : 0), Arg(StoredRecordJson.Serialize(avatar)) });
                 result.Result = avatar;
                 result.IsSaved = true;
                 result.SavedCount = 1;
@@ -222,8 +222,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             var res = await ExecuteSqlAsync(sql, args);
             var rows = ResultToRows(res);
             if (rows.Count == 0) return null;
-            return Des<Avatar>(rows[0].GetValueOrDefault("data_json"));
+            return ReadStoredAvatar(rows[0]["data_json"]);
         }
+
+        private static Avatar ReadStoredAvatar(string? payload) =>
+            StoredRecordJson.DeserializeStored<Avatar>(payload!)
+                ?? throw new InvalidOperationException("Turso returned an empty avatar payload.");
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
         {
@@ -283,21 +287,22 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => LoadAvatarByEmailAsync(avatarEmail, version).Result;
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string verificationToken, int version = 0)
-            => LoadAvatarCredentialAsync("json_extract(data_json,'$.verificationToken')=?", verificationToken, version);
+            => LoadAvatarCredentialAsync("COALESCE(json_extract(data_json,'$.VerificationToken'),json_extract(data_json,'$.verificationToken'))=?", verificationToken, version);
 
         public override OASISResult<IAvatar> LoadAvatarByVerificationToken(string verificationToken, int version = 0)
             => LoadAvatarByVerificationTokenAsync(verificationToken, version).GetAwaiter().GetResult();
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string resetToken, int version = 0)
-            => LoadAvatarCredentialAsync("json_extract(data_json,'$.resetToken')=?", resetToken, version);
+            => LoadAvatarCredentialAsync("COALESCE(json_extract(data_json,'$.ResetToken'),json_extract(data_json,'$.resetToken'))=?", resetToken, version);
 
         public override OASISResult<IAvatar> LoadAvatarByResetToken(string resetToken, int version = 0)
             => LoadAvatarByResetTokenAsync(resetToken, version).GetAwaiter().GetResult();
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string refreshToken, int version = 0)
             => LoadAvatarCredentialAsync("""
-                EXISTS (SELECT 1 FROM json_each(data_json,'$.refreshTokens') AS refresh
-                    WHERE json_extract(refresh.value,'$.token')=?)
+                EXISTS (SELECT 1 FROM json_each(COALESCE(json_extract(data_json,'$.RefreshTokens'),
+                    json_extract(data_json,'$.refreshTokens'))) AS refresh
+                    WHERE COALESCE(json_extract(refresh.value,'$.Token'),json_extract(refresh.value,'$.token'))=?)
                 """, refreshToken, version);
 
         public override OASISResult<IAvatar> LoadAvatarByRefreshToken(string refreshToken, int version = 0)
@@ -327,8 +332,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                         IsError = true, ErrorCount = 1, ErrorCode = OASISResultErrorCodes.AmbiguousIdentity,
                         Message = "More than one live avatar matches the credential."
                     };
-                result.Result = Des<Avatar>(rows[0]["data_json"])
-                    ?? throw new InvalidOperationException("Turso returned an empty avatar credential payload.");
+                result.Result = ReadStoredAvatar(rows[0]["data_json"]);
                 result.IsLoaded = true;
                 result.LoadedCount = 1;
             }
@@ -354,7 +358,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             try
             {
                 var res = await ExecuteSqlAsync("SELECT data_json FROM oasis_avatars WHERE is_deleted=0");
-                var avatars = ResultToRows(res).Select(r => Des<Avatar>(r.GetValueOrDefault("data_json"))).Where(a => a != null).Cast<IAvatar>().ToList();
+                var avatars = ResultToRows(res).Select(row => (IAvatar)ReadStoredAvatar(row["data_json"])).ToList();
                 result.Result = avatars;
                 result.IsLoaded = true;
                 result.LoadedCount = avatars.Count;

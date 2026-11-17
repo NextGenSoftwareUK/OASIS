@@ -453,6 +453,45 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             }
         }
 
+        [TestMethod]
+        public async Task NativeAvatarWalletAndLegacyCredentialPayloadsRoundTrip()
+        {
+            RequireOwnedFixture();
+            using var client = new HttpClient();
+            var wallet = new ProviderWallet { WalletId = Guid.NewGuid(), PublicKey = "synthetic-wallet-public-key" };
+            var avatar = new Avatar
+            {
+                Id = Guid.NewGuid(), Username = "wallet-avatar",
+                VerificationToken = Guid.NewGuid().ToString("N"), ResetToken = Guid.NewGuid().ToString("N")
+            };
+            avatar.ProviderWallets[ProviderType.TursoOASIS] = new() { wallet };
+            var refresh = Guid.NewGuid().ToString("N");
+            avatar.RefreshTokens.Add(new RefreshToken { Token = refresh });
+            Assert.IsTrue((await _provider.SaveAvatarAsync(avatar)).IsSaved);
+
+            var loaded = await _provider.LoadAvatarAsync(avatar.Id);
+            Assert.IsTrue(loaded.IsLoaded, loaded.Message);
+            Assert.AreEqual(wallet.WalletId, loaded.Result!.ProviderWallets[ProviderType.TursoOASIS].Single().WalletId);
+            Assert.AreEqual(wallet.PublicKey, loaded.Result.ProviderWallets[ProviderType.TursoOASIS].Single().PublicKey);
+            Assert.AreEqual(avatar.Id, (await _provider.LoadAvatarByVerificationTokenAsync(avatar.VerificationToken)).Result?.Id);
+            Assert.AreEqual(avatar.Id, _provider.LoadAvatarByResetToken(avatar.ResetToken).Result?.Id);
+            Assert.AreEqual(avatar.Id, (await _provider.LoadAvatarByRefreshTokenAsync(refresh)).Result?.Id);
+
+            var legacy = new Avatar { Id = Guid.NewGuid(), Username = "legacy-avatar", ResetToken = Guid.NewGuid().ToString("N") };
+            var legacyRefresh = Guid.NewGuid().ToString("N");
+            legacy.RefreshTokens.Add(new RefreshToken { Token = legacyRefresh });
+            var legacyBytes = JsonSerializer.SerializeToUtf8Bytes(legacy, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            });
+            await ExecuteFixtureSql(client, $"INSERT INTO oasis_avatars(id,username,is_deleted,data_json) VALUES('{legacy.Id:D}','legacy-avatar',0,CAST(X'{Convert.ToHexString(legacyBytes)}' AS TEXT))");
+            Assert.AreEqual(legacy.Id, _provider.LoadAvatarByResetToken(legacy.ResetToken).Result?.Id);
+            Assert.AreEqual(legacy.Id, (await _provider.LoadAvatarByRefreshTokenAsync(legacyRefresh)).Result?.Id);
+            Assert.IsTrue((await _provider.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsDeleted);
+            Assert.IsTrue((await _provider.DeleteAvatarAsync(legacy.Id, softDelete: false)).IsDeleted);
+        }
+
         private void RequireOwnedFixture()
         {
             if (Environment.GetEnvironmentVariable("TURSOOASIS_URL") != OwnedFixture ||
