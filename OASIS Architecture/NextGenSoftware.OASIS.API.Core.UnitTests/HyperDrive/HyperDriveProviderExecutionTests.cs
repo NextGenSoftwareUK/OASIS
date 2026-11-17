@@ -1722,7 +1722,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         var providerManager = new ProviderManager(null, dna);
         var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "base-holon-clan-roundtrip");
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
-        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), false, false, 0, true, false))
             .ReturnsAsync((IHolon saved, bool _, bool _, int _, bool _, bool _) =>
                 new OASISResult<IHolon>(new Holon
                 {
@@ -1816,7 +1816,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
         provider.Setup(x => x.LoadHolonAsync(clanId, false, false, 0, true, false, 0))
             .ReturnsAsync(new OASISResult<IHolon>(stored));
-        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), false, false, 0, true, false))
             .ReturnsAsync(new OASISResult<IHolon>
             {
                 IsError = true, ErrorCount = 1, ErrorCode = "CLAN_WRITE_REJECTED",
@@ -1831,7 +1831,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         stored.MemberIds.Should().Equal(ownerId);
         provider.Verify(x => x.SaveHolonAsync(
             It.Is<IHolon>(h => ((IClan)h).MemberIds.Contains(candidateId)),
-            true, true, 0, true, false), Times.Once);
+            false, false, 0, true, false), Times.Once);
     }
 
     [Fact]
@@ -1870,7 +1870,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         storedDetail.Inventory.Should().ContainSingle().Which.Should().BeSameAs(item);
         provider.Verify(x => x.SaveAvatarDetailAsync(
             It.Is<IAvatarDetail>(d => d.Inventory.Count == 0)), Times.Once);
-        provider.Verify(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false), Times.Never);
+        provider.Verify(x => x.SaveHolonAsync(It.IsAny<IHolon>(), false, false, 0, true, false), Times.Never);
     }
 
     [Fact]
