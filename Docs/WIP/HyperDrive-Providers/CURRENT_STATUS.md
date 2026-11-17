@@ -1,5 +1,9 @@
 # Current provider status
 
+2026-11-17 UTC — WEB4 reports SUCCESS on exact Chat backend 2f7558d1177a. After that serving gate and the portal cadence gate, portal dev advanced 9c85d745fb97 → 35b03fcd0667. Hosted /messages references the correct Messaging/Settings/Recovery/OAPP cache keys, and all four served JavaScript files plus reset-password.html match the exact candidate Git blobs byte-for-byte. This publishes conversation paging/reply, persisted Chat termination, Settings acknowledgment, recovery error handling and real OAPP reads. Hosted populated writes/browser acceptance remains separate.
+
+2026-11-17 UTC — OAPP lifecycle task 106d722 is pushed and included in portal dev. It uses the shared modal visible/selected classes, binds optional fragments on components-ready/open, deselects the previous popup and invalidates closed responses. Focused checks passed delayed fragment, open/close, previous-popup deselection, closed-result rejection and no request after navigation during authentication. Social-graph source audit found no friendship authority in IAvatarDetail/SocialManager; this popup is still an engineering gap.
+
 2026-11-17 UTC — OAPP topology task 84d7046 replaces fabricated demo graphs with the actual STARNET oAPPs.getAllOAPPs SDK read. Removed the unused parallel Holons request, six-app truncation and null-on-failure masking. Empty/error states are distinct, refresh shares a pending session read, old-token/closed-popup responses are discarded, and lazy modal-ready binding works. Controlled checks through the actual SDK passed route, empty/error, returned three-node/two-edge topology, shared refresh, changed token and close isolation. Syntax/diff checks passed. Only relationships supplied by the API are rendered; lazy expansion and hosted populated/browser acceptance remain open. Scoped combined portal candidate 936a3d71b632 is pushed and awaits WEB4 2f7558d1177a, still BUILDING.
 
 2026-11-17 UTC — Full popup source audit also found social-graph-modal.js always displays fabricated people and relationships. This is an engineering gap, not accepted live functionality. A public avatar list cannot establish friendship edges. Identify and verify the real relationship authority before replacing that graph; do not invent connections from unrelated avatars.
@@ -34,14 +38,14 @@
 
 ## OPORTAL acceptance snapshot — 17 November 2026
 
-OPORTAL remains incomplete. Portal dev is at 9c85d745fb97 and the serving dev API fleet is at 919790a8548c. The latest exact portal candidate passed 23 regression groups. A signed headless Edge probe now passed fresh-account dashboard and Subscription/Messages/HyperDrive navigation using an API-issued sandbox session loaded into browser storage. Populated accounts, writes and normal interactive sign-in remain separate checks. The desktop browser tool still fails to initialize.
+OPORTAL remains incomplete. Portal dev is at 35b03fcd0667 and WEB4 serves 2f7558d1177a; verify the remaining fleet separately. The latest exact portal candidate passed 23 regression groups. A signed headless Edge probe now passed fresh-account dashboard and Subscription/Messages/HyperDrive navigation using an API-issued sandbox session loaded into browser storage. Populated accounts, writes and normal interactive sign-in remain separate checks. The desktop browser tool still fails to initialize.
 
 | Area | Verified evidence | Remaining acceptance |
 |---|---|---|
 | Dashboard | Deployed client-change guard; earlier signed empty-account API batch completed in 357–400 ms | Full dashboard completion timing and populated-account results |
 | Subscriptions | October hosted Stripe test checkout, webhook activation, invoices and billing navigation; current public Edge renders five plan cards with GBP pricing; latest portal regression groups passed | Current signed browser regression, real Wizard administrator session and remaining owner actions |
 | Messages | Current signed empty inbox, conversation and summary reads; deployed grouping, unread and session guards | Successful persisted send/readback and cleanup of the earlier two-avatar fixture |
-| Live Chat | Deployed recipient field, request shapes, draft retention and bounded visible polling; controlled checks passed | Server participant checks and persisted termination passed contracts; combined image passed; running deployment precedes hosted round trip |
+| Live Chat | Deployed recipient field, request shapes, draft retention and bounded visible polling; controlled checks passed | Server participant checks and persisted termination passed contracts; backend and portal deployed; hosted populated round trip remains open |
 | Wallet | Signed address-only link/readback and prior watch-only balances/activity checks; fixtures cleaned | Signing, trading, populated mainnet valuation and browser interaction |
 | Clan | Signed create, membership, owner denial and deletion flow passed; UI deployed | Browser interaction and three historical fixture cleanups |
 | NFT / GeoNFT / OLAND | Deployed independent popup reads; application subscription denial was verified for attempted mint/transfer | Eligible account native mint/transfer receipt, populated lists and browser interaction |

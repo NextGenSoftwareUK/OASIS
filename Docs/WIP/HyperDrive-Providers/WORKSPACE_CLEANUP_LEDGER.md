@@ -2282,3 +2282,6 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 
 
 2026-11-17 UTC — OAPP map checks used the shipped SDK with in-memory responses; no backend writes or browser profiles. Qualified candidate 936a3d71b632 used one temporary Git index, removed with lock. No runtime downloads, build outputs or retained test files. Only tracked source and compact documentation were retained.
+
+
+2026-11-17 UTC — OAPP shared-popup lifecycle checks and hosted exact-byte verification ran in memory. No avatar, holon, email or other backend write was made. Candidate 35b03fcd0667 temporary Git index removed in finally. Portal dev and WEB4 deployment used remote infrastructure; no local build artifacts or downloads.
