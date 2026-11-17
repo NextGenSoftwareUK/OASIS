@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — The signed Quest and Mission catalogue probe used one disposable avatar. WEB4 acknowledged its deletion with a nested Boolean receipt. The SDK, session and diagnostics stayed in memory. No test accounts, files or downloads from this probe were retained locally.
+
 2026-11-17 UTC — Quest and Mission hosted asset comparison and exact contract log checks ran in memory. No local downloads, dependencies, reports or test outputs were created.
 
 2026-11-17 UTC — The signed Wallet probe created one disposable sandbox avatar `20378284-3c23-41b7-95a1-d320578b99d8`. Its sole DELETE returned HTTP 200. The probe checked a flat Boolean and did not capture the nested deletion acknowledgement, so cleanup is unconfirmed. Reconcile by read-only observation or the existing sandbox expiry sweep. No DELETE retry, wallet creation, funds movement, local credentials, downloads or build outputs were retained.
