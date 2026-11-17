@@ -792,3 +792,6 @@
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/WalletTokenController.cs","175","WalletTokenController","ImportWalletUsingSecretPhraseByEmail","POST","avatar/email/{email}/import/secret-phrase","DirectModeAwareManagerBoundary"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs","71","CqlV1Controller","Grouped","POST","grouped","ExplicitProviderNativeOrAdministrative"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/NativeDataController.VirtualMappings.cs","106","NativeDataController","PrepareVirtualSnapshot","POST","{providerType}/virtual-mappings/{id:guid}/snapshot/prepare","DirectModeAwareManagerBoundary"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarSealController.cs","38","AvatarSealController","Get","GET","holon-seal","InjectedServiceRepositoryOrClient"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarSealController.cs","46","AvatarSealController","Set","POST","holon-seal","InjectedServiceRepositoryOrClient"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.Seal.cs","21","DataController","VerifyHolonSeal","GET","holon-seal/verify/{id}","DirectModeAwareManagerBoundary"
