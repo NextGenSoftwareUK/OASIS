@@ -17,7 +17,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 public static partial class CqlV1Endpoint
 {
-    public static async Task<IActionResult> ExecuteProjectionAsync(HttpContext http, CqlProjectionV1Request request, ICqlV1Providers providers)
+    public static async Task<IActionResult> ExecuteProjectionAsync(HttpContext http, CqlProjectionV1Request request, ICqlV1Providers providers, bool mixed = false)
     {
         var rejected = CaptureAdmission(http, out var actor, out var admission);
         if (rejected != null) return rejected;
@@ -26,8 +26,9 @@ public static partial class CqlV1Endpoint
             http.RequestAborted.ThrowIfCancellationRequested();
             var requested = CqlV1Compiler.RequestedProvider(request?.Provider, includeCloudReadProfile: true);
             var policy=CaptureReadPolicy(http,actor,requested,providers,admission,includeCloudReadProfile:true);
-            if (request?.VirtualMappingId == Guid.Empty)
-                return Failure(400, "CQL_REQUEST_INVALID", "A nonempty virtual mapping ID is required.");
+            if (request?.VirtualMappingId == Guid.Empty || mixed != (request?.VirtualMappingId.HasValue == true))
+                return Failure(400, "CQL_REQUEST_INVALID",
+                    "Use the mixed projection route with a nonempty mapping ID, or the ordinary route without a mapping.");
             var virtualProjection = request?.VirtualMappingId.HasValue == true
                 ? CqlV1Compiler.CompileVirtualProjection(request)
                 : null;
