@@ -49,6 +49,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public RootstockOASISProviderSettings RootstockOASIS { get; set; }
         public PolygonOASISProviderSettings PolygonOASIS { get; set; }
         public ProviderSettingsBase PocketBaseOASIS { get; set; }
+        public ProviderSettingsBase TursoOASIS { get; set; }
         public ProviderSettingsBase SQLServerDBOASIS { get; set; }
         public SQLLiteDBOASISSettings SQLLiteDBOASIS { get; set; }
         public OracleDBOASISSettings OracleDBOASIS { get; set; }
