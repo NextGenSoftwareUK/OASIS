@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Live Messaging controller audit found that the inbox, conversation and notifications reads could discard real errors and return successful empty test data. All three now return the manager result directly on the work branch. Route and parameter declarations are unchanged and checked by source comparison. Build qualification and hosted verification are pending. Runtime log matches for the two disposable avatar IDs contained no application error code, so the cause of the earlier send test remains unconfirmed. No fixture was replayed.
+
 2026-11-17 UTC — Railway WEB4 reached SUCCESS on dd9989649bca. A signed Messaging probe did not establish delivery. Its cleanup exception masked the original functional error and neither inbox discovery nor conditional delete resolved cleanup. Preserved the two disposable identities for authorized recovery. The probe now reports the original functional error and sanitized cleanup status independently. Do not replay this operation. See the cleanup ledger and the owner action.
 
 2026-11-17 UTC — Exact combined WEB4 image 44122674423 and contracts 44123847813 passed. Development fast-forwarded from ffb6084cbd13 to dd9989649bca after confirming the prior Railway WEB4 deployment and push cadence. Railway queued the exact new WEB4 revision at 16:32:41 UTC. Signed Messaging and address-only Wallet acceptance await the serving revision. No local artifacts or fixtures were created.
