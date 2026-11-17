@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Read selected Messaging CI log lines in memory and removed the temporary Git index used for the corrected fixture commit. No local log archive, dependency or test output was retained.
+
 2026-11-17 UTC — Verified the hosted NFT release shell and script bytes in memory. No local download, fixture, dependency or build output was created.
 
 2026-11-17 UTC — Inspected selected GitHub CI failure lines in memory and removed the temporary index for the Messaging test correction. No local log archive, dependency download or build output was retained.
