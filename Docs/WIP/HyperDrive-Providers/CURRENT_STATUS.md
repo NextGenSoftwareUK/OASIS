@@ -1,5 +1,9 @@
 # Current provider status
 
+2026-11-17 UTC — Global Search task 889729b and scoped candidate 761f54503578 are pushed. The popup now selects/deselects the shared modal instead of toggling only its child display, closes its overlay correctly and does not dismiss a different selected popup. Searches reject replies after navigation and do not start after navigation during JWT setup. Existing 23 regression groups passed after the modal change; then the expanded focused search group passed navigation-before/after-request cases. A sparse-checkout-only initial run stopped on a missing tracked verification HTML; rerunning with tracked blobs read in memory passed all 23 groups. Syntax/diff checks passed. Candidate is scoped to Search JS/test/cache key 20261118f over live dev 35b03fcd0667, pending the next 30-minute portal window.
+
+2026-11-17 UTC — All seven Railway dev services were individually verified SUCCESS on 2f7558d1177a. Other optional popup scripts still contain local display toggles and require the same shared-overlay lifecycle audit; do not generalize the OAPP/Search fixes to those screens or claim all popup actions accepted.
+
 2026-11-17 UTC — WEB4 reports SUCCESS on exact Chat backend 2f7558d1177a. After that serving gate and the portal cadence gate, portal dev advanced 9c85d745fb97 → 35b03fcd0667. Hosted /messages references the correct Messaging/Settings/Recovery/OAPP cache keys, and all four served JavaScript files plus reset-password.html match the exact candidate Git blobs byte-for-byte. This publishes conversation paging/reply, persisted Chat termination, Settings acknowledgment, recovery error handling and real OAPP reads. Hosted populated writes/browser acceptance remains separate.
 
 2026-11-17 UTC — OAPP lifecycle task 106d722 is pushed and included in portal dev. It uses the shared modal visible/selected classes, binds optional fragments on components-ready/open, deselects the previous popup and invalidates closed responses. Focused checks passed delayed fragment, open/close, previous-popup deselection, closed-result rejection and no request after navigation during authentication. Social-graph source audit found no friendship authority in IAvatarDetail/SocialManager; this popup is still an engineering gap.
@@ -38,7 +42,7 @@
 
 ## OPORTAL acceptance snapshot — 17 November 2026
 
-OPORTAL remains incomplete. Portal dev is at 35b03fcd0667 and WEB4 serves 2f7558d1177a; verify the remaining fleet separately. The latest exact portal candidate passed 23 regression groups. A signed headless Edge probe now passed fresh-account dashboard and Subscription/Messages/HyperDrive navigation using an API-issued sandbox session loaded into browser storage. Populated accounts, writes and normal interactive sign-in remain separate checks. The desktop browser tool still fails to initialize.
+OPORTAL remains incomplete. Portal dev is at 35b03fcd0667 and all seven dev APIs serve 2f7558d1177a. The latest exact portal candidate passed 23 regression groups. A signed headless Edge probe now passed fresh-account dashboard and Subscription/Messages/HyperDrive navigation using an API-issued sandbox session loaded into browser storage. Populated accounts, writes and normal interactive sign-in remain separate checks. The desktop browser tool still fails to initialize.
 
 | Area | Verified evidence | Remaining acceptance |
 |---|---|---|
