@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Signed WEB4 dev Wallet ownership check on `031a8cb55ce5` denied another avatar access to the linked wallet token balances, activity and portfolio. All three returned HTTP 403 without wallet data. Portal deployment remains staged until its cadence opens.
+
 2026-11-17 UTC — Staged Messaging root persistence and stable inbox ordering with address-only Wallet linking on Development `031a8cb55ce5`. Candidate `c280c5fa8ddb` pins Core `9c84f60a9fb0`. [Exact contracts](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44111727677) are running. Shared image run `44105503856` occupies the slot.
 
 2026-11-17 UTC — Signed watch-only devnet Wallet valuation returned incomplete, one unpriced wallet, and no total or priced USD amount. This verifies that WEB4 does not assign mainnet USD prices to devnet holdings. Populated mainnet pricing remains open. The OPORTAL Messages deployment was recorded at 14:54:02 UTC, so use that confirmed timestamp for the next portal cadence check if no earlier push timestamp is available.
