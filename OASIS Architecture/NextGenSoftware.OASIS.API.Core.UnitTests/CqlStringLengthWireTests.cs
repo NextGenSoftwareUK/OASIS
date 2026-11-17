@@ -97,10 +97,16 @@ public sealed class CqlStringLengthWireTests
     }
 
     [Fact]
-    public void VirtualEqualityCannotSilentlyDiscardTheFunction()
+    public void VirtualLengthPreservesTheInputAndExactBound()
     {
         var filter = Request("2", metadata: true).Filters[0];
         filter.Operator = CqlV1Operator.Equal;
+        var native = Assert.Single(CqlV1Compiler.CompileVirtualMatches(new[] { filter }));
+        Assert.Equal(NextGenSoftware.OASIS.API.Core.Objects.NativeData.NativeRecordFunction.Utf16Length, native.Function);
+        Assert.Equal(typeof(string), native.InputType);
+        Assert.Equal(2L, Assert.IsType<long>(native.Value));
+        Assert.Equal("title", native.Field);
+        filter.Function = (CqlV1Function)99;
         Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileVirtualMatches(new[] { filter }));
     }
 
@@ -114,4 +120,27 @@ public sealed class CqlStringLengthWireTests
         request.Filters[0].Function = null;
         Assert.DoesNotContain("\"function\"", JsonSerializer.Serialize(request, options));
     }
+
+    [Theory]
+    [InlineData(CqlV1Operator.Equal, CosmicQueryComparisonOperator.Equal)]
+    [InlineData(CqlV1Operator.NotEqual, CosmicQueryComparisonOperator.NotEqual)]
+    [InlineData(CqlV1Operator.GreaterThan, CosmicQueryComparisonOperator.GreaterThan)]
+    [InlineData(CqlV1Operator.GreaterThanOrEqual, CosmicQueryComparisonOperator.GreaterThanOrEqual)]
+    [InlineData(CqlV1Operator.LessThan, CosmicQueryComparisonOperator.LessThan)]
+    [InlineData(CqlV1Operator.LessThanOrEqual, CosmicQueryComparisonOperator.LessThanOrEqual)]
+    public void VirtualLengthRetainsAllComparisonsAndExactBounds(CqlV1Operator operation,
+        CosmicQueryComparisonOperator expected)
+    {
+        foreach (var bound in new[] { long.MinValue, 9007199254740993L, long.MaxValue })
+        {
+            var request = Request(bound.ToString(System.Globalization.CultureInfo.InvariantCulture), metadata: true);
+            request.Filters[0].Operator = operation;
+            var filter = Assert.Single(CqlV1Compiler.CompileVirtualMatches(request.Filters));
+            Assert.Equal(expected, filter.Operator);
+            Assert.Equal(bound, Assert.IsType<long>(filter.Value));
+            Assert.Equal(typeof(string), filter.InputType);
+        }
+    }
+
+
 }

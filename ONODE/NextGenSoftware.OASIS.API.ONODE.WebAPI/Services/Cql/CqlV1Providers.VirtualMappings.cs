@@ -27,7 +27,7 @@ public sealed partial class CqlV1Providers
 
     internal static async Task<OASISResult<IReadOnlyList<VirtualHolonRead>>> QueryOwnedVirtualMappingAsync(
         HolonManager manager, IOASISProvider authority, Guid mappingId, IAvatar avatar, ProviderType? requestedSource,
-        IReadOnlyList<KeyValuePair<string, object>> matches,
+        IReadOnlyList<NativeRecordFilter> matches,
         IReadOnlyList<string> selectedFields, int limit, CancellationToken cancellationToken)
     {
         var actor = avatar.Id;

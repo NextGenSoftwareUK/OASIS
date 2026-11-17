@@ -98,7 +98,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             var matches = ParseVirtualMatches(request);
             if (matches == null)
-                return BadRequest(VirtualReadError("VIRTUAL_HOLON_QUERY_INVALID", "Provide typed CQL equality filters or one direct native match."));
+                return BadRequest(VirtualReadError("VIRTUAL_HOLON_QUERY_INVALID", "Provide supported typed CQL filters or one direct native match."));
 
             var result = await CqlV1Providers.QueryOwnedVirtualMappingAsync(HolonManager, ProviderManager.Instance.CurrentStorageProvider, id, Avatar,
                 providerType, matches, request.Select, request.Take, cancellationToken);
@@ -122,7 +122,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return BadRequest(SnapshotError("VIRTUAL_SNAPSHOT_INVALID", "Provide a mapping, selected row and typed query."));
 
             var query = request.Query;
-            var fields = VirtualSnapshotFields(matches.Select(match => match.Key), query.Select);
+            var fields = VirtualSnapshotFields(matches.Select(match => match.Field), query.Select);
             if (fields == null)
                 return BadRequest(SnapshotError("VIRTUAL_SNAPSHOT_INVALID", "Select up to 32 unique mapped fields including the match field."));
             var rows = await CqlV1Providers.QueryOwnedVirtualMappingAsync(HolonManager,
@@ -168,12 +168,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         private static OASISResult<Holon> SnapshotError(string code, string message) =>
             new OASISResult<Holon> { IsError = true, ErrorCode = code, Message = message };
 
-        private static KeyValuePair<string, object>[] ParseVirtualMatches(VirtualMappingQueryRequest request)
+        private static NativeRecordFilter[] ParseVirtualMatches(VirtualMappingQueryRequest request)
         {
             if (request.Filters == null)
             {
                 var value = ParseVirtualMatch(request);
-                return value == null ? null : new[] { new KeyValuePair<string, object>(request.MatchField, value) };
+                if (value == null) return null;
+                try
+                {
+                    return new[] { new NativeRecordFilter(request.MatchField,
+                        NextGenSoftware.OASIS.API.Core.Queries.CosmicQueryComparisonOperator.Equal, value) };
+                }
+                catch (ArgumentException) { return null; }
             }
             if (request.MatchField != null || request.MatchType != null || request.MatchValue.ValueKind != JsonValueKind.Undefined)
                 return null;
