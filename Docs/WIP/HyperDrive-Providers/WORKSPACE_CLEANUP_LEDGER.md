@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed the temporary indexes for the Messages staging attempts. The focused send and mark-read checks ran in memory. No live message, test avatar, dependencies or build artifact was created.
+
 2026-11-17 UTC — Removed both temporary Git indexes used to stage Avatar Search and rebase the Clan/Wallet portal files. Exact revision checks and live asset comparison used memory only. No local build, downloads or test records were retained.
 
 2026-11-17 UTC — Removed the temporary indexes used to compose combined and rebased Clan/Wallet qualification revisions. Restored the task checkout Core to its recorded gitlink after publishing both scoped Core changes. No local build output, environment or fixture was created.

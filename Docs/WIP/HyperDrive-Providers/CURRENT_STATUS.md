@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL Messages fixes `8ea6bd7` and `3d51db6` are staged together as portal candidate `c9215739480b` over dev `4b67efe7d790`. Focused checks proved one in-flight send, retry after rejection, paged owned unread IDs and acknowledgment handling. Hosted message and notification writes remain unverified. The current portal deployment cadence window has not opened.
+
 2026-11-17 UTC — OPORTAL dev advanced to `4b67efe7d790` with independent Avatar Search mounting. All 23 automated checks passed on that revision, including readiness while an unrelated popup was still loading. Vercel deployment `7856016520` succeeded, and the `/search` shell served the exact `20261117f` component loader. Signed browser timing remains open. Clan/Wallet frontend candidate `429207e5494b` now sits atop this portal revision and remains staged while its matching WEB4 image builds.
 
 2026-11-17 UTC — Read the component loader referenced by the deployed OPORTAL dev shell and fetched all 48 distinct HTML fragments it references. All returned nonempty markup without a portal shell rewrite. This checks asset availability. Modal rendering, authenticated interaction and browser timing remain open. No fixtures or files were created.
