@@ -1,7 +1,8 @@
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
-const { verify } = require('./profile-sdk-native-http.cjs');
+const browserMode = process.env.OASIS_PROFILE_BROWSER_ENABLED === 'true';
+const { verify } = require(browserMode ? './profile-browser-native-http.cjs' : './profile-sdk-native-http.cjs');
 const root = fs.realpathSync(process.env.OASIS_PROFILE_SDK_HANDOFF_ROOT);
 const parent = fs.realpathSync(process.env.RUNNER_TEMP);
 if (!root.startsWith(parent + path.sep) || !path.basename(root).startsWith('oasis-profile-sdk-'))
@@ -23,6 +24,10 @@ async function consume(name) {
     const input = fs.readFileSync(path.join(root, name), 'utf8');
     if (Buffer.byteLength(input) > 8192) throw new Error('Bounded SDK handoff input required.');
     result = await verify(JSON.parse(input));
+    if (browserMode) console.log(JSON.stringify({
+      profileBrowserVerified: result.browserVerified, openMs: result.openMs,
+      saveMs: result.saveMs, profileWrites: result.profileWrites
+    }));
   } catch (error) {
     failed = true; console.error(error.message);
     result = { isError: true, message: 'The actual SDK/native HTTP check failed.' };

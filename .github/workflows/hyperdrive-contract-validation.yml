@@ -38,7 +38,7 @@ on:
       native_project:
         description: Native fixture project
         type: choice
-        options: [integration, subscription_ledger]
+        options: [integration, subscription_ledger, profile_browser]
         default: integration
       native_neo4j:
         description: Add the owned loopback Bolt fixture for the selected Neo4j profile cases
@@ -123,6 +123,35 @@ jobs:
           path: web4-profile-sdk
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
           persist-credentials: false
+
+      - name: Resolve recorded browser portal revision
+        if: ${{ inputs.native_profile_sdk && inputs.native_project == 'profile_browser' }}
+        id: profile_portal
+        shell: pwsh
+        run: |
+          $revision = (Get-Content Scripts/TestHosts/Fixtures/profile-browser-portal-revision.txt -Raw).Trim()
+          if ($revision -notmatch '^[0-9a-f]{40}$') { throw 'Exact browser portal revision required.' }
+          "revision=$revision" >> $env:GITHUB_OUTPUT
+
+      - name: Checkout recorded browser portal assets
+        if: ${{ inputs.native_profile_sdk && inputs.native_project == 'profile_browser' }}
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/OPORTAL-JS
+          ref: ${{ steps.profile_portal.outputs.revision }}
+          path: portal-profile-browser
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /assets/components/modals/avatar.html
+            /assets/css/
+            /assets/fonts/
+            /assets/img/loggedin.png
+            /assets/js/avatar-modal.js
+            /assets/js/oasis-web4-sdk.js
+            /docs/WIP/PROFILE_BROWSER_BUNDLE_EVIDENCE.json
+            /portal.html
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -224,12 +253,14 @@ jobs:
             if ($LASTEXITCODE) { throw 'Native seal routing verification failed.' }
           }
 
-      - name: Verify actual profile SDK through owned native HTTP
+      - name: Verify actual profile client through owned native HTTP
         if: ${{ inputs.native_seal && inputs.native_profile_sdk }}
         shell: bash
         env:
           SUBSCRIPTION_TEST_MONGODB_URI: mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000
           OASIS_PROFILE_WEB4_SDK_ROOT: ${{ github.workspace }}/web4-profile-sdk
+          OASIS_PROFILE_BROWSER_ENABLED: ${{ inputs.native_project == 'profile_browser' && 'true' || 'false' }}
+          OASIS_PROFILE_PORTAL_ROOT: ${{ github.workspace }}/portal-profile-browser
           OASIS_NATIVE_PROVIDER_TEST_FILTER: ${{ inputs.native_test_filter }}
           OASIS_PROFILE_NEO4J_FIXTURE: ${{ inputs.native_neo4j && 'owned-local-27687' || '' }}
         run: bash Scripts/TestHosts/Invoke-ProfileSdkNativeVerification.sh
