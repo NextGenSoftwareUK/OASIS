@@ -1,3 +1,16 @@
+## CLOUD-CQL-HANDOFF-START-2026-11-18 — Start the requested cloud continuation
+
+Status: owner UI step needed after agent-owned tooling failed to complete startup;18 November2026. No cloud session ID has been returned. App create_thread request is still pending; a separate app thread listing showed no new cloud session and the preinstalled Codex CLI cloud list returned zero tasks. The saved Default environment is runnable; its empty repository list is supported by Codex Cloud and is NOT evidence of missing GitHub authorization. No repeat login, deployment key or Bronze grant requested.
+
+Reason: the existing app creation call did not complete; browser inspection could not initialize because the managed Node helper failed with "failed to write kernel assets: The system cannot find the path specified. (os error3)" before any UI action, including after one kernel reset. This is an agent/platform tooling issue, not a request for David to diagnose code or install anything.
+
+Concrete owner step: start a new chat, choose Work in > Cloud > Default environment, and send:
+> Continue the full COSMIC/CQL/HyperDrive goal. Clone https://github.com/NextGenSoftwareUK/OASIS.git on branch work/cosmic-cql-ton-public and read Docs/WIP/COSMIC ORM/CLOUD_HANDOFF_2026-11-18.md. Preserve the full goal and all current shared-cluster/deployment holds; start a persistent goal if supported and continue from the exact recorded state.
+
+Then tell this local chat which cloud session appeared so ownership can be verified and duplicate local execution avoided. The original app request may still resolve; check for a duplicate before creating more than this one continuation. Handoff/code are pushed in parent4c4184d92c4f3b7864f2af975b0d358fab74e101 and the existing Core/website branches. No local credential/session was copied. Do not record migration as completed until an actual cloud session and repository access are verified.
+
+Links: [full handoff](../COSMIC%20ORM/CLOUD_HANDOFF_2026-11-18.md), [official Cloud start instructions](https://learn.chatgpt.com/docs/environments/cloud-environments#start-a-task-in-codex-cloud).
+
 # Actions for David
 
 ### WEB4 COSMIC demo preview access · 13 November
