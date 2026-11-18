@@ -175,67 +175,10 @@ public partial class MongoDBOASIS : INativeDataQueryProvider
 
         matches = NativeRecordFilter.Capture(matches);
         fields = fields.ToArray();
-        var filters = new List<BsonDocument>(matches.Count);
-        foreach (var match in matches)
-        {
-            if (match.Function is NativeRecordFunction.Contains or NativeRecordFunction.StartsWith or NativeRecordFunction.EndsWith)
-            {
-                var operation = match.Function switch
-                {
-                    NativeRecordFunction.Contains => CosmicQueryStringOperator.Contains,
-                    NativeRecordFunction.StartsWith => CosmicQueryStringOperator.StartsWith,
-                    _ => CosmicQueryStringOperator.EndsWith
-                };
-                var expression = MongoCqlTranslator.OrdinalStringMatch(
-                    new BsonString("$" + match.Field), operation, (string)match.Value);
-                if (match.Operator == CosmicQueryComparisonOperator.NotEqual)
-                    expression = new BsonDocument("$not", new BsonArray { expression });
-                filters.Add(new BsonDocument("$expr", expression));
-                continue;
-            }
-            if (match.Function == NativeRecordFunction.Utf16Length)
-            {
-                filters.Add(new BsonDocument("$expr", MongoCqlTranslator.Utf16LengthComparison(
-                    new BsonString("$" + match.Field), match.Operator, (long)match.Value)));
-                continue;
-            }
-            var symbol = match.Operator switch
-            {
-                CosmicQueryComparisonOperator.Equal => "$eq",
-                CosmicQueryComparisonOperator.NotEqual => "$ne",
-                CosmicQueryComparisonOperator.GreaterThan => "$gt",
-                CosmicQueryComparisonOperator.GreaterThanOrEqual => "$gte",
-                CosmicQueryComparisonOperator.LessThan => "$lt",
-                CosmicQueryComparisonOperator.LessThanOrEqual => "$lte",
-                _ => throw new ArgumentException("Unknown native comparison.")
-            };
-            (BsonValue literal, string type) = match.Value switch
-            {
-                string text when text.Length <= 4096 => ((BsonValue)new BsonString(text), "string"),
-                bool flag => (new BsonBoolean(flag), "bool"),
-                int number => (new BsonInt32(number), "int"),
-                long number => (new BsonInt64(number), "long"),
-                _ => (null, null)
-            };
-            if (literal == null)
-                return Refuse(result, "The exact match requires a string, Boolean, Int32 or Int64.", "NATIVE_QUERY_INVALID");
-
-            // Native comparisons can use a source index. The exact type guard excludes arrays and numeric coercion.
-            var atomic = new BsonDocument
-            {
-                { match.Field, new BsonDocument(symbol, literal) },
-                { "$expr", new BsonDocument("$eq", new BsonArray
-                    { new BsonDocument("$type", "$" + match.Field), type }) }
-            };
-            if (match.Operator == CosmicQueryComparisonOperator.NotEqual && match.Value is string)
-                atomic = new BsonDocument("$or", new BsonArray
-                {
-                    atomic, new BsonDocument("$expr", new BsonDocument("$eq", new BsonArray
-                        { new BsonDocument("$type", "$" + match.Field), "null" }))
-                });
-            filters.Add(atomic);
-        }
-        var filter = filters.Count == 1 ? filters[0] : new BsonDocument("$and", new BsonArray(filters));
+        BsonDocument filter;
+        try { filter = CompileNativePredicateFilter(matches); }
+        catch (ArgumentException)
+        { return Refuse(result, "The exact native predicate is unsupported.", "NATIVE_QUERY_INVALID"); }
 
         IDisposable lease = null;
         try
