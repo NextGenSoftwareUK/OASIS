@@ -1,6 +1,7 @@
 'use strict';
 const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
+const deadline = setTimeout(() => { console.error('Owned SDK fixture exceeded its time limit.'); process.exit(1); }, 30000);
 (async () => {
   let input = '';
   for await (const chunk of process.stdin) {
@@ -48,4 +49,4 @@ const { randomUUID } = require('node:crypto');
     avatarVersionId: saved.result.profile.avatarRevision.versionId,
     detailVersionId: saved.result.profile.detailRevision.versionId
   }));
-})().catch(error => { console.error(error.message); process.exitCode = 1; });
+})().catch(error => { console.error(error.message); process.exitCode = 1; }).finally(() => clearTimeout(deadline));
