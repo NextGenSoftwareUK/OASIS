@@ -12,6 +12,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         //public bool LogSwitchingProvidersToFile { get; set; } = true;
         public bool LogSwitchingProviders { get; set; } = true;
         public int ProviderMethodCallTimeOutSeconds { get; set; } = 10;
+        /// <summary>Seconds a sign-in may wait for the login scope and for its avatar lookup before it fails fast, so one slow provider cannot hang or queue every login.</summary>
+        public int AvatarLoginTimeoutSeconds { get; set; } = 10;
         public int ActivateProviderTimeOutSeconds { get; set; } = 10;
         public int DectivateProviderTimeOutSeconds { get; set; } = 10;
         public bool AutoReplicationEnabled { get; set; }
