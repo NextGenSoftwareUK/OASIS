@@ -95,6 +95,24 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(actor, virtualRow.OwnerAvatarId);
         var denied = await mapping.QueryProjectionAsync(Guid.NewGuid(), provider, null, compiled.Matches, compiled.Columns, 100);
         Assert.AreEqual("VIRTUAL_HOLON_FORBIDDEN", denied.ErrorCode);
+        var aggregateIntent = CqlV1Compiler.CompileProjection(request, actor, provider.NativeDataProviderType,
+            CosmicQueryReadAccess.OwnerOrPublic(actor).Result, 100);
+        var storedAggregate = CosmicProjectionResults.Materialize(aggregateIntent,
+            new[] { new CosmicProjectionRow(Guid.NewGuid(), 3.75d) });
+        Assert.IsFalse(storedAggregate.IsError, storedAggregate.Message);
+        foreach (var operation in new[] { CosmicScalarOperation.Min, CosmicScalarOperation.Max,
+            CosmicScalarOperation.Sum, CosmicScalarOperation.Average })
+        {
+            var aggregate = CosmicMixedProjectionResults.Aggregate(aggregateIntent, actor, mapping.Id,
+                storedAggregate.Result, mapped.Result, operation);
+            Assert.IsFalse(aggregate.IsError, aggregate.Message);
+            Assert.AreEqual(operation == CosmicScalarOperation.Min ? 3.25d
+                : operation == CosmicScalarOperation.Max ? 3.75d
+                : operation == CosmicScalarOperation.Sum ? 7d : 3.5d, aggregate.Result.Value);
+        }
+        checks.Add(new { provider = provider.NativeDataProviderType.ToString(),
+            nativeAggregation = "real native Double and materialized values share four exact reductions",
+            numericAggregationVerified = true });
         checks.Add(new { provider = provider.NativeDataProviderType.ToString(),
             nativeProjection = "finite Double extrema/subnormal/zero, six native comparisons, invalid-domain refusal and mapped compiler",
             doubleProjectionVerified = true, elapsedMilliseconds = watch.ElapsedMilliseconds });
