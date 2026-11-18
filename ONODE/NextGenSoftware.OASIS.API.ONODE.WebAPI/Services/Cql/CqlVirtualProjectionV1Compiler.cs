@@ -24,9 +24,12 @@ public static partial class CqlV1Compiler
             request.Columns is not { Length: >= 1 and <= 32 })
             throw new ArgumentException("Mixed projection requires supported native predicates, selected ordering and a bounded result.");
 
+        if ((request.ResultOperation == CqlProjectionV1ResultOperation.Group) != (request.Grouping != null))
+            throw new ArgumentException("Only mixed grouping accepts a grouping description.");
         if (!Enum.IsDefined(typeof(CqlProjectionV1ResultOperation), request.ResultOperation) ||
             request.ResultOperation != CqlProjectionV1ResultOperation.Rows &&
-                (request.Columns.Length != (request.ResultOperation == CqlProjectionV1ResultOperation.LongCount ? 1 : 2) ||
+                (request.ResultOperation != CqlProjectionV1ResultOperation.Group &&
+                    request.Columns.Length != (request.ResultOperation == CqlProjectionV1ResultOperation.LongCount ? 1 : 2) ||
                  request.OrderBy != "Id" || request.Descending || request.SelectedOrder != null ||
                  request.Skip != 0 || request.Take != 1))
             throw new ArgumentException("Mixed aggregates require canonical Id, an admitted value and one unpaged scalar result.");

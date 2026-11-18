@@ -20,11 +20,7 @@ public static partial class CqlV1Compiler
     public static CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> CompileGrouped(
         CqlGroupedV1Request request, Guid actor, ProviderType? provider,CosmicQueryReadAccess access)
     {
-        if (request == null || request.Keys == null || request.Keys.Length is < 1 or > 8
-            || request.ResultFilters == null || request.ResultFilters.Length > 32
-            || request.ResultOrder == null || request.ResultOrder.Length > 32
-            || request.Columns == null || request.Columns.Length is < 1 or > 32 || request.MaximumGroups is < 1 or > 100)
-            throw new ArgumentException("Grouping requires one to8 keys, one to32 columns and one to100 output groups.");
+        ValidateGroupedDescription(request);
         // Key-only grouping over the full admitted input does not depend on source order.
         var unorderedKeyGrouping = request.OrderBy == "None" && request.Take == null && request.Skip == 0
             && request.Graph == null
@@ -32,6 +28,40 @@ public static partial class CqlV1Compiler
         var source = CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
             request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access,
             unorderedKeyGrouping: unorderedKeyGrouping);
+        return CompileGroupedSelection(request, source);
+    }
+
+    private static void ValidateGroupedDescription(CqlGroupedV1Request request)
+    {
+        if (request == null || request.Keys == null || request.Keys.Length is < 1 or > 8
+            || request.ResultFilters == null || request.ResultFilters.Length > 32
+            || request.ResultOrder == null || request.ResultOrder.Length > 32
+            || request.Columns == null || request.Columns.Length is < 1 or > 32 || request.MaximumGroups is < 1 or > 100)
+            throw new ArgumentException("Grouping requires one to8 keys, one to32 columns and one to100 output groups.");
+    }
+
+    /// <summary>Bind grouping to the exact source already captured for both stored and virtual branches.</summary>
+    public static CosmicMixedGroupingPlan<Holon, CosmicProjectionRecord, CosmicProjectionRecord> CompileMixedGrouping(
+        CosmicProjectionQuery<Holon, CosmicProjectionRecord> projection, CqlMixedGroupingV1Request description)
+    {
+        if (projection == null || description == null) throw new ArgumentException("A mixed projection and grouping are required.");
+        var request = new CqlGroupedV1Request
+        {
+            Keys = description.Keys, Columns = description.Columns,
+            ResultFilters = description.ResultFilters, ResultOrder = description.ResultOrder,
+            ResultSkip = description.ResultSkip, ResultTake = description.ResultTake,
+            MaximumGroups = description.MaximumGroups
+        };
+        ValidateGroupedDescription(request);
+        var selected = CompileGroupedSelection(request, projection.Source);
+        var prepared = CosmicMixedProjectionResults.PrepareGrouping(projection, selected);
+        if (prepared.IsError) throw new ArgumentException(prepared.Message);
+        return prepared.Result;
+    }
+
+    private static CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> CompileGroupedSelection(
+        CqlGroupedV1Request request, CosmicQuery<Holon> source)
+    {
         var options = CosmicGroupingOptions.Create(request.MaximumGroups, 1024 * 1024).Result;
         var groupingResult = source.GroupByColumns(request.Keys.Select(ProjectionColumn).ToArray(), options);
         if (groupingResult.IsError) throw new ArgumentException(groupingResult.Message);

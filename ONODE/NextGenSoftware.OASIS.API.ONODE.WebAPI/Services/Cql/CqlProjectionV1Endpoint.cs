@@ -26,7 +26,7 @@ public static partial class CqlV1Endpoint
             http.RequestAborted.ThrowIfCancellationRequested();
             request = CqlRequestCapture.Capture(request);
             if (!Enum.IsDefined(typeof(CqlProjectionV1ResultOperation), request.ResultOperation) ||
-                !mixed && request.ResultOperation != CqlProjectionV1ResultOperation.Rows)
+                !mixed && (request.ResultOperation != CqlProjectionV1ResultOperation.Rows || request.Grouping != null))
                 throw new ArgumentException("The selected terminal operation requires the mixed query route.");
             var requested = CqlV1Compiler.RequestedProvider(request?.Provider, includeCloudReadProfile: true);
             var policy=CaptureReadPolicy(http,actor,requested,providers,admission,includeCloudReadProfile:true);
@@ -40,6 +40,8 @@ public static partial class CqlV1Endpoint
                 : null;
             var intent = CqlV1Compiler.CompileProjection(request, actor, policy?.Selected??requested, policy?.Access,
                 virtualProjection == null ? null : CqlVirtualProjection.MaximumRows);
+            var mixedGrouping = request.ResultOperation == CqlProjectionV1ResultOperation.Group
+                ? CqlV1Compiler.CompileMixedGrouping(intent, request.Grouping) : null;
             if (!TryResolveEligible(providers, requested, admission, out var storage, out var rowAdapter, out var selected,policy,includeCloudReadProfile:true))
                 return Failure(403, "CQL_PROVIDER_NOT_ELIGIBLE", "The provider is not eligible for this admitted projection.");
             if (rowAdapter is not ICosmicQueryProjectionStorageProvider adapter)
@@ -89,7 +91,7 @@ public static partial class CqlV1Endpoint
             if (output.Provider != selected) return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "Projection provenance differs from its admitted provider.");
             if (virtualProjection != null)
                 return await CompleteVirtualProjectionAsync(http, request, intent, output.Rows, virtualProjection,
-                    providers, actor, selected, deadline.Token);
+                    providers, actor, selected, mixedGrouping, deadline.Token);
             var columns = SelectedWireColumns(intent.Columns);
             var rows = SelectedWireRows(output.Rows, deadline.Token);
             deadline.Token.ThrowIfCancellationRequested();
@@ -112,7 +114,9 @@ public static partial class CqlV1Endpoint
     private static async Task<IActionResult> CompleteVirtualProjectionAsync(HttpContext http,
         CqlProjectionV1Request request, CosmicProjectionQuery<Holon, CosmicProjectionRecord> intent,
         IReadOnlyList<CosmicProjectionRecord> materialized, CqlVirtualProjection virtualProjection,
-        ICqlV1Providers providers, Guid actor, ProviderType selected, CancellationToken cancellationToken)
+        ICqlV1Providers providers, Guid actor, ProviderType selected,
+        CosmicMixedGroupingPlan<Holon, CosmicProjectionRecord, CosmicProjectionRecord> mixedGrouping,
+        CancellationToken cancellationToken)
     {
         if (materialized.Count >= CqlVirtualProjection.MaximumRows)
             return Failure(400, "CQL_VIRTUAL_SOURCE_LIMIT", "Narrow the filter so both branches fit the mixed projection budget.");
@@ -133,6 +137,26 @@ public static partial class CqlV1Endpoint
             }, native.ErrorCode, native.Message);
         if (!native.IsLoaded || native.Result == null)
             return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "The mapped source did not return a loaded result.");
+        if (mixedGrouping != null)
+        {
+            var grouped = CosmicMixedProjectionResults.Group(mixedGrouping, actor, request.VirtualMappingId.Value,
+                materialized, native.Result, MaximumResponseBytes * 2, cancellationToken);
+            if (grouped.IsError)
+                return MixedResultFailure(http, grouped.ErrorCode, grouped.Message, cancellationToken);
+            var columns = mixedGrouping.Selection.Columns.Select(column => new
+            {
+                alias = column.Alias,
+                valueType = ProjectionWireType(Nullable.GetUnderlyingType(column.ValueType) ?? column.ValueType),
+                nullable = !column.ValueType.IsValueType || Nullable.GetUnderlyingType(column.ValueType) != null
+            }).ToArray();
+            var groupedRows = SelectedWireRows(grouped.Result, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            return JsonResponse(new OASISResult<object>(new
+            {
+                version = "cql-grouped-v1", provider = selected.ToString(), columns, rows = groupedRows,
+                virtualMappingId = request.VirtualMappingId, canPrepareSnapshot = false
+            }) { IsLoaded = true });
+        }
         if (request.ResultOperation is CqlProjectionV1ResultOperation.LongCount or
             CqlProjectionV1ResultOperation.CountValues or CqlProjectionV1ResultOperation.CountDistinct)
         {
