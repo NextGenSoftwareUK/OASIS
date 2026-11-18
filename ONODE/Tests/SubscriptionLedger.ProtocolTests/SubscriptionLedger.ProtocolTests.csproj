@@ -1,6 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup><TargetFramework>net10.0</TargetFramework><IsPackable>false</IsPackable><IsTestProject>true</IsTestProject><ImplicitUsings>enable</ImplicitUsings><Nullable>disable</Nullable></PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/AccessLog/AccessLogService.cs" Link="Production/AccessLogService.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/AccessLog/AccessLogOverrides.cs" Link="Production/AccessLogOverrides.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/AccessLog/MongoAccessLogStore.cs" Link="Production/MongoAccessLogStore.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.AppPolicyOverrides.cs" Link="Production/MongoSubscriptionUsageRepository.AppPolicyOverrides.cs" />
     <ProjectReference Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.DNA/NextGenSoftware.OASIS.API.DNA.csproj" />
   </ItemGroup>
