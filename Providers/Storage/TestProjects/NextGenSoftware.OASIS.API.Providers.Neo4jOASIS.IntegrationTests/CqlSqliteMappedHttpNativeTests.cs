@@ -42,7 +42,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             await CqlV1Web4NativeTests.VerifyMappedNativeHttpAsync(provider, mapping, original.Result.Single());
             CollectionAssert.AreEqual(before, await File.ReadAllBytesAsync(path));
             checks.Add(new { provider = "SQLLiteDBOASIS", nativeHttp = "mixed raw/computed rows and private definition from real storage",
-                jwt = true, discovery = "controlled owned fixture", successAttempts = 3, foreignActorAttempts = 2,
+                jwt = true, discovery = "controlled owned fixture", successAttempts = 3, foreignActorAttempts = 2, globalOrderingVerified = true, orderedAttempts = 3,
                 unchangedSource = true, elapsedMilliseconds = watch.ElapsedMilliseconds });
         }
         finally

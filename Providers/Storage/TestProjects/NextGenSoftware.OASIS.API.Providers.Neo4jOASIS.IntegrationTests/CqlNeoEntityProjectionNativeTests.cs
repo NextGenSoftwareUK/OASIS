@@ -315,7 +315,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             await CqlV1Web4NativeTests.VerifyMappedNativeHttpAsync(provider, lengthMapping, mappedLength.Result.Single());
             CollectionAssert.AreEqual(nativeBefore, await NativeProjectionSnapshot());
             checks.Add(new { provider = "Neo4jOASIS", nativeProjection = "exact UTF8 byte bound, limited computation, cancellation and unchanged source", elapsedMilliseconds = projectionWatch.ElapsedMilliseconds });
-            checks.Add(new { provider = "Neo4jOASIS", nativeHttp = "mixed raw/computed and database-loaded private definition", jwt = true, discovery = "controlled owned fixture", successAttempts = 3, foreignActorAttempts = 2 });
+            checks.Add(new { provider = "Neo4jOASIS", nativeHttp = "mixed raw/computed and database-loaded private definition", jwt = true, discovery = "controlled owned fixture", successAttempts = 3, foreignActorAttempts = 2, globalOrderingVerified = true, orderedAttempts = 3 });
         }
         finally
         {
