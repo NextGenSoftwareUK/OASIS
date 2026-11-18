@@ -7,6 +7,31 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public class CqlStringLengthWireTests_NullablePresence
 {
+    private static int GetterCalls;
+    private static bool HasValue { get { GetterCalls++; return true; } }
+
+    [Fact]
+    public void ArbitraryHasValueGetterIsRejectedWithoutExecution()
+    {
+        GetterCalls = 0;
+        var result = CosmicQueryExpression.Compile<Holon>(row => HasValue);
+        Assert.True(result.IsError);
+        Assert.Equal(0, GetterCalls);
+    }
+
+    [Fact]
+    public void SourceNullableMetadataPresenceUsesTheSameNullComparison()
+    {
+        var result = CosmicQueryExpression.Compile<Holon>(
+            row => CosmicQueryMetadata.Value<int?>(row, "optional").HasValue);
+        Assert.False(result.IsError, result.Message);
+        var comparison = Assert.IsType<CosmicQueryComparison>(result.Result);
+        Assert.True(comparison.Path.IsMetadata);
+        Assert.Equal(typeof(int?), comparison.Path.ValueType);
+        Assert.Equal(CosmicQueryComparisonOperator.NotEqual, comparison.Operator);
+        Assert.Equal(CosmicQueryScalarKind.Null, comparison.Literal.Kind);
+    }
+
     [Theory]
     [InlineData(false)] [InlineData(true)]
     public void SelectedNullablePresenceBindsARealNullComparison(bool negate)
