@@ -73,6 +73,9 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsFalse((await existing.ToListAsync()).Contains(usageDb), "Never reset an existing HTTP evidence database.");
         var definition = mapping.ToDefinitionHolon(); definition.Version = 1; definition.IsActive = true;
         var snapshot = original.PrepareSnapshot(mapping.OwnerAvatarId); snapshot.Version = 1;
+        // A legitimate cached copy can retain an old value after the native source changes.
+        // Both old and new text pass LENGTH=2; reconciliation must remove the stale group key.
+        snapshot.MetaData["textAlias"] = "zz";
         var important = new Holon
         {
             Id = Guid.NewGuid(), Version = 1, Name = "owned important record",
@@ -379,6 +382,24 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.AreEqual(3, operation.ProviderAttempts.Count); Assert.AreEqual(3, operation.Receipts.Count);
                 Assert.AreEqual(0.006m, authority.Settlements[operation.Id].ActualCostUsd);
             }
+            body.Grouping.Columns = new[] { body.Grouping.Columns[0] };
+            body.Grouping.ResultFilters = Array.Empty<CqlGroupedV1Filter>();
+            using (var response = await Send(ownerToken))
+            {
+                var text = await response.Content.ReadAsStringAsync();
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, text);
+                using var json = JsonDocument.Parse(text);
+                var result = json.RootElement.GetProperty("result");
+                Assert.AreEqual("cql-grouped-v1", result.GetProperty("version").GetString());
+                Assert.AreEqual(1, result.GetProperty("columns").GetArrayLength());
+                Assert.IsFalse(result.GetProperty("canPrepareSnapshot").GetBoolean());
+                var row = result.GetProperty("rows").EnumerateArray().Single();
+                Assert.AreEqual(1, row.GetArrayLength()); Assert.AreEqual("xy", row[0].GetString());
+                var operation = await outbox.GetAsync(response.Headers.GetValues("X-OASIS-Operation-Id").Single(), CancellationToken.None);
+                Assert.AreEqual("settled", operation.State);
+                Assert.AreEqual(3, operation.ProviderAttempts.Count); Assert.AreEqual(3, operation.Receipts.Count);
+                Assert.AreEqual(0.006m, authority.Settlements[operation.Id].ActualCostUsd);
+            }
             using (var response = await Send(otherToken))
             {
                 var text = await response.Content.ReadAsStringAsync();
@@ -390,7 +411,7 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsNull((await provider.LoadHolonAsync(orderedId)).Result,
                 "Read-only mixed queries must not materialize the virtual-only source record.");
             await app.StopAsync();
-            Assert.AreEqual(16, authority.Settlements.Count);
+            Assert.AreEqual(17, authority.Settlements.Count);
         }
         finally
         {
