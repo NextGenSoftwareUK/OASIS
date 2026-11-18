@@ -3,6 +3,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NextGenSoftware.OASIS.API.Core.Configuration;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
 {
@@ -11,13 +14,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
     {
         private readonly HyperDriveHostedProviderAccessor _providerAccessor;
         private readonly ILogger<OASISInitializationHostedService> _logger;
+        private readonly IHolonReplicationAuthorizationPolicy _authorization;
 
         public OASISInitializationHostedService(
             HyperDriveHostedProviderAccessor providerAccessor,
-            ILogger<OASISInitializationHostedService> logger)
+            ILogger<OASISInitializationHostedService> logger,
+            IHolonReplicationAuthorizationPolicy authorization)
         {
             _providerAccessor = providerAccessor;
             _logger = logger;
+            _authorization = authorization;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -28,6 +34,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                 _logger.LogError(
                     "OASIS/default-provider initialization failed; the API host will remain online and provider-backed operations will report degraded availability: {Message}",
                     result?.Message ?? "No provider result was returned.");
+            }
+            else
+            {
+                // Foreground enrollment must retain its policy even when delivery is paused.
+                HolonReplicationRoutes.UseAuthorizationBinding(ProviderManager.Instance,
+                    () => _authorization.BindingIdentity);
             }
         }
 
