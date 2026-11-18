@@ -14,6 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Seal/HolonSealPolicy.cs" Link="Production/HolonSealPolicy.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Seal/HolonSealSwitches.cs" Link="Production/HolonSealSwitches.cs" />
     <Compile Include="../../Examples/CosmicCqlDemo/NativeImportMongoDemo.cs" Link="Demo/NativeImportMongoDemo.cs" />
     <Compile Include="../../Examples/CosmicCqlDemo/NativeImportCqlWalkthrough.cs" Link="Demo/NativeImportCqlWalkthrough.cs" />
     <Compile Include="../../Examples/CosmicCqlDemo/NativeImportCqlDemo.cs" Link="Demo/NativeImportCqlDemo.cs" />
