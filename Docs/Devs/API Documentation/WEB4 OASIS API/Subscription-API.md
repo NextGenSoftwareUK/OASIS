@@ -140,7 +140,7 @@ An administrator links one or more avatars (at most 10) to an app account: `POST
 |---|---|
 | `GET /api/subscription/app-owner/apps` | The apps I own. |
 | `GET /api/subscription/app-owner/{appId}/usage` | Pool size, used this month and today, daily series, which people used what (usernames resolved, no content) and the app's alerts. Anyone who does not own the app gets 403. |
-| `GET` / `POST /api/subscription/app-owner/{appId}/settings` | This app's own on/off choices (see overrides below). Audited. |
+| `GET` / `POST /api/subscription/app-owner/{appId}/settings` | This app's own choices (see overrides below): `ownerViewEnabled`, `warningsEnabled`, `accessLogEnabled`, `sealedHistoryEnabled` (seal every version saved through the app), `versionPurgeEnabled` and `versionPurgeDays` (purge earlier versions of the app's deleted data after 0 to 3650 days; empty = follow the node default of 30). A call replaces ALL overrides, so send every field; null means follow the default. A days value outside 0 to 3650 is rejected with 400 and nothing is saved. Audited. |
 | `GET` / `POST /api/subscription/app-owner/{appId}/notifications` | The owner's warning thresholds. |
 
 ### Warnings

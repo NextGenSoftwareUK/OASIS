@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>Your own opt-in (true) or opt-out (false) of usage warnings; null follows the node default.</summary>
         public bool? WarningsEnabled { get; set; }
     }
-    public sealed class AppSettingsRequest { public bool? OwnerViewEnabled { get; set; } public bool? WarningsEnabled { get; set; } public bool? AccessLogEnabled { get; set; } public bool? SealedHistoryEnabled { get; set; } }
+    public sealed class AppSettingsRequest { public bool? OwnerViewEnabled { get; set; } public bool? WarningsEnabled { get; set; } public bool? AccessLogEnabled { get; set; } public bool? SealedHistoryEnabled { get; set; } public bool? VersionPurgeEnabled { get; set; } public int? VersionPurgeDays { get; set; } }
     public sealed class AppPaygRequest { public bool Enabled { get; set; } public decimal MonthlyCapUsd { get; set; } public string PricingVersion { get; set; } public bool Consent { get; set; } }
 
     /// <summary>
@@ -157,7 +157,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 overrides = app.Overrides ?? new AppUsageOverrides(),
                 effective = new { ownerViewEnabled = Effective(app.Overrides?.OwnerViewEnabled, Settings.OwnerViewEnabled), warningsEnabled = Effective(app.Overrides?.WarningsEnabled, Settings.WarningsEnabled) },
-                nodeDefaults = new { ownerViewEnabled = Settings.OwnerViewEnabled, warningsEnabled = Settings.WarningsEnabled, accessLogEnabled = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.AccessLog?.Enabled ?? false, sealedHistoryAvailable = (HttpContext.RequestServices.GetService(typeof(Services.Seal.HolonSealPolicy)) as Services.Seal.HolonSealPolicy)?.IsAvailable ?? false }
+                nodeDefaults = new { ownerViewEnabled = Settings.OwnerViewEnabled, warningsEnabled = Settings.WarningsEnabled, accessLogEnabled = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.AccessLog?.Enabled ?? false, versionPurgeAvailable = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.VersionPurge?.Enabled ?? false, versionPurgeAfterDays = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.VersionPurge?.PurgeAfterDays ?? 30, sealedHistoryAvailable = (HttpContext.RequestServices.GetService(typeof(Services.Seal.HolonSealPolicy)) as Services.Seal.HolonSealPolicy)?.IsAvailable ?? false }
             };
         });
 
@@ -166,7 +166,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public Task<IActionResult> SetAppSettings(string appId, [FromBody] AppSettingsRequest request) => Gate(true, "", async me =>
         {
             await RequireOwnerAsync(appId, me);
-            return await _repository.SetAppOverridesAsync(appId, request?.OwnerViewEnabled, request?.WarningsEnabled, request?.AccessLogEnabled, me, HttpContext.RequestAborted, request?.SealedHistoryEnabled);
+            var daysError = Services.Purge.PurgeChoice.Validate(request?.VersionPurgeDays);
+            if (daysError != null) throw new ArgumentException(daysError);
+            return await _repository.SetAppOverridesAsync(appId, request?.OwnerViewEnabled, request?.WarningsEnabled, request?.AccessLogEnabled, me, HttpContext.RequestAborted, request?.SealedHistoryEnabled, request?.VersionPurgeEnabled, request?.VersionPurgeDays);
         });
 
         // One warning email per subject, threshold and UTC month, only when email is configured and the person has not opted out.

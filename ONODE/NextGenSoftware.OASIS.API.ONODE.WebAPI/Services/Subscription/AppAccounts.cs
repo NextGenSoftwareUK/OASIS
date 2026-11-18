@@ -70,6 +70,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public bool? AccessLogEnabled { get; set; }
         /// <summary>Seal every version of data saved through this app (tamper-evident history) even when the owner has not; null/false = the app does not require it. Needs HolonSeal.Enabled and a key on the node.</summary>
         public bool? SealedHistoryEnabled { get; set; }
+        /// <summary>Purge earlier saved versions of this app's deleted data after the node's PurgeAfterDays: true = yes, false = never, null = follow the node default. A holon owner's own choice beats it; a legal hold beats both. Needs OASIS.VersionPurge.Enabled on the node.</summary>
+        public bool? VersionPurgeEnabled { get; set; }
+        /// <summary>This app's own number of days before purge (0 to 3650; 0 = at deletion). null = follow the node's OASIS.VersionPurge.PurgeAfterDays (default 30). A holon owner's own days beat it.</summary>
+        public int? VersionPurgeDays { get; set; }
     }
 
     public interface IAppAccountRepository

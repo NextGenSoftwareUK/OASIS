@@ -998,6 +998,14 @@ The same second step applies to `authenticate-did`. gRPC `Authenticate` cannot c
 - A code cannot be reused (replay protection), a challenge is single use, and wrong codes trigger a per-challenge limit and a per-avatar cool-down.
 - Not covered: someone with direct database access plus the DNA secret key could read secrets; a lost device and lost recovery codes need an administrator reset. Disabling currently needs a signed-in session plus a code (no extra password prompt).
 
+## Data history settings (sealed history and version purge)
+
+Both are opt-in, off by default, and apply to the signed-in avatar's own data.
+
+`GET /api/avatar/holon-seal` / `POST /api/avatar/holon-seal` body `{"enabled":true}` - seal every version of my data (tamper-evident history). Returns `{enabled, nodeAvailable}`; `nodeAvailable` false means the server has not switched sealing on, so the choice is stored but nothing is sealed. See `Docs/Devs/SEALED_HOLON_HISTORY.md`.
+
+`GET /api/avatar/version-purge` / `POST /api/avatar/version-purge` body `{"enabled":true|false|null,"days":0..3650|null}` - purge all earlier saved versions of my deleted data after the waiting period. `enabled` true = purge, false = never, null = follow the app and server default. `days` null = follow the app, then the server (default 30); 0 purges at deletion. Anything outside 0 to 3650 is refused with 400 and nothing is saved. Returns `{enabled, days, nodeAvailable, effectiveDays, effectiveDaysSource, globalDays}`. See `Docs/Devs/HOLON_VERSION_PURGE.md`.
+
 ## Navigation
 
 **← Previous:** [ONET API](ONET-API.md) | **Next:** [Missions API](Missions-API.md) →
