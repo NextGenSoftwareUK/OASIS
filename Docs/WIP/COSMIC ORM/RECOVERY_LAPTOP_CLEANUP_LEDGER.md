@@ -1,3 +1,5 @@
+2026-11-18 UTC — Combined327 selected/16 real SQLite tests passed; final native linked-source build needs the helper link. Read16-case evidence from CI logs, no local extraction/build/restore/runtime/database. Additional exact bool/Int32 assertions reuse the existing CI fixture and its cleanup. Existing retained/blocked cleanup register preserved.
+
 2026-11-18 UTC — Cancelled owned superseded CI44278470969 (known incomplete extrema mock); replacement combines corrected protocol declarations and real SQLite projection fixtures. No live/DNA/PIPER operation or local runtime/build/restore/database/artifact created. Retained/blocked register unchanged.
 
 2026-11-18 UTC — Native SQLite projection source/3 tests prepared without a local build, restore, database or runtime. Tests reuse existing CI-owned fixture paths and assert native byte preservation/no OASIS file; their temporary owned data is removed by existing fixture disposal. No new persistent environment/download/artifact. Retained/blocked register preserved.

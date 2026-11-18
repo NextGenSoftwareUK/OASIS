@@ -486,6 +486,18 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
             Assert.False(read.IsError, read.Message);
             Assert.Equal(imported.Select(row => row.NativeKey), read.Result.Select(row => row.NativeKey));
             Assert.Equal(new[] { "A", "B" }, read.Result.Select(row => (string)row.Cells[0].Value));
+            var typed = await provider.QueryNativeProjectionRecordsAsync("lines",
+                new[] { new NativeRecordFilter("sku", CosmicQueryComparisonOperator.Equal, "A") },
+                new[] { new NativeProjectionColumn("orderId", "NarrowOrder", typeof(int)),
+                    new NativeProjectionColumn("lineNo", "Flag", typeof(bool)) }, 1);
+            Assert.False(typed.IsError, typed.Message);
+            var typedRow = Assert.Single(typed.Result);
+            Assert.Equal(10, Assert.IsType<int>(typedRow.Cells[0].Value));
+            Assert.True(Assert.IsType<bool>(typedRow.Cells[1].Value));
+            var invalidBoolean = await provider.QueryNativeProjectionRecordsAsync("lines",
+                new[] { new NativeRecordFilter("sku", CosmicQueryComparisonOperator.Equal, "B") },
+                new[] { new NativeProjectionColumn("lineNo", "Flag", typeof(bool)) }, 1);
+            Assert.Equal("NATIVE_PROJECTION_DATA_INVALID", invalidBoolean.ErrorCode);
             Assert.All(read.Result, row => {
                 Assert.Equal(1, Assert.IsType<int>(row.Cells[1].Value));
                 Assert.Equal(10L, Assert.IsType<long>(row.Cells[2].Value));
@@ -543,6 +555,7 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
                 connection.Open();
                 using var command = connection.CreateCommand();
                 command.CommandText = "INSERT INTO notes(body) VALUES ($text)";
+                command.CommandText += "; INSERT INTO lines VALUES (2147483648, 1, 'huge')";
                 command.Parameters.AddWithValue("$text", new string('x', 1048580));
                 command.ExecuteNonQuery();
             }
@@ -556,6 +569,11 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
             var unknown = await provider.QueryNativeProjectionRecordsAsync("notes", filters,
                 new[] { new NativeProjectionColumn("missing", "Missing", typeof(string)) }, 1);
             Assert.Equal("NATIVE_PROJECTION_QUERY_INVALID", unknown.ErrorCode);
+            var overflow = await provider.QueryNativeProjectionRecordsAsync("lines",
+                new[] { new NativeRecordFilter("sku", CosmicQueryComparisonOperator.Equal, "huge") },
+                new[] { new NativeProjectionColumn("orderId", "NarrowOrder", typeof(int)) }, 1);
+            Assert.Equal("NATIVE_PROJECTION_DATA_INVALID", overflow.ErrorCode);
+            Assert.Null(overflow.Result);
             using var cancellation = new System.Threading.CancellationTokenSource(); cancellation.Cancel();
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
                 provider.QueryNativeProjectionRecordsAsync("notes", filters, columns, 1, cancellationToken: cancellation.Token));
