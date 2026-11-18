@@ -68,8 +68,9 @@ public sealed partial class CosmicMixedNumericAggregateTests
         var query = CqlV1Compiler.CompileProjection(request, actor, ProviderType.MongoDBOASIS,
             CosmicQueryReadAccess.OwnerOrPublic(actor).Result, 100);
         var storedRows = stored.Select((value, index) => new CosmicProjectionRow(
-            index < overlap ? read.Result[index].Id : Guid.NewGuid(),
-            storedKeys == null ? new[] { value } : new[] { storedKeys[index], value })).ToArray();
+            new object[] { index < overlap ? read.Result[index].Id : Guid.NewGuid() }
+                .Concat(storedKeys == null ? new[] { value } : new[] { storedKeys[index], value })
+                .ToArray())).ToArray();
         var captured = CosmicProjectionResults.Materialize(query, storedRows);
         Assert.False(captured.IsError, captured.Message);
         return new(query, mapping.Id, captured.Result, read.Result);
