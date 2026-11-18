@@ -17,6 +17,10 @@ on:
         description: Build the API without repeating accepted behavior tests
         type: boolean
         default: false
+      request_timing_tests:
+        description: Verify the changed private-data-free request timing middleware
+        type: boolean
+        default: false
       native_seal:
         description: 'Use the owned MongoDB/SQLite fixture for a focused native regression.'
         required: false
@@ -107,6 +111,15 @@ jobs:
             if ($LASTEXITCODE) { throw 'API qualification build failed.' }
           }
 
+      - name: Verify the changed request timing middleware
+        if: ${{ inputs.request_timing_tests }}
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner request-timing-ci -Operation {
+            dotnet test 'ONODE/Tests/RequestTiming.Tests/RequestTiming.Tests.csproj' --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false --logger 'trx;LogFileName=request-timing.trx' --results-directory artifacts/hyperdrive-contract-validation
+            if ($LASTEXITCODE) { throw 'Request timing checks failed.' }
+          }
+
       - name: Run HyperDrive behavioral contracts
         if: ${{ !inputs.native_seal && !inputs.build_only }}
         shell: pwsh
@@ -157,7 +170,7 @@ jobs:
         run: docker rm --force --volumes seal-routing-mongo
 
       - name: Preserve HyperDrive behavioral evidence
-        if: ${{ always() && !inputs.build_only }}
+        if: ${{ always() && (!inputs.build_only || inputs.request_timing_tests) }}
         uses: actions/upload-artifact@v7
         with:
           name: hyperdrive-contract-results

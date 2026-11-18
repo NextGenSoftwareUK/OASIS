@@ -30,3 +30,11 @@ Next: establish privacy-safe backend stage timing and isolate whether provider a
 Read the COSMIC/CQL status: its current storage-policy persistence correction is under native qualification and is not a live publication. No changes were made in its checkout or in PIPER. Dev watch-filter updates did not change deployment IDs or restart services. No pending admin/portal release was deployed for this incident.
 
 All incident probes and log parsing used memory and existing tools. No runtime, download, build output, database, browser profile or result archive was created locally. Retain this compact report; no additional cleanup target was introduced.
+
+## Follow-up source and deployment observation
+
+Serving WEB4 subsequently advanced to 02c34d35-aa41-4c60-b785-4dbcd3d20f10 on 217dcdaced1f (test-only source delta, same Core34). Revision d6984cf58b91 has one BUILDING and one QUEUED record at readback; it adds the explicit default-false sandbox preview setting to DNA templates and retains Core34. This session did not enqueue either deployment. Earlier b1 observations remain historical, not the latest runtime claim.
+
+Added a narrow RequestTimingMiddleware candidate for login, refresh and per-holon history. Only fixed route/phase labels, a generated diagnostic operation key, status, cancellation/failure flags and elapsed milliseconds are logged. A five-second pending warning, then at most one every 30 seconds, makes waits visible even when requests never finish. Other routes bypass the timer. No bodies, URLs, query values, bearer values, user/holon IDs or exception contents are logged. Markers must be integrated into the current serving source and compiled before rollout; source alone is not live acceptance.
+
+The isolated source-linked middleware host initially passed five compiled checks (slow live phase, status/exception preservation, private-data exclusion and unrelated-route bypass). Final correlation/empty-route cleanup is pending remote exact-source qualification. The test uses no database or substitute provider; it tests only the diagnostic middleware contract. Local outputs total 4.86 MB and their removal was rejected by automatic review; see cleanup ledger. This is an explicit exception, not a cleaned-output claim.
