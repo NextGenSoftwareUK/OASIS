@@ -104,7 +104,7 @@ jobs:
           else
             export OASIS_SUBMODULE_BRANCH=main
           fi
-          git submodule foreach --quiet 'git fetch origin "+refs/heads/$OASIS_SUBMODULE_BRANCH:refs/remotes/origin/$OASIS_SUBMODULE_BRANCH" --quiet'
+          git submodule foreach --quiet 'git fetch --unshallow origin "+refs/heads/$OASIS_SUBMODULE_BRANCH:refs/remotes/origin/$OASIS_SUBMODULE_BRANCH" --quiet 2>/dev/null || git fetch origin "+refs/heads/$OASIS_SUBMODULE_BRANCH:refs/remotes/origin/$OASIS_SUBMODULE_BRANCH" --quiet'
           python3 Scripts/check_submodule_branches.py "$(git rev-parse HEAD)" "$OASIS_TARGET_BRANCH"
 
       - name: Railway Dockerfiles must use the shared dependency manifest
