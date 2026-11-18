@@ -102,14 +102,14 @@ public partial class AvatarRepository
                     }.FullName;
                     accountFields.Add(accountUpdate.Set(row=>row.Name,name));
                 }
-                var modified=DateTime.UtcNow;
+                var modified=mutation.ModifiedAtUtc;
                 if(accountFields.Count>0)
                 {
                     accountFields.Add(accountUpdate.Set(row=>row.ModifiedDate,modified)
                         .Set(row=>row.ModifiedDateExactUtcTicks,MongoAuditDatePrecision.ExactTicks(modified))
                         .Set(row=>row.ModifiedByAvatarId,authenticatedAvatarId.ToString("D")));
                     await PatchAccountLifecycleAsync(session,_dbContext.Avatar,avatar.Id,accountUpdate.Combine(accountFields),
-                        retainHistory,false,advanceVersion:true,cancellationToken:cancellationToken).ConfigureAwait(false);
+                        retainHistory,false,advanceVersion:true,cancellationToken:cancellationToken,nextVersionId:mutation.AvatarNextVersionId).ConfigureAwait(false);
                 }
                 if(detailFields.Count>0)
                 {
@@ -117,7 +117,7 @@ public partial class AvatarRepository
                         .Set(row=>row.ModifiedDateExactUtcTicks,MongoAuditDatePrecision.ExactTicks(modified))
                         .Set(row=>row.ModifiedByAvatarId,authenticatedAvatarId.ToString("D")));
                     await PatchAccountLifecycleAsync(session,_dbContext.AvatarDetail,detail.Id,detailUpdate.Combine(detailFields),
-                        retainHistory,false,advanceVersion:true,cancellationToken:cancellationToken).ConfigureAwait(false);
+                        retainHistory,false,advanceVersion:true,cancellationToken:cancellationToken,nextVersionId:mutation.DetailNextVersionId).ConfigureAwait(false);
                 }
                 // Read the canonical proposal inside the same snapshot. No caller
                 // snapshot or game/security/session field is ever copied back.

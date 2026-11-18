@@ -53,7 +53,7 @@ public partial class SQLLiteDBOASIS:IAvatarProfileStorageProvider
     }
 
     private static async Task<bool> PatchProfileRowAsync(SqliteConnection connection,SqliteTransaction transaction,
-        Guid id,ProfileRow observed,Dictionary<string,string> fields,bool detail,DateTime modified,CancellationToken token)
+        Guid id,ProfileRow observed,Dictionary<string,string> fields,bool detail,DateTime modified,Guid nextVersionId,CancellationToken token)
     {
         if(fields.Count==0)return false;
         using var command=connection.CreateCommand();command.Transaction=transaction;
@@ -75,7 +75,7 @@ public partial class SQLLiteDBOASIS:IAvatarProfileStorageProvider
         command.Parameters.AddWithValue("$observedId",observed.NativeVersionId);
         command.Parameters.AddWithValue("$observedVersion",observed.Version);
         command.Parameters.AddWithValue("$nextVersion",checked(observed.Version+1));
-        command.Parameters.AddWithValue("$nextId",Guid.NewGuid());
+        command.Parameters.AddWithValue("$nextId",nextVersionId);
         command.Parameters.AddWithValue("$id",id.ToString());
         command.CommandText="UPDATE "+(detail?"AvatarDetail":"Avatar")+" SET "+string.Join(",",assignments)
             +" WHERE Id=$id AND Version=$observedVersion AND VersionId=$observedId";
@@ -134,9 +134,9 @@ public partial class SQLLiteDBOASIS:IAvatarProfileStorageProvider
                         FirstName=mutation.Fields.TryGetValue(AvatarProfileProperty.FirstName,out var first)?first:account.FirstName,
                         LastName=mutation.Fields.TryGetValue(AvatarProfileProperty.LastName,out var last)?last:account.LastName
                     }.FullName);
-                var modified=DateTime.UtcNow;
-                var accountChanged=await PatchProfileRowAsync(connection,transaction,mutation.AvatarId,account,accountFields,false,modified,cancellationToken).ConfigureAwait(false);
-                var detailChanged=await PatchProfileRowAsync(connection,transaction,mutation.AvatarId,detail,detailFields,true,modified,cancellationToken).ConfigureAwait(false);
+                var modified=mutation.ModifiedAtUtc;
+                var accountChanged=await PatchProfileRowAsync(connection,transaction,mutation.AvatarId,account,accountFields,false,modified,mutation.AvatarNextVersionId,cancellationToken).ConfigureAwait(false);
+                var detailChanged=await PatchProfileRowAsync(connection,transaction,mutation.AvatarId,detail,detailFields,true,modified,mutation.DetailNextVersionId,cancellationToken).ConfigureAwait(false);
                 account=await ReadProfileRowAsync(connection,transaction,mutation.AvatarId,false,cancellationToken).ConfigureAwait(false);
                 detail=await ReadProfileRowAsync(connection,transaction,mutation.AvatarId,true,cancellationToken).ConfigureAwait(false);
                 if(account.Username!=detail.Username || account.Email!=detail.Email)
