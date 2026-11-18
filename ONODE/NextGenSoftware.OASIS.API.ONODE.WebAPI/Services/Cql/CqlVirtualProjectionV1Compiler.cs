@@ -70,8 +70,10 @@ public static partial class CqlV1Compiler
         if (request.ResultOperation is CqlProjectionV1ResultOperation.Min or CqlProjectionV1ResultOperation.Max
             or CqlProjectionV1ResultOperation.Sum or CqlProjectionV1ResultOperation.Average)
             if (columns.Length != 1 || columns[0].ValueType != typeof(int) &&
-                columns[0].ValueType != typeof(long) && columns[0].ValueType != typeof(double))
-                throw new ArgumentException("Mapped numeric aggregation requires Int32, Int64, Double or a native LENGTH output.");
+                columns[0].ValueType != typeof(long) && columns[0].ValueType != typeof(double) &&
+                !(columns[0].ValueType == typeof(string) && request.ResultOperation is
+                    CqlProjectionV1ResultOperation.Min or CqlProjectionV1ResultOperation.Max))
+                throw new ArgumentException("Mapped aggregation requires numeric output, or String for Min/Max.");
         if (columns.Any(column => column.Alias == request.Columns[0].Alias))
             throw new ArgumentException("Result aliases must be unique, including logical identity.");
         var orderings = CosmicMixedProjectionOrdering.Capture(

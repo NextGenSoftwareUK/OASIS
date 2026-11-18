@@ -322,6 +322,28 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.AreEqual(3, operation.ProviderAttempts.Count); Assert.AreEqual(3, operation.Receipts.Count);
                 Assert.AreEqual(0.006m, authority.Settlements[operation.Id].ActualCostUsd);
             }
+            body.Filters[0].Operator = CqlV1Operator.Equal;
+            body.Columns = new[] { body.Columns[0], new CqlProjectionV1Column {
+                MetadataPath = new[] { "textAlias" }, ValueType = "String", Alias = "Text", Nullable = true } };
+            foreach (var textOperation in new[] { CqlProjectionV1ResultOperation.Min, CqlProjectionV1ResultOperation.Max })
+            {
+                body.ResultOperation = textOperation;
+                using var response = await Send(ownerToken);
+                var text = await response.Content.ReadAsStringAsync();
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, text);
+                using var json = JsonDocument.Parse(text);
+                var result = json.RootElement.GetProperty("result");
+                Assert.AreEqual("cql-scalar-v1", result.GetProperty("version").GetString());
+                Assert.AreEqual(textOperation.ToString(), result.GetProperty("operation").GetString());
+                Assert.AreEqual("String", result.GetProperty("valueType").GetString());
+                Assert.AreEqual(textOperation == CqlProjectionV1ResultOperation.Min ? "xy" : "😀",
+                    result.GetProperty("value").GetString());
+                Assert.IsFalse(result.GetProperty("canPrepareSnapshot").GetBoolean());
+                var operation = await outbox.GetAsync(response.Headers.GetValues("X-OASIS-Operation-Id").Single(), CancellationToken.None);
+                Assert.AreEqual("settled", operation.State);
+                Assert.AreEqual(3, operation.ProviderAttempts.Count); Assert.AreEqual(3, operation.Receipts.Count);
+                Assert.AreEqual(0.006m, authority.Settlements[operation.Id].ActualCostUsd);
+            }
             using (var response = await Send(otherToken))
             {
                 var text = await response.Content.ReadAsStringAsync();
@@ -333,7 +355,7 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsNull((await provider.LoadHolonAsync(orderedId)).Result,
                 "Read-only mixed queries must not materialize the virtual-only source record.");
             await app.StopAsync();
-            Assert.AreEqual(13, authority.Settlements.Count);
+            Assert.AreEqual(15, authority.Settlements.Count);
         }
         finally
         {
