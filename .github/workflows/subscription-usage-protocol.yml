@@ -10,6 +10,10 @@ on:
         description: Exact candidate revision to qualify
         type: string
         required: false
+      policy_native_only:
+        description: Run only the owned storage-policy persistence and mapping-scope fixtures
+        type: boolean
+        default: false
       cosmos_native:
         description: Run the isolated Azure Cosmos DB emulator fixture
         type: boolean
@@ -17,7 +21,45 @@ on:
 permissions:
   contents: read
 jobs:
+  policy-native:
+    if: ${{ inputs.policy_native_only }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.source_ref || github.sha }}
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Validate exact source and checkout sibling dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          . Docker/oasis-dependency-versions.env
+          git clone --no-checkout "$LIBRARIES_REPO" ../NextGenSoftware-Libraries
+          git -C ../NextGenSoftware-Libraries checkout --detach "$LIBRARIES_COMMIT"
+          git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
+          git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
+      - name: Verify owned native policy persistence and mapped application scope
+        shell: pwsh
+        run: |
+          $before = @(Get-ChildItem ([IO.Path]::GetTempPath()) -Directory -Filter 'oasis-native-sqlite-*' | ForEach-Object FullName)
+          try {
+            & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner storage-policy-native-ci -Operation {
+              dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~StoragePoliciesPersistAcrossFreshProviders|FullyQualifiedName~NativeMappedRowsRetainTheirApplicationScope'
+              if ($LASTEXITCODE) { throw 'Native policy qualification failed.' }
+            }
+          } finally {
+            $after = @(Get-ChildItem ([IO.Path]::GetTempPath()) -Directory -Filter 'oasis-native-sqlite-*' | ForEach-Object FullName)
+            if (@($after | Where-Object { $_ -notin $before }).Count) { throw 'Owned SQLite policy fixtures were not fully cleaned up.' }
+            Write-Host 'NATIVE_POLICY_CLEANUP_VERIFIED=true'
+          }
   ledger:
+    if: ${{ !inputs.policy_native_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
