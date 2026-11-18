@@ -1,3 +1,5 @@
+2026-11-18 UTC — Computed SQL-count parser126 tests passed in memory using cached Node; native count assertions are CI-only and reuse existing fixtures. No local installation, restore, database, output archive or test-results tree retained. Shared Atlas remains untouched; blocked/retained register preserved.
+
 2026-11-18 UTC — Computed selector-aggregate source and additional native assertions prepared using Git blobs/temp index only. No local build, runtime, database, package restore or result artifact; native validation is isolated CI. Prior cleanup register remains in force.
 
 2026-11-18 UTC — Native computed-projection qualification44262838039 passed with owned fixture cleanup on all three stores. The40,320-byte CI artifact was read in memory only, with no local extraction/database/runtime/install/build output. Existing retained/blocked cleanup register remains applicable.

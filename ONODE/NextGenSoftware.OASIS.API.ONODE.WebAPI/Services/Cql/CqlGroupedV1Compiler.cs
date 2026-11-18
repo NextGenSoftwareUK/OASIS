@@ -62,6 +62,7 @@ public static partial class CqlV1Compiler
                 _ => throw new ArgumentException("Select an explicit key or supported grouped aggregate.")
             };
             var selected = column.Selection ?? throw new ArgumentException("This aggregate requires a selection.");
+            if (selected.Function.HasValue) throw new ArgumentException("Computed grouped selections require native function enrollment.");
             return CompileSelection(new CqlProjectionV1Column { Alias = column.Alias, Field = selected.Field,
                 MetadataPath = selected.MetadataPath, ValueType = selected.ValueType, Nullable = selected.Nullable },
                 new GroupedSelectionConsumer(grouping, column.Alias, operation));
