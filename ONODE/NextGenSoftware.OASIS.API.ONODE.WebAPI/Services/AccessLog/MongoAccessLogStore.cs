@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
+using Microsoft.Extensions.Logging;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI;
 
@@ -81,14 +82,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.AccessLog
         }).ToList();
     }
 
-    /// <summary>Drains the access-log queue on a timer. Does nothing at all while AccessLog.Enabled is false.</summary>
+    /// <summary>Drains accepted access events even after logging is disabled; an empty queue never touches the store.</summary>
     public class AccessLogFlushHostedService : Microsoft.Extensions.Hosting.BackgroundService
     {
         private readonly AccessLogService _service;
         private readonly Func<AccessLogSettings> _settings;
         private readonly IServiceProvider _services;
+        private readonly ILogger<AccessLogFlushHostedService> _logger;
         private DateTime _lastOverrideRefresh = DateTime.MinValue;
-        public AccessLogFlushHostedService(AccessLogService service, Func<AccessLogSettings> settings, IServiceProvider services = null) { _service = service; _settings = settings; _services = services; }
+        public AccessLogFlushHostedService(AccessLogService service, Func<AccessLogSettings> settings, ILogger<AccessLogFlushHostedService> logger, IServiceProvider services = null) { _service = service; _settings = settings; _logger = logger; _services = services; }
 
         private async Task RefreshOverridesAsync(CancellationToken c)
         {
@@ -101,7 +103,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.AccessLog
                 var accounts = await repo.ListAppPolicyOverridesAsync(c).ConfigureAwait(false);
                 _service.Overrides.Replace(accounts.Select(a => (a.AppId, a.AccessLogEnabled)));
             }
-            catch (Exception) { /* keep the last known choices */ }
+            catch (OperationCanceledException) when (c.IsCancellationRequested) { throw; }
+            catch (Exception ex)
+            {
+                // A failed refresh retains the complete last published snapshot.
+                _logger.LogError("ACCESS_LOG_OVERRIDE_REFRESH_FAILED {ExceptionType}", ex.GetType().Name);
+            }
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -110,10 +117,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.AccessLog
             {
                 var seconds = Math.Max(1, _settings()?.FlushIntervalSeconds ?? 5);
                 try { await Task.Delay(TimeSpan.FromSeconds(seconds), stoppingToken).ConfigureAwait(false); } catch (OperationCanceledException) { break; }
-                await RefreshOverridesAsync(stoppingToken).ConfigureAwait(false);
-                if (_service.IsEnabled) await _service.FlushAsync(stoppingToken).ConfigureAwait(false);
+                try { await RefreshOverridesAsync(stoppingToken).ConfigureAwait(false); }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
+                await _service.FlushAsync(stoppingToken).ConfigureAwait(false);
             }
-            if (_service.IsEnabled) await _service.FlushAsync().ConfigureAwait(false);
+            await _service.FlushAsync().ConfigureAwait(false);
         }
     }
 }
