@@ -170,6 +170,7 @@
     "StorageProviders": {
       "LogSwitchingProviders": true,
       "ProviderMethodCallTimeOutSeconds": 99,
+      "AvatarLoginTimeoutSeconds": 10,
       "ActivateProviderTimeOutSeconds": 10,
       "DectivateProviderTimeOutSeconds": 10,
       "AutoReplicationEnabled": false,
