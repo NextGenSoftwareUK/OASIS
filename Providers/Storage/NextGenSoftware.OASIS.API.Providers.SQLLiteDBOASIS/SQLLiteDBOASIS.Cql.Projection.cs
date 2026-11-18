@@ -11,9 +11,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
 public partial class SQLLiteDBOASIS : ICosmicQueryEntityProjectionStorageProvider
 {
-    public static CosmicProjectionCapabilities CqlProjectionCapabilities { get; } = new(
+    public static CosmicProjectionCapabilities CqlProjectionCapabilities { get; } = new CosmicProjectionCapabilities(
         SqliteCqlContract.Fields.Values.Select(field => new CosmicProjectionFieldCapability(field.Name, field.ValueType)).ToArray(),
-        SqliteCqlContract.MetadataTypes.Keys.ToArray());
+        SqliteCqlContract.MetadataTypes.Keys.ToArray()).WithFunctions(CosmicProjectionFunction.Utf16Length);
     public CosmicProjectionCapabilities ProjectionCapabilities => CqlProjectionCapabilities;
 
     public bool SupportsEntityProjection => true;

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.Common;
@@ -14,23 +15,29 @@ public static partial class CqlV1Compiler
 {
     internal static CqlVirtualProjection CompileVirtualProjection(CqlProjectionV1Request request)
     {
-        if (request == null || request.OrderBy != "Id" || request.SelectedOrder != null ||
+        if (request == null || (request.SelectedOrder == null ? request.OrderBy != "Id"
+                : request.OrderBy != "None" || request.Descending) ||
             request.Skip is < 0 or >= CqlVirtualProjection.MaximumRows * 2 ||
             request.Take is < 1 or > CqlVirtualProjection.MaximumRows || request.Graph != null ||
             request.AnyOf is not { Length: 0 } || request.AnyChildren is not { Length: 0 } ||
             request.AnyDescendants is not { Length: 0 } ||
             request.Columns is not { Length: >= 2 and <= 32 })
-            throw new ArgumentException("Mixed projection requires supported native predicates, Id ordering and a bounded result.");
+            throw new ArgumentException("Mixed projection requires supported native predicates, selected ordering and a bounded result.");
 
         var matches = CompileVirtualMatches(request.Filters);
 
         if (request.Columns[0] is not { Field: "Id", MetadataPath: null })
             throw new ArgumentException("Select Id first so both representations can share one logical identity.");
+
+        if (request.Columns[0].Function != null || request.Columns[0].ValueType != null || request.Columns[0].Nullable.HasValue)
+            throw new ArgumentException("Logical identity retains its canonical Guid domain.");
+        ValidateSelectionAlias(request.Columns[0].Alias);
         var columns = request.Columns.Skip(1).Select(column =>
         {
             if (column == null || column.Field != null || column.MetadataPath is not { Length: 1 })
                 throw new ArgumentException("Virtual projections require a direct mapped metadata field.");
             RequireVirtualField(column.MetadataPath[0]);
+            ValidateSelectionAlias(column.Alias);
             var type = column.ValueType switch
             {
                 "String" => typeof(string),
@@ -39,9 +46,29 @@ public static partial class CqlV1Compiler
                 "Int64" => typeof(long),
                 _ => throw new ArgumentException("This virtual source supports String, Boolean, Int32 and Int64 projections.")
             };
-            return new CqlVirtualColumn(column.MetadataPath[0], type, type == typeof(string) || column.Nullable == true);
+            var function = column.Function switch
+            {
+                null => NativeRecordFunction.None,
+                CqlV1Function.Utf16Length when type == typeof(string) => NativeRecordFunction.Utf16Length,
+                _ => throw new ArgumentException("Mapped LENGTH requires a declared String input.")
+            };
+            // The DTO declares its input domain; function output is independently Int32.
+            var nullable = function == NativeRecordFunction.None && type == typeof(string) || column.Nullable == true;
+            if (function == NativeRecordFunction.None && type == typeof(string) && column.Nullable == false)
+                throw new ArgumentException("String projection retains its nullable source contract.");
+            return new NativeProjectionColumn(column.MetadataPath[0], column.Alias, type, nullable, function);
         }).ToArray();
-        return new CqlVirtualProjection(matches, columns);
+        NativeProjectionColumn.Capture(columns);
+        if (columns.Any(column => column.Alias == request.Columns[0].Alias))
+            throw new ArgumentException("Result aliases must be unique, including logical identity.");
+        var orderings = CosmicMixedProjectionOrdering.Capture(
+            request.SelectedOrder == null
+                ? new[] { new CosmicMixedProjectionOrdering(request.Columns[0].Alias, request.Descending) }
+                : request.SelectedOrder.Select(term => term == null ? null
+                    : new CosmicMixedProjectionOrdering(term.Alias, term.Descending)).ToArray(),
+            request.Columns.Select(column => column.Alias).ToArray());
+        return new CqlVirtualProjection(matches, columns, orderings);
+
     }
 
     internal static NativeRecordFilter[] CompileVirtualMatches(CqlV1Filter[] filters)
@@ -110,32 +137,20 @@ public static partial class CqlV1Compiler
     }
 }
 
-internal sealed record CqlVirtualColumn(string Field, Type Type, bool Nullable);
 
-internal sealed record CqlVirtualProjection(NativeRecordFilter[] Matches, CqlVirtualColumn[] Columns)
+internal sealed record CqlVirtualProjection(NativeRecordFilter[] Matches, NativeProjectionColumn[] Columns,
+    IReadOnlyList<CosmicMixedProjectionOrdering> Orderings)
 {
     // A full branch at this limit cannot prove absence of further rows.
-    internal const int MaximumRows = 100;
+    internal const int MaximumRows = CosmicMixedProjectionResults.MaximumBranchRows;
     internal string[] ProjectedFields => Columns.Select(column => column.Field).Distinct(StringComparer.Ordinal).ToArray();
 
-    internal object[] Select(VirtualHolonRead row)
-    {
-        var values = new object[Columns.Length + 1];
-        values[0] = row.Id;
-        for (var index = 0; index < Columns.Length; index++)
-        {
-            var column = Columns[index];
-            row.MetaData.TryGetValue(column.Field, out var value);
-            if (value == null ? !column.Nullable : value.GetType() != column.Type)
-                throw new ArgumentException("The source value does not match the selected CQL domain.");
-            values[index + 1] = value;
-        }
-        return values;
-    }
+    internal object[] Select(VirtualHolonProjectionRead row)
+        => CosmicMixedProjectionResults.CaptureVirtualRow(Columns, row);
 }
 
 internal interface ICqlVirtualMappingReader
 {
-    Task<OASISResult<IReadOnlyList<VirtualHolonRead>>> QueryVirtualMappingAsync(
+    Task<OASISResult<IReadOnlyList<VirtualHolonProjectionRead>>> QueryVirtualMappingAsync(
         Guid mappingId, IAvatar avatar, CqlVirtualProjection projection, CancellationToken cancellationToken);
 }

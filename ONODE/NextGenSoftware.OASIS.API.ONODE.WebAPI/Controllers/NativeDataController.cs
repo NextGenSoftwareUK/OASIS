@@ -66,6 +66,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         public sealed class NativeImportRequest
         {
+            public Guid? ApplicationId { get; set; }
             public NativeDataMapping Mapping { get; set; }
             public NativeConnection Connection { get; set; }
             /// <summary>Name of a connection this avatar saved. Send this or <c>connection</c>, not both.</summary>
@@ -76,6 +77,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         public sealed class NativeImportAllRequest
         {
+            public Guid? ApplicationId { get; set; }
             public Dictionary<string, NativeDataMapping> Mappings { get; set; }
             public NativeConnection Connection { get; set; }
             /// <summary>Name of a connection this avatar saved. Send this or <c>connection</c>, not both.</summary>
@@ -177,6 +179,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             [FromBody] NativeImportRequest request, CancellationToken cancellationToken)
         {
             request ??= new NativeImportRequest();
+            var policyRefusal = StoragePolicyRefusal<NativeDataImportReport>(request.ApplicationId, false);
+            if (policyRefusal != null) return policyRefusal;
             var (connection, unusable) = await UseConnectionAsync<NativeDataImportReport>(providerType, request.Connection, request.ConnectionName);
             if (unusable != null) return unusable;
             if (!MayImport(connection)) return Forbidden<NativeDataImportReport>(connection);
@@ -194,6 +198,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             [FromBody] NativeImportAllRequest request, CancellationToken cancellationToken)
         {
             request ??= new NativeImportAllRequest();
+            var policyRefusal = StoragePolicyRefusal<IReadOnlyList<NativeDataImportReport>>(request.ApplicationId, false);
+            if (policyRefusal != null) return policyRefusal;
             var (connection, unusable) = await UseConnectionAsync<IReadOnlyList<NativeDataImportReport>>(providerType, request.Connection, request.ConnectionName);
             if (unusable != null) return unusable;
             if (!MayImport(connection)) return Forbidden<IReadOnlyList<NativeDataImportReport>>(connection);
@@ -286,6 +292,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// With a connection the caller reads their own database, so any signed-in avatar may import it. Without one the
         /// server's configured demo store is read, which needs a Wizard avatar (or the sandbox).
         /// </summary>
+        private ActionResult StoragePolicyRefusal<T>(Guid? applicationId, bool virtualMapping)
+        {
+            if (Avatar == null) return Unauthorized();
+            var selected = SettingsManager.ReadHolonStoragePolicy(Avatar, applicationId);
+            if (selected.IsError || selected.Result == null)
+                return StatusCode(409, new OASISResult<T> { IsError = true,
+                    ErrorCode = selected.ErrorCode, Message = selected.Message });
+            var admitted = virtualMapping
+                ? HolonStoragePolicyAdmission.PrepareVirtualMapping(selected.Result.EffectivePolicy)
+                : HolonStoragePolicyAdmission.Materialize(selected.Result.EffectivePolicy);
+            return admitted.IsError ? StatusCode(409, new OASISResult<T> { IsError = true,
+                ErrorCode = admitted.ErrorCode, Message = admitted.Message }) : null;
+        }
+
         private bool MayImport(NativeConnection connection) =>
             Avatar != null && (connection != null || ProviderFaultGate.IsEnabled || Avatar.AvatarType.Value == AvatarType.Wizard);
 

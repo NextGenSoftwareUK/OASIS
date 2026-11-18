@@ -31,6 +31,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
     {
         var root=new Holon{Id=ids[0],Name="protected source root",Description="Case",CreatedByAvatarId=actor,IsPublic=true,Version=1,
             MetaData=new(){["nullableJoinFlag"]=true,["nullableJoinGuid"]=ids[0],["caseJoinGuid"]="01234567-89ab-cdef-abcd-0123456789ab",["i64"]=9007199254740993L,["narrow"]=1,["u32"]=uint.MaxValue,["distinctHolonType"]=(int)HolonType.Avatar,["distinctProviderType"]=(int)ProviderType.MongoDBOASIS,["distinctUtc"]=new DateTime(638700000000000001L,DateTimeKind.Utc),["u64"]=ulong.MaxValue,["decimal"]=1.0000000000000000000000000001m,["float"]=1f+1.1920929e-7f,["double"]=1d+2.220446049250313e-16d,["presentNull"]=null,["text"]="Café 😀"}};
+        root.MetaData["lengthProjectionNul"] = "ab\0😀";
+        root.MetaData["lengthProjectionEmpty"] = "";
         root.MetaData["catalog.v1"] = "literal";
         root.MetaData["catalog"] = new Dictionary<string, object> { ["v1"] = "nested" };
         root.Children.Add(new Holon{Id=ids[1],ParentHolonId=root.Id,Name="visible match",Description="Case",CreatedByAvatarId=actor,IsPublic=true,Version=1,
@@ -45,6 +47,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
 
     private static async Task VerifyEntityProjection(ICosmicQueryEntityProjectionStorageProvider adapter,Guid rootId,List<object> checks)
     {
+        await VerifyComputedLengthProjection(adapter,rootId,checks);
         async Task<NextGenSoftware.OASIS.Common.OASISResult<CosmicProjectionExecution<TResult>>> Read<T,TResult>(
             CosmicEntityProjectionQuery<T,TResult> query,CosmicEntityCompositionOptions? options=null,int maximumBytes=1048576) where T:IHolon
         {

@@ -40,6 +40,36 @@ public static partial class CqlV1Endpoint
                 return Failure(403, "CQL_PROVIDER_NOT_ELIGIBLE", "The provider is not eligible for this admitted projection.");
             if (rowAdapter is not ICosmicQueryProjectionStorageProvider adapter)
                 return Failure(400, "CQL_CAPABILITY_UNSUPPORTED", "The provider does not implement native selected columns.");
+            if (intent.ResultStages.Count != 0)
+            {
+                if (virtualProjection != null)
+                    return Failure(400, "CQL_CAPABILITY_UNSUPPORTED", "Mapped computed ordering requires native mapped composition.");
+                if (rowAdapter is not ICosmicQueryProjectionCompositionStorageProvider composedAdapter)
+                    return Failure(400, "CQL_CAPABILITY_UNSUPPORTED", "The provider does not implement native computed-result ordering.");
+                var composedPlan = CosmicProjectionCompositionPlanner.Plan(intent, selected,
+                    new[] { new CosmicProjectionCompositionTarget(selected, composedAdapter.QueryCapabilities,
+                        composedAdapter.ProjectionCapabilities, composedAdapter.CompositionCapabilities) },
+                    new CosmicProjectionCompositionOptions(100, MaximumResponseBytes, 1600, 25600));
+                if (composedPlan.IsError)
+                    return Failure(400, composedPlan.ErrorCode, "The provider does not support the requested computed ordering.");
+                using var composedDeadline = CancellationTokenSource.CreateLinkedTokenSource(http.RequestAborted);
+                composedDeadline.CancelAfter(TimeSpan.FromSeconds(5));
+                var composedManager = providers.CreateManager(storage);
+                http.Items[CqlV1ResourceFilter.DispatchedKey] = true;
+                var composedResult = await composedManager.ExecuteProjectionCompositionQueryAsync(composedPlan.Result,
+                    new ICosmicQueryStorageProvider[] { composedAdapter }, maximumResults: 100,
+                    maximumPayloadBytes: MaximumResponseBytes, cancellationToken: composedDeadline.Token);
+                if (composedResult.IsError) return QueryFailure(http, composedResult.ErrorCode);
+                var composedOutput = composedResult.Result.Providers.Single();
+                if (composedOutput.Provider != selected)
+                    return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "Computed projection provenance differs from its admitted provider.");
+                var composedColumns = SelectedWireColumns(intent.Columns);
+                var composedRows = SelectedWireRows(composedOutput.Rows, composedDeadline.Token);
+                composedDeadline.Token.ThrowIfCancellationRequested();
+                return JsonResponse(new OASISResult<object>(new
+                { version = "cql-projection-v1", provider = selected.ToString(), columns = composedColumns, rows = composedRows })
+                { IsLoaded = true });
+            }
             var planned = CosmicProjectionPlanner.Plan(intent, selected,
                 new[] { new CosmicProjectionTarget(selected, adapter.QueryCapabilities, adapter.ProjectionCapabilities) });
             if (planned.IsError) return Failure(400, planned.ErrorCode, "The provider does not support the requested projection.");
@@ -93,37 +123,35 @@ public static partial class CqlV1Endpoint
             return Failure(native.ErrorCode switch
             {
                 "VIRTUAL_MAPPING_NOT_FOUND" => 404,
-                "NATIVE_QUERY_PAYLOAD_LIMIT" => 413,
-                "VIRTUAL_HOLON_QUERY_INVALID" or "NATIVE_QUERY_INVALID" or "VIRTUAL_HOLON_CONNECTION_CHANGED" => 400,
+                "NATIVE_QUERY_PAYLOAD_LIMIT" or "NATIVE_PROJECTION_PAYLOAD_LIMIT" => 413,
+                "VIRTUAL_HOLON_QUERY_INVALID" or "NATIVE_QUERY_INVALID" or "NATIVE_PROJECTION_QUERY_INVALID" or "VIRTUAL_HOLON_CONNECTION_CHANGED" => 400,
                 _ => 503
             }, native.ErrorCode, native.Message);
-        if (native.Result.Count >= CqlVirtualProjection.MaximumRows)
-            return Failure(400, "CQL_VIRTUAL_SOURCE_LIMIT", "Narrow the filter so both branches fit the mixed projection budget.");
-
-        var imported = materialized.ToDictionary(row => (Guid)row.Values[0]);
-        var live = native.Result.ToDictionary(row => row.Id);
+        if (!native.IsLoaded || native.Result == null)
+            return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "The mapped source did not return a loaded result.");
+        var merged = CosmicMixedProjectionResults.Merge(intent, actor, request.VirtualMappingId.Value,
+            materialized, native.Result, virtualProjection.Orderings, request.Skip, request.Take,
+            MaximumResponseBytes * 2, cancellationToken);
+        if (merged.IsError)
+        {
+            if (merged.ErrorCode == "CQL_QUERY_CANCELLED") cancellationToken.ThrowIfCancellationRequested();
+            return Failure(merged.ErrorCode switch {
+                "CQL_VIRTUAL_SOURCE_LIMIT" or "CQL_MIXED_QUERY_INVALID" => 400,
+                "CQL_RESULT_LIMIT" => 413,
+                _ => 503
+            }, merged.ErrorCode, merged.Message);
+        }
         var rows = new List<object[]>();
         var provenance = new List<object>();
-        var ids = imported.Keys.Union(live.Keys);
-        var ordered = request.Descending ? ids.OrderByDescending(id => id) : ids.OrderBy(id => id);
-        foreach (var id in ordered.Skip(request.Skip).Take(request.Take))
+        foreach (var winner in merged.Result)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (live.TryGetValue(id, out var row))
-            {
-                object[] values;
-                try { values = virtualProjection.Select(row); }
-                catch (ArgumentException)
-                { return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "The mapped field value differs from its selected type."); }
-                rows.Add(values.Select(ProjectionWireValue).ToArray());
+            rows.Add(winner.Record.Values.Select(ProjectionWireValue).ToArray());
+            if (winner.Virtual is { } row)
                 provenance.Add(new { representation = "Virtual", provider = row.Provider.ToString(), row.MappingId,
-                    row.MappingVersion, row.FetchedAt, alsoMaterialized = imported.ContainsKey(id) });
-            }
+                    row.MappingVersion, row.FetchedAt, alsoMaterialized = winner.AlsoMaterialized });
             else
-            {
-                rows.Add(imported[id].Values.Select(ProjectionWireValue).ToArray());
                 provenance.Add(new { representation = "Materialized", provider = selected.ToString() });
-            }
         }
         return JsonResponse(new OASISResult<object>(new { version = "cql-projection-v1", provider = selected.ToString(),
             columns = SelectedWireColumns(intent.Columns), rows, provenance, canPrepareSnapshot = true }) { IsLoaded = true });
@@ -133,8 +161,8 @@ public static partial class CqlV1Endpoint
         => columns.Select(column => new
         {
             alias = column.Alias,
-            valueType = ProjectionWireType(Nullable.GetUnderlyingType(column.Path.ValueType) ?? column.Path.ValueType),
-            nullable = !column.Path.ValueType.IsValueType || Nullable.GetUnderlyingType(column.Path.ValueType) != null
+            valueType = ProjectionWireType(Nullable.GetUnderlyingType(column.ValueType) ?? column.ValueType),
+            nullable = !column.ValueType.IsValueType || Nullable.GetUnderlyingType(column.ValueType) != null
         }).ToArray();
 
     private static List<object[]> SelectedWireRows(IEnumerable<CosmicProjectionRecord> records, CancellationToken token)

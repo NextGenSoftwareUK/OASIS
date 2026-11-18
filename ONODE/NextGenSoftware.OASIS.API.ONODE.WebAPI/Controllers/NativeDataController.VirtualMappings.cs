@@ -35,6 +35,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         public sealed class VirtualMappingDefinitionRequest
         {
+            public Guid? ApplicationId { get; set; }
             public Guid Id { get; set; }
             public string SourceName { get; set; }
             public string ConnectionName { get; set; }
@@ -58,6 +59,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return BadRequest(new OASISResult<Holon> { IsError = true, ErrorCode = "VIRTUAL_MAPPING_INVALID",
                     Message = "Use non-reserved CQL metadata names of one to 64 characters." });
 
+            var policyRefusal = StoragePolicyRefusal<Holon>(request.ApplicationId, true);
+            if (policyRefusal != null) return policyRefusal;
             var actor = AvatarId;
             try
             {
@@ -72,7 +75,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     return BadRequest(new OASISResult<Holon> { IsError = true, ErrorCode = "VIRTUAL_HOLON_SOURCE_UNAVAILABLE",
                         Message = "The named connection is unavailable." });
                 var mapping = new VirtualHolonMapping(request.Id, 1, actor, providerType, request.SourceName,
-                    request.ConnectionName, binding.Identity, request.Fields);
+                    request.ConnectionName, binding.Identity, request.Fields, request.ApplicationId);
                 return Ok(new OASISResult<Holon>(mapping.ToDefinitionHolon()));
             }
             catch (NativeConnectionRefusedException)
@@ -143,6 +146,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (row == null)
                 return NotFound(SnapshotError("VIRTUAL_SNAPSHOT_ROW_NOT_FOUND", "The selected row is outside the current query result."));
 
+            var policyRefusal = StoragePolicyRefusal<Holon>(row.ApplicationId, false);
+            if (policyRefusal != null) return policyRefusal;
             try { return Ok(new OASISResult<Holon>(row.PrepareSnapshot(avatar.Id))); }
             catch (ArgumentException)
             {

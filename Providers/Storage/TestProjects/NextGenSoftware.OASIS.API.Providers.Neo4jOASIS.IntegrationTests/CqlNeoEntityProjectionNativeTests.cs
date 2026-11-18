@@ -56,7 +56,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             await VerifyChildSource(provider, actor, ids[0], ids[1], checks);
             await VerifyJoinOutputOrdering(provider, ids, checks);
             await VerifyNativeStringLength(provider, ids, checks);
-            Assert.AreEqual(126,checks.Count);
+            Assert.AreEqual(140,checks.Count);
             var deactivation=await provider.DeActivateProviderAsync();Assert.IsFalse(deactivation.IsError,deactivation.Message);active=false;
             await Checkpoint("before-exact-cleanup");
             var deleted=await (await inspection.RunAsync("MATCH(h:Holon) WHERE h.Id IN $ids DETACH DELETE h",new{ids=ids.Select(id=>id.ToString("D")).ToArray()})).ConsumeAsync();
@@ -220,6 +220,102 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             {
                 NativeConnectionGuard.AllowPrivateOverride = previousPrivatePolicy;
             }
+
+            await (await inspection.RunAsync($"MATCH (n:`{label}`) WHERE n.hidden = 'private' SET n.amount = $amount, n.small = 123, n.flag = true, n.empty = '', n.big = $big, n.near = $near",
+                new { amount = 9007199254740993L, big = new string('x', 1048580),
+                    near = string.Concat(Enumerable.Repeat("A\u007F\u0080\u07FF\u0800\uFFFF😀", 62500)) })).ConsumeAsync();
+            async Task<string[]> NativeProjectionSnapshot()
+            {
+                var records = await (await inspection.RunAsync($"MATCH (n:`{label}`) RETURN elementId(n) AS key, properties(n) AS data ORDER BY key")).ToListAsync();
+                return records.Select(record => record["key"].As<string>() + ":" + Convert.ToHexString(
+                    System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(
+                        JsonSerializer.Serialize(new SortedDictionary<string, object>(record["data"].As<IDictionary<string, object>>(), StringComparer.Ordinal)))))).ToArray();
+            }
+            var nativeBefore = await NativeProjectionSnapshot();
+            var projectionWatch = System.Diagnostics.Stopwatch.StartNew();
+            var adaFilter = new[] { new NativeRecordFilter("hidden", CosmicQueryComparisonOperator.Equal, "private") };
+            var projectionColumns = new[] {
+                new NativeProjectionColumn("name", "Name", typeof(string)),
+                new NativeProjectionColumn("text", "Original", typeof(string)),
+                new NativeProjectionColumn("text", "Units", typeof(string), function: NativeRecordFunction.Utf16Length),
+                new NativeProjectionColumn("text", "UnitsAgain", typeof(string), function: NativeRecordFunction.Utf16Length),
+                new NativeProjectionColumn("empty", "EmptyUnits", typeof(string), function: NativeRecordFunction.Utf16Length)
+            };
+            var projection = await provider.QueryNativeProjectionRecordsAsync(label, adaFilter, projectionColumns, 1);
+            Assert.IsFalse(projection.IsError, projection.Message + projection.Exception);
+            var projectedRow = projection.Result.Single();
+            Assert.AreEqual(imported.NativeKey, projectedRow.NativeKey);
+            Assert.AreEqual("Ada updated", projectedRow.Cells[0].Value);
+            Assert.AreEqual("😀", projectedRow.Cells[1].Value);
+            Assert.AreEqual(2, projectedRow.Cells[2].Value);
+            Assert.AreEqual(2, projectedRow.Cells[3].Value);
+            Assert.AreEqual(0, projectedRow.Cells[4].Value);
+            await VerifyMappedNativeProjectionCompiler(provider, lengthMapping, actor, mappedLength.Result.Single());
+            checks.Add(new { provider = "Neo4jOASIS", nativeProjection = "raw/computed/repeated aliases and original element identity", mappedCompilerVerified = true, elapsedMilliseconds = projectionWatch.ElapsedMilliseconds });
+
+            projectionWatch.Restart();
+            var missingProjection = await provider.QueryNativeProjectionRecordsAsync(label, adaFilter,
+                new[] { new NativeProjectionColumn("absent", "Units", typeof(string), true, NativeRecordFunction.Utf16Length) }, 1);
+            Assert.IsFalse(missingProjection.IsError, missingProjection.Message);
+            Assert.AreEqual(NativeProjectionValueState.Missing, missingProjection.Result.Single().Cells[0].State);
+            var requiredProjection = await provider.QueryNativeProjectionRecordsAsync(label, adaFilter,
+                new[] { new NativeProjectionColumn("absent", "Units", typeof(string), false, NativeRecordFunction.Utf16Length) }, 1);
+            Assert.AreEqual("NATIVE_PROJECTION_DATA_INVALID", requiredProjection.ErrorCode);
+            var nulProjection = await provider.QueryNativeProjectionRecordsAsync(label,
+                new[] { new NativeRecordFilter("name", CosmicQueryComparisonOperator.Equal, "Grace") },
+                new[] { new NativeProjectionColumn("text", "Units", typeof(string), function: NativeRecordFunction.Utf16Length) }, 1);
+            Assert.IsFalse(nulProjection.IsError, nulProjection.Message);
+            Assert.AreEqual(7, nulProjection.Result.Single().Cells[0].Value);
+            checks.Add(new { provider = "Neo4jOASIS", nativeProjection = "native missing/nullability and embedded-NUL semantics", elapsedMilliseconds = projectionWatch.ElapsedMilliseconds });
+
+            projectionWatch.Restart();
+            var invalidProjection = await provider.QueryNativeProjectionRecordsAsync(label,
+                new[] { new NativeRecordFilter("name", CosmicQueryComparisonOperator.Equal, "Alan") },
+                new[] { new NativeProjectionColumn("text", "Units", typeof(string), true, NativeRecordFunction.Utf16Length) }, 1);
+            Assert.AreEqual("NATIVE_PROJECTION_DATA_INVALID", invalidProjection.ErrorCode);
+            Assert.IsNull(invalidProjection.Result);
+            var duplicateAliases = await provider.QueryNativeProjectionRecordsAsync(label, adaFilter,
+                new[] { new NativeProjectionColumn("name", "Same", typeof(string)),
+                    new NativeProjectionColumn("text", "Same", typeof(string)) }, 1);
+            Assert.AreEqual("NATIVE_PROJECTION_QUERY_INVALID", duplicateAliases.ErrorCode);
+            checks.Add(new { provider = "Neo4jOASIS", nativeProjection = "invalid native input/aliases produce no partial results", elapsedMilliseconds = projectionWatch.ElapsedMilliseconds });
+
+            projectionWatch.Restart();
+            var exactProjection = await provider.QueryNativeProjectionRecordsAsync(label, adaFilter,
+                new[] { new NativeProjectionColumn("amount", "Exact", typeof(long)),
+                    new NativeProjectionColumn("small", "Narrow", typeof(int)), new NativeProjectionColumn("flag", "Flag", typeof(bool)) }, 1);
+            Assert.IsFalse(exactProjection.IsError, exactProjection.Message);
+            Assert.AreEqual(9007199254740993L, exactProjection.Result.Single().Cells[0].Value);
+            Assert.AreEqual(123, exactProjection.Result.Single().Cells[1].Value);
+            Assert.AreEqual(true, exactProjection.Result.Single().Cells[2].Value);
+            var overflowingProjection = await provider.QueryNativeProjectionRecordsAsync(label, adaFilter,
+                new[] { new NativeProjectionColumn("amount", "Narrow", typeof(int)) }, 1);
+            Assert.AreEqual("NATIVE_PROJECTION_DATA_INVALID", overflowingProjection.ErrorCode);
+            var wrongBoolean = await provider.QueryNativeProjectionRecordsAsync(label, adaFilter,
+                new[] { new NativeProjectionColumn("small", "Flag", typeof(bool)) }, 1);
+            Assert.AreEqual("NATIVE_PROJECTION_DATA_INVALID", wrongBoolean.ErrorCode);
+            checks.Add(new { provider = "Neo4jOASIS", nativeProjection = "exact native scalar domains and checked Int32 boundary", elapsedMilliseconds = projectionWatch.ElapsedMilliseconds });
+
+            projectionWatch.Restart();
+            var nearLimit = await provider.QueryNativeProjectionRecordsAsync(label, adaFilter,
+                new[] { new NativeProjectionColumn("near", "Text", typeof(string)) }, 1);
+            Assert.IsFalse(nearLimit.IsError, nearLimit.Message + nearLimit.Exception);
+            Assert.AreEqual(1000000, System.Text.Encoding.UTF8.GetByteCount((string)nearLimit.Result.Single().Cells[0].Value));
+            var oversizedProjection = await provider.QueryNativeProjectionRecordsAsync(label, adaFilter,
+                new[] { new NativeProjectionColumn("big", "Text", typeof(string)) }, 1);
+            Assert.AreEqual("NATIVE_PROJECTION_PAYLOAD_LIMIT", oversizedProjection.ErrorCode);
+            var excessiveWork = await provider.QueryNativeProjectionRecordsAsync(label, adaFilter,
+                new[] { new NativeProjectionColumn("big", "Units", typeof(string), function: NativeRecordFunction.Utf16Length) }, 1);
+            Assert.AreEqual("NATIVE_PROJECTION_RESOURCE_LIMIT", excessiveWork.ErrorCode);
+            using (var cancelled = new System.Threading.CancellationTokenSource()) {
+                cancelled.Cancel();
+                await Assert.ThrowsExceptionAsync<OperationCanceledException>(() => provider.QueryNativeProjectionRecordsAsync(
+                    label, adaFilter, projectionColumns, 1, cancellationToken: cancelled.Token));
+            }
+            await CqlV1Web4NativeTests.VerifyMappedNativeHttpAsync(provider, lengthMapping, mappedLength.Result.Single());
+            CollectionAssert.AreEqual(nativeBefore, await NativeProjectionSnapshot());
+            checks.Add(new { provider = "Neo4jOASIS", nativeProjection = "exact UTF8 byte bound, limited computation, cancellation and unchanged source", elapsedMilliseconds = projectionWatch.ElapsedMilliseconds });
+            checks.Add(new { provider = "Neo4jOASIS", nativeHttp = "mixed raw/computed and database-loaded private definition", jwt = true, discovery = "controlled owned fixture", successAttempts = 3, foreignActorAttempts = 2, globalOrderingVerified = true, orderedAttempts = 3 });
         }
         finally
         {
