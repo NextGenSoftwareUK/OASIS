@@ -1,3 +1,5 @@
+2026-11-18 UTC — Computed scalar SQL parser129 tests passed using cached Node and frozen modules in RAM. HTTP/native proof tests are prepared for isolated CI; no local build/restore/database/runtime/output directory. Previous40 KB proof archives inspected in RAM only; retained/blocked register remains unchanged.
+
 2026-11-18 UTC — Direct computed aggregate proof44266294044 passed;40,312-byte artifact inspected in RAM and native fixtures cleaned. Computed-count source uses the same isolated CI fixture next, no local database/build/runtime/download/output tree. Existing blocked/retained register preserved.
 
 2026-11-18 UTC — Computed SQL-count parser126 tests passed in memory using cached Node; native count assertions are CI-only and reuse existing fixtures. No local installation, restore, database, output archive or test-results tree retained. Shared Atlas remains untouched; blocked/retained register preserved.
