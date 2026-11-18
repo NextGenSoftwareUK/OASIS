@@ -36,7 +36,11 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             var projectionFields = new BsonDocument
             {
                 { "amount", new BsonInt64(9007199254740993L) }, { "small", 123 }, { "flag", true },
-                { "empty", "" }, { "big", new string('x', 1048580) }
+                { "empty", "" }, { "big", new string('x', 1048580) },
+                { "rate", 3.25d }, { "low", -double.MaxValue }, { "high", double.MaxValue },
+                { "tiny", double.Epsilon }, { "zero", -0d },
+                { "badNaN", double.NaN }, { "badInf", double.PositiveInfinity }, { "badNegativeInf", double.NegativeInfinity },
+                { "optionalDouble", BsonNull.Value }
             };
             await items.UpdateOneAsync(new BsonDocument("_id", 1), new BsonDocument("$set", projectionFields));
             var cases = new[]
@@ -136,6 +140,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
 
             var nativeBefore = (await items.Find(FilterDefinition<BsonDocument>.Empty).Sort(new BsonDocument("_id", 1)).ToListAsync())
                 .Select(document => document.ToBson()).ToArray();
+            await VerifyNativeDoubleProjection(provider, "items",
+                new NativeRecordFilter("_id", CosmicQueryComparisonOperator.Equal, 1), "small", true, checks);
             var projectionWatch = System.Diagnostics.Stopwatch.StartNew();
             var lengthColumns = new[] {
                 new NativeProjectionColumn("label", "Caption", typeof(string)),

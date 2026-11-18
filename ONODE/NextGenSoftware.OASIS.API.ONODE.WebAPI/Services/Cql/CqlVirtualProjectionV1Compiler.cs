@@ -44,7 +44,8 @@ public static partial class CqlV1Compiler
                 "Boolean" => typeof(bool),
                 "Int32" => typeof(int),
                 "Int64" => typeof(long),
-                _ => throw new ArgumentException("This virtual source supports String, Boolean, Int32 and Int64 projections.")
+                "Double" => typeof(double),
+                _ => throw new ArgumentException("This virtual source supports String, Boolean, Int32, Int64 and finite Double projections.")
             };
             var function = column.Function switch
             {
@@ -119,7 +120,8 @@ public static partial class CqlV1Compiler
                 CqlV1Scalar.String => typeof(string),
                 CqlV1Scalar.Boolean => typeof(bool),
                 CqlV1Scalar.Integer => typeof(long),
-                _ => throw new ArgumentException("This virtual source supports String, Boolean and Int64 scalar predicates.")
+                CqlV1Scalar.Double => typeof(double),
+                _ => throw new ArgumentException("This virtual source supports String, Boolean, Int64 and finite Double scalar predicates.")
             };
             return new NativeRecordFilter(filter.MetadataPath[0], operation, Literal(filter.Value, matchType).Value);
         }).ToArray();

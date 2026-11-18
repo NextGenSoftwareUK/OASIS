@@ -127,8 +127,12 @@ public partial class MongoDBOASIS : INativeDataProjectionQueryProvider
     private static BsonValue NativeProjectionCellExpression(NativeProjectionColumn column)
     {
         var expected = column.InputType == typeof(string) ? "string" : column.InputType == typeof(bool) ? "bool"
-            : column.InputType == typeof(int) ? "int" : "long";
-        var domain = ProjectionOperation("$eq", "$$kind", expected);
+            : column.InputType == typeof(int) ? "int" : column.InputType == typeof(double) ? "double" : "long";
+        BsonValue domain = ProjectionOperation("$eq", "$$kind", expected);
+        if (column.InputType == typeof(double))
+            domain = ProjectionOperation("$and", domain,
+                ProjectionOperation("$gte", "$$input", -double.MaxValue),
+                ProjectionOperation("$lte", "$$input", double.MaxValue));
         var textBound = ProjectionCondition(domain,
             ProjectionOperation("$lte", new BsonDocument("$strLenBytes", "$$input"), 1048576), false);
         var admissible = column.InputType == typeof(string) ? textBound : domain;
@@ -208,6 +212,7 @@ public partial class MongoDBOASIS : INativeDataProjectionQueryProvider
                 bool flag => (new BsonBoolean(flag), "bool"),
                 int number => (new BsonInt32(number), "int"),
                 long number => (new BsonInt64(number), "long"),
+                double number when double.IsFinite(number) => (new BsonDouble(number), "double"),
                 _ => (null, null)
             };
             if (literal == null) throw new ArgumentException("Unsupported exact native predicate scalar.");
@@ -219,6 +224,10 @@ public partial class MongoDBOASIS : INativeDataProjectionQueryProvider
                 { "$expr", new BsonDocument("$eq", new BsonArray
                     { new BsonDocument("$type", "$" + match.Field), type }) }
             };
+            if (match.Value is double)
+                atomic["$expr"] = ProjectionOperation("$and", atomic["$expr"],
+                    ProjectionOperation("$gte", "$" + match.Field, -double.MaxValue),
+                    ProjectionOperation("$lte", "$" + match.Field, double.MaxValue));
             if (match.Operator == CosmicQueryComparisonOperator.NotEqual && match.Value is string)
                 atomic = new BsonDocument("$or", new BsonArray
                 {
