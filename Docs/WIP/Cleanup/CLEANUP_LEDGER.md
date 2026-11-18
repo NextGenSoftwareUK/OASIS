@@ -4826,3 +4826,41 @@
 2026-11-18 exactNeo qualification44375794544 on6c3a65a/Core17b active,4 new real Bolt cases. Existing reusable workflow/ref/worktree only; pinned768MiB Bolt container is remote-only and always removed with volumes/absence guard. No local image/SDK/runtime/package download, build outputs, backend database/environment or new worktree. Native row/history/temporary-constraint cleanup pending terminal proof; no extracted reports. YAML and project XML parsed in RAM using already-installed libraries, no installation. Full branch compatibility8cb4 already terminalPASS with owned cleanup.
 
 2026-11-18 Neo6c run44375794544/job135054540162 terminalFAILURE: actual API built,2 native cases passed/2 fixture-assertion failures. Both Stop owned native seal routing fixture and Stop owned native profile Bolt fixture SUCCESS, containers/volumes absent; per-test row/history/temporary-constraint cleanup assertions passed.2297-byte artifact14460653932 read/disposed in RAM only. No local download/build/runtime/SDK/image install/database/environment/new worktree. Fixture-only persistent-token correction prepared; unchanged2 passing cases and old suites not re-executed.
+
+2026-11-18T19:14:25.3737105Z cleanup script PID22068: PLANNED target=C:\Source\OASIS2\STAR ODK\NextGenSoftware.OASIS.STAR.CLI.Lib.TestHarness\bin; bytes=632644110; reason=Regenerable idle STAR test build outputs; no tracked files, no dotnet/MSBuild/testhost process, provider build lease held; regenerate via original tool.
+
+2026-11-18T19:14:31.2307022Z cleanup script PID22068: REMOVED C:\Source\OASIS2\STAR ODK\NextGenSoftware.OASIS.STAR.CLI.Lib.TestHarness\bin; bytes=632644110; locked/in-use items left=0.
+
+2026-11-18T19:14:34.8854063Z cleanup script PID22068: PLANNED target=C:\Source\OASIS2\STAR ODK\NextGenSoftware.OASIS.STAR.CLI.Lib.TestHarness\obj; bytes=3212780; reason=Regenerable idle STAR test build outputs; no tracked files, no dotnet/MSBuild/testhost process, provider build lease held; regenerate via original tool.
+
+2026-11-18T19:14:34.9718890Z cleanup script PID22068: REMOVED C:\Source\OASIS2\STAR ODK\NextGenSoftware.OASIS.STAR.CLI.Lib.TestHarness\obj; bytes=3212780; locked/in-use items left=0.
+
+2026-11-18T19:14:38.0174039Z cleanup script PID22068: PLANNED target=C:\Source\OASIS2\STAR ODK\NextGenSoftware.OASIS.STAR.CLI.Lib.UnitTests\bin; bytes=321660443; reason=Regenerable idle STAR test build outputs; no tracked files, no dotnet/MSBuild/testhost process, provider build lease held; regenerate via original tool.
+
+2026-11-18T19:14:39.1596157Z cleanup script PID22068: REMOVED C:\Source\OASIS2\STAR ODK\NextGenSoftware.OASIS.STAR.CLI.Lib.UnitTests\bin; bytes=321660443; locked/in-use items left=0.
+
+2026-11-18T19:14:39.8516705Z cleanup script PID22068: PLANNED target=C:\Source\OASIS2\STAR ODK\NextGenSoftware.OASIS.STAR.CLI.Lib.UnitTests\obj; bytes=2613010; reason=Regenerable idle STAR test build outputs; no tracked files, no dotnet/MSBuild/testhost process, provider build lease held; regenerate via original tool.
+
+2026-11-18T19:14:39.9003517Z cleanup script PID22068: REMOVED C:\Source\OASIS2\STAR ODK\NextGenSoftware.OASIS.STAR.CLI.Lib.UnitTests\obj; bytes=2613010; locked/in-use items left=0.
+
+2026-11-18T19:14:41.1667256Z cleanup script PID22068: PLANNED target=C:\Source\OASIS2\STAR ODK\NextGenSoftware.OASIS.STAR.TestHarness\bin; bytes=69213536; reason=Regenerable idle STAR test build outputs; no tracked files, no dotnet/MSBuild/testhost process, provider build lease held; regenerate via original tool.
+
+2026-11-18T19:14:41.6418420Z cleanup script PID22068: REMOVED C:\Source\OASIS2\STAR ODK\NextGenSoftware.OASIS.STAR.TestHarness\bin; bytes=69213536; locked/in-use items left=0.
+
+2026-11-18T19:14:42.1376979Z cleanup script PID22068: PLANNED target=C:\Source\OASIS2\STAR ODK\NextGenSoftware.OASIS.STAR.TestHarness\obj; bytes=1116459; reason=Regenerable idle STAR test build outputs; no tracked files, no dotnet/MSBuild/testhost process, provider build lease held; regenerate via original tool.
+
+2026-11-18T19:14:42.2009745Z cleanup script PID22068: REMOVED C:\Source\OASIS2\STAR ODK\NextGenSoftware.OASIS.STAR.TestHarness\obj; bytes=1116459; locked/in-use items left=0.
+
+2026-11-18T19:14:42.8472967Z cleanup script PID22068: Emergency selected sweep complete; removed bytes=1030460338; failures=; C free bytes=53904052224. Dirty OASIS2-purge and OPORTAL-JS-purge source preserved. Previous rejected installer targets not retried.
+
+2026-11-18T19:15:27.7950153Z cleanup script PID23736: PLANNED target=C:\Source\OASIS2-hyperdrive\TestResults\HyperDrive-Providers\ActivationHarness\sqlserver-development-artifacts\bin; bytes=0; reason=Completed SQL Server activation build intermediates; compact JSON results and logs retained; regenerate via original tool.
+
+2026-11-18T19:15:31.4331848Z cleanup script PID23736: REMOVED C:\Source\OASIS2-hyperdrive\TestResults\HyperDrive-Providers\ActivationHarness\sqlserver-development-artifacts\bin; bytes=0; locked/in-use items left=0.
+
+2026-11-18T19:15:42.8919427Z cleanup script PID23736: PLANNED target=C:\Source\OASIS2-hyperdrive\TestResults\HyperDrive-Providers\ActivationHarness\sqlserver-development-artifacts\obj; bytes=47776820; reason=Completed SQL Server activation build intermediates; compact JSON results and logs retained; regenerate via original tool.
+
+2026-11-18T19:15:46.6662089Z cleanup script PID23736: REMOVED C:\Source\OASIS2-hyperdrive\TestResults\HyperDrive-Providers\ActivationHarness\sqlserver-development-artifacts\obj; bytes=47776820; locked/in-use items left=0.
+
+2026-11-18T19:15:46.7870451Z cleanup script PID23736: Final selected sweep bytes=47776820. Source, compact evidence, reusable runtimes, user downloads and dirty worktrees retained; prior rejected installer cleanup not retried.
+
+2026-11-18T19:15:59.5467771Z verified emergency cleanup total=1,078,237,158 bytes (1.00 GiB): six idle STAR test bin/obj directories plus SQL Server activation bin/obj. Both batches held provider build lease; no active dotnet/MSBuild/testhost observed; exact root-boundary and tracked-file guards passed. No source, credentials, databases, reusable runtimes or user downloads removed. Dirty OASIS2-purge and OPORTAL-JS-purge contain uncommitted source and remain. Prior installer targets remain policy-blocked, not retried or counted. Current C free bytes=53950656512.
