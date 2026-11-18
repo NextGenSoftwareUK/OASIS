@@ -334,6 +334,9 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             return result.Result.Providers.Single().Value;
         }
         Assert.AreEqual(2L, await SelectedCount(distinctCountSource, row => row.Description, distinct: true));
+        Assert.AreEqual(1L, await SelectedCount(distinctCountSource, row => (int?)row.Description.Length, distinct: true));
+        Assert.AreEqual(3L, await SelectedCount(distinctCountSource, row => (int?)row.Description.Length, distinct: false));
+        Assert.AreEqual(0L, await SelectedCount(distinctCountSource.Take(0).Result, row => (int?)row.Description.Length, distinct: false));
         Assert.AreEqual(0L, await SelectedCount(distinctCountSource.Take(0).Result, row => row.Description, distinct: true));
         Assert.AreEqual(3L, await SelectedCount(distinctCountSource, row => row.Description, distinct: false));
         Assert.AreEqual(4L, await SelectedCount(distinctCountSource, row => row.Id, distinct: false));

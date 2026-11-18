@@ -108,7 +108,7 @@ internal static class CqlRequestCapture
         var selection = value.Selection;
         var copiedSelection = selection == null ? null : new CqlScalarV1Selection
         {
-            Field = selection.Field, ValueType = selection.ValueType, Nullable = selection.Nullable,
+            Field = selection.Field, ValueType = selection.ValueType, Nullable = selection.Nullable, Function = selection.Function,
             MetadataPath = selection.MetadataPath == null ? null : Array(selection.MetadataPath, 8, item => item)
         };
         var source = Capture(new CqlV1Request

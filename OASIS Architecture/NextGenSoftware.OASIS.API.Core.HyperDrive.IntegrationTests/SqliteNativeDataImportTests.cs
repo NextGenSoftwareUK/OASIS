@@ -274,6 +274,143 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
             Assert.Equal("NATIVE_IMPORT_UNAVAILABLE", (await absent.ListNativeDataSourcesAsync()).ErrorCode);
         }
 
+
+        [Fact]
+        public async Task StoragePoliciesPersistAcrossFreshProvidersWithoutReplacingOtherPreferences()
+        {
+            var sourceBefore = NativeBytes();
+            var actor = Guid.NewGuid();
+            var otherActor = Guid.NewGuid();
+            var app = Guid.NewGuid();
+            var otherApp = Guid.NewGuid();
+            var dna = new NextGenSoftware.OASIS.API.DNA.OASISDNA
+            {
+                OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
+                {
+                    HyperDriveMode = "V2",
+                    StorageProviders = new NextGenSoftware.OASIS.API.DNA.StorageProviderSettings { LogSwitchingProviders = false }
+                }
+            };
+
+            using (var seed = Provider())
+            {
+                var active = await seed.ActivateProviderAsync();
+                Assert.False(active.IsError, active.Message);
+                foreach (var id in new[] { actor, otherActor })
+                {
+                    var avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar
+                    {
+                        Id = id, Username = "policy-fixture-" + id.ToString("N"),
+                        IsActive = true, CreatedDate = DateTime.UtcNow,
+                        MetaData = new Dictionary<string, object>
+                        {
+                            ["unrelated"] = "retained",
+                            ["preferences"] = new Dictionary<string, object>
+                            {
+                                ["system"] = new Dictionary<string, object> { ["theme"] = "preserved" },
+                                ["limit"] = long.MaxValue,
+                                ["fraction"] = 12345.678901234567890123456789m
+                            }
+                        }
+                    };
+                    var saved = await seed.SaveAvatarAsync(avatar);
+                    Assert.False(saved.IsError, saved.Message);
+                }
+            }
+
+            async Task<T> Settings<T>(Func<NextGenSoftware.OASIS.API.Core.Managers.SettingsManager, Task<T>> operation)
+            {
+                using var provider = Provider();
+                var active = await provider.ActivateProviderAsync();
+                Assert.False(active.IsError, active.Message);
+                var routing = new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null, dna);
+                Assert.True(routing.RegisterProvider(provider));
+                return await operation(new NextGenSoftware.OASIS.API.Core.Managers.SettingsManager(provider, dna, routing));
+            }
+
+            var full = new HolonStoragePolicy(HolonStorageMode.Materialized, HolonReadCacheMode.None, 0, 0, true);
+            var mapped = new HolonStoragePolicy(HolonStorageMode.Virtual, HolonReadCacheMode.None, 0, 0, false);
+            var hybrid = new HolonStoragePolicy(HolonStorageMode.Hybrid, HolonReadCacheMode.None, 0, 0, true);
+            var savedFull = await Settings(manager => manager.SaveHolonStoragePolicyAsync(actor, null, full));
+            Assert.False(savedFull.IsError, savedFull.Message);
+            var savedApp = await Settings(manager => manager.SaveHolonStoragePolicyAsync(actor, app, mapped));
+            Assert.False(savedApp.IsError, savedApp.Message);
+            var savedOtherApp = await Settings(manager => manager.SaveHolonStoragePolicyAsync(actor, otherApp, hybrid));
+            Assert.False(savedOtherApp.IsError, savedOtherApp.Message);
+
+            var selected = await Settings(manager => manager.GetHolonStoragePolicyAsync(actor, app));
+            Assert.False(selected.IsError, selected.Message);
+            Assert.NotNull(selected.Result.EffectivePolicy);
+            Assert.Equal(HolonStorageMode.Virtual, selected.Result.EffectivePolicy.Mode);
+            var inherited = await Settings(manager => manager.GetHolonStoragePolicyAsync(actor, Guid.NewGuid()));
+            Assert.False(inherited.IsError, inherited.Message);
+            Assert.Equal(HolonStorageMode.Materialized, inherited.Result.EffectivePolicy.Mode);
+
+            var resetApp = await Settings(manager => manager.ResetHolonStoragePolicyAsync(actor, app));
+            Assert.False(resetApp.IsError, resetApp.Message);
+            var afterResetApp = await Settings(manager => manager.GetHolonStoragePolicyAsync(actor, app));
+            Assert.False(afterResetApp.IsError, afterResetApp.Message);
+            Assert.Null(afterResetApp.Result.ApplicationPolicy);
+            Assert.Equal(HolonStorageMode.Materialized, afterResetApp.Result.EffectivePolicy.Mode);
+            var resetAvatar = await Settings(manager => manager.ResetHolonStoragePolicyAsync(actor));
+            Assert.False(resetAvatar.IsError, resetAvatar.Message);
+            var afterResetAvatar = await Settings(manager => manager.GetHolonStoragePolicyAsync(actor));
+            Assert.False(afterResetAvatar.IsError, afterResetAvatar.Message);
+            Assert.Null(afterResetAvatar.Result.EffectivePolicy);
+            var retainedApp = await Settings(manager => manager.GetHolonStoragePolicyAsync(actor, otherApp));
+            Assert.False(retainedApp.IsError, retainedApp.Message);
+            Assert.Equal(HolonStorageMode.Hybrid, retainedApp.Result.EffectivePolicy.Mode);
+
+            var cache = new HolonStoragePolicy(HolonStorageMode.Hybrid, HolonReadCacheMode.Memory, 1024, 30, true);
+            var refused = await Settings(manager => manager.SaveHolonStoragePolicyAsync(actor, null, cache));
+            Assert.True(refused.IsError);
+            Assert.Equal("HOLON_STORAGE_POLICY_UNSUPPORTED", refused.ErrorCode);
+            var unrelatedOwner = await Settings(manager => manager.GetHolonStoragePolicyAsync(otherActor));
+            Assert.False(unrelatedOwner.IsError, unrelatedOwner.Message);
+            Assert.Null(unrelatedOwner.Result.EffectivePolicy);
+
+            using (var verify = Provider())
+            {
+                Assert.False((await verify.ActivateProviderAsync()).IsError);
+                foreach (var id in new[] { actor, otherActor })
+                {
+                    var loaded = await verify.LoadAvatarAsync(id);
+                    Assert.False(loaded.IsError, loaded.Message);
+                    var metadata = System.Text.Json.JsonSerializer.SerializeToElement(loaded.Result.MetaData);
+                    Assert.Equal("retained", metadata.GetProperty("unrelated").GetString());
+                    var preferences = metadata.GetProperty("preferences");
+                    Assert.Equal("preserved", preferences.GetProperty("system").GetProperty("theme").GetString());
+                    Assert.Equal(long.MaxValue, preferences.GetProperty("limit").GetInt64());
+                    Assert.Equal(12345.678901234567890123456789m, preferences.GetProperty("fraction").GetDecimal());
+                }
+            }
+            Assert.Equal(sourceBefore, NativeBytes());
+        }
+
+        [Fact]
+        public async Task NativeMappedRowsRetainTheirApplicationScopeWithoutSavingSourceRows()
+        {
+            var sourceBefore = NativeBytes();
+            using var provider = Provider();
+            var actor = Guid.NewGuid();
+            var app = Guid.NewGuid();
+            var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, actor, provider.NativeDataProviderType,
+                "lines", VirtualHolonMapping.SandboxConnectionName, provider.DescribeVirtualQueryConnection(null),
+                new Dictionary<string, string> { ["sku"] = "sku" }, app);
+            var read = await mapping.QueryAsync(actor, provider, null,
+                new[] { new KeyValuePair<string, object>("sku", "A") }, new[] { "sku" }, 1);
+            Assert.False(read.IsError, read.Message);
+            var row = Assert.Single(read.Result);
+            Assert.Equal(app, row.ApplicationId);
+            var snapshot = row.PrepareSnapshot(actor);
+            Assert.Equal(row.Id, snapshot.Id);
+            var provenance = Assert.IsType<Dictionary<string, object>>(snapshot.MetaData["oasis.virtual.snapshot"]);
+            Assert.Equal(app.ToString("D"), provenance["applicationId"]);
+            Assert.Equal("A", snapshot.MetaData["sku"]);
+            Assert.False(File.Exists(OasisPath));
+            Assert.Equal(sourceBefore, NativeBytes());
+        }
+
         private byte[] NativeBytes()
         {
             SqliteConnection.ClearAllPools(); // the constructor's pooled connection still holds the file
@@ -330,6 +467,195 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
             var bytes = NativeBytes();
             Assert.NotEqual(provider.DescribeNativeConnection(Upload(bytes, "a.db")), provider.DescribeNativeConnection(Upload(bytes, "b.db")));
             await Task.CompletedTask;
+        }
+
+
+        [Fact]
+        public async Task NativeComputedProjectionPreservesSourceKeysAndIndependentAliases()
+        {
+            var before = NativeBytes();
+            using var provider = Provider();
+            var imported = (await provider.ReadNativeRecordsAsync("lines", null, 10)).Result.Records;
+            var read = await provider.QueryNativeProjectionRecordsAsync("lines",
+                new[] { new NativeRecordFilter("orderId", CosmicQueryComparisonOperator.Equal, 10L) },
+                new[] {
+                    new NativeProjectionColumn("sku", "Original", typeof(string)),
+                    new NativeProjectionColumn("sku", "Units", typeof(string), function: NativeRecordFunction.Utf16Length),
+                    new NativeProjectionColumn("orderId", "Order", typeof(long))
+                }, 2);
+            Assert.False(read.IsError, read.Message);
+            Assert.Equal(imported.Select(row => row.NativeKey), read.Result.Select(row => row.NativeKey));
+            Assert.Equal(new[] { "A", "B" }, read.Result.Select(row => (string)row.Cells[0].Value));
+            var typed = await provider.QueryNativeProjectionRecordsAsync("lines",
+                new[] { new NativeRecordFilter("sku", CosmicQueryComparisonOperator.Equal, "A") },
+                new[] { new NativeProjectionColumn("orderId", "NarrowOrder", typeof(int)),
+                    new NativeProjectionColumn("lineNo", "Flag", typeof(bool)) }, 1);
+            Assert.False(typed.IsError, typed.Message);
+            var typedRow = Assert.Single(typed.Result);
+            Assert.Equal(10, Assert.IsType<int>(typedRow.Cells[0].Value));
+            Assert.True(Assert.IsType<bool>(typedRow.Cells[1].Value));
+            var invalidBoolean = await provider.QueryNativeProjectionRecordsAsync("lines",
+                new[] { new NativeRecordFilter("sku", CosmicQueryComparisonOperator.Equal, "B") },
+                new[] { new NativeProjectionColumn("lineNo", "Flag", typeof(bool)) }, 1);
+            Assert.Equal("NATIVE_PROJECTION_DATA_INVALID", invalidBoolean.ErrorCode);
+            Assert.All(read.Result, row => {
+                Assert.Equal(1, Assert.IsType<int>(row.Cells[1].Value));
+                Assert.Equal(10L, Assert.IsType<long>(row.Cells[2].Value));
+            });
+            Assert.False(File.Exists(OasisPath));
+            Assert.Equal(before, NativeBytes());
+        }
+
+        [Fact]
+        public async Task NativeComputedProjectionPreservesUnicodeNulNullAndRefusesInvalidInput()
+        {
+            using (var connection = new SqliteConnection($"Data Source={NativePath}"))
+            {
+                connection.Open();
+                using var command = connection.CreateCommand();
+                command.CommandText = "INSERT INTO notes(body) VALUES ($text)";
+                command.Parameters.AddWithValue("$text", "A\0😀");
+                command.ExecuteNonQuery();
+            }
+            var before = NativeBytes();
+            using var provider = Provider();
+            var read = await provider.QueryNativeProjectionRecordsAsync("notes",
+                new[] { new NativeRecordFilter("body", CosmicQueryComparisonOperator.Equal, 4L, NativeRecordFunction.Utf16Length) },
+                new[] {
+                    new NativeProjectionColumn("body", "Original", typeof(string)),
+                    new NativeProjectionColumn("body", "Units", typeof(string), function: NativeRecordFunction.Utf16Length)
+                }, 2);
+            Assert.False(read.IsError, read.Message);
+            var row = Assert.Single(read.Result);
+            Assert.Equal("rowid:3", row.NativeKey);
+            Assert.Equal("A\0😀", row.Cells[0].Value);
+            Assert.Equal(4, Assert.IsType<int>(row.Cells[1].Value));
+            var nullable = new[] { new NativeProjectionColumn("rating", "Units", typeof(string), true, NativeRecordFunction.Utf16Length) };
+            var nullRead = await provider.QueryNativeProjectionRecordsAsync("suppliers",
+                new[] { new NativeRecordFilter("id", CosmicQueryComparisonOperator.Equal, 1L) }, nullable, 2);
+            Assert.False(nullRead.IsError, nullRead.Message);
+            Assert.Equal(NativeProjectionValueState.Null, Assert.Single(nullRead.Result).Cells[0].State);
+            var invalid = await provider.QueryNativeProjectionRecordsAsync("suppliers",
+                new[] { new NativeRecordFilter("id", CosmicQueryComparisonOperator.GreaterThanOrEqual, 1L) }, nullable, 3);
+            Assert.Equal("NATIVE_PROJECTION_DATA_INVALID", invalid.ErrorCode);
+            Assert.Null(invalid.Result);
+            var required = await provider.QueryNativeProjectionRecordsAsync("suppliers",
+                new[] { new NativeRecordFilter("id", CosmicQueryComparisonOperator.Equal, 1L) },
+                new[] { new NativeProjectionColumn("rating", "Units", typeof(string), false, NativeRecordFunction.Utf16Length) }, 1);
+            Assert.Equal("NATIVE_PROJECTION_DATA_INVALID", required.ErrorCode);
+            Assert.False(File.Exists(OasisPath));
+            Assert.Equal(before, NativeBytes());
+        }
+
+        [Fact]
+        public async Task NativeComputedProjectionEnforcesByteSchemaAndCancellationBounds()
+        {
+            using (var connection = new SqliteConnection($"Data Source={NativePath}"))
+            {
+                connection.Open();
+                using var command = connection.CreateCommand();
+                command.CommandText = "INSERT INTO notes(body) VALUES ($text)";
+                command.CommandText += "; INSERT INTO lines VALUES (2147483648, 1, 'huge')";
+                command.Parameters.AddWithValue("$text", new string('x', 1048580));
+                command.ExecuteNonQuery();
+            }
+            var before = NativeBytes();
+            using var provider = Provider();
+            var filters = new[] { new NativeRecordFilter("body", CosmicQueryComparisonOperator.NotEqual, "first") };
+            var columns = new[] { new NativeProjectionColumn("body", "Original", typeof(string)) };
+            var oversized = await provider.QueryNativeProjectionRecordsAsync("notes", filters, columns, 10);
+            Assert.Equal("NATIVE_PROJECTION_PAYLOAD_LIMIT", oversized.ErrorCode);
+            Assert.Null(oversized.Result);
+            var unknown = await provider.QueryNativeProjectionRecordsAsync("notes", filters,
+                new[] { new NativeProjectionColumn("missing", "Missing", typeof(string)) }, 1);
+            Assert.Equal("NATIVE_PROJECTION_QUERY_INVALID", unknown.ErrorCode);
+            var overflow = await provider.QueryNativeProjectionRecordsAsync("lines",
+                new[] { new NativeRecordFilter("sku", CosmicQueryComparisonOperator.Equal, "huge") },
+                new[] { new NativeProjectionColumn("orderId", "NarrowOrder", typeof(int)) }, 1);
+            Assert.Equal("NATIVE_PROJECTION_DATA_INVALID", overflow.ErrorCode);
+            Assert.Null(overflow.Result);
+            using var cancellation = new System.Threading.CancellationTokenSource(); cancellation.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+                provider.QueryNativeProjectionRecordsAsync("notes", filters, columns, 1, cancellationToken: cancellation.Token));
+            Assert.False(File.Exists(OasisPath));
+            Assert.Equal(before, NativeBytes());
+        }
+
+
+        [Fact]
+        public async Task MappedComputedProjectionKeepsImportIdentityAndCannotOverwriteSnapshotMetadata()
+        {
+            var before = NativeBytes();
+            using var provider = Provider();
+            var actor = Guid.NewGuid(); var app = Guid.NewGuid();
+            var mapping = new VirtualHolonMapping(Guid.NewGuid(), 3, actor,
+                NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS, "lines",
+                VirtualHolonMapping.SandboxConnectionName, provider.DescribeVirtualQueryConnection(null),
+                new Dictionary<string, string> { ["Product"] = "sku", ["Order"] = "orderId" }, app);
+            var filters = new[] { new NativeRecordFilter("Product", CosmicQueryComparisonOperator.Equal, "A") };
+            var columns = new[] {
+                new NativeProjectionColumn("Product", "Text", typeof(string)),
+                new NativeProjectionColumn("Product", "Units", typeof(string), function: NativeRecordFunction.Utf16Length),
+                new NativeProjectionColumn("Product", "Repeated", typeof(string), function: NativeRecordFunction.Utf16Length),
+                new NativeProjectionColumn("Order", "Order", typeof(long))
+            };
+            var projected = await mapping.QueryProjectionAsync(actor, provider, null, filters, columns, 1);
+            Assert.False(projected.IsError, projected.Message);
+            var output = Assert.Single(projected.Result);
+            var raw = await mapping.QueryAsync(actor, provider, null, filters, new[] { "Product", "Order" }, 1);
+            Assert.False(raw.IsError, raw.Message);
+            var original = Assert.Single(raw.Result);
+            Assert.Equal(original.Id, output.Id);
+            Assert.Equal(mapping.Id, output.MappingId);
+            Assert.Equal(3, output.MappingVersion);
+            Assert.Equal(app, output.ApplicationId);
+            Assert.Equal(mapping.Provider, output.Provider);
+            Assert.Equal(columns.Select(column => column.Alias), output.Columns.Select(column => column.Alias));
+            Assert.Equal("Product", output.Columns[1].Field);
+            Assert.Equal(typeof(string), output.Columns[1].InputType);
+            Assert.Equal(typeof(int), output.Columns[1].ValueType);
+            Assert.Equal("A", output.Cells[0].Value);
+            Assert.Equal(1, Assert.IsType<int>(output.Cells[1].Value));
+            Assert.Equal(1, Assert.IsType<int>(output.Cells[2].Value));
+            Assert.Equal(10L, Assert.IsType<long>(output.Cells[3].Value));
+            var snapshot = original.PrepareSnapshot(actor);
+            Assert.Equal("A", snapshot.MetaData["Product"]);
+            Assert.False(snapshot.MetaData.ContainsKey("Units"));
+            Assert.Null(typeof(VirtualHolonProjectionRead).GetMethod("PrepareSnapshot"));
+            Assert.False(File.Exists(OasisPath));
+            Assert.Equal(before, NativeBytes());
+        }
+
+        [Fact]
+        public async Task MappedComputedProjectionEnforcesOwnerBindingsConnectionRevisionAndCancellation()
+        {
+            var before = NativeBytes();
+            using var provider = Provider();
+            var actor = Guid.NewGuid();
+            var identity = provider.DescribeVirtualQueryConnection(null);
+            VirtualHolonMapping Mapping(string connectionIdentity) => new VirtualHolonMapping(Guid.NewGuid(), 1, actor,
+                NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS, "lines",
+                VirtualHolonMapping.SandboxConnectionName, connectionIdentity,
+                new Dictionary<string, string> { ["Product"] = "sku" });
+            var mapping = Mapping(identity);
+            var filters = new[] { new NativeRecordFilter("Product", CosmicQueryComparisonOperator.Equal, "A") };
+            var columns = new[] { new NativeProjectionColumn("Product", "Units", typeof(string), function: NativeRecordFunction.Utf16Length) };
+            var foreign = await mapping.QueryProjectionAsync(Guid.NewGuid(), provider, null, filters, columns, 1);
+            Assert.Equal("VIRTUAL_HOLON_FORBIDDEN", foreign.ErrorCode);
+            var unknown = await mapping.QueryProjectionAsync(actor, provider, null, filters,
+                new[] { new NativeProjectionColumn("sku", "Raw", typeof(string)) }, 1);
+            Assert.Equal("VIRTUAL_HOLON_QUERY_INVALID", unknown.ErrorCode);
+            var duplicate = await mapping.QueryProjectionAsync(actor, provider, null, filters, new[] { columns[0], columns[0] }, 1);
+            Assert.Equal("VIRTUAL_HOLON_QUERY_INVALID", duplicate.ErrorCode);
+            var changed = await Mapping(identity + "-changed").QueryProjectionAsync(actor, provider, null, filters, columns, 1);
+            Assert.Equal("VIRTUAL_HOLON_CONNECTION_CHANGED", changed.ErrorCode);
+            var emptyFilters = await mapping.QueryProjectionAsync(actor, provider, null, Array.Empty<NativeRecordFilter>(), columns, 1);
+            Assert.Equal("VIRTUAL_HOLON_QUERY_INVALID", emptyFilters.ErrorCode);
+            using var cancellation = new System.Threading.CancellationTokenSource(); cancellation.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => mapping.QueryProjectionAsync(actor, provider, null,
+                filters, columns, 1, cancellation.Token));
+            Assert.False(File.Exists(OasisPath));
+            Assert.Equal(before, NativeBytes());
         }
 
         public void Dispose()

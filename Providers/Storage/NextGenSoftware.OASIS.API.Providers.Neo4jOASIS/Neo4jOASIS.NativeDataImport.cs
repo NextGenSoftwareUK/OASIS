@@ -149,54 +149,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 
             matches = NativeRecordFilter.Capture(matches);
             fields = fields.ToArray();
-            var predicates = new List<string>(matches.Count);
             var parameters = new Dictionary<string, object> { ["take"] = limit };
-            for (var index = 0; index < matches.Count; index++)
-            {
-                var match = matches[index];
-                var type = match.Value switch
-                {
-                    string text when text.Length <= 4096 => "STRING",
-                    bool => "BOOLEAN",
-                    int or long => "INTEGER",
-                    _ => null
-                };
-                if (type == null)
-                    return Error("NATIVE_QUERY_INVALID", "Use exact String, Boolean or Int64 equality.");
-                var property = $"n.`{match.Field}`";
-                var parameter = $"match{index}";
-                var symbol = match.Operator switch
-                {
-                    CosmicQueryComparisonOperator.Equal => "=",
-                    CosmicQueryComparisonOperator.NotEqual => "<>",
-                    CosmicQueryComparisonOperator.GreaterThan => ">",
-                    CosmicQueryComparisonOperator.GreaterThanOrEqual => ">=",
-                    CosmicQueryComparisonOperator.LessThan => "<",
-                    CosmicQueryComparisonOperator.LessThanOrEqual => "<=",
-                    _ => throw new ArgumentException("Unknown native comparison.")
-                };
-                if (match.Function == NativeRecordFunction.Utf16Length)
-                {
-                    var pattern = $"utf16Pattern{index}";
-                    parameters.Add(pattern, @"[\x{10000}-\x{10FFFF}]");
-                    var units = NeoCqlTranslator.Utf16LengthUnits(property, "$" + pattern);
-                    predicates.Add($"CASE WHEN {property} IS :: STRING THEN {units} {symbol} ${parameter} ELSE false END");
-                }
-                else if (match.Function is NativeRecordFunction.Contains or NativeRecordFunction.StartsWith or NativeRecordFunction.EndsWith)
-                {
-                    var method = match.Function switch
-                    {
-                        NativeRecordFunction.Contains => "CONTAINS",
-                        NativeRecordFunction.StartsWith => "STARTS WITH",
-                        _ => "ENDS WITH"
-                    };
-                    var expression = $"CASE WHEN {property} IS NOT NULL AND {property} IS :: STRING THEN {property} {method} ${parameter} ELSE false END";
-                    predicates.Add(match.Operator == CosmicQueryComparisonOperator.NotEqual ? $"NOT ({expression})" : expression);
-                }
-                else
-                    predicates.Add($"{property} IS :: {type} AND {property} {symbol} ${parameter}");
-                parameters.Add(parameter, match.Value);
-            }
+            string predicateWhere;
+            try { predicateWhere = CompileNativePredicateWhere(matches, parameters); }
+            catch (ArgumentException)
+            { return Error("NATIVE_QUERY_INVALID", "The exact native predicate is unsupported."); }
 
             try
             {
@@ -207,7 +164,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 using var transaction = await lease.Session.BeginTransactionAsync(options => options.WithTimeout(NativeImportOptions.ReadTimeout));
                 var columns = string.Join(", ", fields.Select((field, index) => $"n.`{field}` AS f{index}"));
                 var cursor = await transaction.RunAsync(
-                    $"MATCH (n:`{sourceName}`) WHERE {string.Join(" AND ", predicates)} " +
+                    $"MATCH (n:`{sourceName}`) WHERE {predicateWhere} " +
                     $"RETURN elementId(n) AS key, {columns} ORDER BY key LIMIT $take", parameters);
                 var records = new List<NativeRecord>(limit);
                 long remainingBytes = 1024 * 1024;
@@ -308,13 +265,17 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             }
         }
 
-        private async Task<NativeLease> OpenNativeAsync(NativeConnection connection, CancellationToken cancellationToken)
+        private async Task<NativeLease> OpenNativeAsync(NativeConnection connection, CancellationToken cancellationToken, int? maximumFetchSize = null)
         {
             if (connection == null)
             {
                 if (!IsProviderActivated || _driver == null)
                     throw new InvalidOperationException("The Neo4j provider must be activated before importing native data.");
-                return new NativeLease(_driver.AsyncSession(options => options.WithDefaultAccessMode(AccessMode.Read)), null);
+                return new NativeLease(_driver.AsyncSession(options =>
+                    {
+                        options.WithDefaultAccessMode(AccessMode.Read);
+                        if (maximumFetchSize.HasValue) options.WithFetchSize(maximumFetchSize.Value);
+                    }), null);
             }
 
             var (uri, username, password, database, _) = ParseConnection(connection);
@@ -329,6 +290,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 {
                     options.WithDefaultAccessMode(AccessMode.Read);
                     if (database != null) options.WithDatabase(database);
+                    if (maximumFetchSize.HasValue) options.WithFetchSize(maximumFetchSize.Value);
                 }), driver);
             }
             catch

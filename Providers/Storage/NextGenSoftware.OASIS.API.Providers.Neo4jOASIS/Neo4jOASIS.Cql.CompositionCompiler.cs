@@ -45,7 +45,7 @@ public partial class Neo4jOASIS
         if (query.Source.GraphOptions != null) throw new NotSupportedException("Graph-source composition requires separate enrollment.");
         var parameters = new Dictionary<string, object>(StringComparer.Ordinal);
         var source = CompileCqlDetachedSource(query.Source, parameters, Array.Empty<CosmicQueryPath>(),
-            query.Columns.Select(column => column.Path).ToArray(), limits.MaximumInputRows, limits.MaximumInputPayloadBytes,entity);
+            query.Columns.Select(column => column.Path).ToArray(), limits.MaximumInputRows, limits.MaximumInputPayloadBytes,entity,valueColumns:query.Columns);
         var binder = new NeoCqlTranslator("h", "p", parameters, null);
         var maximumRows = binder.Bind(limits.MaximumInputRows);
         var maximumBytes = binder.Bind(limits.MaximumInputPayloadBytes);
@@ -62,7 +62,7 @@ public partial class Neo4jOASIS
         var filters = new GroupFilterCompiler<T, object, object>(binder, path =>
         {
             if (path.IsMetadata || path.Segments.Count != 1 || !aliases.TryGetValue(path.Segments[0], out var index)
-                || query.Columns[index].Path.ValueType != path.ValueType)
+                || query.Columns[index].ValueType != path.ValueType)
                 throw new NotSupportedException("Composition filters require exact selected scalar bindings.");
             return "input[position].values[" + index + "].v";
         });

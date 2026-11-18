@@ -26,11 +26,16 @@ public static partial class CqlV1Compiler
 
         if (request.Columns[0] is not { Field: "Id", MetadataPath: null })
             throw new ArgumentException("Select Id first so both representations can share one logical identity.");
+
+        if (request.Columns[0].Function != null || request.Columns[0].ValueType != null || request.Columns[0].Nullable.HasValue)
+            throw new ArgumentException("Logical identity retains its canonical Guid domain.");
+        ValidateSelectionAlias(request.Columns[0].Alias);
         var columns = request.Columns.Skip(1).Select(column =>
         {
             if (column == null || column.Field != null || column.MetadataPath is not { Length: 1 })
                 throw new ArgumentException("Virtual projections require a direct mapped metadata field.");
             RequireVirtualField(column.MetadataPath[0]);
+            ValidateSelectionAlias(column.Alias);
             var type = column.ValueType switch
             {
                 "String" => typeof(string),
@@ -39,9 +44,23 @@ public static partial class CqlV1Compiler
                 "Int64" => typeof(long),
                 _ => throw new ArgumentException("This virtual source supports String, Boolean, Int32 and Int64 projections.")
             };
-            return new CqlVirtualColumn(column.MetadataPath[0], type, type == typeof(string) || column.Nullable == true);
+            var function = column.Function switch
+            {
+                null => NativeRecordFunction.None,
+                CqlV1Function.Utf16Length when type == typeof(string) => NativeRecordFunction.Utf16Length,
+                _ => throw new ArgumentException("Mapped LENGTH requires a declared String input.")
+            };
+            // The DTO declares its input domain; function output is independently Int32.
+            var nullable = function == NativeRecordFunction.None && type == typeof(string) || column.Nullable == true;
+            if (function == NativeRecordFunction.None && type == typeof(string) && column.Nullable == false)
+                throw new ArgumentException("String projection retains its nullable source contract.");
+            return new NativeProjectionColumn(column.MetadataPath[0], column.Alias, type, nullable, function);
         }).ToArray();
+        NativeProjectionColumn.Capture(columns);
+        if (columns.Any(column => column.Alias == request.Columns[0].Alias))
+            throw new ArgumentException("Result aliases must be unique, including logical identity.");
         return new CqlVirtualProjection(matches, columns);
+
     }
 
     internal static NativeRecordFilter[] CompileVirtualMatches(CqlV1Filter[] filters)
@@ -110,25 +129,28 @@ public static partial class CqlV1Compiler
     }
 }
 
-internal sealed record CqlVirtualColumn(string Field, Type Type, bool Nullable);
 
-internal sealed record CqlVirtualProjection(NativeRecordFilter[] Matches, CqlVirtualColumn[] Columns)
+internal sealed record CqlVirtualProjection(NativeRecordFilter[] Matches, NativeProjectionColumn[] Columns)
 {
     // A full branch at this limit cannot prove absence of further rows.
     internal const int MaximumRows = 100;
     internal string[] ProjectedFields => Columns.Select(column => column.Field).Distinct(StringComparer.Ordinal).ToArray();
 
-    internal object[] Select(VirtualHolonRead row)
+    internal object[] Select(VirtualHolonProjectionRead row)
     {
+        if (row == null || row.Id == Guid.Empty || row.Columns.Count != Columns.Length || row.Cells.Count != Columns.Length)
+            throw new ArgumentException("The mapped result shape differs from its admitted projection.");
         var values = new object[Columns.Length + 1];
         values[0] = row.Id;
         for (var index = 0; index < Columns.Length; index++)
         {
-            var column = Columns[index];
-            row.MetaData.TryGetValue(column.Field, out var value);
-            if (value == null ? !column.Nullable : value.GetType() != column.Type)
-                throw new ArgumentException("The source value does not match the selected CQL domain.");
-            values[index + 1] = value;
+            var column = Columns[index]; var observed = row.Columns[index]; var cell = row.Cells[index];
+            if (column.Field != observed.Field || column.Alias != observed.Alias ||
+                column.InputType != observed.InputType || column.ValueType != observed.ValueType ||
+                column.Function != observed.Function || column.Nullable != observed.Nullable ||
+                (cell.State == NativeProjectionValueState.Present ? cell.Value.GetType() != column.ValueType : !column.Nullable))
+                throw new ArgumentException("The mapped result schema differs from its admitted projection.");
+            values[index + 1] = cell.Value;
         }
         return values;
     }
@@ -136,6 +158,6 @@ internal sealed record CqlVirtualProjection(NativeRecordFilter[] Matches, CqlVir
 
 internal interface ICqlVirtualMappingReader
 {
-    Task<OASISResult<IReadOnlyList<VirtualHolonRead>>> QueryVirtualMappingAsync(
+    Task<OASISResult<IReadOnlyList<VirtualHolonProjectionRead>>> QueryVirtualMappingAsync(
         Guid mappingId, IAvatar avatar, CqlVirtualProjection projection, CancellationToken cancellationToken);
 }

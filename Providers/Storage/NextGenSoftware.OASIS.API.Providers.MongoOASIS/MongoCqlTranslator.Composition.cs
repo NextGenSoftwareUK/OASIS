@@ -63,8 +63,8 @@ internal sealed partial class MongoCqlTranslator
         var values = new BsonArray(); var ordering = new BsonArray(); var sourceSort = new BsonDocument();
         for (var index = 0; index < query.Columns.Count; index++)
         {
-            values.Add(ProjectionCell(query.Columns[index].Path, "composedValue" + index));
-            proof.Add("k" + index, OrderingKey(query.Columns[index].Path, "composedComparable" + index));
+            values.Add(ProjectionCell(query.Columns[index], "composedValue" + index));
+            proof.Add("k" + index, OrderingKey(query.Columns[index], "composedComparable" + index));
         }
         for (var index = 0; index < query.Source.Orderings.Count; index++)
         {
@@ -194,7 +194,7 @@ internal sealed partial class MongoCqlTranslator
         BsonValue Selected(CosmicQueryPredicate predicate) => SelectedFilterPredicate(predicate, path =>
         {
             var index = !path.IsMetadata && path.Segments.Count == 1
-                ? query.Columns.ToList().FindIndex(column => column.Alias == path.Segments[0] && column.Path.ValueType == path.ValueType) : -1;
+                ? query.Columns.ToList().FindIndex(column => column.Alias == path.Segments[0] && column.ValueType == path.ValueType) : -1;
             if (index < 0) throw new NotSupportedException("Selected predicate must bind an exact selected scalar.");
             return Op("$ifNull", "$k" + index + ".value", Literal(BsonNull.Value));
         });
