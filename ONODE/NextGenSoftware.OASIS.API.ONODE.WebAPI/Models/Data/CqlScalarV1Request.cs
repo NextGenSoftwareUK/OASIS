@@ -27,6 +27,8 @@ public sealed class CqlScalarV1Request
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class CqlScalarV1Selection
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CqlV1Function? Function { get; set; }
     public string? Field { get; set; }
     public string[]? MetadataPath { get; set; }
     public string? ValueType { get; set; }
