@@ -115,7 +115,7 @@ async function verify(input) {
     const held = new Promise(resolve => { release = resolve; });
     const observedRequest = new Promise(resolve => { observed = resolve; });
     let pause = true;
-    await page.route('**/api/avatar/profile', async route => {
+    await page.route(url => url.origin === base.origin && url.pathname === '/api/avatar/profile', async route => {
       if (pause && route.request().method() === 'GET') {
         pause = false; observed(); await held;
       }
