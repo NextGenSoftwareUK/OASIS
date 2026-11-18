@@ -54,12 +54,26 @@ jobs:
     env:
       SUBSCRIPTION_TEST_MONGODB_URI: mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000
     steps:
+      - name: Retain the accepted build-lease harness from the workflow revision
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          submodules: false
+          persist-credentials: false
+      - name: Save the source-owned build-lease harness
+        shell: bash
+        run: cp Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 "$RUNNER_TEMP/settlement-pause-build-lease.ps1"
       - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref || github.sha }}
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
           persist-credentials: false
+      - name: Stage the same harness for current and older immutable source snapshots
+        shell: bash
+        run: |
+          mkdir -p Scripts/TestHosts
+          cp "$RUNNER_TEMP/settlement-pause-build-lease.ps1" Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
