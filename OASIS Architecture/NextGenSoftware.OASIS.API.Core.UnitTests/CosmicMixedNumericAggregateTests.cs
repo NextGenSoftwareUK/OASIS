@@ -12,7 +12,7 @@ using Xunit;
 
 namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
-public sealed class CosmicMixedNumericAggregateTests
+public sealed partial class CosmicMixedNumericAggregateTests
 {
     private static readonly Guid Actor = Guid.Parse("f50ca994-7abe-48a8-8468-9b009bb3449c");
     private sealed record Fixture(CosmicProjectionQuery<Holon, CosmicProjectionRecord> Query, Guid Mapping,
@@ -25,7 +25,7 @@ public sealed class CosmicMixedNumericAggregateTests
             VirtualHolonMapping.SandboxConnectionName, "native-aggregate://fixture",
             new Dictionary<string, string> { ["tier"] = "nativeTier", ["amount"] = "nativeAmount" });
         var token = computed || type == typeof(string) ? "String" : type == typeof(int) ? "Int32"
-            : type == typeof(long) ? "Int64" : "Double";
+            : type == typeof(long) ? "Int64" : type == typeof(bool) ? "Boolean" : "Double";
         var function = computed ? NativeRecordFunction.Utf16Length : NativeRecordFunction.None;
         var selected = new[] { new NativeProjectionColumn("amount", "Value", computed ? typeof(string) : type, nullable, function) };
         var reader = new Mock<INativeDataProjectionQueryProvider>(MockBehavior.Strict);

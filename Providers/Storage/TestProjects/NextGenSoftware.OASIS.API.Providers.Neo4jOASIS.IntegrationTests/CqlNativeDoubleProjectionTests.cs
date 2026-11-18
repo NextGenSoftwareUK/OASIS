@@ -110,6 +110,16 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 : operation == CosmicScalarOperation.Max ? 3.75d
                 : operation == CosmicScalarOperation.Sum ? 7d : 3.5d, aggregate.Result.Value);
         }
+        foreach (var distinct in new[] { false, true })
+        {
+            var counted = CosmicMixedProjectionResults.CountValues(aggregateIntent, actor, mapping.Id,
+                storedAggregate.Result, mapped.Result, distinct);
+            Assert.IsFalse(counted.IsError, counted.Message);
+            Assert.AreEqual(2L, counted.Result);
+        }
+        checks.Add(new { provider = provider.NativeDataProviderType.ToString(),
+            nativeSelectedCount = "real native Double and materialized values share exact selected counts",
+            selectedCountVerified = true });
         checks.Add(new { provider = provider.NativeDataProviderType.ToString(),
             nativeAggregation = "real native Double and materialized values share four exact reductions",
             numericAggregationVerified = true });

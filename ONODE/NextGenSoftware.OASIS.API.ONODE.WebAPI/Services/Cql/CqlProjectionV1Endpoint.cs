@@ -133,16 +133,21 @@ public static partial class CqlV1Endpoint
             }, native.ErrorCode, native.Message);
         if (!native.IsLoaded || native.Result == null)
             return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "The mapped source did not return a loaded result.");
-        if (request.ResultOperation == CqlProjectionV1ResultOperation.LongCount)
+        if (request.ResultOperation is CqlProjectionV1ResultOperation.LongCount or
+            CqlProjectionV1ResultOperation.CountValues or CqlProjectionV1ResultOperation.CountDistinct)
         {
-            var counted = CosmicMixedProjectionResults.Count(intent, actor, request.VirtualMappingId.Value,
-                materialized, native.Result, MaximumResponseBytes * 2, cancellationToken);
+            var counted = request.ResultOperation == CqlProjectionV1ResultOperation.LongCount
+                ? CosmicMixedProjectionResults.Count(intent, actor, request.VirtualMappingId.Value,
+                    materialized, native.Result, MaximumResponseBytes * 2, cancellationToken)
+                : CosmicMixedProjectionResults.CountValues(intent, actor, request.VirtualMappingId.Value,
+                    materialized, native.Result, request.ResultOperation == CqlProjectionV1ResultOperation.CountDistinct,
+                    MaximumResponseBytes * 2, cancellationToken);
             if (counted.IsError)
                 return MixedResultFailure(http, counted.ErrorCode, counted.Message, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             return JsonResponse(new OASISResult<object>(new
             {
-                version = "cql-scalar-v1", provider = selected.ToString(), operation = "LongCount",
+                version = "cql-scalar-v1", provider = selected.ToString(), operation = request.ResultOperation.ToString(),
                 valueType = "Int64", value = ProjectionWireValue(counted.Result),
                 virtualMappingId = request.VirtualMappingId, canPrepareSnapshot = false
             }) { IsLoaded = true });
