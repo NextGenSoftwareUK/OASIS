@@ -1,0 +1,3 @@
+# OPORTAL performance audit
+
+2026-11-18 — OPORTAL dev9630d828c5ee fixes repeated popup detail reads for present empty/null optional title/address.9 new shipping-JS modal cases and syntax checks passed; exact public JS and /avatar-popup match released Git blobs, with new avatar cache key and retained dev configuration/styles. No signed browser latency or complete-save claim. Core30458c7 also prevents request scopes from deactivating/reinitializing borrowed active providers; actual API+9 cases passed44333019866,8 real Mongo/SQLite scenarios and1 pure ownership contract. Native fixture cleanupSUCCESS; no shared Atlas/API probe. Backend running-source acceptance is separate from source qualification.
