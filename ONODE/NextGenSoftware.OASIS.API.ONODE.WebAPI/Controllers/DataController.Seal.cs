@@ -26,6 +26,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 if (id == Guid.Empty)
                     return TestDataHelper.CreateErrorResponse<HolonSealVerification>("A holon id is required.", null, System.Net.HttpStatusCode.BadRequest);
                 var denied = await CheckHolonSealReadAsync(id);
+                if (denied != null && denied.Value.Status == System.Net.HttpStatusCode.NotFound)
+                {
+                    // A purged holon is gone on purpose: report it as purged (to its owner only), not as missing or broken.
+                    var purged = await PurgedSealVerificationAsync(id);
+                    if (purged != null)
+                        return HttpResponseHelper.FormatResponse(new OASISResult<HolonSealVerification> { Result = purged, IsLoaded = true, Message = purged.Message }, System.Net.HttpStatusCode.OK, false);
+                }
                 if (denied != null)
                     return TestDataHelper.CreateErrorResponse<HolonSealVerification>(denied.Value.Message, null, denied.Value.Status);
                 var verification = await HolonManager.VerifyHolonSealAsync(id);
@@ -36,6 +43,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 return TestDataHelper.CreateErrorResponse<HolonSealVerification>($"Error verifying holon seal: {ex.Message}", ex, System.Net.HttpStatusCode.BadRequest);
             }
+        }
+
+        private async Task<HolonSealVerification> PurgedSealVerificationAsync(Guid id)
+        {
+            try
+            {
+                var store = HttpContext.RequestServices.GetService(typeof(Services.Purge.IHolonPurgeStore)) as Services.Purge.IHolonPurgeStore;
+                var entry = store == null ? null : await store.GetAsync(id, HttpContext.RequestAborted);
+                if (entry == null || entry.Status != "purged" || entry.OwnerAvatarId != AvatarId) return null;
+                return new HolonSealVerification { HolonId = id, Status = HolonSealStatus.Purged, Message = "All saved versions of this holon were permanently purged on " + entry.PurgedAtUtc?.ToString("u") + ". There is no history left to verify." };
+            }
+            catch (Exception) { return null; }
         }
 
         // Same read rule as load-holon and the audit trail. Null = allowed.

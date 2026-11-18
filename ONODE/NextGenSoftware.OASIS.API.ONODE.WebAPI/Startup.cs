@@ -454,6 +454,13 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddSingleton(_ => new Services.Seal.HolonSealPolicy(() => OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HolonSeal));
             services.AddSingleton<Services.Seal.IHolonSealStore>(_ => new Services.Seal.MongoHolonSealStore(() => OASISBootLoader.OASISBootLoader.OASISDNA));
             services.AddHostedService<Services.Seal.HolonSealRefreshHostedService>();
+            // Opt-in purge of earlier saved versions of deleted holons: OASIS.VersionPurge in OASIS_DNA.json, off by default; avatars and apps choose.
+            services.AddSingleton(_ => new Services.Purge.HolonPurgePolicy(() => OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.VersionPurge));
+            services.AddSingleton<Services.Purge.IHolonPurgeStore>(_ => new Services.Purge.MongoHolonPurgeStore(() => OASISBootLoader.OASISBootLoader.OASISDNA));
+            services.AddSingleton<Services.Purge.IHolonPurgeBackend>(_ => new Services.Purge.HolonManagerPurgeBackend(
+                () => new NextGenSoftware.OASIS.API.Core.Managers.HolonManager(null, OASISBootLoader.OASISBootLoader.OASISDNA, NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance)));
+            services.AddSingleton<Services.Purge.HolonPurgeService>();
+            services.AddHostedService<Services.Purge.HolonPurgeHostedService>();
             services.AddScoped<Services.AccessLog.AccessLogFilter>();
             services.AddSingleton(_ => new Services.Mfa.MfaService(() => OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Security?.Mfa,
                 new Services.Mfa.MongoMfaStore(() => OASISBootLoader.OASISBootLoader.OASISDNA), OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Security?.SecretKey));

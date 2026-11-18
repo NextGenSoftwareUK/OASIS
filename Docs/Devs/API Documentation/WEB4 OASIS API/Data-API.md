@@ -935,3 +935,54 @@ Authorization: Bearer YOUR_TOKEN
 ## Navigation
 
 **← Previous:** [Karma API](Karma-API.md) | **Next:** [Wallet API](Wallet-API.md) →
+
+---
+
+## Purging earlier saved versions of a deleted holon (opt-in)
+
+Every save keeps the earlier version, and an API delete is a soft delete (a tombstone version), so a deleted record's history normally remains. The purge feature removes ALL saved versions permanently. It is OFF by default (`OASIS.VersionPurge.Enabled`); see `Docs/Devs/HOLON_VERSION_PURGE.md` for what it removes, what it cannot, and how the node, avatar and app settings combine.
+
+`DELETE /api/data/purge-holon/{id}?allowLive=false` - purge one holon. Caller must be the holon's creator or hold a Delete grant. The holon must already be deleted unless `allowLive=true`. Refused with 409 while a legal hold is set. Result: `status` (`Purged`, `PurgedPartially`, `AlreadyPurged`, `NotFound`, `Forbidden`, `Disabled`, `OnHold`, `NotDeleted`, `Failed`), `versionsRemoved`, `purgedAtUtc`, `stores[]`, `unpurgedStores[]`, `backupNote`. Cannot be undone.
+
+`POST /api/data/purge-holons` body `{"ids":["..."],"allowLive":false}` - batch (max 100). HTTP 200 when the batch ran; read each `results[i].status`.
+
+`POST /api/data/holon-purge-hold/{id}` body `{"reason":"parent access request"}` and `DELETE /api/data/holon-purge-hold/{id}` - set / release a legal hold that blocks both the scheduled worker and the purge calls.
+
+`GET /api/data/holon-purge/status/{id}` - `status` (`none`, `pending`, `purged`, `cancelled`), `hold`, `purgeAfterUtc`, `purgedAtUtc`, `versionsRemoved` (owner only).
+
+`GET /api/data/holon-seal/verify/{id}` returns status `Purged` (to the owner) for a holon that was purged.
+
+Per-avatar and per-app settings: `GET|POST /api/avatar/version-purge` (`{"enabled":true|false|null,"days":0..3650|null}`) and the app-owner settings call (`versionPurgeEnabled`, `versionPurgeDays`).
+
+
+---
+
+## Further endpoints (reference index)
+
+Every route below exists on `api/data/...`; they are listed here so the reference is complete. Where a route has several path variants (extra provider / auto-replication segments) the shortest form is shown. All need a Bearer token unless the controller says otherwise.
+
+| Method | Route | What it does |
+|---|---|---|
+| POST | `/api/data/complete-chunked-file` | Joins previously saved chunks into one file and returns the file's id (the manifest holon's id). |
+| POST | `/api/data/copy-holon` | Copies a holon graph between two explicitly selected storage providers. |
+| GET | `/api/data/copy-holon/providers` | Lists registered storage providers for an explicit copy. |
+| GET | `/api/data/current-avatar/holon-count` | Returns the number of direct holons under the signed-in avatar. |
+| DELETE | `/api/data/delete-holon-by-providerkey/{providerKey}` | Deletes a holon identified by its provider-specific storage key. |
+| GET/POST | `/api/data/load-all-holons` | Load's all holons for the given HolonType. |
+| GET/POST | `/api/data/load-data` | Loads custom data with the given key from the current logged in avatar. |
+| GET/POST | `/api/data/load-file` | Loads a file with the given id. |
+| POST | `/api/data/load-file-chunk` | Loads chunk Index (zero-based) of a chunked file. |
+| POST | `/api/data/load-file-info` | Describes a file. |
+| GET/POST | `/api/data/load-holon` | Load's a holon data object for the given id. |
+| GET/POST | `/api/data/load-holon-by-metadata` | Loads a single holon whose metadata contains the given key/value pair. |
+| GET | `/api/data/load-holon-by-providerkey/{providerKey}` | Loads a holon by its provider-specific storage key. |
+| GET/POST | `/api/data/load-holons-by-metadata` | Loads all holons whose metadata contains the given key/value pair. |
+| GET/POST | `/api/data/load-holons-for-parent` | Load's all holons for the given parent and the given HolonType. |
+| GET | `/api/data/load-holons-for-parent-by-providerkey/{providerKey}` | Loads all child holons for the parent identified by the given provider key. |
+| GET/POST | `/api/data/save-data` | Saves custom data with a given key to the current logged in avatar. |
+| GET/POST | `/api/data/save-file` | Saves a file and returns the id linked to the holon that it is stored in. |
+| POST | `/api/data/save-file-chunk` | Saves one chunk of a large file and returns its id. |
+| POST | `/api/data/save-holon` | Save's a holon data object. |
+| POST | `/api/data/save-holon-off-chain` | Save's a holon data object (meta data) to the given off-chain provider and then links its hash to the on-chain provider. |
+| POST | `/api/data/save-holons` | Saves a collection of holons in a single call. |
+| GET/POST | `/api/data/search-holons` | Searches holons by a text term, optionally filtering by HolonType, parent, and metadata key/value pairs. |

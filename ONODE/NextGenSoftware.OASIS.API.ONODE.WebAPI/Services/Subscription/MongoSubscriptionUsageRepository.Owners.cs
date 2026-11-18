@@ -135,16 +135,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         }
 
         /// <summary>Owner or administrator: set this app's own on/off choices that override the node default (null = follow the default). Audited.</summary>
-        public Task<AppAccountRecord> SetAppOverridesAsync(string appId, bool? ownerView, bool? warnings, bool? accessLog, string actor, CancellationToken cancellationToken = default, bool? sealedHistory = null)
+        public Task<AppAccountRecord> SetAppOverridesAsync(string appId, bool? ownerView, bool? warnings, bool? accessLog, string actor, CancellationToken cancellationToken = default, bool? sealedHistory = null, bool? versionPurge = null, int? versionPurgeDays = null)
         {
             AppAccountRules.ValidateAppId(appId);
             if (string.IsNullOrWhiteSpace(actor)) throw new ArgumentException("An actor is required.");
+            var daysError = Purge.PurgeChoice.Validate(versionPurgeDays);
+            if (daysError != null) throw new ArgumentException(daysError);
             return TransactAsync(async (session, ct) =>
             {
                 var now = _time.GetUtcNow().UtcDateTime;
                 var account = await AppAccounts.Find(session, x => x.AppId == appId).FirstOrDefaultAsync(ct) ?? throw new KeyNotFoundException("The app account was not found.");
                 var before = account.Overrides ?? new AppUsageOverrides();
-                account.Overrides = new AppUsageOverrides { OwnerViewEnabled = ownerView, WarningsEnabled = warnings, AccessLogEnabled = accessLog, SealedHistoryEnabled = sealedHistory };
+                account.Overrides = new AppUsageOverrides { OwnerViewEnabled = ownerView, WarningsEnabled = warnings, AccessLogEnabled = accessLog, SealedHistoryEnabled = sealedHistory, VersionPurgeEnabled = versionPurge, VersionPurgeDays = versionPurgeDays };
                 account.UpdatedAtUtc = now; account.UpdatedBy = actor;
                 await AppAccounts.ReplaceOneAsync(session, x => x.AppId == appId, account, cancellationToken: ct);
                 await BillingAudit.InsertOneAsync(session, new BsonDocument

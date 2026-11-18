@@ -14,7 +14,7 @@
     "BackedBy": "Coinbase"
   },
   "OASIS": {
-    "HolonSeal": {
+    "VersionPurge": {"Enabled": false, "ApplyToAll": false, "PurgeAfterDays": 30, "BatchSize": 25, "CycleSeconds": 300, "BackupRetentionDays": 0}, "HolonSeal": {
       "Enabled": false,
       "Key": "",
       "KeyId": "k1",
