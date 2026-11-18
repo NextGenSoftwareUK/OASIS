@@ -31,6 +31,7 @@
     <Compile Include="../NextGenSoftware.OASIS.OASISBootLoader/SuiProviderConfiguration.cs" Link="Production/SuiProviderConfiguration.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/NftBurnExecution.cs" Link="Production/NftBurnExecution.cs" />
     <ProjectReference Include="..\..\Providers\Storage\NextGenSoftware.OASIS.API.Providers.MongoOASIS\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
     <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.csproj" Condition="'$(PrioritySqlRoutingTests)' == 'true'" />
     <Compile Remove="SqlServerSqliteHyperDriveTests.cs" Condition="'$(PrioritySqlRoutingTests)' != 'true'" />
