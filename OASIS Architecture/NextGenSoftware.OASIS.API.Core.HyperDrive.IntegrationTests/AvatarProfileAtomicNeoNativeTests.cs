@@ -40,7 +40,8 @@ public sealed class AvatarProfileAtomicNeoNativeTests
             }
             _ids.Add(id.ToString());
             var account=await Provider.SaveAvatarAsync(new Avatar{Id=id,Username=name,Email=name+"@example.test",Title="Before",
-                FirstName="Before",LastName="Before",Password="stored-hash",RefreshToken="session",VerificationToken="verification",
+                FirstName="Before",LastName="Before",Password="stored-hash",VerificationToken="verification",
+                RefreshTokens=new List<RefreshToken>{new(){Token="session-"+id.ToString("N"),Created=DateTime.UtcNow,Expires=DateTime.UtcNow.AddHours(2),CreatedByIp="127.0.0.1"}},
                 CreatedDate=DateTime.UtcNow,Version=1,VersionId=Guid.NewGuid(),IsActive=true,AvatarType=new EnumValue<AvatarType>(AvatarType.User)});
             var detail=await Provider.SaveAvatarDetailAsync(new AvatarDetail{Id=id,Username=name,Email=name+"@example.test",Address="address-"+name,
                 CreatedDate=DateTime.UtcNow,Version=1,VersionId=Guid.NewGuid(),Karma=37,XP=42,ActiveQuestId=Guid.NewGuid(),ActiveObjectiveId=Guid.NewGuid(),
@@ -80,6 +81,11 @@ public sealed class AvatarProfileAtomicNeoNativeTests
     public async Task NativeProfileEditsPreserveUnknownStateAndCanonicalHistory(bool history)
     {
         await using var store=new OwnedStore(history);await store.Activate();var opened=await store.Seed();
+        var originalAccount=await store.Provider.LoadAvatarAsync(opened.Account.Id);
+        Assert.False(originalAccount.IsError,originalAccount.Message);
+        var sessionToken=Assert.Single(originalAccount.Result.RefreshTokens);
+        Assert.Equal("session-"+opened.Account.Id.ToString("N"),sessionToken.Token);Assert.True(sessionToken.IsActive);
+        Assert.Null(originalAccount.Result.RefreshToken);
         var raw=await store.Raw(opened.Account.Id);
         var accountJson=OasisJson.ParseStoredObject(raw.Account);accountJson["NativeExactInteger"]=new JRaw("9007199254740993");
         var detailJson=OasisJson.ParseStoredObject(raw.Detail);detailJson["NativeGameState"]=new JObject{{"score",71}};
@@ -94,7 +100,12 @@ public sealed class AvatarProfileAtomicNeoNativeTests
         Assert.Equal("After",result.Result.Title);Assert.Equal("Changed",result.Result.Address);
         var account=await store.Provider.LoadAvatarAsync(opened.Account.Id);var detail=await store.Provider.LoadAvatarDetailAsync(opened.Account.Id);
         Assert.False(account.IsError,account.Message);Assert.False(detail.IsError,detail.Message);
-        Assert.Equal("stored-hash",account.Result.Password);Assert.Equal("session",account.Result.RefreshToken);Assert.Equal("verification",account.Result.VerificationToken);
+        Assert.Equal("stored-hash",account.Result.Password);Assert.Null(account.Result.RefreshToken);Assert.Equal("verification",account.Result.VerificationToken);
+        var persistedToken=Assert.Single(account.Result.RefreshTokens);
+        Assert.Equal(sessionToken.Token,persistedToken.Token);Assert.Equal(sessionToken.Created,persistedToken.Created);
+        Assert.Equal(sessionToken.Expires,persistedToken.Expires);Assert.Equal(sessionToken.CreatedByIp,persistedToken.CreatedByIp);
+        var tokenOwner=await store.Provider.LoadAvatarByRefreshTokenAsync(sessionToken.Token);
+        Assert.False(tokenOwner.IsError,tokenOwner.Message);Assert.Equal(opened.Account.Id,tokenOwner.Result.Id);
         Assert.Equal(username,account.Result.Username);Assert.Equal(username,detail.Result.Username);Assert.Equal(account.Result.Email,detail.Result.Email);
         Assert.Equal(opened.Detail.ActiveQuestId,detail.Result.ActiveQuestId);Assert.Equal(opened.Detail.ActiveObjectiveId,detail.Result.ActiveObjectiveId);
         Assert.Equal(37,detail.Result.Karma);Assert.Equal(42,detail.Result.XP);Assert.Equal(3,Assert.Single(detail.Result.Inventory).Quantity);
