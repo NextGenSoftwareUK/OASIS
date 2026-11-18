@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
@@ -117,6 +118,34 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             Assert.IsFalse(counted.IsError, counted.Message);
             Assert.AreEqual(2L, counted.Result);
         }
+        var groupSource = aggregateIntent.Source;
+        var mixedKey = CosmicProjectionSelection<Holon>.Create("Score", h => (double)h.MetaData["score"]);
+        Assert.IsFalse(mixedKey.IsError, mixedKey.Message);
+        var grouping = groupSource.GroupByColumns(new[] { mixedKey.Result }).Result;
+        var groupedSelection = grouping.SelectColumns(new[] {
+            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Key(grouping,"Score",0).Result,
+            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(grouping,"Rows",groupSource.LongCount().Result).Result,
+            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(grouping,"Sum",groupSource.Sum(h=>(double)h.MetaData["score"]).Result).Result,
+            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(grouping,"Mean",groupSource.Average(h=>(double)h.MetaData["score"]).Result).Result
+        }).Where(row => (long)row["Rows"] == 1)
+          .OrderByDescending(row => (double)row["Score"]).Skip(1).Take(1);
+        Assert.IsFalse(groupedSelection.IsError, groupedSelection.Message);
+        var groupedPlan = CosmicMixedProjectionResults.PrepareGrouping(aggregateIntent, groupedSelection.Result);
+        Assert.IsFalse(groupedPlan.IsError, groupedPlan.Message);
+        var staleStoredGroups = CosmicProjectionResults.Materialize(aggregateIntent, new[] {
+            new CosmicProjectionRow(virtualRow.Id,3.75d), new CosmicProjectionRow(Guid.NewGuid(),3.75d) });
+        Assert.IsFalse(staleStoredGroups.IsError, staleStoredGroups.Message);
+        var mixedGroups = CosmicMixedProjectionResults.Group(groupedPlan.Result, actor, mapping.Id,
+            staleStoredGroups.Result, mapped.Result);
+        Assert.IsFalse(mixedGroups.IsError, mixedGroups.Message);
+        Assert.AreEqual(1,mixedGroups.Result.Count);
+        Assert.AreEqual(3.25d,mixedGroups.Result[0]["Score"]);
+        Assert.AreEqual(1L,mixedGroups.Result[0]["Rows"]);
+        Assert.AreEqual(3.25d,mixedGroups.Result[0]["Sum"]);
+        Assert.AreEqual(3.25d,mixedGroups.Result[0]["Mean"]);
+        checks.Add(new { provider = provider.NativeDataProviderType.ToString(),
+            mixedGroupingSdkVerified = true,
+            grouping = "native Double, changed duplicate group membership, HAVING, selected order and one page" });
         checks.Add(new { provider = provider.NativeDataProviderType.ToString(),
             nativeSelectedCount = "real native Double and materialized values share exact selected counts",
             selectedCountVerified = true });

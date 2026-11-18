@@ -734,7 +734,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             await VerifyJoinOutputOrdering(provider, ids, checks);
             await VerifyNativeStringLength(provider, ids, checks);
             await VerifySqliteMappedNativeHttp(provider, actor, rootPath, checks);
-            Assert.AreEqual(123,checks.Count);
+            Assert.AreEqual(124,checks.Count);
             await File.WriteAllTextAsync(Path.Combine(rootPath,"TestResults/Neo4jCurrent/sqlite-entity-projection-native.json"),
                 JsonSerializer.Serialize(new{provider="SQLLiteDBOASIS",checks=checks.Count,cases=checks,inMemoryFixture=true}));
         }

@@ -19,22 +19,32 @@ public sealed partial class CosmicMixedNumericAggregateTests
         IReadOnlyList<CosmicProjectionRecord> Stored, IReadOnlyList<VirtualHolonProjectionRead> Live);
 
     private static async Task<Fixture> Create(Type type, bool nullable, object[] stored, object[] native,
-        int overlap = 0, int readLimit = 100, bool computed = false, Guid? sourceActor = null)
+        int overlap = 0, int readLimit = 100, bool computed = false, Guid? sourceActor = null,
+        object[] storedKeys = null, object[] nativeKeys = null)
     {
+        if ((storedKeys == null) != (nativeKeys == null) ||
+            storedKeys != null && (storedKeys.Length != stored.Length || nativeKeys.Length != native.Length))
+            throw new ArgumentException("Owned group fixture keys must match their rows.");
+        var fields = new Dictionary<string, string> { ["tier"] = "nativeTier", ["amount"] = "nativeAmount" };
+        if (nativeKeys != null) fields["category"] = "nativeCategory";
         var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, Actor, ProviderType.MongoDBOASIS, "people",
-            VirtualHolonMapping.SandboxConnectionName, "native-aggregate://fixture",
-            new Dictionary<string, string> { ["tier"] = "nativeTier", ["amount"] = "nativeAmount" });
+            VirtualHolonMapping.SandboxConnectionName, "native-aggregate://fixture", fields);
         var token = computed || type == typeof(string) ? "String" : type == typeof(int) ? "Int32"
             : type == typeof(long) ? "Int64" : type == typeof(bool) ? "Boolean" : "Double";
         var function = computed ? NativeRecordFunction.Utf16Length : NativeRecordFunction.None;
         var selected = new[] { new NativeProjectionColumn("amount", "Value", computed ? typeof(string) : type, nullable, function) };
+        if (nativeKeys != null) selected = new[] {
+            new NativeProjectionColumn("category", "Category", typeof(string), true) }.Concat(selected).ToArray();
         var reader = new Mock<INativeDataProjectionQueryProvider>(MockBehavior.Strict);
         reader.SetupGet(value => value.NativeDataProviderType).Returns(ProviderType.MongoDBOASIS);
         reader.Setup(value => value.DescribeVirtualQueryConnection(null)).Returns(mapping.ConnectionIdentity);
         IReadOnlyList<NativeProjectionRow> rows = native.Select((value, index) =>
-            new NativeProjectionRow("people", "n" + index, new[] {
-                value == null ? new NativeProjectionCell(NativeProjectionValueState.Null)
-                    : new NativeProjectionCell(NativeProjectionValueState.Present, value) })).ToArray();
+            new NativeProjectionRow("people", "n" + index,
+                (nativeKeys == null ? Array.Empty<NativeProjectionCell>() : new[] {
+                    nativeKeys[index] == null ? new NativeProjectionCell(NativeProjectionValueState.Null)
+                        : new NativeProjectionCell(NativeProjectionValueState.Present, nativeKeys[index]) })
+                .Concat(new[] { value == null ? new NativeProjectionCell(NativeProjectionValueState.Null)
+                    : new NativeProjectionCell(NativeProjectionValueState.Present, value) }).ToArray())).ToArray();
         reader.Setup(value => value.QueryNativeProjectionRecordsAsync("people",
             It.IsAny<IReadOnlyList<NativeRecordFilter>>(), It.IsAny<IReadOnlyList<NativeProjectionColumn>>(),
             readLimit, null, It.IsAny<CancellationToken>()))
@@ -51,11 +61,15 @@ public sealed partial class CosmicMixedNumericAggregateTests
                 new CqlProjectionV1Column { MetadataPath = new[] { "amount" }, Alias = "Value",
                     ValueType = token, Nullable = nullable, Function = computed ? CqlV1Function.Utf16Length : null } }
         };
+        if (nativeKeys != null) request.Columns = new[] { request.Columns[0],
+            new CqlProjectionV1Column { MetadataPath = new[] { "category" }, Alias = "Category",
+                ValueType = "String", Nullable = true }, request.Columns[1] };
         var actor = sourceActor ?? Actor;
         var query = CqlV1Compiler.CompileProjection(request, actor, ProviderType.MongoDBOASIS,
             CosmicQueryReadAccess.OwnerOrPublic(actor).Result, 100);
         var storedRows = stored.Select((value, index) => new CosmicProjectionRow(
-            index < overlap ? read.Result[index].Id : Guid.NewGuid(), value)).ToArray();
+            index < overlap ? read.Result[index].Id : Guid.NewGuid(),
+            storedKeys == null ? new[] { value } : new[] { storedKeys[index], value })).ToArray();
         var captured = CosmicProjectionResults.Materialize(query, storedRows);
         Assert.False(captured.IsError, captured.Message);
         return new(query, mapping.Id, captured.Result, read.Result);
