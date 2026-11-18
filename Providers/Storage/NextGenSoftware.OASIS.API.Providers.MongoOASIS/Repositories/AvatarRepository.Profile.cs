@@ -71,6 +71,7 @@ public partial class AvatarRepository
                 var detailFields=new List<UpdateDefinition<AvatarDetail>>();
                 var accountUpdate=Builders<Avatar>.Update;
                 var detailUpdate=Builders<AvatarDetail>.Update;
+                var nameChanged=false;
                 foreach(var field in mutation.Fields)
                 {
                     switch(field.Key)
@@ -78,9 +79,9 @@ public partial class AvatarRepository
                         case AvatarProfileProperty.Title:
                             if(avatar.Title!=field.Value)accountFields.Add(accountUpdate.Set(row=>row.Title,field.Value));break;
                         case AvatarProfileProperty.FirstName:
-                            if(avatar.FirstName!=field.Value)accountFields.Add(accountUpdate.Set(row=>row.FirstName,field.Value));break;
+                            if(avatar.FirstName!=field.Value){accountFields.Add(accountUpdate.Set(row=>row.FirstName,field.Value));nameChanged=true;}break;
                         case AvatarProfileProperty.LastName:
-                            if(avatar.LastName!=field.Value)accountFields.Add(accountUpdate.Set(row=>row.LastName,field.Value));break;
+                            if(avatar.LastName!=field.Value){accountFields.Add(accountUpdate.Set(row=>row.LastName,field.Value));nameChanged=true;}break;
                         case AvatarProfileProperty.Username:
                             if(avatar.Username!=field.Value)accountFields.Add(accountUpdate.Set(row=>row.Username,field.Value));
                             if(detail.Username!=field.Value)detailFields.Add(detailUpdate.Set(row=>row.Username,field.Value));break;
@@ -91,6 +92,15 @@ public partial class AvatarRepository
                             if(detail.Address!=field.Value)detailFields.Add(detailUpdate.Set(row=>row.Address,field.Value));break;
                         default:throw new ProfileRefusal(AvatarProfileErrors.Invalid,"Only editable profile fields are accepted.");
                     }
+                }
+                if(nameChanged)
+                {
+                    var name=new Core.Holons.Avatar
+                    {
+                        FirstName=mutation.Fields.TryGetValue(AvatarProfileProperty.FirstName,out var first)?first:avatar.FirstName,
+                        LastName=mutation.Fields.TryGetValue(AvatarProfileProperty.LastName,out var last)?last:avatar.LastName
+                    }.FullName;
+                    accountFields.Add(accountUpdate.Set(row=>row.Name,name));
                 }
                 var modified=DateTime.UtcNow;
                 if(accountFields.Count>0)

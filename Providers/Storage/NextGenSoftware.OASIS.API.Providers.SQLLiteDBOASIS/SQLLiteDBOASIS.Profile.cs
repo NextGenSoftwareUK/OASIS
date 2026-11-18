@@ -60,7 +60,7 @@ public partial class SQLLiteDBOASIS:IAvatarProfileStorageProvider
         var assignments=new List<string>();
         foreach(var field in fields)
         {
-            // Names come exclusively from the fixed enum switch below, never from
+            // Names come exclusively from the fixed profile/derived schema below, never from
             // user JSON, metadata or a caller-supplied SQL identifier.
             var parameter="$field"+assignments.Count;
             assignments.Add("\""+field.Key+"\"="+parameter);
@@ -128,6 +128,12 @@ public partial class SQLLiteDBOASIS:IAvatarProfileStorageProvider
                         default:throw new ProfileRefusal(AvatarProfileErrors.Invalid,"Only editable profile fields are accepted.");
                     }
                 }
+                if(accountFields.ContainsKey("FirstName") || accountFields.ContainsKey("LastName"))
+                    accountFields.Add("Name",new Core.Holons.Avatar
+                    {
+                        FirstName=mutation.Fields.TryGetValue(AvatarProfileProperty.FirstName,out var first)?first:account.FirstName,
+                        LastName=mutation.Fields.TryGetValue(AvatarProfileProperty.LastName,out var last)?last:account.LastName
+                    }.FullName);
                 var modified=DateTime.UtcNow;
                 var accountChanged=await PatchProfileRowAsync(connection,transaction,mutation.AvatarId,account,accountFields,false,modified,cancellationToken).ConfigureAwait(false);
                 var detailChanged=await PatchProfileRowAsync(connection,transaction,mutation.AvatarId,detail,detailFields,true,modified,cancellationToken).ConfigureAwait(false);
