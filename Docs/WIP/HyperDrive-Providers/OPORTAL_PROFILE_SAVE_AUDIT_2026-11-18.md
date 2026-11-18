@@ -19,3 +19,11 @@ Define one profile-edit contract with explicit field presence, ownership checks 
 Required tests include profile-only saves preserving active quest/objective and unrelated detail state; permitted empty field clears; email/username uniqueness and ownership; first/second persistence failures producing truthful results; stale session response rejection; and reload showing persisted values through real eligible providers. Use owned isolated backends, never the shared OASIS cluster during this incident. Existing hydration tests may be retained when unchanged; add only regressions for changed behavior.
 
 No profile-save code or frontend deployment was changed by this audit. This remains an OPORTAL completeness blocker, separate from the qualified worker/audit-maintenance release.
+
+## Additional traced save behavior and first implementation step
+
+Pinned Core `30c89aaf55ff7f2eae25d1217b2736e50fd0452a`, `AvatarManager-Save.cs`: V2 `SaveAvatarAsync` returns its routed save before the V1-only identity synchronization block. The latter ignores the result of `SaveAvatarDetailAsync`. Both async/synchronous save paths also replace the submitted avatar with a loaded object when its password is missing. Credential restoration must be distinguished from discarding requested changes and other redacted state; no mechanical password-only patch has been applied.
+
+Prepared `Services/AvatarProfile/AvatarProfilePatch.cs` defines only title, firstName, lastName, username, email and address. Its JSON converter preserves field presence and explicit null/empty optional clears, rejects duplicate aliases/unknown fields/non-string values, and validates supplied identity fields. It carries no quest, credential or account-control properties. Sixteen pure contract cases are prepared. Frozen source `fbd606ef6172cb15e1cd4a34430b64c3f0fe6d6c` extends the integrated maintenance release and changes exactly model, new tests and one test compile link; qualification is pending.
+
+This is the input-contract implementation, not a completed save endpoint. Storage orchestration, truthful partial-failure semantics, native persistence tests and frontend/SDK integration remain required. No account mutation, frontend deployment or existing endpoint behavior changed.
