@@ -1,11 +1,14 @@
 using System.Reflection;
 using Microsoft.Data.Sqlite;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Providers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
+using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.Utilities;
 using Xunit;
 
@@ -51,7 +54,7 @@ public sealed class AvatarProfileAtomicSqliteNativeTests
     private static async Task Activate(SQLLiteDBOASIS provider)
     {var result=await provider.ActivateProviderAsync();Assert.False(result.IsError,result.Message);}
 
-    private static async Task<(IAvatar Account,IAvatarDetail Detail)> Seed(SQLLiteDBOASIS provider)
+    private static async Task<(IAvatar Account,IAvatarDetail Detail)> Seed(IOASISStorageProvider provider)
     {
         var id=Guid.NewGuid();var username="profile-"+id.ToString("N");
         var account=await provider.SaveAvatarAsync(new Avatar{Id=id,Username=username,Email=username+"@example.test",
@@ -233,5 +236,68 @@ public sealed class AvatarProfileAtomicSqliteNativeTests
         using var fresh=new SqliteConnection(canonical);await fresh.OpenAsync();
         using var query=fresh.CreateCommand();query.CommandText="SELECT COUNT(*) FROM sqlite_schema WHERE type='table' AND name='Avatar'";
         Assert.Equal(0L,(long)(await query.ExecuteScalarAsync())!);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PartialNameEditsKeepTheNativeNameEqualToTheCanonicalAvatarName(bool useSqlite)
+    {
+        const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        if(Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI")!=uri)
+            throw new InvalidOperationException("The exact owned loopback MongoDB runner is required.");
+        var database="profile_name_"+Guid.NewGuid().ToString("N");
+        var client=new MongoClient(uri);
+        Assert.DoesNotContain(database,await(await client.ListDatabaseNamesAsync()).ToListAsync());
+        using var store=new OwnedStore(0);
+        IOASISStorageProvider provider=useSqlite?store.Provider:new MongoDBOASIS(uri,database){IsVersionControlEnabled=true};
+        try
+        {
+            var active=await provider.ActivateProviderAsync();Assert.False(active.IsError,active.Message);
+            var opened=await Seed(provider);
+            foreach(var field in new[]{AvatarProfileProperty.FirstName,AvatarProfileProperty.LastName})
+            {
+                var value=field==AvatarProfileProperty.FirstName?" Changed ":null;
+                var saved=await ((IAvatarProfileStorageProvider)provider).ApplyAvatarProfileAsync(opened.Account.Id,Edit(opened,(field,value)));
+                Assert.False(saved.IsError,saved.Message);Assert.True(saved.IsSaved);
+                var account=await provider.LoadAvatarAsync(opened.Account.Id);var detail=await provider.LoadAvatarDetailAsync(opened.Account.Id);
+                Assert.False(account.IsError,account.Message);Assert.False(detail.IsError,detail.Message);
+                Assert.Equal(opened.Account.Version+1,account.Result.Version);
+                Assert.Equal(opened.Detail.Version,detail.Result.Version);
+                if(!useSqlite)
+                {
+                    var historical=await provider.LoadAvatarAsync(opened.Account.Id,opened.Account.Version);
+                    Assert.False(historical.IsError,historical.Message);
+                    Assert.Equal(opened.Account.FirstName,historical.Result.FirstName);
+                    Assert.Equal(opened.Account.LastName,historical.Result.LastName);
+                }
+                string nativeName;
+                if(useSqlite)
+                {
+                    using var connection=new SqliteConnection(NativeConnection(store.Provider));await connection.OpenAsync();
+                    using var query=connection.CreateCommand();query.CommandText="SELECT Name FROM Avatar WHERE Id=$id";
+                    query.Parameters.AddWithValue("$id",opened.Account.Id.ToString());
+                    nativeName=(string)(await query.ExecuteScalarAsync())!;
+                }
+                else
+                {
+                    var native=await client.GetDatabase(database).GetCollection<BsonDocument>("Avatar")
+                        .Find(FilterDefinition<BsonDocument>.Empty).SingleAsync();
+                    nativeName=native["Name"].AsString;
+                }
+                Assert.Equal(account.Result.FullName,nativeName);
+                Assert.Equal(field==AvatarProfileProperty.FirstName?"Changed Before":"Changed",nativeName);
+                opened=(account.Result,detail.Result);
+            }
+        }
+        finally
+        {
+            await provider.DeActivateProviderAsync();
+            if(!useSqlite)
+            {
+                Assert.StartsWith("profile_name_",database);await client.DropDatabaseAsync(database);
+                Assert.DoesNotContain(database,await(await client.ListDatabaseNamesAsync()).ToListAsync());
+            }
+        }
     }
 }
