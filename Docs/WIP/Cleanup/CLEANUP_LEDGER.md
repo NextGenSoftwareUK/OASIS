@@ -4778,3 +4778,5 @@
 2026-11-18T14:39:30.2445010Z cleanup script PID21628: REMOVED C:\Source\OASIS2-hyperdrive\TestResults\HyperDrive-Providers\TronAdmissionBuild\obj; bytes=5935280; locked/in-use items left=0.
 
 2026-11-18T14:39:35.9380232Z cleanup script PID21628: Stale test build intermediates sweep complete; removed bytes=95557518; failures=0; free bytes=45580341248. NativeEvidence, Current report directories, harness source and reusable runtimes retained. Both purge worktrees contain uncommitted source and were not removed.
+
+2026-11-18 credential cleanup VERIFIED:44321827257/job134862539861 completed SUCCESS, full API and4/4 selected new account-manager cases. Test finally absence checks passed and Stop owned native seal routing fixture SUCCESS removed the container/volumes. Only1825-byte artifact14435228328 read in RAM; no local extraction/build/runtime/install/environment/new worktree. New profile request-scope source/tests reuse existing Git objects/ref and guarded loopback fixtures; those new cases are not yet run, so their cleanup is not claimed. Required source/pins and compact evidence retained.
