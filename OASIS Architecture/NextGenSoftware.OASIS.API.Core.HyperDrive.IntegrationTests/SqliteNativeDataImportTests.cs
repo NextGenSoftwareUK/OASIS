@@ -274,6 +274,137 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
             Assert.Equal("NATIVE_IMPORT_UNAVAILABLE", (await absent.ListNativeDataSourcesAsync()).ErrorCode);
         }
 
+
+        [Fact]
+        public async Task StoragePoliciesPersistAcrossFreshProvidersWithoutReplacingOtherPreferences()
+        {
+            var sourceBefore = NativeBytes();
+            var actor = Guid.NewGuid();
+            var otherActor = Guid.NewGuid();
+            var app = Guid.NewGuid();
+            var otherApp = Guid.NewGuid();
+            var dna = new NextGenSoftware.OASIS.API.DNA.OASISDNA
+            {
+                OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
+                {
+                    HyperDriveMode = "V2",
+                    StorageProviders = new NextGenSoftware.OASIS.API.DNA.StorageProviderSettings { LogSwitchingProviders = false }
+                }
+            };
+
+            using (var seed = Provider())
+            {
+                var active = await seed.ActivateProviderAsync();
+                Assert.False(active.IsError, active.Message);
+                foreach (var id in new[] { actor, otherActor })
+                {
+                    var avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar
+                    {
+                        Id = id, Username = "policy-fixture-" + id.ToString("N"),
+                        IsActive = true, CreatedDate = DateTime.UtcNow,
+                        MetaData = new Dictionary<string, object>
+                        {
+                            ["unrelated"] = "retained",
+                            ["preferences"] = new Dictionary<string, object>
+                            {
+                                ["system"] = new Dictionary<string, object> { ["theme"] = "preserved" }
+                            }
+                        }
+                    };
+                    var saved = await seed.SaveAvatarAsync(avatar);
+                    Assert.False(saved.IsError, saved.Message);
+                }
+            }
+
+            async Task<T> Settings<T>(Func<NextGenSoftware.OASIS.API.Core.Managers.SettingsManager, Task<T>> operation)
+            {
+                using var provider = Provider();
+                var active = await provider.ActivateProviderAsync();
+                Assert.False(active.IsError, active.Message);
+                var routing = new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null, dna);
+                Assert.True(routing.RegisterProvider(provider));
+                return await operation(new NextGenSoftware.OASIS.API.Core.Managers.SettingsManager(provider, dna, routing));
+            }
+
+            var full = new HolonStoragePolicy(HolonStorageMode.Materialized, HolonReadCacheMode.None, 0, 0, true);
+            var mapped = new HolonStoragePolicy(HolonStorageMode.Virtual, HolonReadCacheMode.None, 0, 0, false);
+            var hybrid = new HolonStoragePolicy(HolonStorageMode.Hybrid, HolonReadCacheMode.None, 0, 0, true);
+            var savedFull = await Settings(manager => manager.SaveHolonStoragePolicyAsync(actor, null, full));
+            Assert.False(savedFull.IsError, savedFull.Message);
+            var savedApp = await Settings(manager => manager.SaveHolonStoragePolicyAsync(actor, app, mapped));
+            Assert.False(savedApp.IsError, savedApp.Message);
+            var savedOtherApp = await Settings(manager => manager.SaveHolonStoragePolicyAsync(actor, otherApp, hybrid));
+            Assert.False(savedOtherApp.IsError, savedOtherApp.Message);
+
+            var selected = await Settings(manager => manager.GetHolonStoragePolicyAsync(actor, app));
+            Assert.False(selected.IsError, selected.Message);
+            Assert.Equal(HolonStorageMode.Virtual, selected.Result.EffectivePolicy.Mode);
+            var inherited = await Settings(manager => manager.GetHolonStoragePolicyAsync(actor, Guid.NewGuid()));
+            Assert.False(inherited.IsError, inherited.Message);
+            Assert.Equal(HolonStorageMode.Materialized, inherited.Result.EffectivePolicy.Mode);
+
+            var resetApp = await Settings(manager => manager.ResetHolonStoragePolicyAsync(actor, app));
+            Assert.False(resetApp.IsError, resetApp.Message);
+            var afterResetApp = await Settings(manager => manager.GetHolonStoragePolicyAsync(actor, app));
+            Assert.False(afterResetApp.IsError, afterResetApp.Message);
+            Assert.Null(afterResetApp.Result.ApplicationPolicy);
+            Assert.Equal(HolonStorageMode.Materialized, afterResetApp.Result.EffectivePolicy.Mode);
+            var resetAvatar = await Settings(manager => manager.ResetHolonStoragePolicyAsync(actor));
+            Assert.False(resetAvatar.IsError, resetAvatar.Message);
+            var afterResetAvatar = await Settings(manager => manager.GetHolonStoragePolicyAsync(actor));
+            Assert.False(afterResetAvatar.IsError, afterResetAvatar.Message);
+            Assert.Null(afterResetAvatar.Result.EffectivePolicy);
+            var retainedApp = await Settings(manager => manager.GetHolonStoragePolicyAsync(actor, otherApp));
+            Assert.False(retainedApp.IsError, retainedApp.Message);
+            Assert.Equal(HolonStorageMode.Hybrid, retainedApp.Result.EffectivePolicy.Mode);
+
+            var cache = new HolonStoragePolicy(HolonStorageMode.Hybrid, HolonReadCacheMode.Memory, 1024, 30, true);
+            var refused = await Settings(manager => manager.SaveHolonStoragePolicyAsync(actor, null, cache));
+            Assert.True(refused.IsError);
+            Assert.Equal("HOLON_STORAGE_POLICY_UNSUPPORTED", refused.ErrorCode);
+            var unrelatedOwner = await Settings(manager => manager.GetHolonStoragePolicyAsync(otherActor));
+            Assert.False(unrelatedOwner.IsError, unrelatedOwner.Message);
+            Assert.Null(unrelatedOwner.Result.EffectivePolicy);
+
+            using (var verify = Provider())
+            {
+                Assert.False((await verify.ActivateProviderAsync()).IsError);
+                foreach (var id in new[] { actor, otherActor })
+                {
+                    var loaded = await verify.LoadAvatarAsync(id);
+                    Assert.False(loaded.IsError, loaded.Message);
+                    var metadata = Newtonsoft.Json.Linq.JObject.FromObject(loaded.Result.MetaData);
+                    Assert.Equal("retained", (string)metadata["unrelated"]);
+                    Assert.Equal("preserved", (string)metadata["preferences"]["system"]["theme"]);
+                }
+            }
+            Assert.Equal(sourceBefore, NativeBytes());
+        }
+
+        [Fact]
+        public async Task NativeMappedRowsRetainTheirApplicationScopeWithoutSavingSourceRows()
+        {
+            var sourceBefore = NativeBytes();
+            using var provider = Provider();
+            var actor = Guid.NewGuid();
+            var app = Guid.NewGuid();
+            var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, actor, provider.NativeDataProviderType,
+                "lines", VirtualHolonMapping.SandboxConnectionName, provider.DescribeVirtualQueryConnection(null),
+                new Dictionary<string, string> { ["sku"] = "sku" }, app);
+            var read = await mapping.QueryAsync(actor, provider, null,
+                new[] { new KeyValuePair<string, object>("sku", "A") }, new[] { "sku" }, 1);
+            Assert.False(read.IsError, read.Message);
+            var row = Assert.Single(read.Result);
+            Assert.Equal(app, row.ApplicationId);
+            var snapshot = row.PrepareSnapshot(actor);
+            Assert.Equal(row.Id, snapshot.Id);
+            var provenance = Assert.IsType<Dictionary<string, object>>(snapshot.MetaData["oasis.virtual.snapshot"]);
+            Assert.Equal(app.ToString("D"), provenance["applicationId"]);
+            Assert.Equal("A", snapshot.MetaData["sku"]);
+            Assert.False(File.Exists(OasisPath));
+            Assert.Equal(sourceBefore, NativeBytes());
+        }
+
         private byte[] NativeBytes()
         {
             SqliteConnection.ClearAllPools(); // the constructor's pooled connection still holds the file
