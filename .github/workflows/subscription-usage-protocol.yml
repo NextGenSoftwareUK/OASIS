@@ -6,6 +6,14 @@ on:
     branches: [Development]
   workflow_dispatch:
     inputs:
+      ref:
+        description: Immutable source override for focused settlement-pause qualification
+        type: string
+        required: false
+      settlement_pause_only:
+        description: Verify only settlement pause configuration and owned loopback outbox preservation/resume
+        type: boolean
+        default: false
       mongo_sqlite_point_reads:
         description: Run only the selected native MongoDB or SQLite storage check
         type: boolean
@@ -39,7 +47,76 @@ on:
 permissions:
   contents: read
 jobs:
+  settlement-pause:
+    if: inputs.settlement_pause_only
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SUBSCRIPTION_TEST_MONGODB_URI: mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Checkout exact sibling dependencies and verify source pins
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          . Docker/oasis-dependency-versions.env
+          git clone --no-checkout "$LIBRARIES_REPO" ../NextGenSoftware-Libraries
+          git -C ../NextGenSoftware-Libraries fetch --no-tags origin "$LIBRARIES_COMMIT"
+          git -C ../NextGenSoftware-Libraries checkout --detach "$LIBRARIES_COMMIT"
+          git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
+          git -C ../holochain-client-csharp fetch --no-tags origin "$HOLOCHAIN_COMMIT"
+          git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
+      - name: Start owned loopback Mongo replica set
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --detach --name usage-worker-pause -p 127.0.0.1:27029:27029 mongo:8.0.15 --port 27029 --replSet oasisRecoveryRs --bind_ip_all
+          ready=false
+          for attempt in $(seq 1 60); do
+            if docker exec usage-worker-pause mongosh --port 27029 --quiet --eval 'db.adminCommand({ping:1})' >/dev/null 2>&1; then ready=true; break; fi
+            sleep 1
+          done
+          test "$ready" = true
+          docker exec usage-worker-pause mongosh --port 27029 --quiet --eval 'rs.initiate({_id:"oasisRecoveryRs",members:[{_id:0,host:"127.0.0.1:27029"}]})'
+          for attempt in $(seq 1 60); do
+            if docker exec usage-worker-pause mongosh --port 27029 --quiet --eval 'if(!db.hello().isWritablePrimary) quit(1)' >/dev/null 2>&1; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - name: Build actual WEB4 and verify only the new settlement-pause contracts
+        shell: pwsh
+        run: |
+          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-SettlementWorkerPause -Operation {
+            dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE) { throw 'Actual WEB4 build failed.' }
+            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core/Tests/SubscriptionUsage/SubscriptionUsage.Tests.csproj' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SettlementWorkerPause' --logger trx --results-directory TestResults/settlement-pause
+            if ($LASTEXITCODE) { throw 'Settlement worker pause contract failed.' }
+          }
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: usage-settlement-pause
+          path: TestResults/settlement-pause/*.trx
+          if-no-files-found: ignore
+          retention-days: 3
+      - name: Remove owned Mongo container and volumes
+        if: always()
+        shell: bash
+        run: |
+          if docker container inspect usage-worker-pause >/dev/null 2>&1; then
+            docker rm --force --volumes usage-worker-pause
+          fi
   ledger:
+    if: ${{ !inputs.settlement_pause_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
