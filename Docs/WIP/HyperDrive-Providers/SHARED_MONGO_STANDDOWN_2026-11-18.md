@@ -264,3 +264,19 @@ Independent read-only OPORTAL source audit found duplicate profile writes, a swa
 Railway created exactly one new dev deployment per API in this observation: WEB4130cdabf-2d4f-499e-9cc8-45e742a2a639 QUEUED; WEB5050259e4-4f33-4eb8-81b3-35e39357b724 BUILDING; WEB65a2e1f30-6b87-41dc-a05c-a2ce009c49ca QUEUED; WEB72bc8d822-f3e8-4d16-b8eb-2a0ee9d7d7a0 QUEUED; WEB8e72ed18c-9d3e-4990-bd2d-05aceb0bad18 QUEUED; WEB9de239b1a-fba8-4833-ac7b-9f9ee8e59950 BUILDING; WEB103dc271ab-6b69-47c3-bd5d-9b1aca62af2c BUILDING. Previousb92 WEB4/37d8 consumers remain healthy. No manual redeploy or synthetic test added. New runtime acceptance remains pending; follow these handles without restart on an observation timeout. Production maintenance86cb/ca1d7cc7 remains verified, staging compatible image retained with its workers unregistered.
 
 OPORTAL profile-save audit is now recorded in both task branch and the shared release. Profile/root quest-field correction and full OPORTAL/provider/HyperDrive acceptance remain open. All operator holds, shared Atlas stand-down and535/543 preservation remain unchanged.
+
+
+2026-11-18 UTC — DEV MAINTENANCE/AUDIT RELEASE VERIFIED RUNNING: all7 dev APIs are SUCCESS on integrated0f7ebae449039c6580acd0f25c9709dc41ead529. WEB4130cdabf is now sole active, digestsha256:32800f86b5a827eeb12018c7a0a059b0c90ea89f3a803dbb4b97d0c60a14823c; actual PID229/instance003111b0-0f2d-4eb3-99ff-824e3cffe0fc has all4 controls=true, exact source/deployment, mapped API assembly, maintenance literal and new audit/seal/projection feature markers. Its positive settlement-paused startup marker count1 was verified. WEB5–10 actual processes each have the true settlement hold, exact new source/deployment, mapped Core/control literal and1 positive paused startup marker. This is runtime code/control acceptance, not live profile writes, latency measurement or full provider/HyperDrive acceptance. Shared Atlas tests and535/543 replay remain stopped.
+
+PROFILE INPUT CONTRACT QUALIFICATION ACTIVE: frozenfbd606ef6172cb15e1cd4a34430b64c3f0fe6d6c is in44313299801 for full WEB4 API build and only16 new pure JSON/presence/validation cases; no backend fixture/deployment. API/storage/frontend wiring remains open. See profile audit for exact broad-update and identity-sync findings.
+
+Selected consumer instance evidence (all PID1, source0f7ebae4, verified control/mapped assembly and1 positive startup marker):
+
+| Service | Deployment | Running instance |
+|---|---|---|
+| WEB5 |050259e4-4f33-4eb8-81b3-35e39357b724|0de91847-bda1-4d83-b294-95a8f5606874|
+| WEB6 |5a2e1f30-6b87-41dc-a05c-a2ce009c49ca|ec68929a-9a7b-47dc-ae0b-4e7ea0f53074|
+| WEB7 |2bc8d822-f3e8-4d16-b8eb-2a0ee9d7d7a0|4c2111b7-78af-49f1-a483-c5a7300b2f09|
+| WEB8 |e72ed18c-9d3e-4990-bd2d-05aceb0bad18|87f43b8b-7ef4-448a-b557-1429352fd7c3|
+| WEB9 |de239b1a-fba8-4833-ac7b-9f9ee8e59950|f1c25145-68d9-47d9-b01e-9adee9424a2d|
+| WEB10 |3dc271ab-6b69-47c3-bd5d-9b1aca62af2c|c00f5821-2f44-42d3-b76a-d6fe95f84ed9|
