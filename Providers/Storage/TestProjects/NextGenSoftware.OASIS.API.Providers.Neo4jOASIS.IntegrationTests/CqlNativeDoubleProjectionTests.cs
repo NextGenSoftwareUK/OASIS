@@ -119,14 +119,14 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             Assert.AreEqual(2L, counted.Result);
         }
         var groupSource = aggregateIntent.Source;
-        var mixedKey = CosmicProjectionSelection<Holon>.Create("Score", h => (double)h.MetaData["score"]);
+        var mixedKey = CosmicProjectionSelection<Holon>.Create("Score", h => CosmicQueryMetadata.Value<double>(h, new[] { "score" }));
         Assert.IsFalse(mixedKey.IsError, mixedKey.Message);
         var grouping = groupSource.GroupByColumns(new[] { mixedKey.Result }).Result;
         var groupedSelection = grouping.SelectColumns(new[] {
             CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Key(grouping,"Score",0).Result,
             CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(grouping,"Rows",groupSource.LongCount().Result).Result,
-            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(grouping,"Sum",groupSource.Sum(h=>(double)h.MetaData["score"]).Result).Result,
-            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(grouping,"Mean",groupSource.Average(h=>(double)h.MetaData["score"]).Result).Result
+            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(grouping,"Sum",groupSource.Sum(h=>CosmicQueryMetadata.Value<double>(h, new[] { "score" })).Result).Result,
+            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(grouping,"Mean",groupSource.Average(h=>CosmicQueryMetadata.Value<double>(h, new[] { "score" })).Result).Result
         }).Where(row => (long)row["Rows"] == 1)
           .OrderByDescending(row => (double)row["Score"]).Skip(1).Take(1);
         Assert.IsFalse(groupedSelection.IsError, groupedSelection.Message);
