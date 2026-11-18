@@ -39,8 +39,6 @@ public static partial class CqlV1Endpoint
             var selecting = selectedCount || operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max or CosmicScalarOperation.Sum or CosmicScalarOperation.Average;
             if (selecting != (request.Selection != null))
                 throw new ArgumentException("Selected aggregates require one selection; Count, LongCount and Any do not accept it.");
-            if (request.Selection?.Function.HasValue == true && !selectedCount)
-                throw new ArgumentException("Computed scalar selections currently require CountValues or CountDistinct.");
             var requested = CqlV1Compiler.RequestedProvider(request.Provider, includeCloudReadProfile: true);
             var policy=CaptureReadPolicy(http,actor,requested,providers,admission,includeCloudReadProfile:true);
             var source = CqlV1Compiler.CompileScalarSource(request, actor, policy?.Selected??requested,policy?.Access);
@@ -57,6 +55,17 @@ public static partial class CqlV1Endpoint
                     Alias = "Value", Field = selection.Field, MetadataPath = selection.MetadataPath,
                     ValueType = selection.ValueType, Nullable = selection.Nullable, Function = selection.Function
                 }, new SelectedCountConsumer(http, providers, storage, composition, source, request.Operation));
+            }
+            if (request.Selection?.Function.HasValue == true)
+            {
+                if (adapter is not ICosmicQueryProjectionCompositionStorageProvider composition)
+                    return Failure(400, "CQL_CAPABILITY_UNSUPPORTED", "The selected provider cannot execute computed scalar queries.");
+                var selection = request.Selection;
+                return await CqlV1Compiler.CompileSelection(new CqlProjectionV1Column
+                {
+                    Alias = "Value", Field = selection.Field, MetadataPath = selection.MetadataPath,
+                    ValueType = selection.ValueType, Nullable = selection.Nullable, Function = selection.Function
+                }, new ComputedScalarConsumer(http, providers, storage, composition, source, operation));
             }
             if (adapter is not ICosmicQueryScalarStorageProvider scalar)
                 return Failure(400, "CQL_CAPABILITY_UNSUPPORTED", "The selected provider does not implement native scalar queries.");
