@@ -1,3 +1,5 @@
+2026-11-18 UTC — HTTP/native12ad qualification passed; artifact14424846477 (40,640 bytes) parsed in RAM, no extraction retained. Exact fixtures cleaned. New Core source coordination retains only needed Git objects; fresh qualification44298514397 runs in CI. No local SDK/build/restore/runtime/database/environment/output/download added. Retained/blocked cleanup register remains authoritative.
+
 2026-11-18 UTC — Fetched exact already-deployed Core30c89 source for branch coordination; retained source Git objects only, no new checkout/worktree/runtime/environment/build/database. Core merge-tree/temp index use scoped source objects and remove the temporary index. No overlap across32 CQL and15 peer paths. Existing retained/blocked cleanup register remains in force.
 
 2026-11-18 UTC — Native mapped614b qualification passed with exact Mongo/Neo cleanup and SQLite in-memory proof. Artifact14424081264 (40,628 bytes) parsed in RAM only; no archive extraction/download retained. C:36.42GiB observed. No local SDK/build/restore/database/environment/output added. Retained/blocked register remains applicable, including policy-blocked C++ cache and active/dirty worktrees.
