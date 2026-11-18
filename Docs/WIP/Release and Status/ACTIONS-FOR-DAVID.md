@@ -814,3 +814,11 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Observed locally:** AppX Deployment Service (AppXSvc), PID1580, holds about16.41GiB private memory on a15.8GiB-RAM machine. Windows' automatically managed paging file allocates26.63GiB, with about7.53GiB currently used. These are current measurements, not proof of every earlier disk-space change or a guarantee of reclaimable disk bytes.
 - **David decision:** choose a maintenance window after saving work for a controlled Windows-service restart or Windows reboot. AppXSvc has a running Windows AI Components Host dependent (WSAIFabricSvc); interrupting it could affect active AI tools. Administrative access is already available; the decision is timing/interruption, not account access.
 - **Next steps:** engineering must verify no Store/app deployment is active, preserve service startup settings and restore any stopped dependent service. Measure memory/pagefile/free space afterwards. Never manually delete the paging file or promise that restarting a service immediately shrinks its on-disk allocation. No service, paging setting or Windows AI component was changed during file cleanup.
+
+### HD-CLOUD-READINESS — inspect whether the requested cloud continuation appeared
+
+- Status: awaiting one UI observation; 2026-11-18T20:17:45.937147+00:00.
+- Context: David requested moving the existing goal to cloud. Source and full handoff are committed/pushed on work/hyperdrive-provider-completion. One cloud create request and one read-only task-list request remain unresolved, with no task ID returned. Do not create a second task while the first outcome is unknown.
+- Owner step: check whether a sidebar task titled “OASIS HyperDrive and OPORTAL — cloud continuation” appears. If present, report whether it shows Cloud and any setup/access message; otherwise report that it is absent. No credentials or private record contents are requested.
+- Reason: the app-control requests have not returned and the available Windows UI automation policy does not permit controlling this app, so the agent cannot verify that UI state itself. This observation is not a request to repair the tool service or to approve a deployment.
+- Evidence: Docs/WIP/HyperDrive-Providers/CLOUD_HANDOFF_2026-11-18.md and CURRENT_STATUS.md. Cloud repository/goal access and local stop remain unconfirmed.
