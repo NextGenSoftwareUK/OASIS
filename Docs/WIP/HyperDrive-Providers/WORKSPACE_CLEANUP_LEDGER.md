@@ -2355,3 +2355,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-17 UTC — Combined read/CQL image and SOURCE_SHA verification used remote metadata and an in-memory filtered log. No image or artifact downloaded. Predecessor fleet/date/pin checks were read-only; the initial local date-format failure pushed nothing. Corrected gate completed one Development push and queued one rollout. No local builds, environments, accounts, records or generated outputs. Cleanup diagnostics remain on the task branch and outside the deployed candidate.
 
 2026-11-17 UTC — Subscription Admin response fix e41fe27: used existing Node runtime and in-memory regression only; no downloads, environments, build outputs, database fixtures or result artifacts created. Retained regression is source. Existing browser-profile cleanup exception remains unchanged.
+
+2026-11-17 UTC — Admin list fix 792566d and preview 04358ef0e597: no downloads, installs, databases or build outputs. Private Git index and lock removed in finally; existing Node regression ran in memory. Only source/test and required Git objects retained.
