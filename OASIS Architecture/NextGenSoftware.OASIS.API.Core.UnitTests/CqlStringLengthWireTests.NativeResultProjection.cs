@@ -89,4 +89,25 @@ public sealed class CqlStringLengthWireTests_NativeResultProjection
         Assert.Throws<OperationCanceledException>(() => NativeProjectionResults.Capture("s", schema,
             new[] { row }, cancellationToken: cancellation.Token));
     }
+    [Fact]
+    public void IdentityOnlyResultsHaveNoPropertyCellsAndKeepAllResponseGuards()
+    {
+        var empty = Array.Empty<NativeProjectionColumn>();
+        Assert.Empty(NativeProjectionColumn.Capture(empty));
+        var row = new NativeProjectionRow("s", "one", Array.Empty<NativeProjectionCell>());
+        Assert.Empty(row.Cells);
+        var accepted = NativeProjectionResults.Capture("s", empty, new[] { row }, maximumPayloadBytes: 4);
+        Assert.False(accepted.IsError, accepted.Message);
+        Assert.Equal("one", Assert.Single(accepted.Result).NativeKey);
+        Assert.Equal("NATIVE_PROJECTION_PAYLOAD_LIMIT",
+            NativeProjectionResults.Capture("s", empty, new[] { row }, maximumPayloadBytes: 3).ErrorCode);
+        Assert.Equal("NATIVE_PROJECTION_RESULT_INVALID",
+            NativeProjectionResults.Capture("s", empty, new[] { row, row }).ErrorCode);
+        Assert.Equal("NATIVE_PROJECTION_RESULT_INVALID",
+            NativeProjectionResults.Capture("other", empty, new[] { row }).ErrorCode);
+        Assert.Equal("NATIVE_PROJECTION_RESULT_INVALID", NativeProjectionResults.Capture("s", empty,
+            new[] { new NativeProjectionRow("s", "one", new[] { new NativeProjectionCell(NativeProjectionValueState.Present, "unselected") }) }).ErrorCode);
+        Assert.Throws<ArgumentException>(() => new NativeProjectionRow("s", "one", null));
+    }
+
 }

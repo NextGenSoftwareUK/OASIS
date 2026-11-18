@@ -76,7 +76,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     ? NeoCqlTranslator.Utf16LengthUnits(property, "$projectionSupplementary") : property;
                 cells.Add($"{{s:{state}, b:{bytes}, v:CASE WHEN {domain} AND ib{fieldIndex} <= 1048576 THEN {value} ELSE null END}} AS c{index}");
             }
-            var total = string.Join(" + ", positions.Select(index => $"c{index}.b"));
+            var total = positions.Length == 0 ? "0" : string.Join(" + ", positions.Select(index => $"c{index}.b"));
             var returned = new List<string> { "key", total + " AS outputBytes" };
             for (var index = 0; index < unique.Count; index++)
             {

@@ -54,7 +54,8 @@ public partial class MongoDBOASIS : INativeDataProjectionQueryProvider
         };
         for (var index = 0; index < unique.Count; index++)
             first.Add("c" + index, NativeProjectionCellExpression(unique[index]));
-        var outputBytes = new BsonDocument("$add", new BsonArray(positions.Select(index => (BsonValue)("$c" + index + ".b"))));
+        BsonValue outputBytes = positions.Length == 0 ? new BsonDocument("$literal", 0)
+            : new BsonDocument("$add", new BsonArray(positions.Select(index => (BsonValue)("$c" + index + ".b"))));
         var second = new BsonDocument { { "_id", 1 }, { "_keyBytes", 1 }, { "_outputBytes", outputBytes } };
         for (var index = 0; index < unique.Count; index++)
             second.Add("c" + index, new BsonDocument("$let", new BsonDocument

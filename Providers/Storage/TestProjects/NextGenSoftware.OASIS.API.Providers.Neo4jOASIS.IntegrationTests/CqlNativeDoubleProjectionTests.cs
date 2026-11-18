@@ -63,6 +63,17 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             new[] { new NativeProjectionColumn("optionalDouble", "Required", typeof(double)) }, 1);
         Assert.AreEqual("NATIVE_PROJECTION_DATA_INVALID", required.ErrorCode);
 
+        var identities = await provider.QueryNativeProjectionRecordsAsync(source, new[] { first },
+            Array.Empty<NativeProjectionColumn>(), 2);
+        Assert.IsFalse(identities.IsError, identities.Message + identities.Exception);
+        Assert.AreEqual(row.NativeKey, identities.Result.Single().NativeKey);
+        Assert.AreEqual(0, identities.Result.Single().Cells.Count);
+        var identityBudget = NativeProjectionResults.Capture(source, Array.Empty<NativeProjectionColumn>(),
+            identities.Result, maximumRows: 2, maximumPayloadBytes: 256);
+        Assert.IsFalse(identityBudget.IsError, identityBudget.Message);
+        checks.Add(new { provider = provider.NativeDataProviderType.ToString(),
+            nativeProjection = "native identity without selecting any field, including invalid and oversized unused values",
+            identityProjectionVerified = true });
         var actor = Guid.NewGuid();
         var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, actor, provider.NativeDataProviderType,
             source, VirtualHolonMapping.SandboxConnectionName, provider.DescribeVirtualQueryConnection(null),
