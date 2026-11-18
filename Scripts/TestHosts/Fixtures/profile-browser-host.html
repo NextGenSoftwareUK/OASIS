@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Owned profile component verification</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/dashboard.css">
+  <link rel="stylesheet" href="/assets/css/modals-new.css">
+  <link rel="stylesheet" href="/assets/css/oasis-advanced-modals.css">
+  <link rel="stylesheet" href="/assets/css/oasis-portal-extra.css">
+  <link rel="stylesheet" href="/assets/css/oasis-portal-extra2.css">
+</head>
+<body>
+  <button id="fixture-open-profile" type="button" disabled onclick="window.openAvatarModal()">Open actual profile component</button>
+  <div class="modal js-modal modal--animate-scale">
+
+  </div>
+  <script src="/assets/js/oasis-web4-sdk.js"></script>
+  <script>
+    window.apiUrl = location.origin;
+    window.oasisClient = new window.OASISClient({ baseUrl: location.origin, persistSession: false });
+    var owner = JSON.parse(localStorage.getItem('avatar') || 'null');
+    if (owner && owner.jwtToken) window.oasisClient.setToken(owner.jwtToken, { avatarId: owner.id });
+  </script>
+  <script src="/assets/js/avatar-modal.js"></script>
+  <script>
+    fetch('/assets/components/modals/avatar.html').then(function (response) {
+      if (!response.ok) throw new Error('Actual profile component could not be loaded.');
+      return response.text();
+    }).then(function (html) {
+      document.querySelector('.js-modal').innerHTML = html;
+      window.dispatchEvent(new CustomEvent('portal-modal-ready', { detail: { route: 'avatar' } }));
+      document.getElementById('fixture-open-profile').disabled = false;
+    });
+  </script>
+</body>
+</html>

@@ -32,7 +32,9 @@ async function verify(input) {
     await context.addInitScript(({ owner, token }) => {
       if (!localStorage.getItem('avatar')) {
         localStorage.setItem('avatar', JSON.stringify({
-          ...owner, id: owner.avatarId, title: 'stale-client-cache', jwtToken: token
+          id: owner.avatarId, username: owner.username, email: owner.email,
+          firstName: owner.firstName, lastName: owner.lastName, address: owner.address,
+          title: 'stale-client-cache', jwtToken: token, xp: 42
         }));
         localStorage.setItem('loggedIn', 'true');
       }
@@ -56,7 +58,13 @@ async function verify(input) {
     await page.waitForFunction(() => !document.getElementById('av-title').disabled);
     assert.equal(await page.locator('#av-title').inputValue(), opened.result.profile.title || '');
     const openMs = Date.now() - started;
+    const username = 'browser-' + randomUUID().replaceAll('-', '');
+    const email = username + '@example.test';
     await page.locator('#av-title').fill(title);
+    await page.locator('#av-firstName').fill('Browser ' + providerType);
+    await page.locator('#av-lastName').fill('Form profile');
+    await page.locator('#av-username').fill(username);
+    await page.locator('#av-email').fill(email);
     await page.locator('#av-address').fill('');
     const saving = page.waitForResponse(value =>
       new URL(value.url()).pathname === '/api/avatar/profile' && value.request().method() === 'PATCH');
@@ -73,6 +81,8 @@ async function verify(input) {
     assert.equal(writes[0].Title, undefined);
     const saveMs = Date.now() - saveStarted;
     assert.equal(saved.result.profile.address, '');
+    assert.equal(saved.result.profile.username, username);
+    assert.equal(saved.result.profile.email, email);
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('avatar')).title), title);
 
     await page.locator('#avatar-modal-close-btn').click();
@@ -82,6 +92,8 @@ async function verify(input) {
     const displayed = await (await reopened).json();
     await page.waitForFunction(() => !document.getElementById('av-title').disabled);
     assert.equal(await page.locator('#av-title').inputValue(), title);
+    assert.equal(await page.locator('#av-username').inputValue(), username);
+    assert.equal(await page.locator('#av-email').inputValue(), email);
 
     const current = displayed.result;
     const concurrent = await client.profile.applyProfile({
@@ -130,7 +142,8 @@ async function verify(input) {
     assert.equal(final.isError, false, final.message);
     assert.equal(final.result.profile.title, title);
     return {
-      title, avatarVersionId: final.result.profile.avatarRevision.versionId,
+      title, username, email, firstName: final.result.profile.firstName, lastName: final.result.profile.lastName,
+      avatarVersionId: final.result.profile.avatarRevision.versionId,
       detailVersionId: final.result.profile.detailRevision.versionId,
       browserVerified: true, openMs, saveMs, profileWrites: writes.length,
       portraitUploadVerified: false, productionStartupVerified: false
