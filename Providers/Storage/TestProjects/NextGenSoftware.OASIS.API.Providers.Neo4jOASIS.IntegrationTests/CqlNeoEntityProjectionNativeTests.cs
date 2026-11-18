@@ -223,7 +223,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
 
             await (await inspection.RunAsync($"MATCH (n:`{label}`) WHERE n.hidden = 'private' SET n.amount = $amount, n.small = 123, n.flag = true, n.empty = '', n.big = $big, n.near = $near",
                 new { amount = 9007199254740993L, big = new string('x', 1048580),
-                    near = string.Concat(Enumerable.Repeat("😀", 250000)) })).ConsumeAsync();
+                    near = string.Concat(Enumerable.Repeat("A\u007F\u0080\u07FF\u0800\uFFFF😀", 62500)) })).ConsumeAsync();
             async Task<string[]> NativeProjectionSnapshot()
             {
                 var records = await (await inspection.RunAsync($"MATCH (n:`{label}`) RETURN elementId(n) AS key, properties(n) AS data ORDER BY key")).ToListAsync();

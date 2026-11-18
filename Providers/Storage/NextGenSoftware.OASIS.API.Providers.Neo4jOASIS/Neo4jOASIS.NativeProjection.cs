@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             if (sourceName == null || !LabelPattern.IsMatch(sourceName) || limit is < 1 or > 100)
                 return NativeProjectionError("NATIVE_PROJECTION_QUERY_INVALID", "An admitted label and bounded row limit are required.");
             IReadOnlyList<NativeProjectionColumn> selected;
-            var parameters = new Dictionary<string, object> { ["take"] = limit, ["projectionUtf8One"] = @"[\x{0}-\x{7F}]", ["projectionUtf8Two"] = @"[\x{80}-\x{7FF}]", ["projectionSupplementary"] = @"[\x{10000}-\x{10FFFF}]" };
+            var parameters = new Dictionary<string, object> { ["take"] = limit, ["projectionUtf8Surrogate"] = @"[\uD800-\uDFFF]", ["projectionUtf8One"] = @"[\x{0}-\x{7F}]", ["projectionUtf8Two"] = @"[\x{80}-\x{7FF}]", ["projectionSupplementary"] = @"[\x{10000}-\x{10FFFF}]" };
             string where;
             try
             {
@@ -135,10 +135,12 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             { return NativeProjectionError("NATIVE_PROJECTION_QUERY_FAILED", "The native Neo4j projection did not complete."); }
         }
 
+        // Neo4j 5.26 split-on-empty yields UTF16 code units (StringValue.splitOnEmptySeparator).
+        // A valid supplementary pair contributes two units at two UTF8 bytes each.
         private static string NativeProjectionUtf8Bytes(string value) =>
             "CASE WHEN size(" + value + ") > 1048576 THEN 1048577 ELSE reduce(nativeBytes = 0, nativeCharacter IN split("
             + value + ", '') | nativeBytes + CASE WHEN nativeCharacter = '' THEN 0 WHEN nativeCharacter =~ $projectionUtf8One THEN 1"
-            + " WHEN nativeCharacter =~ $projectionUtf8Two THEN 2 WHEN nativeCharacter =~ $projectionSupplementary THEN 4 ELSE 3 END) END";
+            + " WHEN nativeCharacter =~ $projectionUtf8Two THEN 2 WHEN nativeCharacter =~ $projectionSupplementary THEN 4 WHEN nativeCharacter =~ $projectionUtf8Surrogate THEN 2 ELSE 3 END) END";
 
         private static OASISResult<IReadOnlyList<NativeProjectionRow>> NativeProjectionError(string code, string message)
             => new OASISResult<IReadOnlyList<NativeProjectionRow>> { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message };
