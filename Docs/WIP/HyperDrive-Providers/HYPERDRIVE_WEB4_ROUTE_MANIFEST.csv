@@ -795,3 +795,5 @@
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarSealController.cs","38","AvatarSealController","Get","GET","holon-seal","InjectedServiceRepositoryOrClient"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarSealController.cs","46","AvatarSealController","Set","POST","holon-seal","InjectedServiceRepositoryOrClient"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.Seal.cs","21","DataController","VerifyHolonSeal","GET","holon-seal/verify/{id}","DirectModeAwareManagerBoundary"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SelfAvatarProfileController.cs","33","SelfAvatarProfileController","GetProfile","GET","","DirectModeAwareManagerBoundary"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SelfAvatarProfileController.cs","54","SelfAvatarProfileController","ApplyProfile","PATCH","","DirectModeAwareManagerBoundary"
