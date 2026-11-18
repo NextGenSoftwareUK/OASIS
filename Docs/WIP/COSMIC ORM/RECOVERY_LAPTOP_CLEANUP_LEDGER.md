@@ -1,3 +1,5 @@
+2026-11-18 — Selected LENGTH parser124 checks consumed Git blobs in memory via the existing Node executable; no source hydration, dependency install, DB/client, test result file or browser profile. First parser run exposed a stale local helper dependency in the test harness; reran with both dependencies frozen, all124 passed. Backend work uses isolated CI stores; no local SDK/build outputs or downloads. Temporary Git indexes automatically disposed.
+
 2026-11-18 — Atlas audit: process/task/source/GitHub log inspection only; no local Mongo client/runtime/test environment, DB copy, downloaded archive or build output. No user databases/processes/caches removed. CI55+2 policy/wire run verified NATIVE_POLICY_CLEANUP_VERIFIED=true. Latest observed free17.47GiB. Temporary Git indexes automatically removed after commit creation.
 
 2026-11-18 — Computed composition correction and exact CI qualification: no local runtime, source hydration, database, environment, build output or downloaded test artifact. Temporary Git indexes use automatic scoped TemporaryDirectory cleanup; no user/provider data, credentials or unrelated caches removed. Disk last observed17.51GiB.

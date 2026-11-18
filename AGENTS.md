@@ -46,6 +46,9 @@ For a **new chat**, paste: goal + “see `Docs/Devs/STAR_CLI_SessionHandoff.md`�
 
 ## Conventions (this repo)
 
+- Shared OASIS Atlas (dev/staging/production) is not a test target. Use an isolated CI/local MongoDB container, mocks, or owned disposable test stores. Do not run benchmark, soak, replication, sync or background test loops against the shared cluster. Before any unavoidable shared-cluster test, tell David the small operation budget, pauses and capped retries. Never load deployed secrets into test fixtures. This restriction does not authorize stopping unrelated hosted application workers or modifying live obligations.
+
+
 - **Doc locations:** transient documents — progress reports, audits, session handoffs, status/completeness reports, evidence logs — go in `Docs/WIP/`. Only official, lasting docs (guides, policies, architecture, process runbooks) belong in the `Docs` root or `Docs/Devs`.
 
 - Commit ongoing work on the agreed task branch, not directly on `Development`. Batch verified merges/pushes to `Development` once or twice daily rather than pushing every small commit: each dev push triggers Railway builds and frequent pushes can create hundreds of queued deployments. This cadence supersedes the earlier frequent-integration instruction. Do not wait for the entire provider programme to finish or allow task branches to diverge unchecked. Fetch and inspect current shared branch/submodule state first, preserve concurrent contributors' changes, and integrate only the scoped batch with its verification evidence and documented remaining gaps. Incomplete or unverified changes must not be swept into a deployment merely to synchronize branches. Coordinate branch switches in shared checkouts; never force-push shared branches or create another worktree/environment just for this workflow.
