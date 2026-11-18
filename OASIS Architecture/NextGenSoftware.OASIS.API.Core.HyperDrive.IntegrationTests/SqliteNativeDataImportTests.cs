@@ -581,6 +581,83 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
             Assert.Equal(before, NativeBytes());
         }
 
+
+        [Fact]
+        public async Task MappedComputedProjectionKeepsImportIdentityAndCannotOverwriteSnapshotMetadata()
+        {
+            var before = NativeBytes();
+            using var provider = Provider();
+            var actor = Guid.NewGuid(); var app = Guid.NewGuid();
+            var mapping = new VirtualHolonMapping(Guid.NewGuid(), 3, actor,
+                NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS, "lines",
+                VirtualHolonMapping.SandboxConnectionName, provider.DescribeVirtualQueryConnection(null),
+                new Dictionary<string, string> { ["Product"] = "sku", ["Order"] = "orderId" }, app);
+            var filters = new[] { new NativeRecordFilter("Product", CosmicQueryComparisonOperator.Equal, "A") };
+            var columns = new[] {
+                new NativeProjectionColumn("Product", "Text", typeof(string)),
+                new NativeProjectionColumn("Product", "Units", typeof(string), function: NativeRecordFunction.Utf16Length),
+                new NativeProjectionColumn("Product", "Repeated", typeof(string), function: NativeRecordFunction.Utf16Length),
+                new NativeProjectionColumn("Order", "Order", typeof(long))
+            };
+            var projected = await mapping.QueryProjectionAsync(actor, provider, null, filters, columns, 1);
+            Assert.False(projected.IsError, projected.Message);
+            var output = Assert.Single(projected.Result);
+            var raw = await mapping.QueryAsync(actor, provider, null, filters, new[] { "Product", "Order" }, 1);
+            Assert.False(raw.IsError, raw.Message);
+            var original = Assert.Single(raw.Result);
+            Assert.Equal(original.Id, output.Id);
+            Assert.Equal(mapping.Id, output.MappingId);
+            Assert.Equal(3, output.MappingVersion);
+            Assert.Equal(app, output.ApplicationId);
+            Assert.Equal(mapping.Provider, output.Provider);
+            Assert.Equal(columns.Select(column => column.Alias), output.Columns.Select(column => column.Alias));
+            Assert.Equal("Product", output.Columns[1].Field);
+            Assert.Equal(typeof(string), output.Columns[1].InputType);
+            Assert.Equal(typeof(int), output.Columns[1].ValueType);
+            Assert.Equal("A", output.Cells[0].Value);
+            Assert.Equal(1, Assert.IsType<int>(output.Cells[1].Value));
+            Assert.Equal(1, Assert.IsType<int>(output.Cells[2].Value));
+            Assert.Equal(10L, Assert.IsType<long>(output.Cells[3].Value));
+            var snapshot = original.PrepareSnapshot(actor);
+            Assert.Equal("A", snapshot.MetaData["Product"]);
+            Assert.False(snapshot.MetaData.ContainsKey("Units"));
+            Assert.Null(typeof(VirtualHolonProjectionRead).GetMethod("PrepareSnapshot"));
+            Assert.False(File.Exists(OasisPath));
+            Assert.Equal(before, NativeBytes());
+        }
+
+        [Fact]
+        public async Task MappedComputedProjectionEnforcesOwnerBindingsConnectionRevisionAndCancellation()
+        {
+            var before = NativeBytes();
+            using var provider = Provider();
+            var actor = Guid.NewGuid();
+            var identity = provider.DescribeVirtualQueryConnection(null);
+            VirtualHolonMapping Mapping(string connectionIdentity) => new VirtualHolonMapping(Guid.NewGuid(), 1, actor,
+                NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS, "lines",
+                VirtualHolonMapping.SandboxConnectionName, connectionIdentity,
+                new Dictionary<string, string> { ["Product"] = "sku" });
+            var mapping = Mapping(identity);
+            var filters = new[] { new NativeRecordFilter("Product", CosmicQueryComparisonOperator.Equal, "A") };
+            var columns = new[] { new NativeProjectionColumn("Product", "Units", typeof(string), function: NativeRecordFunction.Utf16Length) };
+            var foreign = await mapping.QueryProjectionAsync(Guid.NewGuid(), provider, null, filters, columns, 1);
+            Assert.Equal("VIRTUAL_HOLON_FORBIDDEN", foreign.ErrorCode);
+            var unknown = await mapping.QueryProjectionAsync(actor, provider, null, filters,
+                new[] { new NativeProjectionColumn("sku", "Raw", typeof(string)) }, 1);
+            Assert.Equal("VIRTUAL_HOLON_QUERY_INVALID", unknown.ErrorCode);
+            var duplicate = await mapping.QueryProjectionAsync(actor, provider, null, filters, new[] { columns[0], columns[0] }, 1);
+            Assert.Equal("VIRTUAL_HOLON_QUERY_INVALID", duplicate.ErrorCode);
+            var changed = await Mapping(identity + "-changed").QueryProjectionAsync(actor, provider, null, filters, columns, 1);
+            Assert.Equal("VIRTUAL_HOLON_CONNECTION_CHANGED", changed.ErrorCode);
+            var emptyFilters = await mapping.QueryProjectionAsync(actor, provider, null, Array.Empty<NativeRecordFilter>(), columns, 1);
+            Assert.Equal("VIRTUAL_HOLON_QUERY_INVALID", emptyFilters.ErrorCode);
+            using var cancellation = new System.Threading.CancellationTokenSource(); cancellation.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => mapping.QueryProjectionAsync(actor, provider, null,
+                filters, columns, 1, cancellation.Token));
+            Assert.False(File.Exists(OasisPath));
+            Assert.Equal(before, NativeBytes());
+        }
+
         public void Dispose()
         {
             SqliteConnection.ClearAllPools();
