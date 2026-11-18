@@ -49,6 +49,25 @@ public class CqlStringLengthWireTests_SelectedProjection
         Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileProjection(request, Actor, null));
     }
 
+    [Fact]
+    public void ComputedAliasSortCapturesCompleteSourceBeforeSelectedPaging()
+    {
+        var request = Request();
+        request.OrderBy = "None";
+        request.Skip = 2;
+        request.Take = 1;
+        request.SelectedOrder = new[] { new CqlGroupedV1Ordering { Alias = "Units", Descending = true } };
+        var query = CqlV1Compiler.CompileProjection(request, Actor, null);
+        Assert.Null(query.Source.Limit);
+        Assert.Equal(3, query.ResultStages.Count);
+        var ordering = Assert.IsType<CosmicSelectedOrderStage>(query.ResultStages[0]);
+        Assert.True(Assert.Single(ordering.Orderings).Descending);
+        Assert.Equal(CosmicSelectedWindowKind.Skip,
+            Assert.IsType<CosmicSelectedWindowStage>(query.ResultStages[1]).Kind);
+        Assert.Equal(CosmicSelectedWindowKind.Take,
+            Assert.IsType<CosmicSelectedWindowStage>(query.ResultStages[2]).Kind);
+    }
+
     [Theory]
     [InlineData(false)] [InlineData(true)]
     public void SelectedCompositionFiltersAndSortsComputedIntegerAlias(bool nullable)

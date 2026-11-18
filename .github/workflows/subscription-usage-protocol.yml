@@ -50,7 +50,7 @@ jobs:
           $before = @(Get-ChildItem ([IO.Path]::GetTempPath()) -Directory -Filter 'oasis-native-sqlite-*' | ForEach-Object FullName)
           try {
             & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner storage-policy-native-ci -Operation {
-              dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlStringLengthWireTests_SelectedProjection|FullyQualifiedName~CosmicProjectionComputedCompositionProofTests|FullyQualifiedName~HolonStoragePolicyTests|FullyQualifiedName~AvatarSaveWithBlankPasswordDoesNotDiscardCallerChanges'
+              dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlStringLengthWireTests|FullyQualifiedName~CosmicProjectionComputedCompositionProofTests|FullyQualifiedName~HolonStoragePolicyTests|FullyQualifiedName~AvatarSaveWithBlankPasswordDoesNotDiscardCallerChanges'
               if ($LASTEXITCODE) { throw 'Policy persistence/save invariant regression failed.' }
               dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~StoragePoliciesPersistAcrossFreshProviders|FullyQualifiedName~NativeMappedRowsRetainTheirApplicationScope'
               if ($LASTEXITCODE) { throw 'Native policy qualification failed.' }

@@ -39,6 +39,29 @@ public static partial class CqlV1Compiler
             order == null && branchLimit == null ? request.Skip : 0, order == null ? branchLimit ?? request.Take : null, access,
             includeCloudReadProfile: true);
         var columns = request.Columns.Select(ProjectionColumn).ToArray();
+        if (order != null && order.Any(term => columns.Any(column =>
+            column.Alias == term?.Alias && column.Function != CosmicProjectionFunction.None)))
+        {
+            if (branchLimit.HasValue)
+                throw new ArgumentException("Computed ordering requires the stored composition route.");
+            var captured = source.SelectColumns(columns);
+            if (captured.IsError) throw new ArgumentException(captured.Message);
+            var composed = captured.Result;
+            var seenComputed = new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+            for (var index = 0; index < order.Length; index++)
+            {
+                var term = order[index];
+                if (term?.Alias == null || !seenComputed.Add(term.Alias))
+                    throw new ArgumentException("Selected ordering aliases must be non-null and unique.");
+                var column = columns.SingleOrDefault(item => item.Alias == term.Alias)
+                    ?? throw new ArgumentException("Selected ordering must name an exact selected alias.");
+                composed = BindSelectedOrdering(column.ValueType, column.Alias, term.Descending, index > 0,
+                    new CompositionOrderingConsumer(composed));
+            }
+            // Preserve complete source participation; apply paging only after the computed sort.
+            // The composition executor rejects an input-budget overflow, rather than sorting a prefix.
+            return RequiredComposition(composed.Skip(request.Skip).Take(request.Take));
+        }
         if (order != null)
         {
             // Bind selected aliases to source fields before any paging or projection is applied.
