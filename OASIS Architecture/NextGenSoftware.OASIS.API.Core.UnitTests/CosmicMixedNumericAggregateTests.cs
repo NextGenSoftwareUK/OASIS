@@ -212,7 +212,7 @@ public sealed partial class CosmicMixedNumericAggregateTests
         if (invalid == "cancelled") cancellation.Cancel();
         var result = CosmicMixedProjectionResults.Aggregate(fixture.Query, Actor,
             invalid == "mapping" ? Guid.NewGuid() : fixture.Mapping, fixture.Stored, live,
-            CosmicScalarOperation.Min, invalid == "payload" ? 1 : CosmicMixedProjectionResults.MaximumInputBytes, cancellation.Token);
+            invalid == "domain" ? CosmicScalarOperation.Sum : CosmicScalarOperation.Min, invalid == "payload" ? 1 : CosmicMixedProjectionResults.MaximumInputBytes, cancellation.Token);
         Assert.True(result.IsError);
         Assert.Equal(invalid switch { "actor" => "CQL_ACCESS_INVALID", "full" or "shortened" => "CQL_VIRTUAL_SOURCE_LIMIT",
             "domain" => "CQL_CAPABILITY_UNSUPPORTED", "payload" => "CQL_RESULT_LIMIT",
