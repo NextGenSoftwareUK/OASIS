@@ -29,13 +29,14 @@ public static partial class CqlV1Compiler
         if (request == null || request.Take is < 0 or > 100 || request.Columns == null
             || request.Columns.Length is < 1 or > CosmicProjectionQuery<Holon, CosmicProjectionRecord>.MaximumColumns)
             throw new ArgumentException("Projection requires one to32 columns and Take0–100.");
-        var order = request.SelectedOrder;
+        var order = branchLimit.HasValue ? null : request.SelectedOrder;
         if (order != null && (order.Length is < 1 or > CosmicQuery<Holon>.MaximumOrderings
             || request.OrderBy != "None" || request.Descending || request.Skip is < 0 or > 1000))
             throw new ArgumentException("SelectedOrder requires one to eight aliases, OrderBy None and Skip 0–1000.");
 
         var source = CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
-            request.AnyDescendants, request.Graph, order == null ? request.OrderBy : "Id", branchLimit == null && request.Descending,
+            request.AnyDescendants, request.Graph, branchLimit.HasValue ? "Id" : order == null ? request.OrderBy : "Id",
+            branchLimit == null && request.Descending,
             order == null && branchLimit == null ? request.Skip : 0, order == null ? branchLimit ?? request.Take : null, access,
             includeCloudReadProfile: true);
         var columns = request.Columns.Select(ProjectionColumn).ToArray();
