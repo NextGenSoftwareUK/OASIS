@@ -1,0 +1,82 @@
+name: Qualify serving WEB4 worker pause image
+
+# These older serving snapshots predate the current SDK publication checker.
+# Prove the exact two-file patch and unchanged pins, then execute their original
+# complete Docker publish. This workflow does not deploy or probe any backend.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        required: true
+        options: [staging, production]
+      source:
+        description: Immutable full SHA of the two-file serving-source pause patch
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: build-web4-image
+  cancel-in-progress: false
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - name: Retain the workflow revision's scope verifier
+        run: cp Scripts/TestHosts/validate_worker_pause_backport.py "$RUNNER_TEMP/validate_worker_pause_backport.py"
+      - name: Check out the immutable serving-source patch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source }}
+          fetch-depth: 2
+          submodules: false
+      - name: Verify exact scope and dependency contract
+        env:
+          TARGET_ENVIRONMENT: ${{ inputs.environment }}
+          SOURCE_SHA: ${{ inputs.source }}
+        run: |
+          python3 -B "$RUNNER_TEMP/validate_worker_pause_backport.py" --environment "$TARGET_ENVIRONMENT" --source "$SOURCE_SHA"
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Compute immutable image name
+        id: names
+        env:
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: |
+          echo "repo=ghcr.io/${REPOSITORY_OWNER,,}/oasis-web4" >> "$GITHUB_OUTPUT"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Publish the actual serving Dockerfile
+        id: publish
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Docker/Dockerfile.web4
+          push: true
+          provenance: false
+          tags: ${{ steps.names.outputs.repo }}:${{ steps.names.outputs.sha }}
+          build-args: |
+            GITHUB_PAT=${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Record immutable evidence
+        env:
+          SOURCE_SHA: ${{ steps.names.outputs.sha }}
+          IMAGE_REPOSITORY: ${{ steps.names.outputs.repo }}
+          IMAGE_DIGEST: ${{ steps.publish.outputs.digest }}
+        run: |
+          [[ "$IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
+          printf 'Source: `%s`\n\nImage: `%s@%s`\n' "$SOURCE_SHA" "$IMAGE_REPOSITORY" "$IMAGE_DIGEST" >> "$GITHUB_STEP_SUMMARY"
