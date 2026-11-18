@@ -19,7 +19,7 @@ Existing implementation branches: parent/Core work/cosmic-cql-ton-public; Websit
 | Mixed queries on real providers | Exact3aff39819f1fec71b1b018d19c57877ece0b7a3a/Core9c0877a285eebd0345e064b0ae732f512b2cba7d passed actual WEB4 build,565 selected tests,22 configured cases and3 real native suites in44414459577. | Hosted browser/model delivery, broader source planning and full provider parity remain open. |
 | Mapped values and aggregates | Real native evidence covers supported String/Boolean/Int32/Int64/finite Double projections, raw/computed LENGTH, identity-only reads, live-winner deduplication, global ordering/page, row/value/distinct counts, numeric Min/Max/Sum/Average and String Min/Max, owner isolation, source preservation and owned cleanup. | Other domains, larger-source planning, general mixed joins and additional grouped operations remain open. |
 | Grouping SDK | Exact3aff/Core9c passed565+22+3 in44414459577, zero failures/skips. All3 generated native reports assert mixedGroupingSdkVerified=true. | Additional grouped operations and larger-source execution remain open. |
-| Grouping API | Existing mixed route deep-captures the grouping description and binds the identical immutable source before dispatch. Real MongoDB/Neo4j/SQLite HTTP proves live-winner deduplication before groups/HAVING/order/page, stored private mapping decoding, JWT owner/foreign isolation,3/2 attempts,16 settlements and no implicit import. All3 mixedGroupingHttpVerified flags are true. | Explicit native key-only DISTINCT HTTP, grouped DISTINCT counts, computed grouped selectors and hosted acceptance remain open. |
+| Grouping API | Existing mixed route deep-captures the grouping description and binds the identical immutable source before dispatch. Real MongoDB/Neo4j/SQLite HTTP proves live-winner deduplication before groups/HAVING/order/page, stored private mapping decoding, JWT owner/foreign isolation,3/2 attempts,16 settlements and no implicit import. The stronger93156 fixture adds a stale cached group key and native key-only DISTINCT, with17 settlements. All3 mixedGroupingHttpVerified flags are true. | Key-only DISTINCT and stale-key removal now pass actual HTTP on all3 in44418065554, with17 settlements. Grouped DISTINCT counts, computed grouped selectors and hosted acceptance remain open. |
 | Virtual/full/hybrid storage | Full-import and mapping modes, explicit snapshots and mixed query work remain on the roadmap; the accepted native slice reads original sources without importing virtual-only records. | Complete cache/promotion/placement rules, intelligent policies and full hosted per-avatar/app OPORTAL execution remain open. |
 | Free WEB6 | Source-bound drafting, explicit review and visitor Free routing controls have controlled client evidence. | Real configured free-model completion and open visitor end-to-end acceptance remain unverified; no unlimited-inference claim. |
 | HyperDrive peer work | Last peer record:4/5 isolated routing cases passed. The remaining case reached successful failover but its final verification observer reused the faulted Mongo client. | Independent observer correction and exact qualification remain with the peer. No whole routing programme completion claim. |
@@ -52,6 +52,10 @@ These are preserved records, not a fresh availability or live-health check.
 | Supabase | Deployed reader; restricted teaching fixture/hosted enrollment outstanding. |
 | Other providers | Continue the inventory in the existing roadmap. A deployed reader or public preset does not prove full storage interface, SDK, HyperDrive or ORM parity. |
 
+## Current Development integration
+
+Prepared1fe2ddcefdc9b8165962e43f56c02cf355b6849b combines CQL93156 with Development18675, pairing merged Core0e67 and the manifest. All37/6 Core and89/50 parent contributor paths retain their original blobs. Only dependency pointer/pin conflicts were resolved. The current feature history contains broader older changes and was not blindly merged or reset. This exact scoped candidate needs fresh CI; prior acceptance is not transferred to the newer Core. No Development write or deployment occurred.
+
 ## Live delivery and safety
 
 No new grouping/native-model/browser work is called live from CI alone. The live demonstration remains at its previously accepted scope. Existing shared-cluster/deployment stand-down remains active; no PIPER record or load-balancing setting was changed. Development advances by other contributors were inspected read-only and kept out of this unverified batch.
@@ -71,3 +75,5 @@ Last observed C-drive free space:42.67GiB; this is an observation, not a reclama
 - Grouping SDK/API/native accepted565+22+3: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44414459577
 - Current grouping image build, not yet accepted: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44416121167
 - Website269-case source: https://github.com/NextGenSoftwareUK/Web4Site/commit/ac304a9e8a1dafd1689b2cb96d762b04b53ab0f0
+
+- Stronger native DISTINCT/stale-key acceptance: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44418065554
