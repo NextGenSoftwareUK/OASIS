@@ -13,6 +13,8 @@ on:
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/HyperDrive/ReplicaBaselineRepairCommand.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/ReplicaBaselineRepairCommandTests.cs'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/*.cs'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/*.csproj'
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests/BoundReplicaTests.cs'
   workflow_dispatch:
 
