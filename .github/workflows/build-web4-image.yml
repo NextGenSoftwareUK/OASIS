@@ -30,7 +30,7 @@ on:
         type: choice
         required: false
         default: current
-        options: [current, staging, production]
+        options: [current, staging, production, staging-maintenance, production-maintenance]
 
 permissions:
   contents: read

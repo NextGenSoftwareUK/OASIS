@@ -20,6 +20,37 @@ HELPER = "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Operations/Hoste
 ACCEPTED_HELPER_BLOB = "7b9edae94e073f639eb3352e5796073b72a1d54e"
 CLONE_SCRIPT = "Docker/clone-pinned-oasis-dependencies.sh"
 ACCEPTED_CLONE_BLOB = "daa4b566bc8e6bad49dec1fedb6cda5382a6ee40"
+MAINTENANCE_BASES = {
+    "staging-maintenance": "7536f6d4767750137ff76f1d5284a3ccd888dc00",
+    "production-maintenance": "73d662740c469f1ded59c2e02bcf4bbc4fb7dac7",
+}
+# Qualified on b92ca4289a31; a blob pin works with the image job's shallow checkout.
+MAINTENANCE_ACCEPTED_HELPER_BLOB = "c36509a4890d01ab8b44710860d208ce3a4d9165"
+
+
+def verify_maintenance(environment, source):
+    base = MAINTENANCE_BASES[environment]
+    if git("show", "-s", "--format=%P", source).decode().split() != [base]:
+        raise ValueError("Maintenance must directly extend the inspected serving source.")
+    if set(git("diff", "--name-only", base, source).decode().splitlines()) != {STARTUP, HELPER}:
+        raise ValueError("Only maintenance registration gates and the accepted helper may change.")
+    if git("rev-parse", source + ":" + HELPER).decode().strip() != MAINTENANCE_ACCEPTED_HELPER_BLOB:
+        raise ValueError("Maintenance helper differs from the five-case qualified implementation.")
+    expected = git("show", base + ":" + STARTUP)
+    workers = [("Subscription", "SubscriptionUsageExpiryWorker"),
+               ("Subscription", "PaidOverageBillingWorker")]
+    if environment == "production-maintenance":
+        workers.append(("Sandbox", "SandboxCleanupHostedService"))
+    for namespace, name in workers:
+        before = ("services.AddHostedService<Services." + namespace + "." + name + ">();").encode()
+        after = ("Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services."
+                 + namespace + "." + name + ">(services, Configuration);").encode()
+        if expected.count(before) != 1:
+            raise ValueError("Unexpected serving maintenance registration: " + name)
+        expected = expected.replace(before, after)
+    if expected != git("show", source + ":" + STARTUP):
+        raise ValueError("Startup differs beyond the exact maintenance registration gates.")
+    print(environment + ": exact maintenance gates; dependencies/DNA/foreground/security preserved")
 
 
 def git(*args):
@@ -29,6 +60,8 @@ def git(*args):
 def verify(environment, source):
     if not re.fullmatch(r"[0-9a-f]{40}", source):
         raise ValueError("Use an immutable full source SHA.")
+    if environment in MAINTENANCE_BASES:
+        return verify_maintenance(environment, source)
     base = BASES[environment]
     parents = git("show", "-s", "--format=%P", source).decode().split()
     if parents != [base]:
@@ -66,7 +99,7 @@ def verify(environment, source):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--environment", required=True, choices=BASES)
+    parser.add_argument("--environment", required=True, choices=[*BASES, *MAINTENANCE_BASES])
     parser.add_argument("--source", required=True)
     args = parser.parse_args()
     verify(args.environment, args.source)
