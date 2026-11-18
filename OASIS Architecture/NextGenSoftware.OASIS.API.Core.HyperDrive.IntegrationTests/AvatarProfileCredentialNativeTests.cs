@@ -60,11 +60,16 @@ public sealed class AvatarProfileCredentialNativeTests
                 {
                     Id = id, Username = username, Email = username + "@example.test", FirstName = "Original",
                     Title = "Original", Password = hash, IsActive = true,
+                    CreatedDate = now, Version = 1, VersionId = Guid.NewGuid(),
                     AvatarType = new EnumValue<AvatarType>(AvatarType.User),
                     RefreshTokens = new List<RefreshToken> { new() { Token = originalToken, Created = now, Expires = now.AddDays(1) } }
                 });
                 Assert.False(seeded.IsError, seeded.Message);
-                var seededDetail = await provider.SaveAvatarDetailAsync(new AvatarDetail { Id = id, Username = username, Email = username + "@example.test" });
+                var seededDetail = await provider.SaveAvatarDetailAsync(new AvatarDetail
+                {
+                    Id = id, Username = username, Email = username + "@example.test",
+                    CreatedDate = now, Version = 1, VersionId = Guid.NewGuid()
+                });
                 Assert.False(seededDetail.IsError, seededDetail.Message);
                 var loaded = await provider.LoadAvatarAsync(id);
                 Assert.False(loaded.IsError, loaded.Message);
