@@ -27,7 +27,7 @@ store, preflights all targets, refuses to replace another intentional filter,
 verifies each saved value and stops if deployment identity changes during a write.
 Its output contains selected watch settings and deployment IDs only.
 
-The operation does not change source, image, DNA or autodeploy admission. It
+The operation does not change source, image, DNA or autodeploy enablement. It
 does not target staging or production. Saved server-side watch settings are
 configuration evidence; an actual skipped deployment can only be accepted when
 a later genuine solution-only push is observed. Never manufacture an empty or
