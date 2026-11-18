@@ -52,6 +52,43 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 checks.Add(new { provider = "MongoDBOASIS", nativePredicate = index,
                     elapsedMilliseconds = started.ElapsedMilliseconds });
             }
+            var stringCases = new (NativeRecordFunction Function, string Field, string Value, string[] Expected)[]
+            {
+                (NativeRecordFunction.Contains, "text", "\u0000", new[] { "nul" }),
+                (NativeRecordFunction.StartsWith, "text", "abc", new[] { "nul" }),
+                (NativeRecordFunction.EndsWith, "text", "def", new[] { "nul" }),
+                (NativeRecordFunction.Contains, "text", "\U0001F600", new[] { "emoji" }),
+                (NativeRecordFunction.Contains, "text", "", new[] { "emoji", "short", "nul" }),
+                (NativeRecordFunction.Contains, "code", "CASE", Array.Empty<string>())
+            };
+            foreach (var item in stringCases)
+            {
+                var stringWatch = System.Diagnostics.Stopwatch.StartNew();
+                var read = await provider.QueryNativePredicateRecordsAsync("items",
+                    new[] { new NativeRecordFilter(item.Field, CosmicQueryComparisonOperator.Equal, item.Value, item.Function) },
+                    new[] { "label" }, item.Expected.Length == 1 ? 1 : 10);
+                Assert.IsFalse(read.IsError, read.Message + read.Exception);
+                CollectionAssert.AreEqual(item.Expected, read.Result.Select(row => (string)row.Fields["label"]).ToArray());
+                checks.Add(new { provider = "MongoDBOASIS", nativePredicate = "ordinal string " + item.Function, literal = item.Value, elapsedMilliseconds = stringWatch.ElapsedMilliseconds });
+            }
+            var negativeCases = new (NativeRecordFunction Function, string Field, string Value, string[] Expected)[]
+            {
+                (NativeRecordFunction.Contains, "text", "\u0000", new[] { "emoji", "short", "array" }),
+                (NativeRecordFunction.StartsWith, "text", "abc", new[] { "emoji", "short", "array" }),
+                (NativeRecordFunction.EndsWith, "text", "def", new[] { "emoji", "short", "array" }),
+                (NativeRecordFunction.Contains, "nullableCode", "Case", new[] { "short", "array", "nul" })
+            };
+            foreach (var item in negativeCases)
+            {
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                var read = await provider.QueryNativePredicateRecordsAsync("items",
+                    new[] { new NativeRecordFilter(item.Field, CosmicQueryComparisonOperator.NotEqual, item.Value, item.Function) },
+                    new[] { "label" }, 10);
+                Assert.IsFalse(read.IsError, read.Message + read.Exception);
+                CollectionAssert.AreEqual(item.Expected, read.Result.Select(row => (string)row.Fields["label"]).ToArray());
+                checks.Add(new { provider = "MongoDBOASIS", nativePredicate = "total negative string " + item.Function,
+                    field = item.Field, elapsedMilliseconds = watch.ElapsedMilliseconds });
+            }
             var nullable = await provider.QueryNativePredicateRecordsAsync("items",
                 new[] { new NativeRecordFilter("nullableCode", CosmicQueryComparisonOperator.NotEqual, "Case") },
                 new[] { "label" }, 10);
@@ -69,6 +106,13 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             Assert.AreEqual("emoji", mapped.Result.Single().MetaData["caption"]);
             Assert.AreEqual("\U0001F600", mapped.Result.Single().PrepareSnapshot(owner).MetaData["textAlias"]);
             checks.Add(new { provider = "MongoDBOASIS", nativePredicate = "mapped length and unchanged snapshot field" });
+            var mappedMatch = await mapping.QueryAsync(owner, provider, null,
+                new[] { new NativeRecordFilter("textAlias", CosmicQueryComparisonOperator.Equal, "\u0000", NativeRecordFunction.Contains) },
+                new[] { "caption", "textAlias" }, 2);
+            Assert.IsFalse(mappedMatch.IsError, mappedMatch.Message + mappedMatch.Exception);
+            Assert.AreEqual("nul", mappedMatch.Result.Single().MetaData["caption"]);
+            Assert.AreEqual("abc\u0000def", mappedMatch.Result.Single().PrepareSnapshot(owner).MetaData["textAlias"]);
+            checks.Add(new { provider = "MongoDBOASIS", nativePredicate = "mapped string match and unchanged snapshot" });
             var denied = await mapping.QueryAsync(Guid.NewGuid(), provider, null, new[] { filter }, new[] { "caption" }, 2);
             Assert.AreEqual("VIRTUAL_HOLON_FORBIDDEN", denied.ErrorCode);
             Assert.IsNull(denied.Result);

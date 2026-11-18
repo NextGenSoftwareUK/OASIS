@@ -178,6 +178,21 @@ public partial class MongoDBOASIS : INativeDataQueryProvider
         var filters = new List<BsonDocument>(matches.Count);
         foreach (var match in matches)
         {
+            if (match.Function is NativeRecordFunction.Contains or NativeRecordFunction.StartsWith or NativeRecordFunction.EndsWith)
+            {
+                var operation = match.Function switch
+                {
+                    NativeRecordFunction.Contains => CosmicQueryStringOperator.Contains,
+                    NativeRecordFunction.StartsWith => CosmicQueryStringOperator.StartsWith,
+                    _ => CosmicQueryStringOperator.EndsWith
+                };
+                var expression = MongoCqlTranslator.OrdinalStringMatch(
+                    new BsonString("$" + match.Field), operation, (string)match.Value);
+                if (match.Operator == CosmicQueryComparisonOperator.NotEqual)
+                    expression = new BsonDocument("$not", new BsonArray { expression });
+                filters.Add(new BsonDocument("$expr", expression));
+                continue;
+            }
             if (match.Function == NativeRecordFunction.Utf16Length)
             {
                 filters.Add(new BsonDocument("$expr", MongoCqlTranslator.Utf16LengthComparison(

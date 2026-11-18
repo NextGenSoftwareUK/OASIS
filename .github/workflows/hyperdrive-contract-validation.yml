@@ -13,6 +13,10 @@ on:
       - '.github/workflows/hyperdrive-contract-validation.yml'
   workflow_dispatch:
     inputs:
+      build_only:
+        description: Build the API without repeating accepted behavior tests
+        type: boolean
+        default: false
       native_seal:
         description: 'Use the owned MongoDB/SQLite fixture for a focused native regression.'
         required: false
@@ -36,7 +40,7 @@ on:
 
 jobs:
   manifests-and-contracts:
-    runs-on: ${{ inputs.native_seal && 'ubuntu-latest' || 'windows-latest' }}
+    runs-on: ${{ (inputs.native_seal || inputs.build_only) && 'ubuntu-latest' || 'windows-latest' }}
     defaults:
       run:
         working-directory: OASIS
@@ -97,14 +101,14 @@ jobs:
       - name: Build the WEB4 artifact the controller contracts load
         if: ${{ !inputs.native_seal }}
         shell: pwsh
-        run: >-
-          dotnet build
-          'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj'
-          --configuration Release
-          /m:2 /nr:false /p:UseSharedCompilation=false
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner api-qualification-build-ci -Operation {
+            dotnet build 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj' --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE) { throw 'API qualification build failed.' }
+          }
 
       - name: Run HyperDrive behavioral contracts
-        if: ${{ !inputs.native_seal }}
+        if: ${{ !inputs.native_seal && !inputs.build_only }}
         shell: pwsh
         env:
           OASIS_HYPERDRIVE_TEST_FILTER: ${{ inputs.contract_filter || 'FullyQualifiedName~HyperDrive' }}
@@ -153,7 +157,7 @@ jobs:
         run: docker rm --force --volumes seal-routing-mongo
 
       - name: Preserve HyperDrive behavioral evidence
-        if: always()
+        if: ${{ always() && !inputs.build_only }}
         uses: actions/upload-artifact@v7
         with:
           name: hyperdrive-contract-results
