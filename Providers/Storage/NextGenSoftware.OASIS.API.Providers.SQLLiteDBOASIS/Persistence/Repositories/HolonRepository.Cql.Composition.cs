@@ -136,7 +136,7 @@ public partial class HolonRepository
                                     throw new InvalidDataException("A required composition source value is missing or null.");
                                 Reserve(value, ref inputBytes, limits.MaximumInputPayloadBytes); return value;
                             }
-                            var values = query.Columns.Select(column => Cell(column.Path.ValueType)).ToArray();
+                            var values = query.Columns.Select(column => Cell(column.ValueType)).ToArray();
                             var states = new int[query.Source.Orderings.Count]; var ordering = new object[states.Length];
                             for (var index = 0; index < states.Length; index++)
                             { states[index] = checked((int)reader.GetInt64(offset)); ordering[index] = Cell(query.Source.Orderings[index].Path.ValueType, true); }
