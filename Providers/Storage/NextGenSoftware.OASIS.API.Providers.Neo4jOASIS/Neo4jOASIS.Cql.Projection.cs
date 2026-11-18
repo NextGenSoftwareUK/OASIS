@@ -148,7 +148,7 @@ public partial class Neo4jOASIS : ICosmicQueryEntityProjectionStorageProvider
 
     private static string ProjectionLowerBytes(IReadOnlyList<CosmicProjectionColumn> columns,IReadOnlyList<string> values)
         =>(16+columns.Count*16).ToString(CultureInfo.InvariantCulture)
-            +string.Concat(columns.Select((column,i)=>column.Path.ValueType==typeof(string)
+            +string.Concat(columns.Select((column,i)=>column.ValueType==typeof(string)
                 ? "+CASE WHEN "+values[i]+" IS NULL THEN 16 ELSE size("+values[i]+") END" : "+16"));
 
     internal static CosmicProjectionRow ReadNativeProjectionRow(IReadOnlyList<object> native, IReadOnlyList<CosmicProjectionColumn> columns)
@@ -161,7 +161,7 @@ public partial class Neo4jOASIS : ICosmicQueryEntityProjectionStorageProvider
                 || !cell.TryGetValue("s", out var rawState) || rawState is not long state || state is < 0 or > 2
                 || !cell.TryGetValue("v", out var value))
                 throw new InvalidDataException("Selected projection cell has an invalid native domain.");
-            var declared = columns[index].Path.ValueType;
+            var declared = columns[index].ValueType;
             if (state < 2)
             {
                 if (value != null || declared.IsValueType && Nullable.GetUnderlyingType(declared) == null)

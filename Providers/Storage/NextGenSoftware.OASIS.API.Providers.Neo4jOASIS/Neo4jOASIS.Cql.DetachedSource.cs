@@ -13,7 +13,8 @@ public partial class Neo4jOASIS
     private static string CompileCqlDetachedSource<T>(CosmicQuery<T> source,
         Dictionary<string, object> parameters, IReadOnlyList<CosmicQueryPath> keyPaths,
         IReadOnlyList<CosmicQueryPath> valuePaths, int maximumRows, int maximumBytes, CosmicEntityCompositionPlan<T> entity=null,
-        bool scopeChildren=false, bool includeChildMembership=false, bool includeEntityLocator=false) where T : IHolon
+        bool scopeChildren=false, bool includeChildMembership=false, bool includeEntityLocator=false,
+        IReadOnlyList<CosmicProjectionColumn> valueColumns=null) where T : IHolon
         {
             var compiled=CompileCqlSource(source,parameters,scopeChildren);var translator=compiled.Translator;
             var import=scopeChildren ? "WITH leftInput " : "";
@@ -21,7 +22,11 @@ public partial class Neo4jOASIS
             var cells=new List<(string State,string Value)>();var invalid=new List<string>();
             var keys=new List<string>();var values=new List<string>();var order=new List<string>();
             foreach(var path in keyPaths) keys.Add(Cell(path,false));
-            foreach(var path in valuePaths) values.Add(Cell(path,false));
+            if(valueColumns==null)
+                foreach(var path in valuePaths) values.Add(Cell(path,false));
+            else
+                foreach(var column in valueColumns)
+                    values.Add(EncodedCell(translator.TranslateProjectionColumn(column),column.ValueType,false));
             foreach(var item in source.Orderings)order.Add(Cell(item.Path,true));
             var sorts=translator.TranslateOrdering(source.Orderings);
             var aliases=sorts.Select((_,index)=>"joinSort"+index).ToArray();
@@ -88,8 +93,12 @@ public partial class Neo4jOASIS
 
             string Cell(CosmicQueryPath path,bool ordering)
             {
-                var index=cells.Count;cells.Add(translator.TranslateProjectionPath(path));
-                var required=!ordering && path.ValueType.IsValueType && Nullable.GetUnderlyingType(path.ValueType)==null;
+                return EncodedCell(translator.TranslateProjectionPath(path),path.ValueType,ordering);
+            }
+            string EncodedCell((string State,string Value) cell,Type declared,bool ordering)
+            {
+                var index=cells.Count;cells.Add(cell);
+                var required=!ordering && declared.IsValueType && Nullable.GetUnderlyingType(declared)==null;
                 invalid.Add("js"+index+(required?"<>2":"=3"));
                 return "{s:js"+index+",v:jv"+index+"}";
             }
