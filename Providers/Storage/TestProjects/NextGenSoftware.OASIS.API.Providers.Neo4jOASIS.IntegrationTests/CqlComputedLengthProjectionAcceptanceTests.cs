@@ -59,6 +59,14 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Passed("entity windows remain before computed selection and later selected stages");
 
         Assert.AreEqual(48, siblings.Select(row => row.Name.Length).Sum());
+        Assert.AreEqual(48, siblings.Sum(row => row.Name.Length));
+        Assert.AreEqual(16d, siblings.Average(row => row.Name.Length));
+        Assert.AreEqual(13, siblings.Min(row => row.Name.Length));
+        Assert.AreEqual(21, siblings.Max(row => row.Name.Length));
+        Assert.AreEqual(7, root.Sum(row => CosmicQueryMetadata.Value<string>(row, "text").Length));
+        Assert.AreEqual(0, root.Sum(row => (int?)CosmicQueryMetadata.Value<string>(row, "presentNull").Length));
+        Assert.AreEqual(0, root.Where(row => row.Version < 0).Sum(row => row.Name.Length));
+        Assert.AreEqual(21, siblings.OrderBy(row => row.Name).Take(1).Sum(row => row.Name.Length));
         Assert.IsTrue(siblings.Select(row => row.Name.Length).All(value => value > 12));
         Assert.IsFalse(siblings.Select(row => row.Name.Length).All(value => value > 13));
         Assert.AreEqual(1, siblings.Where(row => row.Description == "Case").Select(row => row.Description.Length).Distinct().Count());
