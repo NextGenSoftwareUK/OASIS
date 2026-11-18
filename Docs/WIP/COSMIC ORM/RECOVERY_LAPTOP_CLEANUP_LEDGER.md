@@ -1,3 +1,5 @@
+2026-11-18 UTC — Native compiler/mapping cross-checks reuse original Mongo4-record/Neo owned-label fixtures and their cleanup; no records or environments added. Read18-case SQLite evidence from CI logs only. No local build/restore/runtime/database/extracted artifact. Retained/blocked register unchanged.
+
 2026-11-18 UTC — Neo near-limit failure root-caused from upstream5.26 source and isolated CI. One1MB fake value reused with mixed-width text; no new records/environment. No local build/restore/runtime/database/download/extracted artifacts; retained/blocked register unchanged.
 
 2026-11-18 UTC — Mixed route/compiler typed-result changes and seven selected tests prepared entirely from Git blobs/in-memory. No local build/restore/runtime/database/results/artifact extraction. Test mocks use only immutable fake records; native verification remains isolated CI. Retained/blocked cleanup register unchanged.

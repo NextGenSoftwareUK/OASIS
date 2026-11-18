@@ -250,7 +250,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             Assert.AreEqual(2, projectedRow.Cells[2].Value);
             Assert.AreEqual(2, projectedRow.Cells[3].Value);
             Assert.AreEqual(0, projectedRow.Cells[4].Value);
-            checks.Add(new { provider = "Neo4jOASIS", nativeProjection = "raw/computed/repeated aliases and original element identity", elapsedMilliseconds = projectionWatch.ElapsedMilliseconds });
+            await VerifyMappedNativeProjectionCompiler(provider, lengthMapping, actor, mappedLength.Result.Single());
+            checks.Add(new { provider = "Neo4jOASIS", nativeProjection = "raw/computed/repeated aliases and original element identity", mappedCompilerVerified = true, elapsedMilliseconds = projectionWatch.ElapsedMilliseconds });
 
             projectionWatch.Restart();
             var missingProjection = await provider.QueryNativeProjectionRecordsAsync(label, adaFilter,
