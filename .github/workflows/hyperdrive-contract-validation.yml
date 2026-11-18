@@ -13,6 +13,10 @@ on:
       - '.github/workflows/hyperdrive-contract-validation.yml'
   workflow_dispatch:
     inputs:
+      build_api:
+        description: Also build the shipping WEB4 API for a native integration check
+        type: boolean
+        default: false
       build_only:
         description: Build the API without repeating accepted behavior tests
         type: boolean
@@ -108,7 +112,7 @@ jobs:
         run: ./Scripts/verify_hyperdrive_v2_operation_contracts.ps1
 
       - name: Build the WEB4 artifact the controller contracts load
-        if: ${{ !inputs.native_seal || inputs.native_project == 'subscription_ledger' }}
+        if: ${{ !inputs.native_seal || inputs.native_project == 'subscription_ledger' || inputs.build_api }}
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner api-qualification-build-ci -Operation {
