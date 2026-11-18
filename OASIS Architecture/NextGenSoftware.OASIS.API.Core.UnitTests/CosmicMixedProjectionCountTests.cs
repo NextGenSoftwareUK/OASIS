@@ -154,4 +154,48 @@ public sealed class CosmicMixedProjectionCountTests
         Assert.True(result.IsError); Assert.False(result.IsLoaded);
         Assert.Equal("CQL_PROVIDER_RESULT_INVALID", result.ErrorCode);
     }
+    [Fact]
+    public void ProjectionCaptureRetainsTerminalOperationAndDetachesDisposedFilterValues()
+    {
+        using var document = JsonDocument.Parse("\"gold\"");
+        var mapping = Guid.NewGuid();
+        var request = new CqlProjectionV1Request
+        {
+            ResultOperation = CqlProjectionV1ResultOperation.LongCount, VirtualMappingId = mapping, Take = 1,
+            Filters = new[] { new CqlV1Filter { MetadataPath = new[] { "tier" }, Scalar = CqlV1Scalar.String,
+                Operator = CqlV1Operator.Equal, Value = document.RootElement } },
+            Columns = new[] { new CqlProjectionV1Column { Field = "Id", Alias = "Id" } }
+        };
+        var captured = CqlRequestCapture.Capture(request);
+        document.Dispose();
+        request.ResultOperation = CqlProjectionV1ResultOperation.Rows;
+        request.VirtualMappingId = Guid.NewGuid(); request.Filters[0].MetadataPath![0] = "changed";
+        request.Columns[0].Alias = "changed";
+        Assert.Equal(CqlProjectionV1ResultOperation.LongCount, captured.ResultOperation);
+        Assert.Equal(mapping, captured.VirtualMappingId);
+        Assert.Equal("tier", captured.Filters[0].MetadataPath![0]);
+        Assert.Equal("gold", captured.Filters[0].Value.GetString());
+        Assert.Equal("Id", captured.Columns[0].Alias);
+        Assert.DoesNotContain("ResultOperation", JsonSerializer.Serialize(new CqlProjectionV1Request()));
+        Assert.Contains("\"ResultOperation\":\"LongCount\"", JsonSerializer.Serialize(captured));
+    }
+
+    [Fact]
+    public void ProjectionCaptureKeepsFunctionInputsAndSelectedOrderingIndependent()
+    {
+        var request = new CqlProjectionV1Request
+        {
+            Columns = new[] { new CqlProjectionV1Column { MetadataPath = new[] { "name" },
+                ValueType = "String", Alias = "Units", Nullable = true, Function = CqlV1Function.Utf16Length } },
+            SelectedOrder = new[] { new CqlGroupedV1Ordering { Alias = "Units", Descending = true } }
+        };
+        var captured = CqlRequestCapture.Capture(request);
+        request.Columns[0].Function = null; request.Columns[0].MetadataPath![0] = "changed";
+        request.SelectedOrder[0].Alias = "changed"; request.SelectedOrder[0].Descending = false;
+        Assert.Equal(CqlV1Function.Utf16Length, captured.Columns[0].Function);
+        Assert.Equal("name", captured.Columns[0].MetadataPath![0]);
+        Assert.Equal("Units", captured.SelectedOrder![0].Alias);
+        Assert.True(captured.SelectedOrder[0].Descending);
+    }
+
 }

@@ -127,12 +127,38 @@ internal static class CqlRequestCapture
         };
     }
 
+    internal static CqlProjectionV1Request Capture(CqlProjectionV1Request value)
+    {
+        if (value == null) throw new ArgumentException("A projection request is required.");
+        var operation = value.ResultOperation;
+        var mapping = value.VirtualMappingId;
+        var columns = CaptureColumns(value.Columns);
+        var ordering = value.SelectedOrder == null ? null : Array(value.SelectedOrder, 8, term => term == null
+            ? throw new ArgumentException("Missing selected ordering.")
+            : new CqlGroupedV1Ordering { Alias = term.Alias, Descending = term.Descending });
+        var source = Capture(new CqlV1Request
+        {
+            Provider = value.Provider, Filters = value.Filters, AnyOf = value.AnyOf,
+            AnyChildren = value.AnyChildren, AnyDescendants = value.AnyDescendants,
+            Graph = value.Graph, OrderBy = value.OrderBy, Descending = value.Descending,
+            Skip = value.Skip, Take = value.Take
+        });
+        return new CqlProjectionV1Request
+        {
+            Provider = source.Provider, VirtualMappingId = mapping, ResultOperation = operation,
+            Filters = source.Filters, AnyOf = source.AnyOf, AnyChildren = source.AnyChildren,
+            AnyDescendants = source.AnyDescendants, Graph = source.Graph,
+            OrderBy = source.OrderBy, Descending = source.Descending, Skip = source.Skip, Take = source.Take,
+            Columns = columns, SelectedOrder = ordering
+        };
+    }
+
     internal static CqlProjectionV1Column[] CaptureColumns(CqlProjectionV1Column[] columns)
     {
         if(columns==null)return null;
         if(columns.Length==0)throw new ArgumentException("Selected indexed intent requires at least one column.");
         return Array(columns,32,column=>column==null?throw new ArgumentException("Missing selected column."):
-            new CqlProjectionV1Column{Alias=column.Alias,Field=column.Field,ValueType=column.ValueType,Nullable=column.Nullable,
+            new CqlProjectionV1Column{Alias=column.Alias,Field=column.Field,ValueType=column.ValueType,Nullable=column.Nullable,Function=column.Function,
                 MetadataPath=column.MetadataPath==null?null:Array(column.MetadataPath,8,item=>item)});
     }
 

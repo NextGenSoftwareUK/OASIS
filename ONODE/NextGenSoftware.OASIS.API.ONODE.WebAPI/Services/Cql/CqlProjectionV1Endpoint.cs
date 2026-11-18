@@ -24,6 +24,10 @@ public static partial class CqlV1Endpoint
         try
         {
             http.RequestAborted.ThrowIfCancellationRequested();
+            request = CqlRequestCapture.Capture(request);
+            if (!Enum.IsDefined(typeof(CqlProjectionV1ResultOperation), request.ResultOperation) ||
+                !mixed && request.ResultOperation != CqlProjectionV1ResultOperation.Rows)
+                throw new ArgumentException("The selected terminal operation requires the mixed query route.");
             var requested = CqlV1Compiler.RequestedProvider(request?.Provider, includeCloudReadProfile: true);
             var policy=CaptureReadPolicy(http,actor,requested,providers,admission,includeCloudReadProfile:true);
             if (request?.VirtualMappingId == Guid.Empty || mixed != (request?.VirtualMappingId.HasValue == true))
@@ -129,18 +133,25 @@ public static partial class CqlV1Endpoint
             }, native.ErrorCode, native.Message);
         if (!native.IsLoaded || native.Result == null)
             return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "The mapped source did not return a loaded result.");
+        if (request.ResultOperation == CqlProjectionV1ResultOperation.LongCount)
+        {
+            var counted = CosmicMixedProjectionResults.Count(intent, actor, request.VirtualMappingId.Value,
+                materialized, native.Result, MaximumResponseBytes * 2, cancellationToken);
+            if (counted.IsError)
+                return MixedResultFailure(http, counted.ErrorCode, counted.Message, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            return JsonResponse(new OASISResult<object>(new
+            {
+                version = "cql-scalar-v1", provider = selected.ToString(), operation = "LongCount",
+                valueType = "Int64", value = ProjectionWireValue(counted.Result),
+                virtualMappingId = request.VirtualMappingId, canPrepareSnapshot = false
+            }) { IsLoaded = true });
+        }
         var merged = CosmicMixedProjectionResults.Merge(intent, actor, request.VirtualMappingId.Value,
             materialized, native.Result, virtualProjection.Orderings, request.Skip, request.Take,
             MaximumResponseBytes * 2, cancellationToken);
         if (merged.IsError)
-        {
-            if (merged.ErrorCode == "CQL_QUERY_CANCELLED") cancellationToken.ThrowIfCancellationRequested();
-            return Failure(merged.ErrorCode switch {
-                "CQL_VIRTUAL_SOURCE_LIMIT" or "CQL_MIXED_QUERY_INVALID" => 400,
-                "CQL_RESULT_LIMIT" => 413,
-                _ => 503
-            }, merged.ErrorCode, merged.Message);
-        }
+            return MixedResultFailure(http, merged.ErrorCode, merged.Message, cancellationToken);
         var rows = new List<object[]>();
         var provenance = new List<object>();
         foreach (var winner in merged.Result)
@@ -155,6 +166,17 @@ public static partial class CqlV1Endpoint
         }
         return JsonResponse(new OASISResult<object>(new { version = "cql-projection-v1", provider = selected.ToString(),
             columns = SelectedWireColumns(intent.Columns), rows, provenance, canPrepareSnapshot = true }) { IsLoaded = true });
+    }
+
+    private static IActionResult MixedResultFailure(HttpContext http, string code, string message,
+        CancellationToken cancellationToken)
+    {
+        if (code == "CQL_QUERY_CANCELLED") cancellationToken.ThrowIfCancellationRequested();
+        return Failure(code switch {
+            "CQL_VIRTUAL_SOURCE_LIMIT" or "CQL_MIXED_QUERY_INVALID" => 400,
+            "CQL_RESULT_LIMIT" => 413,
+            _ => 503
+        }, code, message);
     }
 
     private static object SelectedWireColumns(IReadOnlyList<CosmicProjectionColumn> columns)

@@ -240,6 +240,37 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.AreEqual(3, operation.ProviderAttempts.Count); Assert.AreEqual(3, operation.Receipts.Count);
                 Assert.AreEqual(0.006m, authority.Settlements[operation.Id].ActualCostUsd);
             }
+            body.ResultOperation = CqlProjectionV1ResultOperation.LongCount;
+            body.Take = 1;
+            body.Filters[0].Operator = CqlV1Operator.GreaterThanOrEqual;
+            using (var response = await Send(ownerToken))
+            {
+                var text = await response.Content.ReadAsStringAsync();
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, text);
+                using var json = JsonDocument.Parse(text);
+                var result = json.RootElement.GetProperty("result");
+                Assert.AreEqual("cql-scalar-v1", result.GetProperty("version").GetString());
+                Assert.AreEqual("LongCount", result.GetProperty("operation").GetString());
+                Assert.AreEqual("Int64", result.GetProperty("valueType").GetString());
+                Assert.AreEqual("4", result.GetProperty("value").GetString());
+                Assert.IsFalse(result.GetProperty("canPrepareSnapshot").GetBoolean());
+                var operation = await outbox.GetAsync(response.Headers.GetValues("X-OASIS-Operation-Id").Single(), CancellationToken.None);
+                Assert.AreEqual("settled", operation.State);
+                Assert.AreEqual(3, operation.ProviderAttempts.Count); Assert.AreEqual(3, operation.Receipts.Count);
+                Assert.AreEqual(0.006m, authority.Settlements[operation.Id].ActualCostUsd);
+            }
+            body.Filters[0].Value = JsonSerializer.SerializeToElement(long.MaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            using (var response = await Send(ownerToken))
+            {
+                var text = await response.Content.ReadAsStringAsync();
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, text);
+                using var json = JsonDocument.Parse(text);
+                Assert.AreEqual("0", json.RootElement.GetProperty("result").GetProperty("value").GetString());
+                var operation = await outbox.GetAsync(response.Headers.GetValues("X-OASIS-Operation-Id").Single(), CancellationToken.None);
+                Assert.AreEqual("settled", operation.State);
+                Assert.AreEqual(3, operation.ProviderAttempts.Count); Assert.AreEqual(3, operation.Receipts.Count);
+                Assert.AreEqual(0.006m, authority.Settlements[operation.Id].ActualCostUsd);
+            }
             using (var response = await Send(otherToken))
             {
                 var text = await response.Content.ReadAsStringAsync();
@@ -251,7 +282,7 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsNull((await provider.LoadHolonAsync(orderedId)).Result,
                 "Read-only mixed queries must not materialize the virtual-only source record.");
             await app.StopAsync();
-            Assert.AreEqual(5, authority.Settlements.Count);
+            Assert.AreEqual(7, authority.Settlements.Count);
         }
         finally
         {

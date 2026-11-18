@@ -24,6 +24,12 @@ public static partial class CqlV1Compiler
             request.Columns is not { Length: >= 1 and <= 32 })
             throw new ArgumentException("Mixed projection requires supported native predicates, selected ordering and a bounded result.");
 
+        if (!Enum.IsDefined(typeof(CqlProjectionV1ResultOperation), request.ResultOperation) ||
+            request.ResultOperation == CqlProjectionV1ResultOperation.LongCount &&
+                (request.Columns.Length != 1 || request.OrderBy != "Id" || request.Descending ||
+                 request.SelectedOrder != null || request.Skip != 0 || request.Take != 1))
+            throw new ArgumentException("Mixed count requires identity-only input and one unpaged scalar result.");
+
         var matches = CompileVirtualMatches(request.Filters);
 
         if (request.Columns[0] is not { Field: "Id", MetadataPath: null })
