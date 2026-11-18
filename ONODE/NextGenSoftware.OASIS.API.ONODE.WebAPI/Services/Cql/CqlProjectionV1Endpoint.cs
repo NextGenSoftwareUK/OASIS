@@ -123,10 +123,13 @@ public static partial class CqlV1Endpoint
             return Failure(native.ErrorCode switch
             {
                 "VIRTUAL_MAPPING_NOT_FOUND" => 404,
-                "NATIVE_QUERY_PAYLOAD_LIMIT" => 413,
-                "VIRTUAL_HOLON_QUERY_INVALID" or "NATIVE_QUERY_INVALID" or "VIRTUAL_HOLON_CONNECTION_CHANGED" => 400,
+                "NATIVE_QUERY_PAYLOAD_LIMIT" or "NATIVE_PROJECTION_PAYLOAD_LIMIT" => 413,
+                "VIRTUAL_HOLON_QUERY_INVALID" or "NATIVE_QUERY_INVALID" or "NATIVE_PROJECTION_QUERY_INVALID" or "VIRTUAL_HOLON_CONNECTION_CHANGED" => 400,
                 _ => 503
             }, native.ErrorCode, native.Message);
+        if (!native.IsLoaded || native.Result == null || native.Result.Any(row => row == null || row.Id == Guid.Empty) ||
+            native.Result.Select(row => row.Id).Distinct().Count() != native.Result.Count)
+            return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "The mapped result did not retain unique logical identities.");
         if (native.Result.Count >= CqlVirtualProjection.MaximumRows)
             return Failure(400, "CQL_VIRTUAL_SOURCE_LIMIT", "Narrow the filter so both branches fit the mixed projection budget.");
 

@@ -22,14 +22,11 @@ public sealed class CqlVirtualProjectionTests
         Assert.Equal("coffee", match.Value);
         Assert.Equal(new[] { "stock" }, projection.ProjectedFields);
 
-        var row = VirtualHolonRead.FromNative(Guid.NewGuid(), ProviderType.MongoDBOASIS,
-            request.VirtualMappingId!.Value, 1, "mongodb://example.test/retail", "orders",
-            DateTimeOffset.UtcNow, new NativeRecord("orders", "one",
-                new Dictionary<string, object> { ["quantity"] = 9007199254740993L }),
-            new Dictionary<string, string> { ["quantity"] = "stock" });
-        var values = projection.Select(row);
-        Assert.Equal(row.Id, Assert.IsType<Guid>(values[0]));
-        Assert.Equal(9007199254740993L, Assert.IsType<long>(values[1]));
+        var column = Assert.Single(projection.Columns);
+        Assert.Equal("Stock", column.Alias);
+        Assert.Equal(typeof(long), column.InputType);
+        Assert.Equal(typeof(long), column.ValueType);
+        Assert.False(column.Nullable);
     }
 
     [Fact]

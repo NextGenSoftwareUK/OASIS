@@ -1,3 +1,5 @@
+2026-11-18 UTC — Mixed route/compiler typed-result changes and seven selected tests prepared entirely from Git blobs/in-memory. No local build/restore/runtime/database/results/artifact extraction. Test mocks use only immutable fake records; native verification remains isolated CI. Retained/blocked cleanup register unchanged.
+
 2026-11-18 UTC — Neo44290005266 diagnosed from CI logs in memory; no extracted artifact or local database/build/runtime. Corrected native UTF8 expression; next mapping proof reuses isolated fixtures. Retained/blocked register unchanged.
 
 2026-11-18 UTC — Mapping projection source/tests reuse existing owned CI SQLite fixture; no local build/restore/database/environment/output or downloaded artifact. Retained/blocked register unchanged; exact paths/reasons/release conditions remain tracked. Neo qualification44290005266 runs in CI only.

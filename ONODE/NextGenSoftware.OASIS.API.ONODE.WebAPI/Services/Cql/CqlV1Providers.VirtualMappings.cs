@@ -16,20 +16,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 public sealed partial class CqlV1Providers
 {
-    Task<OASISResult<IReadOnlyList<VirtualHolonRead>>> ICqlVirtualMappingReader.QueryVirtualMappingAsync(
+    Task<OASISResult<IReadOnlyList<VirtualHolonProjectionRead>>> ICqlVirtualMappingReader.QueryVirtualMappingAsync(
         Guid mappingId, IAvatar avatar, CqlVirtualProjection projection, CancellationToken cancellationToken)
     {
         var authority = Resolve(null);
-        return QueryOwnedVirtualMappingAsync(CreateManager(authority), authority, mappingId, avatar, null,
-            projection.Matches, projection.ProjectedFields, CqlVirtualProjection.MaximumRows,
-            cancellationToken);
+        return WithOwnedVirtualMappingAsync(CreateManager(authority), authority, mappingId, avatar, null,
+            (mapping, binding) => binding.Reader is INativeDataProjectionQueryProvider projector
+                ? mapping.QueryProjectionAsync(avatar.Id, projector, binding.Connection, projection.Matches,
+                    projection.Columns, CqlVirtualProjection.MaximumRows, cancellationToken)
+                : Task.FromResult(RefuseVirtual<VirtualHolonProjectionRead>("VIRTUAL_HOLON_SOURCE_UNAVAILABLE",
+                    "The native provider has no admitted typed projection contract.")), cancellationToken);
     }
 
-    internal static async Task<OASISResult<IReadOnlyList<VirtualHolonRead>>> QueryOwnedVirtualMappingAsync(
+    internal static Task<OASISResult<IReadOnlyList<VirtualHolonRead>>> QueryOwnedVirtualMappingAsync(
         HolonManager manager, IOASISProvider authority, Guid mappingId, IAvatar avatar, ProviderType? requestedSource,
         IReadOnlyList<NativeRecordFilter> matches,
         IReadOnlyList<string> selectedFields, int limit, CancellationToken cancellationToken)
+        => WithOwnedVirtualMappingAsync(manager, authority, mappingId, avatar, requestedSource,
+            (mapping, binding) => mapping.QueryAsync(avatar.Id, binding.Reader, binding.Connection, matches,
+                selectedFields, limit, cancellationToken), cancellationToken);
+
+    private static async Task<OASISResult<IReadOnlyList<T>>> WithOwnedVirtualMappingAsync<T>(
+        HolonManager manager, IOASISProvider authority, Guid mappingId, IAvatar avatar, ProviderType? requestedSource,
+        Func<VirtualHolonMapping, VirtualConnectionBinding, Task<OASISResult<IReadOnlyList<T>>>> execute,
+        CancellationToken cancellationToken)
     {
+        OASISResult<IReadOnlyList<T>> Refuse(string code, string message) => RefuseVirtual<T>(code, message);
         var actor = avatar.Id;
         if (authority is not ICosmicQueryStorageProvider adapter ||
             authority.ProviderType?.Value != adapter.QueryProviderType)
@@ -89,8 +101,7 @@ public sealed partial class CqlV1Providers
             if (binding.Connection == null && !IsSandboxVirtualMapping(source, mapping.SourceName, mapping.Fields))
                 return Refuse("VIRTUAL_HOLON_QUERY_INVALID", "Use the approved sample collection fields for sandbox mappings.");
 
-            return await mapping.QueryAsync(actor, binding.Reader, binding.Connection, matches,
-                selectedFields, limit, cancellationToken);
+            return await execute(mapping, binding);
         }
         catch (ArgumentException)
         {
@@ -141,6 +152,6 @@ public sealed partial class CqlV1Providers
         _ => null
     };
 
-    private static OASISResult<IReadOnlyList<VirtualHolonRead>> Refuse(string code, string message) =>
-        new OASISResult<IReadOnlyList<VirtualHolonRead>> { IsError = true, ErrorCode = code, Message = message };
+    private static OASISResult<IReadOnlyList<T>> RefuseVirtual<T>(string code, string message) =>
+        new OASISResult<IReadOnlyList<T>> { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message };
 }
