@@ -1,3 +1,5 @@
+2026-11-18 UTC — Native SQLite projection source/3 tests prepared without a local build, restore, database or runtime. Tests reuse existing CI-owned fixture paths and assert native byte preservation/no OASIS file; their temporary owned data is removed by existing fixture disposal. No new persistent environment/download/artifact. Retained/blocked register preserved.
+
 2026-11-18 UTC — Diagnostic44275656863 isolated rejection before any native call (invalid fixture source ordering);5 virtual result-contract test groups passed among313 passing selected cases. Fixture ordering is corrected to match real parser requests for the next exact CI source. No local build/restore/runtime/database/artifact extraction; retained/blocked register unchanged.
 
 2026-11-18 UTC — Runtime HTTP44273639459 rejected success packets; unchanged assertions now show sanitized error boundary counts. New virtual contract null cases use isolated CI only. No local build, package restore, database, runtime or extracted artifact; retained/blocked cleanup register preserved.

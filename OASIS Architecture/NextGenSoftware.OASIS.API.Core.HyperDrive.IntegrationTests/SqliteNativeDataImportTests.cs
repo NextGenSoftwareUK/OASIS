@@ -469,6 +469,100 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
             await Task.CompletedTask;
         }
 
+
+        [Fact]
+        public async Task NativeComputedProjectionPreservesSourceKeysAndIndependentAliases()
+        {
+            var before = NativeBytes();
+            using var provider = Provider();
+            var imported = (await provider.ReadNativeRecordsAsync("lines", null, 10)).Result.Records;
+            var read = await provider.QueryNativeProjectionRecordsAsync("lines",
+                new[] { new NativeRecordFilter("orderId", CosmicQueryComparisonOperator.Equal, 10L) },
+                new[] {
+                    new NativeProjectionColumn("sku", "Original", typeof(string)),
+                    new NativeProjectionColumn("sku", "Units", typeof(string), function: NativeRecordFunction.Utf16Length),
+                    new NativeProjectionColumn("orderId", "Order", typeof(long))
+                }, 2);
+            Assert.False(read.IsError, read.Message);
+            Assert.Equal(imported.Select(row => row.NativeKey), read.Result.Select(row => row.NativeKey));
+            Assert.Equal(new[] { "A", "B" }, read.Result.Select(row => (string)row.Cells[0].Value));
+            Assert.All(read.Result, row => {
+                Assert.Equal(1, Assert.IsType<int>(row.Cells[1].Value));
+                Assert.Equal(10L, Assert.IsType<long>(row.Cells[2].Value));
+            });
+            Assert.False(File.Exists(OasisPath));
+            Assert.Equal(before, NativeBytes());
+        }
+
+        [Fact]
+        public async Task NativeComputedProjectionPreservesUnicodeNulNullAndRefusesInvalidInput()
+        {
+            using (var connection = new SqliteConnection($"Data Source={NativePath}"))
+            {
+                connection.Open();
+                using var command = connection.CreateCommand();
+                command.CommandText = "INSERT INTO notes(body) VALUES ($text)";
+                command.Parameters.AddWithValue("$text", "A\0😀");
+                command.ExecuteNonQuery();
+            }
+            var before = NativeBytes();
+            using var provider = Provider();
+            var read = await provider.QueryNativeProjectionRecordsAsync("notes",
+                new[] { new NativeRecordFilter("body", CosmicQueryComparisonOperator.Equal, 4L, NativeRecordFunction.Utf16Length) },
+                new[] {
+                    new NativeProjectionColumn("body", "Original", typeof(string)),
+                    new NativeProjectionColumn("body", "Units", typeof(string), function: NativeRecordFunction.Utf16Length)
+                }, 2);
+            Assert.False(read.IsError, read.Message);
+            var row = Assert.Single(read.Result);
+            Assert.Equal("rowid:3", row.NativeKey);
+            Assert.Equal("A\0😀", row.Cells[0].Value);
+            Assert.Equal(4, Assert.IsType<int>(row.Cells[1].Value));
+            var nullable = new[] { new NativeProjectionColumn("rating", "Units", typeof(string), true, NativeRecordFunction.Utf16Length) };
+            var nullRead = await provider.QueryNativeProjectionRecordsAsync("suppliers",
+                new[] { new NativeRecordFilter("id", CosmicQueryComparisonOperator.Equal, 1L) }, nullable, 2);
+            Assert.False(nullRead.IsError, nullRead.Message);
+            Assert.Equal(NativeProjectionValueState.Null, Assert.Single(nullRead.Result).Cells[0].State);
+            var invalid = await provider.QueryNativeProjectionRecordsAsync("suppliers",
+                new[] { new NativeRecordFilter("id", CosmicQueryComparisonOperator.GreaterThanOrEqual, 1L) }, nullable, 3);
+            Assert.Equal("NATIVE_PROJECTION_DATA_INVALID", invalid.ErrorCode);
+            Assert.Null(invalid.Result);
+            var required = await provider.QueryNativeProjectionRecordsAsync("suppliers",
+                new[] { new NativeRecordFilter("id", CosmicQueryComparisonOperator.Equal, 1L) },
+                new[] { new NativeProjectionColumn("rating", "Units", typeof(string), false, NativeRecordFunction.Utf16Length) }, 1);
+            Assert.Equal("NATIVE_PROJECTION_DATA_INVALID", required.ErrorCode);
+            Assert.False(File.Exists(OasisPath));
+            Assert.Equal(before, NativeBytes());
+        }
+
+        [Fact]
+        public async Task NativeComputedProjectionEnforcesByteSchemaAndCancellationBounds()
+        {
+            using (var connection = new SqliteConnection($"Data Source={NativePath}"))
+            {
+                connection.Open();
+                using var command = connection.CreateCommand();
+                command.CommandText = "INSERT INTO notes(body) VALUES ($text)";
+                command.Parameters.AddWithValue("$text", new string('x', 1048580));
+                command.ExecuteNonQuery();
+            }
+            var before = NativeBytes();
+            using var provider = Provider();
+            var filters = new[] { new NativeRecordFilter("body", CosmicQueryComparisonOperator.NotEqual, "first") };
+            var columns = new[] { new NativeProjectionColumn("body", "Original", typeof(string)) };
+            var oversized = await provider.QueryNativeProjectionRecordsAsync("notes", filters, columns, 10);
+            Assert.Equal("NATIVE_PROJECTION_PAYLOAD_LIMIT", oversized.ErrorCode);
+            Assert.Null(oversized.Result);
+            var unknown = await provider.QueryNativeProjectionRecordsAsync("notes", filters,
+                new[] { new NativeProjectionColumn("missing", "Missing", typeof(string)) }, 1);
+            Assert.Equal("NATIVE_PROJECTION_QUERY_INVALID", unknown.ErrorCode);
+            using var cancellation = new System.Threading.CancellationTokenSource(); cancellation.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+                provider.QueryNativeProjectionRecordsAsync("notes", filters, columns, 1, cancellationToken: cancellation.Token));
+            Assert.False(File.Exists(OasisPath));
+            Assert.Equal(before, NativeBytes());
+        }
+
         public void Dispose()
         {
             SqliteConnection.ClearAllPools();
