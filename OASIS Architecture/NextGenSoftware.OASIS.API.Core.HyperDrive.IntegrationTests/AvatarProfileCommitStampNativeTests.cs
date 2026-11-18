@@ -1,9 +1,15 @@
+using MongoDB.Bson;
 using MongoDB.Driver;
 using Neo4j.Driver;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Configuration;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Providers;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
@@ -21,10 +27,11 @@ public sealed class AvatarProfileCommitStampNativeTests
         private readonly MongoClient _client=new(MongoUri);
         private readonly string _name="profile_stamp_"+Guid.NewGuid().ToString("N");
         public MongoDBOASIS Provider {get;private set;}=null!;
+        internal IMongoDatabase Admin=>_client.GetDatabase("admin");
         public async Task Activate()
         {
             Assert.DoesNotContain(_name,await(await _client.ListDatabaseNamesAsync()).ToListAsync());
-            Provider=new MongoDBOASIS(MongoUri,_name);
+            Provider=new MongoDBOASIS(new MongoUrlBuilder(MongoUri){ApplicationName="profile-stamp-"+Guid.NewGuid().ToString("N")}.ToString(),_name);
             var active=await Provider.ActivateProviderAsync();Assert.False(active.IsError,active.Message);
         }
         public async ValueTask DisposeAsync()
@@ -107,6 +114,185 @@ public sealed class AvatarProfileCommitStampNativeTests
         Assert.Equal(expected.AvatarRevision.VersionId,actual.AvatarRevision.VersionId);
         Assert.Equal(expected.DetailRevision.Version,actual.DetailRevision.Version);
         Assert.Equal(expected.DetailRevision.VersionId,actual.DetailRevision.VersionId);
+    }
+
+    private static void RequireOwnedFixtures()
+    {
+        if(Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI")!=MongoUri ||
+            Environment.GetEnvironmentVariable("OASIS_PROFILE_NEO4J_FIXTURE")!="owned-local-27687")
+            throw new InvalidOperationException("Both exact owned loopback fixtures are required.");
+    }
+
+    private static async Task<AvatarProfileSnapshot> SeedRoutingStores(IOASISStorageProvider[] providers,Guid id)
+    {
+        var username="profile-route-"+id.ToString("N");var accountVersion=Guid.NewGuid();var detailVersion=Guid.NewGuid();
+        AvatarProfileSnapshot? baseline=null;
+        foreach(var provider in providers)
+        {
+            var account=await provider.SaveAvatarAsync(new Avatar{Id=id,Username=username,Email=username+"@example.test",
+                Title="Before",FirstName="Before",LastName="Name",Password="stored-hash",IsActive=true,
+                CreatedDate=new DateTime(2026,1,1,0,0,0,DateTimeKind.Utc),Version=1,VersionId=accountVersion,
+                AvatarType=new EnumValue<AvatarType>(AvatarType.User)});
+            var detail=await provider.SaveAvatarDetailAsync(new AvatarDetail{Id=id,Username=username,Email=username+"@example.test",
+                Address="Before",XP=42,CreatedDate=new DateTime(2026,1,1,0,0,0,DateTimeKind.Utc),Version=1,VersionId=detailVersion});
+            Assert.False(account.IsError,account.Message);Assert.False(detail.IsError,detail.Message);
+            var current=await Read(provider,id);
+            if(baseline==null)baseline=current;else SameRevisions(baseline,current);
+        }
+        return baseline!;
+    }
+
+    private static ProviderManager Routing(IOASISStorageProvider[] providers,bool replicate)
+    {
+        var dna=new OASISDNA{OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS
+        {
+            HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings(),
+            SubscriptionConfig=new(){PlanType="Gold"}
+        }};
+        var manager=new ProviderManager(null,dna);
+        foreach(var provider in providers)Assert.True(manager.RegisterProvider(provider));
+        var types=providers.Select(provider=>provider.ProviderType.Value).ToArray();
+        var configured=manager.PublishRoutingOverrides(new ProviderRoutingOverrides(
+            autoFailoverEnabled:true,autoReplicationEnabled:replicate,autoLoadBalancingEnabled:false,
+            failoverProviders:types,replicationProviders:types),providers[0].ProviderType.Value);
+        Assert.False(configured.IsError,configured.Message);return manager;
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ProfileRoutingReplicatesOnlyCommittedLogicalFields(bool synchronous)
+    {
+        RequireOwnedFixtures();var id=Guid.NewGuid();
+        await using var mongo=new MongoStore();await mongo.Activate();
+        await using var bolt=new BoltStore();await bolt.Activate(id);
+        using var sqlite=new SqliteStore();Assert.False((await sqlite.Provider.ActivateProviderAsync()).IsError);
+        IOASISStorageProvider[] providers=[mongo.Provider,sqlite.Provider,bolt.Provider];
+        var before=await SeedRoutingStores(providers,id);var manager=Routing(providers,true);var router=new OASISHyperDrive(manager);
+        var command=Edit(id,before,(AvatarProfileProperty.Title,"Routed"),(AvatarProfileProperty.Address,"Routed"));
+        var request=new StorageOperationRequest{Operation="ApplyAvatarProfile",AvatarId=id,Payload=command};
+        var result=synchronous?router.RouteRequest<AvatarProfileSnapshot>(request):await router.RouteRequestAsync<AvatarProfileSnapshot>(request);
+        Assert.False(result.IsError,result.Exception?.ToString()??result.Message);Assert.False(result.IsWarning,result.Message);
+        Assert.True(result.IsSaved);Assert.Equal(2,result.SavedCount);
+        Assert.Equal(2,manager.LastReplicationDiagnostic.SucceededCount);Assert.Equal(0,manager.LastReplicationDiagnostic.FailedCount);
+        Assert.True(result.MetaData.ContainsKey("hyperDriveReplicationDiagnostic"));
+        foreach(var provider in providers)
+        {
+            var stored=await Read(provider,id);SameRevisions(result.Result,stored);
+            Assert.Equal("Routed",stored.Title);Assert.Equal("Routed",stored.Address);
+        }
+        var replicaAttempts=providers.Skip(1).Select(provider=>manager.PerformanceMonitor.GetMetrics(provider.ProviderType.Value).TotalRequests).ToArray();
+        var noop=new StorageOperationRequest{Operation="ApplyAvatarProfile",AvatarId=id,
+            Payload=Edit(id,result.Result,(AvatarProfileProperty.Title,"Routed"),(AvatarProfileProperty.Address,"Routed"))};
+        var unchanged=synchronous?router.RouteRequest<AvatarProfileSnapshot>(noop):await router.RouteRequestAsync<AvatarProfileSnapshot>(noop);
+        Assert.False(unchanged.IsError,unchanged.Message);Assert.False(unchanged.IsSaved);
+        Assert.False(unchanged.MetaData?.ContainsKey("hyperDriveReplicationDiagnostic")??false);
+        var stale=synchronous?router.RouteRequest<AvatarProfileSnapshot>(request):await router.RouteRequestAsync<AvatarProfileSnapshot>(request);
+        Assert.True(stale.IsError);Assert.Equal(AvatarProfileErrors.Conflict,stale.ErrorCode);
+        Assert.False(stale.MetaData?.ContainsKey("hyperDriveFailoverDiagnostic")??false);
+        var fanout=await router.ReplicateRequestAsync<AvatarProfileSnapshot>(request);
+        Assert.True(fanout.IsError);Assert.Equal("AVATAR_PROFILE_COMMITTED_EVIDENCE_REQUIRED",fanout.ErrorCode);
+        var foreign=await router.RouteRequestAsync<AvatarProfileSnapshot>(new StorageOperationRequest
+            {Operation="ApplyAvatarProfile",AvatarId=Guid.NewGuid(),Payload=command});
+        Assert.True(foreign.IsError);Assert.Equal(AvatarProfileErrors.Forbidden,foreign.ErrorCode);
+        using var cancelled=new CancellationTokenSource();cancelled.Cancel();
+        var cancellation=await router.RouteRequestAsync<AvatarProfileSnapshot>(new StorageOperationRequest
+            {Operation="ApplyAvatarProfile",AvatarId=id,Payload=command,ProfileCancellationToken=cancelled.Token});
+        Assert.True(cancellation.IsError);Assert.Equal("AVATAR_PROFILE_CANCELLED",cancellation.ErrorCode);
+        Assert.Equal(replicaAttempts,providers.Skip(1).Select(provider=>manager.PerformanceMonitor.GetMetrics(provider.ProviderType.Value).TotalRequests).ToArray());
+    }
+
+    [Fact]
+    public async Task ProfileRoutingStopsAfterAnActualUnknownNativeCommit()
+    {
+        RequireOwnedFixtures();var id=Guid.NewGuid();
+        await using var mongo=new MongoStore();await mongo.Activate();
+        await using var bolt=new BoltStore();await bolt.Activate(id);
+        using var sqlite=new SqliteStore();Assert.False((await sqlite.Provider.ActivateProviderAsync()).IsError);
+        IOASISStorageProvider[] providers=[mongo.Provider,sqlite.Provider,bolt.Provider];
+        var before=await SeedRoutingStores(providers,id);var manager=Routing(providers,true);var router=new OASISHyperDrive(manager);
+        await mongo.Admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","alwaysOn"},
+            {"data",new BsonDocument{{"failCommands",new BsonArray{"commitTransaction"}},
+                {"appName",new MongoUrl(mongo.Provider.ConnectionString).ApplicationName},
+                {"writeConcernError",new BsonDocument{{"code",64},{"errmsg","owned profile routed acknowledgement fault"}}}}}});
+        try
+        {
+            var result=await router.RouteRequestAsync<AvatarProfileSnapshot>(new StorageOperationRequest
+                {Operation="ApplyAvatarProfile",AvatarId=id,Payload=Edit(id,before,
+                    (AvatarProfileProperty.Title,"Committed without acknowledgement"),(AvatarProfileProperty.Address,"Committed without acknowledgement"))});
+            Assert.True(result.IsError);Assert.False(result.IsSaved);Assert.Equal(AvatarProfileErrors.CommitUnknown,result.ErrorCode);
+            Assert.True(NativeMutationReconciliation.IsRequired(result.Exception));
+            Assert.NotEmpty(NativeMutationReconciliation.OriginalTransactionIds(result.Exception));
+            Assert.False(result.MetaData?.ContainsKey("hyperDriveReplicationDiagnostic")??false);
+            Assert.False(result.MetaData?.ContainsKey("hyperDriveFailoverDiagnostic")??false);
+        }
+        finally{await mongo.Admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","off"}});}
+        Assert.Equal("Committed without acknowledgement",(await Read(mongo.Provider,id)).Title);
+        foreach(var provider in providers.Skip(1))
+        {
+            var stored=await Read(provider,id);SameRevisions(before,stored);Assert.Equal("Before",stored.Title);Assert.Equal("Before",stored.Address);
+            Assert.Equal(0,manager.PerformanceMonitor.GetMetrics(provider.ProviderType.Value)?.TotalRequests??0);
+        }
+    }
+
+    [Fact]
+    public async Task ProfileRoutingFailsOverAfterRealPreCommitFindFailure()
+    {
+        RequireOwnedFixtures();var id=Guid.NewGuid();
+        await using var mongo=new MongoStore();await mongo.Activate();
+        await using var bolt=new BoltStore();await bolt.Activate(id);
+        using var sqlite=new SqliteStore();Assert.False((await sqlite.Provider.ActivateProviderAsync()).IsError);
+        IOASISStorageProvider[] providers=[mongo.Provider,sqlite.Provider,bolt.Provider];
+        var before=await SeedRoutingStores(providers,id);var manager=Routing(providers,false);var router=new OASISHyperDrive(manager);
+        await mongo.Admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","alwaysOn"},
+            {"data",new BsonDocument{{"failCommands",new BsonArray{"find"}},
+                {"appName",new MongoUrl(mongo.Provider.ConnectionString).ApplicationName},{"errorCode",91}}}});
+        try
+        {
+            var result=await router.RouteRequestAsync<AvatarProfileSnapshot>(new StorageOperationRequest
+                {Operation="ApplyAvatarProfile",AvatarId=id,Payload=Edit(id,before,
+                    (AvatarProfileProperty.Title,"Failover saved"),(AvatarProfileProperty.Address,"Failover saved"))});
+            Assert.False(result.IsError,result.Exception?.ToString()??result.Message);Assert.True(result.IsSaved);
+            Assert.True(manager.LastFailoverDiagnostic.Succeeded);
+            Assert.Equal(ProviderType.SQLLiteDBOASIS,manager.LastFailoverDiagnostic.SelectedProvider);
+            Assert.Equal("Failover saved",(await Read(sqlite.Provider,id)).Title);
+        }
+        finally{await mongo.Admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","off"}});}
+        SameRevisions(before,await Read(mongo.Provider,id));SameRevisions(before,await Read(bolt.Provider,id));
+    }
+
+    [Fact]
+    public async Task ProfileRoutingRoundRobinKeepsAllThreeReplicasOnTheAcknowledgedRevision()
+    {
+        RequireOwnedFixtures();var id=Guid.NewGuid();
+        await using var mongo=new MongoStore();await mongo.Activate();
+        await using var bolt=new BoltStore();await bolt.Activate(id);
+        using var sqlite=new SqliteStore();Assert.False((await sqlite.Provider.ActivateProviderAsync()).IsError);
+        IOASISStorageProvider[] providers=[mongo.Provider,sqlite.Provider,bolt.Provider];
+        var before=await SeedRoutingStores(providers,id);var manager=Routing(providers,true);var router=new OASISHyperDrive(manager);
+        var types=providers.Select(provider=>provider.ProviderType.Value).ToArray();
+        var configured=manager.PublishRoutingOverrides(new ProviderRoutingOverrides(true,true,true,
+            failoverProviders:types,replicationProviders:types,loadBalancingProviders:types),types[0]);
+        Assert.False(configured.IsError,configured.Message);
+        var serving=new HashSet<string>();
+        // Three bounded writes exercise one complete rotation, never a soak loop.
+        for(var index=0;index<3;index++)
+        {
+            var title="rotation-"+index;
+            var result=await router.RouteRequestAsync<AvatarProfileSnapshot>(new StorageOperationRequest
+                {Operation="ApplyAvatarProfile",AvatarId=id,Payload=Edit(id,before,(AvatarProfileProperty.Title,title))},
+                LoadBalancingStrategy.RoundRobin);
+            Assert.False(result.IsError,result.Exception?.ToString()??result.Message);Assert.False(result.IsWarning,result.Message);
+            using var route=System.Text.Json.JsonDocument.Parse(result.MetaData["hyperDriveRoute"]);
+            serving.Add(route.RootElement.GetProperty("ServingProvider").GetString()!);
+            Assert.Equal(2,manager.LastReplicationDiagnostic.SucceededCount);
+            foreach(var provider in providers)
+            {
+                var stored=await Read(provider,id);SameRevisions(result.Result,stored);Assert.Equal(title,stored.Title);
+            }
+            before=result.Result;
+        }
+        Assert.Equal(types.Select(type=>type.ToString()).OrderBy(value=>value),serving.OrderBy(value=>value));
     }
 
     [Fact]
