@@ -1,3 +1,5 @@
+2026-11-18 UTC — Direct computed aggregate proof44266294044 passed;40,312-byte artifact inspected in RAM and native fixtures cleaned. Computed-count source uses the same isolated CI fixture next, no local database/build/runtime/download/output tree. Existing blocked/retained register preserved.
+
 2026-11-18 UTC — Computed SQL-count parser126 tests passed in memory using cached Node; native count assertions are CI-only and reuse existing fixtures. No local installation, restore, database, output archive or test-results tree retained. Shared Atlas remains untouched; blocked/retained register preserved.
 
 2026-11-18 UTC — Computed selector-aggregate source and additional native assertions prepared using Git blobs/temp index only. No local build, runtime, database, package restore or result artifact; native validation is isolated CI. Prior cleanup register remains in force.
