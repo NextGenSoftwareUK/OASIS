@@ -1,3 +1,5 @@
+2026-11-18 UTC — Native mapped614b qualification passed with exact Mongo/Neo cleanup and SQLite in-memory proof. Artifact14424081264 (40,628 bytes) parsed in RAM only; no archive extraction/download retained. C:36.42GiB observed. No local SDK/build/restore/database/environment/output added. Retained/blocked register remains applicable, including policy-blocked C++ cache and active/dirty worktrees.
+
 2026-11-18 UTC — HTTP source-only cases and isolated qualification44296596499 add no local runtime/build/database/environment/download/output. Website132 tests ran in memory with existing cached Node; no files written except scoped Git source objects. Standard gh cache paths absent, C:36.42GiB observed; retained/blocked cleanup register remains current. Native containers/fixtures exist only in CI with owned cleanup.
 
 2026-11-18 UTC — Docker Hub DNS failure44294508298 created no local artifact; exact CI failed-job retry once. Six new mixed HTTP mock cases require no local runtime/database/build/output. Retained/blocked register unchanged.
