@@ -4,7 +4,7 @@ The single list of everything that needs you: your accounts, phones, admin right
 
 All agents must record owner-dependent requests here before asking, update answers, and preserve deferred decisions without repeatedly asking. Agent implementation/tool failures remain agent work.
 
-Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (merged into Part B below) and the PIPER work log's action list (Part A).
+Last updated 18 November 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (merged into Part B below) and the PIPER work log's action list (Part A).
 
 ## Open actions at a glance
 
@@ -20,6 +20,7 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 9 | Rotate the Arbitrum testnet key and the block-explorer API key that were committed to git (removed from files, still in history) | E2 |
 | 7 | Older items: phone tests, WSL disk, Vercel branch check, oasisweb4 site decision, iOS runtime script, Git LFS budget, upstream Holochain PRs | D |
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
+| 11 | Choose a Windows maintenance window for high AppX/Windows AI memory use | G |
 
 ---
 
@@ -807,3 +808,9 @@ Status: missing account/configuration information,2 November2026. David approved
 
 - **Open, 2026-11-17.** Signed acceptance left sender a27ed220-8539-43ee-8377-3ee69fd57439 and recipient 28f513ee-e998-48c1-b03b-1a96e2751fa9 on WEB4 dev revision dd9989649bca. Recipient settings holon 84eaa213-535a-a6c9-ba1a-34b8ae8c15b3 was observed, but its conditional deletion was rejected. Message identity and persistence were unconfirmed.
 - **Authorized access needed.** Use an existing dev Wizard session to read that exact settings holon and search for a message matching both disposable participant IDs. Use the observed provider revision and a new operation ID for each verified fixture deletion. Confirm removal before deleting the two disposable avatars. Engineering owns diagnosis and a new acceptance run after cleanup. [Current status](../HyperDrive-Providers/CURRENT_STATUS.md).
+## Part G — Windows disk and memory maintenance (18 November 2026)
+
+- **Decision needed; no service interruption performed.** Cleanup removed 3,809,107,627 bytes of obsolete installers/app versions, stale diagnostics, idle C++ caches and an untracked test binary. Detailed paths/results: [cleanup ledger](../Cleanup/CLEANUP_LEDGER.md).
+- **Observed locally:** AppX Deployment Service (AppXSvc), PID1580, holds about16.41GiB private memory on a15.8GiB-RAM machine. Windows' automatically managed paging file allocates26.63GiB, with about7.53GiB currently used. These are current measurements, not proof of every earlier disk-space change or a guarantee of reclaimable disk bytes.
+- **David decision:** choose a maintenance window after saving work for a controlled Windows-service restart or Windows reboot. AppXSvc has a running Windows AI Components Host dependent (WSAIFabricSvc); interrupting it could affect active AI tools. Administrative access is already available; the decision is timing/interruption, not account access.
+- **Next steps:** engineering must verify no Store/app deployment is active, preserve service startup settings and restore any stopped dependent service. Measure memory/pagefile/free space afterwards. Never manually delete the paging file or promise that restarting a service immediately shrinks its on-disk allocation. No service, paging setting or Windows AI component was changed during file cleanup.

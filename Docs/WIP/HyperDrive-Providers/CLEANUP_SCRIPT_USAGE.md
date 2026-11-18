@@ -1,4 +1,4 @@
-# Cleanup script — 26 October 2026
+# Cleanup script — 18 November 2026
 
 Use the existing Windows launcher from the repository root:
 
@@ -7,7 +7,7 @@ Use the existing Windows launcher from the repository root:
 .\Scripts\tools\cleanup-emergency-space.bat
 ```
 
-The batch launcher's original behavior is restored. No machine execution-policy setting was changed. Direct Windows PowerShell script tests were refused by its existing Restricted policy; the tests and read-only end-to-end invocation below ran in the already-installed PowerShell runtime. No mutating cleanup was executed during verification.
+The launcher respects the configured execution policy instead of forcing Bypass. The common build-lease implementation uses APIs available in Windows PowerShell5.1 and PowerShell7, allowing both shells to use the same lock. The launcher does not change execution-policy settings. The historical October checks below are not acceptance of the November guard changes; current qualification belongs in the cleanup ledger.
 
 Default cleanup now includes discovered MSBuild `bin`/`obj` folders in the main OASIS checkout and the registered old HyperDrive checkout, reviewed Unity validation caches/builds, native-game/package verification output copies, signed VS installer extraction folders, the reviewed VS package-download staging folder, signed VSCode staging and old installer diagnostic logs. Source, package/runtime caches, current native test evidence and credentials are retained.
 
@@ -15,11 +15,15 @@ Active project/output ownership and exact artifact candidates are in [cleanup-em
 
 The global producer/consumer lease and process checks prevent cleanup during a build/test slot. The script does not stop builds or services to force removal. Close/finish builds before running it again if generated-output cleanup was skipped. Referenced runtime junctions, tracked source, native databases, pending journals, secrets and open files are refused. Unity Library `.db` files are a narrow regenerable-cache exception, not permission to delete provider databases.
 
-Clean merged inactive worktrees are considered automatically, without forced Git removal. Unique commits, ignored/uncommitted files, initialized submodules and protected resources keep a worktree in place with a reason. The old `C:/Source/OASIS-hyperdrive-v2-gaps` checkout currently holds live shared Hardhat, DynamoDB and IPFS resources and a unique commit; it cannot yet be retired wholesale. Its unused build outputs are still cleanup candidates. No automatic merge of unverified code is performed.
+Retirement requires exact reviewed inactive paths through `-WorktreePath`. Clean/merged history alone does not establish that another agent has finished using a checkout. Registered active worktrees, unique commits, uncommitted files, initialized submodules and protected resources remain guarded; Git removal is never forced. Check the current ledger for live resources rather than assuming that a historical checkout is disposable. No automatic merge of unverified code is performed.
 
 Whole Downloads, whole TestResults, WSL disks/container volumes, unrelated ML data and the Windows pagefile are not disposable build outputs. WSL shutdown/compaction and package-cache clearing require explicit options and are not part of the default cleanup. Exact additional artifacts/download files can be selected through the existing parameters; preservation checks still apply.
 
 ## Verification
+
+18 November2026: eight focused cases in `Scripts/tools/Test-CleanupBuildLease.ps1` passed, including Windows PowerShell5.1/PowerShell7 mutual exclusion/release, active-producer preservation and explicit worktree selection. `Scripts/tools/Test-CleanupCliBusyExit.ps1` passed against the real default entry point in dry-run: busy lease, exit1, removed0 bytes, unchanged ledger and no default WSL cleanup/compaction. `Scripts/TestHosts/Test-ProviderBuildLease.ps1` passed in the actual repository (busy1/free0/exception-release true); its generated logs/report were removed. No build, package restore or backend was invoked. Initial focused checks exposed Windows PowerShell's AllSigned policy and a callback-scope/counter bug; both were corrected before acceptance. Exact cleanup amounts/preservation are in the ledger.
+
+The following October checks are retained historical evidence; their entire suite was not repeated:
 
 - `Scripts/tools/Test-CleanupEmergencySpace.ps1`: **86 read-only checks pass**, no deletion, restore, build or service start.
 - Full Windows cleanup dry-run completed with exit0 and enumerated both checkouts. It retained linked/native/secret resources rather than forcing their removal; no source or data was deleted.

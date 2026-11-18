@@ -15,8 +15,8 @@ Features:
 - Optional hibernation disable
 - Optional recycle bin purge
 - Exact reviewed Downloads/report/build selections (never whole Downloads/TestResults)
-- In-distro WSL cache cleanup by default (pip, conda package cache, old nix generations + unreferenced store, apt, journal)
-- WSL trim + compaction by default, shutting WSL down automatically (-AllowWslShutdown:$false to refuse while WSL runs)
+- Explicit WSL cache cleanup (pip, conda package cache, old nix generations + unreferenced store, apt, journal)
+- Explicit WSL trim/compaction; shutdown requires -AllowWslShutdown
 
 Usage:
   powershell -File .\cleanup-emergency-space.ps1 -DryRun
@@ -54,9 +54,9 @@ param(
     [switch]$ClearBattleNetCache,
     [switch]$ClearPackageCaches,
     [switch]$ClearWindowsUpdateCache,
-    [switch]$CompactWSL = $true,
-    [switch]$ClearWslCaches = $true,
-    [switch]$AllowWslShutdown = $true,
+    [switch]$CompactWSL,
+    [switch]$ClearWslCaches,
+    [switch]$AllowWslShutdown,
     [string]$WslDistribution = 'Ubuntu',
     [switch]$ClearBuildOutputs = $true,
     [string[]]$BuildRoot,
@@ -274,8 +274,28 @@ function Find-GeneratedOutput([string]$root) {
 }
 
 function Remove-GeneratedOutputs {
-    # Build and test outputs are always regenerable: removed even while builds/tests run.
-    # Files a running process holds open are left and reported by Remove-Safely.
+    try {
+        $lease = Join-Path $repoRoot 'Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1'
+        # Keep cleanup counters and callbacks in this script's scope.
+        . $lease -Owner 'generated-output-cleanup' -Operation {
+            # Also protect older producers which have not adopted the shared lease.
+            if (Test-CleanupProcess '^(dotnet|testhost.*|MSBuild|VBCSCompiler|vstest.console)$') {
+                $script:cleanupFailureCount++
+                Write-CleanupLedger 'PRESERVED generated outputs: build/test processes remain active; no output deletion attempted.'
+                Write-Warning 'Build/test processes are active; generated outputs were preserved.'
+                return
+            }
+            Remove-GeneratedOutputsUnderLease
+        }
+    } catch {
+        $script:cleanupFailureCount++
+        Write-CleanupLedger "PRESERVED generated outputs: exclusive build lease/cleanup failed; $($_.Exception.Message)"
+        Write-Warning "Generated-output cleanup stopped: $($_.Exception.Message)"
+    }
+}
+
+function Remove-GeneratedOutputsUnderLease {
+    # Only entered by the exclusive lease owner after the active-process check.
     try {
         foreach ($relative in $cleanupTargets.TestOutputs) {
             $testRoot = Convert-CleanupPath $relative
@@ -324,9 +344,13 @@ function Remove-GeneratedOutputs {
 }
 
 function Remove-MergedWorktrees {
+    if (!$WorktreePath) {
+        Log 'Worktrees retained: select exact reviewed inactive paths with -WorktreePath; a clean/merged checkout can still be in use.'
+        return
+    }
     $registeredPaths = @(& git -C $repoRoot worktree list --porcelain | Where-Object { $_ -like 'worktree *' } | ForEach-Object { Convert-CleanupPath $_.Substring(9) })
     if ($LASTEXITCODE -ne 0) { throw 'Could not enumerate registered worktrees.' }
-    foreach ($path in @($registeredPaths + $WorktreePath | Sort-Object -Unique)) {
+    foreach ($path in @($WorktreePath | Sort-Object -Unique)) {
         try {
         $target = [IO.Path]::GetFullPath($path).TrimEnd('\')
         if (!(Test-Path -LiteralPath $target)) { continue }
@@ -429,7 +453,7 @@ Write-Host ""
 Log "C: BEFORE => Used: $($before.UsedGB) GB | Free: $($before.FreeGB) GB"
 Log 'Build-output cleanup defaults ON for both registered OASIS checkouts. Active-output exclusions: cleanup-emergency-space.targets.psd1.'
 Log 'No package/runtime data removal by default. Use -ClearBuildOutputs:$false to omit generated build outputs.'
-Log 'WSL caches are cleared and the WSL disk trimmed/compacted by default (-ClearWslCaches:$false / -KeepWSLVhdx to skip). WSL is shut down automatically for compaction (-AllowWslShutdown:$false to refuse).'
+Log 'WSL cache cleanup/compaction is opt-in: -ClearWslCaches / -CompactWSL; shutdown additionally requires -AllowWslShutdown.'
 Write-Host ""
 
 # =========================================================
@@ -776,3 +800,5 @@ Write-Host "==========================================" -ForegroundColor Green
 Write-Host "DRIVE FREE-SPACE CHANGE: $freed GiB (includes concurrent activity)" -ForegroundColor Green
 Write-Host "==========================================" -ForegroundColor Green
 Write-Host ""
+
+if ($cleanupFailureCount -gt 0) { exit 1 }
