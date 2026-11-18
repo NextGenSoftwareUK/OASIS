@@ -1,3 +1,11 @@
+## 18 November source addition — bounded mixed ordering (qualification pending)
+
+Core `CosmicMixedProjectionResults.Merge` is the shared owner of two-representation result merging. Providers execute predicates and projections natively. The stored intent must be unpaged except for its100-row fetch bound; nonempty virtual reads carry the same requested bound plus their owner. Each branch must return fewer than100 rows. A full or shortened branch is refused, so a sorted prefix cannot masquerade as a complete result.
+
+The merge validates the entire captured input, canonical identity, exact scalar schema, caller/mapping provenance, duplicate IDs and a combined2MiB input budget before exposing any page. Live mapped values win over an imported copy of the same stable logical ID. It orders one to eight exact selected aliases using existing Core scalar/null/Unicode comparison and a deterministic ascending logical-ID tie, then applies one global Skip/Take. Provenance follows the winning row through ordering/paging. Computed output cells remain detached; explicit snapshots fetch original mapped fields afresh.
+
+Initial native domains remain String/Boolean/Int32/Int64 plus canonical Id; LENGTH preserves String input and Int32 output. This is bounded result federation, not client predicate evaluation or a substitute for provider execution. General/scalable mixed composition and full EF/NHibernate parity remain open. Exact backend proof is running at44324658319/65018cf72832/Core3b0dfc8; editor ecfdde42 has135 passed parser/snapshot cases, not hosted acceptance.
+
 # CQL architecture
 
 ## Multiple predicates over stored and virtual Holons
