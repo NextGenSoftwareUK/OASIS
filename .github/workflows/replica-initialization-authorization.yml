@@ -15,6 +15,8 @@ on:
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/**'
       - 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/*.cs'
       - 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/*.csproj'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Entities/HolonBase*.cs'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Helpers/DataHelper.cs'
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests/BoundReplicaTests.cs'
   workflow_dispatch:
 
