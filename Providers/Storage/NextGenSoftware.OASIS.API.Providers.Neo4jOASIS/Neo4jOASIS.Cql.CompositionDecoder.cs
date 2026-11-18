@@ -74,7 +74,7 @@ public partial class Neo4jOASIS
                 if (stages.Count != 0 || position != input.Count || sourcePosition != position || count != sourceCount || input.Count >= sourceCount)
                     throw Invalid("Native composition source proof position/count is invalid.");
                 var row = Source(proof, query.Source.ReadAccess, Array.Empty<Type>(),
-                    query.Columns.Select(column => column.Path.ValueType).ToArray(),
+                    query.Columns.Select(column => column.ValueType).ToArray(),
                     query.Source.Orderings.Select(item => item.Path.ValueType).ToArray(), ref inputBytes, limits.MaximumInputPayloadBytes);
                 if (!sourceIds.Add(row.Id)) throw Invalid("Native composition source identity is duplicated.");
                 input.Add(new CosmicProjectionInputRow(row.Id, row.IsPublic, row.CreatedByAvatarId,

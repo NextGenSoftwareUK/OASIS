@@ -375,29 +375,33 @@ internal sealed partial class MongoCqlTranslator
         return Choose(Domain(value, typeof(string)), expression, Literal(false));
     }
 
-    // Stored and mapped native rows must count the same UTF-16 units.
+    // Stored filters, mapped native filters and projected cells share UTF-16 semantics.
+    internal static BsonValue Utf16LengthUnits(BsonValue value)
+    {
+        var supplementary = new BsonDocument("$regexFindAll", new BsonDocument
+        {
+            { "input", value },
+            { "regex", Literal(@"[\x{10000}-\x{10FFFF}]") }
+        });
+        return Op("$add", new BsonDocument("$strLenCP", value),
+            new BsonDocument("$size", supplementary));
+    }
+
     internal static BsonValue Utf16LengthComparison(BsonValue value,
         CosmicQueryComparisonOperator operation, long bound)
     {
-                var supplementary = new BsonDocument("$regexFindAll", new BsonDocument
-                {
-                    { "input", value },
-                    { "regex", Literal(@"[\x{10000}-\x{10FFFF}]") }
-                });
-                var units = Op("$add", new BsonDocument("$strLenCP", value),
-                    new BsonDocument("$size", supplementary));
-                var symbol = operation switch
-                {
-                    CosmicQueryComparisonOperator.Equal => "$eq",
-                    CosmicQueryComparisonOperator.NotEqual => "$ne",
-                    CosmicQueryComparisonOperator.GreaterThan => "$gt",
-                    CosmicQueryComparisonOperator.GreaterThanOrEqual => "$gte",
-                    CosmicQueryComparisonOperator.LessThan => "$lt",
-                    CosmicQueryComparisonOperator.LessThanOrEqual => "$lte",
-                    _ => throw new NotSupportedException("Unknown string length comparison.")
-                };
-                return Choose(Domain(value, typeof(string)), Op(symbol, units, Literal(bound)), Literal(false));
-
+        var symbol = operation switch
+        {
+            CosmicQueryComparisonOperator.Equal => "$eq",
+            CosmicQueryComparisonOperator.NotEqual => "$ne",
+            CosmicQueryComparisonOperator.GreaterThan => "$gt",
+            CosmicQueryComparisonOperator.GreaterThanOrEqual => "$gte",
+            CosmicQueryComparisonOperator.LessThan => "$lt",
+            CosmicQueryComparisonOperator.LessThanOrEqual => "$lte",
+            _ => throw new NotSupportedException("Unknown string length comparison.")
+        };
+        return Choose(Domain(value, typeof(string)),
+            Op(symbol, Utf16LengthUnits(value), Literal(bound)), Literal(false));
     }
 }
 internal sealed class MongoCqlLimitException():Exception("MongoDB CQL exceeds its node, BSON-depth, one-MiB query, result-count or 64-MiB projected-payload budget.");
