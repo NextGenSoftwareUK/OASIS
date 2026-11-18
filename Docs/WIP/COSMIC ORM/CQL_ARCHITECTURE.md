@@ -2,27 +2,53 @@
 
 ## Multiple predicates over stored and virtual Holons
 
-The current mixed route supports a single typed metadata equality. Extend it
-through the shipping native reader contract so both branches receive the same
-AND expression before applying their independent completeness caps. Preserve
-exact BSON types and simple collation in MongoDB, SQLite storage classes and
-binary text comparison, and the explicit Neo4j scalar type predicates. Apply
-the user-visible ordering and page only after merging the logical IDs.
+The mixed compiler captures one to eight immutable typed metadata filters as
+an AND expression. Both branches retain the original operator, scalar domain,
+function and exact bound when aliases bind to native source fields. Code
+contracts below describe implementation; [CURRENT_STATUS](CURRENT_STATUS.md)
+records the separate source, native and hosted acceptance gates.
 
-Snapshot preparation must use the same predicate and preserve every mapped
-field referenced by it within the existing projection budget. This keeps a
-saved copy queryable by the same filter and retains its original provenance.
-Exercise the ordinary and mixed routes independently in each native store.
-Put nonmatching rows before the first real match in provider order and use a
-small page to prove that native filtering occurs before the limit. Verify
-type-mismatched values, a matching private snapshot, a second avatar's denial
-and result ordering after deduplication. Extend the SQL-like sandbox editor
-when the timed WEB4 Development checks pass.
+MongoDB, SQLite and Neo4j native implementations support integer comparisons,
+String/Boolean equality and inequality, UTF-16 length comparisons, and ordinal
+Contains/StartsWith/EndsWith with their negative forms. This is not universal
+provider admission: Azure Cosmos DB retains its bounded String/Boolean
+equality/inequality contract and rejects unadmitted functions. Unsupported
+operations must fail explicitly rather than fetch rows for client evaluation.
+
+A string match is a total guarded Boolean: a null, missing or non-string value
+does not match; negating that complete predicate therefore returns true for
+those values. This differs from an admitted scalar inequality or a length
+comparison, which retains its own input-domain guard. Projection of a returned
+field still validates its declared type; negation does not waive that check.
+SDK prefix/suffix expressions must explicitly request StringComparison.Ordinal.
+The SQL-like editor binds positive/negative LIKE prefix, suffix or contains
+forms and escaped literal characters to these same operators, not to regex
+execution or unrestricted SQL.
+
+Length counts UTF-16 code units: a supplementary character counts as two.
+Embedded NUL is part of both text and literals. SQLite query functions must
+read complete, strict UTF-8 spans after native encoding conversion; its
+NUL-terminated custom-function string wrapper cannot establish this contract.
+Reader errors must not publish already collected rows or poison later reads.
+The new decoder-failure regression and exact encoding cases remain subject
+to the qualification state recorded in CURRENT_STATUS.
+
+Apply native filtering before the independent completeness caps, then merge
+logical IDs, deduplicate, order and page. A full capped branch cannot prove
+collection completeness. Preserve exact BSON scalar types/simple collation,
+SQLite storage classes/binary comparison, and Neo4j type predicates.
+
+Snapshot preparation captures the same filters and the union of selected and
+filter-referenced mapped fields within the existing budget. Save original
+source values, not the length or Boolean predicate result, with provenance.
+Preserve exact numeric metadata through the browser response/save boundary.
+Stored and virtual reads use shipping provider code and existing caller,
+owner and connection admission; a mapping grants no additional source access.
 
 ## Virtual Holon mapping boundary
 
 See the [Virtual Holons import proposal](OASIS_Virtual_Holons_Import_Proposal.docx). Materialized import persists owned Holon payloads for
-HyperDrive replication. Virtual import would persist a collection mapping
+HyperDrive replication. Virtual mapping persists a collection mapping
 and resolve bounded native queries into ephemeral Holons with stable IDs.
 CQL can query approved mapping metadata for discovery and approved record fields
 through bounded, typed native queries. Record provenance includes the mapping
@@ -35,8 +61,9 @@ requires authorized access to the native provider.
 Hybrid mode would add explicitly selected cached or persisted records.
 An explicit snapshot save creates an owned Holon with source provenance.
 A source update requires its own authorization and write capability.
-OPORTAL policy is scoped per avatar or application. HyperDrive placement and CQL
-routing enforce that policy server-side. Query results preserve logical identity,
+Planned OPORTAL policy is scoped per avatar or application. HyperDrive placement
+and CQL routing must enforce that policy server-side; automatic placement and
+the corresponding controls remain roadmap scope. Query results preserve logical identity,
 authoritative source, representation, mapping revision and freshness when
 virtual results, cached fields and full Holons share a collection.
 
