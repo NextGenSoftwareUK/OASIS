@@ -154,11 +154,11 @@ public sealed class AvatarProfileCommitStampNativeTests
         return baseline!;
     }
 
-    private static ProviderManager Routing(IOASISStorageProvider[] providers,bool replicate)
+    private static ProviderManager Routing(IOASISStorageProvider[] providers,bool replicate,HyperDriveModes mode=HyperDriveModes.V2)
     {
         var dna=new OASISDNA{OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS
         {
-            HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings(),
+            HyperDriveMode=mode,StorageProviders=new StorageProviderSettings(),
             SubscriptionConfig=new(){PlanType="Gold"}
         }};
         var manager=new ProviderManager(null,dna);
@@ -308,6 +308,58 @@ public sealed class AvatarProfileCommitStampNativeTests
             before=result.Result;
         }
         Assert.Equal(types.Select(type=>type.ToString()).OrderBy(value=>value),serving.OrderBy(value=>value));
+    }
+
+
+    [Theory]
+    [InlineData(HyperDriveModes.Legacy)]
+    [InlineData(HyperDriveModes.V2)]
+    public async Task ProfileManagerUsesCapturedRoutingAndAtomicNativeCommand(HyperDriveModes mode)
+    {
+        RequireOwnedFixtures();var id=Guid.NewGuid();
+        await using var mongo=new MongoStore();await mongo.Activate();
+        await using var bolt=new BoltStore();await bolt.Activate(id);
+        using var sqlite=new SqliteStore();Assert.False((await sqlite.Provider.ActivateProviderAsync()).IsError);
+        IOASISStorageProvider[] providers=[mongo.Provider,sqlite.Provider,bolt.Provider];
+        var baseline=await SeedRoutingStores(providers,id);var manager=Routing(providers,true,mode);
+        var types=providers.Select(provider=>provider.ProviderType.Value).ToArray();
+        Assert.False(manager.PublishRoutingOverrides(new ProviderRoutingOverrides(true,true,true,
+            failoverProviders:types,replicationProviders:types,loadBalancingProviders:new[]{ProviderType.Neo4jOASIS}),
+            ProviderType.MongoDBOASIS).IsError);
+        var before=manager.CaptureRoutingPolicy().Result;
+        var sdk=new AvatarManager(null,manager.OASISDNA,manager);
+        var command=Edit(id,baseline,(AvatarProfileProperty.Title,"SDK manager"),(AvatarProfileProperty.Address,"SDK manager"));
+        var result=await sdk.ApplyAvatarProfileAsync(id,command);
+        Assert.False(result.IsError,result.Exception?.ToString()??result.Message);Assert.False(result.IsWarning,result.Message);
+        Assert.True(result.IsSaved);Assert.Equal(2,result.SavedCount);
+        using(var route=System.Text.Json.JsonDocument.Parse(result.MetaData["hyperDriveRoute"]))
+            Assert.Equal(nameof(ProviderType.Neo4jOASIS),route.RootElement.GetProperty("ServingProvider").GetString());
+        Assert.True(result.MetaData.ContainsKey("hyperDriveReplicationDiagnostic"));
+        foreach(var provider in providers)
+        {
+            var persisted=await Read(provider,id);SameRevisions(result.Result,persisted);
+            Assert.Equal("SDK manager",persisted.Title);Assert.Equal("SDK manager",persisted.Address);
+        }
+        var requests=providers.Sum(provider=>manager.PerformanceMonitor.GetMetrics(provider.ProviderType.Value)?.TotalRequests??0);
+        var foreign=await sdk.ApplyAvatarProfileAsync(Guid.NewGuid(),command);
+        Assert.True(foreign.IsError);Assert.Equal(AvatarProfileErrors.Forbidden,foreign.ErrorCode);
+        var invalid=await sdk.ApplyAvatarProfileAsync(id,command,ProviderType.All);
+        Assert.True(invalid.IsError);Assert.Equal(AvatarProfileErrors.Invalid,invalid.ErrorCode);
+        var missing=await sdk.ApplyAvatarProfileAsync(id,null!);
+        Assert.True(missing.IsError);Assert.Equal(AvatarProfileErrors.Invalid,missing.ErrorCode);
+        using var cancelled=new CancellationTokenSource();cancelled.Cancel();
+        var stopped=await sdk.ApplyAvatarProfileAsync(id,command,cancellationToken:cancelled.Token);
+        Assert.True(stopped.IsError);Assert.Equal("AVATAR_PROFILE_CANCELLED",stopped.ErrorCode);
+        Assert.Equal(requests,providers.Sum(provider=>manager.PerformanceMonitor.GetMetrics(provider.ProviderType.Value)?.TotalRequests??0));
+        var after=manager.CaptureRoutingPolicy().Result;
+        Assert.Equal(before.PreferredProvider,after.PreferredProvider);
+        Assert.Equal(before.AutoFailoverEnabled,after.AutoFailoverEnabled);
+        Assert.Equal(before.AutoReplicationEnabled,after.AutoReplicationEnabled);
+        Assert.Equal(before.AutoLoadBalancingEnabled,after.AutoLoadBalancingEnabled);
+        Assert.Equal(before.FailoverProviders,after.FailoverProviders);
+        Assert.Equal(before.ReplicationProviders,after.ReplicationProviders);
+        Assert.Equal(before.LoadBalancingProviders,after.LoadBalancingProviders);
+        Assert.Equal(mode,manager.OASISDNA.OASIS.HyperDriveMode);
     }
 
     [Fact]
