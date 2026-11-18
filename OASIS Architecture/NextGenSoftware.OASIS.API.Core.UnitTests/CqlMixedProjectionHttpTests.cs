@@ -49,7 +49,7 @@ public partial class CqlV1Web4Tests
         }
     };
 
-    private static async Task<(Guid MappingId, VirtualHolonProjectionRead Row)> MappedProjectionHttpRow(ProviderType provider)
+    private static async Task<(Guid MappingId, VirtualHolonProjectionRead Row)> MappedProjectionHttpRow(ProviderType provider, int readLimit = 100)
     {
         var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, Actor, provider, "people",
             VirtualHolonMapping.SandboxConnectionName, "test-native://http",
@@ -60,7 +60,7 @@ public partial class CqlV1Web4Tests
         reader.Setup(value => value.DescribeVirtualQueryConnection(null)).Returns(mapping.ConnectionIdentity);
         reader.Setup(value => value.QueryNativeProjectionRecordsAsync("people",
             It.IsAny<IReadOnlyList<NativeRecordFilter>>(), It.IsAny<IReadOnlyList<NativeProjectionColumn>>(),
-            100, null, It.IsAny<CancellationToken>()))
+            readLimit, null, It.IsAny<CancellationToken>()))
             .Returns((string source, IReadOnlyList<NativeRecordFilter> filters, IReadOnlyList<NativeProjectionColumn> columns,
                 int limit, NativeConnection connection, CancellationToken token) =>
             {
@@ -72,7 +72,7 @@ public partial class CqlV1Web4Tests
                     new NativeProjectionCell(NativeProjectionValueState.Present, 2) }) };
                 return Task.FromResult(new OASISResult<IReadOnlyList<NativeProjectionRow>>(rows) { IsLoaded = true });
             });
-        var read = await mapping.QueryProjectionAsync(Actor, reader.Object, null, projection.Matches, projection.Columns, 100);
+        var read = await mapping.QueryProjectionAsync(Actor, reader.Object, null, projection.Matches, projection.Columns, readLimit);
         Assert.False(read.IsError, read.Message);
         return (mapping.Id, Assert.Single(read.Result));
     }

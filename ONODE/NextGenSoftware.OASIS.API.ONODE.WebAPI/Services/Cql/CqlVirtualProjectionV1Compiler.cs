@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.Common;
@@ -14,13 +15,14 @@ public static partial class CqlV1Compiler
 {
     internal static CqlVirtualProjection CompileVirtualProjection(CqlProjectionV1Request request)
     {
-        if (request == null || request.OrderBy != "Id" || request.SelectedOrder != null ||
+        if (request == null || (request.SelectedOrder == null ? request.OrderBy != "Id"
+                : request.OrderBy != "None" || request.Descending) ||
             request.Skip is < 0 or >= CqlVirtualProjection.MaximumRows * 2 ||
             request.Take is < 1 or > CqlVirtualProjection.MaximumRows || request.Graph != null ||
             request.AnyOf is not { Length: 0 } || request.AnyChildren is not { Length: 0 } ||
             request.AnyDescendants is not { Length: 0 } ||
             request.Columns is not { Length: >= 2 and <= 32 })
-            throw new ArgumentException("Mixed projection requires supported native predicates, Id ordering and a bounded result.");
+            throw new ArgumentException("Mixed projection requires supported native predicates, selected ordering and a bounded result.");
 
         var matches = CompileVirtualMatches(request.Filters);
 
@@ -59,7 +61,13 @@ public static partial class CqlV1Compiler
         NativeProjectionColumn.Capture(columns);
         if (columns.Any(column => column.Alias == request.Columns[0].Alias))
             throw new ArgumentException("Result aliases must be unique, including logical identity.");
-        return new CqlVirtualProjection(matches, columns);
+        var orderings = CosmicMixedProjectionOrdering.Capture(
+            request.SelectedOrder == null
+                ? new[] { new CosmicMixedProjectionOrdering(request.Columns[0].Alias, request.Descending) }
+                : request.SelectedOrder.Select(term => term == null ? null
+                    : new CosmicMixedProjectionOrdering(term.Alias, term.Descending)).ToArray(),
+            request.Columns.Select(column => column.Alias).ToArray());
+        return new CqlVirtualProjection(matches, columns, orderings);
 
     }
 
@@ -130,30 +138,15 @@ public static partial class CqlV1Compiler
 }
 
 
-internal sealed record CqlVirtualProjection(NativeRecordFilter[] Matches, NativeProjectionColumn[] Columns)
+internal sealed record CqlVirtualProjection(NativeRecordFilter[] Matches, NativeProjectionColumn[] Columns,
+    IReadOnlyList<CosmicMixedProjectionOrdering> Orderings)
 {
     // A full branch at this limit cannot prove absence of further rows.
-    internal const int MaximumRows = 100;
+    internal const int MaximumRows = CosmicMixedProjectionResults.MaximumBranchRows;
     internal string[] ProjectedFields => Columns.Select(column => column.Field).Distinct(StringComparer.Ordinal).ToArray();
 
     internal object[] Select(VirtualHolonProjectionRead row)
-    {
-        if (row == null || row.Id == Guid.Empty || row.Columns.Count != Columns.Length || row.Cells.Count != Columns.Length)
-            throw new ArgumentException("The mapped result shape differs from its admitted projection.");
-        var values = new object[Columns.Length + 1];
-        values[0] = row.Id;
-        for (var index = 0; index < Columns.Length; index++)
-        {
-            var column = Columns[index]; var observed = row.Columns[index]; var cell = row.Cells[index];
-            if (column.Field != observed.Field || column.Alias != observed.Alias ||
-                column.InputType != observed.InputType || column.ValueType != observed.ValueType ||
-                column.Function != observed.Function || column.Nullable != observed.Nullable ||
-                (cell.State == NativeProjectionValueState.Present ? cell.Value.GetType() != column.ValueType : !column.Nullable))
-                throw new ArgumentException("The mapped result schema differs from its admitted projection.");
-            values[index + 1] = cell.Value;
-        }
-        return values;
-    }
+        => CosmicMixedProjectionResults.CaptureVirtualRow(Columns, row);
 }
 
 internal interface ICqlVirtualMappingReader
