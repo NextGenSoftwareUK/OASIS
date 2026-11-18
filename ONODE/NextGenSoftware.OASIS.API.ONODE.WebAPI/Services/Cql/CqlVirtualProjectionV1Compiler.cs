@@ -25,10 +25,11 @@ public static partial class CqlV1Compiler
             throw new ArgumentException("Mixed projection requires supported native predicates, selected ordering and a bounded result.");
 
         if (!Enum.IsDefined(typeof(CqlProjectionV1ResultOperation), request.ResultOperation) ||
-            request.ResultOperation == CqlProjectionV1ResultOperation.LongCount &&
-                (request.Columns.Length != 1 || request.OrderBy != "Id" || request.Descending ||
-                 request.SelectedOrder != null || request.Skip != 0 || request.Take != 1))
-            throw new ArgumentException("Mixed count requires identity-only input and one unpaged scalar result.");
+            request.ResultOperation != CqlProjectionV1ResultOperation.Rows &&
+                (request.Columns.Length != (request.ResultOperation == CqlProjectionV1ResultOperation.LongCount ? 1 : 2) ||
+                 request.OrderBy != "Id" || request.Descending || request.SelectedOrder != null ||
+                 request.Skip != 0 || request.Take != 1))
+            throw new ArgumentException("Mixed aggregates require canonical Id, an admitted value and one unpaged scalar result.");
 
         var matches = CompileVirtualMatches(request.Filters);
 
@@ -66,6 +67,11 @@ public static partial class CqlV1Compiler
             return new NativeProjectionColumn(column.MetadataPath[0], column.Alias, type, nullable, function);
         }).ToArray();
         NativeProjectionColumn.Capture(columns);
+        if (request.ResultOperation is CqlProjectionV1ResultOperation.Min or CqlProjectionV1ResultOperation.Max
+            or CqlProjectionV1ResultOperation.Sum or CqlProjectionV1ResultOperation.Average)
+            if (columns.Length != 1 || columns[0].ValueType != typeof(int) &&
+                columns[0].ValueType != typeof(long) && columns[0].ValueType != typeof(double))
+                throw new ArgumentException("Mapped numeric aggregation requires Int32, Int64, Double or a native LENGTH output.");
         if (columns.Any(column => column.Alias == request.Columns[0].Alias))
             throw new ArgumentException("Result aliases must be unique, including logical identity.");
         var orderings = CosmicMixedProjectionOrdering.Capture(

@@ -271,6 +271,38 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.AreEqual(3, operation.ProviderAttempts.Count); Assert.AreEqual(3, operation.Receipts.Count);
                 Assert.AreEqual(0.006m, authority.Settlements[operation.Id].ActualCostUsd);
             }
+            body.Filters[0].Value = JsonSerializer.SerializeToElement("2");
+            body.Columns = new[] { body.Columns[0], new CqlProjectionV1Column {
+                MetadataPath = new[] { "textAlias" }, ValueType = "String", Alias = "Units",
+                Function = CqlV1Function.Utf16Length, Nullable = true } };
+            foreach (var aggregateOperation in new[] { CqlProjectionV1ResultOperation.Min, CqlProjectionV1ResultOperation.Max,
+                CqlProjectionV1ResultOperation.Sum, CqlProjectionV1ResultOperation.Average })
+            {
+                body.ResultOperation = aggregateOperation;
+                using var response = await Send(ownerToken);
+                var text = await response.Content.ReadAsStringAsync();
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, text);
+                using var json = JsonDocument.Parse(text);
+                var result = json.RootElement.GetProperty("result");
+                Assert.AreEqual("cql-scalar-v1", result.GetProperty("version").GetString());
+                Assert.AreEqual(aggregateOperation.ToString(), result.GetProperty("operation").GetString());
+                if (aggregateOperation == CqlProjectionV1ResultOperation.Average)
+                {
+                    Assert.AreEqual("Decimal", result.GetProperty("valueType").GetString());
+                    Assert.AreEqual("5", result.GetProperty("value").GetString());
+                }
+                else
+                {
+                    Assert.AreEqual("Int32", result.GetProperty("valueType").GetString());
+                    Assert.AreEqual(aggregateOperation == CqlProjectionV1ResultOperation.Min ? 2
+                        : aggregateOperation == CqlProjectionV1ResultOperation.Max ? 9 : 20, result.GetProperty("value").GetInt32());
+                }
+                Assert.IsFalse(result.GetProperty("canPrepareSnapshot").GetBoolean());
+                var operation = await outbox.GetAsync(response.Headers.GetValues("X-OASIS-Operation-Id").Single(), CancellationToken.None);
+                Assert.AreEqual("settled", operation.State);
+                Assert.AreEqual(3, operation.ProviderAttempts.Count); Assert.AreEqual(3, operation.Receipts.Count);
+                Assert.AreEqual(0.006m, authority.Settlements[operation.Id].ActualCostUsd);
+            }
             using (var response = await Send(otherToken))
             {
                 var text = await response.Content.ReadAsStringAsync();
@@ -282,7 +314,7 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsNull((await provider.LoadHolonAsync(orderedId)).Result,
                 "Read-only mixed queries must not materialize the virtual-only source record.");
             await app.StopAsync();
-            Assert.AreEqual(7, authority.Settlements.Count);
+            Assert.AreEqual(11, authority.Settlements.Count);
         }
         finally
         {

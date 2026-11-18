@@ -232,7 +232,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             Assert.AreEqual(nativeBefore.Length, nativeAfter.Length);
             for (var index = 0; index < nativeBefore.Length; index++) CollectionAssert.AreEqual(nativeBefore[index], nativeAfter[index]);
             checks.Add(new { provider = "MongoDBOASIS", nativeProjection = "bounded payload/work/cancellation and unchanged native documents", elapsedMilliseconds = projectionWatch.ElapsedMilliseconds });
-            checks.Add(new { provider = "MongoDBOASIS", nativeHttp = "mixed raw/computed and database-loaded private definition", jwt = true, discovery = "controlled owned fixture", successAttempts = 3, foreignActorAttempts = 2, globalOrderingVerified = true, orderedAttempts = 3, identityHttpVerified = true, mixedCountHttpVerified = true });
+            checks.Add(new { provider = "MongoDBOASIS", nativeHttp = "mixed raw/computed and database-loaded private definition", jwt = true, discovery = "controlled owned fixture", successAttempts = 3, foreignActorAttempts = 2, globalOrderingVerified = true, orderedAttempts = 3, identityHttpVerified = true, mixedCountHttpVerified = true, mixedNumericHttpVerified = true });
             complete = true;
         }
         finally

@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 
 [JsonConverter(typeof(JsonStringEnumConverter<CqlProjectionV1ResultOperation>))]
-public enum CqlProjectionV1ResultOperation { Rows, LongCount }
+public enum CqlProjectionV1ResultOperation { Rows, LongCount, Min, Max, Sum, Average }
 
 /// <summary>Bounded native selected-column intent. Actor and provider eligibility belong to the host.</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]

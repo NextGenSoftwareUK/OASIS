@@ -147,6 +147,30 @@ public static partial class CqlV1Endpoint
                 virtualMappingId = request.VirtualMappingId, canPrepareSnapshot = false
             }) { IsLoaded = true });
         }
+        if (request.ResultOperation != CqlProjectionV1ResultOperation.Rows)
+        {
+            var operation = request.ResultOperation switch
+            {
+                CqlProjectionV1ResultOperation.Min => CosmicScalarOperation.Min,
+                CqlProjectionV1ResultOperation.Max => CosmicScalarOperation.Max,
+                CqlProjectionV1ResultOperation.Sum => CosmicScalarOperation.Sum,
+                CqlProjectionV1ResultOperation.Average => CosmicScalarOperation.Average,
+                _ => throw new ArgumentException("The mixed aggregate operation is not admitted.")
+            };
+            var aggregated = CosmicMixedProjectionResults.Aggregate(intent, actor, request.VirtualMappingId.Value,
+                materialized, native.Result, operation, MaximumResponseBytes * 2, cancellationToken);
+            if (aggregated.IsError)
+                return MixedResultFailure(http, aggregated.ErrorCode, aggregated.Message, cancellationToken);
+            var scalar = aggregated.Result;
+            cancellationToken.ThrowIfCancellationRequested();
+            return JsonResponse(new OASISResult<object>(new
+            {
+                version = "cql-scalar-v1", provider = selected.ToString(), operation = operation.ToString(),
+                valueType = ProjectionWireType(Nullable.GetUnderlyingType(scalar.ValueType) ?? scalar.ValueType),
+                value = ProjectionWireValue(scalar.Value), virtualMappingId = request.VirtualMappingId,
+                canPrepareSnapshot = false
+            }) { IsLoaded = true });
+        }
         var merged = CosmicMixedProjectionResults.Merge(intent, actor, request.VirtualMappingId.Value,
             materialized, native.Result, virtualProjection.Orderings, request.Skip, request.Take,
             MaximumResponseBytes * 2, cancellationToken);
