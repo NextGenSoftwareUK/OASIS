@@ -1,3 +1,5 @@
+2026-11-18 UTC — Finite Double work uses Git blobs, auto-removed temporary indexes and the existing cached Node only. Website237 cases passed in RAM (0.623s on final exact preparation); no package installation, local .NET restore/build/test, database/environment/image/output directory or downloaded artifact. Retain source tag cosmic-cql-native-double-b251e65ed31c while exact44350525123 is active and through evidence/integration. Numeric fake fields and owned seed IDs exist only in isolated CI fixtures; existing exact cleanup/source preservation checks remain mandatory. Root/Core/website source published on existing branches, no new branch/worktree. Known retained/blocked exact paths, reasons and release conditions remain in the register. Shared Atlas stand-down untouched.
+
 2026-11-18 UTC — Explicit retained-item update requested by David. C: measured 36.82 GiB free; this entry records retention, not a claim of additional space reclaimed. No shared Mongo/API request, deployment, install, restore or local build performed.
 
 Items not removed and their release conditions:
