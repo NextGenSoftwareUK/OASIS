@@ -58,7 +58,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
             _providers = providers ?? throw new ArgumentNullException(nameof(providers));
             _isReady = isReady ?? throw new ArgumentNullException(nameof(isReady));
             _authorization = authorization ?? throw new ArgumentNullException(nameof(authorization));
-            HolonReplicationRoutes.UseAuthorizationBinding(_providers(),()=>_authorization.BindingIdentity);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
