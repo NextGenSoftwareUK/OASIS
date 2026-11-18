@@ -98,8 +98,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.AccessLog
             {
                 var repo = (Services.Subscription.MongoSubscriptionUsageRepository)_services.GetService(typeof(Services.Subscription.MongoSubscriptionUsageRepository));
                 if (repo == null) return;
-                var accounts = await repo.ListAppAccountsAsync(c).ConfigureAwait(false);
-                _service.Overrides.Replace(accounts.Select(a => (a.AppId, a.Overrides?.AccessLogEnabled)));
+                var accounts = await repo.ListAppPolicyOverridesAsync(c).ConfigureAwait(false);
+                _service.Overrides.Replace(accounts.Select(a => (a.AppId, a.AccessLogEnabled)));
             }
             catch (Exception) { /* keep the last known choices */ }
         }

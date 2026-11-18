@@ -108,7 +108,7 @@ jobs:
         run: ./Scripts/verify_hyperdrive_v2_operation_contracts.ps1
 
       - name: Build the WEB4 artifact the controller contracts load
-        if: ${{ !inputs.native_seal }}
+        if: ${{ !inputs.native_seal || inputs.native_project == 'subscription_ledger' }}
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner api-qualification-build-ci -Operation {

@@ -37,8 +37,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Seal
                         var apps = Array.Empty<string>();
                         if (repo != null)
                         {
-                            var accounts = await repo.ListAppAccountsAsync(stoppingToken).ConfigureAwait(false);
-                            apps = accounts.Where(a => a.Overrides?.SealedHistoryEnabled == true).Select(a => a.AppId).ToArray();
+                            var accounts = await repo.ListAppPolicyOverridesAsync(stoppingToken).ConfigureAwait(false);
+                            apps = accounts.Where(a => a.SealedHistoryEnabled == true).Select(a => a.AppId).ToArray();
                         }
                         if (!_policy.TryReplaceSwitches(revision, owners, apps))
                             _logger.LogDebug("HOLON_SEAL_REFRESH_SUPERSEDED: a newer local setting was preserved.");
