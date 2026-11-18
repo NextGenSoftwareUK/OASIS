@@ -197,7 +197,7 @@ jobs:
           exit 1
 
       - name: Verify real seal routing without repeating accepted contracts
-        if: ${{ inputs.native_seal }}
+        if: ${{ inputs.native_seal && !inputs.native_profile_sdk }}
         shell: pwsh
         env:
           SUBSCRIPTION_TEST_MONGODB_URI: mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000
@@ -211,6 +211,16 @@ jobs:
             dotnet test $project --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false --filter "$env:OASIS_NATIVE_PROVIDER_TEST_FILTER" --logger 'trx;LogFileName=seal-routing-native.trx' --results-directory artifacts/hyperdrive-contract-validation
             if ($LASTEXITCODE) { throw 'Native seal routing verification failed.' }
           }
+
+      - name: Verify actual profile SDK through owned native HTTP
+        if: ${{ inputs.native_seal && inputs.native_profile_sdk }}
+        shell: bash
+        env:
+          SUBSCRIPTION_TEST_MONGODB_URI: mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000
+          OASIS_PROFILE_WEB4_SDK_ROOT: ${{ github.workspace }}/web4-profile-sdk
+          OASIS_NATIVE_PROVIDER_TEST_FILTER: ${{ inputs.native_test_filter }}
+          OASIS_PROFILE_NEO4J_FIXTURE: ${{ inputs.native_neo4j && 'owned-local-27687' || '' }}
+        run: bash Scripts/TestHosts/Invoke-ProfileSdkNativeVerification.sh
 
       - name: Stop owned native seal routing fixture
         if: ${{ always() && inputs.native_seal }}
