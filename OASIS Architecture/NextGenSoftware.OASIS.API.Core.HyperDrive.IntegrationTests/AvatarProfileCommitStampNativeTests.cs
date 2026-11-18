@@ -154,7 +154,7 @@ public sealed class AvatarProfileCommitStampNativeTests
         return baseline!;
     }
 
-    private static ProviderManager Routing(IOASISStorageProvider[] providers,bool replicate,HyperDriveModes mode=HyperDriveModes.V2)
+    private static ProviderManager Routing(IOASISStorageProvider[] providers,bool replicate,string mode=HyperDriveModes.V2)
     {
         var dna=new OASISDNA{OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS
         {
@@ -314,7 +314,7 @@ public sealed class AvatarProfileCommitStampNativeTests
     [Theory]
     [InlineData(HyperDriveModes.Legacy)]
     [InlineData(HyperDriveModes.V2)]
-    public async Task ProfileManagerUsesCapturedRoutingAndAtomicNativeCommand(HyperDriveModes mode)
+    public async Task ProfileManagerUsesCapturedRoutingAndAtomicNativeCommand(string mode)
     {
         RequireOwnedFixtures();var id=Guid.NewGuid();
         await using var mongo=new MongoStore();await mongo.Activate();
