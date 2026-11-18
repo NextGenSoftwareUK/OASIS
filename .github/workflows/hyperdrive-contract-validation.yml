@@ -21,6 +21,11 @@ on:
         description: Verify the changed private-data-free request timing middleware
         type: boolean
         default: false
+      request_timing_filter:
+        description: Select only changed timing contracts; empty runs the timing host
+        type: string
+        required: false
+        default: ''
       native_seal:
         description: 'Use the owned MongoDB/SQLite fixture for a focused native regression.'
         required: false
@@ -114,9 +119,13 @@ jobs:
       - name: Verify the changed request timing middleware
         if: ${{ inputs.request_timing_tests }}
         shell: pwsh
+        env:
+          OASIS_REQUEST_TIMING_FILTER: ${{ inputs.request_timing_filter }}
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner request-timing-ci -Operation {
-            dotnet test 'ONODE/Tests/RequestTiming.Tests/RequestTiming.Tests.csproj' --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false --logger 'trx;LogFileName=request-timing.trx' --results-directory artifacts/hyperdrive-contract-validation
+            $selection = @()
+            if ($env:OASIS_REQUEST_TIMING_FILTER) { $selection = @('--filter', $env:OASIS_REQUEST_TIMING_FILTER) }
+            dotnet test 'ONODE/Tests/RequestTiming.Tests/RequestTiming.Tests.csproj' --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false @selection --logger 'trx;LogFileName=request-timing.trx' --results-directory artifacts/hyperdrive-contract-validation
             if ($LASTEXITCODE) { throw 'Request timing checks failed.' }
           }
 
