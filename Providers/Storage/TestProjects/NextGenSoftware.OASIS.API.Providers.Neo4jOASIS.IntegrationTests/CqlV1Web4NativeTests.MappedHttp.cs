@@ -79,13 +79,19 @@ public sealed partial class CqlV1Web4NativeTests
             CreatedByAvatarId = mapping.OwnerAvatarId, IsPublic = false, IsActive = true,
             MetaData = new() { ["textAlias"] = "xy" }
         };
+        var longer = new Holon
+        {
+            Id = Guid.NewGuid(), Version = 1, Name = "owned longer record",
+            CreatedByAvatarId = mapping.OwnerAvatarId, IsPublic = false, IsActive = true,
+            MetaData = new() { ["textAlias"] = "important" }
+        };
         var created = new List<Guid>();
         var authority = new Authority();
         var outbox = new MongoUsageOutboxStore(uri, usageDb);
         var initialized = false;
         try
         {
-            foreach (var row in new IHolon[] { definition, snapshot, important })
+            foreach (var row in new IHolon[] { definition, snapshot, important, longer })
             {
                 var prior = await provider.LoadHolonAsync(row.Id);
                 Assert.IsNull(prior.Result, "Never overwrite an existing fixture record.");
@@ -154,6 +160,50 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.AreEqual(3, operation.ProviderAttempts.Count); Assert.AreEqual(3, operation.Receipts.Count);
                 Assert.AreEqual(0.006m, authority.Settlements[operation.Id].ActualCostUsd);
             }
+            // Both branches must participate completely before de-duplication,
+            // selected scalar ordering and one global page.
+            body.Filters[0].Operator = CqlV1Operator.GreaterThanOrEqual;
+            body.OrderBy = "None";
+            body.SelectedOrder = new[] {
+                new CqlGroupedV1Ordering { Alias = "Units", Descending = true },
+                new CqlGroupedV1Ordering { Alias = "Original" }
+            };
+            body.Skip = 1; body.Take = 1;
+            using (var response = await Send(ownerToken))
+            {
+                var text = await response.Content.ReadAsStringAsync();
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, text);
+                using var json = JsonDocument.Parse(text);
+                var result = json.RootElement.GetProperty("result");
+                var row = result.GetProperty("rows").EnumerateArray().Single();
+                Assert.AreEqual(important.Id.ToString("D"), row[0].GetString());
+                Assert.AreEqual("xy", row[1].GetString()); Assert.AreEqual(2, row[2].GetInt32());
+                Assert.AreEqual("Materialized", result.GetProperty("provenance").EnumerateArray().Single()
+                    .GetProperty("representation").GetString());
+                var operation = await outbox.GetAsync(response.Headers.GetValues("X-OASIS-Operation-Id").Single(), CancellationToken.None);
+                Assert.AreEqual("settled", operation.State);
+                Assert.AreEqual(3, operation.ProviderAttempts.Count); Assert.AreEqual(3, operation.Receipts.Count);
+                Assert.AreEqual(0.006m, authority.Settlements[operation.Id].ActualCostUsd);
+            }
+            body.SelectedOrder = new[] { new CqlGroupedV1Ordering { Alias = "Original", Descending = true } };
+            body.Skip = 0;
+            using (var response = await Send(ownerToken))
+            {
+                var text = await response.Content.ReadAsStringAsync();
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, text);
+                using var json = JsonDocument.Parse(text);
+                var result = json.RootElement.GetProperty("result");
+                var row = result.GetProperty("rows").EnumerateArray().Single();
+                Assert.AreEqual(original.Id.ToString("D"), row[0].GetString());
+                Assert.AreEqual("😀", row[1].GetString());
+                var provenance = result.GetProperty("provenance").EnumerateArray().Single();
+                Assert.AreEqual("Virtual", provenance.GetProperty("representation").GetString());
+                Assert.IsTrue(provenance.GetProperty("alsoMaterialized").GetBoolean());
+                var operation = await outbox.GetAsync(response.Headers.GetValues("X-OASIS-Operation-Id").Single(), CancellationToken.None);
+                Assert.AreEqual("settled", operation.State);
+                Assert.AreEqual(3, operation.ProviderAttempts.Count); Assert.AreEqual(3, operation.Receipts.Count);
+                Assert.AreEqual(0.006m, authority.Settlements[operation.Id].ActualCostUsd);
+            }
             using (var response = await Send(otherToken))
             {
                 var text = await response.Content.ReadAsStringAsync();
@@ -163,7 +213,7 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.AreEqual(2, operation.ProviderAttempts.Count); Assert.AreEqual(2, operation.Receipts.Count);
             }
             await app.StopAsync();
-            Assert.AreEqual(2, authority.Settlements.Count);
+            Assert.AreEqual(4, authority.Settlements.Count);
         }
         finally
         {
