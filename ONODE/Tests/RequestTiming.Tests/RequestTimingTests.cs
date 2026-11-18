@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
+using Trace = NextGenSoftware.OASIS.API.Core.Helpers.AuthenticationOperationTrace;
 using Xunit;
 
 public sealed class RequestTimingTests
@@ -17,11 +18,15 @@ public sealed class RequestTimingTests
         var pipeline = new RequestTimingMiddleware(async http =>
         {
             RequestTimingMiddleware.Mark(http, RequestTimingMiddleware.Phase.HistoryVersions);
+            Trace.Mark(Trace.AuthenticationStage.LoadingUsername);
+            Trace.MarkRouting(Trace.RoutingStage.ProviderOperation, "MongoDBOASIS", "LoadAvatarByUsername");
             await Task.Delay(5500);
             http.Response.StatusCode = 206;
         }, logger);
         await pipeline.Invoke(context);
         Assert.Contains(logger.Messages, text => text.Contains("pending") && text.Contains("HistoryVersions"));
+        Assert.Contains(logger.Messages, text => text.Contains("pending") && text.Contains("LoadingUsername") &&
+            text.Contains("ProviderOperation") && text.Contains("MongoDBOASIS") && text.Contains("LoadAvatarByUsername"));
         Assert.Contains(logger.Messages, text => text.Contains("finished") && text.Contains("206"));
         var output = string.Join("\n", logger.Messages);
         Assert.DoesNotContain("private-", output);

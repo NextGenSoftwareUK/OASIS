@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using AuthenticationTrace = NextGenSoftware.OASIS.API.Core.Helpers.AuthenticationOperationTrace;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
 
@@ -34,6 +35,7 @@ public sealed class RequestTimingMiddleware
         var route = Classify(context.Request.Path);
         if (route.Length == 0) { await next(context); return; }
         var state = new RequestState();
+        using var authentication = AuthenticationTrace.Begin();
         var operation = Guid.NewGuid().ToString("N");
         context.Items[StateKey] = state;
         var watch = Stopwatch.StartNew();
@@ -46,8 +48,10 @@ public sealed class RequestTimingMiddleware
             lock (state)
             {
                 if (state.Completed) return;
-                logger.LogWarning("OASIS request pending operation={Operation} route={Route} phase={Phase} elapsedMs={ElapsedMs}",
-                    operation, route, (Phase)Volatile.Read(ref state.PhaseValue), watch.ElapsedMilliseconds);
+                var observed = authentication.Snapshot;
+                logger.LogWarning("OASIS request pending operation={Operation} route={Route} phase={Phase} authStage={AuthStage} routingStage={RoutingStage} provider={Provider} storageOperation={StorageOperation} elapsedMs={ElapsedMs}",
+                    operation, route, (Phase)Volatile.Read(ref state.PhaseValue), observed.Authentication,
+                    observed.Routing, observed.Provider, observed.Operation, watch.ElapsedMilliseconds);
             }
         }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30));
         try { await next(context); }
@@ -57,9 +61,11 @@ public sealed class RequestTimingMiddleware
             lock (state)
             {
                 state.Completed = true;
+                var observed = authentication.Snapshot;
                 logger.Log(watch.ElapsedMilliseconds >= 1000 || failed ? LogLevel.Warning : LogLevel.Information,
-                    "OASIS request finished operation={Operation} route={Route} phase={Phase} elapsedMs={ElapsedMs} status={Status} failed={Failed} aborted={Aborted}",
-                    operation, route, (Phase)Volatile.Read(ref state.PhaseValue), watch.ElapsedMilliseconds,
+                    "OASIS request finished operation={Operation} route={Route} phase={Phase} authStage={AuthStage} routingStage={RoutingStage} provider={Provider} storageOperation={StorageOperation} elapsedMs={ElapsedMs} status={Status} failed={Failed} aborted={Aborted}",
+                    operation, route, (Phase)Volatile.Read(ref state.PhaseValue), observed.Authentication,
+                    observed.Routing, observed.Provider, observed.Operation, watch.ElapsedMilliseconds,
                     context.Response.StatusCode, failed, context.RequestAborted.IsCancellationRequested);
             }
             context.Items.Remove(StateKey);
