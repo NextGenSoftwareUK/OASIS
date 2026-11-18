@@ -169,6 +169,22 @@ public sealed partial class CqlV1Web4NativeTests
                 new CqlGroupedV1Ordering { Alias = "Original" }
             };
             body.Skip = 1; body.Take = 1;
+            var orderedId = important.Id;
+            var orderedText = "xy"; var orderedUnits = 2; var orderedRepresentation = "Materialized";
+            if (type != ProviderType.SQLLiteDBOASIS)
+            {
+                // Mongo/Neo fixtures also contain an unchanged seven-unit native
+                // value. It belongs between the stored nine-unit record and the
+                // two-unit records, and has never been materialized into this store.
+                var expectedNative = await mapping.QueryAsync(mapping.OwnerAvatarId, reader, null,
+                    new[] { new NativeRecordFilter("textAlias", CosmicQueryComparisonOperator.Equal, 7L,
+                        NativeRecordFunction.Utf16Length) }, new[] { "textAlias" }, 1);
+                Assert.IsFalse(expectedNative.IsError, expectedNative.Message + expectedNative.Exception);
+                orderedId = expectedNative.Result.Single().Id;
+                Assert.IsNull((await provider.LoadHolonAsync(orderedId)).Result,
+                    "The ordered virtual-only fixture must not already have a materialized copy.");
+                orderedText = "abc\u0000def"; orderedUnits = 7; orderedRepresentation = "Virtual";
+            }
             using (var response = await Send(ownerToken))
             {
                 var text = await response.Content.ReadAsStringAsync();
@@ -176,10 +192,12 @@ public sealed partial class CqlV1Web4NativeTests
                 using var json = JsonDocument.Parse(text);
                 var result = json.RootElement.GetProperty("result");
                 var row = result.GetProperty("rows").EnumerateArray().Single();
-                Assert.AreEqual(important.Id.ToString("D"), row[0].GetString());
-                Assert.AreEqual("xy", row[1].GetString()); Assert.AreEqual(2, row[2].GetInt32());
-                Assert.AreEqual("Materialized", result.GetProperty("provenance").EnumerateArray().Single()
-                    .GetProperty("representation").GetString());
+                Assert.AreEqual(orderedId.ToString("D"), row[0].GetString());
+                Assert.AreEqual(orderedText, row[1].GetString()); Assert.AreEqual(orderedUnits, row[2].GetInt32());
+                var orderedProvenance = result.GetProperty("provenance").EnumerateArray().Single();
+                Assert.AreEqual(orderedRepresentation, orderedProvenance.GetProperty("representation").GetString());
+                if (orderedRepresentation == "Virtual")
+                    Assert.IsFalse(orderedProvenance.GetProperty("alsoMaterialized").GetBoolean());
                 var operation = await outbox.GetAsync(response.Headers.GetValues("X-OASIS-Operation-Id").Single(), CancellationToken.None);
                 Assert.AreEqual("settled", operation.State);
                 Assert.AreEqual(3, operation.ProviderAttempts.Count); Assert.AreEqual(3, operation.Receipts.Count);
