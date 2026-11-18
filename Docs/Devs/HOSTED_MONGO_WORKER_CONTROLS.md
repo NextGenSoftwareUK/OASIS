@@ -94,6 +94,10 @@ For a release containing the profile request-scope/lifecycle fix, add
 mapped Core assembly. This is loaded-code evidence; native functional acceptance
 and WEB4's other applicable process controls still require their separate evidence.
 
+Add `-VerifyProfileRegistry` for a release containing the later captured-registry
+and authority-withdrawal checks. It additionally requires that fix's known marker
+in the mapped Core file. These optional checks do not call the profile API.
+
 Do not wake sleeping services merely to inspect them. Do not restart a queued
 or building deployment because an observation timed out; continue following
 the same deployment handle.

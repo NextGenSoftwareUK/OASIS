@@ -6,7 +6,8 @@ param(
     [Parameter(Mandatory)][guid]$InstanceId,
     [Parameter(Mandatory)][guid]$DeploymentId,
     [Parameter(Mandatory)][ValidatePattern('^[0-9a-f]{40}$')][string]$ExpectedSource,
-    [switch]$VerifyProfileScope
+    [switch]$VerifyProfileScope,
+    [switch]$VerifyProfileRegistry
 )
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
@@ -57,16 +58,24 @@ if [ "__VERIFY_PROFILE_SCOPE__" = "1" ]; then
         printf "scoped_lifecycle_marker=false\n"
     fi
 fi
+if [ "__VERIFY_PROFILE_REGISTRY__" = "1" ]; then
+    if tr -d "\000" < /app/NextGenSoftware.OASIS.API.Core.dll | grep -aFq "AVATAR_PROFILE_AUTHORITY_CHANGED"; then
+        printf "profile_registry_marker=true\n"
+    else
+        printf "profile_registry_marker=false\n"
+    fi
+fi
 '@
 $shell = $shell.Replace('__API_DLL__', $dll)
 $shell = $shell.Replace('__VERIFY_PROFILE_SCOPE__', $(if ($VerifyProfileScope) { '1' } else { '0' }))
+$shell = $shell.Replace('__VERIFY_PROFILE_REGISTRY__', $(if ($VerifyProfileRegistry) { '1' } else { '0' }))
 # All substitutions are validated numeric IDs or fixed source-owned DLL names.
 $remote = "sh -c '" + $shell + "'"
 $rows = @(& railway ssh --project 712f50f6-3b7b-46d4-b229-44b49922f16b --service $serviceId --environment $environmentId --deployment-instance $InstanceId $remote 2>&1 | ForEach-Object { $_.ToString() })
 if ($LASTEXITCODE -ne 0) { throw "Selected process inspection failed (exit $LASTEXITCODE); full SSH output is intentionally not emitted." }
 $selected = @{}
 foreach ($row in $rows) {
-    if ($row -match '^(api_pid|OASIS_PAUSE_USAGE_SETTLEMENT|RAILWAY_GIT_COMMIT_SHA|RAILWAY_DEPLOYMENT_ID|core_mapped|core_control_marker|profile_scope_marker|scoped_lifecycle_marker)=(.*)$') {
+    if ($row -match '^(api_pid|OASIS_PAUSE_USAGE_SETTLEMENT|RAILWAY_GIT_COMMIT_SHA|RAILWAY_DEPLOYMENT_ID|core_mapped|core_control_marker|profile_scope_marker|scoped_lifecycle_marker|profile_registry_marker)=(.*)$') {
         if ($selected.ContainsKey($matches[1])) { throw 'More than one API process supplied evidence.' }
         $selected[$matches[1]] = $matches[2]
     }
@@ -78,12 +87,16 @@ $verified = $selected.OASIS_PAUSE_USAGE_SETTLEMENT -eq 'true' -and
 if ($VerifyProfileScope) {
     $verified = $verified -and $selected.profile_scope_marker -eq 'true' -and $selected.scoped_lifecycle_marker -eq 'true'
 }
+if ($VerifyProfileRegistry) {
+    $verified = $verified -and $selected.profile_registry_marker -eq 'true'
+}
 [pscustomobject]@{
     service="WEB$Service"; environment=$Environment; instance=$InstanceId.ToString()
     deployment=$selected.RAILWAY_DEPLOYMENT_ID; source=$selected.RAILWAY_GIT_COMMIT_SHA
     apiProcess=$selected.api_pid; settlementPause=$selected.OASIS_PAUSE_USAGE_SETTLEMENT
     coreMapped=$selected.core_mapped; coreControlMarker=$selected.core_control_marker
     profileScopeMarker=$selected.profile_scope_marker; scopedLifecycleMarker=$selected.scoped_lifecycle_marker
+    profileRegistryMarker=$selected.profile_registry_marker
     verified=$verified
 } | ConvertTo-Json -Compress
 if (!$verified) { throw 'Running source, pause flag or loaded control assembly does not match acceptance.' }
