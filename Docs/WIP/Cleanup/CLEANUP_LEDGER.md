@@ -3022,3 +3022,21 @@
 2026-11-18 enrollment audit: only selected process/control-plane fields and pinned source objects were read. No local SDK/runtime/package, native database, build outputs, downloaded/extracted reports or additional worktree. Exact old WEB6/STAR commits retained in existing Git stores; no checkout changed. Latest free space36.43GiB; concurrent recovery is not attributed to this task's3.55GiB verified deletion. Three sleeping services left asleep. No further consumer rollout queued after proving inspected registrations are disabled.
 
 2026-11-18 maintenance source batch: existing worktree/reusable qualification ref only. No local SDK/runtime/package download, build/test output, native database or new worktree. CI44297176633 compiles the actual API and5 new pure registration contracts without a backend fixture; compact report only, cleanup/terminal outcome still pending. Required source and tracked evidence retained.
+
+2026-11-18T12:02:48.5492728Z cleanup script PID27544: PLANNED target=C:\Users\David\AppData\Local\Temp\mtlqn04l; bytes=5393786761; reason=Reviewed disposable Visual Studio installer/package extraction; no installer or process uses this exact directory; installed SDKs and reusable package caches retained; regenerate via original tool.
+
+2026-11-18T12:02:51.5568776Z cleanup script PID27544: REMOVED C:\Users\David\AppData\Local\Temp\mtlqn04l; bytes=5393786761; locked/in-use items left=0.
+
+2026-11-18T12:02:53.1084323Z cleanup script PID27544: PLANNED target=C:\Users\David\AppData\Local\Temp\zpa0fmeo.f05; bytes=182146100; reason=Reviewed disposable Visual Studio installer/package extraction; no installer or process uses this exact directory; installed SDKs and reusable package caches retained; regenerate via original tool.
+
+2026-11-18T12:02:54.2020874Z cleanup script PID27544: REMOVED C:\Users\David\AppData\Local\Temp\zpa0fmeo.f05; bytes=182146100; locked/in-use items left=0.
+
+2026-11-18T12:02:55.6949571Z cleanup script PID27544: PLANNED target=C:\Users\David\AppData\Local\Temp\o5tjrvf3.5m1; bytes=182146100; reason=Reviewed disposable Visual Studio installer/package extraction; no installer or process uses this exact directory; installed SDKs and reusable package caches retained; regenerate via original tool.
+
+2026-11-18T12:02:56.5727397Z cleanup script PID27544: REMOVED C:\Users\David\AppData\Local\Temp\o5tjrvf3.5m1; bytes=182146100; locked/in-use items left=0.
+
+2026-11-18T12:02:58.0289776Z cleanup script PID27544: PLANNED target=C:\Users\David\AppData\Local\Temp\2r5zc4uu.sai; bytes=182146100; reason=Reviewed disposable Visual Studio installer/package extraction; no installer or process uses this exact directory; installed SDKs and reusable package caches retained; regenerate via original tool.
+
+2026-11-18T12:02:58.6854418Z cleanup script PID27544: REMOVED C:\Users\David\AppData\Local\Temp\2r5zc4uu.sai; bytes=0; locked/in-use items left=1051.
+
+2026-11-18 emergency cleanup follow-up: initial C: free38,916,911,104 bytes. Reviewed exact temporary Visual Studio package/installer extraction directories; no installer process or executable/command using selected paths (cleanup shell excluded). Removed mtlqn04l5,393,786,761 bytes, zpa0fmeo.f05182,146,100 bytes, o5tjrvf3.5m1182,146,100 bytes: total5,758,078,961 bytes (5.36GiB). 2r5zc4uu.sai removed0 bytes;1051 locked/access-denied entries retained, no bypass or success claimed. Final observed free44,520,972,288 bytes (41.46GiB); concurrent changes mean free-space delta is not the deletion accounting. Existing safe cleanup helper validated literal paths/ancestors, preserved secret filenames and recorded each outcome. All three registered OASIS worktrees retained: concurrent use/ownership not proven disposable. User Downloads, source, databases, credentials, reusable runtimes/package caches, tracked reports and other sessions' files retained. No build, download, environment or backend probe started. Physical Core checkout drift remains unrelated and unstaged.
