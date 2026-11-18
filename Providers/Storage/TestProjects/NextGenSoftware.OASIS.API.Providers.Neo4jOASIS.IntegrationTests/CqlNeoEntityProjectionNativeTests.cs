@@ -232,7 +232,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 return records.Select(record => record["key"].As<string>() + ":" + Convert.ToHexString(
                     System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(
                         JsonSerializer.Serialize(new SortedDictionary<string, object>(record["data"].As<IDictionary<string, object>>(), StringComparer.Ordinal),
-                            new JsonSerializerOptions { NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals })))))).ToArray();
+                            new JsonSerializerOptions { NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals }))))).ToArray();
             }
             var nativeBefore = await NativeProjectionSnapshot();
             await VerifyNativeDoubleProjection(provider, label,
