@@ -22,6 +22,8 @@ public static partial class CqlV1Compiler
             request.Columns is not { Length: >= 2 and <= 32 })
             throw new ArgumentException("Mixed projection requires supported native predicates, Id ordering and a bounded result.");
 
+        if (request.Columns.Any(column => column?.Function != null))
+            throw new ArgumentException("Computed virtual projection requires native mapped projection admission.");
         var matches = CompileVirtualMatches(request.Filters);
 
         if (request.Columns[0] is not { Field: "Id", MetadataPath: null })

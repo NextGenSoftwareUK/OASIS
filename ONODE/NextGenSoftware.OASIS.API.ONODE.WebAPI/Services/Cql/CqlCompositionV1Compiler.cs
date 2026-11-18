@@ -39,7 +39,7 @@ public static partial class CqlV1Compiler
                     if (filter == null) throw new ArgumentException("A selected comparison cannot be null.");
                     var column = query.Columns.SingleOrDefault(column => column.Alias == filter.Alias)
                         ?? throw new ArgumentException("Where must name an exact selected output alias.");
-                    return CompileSelectedFilter(column.Path.ValueType, column.Alias, filter.Operator, filter.Value, row).Body;
+                    return CompileSelectedFilter(column.ValueType, column.Alias, filter.Operator, filter.Value, row).Body;
                 }
                 Expression predicate = null;
                 foreach (var filter in filters) predicate = predicate == null ? Term(filter) : Expression.AndAlso(predicate, Term(filter));
@@ -61,7 +61,7 @@ public static partial class CqlV1Compiler
                     var term = stage.Order[index] ?? throw new ArgumentException("Ordering terms cannot be null.");
                     var column = query.Columns.SingleOrDefault(column => column.Alias == term.Alias)
                         ?? throw new ArgumentException("OrderBy must name an exact selected output alias.");
-                    query = BindSelectedOrdering(column.Path.ValueType, column.Alias, term.Descending, index > 0,
+                    query = BindSelectedOrdering(column.ValueType, column.Alias, term.Descending, index > 0,
                         new CompositionOrderingConsumer(query));
                 }
             }

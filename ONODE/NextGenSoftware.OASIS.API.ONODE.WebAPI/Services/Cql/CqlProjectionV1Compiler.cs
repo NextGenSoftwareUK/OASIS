@@ -88,6 +88,21 @@ public static partial class CqlV1Compiler
         }
     }
 
+    private sealed class LengthSelectionConsumer<TResult>(ISelectionConsumer<TResult> consumer, bool nullable)
+        : ISelectionConsumer<TResult>
+    {
+        public TResult Bind<TValue>(string alias, Expression<Func<Holon, TValue>> selector)
+        {
+            if (typeof(TValue) != typeof(string))
+                throw new ArgumentException("Selected LENGTH requires an exact string input.");
+            Expression length = Expression.Property(selector.Body, nameof(string.Length));
+            if (nullable)
+                return consumer.Bind(alias, Expression.Lambda<Func<Holon, int?>>(
+                    Expression.Convert(length, typeof(int?)), selector.Parameters));
+            return consumer.Bind(alias, Expression.Lambda<Func<Holon, int>>(length, selector.Parameters));
+        }
+    }
+
     private sealed class ProjectionSelectionConsumer : ISelectionConsumer<CosmicProjectionSelection<Holon>>
     {
         public CosmicProjectionSelection<Holon> Bind<TValue>(string alias, Expression<Func<Holon, TValue>> selector)
@@ -104,6 +119,18 @@ public static partial class CqlV1Compiler
         if (column == null) throw new ArgumentException("A column is required.");
         ValidateSelectionAlias(column.Alias);
         var alias = column.Alias;
+        if (column.Function.HasValue)
+        {
+            if (column.Function != CqlV1Function.Utf16Length)
+                throw new ArgumentException("Unsupported selected function.");
+            var input = new CqlProjectionV1Column
+            {
+                Alias = column.Alias, Field = column.Field, MetadataPath = column.MetadataPath,
+                ValueType = column.ValueType, Nullable = column.MetadataPath == null ? null : true
+            };
+            return CompileSelection(input, new LengthSelectionConsumer<TResult>(consumer, column.Nullable == true));
+        }
+
         if (column.MetadataPath == null)
         {
             if (column.ValueType != null || column.Nullable.HasValue)
