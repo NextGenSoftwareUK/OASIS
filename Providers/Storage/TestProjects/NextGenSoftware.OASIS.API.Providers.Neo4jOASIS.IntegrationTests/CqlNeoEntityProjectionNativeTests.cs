@@ -56,7 +56,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             await VerifyChildSource(provider, actor, ids[0], ids[1], checks);
             await VerifyJoinOutputOrdering(provider, ids, checks);
             await VerifyNativeStringLength(provider, ids, checks);
-            Assert.AreEqual(139,checks.Count);
+            Assert.AreEqual(140,checks.Count);
             var deactivation=await provider.DeActivateProviderAsync();Assert.IsFalse(deactivation.IsError,deactivation.Message);active=false;
             await Checkpoint("before-exact-cleanup");
             var deleted=await (await inspection.RunAsync("MATCH(h:Holon) WHERE h.Id IN $ids DETACH DELETE h",new{ids=ids.Select(id=>id.ToString("D")).ToArray()})).ConsumeAsync();
@@ -312,8 +312,10 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 await Assert.ThrowsExceptionAsync<OperationCanceledException>(() => provider.QueryNativeProjectionRecordsAsync(
                     label, adaFilter, projectionColumns, 1, cancellationToken: cancelled.Token));
             }
+            await CqlV1Web4NativeTests.VerifyMappedNativeHttpAsync(provider, lengthMapping, mappedLength.Result.Single());
             CollectionAssert.AreEqual(nativeBefore, await NativeProjectionSnapshot());
             checks.Add(new { provider = "Neo4jOASIS", nativeProjection = "exact UTF8 byte bound, limited computation, cancellation and unchanged source", elapsedMilliseconds = projectionWatch.ElapsedMilliseconds });
+            checks.Add(new { provider = "Neo4jOASIS", nativeHttp = "mixed raw/computed and database-loaded private definition", jwt = true, discovery = "controlled owned fixture", successAttempts = 3, foreignActorAttempts = 2 });
         }
         finally
         {
