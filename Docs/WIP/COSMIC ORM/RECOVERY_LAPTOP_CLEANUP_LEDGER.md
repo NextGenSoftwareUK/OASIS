@@ -1,3 +1,5 @@
+2026-11-18 UTC — Core integration compile failure diagnosed from CI logs; companion DNA field/default copied from verified Development source only. No local build/restore/runtime/database/download/output or Railway/API call. Temporary source index is removed by context cleanup; source Git objects retained. Existing cleanup register remains current.
+
 2026-11-18 UTC — HTTP/native12ad qualification passed; artifact14424846477 (40,640 bytes) parsed in RAM, no extraction retained. Exact fixtures cleaned. New Core source coordination retains only needed Git objects; fresh qualification44298514397 runs in CI. No local SDK/build/restore/runtime/database/environment/output/download added. Retained/blocked cleanup register remains authoritative.
 
 2026-11-18 UTC — Fetched exact already-deployed Core30c89 source for branch coordination; retained source Git objects only, no new checkout/worktree/runtime/environment/build/database. Core merge-tree/temp index use scoped source objects and remove the temporary index. No overlap across32 CQL and15 peer paths. Existing retained/blocked cleanup register remains in force.
