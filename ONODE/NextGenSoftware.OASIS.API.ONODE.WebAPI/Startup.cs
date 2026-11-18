@@ -412,7 +412,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddSingleton<Services.HyperDrive.HyperDriveHostedProviderAccessor>();
             services.AddHostedService<Services.HyperDrive.OASISInitializationHostedService>();
             // Registered on every WEB4, but it does nothing unless that node's DNA has OASIS.Sandbox.Enabled (see SandboxCleanupHostedService).
-            services.AddHostedService<Services.Sandbox.SandboxCleanupHostedService>();
+            Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Sandbox.SandboxCleanupHostedService>(services, Configuration);
             NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConfiguredHolonReplicationRegistration.AddConfiguredCosmicHolonReplicationFromServices(
                 services, Configuration["COSMIC_HOLON_REPLICATION_JSON"], provider =>
                     new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationProviderResolver(
@@ -480,8 +480,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 NextGenSoftware.OASIS.API.Core.Services.Subscriptions.LocalWeb4UsageLedgerRegistration.AddLocalWeb4UsageLedger(services,Configuration,storageUsagePolicy);
             if (subscriptionUsageEnabled)
             {
-                services.AddHostedService<Services.Subscription.SubscriptionUsageExpiryWorker>();
-                services.AddHostedService<Services.Subscription.PaidOverageBillingWorker>();
+                Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Subscription.SubscriptionUsageExpiryWorker>(services, Configuration);
+                Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Subscription.PaidOverageBillingWorker>(services, Configuration);
                 NextGenSoftware.OASIS.API.Core.Services.Subscriptions.SubscriptionTelemetryRegistration.AddSubscriptionUsageTelemetry(services, Configuration, "WEB4");
             }
             Services.SubscriptionReconciliation.UsageReconciliationRegistration.AddUsageReconciliation(services, subscriptionUsageEnabled && Services.Operations.HostedMongoWorkerControl.ReconciliationMayStart(Configuration));
