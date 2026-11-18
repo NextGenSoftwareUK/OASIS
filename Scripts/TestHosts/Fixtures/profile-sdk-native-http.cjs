@@ -1,14 +1,8 @@
 'use strict';
 const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
-const deadline = setTimeout(() => { console.error('Owned SDK fixture exceeded its time limit.'); process.exit(1); }, 30000);
-(async () => {
-  let input = '';
-  for await (const chunk of process.stdin) {
-    input += chunk;
-    if (input.length > 8192) throw new Error('Bounded fixture input required.');
-  }
-  const { baseUrl, token, providerType, title } = JSON.parse(input);
+async function verify(input) {
+  const { baseUrl, token, providerType, title } = input;
   const url = new URL(baseUrl);
   assert.equal(url.hostname, '127.0.0.1');
   assert.equal(url.protocol, 'http:');
@@ -44,9 +38,21 @@ const deadline = setTimeout(() => { console.error('Owned SDK fixture exceeded it
   const reloaded = await client.profile.getProfile({ providerType, token });
   assert.equal(reloaded.isError, false, reloaded.message);
   assert.deepEqual(reloaded.result.profile, saved.result.profile);
-  process.stdout.write(JSON.stringify({
+  return {
     title: saved.result.profile.title,
     avatarVersionId: saved.result.profile.avatarRevision.versionId,
     detailVersionId: saved.result.profile.detailRevision.versionId
-  }));
-})().catch(error => { console.error(error.message); process.exitCode = 1; }).finally(() => clearTimeout(deadline));
+  };
+}
+module.exports = { verify };
+if (require.main === module) {
+  const deadline = setTimeout(() => { console.error('Owned SDK fixture exceeded its time limit.'); process.exit(1); }, 30000);
+  (async () => {
+    let input = '';
+    for await (const chunk of process.stdin) {
+      input += chunk;
+      if (input.length > 8192) throw new Error('Bounded fixture input required.');
+    }
+    process.stdout.write(JSON.stringify(await verify(JSON.parse(input))));
+  })().catch(error => { console.error(error.message); process.exitCode = 1; }).finally(() => clearTimeout(deadline));
+}
