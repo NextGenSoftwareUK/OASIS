@@ -75,7 +75,7 @@ public partial class CqlV1Web4Tests
         var result = await admitted.Policy.RunAsync(() => CqlV1Endpoint.ExecuteScalarAsync(admitted.Http,
             new CqlScalarV1Request
             {
-                Operation = operation, OrderBy = "None",
+                Operation = operation, OrderBy = "Name",
                 Selection = new() { Field = "Name", Nullable = true, Function = CqlV1Function.Utf16Length }
             }, source));
         Assert.True(result is FileContentResult, result is ObjectResult failure
@@ -108,7 +108,7 @@ public partial class CqlV1Web4Tests
             malformed: !inaccessible, inaccessible: inaccessible);
         var admitted = Admission(ProviderType.MongoDBOASIS);
         var result = await admitted.Policy.RunAsync(() => CqlV1Endpoint.ExecuteScalarAsync(admitted.Http,
-            new CqlScalarV1Request { Operation = "Sum", OrderBy = "None",
+            new CqlScalarV1Request { Operation = "Sum", OrderBy = "Name",
                 Selection = new() { Field = "Name", Nullable = true, Function = CqlV1Function.Utf16Length } }, source));
         Assert.IsType<ObjectResult>(result);
         Assert.Single(admitted.Receipts);
