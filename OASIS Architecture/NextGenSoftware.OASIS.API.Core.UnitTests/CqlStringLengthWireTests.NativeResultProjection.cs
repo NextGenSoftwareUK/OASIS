@@ -35,6 +35,10 @@ public sealed class CqlStringLengthWireTests_NativeResultProjection
         Assert.Throws<ArgumentException>(() => new NativeProjectionColumn("score", "Units", typeof(long), true, NativeRecordFunction.Utf16Length));
         Assert.Throws<ArgumentException>(() => new NativeProjectionColumn("label", "Units", typeof(string), true, (NativeRecordFunction)999));
         Assert.Throws<ArgumentException>(() => new NativeProjectionColumn("label", "Units", typeof(string), true, NativeRecordFunction.Contains));
+        Assert.Throws<ArgumentException>(() => NativeProjectionColumn.Capture(null));
+        Assert.Throws<ArgumentException>(() => new NativeProjectionRow("s", "k", null));
+        Assert.Equal("NATIVE_PROJECTION_RESULT_INVALID", NativeProjectionResults.Capture("s",
+            new[] { new NativeProjectionColumn("label", "Text", typeof(string)) }, null).ErrorCode);
     }
 
     [Fact]

@@ -78,6 +78,11 @@ public partial class CqlV1Web4Tests
                 Operation = operation, OrderBy = "None",
                 Selection = new() { Field = "Name", Nullable = true, Function = CqlV1Function.Utf16Length }
             }, source));
+        Assert.True(result is FileContentResult, result is ObjectResult failure
+            ? "Computed scalar error=" + Code(result) + " status=" + failure.StatusCode
+                + " managers=" + source.Managers + " receipts=" + admitted.Receipts.Count
+                + " nativeCalls=" + adapter.Invocations.Count(call => call.Method.Name == "ExecuteCosmicProjectionCompositionAsync")
+            : "Unexpected result type " + result.GetType().Name);
         using var document = JsonDocument.Parse(Assert.IsType<FileContentResult>(result).FileContents);
         var body = document.RootElement.GetProperty("result");
         Assert.Equal("cql-scalar-v1", body.GetProperty("version").GetString());
