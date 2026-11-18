@@ -24,7 +24,7 @@ Existing implementation branches: parent/Core work/cosmic-cql-ton-public; Websit
 | Free WEB6 | Source-bound drafting, explicit review and visitor Free routing controls have controlled client evidence. | Real configured free-model completion and open visitor end-to-end acceptance remain unverified; no unlimited-inference claim. |
 | HyperDrive peer work | Last peer record:4/5 isolated routing cases passed. The remaining case reached successful failover but its final verification observer reused the faulted Mongo client. | Independent observer correction and exact qualification remain with the peer. No whole routing programme completion claim. |
 
-Latest fully accepted native count/text batch image: ghcr.io/nextgensoftwareuk/oasis-web4@sha256:a05a4c594130facb2de1c9c9c5d14aabef3d32c6306801d3ce82d2821b08cb8d, source e9/Core29ae, verified by44381916134. It predates new grouping and was neither pulled nor deployed here. One new verified-grouping image is building exact3aff in44416121167 with teaching_sidecars=false; no new digest or deployment is accepted yet.
+Latest accepted grouping image: ghcr.io/nextgensoftwareuk/oasis-web4@sha256:ddb46be6d846205ac17a2a97eda7683062650e95a76176eb29ce1977f71ce93f, exact3aff/Core9c, verified by44416121167. Runtime is unchanged in stronger test-only DISTINCT source93156, accepted by44418065554 (565+22+3, native148/145/124,17 settlements, all3 DISTINCT/group markers and owned cleanup). No image was pulled or deployed. It predates the current-Development purge/root changes; combined1fe2/Core0e67 requires fresh qualification in44421493104 before any newer rollout image is accepted.
 
 Complete mixed branches currently must each contain fewer than100 records. Saturation refuses the result instead of accepting an unproved partial collection. The complete union can contain198 rows. This does not establish unlimited federation.
 
@@ -73,7 +73,9 @@ Last observed C-drive free space:42.67GiB; this is an observation, not a reclama
 - Native count/text accepted: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44380242516
 - Verified image: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44381916134
 - Grouping SDK/API/native accepted565+22+3: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44414459577
-- Current grouping image build, not yet accepted: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44416121167
+- Verified grouping image: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44416121167
 - Website269-case source: https://github.com/NextGenSoftwareUK/Web4Site/commit/ac304a9e8a1dafd1689b2cb96d762b04b53ab0f0
 
 - Stronger native DISTINCT/stale-key acceptance: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44418065554
+
+- Current Development combination, pending: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44421493104
