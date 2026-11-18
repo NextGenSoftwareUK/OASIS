@@ -70,8 +70,9 @@ and provider capabilities determine which fields and operations are available.
 The WEB4 demo uses the same CQL query to return matching stored and virtual
 rows, including provenance. Saving a virtual row creates an owned snapshot
 that can appear in a later query without duplicating its logical record.
-General cross-source joins, automatic hybrid placement, and OPORTAL controls
-are roadmap scope. See [current verification](CURRENT_STATUS.md) for the
+General cross-source joins, automatic hybrid placement, and full OPORTAL policy
+execution remain roadmap scope; the source checkpoint below distinguishes the
+implemented controls from their remaining admission and live acceptance gates. See [current verification](CURRENT_STATUS.md) for the
 specific sandbox flows that have been verified.
 
 ### WEB4 sandbox acceptance
@@ -89,6 +90,20 @@ resolution. Measure stored bytes and query latency for both modes and verify
 that virtual reads produce zero row saves or HyperDrive replication obligations.
 
 ### Hybrid policy in OPORTAL
+
+18 November source checkpoint: the OPORTAL editor exposes avatar/app scope,
+Full import, Virtual mapping, Hybrid and explicit snapshot-save preference.
+Its source is b5e56176ec20 on the existing portal feature branch. WEB4 source
+c6e90269c261 persists versioned scoped policies and admits new placement operations;
+frozen685dd81a0c1e is undergoing qualification44221309989. Eight editor groups and
+the existing 23-group portal regression passed; no hosted settings save or live
+publication is claimed. The Memory option and limits are present but disabled
+when WEB4 refuses that capability. Existing full and virtual records remain
+visible after a policy change. Clients select app scope with applicationId on
+native import/mapping requests; the mapping retains it for later snapshots.
+Complete read-through cache execution, collection/record exceptions, intelligent
+placement and hosted verification remain required below.
+
 
 Allow the owner to configure source, placement, caching and replication policy
 per avatar or application, with collection and record selectors for exceptions.

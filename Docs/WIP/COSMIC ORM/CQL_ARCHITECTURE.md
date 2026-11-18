@@ -61,9 +61,13 @@ requires authorized access to the native provider.
 Hybrid mode would add explicitly selected cached or persisted records.
 An explicit snapshot save creates an owned Holon with source provenance.
 A source update requires its own authorization and write capability.
-Planned OPORTAL policy is scoped per avatar or application. HyperDrive placement
-and CQL routing must enforce that policy server-side; automatic placement and
-the corresponding controls remain roadmap scope. Query results preserve logical identity,
+OPORTAL avatar/application policy controls and WEB4 settings/placement admission
+now have source implementations under qualification; CURRENT_STATUS records the exact
+revisions and remaining acceptance gates. New native imports, mapping registration
+and explicit snapshots consult the selected policy. Placement preferences never filter
+existing query results. An app override is an owner preference namespace, not an
+application-access grant. Memory caching, automatic placement, collection/record
+exceptions and the corresponding complete execution controls remain roadmap scope. Query results preserve logical identity,
 authoritative source, representation, mapping revision and freshness when
 virtual results, cached fields and full Holons share a collection.
 
