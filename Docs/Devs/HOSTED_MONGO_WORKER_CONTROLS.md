@@ -9,6 +9,7 @@ records, change provider routing, or prove application recovery.
 | `OASIS_PAUSE_HYPERDRIVE_WORKERS` | Compatible WEB4 host | Omits the registered HyperDrive command, fan-out, change-capture, compaction and delivery workers. Older hosts may have four rather than five of these workers. |
 | `OASIS_PAUSE_USAGE_RECONCILIATION` | Compatible WEB4 host | Omits the usage reconciliation worker; retains its repository and foreground reader. |
 | `OASIS_PAUSE_USAGE_SETTLEMENT` | Compatible Core ledger composition in WEB4–WEB10 | Initializes the durable outbox, then returns from automatic settlement execution before any claim/recovery cycle. |
+| `OASIS_PAUSE_APPLICATION_MAINTENANCE` | Compatible WEB4 host | Omits ordinary sandbox cleanup, gardening reward retry, reservation expiry, paid-overage collection and app-statement workers. Foreground services/repositories remain registered. |
 
 All default to `false`. Values use the normal configuration Boolean binder;
 invalid values fail composition rather than silently enabling traffic. Keep
@@ -29,11 +30,15 @@ The settlement control holds automatic execution only. An explicit
 firewall or authorization boundary. Do not invoke such drains during a shared
 cluster stand-down.
 
-The three controls do not cover every application worker. Audit logging, seal
-policy refresh, reservation expiry, billing statements/collection, gardening,
-sandbox maintenance and other host-specific work require separate analysis.
+The controls do not cover every application worker. Audit logging, seal
+policy refresh and other host-specific work require separate analysis.
 Keep required policy binding, initialization, audit draining and financial
 invariants when changing their lifecycle.
+
+The maintenance hold defers automatic jobs without removing their durable
+records or changing their business outcomes. Original feature guards still
+apply when the hold is false. It does not change the sandbox DNA retention
+policy, grant refunds, settle statements, expire leases or award rewards.
 
 ## Stage, deploy and verify
 
