@@ -1,3 +1,5 @@
+2026-11-18 UTC — Corrected numeric HTTP qualification is rebuilt from its original scoped project; every explicit source link is checked against Git objects in memory before CI. Previous44272201057 compile failed before native fixtures. No local build/restore/runtime/database/download retained. Retained/blocked cleanup register unchanged.
+
 2026-11-18 UTC — Numeric HTTP44270843533 failed linked-source test compilation; no native fixture acceptance claimed. Source test definitions corrected for next immutable CI snapshot. No local build/restore/runtime/database/artifact extraction; C: measured26.62GiB free, selected gh cache paths absent. Existing retained/blocked register preserved.
 
 2026-11-18 UTC — Computed-count proof44268581311 passed.40,355-byte artifact inspected in RAM, no download/extraction retained; Mongo/Neo fixtures cleaned, SQLite in-memory. Numeric HTTP qualification reuses the isolated CI fixture next; no local build/restore/runtime/database/results tree. Existing retained/blocked cleanup entries remain.
