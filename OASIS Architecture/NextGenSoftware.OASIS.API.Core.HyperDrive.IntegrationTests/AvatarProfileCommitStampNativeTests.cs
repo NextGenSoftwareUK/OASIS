@@ -18,7 +18,7 @@ using Xunit;
 
 namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 
-public sealed class AvatarProfileCommitStampNativeTests
+public sealed partial class AvatarProfileCommitStampNativeTests
 {
     private const string MongoUri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
 
