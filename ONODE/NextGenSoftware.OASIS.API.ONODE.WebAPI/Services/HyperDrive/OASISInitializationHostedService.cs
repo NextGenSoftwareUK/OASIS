@@ -28,18 +28,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
+            // Foreground enrollment retains its policy even if provider boot fails or delivery is paused.
+            HolonReplicationRoutes.UseAuthorizationBinding(ProviderManager.Instance,
+                () => _authorization.BindingIdentity);
             var result = await _providerAccessor.GetAsync().ConfigureAwait(false);
             if (result == null || result.IsError || result.Result == null)
             {
                 _logger.LogError(
                     "OASIS/default-provider initialization failed; the API host will remain online and provider-backed operations will report degraded availability: {Message}",
                     result?.Message ?? "No provider result was returned.");
-            }
-            else
-            {
-                // Foreground enrollment must retain its policy even when delivery is paused.
-                HolonReplicationRoutes.UseAuthorizationBinding(ProviderManager.Instance,
-                    () => _authorization.BindingIdentity);
             }
         }
 
