@@ -25,7 +25,7 @@ public class CosmicProjectionComputedCompositionProofTests
         var packet = new CosmicProjectionCompositionPacket(
             new[] { new CosmicProjectionInputRow(id, true, Guid.Empty,
                 new object[] { "abc", units }, Array.Empty<object>()) },
-            new[] { new CosmicProjectionStageProof(id) },
+            new[] { new CosmicProjectionStageProof(new[] { id }) },
             new[] { new CosmicProjectionCompositionRow(id, "abc", units) }, 1, 1);
         var result = CosmicProjectionCompositionResults.Materialize(query, packet);
         if (malformed)
