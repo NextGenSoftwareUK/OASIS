@@ -4,11 +4,16 @@ using System.Text.Json.Serialization;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 
+[JsonConverter(typeof(JsonStringEnumConverter<CqlProjectionV1ResultOperation>))]
+public enum CqlProjectionV1ResultOperation { Rows, LongCount }
+
 /// <summary>Bounded native selected-column intent. Actor and provider eligibility belong to the host.</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class CqlProjectionV1Request
 {
     public string? Provider { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public CqlProjectionV1ResultOperation ResultOperation { get; set; }
     public Guid? VirtualMappingId { get; set; }
     public CqlV1Filter[] Filters { get; set; } = Array.Empty<CqlV1Filter>();
     public CqlV1Filter[] AnyOf { get; set; } = Array.Empty<CqlV1Filter>();
