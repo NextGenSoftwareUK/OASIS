@@ -1,4 +1,5 @@
 name: Subscription usage protocol
+run-name: ${{ inputs.settlement_pause_only && format('Settlement pause {0}', inputs.ref || github.sha) || 'Subscription usage protocol' }}
 on:
   pull_request:
     branches: [Development, master]
