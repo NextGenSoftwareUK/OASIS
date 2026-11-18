@@ -35,6 +35,22 @@ policy refresh and other host-specific work require separate analysis.
 Keep required policy binding, initialization, audit draining and financial
 invariants when changing their lifecycle.
 
+Inspect extension-method registrations as well as Startup itself. Hosts that
+include OLAND paid-order fulfilment must put its automatic worker through the
+maintenance registration gate; older releases can predate that feature entirely.
+Holding automatic fulfilment must retain paid orders and foreground fulfilment.
+
+Compatible audit workers drain events accepted before a global or per-app
+opt-out, both on their timer and at shutdown. The new setting controls admission
+of future events, not disposal of the existing queue. An empty queue returns
+without accessing the store. This does not upgrade the documented best-effort
+behavior on a failed store write into a durable delivery guarantee.
+
+Policy refresh must publish complete snapshots and preserve newer local seal
+settings. Its app policy query must cover every app and project only the needed
+fields; an administrative page limit is not a valid policy boundary. Refresh
+failures retain the last complete snapshot and report a sanitized failure type.
+
 The maintenance hold defers automatic jobs without removing their durable
 records or changing their business outcomes. Original feature guards still
 apply when the hold is false. It does not change the sandbox DNA retention
