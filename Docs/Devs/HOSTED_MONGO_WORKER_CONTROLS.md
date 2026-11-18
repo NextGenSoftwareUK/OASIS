@@ -89,6 +89,11 @@ deployment metadata):
   -ExpectedSource $immutableSourceSha
 ```
 
+For a release containing the profile request-scope/lifecycle fix, add
+`-VerifyProfileScope` to require both known feature literals in that process's
+mapped Core assembly. This is loaded-code evidence; native functional acceptance
+and WEB4's other applicable process controls still require their separate evidence.
+
 Do not wake sleeping services merely to inspect them. Do not restart a queued
 or building deployment because an observation timed out; continue following
 the same deployment handle.

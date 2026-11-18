@@ -22,3 +22,19 @@ All shared Atlas stand-down controls and deliveries535/543 remain unchanged. No 
 Published Development: `f19a373947d28049bd9ac7ab960541e91ca7a13b`, non-forced fast-forward/readback from0f7. Runtime/CI/test bytes matchb3 exactly and paired dependency pins passed `--check-ref`; the public-manager CSV also matches.18 scoped paths; shared status/cleanup history retained.8 of the9 final cases exercise real Mongo/SQLite and1 verifies detached collection ownership.
 
 Initial normal dev rollout metadata (new sourcef19, old0f still running/accepted): WEB4d0ad6756-4ca0-485c-a246-b191f3b0c889 QUEUED; WEB501112432-c58b-46c6-9329-69ebfd78ceb8 BUILDING; WEB61b8454f3-6b2f-4fc1-bd87-e26f4251f089 QUEUED; WEB7da4d704b-bd19-4b49-8dbb-87914787f13d BUILDING; WEB8e29750f2-eb55-4f09-9159-4d5cb9dc1426 BUILDING; WEB983c264ad-6455-4743-89e5-7eb5ff35fc33 QUEUED; WEB10f9c1d673-9fa4-425c-a8b0-42f422d34d14 QUEUED. These are deployment handles, not running acceptance. No duplicate/manual deployments or synthetic/backend requests. Staging/production unchanged.
+
+2026-11-18 running acceptance: all7 are sole-active SUCCESS on `f19a373947d28049bd9ac7ab960541e91ca7a13b`. Exact process source/deployment, mapped Core, settlement literal, both new `AVATAR_PROFILE_ROUTE_REQUIRED` and `HYPERDRIVE_SCOPED_PROVIDER_SHUTDOWN_DENIED` literals, true settlement hold and1 positive paused startup marker were verified per host. This is selected process/assembly/startup evidence; no API or database request.
+
+| Service | Deployment | Running instance | API PID |
+|---|---|---|---|
+| WEB4 | `d0ad6756-4ca0-485c-a246-b191f3b0c889` | `2ec3c39d-a2f5-4895-be69-d9a44f066374` | 230 |
+| WEB5 | `01112432-c58b-46c6-9329-69ebfd78ceb8` | `4bce742d-ca53-4b64-b954-a90bf1b155d0` | 1 |
+| WEB6 | `1b8454f3-6b2f-4fc1-bd87-e26f4251f089` | `d9a803db-092b-400a-a8f6-13d9152d446d` | 1 |
+| WEB7 | `da4d704b-bd19-4b49-8dbb-87914787f13d` | `08a1fb1a-d03b-43a1-a835-480757e8ff2b` | 1 |
+| WEB8 | `e29750f2-eb55-4f09-9159-4d5cb9dc1426` | `a0bd0211-7eed-4ab6-b0d8-67eb9eec13f3` | 1 |
+| WEB9 | `83c264ad-6455-4743-89e5-7eb5ff35fc33` | `1289c8dd-bc26-4474-855a-4ff8dd12ec35` | 1 |
+| WEB10 | `f9c1d673-9fa4-425c-a8b0-42f422d34d14` | `af9df3b5-8c20-4867-a8aa-cd65f3c01bc0` | 1 |
+
+WEB4 also verified all4 actual holds=true, mapped API, maintenance literal and the retained audit refresh/atomic seal/complete-policy projection feature markers. Selected saved fields show WEB4's4 applicable holds=true and WEB5–10's settlement hold=true; the other3 keys are intentionally WEB4-only (per the runbook). Foreground SUBSCRIPTION_USAGE_ENABLED remains saved true on all7. No settings were changed to satisfy a checker; the initial blanket four-key expectation was corrected to the documented applicability. Staging/production and535/543 remain unchanged.
+
+The operator inspector's optional `-VerifyProfileScope` checks both fixed new markers in the mapped Core file and never emits full SSH/environment/DNA/assembly contents. PowerShell syntax check and all7 actual inspections passed. Default settlement-only use remains unchanged. Running code/control acceptance does not complete profile API orchestration, concurrent write/uniqueness proof or OPORTAL end-to-end behavior.
