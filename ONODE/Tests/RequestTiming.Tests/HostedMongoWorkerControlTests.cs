@@ -57,6 +57,49 @@ public sealed class HostedMongoWorkerControlTests
         Assert.Empty(services);
     }
 
+    [Fact]
+    public void MaintenanceHoldDoesNotConstructWorkersOrRemoveForegroundServices()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<ForegroundService>();
+        HostedMongoWorkerControl.AddMaintenanceWorker<MustNotConstruct>(services,
+            Settings((HostedMongoWorkerControl.PauseMaintenanceKey, "true")));
+        using var provider = services.BuildServiceProvider();
+        Assert.Empty(provider.GetServices<IHostedService>());
+        Assert.NotNull(provider.GetRequiredService<ForegroundService>());
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("false")]
+    public void MaintenanceNormalModeRetainsTheRegisteredWorker(string? value)
+    {
+        var services = new ServiceCollection();
+        HostedMongoWorkerControl.AddMaintenanceWorker<MustNotConstruct>(services,
+            Settings((HostedMongoWorkerControl.PauseMaintenanceKey, value)));
+        Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(IHostedService) &&
+            descriptor.ImplementationType == typeof(MustNotConstruct));
+    }
+
+    [Fact]
+    public void MaintenanceHoldIsIndependentOfOtherBackgroundGroups()
+    {
+        var configuration = Settings((HostedMongoWorkerControl.PauseMaintenanceKey, "true"));
+        var services = new ServiceCollection();
+        HostedMongoWorkerControl.AddHyperDriveWorker<MustNotConstruct>(services, configuration);
+        Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(IHostedService));
+        Assert.True(HostedMongoWorkerControl.ReconciliationMayStart(configuration));
+    }
+
+    [Fact]
+    public void MaintenanceInvalidValueFailsBeforeAddingAWorker()
+    {
+        var services = new ServiceCollection();
+        Assert.Throws<InvalidOperationException>(() => HostedMongoWorkerControl.AddMaintenanceWorker<MustNotConstruct>(
+            services, Settings((HostedMongoWorkerControl.PauseMaintenanceKey, "invalid"))));
+        Assert.Empty(services);
+    }
+
     private sealed class ForegroundService { }
     private sealed class MustNotConstruct : IHostedService
     {
