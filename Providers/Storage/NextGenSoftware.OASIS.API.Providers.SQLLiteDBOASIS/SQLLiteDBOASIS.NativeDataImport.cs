@@ -189,41 +189,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     deadline: TimeSpan.FromSeconds(Math.Min(30, NativeImportOptions.ReadTimeout.TotalSeconds)));
                 using var command = lease.Connection.CreateCommand();
                 command.CommandTimeout = Math.Max(1, (int)Math.Ceiling(NativeImportOptions.ReadTimeout.TotalSeconds));
-                var predicates = new List<string>(matches.Count);
-                for (var index = 0; index < matches.Count; index++)
-                {
-                    var match = matches[index];
-                    var column = Quote(match.Field);
-                    var symbol = match.Operator switch
-                    {
-                        CosmicQueryComparisonOperator.Equal => "=",
-                        CosmicQueryComparisonOperator.NotEqual => "<>",
-                        CosmicQueryComparisonOperator.GreaterThan => ">",
-                        CosmicQueryComparisonOperator.GreaterThanOrEqual => ">=",
-                        CosmicQueryComparisonOperator.LessThan => "<",
-                        CosmicQueryComparisonOperator.LessThanOrEqual => "<=",
-                        _ => throw new ArgumentException("Unknown native comparison.")
-                    };
-                    if (match.Function == NativeRecordFunction.Utf16Length)
-                        predicates.Add($"CASE WHEN typeof({column}) = 'text' THEN {SqliteCqlReadBudget.TextStringLengthFunction}({column}) {symbol} $match{index} ELSE 0 END");
-                    else if (match.Function is NativeRecordFunction.Contains or NativeRecordFunction.StartsWith or NativeRecordFunction.EndsWith)
-                    {
-                        var expression = $"CASE WHEN typeof({column}) = 'text' THEN {SqliteCqlReadBudget.TextStringMatchFunction}({column}, $match{index}, $function{index}) ELSE 0 END";
-                        predicates.Add(match.Operator == CosmicQueryComparisonOperator.NotEqual ? $"NOT ({expression})" : expression);
-                        command.Parameters.AddWithValue($"$function{index}", (long)match.Function);
-                    }
-                    else
-                    {
-                        var atomic = $"typeof({column}) = $type{index} AND {column} COLLATE BINARY {symbol} $match{index}";
-                        if (match.Operator == CosmicQueryComparisonOperator.NotEqual && match.Value is string)
-                            atomic = $"({atomic}) OR {column} IS NULL";
-                        predicates.Add("(" + atomic + ")");
-                        command.Parameters.AddWithValue($"$type{index}", match.Value is string ? "text" : "integer");
-                    }
-                    command.Parameters.AddWithValue($"$match{index}", match.Value);
-                }
+                var predicateSql = CompileNativePredicateSql(matches, command);
                 command.CommandText = $"SELECT rowid, {string.Join(", ", projected.Select(Quote))} FROM {Quote(sourceName)} " +
-                    $"WHERE {string.Join(" AND ", predicates)} ORDER BY rowid LIMIT $take";
+                    $"WHERE {predicateSql} ORDER BY rowid LIMIT $take";
                 command.Parameters.AddWithValue("$take", limit);
 
                 try
