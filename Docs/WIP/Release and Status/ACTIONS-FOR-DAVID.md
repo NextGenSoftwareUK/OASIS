@@ -1,3 +1,15 @@
+## CLOUD-CQL-ACCESS-PREFLIGHT-2026-11-18
+
+Status: blocked, 18 November 2026. Current runtime is Windows C:/Source/OASIS2, not a verified cloud checkout; no persistent-goal tool is exposed. GitHub connector reads OASIS/Web4Site, but private OASIS-API-Core returns 404. Connector write to this existing feature branch returns 403 Resource not accessible by integration. Native git access failed with getaddrinfo thread error. These are access/tooling limits; no credentials requested.
+
+Owner step: ensure the actual cloud environment and its GitHub connection can read OASIS-API-Core and write the existing task branches; start the full handoff there. Engineering must verify cloud ownership and repository access before claiming transfer or pausing prior goal ownership. No local builds, database installs, live calls or deployments. Full roadmap and stand-down remain unchanged. The preflight session could not publish this record through its connector (403). This original session integrates the named record through its existing native Git path, preserving unrelated work. Handoff: Docs/WIP/COSMIC ORM/CLOUD_HANDOFF_2026-11-18.md.
+
+Clarification,18 November2026: runtime placement and credentials are separate gates. The ordinary ChatGPT GitHub connector is documented as read-only; selecting the private Core repository there does not establish push capability. Use an actual Cloud coding task and its coding/Git connection. Authorize the required organization repositories (OASIS, OASIS-API-Core, Web4Site and pinned private dependencies) with the coding access needed for scoped existing-branch commits. Do not paste credentials into chat or copy a local credential store into the handoff. Verify the remote runtime, Core pinned-ref read and coding write access before recording transfer. A missing persistent-goal tool is also a separate capability limit, not something a prompt can enable.
+
+The preflight native error was getaddrinfo/thread-resource related and must not be reported as proof of native Git authorization denial. This original session successfully read the parent feature ref through native Git; that does not verify the other session or a future cloud identity. No extra shared-cluster request, build, database, environment or deployment is needed to configure access.
+
+Official references: https://help.openai.com/en/articles/11145903-connecting-github-to-chatgpt ; https://learn.chatgpt.com/docs/environments/cloud-environments#start-a-task-in-codex-cloud
+
 ## CLOUD-CQL-HANDOFF-START-2026-11-18 — Start the requested cloud continuation
 
 Status: owner UI step needed after agent-owned tooling failed to complete startup;18 November2026. No cloud session ID has been returned. App create_thread request is still pending; a separate app thread listing showed no new cloud session and the preinstalled Codex CLI cloud list returned zero tasks. The saved Default environment is runnable; its empty repository list is supported by Codex Cloud and is NOT evidence of missing GitHub authorization. No repeat login, deployment key or Bronze grant requested.
