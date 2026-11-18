@@ -9,6 +9,17 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
 {
+    public sealed class AppPaygSettings
+    {
+        public bool Enabled { get; set; }
+        public decimal MonthlyCapUsd { get; set; }
+        public string PricingVersion { get; set; }
+        public DateTime? ConsentAtUtc { get; set; }
+        public string ConsentBy { get; set; }
+        /// <summary>The owner avatar whose verified Stripe account is invoiced for this app's overage.</summary>
+        public string BillingAvatarId { get; set; }
+    }
+
     /// <summary>
     /// An application (for example PIPER) that holds a plan of its own. A request that presents the app's id and key
     /// is evaluated against the more generous of the app's plan and the signed-in avatar's personal plan, so a product
@@ -35,6 +46,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public bool PooledQuota { get; set; }
         /// <summary>Personal plan floor for users while they use a pooled app. Defaults to silver.</summary>
         public string PerUserPlanId { get; set; }
+        /// <summary>Avatars allowed to open the owner usage view of ONLY this app (administrator-set, audited).</summary>
+        public List<string> OwnerAvatarIds { get; set; } = new List<string>();
+        /// <summary>Pay-as-you-go preference of this app pool. Settings only: nothing is charged.</summary>
+        public AppPaygSettings Payg { get; set; }
+        /// <summary>This app's own on/off choices that override the node defaults (null = follow the default).</summary>
+        public AppUsageOverrides Overrides { get; set; }
 
         /// <summary>A copy that is safe to return from an API: no key hash.</summary>
         public AppAccountRecord Redacted()
@@ -43,6 +60,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             copy.KeyHashSha256 = null;
             return copy;
         }
+    }
+
+    public sealed class AppUsageOverrides
+    {
+        public bool? OwnerViewEnabled { get; set; }
+        public bool? WarningsEnabled { get; set; }
+        /// <summary>Record who read this app's holons even when the node default is off (or stop recording when it is on).</summary>
+        public bool? AccessLogEnabled { get; set; }
+        /// <summary>Seal every version of data saved through this app (tamper-evident history) even when the owner has not; null/false = the app does not require it. Needs HolonSeal.Enabled and a key on the node.</summary>
+        public bool? SealedHistoryEnabled { get; set; }
     }
 
     public interface IAppAccountRepository

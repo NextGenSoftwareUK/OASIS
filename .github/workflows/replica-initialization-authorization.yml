@@ -11,6 +11,7 @@ on:
       - 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/HolonReplicaInitializationPreparation.cs'
       - 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/HolonReplicaInitializationApplication.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/HyperDrive/ReplicaBaselineRepairCommand.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppAccounts.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/ReplicaBaselineRepairCommandTests.cs'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/**'
       - 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/*.cs'
