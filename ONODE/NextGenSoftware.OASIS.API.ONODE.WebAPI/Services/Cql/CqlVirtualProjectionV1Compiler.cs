@@ -21,7 +21,7 @@ public static partial class CqlV1Compiler
             request.Take is < 1 or > CqlVirtualProjection.MaximumRows || request.Graph != null ||
             request.AnyOf is not { Length: 0 } || request.AnyChildren is not { Length: 0 } ||
             request.AnyDescendants is not { Length: 0 } ||
-            request.Columns is not { Length: >= 2 and <= 32 })
+            request.Columns is not { Length: >= 1 and <= 32 })
             throw new ArgumentException("Mixed projection requires supported native predicates, selected ordering and a bounded result.");
 
         var matches = CompileVirtualMatches(request.Filters);
