@@ -29,7 +29,7 @@ public sealed class AdminPaginationNativeTests
                 await db.GetCollection<OrderRecord>("subscription_orders").InsertOneAsync(new OrderRecord
                     { Id = id, StripeInvoiceId = "invoice-" + id, CreatedAt = time });
                 await db.GetCollection<BsonDocument>("subscription_usage_events").InsertOneAsync(new BsonDocument
-                    { { "_id", id }, { "OperationId", id }, { "AuthorizedAtUtc", time } });
+                    { { "_id", ObjectId.GenerateNewId() }, { "OperationId", id }, { "AuthorizedAtUtc", time } });
                 await db.GetCollection<SubscriptionUsageAuditEntry>("subscription_usage_audit").InsertOneAsync(
                     new SubscriptionUsageAuditEntry { Id = id, OperationId = id, OccurredAtUtc = time });
             }
