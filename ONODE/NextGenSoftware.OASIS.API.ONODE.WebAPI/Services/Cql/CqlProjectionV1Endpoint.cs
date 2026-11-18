@@ -133,8 +133,8 @@ public static partial class CqlV1Endpoint
         => columns.Select(column => new
         {
             alias = column.Alias,
-            valueType = ProjectionWireType(Nullable.GetUnderlyingType(column.Path.ValueType) ?? column.Path.ValueType),
-            nullable = !column.Path.ValueType.IsValueType || Nullable.GetUnderlyingType(column.Path.ValueType) != null
+            valueType = ProjectionWireType(Nullable.GetUnderlyingType(column.ValueType) ?? column.ValueType),
+            nullable = !column.ValueType.IsValueType || Nullable.GetUnderlyingType(column.ValueType) != null
         }).ToArray();
 
     private static List<object[]> SelectedWireRows(IEnumerable<CosmicProjectionRecord> records, CancellationToken token)
