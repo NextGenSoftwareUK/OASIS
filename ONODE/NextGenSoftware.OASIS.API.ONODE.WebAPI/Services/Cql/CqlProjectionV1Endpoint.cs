@@ -40,6 +40,36 @@ public static partial class CqlV1Endpoint
                 return Failure(403, "CQL_PROVIDER_NOT_ELIGIBLE", "The provider is not eligible for this admitted projection.");
             if (rowAdapter is not ICosmicQueryProjectionStorageProvider adapter)
                 return Failure(400, "CQL_CAPABILITY_UNSUPPORTED", "The provider does not implement native selected columns.");
+            if (intent.ResultStages.Count != 0)
+            {
+                if (virtualProjection != null)
+                    return Failure(400, "CQL_CAPABILITY_UNSUPPORTED", "Mapped computed ordering requires native mapped composition.");
+                if (rowAdapter is not ICosmicQueryProjectionCompositionStorageProvider composedAdapter)
+                    return Failure(400, "CQL_CAPABILITY_UNSUPPORTED", "The provider does not implement native computed-result ordering.");
+                var composedPlan = CosmicProjectionCompositionPlanner.Plan(intent, selected,
+                    new[] { new CosmicProjectionCompositionTarget(selected, composedAdapter.QueryCapabilities,
+                        composedAdapter.ProjectionCapabilities, composedAdapter.CompositionCapabilities) },
+                    new CosmicProjectionCompositionOptions(100, MaximumResponseBytes, 1600, 25600));
+                if (composedPlan.IsError)
+                    return Failure(400, composedPlan.ErrorCode, "The provider does not support the requested computed ordering.");
+                using var composedDeadline = CancellationTokenSource.CreateLinkedTokenSource(http.RequestAborted);
+                composedDeadline.CancelAfter(TimeSpan.FromSeconds(5));
+                var composedManager = providers.CreateManager(storage);
+                http.Items[CqlV1ResourceFilter.DispatchedKey] = true;
+                var composedResult = await composedManager.ExecuteProjectionCompositionQueryAsync(composedPlan.Result,
+                    new ICosmicQueryStorageProvider[] { composedAdapter }, maximumResults: 100,
+                    maximumPayloadBytes: MaximumResponseBytes, cancellationToken: composedDeadline.Token);
+                if (composedResult.IsError) return QueryFailure(http, composedResult.ErrorCode);
+                var composedOutput = composedResult.Result.Providers.Single();
+                if (composedOutput.Provider != selected)
+                    return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "Computed projection provenance differs from its admitted provider.");
+                var composedColumns = SelectedWireColumns(intent.Columns);
+                var composedRows = SelectedWireRows(composedOutput.Rows, composedDeadline.Token);
+                composedDeadline.Token.ThrowIfCancellationRequested();
+                return JsonResponse(new OASISResult<object>(new
+                { version = "cql-projection-v1", provider = selected.ToString(), columns = composedColumns, rows = composedRows })
+                { IsLoaded = true });
+            }
             var planned = CosmicProjectionPlanner.Plan(intent, selected,
                 new[] { new CosmicProjectionTarget(selected, adapter.QueryCapabilities, adapter.ProjectionCapabilities) });
             if (planned.IsError) return Failure(400, planned.ErrorCode, "The provider does not support the requested projection.");
