@@ -3006,3 +3006,6 @@
 2026-11-18T08:14:14.3851167Z cleanup script PID14832: PLANNED untracked old compiled binaries only; scope=C:\Source\OASIS2-hyperdrive\TestResults\HyperDrive-Providers; files=1; bytes=162816; all tracked evidence/source/config/JSON/keys/databases/cache retained; exclusive provider lease held.
 
 2026-11-18T08:14:14.4035902Z cleanup script PID14832: REMOVED old disposable test-build binaries; bytes=162816; locked/failed=0; all tracked evidence retained.
+
+2026-11-18 follow-up cleanup verification: C: has 25.14 GiB free. Own HyperDrive and OPORTAL output scan found no remaining nonempty .NET bin/obj trees. TestResults totals 145,089,059 bytes and retains reusable provider dependencies and tracked evidence; no blanket deletion performed. The three registered OASIS root worktrees remain active or not proven idle; none removed. Existing 3,809,107,627-byte verified reclamation is unchanged. No runtime downloads, builds, shared Mongo probes or new test environments were started for this check.
+
