@@ -39,6 +39,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
                 return;
             }
             var id = Guid.Parse(principal.FindFirst("sub").Value);
+            RequestTimingMiddleware.Mark(context, RequestTimingMiddleware.Phase.AvatarLookup);
             var avatar = await Program.AvatarManager.LoadAvatarAsync(id);
             if (avatar.IsError)
             { await Reject(context, 503, "AVATAR_LOOKUP_UNAVAILABLE", "The authenticated avatar could not be loaded."); return; }
@@ -54,6 +55,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
             if (routing.IsError)
             { await Reject(context, 409, routing.ErrorCode, routing.Message); return; }
             OASISRequestContext.AvatarRoutingOverrides = routing.Result;
+            RequestTimingMiddleware.Mark(context, RequestTimingMiddleware.Phase.Endpoint);
             await _next(context);
         }
 

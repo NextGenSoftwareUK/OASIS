@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RequestTiming = NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware.RequestTimingMiddleware;
 using Microsoft.Extensions.DependencyInjection;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -55,11 +56,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             try
             {
                 var wizard = Avatar?.AvatarType?.Value == AvatarType.Wizard;
+                RequestTiming.Mark(HttpContext, RequestTiming.Phase.HolonLookup);
                 var holon = await HolonManager.LoadHolonAsync(id, false, false, 0, true, false, HolonType.All, 0);
                 if (holon == null || holon.IsError || holon.Result == null)
                     return TestDataHelper.CreateErrorResponse<AccessLogPageDto>("Holon not found.", null, System.Net.HttpStatusCode.NotFound);
                 if (!AccessLogService.CanViewHolonLog(wizard, AvatarId, holon.Result.CreatedByAvatarId))
                     return TestDataHelper.CreateErrorResponse<AccessLogPageDto>("Forbidden. Only the holon's owner or an administrator can see who accessed it.", null, System.Net.HttpStatusCode.Forbidden);
+                RequestTiming.Mark(HttpContext, RequestTiming.Phase.HistoryVersions);
                 var events = await service.ForHolonAsync(id, limit, offset);
                 return await AccessLogPage(events, limit, offset, onlyHolon: id);
             }
@@ -94,6 +97,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         private async Task<OASISHttpResponseMessage<AccessLogPageDto>> AccessLogPage(IReadOnlyList<AccessLogEvent> events, int limit, int offset, Guid? onlyHolon)
         {
+            RequestTiming.Mark(HttpContext, RequestTiming.Phase.ActorNames);
             var names = new Dictionary<Guid, string>();
             foreach (var reader in events.Select(e => e.AvatarId).Distinct())
             {

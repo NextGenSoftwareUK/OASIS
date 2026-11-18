@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RequestTiming = NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware.RequestTimingMiddleware;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -48,9 +49,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 var wizard = Avatar?.AvatarType?.Value == AvatarType.Wizard;
 
                 // Same read rule as load-holon: whole holon or only the fields this avatar may read.
+                RequestTiming.Mark(HttpContext, RequestTiming.Phase.HolonLookup);
                 var latest = await HolonManager.LoadHolonAsync(id, false, false, 0, true, false, HolonType.All, 0);
                 if (latest == null || latest.IsError || latest.Result == null)
                     return TestDataHelper.CreateErrorResponse<HolonAuditTrailResponse>("Holon not found.", null, System.Net.HttpStatusCode.NotFound);
+                RequestTiming.Mark(HttpContext, RequestTiming.Phase.PermissionCheck);
                 if (!wizard && await HolonManager.ProjectForAvatarAsync(latest.Result, AvatarId) == null)
                     return TestDataHelper.CreateErrorResponse<HolonAuditTrailResponse>("Forbidden. You do not have permission to access this holon.", null, System.Net.HttpStatusCode.Forbidden);
 
@@ -59,6 +62,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 var to = request.ToVersion <= 0 ? latestVersion : Math.Min(request.ToVersion, latestVersion);
                 var versions = new List<IHolon>();
                 // The first version in the window is compared with the one before it, so load one extra.
+                RequestTiming.Mark(HttpContext, RequestTiming.Phase.HistoryVersions);
                 for (var v = Math.Max(1, from - 1); v <= to; v++)
                 {
                     var loaded = v == latestVersion ? latest : await HolonManager.LoadHolonAsync(id, false, false, 0, true, false, HolonType.All, v);
@@ -72,6 +76,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     versions.Add(holon);
                 }
 
+                RequestTiming.Mark(HttpContext, RequestTiming.Phase.ActorNames);
                 var names = new Dictionary<Guid, string>();
                 foreach (var actor in versions.SelectMany(h => new[] { h.ModifiedByAvatarId, h.CreatedByAvatarId, h.DeletedByAvatarId }).Where(a => a != Guid.Empty).Distinct())
                 {
@@ -100,6 +105,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     Entries = trail.Skip(offset).Take(limit).ToList()
                 };
                 // Never fails the trail: an unconfigured node or a provider without seals just reports Unavailable/Unsealed.
+                RequestTiming.Mark(HttpContext, RequestTiming.Phase.SealVerification);
                 try { response.Seal = await HolonManager.VerifyHolonSealAsync(id); } catch (Exception) { response.Seal = null; }
                 var result = new OASISResult<HolonAuditTrailResponse> { Result = response, IsLoaded = true, Message = "Audit trail loaded." };
                 return HttpResponseHelper.FormatResponse(result, System.Net.HttpStatusCode.OK, false);

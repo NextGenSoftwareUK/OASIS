@@ -1005,6 +1005,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 Services.Mfa.MfaGate.Create(app.ApplicationServices.GetRequiredService<Services.Mfa.MfaService>(),
                     app.ApplicationServices.GetRequiredService<Microsoft.AspNetCore.Http.IHttpContextAccessor>())(avatar, ip);
 
+            app.UseMiddleware<RequestTimingMiddleware>();
             app.UseRateLimiter();
 
             app.UseMiddleware<OASISRequestContextMiddleware>();

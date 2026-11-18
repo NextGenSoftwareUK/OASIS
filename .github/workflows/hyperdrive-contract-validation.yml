@@ -12,10 +12,39 @@ on:
       - 'Scripts/verify_web4_hyperdrive_route_manifest.ps1'
       - '.github/workflows/hyperdrive-contract-validation.yml'
   workflow_dispatch:
+    inputs:
+      build_only:
+        description: Build the API without repeating accepted behavior tests
+        type: boolean
+        default: false
+      request_timing_tests:
+        description: Verify the changed private-data-free request timing middleware
+        type: boolean
+        default: false
+      native_seal:
+        description: 'Use the owned MongoDB/SQLite fixture for a focused native regression.'
+        required: false
+        default: false
+        type: boolean
+      native_project:
+        description: Native fixture project
+        type: choice
+        options: [integration, subscription_ledger]
+        default: integration
+      native_test_filter:
+        description: 'Select the changed real-provider test.'
+        required: false
+        default: 'FullyQualifiedName~SealVerificationPreservesNativeRouting'
+        type: string
+      contract_filter:
+        description: 'VSTest filter; select changed contracts to avoid repeating accepted cases.'
+        required: false
+        default: 'FullyQualifiedName~HyperDrive'
+        type: string
 
 jobs:
   manifests-and-contracts:
-    runs-on: windows-latest
+    runs-on: ${{ (inputs.native_seal || inputs.build_only) && 'ubuntu-latest' || 'windows-latest' }}
     defaults:
       run:
         working-directory: OASIS
@@ -74,25 +103,74 @@ jobs:
         run: ./Scripts/verify_hyperdrive_v2_operation_contracts.ps1
 
       - name: Build the WEB4 artifact the controller contracts load
+        if: ${{ !inputs.native_seal }}
         shell: pwsh
-        run: >-
-          dotnet build
-          'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj'
-          --configuration Release
-          /m:2 /nr:false /p:UseSharedCompilation=false
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner api-qualification-build-ci -Operation {
+            dotnet build 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj' --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE) { throw 'API qualification build failed.' }
+          }
+
+      - name: Verify the changed request timing middleware
+        if: ${{ inputs.request_timing_tests }}
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner request-timing-ci -Operation {
+            dotnet test 'ONODE/Tests/RequestTiming.Tests/RequestTiming.Tests.csproj' --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false --logger 'trx;LogFileName=request-timing.trx' --results-directory artifacts/hyperdrive-contract-validation
+            if ($LASTEXITCODE) { throw 'Request timing checks failed.' }
+          }
 
       - name: Run HyperDrive behavioral contracts
+        if: ${{ !inputs.native_seal && !inputs.build_only }}
         shell: pwsh
+        env:
+          OASIS_HYPERDRIVE_TEST_FILTER: ${{ inputs.contract_filter || 'FullyQualifiedName~HyperDrive' }}
         run: >-
           dotnet test
           'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/NextGenSoftware.OASIS.API.Core.UnitTests.csproj'
           --configuration Release
-          --filter 'FullyQualifiedName~HyperDrive'
+          --filter "$env:OASIS_HYPERDRIVE_TEST_FILTER"
           --logger 'trx;LogFileName=hyperdrive-contracts.trx'
           --results-directory artifacts/hyperdrive-contract-validation
 
+      - name: Start owned native seal routing fixture
+        if: ${{ inputs.native_seal }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --detach --name seal-routing-mongo -p 127.0.0.1:27029:27029 mongo:8.0.15 --port 27029 --replSet oasisRecoveryRs --bind_ip_all --setParameter enableTestCommands=1
+          for attempt in $(seq 1 60); do
+            if docker exec seal-routing-mongo mongosh --port 27029 --quiet --eval 'db.adminCommand({ping:1})' >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          docker exec seal-routing-mongo mongosh --port 27029 --quiet --eval 'rs.initiate({_id:"oasisRecoveryRs",members:[{_id:0,host:"127.0.0.1:27029"}]})'
+          for attempt in $(seq 1 60); do
+            if docker exec seal-routing-mongo mongosh --port 27029 --quiet --eval 'if(!db.hello().isWritablePrimary) quit(1)' >/dev/null 2>&1; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+
+      - name: Verify real seal routing without repeating accepted contracts
+        if: ${{ inputs.native_seal }}
+        shell: pwsh
+        env:
+          SUBSCRIPTION_TEST_MONGODB_URI: mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000
+          OASIS_NATIVE_PROJECT: ${{ inputs.native_project || 'integration' }}
+          OASIS_NATIVE_PROVIDER_TEST_FILTER: ${{ inputs.native_test_filter || 'FullyQualifiedName~SealVerificationPreservesNativeRouting' }}
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner seal-routing-native-ci -Operation {
+            $project = if ($env:OASIS_NATIVE_PROJECT -eq 'subscription_ledger') { 'ONODE/Tests/SubscriptionLedger.ProtocolTests/SubscriptionLedger.ProtocolTests.csproj' } else { 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' }
+            dotnet test $project --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false --filter "$env:OASIS_NATIVE_PROVIDER_TEST_FILTER" --logger 'trx;LogFileName=seal-routing-native.trx' --results-directory artifacts/hyperdrive-contract-validation
+            if ($LASTEXITCODE) { throw 'Native seal routing verification failed.' }
+          }
+
+      - name: Stop owned native seal routing fixture
+        if: ${{ always() && inputs.native_seal }}
+        shell: bash
+        run: docker rm --force --volumes seal-routing-mongo
+
       - name: Preserve HyperDrive behavioral evidence
-        if: always()
+        if: ${{ always() && (!inputs.build_only || inputs.request_timing_tests) }}
         uses: actions/upload-artifact@v7
         with:
           name: hyperdrive-contract-results
