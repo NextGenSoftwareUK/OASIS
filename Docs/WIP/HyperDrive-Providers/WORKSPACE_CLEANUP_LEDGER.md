@@ -2377,3 +2377,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-18 UTC — Portal owner/dashboard source checks used only existing Node and small source edits. No browser profile, backend fixture, download, local build or result file created. Combined admin candidate private index/lock removed in finally. Image 44212477609 builds remotely; no image pulled locally.
 
 2026-11-18 UTC — Portal candidate 3839d5db3fc7: temporary private index/lock removed in finally. Vercel/Railway status and live OpenAPI parsed in memory with selected nonsecret fields only; no files, image pulls, accounts or backend fixtures created. No accepted suites rerun.
+
+2026-11-18 UTC — Subscription schema/fixture checks a29151f/561733d used existing Node and in-memory selected test execution; no browser/backend fixtures, downloads, builds or test result files. Missing tracked source reads in the initial broader run used Git blobs in memory only; no checkout expansion. Private release-candidate index/lock removed in finally.
