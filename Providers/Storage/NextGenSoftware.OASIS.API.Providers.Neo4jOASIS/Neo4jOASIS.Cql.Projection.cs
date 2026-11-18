@@ -15,9 +15,9 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
 public partial class Neo4jOASIS : ICosmicQueryEntityProjectionStorageProvider
 {
-    public static CosmicProjectionCapabilities CqlProjectionCapabilities { get; } = new(
+    public static CosmicProjectionCapabilities CqlProjectionCapabilities { get; } = new CosmicProjectionCapabilities(
         CqlCapabilities.CanonicalFields.Select(field => new CosmicProjectionFieldCapability(field.Name, field.ValueType)).ToArray(),
-        CqlCapabilities.MetadataTypes.Select(type => type.ValueType).ToArray());
+        CqlCapabilities.MetadataTypes.Select(type => type.ValueType).ToArray()).WithFunctions(CosmicProjectionFunction.Utf16Length);
     public CosmicProjectionCapabilities ProjectionCapabilities => CqlProjectionCapabilities;
     public bool SupportsEntityProjection=>true;
 

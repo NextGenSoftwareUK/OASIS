@@ -1,3 +1,5 @@
+2026-11-18 UTC — Native computed-projection qualification44262838039 passed with owned fixture cleanup on all three stores. The40,320-byte CI artifact was read in memory only, with no local extraction/database/runtime/install/build output. Existing retained/blocked cleanup register remains applicable.
+
 ## Cleanup completion — 2026-11-18T07:48:47.963876+00:00
 
 Standard NuGet global-package cleanup completed with exit0 after the active purge/seal test ended. Selected exact path C:/Users/David/.nuget/packages independently verified empty (0 files/0 bytes); installed dotnet executable and user NuGet.Config remain. Free C: space measured31.98GiB after cleanup (earlier15.26GiB); concurrent disk activity means this is a net observation, not a per-file attribution. Six older duplicate NFT worktrees were also removed with local recovery tags and exact restoration instructions retained below.
@@ -10,7 +12,7 @@ Six older clean NFTFoundersLandingPage duplicate worktrees (007b,5384,8097,b515,
 
 ## Cleanup retention and blocked-removal register — 2026-11-18T07:26:34.828634+00:00
 
-No retained item below is recorded as removed. Six old duplicate NFT-site worktrees were separately removed with exact local recovery tags; package-cache cleanup remains pending.
+Six old duplicate NFT-site worktrees were removed with exact local recovery tags. The package cache was subsequently cleared successfully; current disposition is recorded below.
 
 | Path / item | Measured size | Why retained / blocked | Next safe action |
 |---|---:|---|---|
