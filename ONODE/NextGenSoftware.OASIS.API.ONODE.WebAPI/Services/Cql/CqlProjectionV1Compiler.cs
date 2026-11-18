@@ -39,8 +39,8 @@ public static partial class CqlV1Compiler
             order == null && branchLimit == null ? request.Skip : 0, order == null ? branchLimit ?? request.Take : null, access,
             includeCloudReadProfile: true);
         var columns = request.Columns.Select(ProjectionColumn).ToArray();
-        if (order != null && order.Any(term => columns.Any(column =>
-            column.Alias == term?.Alias && column.Function != CosmicProjectionFunction.None)))
+        if (order != null && order.Any(term => request.Columns.Any(column =>
+            column.Alias == term?.Alias && column.Function.HasValue)))
         {
             if (branchLimit.HasValue)
                 throw new ArgumentException("Computed ordering requires the stored composition route.");
@@ -53,7 +53,7 @@ public static partial class CqlV1Compiler
                 var term = order[index];
                 if (term?.Alias == null || !seenComputed.Add(term.Alias))
                     throw new ArgumentException("Selected ordering aliases must be non-null and unique.");
-                var column = columns.SingleOrDefault(item => item.Alias == term.Alias)
+                var column = composed.Columns.SingleOrDefault(item => item.Alias == term.Alias)
                     ?? throw new ArgumentException("Selected ordering must name an exact selected alias.");
                 composed = BindSelectedOrdering(column.ValueType, column.Alias, term.Descending, index > 0,
                     new CompositionOrderingConsumer(composed));
