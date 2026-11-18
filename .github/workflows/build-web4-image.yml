@@ -68,7 +68,7 @@ jobs:
         run: python3 -B Scripts/validate_all_provider_sdk_publish_manifests.py
 
       # The inspected old serving snapshots predate that SDK checker. This mode
-      # accepts only the exact two-file pause on one immutable serving parent;
+      # accepts only the exact pause plus pinned-fetch transport on one serving parent;
       # it cannot package arbitrary old/new source or suppress a failing check.
       - name: Verify exact older serving-source patch and dependency contract
         if: ${{ inputs.serving_pause_environment != '' && inputs.serving_pause_environment != 'current' }}

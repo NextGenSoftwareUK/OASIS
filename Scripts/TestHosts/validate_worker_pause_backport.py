@@ -2,7 +2,8 @@
 
 This gate is for the two older serving snapshots, which predate the current SDK
 publication verifier. Their complete original Docker publish still runs in CI.
-No dependency, DNA, authorization or foreground subscription change is allowed.
+No dependency pin, DNA, authorization or foreground subscription change is allowed.
+The accepted clone transport explicitly fetches each immutable pin before checkout.
 """
 
 import argparse
@@ -17,6 +18,8 @@ BASES = {
 STARTUP = "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs"
 HELPER = "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Operations/HostedMongoWorkerControl.cs"
 ACCEPTED_HELPER_BLOB = "7b9edae94e073f639eb3352e5796073b72a1d54e"
+CLONE_SCRIPT = "Docker/clone-pinned-oasis-dependencies.sh"
+ACCEPTED_CLONE_BLOB = "daa4b566bc8e6bad49dec1fedb6cda5382a6ee40"
 
 
 def git(*args):
@@ -31,11 +34,14 @@ def verify(environment, source):
     if parents != [base]:
         raise ValueError("The pause must be a direct, single-parent serving-source patch.")
     changed = set(git("diff", "--name-only", base, source).decode().splitlines())
-    if changed != {STARTUP, HELPER}:
-        raise ValueError("Only the Startup registration gates and accepted helper may change.")
+    if changed != {STARTUP, HELPER, CLONE_SCRIPT}:
+        raise ValueError("Only the registration gates, helper and pinned-fetch transport may change.")
     helper_blob = git("rev-parse", source + ":" + HELPER).decode().strip()
     if helper_blob != ACCEPTED_HELPER_BLOB:
         raise ValueError("The helper differs from the six-case accepted dev implementation.")
+    clone_blob = git("rev-parse", source + ":" + CLONE_SCRIPT).decode().strip()
+    if clone_blob != ACCEPTED_CLONE_BLOB:
+        raise ValueError("The dependency transport differs from the accepted exact-pin fetch implementation.")
     expected = git("show", base + ":" + STARTUP)
     names = ["HyperDriveCommandHostedService", "HyperDriveFanOutHostedService",
              "HyperDriveDomainChangeCaptureHostedService", "HyperDriveSyncCompactionHostedService"]
@@ -55,7 +61,7 @@ def verify(environment, source):
     expected = expected.replace(before, after)
     if expected != git("show", source + ":" + STARTUP):
         raise ValueError("Startup includes changes beyond the exact pause registration edits.")
-    print(environment + ": exact two-file worker pause; serving dependencies/DNA/foreground code preserved")
+    print(environment + ": exact pause and pinned-fetch transport; dependency pins/DNA/foreground code preserved")
 
 
 if __name__ == "__main__":
