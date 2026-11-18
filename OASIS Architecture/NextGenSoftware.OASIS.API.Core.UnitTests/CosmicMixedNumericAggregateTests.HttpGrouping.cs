@@ -21,7 +21,7 @@ public sealed partial class CosmicMixedNumericAggregateTests
                 Selection = new CqlScalarV1Selection { MetadataPath = new[] { "amount" }, ValueType = "Int32", Nullable = true } }
         },
         ResultFilters = new[] { new CqlGroupedV1Filter { Alias = "Rows",
-            Operator = CqlV1Operator.GreaterThanOrEqual, Value = JsonSerializer.SerializeToElement(2L) } },
+            Operator = CqlV1Operator.GreaterThanOrEqual, Value = JsonSerializer.SerializeToElement("2") } },
         ResultOrder = new[] { new CqlGroupedV1Ordering { Alias = "Key", Descending = true } },
         ResultTake = 1
     };
@@ -47,7 +47,7 @@ public sealed partial class CosmicMixedNumericAggregateTests
         var plan = CqlV1Compiler.CompileMixedGrouping(f.Query, description);
         description.Keys[0].MetadataPath[0] = "other";
         description.Columns[2].Selection.MetadataPath[0] = "other";
-        description.ResultFilters[0].Value = JsonSerializer.SerializeToElement(100L);
+        description.ResultFilters[0].Value = JsonSerializer.SerializeToElement("100");
         description.ResultOrder[0].Alias = "unknown";
         description.ResultSkip = 100;
         var result = CosmicMixedProjectionResults.Group(plan, Actor, f.Mapping, f.Stored, f.Live);
@@ -62,6 +62,7 @@ public sealed partial class CosmicMixedNumericAggregateTests
     [InlineData("order")]
     [InlineData("budget")]
     [InlineData("computed-aggregate")]
+    [InlineData("literal")]
     public async Task InvalidTransportGroupingIsRejectedBeforeAnyMixedRead(string invalid)
     {
         var f = await Create(typeof(int), true, new object[] { 2 }, new object[] { 3 });
@@ -73,6 +74,7 @@ public sealed partial class CosmicMixedNumericAggregateTests
             case "having": description.ResultFilters[0].Alias = "unknown"; break;
             case "order": description.ResultOrder[0].Alias = "unknown"; break;
             case "budget": description.MaximumGroups = 101; break;
+            case "literal": description.ResultFilters[0].Value = JsonSerializer.SerializeToElement(2L); break;
             case "computed-aggregate": description.Columns[2].Selection.Function = CqlV1Function.Utf16Length; break;
         }
         Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileMixedGrouping(f.Query, description));
