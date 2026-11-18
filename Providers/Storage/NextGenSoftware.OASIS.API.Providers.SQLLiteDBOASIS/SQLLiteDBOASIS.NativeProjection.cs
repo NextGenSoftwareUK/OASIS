@@ -53,6 +53,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var domain = column.InputType == typeof(string) ? $"typeof({input}) = 'text'"
                         : column.InputType == typeof(bool) ? $"typeof({input}) = 'integer' AND {input} IN (0,1)"
                         : column.InputType == typeof(int) ? $"typeof({input}) = 'integer' AND {input} BETWEEN -2147483648 AND 2147483647"
+                        : column.InputType == typeof(double) ? $"typeof({input}) = 'real' AND {input} BETWEEN $nativeDoubleMin AND $nativeDoubleMax"
                         : $"typeof({input}) = 'integer'";
                     outputs.Add($"CASE WHEN {input} IS NULL THEN 1 WHEN {domain} THEN 2 ELSE 3 END");
                     // Read size before retrieving text into managed memory. Computed lengths transfer only integers.
@@ -64,6 +65,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
                 command.CommandText = $"SELECT {string.Join(", ", outputs)} FROM {Quote(sourceName)} WHERE {predicates} ORDER BY rowid LIMIT $take";
                 command.Parameters.AddWithValue("$take", limit);
+                command.Parameters.AddWithValue("$nativeDoubleMin", -double.MaxValue);
+                command.Parameters.AddWithValue("$nativeDoubleMax", double.MaxValue);
                 try
                 {
                     using var reader = await command.ExecuteReaderAsync(cancellationToken);
@@ -92,6 +95,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                             object value = valueType == typeof(string) ? reader.GetString(offset + 2)
                                 : valueType == typeof(bool) ? reader.GetInt64(offset + 2) == 1
                                 : valueType == typeof(int) ? checked((int)reader.GetInt64(offset + 2))
+                                : valueType == typeof(double) ? (object)reader.GetDouble(offset + 2)
                                 : (object)reader.GetInt64(offset + 2);
                             cells[index] = new NativeProjectionCell(NativeProjectionValueState.Present, value);
                         }
@@ -147,10 +151,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     else
                     {
                         var atomic = $"typeof({column}) = $type{index} AND {column} COLLATE BINARY {symbol} $match{index}";
+                        if (match.Value is double)
+                        {
+                            atomic += $" AND {column} BETWEEN $finiteMin{index} AND $finiteMax{index}";
+                            command.Parameters.AddWithValue($"$finiteMin{index}", -double.MaxValue);
+                            command.Parameters.AddWithValue($"$finiteMax{index}", double.MaxValue);
+                        }
                         if (match.Operator == CosmicQueryComparisonOperator.NotEqual && match.Value is string)
                             atomic = $"({atomic}) OR {column} IS NULL";
                         predicates.Add("(" + atomic + ")");
-                        command.Parameters.AddWithValue($"$type{index}", match.Value is string ? "text" : "integer");
+                        command.Parameters.AddWithValue($"$type{index}", match.Value is string ? "text" : match.Value is double ? "real" : "integer");
                     }
                     command.Parameters.AddWithValue($"$match{index}", match.Value);
                 }

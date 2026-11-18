@@ -25,13 +25,24 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             {
                 await source.OpenAsync();
                 await using var command = source.CreateCommand();
-                command.CommandText = "CREATE TABLE items(id INTEGER PRIMARY KEY, text TEXT); INSERT INTO items VALUES(1,$text),(2,$nul)";
+                command.CommandText = "CREATE TABLE items(id INTEGER PRIMARY KEY, text TEXT, rate, low, high, tiny, zero, badInf, badNegativeInf, optionalDouble); "
+                    + "INSERT INTO items VALUES(1,$text,$rate,$low,$high,$tiny,$zero,$inf,$negativeInf,NULL),"
+                    + "(2,$nul,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)";
+                command.Parameters.AddWithValue("$rate", 3.25d);
+                command.Parameters.AddWithValue("$low", -double.MaxValue);
+                command.Parameters.AddWithValue("$high", double.MaxValue);
+                command.Parameters.AddWithValue("$tiny", double.Epsilon);
+                command.Parameters.AddWithValue("$zero", -0d);
+                command.Parameters.AddWithValue("$inf", double.PositiveInfinity);
+                command.Parameters.AddWithValue("$negativeInf", double.NegativeInfinity);
                 command.Parameters.AddWithValue("$text", "😀");
                 command.Parameters.AddWithValue("$nul", "abc\u0000def");
                 await command.ExecuteNonQueryAsync();
             }
             var before = await File.ReadAllBytesAsync(path);
             provider.NativeImportConnectionString = "Data Source=" + path + ";Pooling=False";
+            await VerifyNativeDoubleProjection(provider, "items",
+                new NativeRecordFilter("id", CosmicQueryComparisonOperator.Equal, 1L), "id", false, checks);
             var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, actor, provider.NativeDataProviderType,
                 "items", VirtualHolonMapping.SandboxConnectionName, provider.DescribeVirtualQueryConnection(null),
                 new Dictionary<string, string> { ["textAlias"] = "text" });

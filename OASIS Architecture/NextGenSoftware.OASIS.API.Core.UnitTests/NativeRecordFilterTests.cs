@@ -76,4 +76,39 @@ public class NativeRecordFilterTests
         Assert.Throws<ArgumentException>(() => NativeRecordFilter.CaptureEqualities(
             Enumerable.Range(0, 9).Select(i => new KeyValuePair<string, object>("x", (long)i)).ToArray()));
     }
+    [Theory]
+    [InlineData(double.NaN)]
+    [InlineData(double.PositiveInfinity)]
+    [InlineData(double.NegativeInfinity)]
+    public void DoublePredicatesAndCellsRejectNonfiniteValues(double value)
+    {
+        Assert.Throws<ArgumentException>(() => new NativeRecordFilter("rate", CosmicQueryComparisonOperator.Equal, value));
+        Assert.Throws<ArgumentException>(() => new NativeProjectionCell(NativeProjectionValueState.Present, value));
+    }
+
+    [Theory]
+    [InlineData(double.MinValue)]
+    [InlineData(double.MaxValue)]
+    [InlineData(double.Epsilon)]
+    [InlineData(-0d)]
+    public void DoubleProjectionAndPredicatesPreserveExactFiniteDomain(double value)
+    {
+        var column = new NativeProjectionColumn("rate", "Score", typeof(double), true);
+        Assert.Equal(typeof(double), column.WithField("sourceRate").ValueType);
+        foreach (var operation in Enum.GetValues<CosmicQueryComparisonOperator>())
+        {
+            var filter = new NativeRecordFilter("rate", operation, value);
+            Assert.Equal(typeof(double), filter.InputType);
+            Assert.Equal(value, Assert.IsType<double>(filter.WithField("sourceRate").Value));
+        }
+        var accepted = NativeProjectionResults.Capture("s", new[] { column },
+            new[] { new NativeProjectionRow("s", "one", new[] { new NativeProjectionCell(NativeProjectionValueState.Present, value) }) });
+        Assert.False(accepted.IsError, accepted.Message);
+        var wrong = NativeProjectionResults.Capture("s", new[] { column },
+            new[] { new NativeProjectionRow("s", "one", new[] { new NativeProjectionCell(NativeProjectionValueState.Present, 1L) }) });
+        Assert.Equal("NATIVE_PROJECTION_RESULT_INVALID", wrong.ErrorCode);
+        Assert.Throws<ArgumentException>(() => new NativeProjectionColumn("rate", "Units", typeof(double),
+            function: NativeRecordFunction.Utf16Length));
+    }
+
 }

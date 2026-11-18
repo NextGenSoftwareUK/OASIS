@@ -56,7 +56,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             await VerifyChildSource(provider, actor, ids[0], ids[1], checks);
             await VerifyJoinOutputOrdering(provider, ids, checks);
             await VerifyNativeStringLength(provider, ids, checks);
-            Assert.AreEqual(140,checks.Count);
+            Assert.AreEqual(141,checks.Count);
             var deactivation=await provider.DeActivateProviderAsync();Assert.IsFalse(deactivation.IsError,deactivation.Message);active=false;
             await Checkpoint("before-exact-cleanup");
             var deleted=await (await inspection.RunAsync("MATCH(h:Holon) WHERE h.Id IN $ids DETACH DELETE h",new{ids=ids.Select(id=>id.ToString("D")).ToArray()})).ConsumeAsync();
@@ -221,17 +221,22 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 NativeConnectionGuard.AllowPrivateOverride = previousPrivatePolicy;
             }
 
-            await (await inspection.RunAsync($"MATCH (n:`{label}`) WHERE n.hidden = 'private' SET n.amount = $amount, n.small = 123, n.flag = true, n.empty = '', n.big = $big, n.near = $near",
+            await (await inspection.RunAsync($"MATCH (n:`{label}`) WHERE n.hidden = 'private' SET n.amount = $amount, n.small = 123, n.flag = true, n.empty = '', n.big = $big, n.near = $near, n.rate = $rate, n.low = $low, n.high = $high, n.tiny = $tiny, n.zero = $zero, n.badNaN = $badNaN, n.badInf = $badInf, n.badNegativeInf = $badNegativeInf",
                 new { amount = 9007199254740993L, big = new string('x', 1048580),
+                    rate = 3.25d, low = -double.MaxValue, high = double.MaxValue, tiny = double.Epsilon, zero = -0d,
+                    badNaN = double.NaN, badInf = double.PositiveInfinity, badNegativeInf = double.NegativeInfinity,
                     near = string.Concat(Enumerable.Repeat("A\u007F\u0080\u07FF\u0800\uFFFF😀", 62500)) })).ConsumeAsync();
             async Task<string[]> NativeProjectionSnapshot()
             {
                 var records = await (await inspection.RunAsync($"MATCH (n:`{label}`) RETURN elementId(n) AS key, properties(n) AS data ORDER BY key")).ToListAsync();
                 return records.Select(record => record["key"].As<string>() + ":" + Convert.ToHexString(
                     System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(
-                        JsonSerializer.Serialize(new SortedDictionary<string, object>(record["data"].As<IDictionary<string, object>>(), StringComparer.Ordinal)))))).ToArray();
+                        JsonSerializer.Serialize(new SortedDictionary<string, object>(record["data"].As<IDictionary<string, object>>(), StringComparer.Ordinal),
+                            new JsonSerializerOptions { NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals })))))).ToArray();
             }
             var nativeBefore = await NativeProjectionSnapshot();
+            await VerifyNativeDoubleProjection(provider, label,
+                new NativeRecordFilter("hidden", CosmicQueryComparisonOperator.Equal, "private"), "small", true, checks);
             var projectionWatch = System.Diagnostics.Stopwatch.StartNew();
             var adaFilter = new[] { new NativeRecordFilter("hidden", CosmicQueryComparisonOperator.Equal, "private") };
             var projectionColumns = new[] {

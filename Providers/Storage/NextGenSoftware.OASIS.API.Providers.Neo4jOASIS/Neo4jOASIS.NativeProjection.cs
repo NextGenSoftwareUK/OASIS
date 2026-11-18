@@ -23,6 +23,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 return NativeProjectionError("NATIVE_PROJECTION_QUERY_INVALID", "An admitted label and bounded row limit are required.");
             IReadOnlyList<NativeProjectionColumn> selected;
             var parameters = new Dictionary<string, object> { ["take"] = limit, ["projectionUtf8Surrogate"] = @"[\uD800-\uDFFF]", ["projectionUtf8One"] = @"[\x{0}-\x{7F}]", ["projectionUtf8Two"] = @"[\x{80}-\x{7FF}]", ["projectionSupplementary"] = @"[\x{10000}-\x{10FFFF}]" };
+            parameters["nativeFiniteDoubleMax"] = double.MaxValue;
             string where;
             try
             {
@@ -62,9 +63,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             {
                 var column = unique[index]; var fieldIndex = fieldIndexes[column.Field];
                 var property = "raw" + fieldIndex;
-                var type = column.InputType == typeof(string) ? "STRING" : column.InputType == typeof(bool) ? "BOOLEAN" : "INTEGER";
+                var type = column.InputType == typeof(string) ? "STRING" : column.InputType == typeof(bool) ? "BOOLEAN" : column.InputType == typeof(double) ? "FLOAT" : "INTEGER";
                 var domain = $"{property} IS NOT NULL AND {property} IS :: {type}";
                 if (column.InputType == typeof(int)) domain += $" AND {property} >= -2147483648 AND {property} <= 2147483647";
+                if (column.InputType == typeof(double))
+                    domain += $" AND {property} >= -$nativeFiniteDoubleMax AND {property} <= $nativeFiniteDoubleMax";
                 // Neo4j null properties are absent. Preserve that native missing state.
                 var state = $"CASE WHEN {property} IS NULL THEN 0 WHEN {domain} THEN "
                     + (column.Function == NativeRecordFunction.Utf16Length ? $"CASE WHEN ib{fieldIndex} <= 1048576 THEN 2 ELSE 4 END" : "2") + " ELSE 3 END";
@@ -155,6 +158,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     string text when text.Length <= 4096 => "STRING",
                     bool => "BOOLEAN",
                     int or long => "INTEGER",
+                    double number when double.IsFinite(number) => "FLOAT",
                     _ => null
                 };
                 if (type == null) throw new ArgumentException("Unsupported native predicate scalar.");
@@ -189,7 +193,15 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     predicates.Add(match.Operator == CosmicQueryComparisonOperator.NotEqual ? $"NOT ({expression})" : expression);
                 }
                 else
-                    predicates.Add($"{property} IS :: {type} AND {property} {symbol} ${parameter}");
+                {
+                    var domain = $"{property} IS NOT NULL AND {property} IS :: {type}";
+                    if (match.Value is double)
+                    {
+                        parameters["nativeFiniteDoubleMax"] = double.MaxValue;
+                        domain += $" AND {property} >= -$nativeFiniteDoubleMax AND {property} <= $nativeFiniteDoubleMax";
+                    }
+                    predicates.Add($"{domain} AND {property} {symbol} ${parameter}");
+                }
                 parameters.Add(parameter, match.Value);
             }
 
