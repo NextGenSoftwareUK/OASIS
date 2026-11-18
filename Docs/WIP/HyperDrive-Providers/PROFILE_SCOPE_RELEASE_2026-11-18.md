@@ -38,3 +38,19 @@ Initial normal dev rollout metadata (new sourcef19, old0f still running/accepted
 WEB4 also verified all4 actual holds=true, mapped API, maintenance literal and the retained audit refresh/atomic seal/complete-policy projection feature markers. Selected saved fields show WEB4's4 applicable holds=true and WEB5–10's settlement hold=true; the other3 keys are intentionally WEB4-only (per the runbook). Foreground SUBSCRIPTION_USAGE_ENABLED remains saved true on all7. No settings were changed to satisfy a checker; the initial blanket four-key expectation was corrected to the documented applicability. Staging/production and535/543 remain unchanged.
 
 The operator inspector's optional `-VerifyProfileScope` checks both fixed new markers in the mapped Core file and never emits full SSH/environment/DNA/assembly contents. PowerShell syntax check and all7 actual inspections passed. Default settlement-only use remains unchanged. Running code/control acceptance does not complete profile API orchestration, concurrent write/uniqueness proof or OPORTAL end-to-end behavior.
+
+## Registry consistency follow-up — running acceptance 2026-11-18
+
+Development b433439d89a0b86d24771202e786f17b79dd2143 carries exact qualified5a runtime/Core97ea, with shared documentation preserved. Actual source/process, mapped Core and profile registry marker, scope/lifecycle markers, settlement control/true value and1 positive paused startup marker checked on every service. No application/database request or manual redeployment.
+
+| API | Deployment | Running instance | PID |
+|---|---|---|---|
+| WEB4 | 81babea7-ccb2-4062-871e-7efc730d6cdb | dbade7cd-9cfd-4166-97f3-afb1deaf45c4 | 230 |
+| WEB5 | a5db7181-be73-44d7-8b74-20e94af2de44 | 4fe52340-9336-409f-b97d-f6b707b60643 | 1 |
+| WEB6 | fe2750bb-a403-4557-a241-3751612e61d5 | aff11c9d-82c7-4d12-a130-8d348396d882 | 1 |
+| WEB7 | ca409c87-214b-46e0-91b5-2c9e7cc8d813 | 24b08474-f8f6-439e-838d-65510562f3f9 | 1 |
+| WEB8 | 2dc107cd-7d6d-4c87-a783-3edb53ca6793 | 8bace6ce-4f18-480f-96ad-035c7edfd05d | 1 |
+| WEB9 | e00ced9d-b3d8-4389-a094-2000af77dd9e | 22f01b1f-7add-4849-a311-120d7d19f877 | 1 |
+| WEB10 | 69cc1276-ff54-4ae3-958c-c79d96c2f392 | 5c3c96a0-1925-4f24-abef-1f3a4d5e012d | 1 |
+
+WEB4 separately verified all4 incident holds in its actual process, mapped API, maintenance literal and existing audit/seal/full-policy markers. WEB5–10 intentionally use only the applicable Core settlement hold. Saved controls were not changed. This is loaded artifact/control evidence plus the previously accepted4 real registry cases, not hosted profile mutation/latency/full-product acceptance. Atomic writer0aed/Core17b is a separate unshipped candidate and must not be inferred present in this running97ea release.
