@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "projectId": "712f50f6-3b7b-46d4-b229-44b49922f16b",
+  "repository": "NextGenSoftwareUK/OASIS",
+  "environmentName": "dev",
+  "environmentId": "a31011a2-d047-4057-b5e8-57d52ebcfefe",
+  "apis": [4, 5, 6, 7, 8, 9, 10],
+  "watchPatterns": ["**", "!/The OASIS.sln"]
+}

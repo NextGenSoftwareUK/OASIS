@@ -90,6 +90,9 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      - name: Verify dev deployment watch inputs
+        run: python3 -B Scripts/validate_railway_dev_watch_policy.py
+
       - name: Every project must be in a solution
         run: python3 Scripts/check_solution_coverage.py
 
