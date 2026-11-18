@@ -23,6 +23,7 @@ public partial class CqlV1Web4Tests
         adapter.SetupGet(value => value.CompositionCapabilities).Returns(new CosmicProjectionCompositionCapabilities(
             CosmicSelectedStageFeatures.Ordering | CosmicSelectedStageFeatures.Paging,
             CosmicQueryFeatures.None, Array.Empty<CosmicQueryMetadataCapability>(), new[] { typeof(int?) }, 32,
+            supportsAll: false, supportsCardinality: false,
             numericReductions: new CosmicScalarCapabilities(Array.Empty<CosmicScalarOperation>(),
                 new[] { CosmicScalarOperation.Sum, CosmicScalarOperation.Average }.Select(operation =>
                     new CosmicScalarSelectionCapability(operation, reads, new[] { typeof(int?) })).ToArray())));
