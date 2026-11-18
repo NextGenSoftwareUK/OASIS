@@ -33,6 +33,12 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                     { "text", new BsonArray { "\U0001F600" } } },
                 new BsonDocument { { "_id", 4 }, { "code", "Case" }, { "label", "nul" }, { "nullableCode", "case" }, { "text", "abc\u0000def" } }
             });
+            var projectionFields = new BsonDocument
+            {
+                { "amount", new BsonInt64(9007199254740993L) }, { "small", 123 }, { "flag", true },
+                { "empty", "" }, { "big", new string('x', 1048580) }
+            };
+            await items.UpdateOneAsync(new BsonDocument("_id", 1), new BsonDocument("$set", projectionFields));
             var cases = new[]
             {
                 new NativeRecordFilter("text", CosmicQueryComparisonOperator.Equal, 2L, NativeRecordFunction.Utf16Length),
@@ -127,6 +133,97 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             checks.Add(new { provider = "MongoDBOASIS", nativePredicate = "invalid mapped source field returns an error" });
             Assert.AreEqual(4L, await items.CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty),
                 "Mapped source queries must not write records.");
+
+            var nativeBefore = (await items.Find(FilterDefinition<BsonDocument>.Empty).Sort(new BsonDocument("_id", 1)).ToListAsync())
+                .Select(document => document.ToBson()).ToArray();
+            var projectionWatch = System.Diagnostics.Stopwatch.StartNew();
+            var lengthColumns = new[] {
+                new NativeProjectionColumn("label", "Caption", typeof(string)),
+                new NativeProjectionColumn("text", "Original", typeof(string)),
+                new NativeProjectionColumn("text", "Units", typeof(string), function: NativeRecordFunction.Utf16Length),
+                new NativeProjectionColumn("text", "UnitsAgain", typeof(string), function: NativeRecordFunction.Utf16Length),
+                new NativeProjectionColumn("empty", "EmptyUnits", typeof(string), function: NativeRecordFunction.Utf16Length)
+            };
+            var nativeLengthFilter = new[] { new NativeRecordFilter("text", CosmicQueryComparisonOperator.Equal, 2L, NativeRecordFunction.Utf16Length) };
+            var projected = await provider.QueryNativeProjectionRecordsAsync("items", nativeLengthFilter, lengthColumns, 1);
+            Assert.IsFalse(projected.IsError, projected.Message + projected.Exception);
+            var projectionRow = projected.Result.Single();
+            var originalRow = await provider.QueryNativePredicateRecordsAsync("items", nativeLengthFilter, new[] { "label" }, 1);
+            Assert.AreEqual(originalRow.Result.Single().NativeKey, projectionRow.NativeKey);
+            Assert.AreEqual("emoji", projectionRow.Cells[0].Value);
+            Assert.AreEqual("😀", projectionRow.Cells[1].Value);
+            Assert.AreEqual(2, projectionRow.Cells[2].Value);
+            Assert.AreEqual(2, projectionRow.Cells[3].Value);
+            Assert.AreEqual(0, projectionRow.Cells[4].Value);
+            checks.Add(new { provider = "MongoDBOASIS", nativeProjection = "raw/computed/repeated aliases and original identity", elapsedMilliseconds = projectionWatch.ElapsedMilliseconds });
+
+            projectionWatch.Restart();
+            var allNative = new[] { new NativeRecordFilter("_id", CosmicQueryComparisonOperator.GreaterThanOrEqual, 1) };
+            var optional = new[] { new NativeProjectionColumn("nullableCode", "Units", typeof(string), true, NativeRecordFunction.Utf16Length) };
+            var nullableProjection = await provider.QueryNativeProjectionRecordsAsync("items", allNative, optional, 4);
+            Assert.IsFalse(nullableProjection.IsError, nullableProjection.Message + nullableProjection.Exception);
+            CollectionAssert.AreEqual(new[] { NativeProjectionValueState.Present, NativeProjectionValueState.Null,
+                NativeProjectionValueState.Missing, NativeProjectionValueState.Present },
+                nullableProjection.Result.Select(row => row.Cells[0].State).ToArray());
+            Assert.AreEqual(4, nullableProjection.Result[0].Cells[0].Value);
+            Assert.AreEqual(4, nullableProjection.Result[3].Cells[0].Value);
+            var nulProjection = await provider.QueryNativeProjectionRecordsAsync("items",
+                new[] { new NativeRecordFilter("label", CosmicQueryComparisonOperator.Equal, "nul") },
+                new[] { new NativeProjectionColumn("text", "Units", typeof(string), function: NativeRecordFunction.Utf16Length) }, 1);
+            Assert.IsFalse(nulProjection.IsError, nulProjection.Message);
+            Assert.AreEqual(7, nulProjection.Result.Single().Cells[0].Value);
+            checks.Add(new { provider = "MongoDBOASIS", nativeProjection = "independent missing/null states and full embedded-NUL length", elapsedMilliseconds = projectionWatch.ElapsedMilliseconds });
+
+            projectionWatch.Restart();
+            var invalidProjection = await provider.QueryNativeProjectionRecordsAsync("items", allNative,
+                new[] { new NativeProjectionColumn("text", "Units", typeof(string), true, NativeRecordFunction.Utf16Length) }, 4);
+            Assert.AreEqual("NATIVE_PROJECTION_DATA_INVALID", invalidProjection.ErrorCode);
+            Assert.IsNull(invalidProjection.Result);
+            foreach (var badId in new[] { 2, 3 }) {
+                var requiredProjection = await provider.QueryNativeProjectionRecordsAsync("items",
+                    new[] { new NativeRecordFilter("_id", CosmicQueryComparisonOperator.Equal, badId) },
+                    new[] { new NativeProjectionColumn("nullableCode", "Units", typeof(string), false, NativeRecordFunction.Utf16Length) }, 1);
+                Assert.AreEqual("NATIVE_PROJECTION_DATA_INVALID", requiredProjection.ErrorCode);
+                Assert.IsNull(requiredProjection.Result);
+            }
+            var duplicateAliases = await provider.QueryNativeProjectionRecordsAsync("items", nativeLengthFilter,
+                new[] { new NativeProjectionColumn("text", "Same", typeof(string)),
+                    new NativeProjectionColumn("label", "Same", typeof(string)) }, 1);
+            Assert.AreEqual("NATIVE_PROJECTION_QUERY_INVALID", duplicateAliases.ErrorCode);
+            checks.Add(new { provider = "MongoDBOASIS", nativeProjection = "invalid source/null/missing cannot become partial or fabricated results", elapsedMilliseconds = projectionWatch.ElapsedMilliseconds });
+
+            projectionWatch.Restart();
+            var firstNative = new[] { new NativeRecordFilter("_id", CosmicQueryComparisonOperator.Equal, 1) };
+            var exact = await provider.QueryNativeProjectionRecordsAsync("items", firstNative,
+                new[] { new NativeProjectionColumn("amount", "Exact", typeof(long)),
+                    new NativeProjectionColumn("small", "Small", typeof(int)), new NativeProjectionColumn("flag", "Flag", typeof(bool)) }, 1);
+            Assert.IsFalse(exact.IsError, exact.Message);
+            Assert.AreEqual(9007199254740993L, exact.Result.Single().Cells[0].Value);
+            Assert.AreEqual(123, exact.Result.Single().Cells[1].Value);
+            Assert.AreEqual(true, exact.Result.Single().Cells[2].Value);
+            var wrongWidth = await provider.QueryNativeProjectionRecordsAsync("items", firstNative,
+                new[] { new NativeProjectionColumn("small", "WrongWidth", typeof(long)) }, 1);
+            Assert.AreEqual("NATIVE_PROJECTION_DATA_INVALID", wrongWidth.ErrorCode);
+            checks.Add(new { provider = "MongoDBOASIS", nativeProjection = "exact Int64/Int32/Boolean domains without numeric coercion", elapsedMilliseconds = projectionWatch.ElapsedMilliseconds });
+
+            projectionWatch.Restart();
+            var oversizedProjection = await provider.QueryNativeProjectionRecordsAsync("items", firstNative,
+                new[] { new NativeProjectionColumn("big", "TooLarge", typeof(string)) }, 1);
+            Assert.AreEqual("NATIVE_PROJECTION_PAYLOAD_LIMIT", oversizedProjection.ErrorCode);
+            Assert.IsNull(oversizedProjection.Result);
+            var excessiveWork = await provider.QueryNativeProjectionRecordsAsync("items", firstNative,
+                new[] { new NativeProjectionColumn("big", "Units", typeof(string), function: NativeRecordFunction.Utf16Length) }, 1);
+            Assert.AreEqual("NATIVE_PROJECTION_RESOURCE_LIMIT", excessiveWork.ErrorCode);
+            using (var cancelled = new System.Threading.CancellationTokenSource()) {
+                cancelled.Cancel();
+                await Assert.ThrowsExceptionAsync<OperationCanceledException>(() =>
+                    provider.QueryNativeProjectionRecordsAsync("items", firstNative, lengthColumns, 1, cancellationToken: cancelled.Token));
+            }
+            var nativeAfter = (await items.Find(FilterDefinition<BsonDocument>.Empty).Sort(new BsonDocument("_id", 1)).ToListAsync())
+                .Select(document => document.ToBson()).ToArray();
+            Assert.AreEqual(nativeBefore.Length, nativeAfter.Length);
+            for (var index = 0; index < nativeBefore.Length; index++) CollectionAssert.AreEqual(nativeBefore[index], nativeAfter[index]);
+            checks.Add(new { provider = "MongoDBOASIS", nativeProjection = "bounded payload/work/cancellation and unchanged native documents", elapsedMilliseconds = projectionWatch.ElapsedMilliseconds });
             complete = true;
         }
         finally

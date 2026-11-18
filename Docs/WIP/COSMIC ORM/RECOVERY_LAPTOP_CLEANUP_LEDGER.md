@@ -1,3 +1,5 @@
+2026-11-18 UTC — Mongo native projection source/5 groups prepared using Git objects only; fixture reuses the existing isolated loopback database and4 fake records, adding about1MiB of owned test content for byte/work refusal. Before/after document bytes are compared and existing successful fixture cleanup drops the owned database. No local SDK/restore/build/database/download/environment/artifact created; retained/blocked register preserved.
+
 2026-11-18 UTC — Combined327 selected/16 real SQLite tests passed; final native linked-source build needs the helper link. Read16-case evidence from CI logs, no local extraction/build/restore/runtime/database. Additional exact bool/Int32 assertions reuse the existing CI fixture and its cleanup. Existing retained/blocked cleanup register preserved.
 
 2026-11-18 UTC — Cancelled owned superseded CI44278470969 (known incomplete extrema mock); replacement combines corrected protocol declarations and real SQLite projection fixtures. No live/DNA/PIPER operation or local runtime/build/restore/database/artifact created. Retained/blocked register unchanged.
