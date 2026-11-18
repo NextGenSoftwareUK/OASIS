@@ -817,8 +817,10 @@ Status: missing account/configuration information,2 November2026. David approved
 
 ### HD-CLOUD-READINESS — inspect whether the requested cloud continuation appeared
 
-- Status: awaiting one UI observation; 2026-11-18T20:17:45.937147+00:00.
+- Status: UI observation answered: David reports “No—I don’t see it”. No repeat request; cloud service recovery remains agent-owned. Original request date: 2026-11-18T20:17:45.937147+00:00.
 - Context: David requested moving the existing goal to cloud. Source and full handoff are committed/pushed on work/hyperdrive-provider-completion. One cloud create request and one read-only task-list request remain unresolved, with no task ID returned. Do not create a second task while the first outcome is unknown.
 - Owner step: check whether a sidebar task titled “OASIS HyperDrive and OPORTAL — cloud continuation” appears. If present, report whether it shows Cloud and any setup/access message; otherwise report that it is absent. No credentials or private record contents are requested.
 - Reason: the app-control requests have not returned and the available Windows UI automation policy does not permit controlling this app, so the agent cannot verify that UI state itself. This observation is not a request to repair the tool service or to approve a deployment.
 - Evidence: Docs/WIP/HyperDrive-Providers/CLOUD_HANDOFF_2026-11-18.md and CURRENT_STATUS.md. Cloud repository/goal access and local stop remain unconfirmed.
+
+2026-11-18T20:24:40.308423+00:00 HD-CLOUD-READINESS update: David confirmed the cloud continuation does not appear in his sidebar. Installed Codex CLI cloud list authenticated successfully and returned an empty tasks page; this does not prove the outstanding modern app creation call is cancelled or terminal. Both app creation and task-list calls remain unresolved; no task ID, private repository access or cloud goal is confirmed. Do not submit another creation request merely because observation is slow. No new owner action requested.
