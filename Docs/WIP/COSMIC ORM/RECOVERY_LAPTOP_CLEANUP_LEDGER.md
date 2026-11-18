@@ -1,3 +1,5 @@
+2026-11-18 UTC — Numeric HTTP44270843533 failed linked-source test compilation; no native fixture acceptance claimed. Source test definitions corrected for next immutable CI snapshot. No local build/restore/runtime/database/artifact extraction; C: measured26.62GiB free, selected gh cache paths absent. Existing retained/blocked register preserved.
+
 2026-11-18 UTC — Computed-count proof44268581311 passed.40,355-byte artifact inspected in RAM, no download/extraction retained; Mongo/Neo fixtures cleaned, SQLite in-memory. Numeric HTTP qualification reuses the isolated CI fixture next; no local build/restore/runtime/database/results tree. Existing retained/blocked cleanup entries remain.
 
 2026-11-18 UTC — Computed scalar SQL parser129 tests passed using cached Node and frozen modules in RAM. HTTP/native proof tests are prepared for isolated CI; no local build/restore/database/runtime/output directory. Previous40 KB proof archives inspected in RAM only; retained/blocked register remains unchanged.
