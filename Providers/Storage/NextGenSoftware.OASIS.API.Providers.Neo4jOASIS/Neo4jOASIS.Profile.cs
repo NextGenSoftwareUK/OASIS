@@ -44,7 +44,7 @@ public partial class Neo4jOASIS:IAvatarProfileStorageProvider
     }
 
     private static async Task<T> WriteProfileSnapshotAsync<T>(IAsyncTransaction transaction,string kind,T record,
-        string expected,IReadOnlyCollection<string> changed,Func<INode,T> read,bool retainHistory,DateTime modified,
+        string expected,IReadOnlyCollection<string> changed,Func<INode,T> read,bool retainHistory,DateTime modified,Guid nextVersionId,
         CancellationToken cancellation) where T:class,IHolonBase
     {
         if(changed.Count==0)return record;
@@ -52,7 +52,7 @@ public partial class Neo4jOASIS:IAvatarProfileStorageProvider
         // The locked original, including unknown native JSON fields, is the
         // historical snapshot. Never archive the already edited runtime object.
         if(retainHistory)await ArchiveRecordVersionAsync(transaction,kind,record,expected).ConfigureAwait(false);
-        record.PreviousVersionId=record.VersionId;record.Version=checked(record.Version+1);record.VersionId=Guid.NewGuid();
+        record.PreviousVersionId=record.VersionId;record.Version=checked(record.Version+1);record.VersionId=nextVersionId;
         record.ModifiedDate=modified;record.ModifiedByAvatarId=record.Id;
         var fields=new HashSet<string>(changed,StringComparer.Ordinal)
         {nameof(IHolonBase.Version),nameof(IHolonBase.VersionId),nameof(IHolonBase.PreviousVersionId),
@@ -128,9 +128,9 @@ public partial class Neo4jOASIS:IAvatarProfileStorageProvider
                     default:throw new ProfileRefusal(AvatarProfileErrors.Invalid,"Only editable profile fields are accepted.");
                 }
             }
-            var modified=DateTime.UtcNow;
-            account=await WriteProfileSnapshotAsync(transaction,"Avatar",account,accountRead.Expected,accountFields,ReadAvatarNode,retainHistory,modified,cancellationToken).ConfigureAwait(false);
-            detail=await WriteProfileSnapshotAsync(transaction,"AvatarDetail",detail,detailRead.Expected,detailFields,ReadDetailNode,retainHistory,modified,cancellationToken).ConfigureAwait(false);
+            var modified=mutation.ModifiedAtUtc;
+            account=await WriteProfileSnapshotAsync(transaction,"Avatar",account,accountRead.Expected,accountFields,ReadAvatarNode,retainHistory,modified,mutation.AvatarNextVersionId,cancellationToken).ConfigureAwait(false);
+            detail=await WriteProfileSnapshotAsync(transaction,"AvatarDetail",detail,detailRead.Expected,detailFields,ReadDetailNode,retainHistory,modified,mutation.DetailNextVersionId,cancellationToken).ConfigureAwait(false);
             if(account.Username!=detail.Username || account.Email!=detail.Email)
                 throw new ProfileRefusal(AvatarProfileErrors.Conflict,"The account profile identities are inconsistent.");
             cancellationToken.ThrowIfCancellationRequested();

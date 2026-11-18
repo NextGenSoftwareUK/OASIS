@@ -25,7 +25,7 @@ public partial class AvatarRepository
     // mode keeps the existing exact-field native patch; neither path is a retry.
     private async Task PatchAccountLifecycleAsync<T>(IClientSessionHandle session,IMongoCollection<T> collection,
         string nativeId,UpdateDefinition<T> patch,bool retainHistory,bool synchronous,
-        bool advanceVersion=false,CancellationToken cancellationToken=default) where T:HolonBase
+        bool advanceVersion=false,CancellationToken cancellationToken=default,Guid? nextVersionId=null) where T:HolonBase
     {
         if(!retainHistory && !advanceVersion)
         {
@@ -43,7 +43,7 @@ public partial class AvatarRepository
         if(body.Equals(observed))return;
         var prior=BsonSerializer.Deserialize<T>(observed);
         var version=Builders<T>.Update.Set(row=>row.Version,checked(prior.Version+1))
-            .Set(row=>row.PreviousVersionId,prior.VersionId).Set(row=>row.VersionId,Guid.NewGuid());
+            .Set(row=>row.PreviousVersionId,prior.VersionId).Set(row=>row.VersionId,nextVersionId??Guid.NewGuid());
         ApplyNativeSet(collection,body,version);
         MongoNativeRecordWriter.PrepareAccountHistory<T>(body,observed,retainHistory);
         var changed=synchronous?raw.ReplaceOne(session,identity,body,cancellationToken:cancellationToken):await raw.ReplaceOneAsync(session,identity,body,cancellationToken:cancellationToken).ConfigureAwait(false);
