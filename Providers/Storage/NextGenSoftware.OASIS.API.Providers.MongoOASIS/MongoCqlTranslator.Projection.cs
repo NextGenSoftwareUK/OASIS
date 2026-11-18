@@ -35,7 +35,7 @@ internal sealed partial class MongoCqlTranslator
         pipeline.Add(new("$limit",maximumResults+1));
         var cells=new BsonArray();
         for(var index=0;index<plan.Selection.Query.Columns.Count;index++)
-            cells.Add(ProjectionCell(plan.Selection.Query.Columns[index].Path,"cqlep"+index));
+            cells.Add(ProjectionCell(plan.Selection.Query.Columns[index],"cqlep"+index));
         pipeline.Add(new("$project",new BsonDocument { {"_id",0},{"cells",cells} }));
         ValidatePipeline(pipeline);
         return new MongoCqlProjectionCommand(pipeline.ToArray(),entity.RequiresMembership,true,false,false,entity.EntityComposition);
@@ -49,7 +49,7 @@ internal sealed partial class MongoCqlTranslator
         var cells = new BsonArray();
         for (var index = 0; index < query.Columns.Count; index++)
         {
-            cells.Add(ProjectionCell(query.Columns[index].Path, "cqlp" + index));
+            cells.Add(ProjectionCell(query.Columns[index], "cqlp" + index));
         }
         page.Add(new("$project", new BsonDocument { { "_id", 0 }, { "cells", cells } }));
         // Reuse the source-owned invalid branch, outside ordering/paging/columns.
@@ -83,6 +83,23 @@ internal sealed partial class MongoCqlTranslator
         if (limit.HasValue) page.Add(new("$limit", Math.Max(1, limit.Value)));
         if (query.Orderings.Count != 0) page.Add(new("$replaceRoot", new BsonDocument("newRoot", "$row")));
         return page;
+    }
+
+    private static BsonValue ProjectionCell(CosmicProjectionColumn column, string prefix)
+    {
+        if (column == null) throw new ArgumentNullException(nameof(column));
+        if (column.Function == CosmicProjectionFunction.None) return ProjectionCell(column.Path, prefix);
+        if (column.Function != CosmicProjectionFunction.Utf16Length ||
+            column.Path.ValueType != typeof(string) ||
+            (Nullable.GetUnderlyingType(column.ValueType) ?? column.ValueType) != typeof(int))
+            throw new NotSupportedException("The computed projection has no admitted native implementation.");
+        var name = prefix + "inputCell";
+        return SingleLet(name, ProjectionCell(column.Path, prefix + "source"), new BsonDocument
+        {
+            { "s", "$$" + name + ".s" },
+            { "v", Choose(Op("$eq", "$$" + name + ".s", Literal(2)),
+                Utf16LengthUnits("$$" + name + ".v"), Literal(BsonNull.Value)) }
+        });
     }
 
     private static BsonValue ProjectionCell(CosmicQueryPath path, string prefix)

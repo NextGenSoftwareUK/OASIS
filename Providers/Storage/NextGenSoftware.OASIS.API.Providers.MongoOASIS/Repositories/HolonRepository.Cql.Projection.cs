@@ -95,7 +95,7 @@ public partial class HolonRepository
             if (cell.ElementCount != 2 || !cell.TryGetValue("s", out var state) || !state.IsInt32
                 || !cell.TryGetValue("v", out var value) || state.AsInt32 < 0 || state.AsInt32 > 2)
                 throw new InvalidDataException("Selected projection path is ambiguous or has an invalid domain.");
-            var declared = columns[index].Path.ValueType;
+            var declared = columns[index].ValueType;
             if (state.AsInt32 < 2)
             {
                 if (!value.IsBsonNull || declared.IsValueType && Nullable.GetUnderlyingType(declared) == null)
