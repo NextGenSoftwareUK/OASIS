@@ -340,6 +340,7 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
 
             var selected = await Settings(manager => manager.GetHolonStoragePolicyAsync(actor, app));
             Assert.False(selected.IsError, selected.Message);
+            Assert.NotNull(selected.Result.EffectivePolicy);
             Assert.Equal(HolonStorageMode.Virtual, selected.Result.EffectivePolicy.Mode);
             var inherited = await Settings(manager => manager.GetHolonStoragePolicyAsync(actor, Guid.NewGuid()));
             Assert.False(inherited.IsError, inherited.Message);
