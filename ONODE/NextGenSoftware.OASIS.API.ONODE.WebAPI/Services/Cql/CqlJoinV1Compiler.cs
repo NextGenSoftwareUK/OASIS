@@ -114,6 +114,7 @@ public static partial class CqlV1Compiler
     private static CqlProjectionV1Column JoinColumn(string alias,CqlScalarV1Selection selection)
     {
         if(selection==null)throw new ArgumentException("An explicit typed join path is required.");
+        if(selection.Function.HasValue)throw new ArgumentException("Computed join selections require native function enrollment.");
         return new CqlProjectionV1Column{Alias=alias,Field=selection.Field,MetadataPath=selection.MetadataPath,
             ValueType=selection.ValueType,Nullable=selection.Nullable};
     }
