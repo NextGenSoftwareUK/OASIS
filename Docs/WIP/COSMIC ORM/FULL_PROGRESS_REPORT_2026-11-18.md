@@ -24,7 +24,7 @@ Existing implementation branches: parent/Core work/cosmic-cql-ton-public; Websit
 | Free WEB6 | Source-bound drafting, explicit review and visitor Free routing controls have controlled client evidence. | Real configured free-model completion and open visitor end-to-end acceptance remain unverified; no unlimited-inference claim. |
 | HyperDrive peer work | Last peer record:4/5 isolated routing cases passed. The remaining case reached successful failover but its final verification observer reused the faulted Mongo client. | Independent observer correction and exact qualification remain with the peer. No whole routing programme completion claim. |
 
-Latest accepted grouping image: ghcr.io/nextgensoftwareuk/oasis-web4@sha256:ddb46be6d846205ac17a2a97eda7683062650e95a76176eb29ce1977f71ce93f, exact3aff/Core9c, verified by44416121167. Runtime is unchanged in stronger test-only DISTINCT source93156, accepted by44418065554 (565+22+3, native148/145/124,17 settlements, all3 DISTINCT/group markers and owned cleanup). No image was pulled or deployed. It predates the current-Development purge/root changes; combined1fe2/Core0e67 requires fresh qualification in44421493104 before any newer rollout image is accepted.
+Latest accepted grouping image: ghcr.io/nextgensoftwareuk/oasis-web4@sha256:ddb46be6d846205ac17a2a97eda7683062650e95a76176eb29ce1977f71ce93f, exact3aff/Core9c, verified by44416121167. Runtime is unchanged in stronger test-only DISTINCT source93156, accepted by44418065554 (565+22+3, native148/145/124,17 settlements, all3 DISTINCT/group markers and owned cleanup). No image was pulled or deployed. It predates the current-Development purge/root changes; combined1fe2/Core0e67 passed fresh qualification44421493104 and its own image44423382342 is building; no newer image digest/live acceptance yet.
 
 Complete mixed branches currently must each contain fewer than100 records. Saturation refuses the result instead of accepting an unproved partial collection. The complete union can contain198 rows. This does not establish unlimited federation.
 
@@ -49,12 +49,12 @@ These are preserved records, not a fresh availability or live-health check.
 | TON | Public browser presets passed; original-owner private Mongo-paired browser cases open. |
 | TRON | Reader deployed; dedicated TronGrid configuration still gates authenticated qualification/enrollment. Existing owner action remains deferred. |
 | Hedera / HashgraphOASIS | Native HTTP and bounded public-browser evidence retained; full public preset/private browser cases open. |
-| Supabase | Deployed reader; restricted teaching fixture/hosted enrollment outstanding. |
+| Supabase | Deployed CQL reader; restricted teaching fixture/hosted enrollment outstanding. Peer records already certify52/52 native storage checks plus separate PostgREST pagination and routing cases; those completed suites were not rerun here. |
 | Other providers | Continue the inventory in the existing roadmap. A deployed reader or public preset does not prove full storage interface, SDK, HyperDrive or ORM parity. |
 
 ## Current Development integration
 
-Prepared1fe2ddcefdc9b8165962e43f56c02cf355b6849b combines CQL93156 with Development18675, pairing merged Core0e67 and the manifest. All37/6 Core and89/50 parent contributor paths retain their original blobs. Only dependency pointer/pin conflicts were resolved. The current feature history contains broader older changes and was not blindly merged or reset. This exact scoped candidate needs fresh CI; prior acceptance is not transferred to the newer Core. No Development write or deployment occurred.
+Prepared1fe2ddcefdc9b8165962e43f56c02cf355b6849b combines CQL93156 with Development18675, pairing merged Core0e67 and the manifest. All37/6 Core and89/50 parent contributor paths retain their original blobs. Only dependency pointer/pin conflicts were resolved. The current feature history contains broader older changes and was not blindly merged or reset. This exact scoped candidate passed fresh44421493104: actual WEB4 build,565+22+3, zero failures/skips, current generated native148/145/124 reports with all8 flags and owned cleanup. The peer source is preserved byte-for-byte. Combined image44423382342 is building exact1fe2; no digest/live acceptance yet. No Development write or deployment occurred.
 
 ## Live delivery and safety
 
@@ -78,4 +78,6 @@ Last observed C-drive free space:42.67GiB; this is an observation, not a reclama
 
 - Stronger native DISTINCT/stale-key acceptance: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44418065554
 
-- Current Development combination, pending: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44421493104
+- Current Development combination accepted565+22+3: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44421493104
+
+- Exact combined image build, pending: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44423382342
