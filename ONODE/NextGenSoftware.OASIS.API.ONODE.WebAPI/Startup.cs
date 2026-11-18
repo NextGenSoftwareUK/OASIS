@@ -467,13 +467,13 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                             if (initialized == null || initialized.IsError || initialized.IsWarning || initialized.Result == null)
                                 throw new InvalidOperationException("Enabled COSMIC replication requires successful shared OASIS initialization.", initialized?.Exception);
                         }));
-            services.AddHostedService<Services.HyperDrive.HyperDriveCommandHostedService>();
-            services.AddHostedService<Services.HyperDrive.HyperDriveFanOutHostedService>();
-            services.AddHostedService<Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService>();
-            services.AddHostedService<Services.HyperDrive.HyperDriveSyncCompactionHostedService>();
+            Services.Operations.HostedMongoWorkerControl.AddHyperDriveWorker<Services.HyperDrive.HyperDriveCommandHostedService>(services, Configuration);
+            Services.Operations.HostedMongoWorkerControl.AddHyperDriveWorker<Services.HyperDrive.HyperDriveFanOutHostedService>(services, Configuration);
+            Services.Operations.HostedMongoWorkerControl.AddHyperDriveWorker<Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService>(services, Configuration);
+            Services.Operations.HostedMongoWorkerControl.AddHyperDriveWorker<Services.HyperDrive.HyperDriveSyncCompactionHostedService>(services, Configuration);
             services.TryAddSingleton<NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IHolonReplicationAuthorizationPolicy,
                 Services.HyperDrive.CommittedOwnerReplicationPolicy>();
-            services.AddHostedService<Services.HyperDrive.HolonReplicationDeliveryHostedService>();
+            Services.Operations.HostedMongoWorkerControl.AddHyperDriveWorker<Services.HyperDrive.HolonReplicationDeliveryHostedService>(services, Configuration);
             Services.OLand.OLandCommerceRegistration.AddOLandCommerce(services, Configuration);
             services.AddSingleton<Services.Places.WorldscapePlaceCatalogue>();
             services.AddSingleton<Services.Gardens.GardenService>();
@@ -775,7 +775,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 services.AddHostedService<Services.Subscription.AppOverageStatementWorker>();
                 NextGenSoftware.OASIS.API.Core.Services.Subscriptions.SubscriptionTelemetryRegistration.AddSubscriptionUsageTelemetry(services, Configuration, "WEB4");
             }
-            Services.SubscriptionReconciliation.UsageReconciliationRegistration.AddUsageReconciliation(services, subscriptionUsageEnabled);
+            Services.SubscriptionReconciliation.UsageReconciliationRegistration.AddUsageReconciliation(services,
+                subscriptionUsageEnabled && Services.Operations.HostedMongoWorkerControl.ReconciliationMayStart(Configuration));
             // Use distributed counter for multi-pod safety; falls back to in-process when storage is unavailable
             services.AddSingleton<Services.IHerzCounterService, Services.DistributedHerzCounterService>();
             services.AddSingleton<Services.IQeaSealService, Services.QeaSealService>();
