@@ -146,18 +146,4 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.AccessLog
         private static int Clamp(int limit) => limit <= 0 ? 50 : Math.Min(limit, 200);
     }
 
-    /// <summary>In-memory per-app on/off choices, refreshed periodically from the app accounts so a read never touches the database.</summary>
-    public sealed class AccessLogOverrides
-    {
-        private volatile System.Collections.Generic.Dictionary<string, bool> _map = new System.Collections.Generic.Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
-        private volatile bool _any;
-        public bool AnyEnabled => _any;
-        public bool? For(string appId) => _map.TryGetValue(appId, out var v) ? v : (bool?)null;
-        public void Replace(System.Collections.Generic.IEnumerable<(string AppId, bool? Choice)> choices)
-        {
-            var map = new System.Collections.Generic.Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
-            foreach (var c in choices) if (c.Choice.HasValue && !string.IsNullOrEmpty(c.AppId)) map[c.AppId] = c.Choice.Value;
-            _map = map; _any = map.Values.Any(v => v);
-        }
-    }
 }
