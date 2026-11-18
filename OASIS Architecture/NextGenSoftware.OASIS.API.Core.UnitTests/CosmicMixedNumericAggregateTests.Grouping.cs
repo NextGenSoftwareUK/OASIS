@@ -10,22 +10,22 @@ public sealed partial class CosmicMixedNumericAggregateTests
     private static CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> IntegerGroups(
         Fixture f, int maximumGroups = 25, int maximumBytes = 1048576, bool keySelected = true)
     {
-        var key = CosmicProjectionSelection<Holon>.Create("Key", h => (int?)h.MetaData["amount"]).Result;
+        var key = CosmicProjectionSelection<Holon>.Create("Key", h => CosmicQueryMetadata.Value<int?>(h, new[] { "amount" })).Result;
         var g = f.Query.Source.GroupByColumns(new[] { key },
             CosmicGroupingOptions.Create(maximumGroups, maximumBytes).Result).Result;
         var bindings = new List<CosmicGroupedBinding<Holon, CosmicProjectionRecord>>();
         if (keySelected) bindings.Add(CosmicGroupedBinding<Holon, CosmicProjectionRecord>.Key(g, "Key", 0).Result);
         bindings.Add(CosmicGroupedBinding<Holon, CosmicProjectionRecord>.Aggregate(g, "Rows", g.Source.LongCount().Result).Result);
         bindings.Add(CosmicGroupedBinding<Holon, CosmicProjectionRecord>.Aggregate(g, "IntRows", g.Source.Count().Result).Result);
-        bindings.Add(CosmicGroupedBinding<Holon, CosmicProjectionRecord>.CountValues(g, "Populated", h => (int?)h.MetaData["amount"]).Result);
+        bindings.Add(CosmicGroupedBinding<Holon, CosmicProjectionRecord>.CountValues(g, "Populated", h => CosmicQueryMetadata.Value<int?>(h, new[] { "amount" })).Result);
         bindings.Add(CosmicGroupedBinding<Holon, CosmicProjectionRecord>.Aggregate(g, "Sum",
-            g.Source.Sum(h => (int?)h.MetaData["amount"]).Result).Result);
+            g.Source.Sum(h => CosmicQueryMetadata.Value<int?>(h, new[] { "amount" })).Result).Result);
         bindings.Add(CosmicGroupedBinding<Holon, CosmicProjectionRecord>.Aggregate(g, "Mean",
-            g.Source.Average(h => (int?)h.MetaData["amount"]).Result).Result);
+            g.Source.Average(h => CosmicQueryMetadata.Value<int?>(h, new[] { "amount" })).Result).Result);
         bindings.Add(CosmicGroupedBinding<Holon, CosmicProjectionRecord>.Aggregate(g, "Minimum",
-            g.Source.Min(h => (int?)h.MetaData["amount"]).Result).Result);
+            g.Source.Min(h => CosmicQueryMetadata.Value<int?>(h, new[] { "amount" })).Result).Result);
         bindings.Add(CosmicGroupedBinding<Holon, CosmicProjectionRecord>.Aggregate(g, "Maximum",
-            g.Source.Max(h => (int?)h.MetaData["amount"]).Result).Result);
+            g.Source.Max(h => CosmicQueryMetadata.Value<int?>(h, new[] { "amount" })).Result).Result);
         var selected = g.SelectColumns(bindings); Assert.False(selected.IsError, selected.Message);
         return selected.Result;
     }
@@ -163,9 +163,9 @@ public sealed partial class CosmicMixedNumericAggregateTests
     {
         var f = await Create(typeof(int), true, new object[] { 1, int.MaxValue, int.MaxValue }, Array.Empty<object>());
         var g = f.Query.Source.GroupByColumns(new[] {
-            CosmicProjectionSelection<Holon>.Create("Key", h => (int?)h.MetaData["amount"]).Result }).Result;
+            CosmicProjectionSelection<Holon>.Create("Key", h => CosmicQueryMetadata.Value<int?>(h, new[] { "amount" })).Result }).Result;
         var selected = g.Select(group => new GroupConstructorProbe {
-            Rows = group.LongCount(), Sum = group.Sum(h => (int?)h.MetaData["amount"]) }).Take(1);
+            Rows = group.LongCount(), Sum = group.Sum(h => CosmicQueryMetadata.Value<int?>(h, new[] { "amount" })) }).Take(1);
         Assert.False(selected.IsError, selected.Message);
         var plan = CosmicMixedProjectionResults.PrepareGrouping(f.Query, selected.Result);
         Assert.False(plan.IsError, plan.Message); GroupConstructorProbe.Calls = 0;
@@ -180,8 +180,8 @@ public sealed partial class CosmicMixedNumericAggregateTests
         var f = await Create(typeof(string), true, new object[] { "A", "a", "\uE000", null! },
             new object[] { "A", "😀", null! }, overlap: 1);
         var g = f.Query.Source.GroupByColumns(new[] {
-            CosmicProjectionSelection<Holon>.Create("First", h => (string)h.MetaData["amount"]).Result,
-            CosmicProjectionSelection<Holon>.Create("Second", h => (string)h.MetaData["amount"]).Result }).Result;
+            CosmicProjectionSelection<Holon>.Create("First", h => CosmicQueryMetadata.Value<string>(h, new[] { "amount" })).Result,
+            CosmicProjectionSelection<Holon>.Create("Second", h => CosmicQueryMetadata.Value<string>(h, new[] { "amount" })).Result }).Result;
         var selected = g.SelectColumns(new[] {
             CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Key(g,"Text",0).Result,
             CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(g,"Rows",g.Source.LongCount().Result).Result
@@ -198,10 +198,10 @@ public sealed partial class CosmicMixedNumericAggregateTests
         var f = await Create(typeof(int), true, new object[] {100,3}, new object[] {2}, overlap:1,
             storedKeys:new object[] {"old","stable"}, nativeKeys:new object[] {"new"});
         var g=f.Query.Source.GroupByColumns(new[] {
-            CosmicProjectionSelection<Holon>.Create("Category",h=>(string)h.MetaData["category"]).Result }).Result;
+            CosmicProjectionSelection<Holon>.Create("Category",h=>CosmicQueryMetadata.Value<string>(h, new[] { "category" })).Result }).Result;
         var selected=g.SelectColumns(new[] {
             CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Key(g,"Category",0).Result,
-            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(g,"Sum",g.Source.Sum(h=>(int?)h.MetaData["amount"]).Result).Result }).Result;
+            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(g,"Sum",g.Source.Sum(h=>CosmicQueryMetadata.Value<int?>(h, new[] { "amount" })).Result).Result }).Result;
         var plan=CosmicMixedProjectionResults.PrepareGrouping(f.Query,selected);
         Assert.False(plan.IsError,plan.Message);
         var r=CosmicMixedProjectionResults.Group(plan.Result,Actor,f.Mapping,f.Stored,f.Live);
@@ -216,10 +216,10 @@ public sealed partial class CosmicMixedNumericAggregateTests
         var f=await Create(typeof(long),true,new object[] {9007199254740993L},new object[] {9007199254740995L},
             storedKeys:new object[] {"one"},nativeKeys:new object[] {"one"});
         var g=f.Query.Source.GroupByColumns(new[] {
-            CosmicProjectionSelection<Holon>.Create("Category",h=>(string)h.MetaData["category"]).Result }).Result;
+            CosmicProjectionSelection<Holon>.Create("Category",h=>CosmicQueryMetadata.Value<string>(h, new[] { "category" })).Result }).Result;
         var selected=g.SelectColumns(new[] {
-            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(g,"Sum",g.Source.Sum(h=>(long?)h.MetaData["amount"]).Result).Result,
-            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(g,"Mean",g.Source.Average(h=>(long?)h.MetaData["amount"]).Result).Result }).Result;
+            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(g,"Sum",g.Source.Sum(h=>CosmicQueryMetadata.Value<long?>(h, new[] { "amount" })).Result).Result,
+            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(g,"Mean",g.Source.Average(h=>CosmicQueryMetadata.Value<long?>(h, new[] { "amount" })).Result).Result }).Result;
         var plan=CosmicMixedProjectionResults.PrepareGrouping(f.Query,selected);
         Assert.False(plan.IsError,plan.Message);
         var r=CosmicMixedProjectionResults.Group(plan.Result,Actor,f.Mapping,f.Stored,f.Live);
@@ -233,10 +233,10 @@ public sealed partial class CosmicMixedNumericAggregateTests
         var f=await Create(typeof(double),true,new object[] {1e16,1d},new object[] {-1e16},
             storedKeys:new object[] {"one","one"},nativeKeys:new object[] {"one"});
         var g=f.Query.Source.GroupByColumns(new[] {
-            CosmicProjectionSelection<Holon>.Create("Category",h=>(string)h.MetaData["category"]).Result }).Result;
+            CosmicProjectionSelection<Holon>.Create("Category",h=>CosmicQueryMetadata.Value<string>(h, new[] { "category" })).Result }).Result;
         var selected=g.SelectColumns(new[] {
-            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(g,"Sum",g.Source.Sum(h=>(double?)h.MetaData["amount"]).Result).Result,
-            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(g,"Mean",g.Source.Average(h=>(double?)h.MetaData["amount"]).Result).Result }).Result;
+            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(g,"Sum",g.Source.Sum(h=>CosmicQueryMetadata.Value<double?>(h, new[] { "amount" })).Result).Result,
+            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(g,"Mean",g.Source.Average(h=>CosmicQueryMetadata.Value<double?>(h, new[] { "amount" })).Result).Result }).Result;
         var plan=CosmicMixedProjectionResults.PrepareGrouping(f.Query,selected);
         Assert.False(plan.IsError,plan.Message);
         var r=CosmicMixedProjectionResults.Group(plan.Result,Actor,f.Mapping,f.Stored,f.Live);
@@ -250,11 +250,11 @@ public sealed partial class CosmicMixedNumericAggregateTests
         var f=await Create(typeof(int),true,new object[] {null!},new object[] {null!},
             storedKeys:new object[] {"one"},nativeKeys:new object[] {"one"});
         var g=f.Query.Source.GroupByColumns(new[] {
-            CosmicProjectionSelection<Holon>.Create("Category",h=>(string)h.MetaData["category"]).Result }).Result;
+            CosmicProjectionSelection<Holon>.Create("Category",h=>CosmicQueryMetadata.Value<string>(h, new[] { "category" })).Result }).Result;
         var selected=g.SelectColumns(new[] {
             CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(g,"Rows",g.Source.LongCount().Result).Result,
-            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.CountValues(g,"Populated",h=>(int?)h.MetaData["amount"]).Result,
-            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(g,"Mean",g.Source.Average(h=>(int?)h.MetaData["amount"]).Result).Result }).Result;
+            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.CountValues(g,"Populated",h=>CosmicQueryMetadata.Value<int?>(h, new[] { "amount" })).Result,
+            CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(g,"Mean",g.Source.Average(h=>CosmicQueryMetadata.Value<int?>(h, new[] { "amount" })).Result).Result }).Result;
         var plan=CosmicMixedProjectionResults.PrepareGrouping(f.Query,selected);
         Assert.False(plan.IsError,plan.Message);
         var r=CosmicMixedProjectionResults.Group(plan.Result,Actor,f.Mapping,f.Stored,f.Live);
@@ -267,7 +267,7 @@ public sealed partial class CosmicMixedNumericAggregateTests
     {
         var f=await Create(typeof(bool),true,new object[] {false,true,null!},new object[] {false});
         var g=f.Query.Source.GroupByColumns(new[] {
-            CosmicProjectionSelection<Holon>.Create("Flag",h=>(bool?)h.MetaData["amount"]).Result }).Result;
+            CosmicProjectionSelection<Holon>.Create("Flag",h=>CosmicQueryMetadata.Value<bool?>(h, new[] { "amount" })).Result }).Result;
         var selected=g.SelectColumns(new[] {
             CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Key(g,"Flag",0).Result,
             CosmicGroupedBinding<Holon,CosmicProjectionRecord>.Aggregate(g,"Rows",g.Source.LongCount().Result).Result }).Result;
