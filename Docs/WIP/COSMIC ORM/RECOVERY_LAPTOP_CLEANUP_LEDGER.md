@@ -1,3 +1,5 @@
+2026-11-18 UTC — Cancelled owned superseded CI44278470969 (known incomplete extrema mock); replacement combines corrected protocol declarations and real SQLite projection fixtures. No live/DNA/PIPER operation or local runtime/build/restore/database/artifact created. Retained/blocked register unchanged.
+
 2026-11-18 UTC — Native SQLite projection source/3 tests prepared without a local build, restore, database or runtime. Tests reuse existing CI-owned fixture paths and assert native byte preservation/no OASIS file; their temporary owned data is removed by existing fixture disposal. No new persistent environment/download/artifact. Retained/blocked register preserved.
 
 2026-11-18 UTC — Diagnostic44275656863 isolated rejection before any native call (invalid fixture source ordering);5 virtual result-contract test groups passed among313 passing selected cases. Fixture ordering is corrected to match real parser requests for the next exact CI source. No local build/restore/runtime/database/artifact extraction; retained/blocked register unchanged.

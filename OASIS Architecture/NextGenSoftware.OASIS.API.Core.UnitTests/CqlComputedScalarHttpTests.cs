@@ -21,12 +21,15 @@ public partial class CqlV1Web4Tests
             new[] { new CosmicProjectionFieldCapability("Name", typeof(string)) }, Array.Empty<Type>())
             .WithFunctions(CosmicProjectionFunction.Utf16Length);
         adapter.SetupGet(value => value.CompositionCapabilities).Returns(new CosmicProjectionCompositionCapabilities(
-            CosmicSelectedStageFeatures.Ordering | CosmicSelectedStageFeatures.Paging,
-            CosmicQueryFeatures.None, Array.Empty<CosmicQueryMetadataCapability>(), new[] { typeof(int?) }, 32,
+            CosmicSelectedStageFeatures.Filter | CosmicSelectedStageFeatures.Ordering | CosmicSelectedStageFeatures.Paging,
+            CosmicQueryFeatures.NullLiteral,
+            new[] { new CosmicQueryMetadataCapability(typeof(int?), new[] { CosmicQueryComparisonOperator.NotEqual }) },
+            new[] { typeof(int?) }, 32,
             supportsAll: false, supportsCardinality: false,
             numericReductions: new CosmicScalarCapabilities(Array.Empty<CosmicScalarOperation>(),
                 new[] { CosmicScalarOperation.Sum, CosmicScalarOperation.Average }.Select(operation =>
-                    new CosmicScalarSelectionCapability(operation, reads, new[] { typeof(int?) })).ToArray())));
+                    new CosmicScalarSelectionCapability(operation, reads, new[] { typeof(int?) })).ToArray()),
+            extremaDomains: new[] { typeof(int?) }));
         adapter.Setup(value => value.ExecuteCosmicProjectionCompositionAsync(
             It.IsAny<CosmicProjectionCompositionPlan<Holon, int?>>(),
             It.IsAny<CosmicProjectionCompositionExecutionLimits>(), It.IsAny<CancellationToken>()))
