@@ -45,6 +45,11 @@ on:
         required: false
         default: false
         type: boolean
+      native_profile_sdk:
+        description: Checkout the recorded WEB4 JS SDK for real profile HTTP tests
+        required: false
+        default: false
+        type: boolean
       native_test_filter:
         description: 'Select the changed real-provider test.'
         required: false
@@ -99,6 +104,158 @@ jobs:
           repository: holochain-open-dev/holochain-client-csharp
           ref: ${{ steps.dependencies.outputs.HOLOCHAIN_COMMIT }}
           path: holochain-client-csharp
+
+      - name: Resolve recorded profile SDK revision
+        if: ${{ inputs.native_profile_sdk }}
+        id: profile_sdk
+        shell: pwsh
+        run: |
+          $revision = (Get-Content Scripts/TestHosts/Fixtures/profile-sdk-revision.txt -Raw).Trim()
+          if ($revision -notmatch '^[0-9a-f]{40}
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify public manager provider-I/O manifest
+        shell: pwsh
+        run: ./Scripts/verify_hyperdrive_provider_io_manifest.ps1
+
+      - name: Verify WEB4 route-to-boundary manifest
+        shell: pwsh
+        run: ./Scripts/verify_web4_hyperdrive_route_manifest.ps1
+
+      - name: Verify V2 storage-operation parity and coverage
+        shell: pwsh
+        run: ./Scripts/verify_hyperdrive_v2_operation_contracts.ps1
+
+      - name: Build the WEB4 artifact the controller contracts load
+        if: ${{ !inputs.native_seal || inputs.native_project == 'subscription_ledger' || inputs.build_api }}
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner api-qualification-build-ci -Operation {
+            dotnet build 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj' --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE) { throw 'API qualification build failed.' }
+          }
+
+      - name: Verify the changed request timing middleware
+        if: ${{ inputs.request_timing_tests }}
+        shell: pwsh
+        env:
+          OASIS_REQUEST_TIMING_FILTER: ${{ inputs.request_timing_filter }}
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner request-timing-ci -Operation {
+            $selection = @()
+            if ($env:OASIS_REQUEST_TIMING_FILTER) { $selection = @('--filter', $env:OASIS_REQUEST_TIMING_FILTER) }
+            dotnet test 'ONODE/Tests/RequestTiming.Tests/RequestTiming.Tests.csproj' --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false @selection --logger 'trx;LogFileName=request-timing.trx' --results-directory artifacts/hyperdrive-contract-validation
+            if ($LASTEXITCODE) { throw 'Request timing checks failed.' }
+          }
+
+      - name: Run HyperDrive behavioral contracts
+        if: ${{ !inputs.native_seal && !inputs.build_only }}
+        shell: pwsh
+        env:
+          OASIS_HYPERDRIVE_TEST_FILTER: ${{ inputs.contract_filter || 'FullyQualifiedName~HyperDrive' }}
+        run: >-
+          dotnet test
+          'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/NextGenSoftware.OASIS.API.Core.UnitTests.csproj'
+          --configuration Release
+          --filter "$env:OASIS_HYPERDRIVE_TEST_FILTER"
+          --logger 'trx;LogFileName=hyperdrive-contracts.trx'
+          --results-directory artifacts/hyperdrive-contract-validation
+
+      - name: Start owned native profile Bolt fixture
+        if: ${{ inputs.native_seal && inputs.native_neo4j }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --detach --name profile-native-neo4j --memory 768m -p 127.0.0.1:27687:7687 \
+            -e NEO4J_AUTH=neo4j/oasis-profile-fixture-only \
+            -e NEO4J_server_memory_heap_initial__size=256m \
+            -e NEO4J_server_memory_heap_max__size=256m \
+            -e NEO4J_server_memory_pagecache_size=128m \
+            neo4j:5.26.0-community@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5
+          for attempt in $(seq 1 90); do
+            if docker exec profile-native-neo4j cypher-shell -u neo4j -p oasis-profile-fixture-only 'RETURN 1' >/dev/null 2>&1; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+
+      - name: Start owned native seal routing fixture
+        if: ${{ inputs.native_seal }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --detach --name seal-routing-mongo -p 127.0.0.1:27029:27029 mongo:8.0.15 --port 27029 --replSet oasisRecoveryRs --bind_ip_all --setParameter enableTestCommands=1
+          for attempt in $(seq 1 60); do
+            if docker exec seal-routing-mongo mongosh --port 27029 --quiet --eval 'db.adminCommand({ping:1})' >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          docker exec seal-routing-mongo mongosh --port 27029 --quiet --eval 'rs.initiate({_id:"oasisRecoveryRs",members:[{_id:0,host:"127.0.0.1:27029"}]})'
+          for attempt in $(seq 1 60); do
+            if docker exec seal-routing-mongo mongosh --port 27029 --quiet --eval 'if(!db.hello().isWritablePrimary) quit(1)' >/dev/null 2>&1; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+
+      - name: Verify real seal routing without repeating accepted contracts
+        if: ${{ inputs.native_seal && !inputs.native_profile_sdk }}
+        shell: pwsh
+        env:
+          SUBSCRIPTION_TEST_MONGODB_URI: mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000
+          OASIS_PROFILE_WEB4_SDK_ROOT: ${{ github.workspace }}/web4-profile-sdk
+          OASIS_NATIVE_PROJECT: ${{ inputs.native_project || 'integration' }}
+          OASIS_NATIVE_PROVIDER_TEST_FILTER: ${{ inputs.native_test_filter || 'FullyQualifiedName~SealVerificationPreservesNativeRouting' }}
+          OASIS_PROFILE_NEO4J_FIXTURE: ${{ inputs.native_neo4j && 'owned-local-27687' || '' }}
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner seal-routing-native-ci -Operation {
+            $project = if ($env:OASIS_NATIVE_PROJECT -eq 'subscription_ledger') { 'ONODE/Tests/SubscriptionLedger.ProtocolTests/SubscriptionLedger.ProtocolTests.csproj' } else { 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' }
+            dotnet test $project --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false --filter "$env:OASIS_NATIVE_PROVIDER_TEST_FILTER" --logger 'trx;LogFileName=seal-routing-native.trx' --results-directory artifacts/hyperdrive-contract-validation
+            if ($LASTEXITCODE) { throw 'Native seal routing verification failed.' }
+          }
+
+      - name: Verify actual profile SDK through owned native HTTP
+        if: ${{ inputs.native_seal && inputs.native_profile_sdk }}
+        shell: bash
+        env:
+          SUBSCRIPTION_TEST_MONGODB_URI: mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000
+          OASIS_PROFILE_WEB4_SDK_ROOT: ${{ github.workspace }}/web4-profile-sdk
+          OASIS_NATIVE_PROVIDER_TEST_FILTER: ${{ inputs.native_test_filter }}
+          OASIS_PROFILE_NEO4J_FIXTURE: ${{ inputs.native_neo4j && 'owned-local-27687' || '' }}
+        run: bash Scripts/TestHosts/Invoke-ProfileSdkNativeVerification.sh
+
+      - name: Stop owned native seal routing fixture
+        if: ${{ always() && inputs.native_seal }}
+        shell: bash
+        run: docker rm --force --volumes seal-routing-mongo
+
+      - name: Stop owned native profile Bolt fixture
+        if: ${{ always() && inputs.native_seal && inputs.native_neo4j }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if docker container inspect profile-native-neo4j >/dev/null 2>&1; then
+            docker rm --force --volumes profile-native-neo4j
+          fi
+          if docker container inspect profile-native-neo4j >/dev/null 2>&1; then exit 1; fi
+
+      - name: Preserve HyperDrive behavioral evidence
+        if: ${{ always() && (!inputs.build_only || inputs.request_timing_tests) }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: hyperdrive-contract-results
+          path: OASIS/artifacts/hyperdrive-contract-validation/*.trx
+          if-no-files-found: error
+) { throw 'Exact profile SDK revision required.' }
+          "revision=$revision" >> $env:GITHUB_OUTPUT
+
+      - name: Checkout recorded profile SDK
+        if: ${{ inputs.native_profile_sdk }}
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/OASIS-API-Javascipt-Package-WEB4
+          ref: ${{ steps.profile_sdk.outputs.revision }}
+          path: web4-profile-sdk
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
 
       - uses: actions/setup-dotnet@v4
         with:
