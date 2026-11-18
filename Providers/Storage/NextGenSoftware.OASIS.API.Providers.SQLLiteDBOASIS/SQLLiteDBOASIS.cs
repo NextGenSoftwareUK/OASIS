@@ -53,13 +53,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 _appDataContext.Dispose();
                 _appDataContext = new DataContext(settings.ToString());
                 _memoryLifetimeConnection = new SqliteConnection(settings.ToString());
-                try { _memoryLifetimeConnection.Open(); }
-                catch { _memoryLifetimeConnection.Dispose(); _appDataContext.Dispose(); throw; }
             }
             _ownConnectionString = settings.ToString();
             _avatarDetailRepository = new AvatarDetailRepository(_appDataContext);
             _avatarRepository = new AvatarRepository(_appDataContext);
             _holonRepository = new HolonRepository(_appDataContext,()=>IsVersionControlEnabled);
+        }
+
+        private void EnsureMemoryLifetime()
+        {
+            // Acquire native resources only inside activation's OASISResult
+            // boundary. Keep an activated memory store alive until final disposal.
+            if (_memoryLifetimeConnection != null && _memoryLifetimeConnection.State != System.Data.ConnectionState.Open)
+                _memoryLifetimeConnection.Open();
         }
 
         public void Dispose()

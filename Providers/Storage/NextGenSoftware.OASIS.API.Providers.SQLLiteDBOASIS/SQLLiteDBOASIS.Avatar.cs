@@ -28,6 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
             try
             {
+                EnsureMemoryLifetime();
                 if (await HasMigrationHistoryAsync())
                     await _appDataContext.Database.MigrateAsync();
                 else
@@ -53,6 +54,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
             try
             {
+                EnsureMemoryLifetime();
                 if (HasMigrationHistory())
                     _appDataContext.Database.Migrate();
                 else

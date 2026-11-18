@@ -300,4 +300,41 @@ public sealed class AvatarProfileAtomicSqliteNativeTests
             }
         }
     }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task OnlyActivationAcquiresTheNativeMemoryLifetime(bool synchronous)
+    {
+        using var store=new OwnedStore(3);var provider=store.Provider;
+        var actor=Guid.NewGuid();
+        var edit=new AvatarProfileMutation(actor,new(1,Guid.NewGuid()),new(1,Guid.NewGuid()),
+            new Dictionary<AvatarProfileProperty,string>{{AvatarProfileProperty.Title,"Before activation"}});
+        var inactive=await provider.ApplyAvatarProfileAsync(actor,edit);
+        Assert.True(inactive.IsError);Assert.Equal(AvatarProfileErrors.StorageUnavailable,inactive.ErrorCode);
+        Assert.False(provider.IsProviderActivated);
+        // This is a real, independently opened native connection. A constructor
+        // keeper would incorrectly retain its marker after that connection closes.
+        using(var temporary=new SqliteConnection(store.Connection))
+        {
+            await temporary.OpenAsync();using var marker=temporary.CreateCommand();
+            marker.CommandText="CREATE TABLE preactivation_probe(Id INTEGER PRIMARY KEY); INSERT INTO preactivation_probe VALUES(1)";
+            await marker.ExecuteNonQueryAsync();
+        }
+        using(var independent=new SqliteConnection(store.Connection))
+        {
+            await independent.OpenAsync();using var query=independent.CreateCommand();
+            query.CommandText="SELECT COUNT(*) FROM sqlite_schema WHERE type='table' AND name='preactivation_probe'";
+            Assert.Equal(0L,(long)(await query.ExecuteScalarAsync())!);
+        }
+        var active=synchronous?provider.ActivateProvider():await provider.ActivateProviderAsync();
+        Assert.False(active.IsError,active.Message);Assert.True(provider.IsProviderActivated);
+        var opened=await Seed(provider);
+        var saved=await provider.ApplyAvatarProfileAsync(opened.Account.Id,Edit(opened,(AvatarProfileProperty.Address,"After activation")));
+        Assert.False(saved.IsError,saved.Message);Assert.True(saved.IsSaved);Assert.Equal("After activation",saved.Result.Address);
+        provider.Dispose();
+        using var final=new SqliteConnection(store.Connection);await final.OpenAsync();
+        using var empty=final.CreateCommand();empty.CommandText="SELECT COUNT(*) FROM sqlite_schema WHERE type='table' AND name='Avatar'";
+        Assert.Equal(0L,(long)(await empty.ExecuteScalarAsync())!);
+    }
 }
