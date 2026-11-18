@@ -40,7 +40,14 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     [Theory]
     [InlineData(HyperDriveModes.Legacy)]
     [InlineData(HyperDriveModes.V2)]
-    public async Task ProfileHttpUsesAuthenticatedActorAndCanonicalNativeRevisions(string mode)
+    public Task ProfileHttpUsesAuthenticatedActorAndCanonicalNativeRevisions(string mode) => RunProfileHttp(mode, false);
+
+    [Theory]
+    [InlineData(HyperDriveModes.Legacy)]
+    [InlineData(HyperDriveModes.V2)]
+    public Task ProfileJavaScriptSdkUsesActualNativeHttp(string mode) => RunProfileHttp(mode, true);
+
+    private async Task RunProfileHttp(string mode, bool sdkOnly)
     {
         RequireOwnedFixtures();
         var id = Guid.NewGuid();
@@ -129,6 +136,26 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 foreach (var store in stores)
                 {
                     var provider = store.ProviderType.Value;
+                    if (sdkOnly)
+                    {
+                        var sdkTitle = "SDK " + mode + " " + provider;
+                        using var sdkResult = await ExchangeSdkRequest(new
+                            { baseUrl = address, token = Token(id), providerType = provider.ToString(), title = sdkTitle });
+                        Assert.False(sdkResult.RootElement.TryGetProperty("isError", out var sdkError) && sdkError.GetBoolean(),
+                            "Actual JavaScript SDK/native HTTP verification failed.");
+                        var sdkNative = await Read(store, id);
+                        Assert.Equal(sdkTitle, sdkNative.Title); Assert.Equal(string.Empty, sdkNative.Address);
+                        Assert.Equal(sdkNative.AvatarRevision.VersionId, sdkResult.RootElement.GetProperty("avatarVersionId").GetGuid());
+                        Assert.Equal(sdkNative.DetailRevision.VersionId, sdkResult.RootElement.GetProperty("detailVersionId").GetGuid());
+                        foreach (var replica in stores)
+                        {
+                            var actual = await Read(replica, id); SameRevisions(sdkNative, actual);
+                            Assert.Equal(sdkTitle, actual.Title); Assert.Equal(string.Empty, actual.Address);
+                            Assert.Equal("stored-hash", (await replica.LoadAvatarAsync(id)).Result.Password);
+                            Assert.Equal(42, (await replica.LoadAvatarDetailAsync(id)).Result.XP);
+                        }
+                        continue;
+                    }
                     var get = await client.GetAsync("/api/avatar/profile?providerType=" + provider);
                     Assert.Equal(HttpStatusCode.OK, get.StatusCode);
                     Assert.True(get.Headers.CacheControl?.NoStore);
@@ -196,5 +223,49 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             }
         }
         finally { AssemblyLoadContext.Default.Resolving -= Resolve; }
+    }
+
+    // The test hosts HTTP only. CI owns the separate fixed Node command.
+    private static async Task<JsonDocument> ExchangeSdkRequest(object request)
+    {
+        var configured = Environment.GetEnvironmentVariable("OASIS_PROFILE_SDK_HANDOFF_ROOT");
+        var runnerTemp = Environment.GetEnvironmentVariable("RUNNER_TEMP");
+        if (string.IsNullOrEmpty(configured) || string.IsNullOrEmpty(runnerTemp))
+            throw new InvalidOperationException("Owned CI SDK handoff paths are required.");
+        var root = Path.GetFullPath(configured);
+        var parent = Path.TrimEndingDirectorySeparator(Path.GetFullPath(runnerTemp)) + Path.DirectorySeparatorChar;
+        if (!root.StartsWith(parent, StringComparison.Ordinal) ||
+            !new DirectoryInfo(root).Name.StartsWith("oasis-profile-sdk-", StringComparison.Ordinal) ||
+            !Directory.Exists(root))
+            throw new InvalidOperationException("The SDK handoff must remain inside its owned CI directory.");
+        var stem = Guid.NewGuid().ToString("N");
+        var input = Path.Combine(root, stem + ".request.json");
+        var output = Path.Combine(root, stem + ".response.json");
+        var ready = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var watcher = new FileSystemWatcher(root, stem + ".response.json")
+            { NotifyFilter = NotifyFilters.FileName };
+        watcher.Created += (_, _) => ready.TrySetResult(true);
+        watcher.Renamed += (_, _) => ready.TrySetResult(true);
+        watcher.Error += (_, error) => ready.TrySetException(error.GetException());
+        watcher.EnableRaisingEvents = true;
+        try
+        {
+            var options = new FileStreamOptions
+                { Mode = FileMode.CreateNew, Access = FileAccess.Write, Share = FileShare.None, Options = FileOptions.Asynchronous };
+            if (!OperatingSystem.IsWindows()) options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+            await using (var stream = new FileStream(input + ".tmp", options))
+            {
+                await JsonSerializer.SerializeAsync(stream, request);
+                await stream.FlushAsync();
+            }
+            File.Move(input + ".tmp", input);
+            await ready.Task.WaitAsync(TimeSpan.FromSeconds(45));
+            return JsonDocument.Parse(await File.ReadAllTextAsync(output));
+        }
+        finally
+        {
+            foreach (var owned in new[] { input + ".tmp", input, output + ".tmp", output })
+                File.Delete(owned);
+        }
     }
 }
