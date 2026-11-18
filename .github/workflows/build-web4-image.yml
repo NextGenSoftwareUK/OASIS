@@ -1,4 +1,5 @@
 name: Build WEB4 image
+run-name: WEB4 image ${{ inputs.serving_pause_environment || 'current' }} ${{ inputs.ref || github.sha }}
 
 # Builds Docker/Dockerfile.web4 on a GitHub runner and publishes it to GHCR.
 # Railway's builder runs out of resources during `dotnet publish` of the ONODE
@@ -24,6 +25,12 @@ on:
         required: false
         type: boolean
         default: false
+      serving_pause_environment:
+        description: Exact older serving-source pause package (current retains normal SDK checks)
+        type: choice
+        required: false
+        default: current
+        options: [current, staging, production]
 
 permissions:
   contents: read
@@ -38,14 +45,39 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
+      - name: Check out the workflow's older-source scope verifier
+        if: ${{ inputs.serving_pause_environment != '' && inputs.serving_pause_environment != 'current' }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          submodules: false
+
+      - name: Retain the workflow revision's scope verifier
+        if: ${{ inputs.serving_pause_environment != '' && inputs.serving_pause_environment != 'current' }}
+        run: cp Scripts/TestHosts/validate_worker_pause_backport.py "$RUNNER_TEMP/validate_worker_pause_backport.py"
+
       - name: Check out the parent repository (no submodules; the Dockerfile clones pinned ones)
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref || github.sha }}
+          fetch-depth: 2
           submodules: false
 
       - name: Verify provider SDK source publication contracts
+        if: ${{ inputs.serving_pause_environment == '' || inputs.serving_pause_environment == 'current' }}
         run: python3 -B Scripts/validate_all_provider_sdk_publish_manifests.py
+
+      # The inspected old serving snapshots predate that SDK checker. This mode
+      # accepts only the exact two-file pause on one immutable serving parent;
+      # it cannot package arbitrary old/new source or suppress a failing check.
+      - name: Verify exact older serving-source patch and dependency contract
+        if: ${{ inputs.serving_pause_environment != '' && inputs.serving_pause_environment != 'current' }}
+        env:
+          TARGET_ENVIRONMENT: ${{ inputs.serving_pause_environment }}
+          SOURCE_SHA: ${{ inputs.ref }}
+        run: |
+          python3 -B "$RUNNER_TEMP/validate_worker_pause_backport.py" --environment "$TARGET_ENVIRONMENT" --source "$SOURCE_SHA"
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
 
       - uses: docker/setup-buildx-action@v3
 
