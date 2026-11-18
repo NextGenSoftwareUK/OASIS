@@ -28,6 +28,18 @@ public sealed class AvatarProfileCommitStampNativeTests
         private readonly string _name="profile_stamp_"+Guid.NewGuid().ToString("N");
         public MongoDBOASIS Provider {get;private set;}=null!;
         internal IMongoDatabase Admin=>_client.GetDatabase("admin");
+        // The independent observer is outside Provider's app-name-scoped fault.
+        // Native verification must not wait for the faulted client's next heartbeat.
+        internal async Task<AvatarProfileSnapshot> ReadNative(Guid id)
+        {
+            var db=_client.GetDatabase(_name);
+            var account=await db.GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar>("Avatar")
+                .Find(record=>record.HolonId==id).SingleAsync();
+            var detail=await db.GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail>("AvatarDetail")
+                .Find(record=>record.HolonId==id).SingleAsync();
+            return new(account.HolonId,account.Title,account.FirstName,account.LastName,account.Username,account.Email,detail.Address,
+                new(account.Version,account.VersionId),new(detail.Version,detail.VersionId));
+        }
         public async Task Activate()
         {
             Assert.DoesNotContain(_name,await(await _client.ListDatabaseNamesAsync()).ToListAsync());
@@ -258,7 +270,10 @@ public sealed class AvatarProfileCommitStampNativeTests
             Assert.Equal("Failover saved",(await Read(sqlite.Provider,id)).Title);
         }
         finally{await mongo.Admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","off"}});}
-        SameRevisions(before,await Read(mongo.Provider,id));SameRevisions(before,await Read(bolt.Provider,id));
+        var unchangedPrimary=await mongo.ReadNative(id);
+        SameRevisions(before,unchangedPrimary);
+        Assert.Equal(before.Title,unchangedPrimary.Title);Assert.Equal(before.Address,unchangedPrimary.Address);
+        SameRevisions(before,await Read(bolt.Provider,id));
     }
 
     [Fact]
