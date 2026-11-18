@@ -766,6 +766,7 @@
       "GroupCacheSeconds": 15
     },
     "Sandbox": {
+      "EnableDevelopmentWeb4Preview": false,
       "Enabled": false,
       "Providers": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS",
       "DemoAvatarUsernamePrefix": "sandbox-",
