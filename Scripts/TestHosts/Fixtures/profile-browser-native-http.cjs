@@ -136,6 +136,8 @@ async function verify(input) {
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('avatar')).id), otherId);
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('avatar')).title), 'Other session');
     assert.equal(await page.locator('#av-title').isDisabled(), true);
+    assert.equal(await page.locator('#av-email').inputValue(), '', 'Changed session must clear the previous private contact view.');
+    assert.equal(await page.locator('#av-title').inputValue(), '');
     assert.deepEqual(forbidden, [], 'No non-loopback API request is permitted.');
     assert.deepEqual(errors, []);
     const final = await client.profile.getProfile({ providerType, token });
