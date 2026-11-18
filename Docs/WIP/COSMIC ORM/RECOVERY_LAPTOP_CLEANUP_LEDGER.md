@@ -1,3 +1,5 @@
+2026-11-18 UTC — HTTP source-only cases and isolated qualification44296596499 add no local runtime/build/database/environment/download/output. Website132 tests ran in memory with existing cached Node; no files written except scoped Git source objects. Standard gh cache paths absent, C:36.42GiB observed; retained/blocked cleanup register remains current. Native containers/fixtures exist only in CI with owned cleanup.
+
 2026-11-18 UTC — Docker Hub DNS failure44294508298 created no local artifact; exact CI failed-job retry once. Six new mixed HTTP mock cases require no local runtime/database/build/output. Retained/blocked register unchanged.
 
 2026-11-18 UTC — Combined44294508298 runs in isolated CI only; website131 parser cases ran in memory using the existing cached Node runtime, no installation/build/output tree. Native fake Mongo/Neo data stays under existing owned fixture cleanup. Latest C: free36.52GiB; selected gh cache paths absent. No downloaded/extracted artifact or new local database/environment retained. Every blocked/retained cleanup item remains recorded with path/reason/release conditions.
