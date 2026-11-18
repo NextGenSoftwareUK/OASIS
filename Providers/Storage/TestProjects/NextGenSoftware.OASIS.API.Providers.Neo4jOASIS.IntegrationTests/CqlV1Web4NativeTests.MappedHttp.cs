@@ -169,22 +169,16 @@ public sealed partial class CqlV1Web4NativeTests
                 new CqlGroupedV1Ordering { Alias = "Original" }
             };
             body.Skip = 1; body.Take = 1;
-            var orderedId = important.Id;
-            var orderedText = "xy"; var orderedUnits = 2; var orderedRepresentation = "Materialized";
-            if (type != ProviderType.SQLLiteDBOASIS)
-            {
-                // Mongo/Neo fixtures also contain an unchanged seven-unit native
-                // value. It belongs between the stored nine-unit record and the
-                // two-unit records, and has never been materialized into this store.
-                var expectedNative = await mapping.QueryAsync(mapping.OwnerAvatarId, reader, null,
-                    new[] { new NativeRecordFilter("textAlias", CosmicQueryComparisonOperator.Equal, 7L,
-                        NativeRecordFunction.Utf16Length) }, new[] { "textAlias" }, 1);
-                Assert.IsFalse(expectedNative.IsError, expectedNative.Message + expectedNative.Exception);
-                orderedId = expectedNative.Result.Single().Id;
-                Assert.IsNull((await provider.LoadHolonAsync(orderedId)).Result,
-                    "The ordered virtual-only fixture must not already have a materialized copy.");
-                orderedText = "abc\u0000def"; orderedUnits = 7; orderedRepresentation = "Virtual";
-            }
+            // All three owned sources contain this seven-unit native value.
+            // It must remain virtual-only before AND after the HTTP queries.
+            var expectedNative = await mapping.QueryAsync(mapping.OwnerAvatarId, reader, null,
+                new[] { new NativeRecordFilter("textAlias", CosmicQueryComparisonOperator.Equal, 7L,
+                    NativeRecordFunction.Utf16Length) }, new[] { "textAlias" }, 1);
+            Assert.IsFalse(expectedNative.IsError, expectedNative.Message + expectedNative.Exception);
+            var orderedId = expectedNative.Result.Single().Id;
+            Assert.IsNull((await provider.LoadHolonAsync(orderedId)).Result,
+                "The ordered virtual-only fixture must not already have a materialized copy.");
+            var orderedText = "abc\u0000def"; var orderedUnits = 7; var orderedRepresentation = "Virtual";
             using (var response = await Send(ownerToken))
             {
                 var text = await response.Content.ReadAsStringAsync();
@@ -230,6 +224,8 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.AreEqual("settled", operation.State);
                 Assert.AreEqual(2, operation.ProviderAttempts.Count); Assert.AreEqual(2, operation.Receipts.Count);
             }
+            Assert.IsNull((await provider.LoadHolonAsync(orderedId)).Result,
+                "Read-only mixed queries must not materialize the virtual-only source record.");
             await app.StopAsync();
             Assert.AreEqual(4, authority.Settlements.Count);
         }

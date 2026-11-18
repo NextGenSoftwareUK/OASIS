@@ -25,8 +25,9 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             {
                 await source.OpenAsync();
                 await using var command = source.CreateCommand();
-                command.CommandText = "CREATE TABLE items(id INTEGER PRIMARY KEY, text TEXT); INSERT INTO items VALUES(1,$text)";
+                command.CommandText = "CREATE TABLE items(id INTEGER PRIMARY KEY, text TEXT); INSERT INTO items VALUES(1,$text),(2,$nul)";
                 command.Parameters.AddWithValue("$text", "😀");
+                command.Parameters.AddWithValue("$nul", "abc\u0000def");
                 await command.ExecuteNonQueryAsync();
             }
             var before = await File.ReadAllBytesAsync(path);
