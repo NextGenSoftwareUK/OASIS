@@ -40,6 +40,29 @@ public sealed class HolonStoragePolicyTests_Persistence
     public void InvalidPoliciesCannotBecomeDefaults(string json)
         => Assert.Throws<FormatException>(() => HolonStoragePolicyCodec.Deserialize(json));
 
+
+    [Fact]
+    public void PersistedJsonSettingsObjectsPreserveTheirPolicyAndUnselectedValues()
+    {
+        var full = new HolonStoragePolicy(HolonStorageMode.Materialized, HolonReadCacheMode.None, 0, 0, true);
+        object preferences = System.Text.Json.JsonSerializer.SerializeToElement(new Dictionary<string, object>
+        {
+            ["holonStoragePolicies"] = new Dictionary<string, object> { ["avatar"] = HolonStoragePolicyCodec.Serialize(full) },
+            ["limit"] = long.MaxValue,
+            ["fraction"] = 12345.678901234567890123456789m
+        });
+        var metadata = new Dictionary<string, object> { ["preferences"] = preferences };
+        var avatar = new Avatar { Id = Guid.NewGuid(), MetaData = metadata };
+        var read = SettingsManager.ReadHolonStoragePolicy(avatar);
+        Assert.False(read.IsError, read.Message);
+        Assert.Equal(HolonStorageMode.Materialized, read.Result.EffectivePolicy.Mode);
+        Assert.Same(metadata, avatar.MetaData);
+        Assert.Same(preferences, metadata["preferences"]);
+        var preserved = Assert.IsType<System.Text.Json.JsonElement>(metadata["preferences"]);
+        Assert.Equal(long.MaxValue, preserved.GetProperty("limit").GetInt64());
+        Assert.Equal(12345.678901234567890123456789m, preserved.GetProperty("fraction").GetDecimal());
+    }
+
     [Fact]
     public void AnAbsentPolicyDoesNotInventOrWriteSettings()
     {

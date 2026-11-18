@@ -307,7 +307,9 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
                             ["unrelated"] = "retained",
                             ["preferences"] = new Dictionary<string, object>
                             {
-                                ["system"] = new Dictionary<string, object> { ["theme"] = "preserved" }
+                                ["system"] = new Dictionary<string, object> { ["theme"] = "preserved" },
+                                ["limit"] = long.MaxValue,
+                                ["fraction"] = 12345.678901234567890123456789m
                             }
                         }
                     };
@@ -373,9 +375,12 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
                 {
                     var loaded = await verify.LoadAvatarAsync(id);
                     Assert.False(loaded.IsError, loaded.Message);
-                    var metadata = Newtonsoft.Json.Linq.JObject.FromObject(loaded.Result.MetaData);
-                    Assert.Equal("retained", (string)metadata["unrelated"]);
-                    Assert.Equal("preserved", (string)metadata["preferences"]["system"]["theme"]);
+                    var metadata = System.Text.Json.JsonSerializer.SerializeToElement(loaded.Result.MetaData);
+                    Assert.Equal("retained", metadata.GetProperty("unrelated").GetString());
+                    var preferences = metadata.GetProperty("preferences");
+                    Assert.Equal("preserved", preferences.GetProperty("system").GetProperty("theme").GetString());
+                    Assert.Equal(long.MaxValue, preferences.GetProperty("limit").GetInt64());
+                    Assert.Equal(12345.678901234567890123456789m, preferences.GetProperty("fraction").GetDecimal());
                 }
             }
             Assert.Equal(sourceBefore, NativeBytes());

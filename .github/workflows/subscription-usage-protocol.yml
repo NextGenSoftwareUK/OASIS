@@ -50,6 +50,8 @@ jobs:
           $before = @(Get-ChildItem ([IO.Path]::GetTempPath()) -Directory -Filter 'oasis-native-sqlite-*' | ForEach-Object FullName)
           try {
             & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner storage-policy-native-ci -Operation {
+              dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~HolonStoragePolicyTests'
+              if ($LASTEXITCODE) { throw 'Policy schema/carrier regression failed.' }
               dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~StoragePoliciesPersistAcrossFreshProviders|FullyQualifiedName~NativeMappedRowsRetainTheirApplicationScope'
               if ($LASTEXITCODE) { throw 'Native policy qualification failed.' }
             }
