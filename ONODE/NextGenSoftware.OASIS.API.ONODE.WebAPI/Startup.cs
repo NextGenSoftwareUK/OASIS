@@ -411,8 +411,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             bool subscriptionUsageEnabled = string.Equals(Configuration["SUBSCRIPTION_USAGE_ENABLED"], "true", StringComparison.OrdinalIgnoreCase);
             if (subscriptionUsageEnabled)
             {
-                services.AddHostedService<Services.Subscription.SubscriptionUsageExpiryWorker>();
-                services.AddHostedService<Services.Subscription.PaidOverageBillingWorker>();
+                Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Subscription.SubscriptionUsageExpiryWorker>(services, Configuration);
+                Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Subscription.PaidOverageBillingWorker>(services, Configuration);
                 NextGenSoftware.OASIS.API.Core.Services.Subscriptions.SubscriptionTelemetryRegistration.AddSubscriptionUsageTelemetry(services, Configuration, "WEB4");
             }
             Services.SubscriptionReconciliation.UsageReconciliationRegistration.AddUsageReconciliation(services, subscriptionUsageEnabled && Services.Operations.HostedMongoWorkerControl.ReconciliationMayStart(Configuration));
