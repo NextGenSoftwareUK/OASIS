@@ -817,6 +817,8 @@ Status: missing account/configuration information,2 November2026. David approved
 
 ### HD-CLOUD-READINESS — inspect whether the requested cloud continuation appeared
 
+- 2026-11-18 update: David installed the ChatGPT Codex Connector for NextGenSoftwareUK. The GitHub connector now sees the organization installation and resolves the exact pinned Core and private dependencies and the recorded OPORTAL commit. Repository authorization is complete for these reads. Cloud-side checkout and execution remain unverified because the cloud environment listing returned a Codex app tool error.
+
 - Status: UI observation answered: David reports “No—I don’t see it”. No repeat request; cloud service recovery remains agent-owned. Original request date: 2026-11-18T20:17:45.937147+00:00.
 - Context: David requested moving the existing goal to cloud. Source and full handoff are committed/pushed on work/hyperdrive-provider-completion. One cloud create request and one read-only task-list request remain unresolved, with no task ID returned. Do not create a second task while the first outcome is unknown.
 - Owner step: check whether a sidebar task titled “OASIS HyperDrive and OPORTAL — cloud continuation” appears. If present, report whether it shows Cloud and any setup/access message; otherwise report that it is absent. No credentials or private record contents are requested.
