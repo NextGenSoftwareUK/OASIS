@@ -27,6 +27,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 Builders<Avatar>.IndexKeys.Ascending(x => x.HolonId), new CreateIndexOptions { Unique = true, Name = "oasis_avatar_public_identity" }));
             _dbContext.AvatarDetail.Indexes.CreateOne(new CreateIndexModel<AvatarDetail>(
                 Builders<AvatarDetail>.IndexKeys.Ascending(x => x.HolonId), new CreateIndexOptions { Unique = true, Name = "oasis_avatar_detail_public_identity" }));
+            _dbContext.Avatar.Indexes.CreateMany(ProfileIdentityIndexes());
         }
 
         public async Task EnsurePublicIdentityIndexesAsync()
@@ -35,6 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 Builders<Avatar>.IndexKeys.Ascending(x => x.HolonId), new CreateIndexOptions { Unique = true, Name = "oasis_avatar_public_identity" }));
             await _dbContext.AvatarDetail.Indexes.CreateOneAsync(new CreateIndexModel<AvatarDetail>(
                 Builders<AvatarDetail>.IndexKeys.Ascending(x => x.HolonId), new CreateIndexOptions { Unique = true, Name = "oasis_avatar_detail_public_identity" }));
+            await _dbContext.Avatar.Indexes.CreateManyAsync(ProfileIdentityIndexes());
         }
 
         public AvatarRepository(MongoDbContext dbContext,Func<bool> retainAccountHistory=null)
