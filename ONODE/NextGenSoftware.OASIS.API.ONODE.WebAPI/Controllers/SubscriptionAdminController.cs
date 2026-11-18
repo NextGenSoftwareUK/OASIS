@@ -25,16 +25,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             Execute(() => _repository.GetAdminSubscriptionsAsync(cursor, limit, HttpContext.RequestAborted));
 
         [HttpGet("invoices")]
-        public Task<IActionResult> Invoices([FromQuery] DateTime? before = null, [FromQuery] int limit = 100) =>
-            Execute(() => _repository.GetAdminInvoicesAsync(Utc(before), limit, HttpContext.RequestAborted));
+        public Task<IActionResult> Invoices([FromQuery] DateTime? before = null, [FromQuery] int limit = 100, [FromQuery] string beforeId = null) =>
+            Execute(() => _repository.GetAdminInvoicesAsync(Utc(before), limit, HttpContext.RequestAborted, beforeId));
 
         [HttpGet("usage/events")]
-        public Task<IActionResult> Events([FromQuery] DateTime? before = null, [FromQuery] int limit = 100) =>
-            Execute(() => _repository.GetAdminEventsAsync(Utc(before), limit, HttpContext.RequestAborted));
+        public Task<IActionResult> Events([FromQuery] DateTime? before = null, [FromQuery] int limit = 100, [FromQuery] string beforeId = null) =>
+            Execute(() => _repository.GetAdminEventsAsync(Utc(before), limit, HttpContext.RequestAborted, beforeId));
 
         [HttpGet("usage/audit")]
-        public Task<IActionResult> Audit([FromQuery] DateTime? before = null, [FromQuery] int limit = 100) =>
-            Execute(() => _repository.GetAdminAuditAsync(Utc(before), limit, HttpContext.RequestAborted));
+        public Task<IActionResult> Audit([FromQuery] DateTime? before = null, [FromQuery] int limit = 100, [FromQuery] string beforeId = null) =>
+            Execute(() => _repository.GetAdminAuditAsync(Utc(before), limit, HttpContext.RequestAborted, beforeId));
 
         [HttpGet("analytics")]
         public Task<IActionResult> Analytics([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
