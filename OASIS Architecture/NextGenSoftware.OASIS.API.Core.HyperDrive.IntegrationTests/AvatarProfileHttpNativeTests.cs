@@ -47,7 +47,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     [InlineData(HyperDriveModes.V2)]
     public Task ProfileJavaScriptSdkUsesActualNativeHttp(string mode) => RunProfileHttp(mode, true);
 
-    private async Task RunProfileHttp(string mode, bool sdkOnly)
+    [Theory]
+    [InlineData(HyperDriveModes.Legacy)]
+    [InlineData(HyperDriveModes.V2)]
+    public Task ProfileBrowserModalUsesActualNativeHttp(string mode) => RunProfileHttp(mode, true, true);
+
+    private async Task RunProfileHttp(string mode, bool sdkOnly, bool browser = false)
     {
         RequireOwnedFixtures();
         var id = Guid.NewGuid();
@@ -92,6 +97,18 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             builder.Services.AddTransient(type, _ => Activator.CreateInstance(type,
                 BindingFlags.Instance | BindingFlags.NonPublic, null, [sdk], null)!);
             await using var app = builder.Build();
+            using var portalFiles = browser
+                ? new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+                    Environment.GetEnvironmentVariable("OASIS_PROFILE_PORTAL_ROOT")
+                    ?? throw new InvalidOperationException("Pinned portal checkout required."))
+                : null;
+            if (browser)
+            {
+                app.UseStaticFiles(new Microsoft.AspNetCore.Builder.StaticFileOptions { FileProvider = portalFiles });
+                app.MapGet("/__profile_browser", async () => Microsoft.AspNetCore.Http.Results.Content(
+                    await File.ReadAllTextAsync(Path.Combine(root.FullName, "Scripts/TestHosts/Fixtures/profile-browser-host.html")),
+                    "text/html"));
+            }
             var key = new SymmetricSecurityKey(RandomNumberGenerator.GetBytes(64));
             var validation = new TokenValidationParameters
             {
@@ -138,19 +155,32 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     var provider = store.ProviderType.Value;
                     if (sdkOnly)
                     {
-                        var sdkTitle = "SDK " + mode + " " + provider;
+                        if (browser)
+                        {
+                            var selected = manager.PublishRoutingOverrides(new NextGenSoftware.OASIS.API.Core.Configuration.ProviderRoutingOverrides(), provider);
+                            Assert.False(selected.IsError, selected.Message);
+                        }
+                        var sdkTitle = (browser ? "Browser " : "SDK ") + mode + " " + provider;
                         using var sdkResult = await ExchangeSdkRequest(new
                             { baseUrl = address, token = Token(id), providerType = provider.ToString(), title = sdkTitle });
                         Assert.False(sdkResult.RootElement.TryGetProperty("isError", out var sdkError) && sdkError.GetBoolean(),
                             "Actual JavaScript SDK/native HTTP verification failed.");
                         var sdkNative = await Read(store, id);
                         Assert.Equal(sdkTitle, sdkNative.Title); Assert.Equal(string.Empty, sdkNative.Address);
+                        if (browser) Assert.True(sdkResult.RootElement.GetProperty("browserVerified").GetBoolean());
                         Assert.Equal(sdkNative.AvatarRevision.VersionId, sdkResult.RootElement.GetProperty("avatarVersionId").GetGuid());
                         Assert.Equal(sdkNative.DetailRevision.VersionId, sdkResult.RootElement.GetProperty("detailVersionId").GetGuid());
                         foreach (var replica in stores)
                         {
                             var actual = await Read(replica, id); SameRevisions(sdkNative, actual);
                             Assert.Equal(sdkTitle, actual.Title); Assert.Equal(string.Empty, actual.Address);
+                            if (browser)
+                            {
+                                Assert.Equal(sdkResult.RootElement.GetProperty("username").GetString(), actual.Username);
+                                Assert.Equal(sdkResult.RootElement.GetProperty("email").GetString(), actual.Email);
+                                Assert.Equal(sdkResult.RootElement.GetProperty("firstName").GetString(), actual.FirstName);
+                                Assert.Equal(sdkResult.RootElement.GetProperty("lastName").GetString(), actual.LastName);
+                            }
                             Assert.Equal("stored-hash", (await replica.LoadAvatarAsync(id)).Result.Password);
                             Assert.Equal(42, (await replica.LoadAvatarDetailAsync(id)).Result.XP);
                         }
