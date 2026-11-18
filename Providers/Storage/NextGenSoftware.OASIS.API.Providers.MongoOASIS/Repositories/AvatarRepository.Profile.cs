@@ -8,6 +8,7 @@ using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Providers;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
+using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serializers;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
@@ -94,13 +95,17 @@ public partial class AvatarRepository
                 var modified=DateTime.UtcNow;
                 if(accountFields.Count>0)
                 {
-                    accountFields.Add(accountUpdate.Set(row=>row.ModifiedDate,modified).Set(row=>row.ModifiedByAvatarId,authenticatedAvatarId.ToString("D")));
+                    accountFields.Add(accountUpdate.Set(row=>row.ModifiedDate,modified)
+                        .Set(row=>row.ModifiedDateExactUtcTicks,MongoAuditDatePrecision.ExactTicks(modified))
+                        .Set(row=>row.ModifiedByAvatarId,authenticatedAvatarId.ToString("D")));
                     await PatchAccountLifecycleAsync(session,_dbContext.Avatar,avatar.Id,accountUpdate.Combine(accountFields),
                         retainHistory,false,advanceVersion:true,cancellationToken:cancellationToken).ConfigureAwait(false);
                 }
                 if(detailFields.Count>0)
                 {
-                    detailFields.Add(detailUpdate.Set(row=>row.ModifiedDate,modified).Set(row=>row.ModifiedByAvatarId,authenticatedAvatarId.ToString("D")));
+                    detailFields.Add(detailUpdate.Set(row=>row.ModifiedDate,modified)
+                        .Set(row=>row.ModifiedDateExactUtcTicks,MongoAuditDatePrecision.ExactTicks(modified))
+                        .Set(row=>row.ModifiedByAvatarId,authenticatedAvatarId.ToString("D")));
                     await PatchAccountLifecycleAsync(session,_dbContext.AvatarDetail,detail.Id,detailUpdate.Combine(detailFields),
                         retainHistory,false,advanceVersion:true,cancellationToken:cancellationToken).ConfigureAwait(false);
                 }
@@ -130,7 +135,7 @@ public partial class AvatarRepository
                 }
                 else if(cause is ProfileRefusal refusal)code=refusal.Code;
                 else if(cause is StorageIdentityAmbiguousException)code=OASISResultErrorCodes.AmbiguousIdentity;
-                else if(cause is MongoWriteException write && write.WriteError.Category==ServerErrorCategory.DuplicateKey
+                else if(cause is MongoWriteException write && write.WriteError?.Category==ServerErrorCategory.DuplicateKey
                     || cause is MongoCommandException command && command.Code==11000)code=AvatarProfileErrors.IdentityConflict;
                 else if(MongoTransactionFailure.IsWriteConflict(cause))code=AvatarProfileErrors.Conflict;
                 result=ProfileFailure(code,"The profile edit was not acknowledged.",evidence);

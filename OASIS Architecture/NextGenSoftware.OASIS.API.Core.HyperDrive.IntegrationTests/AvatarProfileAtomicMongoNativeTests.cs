@@ -45,12 +45,14 @@ public sealed class AvatarProfileAtomicMongoNativeTests
         {
             Id=id,Username=username,Email=username+"@example.test",Title="Original",FirstName="Before",LastName="Before",
             Password="stored-hash",VerificationToken="verification",RefreshToken="session",IsActive=true,
-            CreatedDate=DateTime.UtcNow,Version=1,VersionId=Guid.NewGuid(),AvatarType=new EnumValue<AvatarType>(AvatarType.User)
+            CreatedDate=DateTime.UtcNow,ModifiedDate=new DateTime(2026,1,1,0,0,0,DateTimeKind.Utc).AddTicks(7),
+            Version=1,VersionId=Guid.NewGuid(),AvatarType=new EnumValue<AvatarType>(AvatarType.User)
         });
         var detail=await provider.SaveAvatarDetailAsync(new AvatarDetail
         {
             Id=id,Username=username,Email=username+"@example.test",Address="Original",ActiveQuestId=Guid.NewGuid(),
-            ActiveObjectiveId=Guid.NewGuid(),Karma=37,XP=42,CreatedDate=DateTime.UtcNow,Version=1,VersionId=Guid.NewGuid()
+            ActiveObjectiveId=Guid.NewGuid(),Karma=37,XP=42,CreatedDate=DateTime.UtcNow,
+            ModifiedDate=new DateTime(2026,1,1,0,0,0,DateTimeKind.Utc).AddTicks(9),Version=1,VersionId=Guid.NewGuid()
         });
         Assert.False(account.IsError,account.Message);Assert.False(detail.IsError,detail.Message);
         return(account.Result,detail.Result);
@@ -96,6 +98,11 @@ public sealed class AvatarProfileAtomicMongoNativeTests
             Assert.Equal(currentAccount.Result.Email,currentDetail.Result.Email);
             Assert.Equal(opened.Account.VersionId,currentAccount.Result.PreviousVersionId);
             Assert.Equal(opened.Detail.VersionId,currentDetail.Result.PreviousVersionId);
+            Assert.True(currentAccount.Result.ModifiedDate>opened.Account.ModifiedDate);
+            Assert.Equal(currentAccount.Result.ModifiedDate,currentDetail.Result.ModifiedDate);
+            Assert.Equal(DateTimeKind.Utc,currentAccount.Result.ModifiedDate.Kind);
+            Assert.Equal(opened.Account.Id,currentAccount.Result.ModifiedByAvatarId);
+            Assert.Equal(opened.Account.Id,currentDetail.Result.ModifiedByAvatarId);
             var raw=await Native(db);
             Assert.Equal("keep-account",raw.Account["NativePrivateField"].AsString);
             Assert.Equal(71,raw.Detail["NativeGameField"]["score"].AsInt32);
