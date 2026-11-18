@@ -155,7 +155,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             Assert.AreEqual(2, projectionRow.Cells[2].Value);
             Assert.AreEqual(2, projectionRow.Cells[3].Value);
             Assert.AreEqual(0, projectionRow.Cells[4].Value);
-            checks.Add(new { provider = "MongoDBOASIS", nativeProjection = "raw/computed/repeated aliases and original identity", elapsedMilliseconds = projectionWatch.ElapsedMilliseconds });
+            await VerifyMappedNativeProjectionCompiler(provider, mapping, owner, mapped.Result.Single());
+            checks.Add(new { provider = "MongoDBOASIS", nativeProjection = "raw/computed/repeated aliases and original identity", mappedCompilerVerified = true, elapsedMilliseconds = projectionWatch.ElapsedMilliseconds });
 
             projectionWatch.Restart();
             var allNative = new[] { new NativeRecordFilter("_id", CosmicQueryComparisonOperator.GreaterThanOrEqual, 1) };
