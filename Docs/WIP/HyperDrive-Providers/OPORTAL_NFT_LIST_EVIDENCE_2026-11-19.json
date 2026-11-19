@@ -1,5 +1,5 @@
 {
-  "status": "in_progress",
+  "status": "failed_fixture_registry_corrected_pending",
   "run": 44600087804,
   "job": 135828799788,
   "source": "0644b013f78a90e80b36e55e9fe0d92f3182dc55",
@@ -12,5 +12,17 @@
   "browserAccepted": false,
   "countQueryAccepted": false,
   "fullPortalAccepted": false,
-  "notes": "Run confirmed active after dispatch; follow same handle. Actual API build/shipping NFT manager/HolonManager/owned Mongo and terminal cleanup pending. No substituted response or local runtime/database/artifact."
+  "notes": "Actual API0errors. Shipping ONODE manager constructor consumes singleton ProviderManager; fixture only initialized separate owned registry, so constructor failed on singleton missing DNA before any list assertion. Fixture now supplies actual owned registry to application singleton with capture/finally restore/assertion; no mocked provider, uninitialized-object constructor bypass or production constructor workaround. First failed result retained. New null-payload source ONODE16f73543 prepared separately. Retry failed empty-list plus NEW null/missing case only; neither NFT case accepted yet.",
+  "apiBuildAccepted": true,
+  "passed": 0,
+  "failed": 1,
+  "skipped": 0,
+  "duration": "1 s",
+  "artifact": 14568286080,
+  "artifactBytes": 2310,
+  "artifactSha256": "d1ba041ad1b1e67e34e1829ac825cea04bccdd60ed291edb22f16babf0d95583",
+  "artifactVerifiedInMemory": true,
+  "artifactFilesWritten": 0,
+  "ownedDatabaseProviderProcessRestorationVerified": true,
+  "ownedMongoAbsenceVerified": true
 }

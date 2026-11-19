@@ -21,9 +21,31 @@ public sealed partial class AvatarProfileCommitStampNativeTests
 
     private static async Task VerifyNftListsNativeAsync(IOASISStorageProvider provider, string[] accounts, bool nullPayloads = false)
     {
+        var routing = Routing([provider], false, NextGenSoftware.OASIS.API.DNA.HyperDriveModes.Legacy);
+        // The shipping ONODE constructor consumes the application singleton registry.
+        // Supply the actual isolated registry as startup would, and restore it even on assertion failure.
+        var registryField = typeof(ProviderManager).GetField("_instance", BindingFlags.Static | BindingFlags.NonPublic)!;
+        Assert.NotNull(registryField);
+        var previousRegistry = registryField.GetValue(null);
+        try
+        {
+            registryField.SetValue(null, routing);
+            Assert.Same(routing, ProviderManager.Instance);
+            await VerifyNftListsWithOwnedRegistryAsync(provider, accounts, routing, nullPayloads);
+        }
+        finally
+        {
+            registryField.SetValue(null, previousRegistry);
+            Assert.Same(previousRegistry, registryField.GetValue(null));
+            Console.WriteLine("Owned NFT application provider registry restored.");
+        }
+    }
+
+    private static async Task VerifyNftListsWithOwnedRegistryAsync(IOASISStorageProvider provider, string[] accounts,
+        ProviderManager routing, bool nullPayloads)
+    {
         var actor = Guid.Parse(accounts[0]);
         var other = Guid.Parse(accounts[1]);
-        var routing = Routing([provider], false, NextGenSoftware.OASIS.API.DNA.HyperDriveModes.Legacy);
         var managerType = Assembly.Load("NextGenSoftware.OASIS.API.ONODE.Core")
             .GetType("NextGenSoftware.OASIS.API.ONODE.Core.Managers.NFTManager", true)!;
         var manager = Activator.CreateInstance(managerType, [provider, actor, routing.OASISDNA])!;
