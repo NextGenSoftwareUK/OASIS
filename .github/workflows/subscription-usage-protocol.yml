@@ -255,25 +255,25 @@ jobs:
             dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SqliteNativeDataImportTests|FullyQualifiedName~AvatarProfileRegistryNativeTests'
             if ($LASTEXITCODE) { throw 'SQLite virtual Holon qualification failed.' }
           }
-      - name: Verify exact prepared logical role intent admission
-        if: ${{ inputs.property_tracking_only && inputs.property_selection_only }}
+      - name: Verify actual custom property storage projection
+        if: ${{ inputs.property_tracking_only }}
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-property-selection-ci -Operation {
-            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicPreparedRoleIntentTests' --logger 'trx;LogFileName=property-prepared-role-core.trx' --results-directory TestResults/PropertySelection
-            if ($LASTEXITCODE) { throw 'Typed selected authority verification failed.' }
-            [xml]$core = Get-Content TestResults/PropertySelection/property-prepared-role-core.trx
+            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicCustomPropertyStorageProjectionTests' --logger 'trx;LogFileName=property-storage-projection-core.trx' --results-directory TestResults/PropertySelection
+            if ($LASTEXITCODE) { throw 'Custom property storage projection verification failed.' }
+            [xml]$core = Get-Content TestResults/PropertySelection/property-storage-projection-core.trx
             $counts = $core.TestRun.ResultSummary.Counters
-            if ([int]$counts.total -ne 8 -or [int]$counts.passed -ne 8 -or [int]$counts.notExecuted -ne 0) {
-              throw 'Exactly8 new prepared role admission controls must execute and pass.'
+            if ([int]$counts.total -ne 14 -or [int]$counts.passed -ne 14 -or [int]$counts.notExecuted -ne 0) {
+              throw 'Exactly14 new actual extraction and storage projection controls must execute and pass.'
             }
             $methods = @($core.TestRun.TestDefinitions.UnitTest)
-            if ($methods.Count -lt 1 -or @($methods | Where-Object { $_.TestMethod.className -notlike '*CosmicPreparedRoleIntentTests' }).Count) {
-              throw 'Only the new original editing class may satisfy this qualification.'
+            if ($methods.Count -lt 1 -or @($methods | Where-Object { $_.TestMethod.className -notlike '*CosmicCustomPropertyStorageProjectionTests' }).Count) {
+              throw 'Only the new custom property storage projection class may satisfy this qualification.'
             }
-            $ids = @($core.TestRun.TestDefinitions.UnitTest | Where-Object { $_.TestMethod.className -like '*CosmicPreparedRoleIntentTests' } | ForEach-Object { $_.id })
+            $ids = @($core.TestRun.TestDefinitions.UnitTest | Where-Object { $_.TestMethod.className -like '*CosmicCustomPropertyStorageProjectionTests' } | ForEach-Object { $_.id })
             $results = @($core.TestRun.Results.UnitTestResult)
-            if ($results.Count -ne 8 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
+            if ($results.Count -ne 14 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
               throw 'Selection-only acceptance cannot inherit unrelated test results.'
             }
           }
@@ -369,6 +369,7 @@ jobs:
           name: subscription-protocol-test-results
           path: |
             ${{ inputs.property_selection_only && 'TestResults/PropertySelection' || inputs.property_tracking_only && 'TestResults/Neo4jCurrent/*property-custom*' || 'TestResults' }}
+            ${{ inputs.property_tracking_only && !inputs.property_selection_only && 'TestResults/PropertySelection/*property-storage-projection-core*' || '' }}
       - name: Stop temporary database
         if: ${{ always() && !inputs.property_selection_only }}
         run: docker rm --force usage-mongo
