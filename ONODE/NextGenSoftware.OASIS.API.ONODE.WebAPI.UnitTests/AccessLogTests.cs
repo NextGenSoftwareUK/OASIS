@@ -159,4 +159,61 @@ public sealed class AccessLogTests
         Assert.False(s.Enabled); Assert.False(s.CaptureIp); Assert.Empty(s.Apps); Assert.Equal(365, s.RetentionDays);
         Assert.Equal(200, s.MaxHolonIdsPerEvent); Assert.Equal(10000, s.QueueCapacity);
     }
+
+
+    [Fact]
+    public async Task StopBeforeWorkerStartDrainsAcceptedEventsExactlyOnce()
+    {
+        var (service, store, settings) = Make();
+        var holons = Holons(1);
+        service.Record(Reader, "shutdown-test", "LoadHolon", holons);
+        settings.Enabled = false;
+        using var worker = new AccessLogFlushHostedService(service, () => settings,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<AccessLogFlushHostedService>.Instance);
+
+        // Deterministically exercise the state where ExecuteAsync has not entered.
+        await worker.StopAsync(CancellationToken.None);
+        await worker.StopAsync(CancellationToken.None);
+
+        Assert.Equal(1, store.Calls);
+        var accepted = Assert.Single(store.Events);
+        Assert.Equal(Reader, accepted.AvatarId);
+        Assert.Equal(holons[0].Item1, Assert.Single(accepted.HolonIds));
+        Assert.Equal(0, service.DroppedEvents);
+        Assert.Equal(0, service.FailedBatches);
+    }
+
+    [Fact]
+    public async Task StopWithoutAcceptedEventsNeverTouchesStore()
+    {
+        var (service, store, settings) = Make(s => s.Enabled = false);
+        service.Record(Reader, "shutdown-test", "LoadHolon", Holons(1));
+        using var worker = new AccessLogFlushHostedService(service, () => settings,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<AccessLogFlushHostedService>.Instance);
+
+        await worker.StopAsync(CancellationToken.None);
+
+        Assert.Equal(0, store.Calls);
+        Assert.Empty(store.Events);
+    }
+
+    [Fact]
+    public async Task CancelledShutdownLeavesAcceptedQueueForExplicitDrain()
+    {
+        var (service, store, settings) = Make();
+        service.Record(Reader, "shutdown-test", "LoadHolon", Holons(1));
+        using var worker = new AccessLogFlushHostedService(service, () => settings,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<AccessLogFlushHostedService>.Instance);
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+
+        await worker.StopAsync(cancelled.Token);
+
+        Assert.Equal(0, store.Calls);
+        Assert.Empty(store.Events);
+        Assert.Equal(1, await service.FlushAsync(CancellationToken.None));
+        Assert.Single(store.Events);
+        Assert.Equal(0, service.DroppedEvents);
+        Assert.Equal(0, service.FailedBatches);
+    }
 }
