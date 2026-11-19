@@ -91,20 +91,7 @@ public sealed class ConditionalHolonPlan : IAtomicHolonWritePlan
             foreach(var field in new[]{"Version","VersionId","PreviousVersionId","CreatedDate","ModifiedDate","CreatedByAvatarId","ModifiedByAvatarId","CreatedProviderType","InstanceSavedOnProviderType"})values.Remove(field);
             if(intent.ProviderUniqueStorageKey==null||intent.ProviderUniqueStorageKey.Count==0)values.Remove("ProviderUniqueStorageKey");
             if(propertyWrite?.Selections.TryGetValue(node.Snapshot.Id,out var selectedPaths)==true)
-            {
-                var selectedValues=new JArray();
-                foreach(var path in selectedPaths)
-                {
-                    var exists=SelectedReceiptValue(values,path,out var value);
-                    var field=new JObject { ["path"]=path, ["exists"]=exists };
-                    if(exists)field["value"]=value.DeepClone();
-                    selectedValues.Add(field);
-                }
-                // An unselected authoritative sibling is not part of this write's intent.
-                // Identity, parent edge and the conditional/graph envelope remain bound.
-                values=new JObject { ["id"]=node.Snapshot.Id, ["parent"]=intent.ParentHolonId,
-                    ["selectedValues"]=selectedValues };
-            }
+                values=SelectedFingerprintRecord(node.Snapshot,values,selectedPaths);
             records.Add(values);
         }
         // New exact-number domain: old rounded receipts must reconcile, never silently replay.
@@ -179,6 +166,21 @@ public sealed class ConditionalHolonPlan : IAtomicHolonWritePlan
             current=property.Value;
         }
         value=current;return true;
+    }
+    /// <summary>Detached selected-value receipt intent. Callers retain their versioned conditional envelope.
+    /// Selection paths must come from the immutable validated property-write request.</summary>
+    public static JObject SelectedFingerprintRecord(IHolon snapshot,JObject values,IReadOnlyList<string> paths)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);ArgumentNullException.ThrowIfNull(values);ArgumentNullException.ThrowIfNull(paths);
+        var selectedValues=new JArray();
+        foreach(var path in paths)
+        {
+            var exists=SelectedReceiptValue(values,path,out var value);
+            var field=new JObject { ["path"]=path, ["exists"]=exists };
+            if(exists)field["value"]=value.DeepClone();
+            selectedValues.Add(field);
+        }
+        return new JObject { ["id"]=snapshot.Id, ["parent"]=snapshot.ParentHolonId, ["selectedValues"]=selectedValues };
     }
     /// <summary>Exact canonical value binding for an already captured logical intent. The caller supplies its domain/version.</summary>
     public static string ComputeFingerprint(JToken content)
