@@ -4,6 +4,8 @@ S05 remains **RED**. This audit maps its actual requirement, "property-level ori
 
 Parent authorization qualification **accepted**: [44518694106](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44518694106), exact parent `c47a4392001af22d1918cffa79684c8a7a7ed21c`, Core `c5c387763ca00de1139ba250718f61c22f20bf55`. Actual WEB4 build, six formerly failed Core controls and three new native cases passed. Artifact `14527916788` (4886 bytes) was strictly inspected in RAM: two TRX files plus three reports, 12 groups/seven logical writes/all ten checks per store, zero failed/skipped tests, bounded parent reads and owned cleanup. No local archive was created.
 
+Typed-role composition remains open: [44522497239](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44522497239) compiled actual WEB4 but all three native cases failed safely before their first selected mutation because the private authority read was a base Holon and the submitted contract was derived. Artifact14528363099 (2081bytes) was inspected in RAM. Core32840ab5f921de96cc4168af4860a804805e55f2 prepares declared private materialization without weakening the canonical guard; eight new Core controls and the same three native cases require qualification. This is not evidence of role corruption or accepted typed selected persistence.
+
 ## Public contract and retained evidence
 
 All paths below are relative to the Core repository unless explicitly identified as parent-repository paths. Native evidence uses the shipping MongoDBOASIS, SQLLiteDBOASIS and Neo4jOASIS classes in owned CI stores.
