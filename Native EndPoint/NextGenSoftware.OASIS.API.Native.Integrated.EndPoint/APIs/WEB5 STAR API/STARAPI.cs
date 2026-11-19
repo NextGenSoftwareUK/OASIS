@@ -85,7 +85,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
         /// </summary>
         public bool IsOASISBooted
         {
-            get => OASISAPI.IsOASISBooted || OASISBootLoader.OASISBootLoader.IsOASISBooted;
+            get => OASISAPI.IsOASISBooted;
             set => OASISAPI.IsOASISBooted = value;
         }
         public string OASISVersion { get; set; }
