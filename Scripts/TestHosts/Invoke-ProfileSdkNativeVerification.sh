@@ -42,7 +42,10 @@ cleanup() {
       result=1
     fi
   done
-  if rmdir -- "$owned_root"; then :; else result=1; fi
+  if rmdir -- "$owned_root"; then
+    test ! -e "$owned_root"
+    echo 'Owned browser/runtime/cache/control cleanup verified.'
+  else result=1; fi
   exit "$result"
 }
 trap cleanup EXIT

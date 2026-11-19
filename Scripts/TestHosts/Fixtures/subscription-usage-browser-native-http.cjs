@@ -14,6 +14,9 @@ async function verify({ baseUrl, actors }) {
     channel: 'chrome', headless: true, timeout: 30000, viewport: { width: 1440, height: 1000 },
     reducedMotion: 'reduce', acceptDownloads: false, serviceWorkers: 'block'
   });
+  const received = [];
+  const errors = [];
+  let phase = 'launch';
   try {
     const forbidden = [];
     await context.route('**/*', route => {
@@ -24,14 +27,22 @@ async function verify({ baseUrl, actors }) {
     });
     await context.addInitScript(actor => { window.fixtureSubscriptionActor = actor; }, actors[0]);
     const page = await context.newPage();
-    const errors = [];
+    page.setDefaultTimeout(10000);
+    page.setDefaultNavigationTimeout(10000);
     const writes = [];
     page.on('pageerror', error => errors.push(error.message));
+    page.on('response', response => {
+      if (new URL(response.url()).pathname.startsWith('/api/')) received.push(response);
+    });
     page.on('request', request => {
       if (new URL(request.url()).pathname.startsWith('/api/') && request.method() !== 'GET') writes.push(request.method());
     });
     const endpoint = suffix => '/api/subscription/' + suffix;
     const response = suffix => page.waitForResponse(value => new URL(value.url()).pathname === endpoint(suffix));
+    async function receivedResponse(suffix, start) {
+      return received.slice(start).find(value => new URL(value.url()).pathname === endpoint(suffix)) || await response(suffix);
+    }
+    phase = 'page';
     await page.goto(baseUrl + '/__subscription_browser', { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => !document.getElementById('fixture-open-subscription').disabled);
     const timings = [];
@@ -40,14 +51,10 @@ async function verify({ baseUrl, actors }) {
         window.oasisClient.setToken(actor.token, { avatarId: actor.id });
         window.dispatchEvent(new CustomEvent('oasis-login'));
       }, actors[i]);
-      const summaryRead = response('usage');
-      const pricesRead = response('overages/prices');
-      const statementsRead = response('overages/statements');
-      const historyRead = i < 2 ? response('usage/series') : null;
-      const estimateRead = i < 2 ? response('usage/estimate') : null;
+      const responseStart = received.length;
+      phase = 'actor-' + i + '-summary';
       const started = Date.now();
-      await page.locator('#fixture-open-subscription').click();
-      const summaryResponse = await summaryRead;
+      const [summaryResponse] = await Promise.all([response('usage'), page.locator('#fixture-open-subscription').click()]);
       assert.equal(summaryResponse.status(), 200);
       const summary = await summaryResponse.json();
       const expectedRequests = i < 2 ? 7 + i * 4 : 0;
@@ -58,15 +65,17 @@ async function verify({ baseUrl, actors }) {
         return row?.querySelector('.modal-kv-value').textContent === String(expected);
       }, expectedRequests);
       const summaryMs = Date.now() - started;
-      const pricesResponse = await pricesRead;
-      const statementsResponse = await statementsRead;
+      phase = 'actor-' + i + '-prices-statements';
+      const pricesResponse = await receivedResponse('overages/prices', responseStart);
+      const statementsResponse = await receivedResponse('overages/statements', responseStart);
       assert.equal(pricesResponse.status(), 200);
       assert.equal(statementsResponse.status(), 200);
       assert.equal(Array.isArray(await statementsResponse.json()), true);
       assert.equal(typeof (await pricesResponse.json()).version, 'string');
       if (i < 2) {
-        const historyResponse = await historyRead;
-        const estimateResponse = await estimateRead;
+        phase = 'actor-' + i + '-history-estimate';
+        const historyResponse = await receivedResponse('usage/series', responseStart);
+        const estimateResponse = await receivedResponse('usage/estimate', responseStart);
         assert.equal(historyResponse.status(), 200);
         assert.equal(estimateResponse.status(), 200);
         const history = (await historyResponse.json()).result;
@@ -93,6 +102,7 @@ async function verify({ baseUrl, actors }) {
       window.oasisClient.setToken(actor.token, { avatarId: actor.id });
       window.dispatchEvent(new CustomEvent('oasis-login'));
     }, actors[0]);
+    phase = 'validation';
     const invalid = await page.evaluate(async () => {
       const date = await window.oasisClient.http.get('/api/subscription/usage/series?from=not-a-date');
       const admin = await window.oasisClient.http.get('/api/subscription/admin/users/00000000-0000-0000-0000-000000000001/usage/series');
@@ -108,7 +118,8 @@ async function verify({ baseUrl, actors }) {
       if (pause) { pause = false; observed(); await held; }
       await route.continue();
     });
-    const lateRead = response('usage');
+    phase = 'delayed-session';
+    const lateStart = received.length;
     await page.locator('#fixture-open-subscription').click();
     await observedRequest;
     await page.evaluate(actor => {
@@ -116,7 +127,7 @@ async function verify({ baseUrl, actors }) {
       window.dispatchEvent(new CustomEvent('oasis-login'));
     }, actors[1]);
     release();
-    const lateResponse = await lateRead;
+    const lateResponse = await receivedResponse('usage', lateStart);
     assert.equal(lateResponse.status(), 200);
     await lateResponse.finished();
     await page.waitForLoadState('networkidle');
@@ -127,6 +138,10 @@ async function verify({ baseUrl, actors }) {
     return { subscriptionUsageBrowserVerified: true, actorsVerified: 3, lateSessionResponseIgnored: true,
       timings, usageWriteRequests: 0, notificationSettingsVerified: false, appOwnerControlsVerified: false,
       productionStartupVerified: false, stripeCheckoutVerified: false };
+  } catch (error) {
+    console.error(JSON.stringify({ phase, pageErrors: errors,
+      responses: received.slice(-32).map(value => ({ path: new URL(value.url()).pathname, status: value.status() })) }));
+    throw error;
   } finally { await context.close(); }
 }
 module.exports = { verify };

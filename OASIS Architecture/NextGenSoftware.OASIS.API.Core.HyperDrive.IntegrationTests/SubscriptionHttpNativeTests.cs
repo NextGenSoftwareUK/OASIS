@@ -51,6 +51,14 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         Assert.True(File.Exists(artifact), "Build the actual WEB4 API before this test.");
         Assert.True(File.GetLastWriteTimeUtc(artifact) >= File.GetLastWriteTimeUtc(
             Path.Combine(project, "Controllers/SubscriptionController.cs")), "API artifact is stale.");
+        if (usage)
+        {
+            var shippedPrices = Path.Combine(Path.GetDirectoryName(artifact)!, "Configuration/subscription-overage-prices.json");
+            var hostedPrices = Path.Combine(AppContext.BaseDirectory, "Configuration/subscription-overage-prices.json");
+            Assert.True(File.Exists(shippedPrices) && File.Exists(hostedPrices), "Both hosts must include the real shipping pricing catalogue.");
+            Assert.Equal(SHA256.HashData(await File.ReadAllBytesAsync(shippedPrices)),
+                SHA256.HashData(await File.ReadAllBytesAsync(hostedPrices)));
+        }
         var resolver = new AssemblyDependencyResolver(artifact);
         Assembly? Resolve(AssemblyLoadContext context, AssemblyName name)
         {
