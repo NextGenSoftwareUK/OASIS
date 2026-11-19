@@ -135,7 +135,25 @@ public sealed class CosmicPropertyEditingTests
         Property(value, "/MetaData/ordered").IsValueModified.Should().BeTrue();
         Reset(value, "/MetaData/ordered"); value.HasHolonChanged().Should().BeFalse();
         var bytes = new byte[] { 1, 2, 3 };
-        Set(value, "/MetaData/bytes", bytes);
+        var editedBytes = HolonChangeTracking.SetCurrentPropertyValue(value, "/MetaData/bytes", bytes);
+        var diagnostic = "";
+        if (editedBytes.IsError)
+        {
+            var beforeToken = HolonChangeTracking.Values(value);
+            var captured = StoredRecordJson.CapturePropertyInput(bytes, value.GetType(), beforeToken,
+                new[] { "MetaData", "bytes" });
+            var desired = (Newtonsoft.Json.Linq.JObject)beforeToken.DeepClone();
+            ((Newtonsoft.Json.Linq.JObject)desired["MetaData"]!)["bytes"] = captured;
+            var hydrated = (Holon)StoredRecordJson.DeserializeToken(desired, value.GetType());
+            var actual = HolonChangeTracking.Values(hydrated);
+            var changes = HolonValueDelta.Compare(desired, actual);
+            diagnostic = "Controlled byte fixture: captured=" + captured.ToString(Formatting.None) +
+                "; decoded=" + actual["MetaData"]?["bytes"]?.ToString(Formatting.None) +
+                "; CLR=" + hydrated.MetaData["bytes"]?.GetType().FullName +
+                "; changes=" + string.Join(";", changes.Select(change =>
+                    change.Path + ":" + change.PreviousJson + "->" + change.CurrentJson));
+        }
+        editedBytes.IsError.Should().BeFalse(editedBytes.Message + editedBytes.Exception + diagnostic);
         value.MetaData["bytes"].Should().BeOfType<byte[]>().Which.Should().Equal(1, 2, 3);
         var before = StoredRecordJson.Serialize(value); bytes[0] = 99;
         StoredRecordJson.Serialize(value).Should().Be(before);
