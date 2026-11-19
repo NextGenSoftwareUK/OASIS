@@ -10,6 +10,10 @@ on:
         description: Build WEB4 and verify scoped CQL, SQLite and three-store native projection without unrelated release suites
         type: boolean
         default: false
+      property_tracking_only:
+        description: Verify property tracking and real MongoDB SQLite Neo4j save acknowledgements only
+        type: boolean
+        default: false
       source_ref:
         description: Exact candidate revision to qualify
         type: string
@@ -80,6 +84,14 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
+      - name: Validate property-only qualification scope
+        if: inputs.property_tracking_only
+        env:
+          NATIVE_PROJECTION_ONLY: ${{ inputs.native_projection_only }}
+          SOURCE_REF: ${{ inputs.source_ref }}
+        run: |
+          test "$NATIVE_PROJECTION_ONLY" = true
+          test -n "$SOURCE_REF"
       - name: Checkout exact sibling dependencies
         shell: bash
         run: |
@@ -191,6 +203,7 @@ jobs:
             if ($LASTEXITCODE) { throw 'Blockscout bounded address verification failed.' }
           }
       - name: Verify exact CQL literals, projection binding and metered reads
+        if: ${{ !inputs.property_tracking_only }}
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-literal-projection-ci -Operation {
@@ -222,7 +235,7 @@ jobs:
             if ($LASTEXITCODE) { throw 'Hedera public account qualification failed.' }
           }
       - name: Verify configured SQLite Virtual Holon reads
-        if: ${{ inputs.source_ref != '' }}
+        if: ${{ inputs.source_ref != '' && !inputs.property_tracking_only }}
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner sqlite-virtual-holon-ci -Operation {
@@ -247,15 +260,46 @@ jobs:
             }
             if (!$ready) { throw 'Neo4j fixture did not become ready.' }
             & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-entity-projection-ci -Operation {
-              dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~EntityProjectionPreservesStagesAndProofBeforeDtoConstruction' --logger 'trx;LogFileName=entity-projection.trx' --results-directory TestResults/Neo4jCurrent
-              if ($LASTEXITCODE) { throw 'Native entity projection failed.' }
-              # The native tests assert the exact fixture count for the checked-out source.
-              $providers = @{ sqlite = 'SQLLiteDBOASIS'; mongo = 'MongoDBOASIS'; neo = 'Neo4jOASIS' }
-              foreach ($store in 'sqlite','mongo','neo') {
-                $report = Get-Content "TestResults/Neo4jCurrent/$store-entity-projection-native.json" -Raw | ConvertFrom-Json
-                if ($report.provider -ne $providers[$store] -or $report.checks -lt 1 -or
-                    $report.checks -ne @($report.cases).Count -or !($report.inMemoryFixture -or $report.exactCleanupVerified)) {
-                  throw "Expected a complete native assertion report and fixture cleanup for $store."
+              if ('${{ inputs.property_tracking_only }}' -eq 'true') {
+                dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicPropertyTrackingTests|FullyQualifiedName~CosmicTrackingTests' --logger 'trx;LogFileName=property-tracking-core.trx' --results-directory TestResults/Neo4jCurrent
+                if ($LASTEXITCODE) { throw 'Property tracking/save-plan regression failed.' }
+                [xml]$core = Get-Content TestResults/Neo4jCurrent/property-tracking-core.trx
+                $coreCounts = $core.TestRun.ResultSummary.Counters
+                if ([int]$coreCounts.total -lt 28 -or [int]$coreCounts.total -ne [int]$coreCounts.passed -or [int]$coreCounts.notExecuted -ne 0) {
+                  throw 'All selected property/tracking cases must execute and pass.'
+                }
+                $newIds = @($core.TestRun.TestDefinitions.UnitTest | Where-Object { $_.TestMethod.className -like '*CosmicPropertyTrackingTests*' } | ForEach-Object { $_.id })
+                $newResults = @($core.TestRun.Results.UnitTestResult | Where-Object { $_.testId -in $newIds })
+                if ($newResults.Count -ne 28 -or @($newResults | Where-Object { $_.outcome -ne 'Passed' }).Count) {
+                  throw 'Exactly28 new property-intent cases must pass in addition to existing tracking regressions.'
+                }
+                dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~PropertyTrackingUsesNativeAcknowledgementWithoutLosingInflightIntent' --logger 'trx;LogFileName=property-tracking-native.trx' --results-directory TestResults/Neo4jCurrent
+                if ($LASTEXITCODE) { throw 'Native property tracking failed.' }
+                [xml]$native = Get-Content TestResults/Neo4jCurrent/property-tracking-native.trx
+                $nativeCounts = $native.TestRun.ResultSummary.Counters
+                if ([int]$nativeCounts.total -ne 3 -or [int]$nativeCounts.passed -ne 3 -or [int]$nativeCounts.notExecuted -ne 0) {
+                  throw 'Exactly three real provider tracking cases must pass without skips.'
+                }
+                foreach ($provider in 'MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS') {
+                  $report = Get-Content "TestResults/Neo4jCurrent/$provider-property-tracking-native.json" -Raw | ConvertFrom-Json
+                  if ($report.provider -ne $provider -or $report.checks -ne 11 -or $report.successfulNativeMutations -ne 5 -or
+                      !$report.explicitEqualValueWriteVerified -or !$report.inflightIntentVerified -or
+                      !$report.foreignWriteRefused -or !$report.originalCurrentVerified -or
+                      !$report.noOpVerified -or !$report.exactCleanupVerified) {
+                    throw "Complete native property tracking and owned cleanup evidence required for $provider."
+                  }
+                }
+              } else {
+                dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~EntityProjectionPreservesStagesAndProofBeforeDtoConstruction' --logger 'trx;LogFileName=entity-projection.trx' --results-directory TestResults/Neo4jCurrent
+                if ($LASTEXITCODE) { throw 'Native entity projection failed.' }
+                # The native tests assert the exact fixture count for the checked-out source.
+                $providers = @{ sqlite = 'SQLLiteDBOASIS'; mongo = 'MongoDBOASIS'; neo = 'Neo4jOASIS' }
+                foreach ($store in 'sqlite','mongo','neo') {
+                  $report = Get-Content "TestResults/Neo4jCurrent/$store-entity-projection-native.json" -Raw | ConvertFrom-Json
+                  if ($report.provider -ne $providers[$store] -or $report.checks -lt 1 -or
+                      $report.checks -ne @($report.cases).Count -or !($report.inMemoryFixture -or $report.exactCleanupVerified)) {
+                    throw "Expected a complete native assertion report and fixture cleanup for $store."
+                  }
                 }
               }
             }

@@ -1,12 +1,84 @@
+S05 property tracking source PREPARED, NOT QUALIFIED: Corea4c6975e0c56b115885cdf2ce072cddc3894bf3d extends existing HolonChangeTracking/normal save-plan ownership with detached original/current RFC6901 property snapshots, missing/null distinction and bounded explicit modification flags. Clearing a flag never suppresses scalar dirty detection. Private capture tokens retain new/reasserted flags and later scalar edits across native acknowledgement, including a reasserted removal absent from both new snapshots. Local Accept/Reject explicitly clears flags; flags do not serialize or grant permission, complete child selection or transaction evidence.28 new unit cases plus affected existing tracking regressions and3 actual native manager/provider cases are prepared. Each native case requires5 writes,11 groups, foreign-owner refusal, a clean no-op and exact owned cleanup. S05 remains open; parity stays50/164 per primary store until exact CI. Combined candidate and feature manifests are synchronized independently to preserve their intentionally different WEB6 gitlinks (8384bfda and15474bef respectively); no unrelated dependency is advanced. Prior accepted image remains1fe2/Core0e67. No local build, environment/database/image/archive download, shared Atlas/API/PIPER call, DNA change or deployment. Owned preparation script LocalState/COSMIC/PropertyTrackingPrepareOwned.py is disposable after preparation; temporary Git indexes remove themselves.
+
+Exact combined CQL API package ACCEPTED:44429898957/job135244301328 succeeded with verifier3d5125a7248335fe940e0002267e89f3fa0f3214 against parent1fe2ddcefdc9b8165962e43f56c02cf355b6849b/Core0e67ba0bb9b12468c28c894a63ad936a5033a0d2 and image sha256:e8fef086e86bc4aa09086871f501ce531ff746197812c3f033e087aeefe2ec64.774-byte artifact14486306325 read/disposed only in RAM proves packagedSourceHashes=true, cqlRuntimeGraphVerified=true,5 required assemblies (API+Core+3 native provider assemblies), ownedContainerAbsent=true and dataWrites=0. Automatic verifier controls44429806686 also passed; local9 methods include56 CQL graph cases. apiQualified=false and liveDeployment=false are preserved: this is package acceptance, not API startup/browser/model/full parity. The report now removes obsolete build-pending wording. EF checklist remains50/164 per primary store. No shared Atlas/PIPER/model call, deployment, local image pull or runtime/build output was added; temporary Git indexes self-remove. Last observed C free space41.12GiB; no reclamation claim. Next ORM implementation must extend existing tracking and capture explicit modified intent across save awaits, not replace accepted tracking or clear concurrent edits.
+
+Combined image qualification update: GitHub Actions run44423382342 completed successfully for exact parent1fe2ddcefdc9b8165962e43f56c02cf355b6849b and Core0e67ba0bb9b12468c28c894a63ad936a5033a0d2. Immutable image: ghcr.io/nextgensoftwareuk/oasis-web4@sha256:e8fef086e86bc4aa09086871f501ce531ff746197812c3f033e087aeefe2ec64. This supersedes earlier pending/building wording below. Image not pulled, started or deployed; hosted acceptance remains open. No shared Atlas/PIPER calls, local runtime install, image download or build output was added. Temporary publication indexes are removed after use.
+
+2026-11-18 — CURRENT-DEVELOPMENT CQL COMBINATION VERIFIED. Exact1fe2ddcefdc9b8165962e43f56c02cf355b6849b/Core0e67ba0bb9b12468c28c894a63ad936a5033a0d2 PASSED44421493104/job135215355979: actual WEB4 build,565 selected+22 configured+3 native, zero failures/skips. Current generated41810-byte artifact14481219670 inspected only in RAM confirms Mongo148/Neo145/SQLite124, all8 grouping/DISTINCT/scalar/count/text/identity/order flags and owned cleanup.17 settlements/stale-key/source-preservation/no-import assertions pass. Both contributors preserved:37+6 Core and89+50 parent paths byte-for-byte; current Development remains18675 at latest read. Exact combined image44423382342 is now building1fe2, teaching_sidecars=false; no digest acceptance, local pull, deployment or Development write. Older verified3aff image remains valid only for its own runtime. Websiteac304a269 client tests remain accepted; full EF50/164, hosted/free-model/browser and wider provider/hybrid/OPORTAL gates remain open. Peer status confirms Supabase52/52 native storage and separate native pagination/routing acceptance already exists: do not rebuild or rerun those completed suites; its hosted/CQL teaching fixture is separate. Shared Atlas/API/PIPER/DNA/deployment stand-down remains.
+
+2026-11-18 — GROUPING IMAGE VERIFIED; COMBINED DEVELOPMENT CI ACTIVE. Build44416121167/job135196758842 SUCCEEDED; Summary repository/source/digest matched exact3aff/Core9c: ghcr.io/nextgensoftwareuk/oasis-web4@sha256:ddb46be6d846205ac17a2a97eda7683062650e95a76176eb29ce1977f71ce93f. Runtime is identical to accepted test-only DISTINCT successor93156 (565+22+3,269 Website cases,17 settlements and all3 native flags/cleanup). No local pull/start/deployment. This image predates current Development purge/root changes and must not replace them on old acceptance. New exact combined1fe2ddcefdc9/Core0e67 is qualifying in44421493104; verify that newer source independently before building/promoting its image. Scoped source preserves37+6 Core/89+50 parent contributor paths; no Development write, live API/shared Atlas/DNA/PIPER action. Full parity remains50/164 per primary store, broader roadmap and hosted free-model/browser gates open.
+
+2026-11-18 — REAL DISTINCT HTTP ACCEPTED; CURRENT-DEVELOPMENT COMBINATION PREPARED. Exact93156df5c5b22bc080bfe9f27c7df69759e6199f/Core9c passed44418065554/job135203475715:565 selected+22 configured+3 native, zero failures/skips. Generated41847-byte artifact14480667520 confirms Mongo148/Neo145/SQLite124 with mixedDistinctHttpVerified/mixedGroupingHttpVerified/mixedGroupingSdkVerified and owned cleanup. A stale cachedzz key cannot survive live emoji reconciliation before HAVING/order/page; key-only DISTINCT returnsxy,17 owned settlements,3 owner/2 foreign attempts and no import/source write. Websiteac304a269 remains accepted.
+
+New scoped source1fe2ddcefdc9b8165962e43f56c02cf355b6849b combines that CQL snapshot with actual Development18675/Core9e1 via Core0e67ba0bb9b12468c28c894a63ad936a5033a0d2. All37 CQL+6 peer Core paths and89 CQL+50 peer parent paths are byte-preserved; only Core gitlink/manifest conflicts resolved. Official pin synchronization ran on disposable indexes/in-memory manifests; --require-gitlinks --ref candidate passed. Paired pins are published on the existing feature branch; no physical checkout/index reset or broad legacy feature-history merge was done. New combined-source runtime acceptance is PENDING, not inherited from93156. Existing image44416121167 builds accepted runtime-identical3aff/Core9c and is not a current-Development rollout. No shared Atlas/API/PIPER/DNA/Dev/staging/prod deployment.
+
+2026-11-18 — MIXED GROUPING SDK/API VERIFIED ON ALL3 REAL PROVIDERS. Exact3aff39819f1fec71b1b018d19c57877ece0b7a3a/Core9c0877a285eebd0345e064b0ae732f512b2cba7d PASSED CI44414459577/job135190959892: actual WEB4 build,565 selected+22 configured+3 native suites, zero failures/skips. RAM-only41818-byte artifact14479766144 has generated Mongo148/Neo145/SQLite124 groups; all3 assert mixedGroupingSdkVerified,mixedGroupingHttpVerified and previous scalar/count/text/identity/global-order flags. Mongo/Neo exact cleanup true; SQLite in-memory and unchangedSource true. Mongo/Neo source preservation is asserted by passing fixture code, not a separate JSON flag. Native HTTP includes reconciled stored/live duplicate groups before HAVING/order/page, owner3/foreign2 attempts,16 settled operations and no implicit materialization. Websiteac304a9e has269 frozen parser/Playground/Ask cases accepted, including mapped GROUP BY/DISTINCT and source-bound review. One exact verified-source image44416121167 is building3aff with teaching_sidecars=false; no accepted digest or deployment yet. No new EF checklist row is inferred:50/164 per primary store. Grouped key-only DISTINCT still needs its explicit native HTTP case; grouped DISTINCT counts, computed grouped selectors, broader domains/larger sources, full hybrid/OPORTAL/provider/hosted free-model remain open. Shared Atlas/API/PIPER/DNA/Dev/deployment stand-down stays active.
+
+2026-11-18 — GROUPED SQL/ASK CLIENT VERIFIED AND PUSHED. Websiteac304a9e8a1dafd1689b2cb96d762b04b53ab0f0 passed all269 frozen-source parser/Playground/Ask cases, zero failures/skips, with matching HTML guidance/cache versions. Nine parser cases cover all3 stores, DISTINCT, hidden/count-only keys, independent typed values, reused aggregate inputs and invalid mapped fields;3 Ask cases preserve exact mapping/provider and require review. Backend build passed but2 positive wire fixtures failed in44412607223 (562/564 pass); corrected invariant-string Int64 literals and an explicit numeric rejection case produce exact3aff39819f1f, pending565+22+3 native qualification. Do not call the new grouping flow hosted, deployed or fully qualified. Full report: FULL_PROGRESS_REPORT_2026-11-18.md. Checklist remains50/164 per primary store. Shared Atlas/API/PIPER/DNA/deployment stand-down remains active.
+
+2026-11-18 UTC — OPEN implementation cohort: computed columns across real and virtual Holons. Existing virtual queries push predicates to shipping providers but their native projection contract returns original fields only. Extend that contract with immutable typed result columns (source field, input domain, function, output domain, null/missing state and independent output alias), supporting raw and computed selections of the same field. Implement native computation on MongoDB, SQLite and Neo4j before marking this cohort accepted. Keep mapping/owner/app/connection revision and logical identity unchanged; computed cells must not overwrite source metadata or become snapshot fields. Explicit full materialization must retain original source values and current policy/permission checks. Required proof: same SQL expression/results across real-only, virtual-only and mixed sources, repeated raw/computed fields, Unicode/NUL/null/missing/invalid types, filters/order/windows/reductions, bounded bytes/cancellation and zero imports during mapped reads. No client fallback, new database copy or shared Atlas test. This cohort supplements SQL/WEB6 and EF parity priorities; it does not replace them.
+
 # CQL completion roadmap
 
-Updated 4 November 2026. Full programme remains incomplete.
+## Performance verification
+
+For changes that affect CQL execution, provider startup, or HyperDrive routing, record the exact revision and compare equivalent work before and after. Track startup readiness separately from warm request latency. Compare native and federated CQL on the same records and track provider attempts, fan-out and tail latency for HyperDrive routing under representative load. Include rollout smoke measurements where applicable and investigate regressions before accepting the batch. Timing comparisons must use identical query shapes, fixture scope and concurrency.
+
+The read-only Development sampler in Scripts/Sandbox/Measure-HostedCqlLatency.py reuses an existing visitor and validates matching native and federated results on every run. Its small sample reports first observed time, warm median and maximum. The default is serial, and the optional concurrency setting allows up to four workers for bounded comparisons. Runs with HTTP failures still report bounded sample outcomes and exit unsuccessfully. Timings for successful responses in a failed run describe that subset only. Use a larger controlled workload for tail latency or throughput claims. OPORTAL investigation is owned separately.
+
+## User priority order updated 12 November 2026
+
+HoloOASIS → Solana → Ethereum → Polygon → Arbitrum → NEAR → EOS/EOSIO → SOLID → IPFS →
+ActivityPub → Cosmos → Polkadot → TON → TRON → Hedera/Hashgraph, then remaining
+providers in popularity order. This matches the latest user-edited goal. OLID
+means SOLID; ActibityPub means ActivityPub; HetraGraph means Hedera/Hashgraph
+(HashgraphOASIS).
+
+Supabase is an additional top-priority Development demo provider. The shipping
+WEB4 provider already passed the isolated PostgREST/PostgreSQL lifecycle suite
+(52/52) and Supabase/SQLite HyperDrive routing checks. Hosted enrollment requires
+the dedicated HTTPS teaching project and restricted reader recorded in
+[Actions for David](../Release%20and%20Status/ACTIONS-FOR-DAVID.md). Carry
+forward the native evidence and qualify the managed source once available.
+[Supabase status](SUPABASE_CQL_MVP.md).
+
+Solana, Ethereum, Polygon, Arbitrum, NEAR, Cosmos and Polkadot retain accepted
+scoped live HTTP and browser evidence. IPFS and ActivityPub also retain live HTTP
+and browser proofs. SOLID, TON, Hedera and EOS retain accepted live HTTP and
+public browser evidence. Their original-owner private paired browser checks remain
+open. TRON has no accepted current live CQL admission: preserve rate-limit/denial
+outcomes and the authenticated-reader draft/credential preflight; do not retry
+failed unauthenticated endpoints or recreate its original cohort. Use the single
+owner-action list for any missing account/access requirement, preserving existing
+entries and deferrals. Do not rerun accepted native sources or resave copies just
+to change queue order.
+
+Focus engineering/demo usability on this chain order before adding further
+providers. Existing MapLibre and four-provider plans/owners/settings remain
+prepared and unchanged behind the chain priorities; no unverified rollout or
+third8November Development push. GOMap WEB4 run42480693015 has completed success;
+close out its already-running artifact/cleanup evidence without starting another
+GOMap feature ahead of this queue. Remaining-provider popularity ranking must use
+current adoption/use evidence when that queue is resumed, with dependencies and
+owner deferrals explicit.
+
+
+Updated 7 November 2026. Full programme remains incomplete.
 [CURRENT_STATUS](CURRENT_STATUS.md) owns deployment state and the exact next step.
+
+7 November checkpoint: [Dapr](DAPR_CQL_MVP.md) now passes scoped live native3/2,
+Mongo5/4, snapshot reuse/privacy and SQLite/Neo4j2/2, with unchanged mounted
+values/ETags. Coverage119local/92liveHTTP/28browser; Dapr browser gate remains open.
+The original unadmitted failed generation is preserved separately from its fresh
+acknowledged source. This checkpoint does not close the full provider/ORM programme.
 
 Continue the full CQL, COSMIC ORM and HyperDrive roadmap. Prioritize the live
 Development WEB4 demo. When a gate needs owner access or retained evidence,
 keep that gate open and advance the next independent provider or engineering
 scope. Verify the remaining browser, native, ORM and HyperDrive gates separately.
+The post-demo [virtual/hybrid import design](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md)
+tracks the proposal, one collection mapping, federation, explicit snapshot saves
+and opt-in caching; [architecture](CQL_ARCHITECTURE.md) defines its access boundary.
 After the live WEB4 demo and the CQL, COSMIC ORM and HyperDrive MVP,
 complete every provider in the [provider inventory](PROVIDER_CQL_AND_SANDBOX_STATUS.md).
 Each provider must implement its applicable shipping contracts through real
@@ -23,23 +95,44 @@ reason and evidence for any inapplicable feature and keep unverified cells open.
 The 4 November published launcher audit found all 37 referenced scripts in the
 task checkout. Runtime qualification remains separate.
 
-1. Verify/deploy explicit source recovery for the reproduced Nostr startup503;
-   [27controlled/API/schema cases pass](CQL_SOURCE_RECOVERY.md),live gate remains.
-   Recover the published launcher runtime/configuration gaps and their reviewed
-   source dependencies from retained sandbox-integration pin 237403a75. DuckDB
-   and LocalFile are restored with controlled tests/builds, no native replay.
-   ThreeFold's hosted audit and card/static assets now pass at website2170b67;
-   preserve its original cohort/settings/ACKs. Do not replay accepted gates.
-2. Preserve 60 scoped hosted HTTP proofs and 96 local integrated query types.
-   ClickHouse is the latest accepted hosted addition; its sandbox card, guide/C#
+Latest breadth milestone: six additional hosted readers (Miden, Espresso,
+EigenLayer, Fhenix, Axelar and Ritual) and cards71-76 are accepted/published.
+Coverage119local/91live HTTP/28functional browser. [Exact evidence and limits](SIX_PUBLIC_READERS_HOSTED_BATCH.md).
+Dapr's next hosting gate requires Linux native sidecar and restricted backing
+store proof; preserve its Windows-only qualification as a separate scope.
+
+1. Continue the next eligible provider scope from
+   [CURRENT_STATUS](CURRENT_STATUS.md) and the provider inventory. NATS scoped
+   TLS/native/restart, hosted HTTP native3/2/Mongo5/4/privacy/replicas and public
+   card64 are complete; [NATS evidence](NATS_JETSTREAM_CQL_MVP.md) preserves
+   the original source and sealed cohort. Browser verification stays open.
+   Preserve accepted LocalFile, Graph Studio, PouchDB, Waku and DuckDB sources
+   and write schedules. GUN/OrbitDB teaching runtimes remain enabled.
+   Nostr recovery, QuestDB public403, Chroma enrollment and remaining launcher
+   runtime gaps stay open. Preserve all deferred owner decisions.
+2. Preserve the accepted hosted and local scopes in the [provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md).
+   ClickHouse has accepted hosted evidence; its sandbox card, guide/C#
    links and exact public static bytes are verified. Counts are demo scopes,
-   not full provider or ORM certification.
+   not full provider or ORM certification. Meilisearch adds the new Windows-local
+   profile: native/restart, manager/Mongo/HTTP and browser verified, with an honest
+   local-only WEB4 card. Hosted Meili enrollment remains open. Solr now has
+   native3/2/0, retained restart, manager/HTTP and local browser5/4 proof, adding
+   one local profile. Its local WEB4 card72e29ba and pinned guide/C#links are
+   published and browser-verified; hosted Solr remains open. ArcadeDB adds native/
+   restart, manager/Mongo/HTTP and local browser5/4 proof; its local WEB4 card
+   and pinned source links8123df9 are published/browser-verified. Hosted enrollment
+   remains open. OpenSearch adds native/restart, manager/Mongo/HTTP and local
+   browser5/4 proof; its local WEB4 card/source links5073f06 are published and
+   browser-verified. Hosted/full-provider gates stay open.
 3. Keep filtered native queries and Mongo federated presets for every admitted
    provider. Expand remaining red scopes with explicit capabilities/consistency,
    controlled tests, actual native manager/LINQ and HTTP proof, privacy/replicas,
    honest labels and usable sandbox/local demo links.
-4. Complete 55 remaining browser gates when browser control is available; five
-   are proved. Static assets and HTTP success do not prove browser interaction.
+4. Complete 46 remaining browser gates among the 74 HTTP-qualified profiles.
+   Twenty-eight flows have browser evidence,
+   including the twenty-three recovery-session additions documented in
+   [browser evidence](RECOVERY_BROWSER_EVIDENCE_2026-11-05.md).
+   Static assets and HTTP success do not prove browser interaction.
 5. Preserve the original MongoDB/SQLite/Neo4j investor subset and 50/82 green
    parity rows each. Work only red cells or reproduced bugs; do not re-harden
    completed providers or federation cursors.
