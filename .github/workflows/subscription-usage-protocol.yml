@@ -256,7 +256,7 @@ jobs:
             if ($LASTEXITCODE) { throw 'SQLite virtual Holon qualification failed.' }
           }
       - name: Verify editable comparison originals and immutable native observations
-        if: ${{ inputs.property_tracking_only }}
+        if: ${{ inputs.property_tracking_only && inputs.property_selection_only }}
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-property-selection-ci -Operation {
@@ -368,7 +368,6 @@ jobs:
           name: subscription-protocol-test-results
           path: |
             ${{ inputs.property_selection_only && 'TestResults/PropertySelection' || inputs.property_tracking_only && 'TestResults/Neo4jCurrent/*property-original-native*' || 'TestResults' }}
-            ${{ inputs.property_tracking_only && !inputs.property_selection_only && 'TestResults/PropertySelection/property-original-core.trx' || '' }}
       - name: Stop temporary database
         if: ${{ always() && !inputs.property_selection_only }}
         run: docker rm --force usage-mongo

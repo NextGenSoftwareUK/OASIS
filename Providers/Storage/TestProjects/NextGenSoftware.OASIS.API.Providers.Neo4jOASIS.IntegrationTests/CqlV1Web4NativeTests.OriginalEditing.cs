@@ -89,6 +89,11 @@ public sealed partial class CqlV1Web4NativeTests
         CosmicConcurrency.SetProviderRevisionId(caller.Original, authority, Revision(native));
         Good(HolonChangeTracking.SetOriginalPropertyValue(caller, "/Name", caller.Name));
         Assert.AreEqual(beforeOwner, Accepted(caller));
+        Assert.IsFalse(HolonChangeTracking.HasChanges(caller, false));
+        // Rebasing to current made the caller clean. A real stale mutation needs
+        // a changed value; keep production no-op saves free of unnecessary writes.
+        caller.Description = "stale original attempt";
+        Assert.IsTrue(HolonChangeTracking.HasChanges(caller, false));
         var stale = await manager.SaveOwnedHolonAsync(caller, writer, Options(), new[] { "/Description" },
             saveChildren: false, providerType: authority);
         Assert.IsTrue(stale.IsError); Assert.AreEqual(CosmicConcurrencyException.Code, stale.ErrorCode);
