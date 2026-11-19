@@ -4,10 +4,17 @@ from pathlib import Path
 from owned_docker_resources import missing_resource
 
 
+def image_tag(source, profile, teaching_image=False):
+    # Package scope and image flavor are independent: cql-api may inspect either build.
+    suffix = '-teaching' if teaching_image or profile != 'cql-api' else ''
+    return 'ghcr.io/nextgensoftwareuk/oasis-web4:' + source + suffix
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--source', required=True)
     p.add_argument('--digest', required=True)
+    p.add_argument('--teaching-image', action='store_true')
     p.add_argument('--require-tron-reader', action='store_true')
     p.add_argument('--require-urbit-reader', action='store_true')
     p.add_argument('--require-infura-reader', action='store_true')
@@ -23,7 +30,7 @@ def main():
     assert run.isdecimal() and attempt.isdecimal()
     name = 'oasis-web4-package-' + run + '-' + attempt
     image = 'ghcr.io/nextgensoftwareuk/oasis-web4@' + o.digest
-    tag = 'ghcr.io/nextgensoftwareuk/oasis-web4:' + o.source + ('' if o.profile == 'cql-api' else '-teaching')
+    tag = image_tag(o.source, o.profile, o.teaching_image)
     out = root / 'TestResults/Web4FullPackage'
     out.mkdir(parents=True, exist_ok=False)
 
