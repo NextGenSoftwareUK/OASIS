@@ -125,7 +125,7 @@ The short fragments above illustrate public calls, not standalone applications. 
 - [Original comparison editing controls](<../../OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicOriginalPropertyEditingTests.cs>) cover atomic rebasing, null versus absence, refusal and in-flight originals; accepted20 controls are recorded in the audit.
 - [Native original editing](../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.OriginalEditing.cs) composes those calls with actual shipping-provider writes, permissions and replay; run44502674000 accepted all three stores.
 - [Nullable property entries](<../../OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicNullablePropertyEntryTests.cs>) provide eight accepted examples of the nullable-slot behavior above.
-- [Native custom property cases](../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.SelectedCustom.cs) exercise the actual selected-save overload and typed storage. Protected cases passed44546555815; plain replay remains pending.
+- [Native custom property cases](../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.SelectedCustom.cs) exercise the actual selected-save overload and typed storage. All six provider/mode cases are accepted through retained Mongo/Neo cohorts and final SQLite44561911974; the audit lists each immutable acceptance scope.
 
 ## Qualification scope
 
