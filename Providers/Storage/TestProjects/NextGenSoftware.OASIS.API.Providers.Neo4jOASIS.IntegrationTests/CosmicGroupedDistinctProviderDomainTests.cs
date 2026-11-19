@@ -4,10 +4,11 @@ using NextGenSoftware.OASIS.API.Core.Queries;
 using Mongo = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 using SQLite = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 using Neo = NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Neo4jOASIS;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace NextGenSoftware.OASIS.API.Core.UnitTests;
+namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
+[TestClass]
 public sealed class CosmicGroupedDistinctProviderDomainTests
 {
     private static CosmicGroupedCapabilities Capabilities(string provider) => provider switch
@@ -18,8 +19,8 @@ public sealed class CosmicGroupedDistinctProviderDomainTests
         _ => throw new ArgumentException(nameof(provider))
     };
 
-    [Theory]
-    [InlineData("Mongo")] [InlineData("SQLite")] [InlineData("Neo")]
+    [DataTestMethod]
+    [DataRow("Mongo")] [DataRow("SQLite")] [DataRow("Neo")]
     public void DistinctPrimitiveDomainsAreExplicitlyAdmitted(string provider)
     {
         var capabilities = Capabilities(provider);
@@ -27,11 +28,11 @@ public sealed class CosmicGroupedDistinctProviderDomainTests
         void Check<T>(System.Linq.Expressions.Expression<Func<Holon, T>> selector)
         {
             var binding = CosmicGroupedBinding<Holon, string>.CountValues(group, "Unique", selector, true);
-            Assert.False(binding.IsError, binding.Message);
+            Assert.IsFalse(binding.IsError, binding.Message);
             var selected = group.SelectColumns(new[] { binding.Result });
-            Assert.False(selected.IsError, selected.Message);
+            Assert.IsFalse(selected.IsError, selected.Message);
             var admission = capabilities.Admit(selected.Result);
-            Assert.False(admission.IsError, admission.Message);
+            Assert.IsFalse(admission.IsError, admission.Message);
         }
         Check(h => h.Description);
         Check(h => h.Version);
@@ -43,8 +44,8 @@ public sealed class CosmicGroupedDistinctProviderDomainTests
         Check(h => CosmicQueryMetadata.Value<double?>(h, "value"));
     }
 
-    [Theory]
-    [InlineData("Mongo")] [InlineData("SQLite")] [InlineData("Neo")]
+    [DataTestMethod]
+    [DataRow("Mongo")] [DataRow("SQLite")] [DataRow("Neo")]
     public void UnenrolledNormalizationDomainsRemainRefused(string provider)
     {
         var capabilities = Capabilities(provider);
@@ -52,9 +53,9 @@ public sealed class CosmicGroupedDistinctProviderDomainTests
         void Refuse<T>(System.Linq.Expressions.Expression<Func<Holon, T>> selector)
         {
             var binding = CosmicGroupedBinding<Holon, string>.CountValues(group, "Unique", selector, true);
-            Assert.False(binding.IsError, binding.Message);
+            Assert.IsFalse(binding.IsError, binding.Message);
             var selected = group.SelectColumns(new[] { binding.Result });
-            Assert.Equal("CQL_CAPABILITY_UNSUPPORTED", capabilities.Admit(selected.Result).ErrorCode);
+            Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", capabilities.Admit(selected.Result).ErrorCode);
         }
         Refuse(h => h.Id);
         Refuse(h => CosmicQueryMetadata.Value<decimal?>(h, "value"));
