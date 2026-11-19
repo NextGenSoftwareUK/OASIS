@@ -91,8 +91,9 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 parts.ApplicationParts.Add(new AssemblyPart(api));
                 parts.FeatureProviders.Add(new ProfileControllerFeature(controller));
             }).AddControllersAsServices();
-            builder.Services.AddTransient(controller, _ => Activator.CreateInstance(controller,
-                [new ConfigurationBuilder().Build(), service, repository, repository, null, null, null, null, null])!);
+            builder.Services.AddSingleton(api.GetType(ns + "ISubscriptionService", true)!, service);
+            builder.Services.AddSingleton(api.GetType(ns + "ISubscriptionUsageRepository", true)!, repository);
+            builder.Services.AddSingleton(api.GetType(ns + "ISubscriptionBillingRepository", true)!, repository);
             await using var app = builder.Build();
             var key = new SymmetricSecurityKey(RandomNumberGenerator.GetBytes(64));
             var validation = new TokenValidationParameters
