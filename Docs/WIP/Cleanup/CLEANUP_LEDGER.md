@@ -5010,3 +5010,7 @@ Delivery cache owner update a5489e568b7c16d7db37cc6fd9e164e15fa33db1 stamps conf
 
 
 2026-11-18 NOTIFICATION PREFERENCES PRE-QUALIFICATION: existing worktrees/runtime only, no local build/download/environment/database. Two exact owned .notification-route-review-<GUID>.csv files under Docs/WIP/HyperDrive-Providers were removed in finally and checked absent. First source inventory saw768 due expression-bodied declaration parsing; actions now use normal block declarations, scanner verifies769 actions/657 classifications. Existing source/state Node checks only; isolated backend/browser cleanup remains pending its future run. Source/CI changes remain isolated from shared Atlas and deployments. No whole-site/live-speed acceptance.
+
+
+2026-11-18 NOTIFICATION FIRST RUN FAILED / SDK FIX PUSHED:44455841841/job135330527967 on513e0f6 built actual WEB4 with0 errors and passed source/route/pin gates. New browser case reached real saves/reloads/default reset, then failed its direct SDK foreign-selector request because the fixture omitted the required {body:...} wrapper (both direct calls400). Pushed3b5c0b17 fixes those two test calls to the shipping contract; no production workaround or weaker assertion. First run is NOT acceptance. Explicit owned browser/runtime/cache/control cleanup marker and Mongo container removal passed; provider/database finalizer completed. Corrected focused qualification dispatched, terminal result pending. Shared Atlas/deployment/DNA unchanged; no local environment/build/download/database.
+
