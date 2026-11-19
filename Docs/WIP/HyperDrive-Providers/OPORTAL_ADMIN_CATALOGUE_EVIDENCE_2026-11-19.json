@@ -26,7 +26,7 @@
   "sdkCommit": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
   "jobId": 135698915826,
   "web6Commit": "ff6244886b96ba05a59e236a1f54b621f630f5ca",
-  "status": "sixth-attempt-route-review-failed-scoped-manifest-corrected-not-accepted",
+  "status": "seventh-actual-keyboard-paste-run-active-after-reviewed-route-manifest",
   "runId": 44563508388,
   "bundleCleanupVerified": true,
   "firstAttempt": {
@@ -185,5 +185,14 @@
     "exitCode": 0,
     "newRoute": "POST app-accounts/{appId}/owners",
     "disposition": "InjectedServiceRepositoryOrClient"
+  },
+  "seventhAttempt": {
+    "runId": 44576879488,
+    "jobId": 135746642152,
+    "sourceCommit": "357b464f62121174f707fa16037ebb2d66080314",
+    "status": "in_progress",
+    "portalGenerated": "73c6de8154a3c259948daa99e318d9862b4bfa15",
+    "onlyFailedCase": true,
+    "actualKeyboardInput": true
   }
 }
