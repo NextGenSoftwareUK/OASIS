@@ -273,6 +273,16 @@ jobs:
             }
             if (!$ready) { throw 'Neo4j fixture did not become ready.' }
             & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-grouped-distinct-native-ci -Operation {
+              New-Item -ItemType Directory -Force TestResults/PropertySelection | Out-Null
+              dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicGroupedDistinctParticipationTests' --logger 'trx;LogFileName=grouped-distinct-participation.trx' --results-directory TestResults/PropertySelection
+              if ($LASTEXITCODE) { throw 'Distinct versus ordinary participation regression failed.' }
+              [xml]$unit = Get-Content TestResults/PropertySelection/grouped-distinct-participation.trx
+              $uc = $unit.TestRun.ResultSummary.Counters
+              $ud = @($unit.TestRun.TestDefinitions.UnitTest)
+              if ([int]$uc.total -ne 6 -or [int]$uc.passed -ne 6 -or [int]$uc.notExecuted -ne 0 -or $ud.Count -ne 6 -or
+                  @($ud | Where-Object { $_.TestMethod.className -notlike '*CosmicGroupedDistinctParticipationTests*' }).Count) {
+                throw 'Exactly six new shared participation controls must pass.'
+              }
               dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~GroupedDistinctRequiredAndCanonicalDomainsUseRealNativeProvider' --logger 'trx;LogFileName=grouped-distinct-required-native.trx' --results-directory TestResults/Neo4jCurrent
               if ($LASTEXITCODE) { throw 'Native grouped distinct verification failed.' }
               [xml]$trx = Get-Content TestResults/Neo4jCurrent/grouped-distinct-required-native.trx
