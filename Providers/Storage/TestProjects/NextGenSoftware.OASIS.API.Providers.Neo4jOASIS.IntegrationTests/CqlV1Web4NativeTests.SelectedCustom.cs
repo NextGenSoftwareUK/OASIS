@@ -66,7 +66,10 @@ public sealed partial class CqlV1Web4NativeTests
             var saved = await manager.SaveOwnedHolonAsync(root, actor, options, new[] { path },
                 saveChildren: false, providerType: authority);
             Assert.IsFalse(saved.IsError, saved.Message + saved.Exception); Assert.IsTrue(saved.IsSaved);
-            Assert.IsFalse(HolonChangeTracking.GetPropertyValues(root, path).Result.IsModified);
+            var inspected = HolonChangeTracking.GetPropertyValues(root, path);
+            Assert.IsFalse(inspected.IsError, inspected.ErrorCode + ": " + inspected.Message + inspected.Exception);
+            Assert.IsNotNull(inspected.Result);
+            Assert.IsFalse(inspected.Result.IsModified);
         }
 
         probe.Source = root;
