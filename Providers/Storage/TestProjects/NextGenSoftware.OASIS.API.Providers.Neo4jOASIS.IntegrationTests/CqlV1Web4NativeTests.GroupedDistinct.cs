@@ -62,7 +62,7 @@ public sealed partial class CqlV1Web4NativeTests
                 }
                 return selected.ToArray();
             }
-            async Task<NextGenSoftware.OASIS.Common.OASISResult<CosmicGroupedResult<CosmicProjectionRecord>>> Run<T>(
+            async Task<NextGenSoftware.OASIS.Common.OASISResult<CosmicGroupedExecution<CosmicProjectionRecord>>> Run<T>(
                 Guid[] selected, Expression<Func<Holon, T>> selector, int maximumGroups = 1000, bool emptyPage = false)
             {
                 var grouping = CosmicQuery<Holon>.Create().Where(h => selected.Contains(h.Id))
