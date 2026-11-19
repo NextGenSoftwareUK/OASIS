@@ -55,6 +55,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public string Status { get; set; }
         /// <summary>Linearizes app consent and billable admission with concurrent app changes.</summary>
         public long AuthorizationVersion { get; set; }
+        public bool AppOveragePaymentBlocked { get; set; }
         /// <summary>SHA-256 of the key. The key itself is shown once, when created or rotated, and never stored.</summary>
         public string KeyHashSha256 { get; set; }
         public string KeyPrefix { get; set; }

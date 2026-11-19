@@ -146,6 +146,11 @@ public sealed partial class MongoSubscriptionUsageRepository
         TransactAsync(async(session,ct)=>
         {
             var statement=await OverageStatements.Find(session,x=>x.Id==id).FirstOrDefaultAsync(ct) ?? throw new KeyNotFoundException("Overage statement not found.");
+            bool appScope = statement.Scope == AppRequestChargeTerms.LedgerScope;
+            if (appScope && (!AppAccountRules.IsValidAppId(statement.AppId) || statement.UserId != PoolSubject(statement.AppId) ||
+                !Guid.TryParseExact(statement.PayerAvatarId, "D", out _)) ||
+                !appScope && !Guid.TryParseExact(statement.UserId, "D", out _))
+                throw new SubscriptionUsageConflictException("APP_STATEMENT_BINDING_REQUIRED: App invoices require an explicit app and original payer binding.");
             if(statement.State=="paid" && invoice.Status!="paid")return true;
             if(owner!=null && statement.LeaseOwner!=owner && !(statement.State=="paid" && statement.StripeInvoiceId==invoice.InvoiceId && invoice.Status=="paid"))throw new SubscriptionUsageConflictException("The billing collection lease was lost.");
             if(invoice.Subtotal!=statement.AmountMinorUsd || (statement.StripeInvoiceId!=null && statement.StripeInvoiceId!=invoice.InvoiceId) ||
@@ -165,10 +170,19 @@ public sealed partial class MongoSubscriptionUsageRepository
             statement.UpdatedAtUtc=_time.GetUtcNow().UtcDateTime;statement.NextAttemptAtUtc=statement.UpdatedAtUtc.AddMinutes(5);
             await OverageStatements.ReplaceOneAsync(session,x=>x.Id==id,statement,cancellationToken:ct);
             var blocked=statement.PaymentFailed || await OverageStatements.Find(session,x=>x.UserId==statement.UserId && x.Id!=id && x.PaymentFailed && x.State!="paid").AnyAsync(ct);
-            await Subscriptions.UpdateOneAsync(session,x=>x.UserId==statement.UserId,Builders<SubscriptionRecord>.Update.Set(x=>x.OveragePaymentBlocked,blocked).Inc(x=>x.AuthorizationVersion,1),cancellationToken:ct);
+            if (appScope)
+            {
+                var app = await AppAccounts.Find(session, x => x.AppId == statement.AppId).FirstOrDefaultAsync(ct)
+                    ?? throw new SubscriptionUsageConflictException("APP_STATEMENT_BINDING_REQUIRED: The app billing account is unavailable.");
+                await AppAccounts.UpdateOneAsync(session, x => x.AppId == app.AppId,
+                    Builders<AppAccountRecord>.Update.Set(x => x.AppOveragePaymentBlocked, blocked)
+                        .Set(x => x.AuthorizationVersion, checked(app.AuthorizationVersion + 1)), cancellationToken: ct);
+            }
+            else
+                await Subscriptions.UpdateOneAsync(session,x=>x.UserId==statement.UserId,Builders<SubscriptionRecord>.Update.Set(x=>x.OveragePaymentBlocked,blocked).Inc(x=>x.AuthorizationVersion,1),cancellationToken:ct);
             if(invoice.Status=="paid" && invoice.InvoiceId!=null)
-                await InsertInvoiceAsync(session,new OrderRecord {UserId=statement.UserId,StripeInvoiceId=invoice.InvoiceId,Amount=invoice.AmountPaid/100m,
-                    BilledAmount=invoice.Subtotal/100m,Currency="USD",Description="OASIS USD paid overages "+statement.Month,Status="paid",CreatedAt=_time.GetUtcNow().UtcDateTime},ct);
+                await InsertInvoiceAsync(session,new OrderRecord {UserId=appScope ? statement.PayerAvatarId : statement.UserId,StripeInvoiceId=invoice.InvoiceId,Amount=invoice.AmountPaid/100m,
+                    BilledAmount=invoice.Subtotal/100m,Currency="USD",Description="OASIS USD paid overages "+statement.Month+(appScope ? " app "+statement.AppId : ""),Status="paid",CreatedAt=_time.GetUtcNow().UtcDateTime},ct);
             if(eventId!=null)
                 await BillingAudit.InsertOneAsync(session,new BsonDocument{{"_id","overage-stripe:"+eventId},{"Kind","overage-stripe-event"},
                     {"UserId",statement.UserId},{"SourceFingerprint",fingerprint},{"OccurredAtUtc",statement.UpdatedAtUtc},{"PayloadJson",JsonSerializer.Serialize(invoice)}},cancellationToken:ct);

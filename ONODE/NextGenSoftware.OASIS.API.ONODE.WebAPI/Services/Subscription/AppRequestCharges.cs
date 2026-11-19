@@ -12,6 +12,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 /// <summary>Immutable public charge terms. Payer identity/proof stays in the referenced protected consent audit.</summary>
 public sealed class AppRequestChargeTerms
 {
+    public const string LedgerScope = "app-request-overages-usd-v1";
     public string ConsentId { get; init; }
     public string AppId { get; init; }
     public string AppPlanId { get; init; }
@@ -41,6 +42,8 @@ public sealed partial class MongoSubscriptionUsageRepository
     private async Task<AppRequestChargeTerms> BindAppChargeAsync(IClientSessionHandle session, AppAccountRecord app,
         SubscriptionRecord consumingSubscriber, CancellationToken ct)
     {
+        if (app.AppOveragePaymentBlocked)
+            throw new SubscriptionUsageLimitException("APP_OVERAGE_PAYMENT_BLOCKED", "Resolve this app's failed overage payment before additional usage.", 402);
         var settings = app.Payg;
         var prices = AppOveragePrices.Load();
         if (!AppBillingConsent.HasCurrentTerms(settings, app.PlanId, prices))
@@ -89,6 +92,8 @@ public sealed partial class MongoSubscriptionUsageRepository
         AppAccountRules.ValidateAppId(appId);
         var start = MonthStart(month); var end = start.AddMonths(1);
         return TransactAsync(async (session, token) => {
+            if (!await AppAccounts.Find(session, x => x.AppId == appId).AnyAsync(token))
+                throw new System.Collections.Generic.KeyNotFoundException("The app account was not found.");
             var check = new AppChargeProjectionCheck { AppId = appId, Month = month };
             var expected = new System.Collections.Generic.Dictionary<string, (decimal Reserved, decimal Settled)>();
             void Finding(string message) { if (check.Findings.Count < 256) check.Findings.Add(message); }
@@ -180,7 +185,7 @@ public sealed partial class MongoSubscriptionUsageRepository
         if (operation.AppBillingStatementId != null)
             await OverageAdjustments.InsertOneAsync(session, new PaidOverageAdjustment {
                 Id = "app-request:" + correction.Id, UserId = PoolSubject(operation.PooledAppId), Month = correction.Month,
-                Scope = "app-request-overages-usd-v1", SourceStatementId = operation.AppBillingStatementId,
+                Scope = AppRequestChargeTerms.LedgerScope, SourceStatementId = operation.AppBillingStatementId,
                 AppRequestChargeTerms = operation.AppRequestChargeTerms, AmountUsd = delta,
                 Reason = correction.Reason, EvidenceReference = correction.ExternalReference, CreatedAtUtc = correction.OccurredAtUtc
             }, cancellationToken: ct);

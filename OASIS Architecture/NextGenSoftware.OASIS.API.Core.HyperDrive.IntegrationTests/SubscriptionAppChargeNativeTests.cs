@@ -278,6 +278,37 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             await statements.InsertOneAsync(new BsonDocument { { "_id", failedStatementId }, { "UserId", "app:" + guards }, { "PaymentFailed", true }, { "State", "open" } });
             await NoMutation(async () => await Call("AuthorizeAsync", Event(guards, users[1]), 0, CancellationToken.None), "APP_OVERAGE_PAYMENT_BLOCKED");
             await statements.DeleteOneAsync(new BsonDocument("_id", failedStatementId));
+            // Canonical invoice INPUT FIXTURES test the ledger mapping only, without a Stripe call.
+            const string mappedId = "owned-app-invoice-mapping";
+            await statements.InsertOneAsync(new BsonDocument { { "_id", mappedId }, { "UserId", "app:" + guards },
+                { "AppId", guards }, { "PayerAvatarId", payer }, { "Scope", "app-request-overages-usd-v1" }, { "Month", month },
+                { "AmountMinorUsd", 1L }, { "State", "pending" }, { "CreatedAtUtc", now } });
+            var invoiceType = api.GetType(ns + "PaidOverageInvoiceResult", true)!;
+            object Invoice(string state, long paid) => Activator.CreateInstance(invoiceType, ["owned-invoice-fixture", state, null, 1L, paid, true])!;
+            await Call("RecordInvoiceAsync", mappedId, null, Invoice("open", 0), "owned-app-invoice-failure", "owned-canonical-input-1", CancellationToken.None);
+            Assert.True((await apps.Find(new BsonDocument("_id", guards)).SingleAsync())["AppOveragePaymentBlocked"].AsBoolean);
+            Assert.False((await records.Find(new BsonDocument("_id", payer)).SingleAsync()).GetValue("OveragePaymentBlocked", false).AsBoolean);
+            await NoMutation(async () => await Call("AuthorizeAsync", Event(guards, users[1]), 0, CancellationToken.None), "APP_OVERAGE_PAYMENT_BLOCKED");
+            await Call("RecordInvoiceAsync", mappedId, null, Invoice("paid", 1), "owned-app-invoice-paid", "owned-canonical-input-2", CancellationToken.None);
+            await Call("RecordInvoiceAsync", mappedId, null, Invoice("paid", 1), "owned-app-invoice-paid", "owned-canonical-input-2", CancellationToken.None);
+            Assert.False((await apps.Find(new BsonDocument("_id", guards)).SingleAsync())["AppOveragePaymentBlocked"].AsBoolean);
+            var order = await db.GetCollection<BsonDocument>("subscription_orders").Find(new BsonDocument("StripeInvoiceId", "owned-invoice-fixture")).SingleAsync();
+            Assert.Equal(payer, order["UserId"].AsString);
+            Assert.Contains(guards, order["Description"].AsString);
+            var statementType = api.GetType(ns + "PaidOverageStatement", true)!;
+            var metadataStatement = Activator.CreateInstance(statementType)!;
+            Set(metadataStatement, "Id", mappedId); Set(metadataStatement, "UserId", "app:" + guards);
+            Set(metadataStatement, "AppId", guards); Set(metadataStatement, "PayerAvatarId", payer);
+            Set(metadataStatement, "Scope", "app-request-overages-usd-v1"); Set(metadataStatement, "Month", month);
+            var metadataMethod = api.GetType(ns + "StripePaidOverageGateway", true)!.GetMethod("IdentityMetadata", BindingFlags.NonPublic | BindingFlags.Static)!;
+            var metadata = (Dictionary<string, string>)metadataMethod.Invoke(null, [metadataStatement])!;
+            Assert.Equal(payer, metadata["oasis_avatar_id"]); Assert.Equal(guards, metadata["oasis_app_id"]);
+            Assert.Equal("app:" + guards, metadata["oasis_ledger_subject"]);
+            Set(metadataStatement, "UserId", payer); Set(metadataStatement, "Scope", "owned-personal-scope");
+            metadata = (Dictionary<string, string>)metadataMethod.Invoke(null, [metadataStatement])!;
+            Assert.Equal(payer, metadata["oasis_avatar_id"]); Assert.False(metadata.ContainsKey("oasis_app_id"));
+            Assert.False(metadata.ContainsKey("oasis_ledger_subject")); Assert.Equal(5, metadata.Count);
+            Console.WriteLine("App charge native verified: canonical invoice input failure fences the app, not the payer's unrelated personal account; paid/replay unblocks that app once and attributes its one order to the original payer GUID. This is NOT Stripe collection/webhook acceptance.");
             var dayId = "app:" + guards + ":day:" + day;
             await buckets.UpdateOneAsync(new BsonDocument("_id", dayId), new BsonDocument("$set", new BsonDocument("Requests", 10000L)));
             await NoMutation(async () => await Call("AuthorizeAsync", Event(guards, users[1]), 0, CancellationToken.None), "APP_DAILY_CALL_LIMIT_EXCEEDED");

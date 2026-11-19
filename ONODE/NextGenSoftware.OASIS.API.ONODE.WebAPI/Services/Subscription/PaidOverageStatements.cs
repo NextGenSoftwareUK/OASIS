@@ -9,6 +9,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 
 public sealed class PaidOverageStatement
 {
+    public string AppId {get;set;}
+    public string PayerAvatarId {get;set;}
     [BsonId] public string Id {get;set;}
     public string UserId {get;set;}
     public string Month {get;set;}
