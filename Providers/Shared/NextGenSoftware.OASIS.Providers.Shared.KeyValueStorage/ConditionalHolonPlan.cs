@@ -90,6 +90,21 @@ public sealed class ConditionalHolonPlan : IAtomicHolonWritePlan
             values.Remove(nameof(Holon.ChildRoleManifestJson)); // Explicit submitted manifests own relationship intent.
             foreach(var field in new[]{"Version","VersionId","PreviousVersionId","CreatedDate","ModifiedDate","CreatedByAvatarId","ModifiedByAvatarId","CreatedProviderType","InstanceSavedOnProviderType"})values.Remove(field);
             if(intent.ProviderUniqueStorageKey==null||intent.ProviderUniqueStorageKey.Count==0)values.Remove("ProviderUniqueStorageKey");
+            if(propertyWrite?.Selections.TryGetValue(node.Snapshot.Id,out var selectedPaths)==true)
+            {
+                var selectedValues=new JArray();
+                foreach(var path in selectedPaths)
+                {
+                    var exists=SelectedReceiptValue(values,path,out var value);
+                    var field=new JObject { ["path"]=path, ["exists"]=exists };
+                    if(exists)field["value"]=value.DeepClone();
+                    selectedValues.Add(field);
+                }
+                // An unselected authoritative sibling is not part of this write's intent.
+                // Identity, parent edge and the conditional/graph envelope remain bound.
+                values=new JObject { ["id"]=node.Snapshot.Id, ["parent"]=intent.ParentHolonId,
+                    ["selectedValues"]=selectedValues };
+            }
             records.Add(values);
         }
         // New exact-number domain: old rounded receipts must reconcile, never silently replay.
@@ -113,7 +128,7 @@ public sealed class ConditionalHolonPlan : IAtomicHolonWritePlan
         }
         if(propertyWrite!=null)
         {
-            content["format"]=7;
+            content["format"]=8; // Selected-value domain; old full-record bindings must not silently replay.
             content["propertyWrites"]=JObject.Parse(propertyWrite.CanonicalSelectionJson);
         }
         Fingerprint=ComputeFingerprint(content);
