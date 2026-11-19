@@ -4,6 +4,44 @@ Updated 19 November 2026. The full roadmap is active and incomplete. This openin
 
 ## Current engineering gate
 
+**S05 property entries remain accepted. Full EF/NHibernate parity is incomplete:** MongoDB, SQLite and Neo4j each have **61/168 rows verified**, with107 open, plus4/13 separately counted COSMIC extensions.
+
+**Grouped distinct counts now have scoped native verification across all three primary providers.** Run [44581607449](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44581607449) passed the actual WEB4 build, six provider-domain admission cases, four SQLite SDK boundary cases and three real-provider CQL execution cases. Runtime proof covers strings and nullable Int64 values: duplicate/null handling, ordinal case/Unicode/embedded NUL, adjacent integers beyond binary64 precision, invalid off-page values and complete group budgets. Each real-provider fixture cleaned its12 owned records and files. The exact6512byte report archive was independently verified in memory.
+
+**The SQL parser and Ask review controls passed separately.** [Twelve SQL cases](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44580490179) verify stored/mapped request generation and distinct-versus-ordinary count expressions in HAVING/ORDER BY. [Two Ask review cases](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44583096959) verify that a mocked WEB6 draft requires review and explicit execution, and that an unsupported GUID count draft is rejected before entering the editor. These are client checks; they do not prove a real free-model response or hosted execution. Earlier eleven wire and twelve Core/mixed cases remain accepted.
+
+**Next:** verify grouped distinct counts through actual WEB4 HTTP and mixed stored/virtual execution; prove the remaining declared Boolean, Int32, Single and Double native domains; implement and prove normalized Guid/date/Decimal/UInt64 domains, computed grouping/selectors and larger-source coverage. Full joins/session/ORM parity and the rest of the provider roadmap remain active.
+
+The shared-cluster/deployment stand-down remains in force. No Development merge, live API/model/browser request, PIPER data change or deployment occurred. See [the acceptance audit](GROUPED_DISTINCT_ACCEPTANCE_2026-11-19.md) for exact revisions, evidence and limits.
+
+## Coverage
+
+| Area | Verified scope | Remaining |
+|---|---|---|
+| EF/NHibernate parity | **61/168 rows per MongoDB, SQLite and Neo4j** |107 rows per provider; full parity is not done. |
+| COSMIC extensions |4/13 per primary store, counted separately |9 per store. |
+| S05 property entries | **Accepted across the three primary stores**: original/current editing/reset/flags, selected saves, permission/encryption, recovery/replay, scoped replication/graph composition and custom/null/collection native persistence. | No remaining S05 gate; adjacent session/identity/proxy/refresh/full ORM features remain separate. |
+| SQL editor / Playground / Ask client |269 retained baseline tests;12 new grouped-distinct parser and2 new mocked Ask review cases accepted on their exact snapshots. | Current hosted end-to-end and real free-model acceptance. |
+| Mixed stored/virtual queries | Actual WEB4 build,565 selected tests,22 configured cases and3 native-provider suites passed on the combined candidate. Grouping/HAVING, key DISTINCT, supported mapped values, deduplication and global ordering/paging have scoped evidence. | Grouped distinct HTTP/mixed integration and remaining typed domains, computed grouped selectors, larger sources, broader joins and hosted delivery. Complete mixed branches currently require fewer than100 records each; saturation is refused. |
+| Free WEB6 Ask your data | Source-bound draft validation/review and Free-routing controls have client evidence. | Real configured free-model visitor completion remains unverified; no unlimited-inference claim. |
+| Full/virtual/hybrid holons | Accepted native mixed reads use original sources without importing virtual-only records. | Complete promotion/cache/placement policies and hosted per-avatar/app OPORTAL execution. |
+
+## Delivery, providers and resources
+
+The priority-provider table in the retained detailed report records previously accepted demo slices. It is **not a fresh availability check**, full native-interface implementation claim, or full ORM/HyperDrive parity claim. HoloOASIS has prior real-provider evidence; its conductor has not been rechecked here.
+
+The shared-cluster/deployment stand-down remains active: no shared Atlas, live API/browser/sign-in/model requests, PIPER changes, DNA/configuration changes, replication-queue535/543 operations or deployments. No Development merge occurred. Engineering continues using isolated CI and source changes.
+
+OASIS and Core use the existing work/cosmic-cql-ton-public branch; Website uses its existing work/cosmic-cql branch. No implementation branch, worktree, local runtime, database, container or image download was added. Last observed C free space:38.20GiB. Archives were inspected in RAM and temporary Git indexes removed by their owners.
+
+See [the parity checklist](CQL_PARITY_CHECKLIST.md), [S05 acceptance audit](S05_PROPERTY_ENTRY_ACCEPTANCE_AUDIT_2026-11-19.md), [property-entry guide draft](CQL_PROPERTY_ENTRY_GUIDE_DRAFT.md) and [cleanup ledger](RECOVERY_LAPTOP_CLEANUP_LEDGER.md).
+
+## Retained detailed report and historical evidence
+
+### Superseded engineering-gate notes
+
+Earlier engineering gate
+
 2026-11-19 ASK DISTINCT REVIEW2 PREPARED: frozen Website485cb86edafb82531449a50f02e8e26f3a18ef8f appends ONLY2 new Ask tests on existing work/cosmic-cql. Real client init/compiler/click handlers receive mocked WEB6 responses: paired ordinary/distinct grouped counts must retain exact HAVING/order bindings, require preview and explicit Run, and reject unproved GUID distinct drafts before editor/execution. No real model/browser/API/free-plan acceptance inferred. Node-only CI selects these2 by name; all old Ask cases must be skipped, accepted parser12 not rerun and cql-text.js unchanged from accepted49e7a850. Native13 retry44581607449 remains in actual WEB4 build. No shared Atlas/PIPER/DNA/queues/deploy/local runtime/build/database/archive. Temporary indexes self-remove; no reclaimed-space claim; full61/168 EF plus4/13 extensions unchanged.
 
 2026-11-19 CLIENT12 ACCEPTED; NATIVE TEST ASSEMBLY ROOT FIX:44580490179 SUCCESS, frozen Website49e7a850; strict1027byte artifact14558667321 RAM-verified/disposed,12 NEW parser cases passed/zero failed/skipped. Covers all3 stored/mapped provider intents, HAVING/order ordinary-vs-distinct expressions, direct-domain/refusal/nullability and exact Int64 thresholds; not hosted acceptance. Native44579280022/job135755192684 FAILED at new domain-test compilation after actual WEB4 build PASSED. CS0234: Core.UnitTests does not reference SQLite/Neo assemblies; no new cases executed, no TRX/native acceptance. Move ONLY new6 admission controls into existing three-provider MSTest integration project; production source unchanged. SAME unexecuted6+4+3 qualification next, no accepted wire11/client12 or prior cohorts selected. Native start step skipped; temporary Mongo stop verified separately before acceptance. No shared Atlas/live/PIPER/DNA/queues/deployment/local build/runtime/database/archive. Full parity61/168 EF plus4/13 separate extensions unchanged.
@@ -22,29 +60,6 @@ The next slice is grouped distinct-value counts for the complex SQL and stored/v
 
 Twelve NEW Core/mixed controls are prepared (four contract/eight mixed), covering complete-input and access boundaries, nulls, changed identities/group keys, HAVING/order/page,198-row union, exact adjacent Int64 values and ordinal Unicode/NUL strings. The Core foundation has now passed the WEB4 build and all twelve selected controls without starting Mongo/Neo stores. Actual Mongo/SQLite/Neo native translators, SQL/API/client/Ask exposure and hosted acceptance remain open. No coverage credit is added.
 
-## Coverage
-
-| Area | Verified scope | Remaining |
-|---|---|---|
-| EF/NHibernate parity | **61/168 rows per MongoDB, SQLite and Neo4j** |107 rows per provider; full parity is not done. |
-| COSMIC extensions |4/13 per primary store, counted separately |9 per store. |
-| S05 property entries | **Accepted across the three primary stores**: original/current editing/reset/flags, selected saves, permission/encryption, recovery/replay, scoped replication/graph composition and custom/null/collection native persistence. | No remaining S05 gate; adjacent session/identity/proxy/refresh/full ORM features remain separate. |
-| SQL editor / Playground / Ask client |269 website tests passed on frozen source. | Current hosted end-to-end acceptance. |
-| Mixed stored/virtual queries | Actual WEB4 build,565 selected tests,22 configured cases and3 native-provider suites passed on the combined candidate. Grouping/HAVING, key DISTINCT, supported mapped values, deduplication and global ordering/paging have scoped evidence. | Grouped distinct counts, computed grouped selectors, larger sources, broader joins and hosted delivery. Complete mixed branches currently require fewer than100 records each; saturation is refused. |
-| Free WEB6 Ask your data | Source-bound draft validation/review and Free-routing controls have client evidence. | Real configured free-model visitor completion remains unverified; no unlimited-inference claim. |
-| Full/virtual/hybrid holons | Accepted native mixed reads use original sources without importing virtual-only records. | Complete promotion/cache/placement policies and hosted per-avatar/app OPORTAL execution. |
-
-## Delivery, providers and resources
-
-The priority-provider table in the retained detailed report records previously accepted demo slices. It is **not a fresh availability check**, full native-interface implementation claim, or full ORM/HyperDrive parity claim. HoloOASIS has prior real-provider evidence; its conductor has not been rechecked here.
-
-The shared-cluster/deployment stand-down remains active: no shared Atlas, live API/browser/sign-in/model requests, PIPER changes, DNA/configuration changes, replication-queue535/543 operations or deployments. No Development merge occurred. Engineering continues using isolated CI and source changes.
-
-OASIS and Core use the existing work/cosmic-cql-ton-public branch; Website uses its existing work/cosmic-cql branch. No implementation branch, worktree, local runtime, database, container or image download was added. Last observed C free space:38.20GiB. Archives were inspected in RAM and temporary Git indexes removed by their owners.
-
-See [the parity checklist](CQL_PARITY_CHECKLIST.md), [S05 acceptance audit](S05_PROPERTY_ENTRY_ACCEPTANCE_AUDIT_2026-11-19.md), [property-entry guide draft](CQL_PROPERTY_ENTRY_GUIDE_DRAFT.md) and [cleanup ledger](RECOVERY_LAPTOP_CLEANUP_LEDGER.md).
-
-## Retained detailed report and historical evidence
 
 The following text is preserved for traceability. Earlier pending/live statements and coverage arithmetic are superseded by the current summary above.
 
