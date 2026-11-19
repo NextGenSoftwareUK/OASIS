@@ -762,3 +762,7 @@
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.Transfer.cs","29","DataController","CopyHolon","POST","copy-holon","DirectModeAwareManagerBoundary"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/HyperDriveSyncController.cs","136","HyperDriveSyncController","ReadDeliveries","GET","deliveries","HyperDriveOrProviderControlPlane"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/KarmaController.cs","48","KarmaController","GetWeightings","GET","weightings","LocalOrNonStorageEndpoint"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionUsageSeriesController.cs","32","SubscriptionUsageSeriesController","MySeries","GET","usage/series","InjectedServiceRepositoryOrClient"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionUsageSeriesController.cs","42","SubscriptionUsageSeriesController","MyEstimate","GET","usage/estimate","InjectedServiceRepositoryOrClient"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionUsageSeriesController.cs","60","SubscriptionUsageSeriesController","UserSeriesAdmin","GET","admin/users/{userId}/usage/series","InjectedServiceRepositoryOrClient"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionUsageSeriesController.cs","65","SubscriptionUsageSeriesController","AppSeriesAdmin","GET","admin/app-accounts/{appId}/usage/series","InjectedServiceRepositoryOrClient"

@@ -26,12 +26,14 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 
 public sealed partial class AvatarProfileCommitStampNativeTests
 {
-    private sealed class ProfileControllerFeature(Type controller) : IApplicationFeatureProvider<ControllerFeature>
+    private sealed class ProfileControllerFeature : IApplicationFeatureProvider<ControllerFeature>
     {
+        private readonly Type[] _controllers;
+        public ProfileControllerFeature(params Type[] controllers) => _controllers = controllers;
         public void PopulateFeature(IEnumerable<ApplicationPart> parts, ControllerFeature feature)
         {
             foreach (var candidate in feature.Controllers.ToArray())
-                if (candidate.AsType() != controller) feature.Controllers.Remove(candidate);
+                if (!_controllers.Contains(candidate.AsType())) feature.Controllers.Remove(candidate);
         }
     }
 

@@ -30,7 +30,10 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     [Fact]
     public Task SubscriptionBrowserUsesActualControllerAndOwnedMongo() => RunSubscriptionHttp(true);
 
-    private async Task RunSubscriptionHttp(bool browser)
+    [Fact]
+    public Task SubscriptionUsageBrowserUsesActualControllerAndOwnedMongo() => RunSubscriptionHttp(true, true);
+
+    private async Task RunSubscriptionHttp(bool browser, bool usage = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -55,6 +58,8 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             return path == null ? null : context.LoadFromAssemblyPath(path);
         }
         NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS? avatarStore = null;
+        FieldInfo? avatarManagerField = null;
+        object? previousAvatarManager = null;
         AssemblyLoadContext.Default.Resolving += Resolve;
         try
         {
@@ -84,6 +89,36 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 };
                 var saved = await avatarStore.SaveAvatarAsync(avatar);
                 Assert.False(saved.IsError, saved.Message);
+                if (usage)
+                {
+                    var detail = await avatarStore.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail
+                    {
+                        Id = avatar.Id, Username = avatar.Username, Email = avatar.Email,
+                        Karma = account == accounts[0] ? 1000 : 0, CreatedDate = DateTime.UtcNow, Version = 1, VersionId = Guid.NewGuid()
+                    });
+                    Assert.False(detail.IsError, detail.Message);
+                }
+            }
+            if (usage)
+            {
+                var now = DateTime.UtcNow;
+                for (var i = 0; i < accounts.Length; i++)
+                foreach (var periodType in new[] { "day", "month" })
+                {
+                    var period = now.ToString(periodType == "day" ? "yyyy-MM-dd" : "yyyy-MM");
+                    await db.GetCollection<BsonDocument>("subscription_usage_buckets").InsertOneAsync(new BsonDocument
+                    {
+                        { "_id", accounts[i] + ":" + periodType + ":" + period },
+                        { "UserId", accounts[i] }, { "PeriodType", periodType }, { "Period", period },
+                        { "Requests", (long)(7 + i * 4) }, { "UpdatedAtUtc", new BsonDateTime(now) }
+                    });
+                }
+                var routing = Routing([avatarStore], false, NextGenSoftware.OASIS.API.DNA.HyperDriveModes.Legacy);
+                var program = api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Program", true)!;
+                avatarManagerField = program.GetField("_avatarManager", BindingFlags.NonPublic | BindingFlags.Static)!;
+                Assert.NotNull(avatarManagerField);
+                previousAvatarManager = avatarManagerField.GetValue(null);
+                avatarManagerField.SetValue(null, new NextGenSoftware.OASIS.API.Core.Managers.AvatarManager(null, routing.OASISDNA, routing));
             }
             var end = DateTime.UtcNow.AddDays(10);
             for (var i = 0; i < accounts.Length; i++)
@@ -111,11 +146,19 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             {
                 parts.ApplicationParts.Clear();
                 parts.ApplicationParts.Add(new AssemblyPart(api));
-                parts.FeatureProviders.Add(new ProfileControllerFeature(controller));
+                parts.FeatureProviders.Add(usage ? new ProfileControllerFeature(controller,
+                    api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SubscriptionUsageSeriesController", true)!)
+                    : new ProfileControllerFeature(controller));
             }).AddControllersAsServices();
             builder.Services.AddSingleton(api.GetType(ns + "ISubscriptionService", true)!, service);
             builder.Services.AddSingleton(api.GetType(ns + "ISubscriptionUsageRepository", true)!, repository);
             builder.Services.AddSingleton(api.GetType(ns + "ISubscriptionBillingRepository", true)!, repository);
+            if (usage)
+            {
+                builder.Services.AddSingleton(repositoryType, repository);
+                builder.Services.AddSingleton(api.GetType(ns + "IUsageSeriesSource", true)!, repository);
+                builder.Services.AddSingleton(api.GetType(ns + "IPaidOverageStatementStore", true)!, repository);
+            }
             await using var app = builder.Build();
             using var portalFiles = browser
                 ? new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
@@ -126,7 +169,8 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             {
                 app.UseStaticFiles(new StaticFileOptions { FileProvider = portalFiles });
                 app.MapGet("/__subscription_browser", async () => Microsoft.AspNetCore.Http.Results.Content(
-                    await File.ReadAllTextAsync(Path.Combine(root.FullName, "Scripts/TestHosts/Fixtures/subscription-browser-host.html")),
+                    await File.ReadAllTextAsync(Path.Combine(root.FullName, "Scripts/TestHosts/Fixtures/" +
+                        (usage ? "subscription-usage-browser-host.html" : "subscription-browser-host.html"))),
                     "text/html"));
             }
             var key = new SymmetricSecurityKey(RandomNumberGenerator.GetBytes(64));
@@ -181,7 +225,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                         baseUrl = address,
                         actors = accounts.Append(missingAccount).Select(actor => new { id = actor, token = Token(actor) }).ToArray()
                     });
-                    Assert.True(result.RootElement.GetProperty("subscriptionBrowserVerified").GetBoolean());
+                    Assert.True(result.RootElement.GetProperty(usage ? "subscriptionUsageBrowserVerified" : "subscriptionBrowserVerified").GetBoolean());
                     Assert.Equal(3, result.RootElement.GetProperty("actorsVerified").GetInt32());
                     Assert.True(result.RootElement.GetProperty("lateSessionResponseIgnored").GetBoolean());
                     Console.WriteLine("Subscription browser evidence: " + result.RootElement.GetRawText());
@@ -212,11 +256,13 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 }
                 Assert.Equal(2L, await db.GetCollection<BsonDocument>("subscription_records").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
                 Assert.Equal(2L, await db.GetCollection<BsonDocument>("subscription_orders").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+                if (usage) Assert.Equal(4L, await db.GetCollection<BsonDocument>("subscription_usage_buckets").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
             }
             finally { await app.StopAsync(); }
         }
         finally
         {
+            if (avatarManagerField != null) avatarManagerField.SetValue(null, previousAvatarManager);
             AssemblyLoadContext.Default.Resolving -= Resolve;
             Assert.StartsWith("subscription_http_", databaseName);
             if (avatarStore != null)

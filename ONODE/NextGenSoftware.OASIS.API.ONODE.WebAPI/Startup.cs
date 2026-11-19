@@ -457,6 +457,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddSingleton<Services.Gardens.GardenService>();
             Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Gardens.GardenRewardWorker>(services, Configuration);
             services.AddSingleton<Services.Subscription.MongoSubscriptionUsageRepository>();
+            services.AddSingleton<Services.Subscription.IUsageSeriesSource>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISubscriptionUsageRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISubscriptionBillingRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISandboxSubscriptionStore>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());

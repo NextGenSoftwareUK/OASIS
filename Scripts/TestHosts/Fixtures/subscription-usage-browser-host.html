@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Owned subscription component verification</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/dashboard.css">
+  <link rel="stylesheet" href="/assets/css/modals-new.css">
+  <link rel="stylesheet" href="/assets/css/oasis-advanced-modals.css">
+  <link rel="stylesheet" href="/assets/css/oasis-portal-extra.css">
+  <link rel="stylesheet" href="/assets/css/oasis-portal-extra2.css">
+</head>
+<body>
+  <button id="fixture-open-subscription" type="button" disabled onclick="window.openSubscriptionModal('usage')">Open actual subscription component</button>
+  <div class="modal js-modal modal--animate-scale"></div>
+  <script src="/assets/js/config.js"></script>
+  <script src="/assets/js/oasis-web4-sdk.js"></script>
+  <script>
+    window.apiUrl = location.origin;
+    window.oasisClient = new window.OASISClient({ baseUrl: location.origin, persistSession: false });
+    window.oasisClient.setToken(window.fixtureSubscriptionActor.token, { avatarId: window.fixtureSubscriptionActor.id });
+    window.jwtReadyPromise = Promise.resolve(true);
+  </script>
+  <script src="/assets/js/usage-charts.js"></script>
+  <script src="/assets/js/subscription-modal.js"></script>
+  <script>
+    fetch('/assets/components/modals/subscription.html').then(function(response) {
+      if (!response.ok) throw new Error('Actual subscription component could not be loaded.');
+      return response.text();
+    }).then(function(html) {
+      document.querySelector('.js-modal').innerHTML = html;
+      window.dispatchEvent(new CustomEvent('portal-modal-ready', { detail: { route: 'subscription' } }));
+      document.getElementById('fixture-open-subscription').disabled = false;
+    });
+  </script>
+</body>
+</html>
