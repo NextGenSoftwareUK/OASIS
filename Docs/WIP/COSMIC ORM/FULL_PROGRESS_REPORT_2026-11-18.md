@@ -75,7 +75,7 @@ Heavy builds/tests run in existing isolated GitHub Actions. Client tests use the
 
 A RAM harness input error aborted Node4012; the expected exact local crash-dump path was checked and no owned dump was present. Python console output was corrected to UTF-8. No runtime reinstall or deletion of user/peer files was performed. Scoped temporary Git indexes remove themselves.
 
-Last observed C-drive free space:41.12GiB; this is an observation, not a reclamation claim. Continue recording cleanup in RECOVERY_LAPTOP_CLEANUP_LEDGER.md.
+Last observed C-drive free space:37.87GiB (19 November). Windows-managed pagefile allocation13652MiB was observed; the reason for the change from41.06GiB is not established. No local build/environment/database/image/archive was added by this task and no disk reclamation is claimed. See RECOVERY_LAPTOP_CLEANUP_LEDGER.md.
 
 ## Evidence links
 
