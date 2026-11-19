@@ -159,19 +159,41 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         [Authorize]
         [HttpPost("upload-avatar-portrait")]
-        public async Task<OASISHttpResponseMessage<bool>> UploadAvatarPortrait(AvatarPortrait avatarPortrait)
-        {
-            if (avatarPortrait.AvatarId != Avatar.Id && avatarPortrait.Username != Avatar.Username && avatarPortrait.Email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return HttpResponseHelper.FormatResponse(new OASISResult<bool>() { IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
-            return HttpResponseHelper.FormatResponse(await AvatarManager.UploadAvatarPortraitAsync(avatarPortrait.AvatarId, avatarPortrait.Username, avatarPortrait.Email, avatarPortrait.ImageBase64));
-        }
+        public Task<OASISHttpResponseMessage<bool>> UploadAvatarPortrait(AvatarPortrait avatarPortrait) =>
+            UploadAvatarPortraitCore(avatarPortrait, null, false);
 
         [Authorize]
         [HttpPost("upload-avatar-portrait/{providerType}/{setGlobally}")]
-        public async Task<OASISHttpResponseMessage<bool>> UploadAvatarPortrait(AvatarPortrait avatarPortrait, ProviderType providerType, bool setGlobally = false)
+        public Task<OASISHttpResponseMessage<bool>> UploadAvatarPortrait(AvatarPortrait avatarPortrait, ProviderType providerType, bool setGlobally = false) =>
+            UploadAvatarPortraitCore(avatarPortrait, providerType, setGlobally);
+
+        private async Task<OASISHttpResponseMessage<bool>> UploadAvatarPortraitCore(AvatarPortrait portrait, ProviderType? providerType, bool setGlobally)
         {
-            await GetAndActivateProviderAsync(providerType, setGlobally);
-            return await UploadAvatarPortrait(avatarPortrait);
+            var actor = Avatar;
+            if (actor == null)
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "User not authenticated." }, HttpStatusCode.Unauthorized);
+            if (portrait == null || (portrait.AvatarId == Guid.Empty && string.IsNullOrEmpty(portrait.Username) && string.IsNullOrEmpty(portrait.Email)))
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "Specify the portrait's avatar." }, HttpStatusCode.BadRequest);
+
+            bool isWizard = actor.AvatarType.Value == AvatarType.Wizard;
+            if (!isWizard && ((portrait.AvatarId != Guid.Empty && portrait.AvatarId != actor.Id) ||
+                (!string.IsNullOrEmpty(portrait.Username) && portrait.Username != actor.Username) ||
+                (!string.IsNullOrEmpty(portrait.Email) && portrait.Email != actor.Email)))
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, ErrorCode = "AVATAR_OPERATION_FORBIDDEN",
+                    Message = "All supplied portrait identifiers must match the authenticated avatar." }, HttpStatusCode.Forbidden);
+
+            if (providerType.HasValue)
+            {
+                var activation = await GetAndActivateProviderAsync(providerType.Value, setGlobally);
+                if (activation.IsError)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, ErrorCode = "PROVIDER_ACTIVATION_FAILED",
+                        Message = "The selected portrait storage provider could not be activated." }, HttpStatusCode.ServiceUnavailable);
+            }
+            return HttpResponseHelper.FormatResponse(await AvatarManager.UploadAvatarPortraitAsync(
+                isWizard ? portrait.AvatarId : actor.Id,
+                isWizard ? portrait.Username : null,
+                isWizard ? portrait.Email : null,
+                portrait.ImageBase64));
         }
 
         /// <summary>
