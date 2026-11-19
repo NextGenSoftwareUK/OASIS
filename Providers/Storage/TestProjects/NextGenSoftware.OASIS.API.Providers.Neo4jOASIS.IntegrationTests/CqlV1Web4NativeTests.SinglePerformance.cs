@@ -38,6 +38,9 @@ public sealed partial class CqlV1Web4NativeTests
         var compile = Stopwatch.StartNew();
         var command = Neo4jOASIS.CompileCqlGrouped(actualQuery, 1000);
         compile.Stop();
+        // The original duplicated Single normalization produced 20,283 bytes.
+        Assert.IsTrue(Encoding.UTF8.GetByteCount(command.Query) < 16_000,
+            "Sharing identical typed inputs must reduce the native query by at least 21 percent.");
         using var driver = GraphDatabase.Driver("bolt://127.0.0.1:17687",
             AuthTokens.Basic("neo4j", "oasis-local-test-only"));
         await using var session = driver.AsyncSession(config => config.WithDefaultAccessMode(AccessMode.Read));

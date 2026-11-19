@@ -44,30 +44,41 @@ public partial class Neo4jOASIS
             => path.ValueType.IsValueType && Nullable.GetUnderlyingType(path.ValueType) == null
                 ? state + "<>2" : state + "=3";
 
+        var normalizedInputs = new List<(CosmicQueryPath Path, string Name)>();
+        string NormalizeInput(CosmicQueryPath path, string proposedName)
+        {
+            foreach (var existing in normalizedInputs)
+                if (existing.Path.IsMetadata == path.IsMetadata
+                    && existing.Path.ScalarKind == path.ScalarKind
+                    && existing.Path.ValueType == path.ValueType
+                    && existing.Path.Segments.SequenceEqual(path.Segments, StringComparer.Ordinal))
+                    return existing.Name;
+
+            var cell = translator.TranslateProjectionPath(path);
+            input.Add(cell.State + " AS " + proposedName + "s");
+            input.Add(cell.Value + " AS " + proposedName + "v");
+            bad.Add(Invalid(path, proposedName + "s"));
+            normalizedInputs.Add((path, proposedName));
+            return proposedName;
+        }
+
         for (var index = 0; index < query.Grouping.Key.Columns.Count; index++)
         {
             var path = query.Grouping.Key.Columns[index].Path;
-            var cell = translator.TranslateProjectionPath(path);
             var name = "k" + index;
-            input.Add(cell.State + " AS " + name + "s");
-            input.Add(cell.Value + " AS " + name + "v");
-            identities.Add("CASE WHEN " + name + "s=2 THEN " + name + "v ELSE null END AS " + name);
-            bad.Add(Invalid(path, name + "s"));
+            var selected = NormalizeInput(path, name);
+            identities.Add("CASE WHEN " + selected + "s=2 THEN " + selected + "v ELSE null END AS " + name);
         }
         for (var index = 0; index < query.Columns.Count; index++)
         {
             var column = query.Columns[index];
             if (column.KeyIndex >= 0 || column.Selector == null) continue;
-            var cell = translator.TranslateProjectionPath(column.Selector);
             var name = "a" + index;
-            input.Add(cell.State + " AS " + name + "s");
-            input.Add(cell.Value + " AS " + name + "v");
-            bad.Add(Invalid(column.Selector, name + "s"));
+            var selected = NormalizeInput(column.Selector, name);
             var selectedCount = column.Operation == CosmicScalarOperation.LongCount && column.Distinct
-                ? "count(DISTINCT CASE WHEN " + name + "s=2 THEN " + name + "v ELSE null END)"
-                : "sum(CASE WHEN " + name + "s=2 THEN 1 ELSE 0 END)";
+                ? "count(DISTINCT CASE WHEN " + selected + "s=2 THEN " + selected + "v ELSE null END)"
+                : "sum(CASE WHEN " + selected + "s=2 THEN 1 ELSE 0 END)";
             reductions.Add(selectedCount + " AS " + name + "n");
-            var value = "CASE WHEN " + name + "s=2 THEN " + name + "v ELSE 0 END";
             if (column.Operation == CosmicScalarOperation.LongCount)
                 aggregatePackets.Add("{present:" + name + "n}");
             else if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
@@ -77,9 +88,9 @@ public partial class Neo4jOASIS
                 {
                     var width = type == typeof(decimal) ? CosmicDecimalScalarResults.LimbCount
                         : type == typeof(float) ? CosmicFloatingAggregateResults.SingleLimbCount : CosmicFloatingAggregateResults.DoubleLimbCount;
-                    var words = type == typeof(decimal) ? DecimalAggregateParts(name + "v")
-                        : FloatingAggregateParts(name + "v", type == typeof(float), translator.Bind);
-                    numericInputs.Add("CASE WHEN " + name + "s=2 THEN " + words
+                    var words = type == typeof(decimal) ? DecimalAggregateParts(selected + "v")
+                        : FloatingAggregateParts(selected + "v", type == typeof(float), translator.Bind);
+                    numericInputs.Add("CASE WHEN " + selected + "s=2 THEN " + words
                         + " ELSE [" + string.Join(",", Enumerable.Repeat("0", width)) + "] END AS " + name + "parts");
                     for (var part = 0; part < width; part++)
                         reductions.Add("sum(" + name + "parts[" + part + "]) AS " + name + "d" + part);
@@ -87,16 +98,16 @@ public partial class Neo4jOASIS
                 }
                 else
                 {
-                    var parts = IntegralParts(column.Selector.ValueType, name + "v");
-                    reductions.Add("sum(CASE WHEN " + name + "s=2 THEN " + parts.High + " ELSE 0 END) AS " + name + "h");
-                    reductions.Add("sum(CASE WHEN " + name + "s=2 THEN " + parts.Low + " ELSE 0 END) AS " + name + "l");
+                    var parts = IntegralParts(column.Selector.ValueType, selected + "v");
+                    reductions.Add("sum(CASE WHEN " + selected + "s=2 THEN " + parts.High + " ELSE 0 END) AS " + name + "h");
+                    reductions.Add("sum(CASE WHEN " + selected + "s=2 THEN " + parts.Low + " ELSE 0 END) AS " + name + "l");
                     aggregatePackets.Add("{present:" + name + "n,high:" + name + "h,low:" + name + "l}");
                 }
             }
             else if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max)
             {
                 var op = column.Operation == CosmicScalarOperation.Min ? "min" : "max";
-                reductions.Add(op + "(CASE WHEN " + name + "s=2 THEN " + name + "v ELSE null END) AS " + name + "x");
+                reductions.Add(op + "(CASE WHEN " + selected + "s=2 THEN " + selected + "v ELSE null END) AS " + name + "x");
                 aggregatePackets.Add("{present:" + name + "n,value:" + name + "x}");
             }
             else throw new NotSupportedException("Unknown native grouped aggregate.");

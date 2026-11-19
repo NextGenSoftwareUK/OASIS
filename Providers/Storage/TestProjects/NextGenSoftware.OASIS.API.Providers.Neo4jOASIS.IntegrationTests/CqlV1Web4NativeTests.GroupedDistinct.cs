@@ -30,7 +30,7 @@ public sealed partial class CqlV1Web4NativeTests
         => RunGroupedDistinctNativeFixture(providerName, false, requiredDomains: true);
 
     private async Task RunGroupedDistinctNativeFixture(string providerName, bool primitiveDomains, bool mixedHttp = false,
-        bool requiredDomains = false, bool singlePerformance = false)
+        bool requiredDomains = false, bool singlePerformance = false, bool sharedInputs = false)
     {
         Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -100,7 +100,14 @@ public sealed partial class CqlV1Web4NativeTests
                 return await CosmicGroupedExecutor.ExecuteAsync(planned.Result,
                     new[] { (ICosmicQueryStorageProvider)provider });
             }
-            if (singlePerformance)
+            if (sharedInputs)
+            {
+                Assert.AreEqual(ProviderType.Neo4jOASIS, authority);
+                var selected = await Seed(("a", 2), ("a", 2), ("a", 4), ("a", null));
+                checks = await VerifyNeoGroupedSharedInputs(provider, selected);
+                Assert.AreEqual(4, ids.Count);
+            }
+            else if (singlePerformance)
             {
                 Assert.AreEqual(ProviderType.Neo4jOASIS, authority);
                 var negativeZero = BitConverter.Int32BitsToSingle(int.MinValue);
@@ -276,8 +283,14 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 var root = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT")!);
                 var report = Path.Combine(root, "TestResults/Neo4jCurrent/" + providerName
-                    + (singlePerformance ? "-grouped-distinct-single-profile.json" : requiredDomains ? "-grouped-distinct-required-native.json" : mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
-                if (singlePerformance)
+                    + (sharedInputs ? "-grouped-shared-inputs.json" : singlePerformance ? "-grouped-distinct-single-profile.json" : requiredDomains ? "-grouped-distinct-required-native.json" : mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
+                if (sharedInputs)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        successfulHolonWrites = ids.Count, nativeProviderVerified = true,
+                        independentReducersVerified = true, canonicalMetadataSeparatedVerified = true,
+                        ordinalMetadataPathsVerified = true, nullableRequiredSeparatedVerified = true,
+                        offPageInvalidRefused = true, exactCleanupVerified = true }));
+                else if (singlePerformance)
                 {
                     Assert.IsNotNull(singleProfile);
                     singleProfile["provider"] = providerName;
