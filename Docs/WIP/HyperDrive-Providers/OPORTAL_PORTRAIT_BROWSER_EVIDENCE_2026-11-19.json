@@ -78,5 +78,15 @@
   "threeActualBrowserReportsVerified": true,
   "mongoFixtureAbsenceVerified": true,
   "boltFixtureStopPassed": true,
-  "previouslyAcceptedCasesRepeated": 0
+  "previouslyAcceptedCasesRepeated": 0,
+  "portalScreenLedgerPublication": {
+    "commit": "78aa6631f11eb2e8e5dea1369526ddaaf0646218",
+    "blob": "7fb371c41cbfb86c2e36705dc2d2667e80d48c86",
+    "branch": "work/oportal-subscription-performance",
+    "onlyScreenLedgerChanged": true,
+    "publishedBytesVerified": true,
+    "matchingLocalDocRefreshed": true,
+    "staleLocalPortalHeadPushed": false,
+    "productSourceOrBundleChanged": false
+  }
 }
