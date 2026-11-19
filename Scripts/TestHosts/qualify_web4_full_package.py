@@ -97,15 +97,23 @@ if(profile==='cql-api'){
  const target=deps.targets[deps.runtimeTarget.name];
  const apiKeys=Object.keys(target).filter(k=>k.startsWith('NextGenSoftware.OASIS.API.ONODE.WebAPI/'));
  assert.equal(apiKeys.length,1,'Exactly one WEB4 runtime dependency entry is required');
- const dependencies=target[apiKeys[0]].dependencies;
+ const reachable=new Set(),pending=[apiKeys[0]];
+ while(pending.length){
+  const key=pending.pop();if(reachable.has(key))continue;
+  reachable.add(key);
+  for(const [name,version] of Object.entries(target[key].dependencies||{})){
+   const dependency=name+'/'+version;
+   if(Object.hasOwn(target,dependency))pending.push(dependency);
+  }
+ }
  for(const provider of ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']){
   const name='NextGenSoftware.OASIS.API.Providers.'+provider,file=name+'.dll';
   const versions=Object.keys(deps.libraries).filter(k=>k.startsWith(name+'/'));
   assert.equal(versions.length,1,provider+' must have one exact dependency version');
-  const key=versions[0],version=key.slice(name.length+1);
+  const key=versions[0];
   assert.equal(deps.libraries[key].type,'project',provider+' must be the shipping project');
   assert(target[key].runtime[file],provider+' must be in the runtime dependency graph');
-  assert.equal(dependencies[name],version,provider+' must be a direct WEB4 dependency');
+  assert(reachable.has(key),provider+' must be reachable through exact WEB4 runtime dependency versions');
   assert(fs.readFileSync('/app/'+file).includes(Buffer.from('ExecuteCosmicQueryAsync')),provider+' must contain its native CQL entry point');
   names.push(name);
  }
@@ -118,7 +126,7 @@ assert.equal(fs.realpathSync('/ovms'),'/opt/ovms-rootfs/ovms');
 assert(fs.statSync('/opt/ovms-rootfs/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2').size>0);
 versions=pins.versions;
 }
-console.log(JSON.stringify({packagedSourceHashes:true,assemblies:names.length+(requireTron?1:0)+(requireUrbit?1:0)+(requireInfura?1:0),tronReaderPackaged:requireTron,urbitReaderPackaged:requireUrbit,infuraReaderPackaged:requireInfura,modelVersions:versions,modelHashes:profile==='full',apiQualified:false}));
+console.log(JSON.stringify({packagedSourceHashes:true,assemblies:names.length+(requireTron?1:0)+(requireUrbit?1:0)+(requireInfura?1:0),tronReaderPackaged:requireTron,urbitReaderPackaged:requireUrbit,infuraReaderPackaged:requireInfura,modelVersions:versions,modelHashes:profile==='full',cqlRuntimeGraphVerified:profile==='cql-api',apiQualified:false}));
 '''
     try:
         docker('create', '--name', name, '--label', 'oasis.package.owner=' + name,
@@ -134,6 +142,7 @@ console.log(JSON.stringify({packagedSourceHashes:true,assemblies:names.length+(r
         assert ack['urbitReaderPackaged'] is o.require_urbit_reader
         assert ack['infuraReaderPackaged'] is o.require_infura_reader
         assert ack['modelHashes'] is (o.profile == 'full')
+        assert ack['cqlRuntimeGraphVerified'] is (o.profile == 'cql-api')
         (out / 'acknowledged.json').write_text(json.dumps({'source': o.source, 'image': image,
             'profile': o.profile, 'tag': tag, 'imageId': metadata['Id'], 'expectedHashes': expected, 'checks': ack,
             'liveDeployment': False}, indent=2))

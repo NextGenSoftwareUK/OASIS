@@ -38,6 +38,19 @@ for(const provider of providers){
   if(o.fault==='duplicateVersion')libraries[name+'/1.0.0']={type:'project'};
  }
 }
+if(o.transitive){
+ const bridge=prefix+'ONODE.Core',boot='NextGenSoftware.OASIS.OASISBootLoader';
+ const dependencies=target[api+'/2.0.0'].dependencies;
+ target[boot+'/2.0.0']={dependencies};
+ target[bridge+'/2.0.0']={dependencies:{[boot]:'2.0.0'}};
+ target[api+'/2.0.0'].dependencies={[bridge]:'2.0.0'};
+ if(o.badBridgeVersion)target[bridge+'/2.0.0'].dependencies[boot]='1.0.0';
+ if(o.disconnectedCycle){
+  target[api+'/2.0.0'].dependencies={};
+  target[boot+'/2.0.0'].dependencies[bridge]='2.0.0';
+ }
+ if(o.reachableCycle)target[boot+'/2.0.0'].dependencies[bridge]='2.0.0';
+}
 if(o.duplicateApi)target[api+'/1.0.0']={dependencies:{}};
 files['/app/'+api+'.deps.json']=JSON.stringify({runtimeTarget:{name:'test'},targets:{test:target},libraries});
 const fs={
@@ -52,9 +65,14 @@ vm.runInNewContext(PROBE,{
 });
 assert.equal(ack.assemblies,5);assert.equal(ack.apiQualified,false);
 assert.equal(ack.modelHashes,false);assert.deepEqual(ack.modelVersions,[]);
+assert.equal(ack.cqlRuntimeGraphVerified,true);
 assert.equal(ack.tronReaderPackaged,false);
 '''
         cases = [('complete', {}, 0),
+                 ('transitive-shipping-chain', {'transitive': True}, 0),
+                 ('transitive-wrong-version', {'transitive': True, 'badBridgeVersion': True}, 1),
+                 ('disconnected-cycle', {'transitive': True, 'disconnectedCycle': True}, 1),
+                 ('reachable-cycle', {'transitive': True, 'reachableCycle': True}, 0),
                  ('missing-api-contract', {'apiMissingSymbol': True}, 1),
                  ('missing-core-contract', {'coreMissingSymbol': True}, 1),
                  ('duplicate-api', {'duplicateApi': True}, 1)]
@@ -62,6 +80,8 @@ assert.equal(ack.tronReaderPackaged,false);
             for fault in ['missingFile', 'missingMethod', 'package', 'missingRuntime',
                           'missingAssembly', 'missingDirect', 'wrongVersion', 'duplicateVersion']:
                 cases.append((provider + '-' + fault, {'provider': provider, 'fault': fault}, 1))
+                cases.append((provider + '-transitive-' + fault,
+                              {'provider': provider, 'fault': fault, 'transitive': True}, 1))
         for label, options, expected in cases:
             with self.subTest(label=label):
                 result = subprocess.run([os.environ.get('NODE_BINARY', 'node'), '-e',
