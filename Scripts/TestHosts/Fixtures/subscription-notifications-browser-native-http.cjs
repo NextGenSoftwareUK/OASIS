@@ -105,9 +105,9 @@ async function verify({ baseUrl, actors }) {
     await save();
     phase = 'server-validation-and-identity';
     const direct = await page.evaluate(async ({ endpoint, foreign }) => {
-      const invalid = await window.oasisClient.http.post(endpoint, { thresholds: [-1], emailRequested: false });
-      const saved = await window.oasisClient.http.post(endpoint, { subject: 'user:' + foreign, userId: foreign,
-        thresholds: [45, 95], warningsEnabled: true, emailRequested: false });
+      const invalid = await window.oasisClient.http.post(endpoint, { body: { thresholds: [-1], emailRequested: false } });
+      const saved = await window.oasisClient.http.post(endpoint, { body: { subject: 'user:' + foreign, userId: foreign,
+        thresholds: [45, 95], warningsEnabled: true, emailRequested: false } });
       return { invalid: invalid.statusCode, saved: saved.statusCode };
     }, { endpoint, foreign: actors[0].id });
     assert.deepEqual(direct, { invalid: 400, saved: 200 });
