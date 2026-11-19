@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Owned actual dashboard bearer verification</title>
+  <link rel="stylesheet" href="/assets/css/dashboard.css">
+</head>
+<body>
+  <main id="fixture-dashboard"></main>
+  <script src="/assets/js/config.js"></script>
+  <script src="/assets/js/oasis-web4-sdk.js"></script>
+  <script>
+    window.apiUrl = location.origin;
+    window.oasisClient = new window.OASISClient({ baseUrl: location.origin, persistSession: false });
+    window.oasisClient.setToken(window.fixtureDashboard.expiredToken, { avatarId: window.fixtureDashboard.actor.id });
+    localStorage.setItem('avatar', JSON.stringify({ id: window.fixtureDashboard.actor.id, jwtToken: window.fixtureDashboard.actor.token }));
+    localStorage.setItem('loggedIn', 'true');
+    window.jwtReadyPromise = Promise.resolve(true);
+    fetch('/assets/components/dashboard.html').then(function(response) {
+      if (!response.ok) throw new Error('Actual dashboard fragment could not be loaded.');
+      return response.text();
+    }).then(function(html) {
+      document.getElementById('fixture-dashboard').innerHTML = html;
+      var source = document.createElement('script');
+      source.src = '/assets/js/dashboard.js';
+      source.onload = function() { window.fixtureDashboardReady = true; };
+      document.body.appendChild(source);
+    });
+  </script>
+</body>
+</html>

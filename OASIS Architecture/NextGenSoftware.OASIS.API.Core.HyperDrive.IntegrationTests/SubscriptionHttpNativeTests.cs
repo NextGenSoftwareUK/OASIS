@@ -93,7 +93,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task SubscriptionAdminOutboxUsesActualControllerBrowserAndServiceIsolation() =>
         RunSubscriptionHttp(true, usage: true, adminRead: true, adminOutbox: true);
 
-    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false, bool personalBilling = false, bool personalConsentReview = false, bool adminRead = false, bool adminGrant = false, bool adminAccounts = false, bool adminOutbox = false)
+    [Fact]
+    public Task DashboardBearerReplacementUsesActualSdkSubscriptionControllerAndMongo() =>
+        RunSubscriptionHttp(true, dashboard: true);
+
+    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false, bool personalBilling = false, bool personalConsentReview = false, bool adminRead = false, bool adminGrant = false, bool adminAccounts = false, bool adminOutbox = false, bool dashboard = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -346,7 +350,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 app.UseStaticFiles(new StaticFileOptions { FileProvider = portalFiles });
                 app.MapGet("/__subscription_browser", async () => Microsoft.AspNetCore.Http.Results.Content(
                     await File.ReadAllTextAsync(Path.Combine(root.FullName, "Scripts/TestHosts/Fixtures/" +
-                        (adminRead ? "subscription-admin-browser-host.html" : usage ? "subscription-usage-browser-host.html" : "subscription-browser-host.html"))),
+                        (dashboard ? "dashboard-browser-host.html" : adminRead ? "subscription-admin-browser-host.html" : usage ? "subscription-usage-browser-host.html" : "subscription-browser-host.html"))),
                     "text/html"));
             }
             var key = new SymmetricSecurityKey(RandomNumberGenerator.GetBytes(64));
@@ -437,9 +441,17 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 if (freshAppUsage) freshOperationId = await PrepareFreshAppUsageThroughSdkAsync(http, Token, db, accounts, api, repository, policyServiceKey!);
                 if (browser)
                 {
+                    var dashboardFinancialState = dashboard ? await SubscriptionAdminFinancialStateAsync(db) : null;
+                    string DashboardToken(bool expired) => new JwtSecurityTokenHandler().WriteToken(new JwtSecurityToken(
+                        issuer: "owned-subscription-fixture", audience: "owned-subscription-http",
+                        claims: [new Claim("sub", accounts[0]), new Claim("jti", Guid.NewGuid().ToString("N"))],
+                        expires: DateTime.UtcNow.AddMinutes(expired ? -1 : 5),
+                        signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)));
                     using var result = await ExchangeSdkRequest(new
                     {
                         baseUrl = address,
+                        dashboardExpiredToken = dashboard ? DashboardToken(true) : null,
+                        dashboardReplacementToken = dashboard ? DashboardToken(false) : null,
                         personalControl,
                         personalConsentReviewControl,
                         adminExpectedSubscriptions = adminFixture?.Subscriptions,
@@ -449,11 +461,17 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     });
                     Assert.False(result.RootElement.TryGetProperty("isError", out var failed) && failed.GetBoolean(),
                         result.RootElement.TryGetProperty("message", out var message) ? message.GetString() : "Browser worker failed.");
-                    Assert.True(result.RootElement.GetProperty(adminOutbox ? "subscriptionAdminOutboxBrowserVerified" : adminAccounts ? "subscriptionAdminAccountsBrowserVerified" : adminGrant ? "subscriptionAdminGrantBrowserVerified" : adminRead ? "subscriptionAdminReadsBrowserVerified" : personalConsentReview ? "personalConsentReviewBrowserVerified" : personalBilling ? "personalBillingBrowserVerified" : freshAppUsage ? "appFreshUsageBrowserVerified" : ownerPayNow ? "appPayNowBrowserVerified" : billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
+                    Assert.True(result.RootElement.GetProperty(dashboard ? "dashboardBearerBrowserVerified" : adminOutbox ? "subscriptionAdminOutboxBrowserVerified" : adminAccounts ? "subscriptionAdminAccountsBrowserVerified" : adminGrant ? "subscriptionAdminGrantBrowserVerified" : adminRead ? "subscriptionAdminReadsBrowserVerified" : personalConsentReview ? "personalConsentReviewBrowserVerified" : personalBilling ? "personalBillingBrowserVerified" : freshAppUsage ? "appFreshUsageBrowserVerified" : ownerPayNow ? "appPayNowBrowserVerified" : billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
                         usage ? "subscriptionUsageBrowserVerified" : "subscriptionBrowserVerified").GetBoolean());
                     Assert.Equal(3, result.RootElement.GetProperty("actorsVerified").GetInt32());
                     Assert.True(result.RootElement.GetProperty("lateSessionResponseIgnored").GetBoolean());
                     Console.WriteLine("Subscription browser evidence: " + result.RootElement.GetRawText());
+                    if (dashboard)
+                    {
+                        Assert.Equal(dashboardFinancialState, await SubscriptionAdminFinancialStateAsync(db));
+                        Console.WriteLine("Dashboard bearer native final state verified: actual expired401 and replacement200, same-session coalescing, delayed old-account response suppressed, three owned avatars and unchanged financial collections. Tokens are signed fixture inputs; no actual refresh endpoint, full dashboard route coverage, production Startup, hosted performance or payment acceptance.");
+                        return;
+                    }
                     if (adminOutbox)
                     {
                         await VerifySubscriptionAdminOutboxAsync(db, adminOutboxFixture!, accounts[0]);
