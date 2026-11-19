@@ -79,7 +79,8 @@ public sealed partial class CqlV1Web4NativeTests
                 return selected.ToArray();
             }
             async Task<NextGenSoftware.OASIS.Common.OASISResult<CosmicGroupedExecution<CosmicProjectionRecord>>> Run<T>(
-                Guid[] selected, Expression<Func<Holon, T>> selector, int maximumGroups = 1000, bool emptyPage = false)
+                Guid[] selected, Expression<Func<Holon, T>> selector, int maximumGroups = 1000, bool emptyPage = false,
+                Action<CosmicGroupedSelection<Holon, string, CosmicProjectionRecord>>? observeQuery = null)
             {
                 var grouping = CosmicQuery<Holon>.Create().Where(h => selected.Contains(h.Id))
                     .GroupBy(h => CosmicQueryMetadata.Value<string>(h, "category"),
@@ -95,6 +96,7 @@ public sealed partial class CqlV1Web4NativeTests
                 var planned = CosmicGroupedPlanner.Plan(query, authority,
                     new[] { new CosmicGroupedTarget(authority, adapter.QueryCapabilities, adapter.GroupedCapabilities) });
                 Assert.IsFalse(planned.IsError, planned.Message);
+                observeQuery?.Invoke(planned.Result.Query);
                 return await CosmicGroupedExecutor.ExecuteAsync(planned.Result,
                     new[] { (ICosmicQueryStorageProvider)provider });
             }
@@ -106,8 +108,8 @@ public sealed partial class CqlV1Web4NativeTests
                 var second = BitConverter.Int32BitsToSingle(BitConverter.SingleToInt32Bits(1f) + 2);
                 Assert.AreNotEqual(first, second);
                 var selected = await Seed(("a", 0f), ("a", negativeZero), ("a", first), ("a", second), ("a", second));
-                singleProfile = await ProfileNeoSingleGroupedDistinct(selected,
-                    () => Run(selected, h => CosmicQueryMetadata.Value<float>(h, "stock")));
+                singleProfile = await ProfileNeoSingleGroupedDistinct(
+                    observer => Run(selected, h => CosmicQueryMetadata.Value<float>(h, "stock"), observeQuery: observer));
                 checks = 3;
                 Assert.AreEqual(5, ids.Count);
             }
