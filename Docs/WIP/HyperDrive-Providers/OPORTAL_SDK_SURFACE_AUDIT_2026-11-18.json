@@ -1,0 +1,261 @@
+{
+  "date": "2026-11-18",
+  "portalRevision": "4c038504efdd77017fd5230b8d27728d2c190aa7",
+  "bundleBlobs": [
+    {
+      "path": "assets/js/oasis-web4-sdk.js",
+      "sha": "850ee98adb5663b56644edddc842175dfb5f939c"
+    },
+    {
+      "path": "assets/js/oasis-web5-sdk.js",
+      "sha": "ab5e4600939ca2889c90962ef0aadb5dcca76b73"
+    },
+    {
+      "path": "assets/js/oasis-web6-sdk.js",
+      "sha": "a68157f0d072f1c4e29b261b74a989b5c1004170"
+    }
+  ],
+  "method": "Read exact Git objects, verify two fetched source blob SHA1 values in RAM, evaluate actual browser bundles and inspect actual constructed client methods without calling them",
+  "objectsRead": 43,
+  "scriptFiles": 40,
+  "checkedCallSites": 99,
+  "mixedOrIndirectScripts": 8,
+  "backendCalls": 0,
+  "browserAccepted": false,
+  "backendAccepted": false,
+  "scope": "Client method availability only; zero checked methods does not mean accepted. Mixed clients, dynamic receivers, HTTP routes, actual results and interactions remain separate acceptance.",
+  "results": [
+    {
+      "path": "assets/js/activity-feed-modal.js",
+      "client": "OASISClient",
+      "checked": 0,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/ai-modal.js",
+      "client": "ambiguous-or-direct",
+      "checked": 0
+    },
+    {
+      "path": "assets/js/celestial-map-modal.js",
+      "client": "STARClient",
+      "checked": 2,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/chain-explorer-modal.js",
+      "client": "OASISClient",
+      "checked": 0,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/clan-modal.js",
+      "client": "OASISClient",
+      "checked": 8,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/competition-modal.js",
+      "client": "STARClient",
+      "checked": 4,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/data-modal.js",
+      "client": "OASISClient",
+      "checked": 5,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/dev-portal-modal.js",
+      "client": "ambiguous-or-direct",
+      "checked": 0
+    },
+    {
+      "path": "assets/js/eggs-modal.js",
+      "client": "OASISClient",
+      "checked": 5,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/files-modal.js",
+      "client": "OASISClient",
+      "checked": 3,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/games-modal.js",
+      "client": "STARClient",
+      "checked": 3,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/gifts-modal.js",
+      "client": "OASISClient",
+      "checked": 5,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/global-search-modal.js",
+      "client": "ambiguous-or-direct",
+      "checked": 0
+    },
+    {
+      "path": "assets/js/holon-browser-modal.js",
+      "client": "STARClient",
+      "checked": 1,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/holon-designer-modal.js",
+      "client": "ambiguous-or-direct",
+      "checked": 0
+    },
+    {
+      "path": "assets/js/holon-diff-modal.js",
+      "client": "STARClient",
+      "checked": 1,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/hyperdrive-modal.js",
+      "client": "OASISClient",
+      "checked": 4,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/inventory-modal.js",
+      "client": "ambiguous-or-direct",
+      "checked": 0
+    },
+    {
+      "path": "assets/js/karma-ledger-modal.js",
+      "client": "OASISClient",
+      "checked": 1,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/karma-modal.js",
+      "client": "OASISClient",
+      "checked": 4,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/map-modal.js",
+      "client": "OASISClient",
+      "checked": 14,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/messaging-modal.js",
+      "client": "OASISClient",
+      "checked": 4,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/missions-modal.js",
+      "client": "STARClient",
+      "checked": 3,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/nft-modal.js",
+      "client": "OASISClient",
+      "checked": 7,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/oapp-launcher-modal.js",
+      "client": "STARClient",
+      "checked": 2,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/oapp-map-modal.js",
+      "client": "STARClient",
+      "checked": 1,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/oapps-modal.js",
+      "client": "STARClient",
+      "checked": 2,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/onet-modal.js",
+      "client": "OASISClient",
+      "checked": 0,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/onode-modal.js",
+      "client": "OASISClient",
+      "checked": 1,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/provider-benchmark-modal.js",
+      "client": "ambiguous-or-direct",
+      "checked": 0
+    },
+    {
+      "path": "assets/js/provider-health-modal.js",
+      "client": "ambiguous-or-direct",
+      "checked": 0
+    },
+    {
+      "path": "assets/js/provider-migration-modal.js",
+      "client": "OASISClient",
+      "checked": 0,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/quests-modal.js",
+      "client": "STARClient",
+      "checked": 3,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/search-avatars-modal.js",
+      "client": "OASISClient",
+      "checked": 0,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/settings-modal.js",
+      "client": "OASISClient",
+      "checked": 1,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/social-graph-modal.js",
+      "client": "OASISClient",
+      "checked": 1,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/subscription-admin-modal.js",
+      "client": "ambiguous-or-direct",
+      "checked": 0
+    },
+    {
+      "path": "assets/js/subscription-modal.js",
+      "client": "OASISClient",
+      "checked": 3,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/wallet-modal.js",
+      "client": "OASISClient",
+      "checked": 6,
+      "missingMethods": []
+    },
+    {
+      "path": "assets/js/avatar-modal.js",
+      "client": "OASISClient",
+      "checked": 5,
+      "missingMethods": []
+    }
+  ]
+}
