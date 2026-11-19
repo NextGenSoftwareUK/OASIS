@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Owned profile hydration verification</title></head>
+<body>
+  <script src="/assets/js/oasis-web4-sdk.js"></script>
+  <script>
+    window.apiUrl = location.origin;
+    window.oasisClient = new window.OASISClient({ baseUrl: location.origin, persistSession: false });
+    window.pendingHydrations = {};
+    window.hydrationResults = {};
+    window.profileUpdates = [];
+    window.addEventListener('avatarUpdated', event => window.profileUpdates.push(event.detail));
+  </script>
+  <script src="/assets/js/avatar-modal.js"></script>
+</body>
+</html>

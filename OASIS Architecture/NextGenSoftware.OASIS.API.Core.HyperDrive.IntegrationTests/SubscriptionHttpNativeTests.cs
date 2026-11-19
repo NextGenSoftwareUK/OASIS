@@ -105,7 +105,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task SubscriptionAdminUsageUsesActualControllersBrowserAndHistoricalTodayCounts() =>
         RunSubscriptionHttp(true, usage: true, ownerSettings: true, ownerUsage: true, adminRead: true, adminUsage: true);
 
-    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false, bool personalBilling = false, bool personalConsentReview = false, bool adminRead = false, bool adminGrant = false, bool adminAccounts = false, bool adminOutbox = false, bool dashboard = false, bool adminOwners = false, bool adminUsage = false, bool appAdmission = false, bool nftLists = false, bool nftNullPayloads = false)
+    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false, bool personalBilling = false, bool personalConsentReview = false, bool adminRead = false, bool adminGrant = false, bool adminAccounts = false, bool adminOutbox = false, bool dashboard = false, bool adminOwners = false, bool adminUsage = false, bool appAdmission = false, bool nftLists = false, bool nftNullPayloads = false, bool profileHydration = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -322,11 +322,13 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 builder.Configuration["SUBSCRIPTION_SERVICE_KEY_WEB5"] = policyServiceKey;
                 builder.Services.AddSingleton(api.GetType(ns + "IAppAccountRepository", true)!, repository);
             }
+            if (profileHydration) builder.Configuration["OASIS:UseTestDataWhenLiveDataNotAvailable"] = "false";
             builder.Services.AddControllers().ConfigureApplicationPartManager(parts =>
             {
                 parts.ApplicationParts.Clear();
                 parts.ApplicationParts.Add(new AssemblyPart(api));
                 var selected = new List<Type> { controller };
+                if (profileHydration) selected.Add(api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.AvatarProfileController", true)!);
                 if (adminRead) selected.Add(api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SubscriptionAdminController", true)!);
                 if (usage) selected.Add(api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SubscriptionUsageSeriesController", true)!);
                 if (notifications) selected.Add(api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SubscriptionNotificationController", true)!);
@@ -366,7 +368,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 app.UseStaticFiles(new StaticFileOptions { FileProvider = portalFiles });
                 app.MapGet("/__subscription_browser", async () => Microsoft.AspNetCore.Http.Results.Content(
                     await File.ReadAllTextAsync(Path.Combine(root.FullName, "Scripts/TestHosts/Fixtures/" +
-                        (dashboard ? "dashboard-browser-host.html" : adminRead ? "subscription-admin-browser-host.html" : usage ? "subscription-usage-browser-host.html" : "subscription-browser-host.html"))),
+                        (profileHydration ? "profile-hydration-browser-host.html" : dashboard ? "dashboard-browser-host.html" : adminRead ? "subscription-admin-browser-host.html" : usage ? "subscription-usage-browser-host.html" : "subscription-browser-host.html"))),
                     "text/html"));
             }
             var key = new SymmetricSecurityKey(RandomNumberGenerator.GetBytes(64));
@@ -462,6 +464,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     var adminUsageState = adminUsage ? await SubscriptionAdminFinancialStateAsync(db) : null;
                     var adminUsageApps = adminUsage ? new BsonArray(await db.GetCollection<BsonDocument>("subscription_app_accounts")
                         .Find(FilterDefinition<BsonDocument>.Empty).Sort(new BsonDocument("_id", 1)).ToListAsync()).ToJson() : null;
+                    var profileNativeState = profileHydration ? await ProfileHydrationNativeStateAsync(db) : null;
                     var dashboardFinancialState = dashboard ? await SubscriptionAdminFinancialStateAsync(db) : null;
                     string DashboardToken(bool expired) => new JwtSecurityTokenHandler().WriteToken(new JwtSecurityToken(
                         issuer: "owned-subscription-fixture", audience: "owned-subscription-http",
@@ -473,8 +476,8 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                         baseUrl = address,
                         usageTodayDate = adminUsage ? DateTime.UtcNow.ToString("yyyy-MM-dd") : null,
                         usageHistoricalDate = adminUsage ? new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1).AddMonths(-2).ToString("yyyy-MM-dd") : null,
-                        dashboardExpiredToken = dashboard ? DashboardToken(true) : null,
-                        dashboardReplacementToken = dashboard ? DashboardToken(false) : null,
+                        dashboardExpiredToken = dashboard || profileHydration ? DashboardToken(true) : null,
+                        dashboardReplacementToken = dashboard || profileHydration ? DashboardToken(false) : null,
                         personalControl,
                         personalConsentReviewControl,
                         adminExpectedSubscriptions = adminFixture?.Subscriptions,
@@ -484,11 +487,17 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     });
                     Assert.False(result.RootElement.TryGetProperty("isError", out var failed) && failed.GetBoolean(),
                         result.RootElement.TryGetProperty("message", out var message) ? message.GetString() : "Browser worker failed.");
-                    Assert.True(result.RootElement.GetProperty(adminUsage ? "subscriptionAdminUsageBrowserVerified" : adminOwners ? "subscriptionAdminOwnersBrowserVerified" : dashboard ? "dashboardBearerBrowserVerified" : adminOutbox ? "subscriptionAdminOutboxBrowserVerified" : adminAccounts ? "subscriptionAdminAccountsBrowserVerified" : adminGrant ? "subscriptionAdminGrantBrowserVerified" : adminRead ? "subscriptionAdminReadsBrowserVerified" : personalConsentReview ? "personalConsentReviewBrowserVerified" : personalBilling ? "personalBillingBrowserVerified" : freshAppUsage ? "appFreshUsageBrowserVerified" : ownerPayNow ? "appPayNowBrowserVerified" : billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
+                    Assert.True(result.RootElement.GetProperty(profileHydration ? "profileHydrationBrowserVerified" : adminUsage ? "subscriptionAdminUsageBrowserVerified" : adminOwners ? "subscriptionAdminOwnersBrowserVerified" : dashboard ? "dashboardBearerBrowserVerified" : adminOutbox ? "subscriptionAdminOutboxBrowserVerified" : adminAccounts ? "subscriptionAdminAccountsBrowserVerified" : adminGrant ? "subscriptionAdminGrantBrowserVerified" : adminRead ? "subscriptionAdminReadsBrowserVerified" : personalConsentReview ? "personalConsentReviewBrowserVerified" : personalBilling ? "personalBillingBrowserVerified" : freshAppUsage ? "appFreshUsageBrowserVerified" : ownerPayNow ? "appPayNowBrowserVerified" : billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
                         usage ? "subscriptionUsageBrowserVerified" : "subscriptionBrowserVerified").GetBoolean());
                     Assert.Equal(3, result.RootElement.GetProperty("actorsVerified").GetInt32());
                     Assert.True(result.RootElement.GetProperty("lateSessionResponseIgnored").GetBoolean());
                     Console.WriteLine("Subscription browser evidence: " + result.RootElement.GetRawText());
+                    if (profileHydration)
+                    {
+                        Assert.True(profileNativeState == await ProfileHydrationNativeStateAsync(db), "Hydration must leave native avatar/detail and financial collections unchanged.");
+                        Console.WriteLine("Profile hydration native final state verified: actual SDK bearer and client scope, stored avatars/details, expired401/recovery, coalescing and original late responses; native profile and eight financial collections unchanged. No mocked response, refresh endpoint, profile edits, full dashboard, hosted or full portal acceptance.");
+                        return;
+                    }
                     if (adminUsage)
                     {
                         Assert.True(adminUsageState == await SubscriptionAdminFinancialStateAsync(db), "Usage reads must not change eight financial collections.");
@@ -727,7 +736,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             }
             await mongo.DropDatabaseAsync(databaseName);
             Assert.DoesNotContain(databaseName, await (await mongo.ListDatabaseNamesAsync()).ToListAsync());
-            if (adminOwners || adminUsage)
+            if (adminOwners || adminUsage || profileHydration)
             {
                 Assert.Equal(previousPoolFlag, Environment.GetEnvironmentVariable("OASIS_POOLED_APP_QUOTAS"));
                 Assert.Equal(previousPoolShards, Environment.GetEnvironmentVariable("OASIS_POOL_SHARDS"));
