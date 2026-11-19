@@ -24,7 +24,7 @@ All paths below are relative to the Core repository unless explicitly identified
 
 1. **Complete:** the exact parent-authorization fix passed all six Core controls and three native cases, 12 groups/seven logical writes/all ten report checks per store, correct supplied child IDs, exactly one observed parent read for each tested attachment authorization, and owned cleanup. This closes only this integration gate, not the whole S05 row.
 2. Add focused evidence that selected scalar saves preserve an unselected stored relationship-role manifest, and that an explicitly submitted selected graph updates the intended role membership without silently replacing other roles. Include a partial-view refusal/control and original/current/flag preservation on the three shipping stores. Source inspection shows native role-manifest application is separate from scalar merging; this is not yet accepted composition evidence.
-3. Reconcile the public usage documentation with the qualified APIs and link each requirement above to its final evidence. Then audit S05 as a whole and update its coverage row only if every requirement is proven. Do not rerun unrelated accepted cohorts merely to create a new aggregate green badge.
+3. Reconcile [the public property-entry guide draft](CQL_PROPERTY_ENTRY_GUIDE_DRAFT.md) with the qualified APIs and link each requirement above to its final evidence. The draft now maps the implemented signatures and local/native/permission/graph distinctions; its examples are not independently compiled and typed-role composition remains pending. Then audit S05 as a whole and update its coverage row only if every requirement is proven. Do not rerun unrelated accepted cohorts merely to create a new aggregate green badge.
 
 ## Scope boundaries
 
