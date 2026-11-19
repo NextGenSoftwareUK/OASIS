@@ -58,5 +58,15 @@
   "mongoFixtureAbsenceVerified": true,
   "boltFixtureStopPassed": true,
   "previouslyAcceptedCasesRepeated": 0,
-  "nextUnverifiedNativeOverlapInvariant": "Pause after an actual native portrait read, commit a real concurrent profile edit, then resume. A queued request held before the native read does not establish lost-update safety. Preserve the newer fields or return the specified explicit conflict; never silently overwrite or retry."
+  "nextUnverifiedNativeOverlapInvariant": "Pause after an actual native portrait read, commit a real concurrent profile edit, then resume. A queued request held before the native read does not establish lost-update safety. Preserve the newer fields or return the specified explicit conflict; never silently overwrite or retry.",
+  "portalScreenLedgerPublication": {
+    "commit": "bcf2c3d2a5f93c8fa3f71359d27d13f00a0914d2",
+    "blob": "65647910da13144c0df0f44edab067a9a043078d",
+    "branch": "work/oportal-subscription-performance",
+    "publishedBytesVerified": true,
+    "onlyScreenLedgerChanged": true,
+    "matchingLocalDocRefreshed": true,
+    "staleLocalPortalHeadPushed": false,
+    "productSourceBundleDeploymentChanged": false
+  }
 }
