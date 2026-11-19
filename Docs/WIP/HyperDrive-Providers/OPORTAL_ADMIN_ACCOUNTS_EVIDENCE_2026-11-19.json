@@ -3,7 +3,7 @@
   "sourceCommit": "7c1eef81961d220e46d6b91c4687f308b1ef4c5e",
   "sdkCommit": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
   "filter": "FullyQualifiedName~SubscriptionAdminAppAccountsUseActualControllerBrowserAndCredentials",
-  "status": "qualification-active-not-accepted",
+  "status": "native-browser-accepted-full-usage-admission-hosted-and-other-admin-open",
   "bundleJob": 135642311180,
   "bundleRun": 44547612617,
   "stripeVerified": false,
@@ -34,5 +34,24 @@
   },
   "bundleCleanupVerified": true,
   "rawKeysInEvidence": false,
-  "localGeneratedOutputs": 0
+  "localGeneratedOutputs": 0,
+  "acceptedEvidence": {
+    "actors": 3,
+    "successfulAuditTransitions": 6,
+    "filesWritten": 0,
+    "artifactId": 14543207099,
+    "otherFinancialCollectionsUnchanged": true,
+    "cleanupAndProcessRestorationVerified": true,
+    "artifactBytes": 4529,
+    "administratorPosts": 10,
+    "passed": 1,
+    "sha256": "fdab03603c52b200cdd568ae8bac25620b55401fac719e7adeb9ae9046c31d6d",
+    "generatedKeyScanNegative": true,
+    "failed": 0,
+    "seconds": 10,
+    "repositoryCredentialReads": 7,
+    "skipped": 0,
+    "linkedBuild": "skipped",
+    "apiBuildErrors": 0
+  }
 }
