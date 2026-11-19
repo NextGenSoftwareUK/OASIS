@@ -11,22 +11,25 @@
 | Profile component timings in isolated CI | Open172–1657ms; save540–792ms across those six flows | Not dashboard/subscription timings or current live-site performance |
 | Portrait authorization and native persistence | Individual PortraitUploadBindsAllTargetsBeforeProviderActivationNative PASSED in run44428719265/job135240240363 on6e7cb7f; compiled action checks plus real owned Mongo PNG save | Overall job FAILED because its separate subscription fixture failed. Not production HTTP, browser upload, SQLite/Neo4j portrait or concurrent-update acceptance |
 | Browser delivery and cache keys | Portal44423712983/job135222990234 SUCCESS; locked qualified WEB4 bundle, source-derived config/avatar/SDK references, dependency/cache cleanup | Source/build verification; no rollout |
-| Subscription session read fix | Portala21efc7 binds deferred reads to the captured token and drops superseded/stale responses; focused state checks passed | New native subscription HTTP acceptance is still pending |
-| Quest fake-success removal | STAR0269f11 removes four generated-data substitutions; conditions4→0, helper references10→0, thirteen actions retained | Source-only; parent/deployed STAR pin remains1330ffc. Build and real quest acceptance remain open |
+| Real subscription self reads | Run44430620795/job135246768268 SUCCESS on e32819d: one actual MVC/service/native Mongo case passed, zero failures/skips,1s; self plan/cancellation/order fields, foreign-selector isolation, real missing-subscription actor and unchanged record counts | Not browser checkout, Stripe/webhook, production Startup/JWT or paid admission acceptance |
+| Subscription session read fix | Portala21efc7 binds deferred reads to the captured token and drops superseded/stale responses; focused state checks passed | Native self-read acceptance is recorded above; full UI/billing acceptance remains open |
+| Quest fake-success removal | STAR0269f11 removes four generated-data substitutions; conditions4→0, helper references10→0, thirteen actions retained | Task source pin/manifest now0269f11; WEB5 build44433687385 pending. Running deployment revision was not inspected or changed |
 
 The portrait test report was independently checked: artifact14486235839,1898 bytes, SHA25605ab2ee0453218089a184dce68f72171db5f3dcd894cab12cebe4f2c46be6495. Its test results explicitly record portrait Passed/subscription Failed. It was read and disposed in RAM; no archive or extracted file was written.
 
 ## What is being worked on now
 
-**SubscriptionSelfReadsUseActualControllerAndOwnedMongo** is running as44430620795 on qualificatione32819d/sourcebbfdde0. Its latest correction initializes the native fixture avatar's role explicitly. It uses the actual controller, subscription service and Mongo repository, signed owned JWTs and native avatar lookup. It must prove self-only plan/cancellation/order reads, empty results for a real avatar without a subscription, ignored foreign userId query selectors and unchanged billing record counts. It is **not yet accepted**. The passed portrait case is excluded from this rerun.
+The native subscription self-read case is **accepted for exact qualification e32819d** (Core2ae9c2 and that snapshot's STARda1cbb4). The earlier portrait case is accepted separately on6e7cb7f. Their accepted cases are not being repeated.
 
-Earlier setup failures are retained as failures, not counted as acceptance. Repository constructor, real DI interfaces, actor context and portrait controller dependencies were corrected from exact pinned source.
+**WEB5 build-only run44433687385** now targets actual task source3aab5dca with synchronized STAR0269f11. The complete reviewed STAR delta from prior source pin1330ffc contains the quest fake-success removal, an existing OAPP startup await and its WebUI AutoMapper16.3 correction. This is a new source graph; earlier acceptance must not be generalized to it. No deployment occurred.
+
+The first two WEB5 attempts stopped at source inventory checks: seven real portal actions were missing from the route manifest, then three stale seal entries referenced files absent from this task branch. Those exact entries were reviewed and the inventory updated to763 actions. No COSMIC/CQL runtime files were imported or deleted. The gate is retained; build/runtime acceptance is still pending.
 
 ## Remaining OPORTAL acceptance
 
 | Area | Remaining work |
 | --- | --- |
-| Subscriptions | Finish the native read case, current browser/API checkout return, billing portal, cancellation, Orders/invoices, usage/overages, signed webhook and error/recovery checks. Keep genuine Wizard/admin acceptance separate |
+| Subscriptions | Native self reads accepted above; finish current browser/API checkout return, billing portal, cancellation, Orders/invoices, usage/overages, signed webhook and error/recovery checks. Keep genuine Wizard/admin acceptance separate |
 | Profile popup | End-to-end portrait HTTP/browser upload, errors, concurrency and applicable production identity/admission rollout |
 | Dashboard/performance | Fresh isolated dashboard and subscription-popup measurements, real card/count/navigation flows and regression audit; no current live speed claim |
 | Every screen/popup | Complete the source-derived acceptance ledger and fix actual wiring/backend gaps; static source checks do not sign off interactions |
@@ -53,6 +56,6 @@ No changes in this phase were promoted to dev/staging/production. Shared OASIS A
 
 Work remains on the existing owned branches/worktrees, preserving COSMIC/CQL. Development18675d6 was last observed; peer combined CQL source1fe2/Core0e67 has its separate acceptance. No unverified batch was swept into a deployment to synchronize branches.
 
-Builds/native backends run in isolated CI with bounded workers and the build lease. Local source audits ran in RAM using existing Git objects/Node; source blobs and the tiny report were not materialized to disk. No new local environment, worktree, runtime install, build output or database was created. Successful cleanup is recorded per run; pending-run cleanup is not assumed.
+Builds/native backends run in isolated CI with bounded workers and the build lease. Local source audits ran in RAM using existing Git objects/Node; source blobs and the tiny report were not materialized to disk. Official pin synchronization used a disposable Git index and manifest; one diagnostic-path failure was corrected by placing the owned temporary directory under the repository. Both temporary directories were removed and independently checked absent; the active index stayed unchanged. No new local environment, worktree, runtime install, build output or database was created. Successful cleanup is recorded per run; pending-run cleanup is not assumed.
 
 Detailed records: CURRENT_STATUS.md, OPORTAL_PROFILE_SAVE_AUDIT_2026-11-18.md, OPORTAL_TEMPLATE_WIRING_AUDIT_2026-11-18.json, OPORTAL_SDK_SURFACE_AUDIT_2026-11-18.json, ../Cleanup/CLEANUP_LEDGER.md and ../Release and Status/ACTIONS-FOR-DAVID.md.
