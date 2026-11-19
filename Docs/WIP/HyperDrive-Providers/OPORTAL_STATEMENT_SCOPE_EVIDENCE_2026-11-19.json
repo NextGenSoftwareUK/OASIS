@@ -1,6 +1,6 @@
 {
   "scope": "Actual repository/collector/shipping gateway/native Mongo; existing statement INPUTS and real zero-due collection only",
-  "status": "first-build-failed-sdk-overload-corrected-awaiting-rerun",
+  "status": "accepted-scoped-collection-storage-and-payer-binding",
   "releaseGates": [
     "historical in-flight transition",
     "genuine Stripe readiness/positive controller/nonzero/signed webhook",
@@ -20,9 +20,9 @@
   ],
   "localGeneratedOutputs": 0,
   "filter": "FullyQualifiedName~OverageCollectionRejectsForeignScopeAndEmptyPayersBeforeMutation",
-  "sourceCommit": "273849783701ad6ee541d2deb21e1286996d8d1d",
-  "runId": 44532487678,
-  "jobId": 135589176702,
+  "sourceCommit": "cd69f650998ac6b7820a124cfe5ac5cab95c8bf9",
+  "runId": 44535212471,
+  "jobId": 135598687773,
   "firstFailure": {
     "cause": "Ambiguous Mongo driver expression-filter transaction overload",
     "source": "273849783701ad6ee541d2deb21e1286996d8d1d",
@@ -35,5 +35,20 @@
     "jobId": 135589176702,
     "ownedMongoAbsenceVerified": true,
     "code": "CS0121"
+  },
+  "artifactId": 14536956106,
+  "artifactBytes": 1779,
+  "artifactSha256": "50627c125edc598cde20509597361954ccc639e8b78c0b80b449c0134fd7c456",
+  "result": {
+    "passed": 1,
+    "artifactFilesWritten": 0,
+    "ownedDatabaseAbsenceVerified": true,
+    "apiBuildErrors": 0,
+    "failed": 0,
+    "skipped": 0,
+    "durationSeconds": 1,
+    "scopeAndCleanupMarkersVerified": true,
+    "linkedHostBuildErrors": 0,
+    "ownedMongoAbsenceVerified": true
   }
 }

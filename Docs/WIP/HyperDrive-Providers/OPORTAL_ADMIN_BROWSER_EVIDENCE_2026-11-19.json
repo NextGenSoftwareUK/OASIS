@@ -1,0 +1,24 @@
+{
+  "portalGenerated": "a83dca67bda2334019cda67c6a7f3c203ce377f1",
+  "releaseGates": [
+    "full admin catalogue/outbox/other mutating actions",
+    "genuine hosted Wizard",
+    "genuine Stripe/nonzero/webhook/historical transitions",
+    "complete portal/dashboard/performance/provider/HyperDrive"
+  ],
+  "bundleRun": 44536187625,
+  "adminSha256": "553f0c51d415ad657c4365fb6b0c87e990af3c8c1b5f1272533964389090b721",
+  "bundleCleanupVerified": true,
+  "required": [
+    "new actual controller/browser/native Wizard and ordinary actor read acceptance",
+    "list pagination/denial and one pending read",
+    "login/account change/logout clears private results/inputs/status",
+    "late administrator response cannot publish into next session",
+    "no financial mutation or shared service calls",
+    "owned browser/runtime/cache/database/container cleanup"
+  ],
+  "portalSource": "efe8a7c5e2ba71f2a2cdcc7e56424d070824f89f",
+  "bundleJob": 135602115907,
+  "status": "source-and-delivery-verified-browser-unaccepted",
+  "localGeneratedOutputs": 0
+}
