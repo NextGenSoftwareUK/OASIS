@@ -1,0 +1,25 @@
+{
+  "status": "prepared-not-dispatched-not-accepted",
+  "filter": "FullyQualifiedName~SubscriptionFreshAppUsageBillsThroughSdkAndBrowser",
+  "portalRevision": "4fd7cfaa497191eb965748277ec73972e1ffe05f",
+  "scope": "Pinned shipping Core authorization/start/settlement client + actual JS SDK/UI/MVC/native Mongo + zero-due gateway; original payer/readiness and quota boundary INPUT fixtures only",
+  "required": [
+    "real authorization/replay/start",
+    "actual owned Mongo acknowledgement/zero provider fee",
+    "real settlement/replay",
+    "shipping client preserves app consent402",
+    "new statement via portal action",
+    "one original-payer/customer allocation of0.001, rounded0 cents",
+    "second allocation empty",
+    "original payer view",
+    "3 actors/session/single writer",
+    "money projection balanced",
+    "native/browser/process/provider/database/container cleanup"
+  ],
+  "notCovered": [
+    "genuine Stripe readiness/nonzero payment/signed webhook",
+    "full external reconciliation",
+    "production Startup/hosted/full portal acceptance"
+  ],
+  "localGeneratedOutputs": 0
+}

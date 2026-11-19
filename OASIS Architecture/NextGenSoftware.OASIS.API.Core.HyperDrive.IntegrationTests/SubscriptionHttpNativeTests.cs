@@ -65,7 +65,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task SubscriptionAppBillingPolicyErrorsUseActualControllerAndOwnedMongo() =>
         RunSubscriptionHttp(false, usage: true, ownerSettings: true, ownerPayNow: true, billingPolicy: true);
 
-    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false)
+    [Fact]
+    public Task SubscriptionFreshAppUsageBillsThroughSdkAndBrowser() =>
+        RunSubscriptionHttp(true, usage: true, notifications: true, ownerSettings: true, ownerPayNow: true, freshAppUsage: true);
+
+    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -101,6 +105,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         FieldInfo? avatarManagerField = null;
         object? previousAvatarManager = null;
         var previousPoolFlag = Environment.GetEnvironmentVariable("OASIS_POOLED_APP_QUOTAS");
+        var previousPoolShards = Environment.GetEnvironmentVariable("OASIS_POOL_SHARDS");
         AssemblyLoadContext.Default.Resolving += Resolve;
         try
         {
@@ -170,11 +175,16 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             }
             if (ownerUsage) await SeedOwnedAppUsageAsync(db, accounts, missingAccount);
             if (ownerBilling) await SeedOwnedAppBillingAsync(db, accounts, repositoryType, repository);
-            if (ownerPayNow && browser)
+            if (ownerPayNow && browser && !freshAppUsage)
             {
                 foreach (var index in Enumerable.Range(0, accounts.Length))
                     await SeedOwnedZeroAppStatementAsync(db, index == 0 ? "owned-app-a" : "owned-app-b", accounts[index],
                         Guid.NewGuid().ToString("D"), DateTime.UtcNow.ToString("yyyy-MM"));
+            }
+            if (freshAppUsage)
+            {
+                Environment.SetEnvironmentVariable("OASIS_POOLED_APP_QUOTAS", "true");
+                Environment.SetEnvironmentVariable("OASIS_POOL_SHARDS", "1");
             }
             if (billingControls)
             {
@@ -251,8 +261,8 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Development" });
             builder.WebHost.UseKestrel().UseUrls("http://127.0.0.1:0");
             builder.Services.AddAuthorization();
-            var policyServiceKey = billingPolicy ? Convert.ToHexString(RandomNumberGenerator.GetBytes(32)) : null;
-            if (billingPolicy)
+            var policyServiceKey = billingPolicy || freshAppUsage ? Convert.ToHexString(RandomNumberGenerator.GetBytes(32)) : null;
+            if (billingPolicy || freshAppUsage)
             {
                 builder.Configuration["SUBSCRIPTION_SERVICE_KEY_WEB5"] = policyServiceKey;
                 builder.Services.AddSingleton(api.GetType(ns + "IAppAccountRepository", true)!, repository);
@@ -355,6 +365,8 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     else await VerifyAppPayNowHttpAsync(http, Token, db, accounts);
                     return;
                 }
+                string? freshOperationId = null;
+                if (freshAppUsage) freshOperationId = await PrepareFreshAppUsageThroughSdkAsync(http, Token, db, accounts, api, repository, policyServiceKey!);
                 if (browser)
                 {
                     using var result = await ExchangeSdkRequest(new
@@ -364,11 +376,16 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     });
                     Assert.False(result.RootElement.TryGetProperty("isError", out var failed) && failed.GetBoolean(),
                         result.RootElement.TryGetProperty("message", out var message) ? message.GetString() : "Browser worker failed.");
-                    Assert.True(result.RootElement.GetProperty(ownerPayNow ? "appPayNowBrowserVerified" : billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
+                    Assert.True(result.RootElement.GetProperty(freshAppUsage ? "appFreshUsageBrowserVerified" : ownerPayNow ? "appPayNowBrowserVerified" : billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
                         usage ? "subscriptionUsageBrowserVerified" : "subscriptionBrowserVerified").GetBoolean());
                     Assert.Equal(3, result.RootElement.GetProperty("actorsVerified").GetInt32());
                     Assert.True(result.RootElement.GetProperty("lateSessionResponseIgnored").GetBoolean());
                     Console.WriteLine("Subscription browser evidence: " + result.RootElement.GetRawText());
+                    if (freshAppUsage)
+                    {
+                        await VerifyFreshAppUsageAfterBrowserAsync(db, freshOperationId!, accounts[1], repository);
+                        return;
+                    }
                     if (ownerPayNow)
                     {
                         var appStatements = db.GetCollection<BsonDocument>("subscription_overage_statements");
@@ -540,7 +557,8 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         }
         finally
         {
-            if (billingControls) Environment.SetEnvironmentVariable("OASIS_POOLED_APP_QUOTAS", previousPoolFlag);
+            if (billingControls || freshAppUsage) Environment.SetEnvironmentVariable("OASIS_POOLED_APP_QUOTAS", previousPoolFlag);
+            if (freshAppUsage) Environment.SetEnvironmentVariable("OASIS_POOL_SHARDS", previousPoolShards);
             if (avatarManagerField != null) avatarManagerField.SetValue(null, previousAvatarManager);
             AssemblyLoadContext.Default.Resolving -= Resolve;
             Assert.StartsWith("subscription_http_", databaseName);

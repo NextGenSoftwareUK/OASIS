@@ -1,5 +1,5 @@
 {
-  "status": "running-not-accepted",
+  "status": "accepted-scoped-native-http-policy",
   "filter": "FullyQualifiedName~SubscriptionAppBillingPolicyErrorsUseActualControllerAndOwnedMongo",
   "scope": "Real authenticated HTTP/service/app credentials/authoritative karma/native Mongo; explicit original financial INPUT fixtures only",
   "required": [
@@ -22,5 +22,33 @@
   "localGeneratedOutputs": 0,
   "revision": "e90f9ae2e419a5cc4fb44ec9913157c3f2598c31",
   "runId": 44505961205,
-  "jobId": 135497544631
+  "jobId": 135497544631,
+  "conclusion": "success",
+  "builds": {
+    "actualWeb4ApiErrors": 0,
+    "linkedHostErrors": 0
+  },
+  "results": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "durationSeconds": 1,
+    "refusalScenarios": 5
+  },
+  "artifact": {
+    "id": 14519159751,
+    "bytes": 2416,
+    "sha256": "5745603a2dec3630a632a72087020583bdc0145631d1908ec5c1312293834b0d",
+    "members": [
+      "seal-routing-native.trx"
+    ],
+    "matchingOutcome": "SubscriptionAppBillingPolicyErrorsUseActualControllerAndOwnedMongo: Passed",
+    "filesWritten": 0
+  },
+  "cleanup": {
+    "processSettingsRestored": true,
+    "ownedDbProviderFinalizers": "Passed with case",
+    "workflowMongoContainerAbsence": true,
+    "localGeneratedOutputs": 0
+  }
 }
