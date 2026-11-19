@@ -26,5 +26,13 @@
   "nativeOverlapAccepted": false,
   "currentDecoderCompanionCompileIncludedInNextRun": true,
   "acceptedBasicAndQueuedCasesSelected": 0,
-  "localRuntimeEnvironmentBuildDatabaseCreated": false
+  "localRuntimeEnvironmentBuildDatabaseCreated": false,
+  "concurrentlyChangedField": "Address",
+  "postCommitAndPostPortraitRawNativeReadsRequired": true,
+  "rawObservers": [
+    "Mongo driver typed authoritative collection read",
+    "fresh SQLite ADO SELECT Address,Portrait",
+    "Neo4j driver current SnapshotJson read"
+  ],
+  "entityCacheNotUsedForPersistenceProof": true
 }

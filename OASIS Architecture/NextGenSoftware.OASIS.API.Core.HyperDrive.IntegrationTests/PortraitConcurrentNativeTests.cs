@@ -69,6 +69,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         IAsyncDisposable? asyncOwner = null;
         IDisposable? syncOwner = null;
         Task<OASISResult<bool>>? upload = null;
+        Func<Task<(string? Address, string? Portrait)>>? nativeState = null;
         const string image = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2nXcAAAAASUVORK5CYII=";
         try
         {
@@ -76,20 +77,24 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             {
                 case "MongoDBOASIS":
                     var mongo = new MongoStore(barrier); asyncOwner = mongo;
-                    await mongo.Activate(); provider = mongo.Provider; peer = mongo.CreatePeerProvider(); break;
+                    await mongo.Activate(); provider = mongo.Provider; peer = mongo.CreatePeerProvider();
+                    nativeState = () => mongo.ReadPortraitNativeStateAsync(id); break;
                 case "SQLLiteDBOASIS":
                     var sqlite = new SqliteStore(barrier); syncOwner = sqlite; provider = sqlite.Provider;
                     var active = await provider.ActivateProviderAsync(); Assert.False(active.IsError, active.Message);
-                    peer = sqlite.CreatePeerProvider(); break;
+                    peer = sqlite.CreatePeerProvider();
+                    nativeState = () => sqlite.ReadPortraitNativeStateAsync(id); break;
                 case "Neo4jOASIS":
                     var neo = new BoltStore(barrier); asyncOwner = neo;
-                    await neo.Activate(id); provider = neo.Provider; peer = neo.CreatePeerProvider(); break;
+                    await neo.Activate(id); provider = neo.Provider; peer = neo.CreatePeerProvider();
+                    nativeState = () => neo.ReadPortraitNativeStateAsync(id); break;
                 default: throw new ArgumentOutOfRangeException(nameof(providerName));
             }
             var peerActive = await peer.ActivateProviderAsync(); Assert.False(peerActive.IsError, peerActive.Message);
             Assert.NotSame(provider, peer);
             var before = await SeedRoutingStores([provider], id);
-            var originalPortrait = (await peer.LoadAvatarDetailAsync(id)).Result.Portrait;
+            Assert.NotNull(nativeState);
+            var originalPortrait = (await nativeState()).Portrait;
             var routing = Routing([provider], false, HyperDriveModes.V2);
             var sdk = new AvatarManager(null, routing.OASISDNA, routing);
             var peerRouting = Routing([peer], false, HyperDriveModes.V2);
@@ -100,14 +105,15 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             Assert.Same(barrier.Captured, arrived);
             var captured = await barrier.Captured;
             Assert.False(captured.IsError, captured.Message); Assert.NotNull(captured.Result);
-            Assert.Equal(before.FirstName, captured.Result.FirstName);
-            var newerName = "Newer " + providerName;
+            Assert.Equal(before.Address, captured.Result.Address);
+            var newerAddress = "Newer address " + providerName;
             var edited = await peerSdk.ApplyAvatarProfileAsync(id,
-                Edit(id, before, (AvatarProfileProperty.FirstName, newerName)), peer.ProviderType.Value);
+                Edit(id, before, (AvatarProfileProperty.Address, newerAddress)), peer.ProviderType.Value);
             Assert.False(edited.IsError, edited.Message); Assert.True(edited.IsSaved);
             var committedDetail = await peer.LoadAvatarDetailAsync(id);
             Assert.False(committedDetail.IsError, committedDetail.Message);
-            Assert.Equal(newerName, committedDetail.Result.FirstName);
+            Assert.Equal(newerAddress, committedDetail.Result.Address);
+            Assert.Equal(newerAddress, (await nativeState()).Address);
             Console.WriteLine("Portrait overlap ordering verified: " + providerName +
                 "; actual native read completed before independent native profile commit, portrait save still paused.");
             barrier.Release();
@@ -115,9 +121,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             var account = await peer.LoadAvatarAsync(id);
             var detail = await peer.LoadAvatarDetailAsync(id);
             Assert.False(account.IsError, account.Message); Assert.False(detail.IsError, detail.Message);
-            Assert.Equal(newerName, account.Result.FirstName);
-            Assert.Equal(newerName, detail.Result.FirstName);
-            Assert.Equal(before.LastName, detail.Result.LastName);
+            var finalNative = await nativeState();
+            Assert.Equal(newerAddress, finalNative.Address);
+            Assert.Equal(newerAddress, detail.Result.Address);
+            Assert.Equal(before.FirstName, account.Result.FirstName);
+            Assert.Equal(before.LastName, account.Result.LastName);
+            Assert.Equal(before.Title, account.Result.Title);
             Assert.Equal(before.Username, detail.Result.Username);
             Assert.Equal(before.Email, detail.Result.Email);
             Assert.Equal(42, detail.Result.XP); Assert.Equal("stored-hash", account.Result.Password);
@@ -125,11 +134,13 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             {
                 Assert.Equal("AVATAR_PROFILE_REVISION_CONFLICT", result.ErrorCode);
                 Assert.False(result.IsSaved); Assert.False(result.Result);
+                Assert.Equal(originalPortrait, finalNative.Portrait);
                 Assert.Equal(originalPortrait, detail.Result.Portrait);
             }
             else
             {
                 Assert.True(result.IsSaved); Assert.True(result.Result);
+                Assert.Equal(image, finalNative.Portrait);
                 Assert.Equal(image, detail.Result.Portrait);
             }
             Console.WriteLine("Portrait native overlap preserved newer profile: " + providerName +
