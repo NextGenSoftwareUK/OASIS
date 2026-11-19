@@ -1,6 +1,6 @@
 # Profile hydration SDK scope — 19 November 2026
 
-Status: source and generated delivery verified; real browser/API/backend qualification still required. OPORTAL remains incomplete.
+Status: scoped real browser/API/backend qualification accepted in44605454429 on Core13ba3416; combined Core96 integration build remains separate and pending. OPORTAL remains incomplete.
 
 The dashboard calls `hydrateAvatarProfile` to refresh profile details. Its request owner used the JWT cached inside the avatar record while the actual SDK sends its current bearer. Missing cached credentials could suppress a valid SDK read; an old in-flight request could absorb a new bearer/client intent.
 
@@ -17,3 +17,7 @@ Require: cached expired JWT with valid SDK bearer; missing cached JWT; coalesced
 ## Real qualification prepared
 
 NEW `ProfileHydrationUsesCurrentSdkBearerClientAndActualNativeController` uses the existing isolated host with actual AvatarProfileController and native Program avatar manager; optional test-data setting explicitly false. Frozen Portal7f01ee9f/SDKd7aa569; ten exact real GETs and six published updates across three stored actors, held original requests continue. Covers cached-expired/current SDK, no cached JWT, duplicate pending coalescing, bearer replacement, client replacement with identical bearer, account change, expired SDK401 and recovery. All old replies must resolve without publication. Native profile plus eight financial collections unchanged, zero business writes/page errors/external calls, provider/database/process and browser/runtime/cache cleanup required. Source syntax/diff checks passed; no actual build/browser/native acceptance yet. Prior accepted tests not selected.
+
+## Real qualification accepted
+
+Run44605454429/job135847816728 passed the single NEW case on first run in15s; actual API0errors. All ten real profile reads and six publications passed across three native actors: token/client/account boundaries, pending coalescing, cached-expired or absent JWT, expired SDK401 and recovery. Native Avatar/AvatarDetail and eight financial collections unchanged, zero business writes. Original held requests continued; no business response replaced. Artifact14571160749/3054B exact SHA2565ff00562841bb3b224a0f31d6bab98a25f1b40cf1510bf438f1983e5aedfd396 strict passed TRX/native/public flags verified RAM and disposed,filesWritten0. Provider/database/process restoration and terminal browser/runtime/cache/control/Mongo absence passed. Old accepted tests not rerun. Evidence is Core13/Portal7f01, not a claim of Core96 combined-graph behavior, hosted speed, actual refresh endpoint, full modal edit/portrait/dashboard or full portal completion.

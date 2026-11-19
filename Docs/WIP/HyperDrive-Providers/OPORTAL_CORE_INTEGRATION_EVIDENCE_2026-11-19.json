@@ -1,0 +1,22 @@
+{
+  "status": "in_progress",
+  "run": 44607073292,
+  "job": 135853508585,
+  "source": "f20298c90df6cbdbe3d9892e92c261779e154607",
+  "developmentCheckpoint": "38d4320ef7cffa3ce8d6c77cb312dee3f42acb9d",
+  "coreMerge": "96f6baea21c1423795f7effcac208a8f6485b30c",
+  "coreParents": [
+    "13ba34168d21ec583ccb5057a80edc9bac9444ca",
+    "8cffa72d17439e465e96183186512dfebcc89b97"
+  ],
+  "verifiedUpstreamCommitsIntegrated": 63,
+  "ownedNonOverlappingFilesPreserved": 8,
+  "overlappingRoutingFilesMerged": 2,
+  "profileAndCosmicRoutingMarkersVerified": true,
+  "parentGitlinkManifestPaired": true,
+  "apiBuildAccepted": false,
+  "combinedGraphBehaviorAccepted": false,
+  "behaviorTestsSelected": 0,
+  "mongoFixtureStarted": false,
+  "notes": "Immutable verified Development Core checkpoint merged into task branch, no deployment or physical checkout mutation. Build-only API/manifest qualification confirmed active; do not relabel accepted source13 behaviors as merged96 proof."
+}
