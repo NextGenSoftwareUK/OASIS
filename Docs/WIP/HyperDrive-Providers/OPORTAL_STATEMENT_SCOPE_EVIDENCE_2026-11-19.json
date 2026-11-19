@@ -1,6 +1,6 @@
 {
   "scope": "Actual repository/collector/shipping gateway/native Mongo; existing statement INPUTS and real zero-due collection only",
-  "status": "qualification-in-progress-not-accepted",
+  "status": "first-build-failed-sdk-overload-corrected-awaiting-rerun",
   "releaseGates": [
     "historical in-flight transition",
     "genuine Stripe readiness/positive controller/nonzero/signed webhook",
@@ -22,5 +22,18 @@
   "filter": "FullyQualifiedName~OverageCollectionRejectsForeignScopeAndEmptyPayersBeforeMutation",
   "sourceCommit": "273849783701ad6ee541d2deb21e1286996d8d1d",
   "runId": 44532487678,
-  "jobId": 135589176702
+  "jobId": 135589176702,
+  "firstFailure": {
+    "cause": "Ambiguous Mongo driver expression-filter transaction overload",
+    "source": "273849783701ad6ee541d2deb21e1286996d8d1d",
+    "nativeExecuted": false,
+    "artifactCount": 0,
+    "runId": 44532487678,
+    "fix": "Explicit FilterDefinition, projection and options types select the shipping collection SDK overload",
+    "localGeneratedOutputs": 0,
+    "apiBuildErrors": 1,
+    "jobId": 135589176702,
+    "ownedMongoAbsenceVerified": true,
+    "code": "CS0121"
+  }
 }

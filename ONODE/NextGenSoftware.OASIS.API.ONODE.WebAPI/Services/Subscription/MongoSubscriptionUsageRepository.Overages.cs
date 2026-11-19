@@ -88,10 +88,11 @@ public sealed partial class MongoSubscriptionUsageRepository
             if(statement==null)return null;
             // Validate before any lease write or gateway call, in the same snapshot as the claim.
             RequireStoredStatementBinding(statement);
-            return await OverageStatements.FindOneAndUpdateAsync(session,x=>x.Id==id && x.Scope==OverageScope && x.State!="paid" && x.State!="void" && x.State!="uncollectible" &&
-            (x.LeaseUntilUtc==null || x.LeaseUntilUtc<=now),Builders<PaidOverageStatement>.Update.Set(x=>x.LeaseOwner,owner)
+            var eligible=Builders<PaidOverageStatement>.Filter.Where(x=>x.Id==id && x.Scope==OverageScope && x.State!="paid" && x.State!="void" && x.State!="uncollectible" &&
+                (x.LeaseUntilUtc==null || x.LeaseUntilUtc<=now));
+            return await OverageStatements.FindOneAndUpdateAsync<PaidOverageStatement>(session,eligible,Builders<PaidOverageStatement>.Update.Set(x=>x.LeaseOwner,owner)
             .Set(x=>x.LeaseUntilUtc,now.AddMinutes(10)).Set(x=>x.UpdatedAtUtc,now).Inc(x=>x.Attempts,1),
-            new FindOneAndUpdateOptions<PaidOverageStatement>{ReturnDocument=ReturnDocument.After},ct);
+            new FindOneAndUpdateOptions<PaidOverageStatement,PaidOverageStatement>{ReturnDocument=ReturnDocument.After},ct);
         },token);
     public async Task AttachInvoiceAsync(string id,string owner,string invoiceId,CancellationToken token)
     {
