@@ -25,10 +25,29 @@
     "provider and HyperDrive programme"
   ],
   "localGeneratedOutputs": 0,
-  "status": "qualification-in-progress-not-accepted",
+  "status": "first-qualification-failed-fixture-root-corrected-awaiting-rerun",
   "filter": "FullyQualifiedName~SubscriptionPersonalConsentReviewUsesActualControllerSdkAndBrowser",
   "portalSource": "29927fb3fb4de438a7353909916ca33f18efadd7",
   "sourceCommit": "00c645b1bc57ba7cdd6ac9dc29446a024dc98919",
   "runId": 44527008943,
-  "jobId": 135570130339
+  "jobId": 135570130339,
+  "firstFailure": {
+    "linkedErrors": 0,
+    "artifactId": 14532616251,
+    "nativeFinalStateAccepted": false,
+    "artifactSha256": "2f30b6a16fd30e86c712196f5aff5dc02332dc1043226be3bd8b05f8c3113b77",
+    "artifactBytes": 8493,
+    "failed": 1,
+    "passed": 0,
+    "apiErrors": 0,
+    "ownedMongoAbsenceVerified": true,
+    "browserMarkerVerified": true,
+    "source": "00c645b1bc57ba7cdd6ac9dc29446a024dc98919",
+    "runId": 44527008943,
+    "artifactFilesWritten": 0,
+    "cause": "Shared ownerPayNow fixture inserted two unrelated app statements in new consent-review mode",
+    "fix": "Exclude consent-review from that setup; preserve strict zero-statement invariant",
+    "ownedBrowserCleanupVerified": true,
+    "jobId": 135570130339
+  }
 }

@@ -183,7 +183,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             }
             if (ownerUsage) await SeedOwnedAppUsageAsync(db, accounts, missingAccount);
             if (ownerBilling) await SeedOwnedAppBillingAsync(db, accounts, repositoryType, repository);
-            if (ownerPayNow && browser && !freshAppUsage && !personalBilling)
+            if (ownerPayNow && browser && !freshAppUsage && !personalBilling && !personalConsentReview)
             {
                 foreach (var index in Enumerable.Range(0, accounts.Length))
                     await SeedOwnedZeroAppStatementAsync(db, index == 0 ? "owned-app-a" : "owned-app-b", accounts[index],
@@ -615,6 +615,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             }
             await mongo.DropDatabaseAsync(databaseName);
             Assert.DoesNotContain(databaseName, await (await mongo.ListDatabaseNamesAsync()).ToListAsync());
+            Console.WriteLine("Owned subscription HTTP database absence verified; provider deactivated and process state restored.");
         }
     }
 
