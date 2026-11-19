@@ -26,6 +26,9 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     {
         private readonly MongoClient _client=new(MongoUri);
         private readonly string _name="profile_stamp_"+Guid.NewGuid().ToString("N");
+        private readonly PortraitNativeReadBarrier? _portraitBarrier;
+        public MongoStore(PortraitNativeReadBarrier? barrier = null) => _portraitBarrier = barrier;
+        public IOASISStorageProvider CreatePeerProvider() => new MongoDBOASIS(MongoUri,_name);
         public MongoDBOASIS Provider {get;private set;}=null!;
         internal IMongoDatabase Admin=>_client.GetDatabase("admin");
         // The independent observer is outside Provider's app-name-scoped fault.
@@ -43,7 +46,9 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         public async Task Activate()
         {
             Assert.DoesNotContain(_name,await(await _client.ListDatabaseNamesAsync()).ToListAsync());
-            Provider=new MongoDBOASIS(new MongoUrlBuilder(MongoUri){ApplicationName="profile-stamp-"+Guid.NewGuid().ToString("N")}.ToString(),_name);
+            var connection=new MongoUrlBuilder(MongoUri){ApplicationName="profile-stamp-"+Guid.NewGuid().ToString("N")}.ToString();
+            Provider=_portraitBarrier==null ? new MongoDBOASIS(connection,_name)
+                : new PortraitReadGatedMongo(connection,_name,_portraitBarrier);
             var active=await Provider.ActivateProviderAsync();Assert.False(active.IsError,active.Message);
         }
         public async ValueTask DisposeAsync()
@@ -62,7 +67,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     private sealed class BoltStore:IAsyncDisposable
     {
         private readonly IDriver _driver=GraphDatabase.Driver("bolt://127.0.0.1:27687",AuthTokens.Basic("neo4j","oasis-profile-fixture-only"));
-        public Neo4jOASIS Provider {get;}=new("bolt://127.0.0.1:27687","neo4j","oasis-profile-fixture-only");
+        public Neo4jOASIS Provider {get;}
+        public BoltStore(PortraitNativeReadBarrier? barrier = null) => Provider=barrier==null
+            ? new Neo4jOASIS("bolt://127.0.0.1:27687","neo4j","oasis-profile-fixture-only")
+            : new PortraitReadGatedNeo("bolt://127.0.0.1:27687","neo4j","oasis-profile-fixture-only",barrier);
+        public IOASISStorageProvider CreatePeerProvider() =>
+            new Neo4jOASIS("bolt://127.0.0.1:27687","neo4j","oasis-profile-fixture-only");
         private readonly HashSet<Guid> _owned = new();
         public async Task TrackOwnedActorAsync(Guid id)
         {
@@ -102,7 +112,10 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     {
         private readonly DirectoryInfo _directory=Directory.CreateTempSubdirectory("oasis-profile-stamp-");
         public SQLLiteDBOASIS Provider {get;}
-        public SqliteStore()=>Provider=new SQLLiteDBOASIS($"Data Source={Path.Combine(_directory.FullName,"profile.db")};Pooling=False");
+        private string Connection => $"Data Source={Path.Combine(_directory.FullName,"profile.db")};Pooling=False";
+        public SqliteStore(PortraitNativeReadBarrier? barrier = null) => Provider=barrier==null
+            ? new SQLLiteDBOASIS(Connection) : new PortraitReadGatedSqlite(Connection,barrier);
+        public IOASISStorageProvider CreatePeerProvider() => new SQLLiteDBOASIS(Connection);
         public void Dispose()
         {
             try{Provider.Dispose();}

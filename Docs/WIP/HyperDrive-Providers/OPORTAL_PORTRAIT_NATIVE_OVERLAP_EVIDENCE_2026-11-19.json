@@ -1,0 +1,30 @@
+{
+  "status": "native_reproduction_source_prepared_not_compiled_or_executed",
+  "test": "PortraitNativeReadWriteOverlapPreservesNewerProfile",
+  "providers": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "newTheoryRows": 3,
+  "mode": "V2",
+  "core": "650188d6f08d82b7a9b3af15c48e7d8018a79c78",
+  "independentRealClientsPerDatabase": 2,
+  "sameOwnedDatabasePerCase": true,
+  "nativeBaseReaderCalledBeforeBarrier": true,
+  "realReadResultUnchanged": true,
+  "realAtomicProfileCommitBeforePortraitResumeRequired": true,
+  "saveMethodsAndCapabilitiesInheritedFromShippingProviders": true,
+  "businessResponsesReplaced": false,
+  "allowedOutcomes": [
+    "successful portrait with newer account/detail profile fields preserved",
+    "AVATAR_PROFILE_REVISION_CONFLICT with newer fields and original portrait preserved"
+  ],
+  "automaticRetryAllowed": false,
+  "browserUiAccepted": false,
+  "hostedAccepted": false,
+  "nativeOverlapAccepted": false,
+  "currentDecoderCompanionCompileIncludedInNextRun": true,
+  "acceptedBasicAndQueuedCasesSelected": 0,
+  "localRuntimeEnvironmentBuildDatabaseCreated": false
+}
