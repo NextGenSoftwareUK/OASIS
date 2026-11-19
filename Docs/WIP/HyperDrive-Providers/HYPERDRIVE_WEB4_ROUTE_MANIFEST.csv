@@ -772,3 +772,4 @@
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs","29","SubscriptionAppOwnerController","Settings","GET","{appId}/settings","InjectedServiceRepositoryOrClient"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs","41","SubscriptionAppOwnerController","SaveSettings","POST","{appId}/settings","InjectedServiceRepositoryOrClient"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs","48","SubscriptionAppOwnerController","Usage","GET","{appId}/usage","InjectedServiceRepositoryOrClient"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs","74","SubscriptionAppOwnerController","Billing","GET","{appId}/payg","InjectedServiceRepositoryOrClient"

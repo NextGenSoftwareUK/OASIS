@@ -12,7 +12,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers;
 
-/// <summary>Authenticated app ownership and atomic personal app-setting choices.</summary>
+/// <summary>Authenticated app ownership, atomic setting choices and native usage/billing views.</summary>
 [ApiController]
 [Authorize]
 [Route("api/subscription/app-owner")]
@@ -70,6 +70,28 @@ public sealed class SubscriptionAppOwnerController(MongoSubscriptionUsageReposit
     }
 
     private static UsageVisibilitySettings Defaults => OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.UsageVisibility ?? new();
+
+    [HttpGet("{appId}/payg")]
+    public Task<IActionResult> Billing(string appId)
+    {
+        return Run(async actor =>
+        {
+            var app = await repository.GetAppForOwnerAsync(appId, actor, IsAdministrator(actor), HttpContext.RequestAborted);
+            var prices = AppOveragePrices.Load();
+            var pool = await repository.GetAppPoolUsageAsync(appId, HttpContext.RequestAborted);
+            var settings = app.Payg ?? new AppPaygSettings();
+            var configured = prices.HasPrice(app.PlanId);
+            var rate = configured ? prices.Rate(app.PlanId) : 0m;
+            var statements = await repository.GetStatementsAsync("app:" + appId, 24, HttpContext.RequestAborted);
+            return new { featureEnabled = Defaults.AppPayAsYouGoEnabled, pricesConfigured = configured,
+                pricingVersion = prices.Version, pricingSha256 = prices.PricingSha256, currency = prices.Currency,
+                ratePerRequestUsd = rate, settings,
+                estimate = AppOverageEstimate.Compute(pool.Usage?.MonthlyRequests ?? 0,
+                    pool.Limits?.MonthlyRequestLimit ?? 0, rate, settings.MonthlyCapUsd),
+                statements = statements.Select(value => new { value.Id, value.Month,
+                    amountUsd = value.AmountMinorUsd / 100m, value.State, value.PaymentFailed, value.HostedInvoiceUrl }).ToList() };
+        });
+    }
 
     private bool IsAdministrator(string actor)
     {

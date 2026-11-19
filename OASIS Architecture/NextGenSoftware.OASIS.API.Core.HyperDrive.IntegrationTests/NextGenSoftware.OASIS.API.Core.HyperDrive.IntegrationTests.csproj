@@ -45,5 +45,6 @@
   <ItemGroup><Compile Include="../../Scripts/TestHosts/Fixtures/CosmicOperationInventoryProbe.cs" Link="Fixtures/CosmicOperationInventoryProbe.cs" /></ItemGroup>
   <ItemGroup>
     <Content Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Configuration/subscription-overage-prices.json" Link="Configuration/subscription-overage-prices.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Configuration/app-overage-prices.json" Link="Configuration/app-overage-prices.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

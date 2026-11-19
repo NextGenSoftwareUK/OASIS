@@ -43,7 +43,10 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     [Fact]
     public Task SubscriptionAppOwnerUsageBrowserUsesActualControllerAndOwnedMongo() => RunSubscriptionHttp(true, true, true, true, true);
 
-    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false)
+    [Fact]
+    public Task SubscriptionAppBillingReadsBrowserUsesActualControllerAndOwnedMongo() => RunSubscriptionHttp(true, true, true, true, false, true);
+
+    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -86,6 +89,27 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             var repositoryType = api.GetType(ns + "MongoSubscriptionUsageRepository", true)!;
             var repository = Activator.CreateInstance(repositoryType,
                 [mongo, databaseName, TimeProvider.System, null, false, null])!;
+            if (ownerBilling)
+            {
+                var shipping = await File.ReadAllBytesAsync(Path.Combine(Path.GetDirectoryName(artifact)!, "Configuration/app-overage-prices.json"));
+                Assert.Equal(SHA256.HashData(shipping), SHA256.HashData(await File.ReadAllBytesAsync(
+                    Path.Combine(AppContext.BaseDirectory, "Configuration/app-overage-prices.json"))));
+                var prices = api.GetType(ns + "AppOveragePrices", true)!;
+                var parse = prices.GetMethod("Parse")!;
+                foreach (var invalid in new[] { "[]", "{}",
+                    "{\"version\":\"owned-duplicate\"," + System.Text.Encoding.UTF8.GetString(shipping).TrimStart()[1..],
+                    "{\"version\":\"owned-duplicate\",\"currency\":\"USD\",\"aiMargin\":0,\"requestRatesUsd\":{\"bronze\":0.001,\"silver\":0.0005,\"silver\":0.1,\"gold\":0.0002,\"enterprise\":0.0001}}",
+                    "{\"version\":\"a\",\"currency\":\"USD\",\"aiMargin\":0,\"requestRatesUsd\":null}",
+                    System.Text.Encoding.UTF8.GetString(shipping).Replace("\"USD\"", "\"GBP\"") })
+                    Assert.IsType<InvalidOperationException>(Assert.Throws<TargetInvocationException>(() =>
+                        parse.Invoke(null, [System.Text.Encoding.UTF8.GetBytes(invalid)])).InnerException);
+                var bytes = shipping.ToArray();
+                var parsed = parse.Invoke(null, [bytes])!;
+                Array.Fill(bytes, (byte)0);
+                Assert.Equal(0.0005m, (decimal)prices.GetMethod("Rate")!.Invoke(parsed, ["silver"])!);
+                Assert.Null(prices.GetProperty("Version")!.GetSetMethod());
+                Assert.Null(prices.GetProperty("PricingSha256")!.GetSetMethod());
+            }
             var serviceType = api.GetType(ns + "SubscriptionService", true)!;
             var logger = typeof(NullLogger<>).MakeGenericType(serviceType).GetField("Instance")!.GetValue(null)!;
             var service = Activator.CreateInstance(serviceType, [logger, repository, repository, TimeProvider.System])!;
@@ -108,6 +132,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     });
             }
             if (ownerUsage) await SeedOwnedAppUsageAsync(db, accounts, missingAccount);
+            if (ownerBilling) await SeedOwnedAppBillingAsync(db, accounts, repositoryType, repository);
             avatarStore = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(MongoUri, databaseName);
             var activated = await avatarStore.ActivateProviderAsync();
             Assert.False(activated.IsError, activated.Message);
@@ -265,7 +290,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     });
                     Assert.False(result.RootElement.TryGetProperty("isError", out var failed) && failed.GetBoolean(),
                         result.RootElement.TryGetProperty("message", out var message) ? message.GetString() : "Browser worker failed.");
-                    Assert.True(result.RootElement.GetProperty(ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
+                    Assert.True(result.RootElement.GetProperty(ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
                         usage ? "subscriptionUsageBrowserVerified" : "subscriptionBrowserVerified").GetBoolean());
                     Assert.Equal(3, result.RootElement.GetProperty("actorsVerified").GetInt32());
                     Assert.True(result.RootElement.GetProperty("lateSessionResponseIgnored").GetBoolean());
@@ -297,7 +322,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 }
                 Assert.Equal(2L, await db.GetCollection<BsonDocument>("subscription_records").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
                 Assert.Equal(2L, await db.GetCollection<BsonDocument>("subscription_orders").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
-                if (usage) Assert.Equal(ownerUsage ? 12L : 4L, await db.GetCollection<BsonDocument>("subscription_usage_buckets").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+                if (usage) Assert.Equal(ownerUsage ? 12L : ownerBilling ? 8L : 4L, await db.GetCollection<BsonDocument>("subscription_usage_buckets").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
                 if (notifications && !ownerSettings)
                 {
                     var preferences = db.GetCollection<BsonDocument>("usage_notification_settings");
@@ -336,7 +361,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     Assert.Equal(second.Next, Assert.Single(after["thresholds"].AsBsonArray).ToInt32());
                     Console.WriteLine("Notification native audit verified: two concurrent changes form the actual before/after chain; seven total preference audit entries, two owned subjects.");
                 }
-                if (ownerSettings && !ownerUsage)
+                if (ownerSettings && !ownerUsage && !ownerBilling)
                 {
                     var apps = db.GetCollection<BsonDocument>("subscription_app_accounts");
                     var audit = db.GetCollection<BsonDocument>("subscription_billing_audit");
@@ -377,6 +402,20 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     Assert.Equal(1L, await db.GetCollection<BsonDocument>("subscription_billing_audit").CountDocumentsAsync(
                         new BsonDocument("Kind", "app-usage-overrides-changed")));
                     Console.WriteLine("App usage native verified: five operations/eleven audit deltas/twelve total buckets unchanged; only the explicit disable-view setting wrote one settings audit.");
+                }
+                if (ownerBilling)
+                {
+                    Assert.Equal(3L, await db.GetCollection<BsonDocument>("subscription_overage_statements").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+                    Assert.Equal(0L, await db.GetCollection<BsonDocument>("subscription_billing_audit").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+                    var apps = await db.GetCollection<BsonDocument>("subscription_app_accounts").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+                    Assert.Equal(2, apps.Count);
+                    foreach (var app in apps)
+                    {
+                        Assert.False(app["Payg"]["Enabled"].AsBoolean);
+                        Assert.Equal("owned-historical-terms", app["Payg"]["PricingVersion"].AsString);
+                        Assert.Equal(app["_id"].AsString == "owned-app-a" ? 5m : 2m, app["Payg"]["MonthlyCapUsd"].ToDecimal());
+                    }
+                    Console.WriteLine("App billing reads native verified: three owned statement fixtures and eight buckets unchanged, no billing audit writes; immutable catalogue validation passed. Not Stripe collection or app admission acceptance.");
                 }
             }
             finally { await app.StopAsync(); }
@@ -445,5 +484,41 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         await Buckets("app:owned-app-a#3", now, 1, 6, 0.006m);
         await Buckets("app:owned-app-b", now, 1, 500, 0.5m);
         await Buckets("app:owned-app-a", old, 1, 777, 0.777m);
+    }
+
+    private static async Task SeedOwnedAppBillingAsync(IMongoDatabase db, string[] accounts, Type repositoryType, object repository)
+    {
+        var provider = repositoryType.GetField("_policyProvider", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(repository)!;
+        var policy = provider.GetType().GetMethod("GetPolicy", [typeof(string), typeof(int)])!.Invoke(provider, ["silver", 0])!;
+        var included = (long)policy.GetType().GetProperty("MonthlyRequestLimit")!.GetValue(policy)!;
+        var now = DateTime.UtcNow;
+        for (var i = 0; i < 2; i++)
+        {
+            var app = i == 0 ? "owned-app-a" : "owned-app-b";
+            await db.GetCollection<BsonDocument>("subscription_app_accounts").UpdateOneAsync(new BsonDocument("_id", app),
+                new BsonDocument("$set", new BsonDocument { { "Payg", new BsonDocument { { "Enabled", false },
+                    { "MonthlyCapUsd", new BsonDecimal128(i == 0 ? 5m : 2m) }, { "PricingVersion", "owned-historical-terms" } } },
+                    { "Overrides.OwnerViewEnabled", i != 0 } }));
+            foreach (var type in new[] { "day", "month" })
+            {
+                var subject = "app:" + app;
+                var period = now.ToString(type == "day" ? "yyyy-MM-dd" : "yyyy-MM");
+                await db.GetCollection<BsonDocument>("subscription_usage_buckets").InsertOneAsync(new BsonDocument
+                {
+                    { "_id", subject + ":" + type + ":" + period }, { "UserId", subject },
+                    { "PeriodType", type }, { "Period", period }, { "Requests", included + (i == 0 ? 2000 : 6000) }, { "UpdatedAtUtc", now }
+                });
+            }
+        }
+        for (var i = 0; i < 3; i++)
+            await db.GetCollection<BsonDocument>("subscription_overage_statements").InsertOneAsync(new BsonDocument
+            {
+                { "_id", "owned-statement-" + Guid.NewGuid().ToString("N") },
+                { "UserId", i == 0 ? "app:owned-app-a" : i == 1 ? "app:owned-app-b" : accounts[0] },
+                { "Scope", "owned-read-fixture" }, { "Month", now.AddMonths(-1).ToString("yyyy-MM") },
+                { "AmountMinorUsd", i == 0 ? 123L : i == 1 ? 456L : 789L },
+                { "State", i == 1 ? "open" : "paid" }, { "PaymentFailed", i == 1 }, { "CreatedAtUtc", now },
+                { "HostedInvoiceUrl", "https://invoice.stripe.com/i/owned-read-fixture-" + i }
+            });
     }
 }
