@@ -409,11 +409,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     Assert.Equal(0L, await db.GetCollection<BsonDocument>("subscription_billing_audit").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
                     var apps = await db.GetCollection<BsonDocument>("subscription_app_accounts").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
                     Assert.Equal(2, apps.Count);
-                    foreach (var app in apps)
+                    foreach (var appRecord in apps)
                     {
-                        Assert.False(app["Payg"]["Enabled"].AsBoolean);
-                        Assert.Equal("owned-historical-terms", app["Payg"]["PricingVersion"].AsString);
-                        Assert.Equal(app["_id"].AsString == "owned-app-a" ? 5m : 2m, app["Payg"]["MonthlyCapUsd"].ToDecimal());
+                        Assert.False(appRecord["Payg"]["Enabled"].AsBoolean);
+                        Assert.Equal("owned-historical-terms", appRecord["Payg"]["PricingVersion"].AsString);
+                        Assert.Equal(appRecord["_id"].AsString == "owned-app-a" ? 5m : 2m, appRecord["Payg"]["MonthlyCapUsd"].ToDecimal());
                     }
                     Console.WriteLine("App billing reads native verified: three owned statement fixtures and eight buckets unchanged, no billing audit writes; immutable catalogue validation passed. Not Stripe collection or app admission acceptance.");
                 }
