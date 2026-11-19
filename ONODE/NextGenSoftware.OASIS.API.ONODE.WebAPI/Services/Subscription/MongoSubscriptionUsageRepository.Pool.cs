@@ -16,8 +16,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
 
         /// <summary>
         /// Number of documents a pooled app's usage is spread across (env OASIS_POOL_SHARDS, 1 to 16, default 1).
-        /// 1 serializes every request on one document: exact limits, one hot document. Higher values remove that write
-        /// contention but the limit can be overshot by at most the requests in flight at the same instant.
+        /// Bucket writes are distributed across shards. Admission still writes the app authorization version
+        /// in its transaction, so the aggregate limit remains exact across every shard layout.
         /// </summary>
         public static int PoolShardCount
         {
@@ -69,6 +69,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         private async Task EnsurePoolAdmissionAsync(IClientSessionHandle session, SubscriptionUsageEvent usageEvent, int karma, CancellationToken ct)
         {
             if (usageEvent.PooledAppId == null) return;
+            // Every pooled admission must share a write with other admissions and app mutations.
+            // Snapshot reads across distinct buckets alone permit write skew and quota overshoot.
+            // The transaction driver retries a conflicting writer against a fresh app/pool snapshot.
+            var account = await AppAccounts.Find(session, x => x.AppId == usageEvent.PooledAppId).FirstOrDefaultAsync(ct)
+                ?? throw new SubscriptionUsageLimitException("APP_ACCOUNT_NOT_FOUND", "The app account no longer exists.", 404);
+            if (account.Status != "active")
+                throw new SubscriptionUsageLimitException("APP_ACCOUNT_INACTIVE", "The app account is not active.", 403);
+            if (!AppAccountRules.UsesPool(account))
+                throw new SubscriptionUsageLimitException("APP_POOL_NOT_ACTIVE", "The app no longer uses an enabled shared quota.", 409);
+            if (usageEvent.AppId != account.AppId || usageEvent.PooledAppPlanId != account.PlanId ||
+                usageEvent.AppPlanId != AppAccountRules.PerUserPlan(account))
+                throw new SubscriptionUsageLimitException("APP_ACCOUNT_CHANGED", "The app quota configuration changed; refresh the app authorization before reserving usage.", 409);
+            await AppAccounts.UpdateOneAsync(session, x => x.AppId == account.AppId,
+                Builders<AppAccountRecord>.Update.Set(x => x.AuthorizationVersion, checked(account.AuthorizationVersion + 1)),
+                cancellationToken: ct);
             var pool = await LoadPoolAggregateAsync(session, usageEvent.PooledAppId, usageEvent.AuthorizedAtUtc, ct);
             var policy = _policyProvider.GetPolicy(usageEvent.PooledAppPlanId, 0);
             try

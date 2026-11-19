@@ -461,7 +461,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public static bool SameAuthorization(SubscriptionUsageEvent x, SubscriptionUsageEvent y) =>
             x.ConsumingService == y.ConsumingService && x.Endpoint == y.Endpoint && x.MeterCategory == y.MeterCategory &&
             x.RequestedUnits == y.RequestedUnits && x.ReservedCostUsd == y.ReservedCostUsd && x.RequestFingerprint == y.RequestFingerprint &&
-            x.GrantId == y.GrantId;
+            x.GrantId == y.GrantId && x.AppId == y.AppId;
 
         public static void ValidateAuthorization(SubscriptionUsageEvent value)
         {
