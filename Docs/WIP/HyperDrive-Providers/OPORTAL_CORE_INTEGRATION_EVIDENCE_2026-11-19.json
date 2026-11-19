@@ -1,5 +1,5 @@
 {
-  "status": "in_progress",
+  "status": "failed_manifest_review_corrected_pending",
   "run": 44607073292,
   "job": 135853508585,
   "source": "f20298c90df6cbdbe3d9892e92c261779e154607",
@@ -18,5 +18,20 @@
   "combinedGraphBehaviorAccepted": false,
   "behaviorTestsSelected": 0,
   "mongoFixtureStarted": false,
-  "notes": "Immutable verified Development Core checkpoint merged into task branch, no deployment or physical checkout mutation. Build-only API/manifest qualification confirmed active; do not relabel accepted source13 behaviors as merged96 proof."
+  "notes": "First build-only44607073292 failed before API compile at unchanged manager inventory guard; artifact list verified empty. Reviewed exact merged Core96 source, not physical concurrent checkout. Scope-only manifest change11 insertions/1 deletion: owned/selected writes and status recovery are V2 boundaries; purge is explicit administrative native capability (V2 outbox/destinations not fully enumerated, no purge acceptance); pure storage-policy decode local; avatar settings I/O explicitly delegated. Old918 inventory ->928 total/753 provider-backed or delegating. No guard/test skipped, no runtime behavior changed. Corrected build-only rerun required, no accepted behavior tests selected.",
+  "firstBuildReached": false,
+  "artifacts": [],
+  "firstFailure": "Public manager method inventory did not include upstream additions/signature change; guard stayed enabled.",
+  "reviewedDeclarations": 12,
+  "oldRowsReplaced": 2,
+  "publicManagerMethods": 928,
+  "providerBackedOrDelegatingMethods": 753,
+  "unrelatedManifestRowsUnchanged": true,
+  "reviewedSourceBlobs": {
+    "HolonManager-OwnedBatchSave.cs": "c2fd999c7621f218e3d65797496dc0041a1599d4",
+    "HolonManager-OwnedSave.cs": "ca6697dc70628b6d2802574919abfb3483092957",
+    "HolonManager-PropertyRecovery.cs": "828b444dfe1f8da667dce5a2e62277820bf1de4b",
+    "HolonManager-Purge.cs": "260846ef17ca90e4856af3b116d61179b3ebd984",
+    "SettingsManager.HolonStoragePolicies.cs": "97d8effa7277e70af2839f0b5d118ef5edcb93a5"
+  }
 }

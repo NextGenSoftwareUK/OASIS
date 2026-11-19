@@ -2,6 +2,10 @@
 
 Updated28October2026. Recover from [CURRENT_STATUS.md](CURRENT_STATUS.md), then query the [matrix](PROVIDER_MATRIX.md); archives are not default reading.
 
+## 19 November manager inventory integration review
+
+Merged Core96f6baea adds selected-field writes, original status recovery, explicit native purge and saved storage policies. Exact-source review updates the public-method manifest to928 declarations,753 provider-backed/delegating. These are method inventory counts, not providers or functional acceptance. Pure storage-policy decoding stays local; saved policy I/O delegates to the avatar manager; purge retains explicit V2 destination/outbox limitations. First build44607073292 stopped at the unchanged inventory guard before compilation; corrected build-only verification remains pending. Existing native evidence below is unchanged.
+
 ## Evidence scope
 
 | Gate | Verified scope |
