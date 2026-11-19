@@ -1,5 +1,5 @@
 {
-  "status": "api_compile_three_remaining_dependency_errors",
+  "status": "three_dependency_sources_corrected_build_pending",
   "run": 44607073292,
   "job": 135853508585,
   "source": "f20298c90df6cbdbe3d9892e92c261779e154607",
@@ -157,5 +157,15 @@
     "retainedLocalPortalSourceStale": true,
     "localPortalHeadPushed": false,
     "businessCalls": 0
+  },
+  "holoUrbitCorrection": {
+    "verifiedSourceCheckpoint": "38d4320ef7cffa3ce8d6c77cb312dee3f42acb9d",
+    "exactAdditionalSourceFiles": 11,
+    "happSha256Verified": true,
+    "holochainPin": "fc7db7c8a3bea5266a0d7579c0cbe8b19226082c",
+    "otherPinsPreserved": true,
+    "manifestAndSevenDockerfilesAndGitlinksVerified": true,
+    "behaviorTestsExecuted": 0,
+    "deployed": false
   }
 }

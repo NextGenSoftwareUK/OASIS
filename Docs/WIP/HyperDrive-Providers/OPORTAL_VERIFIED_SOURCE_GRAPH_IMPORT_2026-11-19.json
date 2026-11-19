@@ -1,5 +1,5 @@
 {
-  "status": "shared_plan_compiles_api_has_three_remaining_dependency_errors",
+  "status": "holo_urbit_dependencies_integrated_compile_pending",
   "sourceCheckpoint": "38d4320ef7cffa3ce8d6c77cb312dee3f42acb9d",
   "core": "96f6baea21c1423795f7effcac208a8f6485b30c",
   "importedFiles": [
@@ -594,6 +594,50 @@
     {
       "path": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests/ConditionalHolonPropertyPlanTests.cs",
       "sourceBlob": "ad8551add6539437e869a513225c373b6dc12a47"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj",
+      "sourceBlob": "a4c17afab524b39860c21c8df3e7c868dd6d0d5b"
+    },
+    {
+      "path": "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Helpers/DataHelper.cs",
+      "sourceBlob": "b122ba1e47bad677d17039254b0ca41f88dcc6f2"
+    },
+    {
+      "path": "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.Cql.cs",
+      "sourceBlob": "696c2a414e671999d9249a61524572bd330d0559"
+    },
+    {
+      "path": "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Holochain Objects/HcHolon.cs",
+      "sourceBlob": "5dd2dd0c01f2317e515e364b85aff0c2a14f0034"
+    },
+    {
+      "path": "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Interfaces/IHcHolon.cs",
+      "sourceBlob": "6b323e896aeadb7ed34572631780464f7a475a86"
+    },
+    {
+      "path": "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/NextGenSoftware.OASIS.API.Providers.HoloOASIS.csproj",
+      "sourceBlob": "b132c1c116745c3daa823ca23dba334aeee5985d"
+    },
+    {
+      "path": "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/build-manifest.json",
+      "sourceBlob": "53db4f406a7086a3452f89e0083485656a7708d5"
+    },
+    {
+      "path": "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/oasis.happ",
+      "sourceBlob": "54139f460158d8823a1358fbb54e4e5f336cf4c1"
+    },
+    {
+      "path": "Providers/Other/NextGenSoftware.OASIS.API.Providers.UrbitOASIS/NextGenSoftware.OASIS.API.Providers.UrbitOASIS.csproj",
+      "sourceBlob": "53bdf267b6c81f07e0c87aa05f9024d75baabe3b"
+    },
+    {
+      "path": "Providers/Other/NextGenSoftware.OASIS.API.Providers.UrbitOASIS/UrbitContactBookQuerySource.cs",
+      "sourceBlob": "badd194d3c7a71a358a23865dd49fe6e365cb283"
+    },
+    {
+      "path": "Providers/Other/NextGenSoftware.OASIS.API.Providers.UrbitOASIS/UrbitContactsV1Client.cs",
+      "sourceBlob": "4a60acdcddcf474cf69a80711de332e64faea49f"
     }
   ],
   "preservedOwnedFiles": {
@@ -795,5 +839,36 @@
     "runtimeTestsExecuted": 0,
     "compilerErrorsResolved": true
   },
-  "preservedOwnedHashesRechecked": true
+  "preservedOwnedHashesRechecked": true,
+  "holoUrbitDependencyCorrection": {
+    "failedRun": 44618848348,
+    "failedJob": 135894723101,
+    "exactDonorFiles": [
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj",
+      "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Helpers/DataHelper.cs",
+      "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.Cql.cs",
+      "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Holochain Objects/HcHolon.cs",
+      "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Interfaces/IHcHolon.cs",
+      "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/NextGenSoftware.OASIS.API.Providers.HoloOASIS.csproj",
+      "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/build-manifest.json",
+      "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/oasis.happ",
+      "Providers/Other/NextGenSoftware.OASIS.API.Providers.UrbitOASIS/NextGenSoftware.OASIS.API.Providers.UrbitOASIS.csproj",
+      "Providers/Other/NextGenSoftware.OASIS.API.Providers.UrbitOASIS/UrbitContactBookQuerySource.cs",
+      "Providers/Other/NextGenSoftware.OASIS.API.Providers.UrbitOASIS/UrbitContactsV1Client.cs"
+    ],
+    "happSha256Verified": "CE6D1C1665F5FB489F18F672608C2DBC11840EC6497D9CF406DF630C378F0B60",
+    "happProducerRun": 43908315482,
+    "happRetainedAsRequiredShippingAsset": true,
+    "holochainOldPin": "9f897b7ace60b6bdb5fda37e54ca932682122dd4",
+    "holochainNewPin": "fc7db7c8a3bea5266a0d7579c0cbe8b19226082c",
+    "sdkComparison": {
+      "commitsAhead": 5,
+      "commitsBehind": 0,
+      "filesChanged": 5,
+      "productionFilesReviewed": 3,
+      "previousTestsNotSelectedForRerun": true
+    },
+    "allOtherManifestPinsPreserved": true,
+    "behaviorTestsExecuted": 0
+  }
 }
