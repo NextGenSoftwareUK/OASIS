@@ -43,7 +43,10 @@ public partial class HolonRepository
                 if (column.Operation == CosmicScalarOperation.LongCount)
                 {
                     var count = "a" + index + "n";
-                    reductions.Add(present + " AS " + count);
+                    var selectedCount = column.Distinct
+                        ? "count(DISTINCT CASE WHEN " + state + "=2 THEN " + value + " ELSE NULL END COLLATE BINARY)"
+                        : present;
+                    reductions.Add(selectedCount + " AS " + count);
                     output.Add(count);
                 }
                 else if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
