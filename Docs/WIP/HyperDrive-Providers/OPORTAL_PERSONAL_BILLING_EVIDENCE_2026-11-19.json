@@ -1,5 +1,5 @@
 {
-  "status": "running-not-accepted",
+  "status": "accepted-scoped-native-http-browser-controls",
   "scope": "Strict personal financial intent, subscriber projection, scoped original invoice recovery, response acknowledgement and empty-poll write removal",
   "required": [
     "API and changed linked-host builds",
@@ -55,5 +55,34 @@
   ],
   "revision": "27f9b31c7f7f00131d684b55fadcd37565c4f3c6",
   "runId": 44512720530,
-  "jobId": 135520787304
+  "jobId": 135520787304,
+  "conclusion": "success",
+  "builds": {
+    "actualWeb4ApiErrors": 0,
+    "linkedHostErrors": 0
+  },
+  "results": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "durationSeconds": 16,
+    "actors": 3
+  },
+  "artifact": {
+    "id": 14524354176,
+    "bytes": 7918,
+    "sha256": "07749b998c14a4235d6d57c28d2486e28e0ed20b9f2c90fd4652a465f80e0a17",
+    "members": [
+      "profile-sdk-native.trx"
+    ],
+    "matchingOutcome": "SubscriptionPersonalBillingBrowserUsesActualControllerAndOwnedMongo: Passed",
+    "filesWritten": 0
+  },
+  "cleanup": {
+    "ownedBrowserRuntimeCacheControl": true,
+    "ownedNativeDbProviderFinalizers": "Passed with case",
+    "ownedInputCustomerRestored": true,
+    "workflowMongoContainerAbsence": true,
+    "localGeneratedOutputs": 0
+  }
 }
