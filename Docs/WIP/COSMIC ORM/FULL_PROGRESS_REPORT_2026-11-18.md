@@ -4,13 +4,11 @@ Updated 19 November 2026. The full roadmap is active and incomplete. This openin
 
 ## Current engineering gate
 
-Current retry: [44555747962](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44555747962), exact parent1101df6250b85d1c7ed8b33cbb01f8cc9d1c7b16/Core8c1604407c3984e898e3d2ac9270d418dbb902c5. It was observed live at checkout. Only four new real SQLite SDK controls and SQLite plain/protected native cases are selected; all accepted Mongo/Neo and Core cohorts are excluded. Terminal results and cleanup remain pending.
+Run [44555747962](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44555747962) is terminal FAILURE. WEB4 built, but all four new SQLite SDK controls failed at the final sibling assertion: a CLR string was compared with the provider's JSON string-token wrapper. The2349byte artifact14546291319 contains only the four failed SDK results; the two affected native modes did not execute. No full SDK/native acceptance is inferred.
 
-Run [44550931624](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44550931624) is terminal FAILURE overall. WEB4 built and eight new selected-fingerprint controls passed. MongoDB and Neo4j plain native cases passed eight groups/five logical writes/all ten markers and cleanup. SQLite plain alone failed historical replay. Strict artifact14543073195 (5234bytes) contained two matching TRX files and only Mongo/Neo plain reports; host stop succeeded. No whole-workflow acceptance was inferred.
+The fixture is corrected to require canonical String/exact sibling text and Integer/exact long9007199254740995, retaining all replay/refusal/native/receipt assertions. The production SQLite selected-domain6/shared projection fix is unchanged. The workflow now checks owned SQLite DB/WAL/SHM cleanup before reporting test failure. Next qualification retries those same four failed SDK cases and two unexecuted affected SQLite modes.
 
-SQLite still used a separate whole-record selected fingerprint. Its prepared domain6 correction now shares the same selected-record value projection as the common domain8 owner, while retaining legacy full-save envelopes and acknowledgement/full-node/delta integrity. Old selected domain5 explicitly requires original-operation reconciliation; no records are migrated or rewritten. Four NEW real SQLite SDK controls cover replay after native sibling changes, selected-value/actor refusal, old-domain reconciliation, digest tampering and native/receipt immutability.
-
-Next qualification selects only SQLite's plain and encrypted modes, because its local receipt owner/format changed. Accepted Mongo/Neo plain and protected cases, eight shared fingerprint controls, eight nullable controls and fourteen extraction controls are retained without rerun. The new SQLite fix/tests are uncompiled/unqualified. S05 and full parity remain open.
+Retained evidence: shared fingerprint8 plus Mongo/Neo plain2 accepted44550931624 (strict5234byte14543073195); nullable8 plus protected3 accepted44546555815 (strict6452byte14542080455), with SQLite protected requalified because its local receipt owner changed; extraction14 accepted44542276995. Accepted unaffected cohorts are excluded from the retry. Full S05 and parity remain open.
 
 ## Coverage
 
