@@ -1,5 +1,5 @@
 {
-  "status": "prepared-not-dispatched-not-accepted",
+  "status": "running-not-accepted",
   "filter": "FullyQualifiedName~SubscriptionFreshAppUsageBillsThroughSdkAndBrowser",
   "portalRevision": "4fd7cfaa497191eb965748277ec73972e1ffe05f",
   "scope": "Pinned shipping Core authorization/start/settlement client + actual JS SDK/UI/MVC/native Mongo + zero-due gateway; original payer/readiness and quota boundary INPUT fixtures only",
@@ -21,5 +21,8 @@
     "full external reconciliation",
     "production Startup/hosted/full portal acceptance"
   ],
-  "localGeneratedOutputs": 0
+  "localGeneratedOutputs": 0,
+  "revision": "492e030cdd19abccedc87795a4766af246d40c02",
+  "runId": 44507676469,
+  "jobId": 135503439803
 }
