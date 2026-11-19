@@ -19,7 +19,7 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 8 | **Add two DNS records so the new HoloNET docs and learn sites go live** (NameSilo) | E1 |
 | 9 | Rotate the Arbitrum testnet key and the block-explorer API key that were committed to git (removed from files, still in history) | E2 |
 | 7 | Older items: phone tests, WSL disk, Vercel branch check, oasisweb4 site decision, iOS runtime script, Git LFS budget, upstream Holochain PRs | D |
-| 11 | Messaging programme: review/push the `work/oasis-messaging` branches (parent + API.Core submodule); physical-device Bluetooth tests | G |
+| 11 | Messaging programme: review and push the `work/oasis-messaging` branches (parent, API.Core, STAR ODK, 7 npm repos), publish the npm packages, physical-device Bluetooth tests, HerzApp/Our World wiring decisions | G |
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 
 ---
@@ -595,6 +595,19 @@ Status: missing account/configuration information,2 November2026. David approved
 - **David action** Review, then tell Claude to push. The API.Core submodule branch must be pushed and merged before the parent gitlink and `Docker/oasis-dependency-versions.env` pins can move (run `python3 Scripts/sync_railway_dependency_manifest.py` at that point).
 - **Reason** Repo policy: no push or PR before your review.
 - **Context** [Edge offline messaging](../../Devs/EDGE_OFFLINE_MESSAGING.md).
+
+### G3. Publish the messaging npm packages and push the branches
+
+- **Status (2026-11-19)** Open. Committed locally on branch `work/oasis-messaging` in each repo, nothing pushed or published: `OASIS-API-Javascipt-Package-WEB4` (becomes `@oasisomniverse/web4-api` 2.1.0, adds `/messaging`), the six UI libraries `OASIS-{React,Vue,Angular,Svelte,NextJS,JS}-UI-Component-Library` (1.3.0), and the STAR ODK submodule (DevKit downloads).
+- **David action** After review: tell Claude to push the branches; publish `@oasisomniverse/web4-api@2.1.0` first, then the six UI libraries (they depend on `>=2.1.0`). Publishing needs your npm 2FA (same as A1/A2).
+- **Reason** npm publish needs your account and 2FA; repo policy forbids push without your review.
+- **Context** [Messaging component](../../Devs/OASIS_MESSAGING_COMPONENT.md).
+
+### G4. Our World Unity package and HerzApp wiring
+
+- **Status (2026-11-19)** Open. HerzApp does not exist as a repository yet; the integration is documented (HerzID login, then `OASISChatWidget`). The Our World integration is documented; the two new Edge assemblies are not yet in the Unity package build.
+- **David action** Decide where HerzApp lives so the wiring can be added; approve adding `Edge.NearbySync` and `Edge.Messaging` to the Edge release packaging (the global release takes about 2 hours, so it should ride the next real release, not a separate dry run).
+- **Reason** Needs your decision on the HerzApp repository and a release slot.
 
 ### G2. Physical-device Bluetooth and mesh acceptance
 

@@ -249,7 +249,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                 if (command.EntityId == Guid.Empty)
                     throw new HyperDriveCommandRejectedException("MESSAGE_ID_REQUIRED",
                         "A message send must carry the client-generated message id as its entity id.");
-                var sent = await messaging.SendMessageAsync(command.AvatarId, new SendMessageRequest
+                var sent = await messaging.SendMessageAsync(command.AvatarId, new MessageSendRequest
                 {
                     Id = command.EntityId,
                     ToAvatarId = payload.ToAvatarId,
