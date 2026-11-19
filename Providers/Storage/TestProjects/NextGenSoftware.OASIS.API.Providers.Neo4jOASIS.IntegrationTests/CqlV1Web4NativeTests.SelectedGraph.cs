@@ -44,7 +44,15 @@ public sealed partial class CqlV1Web4NativeTests
     public Task TypedSelectedScalarsComposeWithStoredRolesAndPartialViews(string providerName)
         => RunSelectedGraphNative(providerName, false, true);
 
-    private async Task RunSelectedGraphNative(string providerName, bool explicitChildIdentity, bool roleComposition = false)
+    [DataTestMethod]
+    [DataRow("MongoDBOASIS", false)] [DataRow("MongoDBOASIS", true)]
+    [DataRow("SQLLiteDBOASIS", false)] [DataRow("SQLLiteDBOASIS", true)]
+    [DataRow("Neo4jOASIS", false)] [DataRow("Neo4jOASIS", true)]
+    public Task SelectedCustomScalarsUseNativeStorageMapping(string providerName, bool protectedMetadata)
+        => RunSelectedGraphNative(providerName, false, false, true, protectedMetadata);
+
+    private async Task RunSelectedGraphNative(string providerName, bool explicitChildIdentity, bool roleComposition = false,
+        bool customProperties = false, bool protectedMetadata = false)
     {
         Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -58,7 +66,8 @@ public sealed partial class CqlV1Web4NativeTests
         var sqlite = Path.Combine(work, "graph.sqlite");
         var reportRoot = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT")!);
         var report = Path.Combine(reportRoot, "TestResults/Neo4jCurrent/" + providerName
-            + (roleComposition ? "-property-role-native.json" : explicitChildIdentity ? "-property-parent-native.json" : "-property-graph-native.json"));
+            + (customProperties ? "-property-custom-" + (protectedMetadata ? "protected" : "plain") + "-native.json"
+                : roleComposition ? "-property-role-native.json" : explicitChildIdentity ? "-property-parent-native.json" : "-property-graph-native.json"));
         var mongo = new MongoClient(mongoUri);
         using (var names = await mongo.ListDatabaseNamesAsync())
             Assert.IsFalse((await names.ToListAsync()).Contains(database));
@@ -101,6 +110,11 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsTrue(registry.RegisterProvider(boundary));
             Assert.IsFalse(registry.PublishRoutingOverrides(new ProviderRoutingOverrides(false, false, false), authority).IsError);
             var manager = new HolonManager(null, dna, registry);
+            if (customProperties)
+            {
+                checks = await VerifySelectedCustomNative(provider, manager, probe, authority, owner, id, protectedMetadata);
+                Assert.AreEqual(7, checks); complete = true; return;
+            }
             if (roleComposition)
             {
                 checks = await VerifyTypedRoleSelectedNative(provider, manager, probe, authority, owner, id);
@@ -250,7 +264,16 @@ public sealed partial class CqlV1Web4NativeTests
                 }
                 Assert.AreEqual(temp, Path.GetDirectoryName(Path.GetFullPath(work)));
                 Directory.Delete(work, true); Assert.IsFalse(Directory.Exists(work)); checks++;
-                if (roleComposition)
+                if (customProperties)
+                {
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName,
+                        protectedMetadata, checks, successfulHolonWrites = 5, nativeStorageMappingVerified = true,
+                        exactIntegerVerified = true, storeAsJsonStringVerified = true, nullableScalarVerified = true,
+                        wholeCollectionPropertyVerified = true, unselectedCustomPreservedVerified = true,
+                        historicalReceiptVerified = true, staleConditionVerified = true,
+                        noOrdinaryWriteDowngradeVerified = true, exactCleanupVerified = true }));
+                }
+                else if (roleComposition)
                 {
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
                         successfulHolonWrites = 9, typedNativeGraphCreatedVerified = true,
