@@ -67,13 +67,14 @@ public sealed class CosmicPropertyTrackingTests
     }
 
     [Fact]
-    public void ClearingAFlagCannotSuppressIndependentValueChanges()
+    public void ClearingAPropertyRestoresItsOriginalWithoutDiscardingIndependentEdits()
     {
         var value = Tracked();
-        Mark(value, "/Name"); value.Name = "edited";
+        Mark(value, "/Name"); value.Name = "edited"; value.Description = "keep this edit";
         Mark(value, "/Name", false);
+        value.Name.Should().Be("original"); value.Description.Should().Be("keep this edit");
         var entry = Inspect(value, "/Name");
-        entry.IsExplicitlyModified.Should().BeFalse(); entry.IsValueModified.Should().BeTrue();
+        entry.IsExplicitlyModified.Should().BeFalse(); entry.IsValueModified.Should().BeFalse();
         value.HasHolonChanged().Should().BeTrue();
     }
 
