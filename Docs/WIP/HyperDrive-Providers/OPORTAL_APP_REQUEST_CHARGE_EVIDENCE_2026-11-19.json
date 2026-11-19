@@ -1,0 +1,42 @@
+{
+  "status": "running-not-accepted",
+  "runId": 44487941821,
+  "jobId": 135436019662,
+  "revision": "ee791093a3f92b49b9c8ae3db60d2b9277ba313c",
+  "filter": "FullyQualifiedName~AppRequestChargesUseImmutableConsentExactCapsAndSeparatePayers",
+  "backend": "Exact owned loopback CI MongoDB replica set; unique subscription_app_charge_ DB",
+  "scope": "Compiled ledger controls with explicit native financial INPUT FIXTURES; actual local Mongo acknowledgements have zero provider fee. No genuine Stripe account/readiness/activation/invoice/collection/webhook proof.",
+  "required": [
+    "actual WEB4 API build",
+    "updated linked protocol host build without accepted-suite execution",
+    "one new native case",
+    "immutable request per transaction attempt and ignored caller financial state",
+    "concurrent exact app monetary cap on16 shards",
+    "protected original consent/current owner/payer checks",
+    "separate app and personal request fees/AI exposure",
+    "frozen original terms after current settings/owner/plan changes",
+    "success/failure/unstarted expiry/unknown recovery and idempotent settlement",
+    "signed app charge credits/restoration and limits",
+    "native app money/audit projection balance and private proof isolation",
+    "payment failure fences app and preserves unrelated personal account",
+    "paid input/replay maps one order to original payer",
+    "existing Stripe metadata builder preserves tenant scope and personal five-key format",
+    "missing/changed consent/payer/failed payment refusals without writes",
+    "app daily/token/provider-budget restrictions",
+    "owned DB/process/container cleanup"
+  ],
+  "notCovered": [
+    "genuine Stripe readiness/positive opt-in/payment/collection/webhook",
+    "automatic immutable app statement allocation/rounding/closed-month processing",
+    "full external-provider reconciliation",
+    "whole browser/API/production Startup/hosted rollout",
+    "historical unbound pool transition",
+    "throughput/load/soak or live dashboard timings",
+    "full OPORTAL/provider/HyperDrive acceptance"
+  ],
+  "releaseGate": "Do not promote this incomplete financial programme or enable shared workers. Preserve Atlas stand-down and protected deliveries535/543.",
+  "priorCancelledRun": 44486887425,
+  "priorCancelledJob": 135432471428,
+  "priorConclusion": "cancelled in API build for known source namespace defect; native fixture/case never started, stop/absence step success; no acceptance",
+  "localOutputs": "Source and compact tracked reports only; no local environment/runtime/build/database/archive"
+}

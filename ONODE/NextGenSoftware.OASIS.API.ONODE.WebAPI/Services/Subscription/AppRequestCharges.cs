@@ -112,7 +112,7 @@ public sealed partial class MongoSubscriptionUsageRepository
                     { "Day", "$deltas.Day" }, { "Reserved", "$deltas.ReservedAppRequestOverageDeltaUsd" },
                     { "Settled", "$deltas.SettledAppRequestOverageDeltaUsd" } })
             };
-            using var cursor = await _events.Aggregate<BsonDocument>(session, pipeline).ToCursorAsync(token);
+            using var cursor = await _events.AggregateAsync<BsonDocument>(session, pipeline, cancellationToken: token);
             while (await cursor.MoveNextAsync(token)) foreach (var row in cursor.Current)
             {
                 var reserved = row.GetValue("Reserved", 0).ToDecimal(); var settled = row.GetValue("Settled", 0).ToDecimal();
