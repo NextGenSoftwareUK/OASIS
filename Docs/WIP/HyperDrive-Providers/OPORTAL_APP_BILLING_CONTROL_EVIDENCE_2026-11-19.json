@@ -1,5 +1,5 @@
 {
-  "status": "running-not-accepted",
+  "status": "accepted-scoped-opt-out-and-refusals",
   "scope": "Opt-out, invalid/unverified intent and ownership/session guards only; positive external readiness and charging remain required",
   "runId": 44474424889,
   "jobId": 135391408084,
@@ -12,7 +12,16 @@
   "portalUsageSourceSha256": "c19781821ed10cc33efad48da7deb81b4a2b1e569cb4d1d5f793e31b58d98553",
   "filter": "FullyQualifiedName~SubscriptionAppBillingControlsBrowserUsesActualControllerAndOwnedMongo",
   "backend": "Owned loopback CI MongoDB; no gateway replacement, no Stripe calls; private markers are legacy read/control fixtures, not external verification evidence",
-  "pending": [
+  "notCovered": [
+    "positive Stripe readiness/opt-in",
+    "per-operation app admission/charging/cap exposure",
+    "expiry/settlement/corrections/reconciliation",
+    "statement allocation",
+    "Stripe collection/webhook/hosted payment",
+    "production Startup",
+    "whole OPORTAL"
+  ],
+  "verified": [
     "actual API build",
     "real browser opt-out/history preservation",
     "strict JSON and price/cap/consent rejection",
@@ -23,13 +32,17 @@
     "one audit/version fence and unchanged other records",
     "native cleanup and temporary process flag restoration"
   ],
-  "notCovered": [
-    "positive Stripe readiness/opt-in",
-    "per-operation app admission/charging/cap exposure",
-    "expiry/settlement/corrections/reconciliation",
-    "statement allocation",
-    "Stripe collection/webhook/hosted payment",
-    "production Startup",
-    "whole OPORTAL"
-  ]
+  "conclusion": "success",
+  "passed": 1,
+  "failed": 0,
+  "skipped": 0,
+  "durationSeconds": 7,
+  "actorsVerified": 3,
+  "committedPreferenceWrites": 1,
+  "artifactId": 14505323929,
+  "artifactBytes": 6751,
+  "artifactSha256": "9d180b7437ad24dfcf10448a122edca91ebac443c82329c9e6bee1dac3d6447c",
+  "artifactFilesWritten": 0,
+  "cleanup": "Browser/runtime/cache/control/database/container cleanup passed; temporary process pool flag restored",
+  "portalDocsCommit": "14980fe8b7e5a57c48ff5cc8d9c1904f2b52f85b"
 }
