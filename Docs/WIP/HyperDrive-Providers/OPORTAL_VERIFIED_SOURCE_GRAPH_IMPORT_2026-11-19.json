@@ -1,5 +1,5 @@
 {
-  "status": "holo_urbit_dependencies_integrated_compile_pending",
+  "status": "public_query_dependencies_and_preserved_bootloader_merge_build_pending",
   "sourceCheckpoint": "38d4320ef7cffa3ce8d6c77cb312dee3f42acb9d",
   "core": "96f6baea21c1423795f7effcac208a8f6485b30c",
   "importedFiles": [
@@ -638,6 +638,126 @@
     {
       "path": "Providers/Other/NextGenSoftware.OASIS.API.Providers.UrbitOASIS/UrbitContactsV1Client.cs",
       "sourceBlob": "4a60acdcddcf474cf69a80711de332e64faea49f"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS/ArbitrumPublicAccountMetadataSource.cs",
+      "sourceBlob": "5211ec7ed37a1c17a829eb48e535dc15fe7abf66"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/CosmosBlockChainOASIS.Cql.cs",
+      "sourceBlob": "072feebcde4efc95188dc28df56f1b1f902e5f38"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/CosmosPublicValidatorMetadataSource.cs",
+      "sourceBlob": "fe7c1597fcd472671d1f055bc16c817eb019830d"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/EOSIOOASIS.Cql.cs",
+      "sourceBlob": "26bc44c2fa02cf1ef74379b552b582c3c90a22cc"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/EosioPublicAccountMetadataSource.cs",
+      "sourceBlob": "01ac97c66a898660657193dd6378ec46ea6632c5"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EthereumOASIS/EthereumPublicAccountMetadataSource.cs",
+      "sourceBlob": "0aa25b9634892d8f81db9d3c5604e74efaea60d2"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/HashgraphOASIS.Cql.cs",
+      "sourceBlob": "232d3d5bc1ebd5fdb4438b70df8a24481f8de312"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/HederaPublicAccountMetadataSource.cs",
+      "sourceBlob": "94551bd59c7db95db248df310651934689e6e718"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/NEAROASIS.Cql.cs",
+      "sourceBlob": "13211ab00678fd7b58e5877ffe054dc15e4c8eb1"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/NearPublicAccountMetadataSource.cs",
+      "sourceBlob": "2f59989b0d4d7181612e0cd8ee9e0f7d46528dd0"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/PolkadotOASIS.Cql.cs",
+      "sourceBlob": "66e39632dd383db0fe416df94e54074d89621df6"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/PolkadotPublicHeaderMetadataSource.cs",
+      "sourceBlob": "6c3af644c7f670d4290c03385d8840780995027c"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolygonOASIS/PolygonPublicAccountMetadataSource.cs",
+      "sourceBlob": "7a8abfc7bd627c9b3e9c6b366228714f3f93f3db"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS/SolanaOasis.Cql.cs",
+      "sourceBlob": "6eff86d92183e9b7403e9d851fe8fd099f6cd4e9"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS/SolanaPublicAccountMetadataSource.cs",
+      "sourceBlob": "7d1835b5d43eaa76501a8033c0d06ee15541e5a2"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TONOASIS/TONOASIS.Cql.cs",
+      "sourceBlob": "63f71508054108f88bf93e9ef5a1f7c1d672dbd8"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TONOASIS/TonPublicHeaderMetadataSource.cs",
+      "sourceBlob": "c10de0af61b763d763893106216291b1fbdc3385"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TRONOASIS/TronPublicHeaderMetadataSource.cs",
+      "sourceBlob": "470081e5d5e153d432a94a463aef41933a21aa2f"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/src/EvmPublicAccountMetadataSource.cs",
+      "sourceBlob": "a6569b108dd97348faf840ccf39319f7d29bc50c"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/src/Web3CoreOASISBaseProvider.Cql.cs",
+      "sourceBlob": "3675c1c1c5efae5bdb0b95bb6107e02b7c421ef1"
+    },
+    {
+      "path": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.GOMapOASIS/GOMapRouteQuerySource.cs",
+      "sourceBlob": "df3786413b382f22d7be6e006c5d0b00f81dc5f6"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS/ArbitrumContractTypes.cs",
+      "sourceBlob": "d46b06e0f22faf225f127a49443566c212bc7432"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EthereumOASIS/EthereumOASIS_Web3Core.cs",
+      "sourceBlob": "d292102a584be3e4252e5b5473e01965e63b9468"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolygonOASIS/PolygonOASIS.cs",
+      "sourceBlob": "d128710c923efcacf3e7c7631e75969c2d85d851"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/CosmosBlockChainOASIS.SearchImportExportSend.cs",
+      "sourceBlob": "4b7b678d5b3cd656105077088833e35c08b03398"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/EOSIOOASIS.ActivateDeactivateLoad.cs",
+      "sourceBlob": "d609d25e9e39301d44688897f5f7fda573b232c1"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/NEAROASIS.AvatarLoad.cs",
+      "sourceBlob": "168aa6bbff9d59d51e03130400abebbaaa4452b6"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/PolkadotOASIS.AvatarLoad.cs",
+      "sourceBlob": "719c9c8db6b01a14291a07b9f6b3219e77b5b34e"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS/SolanaOasis.AvatarLoad1.cs",
+      "sourceBlob": "2fbe2f66a39d428d02997c439b6bc3326efc7f14"
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TONOASIS/TONOASIS.cs",
+      "sourceBlob": "2cf9f5126afdaf96a83b40dfc3d80f8451bbc7c3"
     }
   ],
   "preservedOwnedFiles": {
@@ -870,5 +990,108 @@
     },
     "allOtherManifestPinsPreserved": true,
     "behaviorTestsExecuted": 0
+  },
+  "publicQueryDependencyCorrection": {
+    "failedRun": 44621194175,
+    "failedJob": 135902997107,
+    "exactDonorFiles": [
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS/ArbitrumPublicAccountMetadataSource.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/CosmosBlockChainOASIS.Cql.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/CosmosPublicValidatorMetadataSource.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/EOSIOOASIS.Cql.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/EosioPublicAccountMetadataSource.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EthereumOASIS/EthereumPublicAccountMetadataSource.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/HashgraphOASIS.Cql.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/HederaPublicAccountMetadataSource.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/NEAROASIS.Cql.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/NearPublicAccountMetadataSource.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/PolkadotOASIS.Cql.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/PolkadotPublicHeaderMetadataSource.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolygonOASIS/PolygonPublicAccountMetadataSource.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS/SolanaOasis.Cql.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS/SolanaPublicAccountMetadataSource.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TONOASIS/TONOASIS.Cql.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TONOASIS/TonPublicHeaderMetadataSource.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TRONOASIS/TronPublicHeaderMetadataSource.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/src/EvmPublicAccountMetadataSource.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/src/Web3CoreOASISBaseProvider.Cql.cs",
+      "Providers/Maps/NextGenSoftware.OASIS.API.Providers.GOMapOASIS/GOMapRouteQuerySource.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS/ArbitrumContractTypes.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EthereumOASIS/EthereumOASIS_Web3Core.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolygonOASIS/PolygonOASIS.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/CosmosBlockChainOASIS.SearchImportExportSend.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/EOSIOOASIS.ActivateDeactivateLoad.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/NEAROASIS.AvatarLoad.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/PolkadotOASIS.AvatarLoad.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS/SolanaOasis.AvatarLoad1.cs",
+      "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TONOASIS/TONOASIS.cs"
+    ],
+    "manualBootLoaderFiles": [
+      "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.Register.cs",
+      "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.Activate.cs",
+      "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware.OASIS.OASISBootLoader.csproj"
+    ],
+    "oldProviderRegistrationCasesPreserved": [
+      "HoloOASIS",
+      "SQLLiteDBOASIS",
+      "ConvexOASIS",
+      "SupabaseOASIS",
+      "PocketBaseOASIS",
+      "TursoOASIS",
+      "SQLServerDBOASIS",
+      "NeonOASIS",
+      "OracleDBOASIS",
+      "AWSS3OASIS",
+      "OracleObjectStorageOASIS",
+      "MongoDBOASIS",
+      "SolanaOASIS",
+      "EOSIOOASIS",
+      "TelosOASIS",
+      "SEEDSOASIS",
+      "Neo4jOASIS",
+      "IPFSOASIS",
+      "PinataOASIS",
+      "ArweaveOASIS",
+      "EthereumOASIS",
+      "ArbitrumOASIS",
+      "RootstockOASIS",
+      "PolygonOASIS",
+      "ThreeFoldOASIS",
+      "LocalFileOASIS",
+      "AWSOASIS",
+      "SOLIDOASIS",
+      "ActivityPubOASIS",
+      "AzureStorageOASIS",
+      "AzureCosmosDBOASIS",
+      "AlgorandOASIS",
+      "BitcoinOASIS",
+      "PolkadotOASIS",
+      "ImmutableZkEVMOASIS",
+      "RoninOASIS",
+      "BNBChainOASIS",
+      "OptimismOASIS",
+      "AptosOASIS",
+      "TRONOASIS",
+      "HashgraphOASIS",
+      "AvalancheOASIS",
+      "CosmosBlockChainOASIS",
+      "NEAROASIS",
+      "BaseOASIS",
+      "SuiOASIS",
+      "GoogleCloudOASIS"
+    ],
+    "originalProjectReferencesPreserved": true,
+    "registrationRejectionAndDisposalPreserved": true,
+    "activationErrorPropagationPreserved": true,
+    "newTONRegistration": true,
+    "privateStorageProvidersNotReplaced": true,
+    "unrelatedAxelarConnextAndOtherProviderChangesExcluded": true,
+    "runtimeTestsExecuted": 0,
+    "mergedBootLoaderBlobs": {
+      "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.Register.cs": "dbadfc9642961d85f55b228257e42220aed2105d",
+      "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.Activate.cs": "5908ad183ec0fd8c1740d1219c04816d4427b5b5",
+      "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware.OASIS.OASISBootLoader.csproj": "0529dd427adbcdf2669ac5bc4995e2ee83ef50d0"
+    },
+    "owned12HashesUnchanged": true
   }
 }

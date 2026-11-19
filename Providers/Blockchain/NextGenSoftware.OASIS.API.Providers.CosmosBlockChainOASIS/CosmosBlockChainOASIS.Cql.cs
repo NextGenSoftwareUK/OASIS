@@ -2,22 +2,89 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
 
-public partial class CosmosBlockChainOASIS : ICosmicQueryStorageProvider
+public partial class CosmosBlockChainOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
 {
+    private static readonly HttpClient PublicAccountHttp = new(NativeConnectionGuard.CreateGuardedHttpHandler())
+    {
+        Timeout = TimeSpan.FromSeconds(15)
+    };
+    private static readonly CosmicQueryCapabilities CombinedQueryCapabilities = CosmosCqlCompiler.Capabilities
+        .WithStringMetadataLookup(CosmosPublicValidatorMetadataSource.AddressMetadata, 52, 8);
+    private CosmosPublicValidatorMetadataSource.ValidatorsBackend publicValidators;
+    private readonly object publicQueryActivationGate = new();
+    private int publicQueryActivationGeneration;
+    private volatile bool publicQueryVerified;
+
     public ProviderType QueryProviderType => Core.Enums.ProviderType.CosmosBlockChainOASIS;
-    public CosmicQueryCapabilities QueryCapabilities => CosmosCqlCompiler.Capabilities;
+    public CosmicQueryCapabilities QueryCapabilities => publicValidators == null
+        ? CosmosCqlCompiler.Capabilities : CombinedQueryCapabilities;
+    public bool IsQuerySourceActivated => publicQueryVerified;
+
+    public void ConfigurePublicValidatorQuery(string json)
+    {
+        if (publicValidators != null)
+            return;
+        var configured = CosmosPublicValidatorMetadataSource.CreateValidators(json, PublicAccountHttp);
+        Interlocked.CompareExchange(ref publicValidators, configured, null);
+    }
+
+    private int ResetPublicQueryActivation()
+    {
+        lock (publicQueryActivationGate)
+        {
+            publicQueryVerified = false;
+            return ++publicQueryActivationGeneration;
+        }
+    }
+
+    public override Task<OASISResult<bool>> DeActivateProviderAsync()
+    {
+        ResetPublicQueryActivation();
+        return base.DeActivateProviderAsync();
+    }
+
+    public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
+    {
+        var generation = ResetPublicQueryActivation();
+        var validators = publicValidators;
+        if (validators == null)
+            return new() { IsError = true, ErrorCount = 1, ErrorCode = "CQL_CAPABILITY_UNSUPPORTED",
+                Message = "Configure the reviewed Cosmos public validator catalogue first." };
+
+        try
+        {
+            await validators.VerifyAsync(cancellationToken).ConfigureAwait(false);
+            lock (publicQueryActivationGate)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (generation != publicQueryActivationGeneration)
+                    return new() { IsError = true, ErrorCount = 1, ErrorCode = "CQL_SOURCE_UNAVAILABLE",
+                        Message = "The public validator activation was superseded." };
+                publicQueryVerified = true;
+            }
+            return new(true);
+        }
+        catch (Exception error)
+        {
+            return new() { IsError = true, ErrorCount = 1, ErrorCode = error is OperationCanceledException
+                ? "CQL_QUERY_CANCELLED" : "CQL_SOURCE_UNAVAILABLE",
+                Message = "Public Cosmos validator query activation failed.", Exception = error };
+        }
+    }
 
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan, int maximumResults = 100,
@@ -32,8 +99,13 @@ public partial class CosmosBlockChainOASIS : ICosmicQueryStorageProvider
                 return Error("CQL_PLAN_TARGET_UNAVAILABLE", "One explicit Cosmos blockchain target is required.");
             if (maximumResults < 1 || maximumResults > 10000)
                 return Error("CQL_QUERY_LIMIT", "A result budget between 1 and 10,000 is required.");
-            var admitted = QueryCapabilities.AdmitPlan(plan);
+            var validators = publicValidators;
+            var capabilities = validators == null ? CosmosCqlCompiler.Capabilities : CombinedQueryCapabilities;
+            var admitted = capabilities.AdmitPlan(plan);
             if (admitted.IsError) return Error(admitted.ErrorCode, admitted.Message);
+            if (validators != null && capabilities.UsesStringMetadataLookup(plan.Query))
+                return await CosmosPublicValidatorMetadataSource.ExecutePublicQueryAsync(validators, IsQuerySourceActivated,
+                    plan, maximumResults, cancellationToken).ConfigureAwait(false);
             var selection = CosmosCqlCompiler.Compile(plan.Query, QueryProviderType);
             if (selection.IsError) return Error(selection.ErrorCode, selection.Message);
             cancellationToken.ThrowIfCancellationRequested();

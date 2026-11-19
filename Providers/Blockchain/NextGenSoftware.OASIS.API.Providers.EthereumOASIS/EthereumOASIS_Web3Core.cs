@@ -21,4 +21,8 @@ public sealed class EthereumOASIS_Web3Core : Web3CoreOASISBaseProvider
             Core.Enums.ProviderCategory.Storage,Core.Enums.ProviderCategory.NFT,Core.Enums.ProviderCategory.SmartContract})
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(capability));
     }
+
+    public void ConfigurePublicAccountQuery(string json)
+        => ConfigurePublicAccountQuery(EthereumPublicAccountMetadataSource.AddressMetadata,
+            client => EthereumPublicAccountMetadataSource.CreateQuery(json, client));
 }

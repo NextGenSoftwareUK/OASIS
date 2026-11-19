@@ -1,5 +1,5 @@
 {
-  "status": "holo_urbit_errors_resolved_remaining_cql_registration_dependencies",
+  "status": "all_referenced_public_read_dependencies_integrated_compile_pending",
   "run": 44607073292,
   "job": 135853508585,
   "source": "f20298c90df6cbdbe3d9892e92c261779e154607",
@@ -190,5 +190,18 @@
       "BootLoader Polkadot public reader registration"
     ]
   },
-  "nextIntegrationInvariant": "Close entire CQL public reader dependency graph from verified38d4320e before rebuilding; manually merge required BootLoader pieces, preserving owned Neon/Convex/Supabase/Bitcoin/Immutable/Ronin/Optimism registrations and explicit registration rejection/disposal handling. Never copy donor whole BootLoader or unrelated provider implementations/deletions/DNA."
+  "nextIntegrationInvariant": "Close entire CQL public reader dependency graph from verified38d4320e before rebuilding; manually merge required BootLoader pieces, preserving owned Neon/Convex/Supabase/Bitcoin/Immutable/Ronin/Optimism registrations and explicit registration rejection/disposal handling. Never copy donor whole BootLoader or unrelated provider implementations/deletions/DNA.",
+  "publicReadClosure": {
+    "exactAdditionalProviderFiles": 30,
+    "totalExactDonorBlobs": 189,
+    "manualBootLoaderFiles": 3,
+    "oldRegistrationCasesPreserved": 47,
+    "allPreviousProjectReferencesPreserved": true,
+    "rejectedRegistrationErrorsAndDisposalPreserved": true,
+    "hotActivationErrorsPreserved": true,
+    "owned12HashesUnchanged": true,
+    "manifestValidatorPassed": true,
+    "apiBuildAccepted": false,
+    "behaviorTestsExecuted": 0
+  }
 }
