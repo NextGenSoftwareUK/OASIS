@@ -52,8 +52,6 @@ public sealed class ConditionalHolonPlan : IAtomicHolonWritePlan
         if(request.Operation!=ConditionalHolonOperation.Save&&request.Write.Conditions.Any(c=>!c.ExpectedRevisionId.HasValue))
             throw new ArgumentException("Conditional deletion requires existing revisions.");
         var graph=HolonGraphWritePlan.Create(request.Roots,request.SaveChildren,request.Recursive,request.MaxChildDepth,0);
-        foreach(var node in graph.Nodes.Where(node=>node.SelectsChildren))
-            HolonChangeTracking.ValidateChildSelectionForConditionalWrite(node.Source,node.RelationshipManifest);
         if(!graph.Nodes.Select(n=>n.Snapshot.Id).ToHashSet().SetEquals(request.Write.Conditions.Select(c=>c.HolonId)))
             throw new ArgumentException("Exactly one condition is required for each selected record.");
         if(request.SubmittedRelationships.Count>0)
@@ -71,6 +69,10 @@ public sealed class ConditionalHolonPlan : IAtomicHolonWritePlan
                 graph.Nodes[index]=node with { RelationshipManifest=manifest };
             }
         }
+        // Submitted roles bind the logical graph; transport Children may be flattened.
+        // Validate the bound intent, not a recaptured transport-only role assignment.
+        foreach(var node in graph.Nodes.Where(node=>node.SelectsChildren))
+            HolonChangeTracking.ValidateChildSelectionForConditionalWrite(node.Source,node.RelationshipManifest);
         Nodes=Array.AsReadOnly(graph.Nodes.ToArray());
         var rootSources=new HashSet<IHolon>(graph.Roots,ReferenceEqualityComparer.Instance);
         RootIds=Array.AsReadOnly(Nodes.Where(node=>rootSources.Contains(node.Source)).Select(node=>node.Snapshot.Id).ToArray());
