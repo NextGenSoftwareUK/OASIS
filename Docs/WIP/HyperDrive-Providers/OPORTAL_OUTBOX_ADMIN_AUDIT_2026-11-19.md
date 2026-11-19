@@ -1,0 +1,21 @@
+# Outbox administrator acceptance gates
+
+19 November 2026. Source audit only; no shared database, API, worker or protected delivery was accessed.
+
+## Repeated browser submission
+
+The former administrator handler created a new action UUID for every click, including while the first POST was pending. Portal source `9ca344b09361aaf1f91635e15eec589177b84c24` now serializes by service and operation in the existing session pending set. Refreshed rows inherit the pending state, and cancellation/error/completion release it. A successful requeue with a subsequent failed list refresh is reported distinctly. Bundle `44550552804`, job `135652794492`, passed, including owned install/cache removal; generated snapshot `8a4075b54356e92d054a74f7cc305eac47c898a0`, admin SHA256 `9d9dd7c166b10197e95ca84b17abef2b417a141cdf156c55a90c738f8f0193f4`.
+
+This accepts delivery only. Actual browser/native requeue, immutable settlement conservation, audit, denial, replay and cleanup remain unaccepted.
+
+## Explicit database override and service binding
+
+Pinned Core `2ae9c233319258c6f7cf9aae59d23f38d16aae72`, `Services/Subscriptions/UsageOutboxConfiguration.cs`, returns the same `SUBSCRIPTION_OUTBOX_DATABASE` override for every requested service. Without that override it derives separate service database names.
+
+The shipping administrator controller loops WEB5–WEB10 and creates one store using that resolver for each group. Core `MongoUsageOutboxStore.GetAdministrativeSnapshotAsync` filters by state, but not service. With the explicit shared override, the same records can therefore appear in multiple service groups. `RequeueDeadletterAsync` checks immutable operation/action/administrator/evidence state but does not check the requested service; the controller also does not establish that binding. These are source findings under the explicit override, not evidence that any deployed environment uses it or any shared record was altered.
+
+Required invariant: each administrator group and action must refer only to operations persisted for its named service, whether storage uses separate databases or a shared override. Fix service filtering in the owning query contract and bind requeue to the persisted immutable service before mutation. Do not post-filter an already limited mixed-service page, silently select another database, add a second Mongo query implementation in the controller, or change deployment configuration to hide the mismatch.
+
+Qualification must cover default separate databases and the explicit shared override, distinct operations for at least two services, state filtering/limits, wrong-service action rejection without any mutation, a genuine no-provider-execution settlement transitioned through the actual store to deadletter, one actual browser requeue across refresh, replay of the same action, and unchanged original settlement/fingerprint/provider-attempt evidence. No live workers or shared queues are required. These requirements are engineering-owned and do not require another owner access request.
+
+Concurrent physical Core changes were preserved; no Core source or pin changed for this audit. The query contract and service-binding fixes remain release gates, independent of the browser pending-action fix. Full outbox/admin/OPORTAL acceptance is open.
