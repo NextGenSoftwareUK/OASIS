@@ -4,21 +4,19 @@ Updated 19 November 2026. The full roadmap is active and incomplete. This openin
 
 ## Current engineering gate
 
-Current retry: [44561911974](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44561911974), exact parentb1f3c6dd68c131ae4d5fa69b3afa553b32476db7/Core8c1604407c3984e898e3d2ac9270d418dbb902c5, observed live at checkout. It selects the same four failed SDK cases and two unexecuted affected SQLite modes. Production code is unchanged; exact numeric-domain assertions replace the incorrect Integer-only fixture assumption. Terminal results and cleanup remain pending.
+**S05 property entries are accepted on MongoDB, SQLite and Neo4j.** Final [44561911974](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44561911974) succeeded on exact parentb1f3c6dd68c131ae4d5fa69b3afa553b32476db7/Core8c1604407c3984e898e3d2ac9270d418dbb902c5: actual WEB4 build, four SQLite SDK controls and both plain/protected native cases, zero failures/skips. Strict4172byte artifact14551720365 proves matching identities/results, eight groups/five writes/all ten markers per native mode, SDK DB/WAL/SHM absence and host stop. RAM-only inspection created no local archive.
 
-Run [44558810881](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44558810881) is terminal FAILURE. WEB4 built; all four SQLite SDK controls reached the final numeric assertion but failed because the canonical exact-number token is Raw rather than Integer. Artifact14548356364 (2315bytes) contains only the failed SDK results. The two affected native modes did not execute; no complete control/native acceptance is claimed.
+The completed S05 audit composes retained original/current/reset/flag, selected native/permission/encryption, private acknowledgement/replay, directed replication, parent and typed-role cohorts with the final custom-property proof. The maintained developer guide documents public contracts and executable fixture references. Only S05 is promoted:61/168 EF/NHibernate rows per primary store,107 still open;4/13 extensions remain separate.
 
-The fixture now follows the existing public exact-number owner: IsNumber plus CanonicalNumberText must prove9007199254740995. Explicit negative checks reject quoted numeric strings and the rounded neighbour9007199254740996. This retains all string/replay/refusal/native-revision/receipt assertions without another parser or numeric conversion. Production SQLite/shared code is unchanged. Next qualification retries the same four failed controls and two unexecuted affected modes.
-
-Retained acceptance remains shared fingerprint8 plus Mongo/Neo plain2 (44550931624), nullable8 plus protected3 (44546555815, SQLite protected needs changed-owner qualification), and extraction14 (44542276995). S05 stays RED. A robust checklist recount includes letter-suffixed rows and confirms60/168 EF/NHibernate rows plus4/13 separate extensions per store. Source/API guide reconciliation does not add coverage.
+Next implementation priority is more complex SQL/Playground/Ask queries, starting with grouped distinct-value counts and computed grouped selectors on stored and mixed stored/virtual sources. Larger-source planning, full virtual/hybrid/OPORTAL policies and the complete all-provider parity programme remain open. Hosted free-model/browser/live delivery stays gated by the shared-cluster/deployment stand-down.
 
 ## Coverage
 
 | Area | Verified scope | Remaining |
 |---|---|---|
-| EF/NHibernate parity | **60/168 rows per MongoDB, SQLite and Neo4j** |108 rows per provider; full parity is not done. |
+| EF/NHibernate parity | **61/168 rows per MongoDB, SQLite and Neo4j** |107 rows per provider; full parity is not done. |
 | COSMIC extensions |4/13 per primary store, counted separately |9 per store. |
-| S05 property entries | Original/current editing/reset, explicit intent, selected saves, protected recovery, directed native replication, parent authorization and typed-role composition have retained scoped evidence. | Plain custom-scalar historical replay qualification above and final public-guide/whole-row audit. S05 remains RED. |
+| S05 property entries | **Accepted across the three primary stores**: original/current editing/reset/flags, selected saves, permission/encryption, recovery/replay, scoped replication/graph composition and custom/null/collection native persistence. | No remaining S05 gate; adjacent session/identity/proxy/refresh/full ORM features remain separate. |
 | SQL editor / Playground / Ask client |269 website tests passed on frozen source. | Current hosted end-to-end acceptance. |
 | Mixed stored/virtual queries | Actual WEB4 build,565 selected tests,22 configured cases and3 native-provider suites passed on the combined candidate. Grouping/HAVING, key DISTINCT, supported mapped values, deduplication and global ordering/paging have scoped evidence. | Grouped distinct counts, computed grouped selectors, larger sources, broader joins and hosted delivery. Complete mixed branches currently require fewer than100 records each; saturation is refused. |
 | Free WEB6 Ask your data | Source-bound draft validation/review and Free-routing controls have client evidence. | Real configured free-model visitor completion remains unverified; no unlimited-inference claim. |
