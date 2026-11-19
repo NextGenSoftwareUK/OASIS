@@ -10,6 +10,40 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public partial class CosmicTrackingTests
 {
     [Theory]
+    [InlineData("error")]
+    [InlineData("warning")]
+    [InlineData("wrong-identity")]
+    [InlineData("null-response")]
+    public async Task UnverifiedExternalParentCannotAuthorizeChildCreation(string failure)
+    {
+        var fixture = Fixture(true, conditional: true);
+        var parentId = Guid.NewGuid();
+        var parent = new Holon { Id = parentId, CreatedByAvatarId = Guid.NewGuid() };
+        OASISResult<IHolon> observed = failure switch
+        {
+            "error" => new OASISResult<IHolon> { IsError = true, ErrorCode = "CONTROLLED_PARENT_READ_FAILURE" },
+            "warning" => new OASISResult<IHolon>(parent) { IsWarning = true },
+            "wrong-identity" => new OASISResult<IHolon>(new Holon { Id = Guid.NewGuid() }),
+            "null-response" => null,
+            _ => throw new ArgumentException(nameof(failure))
+        };
+        fixture.Provider.Setup(provider => provider.LoadHolonAsync(parentId, false, true, 0, true, false, 0))
+            .ReturnsAsync(observed);
+        var child = new Holon { ParentHolonId = parentId, Name = "must remain unsaved" };
+
+        var result = await fixture.Manager.SaveOwnedHolonAsync(child, Guid.NewGuid(),
+            new CosmicWriteOptions(Guid.NewGuid()), providerType: ProviderType.SQLLiteDBOASIS);
+
+        result.IsError.Should().BeTrue();
+        result.ErrorCode.Should().Be("COSMIC_WRITE_OWNERSHIP_LOOKUP_FAILED",
+            "an unverified parent lookup cannot stand in for permission to attach a child");
+        child.Id.Should().BeEmpty();
+        child.Version.Should().Be(0);
+        fixture.Provider.Invocations.Should().NotContain(call => call.Method.Name.StartsWith("Save")
+            || call.Method.Name.StartsWith("ExecuteConditional") || call.Method.Name.StartsWith("ExecuteReplicating"));
+    }
+
+    [Theory]
     [InlineData(false, false)]
     [InlineData(false, true)]
     [InlineData(true, false)]
