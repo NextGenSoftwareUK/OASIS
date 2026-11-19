@@ -4,6 +4,8 @@ Updated 19 November 2026. The full roadmap is active and incomplete. This openin
 
 ## Current engineering gate
 
+2026-11-19 DAVID CLARIFICATION — DEVELOPMENT ROLLOUTS AUTHORIZED: David clarified that the restriction concerned heavy shared MongoDB Atlas testing, not Development pushes/deployments. Atlas is usable again for small, paced, bounded checks; database qualification should continue in isolated CI containers to avoid Atlas charges and laptop disk use. The earlier blanket deployment/live-call stand-down recorded by this session was an incorrect interpretation and is superseded. Resume scoped verified Development batches on the existing COSMIC branch cadence (coordination review every30minutes; normal Dev integration at most hourly, critical fixes sooner). Staging/production remain approval-gated; do not change load-balancing/replication/worker settings or touch PIPER data. Unfinished mixed HTTP tests are excluded from the first Dev batch. This records authorization, not a completed deployment.
+
 2026-11-19 PRIMITIVE DISTINCT NATIVE3 QUALIFICATION PREPARED: separate new Boolean/Int32/Single/Double fixture mode at sourcee8b1631f, same production/Core8cffa72d. Candidate selects ONLY GroupedDistinctPrimitiveDomainsUseRealNativeProvider (3 providers); exactly4 groups/22 owned writes/all10 flags/4 per-domain query timings and owned cleanup required. Prior admission6/SQLite4/string-Int64 native3/API11/client12/Ask2/Core12 accepted cohorts excluded; old native assertion body text unchanged. Paired manifests and changed workflow PowerShell verified before publication. No pass or parity credit until exact matching reports; HTTP/mixed and normalized/computed domains remain next. No shared Atlas/live/PIPER/DNA/queues/deployment/local runtime/build/database/archive; temporary indexes self-remove.
 
 **S05 property entries remain accepted. Full EF/NHibernate parity is incomplete:** MongoDB, SQLite and Neo4j each have **61/168 rows verified**, with107 open, plus4/13 separately counted COSMIC extensions.
@@ -14,7 +16,7 @@ Updated 19 November 2026. The full roadmap is active and incomplete. This openin
 
 **Next:** verify grouped distinct counts through actual WEB4 HTTP and mixed stored/virtual execution; prove the remaining declared Boolean, Int32, Single and Double native domains; implement and prove normalized Guid/date/Decimal/UInt64 domains, computed grouping/selectors and larger-source coverage. Full joins/session/ORM parity and the rest of the provider roadmap remain active.
 
-The shared-cluster/deployment stand-down remains in force. No Development merge, live API/model/browser request, PIPER data change or deployment occurred. See [the acceptance audit](GROUPED_DISTINCT_ACCEPTANCE_2026-11-19.md) for exact revisions, evidence and limits.
+Verified Development rollout is authorized following David’s clarification. No Development rollout has occurred yet in this batch; no PIPER data was changed. See [the acceptance audit](GROUPED_DISTINCT_ACCEPTANCE_2026-11-19.md) for exact revisions, evidence and limits.
 
 ## Coverage
 
