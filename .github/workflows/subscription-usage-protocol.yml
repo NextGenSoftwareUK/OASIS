@@ -14,6 +14,10 @@ on:
         description: Verify property tracking and real MongoDB SQLite Neo4j save acknowledgements only
         type: boolean
         default: false
+      property_selection_only:
+        description: Build WEB4 and qualify only the new immutable field-selection primitive without databases
+        type: boolean
+        default: false
       source_ref:
         description: Exact candidate revision to qualify
         type: string
@@ -85,13 +89,16 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - name: Validate property-only qualification scope
-        if: inputs.property_tracking_only
+        if: inputs.property_tracking_only || inputs.property_selection_only
         env:
           NATIVE_PROJECTION_ONLY: ${{ inputs.native_projection_only }}
           SOURCE_REF: ${{ inputs.source_ref }}
+          PROPERTY_TRACKING_ONLY: ${{ inputs.property_tracking_only }}
+          PROPERTY_SELECTION_ONLY: ${{ inputs.property_selection_only }}
         run: |
           test "$NATIVE_PROJECTION_ONLY" = true
           test -n "$SOURCE_REF"
+          if [ "$PROPERTY_SELECTION_ONLY" = true ]; then test "$PROPERTY_TRACKING_ONLY" = true; fi
       - name: Checkout exact sibling dependencies
         shell: bash
         run: |
@@ -102,6 +109,7 @@ jobs:
           git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
           git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
       - name: Start isolated replica set with fault injection
+        if: ${{ !inputs.property_selection_only }}
         shell: bash
         run: |
           set -euo pipefail
@@ -124,7 +132,12 @@ jobs:
           python3 Scripts/validate_subscription_rollout_gate.py
           pwsh -File Scripts/validate_web6_web4_metering_cutover.ps1
       - name: Build WEB4 for compiled-controller protocol tests
-        run: dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj -c Debug -m:1
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner web4-protocol-build-ci -Operation {
+            dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj -c Debug /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE) { throw 'Actual WEB4 source build failed.' }
+          }
       - name: Verify Azure Cosmos DB virtual query and identity rules
         if: ${{ !inputs.native_projection_only && (inputs.source_ref != '') }}
         shell: pwsh
@@ -242,8 +255,26 @@ jobs:
             dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SqliteNativeDataImportTests|FullyQualifiedName~AvatarProfileRegistryNativeTests'
             if ($LASTEXITCODE) { throw 'SQLite virtual Holon qualification failed.' }
           }
+      - name: Verify immutable selected-value merge intent
+        if: ${{ inputs.property_selection_only }}
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-property-selection-ci -Operation {
+            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicPropertyWriteSelectionTests' --logger 'trx;LogFileName=property-selection-core.trx' --results-directory TestResults/PropertySelection
+            if ($LASTEXITCODE) { throw 'Selected-value merge contract failed.' }
+            [xml]$core = Get-Content TestResults/PropertySelection/property-selection-core.trx
+            $counts = $core.TestRun.ResultSummary.Counters
+            if ([int]$counts.total -ne 23 -or [int]$counts.passed -ne 23 -or [int]$counts.notExecuted -ne 0) {
+              throw 'Exactly23 new selected-value cases must execute and pass.'
+            }
+            $ids = @($core.TestRun.TestDefinitions.UnitTest | Where-Object { $_.TestMethod.className -like '*CosmicPropertyWriteSelectionTests' } | ForEach-Object { $_.id })
+            $results = @($core.TestRun.Results.UnitTestResult)
+            if ($results.Count -ne 23 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
+              throw 'Selection-only acceptance cannot inherit unrelated test results.'
+            }
+          }
       - name: Verify native entity-selected All on three stores
-        if: ${{ inputs.source_ref != '' }}
+        if: ${{ inputs.source_ref != '' && !inputs.property_selection_only }}
         shell: pwsh
         run: |
           $env:OASIS_CQL_NEO_ENTITY_PROJECTION_ROOT = (Get-Location).Path
@@ -333,7 +364,7 @@ jobs:
         if: always()
         with:
           name: subscription-protocol-test-results
-          path: TestResults
+          path: ${{ inputs.property_selection_only && 'TestResults/PropertySelection' || 'TestResults' }}
       - name: Stop temporary database
-        if: always()
+        if: ${{ always() && !inputs.property_selection_only }}
         run: docker rm --force usage-mongo
