@@ -38,7 +38,7 @@ on:
       native_project:
         description: Native fixture project
         type: choice
-        options: [integration, subscription_ledger, profile_browser]
+        options: [integration, subscription_ledger, profile_browser, web5_build]
         default: integration
       native_neo4j:
         description: Add the owned loopback Bolt fixture for the selected Neo4j profile cases
@@ -169,12 +169,31 @@ jobs:
         shell: pwsh
         run: ./Scripts/verify_hyperdrive_v2_operation_contracts.ps1
 
-      - name: Build the WEB4 artifact the controller contracts load
-        if: ${{ !inputs.native_seal || inputs.native_project == 'subscription_ledger' || inputs.build_api }}
+      - name: Verify candidate dependency pins
         shell: pwsh
         run: |
+          python Scripts/sync_railway_dependency_manifest.py --check
+          if ($LASTEXITCODE) { throw 'Candidate manifest does not match its gitlinks.' }
+          python Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          if ($LASTEXITCODE) { throw 'Candidate dependency policy failed.' }
+
+      - name: Build the selected API artifact
+        if: ${{ !inputs.native_seal || inputs.native_project == 'subscription_ledger' || inputs.build_api }}
+        shell: pwsh
+        env:
+          OASIS_QUALIFICATION_API: ${{ inputs.native_project == 'web5_build' && 'WEB5' || 'WEB4' }}
+          OASIS_QUALIFICATION_BUILD_ONLY: ${{ inputs.build_only }}
+        run: |
+          if ($env:OASIS_QUALIFICATION_API -eq 'WEB5' -and $env:OASIS_QUALIFICATION_BUILD_ONLY -ne 'true') {
+            throw 'WEB5 selection is a build-only qualification target.'
+          }
+          $project = if ($env:OASIS_QUALIFICATION_API -eq 'WEB5') {
+            'STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj'
+          } else {
+            'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj'
+          }
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner api-qualification-build-ci -Operation {
-            dotnet build 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj' --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
+            dotnet build $project --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
             if ($LASTEXITCODE) { throw 'API qualification build failed.' }
           }
 
