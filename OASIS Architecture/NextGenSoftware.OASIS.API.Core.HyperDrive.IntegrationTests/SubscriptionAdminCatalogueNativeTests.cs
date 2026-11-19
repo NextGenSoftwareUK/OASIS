@@ -170,15 +170,15 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 using var persisted = JsonDocument.Parse(settings.Result["version:" + published].ToString()!);
                 Assert.Equal(actors[0].ToString("D"), persisted.RootElement.GetProperty("CreatedBy").GetString());
                 Assert.Equal("Owned browser catalogue publication", persisted.RootElement.GetProperty("Reason").GetString());
-                var documentType = originalCatalogue.GetType();
-                var stored = JsonSerializer.Deserialize(settings.Result["version:" + published].ToString()!, documentType)!;
-                foreach (var field in new[] { "Models", "UnitPrices" })
-                    Assert.Equal(JsonSerializer.Serialize(documentType.GetProperty(field)!.GetValue(originalCatalogue)),
-                        JsonSerializer.Serialize(documentType.GetProperty(field)!.GetValue(stored)));
                 catalogueType.GetField("_catalogue", BindingFlags.Static | BindingFlags.NonPublic)!.SetValue(null, originalCatalogue);
                 versions.GetType().GetMethod("Clear")!.Invoke(versions, null);
                 await (Task)catalogueType.GetMethod("LoadPublishedAsync")!.Invoke(null, [actors[0]])!;
                 Assert.Equal(published, catalogueType.GetProperty("CatalogueVersion")!.GetValue(null));
+                var documentType = originalCatalogue.GetType();
+                var stored = catalogueType.GetMethod("GetVersion")!.Invoke(null, [published])!;
+                foreach (var field in new[] { "Models", "UnitPrices" })
+                    Assert.Equal(JsonSerializer.Serialize(documentType.GetProperty(field)!.GetValue(originalCatalogue)),
+                        JsonSerializer.Serialize(documentType.GetProperty(field)!.GetValue(stored)));
                 var audit = ((IEnumerable)runtime.GetMethod("GetAuditLog")!.Invoke(null, null)!).Cast<object>().ToArray();
                 var publication = Assert.Single(audit.Where(entry => (string)entry.GetType().GetProperty("Action")!.GetValue(entry)! == "PublishModelCatalogue"));
                 Assert.Equal(actors[0].ToString("D"), publication.GetType().GetProperty("Actor")!.GetValue(publication));
