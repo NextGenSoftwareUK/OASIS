@@ -131,10 +131,12 @@ public sealed class CosmicPropertyEditingTests
     {
         var value = Tracked();
         Set(value, "/MetaData/ordered", new[] { 2, 1 });
+        value.MetaData["ordered"].Should().BeOfType<int[]>().Which.Should().Equal(2, 1);
         Property(value, "/MetaData/ordered").IsValueModified.Should().BeTrue();
         Reset(value, "/MetaData/ordered"); value.HasHolonChanged().Should().BeFalse();
         var bytes = new byte[] { 1, 2, 3 };
         Set(value, "/MetaData/bytes", bytes);
+        value.MetaData["bytes"].Should().BeOfType<byte[]>().Which.Should().Equal(1, 2, 3);
         var before = StoredRecordJson.Serialize(value); bytes[0] = 99;
         StoredRecordJson.Serialize(value).Should().Be(before);
     }
