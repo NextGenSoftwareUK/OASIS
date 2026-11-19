@@ -23,7 +23,7 @@ public sealed partial class CqlV1Web4NativeTests
     public Task PropertyTrackingUsesNativeAcknowledgementWithoutLosingInflightIntent(string providerName)
         => RunPropertyNativeFixture(providerName, false);
 
-    private async Task RunPropertyNativeFixture(string providerName, bool propertySelection, bool propertyStatus = false, bool propertyRouted = false)
+    private async Task RunPropertyNativeFixture(string providerName, bool propertySelection, bool propertyStatus = false, bool propertyRouted = false, bool propertyStored = false)
     {
         Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -37,7 +37,7 @@ public sealed partial class CqlV1Web4NativeTests
         Directory.CreateDirectory(work);
         var sqlite = Path.Combine(work, "property.sqlite");
         var reportRoot = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT")!);
-        var report = Path.Combine(reportRoot, "TestResults/Neo4jCurrent/" + providerName + (propertyRouted ? "-property-status-routed-native.json" : propertyStatus ? "-property-status-native.json" : propertySelection ? "-property-selection-native.json" : "-property-tracking-native.json"));
+        var report = Path.Combine(reportRoot, "TestResults/Neo4jCurrent/" + providerName + (propertyStored ? "-property-status-stored-native.json" : propertyRouted ? "-property-status-routed-native.json" : propertyStatus ? "-property-status-native.json" : propertySelection ? "-property-selection-native.json" : "-property-tracking-native.json"));
         var operations = new HashSet<Guid>(); var complete = false; var checks = 0;
         var client = new MongoClient(mongoUri);
         using (var names = await client.ListDatabaseNamesAsync())
@@ -138,8 +138,40 @@ public sealed partial class CqlV1Web4NativeTests
                     Assert.IsFalse(await reader.ReadAsync());
                     return value;
                 }
-                checks += await VerifySelectedNativeStatus(provider, authority, source, actor, operations, work, InspectReceipt,
-                    propertyRouted ? manager : null, propertyRouted ? (PropertyOutcomeBoundary)probe : null);
+                if (propertyStored)
+                {
+                    async Task<string> InspectIntent(Guid operation)
+                    {
+                        var receipt = await InspectReceipt(operation);
+                        if (authority == ProviderType.Neo4jOASIS) return receipt;
+                        if (authority == ProviderType.MongoDBOASIS)
+                        {
+                            var row = await client.GetDatabase(database).GetCollection<BsonDocument>("CosmicWritePreparation")
+                                .Find(new BsonDocument("_id", operation.ToString("D"))).SingleOrDefaultAsync();
+                            return JsonSerializer.Serialize(new { receipt, preparation = row?.ToJson() });
+                        }
+                        using var connection = new Microsoft.Data.Sqlite.SqliteConnection("Data Source=" + sqlite + ";Mode=ReadOnly;Pooling=False");
+                        await connection.OpenAsync();
+                        using var command = connection.CreateCommand();
+                        command.CommandText = "SELECT OperationId,ActorId,PayloadJson,CreatedAtUtc FROM CosmicWritePreparation WHERE OperationId=$id";
+                        command.Parameters.AddWithValue("$id", operation.ToString("D"));
+                        using var reader = await command.ExecuteReaderAsync();
+                        object[]? preparation = null;
+                        if (await reader.ReadAsync())
+                        {
+                            preparation = Enumerable.Range(0, reader.FieldCount).Select(reader.GetValue).ToArray();
+                            Assert.IsFalse(await reader.ReadAsync());
+                        }
+                        return JsonSerializer.Serialize(new { receipt, preparation });
+                    }
+                    // A separate manager receives only operation/actor/authority and trusted host callbacks.
+                    var freshManager = new HolonManager(null, dna, registry);
+                    checks += await VerifyStoredSelectedNativeStatus(provider, freshManager, (PropertyOutcomeBoundary)probe,
+                        authority, source, actor, operations, InspectIntent);
+                }
+                else
+                    checks += await VerifySelectedNativeStatus(provider, authority, source, actor, operations, work, InspectReceipt,
+                        propertyRouted ? manager : null, propertyRouted ? (PropertyOutcomeBoundary)probe : null);
                 Assert.AreEqual(propertyRouted ? 9 : 8, checks);
             }
             else if (propertySelection)
@@ -271,7 +303,16 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.AreEqual(workRoot, Path.GetDirectoryName(Path.GetFullPath(work)));
                 Directory.Delete(work, true);
                 Assert.IsFalse(Directory.Exists(work));
-                if (propertyRouted)
+                if (propertyStored)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new {
+                        provider = providerName, checks, successfulHolonWrites = 2,
+                        storedPreparationVerified = true, selectionBoundVerified = true,
+                        absentOutcomeVerified = true, committedOutcomeVerified = true, firstWinnerVerified = true,
+                        authorityPinnedVerified = true, actorBeforeIoVerified = true,
+                        deniedKeysBeforeOutcomeVerified = true, deniedTypeBeforeOutcomeVerified = true,
+                        wholeDowngradeRefused = true, durableIntentUnchangedByReadsVerified = true,
+                        holonsUnchangedByReadsVerified = true, callerUnchangedVerified = true, exactCleanupVerified = true }));
+                else if (propertyRouted)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new {
                         provider = providerName, checks, successfulHolonWrites = 3,
                         absentOutcomeVerified = true, committedOutcomeVerified = true,
