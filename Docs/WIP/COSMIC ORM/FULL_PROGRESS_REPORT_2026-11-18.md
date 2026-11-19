@@ -4,11 +4,11 @@ Updated 19 November 2026. The full roadmap is active and incomplete. This openin
 
 ## Current engineering gate
 
-Run [44555747962](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44555747962) is terminal FAILURE. WEB4 built, but all four new SQLite SDK controls failed at the final sibling assertion: a CLR string was compared with the provider's JSON string-token wrapper. The2349byte artifact14546291319 contains only the four failed SDK results; the two affected native modes did not execute. No full SDK/native acceptance is inferred.
+Run [44558810881](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44558810881) is terminal FAILURE. WEB4 built; all four SQLite SDK controls reached the final numeric assertion but failed because the canonical exact-number token is Raw rather than Integer. Artifact14548356364 (2315bytes) contains only the failed SDK results. The two affected native modes did not execute; no complete control/native acceptance is claimed.
 
-The fixture is corrected to require canonical String/exact sibling text and Integer/exact long9007199254740995, retaining all replay/refusal/native/receipt assertions. The production SQLite selected-domain6/shared projection fix is unchanged. The workflow now checks owned SQLite DB/WAL/SHM cleanup before reporting test failure. Next qualification retries those same four failed SDK cases and two unexecuted affected SQLite modes.
+The fixture now follows the existing public exact-number owner: IsNumber plus CanonicalNumberText must prove9007199254740995. Explicit negative checks reject quoted numeric strings and the rounded neighbour9007199254740996. This retains all string/replay/refusal/native-revision/receipt assertions without another parser or numeric conversion. Production SQLite/shared code is unchanged. Next qualification retries the same four failed controls and two unexecuted affected modes.
 
-Retained evidence: shared fingerprint8 plus Mongo/Neo plain2 accepted44550931624 (strict5234byte14543073195); nullable8 plus protected3 accepted44546555815 (strict6452byte14542080455), with SQLite protected requalified because its local receipt owner changed; extraction14 accepted44542276995. Accepted unaffected cohorts are excluded from the retry. Full S05 and parity remain open.
+Retained acceptance remains shared fingerprint8 plus Mongo/Neo plain2 (44550931624), nullable8 plus protected3 (44546555815, SQLite protected needs changed-owner qualification), and extraction14 (44542276995). S05 stays RED. A robust checklist recount includes letter-suffixed rows and confirms60/168 EF/NHibernate rows plus4/13 separate extensions per store. Source/API guide reconciliation does not add coverage.
 
 ## Coverage
 
