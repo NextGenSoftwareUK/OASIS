@@ -61,7 +61,7 @@ public sealed class SubscriptionAppOwnerController(MongoSubscriptionUsageReposit
                 .Select(shard => MongoSubscriptionUsageRepository.PoolShardSubject(appId, shard)).ToList();
             var buckets = await series.GetDailySeriesAsync(subjects, start, end, HttpContext.RequestAborted);
             var daily = UsageSeries.Build("app:" + appId, buckets, start, end, pool.Limits?.DailyCallLimit ?? 0,
-                pool.Limits?.MonthlyRequestLimit ?? 0, pool.Usage?.MonthlyRequests ?? 0, now);
+                pool.Limits?.MonthlyRequestLimit ?? 0, pool.Usage?.MonthlyRequests ?? 0, pool.Usage?.DailyCalls ?? 0);
             var top = await repository.GetAppTopUsersAsync(appId, 25, HttpContext.RequestAborted);
             // The ledger identifies avatars by ID. Do not add one directory/provider read per row to render usage.
             return new { app = new { app.AppId, app.Name, app.PlanId }, pool, series = daily,

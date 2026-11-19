@@ -114,6 +114,8 @@ The Postman collection contains an isolated owner-assignment request. Source and
 
 ## Subscription and billing lifecycle
 
+Usage-series responses keep chart totals separate from current usage totals. `days` and `totalRequests` describe the selected inclusive date range; `todayRequests` and `monthRequests` describe the current UTC day and month, including when the chart shows historical dates. The self, administrator user/app and app-owner usage views use the existing current-day/month aggregates, without an additional database query. Avatar IDs normalize to canonical UUIDs before ledger lookups. Chart ranges are normalized by the API and limited to 92 days.
+
 The controller also exposes:
 
 - GET plans — public plan catalogue.
