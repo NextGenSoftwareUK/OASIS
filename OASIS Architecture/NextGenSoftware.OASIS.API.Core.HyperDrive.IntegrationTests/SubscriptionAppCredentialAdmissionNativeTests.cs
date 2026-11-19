@@ -26,8 +26,9 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             await task;
             return task.GetType().GetProperty("Result")!.GetValue(task)!;
         }
-        var created = await Call("CreateAppAccountAsync", appId, "Owned public admission", "bronze",
-            accounts[0], "Owned credential admission input", true, "bronze", CancellationToken.None);
+        // Credential refusal precedes plan/quota evaluation; use a supported account without unrelated process flags.
+        var created = await Call("CreateAppAccountAsync", appId, "Owned public admission", "enterprise",
+            accounts[0], "Owned credential admission input", false, null, CancellationToken.None);
         var originalKey = (string)created.GetType().GetField("Item2")!.GetValue(created)!;
         async Task<string> Snapshot()
         {

@@ -5326,3 +5326,5 @@ NEW native-only case uses actual compiled API/real Mongo/real zero-due gateway-s
 2026-11-19 - Public app admission negative source prepared only; no local process/env/download/database/build/artifact created. Existing isolated configuration job44595965065 still active; terminal owned CI cleanup pending. No deleted or reclaimed bytes claimed.
 
 2026-11-19 - Configuration run44595965065 terminal SUCCESS. Owned Mongo fixture absence verified. 1573-byte artifact14566431394 exact digest/TRX/environment-restoration verified in RAM and disposed, local filesWritten0. No local installation or reclamation. Separate public admission run44596850959 still active; its cleanup remains pending.
+
+2026-11-19 - Public admission first run44596850959 terminal failed setup, not accepted. Exact2201-byte artifact14565459844 SHA2569f25d67d4a2d8ce5f67a0b33c5fd42e1925718fc946795c0c3b9f1bee74656f2 failed TRX and owned database/provider/process restoration verified RAM/disposed,filesWritten0. Terminal owned Mongo absence verified. No local runtime/env/download/build/database/archive/results or reclaimed bytes. Corrected-source retry pending.
