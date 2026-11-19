@@ -255,7 +255,7 @@ jobs:
             dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SqliteNativeDataImportTests|FullyQualifiedName~AvatarProfileRegistryNativeTests'
             if ($LASTEXITCODE) { throw 'SQLite virtual Holon qualification failed.' }
           }
-      - name: Verify new primitive distinct domains on all three native providers
+      - name: Verify new real mixed stored and virtual distinct groups through HTTP
         if: ${{ inputs.source_ref != '' && !inputs.property_selection_only }}
         shell: pwsh
         run: |
@@ -273,31 +273,28 @@ jobs:
             }
             if (!$ready) { throw 'Neo4j fixture did not become ready.' }
             & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-grouped-distinct-native-ci -Operation {
-              dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~GroupedDistinctPrimitiveDomainsUseRealNativeProvider' --logger 'trx;LogFileName=grouped-distinct-primitives-native.trx' --results-directory TestResults/Neo4jCurrent
+              dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~GroupedDistinctMixedHttpUsesRealNativeProvider' --logger 'trx;LogFileName=grouped-distinct-http-native.trx' --results-directory TestResults/Neo4jCurrent
               if ($LASTEXITCODE) { throw 'Native grouped distinct verification failed.' }
-              [xml]$trx = Get-Content TestResults/Neo4jCurrent/grouped-distinct-primitives-native.trx
+              [xml]$trx = Get-Content TestResults/Neo4jCurrent/grouped-distinct-http-native.trx
               $counts = $trx.TestRun.ResultSummary.Counters
               $definitions = @($trx.TestRun.TestDefinitions.UnitTest)
               $results = @($trx.TestRun.Results.UnitTestResult)
-              $ids = @($definitions | Where-Object { $_.TestMethod.name -eq 'GroupedDistinctPrimitiveDomainsUseRealNativeProvider' } | ForEach-Object { $_.id })
+              $ids = @($definitions | Where-Object { $_.TestMethod.name -eq 'GroupedDistinctMixedHttpUsesRealNativeProvider' } | ForEach-Object { $_.id })
               if ([int]$counts.total -ne 3 -or [int]$counts.passed -ne 3 -or [int]$counts.notExecuted -ne 0 -or
                   $definitions.Count -ne 3 -or $results.Count -ne 3 -or
                   @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
                 throw 'Exactly three real provider cases must pass.'
               }
               foreach ($provider in 'MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS') {
-                $report = Get-Content "TestResults/Neo4jCurrent/$provider-grouped-distinct-primitives-native.json" -Raw | ConvertFrom-Json
-                if ($report.provider -ne $provider -or $report.checks -ne 4 -or $report.successfulHolonWrites -ne 22 -or
-                    $report.elapsedMilliseconds -lt 0 -or !$report.nativeProviderVerified -or !$report.booleanVerified -or
-                    !$report.int32Verified -or !$report.singleVerified -or !$report.doubleVerified -or
-                    !$report.adjacentSingleVerified -or !$report.signedZeroVerified -or !$report.subnormalDoubleVerified -or
-                    !$report.allNullVerified -or !$report.exactCleanupVerified -or
-                    @($report.queryElapsedMilliseconds.PSObject.Properties).Count -ne 4) {
-                  throw "Complete primitive native distinct and cleanup proof required for $provider."
-                }
-                foreach ($domain in 'Boolean','Int32','Single','Double') {
-                  $elapsed = $report.queryElapsedMilliseconds.$domain
-                  if ($null -eq $elapsed -or $elapsed -lt 0) { throw "Missing query timing for $provider/$domain." }
+                $report = Get-Content "TestResults/Neo4jCurrent/$provider-grouped-distinct-http-native.json" -Raw | ConvertFrom-Json
+                if ($report.provider -ne $provider -or $report.checks -ne 3 -or $report.successfulHolonWrites -ne 4 -or
+                    $report.rawNativeRecords -ne 2 -or $report.successfulHttpQueries -ne 2 -or $report.foreignOwnerRequests -ne 1 -or
+                    $report.elapsedMilliseconds -lt 0 -or !$report.nativeProviderVerified -or !$report.realHttpVerified -or
+                    !$report.storedVirtualSameGroupVerified -or !$report.distinctCountVerified -or !$report.havingPagingVerified -or
+                    !$report.staleCacheReconciledVerified -or !$report.foreignOwnerRefused -or
+                    !$report.nativeSourceUnchangedVerified -or !$report.storedCacheUnchangedVerified -or
+                    !$report.usageSettledVerified -or !$report.exactCleanupVerified) {
+                  throw "Complete real mixed HTTP distinct/owner/usage/source/cache/cleanup proof required for $provider."
                 }
               }
             }
