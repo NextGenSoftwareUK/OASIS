@@ -102,7 +102,7 @@ public sealed partial class CqlV1Web4NativeTests
             }
             if (guidDomains)
             {
-                checks = await VerifyGroupedGuidDomains(provider, authority, mongo, database, ids);
+                checks = await VerifyGroupedGuidDomains(provider, authority, mongo, database, ids, queryElapsed);
             }
             else if (sharedInputs)
             {
@@ -291,6 +291,7 @@ public sealed partial class CqlV1Web4NativeTests
                 if (guidDomains)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
                         successfulHolonWrites = ids.Count, mongoBinaryRepresentations = mongo == null ? 0 : 2,
+                        queryElapsedMilliseconds = queryElapsed,
                         nativeProviderVerified = true, mixedRepresentationsVerified = true,
                         canonicalGuidVerified = true, requiredGuidVerified = true, missingNullVerified = true,
                         offPageInvalidRefused = true, exactCleanupVerified = true }));

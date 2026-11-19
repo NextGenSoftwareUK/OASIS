@@ -17,7 +17,7 @@ public sealed partial class CqlV1Web4NativeTests
         => RunGroupedDistinctNativeFixture(providerName, false, guidDomains: true);
 
     private static async Task<int> VerifyGroupedGuidDomains(IOASISStorageProvider provider,
-        ProviderType authority, MongoClient? mongo, string database, List<Guid> ownedIds)
+        ProviderType authority, MongoClient? mongo, string database, List<Guid> ownedIds, Dictionary<string, long> timings)
     {
         var adapter = (ICosmicQueryGroupedStorageProvider)provider;
         var first = Guid.Parse("abcdef01-2345-6789-abcd-ef0123456789");
@@ -60,7 +60,7 @@ public sealed partial class CqlV1Web4NativeTests
                 valid.Add(id);
             }
         }
-        async Task<(long Present, long Unique)> Run<TValue>(Guid[] ids,
+        async Task<(long Present, long Unique)> Run<TValue>(string label, Guid[] ids,
             Expression<Func<Holon, TValue>> selector, bool invalid = false)
         {
             var grouping = CosmicQuery<Holon>.Create().Where(h => ids.Contains(h.Id))
@@ -75,8 +75,10 @@ public sealed partial class CqlV1Web4NativeTests
             var planned = CosmicGroupedPlanner.Plan(query, authority,
                 new[] { new CosmicGroupedTarget(authority, adapter.QueryCapabilities, adapter.GroupedCapabilities) });
             Assert.IsFalse(planned.IsError, planned.Message);
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             var result = await CosmicGroupedExecutor.ExecuteAsync(planned.Result,
                 new[] { (ICosmicQueryStorageProvider)provider });
+            timings.Add(label, watch.ElapsedMilliseconds);
             if (invalid)
             {
                 Assert.IsTrue(result.IsError);
@@ -87,17 +89,17 @@ public sealed partial class CqlV1Web4NativeTests
             var row = result.Result.Providers.Single().Rows.Single();
             return ((long)row["Present"], (long)row["Unique"]);
         }
-        var mixed = await Run(valid.ToArray(), h => CosmicQueryMetadata.Value<Guid?>(h, "stock"));
+        var mixed = await Run("mixedGuid", valid.ToArray(), h => CosmicQueryMetadata.Value<Guid?>(h, "stock"));
         Assert.AreEqual(((long)valid.Count - 2, 2L), mixed);
-        var canonical = await Run(valid.ToArray(), h => h.Id);
+        var canonical = await Run("canonicalGuid", valid.ToArray(), h => h.Id);
         Assert.AreEqual(((long)valid.Count, (long)valid.Count), canonical);
         var requiredIds = valid.Where((id, index) => index != 5 && index != 6).ToArray();
-        var required = await Run(requiredIds, h => CosmicQueryMetadata.Value<Guid>(h, "stock"));
+        var required = await Run("requiredGuid", requiredIds, h => CosmicQueryMetadata.Value<Guid>(h, "stock"));
         Assert.AreEqual(((long)requiredIds.Length, 2L), required);
-        var empty = await Run(new[] { valid[5], valid[6] }, h => CosmicQueryMetadata.Value<Guid?>(h, "stock"));
+        var empty = await Run("missingNull", new[] { valid[5], valid[6] }, h => CosmicQueryMetadata.Value<Guid?>(h, "stock"));
         Assert.AreEqual((0L, 0L), empty);
         var invalidId = await Save("not-a-guid");
-        await Run(new[] { valid[0], invalidId }, h => CosmicQueryMetadata.Value<Guid?>(h, "stock"), invalid: true);
+        await Run("invalidOffPage", new[] { valid[0], invalidId }, h => CosmicQueryMetadata.Value<Guid?>(h, "stock"), invalid: true);
         Assert.AreEqual(mongo == null ? 8 : 10, ownedIds.Count);
         return 5;
     }
