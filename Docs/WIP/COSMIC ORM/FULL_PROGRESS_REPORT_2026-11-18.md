@@ -1,3 +1,5 @@
+Combined image qualification update: GitHub Actions run44423382342 completed successfully for exact parent1fe2ddcefdc9b8165962e43f56c02cf355b6849b and Core0e67ba0bb9b12468c28c894a63ad936a5033a0d2. Immutable image: ghcr.io/nextgensoftwareuk/oasis-web4@sha256:e8fef086e86bc4aa09086871f501ce531ff746197812c3f033e087aeefe2ec64. This supersedes earlier pending/building wording below. Image not pulled, started or deployed; hosted acceptance remains open. No shared Atlas/PIPER calls, local runtime install, image download or build output was added. Temporary publication indexes are removed after use.
+
 # Full COSMIC / CQL / HyperDrive progress report — 18 November 2026
 
 This report distinguishes accepted source/native evidence, pending qualification and last recorded live acceptance. The full roadmap remains active and incomplete. No shared Atlas, live application/browser/model, PIPER, DNA or deployment operation is part of this continuation.
