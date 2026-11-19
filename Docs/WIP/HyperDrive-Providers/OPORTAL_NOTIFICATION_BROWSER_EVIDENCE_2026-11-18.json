@@ -1,6 +1,6 @@
 {
   "scope": "Personal notification preferences only; whole OPORTAL remains incomplete",
-  "status": "running-not-accepted",
+  "status": "accepted-scoped",
   "runId": 44456662767,
   "jobId": 135333226792,
   "revision": "3b5c0b17ac4e851e54f34808dc61fbcf9afcf1d5",
@@ -20,11 +20,6 @@
     "ownedBrowserRuntimeCacheCleanupVerified": true,
     "mongoContainerRemoved": true
   },
-  "pending": [
-    "real browser preferences/identity/session acceptance",
-    "two concurrent HTTP saves and native audit predecessor chain",
-    "terminal owned cleanup"
-  ],
   "notCovered": [
     "app-owner controls",
     "email delivery",
@@ -33,5 +28,27 @@
     "production Startup",
     "hosted rollout",
     "whole-portal performance"
-  ]
+  ],
+  "apiBuildErrors": 0,
+  "totalCases": 1,
+  "passed": 1,
+  "failed": 0,
+  "skipped": 0,
+  "actorsVerified": 3,
+  "notificationWriteRequests": 6,
+  "committedBrowserPreferenceWrites": 5,
+  "concurrentHttpPreferenceWrites": 2,
+  "auditEntries": 7,
+  "auditPredecessorChainVerified": true,
+  "ownedPreferenceSubjects": 2,
+  "lateSessionResponseIgnored": true,
+  "ownedBrowserRuntimeCacheControlCleanupVerified": true,
+  "nativeDatabaseFinalizerPassed": true,
+  "mongoContainerRemoved": true,
+  "artifact": {
+    "id": 14498147876,
+    "bytes": 5830,
+    "sha256": "e953aba4c84cd3d42b21078343de4b321b636f72c47d897c1a5ddf0aca0f5b90",
+    "inspection": "TRX read/disposed in RAM; no local files written"
+  }
 }
