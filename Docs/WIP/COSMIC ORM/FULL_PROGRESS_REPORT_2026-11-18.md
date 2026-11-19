@@ -4,6 +4,8 @@ Updated 19 November 2026. The full roadmap is active and incomplete. This openin
 
 ## Current engineering gate
 
+Current retry: [44561911974](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44561911974), exact parentb1f3c6dd68c131ae4d5fa69b3afa553b32476db7/Core8c1604407c3984e898e3d2ac9270d418dbb902c5, observed live at checkout. It selects the same four failed SDK cases and two unexecuted affected SQLite modes. Production code is unchanged; exact numeric-domain assertions replace the incorrect Integer-only fixture assumption. Terminal results and cleanup remain pending.
+
 Run [44558810881](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44558810881) is terminal FAILURE. WEB4 built; all four SQLite SDK controls reached the final numeric assertion but failed because the canonical exact-number token is Raw rather than Integer. Artifact14548356364 (2315bytes) contains only the failed SDK results. The two affected native modes did not execute; no complete control/native acceptance is claimed.
 
 The fixture now follows the existing public exact-number owner: IsNumber plus CanonicalNumberText must prove9007199254740995. Explicit negative checks reject quoted numeric strings and the rounded neighbour9007199254740996. This retains all string/replay/refusal/native-revision/receipt assertions without another parser or numeric conversion. Production SQLite/shared code is unchanged. Next qualification retries the same four failed controls and two unexecuted affected modes.
