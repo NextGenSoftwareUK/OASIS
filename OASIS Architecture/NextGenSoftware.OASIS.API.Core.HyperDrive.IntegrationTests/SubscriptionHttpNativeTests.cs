@@ -56,7 +56,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             const string ns = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.";
             var repositoryType = api.GetType(ns + "MongoSubscriptionUsageRepository", true)!;
             var repository = Activator.CreateInstance(repositoryType,
-                [mongo, databaseName, TimeProvider.System, null, false, null])!;
+                [mongo, databaseName, TimeProvider.System, null, false, null, null])!;
             var serviceType = api.GetType(ns + "SubscriptionService", true)!;
             var logger = typeof(NullLogger<>).MakeGenericType(serviceType).GetField("Instance")!.GetValue(null)!;
             var service = Activator.CreateInstance(serviceType, [logger, repository, repository, TimeProvider.System])!;
