@@ -1,5 +1,5 @@
 {
-  "status": "qualification-in-progress-not-accepted",
+  "status": "accepted-scoped-original-consent-and-reservation",
   "filter": "FullyQualifiedName~PersonalConsentBindsPositiveExposureAndPreservesOriginalEvidence",
   "scope": "Actual repository/native Mongo/immutable original consent + positive reservation/acknowledged settlement; original verification/account INPUT fixtures only",
   "required": [
@@ -23,5 +23,21 @@
   ],
   "localGeneratedOutputs": 0,
   "runId": 44519812576,
-  "sourceCommit": "26296ee8056af4136ac813f236cad7bae83bea91"
+  "sourceCommit": "26296ee8056af4136ac813f236cad7bae83bea91",
+  "jobId": 135545268197,
+  "artifactId": 14527803249,
+  "artifactBytes": 1792,
+  "artifactSha256": "a361f558bebe98307bb9898eba48ca1025f734e9058e2b6d98225e522ca31f43",
+  "result": {
+    "ownedMongoAbsenceVerified": true,
+    "linkedHostBuildErrors": 0,
+    "failed": 0,
+    "skipped": 0,
+    "artifactFilesWritten": 0,
+    "passed": 1,
+    "ownedDatabaseAbsenceVerified": true,
+    "nativeMarkersVerified": true,
+    "apiBuildErrors": 0,
+    "durationSeconds": 1
+  }
 }

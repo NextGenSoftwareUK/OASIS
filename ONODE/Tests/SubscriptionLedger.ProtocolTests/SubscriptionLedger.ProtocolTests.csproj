@@ -38,6 +38,8 @@
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.cs" Link="Production/MongoSubscriptionUsageRepository.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppStatementPreparation.cs" Link="Production/AppStatementPreparation.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalChargeConsent.cs" Link="Production/PersonalChargeConsent.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalStatementPreparation.cs" Link="Production/PersonalStatementPreparation.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalChargeCorrections.cs" Link="Production/PersonalChargeCorrections.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppRequestCharges.cs" Link="Production/AppRequestCharges.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppBillingConsent.cs" Link="Production/AppBillingConsent.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppOveragePrices.cs" Link="Production/AppOveragePrices.cs" />

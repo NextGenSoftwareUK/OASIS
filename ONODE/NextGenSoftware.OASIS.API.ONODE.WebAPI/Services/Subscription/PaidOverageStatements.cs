@@ -12,6 +12,7 @@ public sealed class PaidOverageStatement
     public string AppId {get;set;}
     public string PayerAvatarId {get;set;}
     public string[] AppConsentIds {get;set;}=Array.Empty<string>();
+    public string[] PersonalConsentIds {get;set;}=Array.Empty<string>();
     public bool CreditsOnly {get;set;}
     [BsonId] public string Id {get;set;}
     public string UserId {get;set;}
@@ -60,6 +61,7 @@ public sealed class PaidOverageAdjustment
     public string SourceStatementId {get;set;}
     public string SourceOperationId {get;set;}
     public AppRequestChargeTerms AppRequestChargeTerms {get;set;}
+    public PersonalOverageChargeTerms PersonalOverageChargeTerms {get;set;}
     [BsonId] public string Id {get;set;}
     public string UserId {get;set;}
     public string Month {get;set;}
@@ -68,4 +70,14 @@ public sealed class PaidOverageAdjustment
     public string Reason {get;set;}
     public string EvidenceReference {get;set;}
     public DateTime CreatedAtUtc {get;set;}
+}
+
+/// <summary>Signed personal liability and writeoff attributed to the affected original operation.</summary>
+public sealed class PersonalChargeMovement
+{
+    public string OperationId {get;set;}
+    public string ConsentId {get;set;}
+    public string SourceStatementId {get;set;}
+    [BsonRepresentation(BsonType.Decimal128)] public decimal ChargeDeltaUsd {get;set;}
+    [BsonRepresentation(BsonType.Decimal128)] public decimal WriteOffDeltaUsd {get;set;}
 }

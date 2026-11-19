@@ -66,6 +66,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public string SettlementFingerprint { get; set; }
         public string PaidOveragePricingVersion { get; set; }
         public PersonalOverageChargeTerms PersonalOverageChargeTerms { get; set; }
+        public long PersonalChargeVersion { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal PersonalAiCorrectionUsd { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal PersonalAiWriteOffUsd { get; set; }
         public string BillingStatementId { get; set; }
         public long SettledSequence { get; set; }
         [BsonRepresentation(BsonType.Decimal128)] public decimal ReservedOverageUsd { get; set; }
@@ -142,6 +145,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         [BsonRepresentation(BsonType.Decimal128)] public decimal ReservedAppRequestOverageDeltaUsd { get; set; }
         [BsonRepresentation(BsonType.Decimal128)] public decimal SettledAppRequestOverageDeltaUsd { get; set; }
         [BsonRepresentation(BsonType.Decimal128)] public decimal OverageWriteOffDeltaUsd { get; set; }
+        public PersonalChargeMovement[] PersonalChargeMovements { get; set; }
         public string PayloadJson { get; set; }
         public string ExternalReference { get; set; }
         public string CorrectionKind { get; set; }

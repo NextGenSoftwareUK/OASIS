@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -74,6 +75,45 @@ public static class PersonalChargeConsent
 
 public sealed partial class MongoSubscriptionUsageRepository
 {
+    private async Task<Dictionary<string, PersonalBillingPayerSnapshot>> ReadPersonalPayersAsync(
+        IClientSessionHandle session, string userId, IEnumerable<PersonalOverageChargeTerms> source, CancellationToken token)
+    {
+        var terms = source.ToArray();
+        if (terms.Any(x => x == null))
+            throw new SubscriptionUsageConflictException("PERSONAL_STATEMENT_CONSENT_REQUIRED: Original personal terms are required.");
+        var ids = terms.Select(x => PersonalChargeConsent.AuditId(x.ConsentId)).Distinct(StringComparer.Ordinal).ToArray();
+        var documents = ids.Length == 0 ? new List<BsonDocument>() : await BillingAudit.Find(session,
+            Builders<BsonDocument>.Filter.In("_id", ids)).ToListAsync(token);
+        var evidence = documents.ToDictionary(x => x["_id"].AsString, StringComparer.Ordinal);
+        var result = new Dictionary<string, PersonalBillingPayerSnapshot>(StringComparer.Ordinal);
+        foreach (var term in terms)
+        {
+            evidence.TryGetValue(PersonalChargeConsent.AuditId(term.ConsentId), out var document);
+            var original = ReadOriginalPersonalConsent(document, userId, term.ConsentId);
+            var approved = original.Terms;
+            if (term.ConsentSchemaVersion != approved.ConsentSchemaVersion || term.UserId != approved.UserId ||
+                term.PlanId != approved.PlanId || term.PreferenceVersion != approved.PreferenceVersion ||
+                term.PricingVersion != approved.PricingVersion || term.PricingSha256 != approved.PricingSha256 ||
+                term.Currency != approved.Currency || term.RatePerRequestUsd != approved.RatePerRequestUsd ||
+                term.MonthlyCapUsd != approved.MonthlyCapUsd || term.AcceptedAtUtc != approved.AcceptedAtUtc)
+                throw new SubscriptionUsageConflictException("PERSONAL_STATEMENT_CONSENT_CONFLICT: Captured terms differ from original protected consent.");
+            result[term.ConsentId] = original.VerifiedPayer;
+        }
+        return result;
+    }
+
+    private static void ValidatePersonalChargeBinding(SubscriptionUsageEvent operation)
+    {
+        var terms = operation.PersonalOverageChargeTerms;
+        if (terms == null || terms.UserId != operation.UserId || terms.PricingVersion != operation.PaidOveragePricingVersion ||
+            operation.ReservedRequestOverageUsd < 0 || operation.ReservedRequestOverageUsd > terms.RatePerRequestUsd ||
+            operation.SettledRequestOverageUsd < 0 || operation.SettledRequestOverageUsd > operation.ReservedRequestOverageUsd ||
+            operation.SettledAiOverageUsd + operation.PersonalAiCorrectionUsd < 0 ||
+            operation.SettledAiOverageUsd + operation.PersonalAiCorrectionUsd > Math.Max(0, operation.ReservedOverageUsd - operation.SettledRequestOverageUsd) ||
+            operation.PersonalAiWriteOffUsd < 0)
+            throw new SubscriptionUsageConflictException("PERSONAL_CHARGE_BINDING_INVALID: Personal liability differs from its original subscriber, terms or reserved exposure.");
+    }
+
     private async Task<PersonalOverageChargeTerms> BindPersonalChargeAsync(IClientSessionHandle session,
         SubscriptionRecord subscriber, SubscriptionUsageEvent operation, CancellationToken token)
     {
