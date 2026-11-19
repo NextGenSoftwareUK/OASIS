@@ -1,5 +1,5 @@
 {
-  "status": "first-admin-usage-case-active-not-accepted",
+  "status": "accepted-scoped-admin-usage-and-historical-today-counts",
   "runId": 44590697379,
   "jobId": 135795600451,
   "sourceCommit": "d49340aa15e99449204c8b1d7466da02d4775e76",
@@ -27,5 +27,35 @@
   "hostedPerformanceAccepted": false,
   "stripeAccepted": false,
   "paidInferenceProviderExecutionAccepted": false,
-  "fullPortalAccepted": false
+  "fullPortalAccepted": false,
+  "acceptance": {
+    "apiBuildErrors": 0,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 16,
+    "actorsVerified": 3,
+    "historicalTodayCountsCorrect": true,
+    "canonicalAvatarLookupVerified": true,
+    "adminSelfAndOwnerCallersVerified": true,
+    "shardedPoolAndCorrectedTopUsersVerified": true,
+    "supersededReadCancelled": true,
+    "accountChangedReadCancelled": true,
+    "businessWrites": 0,
+    "eightFinancialCollectionsAndAppsUnchanged": true,
+    "ownedFlagAndManagerRestorationAsserted": true,
+    "nativeAndProcessCleanupVerified": true,
+    "terminalCleanupVerified": true,
+    "artifactId": 14563867213,
+    "artifactBytes": 5097,
+    "sha256": "0666d7e1e5e1e947ddd96391c98e8565a725577b0083ec25e833113aef950a2f",
+    "filesWritten": 0,
+    "existingLedgerInputsOnly": true,
+    "nativeMongoReadVerified": true,
+    "paidInferenceProviderExecutionAccepted": false,
+    "fullStartupAccepted": false,
+    "hostedPerformanceAccepted": false,
+    "stripeAccepted": false,
+    "fullPortalAccepted": false
+  }
 }
