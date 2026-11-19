@@ -1,5 +1,5 @@
 {
-  "status": "verified_source_graph_integrated_compile_pending",
+  "status": "combined_graph_build_queued",
   "run": 44607073292,
   "job": 135853508585,
   "source": "f20298c90df6cbdbe3d9892e92c261779e154607",
@@ -107,5 +107,17 @@
     "apiCompilePending": true,
     "nativeProjectCompilePending": true,
     "behaviorTestsSelected": 0
+  },
+  "combinedGraphBuild": {
+    "run": 44617068327,
+    "job": 135888501753,
+    "source": "cec1fa89a98b6b366c7f73b0b5f22cd6b0efbb30",
+    "observedStatus": "queued",
+    "apiBuildAccepted": false,
+    "nativeContractProjectBuildAccepted": false,
+    "behaviorTestsSelected": 0,
+    "mongoFixtureRequested": false,
+    "sameBuildLease": true,
+    "maxBuildWorkers": 2
   }
 }
