@@ -10,6 +10,41 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public partial class CosmicTrackingTests
 {
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ExplicitNewChildIdentityStillRequiresParentAddChildren(bool includeParent)
+    {
+        var fixture = Fixture(true, conditional: true);
+        var actor = Guid.NewGuid();
+        var parent = new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = Guid.NewGuid(), Name = "parent" };
+        parent.MetaData[HolonPermissions.MetadataKey] = HolonPermissionSet.Empty.With(builder =>
+            builder.SetGrant(HolonPermissionSet.Key(actor), HolonPermission.Write)).Encode().Result;
+        fixture.Provider.Setup(provider => provider.LoadHolonAsync(parent.Id, false, true, 0, true, false, 0))
+            .ReturnsAsync(new OASISResult<IHolon>(parent) { IsLoaded = true });
+        var suppliedId = Guid.NewGuid();
+        var child = new Holon { Id = suppliedId, ParentHolonId = parent.Id, Name = "new explicit identity" };
+        fixture.Provider.Setup(provider => provider.LoadHolonAsync(suppliedId, false, true, 0, true, false, 0))
+            .ReturnsAsync(new OASISResult<IHolon> { IsError = true, ErrorCode = OASISResultErrorCodes.RecordNotFound });
+        var edit = (Holon)HolonChangeTracking.Clone(parent);
+        HolonChangeTracking.AcceptChanges(edit, false);
+        edit.Description = "allowed parent scalar edit";
+        var roots = includeParent ? new IHolon[] { edit, child } : new IHolon[] { child };
+        var options = new CosmicWriteOptions(Guid.NewGuid(), new Dictionary<Guid, Guid?>
+            { [parent.Id] = Guid.NewGuid(), [suppliedId] = null });
+
+        var result = await fixture.Manager.SaveOwnedHolonsAsync(roots, actor, options,
+            saveChildren: false, providerType: ProviderType.SQLLiteDBOASIS);
+
+        result.IsError.Should().BeTrue();
+        result.ErrorCode.Should().Be("COSMIC_ADD_CHILDREN_FORBIDDEN",
+            "authoritative absence makes a caller-assigned identity a new child too");
+        child.Id.Should().Be(suppliedId);
+        child.Version.Should().Be(0);
+        fixture.Provider.Invocations.Should().NotContain(call => call.Method.Name.StartsWith("Save")
+            || call.Method.Name.StartsWith("ExecuteConditional") || call.Method.Name.StartsWith("ExecuteReplicating"));
+    }
+
+    [Theory]
     [InlineData("error")]
     [InlineData("warning")]
     [InlineData("wrong-identity")]
