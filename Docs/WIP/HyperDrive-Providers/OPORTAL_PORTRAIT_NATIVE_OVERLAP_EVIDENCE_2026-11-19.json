@@ -1,5 +1,5 @@
 {
-  "status": "ci_in_progress_native_reproduction_not_accepted",
+  "status": "native_lost_update_reproduced_mongo_neo_sqlite_case_passed",
   "test": "PortraitNativeReadWriteOverlapPreservesNewerProfile",
   "providers": [
     "MongoDBOASIS",
@@ -38,9 +38,29 @@
   "run": 44636523076,
   "job": 135956359702,
   "source": "9d9ccac1b5c6540147ba9c26dec663329109daf5",
-  "observedStatus": "in_progress",
-  "apiBuildAccepted": false,
-  "nativeContractProjectBuildAccepted": false,
-  "newTestCompiled": false,
-  "fixtureCleanupVerified": false
+  "observedStatus": "completed_failure",
+  "apiBuildAccepted": true,
+  "nativeContractProjectBuildAccepted": true,
+  "newTestCompiled": true,
+  "fixtureCleanupVerified": true,
+  "results": {
+    "total": 3,
+    "MongoDBOASIS": "Failed: stored Address reverted to Before",
+    "Neo4jOASIS": "Failed: stored Address reverted to Before",
+    "skipped": 0,
+    "SQLLiteDBOASIS": "Passed this scoped overlap case",
+    "passed": 1,
+    "failed": 2
+  },
+  "artifactVerification": {
+    "streamsDisposed": true,
+    "filesWritten": 0,
+    "exactDefinitionsAndResults": 3,
+    "orderingAndCleanupMarkers": 6,
+    "fixtureStopSteps": "both success",
+    "id": 14585460891,
+    "sha256": "834395a75f2ac7241c008f722628d055040deb6d2a7397e675bfb40e9106b4bc",
+    "bytes": 2382
+  },
+  "rootCause": "UploadAvatarPortraitAsync reads full AvatarDetail then synchronously saves stale full detail for portrait-only intent; concurrent Address commit overwritten in Mongo and Neo. Shipping fix not accepted."
 }
