@@ -4,19 +4,19 @@ Updated 19 November 2026. The full roadmap is active and incomplete. This openin
 
 ## Current engineering gate
 
-Run [44558810881](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44558810881) is terminal FAILURE. WEB4 built; all four SQLite SDK controls reached the final numeric assertion but failed because the canonical exact-number token is Raw rather than Integer. Artifact14548356364 (2315bytes) contains only the failed SDK results. The two affected native modes did not execute; no complete control/native acceptance is claimed.
+**S05 property entries remain accepted** at61/168 EF/NHibernate rows per primary store,107 open, plus4/13 separate extensions. Its maintained guide and completed audit remain published; accepted S05 cohorts are not rerun.
 
-The fixture now follows the existing public exact-number owner: IsNumber plus CanonicalNumberText must prove9007199254740995. Explicit negative checks reject quoted numeric strings and the rounded neighbour9007199254740996. This retains all string/replay/refusal/native-revision/receipt assertions without another parser or numeric conversion. Production SQLite/shared code is unchanged. Next qualification retries the same four failed controls and two unexecuted affected modes.
+The next slice is grouped distinct-value counts for the complex SQL and stored/virtual demo. Core8cffa72d17439e465e96183186512dfebcc89b97 prepares immutable intent, explicit path capability enrollment and reuse of the existing mixed distinct-value reducer after identity reconciliation. Legacy/native providers refuse the new operation until explicitly enrolled; computed selectors remain explicitly unsupported until their own function path is implemented.
 
-Retained acceptance remains shared fingerprint8 plus Mongo/Neo plain2 (44550931624), nullable8 plus protected3 (44546555815, SQLite protected needs changed-owner qualification), and extraction14 (44542276995). S05 stays RED. A robust checklist recount includes letter-suffixed rows and confirms60/168 EF/NHibernate rows plus4/13 separate extensions per store. Source/API guide reconciliation does not add coverage.
+Twelve NEW Core/mixed controls are prepared (four contract/eight mixed), covering complete-input and access boundaries, nulls, changed identities/group keys, HAVING/order/page,198-row union, exact adjacent Int64 values and ordinal Unicode/NUL strings. Source remains uncompiled/unqualified. Core-only CI will build WEB4 and run only these new cases without starting Mongo/Neo stores. Actual Mongo/SQLite/Neo native translators, SQL/API/client/Ask exposure and hosted acceptance remain open. No coverage credit is added.
 
 ## Coverage
 
 | Area | Verified scope | Remaining |
 |---|---|---|
-| EF/NHibernate parity | **60/168 rows per MongoDB, SQLite and Neo4j** |108 rows per provider; full parity is not done. |
+| EF/NHibernate parity | **61/168 rows per MongoDB, SQLite and Neo4j** |107 rows per provider; full parity is not done. |
 | COSMIC extensions |4/13 per primary store, counted separately |9 per store. |
-| S05 property entries | Original/current editing/reset, explicit intent, selected saves, protected recovery, directed native replication, parent authorization and typed-role composition have retained scoped evidence. | Plain custom-scalar historical replay qualification above and final public-guide/whole-row audit. S05 remains RED. |
+| S05 property entries | **Accepted across the three primary stores**: original/current editing/reset/flags, selected saves, permission/encryption, recovery/replay, scoped replication/graph composition and custom/null/collection native persistence. | No remaining S05 gate; adjacent session/identity/proxy/refresh/full ORM features remain separate. |
 | SQL editor / Playground / Ask client |269 website tests passed on frozen source. | Current hosted end-to-end acceptance. |
 | Mixed stored/virtual queries | Actual WEB4 build,565 selected tests,22 configured cases and3 native-provider suites passed on the combined candidate. Grouping/HAVING, key DISTINCT, supported mapped values, deduplication and global ordering/paging have scoped evidence. | Grouped distinct counts, computed grouped selectors, larger sources, broader joins and hosted delivery. Complete mixed branches currently require fewer than100 records each; saturation is refused. |
 | Free WEB6 Ask your data | Source-bound draft validation/review and Free-routing controls have client evidence. | Real configured free-model visitor completion remains unverified; no unlimited-inference claim. |

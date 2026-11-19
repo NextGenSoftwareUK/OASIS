@@ -1,3 +1,5 @@
+Promoted 19 November 2026: [COSMIC property entries](../../Devs/COSMIC_Property_Entries.md) is the maintained developer guide. S05 is accepted on MongoDB/SQLite/Neo4j by the linked audit; full ORM parity remains open. The earlier draft below is retained as history.
+
 # COSMIC property entries - usage guide draft
 
 This is a source-contract draft for the S05 property-entry gate, not a claim of full EF/NHibernate or live deployment parity. See [the acceptance audit](S05_PROPERTY_ENTRY_ACCEPTANCE_AUDIT_2026-11-19.md) for exact provider evidence and remaining gates. Base-holon property inspection/editing, selected owned saves, encryption, replay and bound replication have scoped native evidence. Typed relationship-role composition has retained MongoDB, SQLite and Neo4j native evidence. Extraction14 and nullable-entry8 controls are accepted, as are all three protected custom-property native cases; plain-mode historical replay remains under qualification.

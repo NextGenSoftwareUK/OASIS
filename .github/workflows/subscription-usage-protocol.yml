@@ -255,32 +255,31 @@ jobs:
             dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SqliteNativeDataImportTests|FullyQualifiedName~AvatarProfileRegistryNativeTests'
             if ($LASTEXITCODE) { throw 'SQLite virtual Holon qualification failed.' }
           }
-      - name: Verify native SQLite selected receipt guards
+      - name: Verify grouped distinct Core and mixed contracts
         if: ${{ inputs.property_tracking_only }}
         shell: pwsh
         run: |
-          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-property-selection-ci -Operation {
-            dotnet test 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SelectedFingerprintPreservesNativeReplayAndReceiptGuards' --logger 'trx;LogFileName=property-sqlite-selected-core.trx' --results-directory TestResults/PropertySelection
-            $sqliteSelectedTestExit = $LASTEXITCODE
-            foreach ($file in 'TestResults/SQLiteCurrent/integration-current.db','TestResults/SQLiteCurrent/integration-current.db-wal','TestResults/SQLiteCurrent/integration-current.db-shm') {
-              if (Test-Path $file) { throw "Owned SQLite SDK fixture was not cleaned: $file" }
-            }
-            if ($sqliteSelectedTestExit) { throw 'Native SQLite selected receipt controls failed.' }
-            [xml]$core = Get-Content TestResults/PropertySelection/property-sqlite-selected-core.trx
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-grouped-distinct-core-ci -Operation {
+            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicGroupedDistinctContractTests|FullyQualifiedName~CosmicMixedNumericAggregateTests.GroupedDistinct' --logger 'trx;LogFileName=grouped-distinct-core.trx' --results-directory TestResults/PropertySelection
+            if ($LASTEXITCODE) { throw 'Grouped distinct Core/mixed contract verification failed.' }
+            [xml]$core = Get-Content TestResults/PropertySelection/grouped-distinct-core.trx
             $counts = $core.TestRun.ResultSummary.Counters
-            if ([int]$counts.total -ne 4 -or [int]$counts.passed -ne 4 -or [int]$counts.notExecuted -ne 0) {
-              throw 'Exactly4 new SQLite native receipt controls must execute and pass.'
+            if ([int]$counts.total -ne 12 -or [int]$counts.passed -ne 12 -or [int]$counts.notExecuted -ne 0) {
+              throw 'Exactly12 NEW grouped distinct controls must execute and pass.'
             }
             $methods = @($core.TestRun.TestDefinitions.UnitTest)
-            if ($methods.Count -lt 1 -or @($methods | Where-Object { $_.TestMethod.className -notlike '*SQLLiteDBOASISIntegrationTests' }).Count) {
-              throw 'Only the new custom property storage projection class may satisfy this qualification.'
+            $contracts = @($methods | Where-Object { $_.TestMethod.className -like '*CosmicGroupedDistinctContractTests' })
+            $mixed = @($methods | Where-Object { $_.TestMethod.className -like '*CosmicMixedNumericAggregateTests' -and $_.TestMethod.name -like 'GroupedDistinct*' })
+            if ($methods.Count -ne 12 -or $contracts.Count -ne 4 -or $mixed.Count -ne 8) {
+              throw 'Only four new contract and eight new mixed distinct controls may satisfy this qualification.'
             }
-            $ids = @($core.TestRun.TestDefinitions.UnitTest | Where-Object { $_.TestMethod.className -like '*SQLLiteDBOASISIntegrationTests' } | ForEach-Object { $_.id })
+            $ids = @($methods | ForEach-Object { $_.id })
             $results = @($core.TestRun.Results.UnitTestResult)
-            if ($results.Count -ne 4 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
-              throw 'Selection-only acceptance cannot inherit unrelated test results.'
+            if ($results.Count -ne 12 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
+              throw 'Grouped distinct acceptance cannot inherit unrelated or failed results.'
             }
           }
+
       - name: Verify custom scalar native storage mapping in plain and encrypted modes
         if: ${{ inputs.source_ref != '' && !inputs.property_selection_only }}
         shell: pwsh
@@ -372,7 +371,7 @@ jobs:
         with:
           name: subscription-protocol-test-results
           path: |
-            ${{ inputs.property_selection_only && 'TestResults/PropertySelection' || inputs.property_tracking_only && 'TestResults/Neo4jCurrent/*property-custom*' || 'TestResults' }}
+            ${{ inputs.property_selection_only && 'TestResults/PropertySelection/*grouped-distinct-core*' || inputs.property_tracking_only && 'TestResults/Neo4jCurrent/*property-custom*' || 'TestResults' }}
             ${{ inputs.property_tracking_only && !inputs.property_selection_only && 'TestResults/PropertySelection/*property-sqlite-selected-core*' || '' }}
       - name: Stop temporary database
         if: ${{ always() && !inputs.property_selection_only }}
