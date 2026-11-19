@@ -26,7 +26,7 @@
   "sdkCommit": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
   "jobId": 135698915826,
   "web6Commit": "ff6244886b96ba05a59e236a1f54b621f630f5ca",
-  "status": "first-failed-coordination-corrected-retry-active-not-accepted",
+  "status": "second-attempt-failed-controls-and-typed-conflict-fixed-awaiting-same-case-verification",
   "runId": 44563508388,
   "bundleCleanupVerified": true,
   "firstAttempt": {
@@ -45,5 +45,38 @@
     "artifactBytes": 3617,
     "sha256": "a83312a05c093b21be13231cd74a253e491bdcb99f709f243c9d93a105e0bacf",
     "outcome": "Failed"
+  },
+  "secondAttempt": {
+    "runId": 44563508388,
+    "jobId": 135698915826,
+    "sourceCommit": "0ddb17a7c80653c70f2915659f60b1b9657ad6c2",
+    "passed": 0,
+    "failed": 1,
+    "seconds": 48,
+    "web4ApiBuildErrors": 0,
+    "web6ApiBuildErrors": 0,
+    "publicationReachedServer": true,
+    "publicationStatus": 200,
+    "publicationMilliseconds": 303.5686,
+    "refreshStatus": 200,
+    "refreshMilliseconds": 4.5557,
+    "nativeFinalAcceptance": false,
+    "artifactId": 14551019051,
+    "artifactBytes": 3768,
+    "sha256": "2a6b1dcd833d986305b52fb0354892884976dc5723f889d41c2c4d67b97e2494",
+    "filesWritten": 0,
+    "nativeAndProcessCleanupVerified": true,
+    "terminalCleanupVerified": true
+  },
+  "preparedFix": {
+    "portalSource": "b305b011138524823fc27650279ce6b52df0667e",
+    "portalGenerated": "73c6de8154a3c259948daa99e318d9862b4bfa15",
+    "bundleRun": 44566856733,
+    "bundleJob": 135710867973,
+    "bundleConclusion": "success",
+    "bundleCleanupVerified": true,
+    "adminSha256": "323bbf1f4177739f6632cac08083ad5fa07863ae2d971dc118048dda3d4f7360",
+    "web6Commit": "db76289bd12aec0863c36ec29b09e9df4722da3b",
+    "realVerification": "pending"
   }
 }

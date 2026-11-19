@@ -62,6 +62,7 @@ async function verify({ baseUrl, actors, originalVersion }) {
     await page.goto(baseUrl + '/__subscription_browser', { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => !document.getElementById('fixture-open-admin').disabled);
     phase = 'actual-web6-bootstrap'; assert.equal((await open()).status(), 200);
+    await idle();
     const original = JSON.parse(await page.locator('#admin-catalogue-json').inputValue());
     assert.equal(original.version, originalVersion); assert.equal(Array.isArray(original.models) && original.models.length > 0, true);
     const candidate = { ...original, version: 'owned-' + randomUUID().slice(0, 8) };
@@ -117,14 +118,18 @@ async function verify({ baseUrl, actors, originalVersion }) {
     phase = 'explicit-refresh-and-immutable-version-conflict';
     const [refreshed] = await Promise.all([response(catalogue), page.locator('#admin-catalogue-refresh').click()]);
     assert.equal(refreshed.status(), 200); await page.waitForLoadState('networkidle');
+    await idle();
     assert.equal(JSON.parse(await page.locator('#admin-catalogue-json').inputValue()).version, candidate.version);
     await page.locator('#admin-catalogue-reason').fill('Owned duplicate catalogue publication');
     await submit(publication, '#admin-catalogue-publish', 409);
     assert.match(await page.locator('#subscription-admin-status').textContent(), /immutable/);
     phase = 'loading-cannot-replace-new-draft';
     const readGate = await hold(catalogue), read = observeResponse(catalogue);
-    await Promise.all([page.waitForRequest(value => new URL(value.url()).pathname === catalogue), page.locator('#admin-catalogue-refresh').click()]); await draft(newer);
-    readGate.release(); assert.equal((await take(read)).status(), 200); await page.waitForLoadState('networkidle');
+    await Promise.all([page.waitForRequest(value => new URL(value.url()).pathname === catalogue), page.locator('#admin-catalogue-refresh').click()]);
+    assert.equal(await page.locator('#admin-catalogue-validate').isDisabled(), true);
+    assert.equal(await page.locator('#admin-catalogue-publish').isDisabled(), true);
+    await draft(newer);
+    readGate.release(); assert.equal((await take(read)).status(), 200); await page.waitForLoadState('networkidle'); await idle();
     assert.equal(JSON.parse(await page.locator('#admin-catalogue-json').inputValue()).version, newer.version);
     assert.match(await page.locator('#subscription-admin-status').textContent(), /draft changed while loading/);
     phase = 'late-native-read-after-account-change';
@@ -150,6 +155,7 @@ async function verify({ baseUrl, actors, originalVersion }) {
       publishedVersion: candidate.version, actualWeb6JwtAndStoredWizardAuthority: true,
       singlePendingValidatePublish: true, validationAndReadKeepNewDraft: true, publicationKeepsNewDraft: true,
       noAutomaticPostPublicationRead: true, immutableVersionConflict: true, ordinaryAndExpiredDenied: true,
+      refreshControlsDisabledUntilReadComplete: true,
       approvedPricesChanged: false, multiHostPublicationVerified: false, fullProductionStartupVerified: false,
       hostedOrStripeVerified: false };
   } catch (error) { console.error(JSON.stringify({ phase, publicationControls, pageErrors: errors, requests: requests.length })); throw error; }
