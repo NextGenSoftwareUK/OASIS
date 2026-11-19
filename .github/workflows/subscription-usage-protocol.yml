@@ -256,7 +256,7 @@ jobs:
             if ($LASTEXITCODE) { throw 'SQLite virtual Holon qualification failed.' }
           }
       - name: Verify existing in-plan parent AddChildren authorization
-        if: ${{ inputs.property_tracking_only && inputs.property_selection_only }}
+        if: ${{ inputs.property_tracking_only }}
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-property-selection-ci -Operation {
@@ -277,7 +277,7 @@ jobs:
               throw 'Selection-only acceptance cannot inherit unrelated test results.'
             }
           }
-      - name: Verify native entity-selected All on three stores
+      - name: Verify owned graph permissions and native atomicity on three stores
         if: ${{ inputs.source_ref != '' && !inputs.property_selection_only }}
         shell: pwsh
         run: |
@@ -296,32 +296,27 @@ jobs:
             if (!$ready) { throw 'Neo4j fixture did not become ready.' }
             & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-entity-projection-ci -Operation {
               if ('${{ inputs.property_tracking_only }}' -eq 'true') {
-                dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SelectedOwnedWritesDeliverBoundNativeReplicasWithoutWholeSaveDowngrade' --logger 'trx;LogFileName=property-enrolled-native.trx' --results-directory TestResults/Neo4jCurrent
+                dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SelectedGraphSavesEnforceParentPermissionsAndAtomicNativeConditions' --logger 'trx;LogFileName=property-graph-native.trx' --results-directory TestResults/Neo4jCurrent
                 if ($LASTEXITCODE) { throw 'Selected native property status verification failed.' }
-                [xml]$native = Get-Content TestResults/Neo4jCurrent/property-enrolled-native.trx
+                [xml]$native = Get-Content TestResults/Neo4jCurrent/property-graph-native.trx
                 $counts = $native.TestRun.ResultSummary.Counters
                 if ([int]$counts.total -ne 3 -or [int]$counts.passed -ne 3 -or [int]$counts.notExecuted -ne 0) {
                   throw 'Exactly3 real selection-bound read-only status cases must execute and pass.'
                 }
                 $ids = @($native.TestRun.TestDefinitions.UnitTest | Where-Object {
-                  $_.TestMethod.name -eq 'SelectedOwnedWritesDeliverBoundNativeReplicasWithoutWholeSaveDowngrade'
+                  $_.TestMethod.name -eq 'SelectedGraphSavesEnforceParentPermissionsAndAtomicNativeConditions'
                 } | ForEach-Object { $_.id })
                 $results = @($native.TestRun.Results.UnitTestResult)
                 if ($results.Count -ne 3 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
                   throw 'Unrelated native results cannot satisfy selected-field acceptance.'
                 }
                 foreach ($provider in 'MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS') {
-                  $report = Get-Content "TestResults/Neo4jCurrent/$provider-property-enrolled-native.json" -Raw | ConvertFrom-Json
-                  $target = @{ MongoDBOASIS='SQLLiteDBOASIS'; SQLLiteDBOASIS='Neo4jOASIS'; Neo4jOASIS='MongoDBOASIS' }[$provider]
-                  if ($report.provider -ne $provider -or $report.target -ne $target -or
-                      $report.checks -ne 14 -or $report.successfulHolonWrites -ne 4 -or $report.deliveredVersions -ne 4 -or
-                      !$report.boundSourceVerified -or !$report.boundTargetVerified -or !$report.firstCreateDeliveredVerified -or
-                      !$report.selectedScalarDeliveredVerified -or !$report.encryptedUpdateDeliveredVerified -or !$report.encryptedRemovalDeliveredVerified -or
-                      !$report.unselectedValuesPreservedVerified -or !$report.callerPrivacyVerified -or !$report.fieldOnlyWriteVerified -or
-                      !$report.receiptReplayVerified -or !$report.noExtraObligationVerified -or !$report.changedTargetRefused -or
-                      !$report.wrongSourceBindingRefused -or !$report.staleEnrollmentRefused -or !$report.frozenPayloadVerified -or !$report.nativeReplicaRevisionVerified -or
-                      !$report.noOrdinaryWriteDowngradeVerified -or !$report.ownedBusinessCleanupVerified -or !$report.exactCleanupVerified) {
-                    throw "Complete bound selected enrollment/real replica delivery/replay/privacy/refusal/cleanup evidence required for $provider."
+                  $report = Get-Content "TestResults/Neo4jCurrent/$provider-property-graph-native.json" -Raw | ConvertFrom-Json
+                  if ($report.provider -ne $provider -or $report.checks -ne 10 -or $report.successfulHolonWrites -ne 6 -or
+                      !$report.existingParentPermissionVerified -or !$report.deniedBeforeMutationVerified -or
+                      !$report.fullGraphVerified -or !$report.mixedSelectedGraphVerified -or !$report.unselectedParentPreservedVerified -or
+                      !$report.nativeChildVerified -or !$report.staleGraphAtomicityVerified -or !$report.exactCleanupVerified) {
+                    throw "Complete native graph permission/composition/stale atomicity/cleanup evidence required for $provider."
                   }
                 }
               } else {
@@ -368,7 +363,8 @@ jobs:
         with:
           name: subscription-protocol-test-results
           path: |
-            ${{ inputs.property_selection_only && 'TestResults/PropertySelection' || inputs.property_tracking_only && 'TestResults/Neo4jCurrent/*property-enrolled-native*' || 'TestResults' }}
+            ${{ inputs.property_selection_only && 'TestResults/PropertySelection' || inputs.property_tracking_only && 'TestResults/Neo4jCurrent/*property-graph-native*' || 'TestResults' }}
+            ${{ inputs.property_tracking_only && !inputs.property_selection_only && 'TestResults/PropertySelection/*property-graph-permission-core*' || '' }}
       - name: Stop temporary database
         if: ${{ always() && !inputs.property_selection_only }}
         run: docker rm --force usage-mongo
