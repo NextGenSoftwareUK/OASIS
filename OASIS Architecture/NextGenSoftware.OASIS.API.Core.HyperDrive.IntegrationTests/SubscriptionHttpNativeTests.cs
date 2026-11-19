@@ -37,7 +37,10 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     [Fact]
     public Task SubscriptionNotificationPreferencesBrowserUsesActualControllerAndOwnedMongo() => RunSubscriptionHttp(true, true, true);
 
-    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false)
+    [Fact]
+    public Task SubscriptionAppOwnerSettingsBrowserUsesActualControllerAndOwnedMongo() => RunSubscriptionHttp(true, true, true, true);
+
+    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -87,6 +90,20 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             var db = mongo.GetDatabase(databaseName);
             var accounts = new[] { Guid.NewGuid().ToString("D"), Guid.NewGuid().ToString("D") };
             var missingAccount = Guid.NewGuid().ToString("D");
+            if (ownerSettings)
+            {
+                for (var i = 0; i < accounts.Length; i++)
+                    await db.GetCollection<BsonDocument>("subscription_app_accounts").InsertOneAsync(new BsonDocument
+                    {
+                        { "_id", i == 0 ? "owned-app-a" : "owned-app-b" }, { "Name", "Owned app " + i },
+                        { "PlanId", "silver" }, { "Status", "active" },
+                        { "OwnerAvatarIds", new BsonArray(new[] { accounts[i] }) },
+                        { "KeyHashSha256", Convert.ToHexString(SHA256.HashData(RandomNumberGenerator.GetBytes(32))) },
+                        { "Overrides", new BsonDocument { { "OwnerViewEnabled", true }, { "WarningsEnabled", false },
+                            { "AccessLogEnabled", false }, { "SealedHistoryEnabled", true },
+                            { "VersionPurgeEnabled", true }, { "VersionPurgeDays", 45 } } }
+                    });
+            }
             avatarStore = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(MongoUri, databaseName);
             var activated = await avatarStore.ActivateProviderAsync();
             Assert.False(activated.IsError, activated.Message);
@@ -161,7 +178,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 var selected = new List<Type> { controller };
                 if (usage) selected.Add(api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SubscriptionUsageSeriesController", true)!);
                 if (notifications) selected.Add(api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SubscriptionNotificationController", true)!);
+                if (ownerSettings) selected.Add(api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SubscriptionAppOwnerController", true)!);
                 parts.FeatureProviders.Add(new ProfileControllerFeature(selected.ToArray()));
+            }).AddJsonOptions(options =>
+            {
+                if (ownerSettings) options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
             }).AddControllersAsServices();
             builder.Services.AddSingleton(api.GetType(ns + "ISubscriptionService", true)!, service);
             builder.Services.AddSingleton(api.GetType(ns + "ISubscriptionUsageRepository", true)!, repository);
@@ -240,7 +261,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     });
                     Assert.False(result.RootElement.TryGetProperty("isError", out var failed) && failed.GetBoolean(),
                         result.RootElement.TryGetProperty("message", out var message) ? message.GetString() : "Browser worker failed.");
-                    Assert.True(result.RootElement.GetProperty(notifications ? "notificationPreferencesBrowserVerified" :
+                    Assert.True(result.RootElement.GetProperty(ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
                         usage ? "subscriptionUsageBrowserVerified" : "subscriptionBrowserVerified").GetBoolean());
                     Assert.Equal(3, result.RootElement.GetProperty("actorsVerified").GetInt32());
                     Assert.True(result.RootElement.GetProperty("lateSessionResponseIgnored").GetBoolean());
@@ -273,7 +294,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 Assert.Equal(2L, await db.GetCollection<BsonDocument>("subscription_records").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
                 Assert.Equal(2L, await db.GetCollection<BsonDocument>("subscription_orders").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
                 if (usage) Assert.Equal(4L, await db.GetCollection<BsonDocument>("subscription_usage_buckets").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
-                if (notifications)
+                if (notifications && !ownerSettings)
                 {
                     var preferences = db.GetCollection<BsonDocument>("usage_notification_settings");
                     Assert.Equal(2L, await preferences.CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
@@ -310,6 +331,40 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     var after = await preferences.Find(new BsonDocument("_id", "user:" + accounts[0])).SingleAsync();
                     Assert.Equal(second.Next, Assert.Single(after["thresholds"].AsBsonArray).ToInt32());
                     Console.WriteLine("Notification native audit verified: two concurrent changes form the actual before/after chain; seven total preference audit entries, two owned subjects.");
+                }
+                if (ownerSettings)
+                {
+                    var apps = db.GetCollection<BsonDocument>("subscription_app_accounts");
+                    var audit = db.GetCollection<BsonDocument>("subscription_billing_audit");
+                    var filter = new BsonDocument("Kind", "app-usage-overrides-changed");
+                    Assert.Equal(3L, await audit.CountDocumentsAsync(filter));
+                    http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token(accounts[0]));
+                    async Task Send(string json, HttpStatusCode status)
+                    {
+                        using var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                        using var response = await http.PostAsync("/api/subscription/app-owner/owned-app-a/settings", content);
+                        Assert.Equal(status, response.StatusCode);
+                    }
+                    foreach (var invalid in new[] { "{}", "null", "[]", "{\"warningsEnabled\":1}",
+                        "{\"unknown\":true}", "{\"warningsEnabled\":true,\"warningsEnabled\":false}",
+                        "{\"versionPurgeDays\":1.5}", "{\"versionPurgeDays\":3651}" })
+                        await Send(invalid, HttpStatusCode.BadRequest);
+                    Assert.Equal(3L, await audit.CountDocumentsAsync(filter));
+                    await Task.WhenAll(Send("{\"ownerViewEnabled\":false}", HttpStatusCode.OK),
+                        Send("{\"accessLogEnabled\":true}", HttpStatusCode.OK));
+                    var after = (await apps.Find(new BsonDocument("_id", "owned-app-a")).SingleAsync())["Overrides"].AsBsonDocument;
+                    Assert.False(after["OwnerViewEnabled"].AsBoolean);
+                    Assert.True(after["AccessLogEnabled"].AsBoolean);
+                    Assert.True(after["SealedHistoryEnabled"].AsBoolean);
+                    Assert.True(after["VersionPurgeEnabled"].AsBoolean);
+                    Assert.Equal(45, after["VersionPurgeDays"].ToInt32());
+                    Assert.Equal(5L, await audit.CountDocumentsAsync(filter));
+                    // Revocation is enforced by the same transaction that writes, independently of any earlier UI read.
+                    await apps.UpdateOneAsync(new BsonDocument("_id", "owned-app-a"),
+                        new BsonDocument("$set", new BsonDocument("OwnerAvatarIds", new BsonArray())));
+                    await Send("{\"warningsEnabled\":true}", HttpStatusCode.Forbidden);
+                    Assert.Equal(5L, await audit.CountDocumentsAsync(filter));
+                    Console.WriteLine("App settings native verified: omitted hidden choices preserved, disjoint concurrent changes retained, malformed requests and revoked owner create no audit writes.");
                 }
             }
             finally { await app.StopAsync(); }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson.Serialization.Attributes;
@@ -64,13 +65,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
 
     public sealed class AppUsageOverrides
     {
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public bool? OwnerViewEnabled { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public bool? WarningsEnabled { get; set; }
         /// <summary>Record who read this app's holons even when the node default is off (or stop recording when it is on).</summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public bool? AccessLogEnabled { get; set; }
         /// <summary>Seal every version of data saved through this app (tamper-evident history) even when the owner has not; null/false = the app does not require it. Needs HolonSeal.Enabled and a key on the node.</summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public bool? SealedHistoryEnabled { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public bool? VersionPurgeEnabled { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public int? VersionPurgeDays { get; set; }
     }
 

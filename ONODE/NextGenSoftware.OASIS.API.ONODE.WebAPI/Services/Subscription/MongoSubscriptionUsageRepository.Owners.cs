@@ -66,6 +66,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             return await AppAccounts.Find(x => x.AppId == appId && x.OwnerAvatarIds.Contains(d)).AnyAsync(cancellationToken);
         }
 
+        public async Task<AppAccountRecord> GetAppForOwnerAsync(string appId, string actor, bool administrator, CancellationToken cancellationToken = default)
+        {
+            AppAccountRules.ValidateAppId(appId);
+            var account = await AppAccounts.Find(x => x.AppId == appId).FirstOrDefaultAsync(cancellationToken);
+            if (!administrator && !(account?.OwnerAvatarIds?.Contains(actor, StringComparer.OrdinalIgnoreCase) ?? false))
+                throw new UnauthorizedAccessException("Only an app owner or approved administrator may read these settings.");
+            return account?.Redacted() ?? throw new KeyNotFoundException("The app account was not found.");
+        }
+
         /// <summary>Records that a warning for this key (month and threshold) was emailed. True only for the first caller, so one warning is sent once.</summary>
         public async Task<bool> TryMarkNotifiedAsync(string subject, string key, CancellationToken cancellationToken = default)
         {
@@ -142,18 +151,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         }
 
         /// <summary>Owner or administrator: set this app's own on/off choices that override the node default (null = follow the default). Audited.</summary>
-        public Task<AppAccountRecord> SetAppOverridesAsync(string appId, bool? ownerView, bool? warnings, bool? accessLog, string actor, CancellationToken cancellationToken = default, bool? sealedHistory = null, bool? versionPurge = null, int? versionPurgeDays = null)
+        public Task<AppAccountRecord> SetAppOverridesAsync(string appId, AppUsageSettingsPatch patch, string actor, bool administrator, CancellationToken cancellationToken = default)
         {
             AppAccountRules.ValidateAppId(appId);
             if (string.IsNullOrWhiteSpace(actor)) throw new ArgumentException("An actor is required.");
-            var daysError = Purge.PurgeChoice.Validate(versionPurgeDays);
-            if (daysError != null) throw new ArgumentException(daysError);
+            if (patch == null) throw new ArgumentException("App settings are required.");
             return TransactAsync(async (session, ct) =>
             {
                 var now = _time.GetUtcNow().UtcDateTime;
                 var account = await AppAccounts.Find(session, x => x.AppId == appId).FirstOrDefaultAsync(ct) ?? throw new KeyNotFoundException("The app account was not found.");
+                if (!administrator && !(account.OwnerAvatarIds?.Contains(actor, StringComparer.OrdinalIgnoreCase) ?? false))
+                    throw new UnauthorizedAccessException("Only an app owner or approved administrator may change these settings.");
                 var before = account.Overrides ?? new AppUsageOverrides();
-                account.Overrides = new AppUsageOverrides { OwnerViewEnabled = ownerView, WarningsEnabled = warnings, AccessLogEnabled = accessLog, SealedHistoryEnabled = sealedHistory, VersionPurgeEnabled = versionPurge, VersionPurgeDays = versionPurgeDays };
+                account.Overrides = patch.Apply(account.Overrides);
                 account.UpdatedAtUtc = now; account.UpdatedBy = actor;
                 await AppAccounts.ReplaceOneAsync(session, x => x.AppId == appId, account, cancellationToken: ct);
                 await BillingAudit.InsertOneAsync(session, new BsonDocument
