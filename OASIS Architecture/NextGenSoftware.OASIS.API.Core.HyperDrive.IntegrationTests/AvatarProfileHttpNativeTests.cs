@@ -258,8 +258,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     }
 
     // The test hosts HTTP only. CI owns the separate fixed Node command.
-    private static async Task<JsonDocument> ExchangeSdkRequest(object request)
+    private static async Task<JsonDocument> ExchangeSdkRequest(object request, TimeSpan? handoffTimeout = null)
     {
+        var timeout = handoffTimeout ?? TimeSpan.FromSeconds(45);
+        if (timeout <= TimeSpan.Zero || timeout > TimeSpan.FromMinutes(3))
+            throw new ArgumentOutOfRangeException(nameof(handoffTimeout));
         var configured = Environment.GetEnvironmentVariable("OASIS_PROFILE_SDK_HANDOFF_ROOT");
         var runnerTemp = Environment.GetEnvironmentVariable("RUNNER_TEMP");
         if (string.IsNullOrEmpty(configured) || string.IsNullOrEmpty(runnerTemp))
@@ -291,7 +294,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 await stream.FlushAsync();
             }
             File.Move(input + ".tmp", input);
-            await ready.Task.WaitAsync(TimeSpan.FromSeconds(45));
+            await ready.Task.WaitAsync(timeout);
             return JsonDocument.Parse(await File.ReadAllTextAsync(output));
         }
         finally

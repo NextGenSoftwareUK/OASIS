@@ -47,10 +47,12 @@ async function verify({ baseUrl, actors, originalVersion }) {
       await page.waitForLoadState('networkidle'); return result;
     }
     async function draft(value) {
+      const editingAt = Date.now();
       const editor = page.locator('#admin-catalogue-json');
       assert.equal(await editor.isVisible(), true, 'Catalogue draft editor must be visible before editing.');
       assert.equal(await editor.isEditable(), true, 'Catalogue draft editor must be editable before editing.');
       await editor.fill(JSON.stringify(value, null, 2));
+      phases.push({ phase: phase + '-draft-edited', elapsedMs: Date.now() - startedAt, editingMs: Date.now() - editingAt });
     }
     async function idle() { await page.waitForFunction(() => !document.getElementById('admin-catalogue-validate').disabled && !document.getElementById('admin-catalogue-publish').disabled); }
     async function submit(endpoint, button, expected) {
@@ -171,6 +173,7 @@ async function verify({ baseUrl, actors, originalVersion }) {
     assert.equal(count(validation), 5); assert.equal(count(publication), 4);
     assert.deepEqual(errors, []); assert.deepEqual(forbidden, []);
     return { subscriptionAdminCatalogueBrowserVerified: true, actorsVerified: 3, lateSessionResponseIgnored: true,
+      browserElapsedMs: Date.now() - startedAt, phases,
       publishedVersion: candidate.version, actualWeb6JwtAndStoredWizardAuthority: true,
       singlePendingValidatePublish: true, validationAndReadKeepNewDraft: true, publicationKeepsNewDraft: true,
       noAutomaticPostPublicationRead: true, immutableVersionConflict: true, ordinaryAndExpiredDenied: true,

@@ -153,8 +153,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 string Token(Guid actor) => new JwtSecurityTokenHandler().WriteToken(new JwtSecurityToken(issuer: issuer, audience: issuer,
                     claims: [new Claim("id", actor.ToString("D")), new Claim("sub", actor.ToString("D"))],
                     expires: DateTime.UtcNow.AddMinutes(actor == actors[2] ? -1 : 5), signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)));
+                // This complete multi-actor publication flow edits the full shipping catalogue repeatedly.
+                // Its bounded case budget must include Chromium startup and all those real UI operations.
                 using var result = await ExchangeSdkRequest(new { baseUrl = address, originalVersion,
-                    actors = actors.Select(actor => new { id = actor.ToString("D"), token = Token(actor) }).ToArray() });
+                    actors = actors.Select(actor => new { id = actor.ToString("D"), token = Token(actor) }).ToArray() },
+                    handoffTimeout: TimeSpan.FromMinutes(2));
                 Assert.False(result.RootElement.TryGetProperty("isError", out var failed) && failed.GetBoolean(), "Actual WEB6 catalogue browser check failed.");
                 Assert.True(result.RootElement.GetProperty("subscriptionAdminCatalogueBrowserVerified").GetBoolean());
                 Assert.Equal(3, result.RootElement.GetProperty("actorsVerified").GetInt32());
