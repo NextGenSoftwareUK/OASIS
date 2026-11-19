@@ -22,10 +22,28 @@
   "coreCommit": "d2fc611338f5fc665ff6e514527593208835c145",
   "runId": 44554360492,
   "providerExecuted": false,
-  "status": "qualification-active-not-accepted",
+  "status": "service-native-api-browser-accepted-shared-worker-hosted-and-full-admin-open",
   "dependencyManifestAndGitlinksVerified": true,
   "sdkCommit": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
   "jobId": 135666307833,
   "stripeAccepted": false,
-  "databaseOwnership": "Exact loopback fresh CI names proven absent before creation; exact names dropped in finally"
+  "databaseOwnership": "Exact loopback fresh CI names proven absent before creation; exact names dropped in finally",
+  "acceptedEvidence": {
+    "sha256": "f7ca9da3d77e66fe1307fdf2159b9ba82d45ba34dddea5e57f803a9b7bc2e877",
+    "passed": 2,
+    "financialCollectionsUnchanged": true,
+    "failed": 0,
+    "successfulAdminActions": 1,
+    "defaultSharedDatabaseAndProcessCleanupVerified": true,
+    "apiBuildErrors": 0,
+    "actors": 3,
+    "filesWritten": 0,
+    "linkedBuild": "skipped",
+    "artifactId": 14545686025,
+    "seconds": 15,
+    "foreignOperationsUnchanged": 5,
+    "serviceGroups": 6,
+    "artifactBytes": 4437,
+    "skipped": 0
+  }
 }
