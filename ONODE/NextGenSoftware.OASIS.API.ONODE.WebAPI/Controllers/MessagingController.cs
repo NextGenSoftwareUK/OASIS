@@ -112,5 +112,49 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // Use MessagingManager for business logic
             return await MessagingManager.Instance.MarkNotificationsAsReadAsync(Avatar.Id, notificationIds);
         }
+        /// <summary>
+        /// Idempotent send. The client supplies the message id, so an offline outbox can safely retry.
+        /// </summary>
+        [Authorize]
+        [HttpPost("send")]
+        public async Task<OASISResult<Message>> Send([FromBody] SendMessageRequest request)
+        {
+            if (request == null)
+                return new OASISResult<Message> { IsError = true, Message = "The request body is required." };
+            return await MessagingManager.Instance.SendMessageAsync(Avatar.Id, request);
+        }
+
+        /// <summary>
+        /// Marks messages addressed to the current avatar as delivered.
+        /// </summary>
+        [Authorize]
+        [HttpPost("mark-messages-delivered")]
+        public async Task<OASISResult<bool>> MarkMessagesDelivered([FromBody] List<Guid> messageIds)
+        {
+            if (messageIds == null)
+                return new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON array of message IDs." };
+            return await MessagingManager.Instance.MarkMessagesAsDeliveredAsync(Avatar.Id, messageIds);
+        }
+
+        /// <summary>
+        /// Cursor sync: messages received after <paramref name="since"/> (UTC), oldest first.
+        /// Pass the returned nextCursor back as since while hasMore is true.
+        /// </summary>
+        [Authorize]
+        [HttpGet("sync")]
+        public async Task<OASISResult<MessageSyncPage>> Sync([FromQuery] DateTime? since = null, [FromQuery] int limit = 100)
+        {
+            return await MessagingManager.Instance.GetMessagesSinceAsync(Avatar.Id, since, limit);
+        }
+
+        /// <summary>
+        /// Conversation list for the current avatar, most recently active first.
+        /// </summary>
+        [Authorize]
+        [HttpGet("conversations")]
+        public async Task<OASISResult<List<ConversationSummary>>> Conversations()
+        {
+            return await MessagingManager.Instance.GetConversationsAsync(Avatar.Id);
+        }
     }
 }
