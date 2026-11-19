@@ -4,6 +4,8 @@ Updated 19 November 2026. The full roadmap is active and incomplete. This openin
 
 ## Current engineering gate
 
+Current retry: [44558810881](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44558810881), exact parent93da3b2784728b53821570ca96b5b4380d20a8aa/Core8c1604407c3984e898e3d2ac9270d418dbb902c5, observed live at checkout. Only the same four failed SDK cases and the two previously unexecuted affected native modes are selected. Production code is unchanged; terminal results and cleanup remain pending.
+
 Run [44555747962](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44555747962) is terminal FAILURE. WEB4 built, but all four new SQLite SDK controls failed at the final sibling assertion: a CLR string was compared with the provider's JSON string-token wrapper. The2349byte artifact14546291319 contains only the four failed SDK results; the two affected native modes did not execute. No full SDK/native acceptance is inferred.
 
 The fixture is corrected to require canonical String/exact sibling text and Integer/exact long9007199254740995, retaining all replay/refusal/native/receipt assertions. The production SQLite selected-domain6/shared projection fix is unchanged. The workflow now checks owned SQLite DB/WAL/SHM cleanup before reporting test failure. Next qualification retries those same four failed SDK cases and two unexecuted affected SQLite modes.
