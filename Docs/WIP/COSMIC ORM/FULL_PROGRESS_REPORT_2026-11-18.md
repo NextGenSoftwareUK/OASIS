@@ -1,3 +1,39 @@
+# Full COSMIC / CQL / HyperDrive progress report
+
+Updated 19 November 2026. The full roadmap is active and incomplete. This opening summary is current; the retained detailed report below contains historical and superseded updates.
+
+## Current engineering gate
+
+Run [44546555815](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44546555815) is qualifying the nullable-property correction on exact parent f67bc0aee586b24aa2f5f49e5451e8426c8ba82f and Core8c1604407c3984e898e3d2ac9270d418dbb902c5. It selects eight NEW null-entry controls and the same six failed plain/encrypted MongoDB, SQLite and Neo4j cases. Its actual WEB4 build is in progress; no result is accepted yet.
+
+The preceding run44542276995 built WEB4 and passed all14 new actual extraction/storage-projection controls. Its six native cases progressed past Score and encoded JsonRating, then failed while inspecting an acknowledged null Note. The canonical serializer omits nullable CLR roots; inspection had incorrectly rejected that omitted original/current pair. The new fix normalizes proven omitted nullable slots into logical null entries without changing stored JSON, missing metadata semantics or permissions. The fixture now checks the inspection OASISResult before dereferencing it. Those14 accepted controls are not rerun. Artifact14539334879/5827bytes was strictly verified in RAM; no native report or whole-suite acceptance was inferred, and temporary database stop succeeded.
+
+## Coverage
+
+| Area | Verified scope | Remaining |
+|---|---|---|
+| EF/NHibernate parity | **60/168 rows per MongoDB, SQLite and Neo4j** |108 rows per provider; full parity is not done. |
+| COSMIC extensions |4/13 per primary store, counted separately |9 per store. |
+| S05 property entries | Original/current editing/reset, explicit intent, selected saves, protected recovery, directed native replication, parent authorization and typed-role composition have retained scoped evidence. | Native custom-scalar/null/collection qualification above and final public-guide/whole-row audit. S05 remains RED. |
+| SQL editor / Playground / Ask client |269 website tests passed on frozen source. | Current hosted end-to-end acceptance. |
+| Mixed stored/virtual queries | Actual WEB4 build,565 selected tests,22 configured cases and3 native-provider suites passed on the combined candidate. Grouping/HAVING, key DISTINCT, supported mapped values, deduplication and global ordering/paging have scoped evidence. | Grouped distinct counts, computed grouped selectors, larger sources, broader joins and hosted delivery. Complete mixed branches currently require fewer than100 records each; saturation is refused. |
+| Free WEB6 Ask your data | Source-bound draft validation/review and Free-routing controls have client evidence. | Real configured free-model visitor completion remains unverified; no unlimited-inference claim. |
+| Full/virtual/hybrid holons | Accepted native mixed reads use original sources without importing virtual-only records. | Complete promotion/cache/placement policies and hosted per-avatar/app OPORTAL execution. |
+
+## Delivery, providers and resources
+
+The priority-provider table in the retained detailed report records previously accepted demo slices. It is **not a fresh availability check**, full native-interface implementation claim, or full ORM/HyperDrive parity claim. HoloOASIS has prior real-provider evidence; its conductor has not been rechecked here.
+
+The shared-cluster/deployment stand-down remains active: no shared Atlas, live API/browser/sign-in/model requests, PIPER changes, DNA/configuration changes, replication-queue535/543 operations or deployments. No Development merge occurred. Engineering continues using isolated CI and source changes.
+
+OASIS and Core use the existing work/cosmic-cql-ton-public branch; Website uses its existing work/cosmic-cql branch. No implementation branch, worktree, local runtime, database, container or image download was added. Last observed C free space:38.20GiB. Archives were inspected in RAM and temporary Git indexes removed by their owners.
+
+See [the parity checklist](CQL_PARITY_CHECKLIST.md), [S05 acceptance audit](S05_PROPERTY_ENTRY_ACCEPTANCE_AUDIT_2026-11-19.md), [property-entry guide draft](CQL_PROPERTY_ENTRY_GUIDE_DRAFT.md) and [cleanup ledger](RECOVERY_LAPTOP_CLEANUP_LEDGER.md).
+
+## Retained detailed report and historical evidence
+
+The following text is preserved for traceability. Earlier pending/live statements and coverage arithmetic are superseded by the current summary above.
+
 2026-11-19 NULLABLE ENTRY QUALIFICATION DISPATCHED:44546555815 on exactf67bc0aee586b24aa2f5f49e5451e8426c8ba82f/Core8c1604407c3984e898e3d2ac9270d418dbb902c5. Paired candidate/task manifests and changed workflow PowerShell parsed; atomic existing feature branch/tag publication verified. Only8 NEW null-entry controls and SAME6 failed native cases selected; accepted14 extraction controls retained without rerun. Await terminal matching TRX/six reports/cleanup; no pass claim. Prior44542276995 temporary database stop confirmed successful despite native failure;5827byte archive RAM-only. Source/Git/compact reports retained, no owned temporary indexes observed, C free38.20GiB; no local build/runtime/database/image/archive downloads or shared Atlas/API/browser/PIPER/DNA/queues/deployment.
 
 2026-11-19 EXTRACTION14 ACCEPTED; NULLABLE ENTRY ROOT FIX PREPARED:44542276995/job135623494716 terminal FAILURE overall, actual WEB4 build and14/14 NEW extraction/storage projection controls PASSED. Strict5827byte artifact14539334879 RAM-verified/disposed: exact2TRX, matching class/testIDs/outcomes, native0/6passed/6failed/0skipped, no native reports. Native cases now pass initial Score and JsonRating stages but fail inspection after nullable Note save at SelectedCustom.cs69/100; no whole-native acceptance. Canonical serializer omits null CLR roots; GetPropertyValues treated both omitted original/current as an invalid path. Core8c1604407c3984e898e3d2ac9270d418dbb902c5 normalizes only declared nullable canonical roots with proven null omission into logical null property entries, retaining actual JSON shape, exact metadata absence, ignored/unknown/conditional-suppression fences. Reset/force inspection share this owner. NEW8 focused controls plus SAME6 failed native cases next; accepted extraction14 not rerun. Fixture now asserts inspection OASISResult before dereference to preserve actual diagnostics; requirements unchanged. Fix/new8 uncompiled/unqualified. Full S05 RED60/168 EF plus4/13 separate extensions. No shared Atlas/API/browser/PIPER/DNA/queues/deployment or local build/runtime/environment/database/container/image/archive. Artifacts RAM-only; indexes self-remove.
