@@ -122,6 +122,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public Task<IActionResult> AppTopUsers(string appId, [FromQuery] int limit = 10) =>
             AppAccountCall(_ => _repository.GetAppTopUsersAsync(appId, limit, HttpContext.RequestAborted));
 
+        /// <summary>Replace an app's owner avatars through the audited ownership transaction.</summary>
+        [HttpPost("app-accounts/{appId}/owners")]
+        public Task<IActionResult> SetAppOwners(string appId, [FromBody] AppOwnersRequest request) =>
+            AppAccountCall(actor =>
+            {
+                if (request?.OwnerAvatarIds == null)
+                    throw new ArgumentException("An owner avatar ids array is required; use an empty array to remove all owners.");
+                return _repository.SetAppOwnersAsync(appId, request.OwnerAvatarIds, actor, request.Reason, HttpContext.RequestAborted);
+            });
+
         /// <summary>Change an app's plan and/or disable or re-enable it (a disabled app's credentials stop working at once).</summary>
         [HttpPost("app-accounts/{appId}")]
         public Task<IActionResult> UpdateAppAccount(string appId, [FromBody] AppAccountRequest request) =>
@@ -155,6 +165,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             public AppAccountRecord Account { get; set; }
             public string ApiKey { get; set; }
+        }
+
+        public sealed class AppOwnersRequest
+        {
+            public List<string> OwnerAvatarIds { get; set; }
+            public string Reason { get; set; }
         }
 
         public sealed class GrantPlanRequest

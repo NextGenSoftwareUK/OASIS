@@ -26,7 +26,7 @@
   "sdkCommit": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
   "jobId": 135698915826,
   "web6Commit": "ff6244886b96ba05a59e236a1f54b621f630f5ca",
-  "status": "fourth-attempt-outer-budget-failed-explicit-bounded-case-budget-corrected",
+  "status": "budget-corrected-fifth-run-active-not-accepted",
   "runId": 44563508388,
   "bundleCleanupVerified": true,
   "firstAttempt": {
@@ -137,6 +137,13 @@
     "clientOuterSeconds": 240,
     "browserOperationSeconds": 10,
     "productionTimeoutsChanged": false,
-    "qualification": "pending"
+    "qualification": "in_progress"
+  },
+  "budgetCorrectedAttempt": {
+    "runId": 44573098813,
+    "jobId": 135733235096,
+    "sourceCommit": "39428d98451b4f45d3bd82e5d692619eb7562994",
+    "status": "in_progress",
+    "portalGenerated": "73c6de8154a3c259948daa99e318d9862b4bfa15"
   }
 }
