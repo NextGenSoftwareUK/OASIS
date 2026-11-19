@@ -255,23 +255,23 @@ jobs:
             dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SqliteNativeDataImportTests|FullyQualifiedName~AvatarProfileRegistryNativeTests'
             if ($LASTEXITCODE) { throw 'SQLite virtual Holon qualification failed.' }
           }
-      - name: Verify nullable CLR property entries
+      - name: Verify selected write fingerprint isolation
         if: ${{ inputs.property_tracking_only }}
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-property-selection-ci -Operation {
-            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicNullablePropertyEntryTests' --logger 'trx;LogFileName=property-nullable-entry-core.trx' --results-directory TestResults/PropertySelection
+            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicSelectedFingerprintTests' --logger 'trx;LogFileName=property-selected-fingerprint-core.trx' --results-directory TestResults/PropertySelection
             if ($LASTEXITCODE) { throw 'Custom property storage projection verification failed.' }
-            [xml]$core = Get-Content TestResults/PropertySelection/property-nullable-entry-core.trx
+            [xml]$core = Get-Content TestResults/PropertySelection/property-selected-fingerprint-core.trx
             $counts = $core.TestRun.ResultSummary.Counters
             if ([int]$counts.total -ne 8 -or [int]$counts.passed -ne 8 -or [int]$counts.notExecuted -ne 0) {
-              throw 'Exactly8 new nullable CLR entry controls must execute and pass.'
+              throw 'Exactly8 new selected fingerprint controls must execute and pass.'
             }
             $methods = @($core.TestRun.TestDefinitions.UnitTest)
-            if ($methods.Count -lt 1 -or @($methods | Where-Object { $_.TestMethod.className -notlike '*CosmicNullablePropertyEntryTests' }).Count) {
+            if ($methods.Count -lt 1 -or @($methods | Where-Object { $_.TestMethod.className -notlike '*CosmicSelectedFingerprintTests' }).Count) {
               throw 'Only the new custom property storage projection class may satisfy this qualification.'
             }
-            $ids = @($core.TestRun.TestDefinitions.UnitTest | Where-Object { $_.TestMethod.className -like '*CosmicNullablePropertyEntryTests' } | ForEach-Object { $_.id })
+            $ids = @($core.TestRun.TestDefinitions.UnitTest | Where-Object { $_.TestMethod.className -like '*CosmicSelectedFingerprintTests' } | ForEach-Object { $_.id })
             $results = @($core.TestRun.Results.UnitTestResult)
             if ($results.Count -ne 8 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
               throw 'Selection-only acceptance cannot inherit unrelated test results.'
@@ -296,22 +296,22 @@ jobs:
             if (!$ready) { throw 'Neo4j fixture did not become ready.' }
             & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-entity-projection-ci -Operation {
               if ('${{ inputs.property_tracking_only }}' -eq 'true') {
-                dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SelectedCustomScalarsUseNativeStorageMapping' --logger 'trx;LogFileName=property-custom-native.trx' --results-directory TestResults/Neo4jCurrent
+                dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SelectedCustomScalarsUseNativeStorageMapping&Name~False' --logger 'trx;LogFileName=property-custom-native.trx' --results-directory TestResults/Neo4jCurrent
                 if ($LASTEXITCODE) { throw 'Selected native property status verification failed.' }
                 [xml]$native = Get-Content TestResults/Neo4jCurrent/property-custom-native.trx
                 $counts = $native.TestRun.ResultSummary.Counters
-                if ([int]$counts.total -ne 6 -or [int]$counts.passed -ne 6 -or [int]$counts.notExecuted -ne 0) {
-                  throw 'Exactly6 new provider and encryption-mode custom scalar cases must execute and pass.'
+                if ([int]$counts.total -ne 3 -or [int]$counts.passed -ne 3 -or [int]$counts.notExecuted -ne 0) {
+                  throw 'Exactly3 previously failed plain-mode custom scalar cases must execute and pass.'
                 }
                 $ids = @($native.TestRun.TestDefinitions.UnitTest | Where-Object {
                   $_.TestMethod.name -eq 'SelectedCustomScalarsUseNativeStorageMapping'
                 } | ForEach-Object { $_.id })
                 $results = @($native.TestRun.Results.UnitTestResult)
-                if ($results.Count -ne 6 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
+                if ($results.Count -ne 3 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
                   throw 'Unrelated native results cannot satisfy selected-field acceptance.'
                 }
                   foreach ($provider in 'MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS') {
-                    foreach ($mode in 'plain','protected') {
+                    foreach ($mode in 'plain') {
                       $report = Get-Content "TestResults/Neo4jCurrent/$provider-property-custom-$mode-native.json" -Raw | ConvertFrom-Json
                       if ($report.provider -ne $provider -or $report.protectedMetadata -ne ($mode -eq 'protected') -or
                           $report.checks -ne 8 -or $report.successfulHolonWrites -ne 5 -or
@@ -369,7 +369,7 @@ jobs:
           name: subscription-protocol-test-results
           path: |
             ${{ inputs.property_selection_only && 'TestResults/PropertySelection' || inputs.property_tracking_only && 'TestResults/Neo4jCurrent/*property-custom*' || 'TestResults' }}
-            ${{ inputs.property_tracking_only && !inputs.property_selection_only && 'TestResults/PropertySelection/*property-nullable-entry-core*' || '' }}
+            ${{ inputs.property_tracking_only && !inputs.property_selection_only && 'TestResults/PropertySelection/*property-selected-fingerprint-core*' || '' }}
       - name: Stop temporary database
         if: ${{ always() && !inputs.property_selection_only }}
         run: docker rm --force usage-mongo
