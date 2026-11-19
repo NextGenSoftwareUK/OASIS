@@ -30,7 +30,7 @@ public sealed partial class CqlV1Web4NativeTests
         => RunGroupedDistinctNativeFixture(providerName, false, requiredDomains: true);
 
     private async Task RunGroupedDistinctNativeFixture(string providerName, bool primitiveDomains, bool mixedHttp = false,
-        bool requiredDomains = false)
+        bool requiredDomains = false, bool singlePerformance = false, bool sharedInputs = false, bool guidDomains = false)
     {
         Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -52,6 +52,7 @@ public sealed partial class CqlV1Web4NativeTests
         var ids = new List<Guid>();
         var complete = false; var active = false; var checks = 0;
         var queryElapsed = new Dictionary<string, long>();
+        Dictionary<string, object>? singleProfile = null;
         var timer = System.Diagnostics.Stopwatch.StartNew();
         var mongo = authority == ProviderType.MongoDBOASIS ? new MongoClient(mongoUri) : null;
         if (mongo != null)
@@ -78,7 +79,8 @@ public sealed partial class CqlV1Web4NativeTests
                 return selected.ToArray();
             }
             async Task<NextGenSoftware.OASIS.Common.OASISResult<CosmicGroupedExecution<CosmicProjectionRecord>>> Run<T>(
-                Guid[] selected, Expression<Func<Holon, T>> selector, int maximumGroups = 1000, bool emptyPage = false)
+                Guid[] selected, Expression<Func<Holon, T>> selector, int maximumGroups = 1000, bool emptyPage = false,
+                Action<CosmicGroupedSelection<Holon, string, CosmicProjectionRecord>>? observeQuery = null)
             {
                 var grouping = CosmicQuery<Holon>.Create().Where(h => selected.Contains(h.Id))
                     .GroupBy(h => CosmicQueryMetadata.Value<string>(h, "category"),
@@ -94,10 +96,35 @@ public sealed partial class CqlV1Web4NativeTests
                 var planned = CosmicGroupedPlanner.Plan(query, authority,
                     new[] { new CosmicGroupedTarget(authority, adapter.QueryCapabilities, adapter.GroupedCapabilities) });
                 Assert.IsFalse(planned.IsError, planned.Message);
+                observeQuery?.Invoke(planned.Result.Query);
                 return await CosmicGroupedExecutor.ExecuteAsync(planned.Result,
                     new[] { (ICosmicQueryStorageProvider)provider });
             }
-            if (mixedHttp)
+            if (guidDomains)
+            {
+                checks = await VerifyGroupedGuidDomains(provider, authority, mongo, database, ids, queryElapsed);
+            }
+            else if (sharedInputs)
+            {
+                Assert.AreEqual(ProviderType.Neo4jOASIS, authority);
+                var selected = await Seed(("a", 2), ("a", 2), ("a", 4), ("a", null));
+                checks = await VerifyNeoGroupedSharedInputs(provider, selected);
+                Assert.AreEqual(4, ids.Count);
+            }
+            else if (singlePerformance)
+            {
+                Assert.AreEqual(ProviderType.Neo4jOASIS, authority);
+                var negativeZero = BitConverter.Int32BitsToSingle(int.MinValue);
+                var first = BitConverter.Int32BitsToSingle(BitConverter.SingleToInt32Bits(1f) + 1);
+                var second = BitConverter.Int32BitsToSingle(BitConverter.SingleToInt32Bits(1f) + 2);
+                Assert.AreNotEqual(first, second);
+                var selected = await Seed(("a", 0f), ("a", negativeZero), ("a", first), ("a", second), ("a", second));
+                singleProfile = await ProfileNeoSingleGroupedDistinct(
+                    observer => Run(selected, h => CosmicQueryMetadata.Value<float>(h, "stock"), observeQuery: observer));
+                checks = 3;
+                Assert.AreEqual(5, ids.Count);
+            }
+            else if (mixedHttp)
             {
                 checks = await VerifyGroupedDistinctMixedNativeHttpProvider(provider, work, database, mongo, ids);
                 Assert.AreEqual(4, ids.Count);
@@ -260,8 +287,30 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 var root = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT")!);
                 var report = Path.Combine(root, "TestResults/Neo4jCurrent/" + providerName
-                    + (requiredDomains ? "-grouped-distinct-required-native.json" : mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
-                if (mixedHttp)
+                    + (guidDomains ? "-grouped-guid-native.json" : sharedInputs ? "-grouped-shared-inputs.json" : singlePerformance ? "-grouped-distinct-single-profile.json" : requiredDomains ? "-grouped-distinct-required-native.json" : mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
+                if (guidDomains)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        successfulHolonWrites = ids.Count, mongoBinaryRepresentations = mongo == null ? 0 : 2,
+                        queryElapsedMilliseconds = queryElapsed,
+                        nativeProviderVerified = true, mixedRepresentationsVerified = true,
+                        canonicalGuidVerified = true, requiredGuidVerified = true, missingNullVerified = true,
+                        offPageInvalidRefused = true, exactCleanupVerified = true }));
+                else if (sharedInputs)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        successfulHolonWrites = ids.Count, nativeProviderVerified = true,
+                        independentReducersVerified = true, canonicalMetadataSeparatedVerified = true,
+                        ordinalMetadataPathsVerified = true, nullableRequiredSeparatedVerified = true,
+                        offPageInvalidRefused = true, exactCleanupVerified = true }));
+                else if (singlePerformance)
+                {
+                    Assert.IsNotNull(singleProfile);
+                    singleProfile["provider"] = providerName;
+                    singleProfile["checks"] = checks;
+                    singleProfile["successfulHolonWrites"] = ids.Count;
+                    singleProfile["exactCleanupVerified"] = true;
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(singleProfile));
+                }
+                else if (mixedHttp)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
                         successfulHolonWrites = ids.Count, rawNativeRecords = 2, successfulHttpQueries = 2,
                         foreignOwnerRequests = 1, elapsedMilliseconds = timer.ElapsedMilliseconds,

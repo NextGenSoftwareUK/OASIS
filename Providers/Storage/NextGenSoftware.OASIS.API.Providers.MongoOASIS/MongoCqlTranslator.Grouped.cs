@@ -61,8 +61,11 @@ internal sealed partial class MongoCqlTranslator
             var present = Op("$eq", "$" + name + ".s", Literal(2));
             if (column.Operation == CosmicScalarOperation.LongCount && column.Distinct)
             {
+                var type = Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
+                BsonValue identityValue = type == typeof(Guid)
+                    ? ComparableGuid("$" + name + ".v") : (BsonValue)("$" + name + ".v");
                 reduction.Add(name + "distinct", new BsonDocument("$addToSet",
-                    Choose(present, "$" + name + ".v", Literal(BsonNull.Value))));
+                    Choose(present, identityValue, Literal(BsonNull.Value))));
                 var populated = new BsonDocument("$setDifference", new BsonArray
                     { "$" + name + "distinct", new BsonArray { BsonNull.Value } });
                 distinctCounts.Add(name + "present", new BsonDocument("$toLong",
