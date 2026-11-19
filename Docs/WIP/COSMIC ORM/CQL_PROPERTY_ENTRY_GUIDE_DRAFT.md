@@ -1,6 +1,8 @@
 # COSMIC property entries - usage guide draft
 
-This is a source-contract draft for the S05 property-entry gate, not a claim of full EF/NHibernate or live deployment parity. See [the acceptance audit](S05_PROPERTY_ENTRY_ACCEPTANCE_AUDIT_2026-11-19.md) for exact provider evidence and remaining gates. Base-holon property inspection/editing, selected owned saves, encryption, replay and bound replication have scoped native evidence. Typed relationship-role composition now has retained MongoDB, SQLite and Neo4j native evidence; custom-property storage mapping remains under qualification.
+This is a source-contract draft for the S05 property-entry gate, not a claim of full EF/NHibernate or live deployment parity. See [the acceptance audit](S05_PROPERTY_ENTRY_ACCEPTANCE_AUDIT_2026-11-19.md) for exact provider evidence and remaining gates. Base-holon property inspection/editing, selected owned saves, encryption, replay and bound replication have scoped native evidence. Typed relationship-role composition has retained MongoDB, SQLite and Neo4j native evidence. Extraction14 and nullable-entry8 controls are accepted, as are all three protected custom-property native cases; plain-mode historical replay remains under qualification.
+
+The fragments assume an authorized loaded holon, its manager, actor and explicit provider authority. Import `NextGenSoftware.OASIS.API.Core.Holons` for tracking/property values and `NextGenSoftware.OASIS.API.Core.Interfaces` for `CosmicWriteOptions`. The manager is `NextGenSoftware.OASIS.API.Core.Managers.HolonManager`; provider authority is `NextGenSoftware.OASIS.API.Core.Enums.ProviderType`.
 
 The APIs below live in `NextGenSoftware.OASIS.API.Core.Holons.HolonChangeTracking` and return `OASISResult<T>`. Check every result. Local tracking information grants no permission to read or write a record.
 
@@ -25,7 +27,10 @@ Console.WriteLine(entry.IsModified);
 | --- | --- | --- |
 | Missing metadata key | `false` | C# `null` |
 | Present JSON null | `true` | `"null"` |
+| Declared nullable CLR slot omitted by the canonical null writer | `true` | `"null"` |
 | Present string `hello` | `true` | `"\"hello\""` |
+
+The nullable-slot rule applies only to an exact declared, nullable canonical root whose writer proves null omission. It does not invent metadata keys, unknown/ignored properties, nested values or conditionally suppressed members. Inspection normalizes logical null without changing the stored JSON. Eight focused controls in run44546555815 verify this rule, including reset, explicit intent, aliases and original rebasing.
 
 Paths are exact RFC 6901 pointers: `/Name`, `/MetaData/status`, or `/MetaData/a~1b` for the metadata key `a/b`. Escape `~` as `~0` and `/` as `~1`. Arrays are whole-value properties, not writable index paths. Persistent serializer rules determine valid names and types. Do not parse large integer JSON through JavaScript `Number` when exact values matter.
 
@@ -99,13 +104,22 @@ Custom CLR property names follow their canonical serializer contract in logical 
 
 A nested custom property encoded as one metadata value requires merging that entire encoded cell. Selecting both a logical custom property and its backing metadata cell (or all metadata) is refused as overlapping storage intent. Whole collections remain whole-value properties.
 
-This storage-mapping correction is published in Core1fbb146 and is **not yet qualified**. Run44542276995 selects fourteen new extraction/projection controls and six native plain/encrypted cases. The preceding six-case run failed at the first selected custom scalar save; this draft does not claim that native custom-property gate has passed.
+Actual extraction/projection controls14 passed in run44542276995. Run44546555815 then passed nullable-entry controls8 and all three protected native custom cases, each with eight groups, five logical writes and all ten scalar/null/collection/replay/stale/cleanup markers. The three plain cases reached historical replay and failed intent binding. Current run44550931624 qualifies the shared selected-value fingerprint correction with eight new controls and only those three failed plain cases; no whole custom-property acceptance is claimed yet.
 
 ## Operation identity, replay and local acceptance
 
 A new write intent gets a new `CosmicWriteOptions.OperationId`. When recovering an uncertain outcome, preserve the original operation, original condition and selected logical intent, and use the existing outcome/recovery API. Do not manufacture a fresh operation or perform an ordinary save as a retry. Historical receipt replay is not a refresh: a returned historical acknowledgement must not overwrite newer native values or relationship membership.
 
 `AcceptChanges`/`RejectChanges` are local tracking operations. They do not contact storage, prove ownership, verify a remote revision, or grant a complete child observation. Do not call `AcceptChanges` merely to make an unsaved or conflicting object appear persisted.
+
+## Executable contract examples and evidence
+
+The short fragments above illustrate public calls, not standalone applications. The following source contains compiled/executed examples rather than new untested sample copies:
+
+- [Original comparison editing controls](<../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicOriginalPropertyEditingTests.cs>) cover atomic rebasing, null versus absence, refusal and in-flight originals; accepted20 controls are recorded in the audit.
+- [Native original editing](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.OriginalEditing.cs) composes those calls with actual shipping-provider writes, permissions and replay; run44502674000 accepted all three stores.
+- [Nullable property entries](<../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicNullablePropertyEntryTests.cs>) provide eight accepted examples of the nullable-slot behavior above.
+- [Native custom property cases](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.SelectedCustom.cs) exercise the actual selected-save overload and typed storage. Protected cases passed44546555815; plain replay remains pending.
 
 ## Draft status
 
