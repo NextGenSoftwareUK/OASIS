@@ -19,7 +19,7 @@
   ],
   "portalSource": "838c5bb749cfae6c73f39bb7cb45ab4da6d6b02a",
   "bundleJob": 135618169700,
-  "status": "source-and-delivery-verified-native-browser-case-prepared",
+  "status": "native-browser-qualification-in-progress-not-accepted",
   "localGeneratedOutputs": 0,
   "filter": "FullyQualifiedName~SubscriptionAdminReadsAndSessionPrivacyUseActualControllerBrowserAndMongo",
   "fixture": {
@@ -29,5 +29,8 @@
     "tokenCache": "Avatar cache has no token for initial success; stale Wizard cache deliberately ignored under ordinary SDK session",
     "businessResponseReplacement": false,
     "financialCollectionSnapshots": 8
-  }
+  },
+  "sourceCommit": "29ac15ee1e37bf2b301d0e1d1db277fef62359df",
+  "runId": 44542808472,
+  "jobId": 135625373969
 }
