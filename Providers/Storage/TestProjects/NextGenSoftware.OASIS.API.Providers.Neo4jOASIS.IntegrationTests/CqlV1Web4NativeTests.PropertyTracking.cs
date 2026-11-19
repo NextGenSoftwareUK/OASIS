@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MongoDB.Driver;
+using MongoDB.Bson;
 using Neo4j.Driver;
 using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -22,7 +23,7 @@ public sealed partial class CqlV1Web4NativeTests
     public Task PropertyTrackingUsesNativeAcknowledgementWithoutLosingInflightIntent(string providerName)
         => RunPropertyNativeFixture(providerName, false);
 
-    private async Task RunPropertyNativeFixture(string providerName, bool propertySelection)
+    private async Task RunPropertyNativeFixture(string providerName, bool propertySelection, bool propertyStatus = false)
     {
         Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -36,7 +37,7 @@ public sealed partial class CqlV1Web4NativeTests
         Directory.CreateDirectory(work);
         var sqlite = Path.Combine(work, "property.sqlite");
         var reportRoot = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT")!);
-        var report = Path.Combine(reportRoot, "TestResults/Neo4jCurrent/" + providerName + (propertySelection ? "-property-selection-native.json" : "-property-tracking-native.json"));
+        var report = Path.Combine(reportRoot, "TestResults/Neo4jCurrent/" + providerName + (propertyStatus ? "-property-status-native.json" : propertySelection ? "-property-selection-native.json" : "-property-tracking-native.json"));
         var operations = new HashSet<Guid>(); var complete = false; var checks = 0;
         var client = new MongoClient(mongoUri);
         using (var names = await client.ListDatabaseNamesAsync())
@@ -105,7 +106,40 @@ public sealed partial class CqlV1Web4NativeTests
                 source.MetaData["branch"] = new Dictionary<string, object> { ["selected"] = 1L, ["sibling"] = 2L };
             }
             await Save();
-            if (propertySelection)
+            if (propertyStatus)
+            {
+                async Task<string> InspectReceipt(Guid operation)
+                {
+                    if (authority == ProviderType.MongoDBOASIS)
+                    {
+                        var row = await client.GetDatabase(database).GetCollection<BsonDocument>("CosmicWriteReceipt")
+                            .Find(new BsonDocument("_id", operation.ToString("D"))).SingleOrDefaultAsync();
+                        return row == null ? null! : row.ToJson();
+                    }
+                    if (authority == ProviderType.Neo4jOASIS)
+                    {
+                        var rows = await (await inspection.RunAsync(
+                            "MATCH (r:CosmicWriteReceipt {OperationId:$operation}) RETURN properties(r) AS values",
+                            new { operation = operation.ToString("D") })).ToListAsync();
+                        Assert.IsTrue(rows.Count <= 1);
+                        return rows.Count == 0 ? null! : JsonSerializer.Serialize(
+                            new SortedDictionary<string, object>(rows[0]["values"].As<Dictionary<string, object>>(), StringComparer.Ordinal));
+                    }
+                    using var connection = new Microsoft.Data.Sqlite.SqliteConnection("Data Source=" + sqlite + ";Mode=ReadOnly;Pooling=False");
+                    await connection.OpenAsync();
+                    using var command = connection.CreateCommand();
+                    command.CommandText = "SELECT RequestHash,ResultJson FROM CosmicWriteReceipt WHERE OperationId=$id";
+                    command.Parameters.AddWithValue("$id", operation.ToString("D"));
+                    using var reader = await command.ExecuteReaderAsync();
+                    if (!await reader.ReadAsync()) return null!;
+                    var value = reader.GetString(0) + "\n" + reader.GetString(1);
+                    Assert.IsFalse(await reader.ReadAsync());
+                    return value;
+                }
+                checks += await VerifySelectedNativeStatus(provider, authority, source, actor, operations, work, InspectReceipt);
+                Assert.AreEqual(8, checks);
+            }
+            else if (propertySelection)
             {
                 checks += await VerifySelectedNativeWrites(provider, manager, authority, source, actor, operations, work);
                 Assert.AreEqual(9, checks);
@@ -234,7 +268,15 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.AreEqual(workRoot, Path.GetDirectoryName(Path.GetFullPath(work)));
                 Directory.Delete(work, true);
                 Assert.IsFalse(Directory.Exists(work));
-                if (propertySelection)
+                if (propertyStatus)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new {
+                        provider = providerName, checks, successfulHolonWrites = 3,
+                        absentOutcomeVerified = true, committedOutcomeVerified = true,
+                        historicalOutcomeVerified = true, missingValueOutcomeVerified = true,
+                        changedMaskStatusRefused = true, wholeStatusRefused = true, actorMismatchRefused = true,
+                        receiptsUnchangedVerified = true, holonsUnchangedByReadsVerified = true,
+                        callerUnchangedVerified = true, exactCleanupVerified = true }));
+                else if (propertySelection)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new {
                         provider = providerName, checks, successfulHolonWrites = 4,
                         selectedScalarVerified = true, selectedMetadataVerified = true,
