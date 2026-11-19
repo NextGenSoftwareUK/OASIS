@@ -1,5 +1,5 @@
 {
-  "status": "source-prepared-not-accepted",
+  "status": "qualification-prepared-not-accepted",
   "scope": "Strict personal financial intent, subscriber projection, scoped original invoice recovery, response acknowledgement and empty-poll write removal",
   "required": [
     "API and changed linked-host builds",
@@ -35,5 +35,22 @@
     "endpoint source gate",
     "776 route keys verified",
     "source whitespace"
+  ],
+  "filter": "FullyQualifiedName~SubscriptionPersonalBillingBrowserUsesActualControllerAndOwnedMongo",
+  "fixtureScope": "Actual SDK/UI/MVC/native Mongo/store/zero-due gateway; original account/statement INPUT fixtures only",
+  "checksPrepared": [
+    "strict JSON malformed/mixed input without collection mutation",
+    "foreign/unknown/app/other-scope recovery refusal",
+    "two empty requests preserve all collections",
+    "subscriber display whitelist excludes routing/lease/errors",
+    "actual store ClaimAsync held lease",
+    "canonical opt-out preserves original terms/cap",
+    "original zero-due recovery",
+    "held lease produces real retry UI warning",
+    "one-use nonce-controlled original INPUT account fault/restore tests same request identity",
+    "terminal empty resets request identity",
+    "one pending writer,3 actors,late-session isolation",
+    "no new statement/operation/order, one preference audit",
+    "owned runtime/process/provider/database/container cleanup"
   ]
 }

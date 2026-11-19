@@ -69,7 +69,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task SubscriptionFreshAppUsageBillsThroughSdkAndBrowser() =>
         RunSubscriptionHttp(true, usage: true, notifications: true, ownerSettings: true, ownerPayNow: true, freshAppUsage: true);
 
-    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false)
+    [Fact]
+    public Task SubscriptionPersonalBillingBrowserUsesActualControllerAndOwnedMongo() =>
+        RunSubscriptionHttp(true, usage: true, notifications: true, ownerSettings: true, ownerPayNow: true, personalBilling: true);
+
+    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false, bool personalBilling = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -175,7 +179,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             }
             if (ownerUsage) await SeedOwnedAppUsageAsync(db, accounts, missingAccount);
             if (ownerBilling) await SeedOwnedAppBillingAsync(db, accounts, repositoryType, repository);
-            if (ownerPayNow && browser && !freshAppUsage)
+            if (ownerPayNow && browser && !freshAppUsage && !personalBilling)
             {
                 foreach (var index in Enumerable.Range(0, accounts.Length))
                     await SeedOwnedZeroAppStatementAsync(db, index == 0 ? "owned-app-a" : "owned-app-b", accounts[index],
@@ -342,6 +346,27 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             });
             app.UseAuthorization();
             app.MapControllers();
+            var personalControl = personalBilling ? Convert.ToHexString(RandomNumberGenerator.GetBytes(32)) : null;
+            if (personalBilling)
+            {
+                int controlPhase = 0;
+                app.MapPost("/__owned-personal/account/{phase}", async (Microsoft.AspNetCore.Http.HttpContext context, string phase) =>
+                {
+                    // Test assembly only: one bounded original INPUT fault/restore in the exact owned database.
+                    if (context.Request.Headers["X-Owned-Personal-Control"].ToString() != personalControl)
+                        return Microsoft.AspNetCore.Http.Results.StatusCode(403);
+                    int expected = phase == "block" ? 0 : phase == "restore" ? 1 : -1;
+                    if (expected < 0 || System.Threading.Interlocked.CompareExchange(ref controlPhase, expected + 1, expected) != expected)
+                        return Microsoft.AspNetCore.Http.Results.StatusCode(409);
+                    var current = expected == 0 ? (BsonValue)new BsonString("owned-personal-private-customer") : BsonNull.Value;
+                    var replacement = expected == 0 ? (BsonValue)BsonNull.Value : new BsonString("owned-personal-private-customer");
+                    var changed = await db.GetCollection<BsonDocument>("subscription_records").UpdateOneAsync(
+                        new BsonDocument { { "_id", accounts[0] }, { "StripeCustomerId", current } },
+                        new BsonDocument("$set", new BsonDocument("StripeCustomerId", replacement)));
+                    if (changed.MatchedCount != 1) return Microsoft.AspNetCore.Http.Results.StatusCode(409);
+                    return (Microsoft.AspNetCore.Http.IResult)Microsoft.AspNetCore.Http.Results.Ok(new { restored = expected == 1 });
+                });
+            }
             await app.StartAsync();
             try
             {
@@ -365,6 +390,8 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     else await VerifyAppPayNowHttpAsync(http, Token, db, accounts);
                     return;
                 }
+                PersonalBillingFixture? personalFixture = null;
+                if (personalBilling) personalFixture = await PreparePersonalBillingHttpAsync(http, Token, db, accounts, repository);
                 string? freshOperationId = null;
                 if (freshAppUsage) freshOperationId = await PrepareFreshAppUsageThroughSdkAsync(http, Token, db, accounts, api, repository, policyServiceKey!);
                 if (browser)
@@ -372,15 +399,21 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     using var result = await ExchangeSdkRequest(new
                     {
                         baseUrl = address,
+                        personalControl,
                         actors = accounts.Append(missingAccount).Select(actor => new { id = actor, token = Token(actor) }).ToArray()
                     });
                     Assert.False(result.RootElement.TryGetProperty("isError", out var failed) && failed.GetBoolean(),
                         result.RootElement.TryGetProperty("message", out var message) ? message.GetString() : "Browser worker failed.");
-                    Assert.True(result.RootElement.GetProperty(freshAppUsage ? "appFreshUsageBrowserVerified" : ownerPayNow ? "appPayNowBrowserVerified" : billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
+                    Assert.True(result.RootElement.GetProperty(personalBilling ? "personalBillingBrowserVerified" : freshAppUsage ? "appFreshUsageBrowserVerified" : ownerPayNow ? "appPayNowBrowserVerified" : billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
                         usage ? "subscriptionUsageBrowserVerified" : "subscriptionBrowserVerified").GetBoolean());
                     Assert.Equal(3, result.RootElement.GetProperty("actorsVerified").GetInt32());
                     Assert.True(result.RootElement.GetProperty("lateSessionResponseIgnored").GetBoolean());
                     Console.WriteLine("Subscription browser evidence: " + result.RootElement.GetRawText());
+                    if (personalBilling)
+                    {
+                        await VerifyPersonalBillingAfterBrowserAsync(db, personalFixture!, accounts[0]);
+                        return;
+                    }
                     if (freshAppUsage)
                     {
                         await VerifyFreshAppUsageAfterBrowserAsync(db, freshOperationId!, accounts[1], repository);
