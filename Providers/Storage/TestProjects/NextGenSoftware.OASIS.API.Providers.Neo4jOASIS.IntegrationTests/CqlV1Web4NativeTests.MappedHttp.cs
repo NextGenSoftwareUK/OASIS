@@ -227,6 +227,12 @@ public sealed partial class CqlV1Web4NativeTests
                     Assert.AreEqual(2, operation.Receipts.Count);
                 }
                 Assert.AreEqual(3, authority.Settlements.Count);
+                var preserved = await provider.LoadHolonAsync(snapshot.Id);
+                Assert.IsFalse(preserved.IsError, preserved.Message + preserved.Exception);
+                Assert.IsNotNull(preserved.Result);
+                Assert.AreEqual("zz", preserved.Result.MetaData["textAlias"]?.ToString(),
+                    "Read-only reconciliation must not rewrite the stored cached copy.");
+
                 await app.StopAsync();
                 return;
             }

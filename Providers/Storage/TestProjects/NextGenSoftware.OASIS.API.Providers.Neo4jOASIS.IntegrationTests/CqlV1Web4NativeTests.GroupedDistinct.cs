@@ -205,7 +205,7 @@ public sealed partial class CqlV1Web4NativeTests
                         foreignOwnerRequests = 1, elapsedMilliseconds = timer.ElapsedMilliseconds,
                         nativeProviderVerified = true, realHttpVerified = true, storedVirtualSameGroupVerified = true,
                         distinctCountVerified = true, havingPagingVerified = true, staleCacheReconciledVerified = true,
-                        foreignOwnerRefused = true, nativeSourceUnchangedVerified = true,
+                        foreignOwnerRefused = true, nativeSourceUnchangedVerified = true, storedCacheUnchangedVerified = true,
                         usageSettledVerified = true, exactCleanupVerified = true }));
                 else if (primitiveDomains)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,

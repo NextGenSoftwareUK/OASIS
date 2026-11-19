@@ -31,6 +31,7 @@ public sealed partial class CqlV1Web4NativeTests
         var previousSqlite = sqliteProvider?.NativeImportConnectionString;
         var previousLabels = neoProvider?.NativeImportLabels;
         var label = "DistinctHttp_" + Guid.NewGuid().ToString("N");
+        var ownsNeoSource = false;
         using var graph = neoProvider == null ? null
             : GraphDatabase.Driver("bolt://127.0.0.1:17687", AuthTokens.Basic("neo4j", "oasis-local-test-only"));
         await using var inspection = graph?.AsyncSession();
@@ -74,6 +75,7 @@ public sealed partial class CqlV1Web4NativeTests
                 sourceName = label; neoProvider.NativeImportLabels = label;
                 var prior = await (await inspection.RunAsync($"MATCH (n:{label}) RETURN count(n) AS n")).SingleAsync();
                 Assert.AreEqual(0L, prior["n"].As<long>());
+                ownsNeoSource = true;
                 await (await inspection.RunAsync($"CREATE (:{label} {{text:$emoji}}), (:{label} {{text:$nul}})",
                     new { emoji = "😀", nul = "abc\0def" })).ConsumeAsync();
                 fingerprint = async () => (await (await inspection.RunAsync(
@@ -103,10 +105,13 @@ public sealed partial class CqlV1Web4NativeTests
             if (neoProvider != null)
             {
                 neoProvider.NativeImportLabels = previousLabels;
-                Assert.IsNotNull(inspection);
-                await (await inspection.RunAsync($"MATCH (n:{label}) DETACH DELETE n")).ConsumeAsync();
-                var remaining = await (await inspection.RunAsync($"MATCH (n:{label}) RETURN count(n) AS n")).SingleAsync();
-                Assert.AreEqual(0L, remaining["n"].As<long>());
+                if (ownsNeoSource)
+                {
+                    Assert.IsNotNull(inspection);
+                    await (await inspection.RunAsync($"MATCH (n:{label}) DETACH DELETE n")).ConsumeAsync();
+                    var remaining = await (await inspection.RunAsync($"MATCH (n:{label}) RETURN count(n) AS n")).SingleAsync();
+                    Assert.AreEqual(0L, remaining["n"].As<long>());
+                }
             }
         }
     }
