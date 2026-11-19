@@ -4,6 +4,8 @@ Updated 19 November 2026. The full roadmap is active and incomplete. This openin
 
 ## Current engineering gate
 
+Current retry: [44555747962](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44555747962), exact parent1101df6250b85d1c7ed8b33cbb01f8cc9d1c7b16/Core8c1604407c3984e898e3d2ac9270d418dbb902c5. It was observed live at checkout. Only four new real SQLite SDK controls and SQLite plain/protected native cases are selected; all accepted Mongo/Neo and Core cohorts are excluded. Terminal results and cleanup remain pending.
+
 Run [44550931624](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44550931624) is terminal FAILURE overall. WEB4 built and eight new selected-fingerprint controls passed. MongoDB and Neo4j plain native cases passed eight groups/five logical writes/all ten markers and cleanup. SQLite plain alone failed historical replay. Strict artifact14543073195 (5234bytes) contained two matching TRX files and only Mongo/Neo plain reports; host stop succeeded. No whole-workflow acceptance was inferred.
 
 SQLite still used a separate whole-record selected fingerprint. Its prepared domain6 correction now shares the same selected-record value projection as the common domain8 owner, while retaining legacy full-save envelopes and acknowledgement/full-node/delta integrity. Old selected domain5 explicitly requires original-operation reconciliation; no records are migrated or rewritten. Four NEW real SQLite SDK controls cover replay after native sibling changes, selected-value/actor refusal, old-domain reconciliation, digest tampering and native/receipt immutability.
