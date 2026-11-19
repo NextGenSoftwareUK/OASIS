@@ -1,0 +1,31 @@
+{
+  "sharedWorkerOrHostedWizardAccepted": false,
+  "portalGenerated": "8a4075b54356e92d054a74f7cc305eac47c898a0",
+  "sourceCommit": "6a76d6e9c7afb2ed26b23d0023ca3a8f806e5c6d",
+  "expectedNativeCases": 2,
+  "filter": "FullyQualifiedName~AdministrativeOutboxQueriesAndRequeuesBindPersistedServiceAcrossDatabaseLayouts|FullyQualifiedName~SubscriptionAdminOutboxUsesActualControllerBrowserAndServiceIsolation",
+  "required": [
+    "default separate and explicit shared database service/state filtering before limits",
+    "wrong-service mutation and replay reject without writes",
+    "actual no-provider-execution settlements/store claim/permanent-failure transitions",
+    "six service-isolated controller groups in shared override",
+    "one browser requeue across replaced refreshed button",
+    "exact replay once and changed intent refusal",
+    "cancel produces no write",
+    "ordinary403 and expired401",
+    "late actual response/session privacy",
+    "one WEB5 pending/audit with five unchanged foreign operations",
+    "settlement/fingerprint/evidence/attempts and financial collections conserved",
+    "default/shared databases absent and browser/runtime/cache/control/process cleanup"
+  ],
+  "localGeneratedOutputs": 0,
+  "coreCommit": "d2fc611338f5fc665ff6e514527593208835c145",
+  "runId": 44554360492,
+  "providerExecuted": false,
+  "status": "qualification-active-not-accepted",
+  "dependencyManifestAndGitlinksVerified": true,
+  "sdkCommit": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
+  "jobId": 135666307833,
+  "stripeAccepted": false,
+  "databaseOwnership": "Exact loopback fresh CI names proven absent before creation; exact names dropped in finally"
+}
