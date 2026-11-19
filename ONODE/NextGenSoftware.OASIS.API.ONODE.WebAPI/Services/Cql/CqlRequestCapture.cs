@@ -163,7 +163,7 @@ internal static class CqlRequestCapture
                 ? throw new ArgumentException("Missing grouped column.")
                 : new CqlGroupedV1Column
                 {
-                    Alias = column.Alias, KeyAlias = column.KeyAlias, Operation = column.Operation,
+                    Alias = column.Alias, KeyAlias = column.KeyAlias, Operation = column.Operation, Distinct = column.Distinct,
                     Selection = column.Selection == null ? null : new CqlScalarV1Selection
                     {
                         Field = column.Selection.Field, ValueType = column.Selection.ValueType,

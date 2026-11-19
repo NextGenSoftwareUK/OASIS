@@ -16,6 +16,30 @@ public sealed class CqlGroupedDistinctV1CompilerTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    public void MixedCaptureFreezesDistinctIntent(bool distinct)
+    {
+        var column = new CqlGroupedV1Column { Alias = "Values", Operation = "LongCount",
+            Distinct = distinct, Selection = new CqlScalarV1Selection { Field = "Description" } };
+        var request = new CqlProjectionV1Request
+        {
+            Columns = new[] { new CqlProjectionV1Column { Alias = "text", Field = "Description" } },
+            Grouping = new CqlMixedGroupingV1Request
+            {
+                Keys = new[] { new CqlProjectionV1Column { Alias = "category", Field = "Name" } },
+                Columns = new[] { column }
+            }
+        };
+        var captured = CqlRequestCapture.Capture(request);
+        column.Distinct = !distinct;
+        column.Selection.Field = "Name";
+        Assert.Equal(distinct, captured.Grouping.Columns[0].Distinct);
+        Assert.Equal("Description", captured.Grouping.Columns[0].Selection.Field);
+        Assert.NotSame(column, captured.Grouping.Columns[0]);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public void SelectedCountRetainsExplicitDistinctIntent(bool distinct)
     {
         var request = Request(new CqlGroupedV1Column { Alias = "Values", Operation = "LongCount",
