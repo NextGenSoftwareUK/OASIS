@@ -57,7 +57,6 @@ public sealed class CosmicGroupedDistinctProviderDomainTests
             var selected = group.SelectColumns(new[] { binding.Result });
             Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", capabilities.Admit(selected.Result).ErrorCode);
         }
-        Refuse(h => h.Id);
         Refuse(h => CosmicQueryMetadata.Value<decimal?>(h, "value"));
         Refuse(h => CosmicQueryMetadata.Value<ulong?>(h, "value"));
         Refuse(h => CosmicQueryMetadata.Value<DateTime?>(h, "value"));

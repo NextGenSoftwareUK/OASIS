@@ -75,8 +75,10 @@ public partial class Neo4jOASIS
             if (column.KeyIndex >= 0 || column.Selector == null) continue;
             var name = "a" + index;
             var selected = NormalizeInput(column.Selector, name);
+            var selectorType = Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
+            var identityValue = selectorType == typeof(Guid) ? "toLower(" + selected + "v)" : selected + "v";
             var selectedCount = column.Operation == CosmicScalarOperation.LongCount && column.Distinct
-                ? "count(DISTINCT CASE WHEN " + selected + "s=2 THEN " + selected + "v ELSE null END)"
+                ? "count(DISTINCT CASE WHEN " + selected + "s=2 THEN " + identityValue + " ELSE null END)"
                 : "sum(CASE WHEN " + selected + "s=2 THEN 1 ELSE 0 END)";
             reductions.Add(selectedCount + " AS " + name + "n");
             if (column.Operation == CosmicScalarOperation.LongCount)

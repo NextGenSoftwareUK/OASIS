@@ -30,7 +30,7 @@ public sealed partial class CqlV1Web4NativeTests
         => RunGroupedDistinctNativeFixture(providerName, false, requiredDomains: true);
 
     private async Task RunGroupedDistinctNativeFixture(string providerName, bool primitiveDomains, bool mixedHttp = false,
-        bool requiredDomains = false, bool singlePerformance = false, bool sharedInputs = false)
+        bool requiredDomains = false, bool singlePerformance = false, bool sharedInputs = false, bool guidDomains = false)
     {
         Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -100,7 +100,11 @@ public sealed partial class CqlV1Web4NativeTests
                 return await CosmicGroupedExecutor.ExecuteAsync(planned.Result,
                     new[] { (ICosmicQueryStorageProvider)provider });
             }
-            if (sharedInputs)
+            if (guidDomains)
+            {
+                checks = await VerifyGroupedGuidDomains(provider, authority, mongo, database, ids);
+            }
+            else if (sharedInputs)
             {
                 Assert.AreEqual(ProviderType.Neo4jOASIS, authority);
                 var selected = await Seed(("a", 2), ("a", 2), ("a", 4), ("a", null));
@@ -283,8 +287,14 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 var root = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT")!);
                 var report = Path.Combine(root, "TestResults/Neo4jCurrent/" + providerName
-                    + (sharedInputs ? "-grouped-shared-inputs.json" : singlePerformance ? "-grouped-distinct-single-profile.json" : requiredDomains ? "-grouped-distinct-required-native.json" : mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
-                if (sharedInputs)
+                    + (guidDomains ? "-grouped-guid-native.json" : sharedInputs ? "-grouped-shared-inputs.json" : singlePerformance ? "-grouped-distinct-single-profile.json" : requiredDomains ? "-grouped-distinct-required-native.json" : mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
+                if (guidDomains)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        successfulHolonWrites = ids.Count, mongoBinaryRepresentations = mongo == null ? 0 : 2,
+                        nativeProviderVerified = true, mixedRepresentationsVerified = true,
+                        canonicalGuidVerified = true, requiredGuidVerified = true, missingNullVerified = true,
+                        offPageInvalidRefused = true, exactCleanupVerified = true }));
+                else if (sharedInputs)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
                         successfulHolonWrites = ids.Count, nativeProviderVerified = true,
                         independentReducersVerified = true, canonicalMetadataSeparatedVerified = true,

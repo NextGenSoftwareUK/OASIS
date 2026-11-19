@@ -51,7 +51,7 @@ public partial class MongoDBOASIS : ICosmicQueryGroupedStorageProvider
                 keys.Select(Scalar).ToArray(), aggregates.Select(value =>
                     new CosmicGroupedAggregateFilteringCapability(value.Operation, Scalar(value.ValueType))).ToArray());
             // Distinct equality is enrolled independently from ordinary participation counts.
-            var distinctTypes = new[] { typeof(string), typeof(bool), typeof(bool?),
+            var distinctTypes = new[] { typeof(Guid), typeof(Guid?), typeof(string), typeof(bool), typeof(bool?),
                 typeof(int), typeof(int?), typeof(long), typeof(long?),
                 typeof(float), typeof(float?), typeof(double), typeof(double?) };
             var distinct = new CosmicProjectionCapabilities(
