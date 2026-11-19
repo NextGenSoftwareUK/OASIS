@@ -261,10 +261,11 @@ jobs:
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-property-selection-ci -Operation {
             dotnet test 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SelectedFingerprintPreservesNativeReplayAndReceiptGuards' --logger 'trx;LogFileName=property-sqlite-selected-core.trx' --results-directory TestResults/PropertySelection
-            if ($LASTEXITCODE) { throw 'Custom property storage projection verification failed.' }
+            $sqliteSelectedTestExit = $LASTEXITCODE
             foreach ($file in 'TestResults/SQLiteCurrent/integration-current.db','TestResults/SQLiteCurrent/integration-current.db-wal','TestResults/SQLiteCurrent/integration-current.db-shm') {
               if (Test-Path $file) { throw "Owned SQLite SDK fixture was not cleaned: $file" }
             }
+            if ($sqliteSelectedTestExit) { throw 'Native SQLite selected receipt controls failed.' }
             [xml]$core = Get-Content TestResults/PropertySelection/property-sqlite-selected-core.trx
             $counts = $core.TestRun.ResultSummary.Counters
             if ([int]$counts.total -ne 4 -or [int]$counts.passed -ne 4 -or [int]$counts.notExecuted -ne 0) {

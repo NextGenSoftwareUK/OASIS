@@ -83,7 +83,11 @@ public partial class SQLLiteDBOASISIntegrationTests
         var loaded = await provider.LoadHolonAsync(root.Id, loadChildren: false);
         Assert.False(loaded.IsError, loaded.Message + loaded.Exception);
         Assert.Equal(latestRevision, Revision(loaded.Result));
-        Assert.Equal("newer authoritative sibling", loaded.Result.MetaData["Other"]);
-        Assert.Equal(9007199254740995L, Convert.ToInt64(loaded.Result.MetaData["Score"]));
+        var sibling = StoredRecordJson.CaptureRuntimeToken(loaded.Result.MetaData["Other"]);
+        Assert.Equal(JTokenType.String, sibling.Type);
+        Assert.Equal("newer authoritative sibling", sibling.Value<string>());
+        var score = StoredRecordJson.CaptureRuntimeToken(loaded.Result.MetaData["Score"]);
+        Assert.Equal(JTokenType.Integer, score.Type);
+        Assert.Equal(9007199254740995L, score.Value<long>());
     }
 }
