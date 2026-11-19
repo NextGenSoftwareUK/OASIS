@@ -15,7 +15,7 @@ on:
         type: boolean
         default: false
       property_selection_only:
-        description: Build WEB4 and qualify selected-property native-plan receipt binding without databases
+        description: Build WEB4 and qualify protected selected-field intent without databases
         type: boolean
         default: false
       source_ref:
@@ -255,17 +255,21 @@ jobs:
             dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SqliteNativeDataImportTests|FullyQualifiedName~AvatarProfileRegistryNativeTests'
             if ($LASTEXITCODE) { throw 'SQLite virtual Holon qualification failed.' }
           }
-      - name: Verify selected-property native-plan receipt binding
+      - name: Verify protected selected-field preparation and recovery
         if: ${{ inputs.property_selection_only }}
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-property-selection-ci -Operation {
-            dotnet test 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~ConditionalHolonPropertyPlanTests' --logger 'trx;LogFileName=property-plan-core.trx' --results-directory TestResults/PropertySelection
-            if ($LASTEXITCODE) { throw 'Selected-property native-plan binding failed.' }
-            [xml]$core = Get-Content TestResults/PropertySelection/property-plan-core.trx
+            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicPropertyPreparationTests' --logger 'trx;LogFileName=property-preparation-core.trx' --results-directory TestResults/PropertySelection
+            if ($LASTEXITCODE) { throw 'Protected selected-field preparation verification failed.' }
+            [xml]$core = Get-Content TestResults/PropertySelection/property-preparation-core.trx
             $counts = $core.TestRun.ResultSummary.Counters
-            if ([int]$counts.total -ne 9 -or [int]$counts.passed -ne 9 -or [int]$counts.notExecuted -ne 0) {
-              throw 'Exactly9 new selected-property native-plan cases must execute and pass.'
+            if ([int]$counts.total -ne 19 -or [int]$counts.passed -ne 19 -or [int]$counts.notExecuted -ne 0) {
+              throw 'Exactly19 new protected selected-field preparation cases must execute and pass.'
+            }
+            $methods = @($core.TestRun.TestDefinitions.UnitTest)
+            if ($methods.Count -lt 1 -or @($methods | Where-Object { $_.TestMethod.className -notlike '*CosmicPropertyPreparationTests' }).Count) {
+              throw 'Only the new protected selected-field preparation class may satisfy this qualification.'
             }
             $ids = @($core.TestRun.TestDefinitions.UnitTest | Where-Object { $_.TestMethod.className -like '*ConditionalHolonPropertyPlanTests' } | ForEach-Object { $_.id })
             $results = @($core.TestRun.Results.UnitTestResult)
