@@ -66,7 +66,9 @@ async function verify({ baseUrl, token, providerType, imageId }) {
         buffer: Buffer.from(imageBase64, 'base64') })
     ]);
     assert.equal(uploaded.status(), 200);
-    const confirmation = await uploaded.json();
+    // Legacy AvatarProfileController returns OASISHttpResponseMessage<bool>.Result.
+    const confirmation = (await uploaded.json()).result;
+    assert.ok(confirmation && typeof confirmation === 'object');
     assert.equal(confirmation.isError, false, confirmation.message);
     assert.equal(confirmation.result, true);
     assert.equal(confirmation.isSaved, true);
@@ -93,7 +95,9 @@ async function verify({ baseUrl, token, providerType, imageId }) {
       open()
     ]);
     assert.equal(reloaded.status(), 200);
-    const image = await reloaded.json(); assert.equal(image.isError, false, image.message);
+    const image = (await reloaded.json()).result;
+    assert.ok(image && typeof image === 'object');
+    assert.equal(image.isError, false, image.message);
     assert.equal(image.result.imageBase64, imageBase64);
     await page.waitForFunction(imageBase64 => document.getElementById('avatar-modal-image-large').src ===
       'data:image/png;base64,' + imageBase64, imageBase64);
