@@ -1,13 +1,13 @@
 {
-  "portalGenerated": "a83dca67bda2334019cda67c6a7f3c203ce377f1",
+  "portalGenerated": "678fb69a581e86e806890bffa9a1480bad1e75f6",
   "releaseGates": [
     "full admin catalogue/outbox/other mutating actions",
     "genuine hosted Wizard",
     "genuine Stripe/nonzero/webhook/historical transitions",
     "complete portal/dashboard/performance/provider/HyperDrive"
   ],
-  "bundleRun": 44536187625,
-  "adminSha256": "553f0c51d415ad657c4365fb6b0c87e990af3c8c1b5f1272533964389090b721",
+  "bundleRun": 44540767828,
+  "adminSha256": "71afa815e3ec0c0a3db4fb3a670c3a2120b457c2fb74bf015b60d6f2ab85503d",
   "bundleCleanupVerified": true,
   "required": [
     "new actual controller/browser/native Wizard and ordinary actor read acceptance",
@@ -17,8 +17,17 @@
     "no financial mutation or shared service calls",
     "owned browser/runtime/cache/database/container cleanup"
   ],
-  "portalSource": "efe8a7c5e2ba71f2a2cdcc7e56424d070824f89f",
-  "bundleJob": 135602115907,
-  "status": "source-and-delivery-verified-browser-unaccepted",
-  "localGeneratedOutputs": 0
+  "portalSource": "838c5bb749cfae6c73f39bb7cb45ab4da6d6b02a",
+  "bundleJob": 135618169700,
+  "status": "source-and-delivery-verified-native-browser-case-prepared",
+  "localGeneratedOutputs": 0,
+  "filter": "FullyQualifiedName~SubscriptionAdminReadsAndSessionPrivacyUseActualControllerBrowserAndMongo",
+  "fixture": {
+    "roles": "Actual persisted owned Wizard/User inputs; third real signed token expired",
+    "subscriptions": 104,
+    "originalGbpInvoices": 2,
+    "tokenCache": "Avatar cache has no token for initial success; stale Wizard cache deliberately ignored under ordinary SDK session",
+    "businessResponseReplacement": false,
+    "financialCollectionSnapshots": 8
+  }
 }

@@ -77,7 +77,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task SubscriptionPersonalConsentReviewUsesActualControllerSdkAndBrowser() =>
         RunSubscriptionHttp(true, usage: true, notifications: true, ownerSettings: true, ownerPayNow: true, personalConsentReview: true);
 
-    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false, bool personalBilling = false, bool personalConsentReview = false)
+    [Fact]
+    public Task SubscriptionAdminReadsAndSessionPrivacyUseActualControllerBrowserAndMongo() =>
+        RunSubscriptionHttp(true, usage: true, adminRead: true);
+
+    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false, bool personalBilling = false, bool personalConsentReview = false, bool adminRead = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -154,7 +158,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             var db = mongo.GetDatabase(databaseName);
             var accounts = new[] { Guid.NewGuid().ToString("D"), Guid.NewGuid().ToString("D") };
             var missingAccount = Guid.NewGuid().ToString("D");
-            if (ownerPayNow)
+            if (ownerPayNow || adminRead)
             {
                 // Initialize the genuinely empty ledger through the shipping free-plan path
                 // before inserting any explicit owned billing/read fixtures.
@@ -212,10 +216,16 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     Id = Guid.Parse(account), Username = "subscription-http-" + account,
                     Email = account + "@example.test", IsActive = true,
                     AvatarType = new NextGenSoftware.Utilities.EnumValue<NextGenSoftware.OASIS.API.Core.Enums.AvatarType>(
-                        NextGenSoftware.OASIS.API.Core.Enums.AvatarType.User)
+                        adminRead && account == accounts[0] ? NextGenSoftware.OASIS.API.Core.Enums.AvatarType.Wizard : NextGenSoftware.OASIS.API.Core.Enums.AvatarType.User)
                 };
                 var saved = await avatarStore.SaveAvatarAsync(avatar);
                 Assert.False(saved.IsError, saved.Message);
+                if (adminRead)
+                {
+                    var storedRole = await avatarStore.LoadAvatarAsync(avatar.Id);
+                    Assert.False(storedRole.IsError, storedRole.Message);
+                    Assert.Equal(avatar.AvatarType.Value, storedRole.Result.AvatarType.Value);
+                }
                 if (usage)
                 {
                     var detail = await avatarStore.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail
@@ -280,6 +290,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 parts.ApplicationParts.Clear();
                 parts.ApplicationParts.Add(new AssemblyPart(api));
                 var selected = new List<Type> { controller };
+                if (adminRead) selected.Add(api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SubscriptionAdminController", true)!);
                 if (usage) selected.Add(api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SubscriptionUsageSeriesController", true)!);
                 if (notifications) selected.Add(api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SubscriptionNotificationController", true)!);
                 if (ownerSettings) selected.Add(api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SubscriptionAppOwnerController", true)!);
@@ -318,7 +329,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 app.UseStaticFiles(new StaticFileOptions { FileProvider = portalFiles });
                 app.MapGet("/__subscription_browser", async () => Microsoft.AspNetCore.Http.Results.Content(
                     await File.ReadAllTextAsync(Path.Combine(root.FullName, "Scripts/TestHosts/Fixtures/" +
-                        (usage ? "subscription-usage-browser-host.html" : "subscription-browser-host.html"))),
+                        (adminRead ? "subscription-admin-browser-host.html" : usage ? "subscription-usage-browser-host.html" : "subscription-browser-host.html"))),
                     "text/html"));
             }
             var key = new SymmetricSecurityKey(RandomNumberGenerator.GetBytes(64));
@@ -350,6 +361,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             });
             app.UseAuthorization();
             app.MapControllers();
+            var adminFixture = adminRead ? await PrepareSubscriptionAdminReadsAsync(db) : null;
             var personalConsentReviewControl = personalConsentReview ? Convert.ToHexString(RandomNumberGenerator.GetBytes(32)) : null;
             var consentReviewFixture = personalConsentReview ? await PreparePersonalConsentReviewBrowserAsync(app, db, api,
                 repository, accounts, personalConsentReviewControl!) : null;
@@ -382,7 +394,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 using var http = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(20) };
                 string Token(string actor) => new JwtSecurityTokenHandler().WriteToken(new JwtSecurityToken(
                     issuer: "owned-subscription-fixture", audience: "owned-subscription-http",
-                    claims: [new Claim("sub", actor)], expires: DateTime.UtcNow.AddMinutes(5),
+                    claims: [new Claim("sub", actor)], expires: DateTime.UtcNow.AddMinutes(adminRead && actor == missingAccount ? -1 : 5),
                     signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)));
                 async Task<JsonDocument> Read(string path)
                 {
@@ -408,15 +420,22 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                         baseUrl = address,
                         personalControl,
                         personalConsentReviewControl,
+                        adminExpectedSubscriptions = adminFixture?.Subscriptions,
                         actors = accounts.Append(missingAccount).Select(actor => new { id = actor, token = Token(actor) }).ToArray()
                     });
                     Assert.False(result.RootElement.TryGetProperty("isError", out var failed) && failed.GetBoolean(),
                         result.RootElement.TryGetProperty("message", out var message) ? message.GetString() : "Browser worker failed.");
-                    Assert.True(result.RootElement.GetProperty(personalConsentReview ? "personalConsentReviewBrowserVerified" : personalBilling ? "personalBillingBrowserVerified" : freshAppUsage ? "appFreshUsageBrowserVerified" : ownerPayNow ? "appPayNowBrowserVerified" : billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
+                    Assert.True(result.RootElement.GetProperty(adminRead ? "subscriptionAdminReadsBrowserVerified" : personalConsentReview ? "personalConsentReviewBrowserVerified" : personalBilling ? "personalBillingBrowserVerified" : freshAppUsage ? "appFreshUsageBrowserVerified" : ownerPayNow ? "appPayNowBrowserVerified" : billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
                         usage ? "subscriptionUsageBrowserVerified" : "subscriptionBrowserVerified").GetBoolean());
                     Assert.Equal(3, result.RootElement.GetProperty("actorsVerified").GetInt32());
                     Assert.True(result.RootElement.GetProperty("lateSessionResponseIgnored").GetBoolean());
                     Console.WriteLine("Subscription browser evidence: " + result.RootElement.GetRawText());
+                    if (adminRead)
+                    {
+                        Assert.Equal(adminFixture!.FinancialState, await SubscriptionAdminFinancialStateAsync(db));
+                        Console.WriteLine("Subscription admin native final state verified: authoritative owned Wizard/ordinary/expired-session inputs,104 existing subscriptions and2 original GBP invoices; financial records unchanged after actual read/pagination/denial/privacy flows. No outbox/catalogue/grant/owner/payment action or genuine hosted Wizard/production Startup/full portal acceptance.");
+                        return;
+                    }
                     if (personalConsentReview)
                     {
                         await VerifyPersonalConsentReviewAfterBrowserAsync(db, consentReviewFixture!, accounts);
