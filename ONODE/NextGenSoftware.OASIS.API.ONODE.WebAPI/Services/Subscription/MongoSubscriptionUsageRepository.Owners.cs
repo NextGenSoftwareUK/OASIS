@@ -31,10 +31,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         {
             AppAccountRules.ValidateAppId(appId);
             AppAccountRules.ValidateActorAndReason(actor, reason);
-            var owners = (ownerAvatarIds ?? new List<string>()).Select(o => o?.Trim()).Where(o => !string.IsNullOrEmpty(o)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            var owners = (ownerAvatarIds ?? throw new ArgumentException("An explicit owner avatar ids array is required; use an empty array to remove all owners."))
+                .Select(o => Guid.TryParse(o?.Trim(), out var id) ? id.ToString("D") : throw new ArgumentException("Owners must be avatar ids (GUIDs)."))
+                .Distinct(StringComparer.Ordinal).ToList();
             if (owners.Count > MaxAppOwners) throw new ArgumentException($"An app can have at most {MaxAppOwners} owners.");
-            if (owners.Any(o => !Guid.TryParse(o, out _))) throw new ArgumentException("Owners must be avatar ids (GUIDs).");
-            owners = owners.Select(o => Guid.Parse(o).ToString("D")).ToList();
             return TransactAsync(async (session, ct) =>
             {
                 var now = _time.GetUtcNow().UtcDateTime;

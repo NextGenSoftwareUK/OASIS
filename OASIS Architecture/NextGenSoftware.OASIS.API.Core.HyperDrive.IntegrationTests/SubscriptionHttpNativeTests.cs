@@ -97,7 +97,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task DashboardBearerReplacementUsesActualSdkSubscriptionControllerAndMongo() =>
         RunSubscriptionHttp(true, dashboard: true);
 
-    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false, bool personalBilling = false, bool personalConsentReview = false, bool adminRead = false, bool adminGrant = false, bool adminAccounts = false, bool adminOutbox = false, bool dashboard = false)
+    [Fact]
+    public Task SubscriptionAdminOwnersUseActualControllerBrowserAndOwnershipAudit() =>
+        RunSubscriptionHttp(true, usage: true, ownerSettings: true, adminRead: true, adminOwners: true);
+
+    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false, bool personalBilling = false, bool personalConsentReview = false, bool adminRead = false, bool adminGrant = false, bool adminAccounts = false, bool adminOutbox = false, bool dashboard = false, bool adminOwners = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -187,7 +191,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 Assert.Equal(1L, await db.GetCollection<BsonDocument>("subscription_usage_migrations")
                     .CountDocumentsAsync(new BsonDocument("_id", "v1-opening-balance")));
             }
-            if (ownerSettings)
+            if (ownerSettings && !adminOwners)
             {
                 for (var i = 0; i < accounts.Length; i++)
                     await db.GetCollection<BsonDocument>("subscription_app_accounts").InsertOneAsync(new BsonDocument
@@ -209,7 +213,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     await SeedOwnedZeroAppStatementAsync(db, index == 0 ? "owned-app-a" : "owned-app-b", accounts[index],
                         Guid.NewGuid().ToString("D"), DateTime.UtcNow.ToString("yyyy-MM"));
             }
-            if (freshAppUsage || adminAccounts)
+            if (freshAppUsage || adminAccounts || adminOwners)
             {
                 Environment.SetEnvironmentVariable("OASIS_POOLED_APP_QUOTAS", "true");
                 Environment.SetEnvironmentVariable("OASIS_POOL_SHARDS", "1");
@@ -382,12 +386,13 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             });
             app.UseAuthorization();
             app.MapControllers();
-            var adminFixture = adminRead && !adminGrant && !adminAccounts && !adminOutbox ? await PrepareSubscriptionAdminReadsAsync(db) : null;
+            var adminFixture = adminRead && !adminGrant && !adminAccounts && !adminOutbox && !adminOwners ? await PrepareSubscriptionAdminReadsAsync(db) : null;
             var adminGrantFixture = adminGrant ? await PrepareSubscriptionAdminGrantAsync(db, accounts) : null;
             var adminAccountsControl = adminAccounts ? Convert.ToHexString(RandomNumberGenerator.GetBytes(32)) : null;
             var adminAccountsFixture = adminAccounts ? await PrepareSubscriptionAdminAccountsAsync(app, db, repository,
                 adminAccountsControl!) : null;
             var adminOutboxFixture = adminOutbox ? await PrepareSubscriptionAdminOutboxAsync(db, accounts[0]) : null;
+            var adminOwnersFixture = adminOwners ? await PrepareSubscriptionAdminOwnersAsync(db, repository, accounts) : null;
             var personalConsentReviewControl = personalConsentReview ? Convert.ToHexString(RandomNumberGenerator.GetBytes(32)) : null;
             var consentReviewFixture = personalConsentReview ? await PreparePersonalConsentReviewBrowserAsync(app, db, api,
                 repository, accounts, personalConsentReviewControl!) : null;
@@ -461,11 +466,16 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     });
                     Assert.False(result.RootElement.TryGetProperty("isError", out var failed) && failed.GetBoolean(),
                         result.RootElement.TryGetProperty("message", out var message) ? message.GetString() : "Browser worker failed.");
-                    Assert.True(result.RootElement.GetProperty(dashboard ? "dashboardBearerBrowserVerified" : adminOutbox ? "subscriptionAdminOutboxBrowserVerified" : adminAccounts ? "subscriptionAdminAccountsBrowserVerified" : adminGrant ? "subscriptionAdminGrantBrowserVerified" : adminRead ? "subscriptionAdminReadsBrowserVerified" : personalConsentReview ? "personalConsentReviewBrowserVerified" : personalBilling ? "personalBillingBrowserVerified" : freshAppUsage ? "appFreshUsageBrowserVerified" : ownerPayNow ? "appPayNowBrowserVerified" : billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
+                    Assert.True(result.RootElement.GetProperty(adminOwners ? "subscriptionAdminOwnersBrowserVerified" : dashboard ? "dashboardBearerBrowserVerified" : adminOutbox ? "subscriptionAdminOutboxBrowserVerified" : adminAccounts ? "subscriptionAdminAccountsBrowserVerified" : adminGrant ? "subscriptionAdminGrantBrowserVerified" : adminRead ? "subscriptionAdminReadsBrowserVerified" : personalConsentReview ? "personalConsentReviewBrowserVerified" : personalBilling ? "personalBillingBrowserVerified" : freshAppUsage ? "appFreshUsageBrowserVerified" : ownerPayNow ? "appPayNowBrowserVerified" : billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
                         usage ? "subscriptionUsageBrowserVerified" : "subscriptionBrowserVerified").GetBoolean());
                     Assert.Equal(3, result.RootElement.GetProperty("actorsVerified").GetInt32());
                     Assert.True(result.RootElement.GetProperty("lateSessionResponseIgnored").GetBoolean());
                     Console.WriteLine("Subscription browser evidence: " + result.RootElement.GetRawText());
+                    if (adminOwners)
+                    {
+                        await VerifySubscriptionAdminOwnersAsync(db, adminOwnersFixture!, accounts);
+                        return;
+                    }
                     if (dashboard)
                     {
                         Assert.Equal(dashboardFinancialState, await SubscriptionAdminFinancialStateAsync(db));
@@ -679,8 +689,8 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         }
         finally
         {
-            if (billingControls || freshAppUsage || adminAccounts) Environment.SetEnvironmentVariable("OASIS_POOLED_APP_QUOTAS", previousPoolFlag);
-            if (freshAppUsage || adminAccounts) Environment.SetEnvironmentVariable("OASIS_POOL_SHARDS", previousPoolShards);
+            if (billingControls || freshAppUsage || adminAccounts || adminOwners) Environment.SetEnvironmentVariable("OASIS_POOLED_APP_QUOTAS", previousPoolFlag);
+            if (freshAppUsage || adminAccounts || adminOwners) Environment.SetEnvironmentVariable("OASIS_POOL_SHARDS", previousPoolShards);
             if (avatarManagerField != null) avatarManagerField.SetValue(null, previousAvatarManager);
             AssemblyLoadContext.Default.Resolving -= Resolve;
             Assert.StartsWith("subscription_http_", databaseName);
@@ -691,6 +701,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             }
             await mongo.DropDatabaseAsync(databaseName);
             Assert.DoesNotContain(databaseName, await (await mongo.ListDatabaseNamesAsync()).ToListAsync());
+            if (adminOwners)
+            {
+                Assert.Equal(previousPoolFlag, Environment.GetEnvironmentVariable("OASIS_POOLED_APP_QUOTAS"));
+                Assert.Equal(previousPoolShards, Environment.GetEnvironmentVariable("OASIS_POOL_SHARDS"));
+                if (avatarManagerField != null) Assert.Same(previousAvatarManager, avatarManagerField.GetValue(null));
+            }
             Console.WriteLine("Owned subscription HTTP database absence verified; provider deactivated and process state restored.");
         }
     }

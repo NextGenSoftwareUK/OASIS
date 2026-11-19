@@ -125,12 +125,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>Replace an app's owner avatars through the audited ownership transaction.</summary>
         [HttpPost("app-accounts/{appId}/owners")]
         public Task<IActionResult> SetAppOwners(string appId, [FromBody] AppOwnersRequest request) =>
-            AppAccountCall(actor =>
-            {
-                if (request?.OwnerAvatarIds == null)
-                    throw new ArgumentException("An owner avatar ids array is required; use an empty array to remove all owners.");
-                return _repository.SetAppOwnersAsync(appId, request.OwnerAvatarIds, actor, request.Reason, HttpContext.RequestAborted);
-            });
+            AppAccountCall(actor => _repository.SetAppOwnersAsync(appId, request?.OwnerAvatarIds, actor, request?.Reason, HttpContext.RequestAborted));
 
         /// <summary>Change an app's plan and/or disable or re-enable it (a disabled app's credentials stop working at once).</summary>
         [HttpPost("app-accounts/{appId}")]
