@@ -1,9 +1,9 @@
 {
   "status": "running-not-accepted",
   "scope": "Published app terms/estimates/statements reads only; full app charging remains required",
-  "runId": 44466938534,
-  "jobId": 135366897667,
-  "revision": "a88fb9921e8bd338423b9b08015b103ae0f05226",
+  "runId": 44468037293,
+  "jobId": 135370466343,
+  "revision": "5e77fc6b8aa747be4218deaa6fbc7aa561d6aa9f",
   "portalRevision": "f10f0cad34ca19dcbd7091895f5eb5ca98c6e699",
   "portalSource": "178c236c9672484d223fc1e9cb01d248694430c5",
   "portalDeliveryRun": 44464960028,
@@ -44,5 +44,17 @@
     "browserStarted": false,
     "oldTeardown": "Nonexistent container; no cleanup-success claim",
     "fix": "Explicit System.IO.File reference; exact owned container existence/removal/absence checks"
+  },
+  "secondFailure": {
+    "runId": 44466938534,
+    "jobId": 135366897667,
+    "revision": "a88fb9921e8bd338423b9b08015b103ae0f05226",
+    "apiBuildErrors": 0,
+    "stage": "integration harness compilation",
+    "error": "CS0136 app loop variable shadowed enclosing web host; renamed appRecord",
+    "accepted": false,
+    "nativeTestExecuted": false,
+    "ownedRuntimeCacheControlCleanupVerified": true,
+    "mongoContainerAbsenceVerified": true
   }
 }
