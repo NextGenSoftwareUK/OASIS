@@ -87,7 +87,9 @@ public partial class SQLLiteDBOASISIntegrationTests
         Assert.Equal(JTokenType.String, sibling.Type);
         Assert.Equal("newer authoritative sibling", sibling.Value<string>());
         var score = StoredRecordJson.CaptureRuntimeToken(loaded.Result.MetaData["Score"]);
-        Assert.Equal(JTokenType.Integer, score.Type);
-        Assert.Equal(9007199254740995L, score.Value<long>());
+        Assert.True(StoredRecordValueEquality.IsNumber(score));
+        Assert.Equal("9007199254740995", StoredRecordValueEquality.CanonicalNumberText(score));
+        Assert.False(StoredRecordValueEquality.Equivalent(score, new JValue("9007199254740995")));
+        Assert.False(StoredRecordValueEquality.Equivalent(score, new JRaw("9007199254740996")));
     }
 }

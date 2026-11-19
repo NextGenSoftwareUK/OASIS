@@ -104,6 +104,8 @@ Custom CLR property names follow their canonical serializer contract in logical 
 
 Native metadata cells may be CLR values or canonical JSON token wrappers. Compare their canonical type and value using the public `StoredRecordJson.CaptureRuntimeToken` helper (`NextGenSoftware.OASIS.API.Core.Serialization`), rather than boxed CLR equality or lossy numeric/string conversion. This preserves exact integers and null/absence distinctions.
 
+Exact numeric tokens may be `JRaw`: use the same public `StoredRecordValueEquality.IsNumber` and `CanonicalNumberText` contract as receipt fingerprinting. Requiring `JTokenType.Integer` or converting through floating point rejects valid exact numbers or loses precision. A quoted numeric string is not a numeric token.
+
 A nested custom property encoded as one metadata value requires merging that entire encoded cell. Selecting both a logical custom property and its backing metadata cell (or all metadata) is refused as overlapping storage intent. Whole collections remain whole-value properties.
 
 Actual extraction/projection controls14 passed in run44542276995. Run44546555815 then passed nullable-entry controls8 and all three protected native custom cases, each with eight groups, five logical writes and all ten scalar/null/collection/replay/stale/cleanup markers. The three plain cases reached historical replay and failed intent binding. Run44550931624 accepted the eight shared fingerprint controls and Mongo/Neo plain cases; SQLite alone still failed replay. SQLite selected-domain6 routing and four new SDK guards are prepared; its plain and encrypted modes need qualification because the local receipt owner changed. No whole custom-property acceptance is claimed yet.
