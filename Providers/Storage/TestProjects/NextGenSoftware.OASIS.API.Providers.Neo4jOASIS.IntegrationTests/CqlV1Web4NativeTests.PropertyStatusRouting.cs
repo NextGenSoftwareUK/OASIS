@@ -11,13 +11,17 @@ public sealed partial class CqlV1Web4NativeTests
     // Observe the actual native reader; never synthesize an outcome or intercept its I/O.
     public class PropertyOutcomeBoundary : SaveDemoBoundary
     {
-        public int OutcomeReads, PreparationReads;
+        public int OutcomeReads, PreparationReads, PropertySyncWrites, PropertyAsyncWrites;
         protected override object? Invoke(MethodInfo? method, object?[]? args)
         {
             if (method!.Name == nameof(IConditionalHolonPropertyStorageProvider.ReadConditionalHolonPropertyWriteOutcomeAsync))
                 OutcomeReads++;
             if (method.Name == nameof(IHolonWritePreparationRecoveryStorageProvider.ReadHolonWritePreparationAsync))
                 PreparationReads++;
+            if (method.Name == nameof(IConditionalHolonPropertyStorageProvider.ExecuteConditionalHolonPropertyWrite))
+                PropertySyncWrites++;
+            if (method.Name == nameof(IConditionalHolonPropertyStorageProvider.ExecuteConditionalHolonPropertyWriteAsync))
+                PropertyAsyncWrites++;
             return base.Invoke(method, args);
         }
     }
