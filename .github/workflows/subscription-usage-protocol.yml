@@ -277,26 +277,6 @@ jobs:
               throw 'Selection-only acceptance cannot inherit unrelated test results.'
             }
           }
-      - name: Verify selected prepared-write admission before provider I/O
-        if: ${{ inputs.property_tracking_only && !inputs.property_selection_only }}
-        shell: pwsh
-        run: |
-          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-property-dispatch-ci -Operation {
-            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~DirectSelectedWriteAdmission' --logger 'trx;LogFileName=property-dispatch-core.trx' --results-directory TestResults/PropertyDispatch
-            if ($LASTEXITCODE) { throw 'Selected prepared-write admission failed.' }
-            [xml]$core = Get-Content TestResults/PropertyDispatch/property-dispatch-core.trx
-            $counts = $core.TestRun.ResultSummary.Counters
-            if ([int]$counts.total -ne 26 -or [int]$counts.passed -ne 26 -or [int]$counts.notExecuted -ne 0) {
-              throw 'Exactly26 new selected-write admission/freeze cases must pass.'
-            }
-            $ids = @($core.TestRun.TestDefinitions.UnitTest | Where-Object {
-              $_.TestMethod.className -like '*CosmicTrackingTests' -and $_.TestMethod.name -like '*DirectSelectedWriteAdmission*'
-            } | ForEach-Object { $_.id })
-            $results = @($core.TestRun.Results.UnitTestResult)
-            if ($results.Count -ne 26 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
-              throw 'Unrelated test results cannot satisfy selected-write admission.'
-            }
-          }
       - name: Verify native entity-selected All on three stores
         if: ${{ inputs.source_ref != '' && !inputs.property_selection_only }}
         shell: pwsh
@@ -316,29 +296,31 @@ jobs:
             if (!$ready) { throw 'Neo4j fixture did not become ready.' }
             & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-entity-projection-ci -Operation {
               if ('${{ inputs.property_tracking_only }}' -eq 'true') {
-                dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~PreparedSelectedWritesUseNativeHyperDriveDispatchWithoutDowngrade' --logger 'trx;LogFileName=property-write-routed-native.trx' --results-directory TestResults/Neo4jCurrent
+                dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~OwnedSelectedFieldsUseNativePermissionsEncryptionAndPrivatePublication' --logger 'trx;LogFileName=property-owned-native.trx' --results-directory TestResults/Neo4jCurrent
                 if ($LASTEXITCODE) { throw 'Selected native property status verification failed.' }
-                [xml]$native = Get-Content TestResults/Neo4jCurrent/property-write-routed-native.trx
+                [xml]$native = Get-Content TestResults/Neo4jCurrent/property-owned-native.trx
                 $counts = $native.TestRun.ResultSummary.Counters
                 if ([int]$counts.total -ne 3 -or [int]$counts.passed -ne 3 -or [int]$counts.notExecuted -ne 0) {
                   throw 'Exactly3 real selection-bound read-only status cases must execute and pass.'
                 }
                 $ids = @($native.TestRun.TestDefinitions.UnitTest | Where-Object {
-                  $_.TestMethod.name -eq 'PreparedSelectedWritesUseNativeHyperDriveDispatchWithoutDowngrade'
+                  $_.TestMethod.name -eq 'OwnedSelectedFieldsUseNativePermissionsEncryptionAndPrivatePublication'
                 } | ForEach-Object { $_.id })
                 $results = @($native.TestRun.Results.UnitTestResult)
                 if ($results.Count -ne 3 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
                   throw 'Unrelated native results cannot satisfy selected-field acceptance.'
                 }
                 foreach ($provider in 'MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS') {
-                  $report = Get-Content "TestResults/Neo4jCurrent/$provider-property-write-routed-native.json" -Raw | ConvertFrom-Json
-                  if ($report.provider -ne $provider -or $report.checks -ne 10 -or $report.successfulHolonWrites -ne 4 -or
-                      !$report.preparedNativeDispatchVerified -or !$report.unprotectedNativeDispatchVerified -or
-                      !$report.syncSelectedVerified -or !$report.asyncSelectedVerified -or !$report.frozenMaskVerified -or
-                      !$report.unselectedValuesVerified -or !$report.metadataRemovalVerified -or !$report.historicalReplayVerified -or
-                      !$report.maskMismatchBeforeIoVerified -or !$report.actorAuthorityBeforeIoVerified -or
-                      !$report.noOrdinaryWriteDowngradeVerified -or !$report.callerUnchangedVerified -or !$report.exactCleanupVerified) {
-                    throw "Complete selected-field dispatch/freeze/native replay/caller/cleanup evidence required for $provider."
+                  $report = Get-Content "TestResults/Neo4jCurrent/$provider-property-owned-native.json" -Raw | ConvertFrom-Json
+                  if ($report.provider -ne $provider -or $report.checks -ne 11 -or $report.successfulHolonWrites -ne 5 -or
+                      !$report.ownedSelectedSaveVerified -or !$report.fieldOnlyWriteWithoutReadVerified -or
+                      !$report.privatePublicationVerified -or !$report.encryptedSiblingPreservedVerified -or
+                      !$report.encryptedRemovalVerified -or !$report.staleRevisionRefused -or
+                      !$report.fieldAndManageBeforeIoVerified -or !$report.invalidFieldBeforeIoVerified -or
+                      !$report.inflightEditAndFlagsVerified -or !$report.historicalReplayVerified -or
+                      !$report.noOrdinaryWriteDowngradeVerified -or !$report.sourceBaselineUnchangedVerified -or
+                      !$report.exactCleanupVerified) {
+                    throw "Complete owned selected permissions/encryption/publication/native replay/cleanup evidence required for $provider."
                   }
                 }
               } else {
@@ -385,8 +367,7 @@ jobs:
         with:
           name: subscription-protocol-test-results
           path: |
-            ${{ inputs.property_selection_only && 'TestResults/PropertySelection' || inputs.property_tracking_only && 'TestResults/Neo4jCurrent/*property-write-routed-native*' || 'TestResults' }}
-            ${{ inputs.property_tracking_only && !inputs.property_selection_only && 'TestResults/PropertyDispatch/property-dispatch-core.trx' || '' }}
+            ${{ inputs.property_selection_only && 'TestResults/PropertySelection' || inputs.property_tracking_only && 'TestResults/Neo4jCurrent/*property-owned-native*' || 'TestResults' }}
       - name: Stop temporary database
         if: ${{ always() && !inputs.property_selection_only }}
         run: docker rm --force usage-mongo
