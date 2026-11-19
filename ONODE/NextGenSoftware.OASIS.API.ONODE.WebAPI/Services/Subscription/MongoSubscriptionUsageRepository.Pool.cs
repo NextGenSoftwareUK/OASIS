@@ -40,6 +40,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             return PoolShardSubject(appId, (int)(h % (uint)shardCount));
         }
 
+        /// <summary>The only destination for a persisted pooled operation's accounting movements.</summary>
+        private static string BoundPoolSubject(SubscriptionUsageEvent operation)
+        {
+            if (operation.PoolShardCountAtAuthorization is not (>= 1 and <= MaxPoolShards))
+                throw new SubscriptionUsageConflictException("POOL_SHARD_BINDING_REQUIRED: The original pool shard setting was not recorded. Reconcile this operation from its original authorization evidence before execution or financial mutation; the current node setting cannot establish its original destination.");
+            if (operation.AppId != operation.PooledAppId || !AppAccountRules.IsValidAppId(operation.PooledAppId))
+                throw new SubscriptionUsageConflictException("POOL_SHARD_BINDING_INVALID: The recorded pool identity does not match the original app.");
+            return PoolWriteSubject(operation.PooledAppId, operation.OperationId, operation.PoolShardCountAtAuthorization.Value);
+        }
+
         /// <summary>Sums every shard's month and day buckets in one read.</summary>
         private async Task<SubscriptionUsageAggregate> LoadPoolAggregateAsync(IClientSessionHandle session, string appId, DateTime time, CancellationToken ct)
         {

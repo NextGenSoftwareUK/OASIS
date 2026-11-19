@@ -34,6 +34,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         /// <summary>Set only when the app's shared pool applies; every later movement (settle, expire, correct) is mirrored to the pool.</summary>
         public string PooledAppId { get; set; }
         public string PooledAppPlanId { get; set; }
+        /// <summary>Immutable routing input captured at authorization; never use a later node setting to release this reservation.</summary>
+        public int? PoolShardCountAtAuthorization { get; set; }
         public string OperationId { get; set; }
         public string UserId { get; set; }
         public string ConsumingService { get; set; }

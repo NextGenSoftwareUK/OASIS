@@ -76,6 +76,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             SubscriptionUsageEvent usageEvent, int karma, CancellationToken cancellationToken)
         {
             ValidateAuthorization(usageEvent);
+            // This is server-owned context, not a caller-selected accounting destination.
+            usageEvent.PoolShardCountAtAuthorization = usageEvent.PooledAppId == null ? null : PoolShardCount;
             return TransactAsync(async (session, ct) =>
             {
                 await EnsureOpeningBalanceAsync(session, ct);
@@ -227,6 +229,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 var operation = await _events.Find(session, x => x.OperationId == request.OperationId).FirstOrDefaultAsync(ct)
                     ?? throw new KeyNotFoundException("The usage operation was not found.");
                 EnsureOwner(operation, request.UserId, request.ConsumingService);
+                if (operation.PooledAppId != null) BoundPoolSubject(operation);
                 if (operation.Status == "executing" && operation.ExpiresAtUtc > _time.GetUtcNow().UtcDateTime)
                     return new UsageStartResult { Started = true, AlreadyStarted = true, OperationId = operation.OperationId, Status = operation.Status };
                 if (operation.Status != "authorized" || operation.ExpiresAtUtc <= _time.GetUtcNow().UtcDateTime)
@@ -368,11 +371,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
 
         private async Task ApplyDeltaAsync(IClientSessionHandle session, SubscriptionUsageEvent operation, SubscriptionUsageAuditEntry delta, CancellationToken ct)
         {
+            var poolSubject = operation.PooledAppId == null ? null : BoundPoolSubject(operation);
             await ApplyDeltaToSubjectAsync(session, operation, delta, operation.UserId, true, ct);
-            // Pooled apps: the identical delta commits to the app pool in the same transaction, so the pool
-            // can never drift from the sum of its users.
-            if (operation.PooledAppId != null)
-                await ApplyDeltaToSubjectAsync(session, operation, delta, PoolWriteSubject(operation.PooledAppId, operation.OperationId, PoolShardCount), false, ct);
+            // Every movement targets the original reservation's shard, including after a restart,
+            // changed node settings, opt-out or app ownership/configuration changes.
+            if (poolSubject != null)
+                await ApplyDeltaToSubjectAsync(session, operation, delta, poolSubject, false, ct);
         }
 
         public static string PoolSubject(string appId) => "app:" + appId;
