@@ -1,5 +1,5 @@
 {
-  "status": "all_referenced_public_read_dependencies_integrated_compile_pending",
+  "status": "complete_referenced_public_read_graph_build_queued",
   "run": 44607073292,
   "job": 135853508585,
   "source": "f20298c90df6cbdbe3d9892e92c261779e154607",
@@ -203,5 +203,17 @@
     "manifestValidatorPassed": true,
     "apiBuildAccepted": false,
     "behaviorTestsExecuted": 0
+  },
+  "publicReadGraphBuild": {
+    "run": 44623720895,
+    "job": 135911880979,
+    "source": "c943fd7bb6db3f36b1254d7955d2d55ad51e8a23",
+    "observedStatus": "queued",
+    "apiBuildAccepted": false,
+    "nativeContractProjectBuildAccepted": false,
+    "behaviorTestsSelected": 0,
+    "mongoFixtureRequested": false,
+    "sameBuildLease": true,
+    "maxBuildWorkers": 2
   }
 }
