@@ -1,0 +1,25 @@
+{
+  "status": "source-prepared-not-accepted",
+  "localGeneratedOutputs": 0,
+  "required": [
+    "actual API and changed linked-host builds",
+    "original cap survives changed current consent/customer",
+    "per-operation positive writeoff and negative/reversal conservation",
+    "credit-only worker intent excludes positive operations and adjustments",
+    "changed-intent replay refuses without mutation",
+    "empty credit-only poll changes no collection",
+    "zero-initial-charge corrected positive liability discovered and allocated",
+    "legacy correction and statement refusal without collection mutation",
+    "original input cleanup and owned fixture absence",
+    "native statement and monthly liability conservation"
+  ],
+  "scope": "Actual repository/native Mongo accounting edge cases; cost/readiness/account INPUTS only",
+  "filter": "FullyQualifiedName~PersonalCreditsRespectOriginalCapsWriteoffsAndCreditOnlyScheduling",
+  "releaseGates": [
+    "historical in-flight transition",
+    "canonical metadata/webhook and matching portal review state",
+    "genuine Stripe readiness/nonzero collection",
+    "hosted portal/dashboard/popups/performance",
+    "full provider/HyperDrive programme"
+  ]
+}

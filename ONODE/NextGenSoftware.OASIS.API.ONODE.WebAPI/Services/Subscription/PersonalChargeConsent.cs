@@ -85,11 +85,15 @@ public sealed partial class MongoSubscriptionUsageRepository
         var documents = ids.Length == 0 ? new List<BsonDocument>() : await BillingAudit.Find(session,
             Builders<BsonDocument>.Filter.In("_id", ids)).ToListAsync(token);
         var evidence = documents.ToDictionary(x => x["_id"].AsString, StringComparer.Ordinal);
+        var originals = new Dictionary<string, PersonalChargeConsentAudit>(StringComparer.Ordinal);
         var result = new Dictionary<string, PersonalBillingPayerSnapshot>(StringComparer.Ordinal);
         foreach (var term in terms)
         {
-            evidence.TryGetValue(PersonalChargeConsent.AuditId(term.ConsentId), out var document);
-            var original = ReadOriginalPersonalConsent(document, userId, term.ConsentId);
+            if (!originals.TryGetValue(term.ConsentId, out var original)) {
+                evidence.TryGetValue(PersonalChargeConsent.AuditId(term.ConsentId), out var document);
+                original = ReadOriginalPersonalConsent(document, userId, term.ConsentId);
+                originals.Add(term.ConsentId, original);
+            }
             var approved = original.Terms;
             if (term.ConsentSchemaVersion != approved.ConsentSchemaVersion || term.UserId != approved.UserId ||
                 term.PlanId != approved.PlanId || term.PreferenceVersion != approved.PreferenceVersion ||

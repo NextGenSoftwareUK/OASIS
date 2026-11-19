@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 public sealed partial class MongoSubscriptionUsageRepository
 {
     private Task<PaidOverageStatement> PreparePersonalStatementAsync(string userId, string month, string requestKey,
-        CancellationToken token)
+        bool creditsOnly, CancellationToken token)
     {
         if (!Guid.TryParseExact(userId, "D", out var user) || user == Guid.Empty ||
             string.IsNullOrWhiteSpace(requestKey) || requestKey.Length > 200)
@@ -26,15 +26,19 @@ public sealed partial class MongoSubscriptionUsageRepository
             if (existing != null) {
                 if (existing.Scope != OverageScope || existing.UserId != userId || existing.AppId != null || existing.PayerAvatarId != null)
                     throw new SubscriptionUsageConflictException("PERSONAL_STATEMENT_BINDING_REQUIRED: Statement does not belong to this subscriber and billing scope.");
+                if (existing.CreditsOnly != creditsOnly)
+                    throw new SubscriptionUsageConflictException("PERSONAL_STATEMENT_REQUEST_CONFLICT: Billing request identity was reused with different preparation intent.");
                 return existing;
             }
             var subscriber = await Subscriptions.Find(session, x => x.UserId == userId).FirstOrDefaultAsync(ct)
                 ?? throw new KeyNotFoundException("Subscriber billing account was not found.");
-            var operations = await _events.Find(session, x => x.UserId == userId && x.AuthorizedAtUtc >= start && x.AuthorizedAtUtc < end &&
+            var operations = creditsOnly ? new List<UsageEventDocument>() : await _events.Find(session, x => x.UserId == userId && x.AuthorizedAtUtc >= start && x.AuthorizedAtUtc < end &&
                 x.Status == "settled" && x.PaidOveragePricingVersion != null && x.BillingStatementId == null &&
                 (x.SettledRequestOverageUsd > 0 || x.SettledAiOverageUsd > 0 || x.PersonalAiCorrectionUsd > 0))
                 .SortBy(x => x.AuthorizedAtUtc).ThenBy(x => x.OperationId).Limit(500).ToListAsync(ct);
-            var adjustments = await OverageAdjustments.Find(session, x => x.UserId == userId && x.Month == month && x.BillingStatementId == null)
+            var adjustmentFilter = Builders<PaidOverageAdjustment>.Filter.Where(x => x.UserId == userId && x.Month == month && x.BillingStatementId == null);
+            if (creditsOnly) adjustmentFilter &= Builders<PaidOverageAdjustment>.Filter.Lt(x => x.AmountUsd, 0);
+            var adjustments = await OverageAdjustments.Find(session, adjustmentFilter)
                 .SortBy(x => x.CreatedAtUtc).ThenBy(x => x.Id).Limit(500).ToListAsync(ct);
             if (operations.Count == 0 && adjustments.Count == 0) return null;
             var terms = operations.Select(x => x.PersonalOverageChargeTerms).Concat(adjustments.Select(x => x.PersonalOverageChargeTerms)).ToArray();
@@ -94,7 +98,7 @@ public sealed partial class MongoSubscriptionUsageRepository
             var selectedTerms = operations.Select(x => x.PersonalOverageChargeTerms).Concat(adjustments.Select(x => x.PersonalOverageChargeTerms)).ToArray();
             var now = _time.GetUtcNow().UtcDateTime;
             var statement = new PaidOverageStatement {
-                Id = id, UserId = userId, Scope = OverageScope, Month = month,
+                Id = id, UserId = userId, Scope = OverageScope, Month = month, CreditsOnly = creditsOnly,
                 StripeCustomerId = anchor.CustomerId, StripeSubscriptionId = anchor.SubscriptionId,
                 PersonalConsentIds = selectedTerms.Select(x => x.ConsentId).Distinct(StringComparer.Ordinal).OrderBy(x => x, StringComparer.Ordinal).ToArray(),
                 PricingVersions = selectedTerms.Select(x => x.PricingVersion).Distinct(StringComparer.Ordinal).OrderBy(x => x, StringComparer.Ordinal).ToArray(),
