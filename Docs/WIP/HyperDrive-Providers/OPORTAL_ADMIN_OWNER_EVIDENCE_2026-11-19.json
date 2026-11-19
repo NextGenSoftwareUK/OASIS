@@ -1,0 +1,31 @@
+{
+  "status": "first-real-owner-qualification-active-not-accepted",
+  "runId": 44582265031,
+  "jobId": 135765761407,
+  "sourceCommit": "a6d29125af2bf3abf61526ce339dab1f34cfa736",
+  "coreCommit": "d2fc611338f5fc665ff6e514527593208835c145",
+  "portalGenerated": "5ebe7010a2ae2bed66b06c8237c931480e0b1c76",
+  "sdkCommit": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
+  "filter": "FullyQualifiedName~SubscriptionAdminOwnersUseActualControllerBrowserAndOwnershipAudit",
+  "expectedOwnerPosts": 13,
+  "expectedNewAuditTransitions": 4,
+  "required": [
+    "actual WEB4 API build",
+    "actual stored Wizard/User/expired actor",
+    "canonical UUID identity uniqueness",
+    "omitted/null/blank/invalid/too-many/missing-app refusal",
+    "single pending UI action across tabs and exact acknowledgement",
+    "edited draft retained",
+    "actual SDK owner access granted and revoked",
+    "original authorized late write after session change",
+    "four exact actor/reason/previous-owner audits",
+    "original audits and seven financial collections unchanged",
+    "foreign app/non-owner fields/API-key hashes unchanged",
+    "exact owned flags/manager/provider/database/browser/runtime/cache/control cleanup"
+  ],
+  "localGeneratedOutputs": 0,
+  "fullStartupAccepted": false,
+  "hostedPerformanceAccepted": false,
+  "stripeAccepted": false,
+  "fullPortalAccepted": false
+}
