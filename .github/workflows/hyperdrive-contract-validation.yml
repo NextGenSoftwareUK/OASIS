@@ -298,7 +298,14 @@ jobs:
       - name: Stop owned native seal routing fixture
         if: ${{ always() && inputs.native_seal }}
         shell: bash
-        run: docker rm --force --volumes seal-routing-mongo
+        run: |
+          set -euo pipefail
+          docker info >/dev/null
+          if docker container inspect seal-routing-mongo >/dev/null 2>&1; then
+            docker rm --force --volumes seal-routing-mongo
+          fi
+          if docker container inspect seal-routing-mongo >/dev/null 2>&1; then exit 1; fi
+          echo 'Owned Mongo fixture absence verified.'
 
       - name: Stop owned native profile Bolt fixture
         if: ${{ always() && inputs.native_seal && inputs.native_neo4j }}

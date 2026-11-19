@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 public sealed class AppOveragePrices
 {
     private static readonly Lazy<AppOveragePrices> Published = new(() =>
-        Parse(File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Configuration", "app-overage-prices.json"))));
+        Parse(System.IO.File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Configuration", "app-overage-prices.json"))));
     private readonly Dictionary<string, decimal> _rates;
     public string Version { get; }
     public string PricingSha256 { get; }
