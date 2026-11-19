@@ -153,6 +153,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             await billing.DeleteOneAsync(new BsonDocument("_id", evidenceB["_id"]));
             await NoMutation(async () => await Call("AuthorizeAsync", Request(), 0, CancellationToken.None), "PERSONAL_OVERAGE_CONSENT_REQUIRED");
             await billing.InsertOneAsync(evidenceB);
+            var wrongSchema=evidenceB.DeepClone().AsBsonDocument;
+            wrongSchema["PayloadJson"]=wrongSchema["PayloadJson"].AsString.Replace("\"ConsentSchemaVersion\":1", "\"ConsentSchemaVersion\":2", StringComparison.Ordinal);
+            Assert.NotEqual(evidenceB["PayloadJson"],wrongSchema["PayloadJson"]);
+            await billing.ReplaceOneAsync(new BsonDocument("_id", evidenceB["_id"]),wrongSchema);
+            await NoMutation(async () => await Call("AuthorizeAsync", Request(), 0, CancellationToken.None), "PERSONAL_OVERAGE_CONSENT_CONFLICT");
+            await billing.ReplaceOneAsync(new BsonDocument("_id", evidenceB["_id"]),evidenceB);
             var oldPair = await Snapshot();
             await records.UpdateOneAsync(new BsonDocument("_id", user), new BsonDocument("$set", new BsonDocument("StripeCustomerId", "owned-personal-consent-customer-c")));
             await NoMutation(() => Consent(oldPair, 2.5m), "verified paid subscription changed");

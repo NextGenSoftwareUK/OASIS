@@ -25,6 +25,7 @@ public sealed record PersonalBillingPayerSnapshot(string UserId, string PlanId, 
 /// <summary>Immutable public financial terms. Original private routing stays in the referenced protected audit.</summary>
 public sealed class PersonalOverageChargeTerms
 {
+    public int ConsentSchemaVersion { get; init; }
     public string ConsentId { get; init; }
     public string UserId { get; init; }
     public string PlanId { get; init; }
@@ -105,7 +106,7 @@ public sealed partial class MongoSubscriptionUsageRepository
         var terms = original?.Terms;
         var payer = original?.VerifiedPayer;
         if (!Guid.TryParseExact(userId, "D", out var user) || user == Guid.Empty || original?.UserId != userId ||
-            original.Actor != userId || terms == null || payer == null || terms.UserId != userId || terms.ConsentId != consentId ||
+            original.Actor != userId || terms == null || payer == null || terms.ConsentSchemaVersion != 1 || terms.UserId != userId || terms.ConsentId != consentId ||
             payer.UserId != userId || payer.PlanId != terms.PlanId || terms.PlanId is not ("bronze" or "silver" or "gold" or "enterprise") ||
             terms.PreferenceVersion <= 0 || payer.PreferenceVersion != terms.PreferenceVersion - 1 || terms.Currency != "USD" ||
             string.IsNullOrWhiteSpace(terms.PricingVersion) || terms.PricingSha256?.Length != 64 ||

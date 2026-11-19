@@ -110,7 +110,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 record.PaidOveragePreferenceVersion=checked(record.PaidOveragePreferenceVersion+1);
                 record.PaidOverageConsentPreferenceVersion=record.PaidOveragePreferenceVersion;
                 record.PaidOverageConsentId=consentId;record.PaidOverageConsentSchemaVersion=1;record.PaidOverageConsentPlanId=record.PlanId;
-                var terms=new PersonalOverageChargeTerms {ConsentId=consentId,UserId=userId,PlanId=record.PlanId,
+                var terms=new PersonalOverageChargeTerms {ConsentSchemaVersion=1,ConsentId=consentId,UserId=userId,PlanId=record.PlanId,
                     PreferenceVersion=record.PaidOverageConsentPreferenceVersion,PricingVersion=pricing.Version,
                     PricingSha256=pricing.PricingSha256,Currency=pricing.Currency,RatePerRequestUsd=pricing.Rate(record.PlanId),
                     MonthlyCapUsd=monthlyLimitUsd,AcceptedAtUtc=now};
