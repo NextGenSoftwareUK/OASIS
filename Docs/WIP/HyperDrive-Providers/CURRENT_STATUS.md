@@ -1,4 +1,4 @@
-## Notification preferences qualification in progress — 18 November 2026
+## Notification preferences qualification in progress â€” 18 November 2026
 
 Current work adds the authenticated personal notification GET/POST contract, reuses the real Mongo repository, preserves inherited node defaults, and reads the previous preference inside the write transaction so concurrent audit changes have a correct predecessor. Portal source4b7b272 passed delivery run44454238713, generated e239a5775f53c83168a8917c042749276305320b; native qualification pins that generated revision. New isolated browser case covers validation, canonical saved values, persistence, one pending save, foreign-selector refusal and stale-session suppression; actual concurrent HTTP saves check the native audit chain. Backend/browser acceptance is PENDING, not inferred from the UI build. Email delivery, warning banner, app-owner controls and broader OPORTAL remain open.
 
