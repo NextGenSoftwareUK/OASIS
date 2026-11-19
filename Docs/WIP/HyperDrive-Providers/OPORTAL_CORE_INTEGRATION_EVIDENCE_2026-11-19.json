@@ -1,5 +1,5 @@
 {
-  "status": "matching_holo_urbit_dependency_build_in_progress",
+  "status": "holo_urbit_errors_resolved_remaining_cql_registration_dependencies",
   "run": 44607073292,
   "job": 135853508585,
   "source": "f20298c90df6cbdbe3d9892e92c261779e154607",
@@ -172,10 +172,23 @@
     "run": 44621194175,
     "job": 135902997107,
     "source": "113a4f9896f65e694abd623d1c42e7a64dca6445",
-    "observedStatus": "in_progress",
+    "observedStatus": "completed",
     "apiBuildAccepted": false,
     "nativeContractProjectBuildAccepted": false,
     "behaviorTestsSelected": 0,
-    "mongoFixtureRequested": false
-  }
+    "mongoFixtureRequested": false,
+    "conclusion": "failure",
+    "apiCompileReached": true,
+    "nativeContractProjectCompileReached": false,
+    "compilerErrors": 14,
+    "holoUrbitErrorsResolved": true,
+    "artifacts": [],
+    "remainingDependencyScope": [
+      "CqlV1Providers referenced Solana/EVM/NEAR/EOSIO/Cosmos/Polkadot/TON/Hedera public query adapters",
+      "TRON authenticated-header factory",
+      "GOMap hosted-catalogue factory",
+      "BootLoader Polkadot public reader registration"
+    ]
+  },
+  "nextIntegrationInvariant": "Close entire CQL public reader dependency graph from verified38d4320e before rebuilding; manually merge required BootLoader pieces, preserving owned Neon/Convex/Supabase/Bitcoin/Immutable/Ronin/Optimism registrations and explicit registration rejection/disposal handling. Never copy donor whole BootLoader or unrelated provider implementations/deletions/DNA."
 }
