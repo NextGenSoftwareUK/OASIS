@@ -1,0 +1,26 @@
+{
+  "externalStripeProof": false,
+  "required": [
+    "actual stored Wizard authority",
+    "active Stripe input conflict without mutation",
+    "one pending form writer and no duplicate post",
+    "exact returned grant and expiry",
+    "original actor/reason/expiry native audit twice",
+    "delayed real grant after session change cannot republish UI",
+    "ordinary403 and expired signed token401",
+    "protected record and all other financial collections unchanged",
+    "owned browser/runtime/control/database cleanup"
+  ],
+  "bundleRun": 44544877903,
+  "hostedWizardProof": false,
+  "portalGenerated": "d799b444fcd32a9fe1dcd596e53b6375f4f3dfb9",
+  "bundleJob": 135632654344,
+  "sourceCommit": "e4961357f408dab5d06c0744921d47b2d834fb6f",
+  "bundleCleanupVerified": true,
+  "filter": "FullyQualifiedName~SubscriptionAdminPlanGrantUsesActualControllerBrowserAndAudit",
+  "localGeneratedOutputs": 0,
+  "jobId": 135637842875,
+  "portalSource": "507cdb4ef22c0e8cedfd1200a61944d756e44acf",
+  "status": "qualification-active-not-accepted",
+  "runId": 44546346337
+}
