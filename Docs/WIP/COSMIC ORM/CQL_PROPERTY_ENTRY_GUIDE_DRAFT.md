@@ -1,6 +1,6 @@
 # COSMIC property entries - usage guide draft
 
-This is a source-contract draft for the S05 property-entry gate, not a claim of full EF/NHibernate or live deployment parity. See [the acceptance audit](S05_PROPERTY_ENTRY_ACCEPTANCE_AUDIT_2026-11-19.md) for exact provider evidence and remaining gates. Base-holon property inspection/editing, selected owned saves, encryption, replay and bound replication have scoped native evidence. Typed relationship-role composition is currently under separate qualification.
+This is a source-contract draft for the S05 property-entry gate, not a claim of full EF/NHibernate or live deployment parity. See [the acceptance audit](S05_PROPERTY_ENTRY_ACCEPTANCE_AUDIT_2026-11-19.md) for exact provider evidence and remaining gates. Base-holon property inspection/editing, selected owned saves, encryption, replay and bound replication have scoped native evidence. Typed relationship-role composition now has retained MongoDB, SQLite and Neo4j native evidence; custom-property storage mapping remains under qualification.
 
 The APIs below live in `NextGenSoftware.OASIS.API.Core.Holons.HolonChangeTracking` and return `OASISResult<T>`. Check every result. Local tracking information grants no permission to read or write a record.
 
@@ -91,7 +91,15 @@ Permissions are enforced against actual stored ownership and access rules. Field
 
 Child-selecting saves require an admitted complete membership observation. New child attachments require AddChildren where the authoritative parent restricts attachments, including when the parent is in the batch or the child has a caller-supplied ID. Parent lookup failures cannot be treated as successful permission checks. Native transaction conditions still decide conflicts and atomicity.
 
-Application-specific runtime contracts and multiple typed child roles must use the registered typed materialization contract. Their selected-save composition is being qualified; consult the audit before describing that path as accepted. This draft does not replace that test gate with a base-holon example.
+Application-specific runtime contracts and multiple typed child roles must use the registered typed materialization contract. Retained native evidence covers typed scalar preservation, partial-view restrictions, explicit role changes and historical replay across MongoDB, SQLite and Neo4j (runs44526382452 and44531399889). This is scoped composition evidence, not completion of the whole session/relationship/parity programme.
+
+## Custom properties and their stored metadata cells
+
+Custom CLR property names follow their canonical serializer contract in logical property paths. The actual extraction owner stores their values in metadata under the CLR property name; a custom JSON alias can therefore differ from the stored metadata key. Selection preparation must map the logical path to the cell written by that same extraction pass, then apply the encryption owner's storage rules. Callers should use the logical property path rather than manually target encrypted envelopes.
+
+A nested custom property encoded as one metadata value requires merging that entire encoded cell. Selecting both a logical custom property and its backing metadata cell (or all metadata) is refused as overlapping storage intent. Whole collections remain whole-value properties.
+
+This storage-mapping correction is published in Core1fbb146 and is **not yet qualified**. Run44542276995 selects fourteen new extraction/projection controls and six native plain/encrypted cases. The preceding six-case run failed at the first selected custom scalar save; this draft does not claim that native custom-property gate has passed.
 
 ## Operation identity, replay and local acceptance
 
