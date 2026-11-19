@@ -274,5 +274,15 @@
     "existingPeerProofReused": true,
     "currentSourceCompiled": false,
     "activeAccountSwitchRunStillAtPreDecoderSource": "851cad03ca112881c129214052e9e3ce34e240b2"
+  },
+  "latestAccountSwitchProof": {
+    "run": 44631122426,
+    "job": 135937702915,
+    "source": "851cad03ca112881c129214052e9e3ce34e240b2",
+    "core": "650188d6f08d82b7a9b3af15c48e7d8018a79c78",
+    "apiErrors": 0,
+    "newCasePassed": 1,
+    "nativeProviders": 3,
+    "laterDecoderCompanionsNotIncluded": true
   }
 }
