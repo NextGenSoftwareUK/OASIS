@@ -1,5 +1,5 @@
 {
-  "status": "running-not-accepted",
+  "status": "accepted-scoped",
   "scope": "App ownership list and settings only; app usage/billing/whole OPORTAL incomplete",
   "runId": 44459215365,
   "jobId": 135341630331,
@@ -13,17 +13,6 @@
   "filter": "FullyQualifiedName~SubscriptionAppOwnerSettingsBrowserUsesActualControllerAndOwnedMongo",
   "backend": "Owned CI loopback MongoDB only",
   "nullSerialization": "Host uses production-equivalent omit-null policy; explicit inherited override values must still serialize",
-  "pending": [
-    "browser save and reload",
-    "hidden settings preservation",
-    "explicit null inheritance",
-    "non-owner denial",
-    "late session suppression",
-    "disjoint concurrent patches",
-    "invalid JSON no writes",
-    "revoked owner denial",
-    "owned cleanup"
-  ],
   "notCovered": [
     "app usage/billing",
     "Stripe",
@@ -32,5 +21,30 @@
     "production Startup",
     "hosted rollout",
     "whole OPORTAL"
-  ]
+  ],
+  "apiBuildErrors": 0,
+  "totalCases": 1,
+  "passed": 1,
+  "failed": 0,
+  "skipped": 0,
+  "actorsVerified": 3,
+  "committedBrowserSettingsWrites": 3,
+  "refusedForeignWriteRequests": 1,
+  "concurrentDisjointHttpWrites": 2,
+  "settingsAuditEntries": 5,
+  "hiddenChoicesPreserved": true,
+  "explicitNullInheritanceVerified": true,
+  "lateSessionResponseIgnored": true,
+  "malformedAndDuplicateJsonNoAuditVerified": true,
+  "revokedOwnerNoAuditVerified": true,
+  "nativeSettingsMarkerVerified": true,
+  "ownedBrowserRuntimeCacheControlCleanupVerified": true,
+  "nativeDatabaseFinalizerPassed": true,
+  "mongoContainerRemoved": true,
+  "artifact": {
+    "id": 14500290029,
+    "bytes": 6807,
+    "sha256": "d6b67f5c41e8f0cc9687432f8478fee06e65d0d23de0b2815548e4294bd9e951",
+    "inspection": "Exactly one passed TRX and native marker read/disposed in RAM; zero local files"
+  }
 }
