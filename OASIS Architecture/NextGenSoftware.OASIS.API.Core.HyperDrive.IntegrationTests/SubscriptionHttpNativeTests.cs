@@ -73,7 +73,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task SubscriptionPersonalBillingBrowserUsesActualControllerAndOwnedMongo() =>
         RunSubscriptionHttp(true, usage: true, notifications: true, ownerSettings: true, ownerPayNow: true, personalBilling: true);
 
-    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false, bool personalBilling = false)
+    [Fact]
+    public Task SubscriptionPersonalConsentReviewUsesActualControllerSdkAndBrowser() =>
+        RunSubscriptionHttp(true, usage: true, notifications: true, ownerSettings: true, ownerPayNow: true, personalConsentReview: true);
+
+    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false, bool personalBilling = false, bool personalConsentReview = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -346,6 +350,9 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             });
             app.UseAuthorization();
             app.MapControllers();
+            var personalConsentReviewControl = personalConsentReview ? Convert.ToHexString(RandomNumberGenerator.GetBytes(32)) : null;
+            var consentReviewFixture = personalConsentReview ? await PreparePersonalConsentReviewBrowserAsync(app, db, api,
+                repository, accounts, personalConsentReviewControl!) : null;
             var personalControl = personalBilling ? Convert.ToHexString(RandomNumberGenerator.GetBytes(32)) : null;
             if (personalBilling)
             {
@@ -400,15 +407,21 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     {
                         baseUrl = address,
                         personalControl,
+                        personalConsentReviewControl,
                         actors = accounts.Append(missingAccount).Select(actor => new { id = actor, token = Token(actor) }).ToArray()
                     });
                     Assert.False(result.RootElement.TryGetProperty("isError", out var failed) && failed.GetBoolean(),
                         result.RootElement.TryGetProperty("message", out var message) ? message.GetString() : "Browser worker failed.");
-                    Assert.True(result.RootElement.GetProperty(personalBilling ? "personalBillingBrowserVerified" : freshAppUsage ? "appFreshUsageBrowserVerified" : ownerPayNow ? "appPayNowBrowserVerified" : billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
+                    Assert.True(result.RootElement.GetProperty(personalConsentReview ? "personalConsentReviewBrowserVerified" : personalBilling ? "personalBillingBrowserVerified" : freshAppUsage ? "appFreshUsageBrowserVerified" : ownerPayNow ? "appPayNowBrowserVerified" : billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
                         usage ? "subscriptionUsageBrowserVerified" : "subscriptionBrowserVerified").GetBoolean());
                     Assert.Equal(3, result.RootElement.GetProperty("actorsVerified").GetInt32());
                     Assert.True(result.RootElement.GetProperty("lateSessionResponseIgnored").GetBoolean());
                     Console.WriteLine("Subscription browser evidence: " + result.RootElement.GetRawText());
+                    if (personalConsentReview)
+                    {
+                        await VerifyPersonalConsentReviewAfterBrowserAsync(db, consentReviewFixture!, accounts);
+                        return;
+                    }
                     if (personalBilling)
                     {
                         await VerifyPersonalBillingAfterBrowserAsync(db, personalFixture!, accounts[0]);

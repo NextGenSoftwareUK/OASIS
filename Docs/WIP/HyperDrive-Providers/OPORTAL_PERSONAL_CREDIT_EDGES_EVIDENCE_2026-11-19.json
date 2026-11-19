@@ -1,5 +1,5 @@
 {
-  "status": "qualification-in-progress-not-accepted",
+  "status": "accepted-scoped-credit-cap-writeoff-edges",
   "localGeneratedOutputs": 0,
   "required": [
     "actual API and changed linked-host builds",
@@ -24,5 +24,20 @@
   ],
   "sourceCommit": "8faa949afc05c49c9abea143c50eb60e62b82202",
   "runId": 44524167999,
-  "jobId": 135560243981
+  "jobId": 135560243981,
+  "artifactId": 14530045517,
+  "artifactBytes": 1861,
+  "artifactSha256": "2cd3ca3226e59b16759c13649ed52e14f192cc105db80fdbaa38116d01066a42",
+  "result": {
+    "skipped": 0,
+    "linkedHostBuildErrors": 0,
+    "failed": 0,
+    "ownedDatabaseAbsenceVerified": true,
+    "artifactFilesWritten": 0,
+    "passed": 1,
+    "ownedMongoAbsenceVerified": true,
+    "nativeMarkersVerified": true,
+    "apiBuildErrors": 0,
+    "durationSeconds": 1
+  }
 }

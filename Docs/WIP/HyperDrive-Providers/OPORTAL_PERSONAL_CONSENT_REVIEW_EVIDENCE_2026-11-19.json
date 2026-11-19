@@ -1,0 +1,31 @@
+{
+  "bundleJob": 135562727303,
+  "bundleRun": 44524893726,
+  "subscriptionSha256": "7d0067d943ced7702777d93c8336762bf1b035fc7a87808db266afa5a98df812",
+  "required": [
+    "actual API/linked-host builds",
+    "legacy unbound review",
+    "actual repository original consent binding with explicit readiness INPUT",
+    "independent version/hash mismatch and original input restoration",
+    "unchecked consent produces no request",
+    "initial billing reads remain3",
+    "real explicit opt-out/one pending writer/late-session isolation",
+    "three actors/private routing absent",
+    "native original routing/cap/evidence/foreign account preserved",
+    "no operation/statement/order allocation",
+    "owned browser/runtime/cache/database/container cleanup"
+  ],
+  "portalGenerated": "39e5f39a5160ca9cb10f14337dc144c4187aead6",
+  "bundleCleanupVerified": true,
+  "releaseGates": [
+    "positive consent controller and genuine Stripe readiness",
+    "nonzero payment/signed webhook",
+    "historical in-flight transition",
+    "hosted complete portal/performance",
+    "provider and HyperDrive programme"
+  ],
+  "localGeneratedOutputs": 0,
+  "status": "source-prepared-not-accepted",
+  "filter": "FullyQualifiedName~SubscriptionPersonalConsentReviewUsesActualControllerSdkAndBrowser",
+  "portalSource": "29927fb3fb4de438a7353909916ca33f18efadd7"
+}
