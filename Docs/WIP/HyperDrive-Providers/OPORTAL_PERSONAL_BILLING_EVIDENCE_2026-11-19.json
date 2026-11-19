@@ -1,0 +1,22 @@
+{
+  "status": "source-prepared-not-accepted",
+  "scope": "Strict personal financial intent, subscriber projection, scoped original invoice recovery, response acknowledgement and empty-poll write removal",
+  "required": [
+    "API and changed linked-host builds",
+    "explicit enabled/known unique fields reject without mutation",
+    "public projection excludes private routing/leases/internal errors",
+    "subscriber/tenant/personal-only original ID recovery",
+    "real zero-due collector and pending lease state",
+    "UI exact saved flags and invoice status",
+    "stable new request retry identity and session reset",
+    "empty request no version writes",
+    "owned cleanup"
+  ],
+  "remainingAudit": [
+    "personal original payer/consent liability",
+    "history/rounding/credits",
+    "genuine Stripe/nonzero/webhook",
+    "hosted/full portal acceptance"
+  ],
+  "localGeneratedOutputs": 0
+}

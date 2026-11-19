@@ -1,5 +1,5 @@
 {
-  "status": "running-not-accepted",
+  "status": "accepted-scoped-fresh-sdk-browser-zero-due",
   "filter": "FullyQualifiedName~SubscriptionFreshAppUsageBillsThroughSdkAndBrowser",
   "portalRevision": "4fd7cfaa497191eb965748277ec73972e1ffe05f",
   "scope": "Pinned shipping Core authorization/start/settlement client + actual JS SDK/UI/MVC/native Mongo + zero-due gateway; original payer/readiness and quota boundary INPUT fixtures only",
@@ -24,5 +24,34 @@
   "localGeneratedOutputs": 0,
   "revision": "492e030cdd19abccedc87795a4766af246d40c02",
   "runId": 44507676469,
-  "jobId": 135503439803
+  "jobId": 135503439803,
+  "conclusion": "success",
+  "builds": {
+    "actualWeb4ApiErrors": 0,
+    "linkedHostErrors": 0
+  },
+  "results": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "durationSeconds": 16,
+    "actors": 3
+  },
+  "artifact": {
+    "id": 14520058597,
+    "bytes": 7276,
+    "sha256": "7b3c1a8c7edd5fc4b7f51aa74d7f7dcf4ca3fafb9a4e112fea01bb830ed5fcf9",
+    "members": [
+      "profile-sdk-native.trx"
+    ],
+    "matchingOutcome": "SubscriptionFreshAppUsageBillsThroughSdkAndBrowser: Passed",
+    "filesWritten": 0
+  },
+  "cleanup": {
+    "ownedBrowserRuntimeCacheControl": true,
+    "ownedDbProviderFinalizers": "Passed with case",
+    "processSettingsRestorationFinalizer": "Completed",
+    "workflowMongoContainerAbsence": true,
+    "localGeneratedOutputs": 0
+  }
 }

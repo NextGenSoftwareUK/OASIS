@@ -632,7 +632,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<ActionResult> GetOverageStatements()
         {
             var user=GetCurrentUserId();if(string.IsNullOrWhiteSpace(user))return Unauthorized();
-            return Ok(await _overages.GetStatementsAsync(user,100,HttpContext.RequestAborted));
+            return Ok((await _overages.GetStatementsAsync(user,100,HttpContext.RequestAborted))
+                .Select(PersonalOverageStatementView.From).ToArray());
         }
         [Authorize]
         [HttpGet("overages/admin/statements")]
@@ -647,18 +648,36 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<ActionResult> PayOveragesNow([FromBody]PayOveragesRequest request)
         {
             var user=GetCurrentUserId();if(string.IsNullOrWhiteSpace(user))return Unauthorized();
-            if(request==null || !Guid.TryParseExact(request.BillingRequestId,"D",out _))return BadRequest(new {IsError=true,Message="A unique billing request UUID is required."});
+            if(request==null || (request.BillingRequestId==null)==(request.StatementId==null) ||
+                request.StatementId!=null && request.Month!=null || request.StatementId==null &&
+                (!Guid.TryParseExact(request.BillingRequestId,"D",out var billingId) || billingId==Guid.Empty))
+                return BadRequest(new {IsError=true,Message="Choose a unique billing request UUID or one existing statement without changing its month."});
             try
             {
-                var statement=await _overages.PrepareAsync(user,request.Month ?? DateTime.UtcNow.ToString("yyyy-MM"),request.BillingRequestId,HttpContext.RequestAborted);
-                if(statement==null)return Ok(new {IsError=false,Message="There are no uninvoiced paid overages."});
-                return Ok(new {IsError=false,Statement=await _overageBilling.CollectAsync(statement,HttpContext.RequestAborted)});
+                var statement=request.StatementId==null
+                    ? await _overages.PrepareAsync(user,request.Month ?? DateTime.UtcNow.ToString("yyyy-MM",System.Globalization.CultureInfo.InvariantCulture),request.BillingRequestId,HttpContext.RequestAborted)
+                    : await _overages.GetStatementForSubscriberAsync(user,request.StatementId,HttpContext.RequestAborted);
+                if(statement==null)return Ok(new {IsError=false,NoCharges=true,Message="There are no uninvoiced paid overages."});
+                return Ok(new {IsError=false,NoCharges=false,
+                    Statement=PersonalOverageStatementView.From(await _overageBilling.CollectAsync(statement,HttpContext.RequestAborted))});
             }
+            catch(KeyNotFoundException){return NotFound(new {IsError=true,Message="The subscriber billing statement was not found."});}
             catch(Exception ex) when(ex is ArgumentException || ex is FormatException || ex is OASISSub.SubscriptionUsageConflictException)
             {return BadRequest(new {IsError=true,ex.Message});}
-            catch(Exception ex){return StatusCode(503,new {IsError=true,Message="Overage collection is pending. Do not repeat provider work. "+ex.Message});}
+            catch(Exception ex) when(ex is not OperationCanceledException)
+            {return StatusCode(503,new {IsError=true,Message="Overage collection is pending. Reuse the same billing request to check its status."});}
         }
-        public sealed class PayOveragesRequest {public string BillingRequestId {get;set;} public string Month {get;set;}}
+        [System.Text.Json.Serialization.JsonConverter(typeof(OASISSub.PersonalPayOveragesRequestJsonConverter))]
+        public sealed class PayOveragesRequest {public string BillingRequestId {get;set;} public string Month {get;set;} public string StatementId {get;set;}}
+
+        // Subscriber responses retain display fields and exclude private Stripe routing, leases and internal errors.
+        private sealed record PersonalOverageStatementView(string Id,string Month,long AmountMinorUsd,string State,
+            bool PaymentFailed,string HostedInvoiceUrl,DateTime CreatedAtUtc)
+        {
+            public static PersonalOverageStatementView From(OASISSub.PaidOverageStatement statement) =>
+                new(statement.Id,statement.Month,statement.AmountMinorUsd,statement.State,statement.PaymentFailed,
+                    statement.HostedInvoiceUrl,statement.CreatedAtUtc);
+        }
 
         [HttpGet("overages/prices")]
         public ActionResult GetPaidOveragePrices() => Ok(OASISSub.PaidOveragePricing.Load());
@@ -974,6 +993,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             public string SessionUrl { get; set; }
         }
 
+        [System.Text.Json.Serialization.JsonConverter(typeof(OASISSub.PersonalOverageConsentRequestJsonConverter))]
         public class TogglePayAsYouGoRequest
         {
             public bool Enabled { get; set; }

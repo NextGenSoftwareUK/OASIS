@@ -47,6 +47,7 @@ public interface IPaidOverageStatementStore
     Task<IReadOnlyList<PaidOverageStatement>> GetReadyAsync(DateTime now,CancellationToken token);
     Task<IReadOnlyList<PaidOverageStatement>> GetStatementsAsync(string userId,int limit,CancellationToken token);
     Task<PaidOverageStatement> GetStatementAsync(string id,CancellationToken token);
+    Task<PaidOverageStatement> GetStatementForSubscriberAsync(string userId,string id,CancellationToken token);
     Task<PaidOverageStatement> ClaimAsync(string id,string owner,DateTime now,CancellationToken token);
     Task AttachInvoiceAsync(string id,string owner,string invoiceId,CancellationToken token);
     Task RecordInvoiceAsync(string id,string owner,PaidOverageInvoiceResult invoice,string eventId,string fingerprint,CancellationToken token);

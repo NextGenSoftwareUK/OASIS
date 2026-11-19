@@ -34,20 +34,25 @@ public sealed partial class MongoSubscriptionUsageRepository
             await EnsureOpeningBalanceAsync(session,ct);
             var id=StatementId(userId,month,requestKey);
             var existing=await OverageStatements.Find(session,x=>x.Id==id).FirstOrDefaultAsync(ct);
-            if(existing!=null)return existing;
+            if(existing!=null)
+            {
+                if(existing.Scope!=OverageScope || existing.UserId!=userId || existing.AppId!=null || existing.PayerAvatarId!=null)
+                    throw new SubscriptionUsageConflictException("PERSONAL_STATEMENT_BINDING_REQUIRED: Statement does not belong to this subscriber and billing scope.");
+                return existing;
+            }
             var subscriber=await Subscriptions.Find(session,x=>x.UserId==userId).FirstOrDefaultAsync(ct)
                 ?? throw new KeyNotFoundException("Subscriber billing account was not found.");
             if(string.IsNullOrWhiteSpace(subscriber.StripeCustomerId) || string.IsNullOrWhiteSpace(subscriber.StripeSubscriptionId))
                 throw new SubscriptionUsageConflictException("A verified Stripe billing account is required.");
-            // This fence serializes consent/plan changes, reservations and concurrent statement preparations.
-            subscriber.AuthorizationVersion=checked(subscriber.AuthorizationVersion+1);
-            await Subscriptions.ReplaceOneAsync(session,x=>x.UserId==userId,subscriber,cancellationToken:ct);
             var operations=await _events.Find(session,x=>x.UserId==userId && x.AuthorizedAtUtc>=start && x.AuthorizedAtUtc<end &&
                 x.Status=="settled" && x.PaidOveragePricingVersion!=null && x.BillingStatementId==null &&
                 (x.SettledRequestOverageUsd>0 || x.SettledAiOverageUsd>0))
                 .SortBy(x=>x.AuthorizedAtUtc).ThenBy(x=>x.OperationId).Limit(500).ToListAsync(ct);
             var adjustments=await OverageAdjustments.Find(session,x=>x.UserId==userId && x.Month==month && x.BillingStatementId==null).Limit(500).ToListAsync(ct);
             if(operations.Count==0 && adjustments.Count==0)return null;
+            // This fence serializes consent/plan changes, reservations and concurrent statement preparations.
+            subscriber.AuthorizationVersion=checked(subscriber.AuthorizationVersion+1);
+            await Subscriptions.ReplaceOneAsync(session,x=>x.UserId==userId,subscriber,cancellationToken:ct);
             var earlier=await OverageStatements.Find(session,x=>x.UserId==userId && x.Month==month).ToListAsync(ct);
             decimal requests=operations.Sum(x=>x.SettledRequestOverageUsd), ai=operations.Sum(x=>x.SettledAiOverageUsd)+adjustments.Sum(x=>x.AmountUsd);
             // A pay-now statement rounds the cumulative month, avoiding repeated sub-cent rounding charges.
@@ -142,6 +147,18 @@ public sealed partial class MongoSubscriptionUsageRepository
         await OverageStatements.Find(userId==null ? Builders<PaidOverageStatement>.Filter.Empty : Builders<PaidOverageStatement>.Filter.Eq(x=>x.UserId,userId))
             .SortByDescending(x=>x.CreatedAtUtc).Limit(Math.Clamp(limit,1,500)).ToListAsync(token);
     public Task<PaidOverageStatement> GetStatementAsync(string id,CancellationToken token) => OverageStatements.Find(x=>x.Id==id).FirstOrDefaultAsync(token);
+    public async Task<PaidOverageStatement> GetStatementForSubscriberAsync(string userId,string id,CancellationToken token)
+    {
+        if(!Guid.TryParseExact(userId,"D",out var avatar) || avatar==Guid.Empty)
+            throw new UnauthorizedAccessException("An authenticated subscriber is required.");
+        if(id==null || id.Length!=68 || !id.StartsWith("ovg_",StringComparison.Ordinal) ||
+            !id.Substring(4).All(c=>c is >= '0' and <= '9' or >= 'a' and <= 'f'))
+            throw new ArgumentException("A valid personal overage statement identity is required.");
+        return await OverageStatements.Find(x=>x.Id==id && x.UserId==userId && x.Scope==OverageScope &&
+            x.AppId==null && x.PayerAvatarId==null).FirstOrDefaultAsync(token)
+            ?? throw new KeyNotFoundException("The subscriber billing statement was not found.");
+    }
+
     public Task<PaidOverageStatement> ClaimAsync(string id,string owner,DateTime now,CancellationToken token) =>
         OverageStatements.FindOneAndUpdateAsync(x=>x.Id==id && x.State!="paid" && x.State!="void" && x.State!="uncollectible" &&
             (x.LeaseUntilUtc==null || x.LeaseUntilUtc<=now),Builders<PaidOverageStatement>.Update.Set(x=>x.LeaseOwner,owner)
