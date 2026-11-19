@@ -25,7 +25,7 @@
     "provider and HyperDrive programme"
   ],
   "localGeneratedOutputs": 0,
-  "status": "corrected-fixture-qualification-in-progress-not-accepted",
+  "status": "accepted-scoped-current-consent-http-sdk-browser",
   "filter": "FullyQualifiedName~SubscriptionPersonalConsentReviewUsesActualControllerSdkAndBrowser",
   "portalSource": "29927fb3fb4de438a7353909916ca33f18efadd7",
   "sourceCommit": "52544f27932411546e878bd436ec3466b3862875",
@@ -49,5 +49,24 @@
     "fix": "Exclude consent-review from that setup; preserve strict zero-statement invariant",
     "ownedBrowserCleanupVerified": true,
     "jobId": 135570130339
+  },
+  "artifactId": 14533343193,
+  "artifactBytes": 7856,
+  "artifactSha256": "38f76c1a88bba6b294c694bed2210cce00aaeaaf96b2ab16062ded22651c011e",
+  "result": {
+    "actors": 3,
+    "ownedDatabaseAbsenceVerified": true,
+    "linkedHostBuildErrors": 0,
+    "browserNativeAndFinalizerMarkersVerified": true,
+    "skipped": 0,
+    "extraConsentRequests": 0,
+    "ownedMongoAbsenceVerified": true,
+    "initialBillingReads": 3,
+    "artifactFilesWritten": 0,
+    "ownedBrowserRuntimeCacheCleanupVerified": true,
+    "durationSeconds": 17,
+    "apiBuildErrors": 0,
+    "passed": 1,
+    "failed": 0
   }
 }

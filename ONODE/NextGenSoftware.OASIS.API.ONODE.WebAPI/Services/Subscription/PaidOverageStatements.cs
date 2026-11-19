@@ -41,6 +41,20 @@ public sealed class PaidOverageStatement
 public sealed record PaidOverageAccount(string UserId,string Month,bool CreditsOnly=false);
 public sealed record PaidOverageInvoiceResult(string InvoiceId,string Status,string HostedInvoiceUrl,long Subtotal,long AmountPaid,bool Attempted);
 
+internal static class PaidOverageStatementBinding
+{
+    internal static void RequirePayer(PaidOverageStatement statement)
+    {
+        if (statement == null) throw new ArgumentNullException(nameof(statement));
+        if (statement.AppId != null) {
+            if (!AppAccountRules.IsValidAppId(statement.AppId) || statement.UserId != MongoSubscriptionUsageRepository.PoolSubject(statement.AppId) ||
+                !Guid.TryParseExact(statement.PayerAvatarId, "D", out var payer) || payer == Guid.Empty)
+                throw new SubscriptionUsageConflictException("OVERAGE_STATEMENT_BINDING_REQUIRED: App invoice requires its original app and nonempty payer identity.");
+        } else if (statement.PayerAvatarId != null || !Guid.TryParseExact(statement.UserId, "D", out var subscriber) || subscriber == Guid.Empty)
+            throw new SubscriptionUsageConflictException("OVERAGE_STATEMENT_BINDING_REQUIRED: Personal invoice requires its nonempty original subscriber identity.");
+    }
+}
+
 public interface IPaidOverageStatementStore
 {
     Task<PaidOverageStatement> PrepareAsync(string userId,string month,string requestKey,CancellationToken token,bool creditsOnly=false);

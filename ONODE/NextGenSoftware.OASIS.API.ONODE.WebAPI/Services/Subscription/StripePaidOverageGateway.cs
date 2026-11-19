@@ -88,10 +88,7 @@ public sealed class StripePaidOverageGateway(IConfiguration configuration) : IPa
     private static Dictionary<string,string> IdentityMetadata(PaidOverageStatement statement)
     {
         bool app = statement.AppId != null;
-        if (app && (!AppAccountRules.IsValidAppId(statement.AppId) || statement.UserId != "app:" + statement.AppId ||
-            !Guid.TryParseExact(statement.PayerAvatarId, "D", out _)) ||
-            !app && (statement.PayerAvatarId != null || !Guid.TryParseExact(statement.UserId, "D", out _)))
-            throw new InvalidOperationException("App invoice requires its original app and payer binding.");
+        PaidOverageStatementBinding.RequirePayer(statement);
         var metadata = new Dictionary<string,string> {
             ["oasis_overage_statement_id"] = statement.Id, ["oasis_ledger_scope"] = statement.Scope,
             ["oasis_avatar_id"] = app ? statement.PayerAvatarId : statement.UserId,

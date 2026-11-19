@@ -1,0 +1,23 @@
+{
+  "scope": "Actual repository/collector/shipping gateway/native Mongo; existing statement INPUTS and real zero-due collection only",
+  "status": "source-prepared-not-accepted",
+  "releaseGates": [
+    "historical in-flight transition",
+    "genuine Stripe readiness/positive controller/nonzero/signed webhook",
+    "production Startup/hosted full portal/performance",
+    "full provider/HyperDrive programme"
+  ],
+  "required": [
+    "actual API/changed linked-host builds",
+    "current storage-scope discovery/self reads",
+    "foreign personal/app scope refusal before lease/payment/record mutation",
+    "empty and mismatched payer refusal in store and shipping gateway",
+    "all-collection no-mutation for invalid attempts",
+    "foreign attach/retry cannot mutate",
+    "real concurrent personal/app zero-due collection and paid replay once",
+    "no new order/operation allocation",
+    "owned database/container absence"
+  ],
+  "localGeneratedOutputs": 0,
+  "filter": "FullyQualifiedName~OverageCollectionRejectsForeignScopeAndEmptyPayersBeforeMutation"
+}
