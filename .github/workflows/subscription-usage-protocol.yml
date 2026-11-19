@@ -15,7 +15,7 @@ on:
         type: boolean
         default: false
       property_selection_only:
-        description: Build WEB4 and qualify only the new selected-property request contract without databases
+        description: Build WEB4 and qualify selected-property native-plan receipt binding without databases
         type: boolean
         default: false
       source_ref:
@@ -255,21 +255,21 @@ jobs:
             dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SqliteNativeDataImportTests|FullyQualifiedName~AvatarProfileRegistryNativeTests'
             if ($LASTEXITCODE) { throw 'SQLite virtual Holon qualification failed.' }
           }
-      - name: Verify selected-property request and native capability contract
+      - name: Verify selected-property native-plan receipt binding
         if: ${{ inputs.property_selection_only }}
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-property-selection-ci -Operation {
-            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicPropertyWriteRequestTests' --logger 'trx;LogFileName=property-request-core.trx' --results-directory TestResults/PropertySelection
-            if ($LASTEXITCODE) { throw 'Selected-property request contract failed.' }
-            [xml]$core = Get-Content TestResults/PropertySelection/property-request-core.trx
+            dotnet test 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~ConditionalHolonPropertyPlanTests' --logger 'trx;LogFileName=property-plan-core.trx' --results-directory TestResults/PropertySelection
+            if ($LASTEXITCODE) { throw 'Selected-property native-plan binding failed.' }
+            [xml]$core = Get-Content TestResults/PropertySelection/property-plan-core.trx
             $counts = $core.TestRun.ResultSummary.Counters
-            if ([int]$counts.total -ne 17 -or [int]$counts.passed -ne 17 -or [int]$counts.notExecuted -ne 0) {
-              throw 'Exactly17 new selected-property request cases must execute and pass.'
+            if ([int]$counts.total -ne 9 -or [int]$counts.passed -ne 9 -or [int]$counts.notExecuted -ne 0) {
+              throw 'Exactly9 new selected-property native-plan cases must execute and pass.'
             }
-            $ids = @($core.TestRun.TestDefinitions.UnitTest | Where-Object { $_.TestMethod.className -like '*CosmicPropertyWriteRequestTests' } | ForEach-Object { $_.id })
+            $ids = @($core.TestRun.TestDefinitions.UnitTest | Where-Object { $_.TestMethod.className -like '*ConditionalHolonPropertyPlanTests' } | ForEach-Object { $_.id })
             $results = @($core.TestRun.Results.UnitTestResult)
-            if ($results.Count -ne 17 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
+            if ($results.Count -ne 9 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
               throw 'Selection-only acceptance cannot inherit unrelated test results.'
             }
           }
