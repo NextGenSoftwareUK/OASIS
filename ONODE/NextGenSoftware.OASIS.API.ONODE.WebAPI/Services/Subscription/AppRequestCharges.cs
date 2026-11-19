@@ -13,7 +13,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 /// <summary>Immutable public charge terms. Payer identity/proof stays in the referenced protected consent audit.</summary>
 public sealed class AppRequestChargeTerms
 {
-    public const string LedgerScope = "app-request-overages-usd-v1";
+    public const string LedgerKind = "app-request-overages-usd-v1";
     public string ConsentId { get; init; }
     public string AppId { get; init; }
     public string AppPlanId { get; init; }
@@ -186,7 +186,7 @@ public sealed partial class MongoSubscriptionUsageRepository
         if (operation.AppBillingStatementId != null)
             await OverageAdjustments.InsertOneAsync(session, new PaidOverageAdjustment {
                 Id = "app-request:" + correction.Id, UserId = PoolSubject(operation.PooledAppId), Month = correction.Month,
-                Scope = AppRequestChargeTerms.LedgerScope, SourceStatementId = operation.AppBillingStatementId,
+                Scope = OverageScope, SourceStatementId = operation.AppBillingStatementId,
                 AppRequestChargeTerms = operation.AppRequestChargeTerms, AmountUsd = delta,
                 Reason = correction.Reason, EvidenceReference = correction.ExternalReference, CreatedAtUtc = correction.OccurredAtUtc
             }, cancellationToken: ct);

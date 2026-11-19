@@ -146,10 +146,10 @@ public sealed partial class MongoSubscriptionUsageRepository
         TransactAsync(async(session,ct)=>
         {
             var statement=await OverageStatements.Find(session,x=>x.Id==id).FirstOrDefaultAsync(ct) ?? throw new KeyNotFoundException("Overage statement not found.");
-            bool appScope = statement.Scope == AppRequestChargeTerms.LedgerScope;
-            if (appScope && (!AppAccountRules.IsValidAppId(statement.AppId) || statement.UserId != PoolSubject(statement.AppId) ||
+            bool appScope = statement.AppId != null;
+            if (appScope && (!AppAccountRules.IsValidAppId(statement.AppId) || statement.Scope != OverageScope || statement.UserId != PoolSubject(statement.AppId) ||
                 !Guid.TryParseExact(statement.PayerAvatarId, "D", out _)) ||
-                !appScope && !Guid.TryParseExact(statement.UserId, "D", out _))
+                !appScope && (statement.PayerAvatarId != null || !Guid.TryParseExact(statement.UserId, "D", out _)))
                 throw new SubscriptionUsageConflictException("APP_STATEMENT_BINDING_REQUIRED: App invoices require an explicit app and original payer binding.");
             if(statement.State=="paid" && invoice.Status!="paid")return true;
             if(owner!=null && statement.LeaseOwner!=owner && !(statement.State=="paid" && statement.StripeInvoiceId==invoice.InvoiceId && invoice.Status=="paid"))throw new SubscriptionUsageConflictException("The billing collection lease was lost.");

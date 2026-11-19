@@ -87,17 +87,17 @@ public sealed class StripePaidOverageGateway(IConfiguration configuration) : IPa
         => Result(statement,await new InvoiceService(Client()).GetAsync(invoiceId,cancellationToken:token));
     private static Dictionary<string,string> IdentityMetadata(PaidOverageStatement statement)
     {
-        bool app = statement.Scope == AppRequestChargeTerms.LedgerScope;
+        bool app = statement.AppId != null;
         if (app && (!AppAccountRules.IsValidAppId(statement.AppId) || statement.UserId != "app:" + statement.AppId ||
             !Guid.TryParseExact(statement.PayerAvatarId, "D", out _)) ||
-            !app && !Guid.TryParseExact(statement.UserId, "D", out _))
+            !app && (statement.PayerAvatarId != null || !Guid.TryParseExact(statement.UserId, "D", out _)))
             throw new InvalidOperationException("App invoice requires its original app and payer binding.");
         var metadata = new Dictionary<string,string> {
             ["oasis_overage_statement_id"] = statement.Id, ["oasis_ledger_scope"] = statement.Scope,
             ["oasis_avatar_id"] = app ? statement.PayerAvatarId : statement.UserId,
             ["oasis_usage_month"] = statement.Month, ["oasis_usage_cost_basis"] = CostBasis
         };
-        if (app) { metadata["oasis_app_id"] = statement.AppId; metadata["oasis_ledger_subject"] = statement.UserId; }
+        if (app) { metadata["oasis_app_id"] = statement.AppId; metadata["oasis_ledger_subject"] = statement.UserId; metadata["oasis_billing_kind"] = AppRequestChargeTerms.LedgerKind; }
         return metadata;
     }
 
@@ -111,9 +111,10 @@ public sealed class StripePaidOverageGateway(IConfiguration configuration) : IPa
             invoice.Metadata?.GetValueOrDefault("oasis_usage_month")!=statement.Month ||
             invoice.Metadata?.GetValueOrDefault("oasis_usage_cost_basis")!=CostBasis)
             throw new InvalidOperationException("Stripe invoice does not belong to this immutable standalone USD overage statement.");
-        if (statement.Scope == AppRequestChargeTerms.LedgerScope &&
+        if (statement.AppId != null &&
             (invoice.Metadata?.GetValueOrDefault("oasis_app_id") != statement.AppId ||
-             invoice.Metadata?.GetValueOrDefault("oasis_ledger_subject") != statement.UserId))
+             invoice.Metadata?.GetValueOrDefault("oasis_ledger_subject") != statement.UserId ||
+             invoice.Metadata?.GetValueOrDefault("oasis_billing_kind") != AppRequestChargeTerms.LedgerKind))
             throw new InvalidOperationException("Stripe invoice does not belong to the original app and payer.");
     }
     private static PaidOverageInvoiceResult Result(PaidOverageStatement statement,Invoice invoice)
