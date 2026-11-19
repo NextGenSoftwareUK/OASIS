@@ -18,7 +18,6 @@
   "method": "Read exact Git objects, verify two fetched source blob SHA1 values in RAM, evaluate actual browser bundles and inspect actual constructed client methods without calling them",
   "objectsRead": 43,
   "scriptFiles": 40,
-  "checkedCallSites": 99,
   "mixedOrIndirectScripts": 8,
   "backendCalls": 0,
   "browserAccepted": false,
@@ -257,5 +256,46 @@
       "checked": 5,
       "missingMethods": []
     }
-  ]
+  ],
+  "checkedScriptMethodPairs": 99,
+  "additionalMixedReferenceChecks": {
+    "backendCalls": 0,
+    "results": [
+      {
+        "client": "OASISClient",
+        "checks": [
+          "avatar.getAvatarInventory"
+        ],
+        "missing": []
+      },
+      {
+        "client": "STARClient",
+        "checks": [
+          "holons.searchHolons",
+          "quests.searchQuests",
+          "celestialBodies.searchCelestialBodies",
+          "zomes.searchZomes",
+          "inventoryItems.getAllInventoryItems"
+        ],
+        "missing": []
+      },
+      {
+        "client": "Web6Client",
+        "checks": [
+          "completion.complete",
+          "images.generate",
+          "holonicMemory.getEarthHolon",
+          "holonicMemory.recordMemory",
+          "orchestrator.getAdapters",
+          "orchestrator.invoke",
+          "reasoningNetwork.getAgents",
+          "reasoningNetwork.dispatch",
+          "holonicBraid.getGraph",
+          "holonicBraid.saveGraph"
+        ],
+        "missing": []
+      }
+    ]
+  },
+  "countInterpretation": "Per-script distinct matched references; not unique SDK methods, all call sites, endpoint acceptance or overall coverage."
 }
