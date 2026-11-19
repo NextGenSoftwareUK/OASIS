@@ -73,13 +73,13 @@ public static partial class CqlV1Compiler
             ValidateSelectionAlias(column.Alias);
             if (column.KeyAlias != null)
             {
-                if (column.Operation != null || column.Selection != null) throw new ArgumentException("A key column cannot also aggregate.");
+                if (column.Operation != null || column.Selection != null || column.Distinct) throw new ArgumentException("A key column cannot also aggregate.");
                 var index = grouping.Key.Columns.ToList().FindIndex(key => key.Alias == column.KeyAlias);
                 return RequiredBinding(CosmicGroupedBinding<Holon, CosmicProjectionRecord>.Key(grouping, column.Alias, index));
             }
             if (column.Operation == "Count" || column.Operation == "LongCount" && column.Selection == null)
             {
-                if (column.Selection != null) throw new ArgumentException("Grouped counts do not select paths.");
+                if (column.Selection != null || column.Distinct) throw new ArgumentException("Grouped row counts do not select paths or distinct values.");
                 return column.Operation == "Count"
                     ? RequiredBinding(CosmicGroupedBinding<Holon, CosmicProjectionRecord>.Aggregate(grouping, column.Alias, source.Count().Result))
                     : RequiredBinding(CosmicGroupedBinding<Holon, CosmicProjectionRecord>.Aggregate(grouping, column.Alias, source.LongCount().Result));
@@ -91,11 +91,13 @@ public static partial class CqlV1Compiler
                 "Sum" => CosmicScalarOperation.Sum, "Average" => CosmicScalarOperation.Average,
                 _ => throw new ArgumentException("Select an explicit key or supported grouped aggregate.")
             };
+            if (column.Distinct && operation != CosmicScalarOperation.LongCount)
+                throw new ArgumentException("Distinct grouped values require selected LongCount.");
             var selected = column.Selection ?? throw new ArgumentException("This aggregate requires a selection.");
             if (selected.Function.HasValue) throw new ArgumentException("Computed grouped selections require native function enrollment.");
             return CompileSelection(new CqlProjectionV1Column { Alias = column.Alias, Field = selected.Field,
                 MetadataPath = selected.MetadataPath, ValueType = selected.ValueType, Nullable = selected.Nullable },
-                new GroupedSelectionConsumer(grouping, column.Alias, operation));
+                new GroupedSelectionConsumer(grouping, column.Alias, operation, column.Distinct));
         }).ToArray();
         var result = grouping.SelectColumns(bindings);
         if (result.IsError) throw new ArgumentException(result.Message);
@@ -158,11 +160,12 @@ public static partial class CqlV1Compiler
         private readonly CosmicGroupedQuery<Holon, CosmicProjectionRecord> grouping;
         private readonly string alias;
         private readonly CosmicScalarOperation operation;
-        internal GroupedSelectionConsumer(CosmicGroupedQuery<Holon, CosmicProjectionRecord> grouping, string alias, CosmicScalarOperation operation)
-        { this.grouping = grouping; this.alias = alias; this.operation = operation; }
+        private readonly bool distinct;
+        internal GroupedSelectionConsumer(CosmicGroupedQuery<Holon, CosmicProjectionRecord> grouping, string alias, CosmicScalarOperation operation, bool distinct)
+        { this.grouping = grouping; this.alias = alias; this.operation = operation; this.distinct = distinct; }
         public CosmicGroupedBinding<Holon, CosmicProjectionRecord> Bind<TValue>(string unused, Expression<Func<Holon, TValue>> selector)
             => operation == CosmicScalarOperation.LongCount
-                ? RequiredBinding(CosmicGroupedBinding<Holon, CosmicProjectionRecord>.CountValues(grouping, alias, selector))
+                ? RequiredBinding(CosmicGroupedBinding<Holon, CosmicProjectionRecord>.CountValues(grouping, alias, selector, distinct))
                 : BindScalar(grouping.Source, operation, selector, this);
         public CosmicGroupedBinding<Holon, CosmicProjectionRecord> Consume<TResult>(OASISResult<CosmicScalarQuery<Holon, TResult>> intent)
         {

@@ -49,6 +49,8 @@ internal sealed partial class MongoCqlTranslator
         var limb = Literal(new BsonDecimal128(new Decimal128(CosmicNumericScalarResults.LimbBase)));
         var numeric = new BsonDocument();
         var high = new BsonDocument();
+        var distinctCounts = new BsonDocument();
+        var distinctFields = new BsonArray();
         for (var index = 0; index < query.Columns.Count; index++)
         {
             var column = query.Columns[index];
@@ -57,7 +59,17 @@ internal sealed partial class MongoCqlTranslator
             cells.Add(name, ProjectionCell(column.Selector, "cqlgroupaggregate" + index));
             invalid.Add(Bad(column.Selector, "$" + name));
             var present = Op("$eq", "$" + name + ".s", Literal(2));
-            reduction.Add(name + "present", new BsonDocument("$sum", Choose(present, Literal(1L), Literal(0L))));
+            if (column.Operation == CosmicScalarOperation.LongCount && column.Distinct)
+            {
+                reduction.Add(name + "distinct", new BsonDocument("$addToSet",
+                    Choose(present, "$" + name + ".v", Literal(BsonNull.Value))));
+                var populated = new BsonDocument("$setDifference", new BsonArray
+                    { "$" + name + "distinct", new BsonArray { BsonNull.Value } });
+                distinctCounts.Add(name + "present", new BsonDocument("$toLong",
+                    new BsonDocument("$size", populated)));
+                distinctFields.Add(name + "distinct");
+            }
+            else reduction.Add(name + "present", new BsonDocument("$sum", Choose(present, Literal(1L), Literal(0L))));
             if (column.Operation == CosmicScalarOperation.LongCount) continue;
             if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
             {
@@ -105,6 +117,11 @@ internal sealed partial class MongoCqlTranslator
         reduction.Add("inputs", new BsonDocument("$sum", Literal(1L)));
         reduction.Add("invalid", new BsonDocument("$sum", Choose(new BsonDocument("$or", invalid), Literal(1L), Literal(0L))));
         page.Add(new("$group", reduction));
+        if (distinctCounts.ElementCount != 0)
+        {
+            page.Add(new("$set", distinctCounts));
+            page.Add(new("$unset", distinctFields));
+        }
         // Pack native word accumulators before publication. Each floating slot
         // retains one fixed-width array plus participation, rather than exposing
         // seventy independent output fields to the result envelope.
