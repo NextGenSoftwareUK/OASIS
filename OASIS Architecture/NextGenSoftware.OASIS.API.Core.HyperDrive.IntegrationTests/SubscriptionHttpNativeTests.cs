@@ -105,7 +105,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task SubscriptionAdminUsageUsesActualControllersBrowserAndHistoricalTodayCounts() =>
         RunSubscriptionHttp(true, usage: true, ownerSettings: true, ownerUsage: true, adminRead: true, adminUsage: true);
 
-    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false, bool personalBilling = false, bool personalConsentReview = false, bool adminRead = false, bool adminGrant = false, bool adminAccounts = false, bool adminOutbox = false, bool dashboard = false, bool adminOwners = false, bool adminUsage = false, bool appAdmission = false, bool nftLists = false)
+    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false, bool personalBilling = false, bool personalConsentReview = false, bool adminRead = false, bool adminGrant = false, bool adminAccounts = false, bool adminOutbox = false, bool dashboard = false, bool adminOwners = false, bool adminUsage = false, bool appAdmission = false, bool nftLists = false, bool nftNullPayloads = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -286,7 +286,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             }
             if (nftLists)
             {
-                await VerifyNftListsNativeAsync(avatarStore, accounts);
+                await VerifyNftListsNativeAsync(avatarStore, accounts, nftNullPayloads);
                 return;
             }
             var end = DateTime.UtcNow.AddDays(10);

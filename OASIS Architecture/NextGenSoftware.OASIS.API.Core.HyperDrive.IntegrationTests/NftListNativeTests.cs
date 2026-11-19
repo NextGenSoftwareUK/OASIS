@@ -15,7 +15,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task NftListsReturnEmptyCollectionsAndPreserveMetadataSelectionOnNativeMongo() =>
         RunSubscriptionHttp(false, usage: true, nftLists: true);
 
-    private static async Task VerifyNftListsNativeAsync(IOASISStorageProvider provider, string[] accounts)
+    [Fact]
+    public Task NftReadsRejectNullAndMissingPayloadsWithoutPartialResultsOnNativeMongo() =>
+        RunSubscriptionHttp(false, usage: true, nftLists: true, nftNullPayloads: true);
+
+    private static async Task VerifyNftListsNativeAsync(IOASISStorageProvider provider, string[] accounts, bool nullPayloads = false)
     {
         var actor = Guid.Parse(accounts[0]);
         var other = Guid.Parse(accounts[1]);
@@ -46,20 +50,47 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             return ((IEnumerable)values).Cast<object>()
                 .Select(item => (Guid)item.GetType().GetProperty("Id")!.GetValue(item)!).Order().ToArray();
         }
-        async Task<Guid> Store(HolonType type, string ownerKey, Guid owner, string payloadKey, string? payload = null)
+        async Task<Guid> Store(HolonType type, string ownerKey, Guid owner, string payloadKey, string? payload = null, bool includePayload = true)
         {
             var id = Guid.NewGuid();
+            var metadata = new Dictionary<string, object> { [ownerKey] = owner.ToString("D") };
+            if (includePayload) metadata[payloadKey] = payload ?? JsonSerializer.Serialize(new { Id = id, Title = "Owned native NFT" });
             var saved = await provider.SaveHolonAsync(new Holon {
                 Id = id, Name = "Owned NFT list record", HolonType = type, IsActive = true, IsPublic = true,
                 CreatedByAvatarId = other, CreatedDate = DateTime.UtcNow, Version = 1, VersionId = Guid.NewGuid(),
-                MetaData = new Dictionary<string, object> {
-                    [ownerKey] = owner.ToString("D"),
-                    [payloadKey] = payload ?? JsonSerializer.Serialize(new { Id = id, Title = "Owned native NFT" })
-                }
+                MetaData = metadata
             }, saveChildren: false);
             Assert.False(saved.IsError, saved.Message);
             Assert.True(saved.IsSaved);
             return id;
+        }
+        if (nullPayloads)
+        {
+            static void RequireError(object result)
+            {
+                Assert.True((bool)result.GetType().GetProperty("IsError")!.GetValue(result)!);
+                Assert.Null(result.GetType().GetProperty("Result")!.GetValue(result));
+            }
+            foreach (var kind in kinds)
+            {
+                await Store(kind.Type, kind.Owner, actor, kind.Payload);
+                var nullId = await Store(kind.Type, kind.Owner, actor, kind.Payload, "null");
+                RequireError(await Load(kind.Method, actor));
+                var missingOwner = Guid.NewGuid();
+                var missingId = await Store(kind.Type, kind.Owner, missingOwner, kind.Payload, includePayload: false);
+                RequireError(await Load(kind.Method, missingOwner));
+                var singleMethod = kind.Type == HolonType.Web3NFT ? "LoadWeb3NftAsync"
+                    : kind.Type == HolonType.Web4NFT ? "LoadWeb4NftAsync" : "LoadWeb4GeoNftAsync";
+                foreach (var id in new[] { nullId, missingId })
+                {
+                    var task = (Task)managerType.GetMethod(singleMethod, [typeof(Guid), typeof(ProviderType)])!
+                        .Invoke(manager, [id, ProviderType.MongoDBOASIS])!;
+                    await task;
+                    RequireError(task.GetType().GetProperty("Result")!.GetValue(task)!);
+                }
+            }
+            Console.WriteLine("Native NFT null payloads verified: Web3/Web4/GeoNFT JSON-null and missing stored metadata refuse single and list reads; valid sibling never becomes a partial success. Actual manager/HolonManager and Mongo, nine owned records and twelve error reads. No mocked response, unchanged empty-list case rerun, browser, chain, hosted or full portal acceptance.");
+            return;
         }
         foreach (var kind in kinds)
         {
