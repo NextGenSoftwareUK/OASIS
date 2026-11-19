@@ -30,12 +30,22 @@ if ($singleHandler.Count) {
     throw "V2 operations exist in only one sync/async handler: $($singleHandler -join ', ')"
 }
 
-# A case is either a StorageOperationRequest naming the operation, or a call through the manager under test
-# (fixture.Manager.<Operation>[Async](...)), which the manager routes to the same switch label.
+# A case names a storage request or calls a manager/provider boundary. Native
+# fixtures also receive a typed HolonManager parameter rather than fixture.Manager.
 $testedOperations = @(@([regex]::Matches($tests, 'Operation\s*=\s*"(?<operation>[A-Za-z0-9]+)"')) +
         @([regex]::Matches($tests, '\.Manager\.(?<operation>[A-Za-z0-9]+?)(?:Async)?\s*\(')) |
     ForEach-Object { $_.Groups['operation'].Value } |
     Sort-Object -Unique)
+$typedReceivers = @(@([regex]::Matches($tests,
+        '\b(?:HolonManager|IOASISStorageProvider|IConditionalHolonPropertyStorageProvider)\??\s+(?<receiver>[A-Za-z_]\w*)\b')) +
+        @([regex]::Matches($tests, '\bvar\s+(?<receiver>[A-Za-z_]\w*)\s*=\s*new\s+HolonManager\b')) |
+    ForEach-Object { $_.Groups['receiver'].Value } | Sort-Object -Unique)
+$typedOperations = @($typedReceivers | ForEach-Object {
+    $receiver = [regex]::Escape($_)
+    [regex]::Matches($tests, "\b$receiver\s*\.\s*(?<operation>[A-Za-z0-9]+?)(?:Async)?\s*\(") |
+        ForEach-Object { $_.Groups['operation'].Value }
+})
+$testedOperations = @(($testedOperations + $typedOperations) | Sort-Object -Unique)
 $untested = @($handlerOperations | Where-Object { $_ -notin $testedOperations })
 if ($untested.Count) {
     throw "V2 storage operations have no executable provider-boundary contract: $($untested -join ', ')"
