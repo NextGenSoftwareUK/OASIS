@@ -99,6 +99,24 @@ public sealed partial class CqlV1Web4NativeTests
             await Save();
             Assert.IsFalse(HolonChangeTracking.HasChanges(source));
             Assert.AreEqual("\"original\"", Property("/Name").OriginalJson);
+            Assert.IsFalse(HolonChangeTracking.SetCurrentPropertyValue(source, "/Name", "discard this").IsError);
+            Assert.IsFalse(HolonChangeTracking.SetCurrentPropertyValue(source, "/Description", "keep this").IsError);
+            Assert.IsFalse(HolonChangeTracking.SetCurrentPropertyValue(source, "/MetaData/temporary", 9007199254740993L).IsError);
+            Assert.IsFalse(HolonChangeTracking.SetPropertyModified(source, "/Name", false).IsError);
+            Assert.AreEqual("original", source.Name); Assert.AreEqual("keep this", source.Description);
+            Assert.IsTrue(HolonChangeTracking.HasChanges(source));
+            Assert.IsFalse(HolonChangeTracking.ResetPropertyValue(source, "/Description").IsError);
+            Assert.IsFalse(HolonChangeTracking.ResetPropertyValue(source, "/MetaData/temporary").IsError);
+            Assert.IsFalse(source.MetaData.ContainsKey("temporary"));
+            Assert.IsFalse(HolonChangeTracking.HasChanges(source));
+            var beforeResetNoOp = probe.SuccessfulMutations;
+            var beforeResetPreparation = probe.PreparationIntents.Count;
+            var resetNoOp = await manager.SaveOwnedHolonAsync(source, actor, new CosmicWriteOptions(Guid.NewGuid()),
+                saveChildren: false, providerType: authority);
+            Assert.IsFalse(resetNoOp.IsError, resetNoOp.Message + resetNoOp.Exception);
+            Assert.IsFalse(resetNoOp.IsSaved);
+            Assert.AreEqual(beforeResetNoOp, probe.SuccessfulMutations);
+            Assert.AreEqual(beforeResetPreparation, probe.PreparationIntents.Count); checks++;
             Mark("/Name");
             Assert.IsTrue(Property("/Name").IsExplicitlyModified);
             Assert.IsFalse(Property("/Name").IsValueModified);
@@ -119,7 +137,7 @@ public sealed partial class CqlV1Web4NativeTests
 
             probe.AfterSuccessfulMutation = () =>
             {
-                source.Name = "late edit";
+                Assert.IsFalse(HolonChangeTracking.SetCurrentPropertyValue(source, "/Name", "late edit").IsError);
                 Mark("/Name");
                 return Task.CompletedTask;
             };
@@ -141,7 +159,8 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.AreEqual(mutations, probe.SuccessfulMutations);
             Assert.IsTrue(Property("/Name").IsExplicitlyModified); checks++;
 
-            source.MetaData["added"] = null!; source.MetaData.Remove("original");
+            Assert.IsFalse(HolonChangeTracking.SetCurrentPropertyValue<object>(source, "/MetaData/added", null!).IsError);
+            source.MetaData.Remove("original");
             Assert.IsFalse(Property("/MetaData/added").OriginalExists);
             Assert.IsTrue(Property("/MetaData/added").CurrentExists);
             Assert.AreEqual("null", Property("/MetaData/added").CurrentJson);
@@ -168,7 +187,7 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.AreEqual(5, probe.SuccessfulMutations);
             Assert.AreEqual(5, probe.MutationIntents.Distinct().Count());
             Assert.AreEqual(preparations, probe.PreparationIntents.Count); checks++;
-            Assert.AreEqual(11, checks);
+            Assert.AreEqual(12, checks);
             complete = true;
         }
         finally
@@ -201,6 +220,7 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.IsFalse(Directory.Exists(work));
                 await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new {
                     provider = providerName, checks, successfulNativeMutations = 5,
+                    currentValueEditingVerified = true, propertyResetVerified = true,
                     explicitEqualValueWriteVerified = true, inflightIntentVerified = true,
                     foreignWriteRefused = true, originalCurrentVerified = true,
                     noOpVerified = true, exactCleanupVerified = true }));

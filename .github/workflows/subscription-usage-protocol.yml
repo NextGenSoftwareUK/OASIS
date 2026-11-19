@@ -261,17 +261,17 @@ jobs:
             if (!$ready) { throw 'Neo4j fixture did not become ready.' }
             & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-entity-projection-ci -Operation {
               if ('${{ inputs.property_tracking_only }}' -eq 'true') {
-                dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicPropertyTrackingTests|FullyQualifiedName~CosmicTrackingTests' --logger 'trx;LogFileName=property-tracking-core.trx' --results-directory TestResults/Neo4jCurrent
+                dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicPropertyEditingTests|FullyQualifiedName~CosmicPropertyTrackingTests|FullyQualifiedName~CosmicTrackingTests' --logger 'trx;LogFileName=property-tracking-core.trx' --results-directory TestResults/Neo4jCurrent
                 if ($LASTEXITCODE) { throw 'Property tracking/save-plan regression failed.' }
                 [xml]$core = Get-Content TestResults/Neo4jCurrent/property-tracking-core.trx
                 $coreCounts = $core.TestRun.ResultSummary.Counters
-                if ([int]$coreCounts.total -lt 28 -or [int]$coreCounts.total -ne [int]$coreCounts.passed -or [int]$coreCounts.notExecuted -ne 0) {
+                if ([int]$coreCounts.total -lt 53 -or [int]$coreCounts.total -ne [int]$coreCounts.passed -or [int]$coreCounts.notExecuted -ne 0) {
                   throw 'All selected property/tracking cases must execute and pass.'
                 }
-                $newIds = @($core.TestRun.TestDefinitions.UnitTest | Where-Object { $_.TestMethod.className -like '*CosmicPropertyTrackingTests*' } | ForEach-Object { $_.id })
+                $newIds = @($core.TestRun.TestDefinitions.UnitTest | Where-Object { $_.TestMethod.className -like '*CosmicPropertyTrackingTests*' -or $_.TestMethod.className -like '*CosmicPropertyEditingTests*' } | ForEach-Object { $_.id })
                 $newResults = @($core.TestRun.Results.UnitTestResult | Where-Object { $_.testId -in $newIds })
-                if ($newResults.Count -ne 28 -or @($newResults | Where-Object { $_.outcome -ne 'Passed' }).Count) {
-                  throw 'Exactly28 new property-intent cases must pass in addition to existing tracking regressions.'
+                if ($newResults.Count -ne 53 -or @($newResults | Where-Object { $_.outcome -ne 'Passed' }).Count) {
+                  throw 'Exactly53 property-intent/editing cases must pass in addition to existing tracking regressions.'
                 }
                 dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~PropertyTrackingUsesNativeAcknowledgementWithoutLosingInflightIntent' --logger 'trx;LogFileName=property-tracking-native.trx' --results-directory TestResults/Neo4jCurrent
                 if ($LASTEXITCODE) { throw 'Native property tracking failed.' }
@@ -282,7 +282,8 @@ jobs:
                 }
                 foreach ($provider in 'MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS') {
                   $report = Get-Content "TestResults/Neo4jCurrent/$provider-property-tracking-native.json" -Raw | ConvertFrom-Json
-                  if ($report.provider -ne $provider -or $report.checks -ne 11 -or $report.successfulNativeMutations -ne 5 -or
+                  if ($report.provider -ne $provider -or $report.checks -ne 12 -or $report.successfulNativeMutations -ne 5 -or
+                      !$report.currentValueEditingVerified -or !$report.propertyResetVerified -or
                       !$report.explicitEqualValueWriteVerified -or !$report.inflightIntentVerified -or
                       !$report.foreignWriteRefused -or !$report.originalCurrentVerified -or
                       !$report.noOpVerified -or !$report.exactCleanupVerified) {
