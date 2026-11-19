@@ -67,7 +67,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             try
             {
                 var type = api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.AvatarProfileController", true)!;
-                var controller = (ControllerBase)Activator.CreateInstance(type)!;
+                var logger = typeof(Microsoft.Extensions.Logging.Abstractions.NullLogger<>)
+                    .MakeGenericType(type).GetField("Instance")!.GetValue(null)!;
+                var hostBuilder = Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(
+                    new Microsoft.AspNetCore.Builder.WebApplicationOptions { EnvironmentName = "Development" });
+                var controller = (ControllerBase)Activator.CreateInstance(type,
+                    [logger, new Microsoft.Extensions.Configuration.ConfigurationBuilder().Build(), hostBuilder.Environment])!;
                 controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
                 controller.HttpContext.Items["Avatar"] = owner.Result;
                 var actions = type.GetMethods().Where(method => method.Name == "UploadAvatarPortrait").ToArray();

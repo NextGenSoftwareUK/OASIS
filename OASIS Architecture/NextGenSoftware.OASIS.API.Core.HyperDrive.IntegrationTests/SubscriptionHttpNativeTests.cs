@@ -49,6 +49,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             var path = resolver.ResolveAssemblyToPath(name);
             return path == null ? null : context.LoadFromAssemblyPath(path);
         }
+        NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS? avatarStore = null;
         AssemblyLoadContext.Default.Resolving += Resolve;
         try
         {
@@ -63,6 +64,21 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             var controller = api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SubscriptionController", true)!;
             var db = mongo.GetDatabase(databaseName);
             var accounts = new[] { Guid.NewGuid().ToString("D"), Guid.NewGuid().ToString("D") };
+            var missingAccount = Guid.NewGuid().ToString("D");
+            avatarStore = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(MongoUri, databaseName);
+            var activated = await avatarStore.ActivateProviderAsync();
+            Assert.False(activated.IsError, activated.Message);
+            foreach (var account in accounts.Append(missingAccount))
+            {
+                var avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar
+                {
+                    Id = Guid.Parse(account), Username = "subscription-http-" + account,
+                    Email = account + "@example.test", IsActive = true
+                };
+                avatar.AvatarType.Value = NextGenSoftware.OASIS.API.Core.Enums.AvatarType.User;
+                var saved = await avatarStore.SaveAvatarAsync(avatar);
+                Assert.False(saved.IsError, saved.Message);
+            }
             var end = DateTime.UtcNow.AddDays(10);
             for (var i = 0; i < accounts.Length; i++)
             {
@@ -110,7 +126,13 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 { context.Response.StatusCode = 401; return; }
                 try
                 {
-                    context.User = new JwtSecurityTokenHandler().ValidateToken(header[7..], validation, out _);
+                    var principal = new JwtSecurityTokenHandler().ValidateToken(header[7..], validation, out _);
+                    var actorId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? principal.FindFirst("sub")?.Value;
+                    if (!Guid.TryParseExact(actorId, "D", out var id)) { context.Response.StatusCode = 401; return; }
+                    var actor = await avatarStore.LoadAvatarAsync(id);
+                    if (actor.IsError || actor.Result == null) { context.Response.StatusCode = 401; return; }
+                    context.User = principal;
+                    context.Items["Avatar"] = actor.Result;
                 }
                 catch (SecurityTokenException) { context.Response.StatusCode = 401; return; }
                 await next(context);
@@ -149,7 +171,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     Assert.Equal(i == 0 ? 9m : 29m, order.GetProperty("amount").GetDecimal());
                     Assert.Equal("GBP", order.GetProperty("currency").GetString());
                 }
-                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token(Guid.NewGuid().ToString("D")));
+                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token(missingAccount));
                 using var missing = await Read("/api/subscription/subscriptions/me");
                 Assert.Empty(missing.RootElement.GetProperty("result").EnumerateArray());
                 using var missingOrders = await Read("/api/subscription/orders/me");
@@ -163,6 +185,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         {
             AssemblyLoadContext.Default.Resolving -= Resolve;
             Assert.StartsWith("subscription_http_", databaseName);
+            if (avatarStore != null)
+            {
+                var stopped = await avatarStore.DeActivateProviderAsync();
+                Assert.False(stopped.IsError, stopped.Message);
+            }
             await mongo.DropDatabaseAsync(databaseName);
             Assert.DoesNotContain(databaseName, await (await mongo.ListDatabaseNamesAsync()).ToListAsync());
         }
