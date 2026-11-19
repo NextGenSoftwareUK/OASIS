@@ -2,7 +2,11 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const browserMode = process.env.OASIS_PROFILE_BROWSER_ENABLED === 'true';
-const { verify } = require(browserMode ? './profile-browser-native-http.cjs' : './profile-sdk-native-http.cjs');
+const subscriptionMode = process.env.OASIS_SUBSCRIPTION_BROWSER_ENABLED === 'true';
+if (subscriptionMode && !browserMode) throw new Error('Subscription browser verification requires the owned browser runtime.');
+const expectedCases = subscriptionMode ? 1 : 6;
+const { verify } = require(subscriptionMode ? './subscription-browser-native-http.cjs' :
+  browserMode ? './profile-browser-native-http.cjs' : './profile-sdk-native-http.cjs');
 const root = fs.realpathSync(process.env.OASIS_PROFILE_SDK_HANDOFF_ROOT);
 const parent = fs.realpathSync(process.env.RUNNER_TEMP);
 if (!root.startsWith(parent + path.sep) || !path.basename(root).startsWith('oasis-profile-sdk-'))
@@ -11,7 +15,7 @@ const claimed = new Set();
 let completed = 0;
 let failed = false;
 const deadline = setTimeout(() => {
-  console.error('SDK handoff timed out before all six owned cases completed.');
+  console.error('SDK handoff timed out before all ' + expectedCases + ' owned cases completed.');
   process.exitCode = 1; watcher.close(); process.exit(1);
 }, 240000);
 async function consume(name) {
@@ -24,7 +28,8 @@ async function consume(name) {
     const input = fs.readFileSync(path.join(root, name), 'utf8');
     if (Buffer.byteLength(input) > 8192) throw new Error('Bounded SDK handoff input required.');
     result = await verify(JSON.parse(input));
-    if (browserMode) console.log(JSON.stringify({
+    if (subscriptionMode) console.log(JSON.stringify(result));
+    else if (browserMode) console.log(JSON.stringify({
       profileBrowserVerified: result.browserVerified, openMs: result.openMs,
       saveMs: result.saveMs, profileWrites: result.profileWrites
     }));
@@ -35,7 +40,7 @@ async function consume(name) {
   fs.writeFileSync(response + '.tmp', JSON.stringify(result), { flag: 'wx', mode: 0o600 });
   fs.renameSync(response + '.tmp', response);
   completed++;
-  if (completed === 6) {
+  if (completed === expectedCases) {
     clearTimeout(deadline); watcher.close();
     process.exitCode = failed ? 1 : 0;
     console.log(JSON.stringify({ completed, failed }));

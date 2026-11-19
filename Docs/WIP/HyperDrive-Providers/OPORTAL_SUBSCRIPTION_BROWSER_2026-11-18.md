@@ -1,0 +1,11 @@
+# Real subscription component qualification — 18 November 2026
+
+Current status: prepared; no acceptance until the exact CI run and native/browser report pass.
+
+The new case `SubscriptionBrowserUsesActualControllerAndOwnedMongo` uses the actual compiled WEB4 SubscriptionController, SubscriptionService, MongoSubscriptionUsageRepository and native avatar provider against one isolated loopback Mongo replica-set database. It reuses the existing native HTTP host and CI-owned browser/handoff lifecycle; no application service, SDK, provider or API response is mocked. Three owned avatars and two billing/order records are fixture data, not Stripe-issued payments. API identity is a signed owned JWT plus actual native avatar lookup; full production Startup/JWT and paid admission are not claimed.
+
+Portal is frozen to `52f342e3c31e4c7d50bec04ec65577508da38058`, including the actual modal fragment, CSS, subscription script, shared subscription reader and generated shipping WEB4 SDK. Chrome checks My Subscription and Orders for two different actors and an actual no-subscription actor; renewal/end labels, GBP paid amounts, account clearing, empty states, a delayed genuine HTTP response after account change, sign-out clearing and absence of billing writes. Component open/Orders times are recorded, not inferred as live-site dashboard or Stripe-popup timings.
+
+The runner rejects non-loopback API requests. CI owns Chrome and the existing pinned Playwright runtime; the C# host only exchanges bounded files in the validated owned CI directory. Existing profile verification keeps its six-case contract; this explicitly selected subscription scenario expects one browser handoff containing three actors. Existing accepted native profile/subscription cases are not selected again.
+
+Cleanup must prove browser shutdown, removal of the owned browser/runtime/npm cache/control files, provider deactivation, exact owned database drop/absence and container removal. No new local runtime, environment, build/database/image/archive output or shared Atlas/API/Stripe call is needed. No deployment, DNA or COSMIC runtime changes are part of this qualification. Checkout/portal/webhooks, usage actions, real MCP licensing and whole-portal navigation remain separate open gates.

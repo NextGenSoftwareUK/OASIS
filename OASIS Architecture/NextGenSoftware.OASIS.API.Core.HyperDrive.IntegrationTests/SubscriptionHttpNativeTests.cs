@@ -25,7 +25,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
 {
     // Real persisted billing reads, not a Stripe checkout/webhook or production Startup proof.
     [Fact]
-    public async Task SubscriptionSelfReadsUseActualControllerAndOwnedMongo()
+    public Task SubscriptionSelfReadsUseActualControllerAndOwnedMongo() => RunSubscriptionHttp(false);
+
+    [Fact]
+    public Task SubscriptionBrowserUsesActualControllerAndOwnedMongo() => RunSubscriptionHttp(true);
+
+    private async Task RunSubscriptionHttp(bool browser)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -112,6 +117,18 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             builder.Services.AddSingleton(api.GetType(ns + "ISubscriptionUsageRepository", true)!, repository);
             builder.Services.AddSingleton(api.GetType(ns + "ISubscriptionBillingRepository", true)!, repository);
             await using var app = builder.Build();
+            using var portalFiles = browser
+                ? new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+                    Environment.GetEnvironmentVariable("OASIS_PROFILE_PORTAL_ROOT")
+                    ?? throw new InvalidOperationException("Pinned portal checkout required."))
+                : null;
+            if (browser)
+            {
+                app.UseStaticFiles(new StaticFileOptions { FileProvider = portalFiles });
+                app.MapGet("/__subscription_browser", async () => Microsoft.AspNetCore.Http.Results.Content(
+                    await File.ReadAllTextAsync(Path.Combine(root.FullName, "Scripts/TestHosts/Fixtures/subscription-browser-host.html")),
+                    "text/html"));
+            }
             var key = new SymmetricSecurityKey(RandomNumberGenerator.GetBytes(64));
             var validation = new TokenValidationParameters
             {
@@ -122,6 +139,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             };
             app.Use(async (context, next) =>
             {
+                if (!context.Request.Path.StartsWithSegments("/api")) { await next(context); return; }
                 var header = context.Request.Headers.Authorization.ToString();
                 if (!header.StartsWith("Bearer ", StringComparison.Ordinal))
                 { context.Response.StatusCode = 401; return; }
@@ -146,7 +164,6 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 var address = app.Services.GetRequiredService<IServer>().Features
                     .Get<IServerAddressesFeature>()!.Addresses.Single();
                 using var http = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(20) };
-                Assert.Equal(HttpStatusCode.Unauthorized, (await http.GetAsync("/api/subscription/subscriptions/me")).StatusCode);
                 string Token(string actor) => new JwtSecurityTokenHandler().WriteToken(new JwtSecurityToken(
                     issuer: "owned-subscription-fixture", audience: "owned-subscription-http",
                     claims: [new Claim("sub", actor)], expires: DateTime.UtcNow.AddMinutes(5),
@@ -157,6 +174,21 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                     return JsonDocument.Parse(await response.Content.ReadAsStringAsync());
                 }
+                if (browser)
+                {
+                    using var result = await ExchangeSdkRequest(new
+                    {
+                        baseUrl = address,
+                        actors = accounts.Append(missingAccount).Select(actor => new { id = actor, token = Token(actor) }).ToArray()
+                    });
+                    Assert.True(result.RootElement.GetProperty("subscriptionBrowserVerified").GetBoolean());
+                    Assert.Equal(3, result.RootElement.GetProperty("actorsVerified").GetInt32());
+                    Assert.True(result.RootElement.GetProperty("lateSessionResponseIgnored").GetBoolean());
+                    Console.WriteLine("Subscription browser evidence: " + result.RootElement.GetRawText());
+                }
+                else
+                {
+                Assert.Equal(HttpStatusCode.Unauthorized, (await http.GetAsync("/api/subscription/subscriptions/me")).StatusCode);
                 for (var i = 0; i < accounts.Length; i++)
                 {
                     http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token(accounts[i]));
@@ -177,6 +209,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 Assert.Empty(missing.RootElement.GetProperty("result").EnumerateArray());
                 using var missingOrders = await Read("/api/subscription/orders/me");
                 Assert.Empty(missingOrders.RootElement.GetProperty("result").EnumerateArray());
+                }
                 Assert.Equal(2L, await db.GetCollection<BsonDocument>("subscription_records").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
                 Assert.Equal(2L, await db.GetCollection<BsonDocument>("subscription_orders").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
             }
