@@ -23,7 +23,7 @@ public sealed partial class CqlV1Web4NativeTests
     public Task PropertyTrackingUsesNativeAcknowledgementWithoutLosingInflightIntent(string providerName)
         => RunPropertyNativeFixture(providerName, false);
 
-    private async Task RunPropertyNativeFixture(string providerName, bool propertySelection, bool propertyStatus = false, bool propertyRouted = false, bool propertyStored = false)
+    private async Task RunPropertyNativeFixture(string providerName, bool propertySelection, bool propertyStatus = false, bool propertyRouted = false, bool propertyStored = false, bool propertyWriteRouted = false)
     {
         Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -37,7 +37,7 @@ public sealed partial class CqlV1Web4NativeTests
         Directory.CreateDirectory(work);
         var sqlite = Path.Combine(work, "property.sqlite");
         var reportRoot = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT")!);
-        var report = Path.Combine(reportRoot, "TestResults/Neo4jCurrent/" + providerName + (propertyStored ? "-property-status-stored-native.json" : propertyRouted ? "-property-status-routed-native.json" : propertyStatus ? "-property-status-native.json" : propertySelection ? "-property-selection-native.json" : "-property-tracking-native.json"));
+        var report = Path.Combine(reportRoot, "TestResults/Neo4jCurrent/" + providerName + (propertyWriteRouted ? "-property-write-routed-native.json" : propertyStored ? "-property-status-stored-native.json" : propertyRouted ? "-property-status-routed-native.json" : propertyStatus ? "-property-status-native.json" : propertySelection ? "-property-selection-native.json" : "-property-tracking-native.json"));
         var operations = new HashSet<Guid>(); var complete = false; var checks = 0;
         var client = new MongoClient(mongoUri);
         using (var names = await client.ListDatabaseNamesAsync())
@@ -108,7 +108,14 @@ public sealed partial class CqlV1Web4NativeTests
                 source.MetaData["branch"] = new Dictionary<string, object> { ["selected"] = 1L, ["sibling"] = 2L };
             }
             await Save();
-            if (propertyStatus)
+            if (propertyWriteRouted)
+            {
+                checks += await VerifyRoutedSelectedNativeWrites(provider,
+                    new NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISHyperDrive(registry),
+                    (PropertyOutcomeBoundary)probe, authority, source, actor, operations);
+                Assert.AreEqual(10, checks);
+            }
+            else if (propertyStatus)
             {
                 async Task<string> InspectReceipt(Guid operation)
                 {
@@ -303,7 +310,15 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.AreEqual(workRoot, Path.GetDirectoryName(Path.GetFullPath(work)));
                 Directory.Delete(work, true);
                 Assert.IsFalse(Directory.Exists(work));
-                if (propertyStored)
+                if (propertyWriteRouted)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new {
+                        provider = providerName, checks, successfulHolonWrites = 4,
+                        preparedNativeDispatchVerified = true, unprotectedNativeDispatchVerified = true, syncSelectedVerified = true, asyncSelectedVerified = true,
+                        frozenMaskVerified = true, unselectedValuesVerified = true, metadataRemovalVerified = true,
+                        historicalReplayVerified = true, maskMismatchBeforeIoVerified = true,
+                        actorAuthorityBeforeIoVerified = true, noOrdinaryWriteDowngradeVerified = true,
+                        callerUnchangedVerified = true, exactCleanupVerified = true }));
+                else if (propertyStored)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new {
                         provider = providerName, checks, successfulHolonWrites = 2,
                         storedPreparationVerified = true, selectionBoundVerified = true,
