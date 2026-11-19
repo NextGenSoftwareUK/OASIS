@@ -1,5 +1,5 @@
 {
-  "status": "first_test_failed_legacy_envelope_assertion_corrected_retry_pending",
+  "status": "corrected_legacy_envelope_retry_in_progress",
   "test": "PortraitBrowserUploadUsesActualHttpAndThreeNativeProviders",
   "portal": "7f01ee9fa20eb2853561f06f587e3758b3146717",
   "sdk": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
@@ -23,17 +23,17 @@
   "hostedAccepted": false,
   "noReplacedBusinessResponses": true,
   "localRuntimeEnvironmentBuildDatabaseCreated": false,
-  "run": 44625566840,
-  "job": 135918346942,
-  "source": "73545492fe3d21472135d0e4a25c6787cd21e838",
-  "observedStatus": "completed",
-  "apiBuildAccepted": true,
-  "newTestCompiled": true,
+  "run": 44627380956,
+  "job": 135924703982,
+  "source": "bd58740495173e42e624c9c4f2e0029e0d523f50",
+  "observedStatus": "in_progress",
+  "apiBuildAccepted": false,
+  "newTestCompiled": false,
   "browserAccepted": false,
   "nativePersistenceAccepted": false,
-  "fixtureCleanupVerified": true,
-  "browserRuntimeCleanupVerified": true,
-  "conclusion": "failure",
+  "fixtureCleanupVerified": false,
+  "browserRuntimeCleanupVerified": false,
+  "conclusion": null,
   "firstFailure": {
     "run": 44625566840,
     "job": 135918346942,
@@ -57,7 +57,11 @@
     "artifactFilesWritten": 0,
     "mongoFixtureStopPassed": true,
     "boltFixtureStopPassed": true,
-    "browserRuntimeCacheControlCleanupPassed": true
+    "browserRuntimeCacheControlCleanupPassed": true,
+    "apiBuildAccepted": true,
+    "newTestCompiled": true
   },
-  "nextCore": "650188d6f08d82b7a9b3af15c48e7d8018a79c78"
+  "nextCore": "650188d6f08d82b7a9b3af15c48e7d8018a79c78",
+  "core": "650188d6f08d82b7a9b3af15c48e7d8018a79c78",
+  "buildNativeContractProjectRequested": true
 }
