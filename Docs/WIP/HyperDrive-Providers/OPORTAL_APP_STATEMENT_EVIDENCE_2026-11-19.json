@@ -1,0 +1,37 @@
+{
+  "status": "running-not-accepted",
+  "runId": 44498421821,
+  "jobId": 135471493356,
+  "revision": "5fc82d77e6e6e80981eba89af4b2949c8dedd7ad",
+  "filter": "FullyQualifiedName~AppStatementsFreezePayersAllocateOnceAndRoundAcrossSubscriptions",
+  "backend": "Exact owned loopback CI MongoDB replica set; unique subscription_app_statement_ DB",
+  "scope": "Actual compiled API/store/gateway zero-due branch with native financial INPUT fixtures. No genuine Stripe identity/readiness, nonzero payment or signed webhook proof.",
+  "required": [
+    "actual API and updated linked protocol host builds",
+    "only one NEW native allocation case",
+    "original protected consent/payer/customer/subscription resolution",
+    "cumulative rounding across subscriptions for one customer",
+    "separate payer/customer cohorts after current account/owner/settings changes",
+    "idempotent request identity including credit-only intent",
+    "scheduled mid-month credit excludes positive unbilled usage",
+    "post-statement adjustments retain original operation/statement/consent",
+    "cumulative negative cents without duplicate allocation",
+    "positive credit reversal at full cap refuses without mutation",
+    "fully credited operation allocated once and empty polls do not write",
+    "actual zero-due gateway-store completes without external request",
+    "actual concurrent correction/preparation and concurrent preparers",
+    "missing proof/terms/legacy binding refuse without any collection changes",
+    "owned DB/process/container cleanup"
+  ],
+  "notCovered": [
+    "genuine Stripe readiness/positive opt-in/nonzero collection/signed webhook",
+    "actual public HTTP/SDK/browser/hosted app pay-now",
+    "full external-provider reconciliation",
+    "historical unbound pool/legacy statement transition",
+    "forced overlapping consent-change retry",
+    "throughput/soak or live dashboard timing",
+    "whole OPORTAL/provider/HyperDrive acceptance"
+  ],
+  "releaseGate": "Do not promote or enable shared workers until full financial/HTTP/hosted/historical gates are verified. Preserve shared Atlas stand-down and deliveries535/543.",
+  "localOutputs": "Source and compact evidence only; no local runtime/environment/build/database/archive"
+}
