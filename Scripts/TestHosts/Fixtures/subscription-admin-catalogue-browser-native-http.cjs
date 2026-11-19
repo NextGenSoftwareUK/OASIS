@@ -1,0 +1,143 @@
+'use strict';
+const assert = require('node:assert/strict');
+const path = require('node:path');
+const { randomUUID } = require('node:crypto');
+
+async function verify({ baseUrl, actors, originalVersion }) {
+  const base = new URL(baseUrl); assert.equal(base.hostname, '127.0.0.1');
+  const { chromium } = require(path.join(process.env.OASIS_PROFILE_BROWSER_RUNTIME, 'node_modules/playwright-core'));
+  const context = await chromium.launchPersistentContext(path.join(process.env.OASIS_PROFILE_SDK_HANDOFF_ROOT,
+    'browser-profile-' + randomUUID()), { channel: 'chrome', headless: true, timeout: 30000,
+    viewport: { width: 1440, height: 1000 }, acceptDownloads: false, serviceWorkers: 'block' });
+  const catalogue = '/v1/admin/config/catalogue', validation = catalogue + '/validate', publication = catalogue + '/publish';
+  const requests = [], errors = [], forbidden = [];
+  let phase = 'launch';
+  try {
+    await context.route('**/*', route => {
+      const url = new URL(route.request().url());
+      if (url.origin === base.origin || url.protocol === 'data:') return route.continue();
+      if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/v1/')) forbidden.push(url.origin + url.pathname);
+      return route.abort('blockedbyclient');
+    });
+    await context.addInitScript(actor => { window.fixtureSubscriptionActor = actor; }, actors[0]);
+    const page = await context.newPage(); page.setDefaultTimeout(10000);
+    page.on('pageerror', error => errors.push(error.message));
+    page.on('request', request => {
+      const url = new URL(request.url());
+      if (url.pathname.startsWith(catalogue)) requests.push({ path: url.pathname, method: request.method() });
+    });
+    const response = pathname => page.waitForResponse(value => new URL(value.url()).pathname === pathname);
+    const count = pathname => requests.filter(value => value.path === pathname).length;
+    async function actor(index) {
+      await page.evaluate(value => {
+        window.oasisClient.setToken(value.token, { avatarId: value.id });
+        localStorage.setItem('avatar', JSON.stringify({ id: value.id }));
+        window.dispatchEvent(new CustomEvent('oasis-login'));
+      }, actors[index]);
+    }
+    async function open() {
+      await Promise.all([response('/api/subscription/admin/analytics'), page.locator('#fixture-open-admin').click()]);
+      const [result] = await Promise.all([response(catalogue), page.locator('[data-admin-tab="catalogue"]').click()]);
+      await page.waitForLoadState('networkidle'); return result;
+    }
+    async function draft(value) { await page.locator('#admin-catalogue-json').fill(JSON.stringify(value, null, 2)); }
+    async function idle() { await page.waitForFunction(() => !document.getElementById('admin-catalogue-validate').disabled && !document.getElementById('admin-catalogue-publish').disabled); }
+    async function submit(endpoint, button, expected) {
+      const [result] = await Promise.all([response(endpoint), page.locator(button).click()]);
+      assert.equal(result.status(), expected); await idle(); return result;
+    }
+    async function hold(endpoint) {
+      let release, observe, pause = true;
+      const gate = new Promise(resolve => { release = resolve; }), seen = new Promise(resolve => { observe = resolve; });
+      await page.route(url => url.pathname === endpoint, async route => {
+        if (pause) { pause = false; observe(); await gate; }
+        await route.continue();
+      });
+      return { release, seen };
+    }
+    await page.goto(baseUrl + '/__subscription_browser', { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => !document.getElementById('fixture-open-admin').disabled);
+    phase = 'actual-web6-bootstrap'; assert.equal((await open()).status(), 200);
+    const original = JSON.parse(await page.locator('#admin-catalogue-json').inputValue());
+    assert.equal(original.version, originalVersion); assert.equal(Array.isArray(original.models) && original.models.length > 0, true);
+    const candidate = { ...original, version: 'owned-' + randomUUID().slice(0, 8) };
+    phase = 'pending-validation-keeps-newer-draft'; await draft(candidate);
+    const validationGate = await hold(validation), validated = response(validation);
+    await page.locator('#admin-catalogue-validate').click(); await validationGate.seen;
+    assert.equal(await page.locator('#admin-catalogue-publish').isDisabled(), true);
+    const initialGets = count(catalogue);
+    await page.evaluate(() => {
+      document.getElementById('admin-catalogue-validate').onclick();
+      document.getElementById('admin-catalogue-publish').onclick();
+      document.getElementById('admin-catalogue-refresh').onclick();
+    });
+    assert.equal(count(validation), 1); assert.equal(count(publication), 0); assert.equal(count(catalogue), initialGets);
+    const newer = { ...candidate, version: candidate.version + '-draft' }; await draft(newer);
+    validationGate.release(); assert.equal((await validated).status(), 200); await idle();
+    assert.equal(JSON.parse(await page.locator('#admin-catalogue-json').inputValue()).version, newer.version);
+    assert.match(await page.locator('#subscription-admin-status').textContent(), /draft changed/);
+    phase = 'actual-validation-errors-and-current-version';
+    await draft({ ...candidate, models: [] }); await submit(validation, '#admin-catalogue-validate', 400);
+    assert.equal(await page.locator('#subscription-admin-status').evaluate(el => el.classList.contains('is-error')), true);
+    await draft(candidate); const valid = await submit(validation, '#admin-catalogue-validate', 200);
+    assert.equal((await valid.json()).version, candidate.version);
+    const noReasonPosts = count(publication); await page.locator('#admin-catalogue-publish').click(); await idle();
+    assert.equal(count(publication), noReasonPosts);
+    assert.match(await page.locator('#subscription-admin-status').textContent(), /reason is required/);
+    phase = 'publish-exact-version-once-and-keep-edits';
+    await page.locator('#admin-catalogue-reason').fill('Owned browser catalogue publication');
+    const publicationGate = await hold(publication), published = response(publication);
+    const beforePublishGets = count(catalogue);
+    await page.locator('#admin-catalogue-publish').click(); await publicationGate.seen;
+    await page.evaluate(() => document.getElementById('admin-catalogue-publish').onclick());
+    assert.equal(count(publication), 1);
+    await draft(newer); await page.locator('#admin-catalogue-reason').fill('Owned newer unpublished reason');
+    publicationGate.release(); const saved = await published; assert.equal(saved.status(), 200);
+    assert.equal((await saved.json()).activeVersion, candidate.version); await idle();
+    await page.waitForLoadState('networkidle');
+    assert.equal(count(catalogue), beforePublishGets);
+    assert.equal(JSON.parse(await page.locator('#admin-catalogue-json').inputValue()).version, newer.version);
+    assert.equal(await page.locator('#admin-catalogue-reason').inputValue(), 'Owned newer unpublished reason');
+    assert.match(await page.locator('#subscription-admin-status').textContent(), /newer draft has been kept/);
+    phase = 'explicit-refresh-and-immutable-version-conflict';
+    const [refreshed] = await Promise.all([response(catalogue), page.locator('#admin-catalogue-refresh').click()]);
+    assert.equal(refreshed.status(), 200); await page.waitForLoadState('networkidle');
+    assert.equal(JSON.parse(await page.locator('#admin-catalogue-json').inputValue()).version, candidate.version);
+    await page.locator('#admin-catalogue-reason').fill('Owned duplicate catalogue publication');
+    await submit(publication, '#admin-catalogue-publish', 409);
+    assert.match(await page.locator('#subscription-admin-status').textContent(), /immutable/);
+    phase = 'loading-cannot-replace-new-draft';
+    const readGate = await hold(catalogue), read = response(catalogue);
+    await page.locator('#admin-catalogue-refresh').click(); await readGate.seen; await draft(newer);
+    readGate.release(); assert.equal((await read).status(), 200); await page.waitForLoadState('networkidle');
+    assert.equal(JSON.parse(await page.locator('#admin-catalogue-json').inputValue()).version, newer.version);
+    assert.match(await page.locator('#subscription-admin-status').textContent(), /draft changed while loading/);
+    phase = 'late-native-read-after-account-change';
+    const lateGate = await hold(catalogue), late = response(catalogue);
+    await page.locator('#admin-catalogue-refresh').click(); await lateGate.seen; await actor(1);
+    lateGate.release(); assert.equal((await late).status(), 200); await page.waitForLoadState('networkidle');
+    assert.equal(await page.locator('#admin-catalogue-json').inputValue(), '');
+    assert.equal(await page.locator('#admin-catalogue-reason').inputValue(), '');
+    assert.equal(await page.locator('#subscription-admin-status').textContent(), '');
+    phase = 'ordinary-and-expired-real-web6-denials';
+    for (const [index, status] of [[1, 403], [2, 401]]) {
+      if (index === 2) await actor(index);
+      assert.equal((await open()).status(), status);
+      await draft(candidate); await submit(validation, '#admin-catalogue-validate', status);
+      await page.locator('#admin-catalogue-reason').fill('Owned unauthorized publication');
+      await submit(publication, '#admin-catalogue-publish', status);
+    }
+    await page.evaluate(() => window.dispatchEvent(new CustomEvent('oasis-logout')));
+    assert.equal(await page.locator('#admin-catalogue-json').inputValue(), '');
+    assert.equal(count(validation), 5); assert.equal(count(publication), 4);
+    assert.deepEqual(errors, []); assert.deepEqual(forbidden, []);
+    return { subscriptionAdminCatalogueBrowserVerified: true, actorsVerified: 3, lateSessionResponseIgnored: true,
+      publishedVersion: candidate.version, actualWeb6JwtAndStoredWizardAuthority: true,
+      singlePendingValidatePublish: true, validationAndReadKeepNewDraft: true, publicationKeepsNewDraft: true,
+      noAutomaticPostPublicationRead: true, immutableVersionConflict: true, ordinaryAndExpiredDenied: true,
+      approvedPricesChanged: false, multiHostPublicationVerified: false, fullProductionStartupVerified: false,
+      hostedOrStripeVerified: false };
+  } catch (error) { console.error(JSON.stringify({ phase, pageErrors: errors, requests: requests.length })); throw error; }
+  finally { await context.close(); }
+}
+module.exports = { verify };

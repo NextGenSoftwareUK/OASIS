@@ -1,0 +1,15 @@
+# Pricing catalogue acceptance
+
+Source/delivery snapshot: Portal `daebf10323994b4941584005f575b7f478ca55bb`, source `b2f53f393e51d31df84e10eafdfea9535ddea05b`, bundle `44556483149` / job `135673796232`, admin SHA256 `3a2ba2f27b5647f770c5bb5f7e87bae79ffd3de57ab2ec644dd2d3b925694f99`. Asset/SDK/reference gates and owned install/cache cleanup passed. This is not browser or publication acceptance.
+
+The new `SubscriptionAdminCatalogueUsesActualWeb6BrowserAndHolonStorage` case builds the actual WEB4 and WEB6 APIs sequentially under the existing lease and worker limits. The owned host uses the compiled WEB6 JWT middleware and actual administrator authorization filter, actual persisted Wizard/User avatars, the real controller and ModelCatalogueManager, and HolonManager with an isolated native Mongo provider. It does not replace a business response, price catalogue, settings store or gateway.
+
+Only the version and administrator audit metadata may change. Existing approved bootstrap model/unit prices must remain identical. Browser requirements: initial real catalogue load; exactly one pending Validate/Publish despite programmatic duplicate invocation; edits preserved across delayed validation/read/publication; invalid schema and missing reason rejection; actual publication; explicit refresh; immutable-version conflict; ordinary/expired-token read/write denial; account-change/logout reset and genuinely continued late response suppression. No automatic post-publication read is allowed.
+
+Native requirements: bootstrap and exactly one new version plus active pointer in real Holon settings, exact Wizard actor/reason, unchanged models/unit prices, one publication audit, and reload of the active version from native settings after clearing the in-process version cache. Provider, manager/DNA/request state, catalogue/version/audit caches and owned process environment must be restored. The exact owned database and browser/runtime/cache/control directories must be absent after cleanup. Random signed-token material remains in test memory only and must not enter source or reports.
+
+Compilation/HTTP/browser/native/cleanup are pending. The test explicitly does not prove production Startup, hosted performance, genuine Stripe, provider execution or simultaneous publication by separate WEB6 processes. Cross-process immutable-version publication remains a separate release gate: the current manager's semaphore is process-local and its existence check and generic settings save are separate operations. Do not treat one-host replay rejection as proof of cross-host atomicity or add another store path to hide that requirement.
+
+The earlier actor concern was checked against the shipping Core token generator: tokens contain both `id` and `sub`, and normal WEB6 validation maps the subject claim. No unsupported claim that ordinary shipping JWTs lose their audit actor, and no WEB6 auth/source/pin change, was made.
+
+No shared Atlas, API, queue, worker, protected delivery535/543, deployment configuration or local runtime/build/database is involved. Full admin/OPORTAL/provider/HyperDrive acceptance remains open.

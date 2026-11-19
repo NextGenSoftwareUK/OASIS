@@ -17,6 +17,7 @@
   <script src="/assets/js/oasis-web4-sdk.js"></script>
   <script>
     window.apiUrl = location.origin;
+    window.web6ApiUrl = location.origin;
     window.oasisClient = new window.OASISClient({ baseUrl: location.origin, persistSession: false });
     window.oasisClient.setToken(window.fixtureSubscriptionActor.token, { avatarId: window.fixtureSubscriptionActor.id });
     localStorage.setItem('avatar', JSON.stringify({ id: window.fixtureSubscriptionActor.id }));
