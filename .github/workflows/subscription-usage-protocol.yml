@@ -15,7 +15,7 @@ on:
         type: boolean
         default: false
       property_selection_only:
-        description: Build WEB4 and qualify protected selected-field intent without databases
+        description: Build WEB4 and qualify logical and encrypted storage field intent without databases
         type: boolean
         default: false
       source_ref:
@@ -255,25 +255,25 @@ jobs:
             dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SqliteNativeDataImportTests|FullyQualifiedName~AvatarProfileRegistryNativeTests'
             if ($LASTEXITCODE) { throw 'SQLite virtual Holon qualification failed.' }
           }
-      - name: Verify protected selected-field preparation and recovery
+      - name: Verify logical and stored field selection binding
         if: ${{ inputs.property_selection_only }}
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-property-selection-ci -Operation {
-            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicPropertyPreparationTests' --logger 'trx;LogFileName=property-preparation-core.trx' --results-directory TestResults/PropertySelection
+            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicTransformedPropertyPreparationTests' --logger 'trx;LogFileName=property-transform-core.trx' --results-directory TestResults/PropertySelection
             if ($LASTEXITCODE) { throw 'Protected selected-field preparation verification failed.' }
-            [xml]$core = Get-Content TestResults/PropertySelection/property-preparation-core.trx
+            [xml]$core = Get-Content TestResults/PropertySelection/property-transform-core.trx
             $counts = $core.TestRun.ResultSummary.Counters
-            if ([int]$counts.total -ne 19 -or [int]$counts.passed -ne 19 -or [int]$counts.notExecuted -ne 0) {
-              throw 'Exactly19 new protected selected-field preparation cases must execute and pass.'
+            if ([int]$counts.total -ne 18 -or [int]$counts.passed -ne 18 -or [int]$counts.notExecuted -ne 0) {
+              throw 'Exactly18 new logical/stored field preparation cases must execute and pass.'
             }
             $methods = @($core.TestRun.TestDefinitions.UnitTest)
-            if ($methods.Count -lt 1 -or @($methods | Where-Object { $_.TestMethod.className -notlike '*CosmicPropertyPreparationTests' }).Count) {
+            if ($methods.Count -lt 1 -or @($methods | Where-Object { $_.TestMethod.className -notlike '*CosmicTransformedPropertyPreparationTests' }).Count) {
               throw 'Only the new protected selected-field preparation class may satisfy this qualification.'
             }
-            $ids = @($core.TestRun.TestDefinitions.UnitTest | Where-Object { $_.TestMethod.className -like '*CosmicPropertyPreparationTests' } | ForEach-Object { $_.id })
+            $ids = @($core.TestRun.TestDefinitions.UnitTest | Where-Object { $_.TestMethod.className -like '*CosmicTransformedPropertyPreparationTests' } | ForEach-Object { $_.id })
             $results = @($core.TestRun.Results.UnitTestResult)
-            if ($results.Count -ne 19 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
+            if ($results.Count -ne 18 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
               throw 'Selection-only acceptance cannot inherit unrelated test results.'
             }
           }
