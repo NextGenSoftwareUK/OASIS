@@ -1,4 +1,4 @@
-name: CQL grouped distinct client qualification
+name: CQL grouped distinct demo qualification
 on:
   workflow_dispatch:
     inputs:
@@ -27,22 +27,28 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$WEBSITE_REF"
-          test "$WEBSITE_REF" = "49e7a8506aabd4bb57d9cabdf53942d3e99f581f"
+          test "$WEBSITE_REF" = "5ace4aae08304de263e8de8e0ec5b69539620061"
           node --version
-      - name: Verify only new grouped distinct parser contracts
+      - name: Verify only two new displayed-demo controls
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p TestResults
-          node --test --test-reporter=junit cql-grouped-distinct.test.cjs > TestResults/grouped-distinct-client.xml
+          node --test --test-name-pattern="^loads the grouped distinct demo" --test-reporter=junit cql-playground.test.cjs > TestResults/grouped-distinct-client.xml
           python3 -B - <<'PY'
           import xml.etree.ElementTree as E,json
           root=E.parse('TestResults/grouped-distinct-client.xml').getroot()
           cases=list(root.iter('testcase'))
-          assert len(cases)==12,len(cases)
-          assert not list(root.iter('failure')) and not list(root.iter('error')) and not list(root.iter('skipped'))
-          assert len({case.attrib['name'] for case in cases})==12
-          report={'website':'49e7a8506aabd4bb57d9cabdf53942d3e99f581f','newCases':12,'passed':12,'failed':0,'skipped':0,'nativeAcceptance':False}
+          selected=[c for c in cases if c.attrib.get('name','').startswith('loads the grouped distinct demo')]
+          assert len(selected)==2,len(selected)
+          assert not list(root.iter('failure')) and not list(root.iter('error'))
+          assert all(c.find('skipped') is None for c in selected)
+          assert all(c.find('skipped') is not None for c in cases if c not in selected)
+          assert {c.attrib['name'] for c in selected}=={
+            'loads the grouped distinct demo for review without querying WEB4',
+            'loads the grouped distinct demo with the documented mixed mapping syntax'}
+          report={'website':'5ace4aae08304de263e8de8e0ec5b69539620061','newCases':2,'passed':2,'failed':0,'selectedSkipped':0,
+            'excludedCases':len(cases)-2,'hostedAcceptance':False,'nativeAcceptance':False}
           with open('TestResults/grouped-distinct-client-acceptance.json','w') as out:json.dump(report,out)
           print(json.dumps(report))
           PY
