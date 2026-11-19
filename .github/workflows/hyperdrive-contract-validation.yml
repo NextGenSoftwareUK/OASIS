@@ -147,11 +147,13 @@ jobs:
           sparse-checkout: |
             /assets/components/modals/avatar.html
             /assets/components/modals/subscription.html
+            /assets/components/modals/subscription-admin.html
             /assets/css/
             /assets/fonts/
             /assets/img/loggedin.png
             /assets/js/avatar-modal.js
             /assets/js/subscription-modal.js
+            /assets/js/subscription-admin-modal.js
             /assets/js/usage-charts.js
             /assets/js/config.js
             /assets/js/oasis-web4-sdk.js
