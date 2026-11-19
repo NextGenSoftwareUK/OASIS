@@ -19,7 +19,7 @@
     { "openMs": 95, "ordersMs": 515 }
   ],
   "billingWrites": 0,
-  "billingFixtureRecordsUnchanged": true,
+  "billingFixtureRecordCountsUnchanged": true,
   "actualPopupCssSharedReaderAndGeneratedSdk": true,
   "actualMvcServiceRepositoryAndNativeAvatarStore": true,
   "isolatedLoopbackMongo": true,
