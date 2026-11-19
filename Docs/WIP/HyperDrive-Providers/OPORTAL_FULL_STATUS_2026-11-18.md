@@ -6,6 +6,7 @@
 
 | Area | Authoritative evidence | Limit |
 | --- | --- | --- |
+| Personal notification preferences | Run44456662767/job135333226792 SUCCESS on root3b5c0b17/Portale239a577: actual browser/API/native Mongo, three actors, strict validation, persisted canonical/inherited values, single pending save, identity/session isolation; two concurrent HTTP saves verified the seven-entry audit chain | Not email/banner delivery, app-owner controls, Stripe, production Startup or hosted rollout |
 | Atomic profile backend and shipping JS SDK | Run44411526328/job135180639408: two mode cases passed, six actual SDK→compiled MVC→native MongoDB/SQLite/Neo4j flows; clears, reloads, stale409 and non-profile-field rejection | Full production Startup/JWT, paid admission and applicable hosted rollout gates remain |
 | Actual profile browser component | Run44421853997/job135216589880 SUCCESS on parent6607c3f, Portalb380fff, Core2ae9c2 and SDKd7aa569; two cases/six flows, zero failures/skips | Actual fragment/CSS/bundle; not the whole portal or portrait upload |
 | Profile component timings in isolated CI | Open172–1657ms; save540–792ms across those six flows | Not dashboard/subscription timings or current live-site performance |
@@ -39,7 +40,7 @@ The first two WEB5 attempts stopped at source inventory checks: seven real porta
 
 | Area | Remaining work |
 | --- | --- |
-| Subscriptions | My Subscription/Orders native browser reads accepted above. Usage summary/history/estimate and prices/statements reads also accepted. Finish Plans/pricing, current checkout/return, billing portal, cancellation/invoices, notification/app-owner controls, overage consent/payment, signed webhook and error/recovery checks. Keep genuine Wizard/admin acceptance separate |
+| Subscriptions | My Subscription/Orders native browser reads accepted above. Usage summary/history/estimate and prices/statements reads also accepted. Finish Plans/pricing, current checkout/return, billing portal, cancellation/invoices, app-owner controls, warning/email delivery, overage consent/payment, signed webhook and error/recovery checks. Keep genuine Wizard/admin acceptance separate |
 | Profile popup | End-to-end portrait HTTP/browser upload, errors, concurrency and applicable production identity/admission rollout |
 | Dashboard/performance | Subscription component timings accepted above; full dashboard and initial popup/navigation timings, real cards/counts and regression audit remain. No current live speed claim |
 | Every screen/popup | Complete the source-derived acceptance ledger and fix actual wiring/backend gaps; static source checks do not sign off interactions |
