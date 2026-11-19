@@ -766,3 +766,5 @@
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionUsageSeriesController.cs","42","SubscriptionUsageSeriesController","MyEstimate","GET","usage/estimate","InjectedServiceRepositoryOrClient"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionUsageSeriesController.cs","60","SubscriptionUsageSeriesController","UserSeriesAdmin","GET","admin/users/{userId}/usage/series","InjectedServiceRepositoryOrClient"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionUsageSeriesController.cs","65","SubscriptionUsageSeriesController","AppSeriesAdmin","GET","admin/app-accounts/{appId}/usage/series","InjectedServiceRepositoryOrClient"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionNotificationController.cs","18","SubscriptionNotificationController","Get","GET","","InjectedServiceRepositoryOrClient"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionNotificationController.cs","25","SubscriptionNotificationController","Save","POST","","InjectedServiceRepositoryOrClient"

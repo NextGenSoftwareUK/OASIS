@@ -73,3 +73,10 @@ Native browser artifact14491969590 is3281 bytes, SHA25624a35c0618e2aa603f675b80e
 Detailed records: CURRENT_STATUS.md, OPORTAL_PROFILE_SAVE_AUDIT_2026-11-18.md, OPORTAL_TEMPLATE_WIRING_AUDIT_2026-11-18.json, OPORTAL_SDK_SURFACE_AUDIT_2026-11-18.json, ../Cleanup/CLEANUP_LEDGER.md and ../Release and Status/ACTIONS-FOR-DAVID.md.
 
 Usage read component timings: summary654/60/55ms; subscribed chart/estimate810/92ms, missing-plan gate65ms. Owned runtime/database/container cleanup passed with an explicit cleanup marker. Exact evidence is OPORTAL_USAGE_BROWSER_EVIDENCE_2026-11-18.json; prior accepted cases were not selected again. Five usage source files are byte-identical integrations from Development18675d6; no private pins, DNA, worker settings, COSMIC runtime or live promotion changed.
+
+
+## Notification preferences qualification in progress — 18 November 2026
+
+Current work adds the authenticated personal notification GET/POST contract, reuses the real Mongo repository, preserves inherited node defaults, and reads the previous preference inside the write transaction so concurrent audit changes have a correct predecessor. Portal source4b7b272 passed delivery run44454238713, generated e239a5775f53c83168a8917c042749276305320b; native qualification pins that generated revision. New isolated browser case covers validation, canonical saved values, persistence, one pending save, foreign-selector refusal and stale-session suppression; actual concurrent HTTP saves check the native audit chain. Backend/browser acceptance is PENDING, not inferred from the UI build. Email delivery, warning banner, app-owner controls and broader OPORTAL remain open.
+
+The Development owner controller still owns these two routes there. Integrating this dedicated controller requires removing the two old actions, preserving one route owner. This task source does not import the monolithic owner's missing email/purge/runtime dependencies. PurgeChoice is the real validation model only; no worker or DNA flag changed. Route manifest now reviews769 actions/657 storage or external classifications.

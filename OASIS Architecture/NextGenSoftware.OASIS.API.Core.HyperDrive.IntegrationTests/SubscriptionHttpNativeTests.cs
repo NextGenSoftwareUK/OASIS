@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Security.Claims;
@@ -33,7 +34,10 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     [Fact]
     public Task SubscriptionUsageBrowserUsesActualControllerAndOwnedMongo() => RunSubscriptionHttp(true, true);
 
-    private async Task RunSubscriptionHttp(bool browser, bool usage = false)
+    [Fact]
+    public Task SubscriptionNotificationPreferencesBrowserUsesActualControllerAndOwnedMongo() => RunSubscriptionHttp(true, true, true);
+
+    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -154,9 +158,10 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             {
                 parts.ApplicationParts.Clear();
                 parts.ApplicationParts.Add(new AssemblyPart(api));
-                parts.FeatureProviders.Add(usage ? new ProfileControllerFeature(controller,
-                    api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SubscriptionUsageSeriesController", true)!)
-                    : new ProfileControllerFeature(controller));
+                var selected = new List<Type> { controller };
+                if (usage) selected.Add(api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SubscriptionUsageSeriesController", true)!);
+                if (notifications) selected.Add(api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SubscriptionNotificationController", true)!);
+                parts.FeatureProviders.Add(new ProfileControllerFeature(selected.ToArray()));
             }).AddControllersAsServices();
             builder.Services.AddSingleton(api.GetType(ns + "ISubscriptionService", true)!, service);
             builder.Services.AddSingleton(api.GetType(ns + "ISubscriptionUsageRepository", true)!, repository);
@@ -233,7 +238,10 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                         baseUrl = address,
                         actors = accounts.Append(missingAccount).Select(actor => new { id = actor, token = Token(actor) }).ToArray()
                     });
-                    Assert.True(result.RootElement.GetProperty(usage ? "subscriptionUsageBrowserVerified" : "subscriptionBrowserVerified").GetBoolean());
+                    Assert.False(result.RootElement.TryGetProperty("isError", out var failed) && failed.GetBoolean(),
+                        result.RootElement.TryGetProperty("message", out var message) ? message.GetString() : "Browser worker failed.");
+                    Assert.True(result.RootElement.GetProperty(notifications ? "notificationPreferencesBrowserVerified" :
+                        usage ? "subscriptionUsageBrowserVerified" : "subscriptionBrowserVerified").GetBoolean());
                     Assert.Equal(3, result.RootElement.GetProperty("actorsVerified").GetInt32());
                     Assert.True(result.RootElement.GetProperty("lateSessionResponseIgnored").GetBoolean());
                     Console.WriteLine("Subscription browser evidence: " + result.RootElement.GetRawText());
@@ -265,6 +273,44 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 Assert.Equal(2L, await db.GetCollection<BsonDocument>("subscription_records").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
                 Assert.Equal(2L, await db.GetCollection<BsonDocument>("subscription_orders").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
                 if (usage) Assert.Equal(4L, await db.GetCollection<BsonDocument>("subscription_usage_buckets").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+                if (notifications)
+                {
+                    var preferences = db.GetCollection<BsonDocument>("usage_notification_settings");
+                    Assert.Equal(2L, await preferences.CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+                    var before = await preferences.Find(new BsonDocument("_id", "user:" + accounts[0])).SingleAsync();
+                    Assert.Equal(35, Assert.Single(before["thresholds"].AsBsonArray).ToInt32());
+                    var other = await preferences.Find(new BsonDocument("_id", "user:" + accounts[1])).SingleAsync();
+                    Assert.Equal(new[] { 45, 95 }, other["thresholds"].AsBsonArray.Select(value => value.ToInt32()));
+                    var audit = db.GetCollection<BsonDocument>("subscription_billing_audit");
+                    var filter = new BsonDocument("Kind", "usage-notification-settings-changed");
+                    Assert.Equal(5L, await audit.CountDocumentsAsync(filter));
+                    http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token(accounts[0]));
+                    async Task Change(int threshold)
+                    {
+                        using var response = await http.PostAsJsonAsync("/api/subscription/usage/notifications",
+                            new { thresholds = new[] { threshold }, emailRequested = false, warningsEnabled = false });
+                        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                    }
+                    await Task.WhenAll(Change(25), Change(75));
+                    Assert.Equal(7L, await audit.CountDocumentsAsync(filter));
+                    var edges = new List<(int Next, int Previous)>();
+                    foreach (var document in await audit.Find(filter).ToListAsync())
+                    {
+                        using var payload = JsonDocument.Parse(document["PayloadJson"].AsString);
+                        var fields = payload.RootElement;
+                        if (fields.GetProperty("Subject").GetString() != "user:" + accounts[0]) continue;
+                        Assert.Equal(accounts[0], fields.GetProperty("Actor").GetString());
+                        var values = fields.GetProperty("Thresholds").EnumerateArray().Select(value => value.GetInt32()).ToArray();
+                        if (values.Length == 1 && values[0] is 25 or 75)
+                            edges.Add((values[0], Assert.Single(fields.GetProperty("PreviousThresholds").EnumerateArray()).GetInt32()));
+                    }
+                    Assert.Equal(2, edges.Count);
+                    var first = Assert.Single(edges, edge => edge.Previous == 35);
+                    var second = Assert.Single(edges, edge => edge.Previous == first.Next);
+                    var after = await preferences.Find(new BsonDocument("_id", "user:" + accounts[0])).SingleAsync();
+                    Assert.Equal(second.Next, Assert.Single(after["thresholds"].AsBsonArray).ToInt32());
+                    Console.WriteLine("Notification native audit verified: two concurrent changes form the actual before/after chain; seven total preference audit entries, two owned subjects.");
+                }
             }
             finally { await app.StopAsync(); }
         }
