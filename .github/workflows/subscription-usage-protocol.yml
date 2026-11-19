@@ -255,17 +255,17 @@ jobs:
             dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SqliteNativeDataImportTests|FullyQualifiedName~AvatarProfileRegistryNativeTests'
             if ($LASTEXITCODE) { throw 'SQLite virtual Holon qualification failed.' }
           }
-      - name: Verify existing in-plan parent AddChildren authorization
-        if: ${{ inputs.property_tracking_only }}
+      - name: Verify authoritative parent observations and explicit child identity creation
+        if: ${{ inputs.property_tracking_only && inputs.property_selection_only }}
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-property-selection-ci -Operation {
-            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~ExistingParentInOwnedBatchStillRequiresAddChildren' --logger 'trx;LogFileName=property-graph-permission-core.trx' --results-directory TestResults/PropertySelection
+            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~UnverifiedExternalParentCannotAuthorizeChildCreation|FullyQualifiedName~ExplicitNewChildIdentityStillRequiresParentAddChildren' --logger 'trx;LogFileName=property-parent-observation-core.trx' --results-directory TestResults/PropertySelection
             if ($LASTEXITCODE) { throw 'Graph parent authorization verification failed.' }
-            [xml]$core = Get-Content TestResults/PropertySelection/property-graph-permission-core.trx
+            [xml]$core = Get-Content TestResults/PropertySelection/property-parent-observation-core.trx
             $counts = $core.TestRun.ResultSummary.Counters
-            if ([int]$counts.total -ne 4 -or [int]$counts.passed -ne 4 -or [int]$counts.notExecuted -ne 0) {
-              throw 'Exactly4 new graph permission controls must execute and pass.'
+            if ([int]$counts.total -ne 6 -or [int]$counts.passed -ne 6 -or [int]$counts.notExecuted -ne 0) {
+              throw 'Exactly6 new parent observation and explicit identity controls must execute and pass.'
             }
             $methods = @($core.TestRun.TestDefinitions.UnitTest)
             if ($methods.Count -lt 1 -or @($methods | Where-Object { $_.TestMethod.className -notlike '*CosmicTrackingTests' }).Count) {
@@ -273,7 +273,7 @@ jobs:
             }
             $ids = @($core.TestRun.TestDefinitions.UnitTest | Where-Object { $_.TestMethod.className -like '*CosmicTrackingTests' } | ForEach-Object { $_.id })
             $results = @($core.TestRun.Results.UnitTestResult)
-            if ($results.Count -ne 4 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
+            if ($results.Count -ne 6 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
               throw 'Selection-only acceptance cannot inherit unrelated test results.'
             }
           }
@@ -364,7 +364,7 @@ jobs:
           name: subscription-protocol-test-results
           path: |
             ${{ inputs.property_selection_only && 'TestResults/PropertySelection' || inputs.property_tracking_only && 'TestResults/Neo4jCurrent/*property-graph-native*' || 'TestResults' }}
-            ${{ inputs.property_tracking_only && !inputs.property_selection_only && 'TestResults/PropertySelection/*property-graph-permission-core*' || '' }}
+            ${{ inputs.property_tracking_only && !inputs.property_selection_only && 'TestResults/PropertySelection/*property-parent-observation-core*' || '' }}
       - name: Stop temporary database
         if: ${{ always() && !inputs.property_selection_only }}
         run: docker rm --force usage-mongo
