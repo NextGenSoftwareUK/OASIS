@@ -255,30 +255,32 @@ jobs:
             dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SqliteNativeDataImportTests|FullyQualifiedName~AvatarProfileRegistryNativeTests'
             if ($LASTEXITCODE) { throw 'SQLite virtual Holon qualification failed.' }
           }
-      - name: Verify grouped distinct WEB4 wire contracts
+      - name: Verify distinct provider domains and SQLite SDK boundaries
         if: ${{ inputs.property_tracking_only }}
         shell: pwsh
         run: |
-          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-grouped-distinct-wire-ci -Operation {
-            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlGroupedDistinctV1CompilerTests' --logger 'trx;LogFileName=grouped-distinct-core.trx' --results-directory TestResults/PropertySelection
-            if ($LASTEXITCODE) { throw 'Grouped distinct WEB4 wire verification failed.' }
-            [xml]$core = Get-Content TestResults/PropertySelection/grouped-distinct-core.trx
-            $counts = $core.TestRun.ResultSummary.Counters
-            if ([int]$counts.total -ne 11 -or [int]$counts.passed -ne 11 -or [int]$counts.notExecuted -ne 0) {
-              throw 'Exactly11 NEW grouped distinct wire controls must execute and pass.'
-            }
-            $methods = @($core.TestRun.TestDefinitions.UnitTest)
-            if ($methods.Count -ne 11 -or @($methods | Where-Object { $_.TestMethod.className -notlike '*CqlGroupedDistinctV1CompilerTests' }).Count) {
-              throw 'Only the new grouped distinct WEB4 wire controls may satisfy this qualification.'
-            }
-            $ids = @($methods | ForEach-Object { $_.id })
-            $results = @($core.TestRun.Results.UnitTestResult)
-            if ($results.Count -ne 11 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
-              throw 'Wire acceptance cannot inherit unrelated or failed results.'
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-grouped-distinct-domains-ci -Operation {
+            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicGroupedDistinctProviderDomainTests' --logger 'trx;LogFileName=grouped-distinct-domains.trx' --results-directory TestResults/PropertySelection
+            if ($LASTEXITCODE) { throw 'Grouped distinct domain verification failed.' }
+            dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~NativeGroupedDistinct' --logger 'trx;LogFileName=grouped-distinct-sqlite.trx' --results-directory TestResults/PropertySelection
+            if ($LASTEXITCODE) { throw 'Grouped distinct SQLite SDK verification failed.' }
+            foreach ($spec in @(@('domains',6,'CosmicGroupedDistinctProviderDomainTests'),@('sqlite',4,'SQLLiteDBOASISIntegrationTests'))) {
+              [xml]$trx = Get-Content "TestResults/PropertySelection/grouped-distinct-$($spec[0]).trx"
+              $count = [int]$spec[1]
+              $counters = $trx.TestRun.ResultSummary.Counters
+              $definitions = @($trx.TestRun.TestDefinitions.UnitTest)
+              $results = @($trx.TestRun.Results.UnitTestResult)
+              $ids = @($definitions | ForEach-Object { $_.id })
+              if ([int]$counters.total -ne $count -or [int]$counters.passed -ne $count -or [int]$counters.notExecuted -ne 0 -or
+                  $definitions.Count -ne $count -or $results.Count -ne $count -or
+                  @($definitions | Where-Object { $_.TestMethod.className -notlike "*$($spec[2])" }).Count -or
+                  @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
+                throw "Exact new $($spec[0]) qualification cases must all execute and pass."
+              }
             }
           }
 
-      - name: Verify custom scalar native storage mapping in plain and encrypted modes
+      - name: Verify grouped distinct on all three real native providers
         if: ${{ inputs.source_ref != '' && !inputs.property_selection_only }}
         shell: pwsh
         run: |
@@ -295,47 +297,26 @@ jobs:
               Start-Sleep -Seconds 2
             }
             if (!$ready) { throw 'Neo4j fixture did not become ready.' }
-            & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-entity-projection-ci -Operation {
-              if ('${{ inputs.property_tracking_only }}' -eq 'true') {
-                dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SelectedCustomScalarsUseNativeStorageMapping&Name~SQLLiteDBOASIS' --logger 'trx;LogFileName=property-custom-native.trx' --results-directory TestResults/Neo4jCurrent
-                if ($LASTEXITCODE) { throw 'Selected native property status verification failed.' }
-                [xml]$native = Get-Content TestResults/Neo4jCurrent/property-custom-native.trx
-                $counts = $native.TestRun.ResultSummary.Counters
-                if ([int]$counts.total -ne 2 -or [int]$counts.passed -ne 2 -or [int]$counts.notExecuted -ne 0) {
-                  throw 'Exactly2 SQLite modes affected by the changed receipt owner must execute and pass.'
-                }
-                $ids = @($native.TestRun.TestDefinitions.UnitTest | Where-Object {
-                  $_.TestMethod.name -eq 'SelectedCustomScalarsUseNativeStorageMapping'
-                } | ForEach-Object { $_.id })
-                $results = @($native.TestRun.Results.UnitTestResult)
-                if ($results.Count -ne 2 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
-                  throw 'Unrelated native results cannot satisfy selected-field acceptance.'
-                }
-                  foreach ($provider in 'SQLLiteDBOASIS') {
-                    foreach ($mode in 'plain','protected') {
-                      $report = Get-Content "TestResults/Neo4jCurrent/$provider-property-custom-$mode-native.json" -Raw | ConvertFrom-Json
-                      if ($report.provider -ne $provider -or $report.protectedMetadata -ne ($mode -eq 'protected') -or
-                          $report.checks -ne 8 -or $report.successfulHolonWrites -ne 5 -or
-                          !$report.nativeStorageMappingVerified -or !$report.exactIntegerVerified -or
-                          !$report.storeAsJsonStringVerified -or !$report.nullableScalarVerified -or
-                          !$report.wholeCollectionPropertyVerified -or !$report.unselectedCustomPreservedVerified -or
-                          !$report.historicalReceiptVerified -or !$report.staleConditionVerified -or
-                          !$report.noOrdinaryWriteDowngradeVerified -or !$report.exactCleanupVerified) {
-                        throw "Complete native custom scalar/storage encoding/null/collection/replay/cleanup evidence required for $provider/$mode."
-                      }
-                    }
-                  }
-              } else {
-                dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~EntityProjectionPreservesStagesAndProofBeforeDtoConstruction' --logger 'trx;LogFileName=entity-projection.trx' --results-directory TestResults/Neo4jCurrent
-                if ($LASTEXITCODE) { throw 'Native entity projection failed.' }
-                # The native tests assert the exact fixture count for the checked-out source.
-                $providers = @{ sqlite = 'SQLLiteDBOASIS'; mongo = 'MongoDBOASIS'; neo = 'Neo4jOASIS' }
-                foreach ($store in 'sqlite','mongo','neo') {
-                  $report = Get-Content "TestResults/Neo4jCurrent/$store-entity-projection-native.json" -Raw | ConvertFrom-Json
-                  if ($report.provider -ne $providers[$store] -or $report.checks -lt 1 -or
-                      $report.checks -ne @($report.cases).Count -or !($report.inMemoryFixture -or $report.exactCleanupVerified)) {
-                    throw "Expected a complete native assertion report and fixture cleanup for $store."
-                  }
+            & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-grouped-distinct-native-ci -Operation {
+              dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~GroupedDistinctUsesRealNativeProviderAndCompleteInputProof' --logger 'trx;LogFileName=grouped-distinct-native.trx' --results-directory TestResults/Neo4jCurrent
+              if ($LASTEXITCODE) { throw 'Native grouped distinct verification failed.' }
+              [xml]$trx = Get-Content TestResults/Neo4jCurrent/grouped-distinct-native.trx
+              $counts = $trx.TestRun.ResultSummary.Counters
+              $definitions = @($trx.TestRun.TestDefinitions.UnitTest)
+              $results = @($trx.TestRun.Results.UnitTestResult)
+              $ids = @($definitions | Where-Object { $_.TestMethod.name -eq 'GroupedDistinctUsesRealNativeProviderAndCompleteInputProof' } | ForEach-Object { $_.id })
+              if ([int]$counts.total -ne 3 -or [int]$counts.passed -ne 3 -or [int]$counts.notExecuted -ne 0 -or
+                  $definitions.Count -ne 3 -or $results.Count -ne 3 -or
+                  @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
+                throw 'Exactly three real provider cases must pass.'
+              }
+              foreach ($provider in 'MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS') {
+                $report = Get-Content "TestResults/Neo4jCurrent/$provider-grouped-distinct-native.json" -Raw | ConvertFrom-Json
+                if ($report.provider -ne $provider -or $report.checks -ne 4 -or $report.successfulHolonWrites -ne 12 -or
+                    $report.elapsedMilliseconds -lt 0 -or !$report.nativeProviderVerified -or !$report.nonNullCountVerified -or
+                    !$report.ordinalUnicodeNullVerified -or !$report.adjacentInt64Verified -or !$report.allNullVerified -or
+                    !$report.offPageInvalidRefused -or !$report.excessGroupRefused -or !$report.exactCleanupVerified) {
+                  throw "Complete exact native distinct and cleanup proof required for $provider."
                 }
               }
             }
@@ -343,6 +324,7 @@ jobs:
             docker rm -f -v cql-entity-neo
             if ($LASTEXITCODE) { throw 'Neo4j fixture cleanup failed.' }
           }
+
       - name: Publish the exact WEB4-WEB10 source graph
         if: ${{ !inputs.native_projection_only }}
         shell: bash
@@ -369,8 +351,8 @@ jobs:
         with:
           name: subscription-protocol-test-results
           path: |
-            ${{ inputs.property_selection_only && 'TestResults/PropertySelection/*grouped-distinct-core*' || inputs.property_tracking_only && 'TestResults/Neo4jCurrent/*property-custom*' || 'TestResults' }}
-            ${{ inputs.property_tracking_only && !inputs.property_selection_only && 'TestResults/PropertySelection/*property-sqlite-selected-core*' || '' }}
+            TestResults/Neo4jCurrent/*grouped-distinct*
+            TestResults/PropertySelection/*grouped-distinct*
       - name: Stop temporary database
         if: ${{ always() && !inputs.property_selection_only }}
         run: docker rm --force usage-mongo
