@@ -70,7 +70,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public string PerUserPlanId { get; set; }
         /// <summary>Avatars allowed to open the owner usage view of ONLY this app (administrator-set, audited).</summary>
         public List<string> OwnerAvatarIds { get; set; } = new List<string>();
-        /// <summary>Pay-as-you-go preference of this app pool. Settings only: nothing is charged.</summary>
+        /// <summary>Preferences for future app request overages; each reservation retains its own immutable accepted terms.</summary>
         public AppPaygSettings Payg { get; set; }
         /// <summary>This app's own on/off choices that override the node defaults (null = follow the default).</summary>
         public AppUsageOverrides Overrides { get; set; }

@@ -1,8 +1,8 @@
 {
   "status": "running-not-accepted",
-  "runId": 44487941821,
-  "jobId": 135436019662,
-  "revision": "ee791093a3f92b49b9c8ae3db60d2b9277ba313c",
+  "runId": 44489333616,
+  "jobId": 135440671745,
+  "revision": "4a1b68465f518a5c00dcfded3452a5e992e1bce4",
   "filter": "FullyQualifiedName~AppRequestChargesUseImmutableConsentExactCapsAndSeparatePayers",
   "backend": "Exact owned loopback CI MongoDB replica set; unique subscription_app_charge_ DB",
   "scope": "Compiled ledger controls with explicit native financial INPUT FIXTURES; actual local Mongo acknowledgements have zero provider fee. No genuine Stripe account/readiness/activation/invoice/collection/webhook proof.",
@@ -38,5 +38,8 @@
   "priorCancelledRun": 44486887425,
   "priorCancelledJob": 135432471428,
   "priorConclusion": "cancelled in API build for known source namespace defect; native fixture/case never started, stop/absence step success; no acceptance",
-  "localOutputs": "Source and compact tracked reports only; no local environment/runtime/build/database/archive"
+  "localOutputs": "Source and compact tracked reports only; no local environment/runtime/build/database/archive",
+  "priorFailedRun": 44487941821,
+  "priorFailedJob": 135436019662,
+  "priorFailure": "API CS1061 synchronous aggregation cursor/ToCursorAsync mismatch; corrected to AggregateAsync. No native or linked host start; owned Mongo absence verified. Evidence upload had no TRX and also failed; no acceptance."
 }

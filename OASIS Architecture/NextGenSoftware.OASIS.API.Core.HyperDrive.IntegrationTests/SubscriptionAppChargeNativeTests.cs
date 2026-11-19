@@ -284,7 +284,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 { "AppId", guards }, { "PayerAvatarId", payer }, { "Scope", databaseName }, { "Month", month },
                 { "AmountMinorUsd", 1L }, { "State", "pending" }, { "CreatedAtUtc", now } });
             var invoiceType = api.GetType(ns + "PaidOverageInvoiceResult", true)!;
-            object Invoice(string state, long paid) => Activator.CreateInstance(invoiceType, ["owned-invoice-fixture", state, null, 1L, paid, true])!;
+            object Invoice(string state, long paid) => Activator.CreateInstance(invoiceType, ["in_owned_app_charge_fixture", state, null, 1L, paid, true])!;
             await Call("RecordInvoiceAsync", mappedId, null, Invoice("open", 0), "owned-app-invoice-failure", "owned-canonical-input-1", CancellationToken.None);
             Assert.True((await apps.Find(new BsonDocument("_id", guards)).SingleAsync())["AppOveragePaymentBlocked"].AsBoolean);
             Assert.False((await records.Find(new BsonDocument("_id", payer)).SingleAsync()).GetValue("OveragePaymentBlocked", false).AsBoolean);
@@ -292,7 +292,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             await Call("RecordInvoiceAsync", mappedId, null, Invoice("paid", 1), "owned-app-invoice-paid", "owned-canonical-input-2", CancellationToken.None);
             await Call("RecordInvoiceAsync", mappedId, null, Invoice("paid", 1), "owned-app-invoice-paid", "owned-canonical-input-2", CancellationToken.None);
             Assert.False((await apps.Find(new BsonDocument("_id", guards)).SingleAsync())["AppOveragePaymentBlocked"].AsBoolean);
-            var order = await db.GetCollection<BsonDocument>("subscription_orders").Find(new BsonDocument("StripeInvoiceId", "owned-invoice-fixture")).SingleAsync();
+            var order = await db.GetCollection<BsonDocument>("subscription_orders").Find(new BsonDocument("StripeInvoiceId", "in_owned_app_charge_fixture")).SingleAsync();
             Assert.Equal(payer, order["UserId"].AsString);
             Assert.Contains(guards, order["Description"].AsString);
             var statementType = api.GetType(ns + "PaidOverageStatement", true)!;
