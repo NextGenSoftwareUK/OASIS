@@ -16,7 +16,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/subscription/app-owner")]
-public sealed class SubscriptionAppOwnerController(MongoSubscriptionUsageRepository repository, IConfiguration configuration, IUsageSeriesSource series) : ControllerBase
+public sealed class SubscriptionAppOwnerController(MongoSubscriptionUsageRepository repository, IConfiguration configuration,
+    IUsageSeriesSource series, IPaidOverageGateway gateway = null) : ControllerBase
 {
     [HttpGet("apps")]
     public Task<IActionResult> MyApps()
@@ -83,14 +84,46 @@ public sealed class SubscriptionAppOwnerController(MongoSubscriptionUsageReposit
             var configured = prices.HasPrice(app.PlanId);
             var rate = configured ? prices.Rate(app.PlanId) : 0m;
             var statements = await repository.GetStatementsAsync("app:" + appId, 24, HttpContext.RequestAborted);
-            return new { featureEnabled = Defaults.AppPayAsYouGoEnabled, pricesConfigured = configured,
+            var unavailableReason = AppBillingConsent.UnavailableReason(app, Defaults.AppPayAsYouGoEnabled);
+            return new { featureEnabled = unavailableReason == null, unavailableReason, pricesConfigured = configured,
                 pricingVersion = prices.Version, pricingSha256 = prices.PricingSha256, currency = prices.Currency,
+                hasAcceptedCurrentTerms = AppBillingConsent.HasCurrentTerms(settings, app.PlanId, prices),
                 ratePerRequestUsd = rate, settings,
                 estimate = AppOverageEstimate.Compute(pool.Usage?.MonthlyRequests ?? 0,
                     pool.Limits?.MonthlyRequestLimit ?? 0, rate, settings.MonthlyCapUsd),
                 statements = statements.Select(value => new { value.Id, value.Month,
                     amountUsd = value.AmountMinorUsd / 100m, value.State, value.PaymentFailed, value.HostedInvoiceUrl }).ToList() };
         });
+    }
+
+    [HttpPost("{appId}/payg")]
+    public Task<IActionResult> SaveBilling(string appId, [FromBody] AppPaygConsentRequest request)
+    {
+        return Run(async actor =>
+        {
+            if (request == null) throw new ArgumentException("App billing preferences are required.");
+            var administrator = IsAdministrator(actor);
+            var appAccount = await repository.GetAppForOwnerAsync(appId, actor, administrator, HttpContext.RequestAborted);
+            AppBillingPayerSnapshot verifiedPayer = null;
+            if (request.Enabled)
+            {
+                if (!(appAccount.OwnerAvatarIds?.Contains(actor, StringComparer.OrdinalIgnoreCase) ?? false))
+                    throw new UnauthorizedAccessException("An app owner must consent to charges against their own billing account.");
+                request.ValidateOptIn(AppOveragePrices.Load());
+                AppBillingConsent.RequireEligible(appAccount);
+                var payer = await repository.GetSubscriptionAsync(actor, HttpContext.RequestAborted);
+                AppBillingConsent.RequirePaidPayer(payer, DateTime.UtcNow);
+                if (gateway == null || string.IsNullOrWhiteSpace(SubscriptionStripeConfiguration.SecretKey(configuration)))
+                    throw new AppBillingUnavailableException("Stripe payment verification is unavailable on this node.");
+                try { await gateway.VerifyPaymentReadyAsync(payer, HttpContext.RequestAborted); }
+                catch (global::Stripe.StripeException)
+                { throw new AppBillingUnavailableException("Stripe could not verify the app payer. Check Manage billing and try again."); }
+                catch (InvalidOperationException error)
+                { throw new SubscriptionUsageConflictException(error.Message); }
+                verifiedPayer = AppBillingPayerSnapshot.AfterVerification(payer, DateTime.UtcNow);
+            }
+            return await repository.SetAppPaygAsync(appId, request, actor, administrator, verifiedPayer, HttpContext.RequestAborted);
+        }, isSave: true);
     }
 
     private bool IsAdministrator(string actor)
@@ -116,6 +149,8 @@ public sealed class SubscriptionAppOwnerController(MongoSubscriptionUsageReposit
         { return BadRequest(new OASISResult<bool> { IsError = true, Message = error.Message }); }
         catch (SubscriptionUsageConflictException error)
         { return Conflict(new OASISResult<bool> { IsError = true, Message = error.Message }); }
+        catch (AppBillingUnavailableException error)
+        { return StatusCode(503, new OASISResult<bool> { IsError = true, Message = error.Message }); }
         catch (KeyNotFoundException error)
         { return NotFound(new OASISResult<bool> { IsError = true, Message = error.Message }); }
     }

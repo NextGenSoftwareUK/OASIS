@@ -46,7 +46,10 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     [Fact]
     public Task SubscriptionAppBillingReadsBrowserUsesActualControllerAndOwnedMongo() => RunSubscriptionHttp(true, true, true, true, false, true);
 
-    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false)
+    [Fact]
+    public Task SubscriptionAppBillingControlsBrowserUsesActualControllerAndOwnedMongo() => RunSubscriptionHttp(true, true, true, true, false, true, true);
+
+    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -81,6 +84,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS? avatarStore = null;
         FieldInfo? avatarManagerField = null;
         object? previousAvatarManager = null;
+        var previousPoolFlag = Environment.GetEnvironmentVariable("OASIS_POOLED_APP_QUOTAS");
         AssemblyLoadContext.Default.Resolving += Resolve;
         try
         {
@@ -89,7 +93,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             var repositoryType = api.GetType(ns + "MongoSubscriptionUsageRepository", true)!;
             var repository = Activator.CreateInstance(repositoryType,
                 [mongo, databaseName, TimeProvider.System, null, false, null])!;
-            if (ownerBilling)
+            if (ownerBilling && !billingControls)
             {
                 var shipping = await File.ReadAllBytesAsync(Path.Combine(Path.GetDirectoryName(artifact)!, "Configuration/app-overage-prices.json"));
                 Assert.Equal(SHA256.HashData(shipping), SHA256.HashData(await File.ReadAllBytesAsync(
@@ -133,6 +137,14 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             }
             if (ownerUsage) await SeedOwnedAppUsageAsync(db, accounts, missingAccount);
             if (ownerBilling) await SeedOwnedAppBillingAsync(db, accounts, repositoryType, repository);
+            if (billingControls)
+            {
+                Environment.SetEnvironmentVariable("OASIS_POOLED_APP_QUOTAS", "true");
+                await db.GetCollection<BsonDocument>("subscription_app_accounts").UpdateManyAsync(FilterDefinition<BsonDocument>.Empty,
+                    new BsonDocument("$set", new BsonDocument { { "PooledQuota", true }, { "Payg.Enabled", true },
+                        { "Payg.VerifiedStripeCustomerId", "owned-private-customer-marker" },
+                        { "Payg.VerifiedStripeSubscriptionId", "owned-private-subscription-marker" } }));
+            }
             avatarStore = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(MongoUri, databaseName);
             var activated = await avatarStore.ActivateProviderAsync();
             Assert.False(activated.IsError, activated.Message);
@@ -290,7 +302,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     });
                     Assert.False(result.RootElement.TryGetProperty("isError", out var failed) && failed.GetBoolean(),
                         result.RootElement.TryGetProperty("message", out var message) ? message.GetString() : "Browser worker failed.");
-                    Assert.True(result.RootElement.GetProperty(ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
+                    Assert.True(result.RootElement.GetProperty(billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
                         usage ? "subscriptionUsageBrowserVerified" : "subscriptionBrowserVerified").GetBoolean());
                     Assert.Equal(3, result.RootElement.GetProperty("actorsVerified").GetInt32());
                     Assert.True(result.RootElement.GetProperty("lateSessionResponseIgnored").GetBoolean());
@@ -406,22 +418,54 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 if (ownerBilling)
                 {
                     Assert.Equal(3L, await db.GetCollection<BsonDocument>("subscription_overage_statements").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
-                    Assert.Equal(0L, await db.GetCollection<BsonDocument>("subscription_billing_audit").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+                    Assert.Equal(billingControls ? 1L : 0L, await db.GetCollection<BsonDocument>("subscription_billing_audit").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
                     var apps = await db.GetCollection<BsonDocument>("subscription_app_accounts").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
                     Assert.Equal(2, apps.Count);
                     foreach (var appRecord in apps)
                     {
-                        Assert.False(appRecord["Payg"]["Enabled"].AsBoolean);
+                        Assert.Equal(billingControls && appRecord["_id"].AsString == "owned-app-b", appRecord["Payg"]["Enabled"].AsBoolean);
                         Assert.Equal("owned-historical-terms", appRecord["Payg"]["PricingVersion"].AsString);
                         Assert.Equal(appRecord["_id"].AsString == "owned-app-a" ? 5m : 2m, appRecord["Payg"]["MonthlyCapUsd"].ToDecimal());
                     }
-                    Console.WriteLine("App billing reads native verified: three owned statement fixtures and eight buckets unchanged, no billing audit writes; immutable catalogue validation passed. Not Stripe collection or app admission acceptance.");
+                    if (!billingControls) Console.WriteLine("App billing reads native verified: three owned statement fixtures and eight buckets unchanged, no billing audit writes; immutable catalogue validation passed. Not Stripe collection or app admission acceptance.");
+                    else
+                    {
+                        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token(accounts[0]));
+                        foreach (var malformedBillingIntent in new[] { "{}", "[]", "null", "{\"enabled\":null}",
+                            "{\"enabled\":false,\"enabled\":true}", "{\"enabled\":false,\"Enabled\":true}",
+                            "{\"monthlyCapUsd\":5}", "{\"enabled\":false,\"currency\":\"EUR\"}" })
+                        {
+                            using var malformedContent = new StringContent(malformedBillingIntent, System.Text.Encoding.UTF8, "application/json");
+                            using var malformedResponse = await http.PostAsync("/api/subscription/app-owner/owned-app-a/payg", malformedContent);
+                            Assert.Equal(HttpStatusCode.BadRequest, malformedResponse.StatusCode);
+                        }
+                        var applicationDocument = Assert.Single(apps, value => value["_id"].AsString == "owned-app-a");
+                        Assert.Equal(1L, applicationDocument["AuthorizationVersion"].ToInt64());
+                        Assert.Equal("owned-private-customer-marker", applicationDocument["Payg"]["VerifiedStripeCustomerId"].AsString);
+                        var billingAudits = db.GetCollection<BsonDocument>("subscription_billing_audit");
+                        var consentAudit = await billingAudits.Find(new BsonDocument("Kind", "app-payg-settings-changed")).SingleAsync();
+                        using var consentPayload = JsonDocument.Parse(consentAudit["PayloadJson"].AsString);
+                        Assert.Equal(accounts[0], consentPayload.RootElement.GetProperty("Actor").GetString());
+                        Assert.True(consentPayload.RootElement.GetProperty("Previous").GetProperty("Enabled").GetBoolean());
+                        Assert.False(consentPayload.RootElement.GetProperty("Settings").GetProperty("Enabled").GetBoolean());
+                        // An earlier controller read cannot substitute for transactional ownership validation.
+                        await db.GetCollection<BsonDocument>("subscription_app_accounts").UpdateOneAsync(new BsonDocument("_id", "owned-app-a"),
+                            new BsonDocument("$set", new BsonDocument("OwnerAvatarIds", new BsonArray())));
+                        var requestType = api.GetType(ns + "AppPaygConsentRequest", true)!;
+                        var revokeRequest = Activator.CreateInstance(requestType)!;
+                        await Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+                            await (Task)repositoryType.GetMethod("SetAppPaygAsync")!.Invoke(repository,
+                                ["owned-app-a", revokeRequest, accounts[0], false, null, CancellationToken.None])!);
+                        Assert.Equal(1L, await billingAudits.CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+                        Console.WriteLine("App billing controls native verified: opt-out preserves prior cap/terms/private payer evidence, one attributed audit/version fence, malformed/foreign/unverified-payer/revoked-owner requests make no additional audit writes. No Stripe proof or positive opt-in acceptance.");
+                    }
                 }
             }
             finally { await app.StopAsync(); }
         }
         finally
         {
+            if (billingControls) Environment.SetEnvironmentVariable("OASIS_POOLED_APP_QUOTAS", previousPoolFlag);
             if (avatarManagerField != null) avatarManagerField.SetValue(null, previousAvatarManager);
             AssemblyLoadContext.Default.Resolving -= Resolve;
             Assert.StartsWith("subscription_http_", databaseName);

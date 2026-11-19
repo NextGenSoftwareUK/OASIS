@@ -15,10 +15,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public bool Enabled { get; set; }
         public decimal MonthlyCapUsd { get; set; }
         public string PricingVersion { get; set; }
+        public string PricingSha256 { get; set; }
+        public string Currency { get; set; }
+        [BsonRepresentation(MongoDB.Bson.BsonType.Decimal128)] public decimal RatePerRequestUsd { get; set; }
+        public string ConsentId { get; set; }
+        public int ConsentSchemaVersion { get; set; }
         public DateTime? ConsentAtUtc { get; set; }
         public string ConsentBy { get; set; }
         /// <summary>The owner avatar whose verified Stripe account is invoiced for this app's overage.</summary>
         public string BillingAvatarId { get; set; }
+        public string VerifiedStripeCustomerId { get; set; }
+        public string VerifiedStripeSubscriptionId { get; set; }
+        public long BillingAuthorizationVersion { get; set; }
+        public DateTime? PaymentVerifiedAtUtc { get; set; }
+
+        public AppPaygSettings Copy() => (AppPaygSettings)MemberwiseClone();
+        public AppPaygSettings Redacted()
+        {
+            var copy = Copy();
+            copy.VerifiedStripeCustomerId = null;
+            copy.VerifiedStripeSubscriptionId = null;
+            return copy;
+        }
     }
 
     /// <summary>
@@ -35,6 +53,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public string PlanId { get; set; }
         /// <summary>active or disabled.</summary>
         public string Status { get; set; }
+        /// <summary>Linearizes app consent and billable admission with concurrent app changes.</summary>
+        public long AuthorizationVersion { get; set; }
         /// <summary>SHA-256 of the key. The key itself is shown once, when created or rotated, and never stored.</summary>
         public string KeyHashSha256 { get; set; }
         public string KeyPrefix { get; set; }
@@ -59,6 +79,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         {
             var copy = (AppAccountRecord)MemberwiseClone();
             copy.KeyHashSha256 = null;
+            copy.Payg = Payg?.Redacted();
             return copy;
         }
     }

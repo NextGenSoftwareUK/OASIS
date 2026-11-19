@@ -28,3 +28,8 @@ Use owned native MongoDB transactions and the shipping SDK/API/browser. Cover ch
 ## Current read stage
 
 The real owner-authorized billing GET, immutable published terms, existing native statements, estimates and API/UI error/session handling passed exact qualification44468037293 on root5e77fc6b/Portalf10f0cad (one new native browser case, three actors, zero failures/skips). This does not accept consent writes, quota admission, financial settlement, invoicing or payment. Source publication and isolated qualification must be recorded separately from running deployments. App UI promotion must be coordinated with the matching API source.
+
+
+## Consent and opt-out implementation in progress
+
+The current branch now implements explicit immutable financial intent, strict JSON binding, real awaited Stripe readiness, transactional owner/payer/version checks, schema1 bound terms/payer snapshots, protected-ID redaction and opt-out history preservation. This is source implementation, not positive external readiness or charging acceptance. The forthcoming native case proves opt-out/refusals only without any Stripe call or gateway mock. Per-operation frozen charge terms, exact cap exposure/admission, expiry/settlement/correction/reconciliation, statement allocation and actual collection remain mandatory next work. No worker/source/deployed DNA setting is enabled by this stage.

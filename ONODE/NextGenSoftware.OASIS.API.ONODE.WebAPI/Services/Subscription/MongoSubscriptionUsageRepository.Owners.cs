@@ -128,23 +128,61 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             }, cancellationToken);
         }
 
-        /// <summary>App owner (or administrator): change the app pool's pay-as-you-go preference. SETTINGS ONLY: nothing is charged here.</summary>
-        public Task<AppAccountRecord> SetAppPaygAsync(string appId, bool enabled, decimal monthlyCapUsd, string pricingVersion, string actor, CancellationToken cancellationToken = default)
+        /// <summary>Audited app consent. Disabling preserves the terms and payer for previously incurred liability.</summary>
+        public Task<AppAccountRecord> SetAppPaygAsync(string appId, AppPaygConsentRequest request, string actor,
+            bool administrator, AppBillingPayerSnapshot verifiedPayer, CancellationToken cancellationToken = default)
         {
             AppAccountRules.ValidateAppId(appId);
-            if (string.IsNullOrWhiteSpace(actor)) throw new ArgumentException("An actor is required.");
-            if (enabled && (monthlyCapUsd < 0.5m || monthlyCapUsd > 1000000m || decimal.Round(monthlyCapUsd, 2) != monthlyCapUsd)) throw new ArgumentException("Choose a monthly USD cap from 0.50 in whole cents.");
+            if (!Guid.TryParseExact(actor, "D", out var actorId) || actorId == Guid.Empty)
+                throw new ArgumentException("A canonical actor avatar id is required.");
+            if (request == null) throw new ArgumentException("App billing preferences are required.");
+            var prices = request.Enabled ? AppOveragePrices.Load() : null;
+            if (request.Enabled) request.ValidateOptIn(prices);
             return TransactAsync(async (session, ct) =>
             {
                 var now = _time.GetUtcNow().UtcDateTime;
-                var account = await AppAccounts.Find(session, x => x.AppId == appId).FirstOrDefaultAsync(ct) ?? throw new KeyNotFoundException("The app account was not found.");
-                account.Payg = new AppPaygSettings { Enabled = enabled, MonthlyCapUsd = enabled ? monthlyCapUsd : 0, PricingVersion = enabled ? pricingVersion : null, ConsentAtUtc = enabled ? (account.Payg?.ConsentAtUtc ?? now) : account.Payg?.ConsentAtUtc, ConsentBy = enabled ? actor : account.Payg?.ConsentBy, BillingAvatarId = enabled ? actor : account.Payg?.BillingAvatarId };
+                var account = await AppAccounts.Find(session, x => x.AppId == appId).FirstOrDefaultAsync(ct)
+                    ?? throw new KeyNotFoundException("The app account was not found.");
+                var owner = account.OwnerAvatarIds?.Contains(actor, StringComparer.OrdinalIgnoreCase) ?? false;
+                if (!owner && (!administrator || request.Enabled))
+                    throw new UnauthorizedAccessException("An app owner must consent to charges against their own billing account.");
+                var before = account.Payg?.Copy();
+                var next = account.Payg?.Copy() ?? new AppPaygSettings();
+                if (request.Enabled)
+                {
+                    AppBillingConsent.RequireEligible(account);
+                    if (!prices.HasPrice(account.PlanId)) throw new SubscriptionUsageConflictException("No reviewed app price is available for this plan.");
+                    if (verifiedPayer == null || verifiedPayer.AvatarId != actor || verifiedPayer.VerifiedAtUtc.Kind != DateTimeKind.Utc ||
+                        verifiedPayer.VerifiedAtUtc > now || now - verifiedPayer.VerifiedAtUtc > TimeSpan.FromMinutes(5))
+                        throw new SubscriptionUsageConflictException("Fresh server-side payment verification is required.");
+                    var payer = await Subscriptions.Find(session, x => x.UserId == actor).FirstOrDefaultAsync(ct);
+                    AppBillingConsent.RequirePaidPayer(payer, now);
+                    if (payer.PlanId != verifiedPayer.PlanId || payer.AuthorizationVersion != verifiedPayer.AuthorizationVersion ||
+                        payer.StripeCustomerId != verifiedPayer.CustomerId || payer.StripeSubscriptionId != verifiedPayer.SubscriptionId)
+                        throw new SubscriptionUsageConflictException("The payer account changed during payment verification; review it again.");
+                    if (await OverageStatements.Find(session, x => x.UserId == "app:" + appId && x.PaymentFailed && x.State != "paid").AnyAsync(ct))
+                        throw new SubscriptionUsageConflictException("Resolve this app's failed payment before enabling additional usage.");
+                    // This shared fence also participates in subscription/webhook/authorization mutations.
+                    payer.AuthorizationVersion = checked(payer.AuthorizationVersion + 1);
+                    await Subscriptions.ReplaceOneAsync(session, x => x.UserId == actor, payer, cancellationToken: ct);
+                    next = new AppPaygSettings
+                    {
+                        Enabled = true, MonthlyCapUsd = request.MonthlyCapUsd, PricingVersion = prices.Version,
+                        PricingSha256 = prices.PricingSha256, Currency = prices.Currency, RatePerRequestUsd = prices.Rate(account.PlanId),
+                        ConsentId = Guid.NewGuid().ToString("D"), ConsentSchemaVersion = 1, ConsentAtUtc = now, ConsentBy = actor, BillingAvatarId = actor,
+                        VerifiedStripeCustomerId = payer.StripeCustomerId, VerifiedStripeSubscriptionId = payer.StripeSubscriptionId,
+                        BillingAuthorizationVersion = payer.AuthorizationVersion, PaymentVerifiedAtUtc = verifiedPayer.VerifiedAtUtc
+                    };
+                }
+                else next.Enabled = false;
+                account.Payg = next;
+                account.AuthorizationVersion = checked(account.AuthorizationVersion + 1);
                 account.UpdatedAtUtc = now; account.UpdatedBy = actor;
                 await AppAccounts.ReplaceOneAsync(session, x => x.AppId == appId, account, cancellationToken: ct);
                 await BillingAudit.InsertOneAsync(session, new BsonDocument
                 {
                     { "_id", Guid.NewGuid().ToString() }, { "Kind", "app-payg-settings-changed" }, { "UserId", "app:" + appId }, { "OccurredAtUtc", now },
-                    { "PayloadJson", JsonSerializer.Serialize(new { AppId = appId, Enabled = enabled, MonthlyCapUsd = monthlyCapUsd, PricingVersion = pricingVersion, Actor = actor }) }
+                    { "PayloadJson", JsonSerializer.Serialize(new { AppId = appId, Previous = before, Settings = next, Actor = actor }) }
                 }, cancellationToken: ct);
                 return account.Redacted();
             }, cancellationToken);

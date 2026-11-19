@@ -8,6 +8,8 @@ const notificationMode = process.env.OASIS_SUBSCRIPTION_NOTIFICATIONS_BROWSER_EN
 const appOwnerMode = process.env.OASIS_SUBSCRIPTION_APP_OWNER_BROWSER_ENABLED === 'true';
 const appUsageMode = process.env.OASIS_SUBSCRIPTION_APP_USAGE_BROWSER_ENABLED === 'true';
 const appBillingReadMode = process.env.OASIS_SUBSCRIPTION_APP_BILLING_READ_BROWSER_ENABLED === 'true';
+const appBillingControlMode = process.env.OASIS_SUBSCRIPTION_APP_BILLING_CONTROL_BROWSER_ENABLED === 'true';
+if (appBillingControlMode && !appBillingReadMode) throw new Error('App billing controls require the billing read contract.');
 if (appBillingReadMode && !appOwnerMode) throw new Error('App billing read verification requires the app owner controller.');
 if (appUsageMode && !appOwnerMode) throw new Error('App usage verification requires the app owner controller.');
 if (appOwnerMode && !notificationMode) throw new Error('App owner verification requires the notification controller.');
@@ -15,7 +17,7 @@ if (notificationMode && !usageMode) throw new Error('Notification verification r
 if (usageMode && !subscriptionMode) throw new Error('Usage verification requires subscription browser mode.');
 if (subscriptionMode && !browserMode) throw new Error('Subscription browser verification requires the owned browser runtime.');
 const expectedCases = subscriptionMode ? 1 : 6;
-const { verify } = require(appBillingReadMode ? './subscription-app-billing-read-browser-native-http.cjs' : appUsageMode ? './subscription-app-usage-browser-native-http.cjs' : appOwnerMode ? './subscription-app-owner-browser-native-http.cjs' : notificationMode ? './subscription-notifications-browser-native-http.cjs' : usageMode ? './subscription-usage-browser-native-http.cjs' : subscriptionMode ? './subscription-browser-native-http.cjs' :
+const { verify } = require(appBillingControlMode ? './subscription-app-billing-control-browser-native-http.cjs' : appBillingReadMode ? './subscription-app-billing-read-browser-native-http.cjs' : appUsageMode ? './subscription-app-usage-browser-native-http.cjs' : appOwnerMode ? './subscription-app-owner-browser-native-http.cjs' : notificationMode ? './subscription-notifications-browser-native-http.cjs' : usageMode ? './subscription-usage-browser-native-http.cjs' : subscriptionMode ? './subscription-browser-native-http.cjs' :
   browserMode ? './profile-browser-native-http.cjs' : './profile-sdk-native-http.cjs');
 const root = fs.realpathSync(process.env.OASIS_PROFILE_SDK_HANDOFF_ROOT);
 const parent = fs.realpathSync(process.env.RUNNER_TEMP);
