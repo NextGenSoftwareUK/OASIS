@@ -1,9 +1,3 @@
-CQL image gate correction:44428940135 reached the real image and refused an incorrect verifier assumption that MongoDB must be a direct WEB4 dependency. Source confirms providers are referenced by OASISBootLoader; actual WEB4 dependencies may be transitive. The corrected single invariant requires each shipping project/runtime assembly to be reachable from WEB4 through exact declared dependency versions, not merely present in the image. Nine control methods passed with56 CQL cases spanning direct/transitive graphs, missing assemblies/contracts/versions, disconnected cycles and valid cycle termination. Failed run cleanup artifact14485004451 (219bytes, RAM-only) proves ownedContainerAbsent=true/dataWrites=0. No image rebuild/deployment, shared database call or local download occurred. Corrected exact-image qualification remains pending dispatch.
-
-CQL API package gate prepared: the existing immutable-image verifier now has an explicit cql-api profile for the commit-only image tag. It validates the actual mixed-grouping API/Core symbols and all three shipping MongoDB/SQLite/Neo4j CQL assemblies as exact project/runtime/direct dependencies. It retains network-none/read-only bounded CI inspection and refuses teaching/startup claims. Nine control tests passed, including28 CQL package cases (complete plus27 rejected missing/mismatched contracts). Exact image qualification is pending dispatch; no hosted/live acceptance is added. Tests used existing cached Node and Python -B; no runtime, database, image, archive or build output was downloaded locally.
-
-Combined image qualification update: GitHub Actions run44423382342 completed successfully for exact parent1fe2ddcefdc9b8165962e43f56c02cf355b6849b and Core0e67ba0bb9b12468c28c894a63ad936a5033a0d2. Immutable image: ghcr.io/nextgensoftwareuk/oasis-web4@sha256:e8fef086e86bc4aa09086871f501ce531ff746197812c3f033e087aeefe2ec64. This supersedes earlier pending/building wording below. Image not pulled, started or deployed; hosted acceptance remains open. No shared Atlas/PIPER calls, local runtime install, image download or build output was added. Temporary publication indexes are removed after use.
-
 # Full COSMIC / CQL / HyperDrive progress report — 18 November 2026
 
 This report distinguishes accepted source/native evidence, pending qualification and last recorded live acceptance. The full roadmap remains active and incomplete. No shared Atlas, live application/browser/model, PIPER, DNA or deployment operation is part of this continuation.
@@ -11,7 +5,7 @@ This report distinguishes accepted source/native evidence, pending qualification
 ## Priority and current work
 
 1. Finish the SQL-like editor and source-bound Ask your data demonstration, including combined stored/virtual queries.
-2. Qualify the new mixed GROUP BY/HAVING transport on the actual MongoDBOASIS, SQLLiteDBOASIS and Neo4jOASIS classes.
+2. Mixed GROUP BY/HAVING transport is qualified on the actual MongoDBOASIS, SQLLiteDBOASIS and Neo4jOASIS classes; finish artifact delivery and the outstanding hosted demonstration when the stand-down is lifted.
 3. Continue full EF/NHibernate parity and virtual/hybrid/OPORTAL execution without dropping the all-provider real-SDK roadmap.
 
 Existing implementation branches: parent/Core work/cosmic-cql-ton-public; Website work/cosmic-cql. Immutable tags retain exact CI source snapshots. No new implementation branch, worktree or environment was created.
@@ -30,7 +24,9 @@ Existing implementation branches: parent/Core work/cosmic-cql-ton-public; Websit
 | Free WEB6 | Source-bound drafting, explicit review and visitor Free routing controls have controlled client evidence. | Real configured free-model completion and open visitor end-to-end acceptance remain unverified; no unlimited-inference claim. |
 | HyperDrive peer work | Last peer record:4/5 isolated routing cases passed. The remaining case reached successful failover but its final verification observer reused the faulted Mongo client. | Independent observer correction and exact qualification remain with the peer. No whole routing programme completion claim. |
 
-Latest accepted grouping image: ghcr.io/nextgensoftwareuk/oasis-web4@sha256:ddb46be6d846205ac17a2a97eda7683062650e95a76176eb29ce1977f71ce93f, exact3aff/Core9c, verified by44416121167. Runtime is unchanged in stronger test-only DISTINCT source93156, accepted by44418065554 (565+22+3, native148/145/124,17 settlements, all3 DISTINCT/group markers and owned cleanup). No image was pulled or deployed. It predates the current-Development purge/root changes; combined1fe2/Core0e67 passed fresh qualification44421493104 and its own image44423382342 is building; no newer image digest/live acceptance yet.
+| Immutable CQL API image package |44429898957 passed against exact1fe2 image digest e8fef086…: source helper hashes, mixed-grouping API/Core symbols and all3 shipping provider assemblies reachable through exact runtime dependency versions.774-byte artifact14486306325 verified in RAM; owned container absent, zero data writes. Verifier3d5125a has9 passing control methods including56 CQL dependency-graph cases; automatic controls44429806686 also passed. | Package inspection is not API startup, hosted browser/model acceptance or full ORM parity; those gates remain open. |
+
+Latest combined WEB4 image: ghcr.io/nextgensoftwareuk/oasis-web4@sha256:e8fef086e86bc4aa09086871f501ce531ff746197812c3f033e087aeefe2ec64, exact parent1fe2ddcefdc9b8165962e43f56c02cf355b6849b/Core0e67ba0bb9b12468c28c894a63ad936a5033a0d2. Build44423382342 succeeded. This source combines the accepted CQL work with current inspected Development changes and passed fresh44421493104: WEB4 build,565 selected+22 configured+3 native suites, zero failures/skips; Mongo148/Neo145/SQLite124 native groups, all8 required markers and owned cleanup. It supersedes the older3aff/Core9c image for this combined-source candidate. No image was pulled or deployed locally or live.
 
 Complete mixed branches currently must each contain fewer than100 records. Saturation refuses the result instead of accepting an unproved partial collection. The complete union can contain198 rows. This does not establish unlimited federation.
 
@@ -60,7 +56,7 @@ These are preserved records, not a fresh availability or live-health check.
 
 ## Current Development integration
 
-Prepared1fe2ddcefdc9b8165962e43f56c02cf355b6849b combines CQL93156 with Development18675, pairing merged Core0e67 and the manifest. All37/6 Core and89/50 parent contributor paths retain their original blobs. Only dependency pointer/pin conflicts were resolved. The current feature history contains broader older changes and was not blindly merged or reset. This exact scoped candidate passed fresh44421493104: actual WEB4 build,565+22+3, zero failures/skips, current generated native148/145/124 reports with all8 flags and owned cleanup. The peer source is preserved byte-for-byte. Combined image44423382342 is building exact1fe2; no digest/live acceptance yet. No Development write or deployment occurred.
+Prepared1fe2ddcefdc9b8165962e43f56c02cf355b6849b combines CQL93156 with Development18675, pairing merged Core0e67 and the manifest. All37/6 Core and89/50 parent contributor paths retain their original blobs. Only dependency pointer/pin conflicts were resolved. The current feature history contains broader older changes and was not blindly merged or reset. This exact scoped candidate passed fresh44421493104: actual WEB4 build,565+22+3, zero failures/skips, current generated native148/145/124 reports with all8 flags and owned cleanup. The peer source is preserved byte-for-byte. Combined image44423382342 succeeded on exact1fe2 at the immutable digest above; hosted/live acceptance remains open. No Development write or deployment occurred.
 
 ## Live delivery and safety
 
@@ -72,7 +68,7 @@ Heavy builds/tests run in existing isolated GitHub Actions. Client tests use the
 
 A RAM harness input error aborted Node4012; the expected exact local crash-dump path was checked and no owned dump was present. Python console output was corrected to UTF-8. No runtime reinstall or deletion of user/peer files was performed. Scoped temporary Git indexes remove themselves.
 
-Last observed C-drive free space:42.67GiB; this is an observation, not a reclamation claim. Continue recording cleanup in RECOVERY_LAPTOP_CLEANUP_LEDGER.md.
+Last observed C-drive free space:41.12GiB; this is an observation, not a reclamation claim. Continue recording cleanup in RECOVERY_LAPTOP_CLEANUP_LEDGER.md.
 
 ## Evidence links
 
@@ -86,4 +82,7 @@ Last observed C-drive free space:42.67GiB; this is an observation, not a reclama
 
 - Current Development combination accepted565+22+3: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44421493104
 
-- Exact combined image build, pending: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44423382342
+- Successful exact combined image build: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44423382342
+
+- Exact combined CQL API package accepted: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44429898957
+- Corrected verifier controls accepted: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44429806686
