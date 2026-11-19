@@ -1,5 +1,5 @@
 {
-  "status": "merged_cardinality_graph_compile_and_failed_portrait_retry_in_progress",
+  "status": "merged_cardinality_graph_compile_and_basic_portrait_native_accepted_broader_gates_pending",
   "run": 44607073292,
   "job": 135853508585,
   "source": "f20298c90df6cbdbe3d9892e92c261779e154607",
@@ -14,7 +14,7 @@
   "overlappingRoutingFilesMerged": 2,
   "profileAndCosmicRoutingMarkersVerified": true,
   "parentGitlinkManifestPaired": true,
-  "apiBuildAccepted": false,
+  "apiBuildAccepted": true,
   "combinedGraphBehaviorAccepted": false,
   "behaviorTestsSelected": 0,
   "mongoFixtureStarted": false,
@@ -243,7 +243,7 @@
     "behaviorTestsRepeated": 0,
     "parentGitlinkManifestPaired": true,
     "indexManifestCheckPassed": true,
-    "currentMergedGraphCompiled": false,
+    "currentMergedGraphCompiled": true,
     "existingCompileProofSource": "c943fd7bb6db3f36b1254d7955d2d55ad51e8a23",
     "existingCompileProofCore": "96f6baea21c1423795f7effcac208a8f6485b30c",
     "activePortraitRunStillFrozenCore": "96f6baea21c1423795f7effcac208a8f6485b30c"
@@ -253,11 +253,15 @@
     "job": 135924703982,
     "source": "bd58740495173e42e624c9c4f2e0029e0d523f50",
     "core": "650188d6f08d82b7a9b3af15c48e7d8018a79c78",
-    "observedStatus": "in_progress",
-    "apiCompiled": false,
-    "nativeContractProjectCompiled": false,
+    "observedStatus": "completed",
+    "apiCompiled": true,
+    "nativeContractProjectCompiled": true,
     "selectedCase": "PortraitBrowserUploadUsesActualHttpAndThreeNativeProviders",
     "selectedCaseCount": 1,
-    "previouslyAcceptedBehaviorCasesSelected": 0
+    "previouslyAcceptedBehaviorCasesSelected": 0,
+    "conclusion": "success",
+    "apiCompilerErrors": 0,
+    "nativeContractProjectCompilerErrors": 0,
+    "selectedPortraitCasePassed": 1
   }
 }

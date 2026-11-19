@@ -1,5 +1,5 @@
 {
-  "status": "combined_api_native_project_compile_accepted_behavior_pending",
+  "status": "current_core650_graph_compiled_basic_portrait_scoped_native_accepted",
   "sourceCheckpoint": "38d4320ef7cffa3ce8d6c77cb312dee3f42acb9d",
   "core": "96f6baea21c1423795f7effcac208a8f6485b30c",
   "importedFiles": [
@@ -1097,5 +1097,15 @@
   "compileRun": 44623720895,
   "compileJob": 135911880979,
   "compileSource": "c943fd7bb6db3f36b1254d7955d2d55ad51e8a23",
-  "compileErrors": 0
+  "compileErrors": 0,
+  "latestCompilation": {
+    "run": 44627380956,
+    "job": 135924703982,
+    "source": "bd58740495173e42e624c9c4f2e0029e0d523f50",
+    "core": "650188d6f08d82b7a9b3af15c48e7d8018a79c78",
+    "apiErrors": 0,
+    "nativeContractProjectErrors": 0,
+    "newPortraitCasePassed": 1,
+    "providerAcceptanceComplete": false
+  }
 }
