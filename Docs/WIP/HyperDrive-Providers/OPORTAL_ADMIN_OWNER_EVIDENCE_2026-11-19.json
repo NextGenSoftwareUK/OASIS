@@ -1,5 +1,5 @@
 {
-  "status": "first-real-owner-qualification-active-not-accepted",
+  "status": "accepted-scoped-owner-assignment-api-sdk-browser-native-audit",
   "runId": 44582265031,
   "jobId": 135765761407,
   "sourceCommit": "a6d29125af2bf3abf61526ce339dab1f34cfa736",
@@ -27,5 +27,34 @@
   "fullStartupAccepted": false,
   "hostedPerformanceAccepted": false,
   "stripeAccepted": false,
-  "fullPortalAccepted": false
+  "fullPortalAccepted": false,
+  "acceptance": {
+    "apiBuildErrors": 0,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 26,
+    "actorsVerified": 3,
+    "ownerPosts": 13,
+    "committedTransitions": 4,
+    "canonicalOwnerUniqueness": true,
+    "singlePendingOwnerAction": true,
+    "editedDraftPreserved": true,
+    "actualSdkOwnershipGrantAndRevoke": true,
+    "ordinary403AndExpired401": true,
+    "lateSessionResponseIgnored": true,
+    "originalAuditAndSevenFinancialCollectionsUnchanged": true,
+    "foreignAppAndNonOwnerFieldsAndKeyHashesUnchanged": true,
+    "ownedFlagAndManagerRestorationAsserted": true,
+    "nativeAndProcessCleanupVerified": true,
+    "terminalCleanupVerified": true,
+    "artifactId": 14560451813,
+    "artifactBytes": 4483,
+    "sha256": "fd7a5a2eaff46e5e6ce4bac3590162c3bbdd6587544985ffee7cb2ff1f67b2cf",
+    "filesWritten": 0,
+    "fullStartupAccepted": false,
+    "hostedPerformanceAccepted": false,
+    "stripeAccepted": false,
+    "fullPortalAccepted": false
+  }
 }
