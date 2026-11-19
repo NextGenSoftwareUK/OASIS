@@ -54,6 +54,32 @@ public sealed partial class MongoSubscriptionUsageRepository
         return PrepareAppStatementAsync(appId, month, requestKey, false, token, avatar.ToString("D"), administrator);
     }
 
+    /// <summary>Recover collection of a previously allocated statement without allocating new usage.</summary>
+    public Task<PaidOverageStatement> GetAppStatementForOwnerAsync(string appId, string statementId,
+        string actor, bool administrator, CancellationToken token = default)
+    {
+        AppAccountRules.ValidateAppId(appId);
+        if (!Guid.TryParseExact(actor, "D", out var avatar) || avatar == Guid.Empty)
+            throw new UnauthorizedAccessException("An authenticated avatar is required.");
+        if (statementId == null || statementId.Length != 69 || !statementId.StartsWith("ovga_", StringComparison.Ordinal) ||
+            !statementId.AsSpan(5).ToString().All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f'))
+            throw new ArgumentException("A valid app statement identity is required.");
+        return TransactAsync(async (session, ct) => {
+            var app = await AppAccounts.Find(session, x => x.AppId == appId).FirstOrDefaultAsync(ct);
+            RequireAppStatementOwner(app, avatar.ToString("D"), administrator);
+            return await OverageStatements.Find(session, x => x.Id == statementId && x.AppId == appId &&
+                x.UserId == PoolSubject(appId) && x.Scope == OverageScope).FirstOrDefaultAsync(ct)
+                ?? throw new KeyNotFoundException("The app billing statement was not found.");
+        }, token);
+    }
+
+    private static void RequireAppStatementOwner(AppAccountRecord app, string actor, bool administrator)
+    {
+        if (actor != null && !administrator && !(app?.OwnerAvatarIds?.Contains(actor, StringComparer.OrdinalIgnoreCase) ?? false))
+            throw new UnauthorizedAccessException("Only an app owner or approved administrator may prepare app billing.");
+        if (app == null) throw new KeyNotFoundException("The app billing account was not found.");
+    }
+
     private Task<PaidOverageStatement> PrepareAppStatementAsync(string appId, string month, string requestKey, bool creditsOnly,
         CancellationToken token, string actor = null, bool administrator = false)
     {
@@ -70,9 +96,7 @@ public sealed partial class MongoSubscriptionUsageRepository
             await EnsureOpeningBalanceAsync(session, ct);
             var app = await AppAccounts.Find(session, x => x.AppId == appId).FirstOrDefaultAsync(ct);
             // Check every attempt, including idempotent replay, before exposing an existing statement.
-            if (actor != null && !administrator && !(app?.OwnerAvatarIds?.Contains(actor, StringComparer.OrdinalIgnoreCase) ?? false))
-                throw new UnauthorizedAccessException("Only an app owner or approved administrator may prepare app billing.");
-            if (app == null) throw new KeyNotFoundException("The app billing account was not found.");
+            RequireAppStatementOwner(app, actor, administrator);
             var existing = await OverageStatements.Find(session, x => x.Id == id).FirstOrDefaultAsync(ct);
             if (existing != null) {
                 if (existing.AppId != appId || existing.Scope != OverageScope || existing.CreditsOnly != creditsOnly)

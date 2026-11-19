@@ -133,7 +133,7 @@ public sealed class SubscriptionAppOwnerController(MongoSubscriptionUsageReposit
         {
             if (request.ValueKind != JsonValueKind.Object)
                 throw new ArgumentException("An app billing request is required.");
-            string requestId = null, month = null;
+            string requestId = null, month = null, statementId = null;
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var field in request.EnumerateObject())
             {
@@ -143,14 +143,20 @@ public sealed class SubscriptionAppOwnerController(MongoSubscriptionUsageReposit
                 {
                     case "billingrequestid": requestId = field.Value.GetString(); break;
                     case "month": month = field.Value.GetString(); break;
+                    case "statementid": statementId = field.Value.GetString(); break;
                     default: throw new ArgumentException("Unknown app billing field.");
                 }
             }
             if (month != null && !DateTime.TryParseExact(month, "yyyy-MM", System.Globalization.CultureInfo.InvariantCulture,
                     System.Globalization.DateTimeStyles.None, out _))
                 throw new ArgumentException("Choose a UTC billing month in yyyy-MM format.");
-            var statement = await repository.PrepareAppStatementForOwnerAsync(appId,
-                month ?? DateTime.UtcNow.ToString("yyyy-MM"), requestId, actor, IsAdministrator(actor), HttpContext.RequestAborted);
+            if ((requestId == null) == (statementId == null) || (statementId != null && month != null))
+                throw new ArgumentException("Choose either a new billing request or an existing statement, without changing its month.");
+            var statement = statementId == null
+                ? await repository.PrepareAppStatementForOwnerAsync(appId,
+                    month ?? DateTime.UtcNow.ToString("yyyy-MM", System.Globalization.CultureInfo.InvariantCulture),
+                    requestId, actor, IsAdministrator(actor), HttpContext.RequestAborted)
+                : await repository.GetAppStatementForOwnerAsync(appId, statementId, actor, IsAdministrator(actor), HttpContext.RequestAborted);
             if (statement == null) return new { appId, noCharges = true, statement = (AppOverageStatementView)null };
             try { statement = await billing.CollectAsync(statement, HttpContext.RequestAborted); }
             catch (global::Stripe.StripeException)

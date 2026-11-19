@@ -1,5 +1,5 @@
 {
-  "status": "running-not-accepted",
+  "status": "failed-fixture-order-corrected-requalification-pending",
   "filter": "FullyQualifiedName~SubscriptionAppPayNowUsesActualControllerAndOwnedMongo",
   "route": "POST /api/subscription/app-owner/{appId}/payg/pay-now",
   "scope": "Actual HTTP/native Mongo/controller/store/zero-due gateway; persisted statement INPUT fixture only",
@@ -13,5 +13,17 @@
   "localGeneratedOutputs": 0,
   "revision": "3e85c5a6d4b6e302aaaf4175ee51246bec490e9f",
   "runId": 44501229490,
-  "jobId": 135481246235
+  "jobId": 135481246235,
+  "conclusion": "failure",
+  "failure": "EMPTY_LEDGER_INITIALIZATION_REFUSED: read fixtures inserted before empty initialization",
+  "builds": {
+    "actualWeb4ApiErrors": 0,
+    "linkedHostErrors": 0
+  },
+  "cleanup": {
+    "workflowMongoContainerVolumesRemoved": true,
+    "workflowMongoAbsenceVerified": true,
+    "trxArtifact": "Not uploaded: build_only native artifact gate corrected",
+    "localGeneratedOutputs": 0
+  }
 }

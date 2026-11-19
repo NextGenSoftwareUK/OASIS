@@ -203,7 +203,7 @@ jobs:
           }
 
       - name: Build updated linked ledger host without repeating accepted tests
-        if: ${{ inputs.native_seal && (inputs.native_test_filter == 'FullyQualifiedName~AppRequestChargesUseImmutableConsentExactCapsAndSeparatePayers' || inputs.native_test_filter == 'FullyQualifiedName~AppStatementsFreezePayersAllocateOnceAndRoundAcrossSubscriptions' || inputs.native_test_filter == 'FullyQualifiedName~SubscriptionAppPayNowUsesActualControllerAndOwnedMongo') }}
+        if: ${{ inputs.native_seal && (contains(inputs.native_test_filter, 'AppRequestChargesUseImmutableConsentExactCapsAndSeparatePayers') || contains(inputs.native_test_filter, 'AppStatementsFreezePayersAllocateOnceAndRoundAcrossSubscriptions') || contains(inputs.native_test_filter, 'SubscriptionAppPayNowUsesActualControllerAndOwnedMongo') || contains(inputs.native_test_filter, 'SubscriptionAppStatementRecoveryUsesActualControllerAndOwnedMongo')) }}
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner app-request-charge-protocol-build-ci -Operation {
@@ -328,7 +328,7 @@ jobs:
           if docker container inspect profile-native-neo4j >/dev/null 2>&1; then exit 1; fi
 
       - name: Preserve HyperDrive behavioral evidence
-        if: ${{ always() && (!inputs.build_only || inputs.request_timing_tests) }}
+        if: ${{ always() && (!inputs.build_only || inputs.request_timing_tests || inputs.native_seal) }}
         uses: actions/upload-artifact@v7
         with:
           name: hyperdrive-contract-results

@@ -64,20 +64,8 @@ public sealed partial class AvatarProfileCommitStampNativeTests
 
         // Owned persisted statement INPUT FIXTURE for replay/transport only. It is not
         // operation allocation, genuine Stripe identity/readiness or external payment proof.
-        var id = "ovga_" + Convert.ToHexStringLower(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new {
-            Scope = db.DatabaseNamespace.DatabaseName, Subject = "app:owned-app-a", Month = month, RequestKey = requestId
-        })));
-        var now = DateTime.UtcNow;
+        var id = await SeedOwnedZeroAppStatementAsync(db, "owned-app-a", accounts[0], requestId, month);
         var statements = db.GetCollection<BsonDocument>("subscription_overage_statements");
-        await statements.InsertOneAsync(new BsonDocument {
-            { "_id", id }, { "AppId", "owned-app-a" }, { "UserId", "app:owned-app-a" },
-            { "PayerAvatarId", accounts[0] }, { "Month", month }, { "Scope", db.DatabaseNamespace.DatabaseName },
-            { "StripeCustomerId", "owned-private-customer-http" }, { "StripeSubscriptionId", "owned-private-subscription-http" },
-            { "AppConsentIds", new BsonArray { Guid.NewGuid().ToString("D") } }, { "CreditsOnly", false },
-            { "OperationIds", new BsonArray() }, { "AdjustmentIds", new BsonArray() }, { "PricingVersions", new BsonArray { "owned-input" } },
-            { "RequestChargesUsd", new Decimal128(0m) }, { "AiChargesUsd", new Decimal128(0m) }, { "AmountMinorUsd", 0L },
-            { "State", "pending" }, { "PaymentFailed", false }, { "CreatedAtUtc", now }, { "UpdatedAtUtc", now }, { "NextAttemptAtUtc", now }
-        });
         before = await Snapshot();
         await Send(Request(requestId), HttpStatusCode.Forbidden);
         Assert.Equal(before, await Snapshot());
@@ -109,4 +97,24 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         Assert.Equal("paid", (await statements.Find(new BsonDocument("_id", id)).SingleAsync())["State"].AsString);
         Console.WriteLine("App pay-now native HTTP verified: real authenticated controller/repository/zero-due gateway-store; empty polling unchanged; strict intent validation; foreign and revoked owners cannot read/recollect replay; public statement projection excludes private IDs; zero collection replay unchanged. Persisted statement INPUT FIXTURE only, not allocation/Stripe/browser/hosted acceptance.");
     }
+    private static async Task<string> SeedOwnedZeroAppStatementAsync(IMongoDatabase db, string appId,
+        string actor, string requestId, string month)
+    {
+        var id = "ovga_" + Convert.ToHexStringLower(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new {
+            Scope = db.DatabaseNamespace.DatabaseName, Subject = "app:" + appId, Month = month, RequestKey = requestId
+        })));
+        var now = DateTime.UtcNow;
+        var statements = db.GetCollection<BsonDocument>("subscription_overage_statements");
+        await statements.InsertOneAsync(new BsonDocument {
+            { "_id", id }, { "AppId", appId }, { "UserId", "app:" + appId },
+            { "PayerAvatarId", actor }, { "Month", month }, { "Scope", db.DatabaseNamespace.DatabaseName },
+            { "StripeCustomerId", "owned-private-customer-http" }, { "StripeSubscriptionId", "owned-private-subscription-http" },
+            { "AppConsentIds", new BsonArray { Guid.NewGuid().ToString("D") } }, { "CreditsOnly", false },
+            { "OperationIds", new BsonArray() }, { "AdjustmentIds", new BsonArray() }, { "PricingVersions", new BsonArray { "owned-input" } },
+            { "RequestChargesUsd", new Decimal128(0m) }, { "AiChargesUsd", new Decimal128(0m) }, { "AmountMinorUsd", 0L },
+            { "State", "pending" }, { "PaymentFailed", false }, { "CreatedAtUtc", now }, { "UpdatedAtUtc", now }, { "NextAttemptAtUtc", now }
+        });
+        return id;
+    }
+
 }

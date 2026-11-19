@@ -53,7 +53,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task SubscriptionAppPayNowUsesActualControllerAndOwnedMongo() =>
         RunSubscriptionHttp(false, usage: true, ownerSettings: true, ownerPayNow: true);
 
-    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false)
+    [Fact]
+    public Task SubscriptionAppStatementRecoveryUsesActualControllerAndOwnedMongo() =>
+        RunSubscriptionHttp(false, usage: true, ownerSettings: true, ownerPayNow: true, statementRecovery: true);
+
+    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -129,6 +133,19 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             var db = mongo.GetDatabase(databaseName);
             var accounts = new[] { Guid.NewGuid().ToString("D"), Guid.NewGuid().ToString("D") };
             var missingAccount = Guid.NewGuid().ToString("D");
+            if (ownerPayNow)
+            {
+                // Initialize the genuinely empty ledger through the shipping free-plan path
+                // before inserting any explicit owned billing/read fixtures.
+                var initial = Activator.CreateInstance(api.GetType(ns + "SubscriptionRecord", true)!)!;
+                initial.GetType().GetProperty("UserId")!.SetValue(initial, missingAccount);
+                initial.GetType().GetProperty("PlanId")!.SetValue(initial, "free");
+                initial.GetType().GetProperty("Status")!.SetValue(initial, "active");
+                initial.GetType().GetProperty("CurrentPeriodEnd")!.SetValue(initial, DateTime.UtcNow.AddYears(1));
+                await (Task)repositoryType.GetMethod("SaveSubscriptionAsync")!.Invoke(repository, [initial, CancellationToken.None])!;
+                Assert.Equal(1L, await db.GetCollection<BsonDocument>("subscription_usage_migrations")
+                    .CountDocumentsAsync(new BsonDocument("_id", "v1-opening-balance")));
+            }
             if (ownerSettings)
             {
                 for (var i = 0; i < accounts.Length; i++)
@@ -313,7 +330,8 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 }
                 if (ownerPayNow)
                 {
-                    await VerifyAppPayNowHttpAsync(http, Token, db, accounts);
+                    if (statementRecovery) await VerifyAppStatementRecoveryHttpAsync(http, Token, db, accounts);
+                    else await VerifyAppPayNowHttpAsync(http, Token, db, accounts);
                     return;
                 }
                 if (browser)
