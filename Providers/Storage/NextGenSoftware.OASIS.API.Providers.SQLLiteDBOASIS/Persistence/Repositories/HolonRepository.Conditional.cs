@@ -159,9 +159,12 @@ public partial class HolonRepository
                     if (replica == null)
                     {
                         var storedReceipt = JObject.Parse(reader.GetString(1));
-                        if (storedReceipt["fingerprintFormat"]?.Type != JTokenType.Integer || storedReceipt.Value<int>("fingerprintFormat") is not (3 or 4 or 5))
+                        if (storedReceipt["fingerprintFormat"]?.Type != JTokenType.Integer || storedReceipt.Value<int>("fingerprintFormat") is not (3 or 4 or 5 or 6))
                             return ConditionalError("COSMIC_RECEIPT_FINGERPRINT_RECONCILIATION_REQUIRED",
                                 "This receipt predates the exact intent fingerprint contract. Reconcile its original operation before another mutation.");
+                        if (propertyWrite != null && storedReceipt.Value<int>("fingerprintFormat") == 5)
+                            return ConditionalError("COSMIC_RECEIPT_FINGERPRINT_RECONCILIATION_REQUIRED",
+                                "This selected receipt binds the historical whole-record domain. Reconcile its original operation before another mutation.");
                         if (storedReceipt["format"]?.Type != JTokenType.Integer || storedReceipt.Value<int>("format") is not (2 or 3))
                             return ConditionalError("COSMIC_RECEIPT_ENVELOPE_RECONCILIATION_REQUIRED",
                                 "This receipt predates the integrity-bound envelope. Reconcile its original acknowledgement before another mutation.");
@@ -299,7 +302,7 @@ public partial class HolonRepository
     }
 
     private static int ConditionalFingerprintFormat(ConditionalHolonWriteRequest request,ConditionalHolonPropertyWriteRequest propertyWrite=null)
-        => propertyWrite!=null ? 5 : request.SubmittedRelationships.Count == 0 ? 3 : 4;
+        => propertyWrite!=null ? 6 : request.SubmittedRelationships.Count == 0 ? 3 : 4;
 
     private static string ConditionalFingerprint(ConditionalHolonWriteRequest request, PreparedGraph graph,ConditionalHolonPropertyWriteRequest propertyWrite=null)
     {
@@ -327,6 +330,8 @@ public partial class HolonRepository
                 if (!providerFields.Properties().Any()) values.Remove("ProviderMetaData");
             }
             values["Id"] = node.Snapshot.Id; values["ParentHolonId"] = node.Snapshot.ParentHolonId;
+            if(propertyWrite?.Selections.TryGetValue(node.Snapshot.Id,out var selectedPaths)==true)
+                values=ConditionalHolonPlan.SelectedFingerprintRecord(node.Snapshot,values,selectedPaths);
             nodes.Add(values);
         }
         var content = new JObject { ["fingerprintFormat"] = ConditionalFingerprintFormat(request,propertyWrite), ["actor"] = request.Write.ActorId, ["operation"] = request.Operation.ToString(),
