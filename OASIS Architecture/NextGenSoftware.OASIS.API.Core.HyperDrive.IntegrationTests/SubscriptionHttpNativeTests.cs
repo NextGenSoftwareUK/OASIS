@@ -490,7 +490,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     {
         var provider = repositoryType.GetField("_policyProvider", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(repository)!;
         var policy = provider.GetType().GetMethod("GetPolicy", [typeof(string), typeof(int)])!.Invoke(provider, ["silver", 0])!;
-        var included = (long)policy.GetType().GetProperty("MonthlyRequestLimit")!.GetValue(policy)!;
+        long included = (int)policy.GetType().GetProperty("MonthlyRequestLimit")!.GetValue(policy)!;
         var now = DateTime.UtcNow;
         for (var i = 0; i < 2; i++)
         {
