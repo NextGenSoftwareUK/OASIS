@@ -25,7 +25,10 @@
     "provider and HyperDrive programme"
   ],
   "localGeneratedOutputs": 0,
-  "status": "source-prepared-not-accepted",
+  "status": "qualification-in-progress-not-accepted",
   "filter": "FullyQualifiedName~SubscriptionPersonalConsentReviewUsesActualControllerSdkAndBrowser",
-  "portalSource": "29927fb3fb4de438a7353909916ca33f18efadd7"
+  "portalSource": "29927fb3fb4de438a7353909916ca33f18efadd7",
+  "sourceCommit": "00c645b1bc57ba7cdd6ac9dc29446a024dc98919",
+  "runId": 44527008943,
+  "jobId": 135570130339
 }
