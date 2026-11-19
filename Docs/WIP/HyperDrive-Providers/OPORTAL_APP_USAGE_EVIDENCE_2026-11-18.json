@@ -1,5 +1,5 @@
 {
-  "status": "running-not-accepted",
+  "status": "accepted-scoped",
   "scope": "App-owner usage reads only; billing and whole OPORTAL remain incomplete",
   "runId": 44461701598,
   "jobId": 135349779504,
@@ -24,16 +24,6 @@
     "appACorrectedUnits": 14,
     "appACorrectedCostUsd": 0.014
   },
-  "pending": [
-    "actual API build",
-    "real browser net/corrected totals and chart",
-    "expiration/old-month/foreign-app exclusion",
-    "permissions and date/range validation",
-    "disabled-view refusal",
-    "late-session suppression",
-    "unchanged native usage records",
-    "owned cleanup"
-  ],
   "notCovered": [
     "app billing",
     "Stripe/payment/admission/settlement protocols",
@@ -42,5 +32,37 @@
     "production Startup",
     "hosted rollout",
     "whole OPORTAL"
-  ]
+  ],
+  "qualifiedOn": "2026-11-19",
+  "apiBuildErrors": 0,
+  "totalCases": 1,
+  "passed": 1,
+  "failed": 0,
+  "skipped": 0,
+  "durationSeconds": 22,
+  "actorsVerified": 3,
+  "expiredReservationExcluded": true,
+  "auditCorrectionIncluded": true,
+  "poolShardTotalsVerified": true,
+  "invalidDateAndRangeRejected": true,
+  "disabledViewRefused": true,
+  "lateSessionResponseIgnored": true,
+  "usageWriteRequests": 0,
+  "explicitSettingsWrites": 1,
+  "usageRecordsUnchanged": true,
+  "appDetailMs": [
+    347,
+    634
+  ],
+  "timingScope": "Isolated app-detail components; not live dashboard or initial page",
+  "ownedBrowserRuntimeCacheControlCleanupVerified": true,
+  "nativeDatabaseFinalizerPassed": true,
+  "mongoContainerRemoved": true,
+  "portalDocsCommit": "76fa8ef779a0d80bd8d60e80b3f3f545f958e371",
+  "artifact": {
+    "id": 14500865587,
+    "bytes": 6395,
+    "sha256": "699489b76e379cbeed431e72874199ec23a8a7a2f3aa4df19eae0e7a985f5e7f",
+    "inspection": "Exactly one passed TRX and unchanged-record marker read/disposed in RAM; zero local files"
+  }
 }
