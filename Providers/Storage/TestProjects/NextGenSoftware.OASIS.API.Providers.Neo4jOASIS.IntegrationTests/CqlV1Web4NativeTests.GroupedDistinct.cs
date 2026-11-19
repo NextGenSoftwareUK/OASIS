@@ -30,7 +30,7 @@ public sealed partial class CqlV1Web4NativeTests
         => RunGroupedDistinctNativeFixture(providerName, false, requiredDomains: true);
 
     private async Task RunGroupedDistinctNativeFixture(string providerName, bool primitiveDomains, bool mixedHttp = false,
-        bool requiredDomains = false)
+        bool requiredDomains = false, bool singlePerformance = false)
     {
         Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -52,6 +52,7 @@ public sealed partial class CqlV1Web4NativeTests
         var ids = new List<Guid>();
         var complete = false; var active = false; var checks = 0;
         var queryElapsed = new Dictionary<string, long>();
+        Dictionary<string, object>? singleProfile = null;
         var timer = System.Diagnostics.Stopwatch.StartNew();
         var mongo = authority == ProviderType.MongoDBOASIS ? new MongoClient(mongoUri) : null;
         if (mongo != null)
@@ -97,7 +98,20 @@ public sealed partial class CqlV1Web4NativeTests
                 return await CosmicGroupedExecutor.ExecuteAsync(planned.Result,
                     new[] { (ICosmicQueryStorageProvider)provider });
             }
-            if (mixedHttp)
+            if (singlePerformance)
+            {
+                Assert.AreEqual(ProviderType.Neo4jOASIS, authority);
+                var negativeZero = BitConverter.Int32BitsToSingle(int.MinValue);
+                var first = BitConverter.Int32BitsToSingle(BitConverter.SingleToInt32Bits(1f) + 1);
+                var second = BitConverter.Int32BitsToSingle(BitConverter.SingleToInt32Bits(1f) + 2);
+                Assert.AreNotEqual(first, second);
+                var selected = await Seed(("a", 0f), ("a", negativeZero), ("a", first), ("a", second), ("a", second));
+                singleProfile = await ProfileNeoSingleGroupedDistinct(selected,
+                    () => Run(selected, h => CosmicQueryMetadata.Value<float>(h, "stock")));
+                checks = 3;
+                Assert.AreEqual(5, ids.Count);
+            }
+            else if (mixedHttp)
             {
                 checks = await VerifyGroupedDistinctMixedNativeHttpProvider(provider, work, database, mongo, ids);
                 Assert.AreEqual(4, ids.Count);
@@ -260,8 +274,17 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 var root = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT")!);
                 var report = Path.Combine(root, "TestResults/Neo4jCurrent/" + providerName
-                    + (requiredDomains ? "-grouped-distinct-required-native.json" : mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
-                if (mixedHttp)
+                    + (singlePerformance ? "-grouped-distinct-single-profile.json" : requiredDomains ? "-grouped-distinct-required-native.json" : mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
+                if (singlePerformance)
+                {
+                    Assert.IsNotNull(singleProfile);
+                    singleProfile["provider"] = providerName;
+                    singleProfile["checks"] = checks;
+                    singleProfile["successfulHolonWrites"] = ids.Count;
+                    singleProfile["exactCleanupVerified"] = true;
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(singleProfile));
+                }
+                else if (mixedHttp)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
                         successfulHolonWrites = ids.Count, rawNativeRecords = 2, successfulHttpQueries = 2,
                         foreignOwnerRequests = 1, elapsedMilliseconds = timer.ElapsedMilliseconds,
