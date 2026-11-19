@@ -28,6 +28,8 @@ public sealed partial class CqlV1Web4NativeTests
         var sqliteProvider = provider as SqliteProvider;
         var neoProvider = provider as Neo4jOASIS;
         var previousMongo = mongoProvider?.NativeImportDatabaseName;
+        var nativeMongoDatabase = database + "_native_http";
+        var ownsMongoSource = false;
         var previousSqlite = sqliteProvider?.NativeImportConnectionString;
         var previousLabels = neoProvider?.NativeImportLabels;
         var label = "DistinctHttp_" + Guid.NewGuid().ToString("N");
@@ -42,8 +44,12 @@ public sealed partial class CqlV1Web4NativeTests
             if (mongoProvider != null)
             {
                 Assert.IsNotNull(mongo);
-                mongoProvider.NativeImportDatabaseName = database;
-                var source = mongo.GetDatabase(database).GetCollection<BsonDocument>(sourceName);
+                using (var names = await mongo.ListDatabaseNamesAsync())
+                    Assert.IsFalse((await names.ToListAsync()).Contains(nativeMongoDatabase),
+                        "Never overwrite an existing native source database.");
+                ownsMongoSource = true;
+                mongoProvider.NativeImportDatabaseName = nativeMongoDatabase;
+                var source = mongo.GetDatabase(nativeMongoDatabase).GetCollection<BsonDocument>(sourceName);
                 await source.InsertManyAsync(new[] {
                     new BsonDocument { { "_id", 1 }, { "text", "😀" } },
                     new BsonDocument { { "_id", 2 }, { "text", "abc\0def" } }
@@ -100,7 +106,18 @@ public sealed partial class CqlV1Web4NativeTests
         }
         finally
         {
-            if (mongoProvider != null) mongoProvider.NativeImportDatabaseName = previousMongo;
+            if (mongoProvider != null)
+            {
+                mongoProvider.NativeImportDatabaseName = previousMongo;
+                if (ownsMongoSource)
+                {
+                    Assert.IsNotNull(mongo);
+                    Assert.IsTrue(nativeMongoDatabase.StartsWith("cosmic_distinct_", StringComparison.Ordinal));
+                    await mongo.DropDatabaseAsync(nativeMongoDatabase);
+                    using var names = await mongo.ListDatabaseNamesAsync();
+                    Assert.IsFalse((await names.ToListAsync()).Contains(nativeMongoDatabase));
+                }
+            }
             if (sqliteProvider != null) sqliteProvider.NativeImportConnectionString = previousSqlite;
             if (neoProvider != null)
             {
