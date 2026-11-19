@@ -24,7 +24,13 @@ public sealed partial class CqlV1Web4NativeTests
     public Task GroupedDistinctPrimitiveDomainsUseRealNativeProvider(string providerName)
         => RunGroupedDistinctNativeFixture(providerName, true);
 
-    private async Task RunGroupedDistinctNativeFixture(string providerName, bool primitiveDomains, bool mixedHttp = false)
+    [DataTestMethod]
+    [DataRow("MongoDBOASIS")] [DataRow("SQLLiteDBOASIS")] [DataRow("Neo4jOASIS")]
+    public Task GroupedDistinctRequiredAndCanonicalDomainsUseRealNativeProvider(string providerName)
+        => RunGroupedDistinctNativeFixture(providerName, false, requiredDomains: true);
+
+    private async Task RunGroupedDistinctNativeFixture(string providerName, bool primitiveDomains, bool mixedHttp = false,
+        bool requiredDomains = false)
     {
         Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -95,6 +101,62 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 checks = await VerifyGroupedDistinctMixedNativeHttpProvider(provider, work, database, mongo, ids);
                 Assert.AreEqual(4, ids.Count);
+            }
+            else if (requiredDomains)
+            {
+                async Task Check<T>(string domain, (string Key, object? Value)[] values,
+                    Expression<Func<Holon, T>> selector, long unique)
+                {
+                    var selected = await Seed(values);
+                    var watch = System.Diagnostics.Stopwatch.StartNew();
+                    var result = await Run(selected, selector);
+                    queryElapsed.Add(domain, watch.ElapsedMilliseconds);
+                    Assert.IsFalse(result.IsError, result.Message + result.Exception);
+                    var row = result.Result.Providers.Single().Rows.Single();
+                    Assert.AreEqual((long)values.Length, row["Present"], domain);
+                    Assert.AreEqual(unique, row["Unique"], domain);
+                    checks++;
+                }
+                await Check("RequiredBoolean", new (string, object?)[] {
+                    ("a", true), ("a", false), ("a", false) },
+                    h => CosmicQueryMetadata.Value<bool>(h, "stock"), 2);
+                await Check("RequiredInt32", new (string, object?)[] {
+                    ("a", int.MinValue), ("a", int.MaxValue), ("a", int.MaxValue) },
+                    h => CosmicQueryMetadata.Value<int>(h, "stock"), 2);
+                await Check("RequiredInt64", new (string, object?)[] {
+                    ("a", 9007199254740992L), ("a", 9007199254740993L), ("a", 9007199254740993L) },
+                    h => CosmicQueryMetadata.Value<long>(h, "stock"), 2);
+                var negativeSingleZero = BitConverter.Int32BitsToSingle(int.MinValue);
+                var negativeDoubleZero = BitConverter.Int64BitsToDouble(long.MinValue);
+                var first = BitConverter.Int32BitsToSingle(BitConverter.SingleToInt32Bits(1f) + 1);
+                var second = BitConverter.Int32BitsToSingle(BitConverter.SingleToInt32Bits(1f) + 2);
+                Assert.AreEqual(int.MinValue, BitConverter.SingleToInt32Bits(negativeSingleZero));
+                Assert.AreEqual(long.MinValue, BitConverter.DoubleToInt64Bits(negativeDoubleZero));
+                Assert.AreNotEqual(first, second);
+                await Check("RequiredSingle", new (string, object?)[] {
+                    ("a", 0f), ("a", negativeSingleZero), ("a", first), ("a", second), ("a", second) },
+                    h => CosmicQueryMetadata.Value<float>(h, "stock"), 3);
+                await Check("RequiredDouble", new (string, object?)[] {
+                    ("a", 0d), ("a", negativeDoubleZero), ("a", double.Epsilon), ("a", -double.Epsilon),
+                    ("a", double.MaxValue), ("a", double.MaxValue), ("a", -double.MaxValue) },
+                    h => CosmicQueryMetadata.Value<double>(h, "stock"), 5);
+                var canonical = await Seed(("a", null), ("a", null));
+                async Task CheckCanonical<T>(string domain, Expression<Func<Holon, T>> selector)
+                {
+                    var watch = System.Diagnostics.Stopwatch.StartNew();
+                    var result = await Run(canonical, selector);
+                    queryElapsed.Add(domain, watch.ElapsedMilliseconds);
+                    Assert.IsFalse(result.IsError, result.Message + result.Exception);
+                    var row = result.Result.Providers.Single().Rows.Single();
+                    Assert.AreEqual(2L, row["Present"], domain);
+                    Assert.AreEqual(1L, row["Unique"], domain);
+                    checks++;
+                }
+                await CheckCanonical("CanonicalName", h => h.Name);
+                await CheckCanonical("CanonicalIsActive", h => h.IsActive);
+                await CheckCanonical("CanonicalVersion", h => h.Version);
+                Assert.AreEqual(23, ids.Count);
+                Assert.AreEqual(8, checks);
             }
             else if (primitiveDomains)
             {
@@ -198,7 +260,7 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 var root = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT")!);
                 var report = Path.Combine(root, "TestResults/Neo4jCurrent/" + providerName
-                    + (mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
+                    + (requiredDomains ? "-grouped-distinct-required-native.json" : mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
                 if (mixedHttp)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
                         successfulHolonWrites = ids.Count, rawNativeRecords = 2, successfulHttpQueries = 2,
@@ -207,6 +269,13 @@ public sealed partial class CqlV1Web4NativeTests
                         distinctCountVerified = true, havingPagingVerified = true, staleCacheReconciledVerified = true,
                         foreignOwnerRefused = true, nativeSourceUnchangedVerified = true, storedCacheUnchangedVerified = true,
                         usageSettledVerified = true, exactCleanupVerified = true }));
+                else if (requiredDomains)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        successfulHolonWrites = ids.Count, elapsedMilliseconds = timer.ElapsedMilliseconds,
+                        queryElapsedMilliseconds = queryElapsed, nativeProviderVerified = true,
+                        requiredMetadataVerified = true, canonicalStringVerified = true, canonicalBooleanVerified = true,
+                        canonicalInt32Verified = true, adjacentInt64Verified = true, adjacentSingleVerified = true,
+                        signedZeroVerified = true, subnormalDoubleVerified = true, exactCleanupVerified = true }));
                 else if (primitiveDomains)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
                         successfulHolonWrites = ids.Count, elapsedMilliseconds = timer.ElapsedMilliseconds,
