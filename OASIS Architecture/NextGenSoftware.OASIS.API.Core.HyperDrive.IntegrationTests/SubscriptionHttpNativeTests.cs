@@ -85,7 +85,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task SubscriptionAdminPlanGrantUsesActualControllerBrowserAndAudit() =>
         RunSubscriptionHttp(true, usage: true, adminRead: true, adminGrant: true);
 
-    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false, bool personalBilling = false, bool personalConsentReview = false, bool adminRead = false, bool adminGrant = false)
+    [Fact]
+    public Task SubscriptionAdminAppAccountsUseActualControllerBrowserAndCredentials() =>
+        RunSubscriptionHttp(true, usage: true, adminRead: true, adminAccounts: true);
+
+    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false, bool personalBilling = false, bool personalConsentReview = false, bool adminRead = false, bool adminGrant = false, bool adminAccounts = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -197,7 +201,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     await SeedOwnedZeroAppStatementAsync(db, index == 0 ? "owned-app-a" : "owned-app-b", accounts[index],
                         Guid.NewGuid().ToString("D"), DateTime.UtcNow.ToString("yyyy-MM"));
             }
-            if (freshAppUsage)
+            if (freshAppUsage || adminAccounts)
             {
                 Environment.SetEnvironmentVariable("OASIS_POOLED_APP_QUOTAS", "true");
                 Environment.SetEnvironmentVariable("OASIS_POOL_SHARDS", "1");
@@ -365,8 +369,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             });
             app.UseAuthorization();
             app.MapControllers();
-            var adminFixture = adminRead && !adminGrant ? await PrepareSubscriptionAdminReadsAsync(db) : null;
+            var adminFixture = adminRead && !adminGrant && !adminAccounts ? await PrepareSubscriptionAdminReadsAsync(db) : null;
             var adminGrantFixture = adminGrant ? await PrepareSubscriptionAdminGrantAsync(db, accounts) : null;
+            var adminAccountsControl = adminAccounts ? Convert.ToHexString(RandomNumberGenerator.GetBytes(32)) : null;
+            var adminAccountsFixture = adminAccounts ? await PrepareSubscriptionAdminAccountsAsync(app, db, repository,
+                adminAccountsControl!) : null;
             var personalConsentReviewControl = personalConsentReview ? Convert.ToHexString(RandomNumberGenerator.GetBytes(32)) : null;
             var consentReviewFixture = personalConsentReview ? await PreparePersonalConsentReviewBrowserAsync(app, db, api,
                 repository, accounts, personalConsentReviewControl!) : null;
@@ -426,15 +433,21 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                         personalControl,
                         personalConsentReviewControl,
                         adminExpectedSubscriptions = adminFixture?.Subscriptions,
+                        adminAccountsControl,
                         actors = accounts.Append(missingAccount).Select(actor => new { id = actor, token = Token(actor) }).ToArray()
                     });
                     Assert.False(result.RootElement.TryGetProperty("isError", out var failed) && failed.GetBoolean(),
                         result.RootElement.TryGetProperty("message", out var message) ? message.GetString() : "Browser worker failed.");
-                    Assert.True(result.RootElement.GetProperty(adminGrant ? "subscriptionAdminGrantBrowserVerified" : adminRead ? "subscriptionAdminReadsBrowserVerified" : personalConsentReview ? "personalConsentReviewBrowserVerified" : personalBilling ? "personalBillingBrowserVerified" : freshAppUsage ? "appFreshUsageBrowserVerified" : ownerPayNow ? "appPayNowBrowserVerified" : billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
+                    Assert.True(result.RootElement.GetProperty(adminAccounts ? "subscriptionAdminAccountsBrowserVerified" : adminGrant ? "subscriptionAdminGrantBrowserVerified" : adminRead ? "subscriptionAdminReadsBrowserVerified" : personalConsentReview ? "personalConsentReviewBrowserVerified" : personalBilling ? "personalBillingBrowserVerified" : freshAppUsage ? "appFreshUsageBrowserVerified" : ownerPayNow ? "appPayNowBrowserVerified" : billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
                         usage ? "subscriptionUsageBrowserVerified" : "subscriptionBrowserVerified").GetBoolean());
                     Assert.Equal(3, result.RootElement.GetProperty("actorsVerified").GetInt32());
                     Assert.True(result.RootElement.GetProperty("lateSessionResponseIgnored").GetBoolean());
                     Console.WriteLine("Subscription browser evidence: " + result.RootElement.GetRawText());
+                    if (adminAccounts)
+                    {
+                        await VerifySubscriptionAdminAccountsAsync(db, adminAccountsFixture!, accounts[0]);
+                        return;
+                    }
                     if (adminGrant)
                     {
                         await VerifySubscriptionAdminGrantAsync(db, adminGrantFixture!, accounts, missingAccount);
@@ -632,8 +645,8 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         }
         finally
         {
-            if (billingControls || freshAppUsage) Environment.SetEnvironmentVariable("OASIS_POOLED_APP_QUOTAS", previousPoolFlag);
-            if (freshAppUsage) Environment.SetEnvironmentVariable("OASIS_POOL_SHARDS", previousPoolShards);
+            if (billingControls || freshAppUsage || adminAccounts) Environment.SetEnvironmentVariable("OASIS_POOLED_APP_QUOTAS", previousPoolFlag);
+            if (freshAppUsage || adminAccounts) Environment.SetEnvironmentVariable("OASIS_POOL_SHARDS", previousPoolShards);
             if (avatarManagerField != null) avatarManagerField.SetValue(null, previousAvatarManager);
             AssemblyLoadContext.Default.Resolving -= Resolve;
             Assert.StartsWith("subscription_http_", databaseName);
