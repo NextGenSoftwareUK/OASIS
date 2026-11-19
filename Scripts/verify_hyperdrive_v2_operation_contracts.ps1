@@ -9,9 +9,14 @@ param()
 $ErrorActionPreference = 'Stop'
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $routerPath = Join-Path $repoRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/OASIS HyperDrive/OASISHyperDrive.cs'
-$testRoots = @('OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests', 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests')
+$testRoots = @(
+    'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests',
+    'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests',
+    'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests'
+)
 $router = Get-Content -Raw -LiteralPath $routerPath
-# Provider-boundary cases live across both HyperDrive test projects, not in one file.
+# Include the executable three-provider project as well as the Core test projects.
+# Its routed recovery cases observe the actual MongoDB/SQLite/Neo4j readers.
 $tests = (@($testRoots | ForEach-Object { Get-ChildItem -LiteralPath (Join-Path $repoRoot $_) -Recurse -Filter '*.cs' } |
     Where-Object { $_.FullName -notmatch '[\\/](?:bin|obj)[\\/]' } |
     ForEach-Object { Get-Content -Raw -LiteralPath $_.FullName })) -join "`n"

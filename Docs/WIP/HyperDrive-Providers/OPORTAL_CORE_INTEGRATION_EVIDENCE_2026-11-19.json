@@ -1,5 +1,5 @@
 {
-  "status": "integration_operation_contract_gap_open",
+  "status": "verified_existing_native_contract_source_graph_integration_pending",
   "run": 44607073292,
   "job": 135853508585,
   "source": "f20298c90df6cbdbe3d9892e92c261779e154607",
@@ -18,7 +18,7 @@
   "combinedGraphBehaviorAccepted": false,
   "behaviorTestsSelected": 0,
   "mongoFixtureStarted": false,
-  "notes": "First failed inventory guard retained. Scoped exact-source manifest review now passes unchanged canonical guard; route manifest also passes. Corrected build stops before API compile because merged selected-property recovery operation lacks executable provider-boundary contract in this branch. Both failed artifact lists verified empty. Review/integrate actual upstream recovery tests and required helper/provider graph, or implement real owned-backend contract; never add an unused operation literal, dummy/mock provider or weaken guard. Twelve likely upstream property/selected unit files plus three recovery candidates inspected without exact recovery references; this does not establish absence from all upstream source. Core96 remains task-branch integration only, not deployed or combined-graph accepted. Existing Core13 hydration/NFT/app acceptance remains valid at its recorded sources.",
+  "notes": "Missing contract was a source-graph/scanner integration gap, not established absence of real upstream coverage. Located executable MSTest three-provider fixture and verified original exact artifact in RAM, three matching passed cases and three nine-group/three-setup-write reports with all thirteen flags true; disposed, filesWritten0. Observer delegates actual native calls, no synthesized outcome. Existing scanner only considered two Core test projects; changed it to include actual provider integration project, retaining paired switches and missing-contract rejection. Current branch still lacks newer fixture/provider files; do not dispatch another build until matching graph integrated. Shallow local repository has no local merge base yet; GitHub comparison is being retrieved, never use unrelated-history merge/force push or overwrite concurrent module checkouts. Parent API compile/combined96 acceptance remains open; existing older source proofs retained.",
   "firstBuildReached": false,
   "artifacts": [],
   "firstFailure": "Public manager method inventory did not include upstream additions/signature change; guard stayed enabled.",
@@ -49,5 +49,31 @@
     "missingOperationContract": "ReadConditionalHolonPropertyWriteOutcome",
     "artifacts": [],
     "behaviorTestsSelected": 0
+  },
+  "recoveryEvidenceReconciliation": {
+    "status": "existing_native_evidence_verified_without_rerun",
+    "run": 44463466818,
+    "source": "e37f05ef1eae7250da20f02fb04a036da8d80859",
+    "core": "740509978416929fd04c595aa67eed2a36e6200c",
+    "artifact": 14501567065,
+    "artifactBytes": 2779,
+    "artifactSha256": "bfcf7e08332475d45b0dcbc619e7f68e896122d453cde027fb2be805cd3ba1c7",
+    "matchingPassedTrxCases": 3,
+    "providers": [
+      "MongoDBOASIS",
+      "SQLLiteDBOASIS",
+      "Neo4jOASIS"
+    ],
+    "checksPerProvider": 9,
+    "setupHolonWritesPerProvider": 3,
+    "allThirteenOutcomeRouteRefusalImmutabilityCallerCleanupMarkersTrue": true,
+    "artifactFilesWritten": 0,
+    "testProject": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests",
+    "fixtureFiles": [
+      "CqlV1Web4NativeTests.PropertyStatusRouting.cs",
+      "CqlV1Web4NativeTests.PropertyStatus.cs",
+      "CqlV1Web4NativeTests.PropertyRoutedWrites.cs"
+    ],
+    "next": "Integrate matching verified root fixture/provider source graph; scanner now includes actual executable third test project. Do not rerun/reimplement accepted cohorts or claim merged96 behavior from source740 evidence."
   }
 }
