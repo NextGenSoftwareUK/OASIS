@@ -1,0 +1,36 @@
+{
+  "status": "running-not-accepted",
+  "scope": "App ownership list and settings only; app usage/billing/whole OPORTAL incomplete",
+  "runId": 44459215365,
+  "jobId": 135341630331,
+  "revision": "0d3d434cb1bbf4d11fe20e811112fca98063f579",
+  "portalRevision": "bd86eeb44ddf3effecc2a4701c4db7c5de04ead9",
+  "portalSource": "ad7fa871bf7250a1186378c774a728a658027c87",
+  "portalDeliveryRun": 44458948259,
+  "portalDeliveryJob": 135340761507,
+  "portalDeliveryConclusion": "success",
+  "portalUsageSourceSha256": "a84c753719daca2ade2da5ccffc77511451e8180b1c090338db4f4566c0c143d",
+  "filter": "FullyQualifiedName~SubscriptionAppOwnerSettingsBrowserUsesActualControllerAndOwnedMongo",
+  "backend": "Owned CI loopback MongoDB only",
+  "nullSerialization": "Host uses production-equivalent omit-null policy; explicit inherited override values must still serialize",
+  "pending": [
+    "browser save and reload",
+    "hidden settings preservation",
+    "explicit null inheritance",
+    "non-owner denial",
+    "late session suppression",
+    "disjoint concurrent patches",
+    "invalid JSON no writes",
+    "revoked owner denial",
+    "owned cleanup"
+  ],
+  "notCovered": [
+    "app usage/billing",
+    "Stripe",
+    "email/banner",
+    "genuine Wizard",
+    "production Startup",
+    "hosted rollout",
+    "whole OPORTAL"
+  ]
+}
