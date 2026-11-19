@@ -1,5 +1,5 @@
 {
-  "status": "running-not-accepted",
+  "status": "accepted-scoped-native-controls",
   "runId": 44498421821,
   "jobId": 135471493356,
   "revision": "5fc82d77e6e6e80981eba89af4b2949c8dedd7ad",
@@ -33,5 +33,34 @@
     "whole OPORTAL/provider/HyperDrive acceptance"
   ],
   "releaseGate": "Do not promote or enable shared workers until full financial/HTTP/hosted/historical gates are verified. Preserve shared Atlas stand-down and deliveries535/543.",
-  "localOutputs": "Source and compact evidence only; no local runtime/environment/build/database/archive"
+  "localOutputs": "Source and compact evidence only; no local runtime/environment/build/database/archive",
+  "conclusion": "success",
+  "acceptedAtUtc": "2026-11-19T09:48:00Z",
+  "builds": {
+    "actualWeb4ApiErrors": 0,
+    "linkedProtocolHostErrors": 0
+  },
+  "results": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "durationSeconds": 2
+  },
+  "artifact": {
+    "id": 14516607685,
+    "bytes": 2116,
+    "sha256": "82227393fb18b2ad2d3cdf485fd3de9c108250ee1690862737ccbe70ca3241a2",
+    "members": [
+      "seal-routing-native.trx"
+    ],
+    "matchingTestOutcome": "Passed",
+    "inspection": "ZIP/TRX read and disposed in RAM; filesWritten=0"
+  },
+  "cleanup": {
+    "nativeDatabaseAbsence": true,
+    "processSettingsRestored": true,
+    "workflowMongoContainerVolumesRemoved": true,
+    "workflowMongoAbsenceMarker": true,
+    "localGeneratedOutputs": 0
+  }
 }
