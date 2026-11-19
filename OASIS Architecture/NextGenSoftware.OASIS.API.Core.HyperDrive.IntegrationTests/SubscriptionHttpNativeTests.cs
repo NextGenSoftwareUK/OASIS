@@ -105,7 +105,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task SubscriptionAdminUsageUsesActualControllersBrowserAndHistoricalTodayCounts() =>
         RunSubscriptionHttp(true, usage: true, ownerSettings: true, ownerUsage: true, adminRead: true, adminUsage: true);
 
-    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false, bool personalBilling = false, bool personalConsentReview = false, bool adminRead = false, bool adminGrant = false, bool adminAccounts = false, bool adminOutbox = false, bool dashboard = false, bool adminOwners = false, bool adminUsage = false)
+    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false, bool personalBilling = false, bool personalConsentReview = false, bool adminRead = false, bool adminGrant = false, bool adminAccounts = false, bool adminOutbox = false, bool dashboard = false, bool adminOwners = false, bool adminUsage = false, bool appAdmission = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -311,8 +311,8 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 builder.Configuration["SUBSCRIPTION_OUTBOX_MONGO_CONNECTION_STRING"] = MongoUri;
                 builder.Configuration["SUBSCRIPTION_OUTBOX_DATABASE"] = databaseName;
             }
-            var policyServiceKey = billingPolicy || freshAppUsage ? Convert.ToHexString(RandomNumberGenerator.GetBytes(32)) : null;
-            if (billingPolicy || freshAppUsage)
+            var policyServiceKey = billingPolicy || freshAppUsage || appAdmission ? Convert.ToHexString(RandomNumberGenerator.GetBytes(32)) : null;
+            if (billingPolicy || freshAppUsage || appAdmission)
             {
                 builder.Configuration["SUBSCRIPTION_SERVICE_KEY_WEB5"] = policyServiceKey;
                 builder.Services.AddSingleton(api.GetType(ns + "IAppAccountRepository", true)!, repository);
@@ -442,7 +442,8 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 }
                 if (ownerPayNow && !browser)
                 {
-                    if (billingPolicy) await VerifyAppBillingPolicyHttpAsync(http, Token, db, accounts, api, repository, policyServiceKey!);
+                    if (appAdmission) await VerifyAppCredentialAdmissionAsync(http, Token, db, accounts, repository, policyServiceKey!);
+                    else if (billingPolicy) await VerifyAppBillingPolicyHttpAsync(http, Token, db, accounts, api, repository, policyServiceKey!);
                     else if (statementRecovery) await VerifyAppStatementRecoveryHttpAsync(http, Token, db, accounts);
                     else await VerifyAppPayNowHttpAsync(http, Token, db, accounts);
                     return;

@@ -5322,3 +5322,5 @@ NEW native-only case uses actual compiled API/real Mongo/real zero-due gateway-s
 2026-11-19 — App-key admission reconciliation: source reads and compact tracked report only; no runtime/env/download/build/database/browser/archive/results created, no cleanup target removed and no reclaimed bytes claimed. Existing retained accepted artifacts were not downloaded or rerun. Concurrent worktrees and Core/STAR/WEB6 preserved.
 
 2026-11-19 - SDK app identity fix: scoped remote Core source publication and compact local test/docs only. No installed runtime, build output, database, browser, archive or downloaded result locally; no reclaimed-space claim. Isolated CI qualification pending.
+
+2026-11-19 - Public app admission negative source prepared only; no local process/env/download/database/build/artifact created. Existing isolated configuration job44595965065 still active; terminal owned CI cleanup pending. No deleted or reclaimed bytes claimed.
