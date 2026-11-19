@@ -6,6 +6,8 @@ Parent authorization qualification **accepted**: [44518694106](https://github.co
 
 Typed-role composition remains open: [44522497239](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44522497239) compiled actual WEB4 but all three native cases failed safely before their first selected mutation because the private authority read was a base Holon and the submitted contract was derived. Artifact14528363099 (2081bytes) was inspected in RAM. Core32840ab5f921de96cc4168af4860a804805e55f2 prepares declared private materialization without weakening the canonical guard; eight new Core controls and the same three native cases require qualification. This is not evidence of role corruption or accepted typed selected persistence.
 
+Scoped follow-up evidence: [44526382452](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44526382452) passed all eight materialization controls and the full SQLite typed-role case (seven groups/nine logical writes/all ten checks). The workflow failed overall: MongoDB and Neo4j rejected explicit role changes at shared membership admission before submitted logical roles were applied. Artifact14531038455 (5245bytes) was strictly inspected in RAM; only SQLite produced an accepted native report. Core8c928238831ef5e598e100dc771b23e46e4c5009 plus ordered shared role admission prepare a retry of those two failed stores and eight new guard controls. No whole-role or S05 acceptance is inferred.
+
 ## Public contract and retained evidence
 
 All paths below are relative to the Core repository unless explicitly identified as parent-repository paths. Native evidence uses the shipping MongoDBOASIS, SQLLiteDBOASIS and Neo4jOASIS classes in owned CI stores.
