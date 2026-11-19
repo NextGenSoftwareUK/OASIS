@@ -1,5 +1,5 @@
 {
-  "status": "source-prepared-not-accepted",
+  "status": "running-not-accepted",
   "filter": "FullyQualifiedName~SubscriptionAppBillingPolicyErrorsUseActualControllerAndOwnedMongo",
   "scope": "Real authenticated HTTP/service/app credentials/authoritative karma/native Mongo; explicit original financial INPUT fixtures only",
   "required": [
@@ -19,5 +19,8 @@
     "Stripe readiness/nonzero collection/webhook",
     "hosted/full portal acceptance"
   ],
-  "localGeneratedOutputs": 0
+  "localGeneratedOutputs": 0,
+  "revision": "e90f9ae2e419a5cc4fb44ec9913157c3f2598c31",
+  "runId": 44505961205,
+  "jobId": 135497544631
 }
