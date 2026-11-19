@@ -19,7 +19,9 @@ The portrait test report was independently checked: artifact14486235839,1898 byt
 
 ## What is being worked on now
 
-**Current startup correction:** candidatefeb01d6/STARff20026 is running44437470731. The native STAR client previously reported readiness from a shared boot flag even when its own managers were unavailable. Its getter now follows its initialized native API instance; quest detail/search use the same boot check as list reads. The startup call no longer passes unused example credentials. A compiled-client regression checks readiness/manager-guard consistency and independence of two clients while restoring shared state. This is pending, and is not real quest/provider/browser acceptance.
+**Current code:** STARff20026 adds the existing boot check before genuinely cold quest detail/search reads, after search-input validation, and removes unused example arguments from the boot-only helper.
+
+**Correction to the earlier diagnosis:** native OASIS intentionally reports an initialized shared runtime as ready for fresh lazy clients. The proposed STAR getter change did not establish a bug; regression44437470731 failed an incorrect expectation. Root90fafaeb restores that getter, deletes the invalid test and removes its dedicated lane. Its WEB5 compile step passed, but the failed test is not acceptance. Real quest/backend/browser checks remain open; no running deployment changed.
 
 The native subscription self-read case is **accepted for exact qualification e32819d** (Core2ae9c2 and that snapshot's STARda1cbb4). The earlier portrait case is accepted separately on6e7cb7f. Their accepted cases are not being repeated.
 
