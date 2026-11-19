@@ -26,7 +26,7 @@
   "sdkCommit": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
   "jobId": 135698915826,
   "web6Commit": "ff6244886b96ba05a59e236a1f54b621f630f5ca",
-  "status": "fifth-attempt-bulk-fill-failed-actual-keyboard-paste-prepared-not-accepted",
+  "status": "sixth-attempt-route-review-failed-scoped-manifest-corrected-not-accepted",
   "runId": 44563508388,
   "bundleCleanupVerified": true,
   "firstAttempt": {
@@ -166,5 +166,24 @@
     "filesWritten": 0,
     "nativeAndProcessCleanupVerified": true,
     "terminalCleanupVerified": true
+  },
+  "sixthAttempt": {
+    "runId": 44575892934,
+    "jobId": 135743182139,
+    "sourceCommit": "bfa828f91d16ddc70462af8817bd1f792e32c2ca",
+    "outcome": "failure-before-build",
+    "failedGate": "Verify WEB4 route-to-boundary manifest",
+    "apiBuilt": false,
+    "nativeCaseExecuted": false,
+    "artifactExists": false,
+    "mongoFixtureAbsenceVerified": true,
+    "localFilesWritten": 0
+  },
+  "manifestCorrection": {
+    "actions": 777,
+    "providerExternalActions": 665,
+    "exitCode": 0,
+    "newRoute": "POST app-accounts/{appId}/owners",
+    "disposition": "InjectedServiceRepositoryOrClient"
   }
 }
