@@ -62,5 +62,18 @@
     "sha256": "834395a75f2ac7241c008f722628d055040deb6d2a7397e675bfb40e9106b4bc",
     "bytes": 2382
   },
-  "rootCause": "UploadAvatarPortraitAsync reads full AvatarDetail then synchronously saves stale full detail for portrait-only intent; concurrent Address commit overwritten in Mongo and Neo. Shipping fix not accepted."
+  "rootCause": "UploadAvatarPortraitAsync reads full AvatarDetail then synchronously saves stale full detail for portrait-only intent; concurrent Address commit overwritten in Mongo and Neo. Shipping fix not accepted.",
+  "fixQualification": {
+    "selectedCases": 3,
+    "sharedServicesTouched": false,
+    "shippingInvariant": "Portrait-only atomic field mutation using pinned serving provider and captured revisions; explicit conflict on concurrent edit",
+    "priorEvidenceRetained": true,
+    "run": 44640810026,
+    "status": "in_progress",
+    "accepted": false,
+    "core": "a11b29123f2a8dbad9dcd6cbb7af0bc9130b143a",
+    "localOutputsCreated": false,
+    "reason": "Both failed providers plus materially changed SQLite manager path",
+    "source": "954b48e4fd30150e73024edfae56078b72c15243"
+  }
 }
