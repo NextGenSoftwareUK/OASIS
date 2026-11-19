@@ -28,13 +28,20 @@ public sealed class ConditionalHolonPlan : IAtomicHolonWritePlan
     public bool SaveChildren {get;}
     public bool Recursive {get;}
     public int MaxChildDepth {get;}
-    private ConditionalHolonPlan(ConditionalHolonWriteRequest request,ProviderType authority,HolonReplicationEnrollment enrollment=null)
+    public ConditionalHolonPropertyWriteRequest PropertyWrite {get;}
+    private ConditionalHolonPlan(ConditionalHolonWriteRequest request,ProviderType authority,HolonReplicationEnrollment enrollment=null,
+        ConditionalHolonPropertyWriteRequest propertyWrite=null)
     {
         ArgumentNullException.ThrowIfNull(request);
+        if(propertyWrite!=null && !ReferenceEquals(propertyWrite.WriteRequest,request))
+            throw new ArgumentException("Selected fields belong to another conditional request.");
+        PropertyWrite=propertyWrite;
         if(request.Write.ReplicationEnrollment!=null && enrollment==null)
             throw new ArgumentException("This conditional transaction owner does not support atomic replication enrollment.");
         if(enrollment!=null && request.Write.ReplicationEnrollment is { } embedded
-            && (embedded.SourceId!=enrollment.SourceId || !embedded.TargetIds.SequenceEqual(enrollment.TargetIds)))
+            && (embedded.SourceId!=enrollment.SourceId || !embedded.TargetIds.SequenceEqual(enrollment.TargetIds)
+                || embedded.SourceStorageIdentity?.BindingFingerprint!=enrollment.SourceStorageIdentity?.BindingFingerprint
+                || embedded.NativeRoutes.Count!=enrollment.NativeRoutes.Count))
             throw new ArgumentException("Explicit and embedded replication enrollment differ.");
         ReplicationEnrollment=enrollment;SaveChildren=request.SaveChildren;Recursive=request.Recursive;MaxChildDepth=request.MaxChildDepth;
         OperationId=request.Write.OperationId;
@@ -92,6 +99,21 @@ public sealed class ConditionalHolonPlan : IAtomicHolonWritePlan
                 .Select(pair=>JObject.Parse(HolonChildRoleManifestJson.Serialize(pair.Value))));
         }
         if(enrollment!=null)content["replication"]=new JObject{["format"]=1,["source"]=enrollment.SourceId,["targets"]=new JArray(enrollment.TargetIds)};
+        if(enrollment?.SourceStorageIdentity!=null)
+        {
+            content["replication"]["format"]=2;
+            content["replication"]["sourceStorageBinding"]=enrollment.SourceStorageIdentity.BindingFingerprint;
+        }
+        if(enrollment?.NativeRoutes.Count > 0)
+        {
+            content["replication"]["format"]=3;
+            content["replication"]["routes"]=JObject.Parse(HolonReplicationRouteDescriptors.Capture(enrollment.NativeRoutes));
+        }
+        if(propertyWrite!=null)
+        {
+            content["format"]=7;
+            content["propertyWrites"]=JObject.Parse(propertyWrite.CanonicalSelectionJson);
+        }
         Fingerprint=ComputeFingerprint(content);
     }
     /// <summary>Exact canonical value binding for an already captured logical intent. The caller supplies its domain/version.</summary>
@@ -101,6 +123,13 @@ public sealed class ConditionalHolonPlan : IAtomicHolonWritePlan
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Canonical(content).ToString(Formatting.None))));
     }
     public static ConditionalHolonPlan Create(ConditionalHolonWriteRequest request,ProviderType authority)=>new(request,authority);
+    /// <summary>Bind explicit scalar selection to the same immutable graph, actor, authority, revisions and enrollment.
+    /// Native owners must apply it to their authoritative before-images; normal Create never infers selection.</summary>
+    public static ConditionalHolonPlan CreatePropertyWrite(ConditionalHolonPropertyWriteRequest request,ProviderType authority)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        return new(request.WriteRequest,authority,request.WriteRequest.Write.ReplicationEnrollment,request);
+    }
     public static ConditionalHolonPlan CreateReplicating(ConditionalHolonWriteRequest request,ProviderType authority,HolonReplicationEnrollment enrollment)
         =>new(request,authority,enrollment ?? throw new ArgumentNullException(nameof(enrollment)));
     private static JToken Canonical(JToken value)
