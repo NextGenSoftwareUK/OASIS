@@ -255,28 +255,26 @@ jobs:
             dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SqliteNativeDataImportTests|FullyQualifiedName~AvatarProfileRegistryNativeTests'
             if ($LASTEXITCODE) { throw 'SQLite virtual Holon qualification failed.' }
           }
-      - name: Verify grouped distinct Core and mixed contracts
+      - name: Verify grouped distinct WEB4 wire contracts
         if: ${{ inputs.property_tracking_only }}
         shell: pwsh
         run: |
-          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-grouped-distinct-core-ci -Operation {
-            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicGroupedDistinctContractTests|FullyQualifiedName~CosmicMixedNumericAggregateTests.GroupedDistinct' --logger 'trx;LogFileName=grouped-distinct-core.trx' --results-directory TestResults/PropertySelection
-            if ($LASTEXITCODE) { throw 'Grouped distinct Core/mixed contract verification failed.' }
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-grouped-distinct-wire-ci -Operation {
+            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlGroupedDistinctV1CompilerTests' --logger 'trx;LogFileName=grouped-distinct-core.trx' --results-directory TestResults/PropertySelection
+            if ($LASTEXITCODE) { throw 'Grouped distinct WEB4 wire verification failed.' }
             [xml]$core = Get-Content TestResults/PropertySelection/grouped-distinct-core.trx
             $counts = $core.TestRun.ResultSummary.Counters
-            if ([int]$counts.total -ne 12 -or [int]$counts.passed -ne 12 -or [int]$counts.notExecuted -ne 0) {
-              throw 'Exactly12 NEW grouped distinct controls must execute and pass.'
+            if ([int]$counts.total -ne 11 -or [int]$counts.passed -ne 11 -or [int]$counts.notExecuted -ne 0) {
+              throw 'Exactly11 NEW grouped distinct wire controls must execute and pass.'
             }
             $methods = @($core.TestRun.TestDefinitions.UnitTest)
-            $contracts = @($methods | Where-Object { $_.TestMethod.className -like '*CosmicGroupedDistinctContractTests' })
-            $mixed = @($methods | Where-Object { $_.TestMethod.className -like '*CosmicMixedNumericAggregateTests' -and $_.TestMethod.name -like 'GroupedDistinct*' })
-            if ($methods.Count -ne 12 -or $contracts.Count -ne 4 -or $mixed.Count -ne 8) {
-              throw 'Only four new contract and eight new mixed distinct controls may satisfy this qualification.'
+            if ($methods.Count -ne 11 -or @($methods | Where-Object { $_.TestMethod.className -notlike '*CqlGroupedDistinctV1CompilerTests' }).Count) {
+              throw 'Only the new grouped distinct WEB4 wire controls may satisfy this qualification.'
             }
             $ids = @($methods | ForEach-Object { $_.id })
             $results = @($core.TestRun.Results.UnitTestResult)
-            if ($results.Count -ne 12 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
-              throw 'Grouped distinct acceptance cannot inherit unrelated or failed results.'
+            if ($results.Count -ne 11 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
+              throw 'Wire acceptance cannot inherit unrelated or failed results.'
             }
           }
 

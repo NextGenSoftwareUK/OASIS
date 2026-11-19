@@ -63,7 +63,10 @@ public partial class Neo4jOASIS
             input.Add(cell.State + " AS " + name + "s");
             input.Add(cell.Value + " AS " + name + "v");
             bad.Add(Invalid(column.Selector, name + "s"));
-            reductions.Add("sum(CASE WHEN " + name + "s=2 THEN 1 ELSE 0 END) AS " + name + "n");
+            var selectedCount = column.Operation == CosmicScalarOperation.LongCount && column.Distinct
+                ? "count(DISTINCT CASE WHEN " + name + "s=2 THEN " + name + "v ELSE null END)"
+                : "sum(CASE WHEN " + name + "s=2 THEN 1 ELSE 0 END)";
+            reductions.Add(selectedCount + " AS " + name + "n");
             var value = "CASE WHEN " + name + "s=2 THEN " + name + "v ELSE 0 END";
             if (column.Operation == CosmicScalarOperation.LongCount)
                 aggregatePackets.Add("{present:" + name + "n}");
