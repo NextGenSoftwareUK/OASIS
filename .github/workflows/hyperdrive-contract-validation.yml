@@ -202,6 +202,15 @@ jobs:
             if ($LASTEXITCODE) { throw 'API qualification build failed.' }
           }
 
+      - name: Build updated linked ledger host without repeating accepted tests
+        if: ${{ inputs.native_seal && inputs.native_test_filter == 'FullyQualifiedName~AppRequestChargesUseImmutableConsentExactCapsAndSeparatePayers' }}
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner app-request-charge-protocol-build-ci -Operation {
+            dotnet build 'ONODE/Tests/SubscriptionLedger.ProtocolTests/SubscriptionLedger.ProtocolTests.csproj' --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE) { throw 'Updated linked ledger host build failed.' }
+          }
+
       - name: Verify the changed request timing middleware
         if: ${{ inputs.request_timing_tests }}
         shell: pwsh

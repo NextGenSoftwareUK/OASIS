@@ -36,6 +36,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public string PooledAppPlanId { get; set; }
         /// <summary>Immutable routing input captured at authorization; never use a later node setting to release this reservation.</summary>
         public int? PoolShardCountAtAuthorization { get; set; }
+        public AppRequestChargeTerms AppRequestChargeTerms { get; set; }
+        public string AppBillingStatementId { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal ReservedAppRequestOverageUsd { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal SettledAppRequestOverageUsd { get; set; }
         public string OperationId { get; set; }
         public string UserId { get; set; }
         public string ConsumingService { get; set; }
@@ -89,6 +93,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public decimal SettledCostUsd { get; set; }
         [BsonRepresentation(BsonType.Decimal128)] public decimal ReservedOverageUsd { get; set; }
         [BsonRepresentation(BsonType.Decimal128)] public decimal SettledOverageUsd { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal ReservedAppRequestOverageUsd { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal SettledAppRequestOverageUsd { get; set; }
         public DateTime UpdatedAtUtc { get; set; }
     }
 
@@ -106,6 +112,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         [BsonRepresentation(BsonType.Decimal128)] public decimal SettledCostUsd { get; set; }
         [BsonRepresentation(BsonType.Decimal128)] public decimal ReservedOverageUsd { get; set; }
         [BsonRepresentation(BsonType.Decimal128)] public decimal SettledOverageUsd { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal ReservedAppRequestOverageUsd { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal SettledAppRequestOverageUsd { get; set; }
         public DateTime UpdatedAtUtc { get; set; }
     }
 
@@ -129,6 +137,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         [BsonRepresentation(BsonType.Decimal128)] public decimal SettledCostDeltaUsd { get; set; }
         [BsonRepresentation(BsonType.Decimal128)] public decimal ReservedOverageDeltaUsd { get; set; }
         [BsonRepresentation(BsonType.Decimal128)] public decimal SettledOverageDeltaUsd { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal ReservedAppRequestOverageDeltaUsd { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal SettledAppRequestOverageDeltaUsd { get; set; }
         [BsonRepresentation(BsonType.Decimal128)] public decimal OverageWriteOffDeltaUsd { get; set; }
         public string PayloadJson { get; set; }
         public string ExternalReference { get; set; }
@@ -147,6 +157,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public string Reason { get; set; }
         public string EvidenceReference { get; set; }
         public decimal CostDeltaUsd { get; set; }
+        public decimal AppRequestChargeDeltaUsd { get; set; }
         public long UnitsDelta { get; set; }
     }
 

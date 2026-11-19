@@ -66,6 +66,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 MonthlyRequests = month.Sum(b => b.Requests), DailyCalls = day.Sum(b => b.Requests), DailyTokens = day.Sum(b => b.SettledUnits),
                 ReservedUnits = day.Sum(b => b.ReservedUnits), ReservedCostUsd = month.Sum(b => b.ReservedCostUsd), SettledCostUsd = month.Sum(b => b.SettledCostUsd),
                 ReservedOverageUsd = month.Sum(b => b.ReservedOverageUsd), SettledOverageUsd = month.Sum(b => b.SettledOverageUsd),
+                ReservedAppRequestOverageUsd = month.Sum(b => b.ReservedAppRequestOverageUsd), SettledAppRequestOverageUsd = month.Sum(b => b.SettledAppRequestOverageUsd),
                 UpdatedAtUtc = all.Count == 0 ? time : all.Max(b => b.UpdatedAtUtc)
             };
         }
@@ -76,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         /// Emits an 80% and a 100% threshold metric when this request is the one that crosses it.
         /// No-op for requests without a pooled app, so every other flow is unchanged.
         /// </summary>
-        private async Task EnsurePoolAdmissionAsync(IClientSessionHandle session, SubscriptionUsageEvent usageEvent, int karma, CancellationToken ct)
+        private async Task EnsurePoolAdmissionAsync(IClientSessionHandle session, SubscriptionUsageEvent usageEvent, SubscriptionRecord consumingSubscriber, CancellationToken ct)
         {
             if (usageEvent.PooledAppId == null) return;
             // Every pooled admission must share a write with other admissions and app mutations.
@@ -96,9 +97,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 cancellationToken: ct);
             var pool = await LoadPoolAggregateAsync(session, usageEvent.PooledAppId, usageEvent.AuthorizedAtUtc, ct);
             var policy = _policyProvider.GetPolicy(usageEvent.PooledAppPlanId, 0);
+            bool appPaidRequest = policy.MonthlyRequestLimit >= 0 && pool.MonthlyRequests >= policy.MonthlyRequestLimit &&
+                account.Payg?.Enabled == true && AppBillingConsent.NodeEnabled;
+            var admissionPolicy = appPaidRequest ? new SubscriptionUsagePolicy { MonthlyRequestLimit = -1,
+                DailyCallLimit = policy.DailyCallLimit, DailyTokenLimit = policy.DailyTokenLimit, MonthlyBudgetUsd = policy.MonthlyBudgetUsd } : policy;
             try
             {
-                SubscriptionUsagePolicyEvaluator.EnsureAuthorized(policy, pool,
+                SubscriptionUsagePolicyEvaluator.EnsureAuthorized(admissionPolicy, pool,
                     usageEvent.MeterCategory == "ai.tokens" ? usageEvent.RequestedUnits : 0, usageEvent.ReservedCostUsd);
             }
             catch (SubscriptionUsageLimitException ex)
@@ -106,6 +111,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 SubscriptionLedgerMetrics.PoolThreshold.Add(1, new KeyValuePair<string, object>("app_id", usageEvent.PooledAppId),
                     new KeyValuePair<string, object>("threshold", "100"), new KeyValuePair<string, object>("limit", "denied"));
                 throw new SubscriptionUsageLimitException("APP_" + ex.Code, "The app's shared quota is used up: " + ex.Message, ex.StatusCode);
+            }
+            if (appPaidRequest)
+            {
+                var terms = await BindAppChargeAsync(session, account, consumingSubscriber, ct);
+                if (checked(pool.ReservedAppRequestOverageUsd + pool.SettledAppRequestOverageUsd + terms.RatePerRequestUsd) > terms.MonthlyCapUsd)
+                    throw new SubscriptionUsageLimitException("APP_OVERAGE_SPENDING_CAP_EXCEEDED", "This reservation would exceed the app's agreed USD monthly cap.", 402);
+                usageEvent.AppRequestChargeTerms = terms;
+                usageEvent.ReservedAppRequestOverageUsd = terms.RatePerRequestUsd;
             }
             EmitThresholdCrossings(usageEvent.PooledAppId, "monthly_requests", pool.MonthlyRequests, policy.MonthlyRequestLimit);
             EmitThresholdCrossings(usageEvent.PooledAppId, "daily_calls", pool.DailyCalls, policy.DailyCallLimit);

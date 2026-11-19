@@ -51,6 +51,9 @@ public interface IPaidOverageStatementStore
 
 public sealed class PaidOverageAdjustment
 {
+    public string Scope {get;set;}
+    public string SourceStatementId {get;set;}
+    public AppRequestChargeTerms AppRequestChargeTerms {get;set;}
     [BsonId] public string Id {get;set;}
     public string UserId {get;set;}
     public string Month {get;set;}

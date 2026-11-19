@@ -140,7 +140,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             if (request.Enabled) request.ValidateOptIn(prices);
             return TransactAsync(async (session, ct) =>
             {
-                var now = _time.GetUtcNow().UtcDateTime;
+                var now = AppBillingConsent.CanonicalUtc(_time.GetUtcNow().UtcDateTime);
                 var account = await AppAccounts.Find(session, x => x.AppId == appId).FirstOrDefaultAsync(ct)
                     ?? throw new KeyNotFoundException("The app account was not found.");
                 var owner = account.OwnerAvatarIds?.Contains(actor, StringComparer.OrdinalIgnoreCase) ?? false;
@@ -153,7 +153,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                     AppBillingConsent.RequireEligible(account);
                     if (!prices.HasPrice(account.PlanId)) throw new SubscriptionUsageConflictException("No reviewed app price is available for this plan.");
                     if (verifiedPayer == null || verifiedPayer.AvatarId != actor || verifiedPayer.VerifiedAtUtc.Kind != DateTimeKind.Utc ||
-                        verifiedPayer.VerifiedAtUtc > now || now - verifiedPayer.VerifiedAtUtc > TimeSpan.FromMinutes(5))
+                        verifiedPayer.VerifiedAtUtc.Ticks % TimeSpan.TicksPerMillisecond != 0 || verifiedPayer.VerifiedAtUtc > now || now - verifiedPayer.VerifiedAtUtc > TimeSpan.FromMinutes(5))
                         throw new SubscriptionUsageConflictException("Fresh server-side payment verification is required.");
                     var payer = await Subscriptions.Find(session, x => x.UserId == actor).FirstOrDefaultAsync(ct);
                     AppBillingConsent.RequirePaidPayer(payer, now);
@@ -181,7 +181,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 await AppAccounts.ReplaceOneAsync(session, x => x.AppId == appId, account, cancellationToken: ct);
                 await BillingAudit.InsertOneAsync(session, new BsonDocument
                 {
-                    { "_id", Guid.NewGuid().ToString() }, { "Kind", "app-payg-settings-changed" }, { "UserId", "app:" + appId }, { "OccurredAtUtc", now },
+                    { "_id", request.Enabled ? AppConsentAuditId(next.ConsentId) : Guid.NewGuid().ToString() }, { "Kind", "app-payg-settings-changed" }, { "UserId", "app:" + appId }, { "OccurredAtUtc", now },
                     { "PayloadJson", JsonSerializer.Serialize(new { AppId = appId, Previous = before, Settings = next, Actor = actor }) }
                 }, cancellationToken: ct);
                 return account.Redacted();

@@ -83,11 +83,20 @@ public sealed record AppBillingPayerSnapshot(string AvatarId, string PlanId, str
     string SubscriptionId, long AuthorizationVersion, DateTime VerifiedAtUtc)
 {
     public static AppBillingPayerSnapshot AfterVerification(SubscriptionRecord payer, DateTime verifiedAtUtc) =>
-        new(payer.UserId, payer.PlanId, payer.StripeCustomerId, payer.StripeSubscriptionId, payer.AuthorizationVersion, verifiedAtUtc);
+        new(payer.UserId, payer.PlanId, payer.StripeCustomerId, payer.StripeSubscriptionId, payer.AuthorizationVersion, AppBillingConsent.CanonicalUtc(verifiedAtUtc));
 }
 
 public static class AppBillingConsent
 {
+    public static DateTime CanonicalUtc(DateTime time)
+    {
+        if (time.Kind != DateTimeKind.Utc) throw new ArgumentException("A UTC billing timestamp is required.");
+        return DateTimeOffset.FromUnixTimeMilliseconds(new DateTimeOffset(time).ToUnixTimeMilliseconds()).UtcDateTime;
+    }
+
+    public static bool NodeEnabled => OASISDNAManager.OASISDNA?.OASIS?.UsageVisibility?.AppPayAsYouGoEnabled
+        ?? new UsageVisibilitySettings().AppPayAsYouGoEnabled;
+
     public static bool HasCurrentTerms(AppPaygSettings settings, string plan, AppOveragePrices prices) =>
         settings?.ConsentSchemaVersion == 1 && Guid.TryParseExact(settings.ConsentId, "D", out _) &&
         settings.PricingVersion == prices.Version && settings.PricingSha256 == prices.PricingSha256 &&
@@ -110,15 +119,13 @@ public static class AppBillingConsent
 
     public static void RequireEligible(AppAccountRecord app)
     {
-        var enabled = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.UsageVisibility?.AppPayAsYouGoEnabled
-            ?? new UsageVisibilitySettings().AppPayAsYouGoEnabled;
-        var reason = UnavailableReason(app, enabled);
+        var reason = UnavailableReason(app, NodeEnabled);
         if (reason != null) throw new SubscriptionUsageConflictException(reason);
     }
 
     public static void RequirePaidPayer(SubscriptionRecord payer, DateTime now)
     {
-        if (payer == null || payer.PlanId == "free" || payer.Status is not ("active" or "trialing") ||
+        if (payer == null || payer.PlanId is not ("bronze" or "silver" or "gold" or "enterprise") || payer.Status is not ("active" or "trialing") ||
             payer.CurrentPeriodEnd.HasValue && payer.CurrentPeriodEnd.Value <= now || payer.OveragePaymentBlocked ||
             string.IsNullOrWhiteSpace(payer.StripeCustomerId) || string.IsNullOrWhiteSpace(payer.StripeSubscriptionId))
             throw new SubscriptionUsageConflictException("An active paid subscription with a verified payment method and no blocked overage payment is required.");
