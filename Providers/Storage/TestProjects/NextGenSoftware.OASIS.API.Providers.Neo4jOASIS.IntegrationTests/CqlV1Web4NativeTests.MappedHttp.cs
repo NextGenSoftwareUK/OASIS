@@ -61,7 +61,8 @@ public sealed partial class CqlV1Web4NativeTests
     }
 
     internal static async Task VerifyMappedNativeHttpAsync(IOASISStorageProvider provider,
-        VirtualHolonMapping mapping, VirtualHolonRead original)
+        VirtualHolonMapping mapping, VirtualHolonRead original, bool groupedDistinctOnly = false,
+        Action<Guid>? createdObserver = null)
     {
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -86,7 +87,7 @@ public sealed partial class CqlV1Web4NativeTests
         {
             Id = Guid.NewGuid(), Version = 1, Name = "owned longer record",
             CreatedByAvatarId = mapping.OwnerAvatarId, IsPublic = false, IsActive = true,
-            MetaData = new() { ["textAlias"] = "important" }
+            MetaData = new() { ["textAlias"] = groupedDistinctOnly ? "😀" : "important" }
         };
         var created = new List<Guid>();
         var authority = new Authority();
@@ -101,6 +102,7 @@ public sealed partial class CqlV1Web4NativeTests
                 var saved = await provider.SaveHolonAsync(row);
                 Assert.IsFalse(saved.IsError, saved.Message + saved.Exception);
                 created.Add(row.Id);
+                createdObserver?.Invoke(row.Id);
             }
             await outbox.InitializeAsync(CancellationToken.None); initialized = true;
             var secret = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
@@ -140,6 +142,101 @@ public sealed partial class CqlV1Web4NativeTests
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearer);
                 request.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("D"));
                 return await http.SendAsync(request);
+            }
+            if (groupedDistinctOnly)
+            {
+                body.Columns = new[] {
+                    new CqlProjectionV1Column { Field = "Id", Alias = "Id" },
+                    new CqlProjectionV1Column { MetadataPath = new[] { "textAlias" },
+                        ValueType = "String", Nullable = true, Alias = "Text" }
+                };
+                body.ResultOperation = CqlProjectionV1ResultOperation.Group;
+                body.Skip = 0;
+                body.Take = 1;
+                body.Grouping = new CqlMixedGroupingV1Request
+                {
+                    Keys = new[] { new CqlProjectionV1Column { Alias = "Text",
+                        MetadataPath = new[] { "textAlias" }, ValueType = "String", Nullable = true } },
+                    Columns = new[]
+                    {
+                        new CqlGroupedV1Column { Alias = "Text", KeyAlias = "Text" },
+                        new CqlGroupedV1Column { Alias = "Rows", Operation = "LongCount" },
+                        new CqlGroupedV1Column { Alias = "Present", Operation = "LongCount",
+                            Selection = new CqlScalarV1Selection { MetadataPath = new[] { "textAlias" },
+                                ValueType = "String", Nullable = true } },
+                        new CqlGroupedV1Column { Alias = "Unique", Operation = "LongCount", Distinct = true,
+                            Selection = new CqlScalarV1Selection { MetadataPath = new[] { "textAlias" },
+                                ValueType = "String", Nullable = true } }
+                    },
+                    ResultOrder = new[] { new CqlGroupedV1Ordering { Alias = "Present", Descending = true } }
+                };
+                async Task<JsonElement> SuccessfulRows(HttpResponseMessage response)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, content);
+                    Assert.AreEqual("settled", response.Headers.GetValues("X-OASIS-Usage-Settlement").Single());
+                    using var parsed = JsonDocument.Parse(content);
+                    var result = parsed.RootElement.GetProperty("result");
+                    Assert.AreEqual("cql-grouped-v1", result.GetProperty("version").GetString());
+                    Assert.AreEqual(mapping.Id.ToString("D"), result.GetProperty("virtualMappingId").GetString());
+                    Assert.IsFalse(result.GetProperty("canPrepareSnapshot").GetBoolean());
+                    var operation = await outbox.GetAsync(
+                        response.Headers.GetValues("X-OASIS-Operation-Id").Single(), CancellationToken.None);
+                    Assert.AreEqual("settled", operation.State);
+                    Assert.AreEqual(3, operation.ProviderAttempts.Count);
+                    Assert.AreEqual(3, operation.Receipts.Count);
+                    Assert.AreEqual(0.006m, authority.Settlements[operation.Id].ActualCostUsd);
+                    return result.GetProperty("rows").Clone();
+                }
+                using (var response = await Send(ownerToken))
+                {
+                    var rows = (await SuccessfulRows(response)).EnumerateArray().ToArray();
+                    Assert.AreEqual(2, rows.Length);
+                    Assert.AreEqual("😀", rows[0][0].GetString());
+                    Assert.AreEqual("2", rows[0][1].GetString());
+                    Assert.AreEqual("2", rows[0][2].GetString());
+                    Assert.AreEqual("1", rows[0][3].GetString());
+                    Assert.AreEqual("xy", rows[1][0].GetString());
+                    Assert.AreEqual("1", rows[1][1].GetString());
+                    Assert.AreEqual("1", rows[1][2].GetString());
+                    Assert.AreEqual("1", rows[1][3].GetString());
+                    Assert.IsFalse(rows.Any(row => row[0].GetString() == "zz"),
+                        "The live native winner must remove the stale materialized group key.");
+                }
+                body.Grouping.ResultFilters = new[] {
+                    new CqlGroupedV1Filter { Alias = "Present", Operator = CqlV1Operator.Equal,
+                        Value = JsonSerializer.SerializeToElement("2") },
+                    new CqlGroupedV1Filter { Alias = "Unique", Operator = CqlV1Operator.Equal,
+                        Value = JsonSerializer.SerializeToElement("1") }
+                };
+                body.Grouping.ResultTake = 1;
+                using (var response = await Send(ownerToken))
+                {
+                    var row = (await SuccessfulRows(response)).EnumerateArray().Single();
+                    Assert.AreEqual("😀", row[0].GetString());
+                    Assert.AreEqual("2", row[1].GetString());
+                    Assert.AreEqual("2", row[2].GetString());
+                    Assert.AreEqual("1", row[3].GetString());
+                }
+                using (var response = await Send(otherToken))
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode, content);
+                    var operation = await outbox.GetAsync(
+                        response.Headers.GetValues("X-OASIS-Operation-Id").Single(), CancellationToken.None);
+                    Assert.AreEqual("settled", operation.State);
+                    Assert.AreEqual(2, operation.ProviderAttempts.Count);
+                    Assert.AreEqual(2, operation.Receipts.Count);
+                }
+                Assert.AreEqual(3, authority.Settlements.Count);
+                var preserved = await provider.LoadHolonAsync(snapshot.Id);
+                Assert.IsFalse(preserved.IsError, preserved.Message + preserved.Exception);
+                Assert.IsNotNull(preserved.Result);
+                Assert.AreEqual("zz", preserved.Result.MetaData["textAlias"]?.ToString(),
+                    "Read-only reconciliation must not rewrite the stored cached copy.");
+
+                await app.StopAsync();
+                return;
             }
             using (var response = await Send(ownerToken))
             {
