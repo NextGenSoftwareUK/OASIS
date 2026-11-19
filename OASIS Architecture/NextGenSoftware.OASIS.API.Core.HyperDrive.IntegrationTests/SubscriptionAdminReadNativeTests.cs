@@ -23,12 +23,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         return new(count, await SubscriptionAdminFinancialStateAsync(db));
     }
 
-    private static async Task<string> SubscriptionAdminFinancialStateAsync(IMongoDatabase db)
+    private static async Task<string> SubscriptionAdminFinancialStateAsync(IMongoDatabase db, params string[] excluded)
     {
         var rows = new List<string>();
         foreach (var name in new[] { "subscription_records", "subscription_orders", "subscription_usage_events",
             "subscription_usage_audit", "subscription_usage_buckets", "subscription_billing_audit",
-            "subscription_overage_statements", "subscription_overage_adjustments" })
+            "subscription_overage_statements", "subscription_overage_adjustments" }.Except(excluded))
             rows.Add(name + ":" + new BsonArray(await db.GetCollection<BsonDocument>(name)
                 .Find(FilterDefinition<BsonDocument>.Empty).Sort(new BsonDocument("_id", 1)).ToListAsync()).ToJson());
         return string.Join("|", rows);
