@@ -1,0 +1,23 @@
+{
+  "status": "source-prepared-not-accepted",
+  "filter": "FullyQualifiedName~SubscriptionAppBillingPolicyErrorsUseActualControllerAndOwnedMongo",
+  "scope": "Real authenticated HTTP/service/app credentials/authoritative karma/native Mongo; explicit original financial INPUT fixtures only",
+  "required": [
+    "missing protected consent402",
+    "changed original consent409",
+    "unavailable separate payer402",
+    "empty consent GUID402",
+    "empty payer GUID402",
+    "operation identity preserved",
+    "no private evidence",
+    "no collection mutation",
+    "process/provider/database/container cleanup"
+  ],
+  "notCovered": [
+    "SDK/browser code response",
+    "positive activation/admission",
+    "Stripe readiness/nonzero collection/webhook",
+    "hosted/full portal acceptance"
+  ],
+  "localGeneratedOutputs": 0
+}

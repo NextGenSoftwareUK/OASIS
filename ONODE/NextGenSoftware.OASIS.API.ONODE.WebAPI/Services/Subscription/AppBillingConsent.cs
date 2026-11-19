@@ -98,7 +98,7 @@ public static class AppBillingConsent
         ?? new UsageVisibilitySettings().AppPayAsYouGoEnabled;
 
     public static bool HasCurrentTerms(AppPaygSettings settings, string plan, AppOveragePrices prices) =>
-        settings?.ConsentSchemaVersion == 1 && Guid.TryParseExact(settings.ConsentId, "D", out _) &&
+        settings?.ConsentSchemaVersion == 1 && Guid.TryParseExact(settings.ConsentId, "D", out var consentId) && consentId != Guid.Empty &&
         settings.PricingVersion == prices.Version && settings.PricingSha256 == prices.PricingSha256 &&
         settings.Currency == prices.Currency && prices.HasPrice(plan) && settings.RatePerRequestUsd == prices.Rate(plan) &&
         settings.MonthlyCapUsd >= 0.5m && settings.MonthlyCapUsd <= 1_000_000m && decimal.Round(settings.MonthlyCapUsd, 2) == settings.MonthlyCapUsd &&
@@ -106,7 +106,7 @@ public static class AppBillingConsent
         settings.PaymentVerifiedAtUtc.Value <= settings.ConsentAtUtc.Value &&
         settings.ConsentAtUtc.Value - settings.PaymentVerifiedAtUtc.Value <= TimeSpan.FromMinutes(5) &&
         settings.BillingAuthorizationVersion > 0 && settings.ConsentBy == settings.BillingAvatarId &&
-        Guid.TryParseExact(settings.BillingAvatarId, "D", out _);
+        Guid.TryParseExact(settings.BillingAvatarId, "D", out var payerId) && payerId != Guid.Empty;
 
     public static string UnavailableReason(AppAccountRecord app, bool nodeEnabled)
     {
@@ -123,12 +123,16 @@ public static class AppBillingConsent
         if (reason != null) throw new SubscriptionUsageConflictException(reason);
     }
 
-    public static void RequirePaidPayer(SubscriptionRecord payer, DateTime now)
+    public static void RequirePaidPayer(SubscriptionRecord payer, DateTime now, bool authorizingUsage = false)
     {
         if (payer == null || payer.PlanId is not ("bronze" or "silver" or "gold" or "enterprise") || payer.Status is not ("active" or "trialing") ||
             payer.CurrentPeriodEnd.HasValue && payer.CurrentPeriodEnd.Value <= now || payer.OveragePaymentBlocked ||
             string.IsNullOrWhiteSpace(payer.StripeCustomerId) || string.IsNullOrWhiteSpace(payer.StripeSubscriptionId))
-            throw new SubscriptionUsageConflictException("An active paid subscription with a verified payment method and no blocked overage payment is required.");
+        {
+            const string message = "An active paid subscription with a verified payment method and no blocked overage payment is required.";
+            if (authorizingUsage) throw new SubscriptionUsageLimitException("APP_BILLING_PAYER_UNAVAILABLE", message, 402);
+            throw new SubscriptionUsageConflictException(message);
+        }
     }
 }
 

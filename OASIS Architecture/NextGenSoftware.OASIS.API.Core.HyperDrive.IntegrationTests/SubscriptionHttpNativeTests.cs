@@ -61,7 +61,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task SubscriptionAppPayNowBrowserUsesActualControllerAndOwnedMongo() =>
         RunSubscriptionHttp(true, usage: true, ownerSettings: true, ownerBilling: true, ownerPayNow: true);
 
-    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false)
+    [Fact]
+    public Task SubscriptionAppBillingPolicyErrorsUseActualControllerAndOwnedMongo() =>
+        RunSubscriptionHttp(false, usage: true, ownerSettings: true, ownerPayNow: true, billingPolicy: true);
+
+    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -247,6 +251,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Development" });
             builder.WebHost.UseKestrel().UseUrls("http://127.0.0.1:0");
             builder.Services.AddAuthorization();
+            var policyServiceKey = billingPolicy ? Convert.ToHexString(RandomNumberGenerator.GetBytes(32)) : null;
+            if (billingPolicy)
+            {
+                builder.Configuration["SUBSCRIPTION_SERVICE_KEY_WEB5"] = policyServiceKey;
+                builder.Services.AddSingleton(api.GetType(ns + "IAppAccountRepository", true)!, repository);
+            }
             builder.Services.AddControllers().ConfigureApplicationPartManager(parts =>
             {
                 parts.ApplicationParts.Clear();
@@ -340,7 +350,8 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 }
                 if (ownerPayNow && !browser)
                 {
-                    if (statementRecovery) await VerifyAppStatementRecoveryHttpAsync(http, Token, db, accounts);
+                    if (billingPolicy) await VerifyAppBillingPolicyHttpAsync(http, Token, db, accounts, api, repository, policyServiceKey!);
+                    else if (statementRecovery) await VerifyAppStatementRecoveryHttpAsync(http, Token, db, accounts);
                     else await VerifyAppPayNowHttpAsync(http, Token, db, accounts);
                     return;
                 }

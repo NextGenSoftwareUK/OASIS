@@ -54,14 +54,14 @@ public sealed partial class MongoSubscriptionUsageRepository
         var evidence = await BillingAudit.Find(session, new BsonDocument("_id", AppConsentAuditId(settings.ConsentId))).FirstOrDefaultAsync(ct);
         if (evidence == null || evidence.GetValue("Kind", "").AsString != "app-payg-settings-changed" ||
             evidence.GetValue("UserId", "").AsString != PoolSubject(app.AppId))
-            throw new SubscriptionUsageConflictException("APP_BILLING_CONSENT_REQUIRED: The original protected consent audit is unavailable; new charges are forbidden.");
+            throw new SubscriptionUsageLimitException("APP_BILLING_CONSENT_REQUIRED", "The original protected app consent is unavailable. The app owner must authorize charges again.", 402);
         var original = JsonSerializer.Deserialize<AppBillingConsentAudit>(evidence["PayloadJson"].AsString);
         if (original?.AppId != app.AppId || original.Actor != settings.BillingAvatarId ||
             !SameAppConsent(original.Settings, settings))
-            throw new SubscriptionUsageConflictException("APP_BILLING_CONSENT_CONFLICT: Current preferences differ from their original immutable consent.");
+            throw new SubscriptionUsageLimitException("APP_BILLING_CONSENT_CONFLICT", "Current app billing preferences differ from their original consent. Review and authorize them again.", 409);
         var payer = consumingSubscriber.UserId == settings.BillingAvatarId ? consumingSubscriber :
             await Subscriptions.Find(session, x => x.UserId == settings.BillingAvatarId).FirstOrDefaultAsync(ct);
-        AppBillingConsent.RequirePaidPayer(payer, _time.GetUtcNow().UtcDateTime);
+        AppBillingConsent.RequirePaidPayer(payer, _time.GetUtcNow().UtcDateTime, authorizingUsage: true);
         if (payer.StripeCustomerId != settings.VerifiedStripeCustomerId || payer.StripeSubscriptionId != settings.VerifiedStripeSubscriptionId)
             throw new SubscriptionUsageLimitException("APP_BILLING_PAYER_CHANGED", "The app payer's billing identity changed; review and authorize it again.", 402);
         if (await OverageStatements.Find(session, x => x.UserId == PoolSubject(app.AppId) && x.PaymentFailed && x.State != "paid").AnyAsync(ct))

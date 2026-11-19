@@ -1,5 +1,5 @@
 {
-  "status": "running-not-accepted",
+  "status": "accepted-scoped-browser-native-controls",
   "portalSource": "dd5ba68c4da35ede5ac98a536a57e0ee4ac2f35b",
   "portalGenerated": "4fd7cfaa497191eb965748277ec73972e1ffe05f",
   "portalBundleRun": 44503528115,
@@ -13,13 +13,40 @@
     "node --check browser runner and SDK dispatcher"
   ],
   "pending": [
-    "actual browser/native result",
-    "native/browser/runtime cleanup",
-    "genuine Stripe/nonzero/webhook",
+    "fresh operation allocation through public SDK/browser",
+    "genuine Stripe/nonzero collection/signed webhook",
     "hosted/full portal acceptance"
   ],
   "localGeneratedOutputs": 0,
   "revision": "56d1bff19a96c550c6ad51724bbec84b10b0f424",
   "runId": 44504319506,
-  "jobId": 135491826067
+  "jobId": 135491826067,
+  "conclusion": "success",
+  "builds": {
+    "actualWeb4ApiErrors": 0,
+    "linkedHostErrors": 0
+  },
+  "results": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "durationSeconds": 17,
+    "actors": 3
+  },
+  "artifact": {
+    "id": 14518853481,
+    "bytes": 6434,
+    "sha256": "4847bceaaaf995a7a4a1b6b3a573fcea48462771d94be477cbbfb1dd34a3ef64",
+    "members": [
+      "profile-sdk-native.trx"
+    ],
+    "matchingOutcome": "SubscriptionAppPayNowBrowserUsesActualControllerAndOwnedMongo: Passed",
+    "filesWritten": 0
+  },
+  "cleanup": {
+    "ownedBrowserRuntimeCacheControl": true,
+    "ownedNativeDbAndProviderFinalizers": "Passed with case",
+    "workflowMongoContainerAbsence": true,
+    "localGeneratedOutputs": 0
+  }
 }

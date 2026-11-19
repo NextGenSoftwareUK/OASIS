@@ -203,7 +203,7 @@ jobs:
           }
 
       - name: Build updated linked ledger host without repeating accepted tests
-        if: ${{ inputs.native_seal && (contains(inputs.native_test_filter, 'AppRequestChargesUseImmutableConsentExactCapsAndSeparatePayers') || contains(inputs.native_test_filter, 'AppStatementsFreezePayersAllocateOnceAndRoundAcrossSubscriptions') || contains(inputs.native_test_filter, 'SubscriptionAppPayNowUsesActualControllerAndOwnedMongo') || contains(inputs.native_test_filter, 'SubscriptionAppStatementRecoveryUsesActualControllerAndOwnedMongo') || contains(inputs.native_test_filter, 'SubscriptionAppPayNowBrowserUsesActualControllerAndOwnedMongo')) }}
+        if: ${{ inputs.native_seal && (contains(inputs.native_test_filter, 'AppRequestChargesUseImmutableConsentExactCapsAndSeparatePayers') || contains(inputs.native_test_filter, 'AppStatementsFreezePayersAllocateOnceAndRoundAcrossSubscriptions') || contains(inputs.native_test_filter, 'SubscriptionAppPayNowUsesActualControllerAndOwnedMongo') || contains(inputs.native_test_filter, 'SubscriptionAppStatementRecoveryUsesActualControllerAndOwnedMongo') || contains(inputs.native_test_filter, 'SubscriptionAppPayNowBrowserUsesActualControllerAndOwnedMongo') || contains(inputs.native_test_filter, 'SubscriptionAppBillingPolicyErrorsUseActualControllerAndOwnedMongo')) }}
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner app-request-charge-protocol-build-ci -Operation {
