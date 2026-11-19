@@ -1,0 +1,20 @@
+{
+  "status": "in_progress",
+  "run": 44605454429,
+  "job": 135847816728,
+  "source": "a4412568e922a09ef5dd8101d049ec5e651f3b7e",
+  "core": "13ba34168d21ec583ccb5057a80edc9bac9444ca",
+  "onodeCore": "16f735439660d8b8d2a8cd0ad114f453ff89bc74",
+  "portal": "7f01ee9fa20eb2853561f06f587e3758b3146717",
+  "sdk": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
+  "case": "ProfileHydrationUsesCurrentSdkBearerClientAndActualNativeController",
+  "newCasesSelected": 1,
+  "boundedProfileReads": 10,
+  "expectedProfilePublications": 6,
+  "apiBuildAccepted": false,
+  "browserNativeAccepted": false,
+  "fullPortalAccepted": false,
+  "hostedAccepted": false,
+  "unchangedAcceptedCasesSelected": 0,
+  "notes": "Confirmed active source-bound run. Actual AvatarProfileController/owned Program avatar manager/native Mongo, optional test-data response setting false, actual SDK/Chromium/component, original held requests continued not fulfilled. Snapshot native Avatar/AvatarDetail/eight financial collections; zero business writes, three actor IDs/karma, scope/recovery and all owned cleanup required. Existing accepted cohorts excluded; follow same handle without duplicate dispatch."
+}
