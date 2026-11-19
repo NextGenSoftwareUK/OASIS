@@ -13,11 +13,13 @@
 | Browser delivery and cache keys | Portal44423712983/job135222990234 SUCCESS; locked qualified WEB4 bundle, source-derived config/avatar/SDK references, dependency/cache cleanup | Source/build verification; no rollout |
 | Real subscription self reads | Run44430620795/job135246768268 SUCCESS on e32819d: one actual MVC/service/native Mongo case passed, zero failures/skips,1s; self plan/cancellation/order fields, foreign-selector isolation, real missing-subscription actor and unchanged record counts | Not browser checkout, Stripe/webhook, production Startup/JWT or paid admission acceptance |
 | Subscription session read fix | Portala21efc7 binds deferred reads to the captured token and drops superseded/stale responses; focused state checks passed | Native self-read acceptance is recorded above; full UI/billing acceptance remains open |
-| Quest fake-success removal | STAR0269f11 removes four generated-data substitutions; conditions4→0, helper references10→0, thirteen actions retained | Task source pin/manifest now0269f11; WEB5 build44433687385/job135257123318 passed (zero errors); real quest/backend/browser acceptance remains open. Running deployment revision was not inspected or changed |
+| Quest fake-success removal | STAR0269f11 removes four generated-data substitutions; conditions4→0, helper references10→0, thirteen actions retained | Build baseline0269f11; current source pin/manifest ff20026 has a further startup fix pending qualification; WEB5 build44433687385/job135257123318 passed (zero errors); real quest/backend/browser acceptance remains open. Running deployment revision was not inspected or changed |
 
 The portrait test report was independently checked: artifact14486235839,1898 bytes, SHA25605ab2ee0453218089a184dce68f72171db5f3dcd894cab12cebe4f2c46be6495. Its test results explicitly record portrait Passed/subscription Failed. It was read and disposed in RAM; no archive or extracted file was written.
 
 ## What is being worked on now
+
+**Current startup correction:** candidatefeb01d6/STARff20026 is running44437470731. The native STAR client previously reported readiness from a shared boot flag even when its own managers were unavailable. Its getter now follows its initialized native API instance; quest detail/search use the same boot check as list reads. The startup call no longer passes unused example credentials. A compiled-client regression checks readiness/manager-guard consistency and independence of two clients while restoring shared state. This is pending, and is not real quest/provider/browser acceptance.
 
 The native subscription self-read case is **accepted for exact qualification e32819d** (Core2ae9c2 and that snapshot's STARda1cbb4). The earlier portrait case is accepted separately on6e7cb7f. Their accepted cases are not being repeated.
 
