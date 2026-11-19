@@ -12,6 +12,7 @@ async function verify({ baseUrl, actors, originalVersion }) {
   const catalogue = '/v1/admin/config/catalogue', validation = catalogue + '/validate', publication = catalogue + '/publish';
   const requests = [], errors = [], forbidden = [];
   let phase = 'launch';
+  let publicationControls;
   try {
     await context.route('**/*', route => {
       const url = new URL(route.request().url());
@@ -26,7 +27,10 @@ async function verify({ baseUrl, actors, originalVersion }) {
       const url = new URL(request.url());
       if (url.pathname.startsWith(catalogue)) requests.push({ path: url.pathname, method: request.method() });
     });
-    const response = pathname => page.waitForResponse(value => new URL(value.url()).pathname === pathname);
+    const observeResponse = pathname => page.waitForResponse(value => new URL(value.url()).pathname === pathname)
+      .then(value => ({ value }), error => ({ error }));
+    async function take(observation) { const outcome = await observation; if (outcome.error) throw outcome.error; return outcome.value; }
+    const response = pathname => take(observeResponse(pathname));
     const count = pathname => requests.filter(value => value.path === pathname).length;
     async function actor(index) {
       await page.evaluate(value => {
@@ -47,13 +51,13 @@ async function verify({ baseUrl, actors, originalVersion }) {
       assert.equal(result.status(), expected); await idle(); return result;
     }
     async function hold(endpoint) {
-      let release, observe, pause = true;
-      const gate = new Promise(resolve => { release = resolve; }), seen = new Promise(resolve => { observe = resolve; });
+      let release, pause = true;
+      const gate = new Promise(resolve => { release = resolve; });
       await page.route(url => url.pathname === endpoint, async route => {
-        if (pause) { pause = false; observe(); await gate; }
+        if (pause) { pause = false; await gate; }
         await route.continue();
       });
-      return { release, seen };
+      return { release };
     }
     await page.goto(baseUrl + '/__subscription_browser', { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => !document.getElementById('fixture-open-admin').disabled);
@@ -62,8 +66,8 @@ async function verify({ baseUrl, actors, originalVersion }) {
     assert.equal(original.version, originalVersion); assert.equal(Array.isArray(original.models) && original.models.length > 0, true);
     const candidate = { ...original, version: 'owned-' + randomUUID().slice(0, 8) };
     phase = 'pending-validation-keeps-newer-draft'; await draft(candidate);
-    const validationGate = await hold(validation), validated = response(validation);
-    await page.locator('#admin-catalogue-validate').click(); await validationGate.seen;
+    const validationGate = await hold(validation), validated = observeResponse(validation);
+    await Promise.all([page.waitForRequest(value => new URL(value.url()).pathname === validation), page.locator('#admin-catalogue-validate').click()]);
     assert.equal(await page.locator('#admin-catalogue-publish').isDisabled(), true);
     const initialGets = count(catalogue);
     await page.evaluate(() => {
@@ -73,7 +77,7 @@ async function verify({ baseUrl, actors, originalVersion }) {
     });
     assert.equal(count(validation), 1); assert.equal(count(publication), 0); assert.equal(count(catalogue), initialGets);
     const newer = { ...candidate, version: candidate.version + '-draft' }; await draft(newer);
-    validationGate.release(); assert.equal((await validated).status(), 200); await idle();
+    validationGate.release(); assert.equal((await take(validated)).status(), 200); await idle();
     assert.equal(JSON.parse(await page.locator('#admin-catalogue-json').inputValue()).version, newer.version);
     assert.match(await page.locator('#subscription-admin-status').textContent(), /draft changed/);
     phase = 'actual-validation-errors-and-current-version';
@@ -86,13 +90,24 @@ async function verify({ baseUrl, actors, originalVersion }) {
     assert.match(await page.locator('#subscription-admin-status').textContent(), /reason is required/);
     phase = 'publish-exact-version-once-and-keep-edits';
     await page.locator('#admin-catalogue-reason').fill('Owned browser catalogue publication');
-    const publicationGate = await hold(publication), published = response(publication);
+    const publicationGate = await hold(publication), published = observeResponse(publication);
     const beforePublishGets = count(catalogue);
-    await page.locator('#admin-catalogue-publish').click(); await publicationGate.seen;
-    await page.evaluate(() => document.getElementById('admin-catalogue-publish').onclick());
+    publicationControls = await page.evaluate(() => ({
+      validateDisabled: document.getElementById('admin-catalogue-validate').disabled,
+      publishDisabled: document.getElementById('admin-catalogue-publish').disabled,
+      refreshDisabled: document.getElementById('admin-catalogue-refresh').disabled,
+      reasonLength: document.getElementById('admin-catalogue-reason').value.length,
+      panelHidden: document.getElementById('admin-tab-catalogue').hidden,
+      formOwner: document.getElementById('admin-catalogue-publish').form?.id || null,
+      status: document.getElementById('subscription-admin-status').textContent.slice(0, 180)
+    }));
+    await Promise.all([page.waitForRequest(value => new URL(value.url()).pathname === publication), page.locator('#admin-catalogue-publish').click()]);
+    phase = 'publication-observed-before-release';
+    await page.evaluate(() => { document.getElementById('admin-catalogue-publish').onclick(); });
     assert.equal(count(publication), 1);
     await draft(newer); await page.locator('#admin-catalogue-reason').fill('Owned newer unpublished reason');
-    publicationGate.release(); const saved = await published; assert.equal(saved.status(), 200);
+    publicationGate.release(); phase = 'actual-native-publication-response';
+    const saved = await take(published); assert.equal(saved.status(), 200);
     assert.equal((await saved.json()).activeVersion, candidate.version); await idle();
     await page.waitForLoadState('networkidle');
     assert.equal(count(catalogue), beforePublishGets);
@@ -107,15 +122,15 @@ async function verify({ baseUrl, actors, originalVersion }) {
     await submit(publication, '#admin-catalogue-publish', 409);
     assert.match(await page.locator('#subscription-admin-status').textContent(), /immutable/);
     phase = 'loading-cannot-replace-new-draft';
-    const readGate = await hold(catalogue), read = response(catalogue);
-    await page.locator('#admin-catalogue-refresh').click(); await readGate.seen; await draft(newer);
-    readGate.release(); assert.equal((await read).status(), 200); await page.waitForLoadState('networkidle');
+    const readGate = await hold(catalogue), read = observeResponse(catalogue);
+    await Promise.all([page.waitForRequest(value => new URL(value.url()).pathname === catalogue), page.locator('#admin-catalogue-refresh').click()]); await draft(newer);
+    readGate.release(); assert.equal((await take(read)).status(), 200); await page.waitForLoadState('networkidle');
     assert.equal(JSON.parse(await page.locator('#admin-catalogue-json').inputValue()).version, newer.version);
     assert.match(await page.locator('#subscription-admin-status').textContent(), /draft changed while loading/);
     phase = 'late-native-read-after-account-change';
-    const lateGate = await hold(catalogue), late = response(catalogue);
-    await page.locator('#admin-catalogue-refresh').click(); await lateGate.seen; await actor(1);
-    lateGate.release(); assert.equal((await late).status(), 200); await page.waitForLoadState('networkidle');
+    const lateGate = await hold(catalogue), late = observeResponse(catalogue);
+    await Promise.all([page.waitForRequest(value => new URL(value.url()).pathname === catalogue), page.locator('#admin-catalogue-refresh').click()]); await actor(1);
+    lateGate.release(); assert.equal((await take(late)).status(), 200); await page.waitForLoadState('networkidle');
     assert.equal(await page.locator('#admin-catalogue-json').inputValue(), '');
     assert.equal(await page.locator('#admin-catalogue-reason').inputValue(), '');
     assert.equal(await page.locator('#subscription-admin-status').textContent(), '');
@@ -137,7 +152,7 @@ async function verify({ baseUrl, actors, originalVersion }) {
       noAutomaticPostPublicationRead: true, immutableVersionConflict: true, ordinaryAndExpiredDenied: true,
       approvedPricesChanged: false, multiHostPublicationVerified: false, fullProductionStartupVerified: false,
       hostedOrStripeVerified: false };
-  } catch (error) { console.error(JSON.stringify({ phase, pageErrors: errors, requests: requests.length })); throw error; }
+  } catch (error) { console.error(JSON.stringify({ phase, publicationControls, pageErrors: errors, requests: requests.length })); throw error; }
   finally { await context.close(); }
 }
 module.exports = { verify };

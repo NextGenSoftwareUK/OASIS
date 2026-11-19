@@ -26,7 +26,24 @@
   "sdkCommit": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
   "jobId": 135688187127,
   "web6Commit": "ff6244886b96ba05a59e236a1f54b621f630f5ca",
-  "status": "qualification-active-not-accepted",
+  "status": "first-harness-wait-failed-correction-prepared-not-accepted",
   "runId": 44560510637,
-  "bundleCleanupVerified": true
+  "bundleCleanupVerified": true,
+  "firstAttempt": {
+    "web4ApiBuildErrors": 0,
+    "jobId": 135688187127,
+    "runId": 44560510637,
+    "seconds": 46,
+    "publicationReachedServer": false,
+    "filesWritten": 0,
+    "artifactId": 14551005734,
+    "passed": 0,
+    "nativeAndProcessCleanupVerified": true,
+    "failed": 1,
+    "web6ApiBuildErrors": 0,
+    "sourceCommit": "17da449b01e2a2026f7bc2955f39f2425c977d39",
+    "artifactBytes": 3617,
+    "sha256": "a83312a05c093b21be13231cd74a253e491bdcb99f709f243c9d93a105e0bacf",
+    "outcome": "Failed"
+  }
 }
