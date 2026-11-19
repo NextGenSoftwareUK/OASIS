@@ -26,7 +26,7 @@
   "sdkCommit": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
   "jobId": 135698915826,
   "web6Commit": "ff6244886b96ba05a59e236a1f54b621f630f5ca",
-  "status": "third-attempt-failed-at-denial-editor-diag-prepared-not-accepted",
+  "status": "third-attempt-failed-denial-diagnostic-fourth-run-active-not-accepted",
   "runId": 44563508388,
   "bundleCleanupVerified": true,
   "firstAttempt": {
@@ -101,5 +101,14 @@
     "filesWritten": 0,
     "nativeAndProcessCleanupVerified": true,
     "terminalCleanupVerified": true
+  },
+  "diagnosticAttempt": {
+    "runId": 44570773190,
+    "jobId": 135724884666,
+    "sourceCommit": "83e47752a292eb9912d18dff56bf46d053f79652",
+    "status": "in_progress",
+    "sameCaseOnly": true,
+    "timeoutsUnchanged": true,
+    "portalGenerated": "73c6de8154a3c259948daa99e318d9862b4bfa15"
   }
 }
