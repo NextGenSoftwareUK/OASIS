@@ -211,6 +211,21 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 }
                 Console.WriteLine($"Pool binding native verified: {layout.Before}->{layout.After}, original={original}, server-selected/audited binding, new repository, disabled/changed app, success/failure, signed adjustment/replay, unstarted expiry release and unknown-execution retention/late settlement; original month/day only, requests3, reserved/cost0. Local native Mongo acknowledgements, not external fee/Stripe acceptance.");
             }
+            // The new server-owned field must not attach a personal reservation to an app pool.
+            var personalId = Guid.NewGuid().ToString("D");
+            var personal = Event("owned-unused-app", personalId, 0.01m);
+            foreach (var property in new[] { "AppId", "AppPlanId", "PooledAppId", "PooledAppPlanId" }) Set(personal, property, null);
+            await Call("AuthorizeAsync", personal, 0, CancellationToken.None);
+            var personalRecord = await events.Find(new BsonDocument("OperationId", personalId)).SingleAsync();
+            Assert.True(personalRecord["PoolShardCountAtAuthorization"].IsBsonNull);
+            var poolRowsBeforePersonal = new BsonArray(await buckets.Find(new BsonDocument("UserId", new BsonRegularExpression("^app:")))
+                .Sort(new BsonDocument("_id", 1)).ToListAsync()).ToJson();
+            Environment.SetEnvironmentVariable("OASIS_POOL_SHARDS", "2");
+            await Call("StartAsync", Start(personalId), CancellationToken.None);
+            await Call("SettleAsync", user, await NativeWrite(personalId), CancellationToken.None);
+            Assert.Equal(poolRowsBeforePersonal, new BsonArray(await buckets.Find(new BsonDocument("UserId", new BsonRegularExpression("^app:")))
+                .Sort(new BsonDocument("_id", 1)).ToListAsync()).ToJson());
+            Console.WriteLine("Pool binding native verified: personal reservation clears caller routing input and starts/settles with no pool bucket mutation.");
             // A missing/invalid persisted binding must never be guessed from the current setting.
             // This owned projection-fault fixture is not a claimed migration of historical production data.
             Environment.SetEnvironmentVariable("OASIS_POOLED_APP_QUOTAS", "true");
