@@ -24,10 +24,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronizatio
         public const string GeoNftCollection = "star.geonft-collection.v1";
         public const string GeoNftCollectionAvailability = "star.geonft-collection-availability.v1";
         public const string GeoHotSpot = "star.geohotspot.v1";
+        public const string MessageCommand = "oasis.message-command.v1";
         public const string CommandResult = "oasis.command-result.v1";
 
         private static readonly HashSet<string> HostedDomainTypes = new HashSet<string>(
-            new[] { Holon, Avatar, AvatarDetail, AvatarGameplay, AvatarPreferences, Quest, QuestProgress, QuestLifecycle,
+            new[] { Holon, Avatar, AvatarDetail, AvatarGameplay, AvatarPreferences, Quest, QuestProgress, QuestLifecycle, MessageCommand,
                 InventoryItem, Nft, NftCollection, GeoNft, GeoNftCollection, GeoHotSpot },
             StringComparer.Ordinal);
 

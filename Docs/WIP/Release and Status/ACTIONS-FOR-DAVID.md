@@ -19,6 +19,7 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 8 | **Add two DNS records so the new HoloNET docs and learn sites go live** (NameSilo) | E1 |
 | 9 | Rotate the Arbitrum testnet key and the block-explorer API key that were committed to git (removed from files, still in history) | E2 |
 | 7 | Older items: phone tests, WSL disk, Vercel branch check, oasisweb4 site decision, iOS runtime script, Git LFS budget, upstream Holochain PRs | D |
+| 11 | Messaging programme: review/push the `work/oasis-messaging` branches (parent + API.Core submodule); physical-device Bluetooth tests | G |
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 
 ---
@@ -583,3 +584,22 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Action** Identify the dedicated Convex test deployment with the OASIS companion installed. For the disposable write test set OASIS_CONVEX_HOSTED_TEST_WRITES=1. Supply its HTTPS origin via OASIS_CONVEX_HOSTED_TEST_URL and set OASIS_CONVEX_HOSTED_TEST_DEPLOY_KEY and OASIS_CONVEX_STORAGE_KEY in the protected environment. Keep secrets out of Git and chat.
 - **Reason** The agent must verify authenticated activation and then the hosted storage lifecycle without touching production data.
 - **Context** [Convex storage evidence](../HyperDrive-Providers/CONVEX_STORAGE_BASELINE.md).
+
+---
+
+## Part G — Messaging, Edge nearby sync, HerzApp and Our World (added 2026-11-19)
+
+### G1. Review and push the messaging branches
+
+- **Status (2026-11-19)** Open. Work is committed locally, not pushed. Parent repo branch `work/oasis-messaging` (worktree `C:\Source\OASIS2-messaging`) and API.Core submodule branch `work/oasis-messaging`.
+- **David action** Review, then tell Claude to push. The API.Core submodule branch must be pushed and merged before the parent gitlink and `Docker/oasis-dependency-versions.env` pins can move (run `python3 Scripts/sync_railway_dependency_manifest.py` at that point).
+- **Reason** Repo policy: no push or PR before your review.
+- **Context** [Edge offline messaging](../../Devs/EDGE_OFFLINE_MESSAGING.md).
+
+### G2. Physical-device Bluetooth and mesh acceptance
+
+- **Status (2026-11-19)** Open once the Android/iOS GATT shims exist. The shared stack is verified only with an in-memory radio and real TCP sockets.
+- **David action** Provide two Android phones (and one iPhone for cross-platform) for a test: send a message with Wi-Fi/mobile data off, relay through a third phone, then reconnect and confirm it converges on the server with no duplicate.
+- **Reason** Radios, MTU negotiation and background restrictions cannot be proven in software.
+- **Context** [Edge offline messaging](../../Devs/EDGE_OFFLINE_MESSAGING.md).
+

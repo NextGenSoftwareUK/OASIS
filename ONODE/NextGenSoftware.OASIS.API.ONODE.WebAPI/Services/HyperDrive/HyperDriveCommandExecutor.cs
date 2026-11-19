@@ -66,6 +66,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                     value = await ExecuteAvatarPreferencesAsync(command).ConfigureAwait(false);
                 else if (command.EntityType == HyperDriveEntityTypes.QuestLifecycle)
                     value = await ExecuteQuestLifecycleAsync(command).ConfigureAwait(false);
+                else if (command.EntityType == HyperDriveEntityTypes.MessageCommand)
+                    value = await ExecuteMessageAsync(command).ConfigureAwait(false);
                 else
                     return Outcome(command.OperationId, false, "COMMAND_TYPE_NOT_SUPPORTED",
                         $"No hosted command executor is registered for '{command.EntityType}'.", null);
@@ -236,6 +238,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                 applied?.ErrorCode ?? "GEOHOTSPOT_TRIGGER_REJECTED",
                 applied?.Message ?? "The GeoHotSpot trigger returned no authoritative result.");
             return applied.Result;
+        }
+
+        private async Task<object> ExecuteMessageAsync(HostedSyncCommandItem command)
+        {
+            var payload = Deserialize<HyperDriveMessageCommand>(command);
+            var messaging = MessagingManager.Instance;
+            if (payload.Action == HyperDriveMessageAction.Send)
+            {
+                if (command.EntityId == Guid.Empty)
+                    throw new HyperDriveCommandRejectedException("MESSAGE_ID_REQUIRED",
+                        "A message send must carry the client-generated message id as its entity id.");
+                var sent = await messaging.SendMessageAsync(command.AvatarId, new SendMessageRequest
+                {
+                    Id = command.EntityId,
+                    ToAvatarId = payload.ToAvatarId,
+                    Content = payload.Content,
+                    MessageType = Enum.IsDefined(typeof(MessagingType), payload.MessageType)
+                        ? (MessagingType)payload.MessageType : MessagingType.Direct,
+                    ClientTimestamp = payload.ClientTimestamp
+                }).ConfigureAwait(false);
+                RejectIfError(sent.IsError, "MESSAGE_SEND_FAILED", sent.Message);
+                return sent.Result;
+            }
+            if (payload.MessageIds == null || payload.MessageIds.Count == 0)
+                throw new HyperDriveCommandRejectedException("MESSAGE_IDS_REQUIRED", "At least one message id is required.");
+            var receipt = payload.Action == HyperDriveMessageAction.MarkDelivered
+                ? await messaging.MarkMessagesAsDeliveredAsync(command.AvatarId, payload.MessageIds).ConfigureAwait(false)
+                : payload.Action == HyperDriveMessageAction.MarkRead
+                    ? await messaging.MarkMessagesAsReadAsync(command.AvatarId, payload.MessageIds).ConfigureAwait(false)
+                    : throw new HyperDriveCommandRejectedException("MESSAGE_ACTION_NOT_SUPPORTED", "Unknown message action.");
+            RejectIfError(receipt.IsError, "MESSAGE_RECEIPT_FAILED", receipt.Message);
+            return receipt.Result;
         }
 
         private async Task<object> ExecuteAvatarPreferencesAsync(HostedSyncCommandItem command)
