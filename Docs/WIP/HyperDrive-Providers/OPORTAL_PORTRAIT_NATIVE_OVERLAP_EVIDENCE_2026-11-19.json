@@ -69,11 +69,40 @@
     "shippingInvariant": "Portrait-only atomic field mutation using pinned serving provider and captured revisions; explicit conflict on concurrent edit",
     "priorEvidenceRetained": true,
     "run": 44640810026,
-    "status": "in_progress",
-    "accepted": false,
+    "status": "completed_success",
+    "accepted": true,
     "core": "a11b29123f2a8dbad9dcd6cbb7af0bc9130b143a",
     "localOutputsCreated": false,
     "reason": "Both failed providers plus materially changed SQLite manager path",
-    "source": "954b48e4fd30150e73024edfae56078b72c15243"
+    "source": "954b48e4fd30150e73024edfae56078b72c15243",
+    "job": 135971096011,
+    "results": {
+      "durationSeconds": 7,
+      "passed": 3,
+      "total": 3,
+      "failed": 0,
+      "nativeProjectErrors": 0,
+      "skipped": 0,
+      "apiErrors": 0
+    },
+    "artifact": {
+      "streamsDisposed": true,
+      "filesWritten": 0,
+      "exactDefinitionsAndResults": 3,
+      "fixtureStopSteps": "both success",
+      "sha256": "0b935111764a6ae1c564f78db17e0f3aa07cb63e89383bb954b48a199db9709c",
+      "bytes": 1915,
+      "orderingPreservationCleanupMarkers": 9,
+      "id": 14586173880
+    }
+  },
+  "newBrowserQualification": {
+    "portalSource": "1988e9939bbc29342387dbdb90988534c8c9e1d3",
+    "core": "5cd6bb231116535e208678d9344fc253a409550b",
+    "portalBundleRun": 44641869049,
+    "portalBundle": "c3211370461e56daf122cbdeb28e6e7c20039040",
+    "test": "PortraitBrowserThenProfileEditUsesCommittedRevisionsAndThreeNativeProviders",
+    "accepted": false,
+    "status": "prepared_not_dispatched"
   }
 }

@@ -62,7 +62,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task PortraitBrowserAccountSwitchUsesActualHttpAndThreeNativeProviders() =>
         RunProfileHttp(HyperDriveModes.V2, true, true, portraitBrowser: true, portraitAccountSwitch: true);
 
-    private async Task RunProfileHttp(string mode, bool sdkOnly, bool browser = false, bool portraitBrowser = false, bool portraitAccountSwitch = false)
+    [Fact]
+    public Task PortraitBrowserThenProfileEditUsesCommittedRevisionsAndThreeNativeProviders() =>
+        RunProfileHttp(HyperDriveModes.V2, true, true, portraitBrowser: true, portraitEditAfterUpload: true);
+
+    private async Task RunProfileHttp(string mode, bool sdkOnly, bool browser = false, bool portraitBrowser = false, bool portraitAccountSwitch = false, bool portraitEditAfterUpload = false)
     {
         RequireOwnedFixtures();
         var id = Guid.NewGuid();
@@ -197,7 +201,8 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                             var previousPortrait = (await store.LoadAvatarDetailAsync(id)).Result.Portrait;
                             using var uploaded = await ExchangeSdkRequest(new
                                 { baseUrl = address, token = Token(id), providerType = provider.ToString(), imageId = Array.IndexOf(stores, store) + 1,
-                                    accountSwitch = portraitAccountSwitch, foreignToken = portraitAccountSwitch ? Token(foreignId) : null });
+                                    accountSwitch = portraitAccountSwitch, foreignToken = portraitAccountSwitch ? Token(foreignId) : null,
+                                    editAfterPortrait = portraitEditAfterUpload });
                             Assert.False(uploaded.RootElement.TryGetProperty("isError", out var portraitError) && portraitError.GetBoolean(),
                                 "Actual portrait browser/HTTP verification failed.");
                             Assert.True(uploaded.RootElement.GetProperty("portraitBrowserVerified").GetBoolean());
@@ -214,7 +219,14 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                             Assert.Equal(before.LastName, after.LastName);
                             Assert.Equal(before.Username, after.Username);
                             Assert.Equal(before.Email, after.Email);
-                            Assert.Equal(before.Address, after.Address);
+                            Assert.Equal(portraitEditAfterUpload ? "After portrait " + provider : before.Address, after.Address);
+                            if (portraitEditAfterUpload)
+                            {
+                                Assert.True(uploaded.RootElement.GetProperty("editAfterPortraitVerified").GetBoolean());
+                                Assert.Equal(1, uploaded.RootElement.GetProperty("profilePatchRequests").GetInt32());
+                                Console.WriteLine("Portrait then profile edit native persistence verified: " + provider +
+                                    "; real upload acknowledgment revisions, one real PATCH, portrait and protected fields preserved.");
+                            }
                             if (portraitAccountSwitch)
                             {
                                 Assert.True(uploaded.RootElement.GetProperty("accountSwitchVerified").GetBoolean());

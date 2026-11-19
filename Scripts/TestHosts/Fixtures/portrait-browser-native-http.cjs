@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 
-async function verify({ baseUrl, token, providerType, imageId, accountSwitch = false, foreignToken }) {
+async function verify({ baseUrl, token, providerType, imageId, accountSwitch = false, foreignToken, editAfterPortrait = false }) {
   const base = new URL(baseUrl);
   assert.equal(base.hostname, '127.0.0.1');
   assert.equal(base.protocol, 'http:');
@@ -183,6 +183,42 @@ async function verify({ baseUrl, token, providerType, imageId, accountSwitch = f
     assert.equal(writes[0].body.avatarId, owner.avatarId);
     assert.equal(writes[0].body.username, owner.username); assert.equal(writes[0].body.email, owner.email);
     assert.equal(writes[0].body.imageBase64, imageBase64);
+    if (editAfterPortrait) {
+      phase = 'edit-with-acknowledged-portrait-revision';
+      const commit = JSON.parse(confirmation.metaData.avatarProfileCommit);
+      assert.equal(commit.providerType, providerType);
+      assert.equal(commit.profile.avatarId, owner.avatarId);
+      assert.notEqual(commit.profile.detailRevision.versionId, owner.detailRevision.versionId);
+      assert.equal(Object.hasOwn(commit.profile, 'portrait'), false);
+      const newAddress = 'After portrait ' + providerType;
+      await page.locator('#av-address').fill(newAddress);
+      const [saved] = await Promise.all([
+        page.waitForResponse(value => new URL(value.url()).pathname === '/api/avatar/profile' && value.request().method() === 'PATCH'),
+        page.locator('#avatar-modal-save-btn').click()
+      ]);
+      assert.equal(saved.status(), 200);
+      const response = await saved.json();
+      assert.equal(response.isError, false);
+      assert.equal(response.result.profile.address, newAddress);
+      assert.equal(writes.length, 2);
+      assert.equal(writes[1].method, 'PATCH');
+      assert.deepEqual(writes[1].body.detailRevision, commit.profile.detailRevision);
+      assert.deepEqual(writes[1].body.avatarRevision, commit.profile.avatarRevision);
+      assert.deepEqual(writes[1].body.changes, { address: newAddress });
+      await page.waitForFunction(() => !document.getElementById('avatar-modal-save-btn').disabled);
+      client.setToken(token, { avatarId: owner.avatarId });
+      const current = await client.profile.getProfile({ providerType, token });
+      assert.equal(current.isError, false, current.message);
+      assert.equal(current.result.profile.address, newAddress);
+      const portrait = await client.avatar.getAvatarPortraitByUsername({ username: owner.username });
+      assert.equal(portrait.isError, false, portrait.message);
+      assert.equal(portrait.result.imageBase64, imageBase64);
+      assert.deepEqual(errors, []); assert.deepEqual(forbidden, []);
+      return { portraitBrowserVerified: true, providerType, imageBase64, uploadRequests: 1,
+        editAfterPortraitVerified: true, newAddress, profilePatchRequests: 1,
+        actualFragmentVerified: true, actualSdkHttpVerified: true,
+        concurrentNativeUpdateVerified: false, productionStartupVerified: false };
+    }
     phase = 'sdk-read';
     client.setToken(token, { avatarId: owner.avatarId });
     const stored = await client.avatar.getAvatarPortraitByUsername({ username: owner.username });
