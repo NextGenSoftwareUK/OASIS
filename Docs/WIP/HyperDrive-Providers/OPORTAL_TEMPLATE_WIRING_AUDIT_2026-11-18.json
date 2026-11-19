@@ -1,0 +1,273 @@
+{
+  "date": "2026-11-18",
+  "portalRevision": "c4f47d14c50f34dbed45d8314e227cfaf66b97d1",
+  "method": "Exact Git blob reads in existing sparse worktree; no checkout/install/backend call",
+  "objectsRead": 83,
+  "unavailableLocalObjects": [
+    {
+      "path": "assets/js/avatar-modal.js",
+      "sha": "12d12d5c58586d945350698af4003c7cb9681947"
+    }
+  ],
+  "scriptTemplatePairs": 39,
+  "browserAccepted": false,
+  "backendAccepted": false,
+  "scope": "Literal control declaration audit only; dynamic selectors, events, navigation and persisted actions require separate acceptance",
+  "candidateFlagsReviewed": {
+    "api/karma/weightings": "HTTP get path, not a DOM lookup",
+    "api/data/copy-holon/providers": "HTTP get path, not a DOM lookup",
+    "subscribed,session_id,plan,tab,checkout": "URLSearchParams.get values, not DOM ids",
+    "wallet-portfolio-selector": "Created dynamically via label.id assignment",
+    "onet-oasisdna": "Unused renderOASISDNA declaration; no call found in this script. Not an accepted DNA display flow."
+  },
+  "results": [
+    {
+      "stem": "activity-feed",
+      "templateAvailable": true,
+      "referenced": 8,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "ai",
+      "templateAvailable": true,
+      "referenced": 31,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "celestial-map",
+      "templateAvailable": true,
+      "referenced": 10,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "chain-explorer",
+      "templateAvailable": true,
+      "referenced": 10,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "clan",
+      "templateAvailable": true,
+      "referenced": 13,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "competition",
+      "templateAvailable": true,
+      "referenced": 9,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "data",
+      "templateAvailable": true,
+      "referenced": 39,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "dev-portal",
+      "templateAvailable": true,
+      "referenced": 1,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "eggs",
+      "templateAvailable": true,
+      "referenced": 7,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "files",
+      "templateAvailable": true,
+      "referenced": 9,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "games",
+      "templateAvailable": true,
+      "referenced": 3,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "gifts",
+      "templateAvailable": true,
+      "referenced": 10,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "global-search",
+      "templateAvailable": true,
+      "referenced": 5,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "holon-browser",
+      "templateAvailable": true,
+      "referenced": 14,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "holon-designer",
+      "templateAvailable": true,
+      "referenced": 9,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "holon-diff",
+      "templateAvailable": true,
+      "referenced": 13,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "hyperdrive",
+      "templateAvailable": true,
+      "referenced": 8,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "inventory",
+      "templateAvailable": true,
+      "referenced": 8,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "karma-ledger",
+      "templateAvailable": true,
+      "referenced": 7,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "karma",
+      "templateAvailable": true,
+      "referenced": 8,
+      "missingLiteralIds": [
+        "api/karma/weightings"
+      ]
+    },
+    {
+      "stem": "map",
+      "templateAvailable": true,
+      "referenced": 24,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "messaging",
+      "templateAvailable": true,
+      "referenced": 23,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "missions",
+      "templateAvailable": true,
+      "referenced": 4,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "nft",
+      "templateAvailable": true,
+      "referenced": 78,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "oapp-launcher",
+      "templateAvailable": true,
+      "referenced": 7,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "oapp-map",
+      "templateAvailable": true,
+      "referenced": 8,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "oapps",
+      "templateAvailable": true,
+      "referenced": 4,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "onet",
+      "templateAvailable": true,
+      "referenced": 22,
+      "missingLiteralIds": [
+        "onet-oasisdna"
+      ]
+    },
+    {
+      "stem": "onode",
+      "templateAvailable": true,
+      "referenced": 33,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "provider-benchmark",
+      "templateAvailable": true,
+      "referenced": 6,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "provider-health",
+      "templateAvailable": true,
+      "referenced": 7,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "provider-migration",
+      "templateAvailable": true,
+      "referenced": 8,
+      "missingLiteralIds": [
+        "api/data/copy-holon/providers"
+      ]
+    },
+    {
+      "stem": "quests",
+      "templateAvailable": true,
+      "referenced": 4,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "search-avatars",
+      "templateAvailable": true,
+      "referenced": 9,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "settings",
+      "templateAvailable": true,
+      "referenced": 8,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "social-graph",
+      "templateAvailable": true,
+      "referenced": 7,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "subscription-admin",
+      "templateAvailable": true,
+      "referenced": 27,
+      "missingLiteralIds": []
+    },
+    {
+      "stem": "subscription",
+      "templateAvailable": true,
+      "referenced": 16,
+      "missingLiteralIds": [
+        "subscribed",
+        "session_id",
+        "plan",
+        "tab",
+        "checkout"
+      ]
+    },
+    {
+      "stem": "wallet",
+      "templateAvailable": true,
+      "referenced": 19,
+      "missingLiteralIds": [
+        "wallet-portfolio-selector"
+      ]
+    }
+  ]
+}
