@@ -1,0 +1,35 @@
+{
+  "status": "running-not-accepted",
+  "scope": "Opt-out, invalid/unverified intent and ownership/session guards only; positive external readiness and charging remain required",
+  "runId": 44474424889,
+  "jobId": 135391408084,
+  "revision": "87eae310aa79554d26651fbd6645eb1ccf498899",
+  "portalRevision": "7612843ea732ad48475530ef4041701c66ead7b0",
+  "portalSource": "37a5e2a3d10eb3c6a9ced6a98f5fb88d46a75065",
+  "portalDeliveryRun": 44473347817,
+  "portalDeliveryJob": 135387870641,
+  "portalDeliveryConclusion": "success",
+  "portalUsageSourceSha256": "c19781821ed10cc33efad48da7deb81b4a2b1e569cb4d1d5f793e31b58d98553",
+  "filter": "FullyQualifiedName~SubscriptionAppBillingControlsBrowserUsesActualControllerAndOwnedMongo",
+  "backend": "Owned loopback CI MongoDB; no gateway replacement, no Stripe calls; private markers are legacy read/control fixtures, not external verification evidence",
+  "pending": [
+    "actual API build",
+    "real browser opt-out/history preservation",
+    "strict JSON and price/cap/consent rejection",
+    "foreign and unverified payer refusal",
+    "private evidence redaction",
+    "pending-write and late-session suppression",
+    "transactional owner revocation",
+    "one audit/version fence and unchanged other records",
+    "native cleanup and temporary process flag restoration"
+  ],
+  "notCovered": [
+    "positive Stripe readiness/opt-in",
+    "per-operation app admission/charging/cap exposure",
+    "expiry/settlement/corrections/reconciliation",
+    "statement allocation",
+    "Stripe collection/webhook/hosted payment",
+    "production Startup",
+    "whole OPORTAL"
+  ]
+}
