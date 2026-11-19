@@ -11,7 +11,7 @@ on:
         type: boolean
         default: false
       property_tracking_only:
-        description: Verify read-only selection-bound outcomes on real MongoDB SQLite Neo4j providers
+        description: Verify pinned manager selected-outcome routing to real MongoDB SQLite Neo4j providers
         type: boolean
         default: false
       property_selection_only:
@@ -292,28 +292,29 @@ jobs:
             if (!$ready) { throw 'Neo4j fixture did not become ready.' }
             & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-entity-projection-ci -Operation {
               if ('${{ inputs.property_tracking_only }}' -eq 'true') {
-                dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~PropertySelectionStatusReadsExactDurableOutcomeWithoutMutation' --logger 'trx;LogFileName=property-status-native.trx' --results-directory TestResults/Neo4jCurrent
+                dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~PropertySelectionStatusUsesPinnedManagerAndActualNativeReader' --logger 'trx;LogFileName=property-status-routed-native.trx' --results-directory TestResults/Neo4jCurrent
                 if ($LASTEXITCODE) { throw 'Selected native property status verification failed.' }
-                [xml]$native = Get-Content TestResults/Neo4jCurrent/property-status-native.trx
+                [xml]$native = Get-Content TestResults/Neo4jCurrent/property-status-routed-native.trx
                 $counts = $native.TestRun.ResultSummary.Counters
                 if ([int]$counts.total -ne 3 -or [int]$counts.passed -ne 3 -or [int]$counts.notExecuted -ne 0) {
                   throw 'Exactly3 real selection-bound read-only status cases must execute and pass.'
                 }
                 $ids = @($native.TestRun.TestDefinitions.UnitTest | Where-Object {
-                  $_.TestMethod.name -eq 'PropertySelectionStatusReadsExactDurableOutcomeWithoutMutation'
+                  $_.TestMethod.name -eq 'PropertySelectionStatusUsesPinnedManagerAndActualNativeReader'
                 } | ForEach-Object { $_.id })
                 $results = @($native.TestRun.Results.UnitTestResult)
                 if ($results.Count -ne 3 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
                   throw 'Unrelated native results cannot satisfy selected-field acceptance.'
                 }
                 foreach ($provider in 'MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS') {
-                  $report = Get-Content "TestResults/Neo4jCurrent/$provider-property-status-native.json" -Raw | ConvertFrom-Json
-                  if ($report.provider -ne $provider -or $report.checks -ne 8 -or $report.successfulHolonWrites -ne 3 -or
+                  $report = Get-Content "TestResults/Neo4jCurrent/$provider-property-status-routed-native.json" -Raw | ConvertFrom-Json
+                  if ($report.provider -ne $provider -or $report.checks -ne 9 -or $report.successfulHolonWrites -ne 3 -or
                       !$report.absentOutcomeVerified -or !$report.committedOutcomeVerified -or
                       !$report.historicalOutcomeVerified -or !$report.missingValueOutcomeVerified -or
                       !$report.changedMaskStatusRefused -or !$report.wholeStatusRefused -or !$report.actorMismatchRefused -or
                       !$report.receiptsUnchangedVerified -or !$report.holonsUnchangedByReadsVerified -or
-                      !$report.callerUnchangedVerified -or !$report.exactCleanupVerified) {
+                      !$report.callerUnchangedVerified -or !$report.managedNativeRouteVerified -or
+                      !$report.actorBeforeIoVerified -or !$report.exactCleanupVerified) {
                     throw "Complete selected-field native commit/receipt/caller/host/cleanup evidence required for $provider."
                   }
                 }
@@ -360,7 +361,7 @@ jobs:
         if: always()
         with:
           name: subscription-protocol-test-results
-          path: ${{ inputs.property_selection_only && 'TestResults/PropertySelection' || inputs.property_tracking_only && 'TestResults/Neo4jCurrent/*property-status-native*' || 'TestResults' }}
+          path: ${{ inputs.property_selection_only && 'TestResults/PropertySelection' || inputs.property_tracking_only && 'TestResults/Neo4jCurrent/*property-status-routed-native*' || 'TestResults' }}
       - name: Stop temporary database
         if: ${{ always() && !inputs.property_selection_only }}
         run: docker rm --force usage-mongo
