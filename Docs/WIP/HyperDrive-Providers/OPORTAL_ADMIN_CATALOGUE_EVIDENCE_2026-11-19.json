@@ -26,7 +26,7 @@
   "sdkCommit": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
   "jobId": 135698915826,
   "web6Commit": "ff6244886b96ba05a59e236a1f54b621f630f5ca",
-  "status": "budget-corrected-fifth-run-active-not-accepted",
+  "status": "fifth-attempt-bulk-fill-failed-actual-keyboard-paste-prepared-not-accepted",
   "runId": 44563508388,
   "bundleCleanupVerified": true,
   "firstAttempt": {
@@ -137,13 +137,34 @@
     "clientOuterSeconds": 240,
     "browserOperationSeconds": 10,
     "productionTimeoutsChanged": false,
-    "qualification": "in_progress"
+    "qualification": "failed-client-error-now-reported"
   },
   "budgetCorrectedAttempt": {
     "runId": 44573098813,
     "jobId": 135733235096,
     "sourceCommit": "39428d98451b4f45d3bd82e5d692619eb7562994",
-    "status": "in_progress",
+    "status": "failed",
     "portalGenerated": "73c6de8154a3c259948daa99e318d9862b4bfa15"
+  },
+  "fifthAttempt": {
+    "runId": 44573098813,
+    "jobId": 135733235096,
+    "sourceCommit": "39428d98451b4f45d3bd82e5d692619eb7562994",
+    "passed": 0,
+    "failed": 1,
+    "seconds": 15,
+    "web4ApiBuildErrors": 0,
+    "web6ApiBuildErrors": 0,
+    "browserElapsedMs": 12419,
+    "phase": "pending-validation-keeps-newer-draft",
+    "error": "locator.fill timeout10000ms",
+    "publicationReachedServer": false,
+    "nativeFinalAcceptance": false,
+    "artifactId": 14556865450,
+    "artifactBytes": 3296,
+    "sha256": "47219db41b73712313586bcebd5a20848b4e2551da50ecfebf92c7153705b2fa",
+    "filesWritten": 0,
+    "nativeAndProcessCleanupVerified": true,
+    "terminalCleanupVerified": true
   }
 }

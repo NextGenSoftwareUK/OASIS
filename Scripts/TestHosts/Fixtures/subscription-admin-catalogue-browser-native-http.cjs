@@ -51,7 +51,12 @@ async function verify({ baseUrl, actors, originalVersion }) {
       const editor = page.locator('#admin-catalogue-json');
       assert.equal(await editor.isVisible(), true, 'Catalogue draft editor must be visible before editing.');
       assert.equal(await editor.isEditable(), true, 'Catalogue draft editor must be editable before editing.');
-      await editor.fill(JSON.stringify(value, null, 2));
+      const text = JSON.stringify(value, null, 2);
+      await editor.click();
+      assert.equal(await editor.evaluate(element => document.activeElement === element), true, 'Catalogue editor must own keyboard focus.');
+      await page.keyboard.press('ControlOrMeta+A');
+      await page.keyboard.insertText(text);
+      assert.equal(await editor.inputValue(), text, 'The complete catalogue draft must match the actual browser input.');
       phases.push({ phase: phase + '-draft-edited', elapsedMs: Date.now() - startedAt, editingMs: Date.now() - editingAt });
     }
     async function idle() { await page.waitForFunction(() => !document.getElementById('admin-catalogue-validate').disabled && !document.getElementById('admin-catalogue-publish').disabled); }
