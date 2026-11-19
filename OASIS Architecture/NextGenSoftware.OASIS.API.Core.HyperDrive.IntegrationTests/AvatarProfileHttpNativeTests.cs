@@ -54,7 +54,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     [InlineData(HyperDriveModes.V2)]
     public Task ProfileBrowserModalUsesActualNativeHttp(string mode) => RunProfileHttp(mode, true, true);
 
-    private async Task RunProfileHttp(string mode, bool sdkOnly, bool browser = false)
+    [Fact]
+    public Task PortraitBrowserUploadUsesActualHttpAndThreeNativeProviders() =>
+        RunProfileHttp(HyperDriveModes.V2, true, true, portraitBrowser: true);
+
+    private async Task RunProfileHttp(string mode, bool sdkOnly, bool browser = false, bool portraitBrowser = false)
     {
         RequireOwnedFixtures();
         var id = Guid.NewGuid();
@@ -84,17 +88,30 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             var path = resolver.ResolveAssemblyToPath(name);
             return path == null ? null : context.LoadFromAssemblyPath(path);
         }
+        FieldInfo? portraitManagerField = null;
+        object? previousPortraitManager = null;
         AssemblyLoadContext.Default.Resolving += Resolve;
         try
         {
             var api = AssemblyLoadContext.Default.LoadFromAssemblyPath(artifact);
             var type = api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SelfAvatarProfileController", true)!;
+            Type? portraitController = null;
+            if (portraitBrowser)
+            {
+                portraitController = api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.AvatarProfileController", true)!;
+                portraitManagerField = api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Program", true)!
+                    .GetField("_avatarManager", BindingFlags.Static | BindingFlags.NonPublic)!;
+                Assert.NotNull(portraitManagerField);
+                previousPortraitManager = portraitManagerField.GetValue(null);
+                portraitManagerField.SetValue(null, sdk);
+            }
             var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Development" });
+            if (portraitBrowser) builder.Configuration["OASIS:UseTestDataWhenLiveDataNotAvailable"] = "false";
             builder.WebHost.UseKestrel().UseUrls("http://127.0.0.1:0");
             builder.Services.AddControllers().ConfigureApplicationPartManager(parts =>
             {
                 parts.ApplicationParts.Clear(); parts.ApplicationParts.Add(new AssemblyPart(api));
-                parts.FeatureProviders.Add(new ProfileControllerFeature(type));
+                parts.FeatureProviders.Add(new ProfileControllerFeature(portraitController == null ? [type] : [type, portraitController]));
             }).AddControllersAsServices();
             builder.Services.AddTransient(type, _ => Activator.CreateInstance(type,
                 BindingFlags.Instance | BindingFlags.NonPublic, null, [sdk], null)!);
@@ -161,6 +178,33 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                         {
                             var selected = manager.PublishRoutingOverrides(new NextGenSoftware.OASIS.API.Core.Configuration.ProviderRoutingOverrides(), provider);
                             Assert.False(selected.IsError, selected.Message);
+                        }
+                        if (portraitBrowser)
+                        {
+                            var before = await Read(store, id);
+                            var previousPortrait = (await store.LoadAvatarDetailAsync(id)).Result.Portrait;
+                            using var uploaded = await ExchangeSdkRequest(new
+                                { baseUrl = address, token = Token(id), providerType = provider.ToString(), imageId = Array.IndexOf(stores, store) + 1 });
+                            Assert.False(uploaded.RootElement.TryGetProperty("isError", out var portraitError) && portraitError.GetBoolean(),
+                                "Actual portrait browser/HTTP verification failed.");
+                            Assert.True(uploaded.RootElement.GetProperty("portraitBrowserVerified").GetBoolean());
+                            var image = uploaded.RootElement.GetProperty("imageBase64").GetString();
+                            Assert.NotEqual(previousPortrait, image);
+                            var detail = await store.LoadAvatarDetailAsync(id);
+                            Assert.False(detail.IsError, detail.Message);
+                            Assert.Equal(image, detail.Result.Portrait);
+                            Assert.Equal(42, detail.Result.XP);
+                            Assert.Equal("stored-hash", (await store.LoadAvatarAsync(id)).Result.Password);
+                            var after = await Read(store, id);
+                            Assert.Equal(before.Title, after.Title);
+                            Assert.Equal(before.FirstName, after.FirstName);
+                            Assert.Equal(before.LastName, after.LastName);
+                            Assert.Equal(before.Username, after.Username);
+                            Assert.Equal(before.Email, after.Email);
+                            Assert.Equal(before.Address, after.Address);
+                            Console.WriteLine("Portrait native persistence verified: " + provider +
+                                "; actual browser upload/read/reload, unchanged profile fields, password and XP.");
+                            continue;
                         }
                         var sdkTitle = (browser ? "Browser " : "SDK ") + mode + " " + provider;
                         using var sdkResult = await ExchangeSdkRequest(new
@@ -254,7 +298,16 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 await app.StopAsync(stop.Token);
             }
         }
-        finally { AssemblyLoadContext.Default.Resolving -= Resolve; }
+        finally
+        {
+            if (portraitManagerField != null)
+            {
+                portraitManagerField.SetValue(null, previousPortraitManager);
+                Assert.Same(previousPortraitManager, portraitManagerField.GetValue(null));
+                Console.WriteLine("Owned portrait HTTP application manager restored.");
+            }
+            AssemblyLoadContext.Default.Resolving -= Resolve;
+        }
     }
 
     // The test hosts HTTP only. CI owns the separate fixed Node command.

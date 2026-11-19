@@ -1,5 +1,5 @@
 {
-  "status": "public_query_dependencies_and_preserved_bootloader_merge_build_pending",
+  "status": "combined_api_native_project_compile_accepted_behavior_pending",
   "sourceCheckpoint": "38d4320ef7cffa3ce8d6c77cb312dee3f42acb9d",
   "core": "96f6baea21c1423795f7effcac208a8f6485b30c",
   "importedFiles": [
@@ -776,8 +776,8 @@
   },
   "deletionsApplied": 0,
   "fullHistoryMergePerformed": false,
-  "apiCompiled": false,
-  "nativeProjectCompiled": false,
+  "apiCompiled": true,
+  "nativeProjectCompiled": true,
   "behaviorTestsRun": 0,
   "notes": "Frozen verified Development CQL/provider/native fixture source only; preserve owned profile/index/history/memory implementations and all owned-only files. Batched Git object/hash checks; prior slow serial importer stopped through its owned handle, then all changes reconciled against HEAD and immutable donor. No physical submodule checkout or new runtime/env.",
   "routeInventoryReview": {
@@ -1093,5 +1093,9 @@
       "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware.OASIS.OASISBootLoader.csproj": "0529dd427adbcdf2669ac5bc4995e2ee83ef50d0"
     },
     "owned12HashesUnchanged": true
-  }
+  },
+  "compileRun": 44623720895,
+  "compileJob": 135911880979,
+  "compileSource": "c943fd7bb6db3f36b1254d7955d2d55ad51e8a23",
+  "compileErrors": 0
 }

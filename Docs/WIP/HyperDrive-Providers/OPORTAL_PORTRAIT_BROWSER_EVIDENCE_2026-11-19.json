@@ -1,0 +1,26 @@
+{
+  "status": "source_prepared_not_compiled_or_executed",
+  "test": "PortraitBrowserUploadUsesActualHttpAndThreeNativeProviders",
+  "portal": "7f01ee9fa20eb2853561f06f587e3758b3146717",
+  "sdk": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
+  "mode": "V2",
+  "providers": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "newCaseCount": 1,
+  "browserHandoffs": 3,
+  "actualFragmentSdkMvcNativeRequired": true,
+  "generatedDistinctValidPngPerProvider": true,
+  "oneUploadPerImageRequired": true,
+  "readReloadWithoutCachedImageRequired": true,
+  "unchangedNativeProfilePasswordXpRequired": true,
+  "applicationManagerRestoreRequired": true,
+  "accountSwitchAccepted": false,
+  "concurrentNativeUpdateAccepted": false,
+  "productionStartupAccepted": false,
+  "hostedAccepted": false,
+  "noReplacedBusinessResponses": true,
+  "localRuntimeEnvironmentBuildDatabaseCreated": false
+}
