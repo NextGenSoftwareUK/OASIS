@@ -17,9 +17,29 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
 public sealed partial class CqlV1Web4NativeTests
 {
+    public class GraphPropertyBoundary : OwnedPropertyBoundary
+    {
+        public Guid ParentIdentity;
+        public int ParentReads;
+        protected override object? Invoke(MethodInfo? method, object?[]? args)
+        {
+            if (method!.Name == nameof(IOASISStorageProvider.LoadHolonAsync)
+                && args![0] is Guid id && id == ParentIdentity) ParentReads++;
+            return base.Invoke(method, args);
+        }
+    }
+
     [DataTestMethod]
     [DataRow("MongoDBOASIS")] [DataRow("SQLLiteDBOASIS")] [DataRow("Neo4jOASIS")]
-    public async Task SelectedGraphSavesEnforceParentPermissionsAndAtomicNativeConditions(string providerName)
+    public Task SelectedGraphSavesEnforceParentPermissionsAndAtomicNativeConditions(string providerName)
+        => RunSelectedGraphNative(providerName, false);
+
+    [DataTestMethod]
+    [DataRow("MongoDBOASIS")] [DataRow("SQLLiteDBOASIS")] [DataRow("Neo4jOASIS")]
+    public Task ExplicitChildIdentityGraphsRequireVerifiedParentsAndBoundedReads(string providerName)
+        => RunSelectedGraphNative(providerName, true);
+
+    private async Task RunSelectedGraphNative(string providerName, bool explicitChildIdentity)
     {
         Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -32,7 +52,8 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(Directory.Exists(work)); Directory.CreateDirectory(work);
         var sqlite = Path.Combine(work, "graph.sqlite");
         var reportRoot = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT")!);
-        var report = Path.Combine(reportRoot, "TestResults/Neo4jCurrent/" + providerName + "-property-graph-native.json");
+        var report = Path.Combine(reportRoot, "TestResults/Neo4jCurrent/" + providerName
+            + (explicitChildIdentity ? "-property-parent-native.json" : "-property-graph-native.json"));
         var mongo = new MongoClient(mongoUri);
         using (var names = await mongo.ListDatabaseNamesAsync())
             Assert.IsFalse((await names.ToListAsync()).Contains(database));
@@ -56,8 +77,12 @@ public sealed partial class CqlV1Web4NativeTests
             var root = new Holon { Id = id, Name = "native parent", Description = "initial", IsActive = true };
             root.MetaData[HolonPermissions.MetadataKey] = HolonPermissionSet.Empty.With(b =>
                 b.SetGrant(HolonPermissionSet.Key(writer), HolonPermission.Write)).Encode().Result;
-            var boundary = DispatchProxy.Create<IPropertyOutcomeBoundary, OwnedPropertyBoundary>();
+            var boundary = explicitChildIdentity
+                ? DispatchProxy.Create<IPropertyOutcomeBoundary, GraphPropertyBoundary>()
+                : DispatchProxy.Create<IPropertyOutcomeBoundary, OwnedPropertyBoundary>();
             var probe = (OwnedPropertyBoundary)(object)boundary;
+            var parentProbe = probe as GraphPropertyBoundary;
+            if (parentProbe != null) parentProbe.ParentIdentity = id;
             probe.Target = provider; probe.Source = root;
             probe.BeforeResource = async (operation, records) =>
             {
@@ -89,19 +114,37 @@ public sealed partial class CqlV1Web4NativeTests
                 var edit = await Read(id); HolonChangeTracking.AcceptChanges(edit, false);
                 edit.Description = "forbidden graph edit";
                 var child = new Holon { ParentHolonId = id, Name = "denied child" };
+                if (explicitChildIdentity) child.Id = Guid.NewGuid();
+                var submittedId = child.Id;
                 if (nested) edit.Children.Add(child);
                 probe.Source = edit;
                 var options = new CosmicWriteOptions(Guid.NewGuid(), new Dictionary<Guid, Guid?> { [id] = Revision(edit) });
                 var roots = nested ? new IHolon[] { edit } : new IHolon[] { edit, child };
                 var beforeCalls = operations.Count;
+                if (parentProbe != null) parentProbe.ParentReads = 0;
                 var denied = selected
                     ? await manager.SaveOwnedHolonsAsync(roots, writer, options,
                         new Dictionary<Guid, IReadOnlyList<string>> { [id] = new[] { "/Description" } }, providerType: authority)
                     : await manager.SaveOwnedHolonsAsync(roots, writer, options, providerType: authority);
                 Assert.IsTrue(denied.IsError); Assert.AreEqual("COSMIC_ADD_CHILDREN_FORBIDDEN", denied.ErrorCode);
-                Assert.AreEqual(beforeCalls, operations.Count); Assert.AreEqual(Guid.Empty, child.Id);
+                Assert.AreEqual(beforeCalls, operations.Count); Assert.AreEqual(submittedId, child.Id);
+                if (parentProbe != null) Assert.AreEqual(1, parentProbe.ParentReads,
+                    "An in-plan parent observation must be reused for AddChildren authorization.");
                 var unchanged = await Read(id); Assert.AreEqual(1, unchanged.Version);
                 Assert.AreEqual("initial", unchanged.Description); checks++;
+            }
+
+            if (explicitChildIdentity)
+            {
+                var child = new Holon { Id = Guid.NewGuid(), ParentHolonId = id, Name = "external denied child" };
+                var suppliedId = child.Id; var beforeCalls = operations.Count;
+                probe.Source = child; parentProbe!.ParentReads = 0;
+                var denied = await manager.SaveOwnedHolonAsync(child, writer, new CosmicWriteOptions(Guid.NewGuid()),
+                    saveChildren: false, providerType: authority);
+                Assert.IsTrue(denied.IsError); Assert.AreEqual("COSMIC_ADD_CHILDREN_FORBIDDEN", denied.ErrorCode);
+                Assert.AreEqual(suppliedId, child.Id); Assert.AreEqual(0, child.Version);
+                Assert.AreEqual(beforeCalls, operations.Count); Assert.AreEqual(1, parentProbe.ParentReads);
+                Assert.AreEqual(1, (await Read(id)).Version); checks++;
             }
 
             root.MetaData[HolonPermissions.MetadataKey] = HolonPermissionSet.Empty.With(b =>
@@ -111,6 +154,20 @@ public sealed partial class CqlV1Web4NativeTests
                 saveChildren: false, providerType: authority);
             Assert.IsFalse(grant.IsError, grant.Message + grant.Exception);
             Assert.AreEqual(2, (await Read(id)).Version); checks++;
+            if (explicitChildIdentity)
+            {
+                var child = new Holon { Id = Guid.NewGuid(), ParentHolonId = id, Name = "external permitted child", IsActive = true };
+                var suppliedId = child.Id; probe.Source = child; parentProbe!.ParentReads = 0;
+                var saved = await manager.SaveOwnedHolonAsync(child, writer, new CosmicWriteOptions(Guid.NewGuid()),
+                    saveChildren: false, providerType: authority);
+                Assert.IsFalse(saved.IsError, saved.Message + saved.Exception); Assert.IsTrue(saved.IsSaved);
+                Assert.AreEqual(suppliedId, child.Id); ids.Add(child.Id);
+                Assert.AreEqual(1, parentProbe.ParentReads);
+                var native = await Read(child.Id);
+                Assert.AreEqual(1, native.Version); Assert.AreEqual(id, native.ParentHolonId);
+                Assert.AreEqual(writer, native.CreatedByAvatarId); Assert.AreEqual(child.Name, native.Name);
+                Assert.AreEqual(2, (await Read(id)).Version); checks++;
+            }
             Holon? staleParent = null; Holon? lastChild = null;
             foreach (var selected in new[] { false, true })
             {
@@ -119,9 +176,12 @@ public sealed partial class CqlV1Web4NativeTests
                 var version = edit.Version; edit.Description = selected ? "selected graph" : "full graph";
                 if (selected) edit.Name = "excluded local parent name";
                 var child = new Holon { ParentHolonId = id, Name = selected ? "selected child" : "full child", IsActive = true };
+                if (explicitChildIdentity) child.Id = Guid.NewGuid();
+                var submittedId = child.Id;
                 if (selected) edit.Children.Add(child);
                 probe.Source = edit;
                 var options = new CosmicWriteOptions(Guid.NewGuid(), new Dictionary<Guid, Guid?> { [id] = Revision(edit) });
+                if (parentProbe != null) parentProbe.ParentReads = 0;
                 var saved = selected
                     ? await manager.SaveOwnedHolonsAsync(new IHolon[] { edit }, writer, options,
                         new Dictionary<Guid, IReadOnlyList<string>> { [id] = new[] { "/Description" } },
@@ -130,6 +190,9 @@ public sealed partial class CqlV1Web4NativeTests
                         saveChildren: false, providerType: authority);
                 Assert.IsFalse(saved.IsError, saved.Message + saved.Exception); Assert.IsTrue(saved.IsSaved);
                 Assert.AreNotEqual(Guid.Empty, child.Id); ids.Add(child.Id);
+                if (explicitChildIdentity) Assert.AreEqual(submittedId, child.Id);
+                if (parentProbe != null) Assert.AreEqual(1, parentProbe.ParentReads,
+                    "A stored parent included in a permitted graph is read only once for authorization.");
                 var nativeParent = await Read(id); var nativeChild = await Read(child.Id);
                 Assert.AreEqual(version + 1, nativeParent.Version); Assert.AreEqual(edit.Description, nativeParent.Description);
                 Assert.AreEqual("native parent", nativeParent.Name); Assert.AreEqual(id, nativeChild.ParentHolonId);
@@ -150,7 +213,7 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsTrue(stale.IsError); Assert.AreEqual(CosmicConcurrencyException.Code, stale.ErrorCode);
             Assert.AreEqual(StoredRecordJson.SerializeRuntime(beforeParent), StoredRecordJson.SerializeRuntime(await Read(id)));
             Assert.AreEqual(StoredRecordJson.SerializeRuntime(beforeChild), StoredRecordJson.SerializeRuntime(await Read(lastChild.Id)));
-            checks++; Assert.AreEqual(9, checks); complete = true;
+            checks++; Assert.AreEqual(explicitChildIdentity ? 11 : 9, checks); complete = true;
         }
         finally
         {
@@ -178,9 +241,12 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.AreEqual(temp, Path.GetDirectoryName(Path.GetFullPath(work)));
                 Directory.Delete(work, true); Assert.IsFalse(Directory.Exists(work)); checks++;
                 await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
-                    successfulHolonWrites = 6, existingParentPermissionVerified = true, deniedBeforeMutationVerified = true,
+                    successfulHolonWrites = explicitChildIdentity ? 7 : 6,
+                    existingParentPermissionVerified = true, deniedBeforeMutationVerified = true,
                     fullGraphVerified = true, mixedSelectedGraphVerified = true, unselectedParentPreservedVerified = true,
-                    nativeChildVerified = true, staleGraphAtomicityVerified = true, exactCleanupVerified = true }));
+                    nativeChildVerified = true, staleGraphAtomicityVerified = true, exactCleanupVerified = true,
+                    explicitChildIdentityVerified = explicitChildIdentity,
+                    boundedParentReadsVerified = explicitChildIdentity }));
             }
         }
     }
