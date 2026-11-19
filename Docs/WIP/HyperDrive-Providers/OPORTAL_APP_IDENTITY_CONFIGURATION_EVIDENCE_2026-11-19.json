@@ -1,0 +1,17 @@
+{
+  "status": "in_progress",
+  "source": "d4420c2f18bc5deaf83a725958268e5810e92f6d",
+  "core": "13ba34168d21ec583ccb5057a80edc9bac9444ca",
+  "run": 44595965065,
+  "job": 135814194706,
+  "case": "SubscriptionSdkRejectsIncompleteEffectiveAppIdentityBeforeTransport",
+  "selectedNewCases": 1,
+  "apiBuildAccepted": false,
+  "configurationAccepted": false,
+  "publicNegativeAdmissionAccepted": false,
+  "fullPortalAccepted": false,
+  "hostedAccepted": false,
+  "unchangedAcceptedCasesSelected": 0,
+  "localRuntimeOrDatabaseInstalled": false,
+  "notes": "Run confirmed in progress. Actual API build plus only new configuration test. No browser dependency needed. Environment restoration asserted in test finally. Existing owned CI Mongo finalizer retained; no shared Atlas. Follow this exact run without redispatch on observation timeout."
+}
