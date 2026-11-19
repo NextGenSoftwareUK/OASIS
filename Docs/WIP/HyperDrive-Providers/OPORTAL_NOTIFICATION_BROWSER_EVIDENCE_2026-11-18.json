@@ -1,0 +1,37 @@
+{
+  "scope": "Personal notification preferences only; whole OPORTAL remains incomplete",
+  "status": "running-not-accepted",
+  "runId": 44456662767,
+  "jobId": 135333226792,
+  "revision": "3b5c0b17ac4e851e54f34808dc61fbcf9afcf1d5",
+  "portalRevision": "e239a5775f53c83168a8917c042749276305320b",
+  "coreRevision": "2ae9c233319258c6f7cf9aae59d23f38d16aae72",
+  "starRevision": "ff20026a1fa6039ca2cc7997b5daa724b079218a",
+  "filter": "FullyQualifiedName~SubscriptionNotificationPreferencesBrowserUsesActualControllerAndOwnedMongo",
+  "backend": "Owned CI loopback MongoDB replica set; no shared Atlas",
+  "firstFailure": {
+    "runId": 44455841841,
+    "jobId": 135330527967,
+    "revision": "513e0f6c7168d1572f9be3fc3674bf7ca6fdf159",
+    "apiBuildErrors": 0,
+    "phase": "server-validation-and-identity",
+    "cause": "Two direct fixture SDK calls omitted required body option; both HTTP400",
+    "accepted": false,
+    "ownedBrowserRuntimeCacheCleanupVerified": true,
+    "mongoContainerRemoved": true
+  },
+  "pending": [
+    "real browser preferences/identity/session acceptance",
+    "two concurrent HTTP saves and native audit predecessor chain",
+    "terminal owned cleanup"
+  ],
+  "notCovered": [
+    "app-owner controls",
+    "email delivery",
+    "warning banner",
+    "Stripe checkout",
+    "production Startup",
+    "hosted rollout",
+    "whole-portal performance"
+  ]
+}
