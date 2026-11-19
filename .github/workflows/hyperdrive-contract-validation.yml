@@ -38,7 +38,7 @@ on:
       native_project:
         description: Native fixture project
         type: choice
-        options: [integration, subscription_ledger, profile_browser, web5_build, web5_native]
+        options: [integration, subscription_ledger, profile_browser, web5_build]
         default: integration
       native_neo4j:
         description: Add the owned loopback Bolt fixture for the selected Neo4j profile cases
@@ -181,17 +181,11 @@ jobs:
         if: ${{ !inputs.native_seal || inputs.native_project == 'subscription_ledger' || inputs.build_api }}
         shell: pwsh
         env:
-          OASIS_QUALIFICATION_API: ${{ (inputs.native_project == 'web5_build' || inputs.native_project == 'web5_native') && 'WEB5' || 'WEB4' }}
+          OASIS_QUALIFICATION_API: ${{ inputs.native_project == 'web5_build' && 'WEB5' || 'WEB4' }}
           OASIS_QUALIFICATION_BUILD_ONLY: ${{ inputs.build_only }}
-          OASIS_QUALIFICATION_NATIVE_PROJECT: ${{ inputs.native_project }}
-          OASIS_QUALIFICATION_NATIVE: ${{ inputs.native_seal }}
         run: |
-          if ($env:OASIS_QUALIFICATION_NATIVE_PROJECT -eq 'web5_build' -and $env:OASIS_QUALIFICATION_BUILD_ONLY -ne 'true') {
+          if ($env:OASIS_QUALIFICATION_API -eq 'WEB5' -and $env:OASIS_QUALIFICATION_BUILD_ONLY -ne 'true') {
             throw 'WEB5 selection is a build-only qualification target.'
-          }
-          if ($env:OASIS_QUALIFICATION_NATIVE_PROJECT -eq 'web5_native' -and
-              ($env:OASIS_QUALIFICATION_BUILD_ONLY -eq 'true' -or $env:OASIS_QUALIFICATION_NATIVE -ne 'true')) {
-            throw 'WEB5 native qualification requires the selected native-test lane.'
           }
           $project = if ($env:OASIS_QUALIFICATION_API -eq 'WEB5') {
             'STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj'
