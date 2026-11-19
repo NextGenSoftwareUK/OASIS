@@ -256,7 +256,7 @@ jobs:
             if ($LASTEXITCODE) { throw 'SQLite virtual Holon qualification failed.' }
           }
       - name: Verify authoritative parent observations and explicit child identity creation
-        if: ${{ inputs.property_tracking_only }}
+        if: ${{ inputs.property_tracking_only && inputs.property_selection_only }}
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-property-selection-ci -Operation {
@@ -277,7 +277,7 @@ jobs:
               throw 'Selection-only acceptance cannot inherit unrelated test results.'
             }
           }
-      - name: Verify explicit child graph identities and bounded parent authorization reads
+      - name: Verify typed selected values compose with native roles and partial views
         if: ${{ inputs.source_ref != '' && !inputs.property_selection_only }}
         shell: pwsh
         run: |
@@ -296,28 +296,29 @@ jobs:
             if (!$ready) { throw 'Neo4j fixture did not become ready.' }
             & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-entity-projection-ci -Operation {
               if ('${{ inputs.property_tracking_only }}' -eq 'true') {
-                dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~ExplicitChildIdentityGraphsRequireVerifiedParentsAndBoundedReads' --logger 'trx;LogFileName=property-parent-native.trx' --results-directory TestResults/Neo4jCurrent
+                dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~TypedSelectedScalarsComposeWithStoredRolesAndPartialViews' --logger 'trx;LogFileName=property-role-native.trx' --results-directory TestResults/Neo4jCurrent
                 if ($LASTEXITCODE) { throw 'Selected native property status verification failed.' }
-                [xml]$native = Get-Content TestResults/Neo4jCurrent/property-parent-native.trx
+                [xml]$native = Get-Content TestResults/Neo4jCurrent/property-role-native.trx
                 $counts = $native.TestRun.ResultSummary.Counters
                 if ([int]$counts.total -ne 3 -or [int]$counts.passed -ne 3 -or [int]$counts.notExecuted -ne 0) {
                   throw 'Exactly3 real selection-bound read-only status cases must execute and pass.'
                 }
                 $ids = @($native.TestRun.TestDefinitions.UnitTest | Where-Object {
-                  $_.TestMethod.name -eq 'ExplicitChildIdentityGraphsRequireVerifiedParentsAndBoundedReads'
+                  $_.TestMethod.name -eq 'TypedSelectedScalarsComposeWithStoredRolesAndPartialViews'
                 } | ForEach-Object { $_.id })
                 $results = @($native.TestRun.Results.UnitTestResult)
                 if ($results.Count -ne 3 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
                   throw 'Unrelated native results cannot satisfy selected-field acceptance.'
                 }
                 foreach ($provider in 'MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS') {
-                  $report = Get-Content "TestResults/Neo4jCurrent/$provider-property-parent-native.json" -Raw | ConvertFrom-Json
-                  if ($report.provider -ne $provider -or $report.checks -ne 12 -or $report.successfulHolonWrites -ne 7 -or
-                      !$report.existingParentPermissionVerified -or !$report.deniedBeforeMutationVerified -or
-                      !$report.fullGraphVerified -or !$report.mixedSelectedGraphVerified -or !$report.unselectedParentPreservedVerified -or
-                      !$report.nativeChildVerified -or !$report.staleGraphAtomicityVerified -or !$report.exactCleanupVerified -or
-                      !$report.explicitChildIdentityVerified -or !$report.boundedParentReadsVerified) {
-                    throw "Complete native graph permission/composition/stale atomicity/cleanup evidence required for $provider."
+                  $report = Get-Content "TestResults/Neo4jCurrent/$provider-property-role-native.json" -Raw | ConvertFrom-Json
+                  if ($report.provider -ne $provider -or $report.checks -ne 7 -or $report.successfulHolonWrites -ne 9 -or
+                      !$report.typedNativeGraphCreatedVerified -or !$report.scalarSelectionPreservesRolesVerified -or
+                      !$report.partialGraphRefusedVerified -or !$report.partialScalarSavePreservesRolesVerified -or
+                      !$report.explicitGraphRoleUpdateVerified -or !$report.unselectedScalarPreservedVerified -or
+                      !$report.comparisonAndFlagsPreservedVerified -or !$report.historicalReplayPreservesNativeRolesVerified -or
+                      !$report.noOrdinarySelectedDowngradeVerified -or !$report.exactCleanupVerified) {
+                    throw "Complete typed selected value/role/partial-view/replay/cleanup evidence required for $provider."
                   }
                 }
               } else {
@@ -364,8 +365,7 @@ jobs:
         with:
           name: subscription-protocol-test-results
           path: |
-            ${{ inputs.property_selection_only && 'TestResults/PropertySelection' || inputs.property_tracking_only && 'TestResults/Neo4jCurrent/*property-parent-native*' || 'TestResults' }}
-            ${{ inputs.property_tracking_only && !inputs.property_selection_only && 'TestResults/PropertySelection/*property-parent-observation-core*' || '' }}
+            ${{ inputs.property_selection_only && 'TestResults/PropertySelection' || inputs.property_tracking_only && 'TestResults/Neo4jCurrent/*property-role-native*' || 'TestResults' }}
       - name: Stop temporary database
         if: ${{ always() && !inputs.property_selection_only }}
         run: docker rm --force usage-mongo
