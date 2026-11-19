@@ -21,6 +21,25 @@
   "localGeneratedOutputs": 0,
   "jobId": 135637842875,
   "portalSource": "507cdb4ef22c0e8cedfd1200a61944d756e44acf",
-  "status": "qualification-active-not-accepted",
-  "runId": 44546346337
+  "status": "grant-native-browser-accepted-other-admin-and-hosted-open",
+  "runId": 44546346337,
+  "acceptedEvidence": {
+    "linkedBuild": "skipped",
+    "cleanupVerified": true,
+    "filesWritten": 0,
+    "actualGrantPosts": 5,
+    "artifactId": 14541773102,
+    "successfulGrants": 2,
+    "exactNativeAuditRecords": 2,
+    "otherFinancialCollectionsUnchanged": true,
+    "failed": 0,
+    "seconds": 9,
+    "skipped": 0,
+    "protectedRecordUnchanged": true,
+    "sha256": "5be5a130c06cb5c16c334f6f0ca8fb3dd26aa5b0f2179cfa066f881f744039f6",
+    "apiBuildErrors": 0,
+    "passed": 1,
+    "actors": 3,
+    "artifactBytes": 3729
+  }
 }
