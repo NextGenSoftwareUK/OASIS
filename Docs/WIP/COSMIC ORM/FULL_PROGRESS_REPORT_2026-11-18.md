@@ -14,8 +14,8 @@ Existing implementation branches: parent/Core work/cosmic-cql-ton-public; Websit
 
 | Area | Accepted evidence | Remaining work |
 |---|---|---|
-| EF/NHibernate parity | 50 of 164 checklist rows verified independently on each of SQLite, MongoDB and Neo4j. Counted from the current checklist, not from test totals. | 114 rows per store remain open; no all-provider/full-parity claim. |
-| Property-level tracking (S05) | Corea4c697 source is published with detached original/current values, bounded explicit flags and acknowledgement ownership. Exact CI44434566580 is running on78343bfc:28 new unit cases plus affected tracking regressions and3 real native cases. | Awaiting compilation/native outcome and cleanup evidence; S05 remains open and parity stays50/164 per store. |
+| EF/NHibernate parity | Recorded checklist has60 green rows out of168 for each of SQLite, MongoDB and Neo4j. This corrects the earlier50/164 report; it does not represent10 new implementations. |108 rows per store remain open. The13 COSMIC extension rows are separate (4 green/store); no full-parity claim. |
+| Property-level tracking (S05) | Exact78343/Corea4c697 passed44434566580: WEB4 build,419 Core tests including28 new cases, and3 real native cases. Each store proves11 groups/5 writes, original/current inspection, explicit equal-value write, in-flight flag/edit preservation, owner refusal, no-op and cleanup. | Whole S05 remains red: editable value entries, per-property reset/nonmodified behavior and selected-property persistence need implementation/proof. This accepted source is newer than the packaged image and is not deployed. |
 | SQL editor / Playground / Ask client | Website ac304a9e8a1dafd1689b2cb96d762b04b53ab0f0: all269 frozen-source parser/Playground/Ask tests passed, zero failures/skips. Includes updated HTML guidance/cache versions,9 new mapped grouping parser cases and3 source-bound Ask cases. | Real hosted browser/model/API flow remains unverified during stand-down. |
 | Mixed queries on real providers | Combined parent1fe2/Core0e67 passed actual WEB4 build,565 selected tests,22 configured cases and3 real native suites in44421493104. | Hosted browser/model delivery, broader source planning and full provider parity remain open. |
 | Mapped values and aggregates | Real native evidence covers supported String/Boolean/Int32/Int64/finite Double projections, raw/computed LENGTH, identity-only reads, live-winner deduplication, global ordering/page, row/value/distinct counts, numeric Min/Max/Sum/Average and String Min/Max, owner isolation, source preservation and owned cleanup. | Other domains, larger-source planning, general mixed joins and additional grouped operations remain open. |
@@ -62,6 +62,8 @@ Prepared1fe2ddcefdc9b8165962e43f56c02cf355b6849b combines CQL93156 with Developm
 
 No new grouping/native-model/browser work is called live from CI alone. The live demonstration remains at its previously accepted scope. Existing shared-cluster/deployment stand-down remains active; no PIPER record or load-balancing setting was changed. Development advances by other contributors were inspected read-only and kept out of this unverified batch.
 
+Recorded coverage correction: the earlier50/164 arithmetic was wrong. The existing feature table contains168 EF/NHibernate rows plus13 separate COSMIC extension rows. No prior green cell was changed or rerun for this recount; S05 remains open despite its newly passed increment.
+
 ## Resources and cleanup
 
 Heavy builds/tests run in existing isolated GitHub Actions. Client tests use the cached Node runtime and frozen Git inputs in RAM, including the matching HTML. No SDK install, local restore/build, database, container, image pull or report archive download was added.
@@ -87,4 +89,4 @@ Last observed C-drive free space:41.12GiB; this is an observation, not a reclama
 - Exact combined CQL API package accepted: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44429898957
 - Corrected verifier controls accepted: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44429806686
 
-- S05 property tracking qualification, active: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44434566580
+- S05 property tracking increment accepted (full row remains open): https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44434566580
