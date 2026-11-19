@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
@@ -126,13 +127,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             var now = _time.GetUtcNow().UtcDateTime;
             var start = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
             var end = start.AddMonths(1);
-            var rows = await _events.Aggregate()
-                .Match(x => x.PooledAppId == appId && x.AuthorizedAtUtc >= start && x.AuthorizedAtUtc < end)
-                .Group(x => x.UserId, g => new { UserId = g.Key, Requests = g.Count(), Units = g.Sum(x => x.Units), CostUsd = g.Sum(x => x.SettledCostUsd) })
-                .SortByDescending(x => x.Requests)
-                .Limit(limit)
+            // Audit deltas are the same net values applied to the pool buckets. Counting event projections
+            // includes expired reservations and ignores corrections to settled units/cost.
+            var pipeline = new[]
+            {
+                new BsonDocument("$match", new BsonDocument { { "PooledAppId", appId },
+                    { "AuthorizedAtUtc", new BsonDocument { { "$gte", start }, { "$lt", end } } } }),
+                new BsonDocument("$lookup", new BsonDocument { { "from", _audit.CollectionNamespace.CollectionName },
+                    { "localField", "OperationId" }, { "foreignField", "OperationId" }, { "as", "deltas" } }),
+                new BsonDocument("$unwind", "$deltas"),
+                new BsonDocument("$group", new BsonDocument { { "_id", "$UserId" },
+                    { "Requests", new BsonDocument("$sum", "$deltas.RequestsDelta") },
+                    { "Units", new BsonDocument("$sum", "$deltas.SettledUnitsDelta") },
+                    { "CostUsd", new BsonDocument("$sum", "$deltas.SettledCostDeltaUsd") } }),
+                new BsonDocument("$match", new BsonDocument("$or", new BsonArray {
+                    new BsonDocument("Requests", new BsonDocument("$ne", 0)),
+                    new BsonDocument("Units", new BsonDocument("$ne", 0)),
+                    new BsonDocument("CostUsd", new BsonDocument("$ne", 0)) })),
+                new BsonDocument("$sort", new BsonDocument { { "Requests", -1 }, { "_id", 1 } }),
+                new BsonDocument("$limit", limit)
+            };
+            var rows = await _events.Aggregate<BsonDocument>(pipeline, cancellationToken: cancellationToken)
                 .ToListAsync(cancellationToken);
-            return rows.Select(r => new AppPoolTopUser { UserId = r.UserId, Requests = r.Requests, Units = r.Units, SettledCostUsd = r.CostUsd }).ToList();
+            return rows.Select(row => new AppPoolTopUser { UserId = row["_id"].AsString,
+                Requests = row["Requests"].ToInt64(), Units = row["Units"].ToInt64(), SettledCostUsd = row["CostUsd"].ToDecimal() }).ToList();
         }
     }
 

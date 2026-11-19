@@ -38,7 +38,7 @@ on:
       native_project:
         description: Native fixture project
         type: choice
-        options: [integration, subscription_ledger, profile_browser, subscription_browser, subscription_usage_browser, subscription_notifications_browser, subscription_app_owner_browser, web5_build]
+        options: [integration, subscription_ledger, profile_browser, subscription_browser, subscription_usage_browser, subscription_notifications_browser, subscription_app_owner_browser, subscription_app_usage_browser, web5_build]
         default: integration
       native_neo4j:
         description: Add the owned loopback Bolt fixture for the selected Neo4j profile cases
@@ -125,17 +125,17 @@ jobs:
           persist-credentials: false
 
       - name: Resolve recorded browser portal revision
-        if: ${{ inputs.native_profile_sdk && (inputs.native_project == 'profile_browser' || inputs.native_project == 'subscription_browser' || (inputs.native_project == 'subscription_usage_browser' || (inputs.native_project == 'subscription_notifications_browser' || inputs.native_project == 'subscription_app_owner_browser'))) }}
+        if: ${{ inputs.native_profile_sdk && (inputs.native_project == 'profile_browser' || inputs.native_project == 'subscription_browser' || inputs.native_project == 'subscription_usage_browser' || inputs.native_project == 'subscription_notifications_browser' || inputs.native_project == 'subscription_app_owner_browser' || inputs.native_project == 'subscription_app_usage_browser') }}
         id: profile_portal
         shell: pwsh
         run: |
-          $file = if ('${{ inputs.native_project }}' -eq 'subscription_app_owner_browser') { 'Scripts/TestHosts/Fixtures/subscription-app-owner-browser-portal-revision.txt' } elseif ('${{ inputs.native_project }}' -eq 'subscription_notifications_browser') { 'Scripts/TestHosts/Fixtures/subscription-notifications-browser-portal-revision.txt' } elseif ('${{ inputs.native_project }}' -eq 'subscription_usage_browser') { 'Scripts/TestHosts/Fixtures/subscription-usage-browser-portal-revision.txt' } elseif ('${{ inputs.native_project }}' -eq 'subscription_browser') { 'Scripts/TestHosts/Fixtures/subscription-browser-portal-revision.txt' } else { 'Scripts/TestHosts/Fixtures/profile-browser-portal-revision.txt' }
+          $file = if ('${{ inputs.native_project }}' -eq 'subscription_app_usage_browser') { 'Scripts/TestHosts/Fixtures/subscription-app-usage-browser-portal-revision.txt' } elseif ('${{ inputs.native_project }}' -eq 'subscription_app_owner_browser') { 'Scripts/TestHosts/Fixtures/subscription-app-owner-browser-portal-revision.txt' } elseif ('${{ inputs.native_project }}' -eq 'subscription_notifications_browser') { 'Scripts/TestHosts/Fixtures/subscription-notifications-browser-portal-revision.txt' } elseif ('${{ inputs.native_project }}' -eq 'subscription_usage_browser') { 'Scripts/TestHosts/Fixtures/subscription-usage-browser-portal-revision.txt' } elseif ('${{ inputs.native_project }}' -eq 'subscription_browser') { 'Scripts/TestHosts/Fixtures/subscription-browser-portal-revision.txt' } else { 'Scripts/TestHosts/Fixtures/profile-browser-portal-revision.txt' }
           $revision = (Get-Content $file -Raw).Trim()
           if ($revision -notmatch '^[0-9a-f]{40}$') { throw 'Exact browser portal revision required.' }
           "revision=$revision" >> $env:GITHUB_OUTPUT
 
       - name: Checkout recorded browser portal assets
-        if: ${{ inputs.native_profile_sdk && (inputs.native_project == 'profile_browser' || inputs.native_project == 'subscription_browser' || (inputs.native_project == 'subscription_usage_browser' || (inputs.native_project == 'subscription_notifications_browser' || inputs.native_project == 'subscription_app_owner_browser'))) }}
+        if: ${{ inputs.native_profile_sdk && (inputs.native_project == 'profile_browser' || inputs.native_project == 'subscription_browser' || inputs.native_project == 'subscription_usage_browser' || inputs.native_project == 'subscription_notifications_browser' || inputs.native_project == 'subscription_app_owner_browser' || inputs.native_project == 'subscription_app_usage_browser') }}
         uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/OPORTAL-JS
@@ -283,11 +283,12 @@ jobs:
         env:
           SUBSCRIPTION_TEST_MONGODB_URI: mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000
           OASIS_PROFILE_WEB4_SDK_ROOT: ${{ github.workspace }}/web4-profile-sdk
-          OASIS_PROFILE_BROWSER_ENABLED: ${{ (inputs.native_project == 'profile_browser' || inputs.native_project == 'subscription_browser' || (inputs.native_project == 'subscription_usage_browser' || (inputs.native_project == 'subscription_notifications_browser' || inputs.native_project == 'subscription_app_owner_browser'))) && 'true' || 'false' }}
-          OASIS_SUBSCRIPTION_BROWSER_ENABLED: ${{ (inputs.native_project == 'subscription_browser' || (inputs.native_project == 'subscription_usage_browser' || (inputs.native_project == 'subscription_notifications_browser' || inputs.native_project == 'subscription_app_owner_browser'))) && 'true' || 'false' }}
-          OASIS_SUBSCRIPTION_APP_OWNER_BROWSER_ENABLED: ${{ inputs.native_project == 'subscription_app_owner_browser' && 'true' || 'false' }}
-          OASIS_SUBSCRIPTION_NOTIFICATIONS_BROWSER_ENABLED: ${{ (inputs.native_project == 'subscription_notifications_browser' || inputs.native_project == 'subscription_app_owner_browser') && 'true' || 'false' }}
-          OASIS_SUBSCRIPTION_USAGE_BROWSER_ENABLED: ${{ (inputs.native_project == 'subscription_usage_browser' || (inputs.native_project == 'subscription_notifications_browser' || inputs.native_project == 'subscription_app_owner_browser')) && 'true' || 'false' }}
+          OASIS_PROFILE_BROWSER_ENABLED: ${{ (inputs.native_project == 'profile_browser' || inputs.native_project == 'subscription_browser' || inputs.native_project == 'subscription_usage_browser' || inputs.native_project == 'subscription_notifications_browser' || inputs.native_project == 'subscription_app_owner_browser' || inputs.native_project == 'subscription_app_usage_browser') && 'true' || 'false' }}
+          OASIS_SUBSCRIPTION_BROWSER_ENABLED: ${{ (inputs.native_project == 'subscription_browser' || inputs.native_project == 'subscription_usage_browser' || inputs.native_project == 'subscription_notifications_browser' || inputs.native_project == 'subscription_app_owner_browser' || inputs.native_project == 'subscription_app_usage_browser') && 'true' || 'false' }}
+          OASIS_SUBSCRIPTION_APP_USAGE_BROWSER_ENABLED: ${{ inputs.native_project == 'subscription_app_usage_browser' && 'true' || 'false' }}
+          OASIS_SUBSCRIPTION_APP_OWNER_BROWSER_ENABLED: ${{ (inputs.native_project == 'subscription_app_owner_browser' || inputs.native_project == 'subscription_app_usage_browser') && 'true' || 'false' }}
+          OASIS_SUBSCRIPTION_NOTIFICATIONS_BROWSER_ENABLED: ${{ (inputs.native_project == 'subscription_notifications_browser' || inputs.native_project == 'subscription_app_owner_browser' || inputs.native_project == 'subscription_app_usage_browser') && 'true' || 'false' }}
+          OASIS_SUBSCRIPTION_USAGE_BROWSER_ENABLED: ${{ (inputs.native_project == 'subscription_usage_browser' || inputs.native_project == 'subscription_notifications_browser' || inputs.native_project == 'subscription_app_owner_browser' || inputs.native_project == 'subscription_app_usage_browser') && 'true' || 'false' }}
           OASIS_PROFILE_PORTAL_ROOT: ${{ github.workspace }}/portal-profile-browser
           OASIS_NATIVE_PROVIDER_TEST_FILTER: ${{ inputs.native_test_filter }}
           OASIS_PROFILE_NEO4J_FIXTURE: ${{ inputs.native_neo4j && 'owned-local-27687' || '' }}

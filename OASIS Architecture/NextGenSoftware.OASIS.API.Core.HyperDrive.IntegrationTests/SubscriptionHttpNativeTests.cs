@@ -40,7 +40,10 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     [Fact]
     public Task SubscriptionAppOwnerSettingsBrowserUsesActualControllerAndOwnedMongo() => RunSubscriptionHttp(true, true, true, true);
 
-    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false)
+    [Fact]
+    public Task SubscriptionAppOwnerUsageBrowserUsesActualControllerAndOwnedMongo() => RunSubscriptionHttp(true, true, true, true, true);
+
+    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -104,6 +107,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                             { "VersionPurgeEnabled", true }, { "VersionPurgeDays", 45 } } }
                     });
             }
+            if (ownerUsage) await SeedOwnedAppUsageAsync(db, accounts, missingAccount);
             avatarStore = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(MongoUri, databaseName);
             var activated = await avatarStore.ActivateProviderAsync();
             Assert.False(activated.IsError, activated.Message);
@@ -261,7 +265,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     });
                     Assert.False(result.RootElement.TryGetProperty("isError", out var failed) && failed.GetBoolean(),
                         result.RootElement.TryGetProperty("message", out var message) ? message.GetString() : "Browser worker failed.");
-                    Assert.True(result.RootElement.GetProperty(ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
+                    Assert.True(result.RootElement.GetProperty(ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
                         usage ? "subscriptionUsageBrowserVerified" : "subscriptionBrowserVerified").GetBoolean());
                     Assert.Equal(3, result.RootElement.GetProperty("actorsVerified").GetInt32());
                     Assert.True(result.RootElement.GetProperty("lateSessionResponseIgnored").GetBoolean());
@@ -293,7 +297,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 }
                 Assert.Equal(2L, await db.GetCollection<BsonDocument>("subscription_records").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
                 Assert.Equal(2L, await db.GetCollection<BsonDocument>("subscription_orders").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
-                if (usage) Assert.Equal(4L, await db.GetCollection<BsonDocument>("subscription_usage_buckets").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+                if (usage) Assert.Equal(ownerUsage ? 12L : 4L, await db.GetCollection<BsonDocument>("subscription_usage_buckets").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
                 if (notifications && !ownerSettings)
                 {
                     var preferences = db.GetCollection<BsonDocument>("usage_notification_settings");
@@ -332,7 +336,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     Assert.Equal(second.Next, Assert.Single(after["thresholds"].AsBsonArray).ToInt32());
                     Console.WriteLine("Notification native audit verified: two concurrent changes form the actual before/after chain; seven total preference audit entries, two owned subjects.");
                 }
-                if (ownerSettings)
+                if (ownerSettings && !ownerUsage)
                 {
                     var apps = db.GetCollection<BsonDocument>("subscription_app_accounts");
                     var audit = db.GetCollection<BsonDocument>("subscription_billing_audit");
@@ -366,6 +370,14 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     Assert.Equal(5L, await audit.CountDocumentsAsync(filter));
                     Console.WriteLine("App settings native verified: omitted hidden choices preserved, disjoint concurrent changes retained, malformed requests and revoked owner create no audit writes.");
                 }
+                if (ownerUsage)
+                {
+                    Assert.Equal(5L, await db.GetCollection<BsonDocument>("subscription_usage_events").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+                    Assert.Equal(11L, await db.GetCollection<BsonDocument>("subscription_usage_audit").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+                    Assert.Equal(1L, await db.GetCollection<BsonDocument>("subscription_billing_audit").CountDocumentsAsync(
+                        new BsonDocument("Kind", "app-usage-overrides-changed")));
+                    Console.WriteLine("App usage native verified: five operations/eleven audit deltas/twelve total buckets unchanged; only the explicit disable-view setting wrote one settings audit.");
+                }
             }
             finally { await app.StopAsync(); }
         }
@@ -382,5 +394,56 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             await mongo.DropDatabaseAsync(databaseName);
             Assert.DoesNotContain(databaseName, await (await mongo.ListDatabaseNamesAsync()).ToListAsync());
         }
+    }
+
+    private static async Task SeedOwnedAppUsageAsync(IMongoDatabase db, string[] accounts, string expiredActor)
+    {
+        var now = DateTime.UtcNow;
+        var old = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-2);
+        async Task Operation(string app, string actor, DateTime when, bool expired, long units, decimal cost, bool corrected = false)
+        {
+            var id = Guid.NewGuid().ToString("D");
+            await db.GetCollection<BsonDocument>("subscription_usage_events").InsertOneAsync(new BsonDocument
+            {
+                { "_id", ObjectId.GenerateNewId() }, { "OperationId", id }, { "UserId", actor },
+                { "PooledAppId", app }, { "AuthorizedAtUtc", when }, { "ExpiresAtUtc", when.AddMinutes(5) },
+                { "Status", expired ? "expired" : "settled" }, { "Units", units }, { "SettledCostUsd", new BsonDecimal128(cost) }
+            });
+            async Task Delta(string kind, long requests, long tokens, decimal usd)
+            {
+                await db.GetCollection<BsonDocument>("subscription_usage_audit").InsertOneAsync(new BsonDocument
+                {
+                    { "_id", id + ":" + kind }, { "OperationId", id }, { "UserId", actor },
+                    { "Kind", kind }, { "OccurredAtUtc", when }, { "Month", when.ToString("yyyy-MM") },
+                    { "Day", when.ToString("yyyy-MM-dd") }, { "RequestsDelta", requests },
+                    { "SettledUnitsDelta", tokens }, { "SettledCostDeltaUsd", new BsonDecimal128(usd) }
+                });
+            }
+            await Delta("authorized", 1, 0, 0);
+            await Delta(expired ? "expired" : "settled", expired ? -1 : 0, units, cost);
+            if (corrected) await Delta("correction", 0, -2, -0.002m);
+        }
+        await Operation("owned-app-a", accounts[0], now, false, 10, 0.01m, true);
+        await Operation("owned-app-a", accounts[1], now, false, 6, 0.006m);
+        await Operation("owned-app-a", expiredActor, now, true, 0, 0);
+        await Operation("owned-app-b", expiredActor, now, false, 500, 0.5m);
+        await Operation("owned-app-a", expiredActor, old, false, 777, 0.777m);
+        async Task Buckets(string subject, DateTime when, long requests, long units, decimal cost)
+        {
+            foreach (var type in new[] { "day", "month" })
+            {
+                var period = when.ToString(type == "day" ? "yyyy-MM-dd" : "yyyy-MM");
+                await db.GetCollection<BsonDocument>("subscription_usage_buckets").InsertOneAsync(new BsonDocument
+                {
+                    { "_id", subject + ":" + type + ":" + period }, { "UserId", subject },
+                    { "PeriodType", type }, { "Period", period }, { "Requests", requests }, { "SettledUnits", units },
+                    { "SettledCostUsd", new BsonDecimal128(cost) }, { "UpdatedAtUtc", when }
+                });
+            }
+        }
+        await Buckets("app:owned-app-a", now, 1, 8, 0.008m);
+        await Buckets("app:owned-app-a#3", now, 1, 6, 0.006m);
+        await Buckets("app:owned-app-b", now, 1, 500, 0.5m);
+        await Buckets("app:owned-app-a", old, 1, 777, 0.777m);
     }
 }
