@@ -1,5 +1,5 @@
 {
-  "status": "corrected_shared_dependency_build_in_progress",
+  "status": "api_compile_three_remaining_dependency_errors",
   "run": 44607073292,
   "job": 135853508585,
   "source": "f20298c90df6cbdbe3d9892e92c261779e154607",
@@ -131,12 +131,23 @@
     "run": 44618848348,
     "job": 135894723101,
     "source": "85837a88adf956b4e549c1e4431b1927ff15bb73",
-    "observedStatus": "in_progress",
+    "observedStatus": "completed",
     "activeStep": "Run actions/checkout@v7",
     "apiBuildAccepted": false,
     "nativeContractProjectBuildAccepted": false,
     "behaviorTestsSelected": 0,
-    "mongoFixtureRequested": false
+    "mongoFixtureRequested": false,
+    "conclusion": "failure",
+    "compilerErrors": 3,
+    "apiCompileReached": true,
+    "nativeContractProjectCompileReached": false,
+    "sharedConditionalPlanErrorsResolved": true,
+    "remainingDependencies": [
+      "WEB4 Urbit project reference and matching provider query source",
+      "Canonical HoloOASIS public read activation extension",
+      "Recorded Holochain SDK timed conductor span extension"
+    ],
+    "artifacts": []
   },
   "portalSourceReconciliation": {
     "head": "5f548052c55174bb3a182f6e48b8e04cb24167cf",

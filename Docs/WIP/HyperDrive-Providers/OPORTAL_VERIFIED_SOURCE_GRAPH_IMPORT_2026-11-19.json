@@ -1,5 +1,5 @@
 {
-  "status": "shared_selected_plan_dependency_integrated_compile_pending",
+  "status": "shared_plan_compiles_api_has_three_remaining_dependency_errors",
   "sourceCheckpoint": "38d4320ef7cffa3ce8d6c77cb312dee3f42acb9d",
   "core": "96f6baea21c1423795f7effcac208a8f6485b30c",
   "importedFiles": [
@@ -792,6 +792,8 @@
     "exactDonorHashesVerified": true,
     "sameVerifiedCheckpoint": "38d4320ef7cffa3ce8d6c77cb312dee3f42acb9d",
     "unrelatedEvmAndProtocolSupportChangesExcluded": true,
-    "runtimeTestsExecuted": 0
-  }
+    "runtimeTestsExecuted": 0,
+    "compilerErrorsResolved": true
+  },
+  "preservedOwnedHashesRechecked": true
 }
