@@ -24,7 +24,7 @@ public sealed partial class CqlV1Web4NativeTests
     public Task GroupedDistinctPrimitiveDomainsUseRealNativeProvider(string providerName)
         => RunGroupedDistinctNativeFixture(providerName, true);
 
-    private async Task RunGroupedDistinctNativeFixture(string providerName, bool primitiveDomains)
+    private async Task RunGroupedDistinctNativeFixture(string providerName, bool primitiveDomains, bool mixedHttp = false)
     {
         Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -91,7 +91,12 @@ public sealed partial class CqlV1Web4NativeTests
                 return await CosmicGroupedExecutor.ExecuteAsync(planned.Result,
                     new[] { (ICosmicQueryStorageProvider)provider });
             }
-            if (primitiveDomains)
+            if (mixedHttp)
+            {
+                checks = await VerifyGroupedDistinctMixedNativeHttpProvider(provider, work, database, mongo, ids);
+                Assert.AreEqual(4, ids.Count);
+            }
+            else if (primitiveDomains)
             {
                 async Task Check<T>(string domain, (string Key, object? Value)[] values,
                     Expression<Func<Holon, T>> selector, long present, long unique)
@@ -193,8 +198,16 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 var root = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT")!);
                 var report = Path.Combine(root, "TestResults/Neo4jCurrent/" + providerName
-                    + (primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
-                if (primitiveDomains)
+                    + (mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
+                if (mixedHttp)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        successfulHolonWrites = ids.Count, rawNativeRecords = 2, successfulHttpQueries = 2,
+                        foreignOwnerRequests = 1, elapsedMilliseconds = timer.ElapsedMilliseconds,
+                        nativeProviderVerified = true, realHttpVerified = true, storedVirtualSameGroupVerified = true,
+                        distinctCountVerified = true, havingPagingVerified = true, staleCacheReconciledVerified = true,
+                        foreignOwnerRefused = true, nativeSourceUnchangedVerified = true,
+                        usageSettledVerified = true, exactCleanupVerified = true }));
+                else if (primitiveDomains)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
                         successfulHolonWrites = ids.Count, elapsedMilliseconds = timer.ElapsedMilliseconds,
                         queryElapsedMilliseconds = queryElapsed,
