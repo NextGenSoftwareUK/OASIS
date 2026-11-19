@@ -1,0 +1,38 @@
+{
+  "hostedWizardVerified": false,
+  "sourceCommit": "7c1eef81961d220e46d6b91c4687f308b1ef4c5e",
+  "sdkCommit": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
+  "filter": "FullyQualifiedName~SubscriptionAdminAppAccountsUseActualControllerBrowserAndCredentials",
+  "status": "qualification-active-not-accepted",
+  "bundleJob": 135642311180,
+  "bundleRun": 44547612617,
+  "stripeVerified": false,
+  "shippingUsageAdmissionVerified": false,
+  "runId": 44549547233,
+  "jobId": 135649259241,
+  "portalSnapshot": "c83156a6fddaa15b72c3be9066a7df6c89e69d22",
+  "required": [
+    "actual persisted Wizard/User authority",
+    "create exactly once and reject duplicate",
+    "rotate actual key and refuse old key",
+    "finite plan requires pool",
+    "valid pooled/per-user settings update",
+    "disable rejects key and reactivation restores access",
+    "delayed key cannot redisclose after tab exit/return",
+    "ordinary403 and expired401",
+    "late actual list/account change cannot republish",
+    "six exact native audit transitions and one final pooled silver/bronze account",
+    "other financial collections unchanged",
+    "owned process environment and browser/runtime/cache/database cleanup"
+  ],
+  "credentialObserver": {
+    "shippingRepositoryReader": "VerifyAppCredentialAsync",
+    "testAssemblyOnly": true,
+    "replacesBusinessEndpoint": false,
+    "maxReads": 7,
+    "nonceGuarded": true
+  },
+  "bundleCleanupVerified": true,
+  "rawKeysInEvidence": false,
+  "localGeneratedOutputs": 0
+}
