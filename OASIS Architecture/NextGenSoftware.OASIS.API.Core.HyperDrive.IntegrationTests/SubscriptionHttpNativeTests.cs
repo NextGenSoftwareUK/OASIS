@@ -73,9 +73,10 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 var avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar
                 {
                     Id = Guid.Parse(account), Username = "subscription-http-" + account,
-                    Email = account + "@example.test", IsActive = true
+                    Email = account + "@example.test", IsActive = true,
+                    AvatarType = new NextGenSoftware.Utilities.EnumValue<NextGenSoftware.OASIS.API.Core.Enums.AvatarType>(
+                        NextGenSoftware.OASIS.API.Core.Enums.AvatarType.User)
                 };
-                avatar.AvatarType.Value = NextGenSoftware.OASIS.API.Core.Enums.AvatarType.User;
                 var saved = await avatarStore.SaveAvatarAsync(avatar);
                 Assert.False(saved.IsError, saved.Message);
             }
