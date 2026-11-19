@@ -1,0 +1,28 @@
+{
+  "releaseGates": [
+    "original-cap/writeoff reversal and historical/legacy qualification",
+    "personal current-month credit-only scheduling exclusion of positive unbilled usage",
+    "historical in-flight transition",
+    "canonical metadata/webhook and matching portal review state",
+    "genuine Stripe readiness/nonzero collection",
+    "hosted complete portal/performance and provider/HyperDrive programme"
+  ],
+  "filter": "FullyQualifiedName~PersonalStatementsAndCorrectionsPreserveOriginalAccountsAndConserveMoney",
+  "sourceCommit": "9d0f48ff3a3caf0f6cbb2df439224946944ea8ca",
+  "localGeneratedOutputs": 0,
+  "runId": 44522842704,
+  "jobId": 135555650404,
+  "scope": "Actual repository authorization/start/native acknowledgement/settlement/allocation/correction with explicit account/readiness/financial-cost inputs",
+  "status": "qualification-in-progress-not-accepted",
+  "acceptancePending": [
+    "actual API/changed linked-host builds",
+    "original-account allocation after current routing removal",
+    "cumulative rounding across subscriptions on same customer and separation of different customers",
+    "per-operation threshold correction and original source statement attribution",
+    "correction replay and correction/preparation concurrency without stranded credits",
+    "three preparers allocate once",
+    "missing proof refusal without financial mutation",
+    "native statement and monthly ledger conservation",
+    "owned database/container/volume absence"
+  ]
+}
