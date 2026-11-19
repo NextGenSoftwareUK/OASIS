@@ -1,5 +1,5 @@
 {
-  "status": "source_prepared_not_compiled_or_executed",
+  "status": "ci_in_progress_not_accepted",
   "test": "PortraitBrowserUploadUsesActualHttpAndThreeNativeProviders",
   "portal": "7f01ee9fa20eb2853561f06f587e3758b3146717",
   "sdk": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
@@ -22,5 +22,15 @@
   "productionStartupAccepted": false,
   "hostedAccepted": false,
   "noReplacedBusinessResponses": true,
-  "localRuntimeEnvironmentBuildDatabaseCreated": false
+  "localRuntimeEnvironmentBuildDatabaseCreated": false,
+  "run": 44625566840,
+  "job": 135918346942,
+  "source": "73545492fe3d21472135d0e4a25c6787cd21e838",
+  "observedStatus": "in_progress",
+  "apiBuildAccepted": false,
+  "newTestCompiled": false,
+  "browserAccepted": false,
+  "nativePersistenceAccepted": false,
+  "fixtureCleanupVerified": false,
+  "browserRuntimeCleanupVerified": false
 }
