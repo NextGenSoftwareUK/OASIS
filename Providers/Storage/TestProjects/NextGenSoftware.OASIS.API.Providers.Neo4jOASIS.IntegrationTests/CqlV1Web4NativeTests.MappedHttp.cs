@@ -151,6 +151,8 @@ public sealed partial class CqlV1Web4NativeTests
                         ValueType = "String", Nullable = true, Alias = "Text" }
                 };
                 body.ResultOperation = CqlProjectionV1ResultOperation.Group;
+                body.Skip = 0;
+                body.Take = 1;
                 body.Grouping = new CqlMixedGroupingV1Request
                 {
                     Keys = new[] { new CqlProjectionV1Column { Alias = "Text",
