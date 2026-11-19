@@ -1,0 +1,14 @@
+{
+  "status": "source-prepared-not-accepted",
+  "filter": "FullyQualifiedName~SubscriptionAppPayNowUsesActualControllerAndOwnedMongo",
+  "route": "POST /api/subscription/app-owner/{appId}/payg/pay-now",
+  "scope": "Actual HTTP/native Mongo/controller/store/zero-due gateway; persisted statement INPUT fixture only",
+  "pending": [
+    "API and changed linked-host builds",
+    "new native HTTP verification and cleanup",
+    "SDK/browser/portal wiring",
+    "genuine Stripe nonzero collection and signed webhook",
+    "hosted acceptance"
+  ],
+  "localGeneratedOutputs": 0
+}

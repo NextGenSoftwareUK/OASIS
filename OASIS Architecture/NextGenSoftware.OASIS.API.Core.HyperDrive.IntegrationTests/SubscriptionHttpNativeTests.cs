@@ -49,7 +49,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     [Fact]
     public Task SubscriptionAppBillingControlsBrowserUsesActualControllerAndOwnedMongo() => RunSubscriptionHttp(true, true, true, true, false, true, true);
 
-    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false)
+    [Fact]
+    public Task SubscriptionAppPayNowUsesActualControllerAndOwnedMongo() =>
+        RunSubscriptionHttp(false, usage: true, ownerSettings: true, ownerPayNow: true);
+
+    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -91,8 +95,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             var api = AssemblyLoadContext.Default.LoadFromAssemblyPath(artifact);
             const string ns = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.";
             var repositoryType = api.GetType(ns + "MongoSubscriptionUsageRepository", true)!;
-            var repository = Activator.CreateInstance(repositoryType,
-                [mongo, databaseName, TimeProvider.System, null, false, null])!;
+            var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> {
+                ["SUBSCRIPTION_MONGODB_CONNECTION_STRING"] = MongoUri,
+                ["SUBSCRIPTION_MONGODB_DATABASE"] = databaseName,
+                ["SUBSCRIPTION_LEDGER_INITIAL_STATE"] = "empty-new-installation"
+            }).Build();
+            var repository = Activator.CreateInstance(repositoryType, [config])!;
             if (ownerBilling && !billingControls)
             {
                 var shipping = await File.ReadAllBytesAsync(Path.Combine(Path.GetDirectoryName(artifact)!, "Configuration/app-overage-prices.json"));
@@ -234,6 +242,16 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 builder.Services.AddSingleton(api.GetType(ns + "IUsageSeriesSource", true)!, repository);
                 builder.Services.AddSingleton(api.GetType(ns + "IPaidOverageStatementStore", true)!, repository);
             }
+            if (ownerPayNow)
+            {
+                var gatewayType = api.GetType(ns + "StripePaidOverageGateway", true)!;
+                var actualGateway = Activator.CreateInstance(gatewayType, [config])!;
+                builder.Services.AddSingleton(api.GetType(ns + "IPaidOverageGateway", true)!, actualGateway);
+                var billingType = api.GetType(ns + "PaidOverageBillingService", true)!;
+                var billingLogger = typeof(NullLogger<>).MakeGenericType(billingType).GetField("Instance")!.GetValue(null)!;
+                builder.Services.AddSingleton(billingType, Activator.CreateInstance(billingType,
+                    [repository, actualGateway, billingLogger, TimeProvider.System])!);
+            }
             await using var app = builder.Build();
             using var portalFiles = browser
                 ? new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
@@ -292,6 +310,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     using var response = await http.GetAsync(path);
                     Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                     return JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                }
+                if (ownerPayNow)
+                {
+                    await VerifyAppPayNowHttpAsync(http, Token, db, accounts);
+                    return;
                 }
                 if (browser)
                 {

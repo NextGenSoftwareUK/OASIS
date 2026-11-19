@@ -43,7 +43,19 @@ public sealed partial class MongoSubscriptionUsageRepository
         return new(original.BillingAvatarId, original.VerifiedStripeCustomerId, original.VerifiedStripeSubscriptionId);
     }
 
-    private Task<PaidOverageStatement> PrepareAppStatementAsync(string appId, string month, string requestKey, bool creditsOnly, CancellationToken token)
+    /// <summary>Owner-triggered allocation shares the worker's immutable accounting transaction.</summary>
+    public Task<PaidOverageStatement> PrepareAppStatementForOwnerAsync(string appId, string month, string requestKey,
+        string actor, bool administrator, CancellationToken token = default)
+    {
+        if (!Guid.TryParseExact(actor, "D", out var avatar) || avatar == Guid.Empty)
+            throw new UnauthorizedAccessException("An authenticated avatar is required.");
+        if (!Guid.TryParseExact(requestKey, "D", out var key) || key == Guid.Empty)
+            throw new ArgumentException("A unique billing request UUID is required.");
+        return PrepareAppStatementAsync(appId, month, requestKey, false, token, avatar.ToString("D"), administrator);
+    }
+
+    private Task<PaidOverageStatement> PrepareAppStatementAsync(string appId, string month, string requestKey, bool creditsOnly,
+        CancellationToken token, string actor = null, bool administrator = false)
     {
         AppAccountRules.ValidateAppId(appId);
         if (string.IsNullOrWhiteSpace(requestKey) || requestKey.Length > 200)
@@ -56,14 +68,17 @@ public sealed partial class MongoSubscriptionUsageRepository
         })));
         return TransactAsync(async (session, ct) => {
             await EnsureOpeningBalanceAsync(session, ct);
+            var app = await AppAccounts.Find(session, x => x.AppId == appId).FirstOrDefaultAsync(ct);
+            // Check every attempt, including idempotent replay, before exposing an existing statement.
+            if (actor != null && !administrator && !(app?.OwnerAvatarIds?.Contains(actor, StringComparer.OrdinalIgnoreCase) ?? false))
+                throw new UnauthorizedAccessException("Only an app owner or approved administrator may prepare app billing.");
+            if (app == null) throw new KeyNotFoundException("The app billing account was not found.");
             var existing = await OverageStatements.Find(session, x => x.Id == id).FirstOrDefaultAsync(ct);
             if (existing != null) {
                 if (existing.AppId != appId || existing.Scope != OverageScope || existing.CreditsOnly != creditsOnly)
                     throw new SubscriptionUsageConflictException("APP_STATEMENT_REQUEST_CONFLICT: Billing request identity was reused with different preparation intent.");
                 return existing;
             }
-            var app = await AppAccounts.Find(session, x => x.AppId == appId).FirstOrDefaultAsync(ct)
-                ?? throw new KeyNotFoundException("The app billing account was not found.");
             var operations = creditsOnly ? new List<UsageEventDocument>() : await _events.Find(session,
                 x => x.PooledAppId == appId && x.AuthorizedAtUtc >= start && x.AuthorizedAtUtc < end &&
                     x.Status == "settled" && x.AppBillingStatementId == null && x.SettledAppRequestOverageUsd > 0)
@@ -181,7 +196,8 @@ public sealed partial class MongoSubscriptionUsageRepository
             }
             await BillingAudit.InsertOneAsync(session, new BsonDocument {
                 { "_id", "app-overage-statement:" + id }, { "Kind", "app-overage-statement" }, { "UserId", subject },
-                { "OccurredAtUtc", now }, { "PayloadJson", JsonSerializer.Serialize(statement) }
+                { "OccurredAtUtc", now }, { "Actor", actor == null ? BsonNull.Value : new BsonString(actor) },
+                { "PayloadJson", JsonSerializer.Serialize(statement) }
             }, cancellationToken: ct);
             return statement;
         }, token);

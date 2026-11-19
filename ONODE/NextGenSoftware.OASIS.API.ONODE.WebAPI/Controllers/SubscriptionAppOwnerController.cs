@@ -91,8 +91,7 @@ public sealed class SubscriptionAppOwnerController(MongoSubscriptionUsageReposit
                 ratePerRequestUsd = rate, settings,
                 estimate = AppOverageEstimate.Compute(pool.Usage?.MonthlyRequests ?? 0,
                     pool.Limits?.MonthlyRequestLimit ?? 0, rate, settings.MonthlyCapUsd),
-                statements = statements.Select(value => new { value.Id, value.Month,
-                    amountUsd = value.AmountMinorUsd / 100m, value.State, value.PaymentFailed, value.HostedInvoiceUrl }).ToList() };
+                statements = statements.Select(AppOverageStatementView.From).ToList() };
         });
     }
 
@@ -124,6 +123,54 @@ public sealed class SubscriptionAppOwnerController(MongoSubscriptionUsageReposit
             }
             return await repository.SetAppPaygAsync(appId, request, actor, administrator, verifiedPayer, HttpContext.RequestAborted);
         }, isSave: true);
+    }
+
+    [HttpPost("{appId}/payg/pay-now")]
+    public Task<IActionResult> PayNow(string appId, [FromBody] JsonElement request,
+        [FromServices] PaidOverageBillingService billing)
+    {
+        return Run(async actor =>
+        {
+            if (request.ValueKind != JsonValueKind.Object)
+                throw new ArgumentException("An app billing request is required.");
+            string requestId = null, month = null;
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var field in request.EnumerateObject())
+            {
+                if (!seen.Add(field.Name) || field.Value.ValueKind != JsonValueKind.String)
+                    throw new ArgumentException("App billing fields must be unique strings.");
+                switch (field.Name.ToLowerInvariant())
+                {
+                    case "billingrequestid": requestId = field.Value.GetString(); break;
+                    case "month": month = field.Value.GetString(); break;
+                    default: throw new ArgumentException("Unknown app billing field.");
+                }
+            }
+            if (month != null && !DateTime.TryParseExact(month, "yyyy-MM", System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None, out _))
+                throw new ArgumentException("Choose a UTC billing month in yyyy-MM format.");
+            var statement = await repository.PrepareAppStatementForOwnerAsync(appId,
+                month ?? DateTime.UtcNow.ToString("yyyy-MM"), requestId, actor, IsAdministrator(actor), HttpContext.RequestAborted);
+            if (statement == null) return new { appId, noCharges = true, statement = (AppOverageStatementView)null };
+            try { statement = await billing.CollectAsync(statement, HttpContext.RequestAborted); }
+            catch (global::Stripe.StripeException)
+            {
+                throw new AppBillingUnavailableException("App invoice collection is pending. Reuse this billing request to check its status.");
+            }
+            catch (System.Net.Http.HttpRequestException)
+            {
+                throw new AppBillingUnavailableException("App invoice collection is pending. Reuse this billing request to check its status.");
+            }
+            return new { appId, noCharges = false, statement = AppOverageStatementView.From(statement) };
+        });
+    }
+
+    // Public billing responses never expose customer/subscription IDs, leases, source IDs or internal errors.
+    private sealed record AppOverageStatementView(string Id, string Month, decimal AmountUsd,
+        string State, bool PaymentFailed, string HostedInvoiceUrl)
+    {
+        public static AppOverageStatementView From(PaidOverageStatement statement) => new(statement.Id,
+            statement.Month, statement.AmountMinorUsd / 100m, statement.State, statement.PaymentFailed, statement.HostedInvoiceUrl);
     }
 
     private bool IsAdministrator(string actor)
