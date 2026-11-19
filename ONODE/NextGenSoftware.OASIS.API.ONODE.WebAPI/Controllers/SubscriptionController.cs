@@ -610,7 +610,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     if(string.IsNullOrWhiteSpace(record?.StripeSubscriptionId))return BadRequest(new {IsError=true,Message="An active paid Stripe subscription is required."});
                     prices.Rate(record.PlanId);
                     await _overageGateway.VerifyPaymentReadyAsync(record,HttpContext.RequestAborted);
-                    await _billingRepository.SetPaidOverageConsentAsync(userId,record.StripeSubscriptionId,prices.Version,request.PricingSha256,request.MonthlyLimitUsd,HttpContext.RequestAborted);
+                    await _billingRepository.SetPaidOverageConsentAsync(userId,OASISSub.PersonalBillingPayerSnapshot.AfterVerification(record,DateTime.UtcNow),prices.Version,request.PricingSha256,request.MonthlyLimitUsd,HttpContext.RequestAborted);
                 }
                 catch(OASISSub.SubscriptionUsageConflictException ex){return Conflict(new {IsError=true,ex.Message});}
                 catch(Exception ex) when(ex is InvalidOperationException || ex is StripeException || ex is ArgumentException)
@@ -715,6 +715,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 },
                 payAsYouGoEnabled = OASISSub.PaidOveragePricing.HasConsent(record),
                 payAsYouGoAvailable = record?.StripeSubscriptionId != null && record.Status is "active" or "trialing",
+                hasBoundPersonalConsent = OASISSub.PersonalChargeConsent.HasBoundTerms(record),
+                paidOverageTermsSha256 = record?.PaidOverageTermsSha256,
                 paidOverageTermsVersion = record?.PaidOverageTermsVersion,
                 monthlyOverageLimitUsd = record?.MonthlyOverageLimitUsd ?? 0,
                 overagePaymentBlocked = record?.OveragePaymentBlocked ?? false,

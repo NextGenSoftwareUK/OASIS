@@ -544,7 +544,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             var pricing=PaidOveragePricing.Load();
             (await controller.TogglePayAsYouGo(new(){Enabled=true,PricingVersion=pricing.Version,PricingSha256=pricing.PricingSha256,MonthlyLimitUsd=50})).Should().BeOfType<OkObjectResult>();
             gateway.Verify(g=>g.VerifyPaymentReadyAsync(record,It.IsAny<CancellationToken>()),Times.Once);
-            billing.Verify(b=>b.SetPaidOverageConsentAsync(user.ToString(),"sub_owned",pricing.Version,pricing.PricingSha256,50,It.IsAny<CancellationToken>()),Times.Once);
+            billing.Verify(b=>b.SetPaidOverageConsentAsync(user.ToString(),It.Is<PersonalBillingPayerSnapshot>(snapshot=>snapshot.UserId==user.ToString() && snapshot.CustomerId=="cus_owned" && snapshot.SubscriptionId=="sub_owned"),pricing.Version,pricing.PricingSha256,50,It.IsAny<CancellationToken>()),Times.Once);
         }
         [Fact]
         public async Task PaidOverageConsentRejectsChangedPricesBeforePaymentOrStorage()

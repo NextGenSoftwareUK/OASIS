@@ -65,6 +65,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public string PricingCatalogueVersion { get; set; }
         public string SettlementFingerprint { get; set; }
         public string PaidOveragePricingVersion { get; set; }
+        public PersonalOverageChargeTerms PersonalOverageChargeTerms { get; set; }
         public string BillingStatementId { get; set; }
         public long SettledSequence { get; set; }
         [BsonRepresentation(BsonType.Decimal128)] public decimal ReservedOverageUsd { get; set; }

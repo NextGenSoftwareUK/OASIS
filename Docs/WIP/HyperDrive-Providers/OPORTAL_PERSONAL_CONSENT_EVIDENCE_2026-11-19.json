@@ -1,0 +1,25 @@
+{
+  "status": "source-prepared-not-accepted",
+  "filter": "FullyQualifiedName~PersonalConsentBindsPositiveExposureAndPreservesOriginalEvidence",
+  "scope": "Actual repository/native Mongo/immutable original consent + positive reservation/acknowledged settlement; original verification/account INPUT fixtures only",
+  "required": [
+    "actual API and changed linked-host builds",
+    "ordinary authorization does not stale verification preference epoch",
+    "protected original identity and public non-private terms",
+    "caller proof ignored",
+    "stale opt-out/identity/age refusal without collection mutation",
+    "legacy/missing/changed proof admission refusal",
+    "original reservation terms/rate retained through later customer/plan/cap changes",
+    "real owned Mongo acknowledgement and settlement",
+    "owned database absence/cleanup"
+  ],
+  "releaseGates": [
+    "original personal statement/customer allocation NOT completed by this phase",
+    "correction source attribution",
+    "historical in-flight transition",
+    "genuine Stripe readiness/positive API consent/nonzero/webhook",
+    "canonical webhook behavior and matching portal current-terms state",
+    "full portal/provider/HyperDrive acceptance"
+  ],
+  "localGeneratedOutputs": 0
+}

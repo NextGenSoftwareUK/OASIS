@@ -137,6 +137,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 if (candidate.PaidOveragePricingVersion != null &&
                     checked(aggregate.SettledOverageUsd + aggregate.ReservedOverageUsd + candidate.ReservedOverageUsd) > subscription.MonthlyOverageLimitUsd)
                     throw new SubscriptionUsageLimitException("OVERAGE_SPENDING_CAP_EXCEEDED", "This reservation would exceed the agreed USD monthly overage spending cap.", 402);
+                if(candidate.PaidOveragePricingVersion!=null && candidate.ReservedOverageUsd>0)
+                    candidate.PersonalOverageChargeTerms=await BindPersonalChargeAsync(session,subscription,candidate,ct);
                 if (candidate.GrantId != null)
                     await ReserveAgainstGrantAsync(session, candidate, ct);
                 var entry = Audit(candidate, "authorized", candidate.AuthorizedAtUtc, candidate.ConsumingService);

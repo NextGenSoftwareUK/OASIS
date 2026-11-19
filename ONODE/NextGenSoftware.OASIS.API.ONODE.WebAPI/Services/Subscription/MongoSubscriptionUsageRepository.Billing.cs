@@ -66,6 +66,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 candidate.StripeSubscriptionCreatedAtUtc = existing?.StripeSubscriptionCreatedAtUtc;
                 candidate.AuthorizationVersion = existing?.AuthorizationVersion ?? 0;
                 candidate.CreatedAt = existing?.CreatedAt ?? candidate.CreatedAt;
+                candidate.PaidOverageConsentId=existing?.PaidOverageConsentId;
+                candidate.PaidOverageConsentSchemaVersion=existing?.PaidOverageConsentSchemaVersion ?? 0;
+                candidate.PaidOverageConsentPlanId=existing?.PaidOverageConsentPlanId;
+                candidate.PaidOverageConsentPreferenceVersion=existing?.PaidOverageConsentPreferenceVersion ?? 0;
+                candidate.PaidOveragePreferenceVersion=checked((existing?.PaidOveragePreferenceVersion ?? 0)+1);
                 candidate.PayAsYouGoEnabled = false;
                 await Subscriptions.ReplaceOneAsync(session, x => x.UserId == candidate.UserId, candidate, new ReplaceOptions { IsUpsert = true }, ct);
                 await BillingAudit.InsertOneAsync(session, new BsonDocument { { "_id", Guid.NewGuid().ToString() }, { "Kind", "free-plan-activation" },
@@ -74,8 +79,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             }, cancellationToken);
         }
 
-        public Task SetPaidOverageConsentAsync(string userId,string expectedSubscriptionId,string pricingVersion,string pricingSha256,decimal monthlyLimitUsd,CancellationToken cancellationToken=default) =>
-            TransactAsync(async(session,ct)=>
+        public Task SetPaidOverageConsentAsync(string userId,PersonalBillingPayerSnapshot verifiedPayer,string pricingVersion,string pricingSha256,decimal monthlyLimitUsd,CancellationToken cancellationToken=default)
+        {
+            var consentId=Guid.NewGuid().ToString("D");
+            return TransactAsync(async(session,ct)=>
             {
                 await EnsureOpeningBalanceAsync(session,ct);
                 if(monthlyLimitUsd<0.50m || monthlyLimitUsd>1000000m || monthlyLimitUsd!=Math.Round(monthlyLimitUsd,2))throw new ArgumentException("Choose a monthly USD overage cap between 0.50 and 1,000,000.");
@@ -83,21 +90,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 if(pricing.Version!=pricingVersion || pricing.PricingSha256!=pricingSha256)throw new SubscriptionUsageConflictException("Overage terms changed; review the current published version.");
                 var record=await Subscriptions.Find(session,x=>x.UserId==userId).FirstOrDefaultAsync(ct)
                     ?? throw new KeyNotFoundException("An active paid subscription is required.");
-                if(record.StripeSubscriptionId!=expectedSubscriptionId || record.Status is not ("active" or "trialing") ||
-                    record.CurrentPeriodEnd.HasValue && record.CurrentPeriodEnd<=_time.GetUtcNow().UtcDateTime || string.IsNullOrWhiteSpace(record.StripeCustomerId))
+                var now=PersonalChargeConsent.CanonicalUtc(_time.GetUtcNow().UtcDateTime);
+                if(!Guid.TryParseExact(userId,"D",out var avatar) || avatar==Guid.Empty || verifiedPayer==null ||
+                    verifiedPayer.UserId!=userId || verifiedPayer.PlanId!=record.PlanId ||
+                    verifiedPayer.PreferenceVersion!=record.PaidOveragePreferenceVersion ||
+                    verifiedPayer.CustomerId!=record.StripeCustomerId || verifiedPayer.SubscriptionId!=record.StripeSubscriptionId ||
+                    verifiedPayer.VerifiedAtUtc.Kind!=DateTimeKind.Utc || verifiedPayer.VerifiedAtUtc>now ||
+                    now-verifiedPayer.VerifiedAtUtc>TimeSpan.FromMinutes(5) ||
+                    record.Status is not ("active" or "trialing") ||
+                    record.CurrentPeriodEnd.HasValue && record.CurrentPeriodEnd<=now ||
+                    string.IsNullOrWhiteSpace(record.StripeCustomerId) || string.IsNullOrWhiteSpace(record.StripeSubscriptionId))
                     throw new SubscriptionUsageConflictException("The verified paid subscription changed; refresh billing before accepting overages.");
                 pricing.Rate(record.PlanId);
                 var aggregate=await LoadAggregateAsync(session,userId,_time.GetUtcNow().UtcDateTime,ct);
                 if(monthlyLimitUsd<aggregate.ReservedOverageUsd+aggregate.SettledOverageUsd)
                     throw new SubscriptionUsageConflictException("The spending cap cannot be below already charged or reserved exposure.");
                 record.PayAsYouGoEnabled=true;record.PaidOverageTermsVersion=pricing.Version;record.PaidOverageTermsSha256=pricing.PricingSha256;
-                record.PaidOverageTermsAcceptedAtUtc=_time.GetUtcNow().UtcDateTime;record.MonthlyOverageLimitUsd=monthlyLimitUsd;
-                record.UpdatedAt=record.PaidOverageTermsAcceptedAtUtc.Value;
+                record.PaidOverageTermsAcceptedAtUtc=now;record.MonthlyOverageLimitUsd=monthlyLimitUsd;
+                record.PaidOveragePreferenceVersion=checked(record.PaidOveragePreferenceVersion+1);
+                record.PaidOverageConsentPreferenceVersion=record.PaidOveragePreferenceVersion;
+                record.PaidOverageConsentId=consentId;record.PaidOverageConsentSchemaVersion=1;record.PaidOverageConsentPlanId=record.PlanId;
+                var terms=new PersonalOverageChargeTerms {ConsentId=consentId,UserId=userId,PlanId=record.PlanId,
+                    PreferenceVersion=record.PaidOverageConsentPreferenceVersion,PricingVersion=pricing.Version,
+                    PricingSha256=pricing.PricingSha256,Currency=pricing.Currency,RatePerRequestUsd=pricing.Rate(record.PlanId),
+                    MonthlyCapUsd=monthlyLimitUsd,AcceptedAtUtc=now};
+                record.UpdatedAt=now;
                 await Subscriptions.ReplaceOneAsync(session,x=>x.UserId==userId,record,cancellationToken:ct);
-                await BillingAudit.InsertOneAsync(session,new BsonDocument{{"_id",Guid.NewGuid().ToString()},{"Kind","overage-consent"},
-                    {"UserId",userId},{"OccurredAtUtc",record.UpdatedAt},{"PayloadJson",JsonSerializer.Serialize(new {pricing.Version,pricing.Currency,pricing.RequestRatesUsd,pricing.AiMargin,MonthlyLimitUsd=monthlyLimitUsd})}},cancellationToken:ct);
+                await BillingAudit.InsertOneAsync(session,new BsonDocument{{"_id",PersonalChargeConsent.AuditId(consentId)},{"Kind","overage-consent"},
+                    {"UserId",userId},{"OccurredAtUtc",now},{"PayloadJson",JsonSerializer.Serialize(new PersonalChargeConsentAudit {
+                        UserId=userId,Actor=userId,Terms=terms,VerifiedPayer=verifiedPayer})}},cancellationToken:ct);
                 return true;
             },cancellationToken);
+        }
 
         public Task SetPayAsYouGoAsync(string userId, bool enabled, CancellationToken cancellationToken = default) =>
             TransactAsync(async (session, ct) =>
@@ -105,8 +129,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 await EnsureOpeningBalanceAsync(session, ct);
                 var existing = await Subscriptions.Find(session, x => x.UserId == userId).FirstOrDefaultAsync(ct)
                     ?? throw new KeyNotFoundException("A subscription is required before changing billing preferences.");
-                if(enabled && !PaidOveragePricing.HasAcceptedTerms(existing))
-                    throw new SubscriptionUsageConflictException("Accept published overage terms and a spending cap before enabling billing.");
+                if(enabled)
+                {
+                    if(existing.PayAsYouGoEnabled && PersonalChargeConsent.HasCurrentTerms(existing,_overagePricing ?? PaidOveragePricing.Load()))return true;
+                    throw new SubscriptionUsageConflictException("Fresh verified consent is required to enable personal overages.");
+                }
+                existing.PaidOveragePreferenceVersion=checked(existing.PaidOveragePreferenceVersion+1);
                 existing.PayAsYouGoEnabled = enabled; existing.UpdatedAt = _time.GetUtcNow().UtcDateTime;
                 await Subscriptions.ReplaceOneAsync(session, x => x.UserId == userId, existing, cancellationToken: ct);
                 await BillingAudit.InsertOneAsync(session, new BsonDocument { { "_id", Guid.NewGuid().ToString() }, { "Kind", "billing-preference" },
@@ -174,6 +202,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                     canonical.AuthorizationVersion = current?.AuthorizationVersion ?? 0;
                     canonical.PayAsYouGoEnabled = current?.PayAsYouGoEnabled ?? false;
                     canonical.OveragePaymentBlocked = current?.OveragePaymentBlocked ?? false;
+                    canonical.PaidOverageConsentId = current?.PaidOverageConsentId;
+                    canonical.PaidOverageConsentSchemaVersion = current?.PaidOverageConsentSchemaVersion ?? 0;
+                    canonical.PaidOverageConsentPlanId = current?.PaidOverageConsentPlanId;
+                    canonical.PaidOverageConsentPreferenceVersion = current?.PaidOverageConsentPreferenceVersion ?? 0;
+                    canonical.PaidOveragePreferenceVersion = current?.PaidOveragePreferenceVersion ?? 0;
+                    if(current!=null && (canonical.StripeCustomerId!=current.StripeCustomerId || canonical.StripeSubscriptionId!=current.StripeSubscriptionId || canonical.PlanId!=current.PlanId))
+                        canonical.PaidOveragePreferenceVersion=checked(canonical.PaidOveragePreferenceVersion+1);
                     canonical.PaidOverageTermsVersion = current?.PaidOverageTermsVersion;
                     canonical.PaidOverageTermsSha256 = current?.PaidOverageTermsSha256;
                     canonical.PaidOverageTermsAcceptedAtUtc = current?.PaidOverageTermsAcceptedAtUtc;
