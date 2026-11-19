@@ -57,6 +57,10 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task SubscriptionAppStatementRecoveryUsesActualControllerAndOwnedMongo() =>
         RunSubscriptionHttp(false, usage: true, ownerSettings: true, ownerPayNow: true, statementRecovery: true);
 
+    [Fact]
+    public Task SubscriptionAppPayNowBrowserUsesActualControllerAndOwnedMongo() =>
+        RunSubscriptionHttp(true, usage: true, ownerSettings: true, ownerBilling: true, ownerPayNow: true);
+
     private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
@@ -162,6 +166,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             }
             if (ownerUsage) await SeedOwnedAppUsageAsync(db, accounts, missingAccount);
             if (ownerBilling) await SeedOwnedAppBillingAsync(db, accounts, repositoryType, repository);
+            if (ownerPayNow && browser)
+            {
+                foreach (var index in Enumerable.Range(0, accounts.Length))
+                    await SeedOwnedZeroAppStatementAsync(db, index == 0 ? "owned-app-a" : "owned-app-b", accounts[index],
+                        Guid.NewGuid().ToString("D"), DateTime.UtcNow.ToString("yyyy-MM"));
+            }
             if (billingControls)
             {
                 Environment.SetEnvironmentVariable("OASIS_POOLED_APP_QUOTAS", "true");
@@ -328,7 +338,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                     return JsonDocument.Parse(await response.Content.ReadAsStringAsync());
                 }
-                if (ownerPayNow)
+                if (ownerPayNow && !browser)
                 {
                     if (statementRecovery) await VerifyAppStatementRecoveryHttpAsync(http, Token, db, accounts);
                     else await VerifyAppPayNowHttpAsync(http, Token, db, accounts);
@@ -343,11 +353,24 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     });
                     Assert.False(result.RootElement.TryGetProperty("isError", out var failed) && failed.GetBoolean(),
                         result.RootElement.TryGetProperty("message", out var message) ? message.GetString() : "Browser worker failed.");
-                    Assert.True(result.RootElement.GetProperty(billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
+                    Assert.True(result.RootElement.GetProperty(ownerPayNow ? "appPayNowBrowserVerified" : billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
                         usage ? "subscriptionUsageBrowserVerified" : "subscriptionBrowserVerified").GetBoolean());
                     Assert.Equal(3, result.RootElement.GetProperty("actorsVerified").GetInt32());
                     Assert.True(result.RootElement.GetProperty("lateSessionResponseIgnored").GetBoolean());
                     Console.WriteLine("Subscription browser evidence: " + result.RootElement.GetRawText());
+                    if (ownerPayNow)
+                    {
+                        var appStatements = db.GetCollection<BsonDocument>("subscription_overage_statements");
+                        Assert.Equal(5L, await appStatements.CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+                        Assert.Equal(1L, await appStatements.CountDocumentsAsync(new BsonDocument {
+                            { "AppId", "owned-app-a" }, { "State", "paid" }, { "AmountMinorUsd", 0L } }));
+                        Assert.Equal(1L, await appStatements.CountDocumentsAsync(new BsonDocument {
+                            { "AppId", "owned-app-b" }, { "State", "pending" }, { "AmountMinorUsd", 0L } }));
+                        Assert.Equal(0L, await db.GetCollection<BsonDocument>("subscription_usage_events")
+                            .CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+                        Console.WriteLine("App pay-now browser native final state verified: original five fixture statements retained; owned zero statement paid once, foreign pending unchanged; no operation allocation or nonzero payment.");
+                        return;
+                    }
                 }
                 else
                 {

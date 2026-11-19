@@ -1,0 +1,23 @@
+{
+  "status": "prepared-not-dispatched-not-accepted",
+  "portalSource": "dd5ba68c4da35ede5ac98a536a57e0ee4ac2f35b",
+  "portalGenerated": "4fd7cfaa497191eb965748277ec73972e1ffe05f",
+  "portalBundleRun": 44503528115,
+  "portalBundleJob": 135489125335,
+  "usageSha256": "d00eed05740b4926d461cb79ba1906bcaf39beaab823643ca488a0840d82d6eb",
+  "filter": "FullyQualifiedName~SubscriptionAppPayNowBrowserUsesActualControllerAndOwnedMongo",
+  "scope": "Actual SDK/UI/MVC/repository/native Mongo/zero-due gateway; explicit persisted statement INPUT fixtures, not new operation allocation or nonzero Stripe proof",
+  "localChecks": [
+    "node --check usage-charts.js",
+    "endpoint source drift gate",
+    "node --check browser runner and SDK dispatcher"
+  ],
+  "pending": [
+    "current HTTP qualification",
+    "actual browser/native result",
+    "native/browser/runtime cleanup",
+    "genuine Stripe/nonzero/webhook",
+    "hosted/full portal acceptance"
+  ],
+  "localGeneratedOutputs": 0
+}
