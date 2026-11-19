@@ -1,5 +1,5 @@
 {
-  "status": "failed_manifest_review_corrected_pending",
+  "status": "integration_operation_contract_gap_open",
   "run": 44607073292,
   "job": 135853508585,
   "source": "f20298c90df6cbdbe3d9892e92c261779e154607",
@@ -18,7 +18,7 @@
   "combinedGraphBehaviorAccepted": false,
   "behaviorTestsSelected": 0,
   "mongoFixtureStarted": false,
-  "notes": "First build-only44607073292 failed before API compile at unchanged manager inventory guard; artifact list verified empty. Reviewed exact merged Core96 source, not physical concurrent checkout. Scope-only manifest change11 insertions/1 deletion: owned/selected writes and status recovery are V2 boundaries; purge is explicit administrative native capability (V2 outbox/destinations not fully enumerated, no purge acceptance); pure storage-policy decode local; avatar settings I/O explicitly delegated. Old918 inventory ->928 total/753 provider-backed or delegating. No guard/test skipped, no runtime behavior changed. Corrected build-only rerun required, no accepted behavior tests selected.",
+  "notes": "First failed inventory guard retained. Scoped exact-source manifest review now passes unchanged canonical guard; route manifest also passes. Corrected build stops before API compile because merged selected-property recovery operation lacks executable provider-boundary contract in this branch. Both failed artifact lists verified empty. Review/integrate actual upstream recovery tests and required helper/provider graph, or implement real owned-backend contract; never add an unused operation literal, dummy/mock provider or weaken guard. Twelve likely upstream property/selected unit files plus three recovery candidates inspected without exact recovery references; this does not establish absence from all upstream source. Core96 remains task-branch integration only, not deployed or combined-graph accepted. Existing Core13 hydration/NFT/app acceptance remains valid at its recorded sources.",
   "firstBuildReached": false,
   "artifacts": [],
   "firstFailure": "Public manager method inventory did not include upstream additions/signature change; guard stayed enabled.",
@@ -33,5 +33,21 @@
     "HolonManager-PropertyRecovery.cs": "828b444dfe1f8da667dce5a2e62277820bf1de4b",
     "HolonManager-Purge.cs": "260846ef17ca90e4856af3b116d61179b3ebd984",
     "SettingsManager.HolonStoragePolicies.cs": "97d8effa7277e70af2839f0b5d118ef5edcb93a5"
+  },
+  "correctedBuild": {
+    "run": 44609256486,
+    "job": 135861169839,
+    "source": "5ac8e0421f0d25b4b04a00779981440e9fb51024",
+    "status": "failed_operation_contract_guard",
+    "managerManifestVerified": true,
+    "publicManagerMethods": 928,
+    "providerBackedOrDelegatingMethods": 753,
+    "routeManifestVerified": true,
+    "controllerActions": 777,
+    "providerOrExternalManagerActions": 665,
+    "apiCompileReached": false,
+    "missingOperationContract": "ReadConditionalHolonPropertyWriteOutcome",
+    "artifacts": [],
+    "behaviorTestsSelected": 0
   }
 }
