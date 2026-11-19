@@ -28,16 +28,30 @@ public partial class HolonRepository
         return Task.FromResult(ExecuteAtomicHolonWrite(request,null,cancellationToken));
     }
 
+    public OASISResult<IEnumerable<IHolon>> ExecuteConditionalHolonPropertyWrite(ConditionalHolonPropertyWriteRequest request)
+        =>ExecuteAtomicHolonWrite(request?.WriteRequest,null,CancellationToken.None,propertyWrite:request);
+    public Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalHolonPropertyWriteAsync(
+        ConditionalHolonPropertyWriteRequest request,CancellationToken cancellationToken=default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(ExecuteAtomicHolonWrite(request?.WriteRequest,null,cancellationToken,propertyWrite:request));
+    }
+
     public OASISResult<IEnumerable<IHolon>> ExecuteConditionalHolonWrite(ConditionalHolonWriteRequest request)
         =>ExecuteAtomicHolonWrite(request,null,CancellationToken.None);
 
     private OASISResult<IEnumerable<IHolon>> ExecuteAtomicHolonWrite(ConditionalHolonWriteRequest request,
-        CommittedHolonReplicaRequest replicaRequest,CancellationToken token,HolonReplicationEnrollment enrollment=null,bool initialReplicaBaseline=false)
+        CommittedHolonReplicaRequest replicaRequest,CancellationToken token,HolonReplicationEnrollment enrollment=null,bool initialReplicaBaseline=false, CosmicStorageIdentity expectedStorage=null,ConditionalHolonPropertyWriteRequest propertyWrite=null)
     {
         var embedded=request?.Write.ReplicationEnrollment;
-        if(enrollment!=null && embedded!=null && (enrollment.SourceId!=embedded.SourceId || !enrollment.TargetIds.SequenceEqual(embedded.TargetIds)))
+        if(enrollment!=null && embedded!=null && (enrollment.SourceId!=embedded.SourceId || !enrollment.TargetIds.SequenceEqual(embedded.TargetIds)
+            || enrollment.SourceStorageIdentity?.BindingFingerprint!=embedded.SourceStorageIdentity?.BindingFingerprint
+            || enrollment.NativeRoutes.Count!=embedded.NativeRoutes.Count))
             return ConditionalError("COSMIC_REPLICATION_ENROLLMENT_MISMATCH","The explicit and embedded replication enrollments differ.");
         enrollment??=embedded;
+        var sourceBinding=enrollment?.SourceStorageIdentity;
+        var bindingCodePrefix=sourceBinding==null ? "COSMIC_REPLICA_STORAGE_BINDING":"COSMIC_SOURCE_STORAGE_BINDING";
+        expectedStorage??=sourceBinding;
         PreparedGraph graph=null;SqliteTransaction native=null;
         Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction enlisted=null;
         var commitEntered=false;var opened=false;var rollbackFailed=false;var knownAcknowledgement=false;var admissionComplete=false;
@@ -65,8 +79,10 @@ public partial class HolonRepository
                 if(result?.IsError==true && !uncertain)result.Exception=failure;
                 else result=ConditionalError(uncertain ? "COSMIC_WRITE_RECONCILIATION_REQUIRED"
                     : failure is NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException ? NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode
+                    : failure is HolonDestinationRebindRequiredException ? HolonDestinationRebindRequiredException.Code
                     : failure is SqliteConditionalReceiptInvalidException ? "COSMIC_RECEIPT_INVALID"
                     : failure is SqliteReplicaConflictException ? "COSMIC_REPLICA_LINEAGE_CONFLICT"
+                    : failure is SqliteMigrationFenceException fence ? fence.Code
                     : failure is OperationCanceledException ? replicaRequest!=null ? "COSMIC_REPLICA_WRITE_CANCELLED":"COSMIC_CONDITIONAL_WRITE_CANCELLED"
                     : replicaRequest!=null && !admissionComplete && failure is ArgumentException ? "COSMIC_REPLICA_WRITE_INVALID"
                     : replicaRequest!=null ? "COSMIC_REPLICA_WRITE_FAILED":"COSMIC_CONDITIONAL_WRITE_FAILED",
@@ -87,6 +103,8 @@ public partial class HolonRepository
                 : CommittedHolonReplicaPlan.Create(replicaRequest,Core.Enums.ProviderType.SQLLiteDBOASIS,
                     source=>Context.DataContext.ValidateDeletionUtc(source.DeletedDate));
             if (request == null && replica == null) throw new ArgumentNullException(nameof(request));
+            if(propertyWrite!=null && !ReferenceEquals(propertyWrite.WriteRequest,request))
+                throw new ArgumentException("Selected fields belong to another conditional request.");
             if (request != null && request.Write.Authority != Core.Enums.ProviderType.SQLLiteDBOASIS)
                 return ConditionalError("COSMIC_AUTHORITY_MISMATCH", "The conditional request belongs to another provider authority.");
             if (request != null && request.Operation != ConditionalHolonOperation.Save && request.Write.Conditions.Any(condition => !condition.ExpectedRevisionId.HasValue))
@@ -101,7 +119,7 @@ public partial class HolonRepository
             var conditions = request?.Write.Conditions.ToDictionary(condition => condition.HolonId.ToString());
             if (conditions!=null && !graph.Models.Select(model => model.Id).ToHashSet().SetEquals(conditions.Keys))
                 return ConditionalError("COSMIC_CONDITIONS_INCOMPLETE", "Exactly one condition is required for every selected record.");
-            var fingerprint = replica?.Fingerprint ?? ConditionalFingerprint(request, graph);
+            var fingerprint = replica?.Fingerprint ?? ConditionalFingerprint(request, graph,propertyWrite);
             if(enrollment!=null)fingerprint=ReplicationFingerprint(fingerprint,enrollment);
             var ids=graph.Models.Select(model=>model.Id).ToArray();
             foreach (var entry in _dbContext.ChangeTracker.Entries<HolonModel>().ToArray())
@@ -112,7 +130,23 @@ public partial class HolonRepository
             var connection = (SqliteConnection)_dbContext.Database.GetDbConnection();
             // IMMEDIATE acquires the native writer reservation BEFORE reading revisions.
             native = connection.BeginTransaction(deferred: false);
+            // Binding admission precedes even exact-receipt replay. The same
+            // IMMEDIATE transaction pins the native store until commit/rollback.
+            if (expectedStorage != null)
+            {
+                CosmicStorageIdentity actual;
+                try { actual = SqliteStorageIdentity.Read(connection, native); }
+                catch (Exception cause) when (cause is System.IO.InvalidDataException || cause is SqliteException)
+                {
+                    return ConditionalError(bindingCodePrefix+"_INVALID",
+                        "The receiver identity is missing or invalid; no identity was initialized and no replica applied.", cause);
+                }
+                if (actual.BindingFingerprint != expectedStorage.BindingFingerprint)
+                    return ConditionalError(bindingCodePrefix+"_MISMATCH",
+                        "The native receiver does not match the enrolled storage identity.");
+            }
             enlisted = _dbContext.Database.UseTransaction(native);
+            SqliteHolonMigrationFence.AssertUnfenced(connection, native, ids.Select(Guid.Parse));
             token.ThrowIfCancellationRequested();
             using (var receipt = connection.CreateCommand())
             {
@@ -125,7 +159,7 @@ public partial class HolonRepository
                     if (replica == null)
                     {
                         var storedReceipt = JObject.Parse(reader.GetString(1));
-                        if (storedReceipt["fingerprintFormat"]?.Type != JTokenType.Integer || storedReceipt.Value<int>("fingerprintFormat") is not (3 or 4))
+                        if (storedReceipt["fingerprintFormat"]?.Type != JTokenType.Integer || storedReceipt.Value<int>("fingerprintFormat") is not (3 or 4 or 5))
                             return ConditionalError("COSMIC_RECEIPT_FINGERPRINT_RECONCILIATION_REQUIRED",
                                 "This receipt predates the exact intent fingerprint contract. Reconcile its original operation before another mutation.");
                         if (storedReceipt["format"]?.Type != JTokenType.Integer || storedReceipt.Value<int>("format") is not (2 or 3))
@@ -135,13 +169,14 @@ public partial class HolonRepository
                     if (reader.GetString(0) != fingerprint)
                         return ConditionalError("COSMIC_OPERATION_ID_REUSED", "This operation ID is already bound to different write content or actor.");
                     HolonCommittedDelta replayDelta=null;
-                    var replay=replica==null ? ReadConditionalReceipt(reader.GetString(1),request,graph,fingerprint,out replayDelta)
+                    var replay=replica==null ? ReadConditionalReceipt(reader.GetString(1),request,graph,fingerprint,out replayDelta,propertyWrite)
                         : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConditionalHolonReceipt.Read(reader.GetString(1),replica);
                     result=ConditionalSuccess(replay,operation);
                     if(replica==null)PublishCommittedDelta(result,replayDelta);
                     knownAcknowledgement=true;return result;
                 }
             }
+            SqliteDestinationBindings.Approve(connection,native,enrollment,operationId);
             var persisted = _dbContext.Holons.AsNoTracking().Where(row => ids.Contains(row.Id)).ToDictionary(row => row.Id);
             var conflicts = (conditions ?? new Dictionary<string,HolonWriteCondition>()).Select(pair => {
                 persisted.TryGetValue(pair.Key, out var actual);
@@ -154,6 +189,18 @@ public partial class HolonRepository
             if (conflicts.Length != 0)
                 return ConditionalError(CosmicConcurrencyException.Code, "The persisted revisions changed; reload and resolve the conflict.", new CosmicConcurrencyException(conflicts));
             token.ThrowIfCancellationRequested();
+            if(propertyWrite!=null)
+            {
+                for(var index=0;index<graph.Models.Count;index++)
+                {
+                    var model=graph.Models[index];var id=Guid.Parse(model.Id);
+                    if(!propertyWrite.Selections.ContainsKey(id))continue;
+                    persisted.TryGetValue(model.Id,out var prior);
+                    var authoritative=prior==null ? null:StoredRecordJson.Project<Holon>(GetHolonFromEntity(prior));
+                    var merged=ConditionalHolonPlan.ApplyPropertyWriteSelection(propertyWrite,authoritative,graph.Nodes[index].Snapshot);
+                    graph.Models[index]=CreateHolonModel(merged,id);
+                }
+            }
             if(replica==null&&operation==ConditionalHolonOperation.Save)ValidateSaveLifecycle(graph.Models,persisted);
             if(replica!=null)PrepareReplicaModels(connection,native,graph,persisted,replica);
             var now = DateTime.UtcNow;
@@ -209,9 +256,9 @@ public partial class HolonRepository
             var acknowledgement=ConditionalSuccess(acknowledged,operation);
             var delta=replica==null ? HolonCommittedDelta.Capture(operationId,request.Write.ActorId,ProviderType.SQLLiteDBOASIS,
                 operation,now,deltaPrevious,graph.Models.Select(GetHolonFromEntity),archiveRevisions):null;
-            var receiptJson = replica==null ? WriteConditionalReceipt(acknowledged,request,fingerprint,delta)
+            var receiptJson = replica==null ? WriteConditionalReceipt(acknowledged,request,fingerprint,delta,propertyWrite)
                 : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConditionalHolonReceipt.Write(acknowledged,replica);
-            if(replica==null){_ = ReadConditionalReceipt(receiptJson,request,graph,fingerprint,out _);PublishCommittedDelta(acknowledgement,delta);}
+            if(replica==null){_ = ReadConditionalReceipt(receiptJson,request,graph,fingerprint,out _,propertyWrite);PublishCommittedDelta(acknowledgement,delta);}
             if(replica!=null){_ = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConditionalHolonReceipt.Read(receiptJson,replica);
                 WriteReplicaHeads(connection,native,acknowledged,replica);}
             if(enrollment!=null)WriteReplicationObligations(connection,native,request,enrollment,acknowledged,now);
@@ -251,9 +298,10 @@ public partial class HolonRepository
         else result.MetaData[HolonCommittedDelta.ResultMetadataKey]=delta.SummaryJson;
     }
 
-    private static int ConditionalFingerprintFormat(ConditionalHolonWriteRequest request) => request.SubmittedRelationships.Count == 0 ? 3 : 4;
+    private static int ConditionalFingerprintFormat(ConditionalHolonWriteRequest request,ConditionalHolonPropertyWriteRequest propertyWrite=null)
+        => propertyWrite!=null ? 5 : request.SubmittedRelationships.Count == 0 ? 3 : 4;
 
-    private static string ConditionalFingerprint(ConditionalHolonWriteRequest request, PreparedGraph graph)
+    private static string ConditionalFingerprint(ConditionalHolonWriteRequest request, PreparedGraph graph,ConditionalHolonPropertyWriteRequest propertyWrite=null)
     {
         var nodes = new JArray();
         foreach (var node in graph.Nodes)
@@ -281,7 +329,7 @@ public partial class HolonRepository
             values["Id"] = node.Snapshot.Id; values["ParentHolonId"] = node.Snapshot.ParentHolonId;
             nodes.Add(values);
         }
-        var content = new JObject { ["fingerprintFormat"] = ConditionalFingerprintFormat(request), ["actor"] = request.Write.ActorId, ["operation"] = request.Operation.ToString(),
+        var content = new JObject { ["fingerprintFormat"] = ConditionalFingerprintFormat(request,propertyWrite), ["actor"] = request.Write.ActorId, ["operation"] = request.Operation.ToString(),
             ["children"] = request.SaveChildren, ["recursive"] = request.Recursive, ["depth"] = request.MaxChildDepth,
             ["roots"] = new JArray(request.Roots.Select(root => root.Id)), ["nodes"] = nodes,
             ["authority"] = request.Write.Authority.ToString(),
@@ -292,6 +340,7 @@ public partial class HolonRepository
             content["relationships"]=new JArray(request.SubmittedRelationships.OrderBy(pair=>pair.Key)
                 .Select(pair=>JObject.Parse(HolonChildRoleManifestJson.Serialize(pair.Value))));
         }
+        if(propertyWrite!=null)content["propertyWrites"]=JObject.Parse(propertyWrite.CanonicalSelectionJson);
         return NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConditionalHolonPlan.ComputeFingerprint(content);
     }
 

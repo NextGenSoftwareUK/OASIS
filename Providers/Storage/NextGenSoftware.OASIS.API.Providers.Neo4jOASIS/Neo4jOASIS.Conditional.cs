@@ -21,7 +21,7 @@ public sealed class Neo4jConditionalReconciliationException(Guid operationId, Ex
     public string OriginalTransactionId => string.Empty; // A logical operation ID is not a native transaction ID.
 }
 
-public partial class Neo4jOASIS : IConditionalHolonDeltaStorageProvider,IAtomicHolonReplicationStorageProvider
+public partial class Neo4jOASIS : IConditionalHolonPropertyStorageProvider,IBoundAtomicHolonReplicationStorageProvider
 {
     private class NeoHolonTransactionState
     {
@@ -30,6 +30,8 @@ public partial class Neo4jOASIS : IConditionalHolonDeltaStorageProvider,IAtomicH
 
     private sealed class NeoAtomicHolonWrite(IAtomicHolonWritePlan plan, Guid actor, CancellationToken cancellation) : NeoHolonTransactionState
     {
+        internal CosmicStorageIdentity ExpectedStorage { get; set; }
+        internal string StorageBindingCodePrefix { get; set; }="COSMIC_REPLICA_STORAGE_BINDING";
         internal IReadOnlyList<IHolon> PreviousRecords { get; set; }
         internal HolonCommittedDelta Delta { get; set; }
         internal bool RetainDeltaValues { get; set; }
@@ -41,6 +43,12 @@ public partial class Neo4jOASIS : IConditionalHolonDeltaStorageProvider,IAtomicH
     }
     private sealed class NeoConditionalIntentException() : InvalidOperationException("Operation ID is bound to different write intent or actor.");
     private sealed class NeoConditionalReceiptException(Exception cause) : IOException("Stored conditional acknowledgement is invalid.",cause);
+
+    public OASISResult<IEnumerable<IHolon>> ExecuteConditionalHolonPropertyWrite(ConditionalHolonPropertyWriteRequest request)
+        =>ExecuteConditionalHolonPropertyWriteAsync(request).GetAwaiter().GetResult();
+    public Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalHolonPropertyWriteAsync(
+        ConditionalHolonPropertyWriteRequest request,CancellationToken cancellationToken=default)
+        =>ExecuteConditionalCoreAsync(request?.WriteRequest,request?.WriteRequest.Write.ReplicationEnrollment,cancellationToken,request);
 
     public OASISResult<IEnumerable<IHolon>> ExecuteConditionalHolonWrite(ConditionalHolonWriteRequest request)
         => ExecuteConditionalHolonWriteAsync(request).GetAwaiter().GetResult();
@@ -59,15 +67,23 @@ public partial class Neo4jOASIS : IConditionalHolonDeltaStorageProvider,IAtomicH
             : ExecuteConditionalCoreAsync(request,enrollment,cancellationToken);
 
     private async Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalCoreAsync(ConditionalHolonWriteRequest request,
-        HolonReplicationEnrollment enrollment,CancellationToken cancellationToken)
+        HolonReplicationEnrollment enrollment,CancellationToken cancellationToken,ConditionalHolonPropertyWriteRequest propertyWrite=null)
     {
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var plan=enrollment==null ? ConditionalHolonPlan.Create(request,Core.Enums.ProviderType.Neo4jOASIS)
+            var plan=propertyWrite!=null ? ConditionalHolonPlan.CreatePropertyWrite(propertyWrite,Core.Enums.ProviderType.Neo4jOASIS)
+                :enrollment==null ? ConditionalHolonPlan.Create(request,Core.Enums.ProviderType.Neo4jOASIS)
                 :ConditionalHolonPlan.CreateReplicating(request,Core.Enums.ProviderType.Neo4jOASIS,enrollment);
-            return await SaveHolonSnapshotsAsync(request.Roots,request.SaveChildren,request.Recursive,request.MaxChildDepth,0,
-                new NeoAtomicHolonWrite(plan,request.Write.ActorId,cancellationToken)).ConfigureAwait(false);
+            var expected=enrollment?.SourceStorageIdentity;
+            if(expected!=null)await _lifecycleGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                return await SaveHolonSnapshotsAsync(request.Roots,request.SaveChildren,request.Recursive,request.MaxChildDepth,0,
+                    new NeoAtomicHolonWrite(plan,request.Write.ActorId,cancellationToken){ExpectedStorage=expected,
+                        StorageBindingCodePrefix="COSMIC_SOURCE_STORAGE_BINDING"}).ConfigureAwait(false);
+            }
+            finally {if(expected!=null)_lifecycleGate.Release();}
         }
         catch(Exception cause)
         {
@@ -139,13 +155,15 @@ public partial class Neo4jOASIS : IConditionalHolonDeltaStorageProvider,IAtomicH
         if(conflicts.Count!=0)throw new CosmicConcurrencyException(conflicts);
         if(write.Plan is CommittedHolonReplicaPlan replica)
             return await PrepareCommittedReplicaHolonsAsync(transaction,submitted,observed,write,replica,archive).ConfigureAwait(false);
+        var effective=conditional?.PropertyWrite==null ? submitted
+            :submitted.Select(item=>conditional.ApplySelectedValues(observed[item.Id],item)).ToList();
         if(write.Plan.Operation==ConditionalHolonOperation.Save)
-            foreach(var item in submitted)RequireSaveLifecycle(observed[item.Id],item);
+            foreach(var item in effective)RequireSaveLifecycle(observed[item.Id],item);
         // Keep the locked authoritative before-images; never recapture caller objects.
         write.PreviousRecords=observed.Values.Where(record=>record!=null).Cast<IHolon>().ToArray();
         write.RetainDeltaValues=archive;
         var prepared=new List<Holon>();var now=DateTime.UtcNow;write.MutationUtc=now;
-        foreach(var item in submitted)
+        foreach(var item in effective)
         {
             var previous=observed[item.Id];
             var record=write.Plan.Operation==ConditionalHolonOperation.Save ? item:OasisJson.Project<Holon>(previous);
@@ -209,7 +227,9 @@ public partial class Neo4jOASIS : IConditionalHolonDeltaStorageProvider,IAtomicH
             ? new Neo4jReplicaReconciliationException(write.Plan.OperationId,replica.SourceId,cause)
             : new Neo4jConditionalReconciliationException(write.Plan.OperationId,cause):cause;
         result.ErrorCode=uncertain ? "COSMIC_WRITE_RECONCILIATION_REQUIRED":cause is CosmicConcurrencyException ? CosmicConcurrencyException.Code
+            :cause is HolonDestinationRebindRequiredException ? HolonDestinationRebindRequiredException.Code
             :cause is StorageLifecycleConflictException ? StorageLifecycleConflictException.ErrorCode
+            :cause is NeoReplicaStorageBindingException binding ? binding.Code
             :cause is NeoReplicaConflictException ? "COSMIC_REPLICA_LINEAGE_CONFLICT"
             :cause is NeoReplicaBaselineAdmissionException ? "COSMIC_REPLICA_BASELINE_RECONCILIATION_REQUIRED"
             :cause is NeoConditionalIntentException ? "COSMIC_OPERATION_ID_REUSED":cause is NeoConditionalReceiptException ? "COSMIC_RECEIPT_INVALID"
