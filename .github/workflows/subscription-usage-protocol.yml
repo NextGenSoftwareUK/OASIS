@@ -260,7 +260,7 @@ jobs:
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-grouped-distinct-domains-ci -Operation {
-            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicGroupedDistinctProviderDomainTests' --logger 'trx;LogFileName=grouped-distinct-domains.trx' --results-directory TestResults/PropertySelection
+            dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicGroupedDistinctProviderDomainTests' --logger 'trx;LogFileName=grouped-distinct-domains.trx' --results-directory TestResults/PropertySelection
             if ($LASTEXITCODE) { throw 'Grouped distinct domain verification failed.' }
             dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~NativeGroupedDistinct' --logger 'trx;LogFileName=grouped-distinct-sqlite.trx' --results-directory TestResults/PropertySelection
             if ($LASTEXITCODE) { throw 'Grouped distinct SQLite SDK verification failed.' }
