@@ -1,0 +1,16 @@
+{
+  "status": "in_progress",
+  "run": 44600087804,
+  "job": 135828799788,
+  "source": "0644b013f78a90e80b36e55e9fe0d92f3182dc55",
+  "core": "13ba34168d21ec583ccb5057a80edc9bac9444ca",
+  "onodeCore": "11ac63cb1dbd53e3ee9d085c49bc8310d581ae2c",
+  "case": "NftListsReturnEmptyCollectionsAndPreserveMetadataSelectionOnNativeMongo",
+  "newCasesSelected": 1,
+  "ownedRecords": 13,
+  "nativeListAcceptance": false,
+  "browserAccepted": false,
+  "countQueryAccepted": false,
+  "fullPortalAccepted": false,
+  "notes": "Run confirmed active after dispatch; follow same handle. Actual API build/shipping NFT manager/HolonManager/owned Mongo and terminal cleanup pending. No substituted response or local runtime/database/artifact."
+}

@@ -1,6 +1,6 @@
 # App-key admission evidence reconciliation — 19 November 2026
 
-Status: valid-credential admission already accepted; incomplete-configuration root fix published in Core 13ba34168d21ec583ccb5057a80edc9bac9444ca. Configuration qualification accepted in run44595965065/job135814194706: actual API zero build errors, exactly one new case passed in5ms, strict artifact and process restoration verified. Public negative admission cases remain open. OPORTAL remains incomplete.
+Status: valid-credential admission already accepted; incomplete-configuration root fix published in Core 13ba34168d21ec583ccb5057a80edc9bac9444ca. Configuration qualification accepted in run44595965065/job135814194706: actual API zero build errors, exactly one new case passed in5ms, strict artifact and process restoration verified. Seven public negative credential cases now accepted in run44598492673, actual API0errors and real Mongo no-write/zero-reservation checks; hosted/full portal acceptance remains open. OPORTAL remains incomplete.
 
 ## Retain existing acceptance without rerunning it
 
@@ -30,3 +30,7 @@ Core's physical checkout differs from the parent gitlink and belongs to concurre
 ## Resource and publication record
 
 Read-only source/evidence reconciliation and this compact report only. No local installation, build, database, archive, browser, worker or test process was started. No shared database, Stripe, Railway, DNA, protected delivery 535/543 or deployment action. No reclaimed bytes claimed. Existing cleanup evidence remains in `Docs/WIP/Cleanup/CLEANUP_LEDGER.md`.
+
+## Negative public admission accepted
+
+Run44598492673/job135823178540, source a4d3d0daabc9, passed the single new case in2s. Seven authenticated controller calls cover missing ID/key, incorrect key, absent/malformed app ID, revoked old key and disabled current key. Each requires exact APP_CREDENTIAL_INVALID401, no key disclosure and unchanged whole native state; zero reservations verified. Actual shipping transactional setup and Mongo, no replaced business responses. First run44596850959 failed before HTTP because the initial finite pooled plan required a disabled flag; retained as failure. Corrected setup uses supported enterprise/non-pooled account without altering production flags or assertions. Artifact14566859252/2636B strictly verified in RAM and disposed; owned database/provider/process cleanup and Mongo absence passed. Existing positive and configuration cases were not rerun.
