@@ -19,7 +19,7 @@
   ],
   "portalSource": "838c5bb749cfae6c73f39bb7cb45ab4da6d6b02a",
   "bundleJob": 135618169700,
-  "status": "failed-checkout-corrected-retry-active-not-accepted",
+  "status": "read-session-native-browser-accepted-grant-and-other-actions-open",
   "localGeneratedOutputs": 0,
   "filter": "FullyQualifiedName~SubscriptionAdminReadsAndSessionPrivacyUseActualControllerBrowserAndMongo",
   "fixture": {
@@ -46,5 +46,22 @@
     "passed": 0,
     "jobId": 135625373969,
     "artifactId": 14539389992
+  },
+  "acceptedEvidence": {
+    "filesWritten": 0,
+    "passed": 1,
+    "sixReadTabs": true,
+    "skipped": 0,
+    "failed": 0,
+    "artifactSha256": "deca3b618796c67ae92a1fc0b8d3ec9607e27b0ede30e8bffe68edb71106c38a",
+    "artifactBytes": 4244,
+    "artifactId": 14539958123,
+    "financialWrites": 0,
+    "seconds": 14,
+    "financialCollectionsUnchanged": 8,
+    "cleanupVerified": true,
+    "apiBuildErrors": 0,
+    "linkedBuild": "skipped",
+    "actors": 3
   }
 }
