@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
 
@@ -21,11 +22,15 @@ public sealed partial class CqlV1Web4NativeTests
 
     private static async Task<int> VerifySelectedNativeStatus(IOASISStorageProvider provider,
         ProviderType authority, Holon source, Guid actor, HashSet<Guid> operations, string work,
-        Func<Guid, Task<string>> inspectReceipt)
+        Func<Guid, Task<string>> inspectReceipt, HolonManager? routedManager = null,
+        PropertyOutcomeBoundary? routeProbe = null)
     {
         var storage = (IConditionalHolonPropertyStorageProvider)provider;
         var whole = (IConditionalHolonWriteRecoveryStorageProvider)provider;
         var checks = 0;
+        Task<OASISResult<ConditionalHolonWriteOutcome>> ReadSelected(ConditionalHolonPropertyWriteRequest original)
+            => routedManager == null ? storage.ReadConditionalHolonPropertyWriteOutcomeAsync(original)
+                : routedManager.ReadConditionalHolonPropertyWriteOutcomeAsync(original, actor);
         string Capture(IHolon value) => StoredRecordJson.CaptureRuntimeToken(value).ToString(Newtonsoft.Json.Formatting.None);
         Guid Revision(IHolon value) => CosmicConcurrency.GetProviderRevisionId(value, authority)
             ?? throw new InvalidOperationException("Native fixture revision missing.");
@@ -55,8 +60,10 @@ public sealed partial class CqlV1Web4NativeTests
         async Task<ConditionalHolonWriteOutcome> Status(ConditionalHolonPropertyWriteRequest original,
             ConditionalHolonReceiptState expected)
         {
-            var result = await Observe(() => storage.ReadConditionalHolonPropertyWriteOutcomeAsync(original),
+            var reads = routeProbe?.OutcomeReads ?? 0;
+            var result = await Observe(() => ReadSelected(original),
                 original.WriteRequest.Write.OperationId);
+            if (routeProbe != null) Assert.AreEqual(reads + 1, routeProbe.OutcomeReads);
             Assert.IsFalse(result.IsError, result.Message + result.Exception); Assert.IsTrue(result.IsLoaded);
             var value = result.Result;
             Assert.AreEqual(original.WriteRequest.Write.OperationId, value.OperationId);
@@ -110,7 +117,7 @@ public sealed partial class CqlV1Web4NativeTests
 
         var changed = new ConditionalHolonPropertyWriteRequest(first.WriteRequest,
             new Dictionary<Guid, IReadOnlyList<string>> { [source.Id] = new[] { "/Name" } });
-        var wrongMask = await Observe(() => storage.ReadConditionalHolonPropertyWriteOutcomeAsync(changed), first.WriteRequest.Write.OperationId);
+        var wrongMask = await Observe(() => ReadSelected(changed), first.WriteRequest.Write.OperationId);
         Assert.IsTrue(wrongMask.IsError); Assert.AreEqual("COSMIC_OPERATION_STATUS_UNVERIFIED", wrongMask.ErrorCode);
         Assert.IsNull(wrongMask.Result);
         var downgraded = await Observe(() => whole.ReadConditionalHolonWriteOutcomeAsync(first.WriteRequest), first.WriteRequest.Write.OperationId);
@@ -122,12 +129,25 @@ public sealed partial class CqlV1Web4NativeTests
             first.WriteRequest.Roots, false, false, 0);
         var unauthorizedIntent = new ConditionalHolonPropertyWriteRequest(otherActor,
             new Dictionary<Guid, IReadOnlyList<string>> { [source.Id] = new[] { "/Description" } });
-        var denied = await Observe(() => storage.ReadConditionalHolonPropertyWriteOutcomeAsync(unauthorizedIntent), first.WriteRequest.Write.OperationId);
-        Assert.IsTrue(denied.IsError); Assert.AreEqual("COSMIC_OPERATION_STATUS_UNVERIFIED", denied.ErrorCode); Assert.IsNull(denied.Result);
-        Assert.IsTrue((await storage.ReadConditionalHolonPropertyWriteOutcomeAsync(null!)).IsError);
+        var priorReads = routeProbe?.OutcomeReads ?? 0;
+        var denied = await Observe(() => ReadSelected(unauthorizedIntent), first.WriteRequest.Write.OperationId);
+        Assert.IsTrue(denied.IsError);
+        Assert.AreEqual(routedManager == null ? "COSMIC_OPERATION_STATUS_UNVERIFIED" : "COSMIC_OPERATION_STATUS_INTENT_INVALID", denied.ErrorCode);
+        Assert.IsNull(denied.Result);
+        Assert.IsTrue((await ReadSelected(null!)).IsError);
+        if (routeProbe != null) Assert.AreEqual(priorReads, routeProbe.OutcomeReads);
         Assert.AreEqual(currentRevision, Revision(await Read(3)));
         Assert.AreEqual(baseline, Capture(source)); Assert.AreEqual(caller, Capture(proposed)); checks++;
-        Assert.AreEqual(7, checks);
+        if (routedManager != null)
+        {
+            Assert.IsNotNull(routeProbe);
+            var calls = routeProbe.OutcomeReads;
+            var emptyActor = await routedManager.ReadConditionalHolonPropertyWriteOutcomeAsync(first, Guid.Empty);
+            Assert.IsTrue(emptyActor.IsError); Assert.AreEqual("COSMIC_OPERATION_STATUS_INTENT_INVALID", emptyActor.ErrorCode);
+            Assert.AreEqual(calls, routeProbe.OutcomeReads);
+            Assert.AreEqual(currentRevision, Revision(await Read(3))); checks++;
+        }
+        Assert.AreEqual(routedManager == null ? 7 : 8, checks);
         return checks;
     }
 }

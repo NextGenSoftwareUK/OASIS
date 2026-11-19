@@ -23,7 +23,7 @@ public sealed partial class CqlV1Web4NativeTests
     public Task PropertyTrackingUsesNativeAcknowledgementWithoutLosingInflightIntent(string providerName)
         => RunPropertyNativeFixture(providerName, false);
 
-    private async Task RunPropertyNativeFixture(string providerName, bool propertySelection, bool propertyStatus = false)
+    private async Task RunPropertyNativeFixture(string providerName, bool propertySelection, bool propertyStatus = false, bool propertyRouted = false)
     {
         Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -37,7 +37,7 @@ public sealed partial class CqlV1Web4NativeTests
         Directory.CreateDirectory(work);
         var sqlite = Path.Combine(work, "property.sqlite");
         var reportRoot = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT")!);
-        var report = Path.Combine(reportRoot, "TestResults/Neo4jCurrent/" + providerName + (propertyStatus ? "-property-status-native.json" : propertySelection ? "-property-selection-native.json" : "-property-tracking-native.json"));
+        var report = Path.Combine(reportRoot, "TestResults/Neo4jCurrent/" + providerName + (propertyRouted ? "-property-status-routed-native.json" : propertyStatus ? "-property-status-native.json" : propertySelection ? "-property-selection-native.json" : "-property-tracking-native.json"));
         var operations = new HashSet<Guid>(); var complete = false; var checks = 0;
         var client = new MongoClient(mongoUri);
         using (var names = await client.ListDatabaseNamesAsync())
@@ -61,7 +61,9 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsFalse(activation.IsError, activation.Message); active = true;
             var source = new Holon { Id = id, Name = "original", Description = "description", IsActive = true,
                 MetaData = new() { ["original"] = 9007199254740993L } };
-            var boundary = DispatchProxy.Create<IRecoveryMutationBoundary, SaveDemoBoundary>();
+            var boundary = propertyRouted
+                ? (IRecoveryMutationBoundary)DispatchProxy.Create<IPropertyOutcomeBoundary, PropertyOutcomeBoundary>()
+                : DispatchProxy.Create<IRecoveryMutationBoundary, SaveDemoBoundary>();
             var probe = (SaveDemoBoundary)(object)boundary;
             probe.Target = provider; probe.Source = source;
             probe.BeforeResource = async (operation, recordIds) =>
@@ -136,8 +138,9 @@ public sealed partial class CqlV1Web4NativeTests
                     Assert.IsFalse(await reader.ReadAsync());
                     return value;
                 }
-                checks += await VerifySelectedNativeStatus(provider, authority, source, actor, operations, work, InspectReceipt);
-                Assert.AreEqual(8, checks);
+                checks += await VerifySelectedNativeStatus(provider, authority, source, actor, operations, work, InspectReceipt,
+                    propertyRouted ? manager : null, propertyRouted ? (PropertyOutcomeBoundary)probe : null);
+                Assert.AreEqual(propertyRouted ? 9 : 8, checks);
             }
             else if (propertySelection)
             {
@@ -268,7 +271,16 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.AreEqual(workRoot, Path.GetDirectoryName(Path.GetFullPath(work)));
                 Directory.Delete(work, true);
                 Assert.IsFalse(Directory.Exists(work));
-                if (propertyStatus)
+                if (propertyRouted)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new {
+                        provider = providerName, checks, successfulHolonWrites = 3,
+                        absentOutcomeVerified = true, committedOutcomeVerified = true,
+                        historicalOutcomeVerified = true, missingValueOutcomeVerified = true,
+                        changedMaskStatusRefused = true, wholeStatusRefused = true, actorMismatchRefused = true,
+                        receiptsUnchangedVerified = true, holonsUnchangedByReadsVerified = true,
+                        callerUnchangedVerified = true, managedNativeRouteVerified = true,
+                        actorBeforeIoVerified = true, exactCleanupVerified = true }));
+                else if (propertyStatus)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new {
                         provider = providerName, checks, successfulHolonWrites = 3,
                         absentOutcomeVerified = true, committedOutcomeVerified = true,
