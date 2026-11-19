@@ -81,7 +81,7 @@ public partial class HolonRepository
                             || query.Source.ReadAccess != null && !query.Source.ReadAccess.CanRead(id,visible,creator))
                             throw new InvalidDataException("Composition source identity/access/rank proof is invalid.");
                         inputBytes = checked(inputBytes + 48);
-                        var values = Cells("values", query.Columns.Select(column => column.Path.ValueType).ToArray(), false, out _);
+                        var values = Cells("values", query.Columns.Select(column => column.ValueType).ToArray(), false, out _);
                         var ordering = Cells("ordering", query.Source.Orderings.Select(item => item.Path.ValueType).ToArray(), true, out var states);
                         if (inputBytes > limits.MaximumInputPayloadBytes) throw new MongoCqlLimitException();
                         var row = new CosmicProjectionInputRow(id, visible, creator, values, ordering, states);

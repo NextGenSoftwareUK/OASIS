@@ -36,49 +36,116 @@ public partial class HolonRepository
         {
             using var session = await _dbContext.MongoClient.StartSessionAsync(
                 new ClientSessionOptions { Snapshot = true, CausalConsistency = false }, deadline.Token).ConfigureAwait(false);
-            if (command.Left.RequiresMembership || command.Right.RequiresMembership)
+            if (query.Join.RestrictsRightToLeftParents || command.Left.RequiresMembership || command.Right.RequiresMembership)
                 await ValidateCqlMembershipAsync(session, Options, deadline.Token).ConfigureAwait(false);
 
             var left = await ReadSource(command.Left, query.Join.Left, true, limits.MaximumLeftRows,
                 limits.MaximumLeftPayloadBytes).ConfigureAwait(false);
+            if (query.Join.RestrictsRightToLeftParents)
+                command = new MongoCqlTranslator().CompileJoin(query, limits, left.Rows.Keys.ToArray());
             var right = await ReadSource(command.Right, query.Join.Right, false, limits.MaximumRightRows,
                 limits.MaximumRightPayloadBytes).ConfigureAwait(false);
             var rows = new List<CosmicJoinRow>(); long bytes = 0, pairCount = 0;
+            var receivedFacet = false;
             using (var cursor = await _dbContext.Holon.AggregateAsync<BsonDocument>(session, command.Pairs,
                 Options(), deadline.Token).ConfigureAwait(false))
                 while (await cursor.MoveNextAsync(deadline.Token).ConfigureAwait(false))
                     foreach (var data in cursor.Current)
                     {
                         deadline.Token.ThrowIfCancellationRequested();
-                        var reported = JoinCount(data);
-                        if (reported > limits.MaximumPairs || reported > limits.MaximumResults
-                            || rows.Count >= limits.MaximumPairs || rows.Count >= limits.MaximumResults) throw new MongoCqlLimitException();
-                        if (rows.Count > 0 && pairCount != reported) throw new InvalidDataException("Native join pair count changed.");
-                        pairCount = reported;
-                        if (data.ElementCount != 3 + query.Join.Left.Orderings.Count + query.Join.Right.Orderings.Count
-                            || !data.TryGetValue("left", out var leftId) || !data.TryGetValue("right", out var rightId))
-                            throw new InvalidDataException("Native join pair shape is invalid.");
-                        var id = (Guid)DecodeNativeProjectionCell(leftId, typeof(Guid));
-                        if (!left.Rows.TryGetValue(id, out var l)) throw new InvalidDataException("Native join left identity is outside its source.");
-                        CosmicJoinInputRow r = null;
-                        if (!rightId.IsBsonNull && !right.Rows.TryGetValue((Guid)DecodeNativeProjectionCell(rightId, typeof(Guid)), out r))
-                            throw new InvalidDataException("Native join right identity is outside its source.");
-                        var values = new object[query.Columns.Count]; var li = 0; var ri = 0;
-                        bytes = checked(bytes + 48);
-                        for (var index = 0; index < values.Length; index++)
+                        if (query.OutputLimit.HasValue)
                         {
-                            var column = query.Columns[index];
-                            if (column.Source == CosmicJoinColumnSource.Left) values[index] = l.Values[li++];
-                            else if (column.Source == CosmicJoinColumnSource.Right)
-                            { values[index] = r == null ? null : r.Values[ri]; ri++; }
-                            else values[index] = column.PresenceWhenMissing ? r == null : r != null;
-                            ReserveJoinCell(values[index], ref bytes, limits.MaximumPayloadBytes);
+                            if (receivedFacet || data.ElementCount != 2 ||
+                                !data.TryGetValue("total", out var total) || !total.IsBsonArray ||
+                                !data.TryGetValue("page", out var page) || !page.IsBsonArray)
+                                throw new InvalidDataException("Native join page proof shape is invalid.");
+                            receivedFacet = true;
+                            var proof = total.AsBsonArray;
+                            if (proof.Count > 1 || proof.Count == 1 && (!proof[0].IsBsonDocument ||
+                                !proof[0].AsBsonDocument.TryGetValue("count", out var count) ||
+                                !(count.IsInt32 || count.IsInt64) || count.ToInt64() < 1))
+                                throw new InvalidDataException("Native join page total is invalid.");
+                            pairCount = proof.Count == 0 ? 0 : proof[0].AsBsonDocument["count"].ToInt64();
+                            if (pairCount > limits.MaximumPairs) throw new MongoCqlLimitException();
+                            foreach (var pair in page.AsBsonArray)
+                            {
+                                deadline.Token.ThrowIfCancellationRequested();
+                                if (!pair.IsBsonDocument) throw new InvalidDataException("Native join page pair shape is invalid.");
+                                AddPair(pair.AsBsonDocument, paged: true);
+                            }
                         }
-                        rows.Add(new CosmicJoinRow(l.Id, r?.Id, values));
+                        else
+                        {
+                            var reported = JoinCount(data);
+                            if (reported > limits.MaximumPairs || reported > limits.MaximumResults)
+                                throw new MongoCqlLimitException();
+                            if (rows.Count > 0 && pairCount != reported) throw new InvalidDataException("Native join pair count changed.");
+                            pairCount = reported;
+                            AddPair(data, paged: false);
+                        }
                     }
             deadline.Token.ThrowIfCancellationRequested();
-            if (pairCount != rows.Count) throw new InvalidDataException("Native join pair count disagrees with its complete stream.");
-            return new CosmicJoinPacket(left.Rows.Values.ToArray(), right.Rows.Values.ToArray(), rows.ToArray(), left.Count, right.Count, pairCount);
+            if (query.OutputLimit.HasValue ? !receivedFacet : pairCount != rows.Count)
+                throw new InvalidDataException("Native join pair count disagrees with its complete stream.");
+            var children = query.SelectsChildEntity ? await ReadMatchedChildren().ConfigureAwait(false) : null;
+            return new CosmicJoinPacket(left.Rows.Values.ToArray(), right.Rows.Values.ToArray(), rows.ToArray(),
+                left.Count, right.Count, pairCount, children);
+
+            async Task<IHolon[]> ReadMatchedChildren()
+            {
+                var identities = rows.Select(row => row.RightId ?? throw new InvalidDataException(
+                    "A whole-child result must have a native right identity.")).ToArray();
+                var byId = new Dictionary<Guid, IHolon>(identities.Length);
+                foreach (var batch in identities.Chunk(CosmicQueryExpression.MaximumMembershipValues))
+                {
+                    var selection = CosmicQuery<Core.Holons.Holon>.Create(query.Join.Right.Scope)
+                        .Where(child => batch.Contains(child.Id));
+                    if (query.Join.Right.ReadAccess != null)
+                        selection = selection.WithReadAccess(query.Join.Right.ReadAccess);
+                    if (selection.IsError) throw new InvalidDataException(selection.Message);
+                    var read = new MongoCqlTranslator().CompileExecution(selection.Result, batch.Length);
+                    var matched = await ReadNativeCqlRowsAsync(read, batch.Length,
+                        checked((int)(limits.MaximumPayloadBytes - bytes)), session, Options, deadline.Token,
+                        payloadBytes => bytes = checked(bytes + payloadBytes)).ConfigureAwait(false);
+                    foreach (var child in matched)
+                        byId.Add(child.Id, child);
+                }
+                if (byId.Count != identities.Length)
+                    throw new InvalidDataException("Native child entities do not match the joined identities.");
+                return identities.Select(id => byId[id]).ToArray();
+            }
+
+            void AddPair(BsonDocument data, bool paged)
+            {
+                if (rows.Count >= limits.MaximumPairs || rows.Count >= limits.MaximumResults)
+                    throw new MongoCqlLimitException();
+                if (data.ElementCount != (paged ? 2 : 3 + query.Join.Left.Orderings.Count + query.Join.Right.Orderings.Count)
+                    || !data.TryGetValue("left", out var leftId) || !data.TryGetValue("right", out var rightId))
+                    throw new InvalidDataException("Native join pair shape is invalid.");
+                CosmicJoinInputRow l = null;
+                if (leftId.IsBsonNull)
+                {
+                    if (query.Join.Kind != CosmicJoinKind.Full || rightId.IsBsonNull)
+                        throw new InvalidDataException("Native join cannot omit its left identity.");
+                }
+                else if (!left.Rows.TryGetValue((Guid)DecodeNativeProjectionCell(leftId, typeof(Guid)), out l))
+                    throw new InvalidDataException("Native join left identity is outside its source.");
+                CosmicJoinInputRow r = null;
+                if (!rightId.IsBsonNull && !right.Rows.TryGetValue((Guid)DecodeNativeProjectionCell(rightId, typeof(Guid)), out r))
+                    throw new InvalidDataException("Native join right identity is outside its source.");
+                var values = new object[query.Columns.Count]; var li = 0; var ri = 0;
+                bytes = checked(bytes + 48);
+                for (var index = 0; index < values.Length; index++)
+                {
+                    var column = query.Columns[index];
+                    if (column.Source == CosmicJoinColumnSource.Left) { values[index] = l?.Values[li]; li++; }
+                    else if (column.Source == CosmicJoinColumnSource.Right)
+                    { values[index] = r == null ? null : r.Values[ri]; ri++; }
+                    else values[index] = column.PresenceWhenMissing ? r == null : r != null;
+                    ReserveJoinCell(values[index], ref bytes, limits.MaximumPayloadBytes);
+                }
+                rows.Add(new CosmicJoinRow(l?.Id ?? Guid.Empty, r?.Id, values));
+            }
 
             async Task<(Dictionary<Guid, CosmicJoinInputRow> Rows, long Count)> ReadSource<T>(
                 MongoCqlProjectionCommand source, CosmicQuery<T> intent, bool isLeft, int maximumRows, int maximumBytes) where T : IHolon

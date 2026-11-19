@@ -28,12 +28,28 @@ public static partial class CqlV1Compiler
             && ulong.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out value);
     }
 
+    private static bool TryInt64(JsonElement json, out long value)
+    {
+        value = default;
+        if (json.ValueKind == JsonValueKind.Number) return json.TryGetInt64(out value);
+        if (json.ValueKind != JsonValueKind.String) return false;
+        var text = json.GetString();
+        return text.Length is >= 1 and <= 20 &&
+            long.TryParse(text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out value) &&
+            value.ToString(CultureInfo.InvariantCulture) == text;
+    }
+
     private static bool TryUtcDate(JsonElement json, out DateTime value)
     {
         value = default;
         if (json.ValueKind != JsonValueKind.String) return false;
-        var text = json.GetString();
-        return text.Length is >= 20 and <= 28 && DateTime.TryParseExact(text, UtcDateFormats,
+        return TryUtcDate(json.GetString(), out value);
+    }
+
+    internal static bool TryUtcDate(string text, out DateTime value)
+    {
+        value = default;
+        return text?.Length is >= 20 and <= 28 && DateTime.TryParseExact(text, UtcDateFormats,
             CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out value);
     }
     // Share the exact source/group literal contract. Decimal.TryParse alone can
@@ -83,7 +99,7 @@ public static partial class CqlV1Compiler
         ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS, ProviderType.Neo4jOASIS,
         ProviderType.LocalFileOASIS,
         ProviderType.AzureCosmosDBOASIS, ProviderType.ActivityPubOASIS, ProviderType.IPFSOASIS, ProviderType.SOLIDOASIS,
-        ProviderType.AzureStorageOASIS, ProviderType.AWSS3OASIS, ProviderType.OracleDBOASIS, ProviderType.SQLServerDBOASIS, ProviderType.DuckDBOASIS, ProviderType.CouchDBOASIS, ProviderType.ChromaOASIS, ProviderType.MinIOOASIS, ProviderType.PouchDBOASIS, ProviderType.MeilisearchOASIS, ProviderType.SolrOASIS, ProviderType.ElasticsearchOASIS, ProviderType.OpenSearchOASIS, ProviderType.ArcadeDBOASIS, ProviderType.SurrealDBOASIS, ProviderType.QdrantOASIS, ProviderType.RedisOASIS, ProviderType.ValKeyOASIS, ProviderType.GarnetOASIS, ProviderType.KeyDBOASIS, ProviderType.DragonflyOASIS, ProviderType.DynamoDBOASIS, ProviderType.TypesenseOASIS, ProviderType.PocketBaseOASIS, ProviderType.SupabaseOASIS, ProviderType.FirebaseOASIS, ProviderType.WeaviateOASIS, ProviderType.TigrisOASIS, ProviderType.UpstashOASIS, ProviderType.InfluxDBOASIS, ProviderType.CouchbaseOASIS, ProviderType.ArangoDBOASIS, ProviderType.CockroachDBOASIS, ProviderType.TimescaleDBOASIS, ProviderType.CassandraOASIS, ProviderType.RavenDBOASIS, ProviderType.ScyllaDBOASIS, ProviderType.LitestreamOASIS, ProviderType.PineconeOASIS, ProviderType.LanceDBOASIS, ProviderType.NeonOASIS, ProviderType.AlgoliaOASIS, ProviderType.NileOASIS, ProviderType.PlanetScaleOASIS, ProviderType.NetlifyBlobsOASIS, ProviderType.FastlyOASIS, ProviderType.DaprOASIS, ProviderType.CloudflareOASIS, ProviderType.VercelKVOASIS, ProviderType.DenoDeployOASIS, ProviderType.AppwriteOASIS, ProviderType.ConvexOASIS, ProviderType.TursoOASIS, ProviderType.ENSOffchainOASIS, ProviderType.OrbitDBOASIS, ProviderType.GUNOASIS, ProviderType.MilvusOASIS, ProviderType.CloudinaryOASIS, ProviderType.PgVectorOASIS, ProviderType.ProofOfHumanityOASIS, ProviderType.OracleObjectStorageOASIS, ProviderType.SafeOASIS, ProviderType.DruidOASIS, ProviderType.PinotOASIS, ProviderType.TemporalOASIS, ProviderType.TenderlyOASIS, ProviderType.QuickNodeOASIS, ProviderType.DiscordOASIS, ProviderType.LivepeerOASIS, ProviderType.PinataOASIS, ProviderType.PushProtocolOASIS, ProviderType.LayerZeroOASIS, ProviderType.WorldIDOASIS, ProviderType.ReclaimProtocolOASIS, ProviderType.DecentralandOASIS, ProviderType.WakuOASIS, ProviderType.TheGraphOASIS, ProviderType.SubqueryOASIS, ProviderType.SelfProtocolOASIS, ProviderType.HolonymOASIS, ProviderType.CivicOASIS, ProviderType.MapLibreOASIS, ProviderType.GOMapOASIS, ProviderType.TheSandboxOASIS, ProviderType.PolygonIDOASIS, ProviderType.SEEDSOASIS, ProviderType.IntelOpenVINOOASIS, ProviderType.SolanaOASIS, ProviderType.GoogleCloudOASIS, ProviderType.EthereumOASIS, ProviderType.PolygonOASIS, ProviderType.ArbitrumOASIS, ProviderType.CosmosBlockChainOASIS, ProviderType.PolkadotOASIS, ProviderType.NEAROASIS, ProviderType.BaseOASIS, ProviderType.AvalancheOASIS, ProviderType.BNBChainOASIS, ProviderType.OptimismOASIS, ProviderType.LineaOASIS, ProviderType.ScrollOASIS, ProviderType.ZkSyncOASIS, ProviderType.AbstractOASIS, ProviderType.MonadOASIS, ProviderType.SeiOASIS, ProviderType.BerachainOASIS, ProviderType.RoninOASIS, ProviderType.ImmutableZkEVMOASIS, ProviderType.FlowOASIS, ProviderType.EASOASIS, ProviderType.SignProtocolOASIS, ProviderType.FantomOASIS, ProviderType.FilecoinOASIS, ProviderType.TelosOASIS, ProviderType.EOSIOOASIS, ProviderType.ChainLinkOASIS, ProviderType.BlueSkyOASIS, ProviderType.NostrOASIS, ProviderType.MatrixOASIS, ProviderType.BlockStackOASIS, ProviderType.WormholeOASIS, ProviderType.ChainflipOASIS, ProviderType.HyperlaneOASIS, ProviderType.LayerZeroV2OASIS, ProviderType.StargateOASIS, ProviderType.deBridgeOASIS, ProviderType.SynapseOASIS, ProviderType.ConnextOASIS, ProviderType.MidenOASIS, ProviderType.EspressoSystemsOASIS, ProviderType.EigenLayerOASIS, ProviderType.FhenixOASIS, ProviderType.AxelarOASIS, ProviderType.RitualOASIS, ProviderType.CelestiaOASIS, ProviderType.BlockscoutOASIS, ProviderType.ENSOASIS, ProviderType.EclipseOASIS, ProviderType.AkashOASIS, ProviderType.BittensorOASIS, ProviderType.ZcashOASIS, ProviderType.ClickHouseOASIS, ProviderType.QuestDBOASIS, ProviderType.CloudflareD1OASIS, ProviderType.NATSJetStreamOASIS, ProviderType.ThreeFoldOASIS, ProviderType.BitcoinOASIS, ProviderType.XRPLOASIS, ProviderType.StellarOASIS, ProviderType.AlgorandOASIS, ProviderType.AptosOASIS, ProviderType.HashgraphOASIS, ProviderType.SuiOASIS, ProviderType.ElrondOASIS, ProviderType.TONOASIS, ProviderType.ArweaveOASIS, ProviderType.CardanoOASIS, ProviderType.StarknetOASIS, ProviderType.RadixOASIS
+        ProviderType.AzureStorageOASIS, ProviderType.AWSS3OASIS, ProviderType.OracleDBOASIS, ProviderType.SQLServerDBOASIS, ProviderType.DuckDBOASIS, ProviderType.CouchDBOASIS, ProviderType.ChromaOASIS, ProviderType.MinIOOASIS, ProviderType.PouchDBOASIS, ProviderType.MeilisearchOASIS, ProviderType.SolrOASIS, ProviderType.ElasticsearchOASIS, ProviderType.OpenSearchOASIS, ProviderType.ArcadeDBOASIS, ProviderType.SurrealDBOASIS, ProviderType.QdrantOASIS, ProviderType.RedisOASIS, ProviderType.ValKeyOASIS, ProviderType.GarnetOASIS, ProviderType.KeyDBOASIS, ProviderType.DragonflyOASIS, ProviderType.DynamoDBOASIS, ProviderType.TypesenseOASIS, ProviderType.PocketBaseOASIS, ProviderType.SupabaseOASIS, ProviderType.FirebaseOASIS, ProviderType.WeaviateOASIS, ProviderType.TigrisOASIS, ProviderType.UpstashOASIS, ProviderType.InfluxDBOASIS, ProviderType.CouchbaseOASIS, ProviderType.ArangoDBOASIS, ProviderType.CockroachDBOASIS, ProviderType.TimescaleDBOASIS, ProviderType.CassandraOASIS, ProviderType.RavenDBOASIS, ProviderType.ScyllaDBOASIS, ProviderType.LitestreamOASIS, ProviderType.PineconeOASIS, ProviderType.LanceDBOASIS, ProviderType.NeonOASIS, ProviderType.AlgoliaOASIS, ProviderType.NileOASIS, ProviderType.PlanetScaleOASIS, ProviderType.NetlifyBlobsOASIS, ProviderType.FastlyOASIS, ProviderType.DaprOASIS, ProviderType.HoloOASIS, ProviderType.CloudflareOASIS, ProviderType.VercelKVOASIS, ProviderType.DenoDeployOASIS, ProviderType.AppwriteOASIS, ProviderType.ConvexOASIS, ProviderType.TursoOASIS, ProviderType.ENSOffchainOASIS, ProviderType.OrbitDBOASIS, ProviderType.GUNOASIS, ProviderType.MilvusOASIS, ProviderType.CloudinaryOASIS, ProviderType.PgVectorOASIS, ProviderType.ProofOfHumanityOASIS, ProviderType.OracleObjectStorageOASIS, ProviderType.SafeOASIS, ProviderType.DruidOASIS, ProviderType.PinotOASIS, ProviderType.TemporalOASIS, ProviderType.TenderlyOASIS, ProviderType.QuickNodeOASIS, ProviderType.InfuraOASIS, ProviderType.DiscordOASIS, ProviderType.LivepeerOASIS, ProviderType.PinataOASIS, ProviderType.PushProtocolOASIS, ProviderType.LayerZeroOASIS, ProviderType.WorldIDOASIS, ProviderType.ReclaimProtocolOASIS, ProviderType.DecentralandOASIS, ProviderType.WakuOASIS, ProviderType.TheGraphOASIS, ProviderType.SubqueryOASIS, ProviderType.SelfProtocolOASIS, ProviderType.HolonymOASIS, ProviderType.CivicOASIS, ProviderType.MapLibreOASIS, ProviderType.GOMapOASIS, ProviderType.TRONOASIS, ProviderType.TheSandboxOASIS, ProviderType.PolygonIDOASIS, ProviderType.SEEDSOASIS, ProviderType.IntelOpenVINOOASIS, ProviderType.SolanaOASIS, ProviderType.GoogleCloudOASIS, ProviderType.EthereumOASIS, ProviderType.PolygonOASIS, ProviderType.ArbitrumOASIS, ProviderType.CosmosBlockChainOASIS, ProviderType.PolkadotOASIS, ProviderType.NEAROASIS, ProviderType.BaseOASIS, ProviderType.AvalancheOASIS, ProviderType.BNBChainOASIS, ProviderType.OptimismOASIS, ProviderType.LineaOASIS, ProviderType.ScrollOASIS, ProviderType.ZkSyncOASIS, ProviderType.AbstractOASIS, ProviderType.MonadOASIS, ProviderType.SeiOASIS, ProviderType.BerachainOASIS, ProviderType.RoninOASIS, ProviderType.ImmutableZkEVMOASIS, ProviderType.FlowOASIS, ProviderType.EASOASIS, ProviderType.SignProtocolOASIS, ProviderType.FantomOASIS, ProviderType.FilecoinOASIS, ProviderType.TelosOASIS, ProviderType.EOSIOOASIS, ProviderType.ChainLinkOASIS, ProviderType.BlueSkyOASIS, ProviderType.NostrOASIS, ProviderType.MatrixOASIS, ProviderType.BlockStackOASIS, ProviderType.WormholeOASIS, ProviderType.ChainflipOASIS, ProviderType.HyperlaneOASIS, ProviderType.LayerZeroV2OASIS, ProviderType.StargateOASIS, ProviderType.deBridgeOASIS, ProviderType.SynapseOASIS, ProviderType.ConnextOASIS, ProviderType.MidenOASIS, ProviderType.EspressoSystemsOASIS, ProviderType.EigenLayerOASIS, ProviderType.FhenixOASIS, ProviderType.AxelarOASIS, ProviderType.RitualOASIS, ProviderType.CelestiaOASIS, ProviderType.BlockscoutOASIS, ProviderType.ENSOASIS, ProviderType.EclipseOASIS, ProviderType.AkashOASIS, ProviderType.BittensorOASIS, ProviderType.ZcashOASIS, ProviderType.ClickHouseOASIS, ProviderType.QuestDBOASIS, ProviderType.CloudflareD1OASIS, ProviderType.NATSJetStreamOASIS, ProviderType.ThreeFoldOASIS, ProviderType.BitcoinOASIS, ProviderType.XRPLOASIS, ProviderType.StellarOASIS, ProviderType.AlgorandOASIS, ProviderType.AptosOASIS, ProviderType.HashgraphOASIS, ProviderType.SuiOASIS, ProviderType.ElrondOASIS, ProviderType.TONOASIS, ProviderType.UrbitOASIS, ProviderType.ArweaveOASIS, ProviderType.CardanoOASIS, ProviderType.StarknetOASIS, ProviderType.RadixOASIS
     });
     public static bool SupportedReadProfile(ProviderType type) => ReadProfiles.Contains(type);
 
@@ -105,9 +121,31 @@ public static partial class CqlV1Compiler
         CosmicQueryReadAccess access)
     {
         if (request == null || request.Take is < 1 or > 100)
-            throw new ArgumentException("Row queries require Take 1–100.");
-        return CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
-            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access,includeCloudReadProfile:true);
+            throw new ArgumentException("Row queries require Take 1â€“100.");
+        if (request.Ordering == null)
+            return CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
+                request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,
+                access, includeCloudReadProfile: true);
+
+        var authority = access?.Authority ?? provider;
+        if (!authority.HasValue || !Supported(authority.Value) || request.Ordering.Length is < 1 or > 4
+            || request.OrderBy != "None" || request.Descending || request.Skip is < 0 or > 1000)
+            throw new ArgumentException("Ordering requires one native MongoDB, SQLite or Neo4j source, OrderBy None and Skip 0–1000.");
+
+        var source = CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
+            request.AnyDescendants, request.Graph, "Id", false, 0, null, access, includeCloudReadProfile: true);
+        var fields = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var term in request.Ordering)
+        {
+            if (term?.Field is not ("Name" or "Description" or "Version" or "Id") || !fields.Add(term.Field))
+                throw new ArgumentException("Ordering accepts unique Name, Description, Version and Id fields.");
+            source = CompileSelection(new CqlProjectionV1Column { Alias = term.Field, Field = term.Field },
+                new SourceOrderingConsumer(source, term.Descending, fields.Count > 1));
+        }
+        var ordered = fields.Contains("Id") ? source.Skip(request.Skip) : source.ThenBy(row => row.Id).Skip(request.Skip);
+        var page = ordered.Take(request.Take);
+        if (page.IsError) throw new ArgumentException(page.Message);
+        return page.Result;
     }
 
     public static CosmicQuery<Holon> CompileScalarSource(CqlScalarV1Request request, Guid actor, ProviderType? provider)
@@ -138,7 +176,7 @@ public static partial class CqlV1Compiler
     internal static CosmicQuery<Holon> CompileIndexedSource(CqlV1Request request, Guid actor,
         CosmicChainQueryReadRequirement requirement, CosmicQueryReadAccess access)
     {
-        if (request == null || request.Provider != null || request.Graph != null || request.Take is < 1 or > 100)
+        if (request == null || request.Provider != null || request.Graph != null || request.Ordering != null || request.Take is < 1 or > 100)
             throw new ArgumentException("Indexed rows require Take1-100 with alias-owned provider and no graph.");
         var source = CompileSource(actor, requirement.Source.SourceProvider, request.Filters, request.AnyOf,
             request.AnyChildren, request.AnyDescendants, null, request.OrderBy, request.Descending,
@@ -152,7 +190,7 @@ public static partial class CqlV1Compiler
     // complete captured target policies before any native execution.
     internal static CosmicQuery<Holon> CompileFederationSource(CqlV1Request request, Guid actor)
     {
-        if (request == null || request.Provider != null || request.Graph != null || request.Take is < 1 or > 100)
+        if (request == null || request.Provider != null || request.Graph != null || request.Ordering != null || request.Take is < 1 or > 100)
             throw new ArgumentException("Federation source requires Take1-100 and no duplicate provider or graph selector.");
         return CompileSource(actor, null, request.Filters, request.AnyOf, request.AnyChildren, request.AnyDescendants,
             null, request.OrderBy, request.Descending, request.Skip, request.Take,
@@ -162,7 +200,8 @@ public static partial class CqlV1Compiler
     private static CosmicQuery<Holon> CompileSource(Guid actor, ProviderType? provider, CqlV1Filter[] filters,
         CqlV1Filter[] anyOf, CqlV1ChildExists[] anyChildren, CqlV1DescendantExists[] anyDescendants,
         CqlV1Graph graphDescription, string orderBy, bool descending, int skip, int? take,CosmicQueryReadAccess access=null,
-        bool bindAccess=true, bool includeCloudReadProfile=false, bool indexedSource=false, bool unorderedFederation=false)
+        bool bindAccess=true, bool includeCloudReadProfile=false, bool indexedSource=false, bool unorderedFederation=false,
+        bool unorderedKeyGrouping=false)
     {
         if(access!=null)
         {
@@ -175,12 +214,12 @@ public static partial class CqlV1Compiler
         if (filters == null || anyOf == null || anyChildren == null || anyDescendants == null ||
             anyChildren.Length + (long)anyDescendants.Length > 4 ||
             filters.Length + anyOf.Length > 12 || skip is < 0 or > 1000 || take is < 0 or > 10000)
-            throw new ArgumentException("Use at most 12 filters, Skip 0–1000 and optional Take 0–10000.");
+            throw new ArgumentException("Use at most 12 filters, Skip 0â€“1000 and optional Take 0â€“10000.");
         var filterCount = filters.Length + anyOf.Length;
         void CountGroup(CqlV1Filter[] filters,CqlV1Filter[] anyOf)
         {
-            if(filters==null || anyOf==null || filters.Length+(long)anyOf.Length is <1 or >12)
-                throw new ArgumentException("Each relationship group requires one to twelve bounded filters.");
+            if(filters==null || anyOf==null || filters.Length+(long)anyOf.Length >12)
+                throw new ArgumentException("Each relationship group accepts up to twelve bounded filters.");
             filterCount+=filters.Length+anyOf.Length;
             if(filterCount>12)throw new ArgumentException("Use at most twelve filters across roots and relationship groups.");
         }
@@ -211,7 +250,7 @@ public static partial class CqlV1Compiler
                 graph.Consistency==null || graph.Consistency.Length>32 ||
                 !Enum.TryParse<CosmicQueryGraphConsistency>(graph.Consistency,false,out var consistency) ||
                 consistency.ToString()!=graph.Consistency || !Enum.IsDefined(consistency))
-                throw new ArgumentException("Graph requires depth1–8, nodes1–1000, payload1–1048576 and canonical child type/consistency names.");
+                throw new ArgumentException("Graph requires depth1â€“8, nodes1â€“1000, payload1â€“1048576 and canonical child type/consistency names.");
             var options=CosmicQueryGraphOptions.Create(consistency,graph.Recursive,graph.MaxChildDepth,
                 childType,graph.MaximumNodes,graph.MaximumPayloadBytes);
             if(options.IsError)throw new ArgumentException(options.Message);
@@ -233,7 +272,15 @@ public static partial class CqlV1Compiler
 
         foreach(var group in anyChildren)
         {
-            var related=query.WhereAnyChild(RelationshipPredicate(group.Filters,group.AnyOf));
+            var child = RelationshipPredicate(group.Filters, group.AnyOf);
+            if (group.Negated)
+            {
+                var navigation = Expression.Property(parameter, typeof(ISemanticHolon).GetProperty(nameof(ISemanticHolon.Children)));
+                var any = Expression.Call(typeof(Enumerable), nameof(Enumerable.Any), new[] { typeof(IHolon) }, navigation, child);
+                query = Add(query, parameter, Expression.Not(any));
+                continue;
+            }
+            var related=query.WhereAnyChild(child);
             if(related.IsError)throw new ArgumentException(related.Message);
             query=related.Result;
         }
@@ -241,16 +288,24 @@ public static partial class CqlV1Compiler
         {
             var limits=CosmicQueryTraversalOptions.Create(group.MaximumDepth,group.MaximumNodes);
             if(limits.IsError)throw new ArgumentException(limits.Message);
-            var related=query.WhereAnyDescendant(RelationshipPredicate(group.Filters,group.AnyOf),limits.Result);
+            var descendant = RelationshipPredicate(group.Filters, group.AnyOf);
+            if (group.Negated)
+            {
+                var any = Expression.Call(typeof(CosmicQueryRelations), nameof(CosmicQueryRelations.AnyDescendant), null,
+                    parameter, descendant, Expression.Constant(limits.Result));
+                query = Add(query, parameter, Expression.Not(any));
+                continue;
+            }
+            var related=query.WhereAnyDescendant(descendant,limits.Result);
             if(related.IsError)throw new ArgumentException(related.Message);
             query=related.Result;
         }
 
         if (orderBy == "None")
         {
-            if (descending || !unorderedFederation && (!includeCloudReadProfile
-                || provider is not (ProviderType.LocalFileOASIS or ProviderType.AzureStorageOASIS or ProviderType.ActivityPubOASIS or ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS or ProviderType.AWSS3OASIS or ProviderType.OracleDBOASIS or ProviderType.SQLServerDBOASIS or ProviderType.DuckDBOASIS or ProviderType.CouchDBOASIS or ProviderType.ChromaOASIS or ProviderType.MinIOOASIS or ProviderType.PouchDBOASIS or ProviderType.MeilisearchOASIS or ProviderType.SolrOASIS or ProviderType.ElasticsearchOASIS or ProviderType.OpenSearchOASIS or ProviderType.ArcadeDBOASIS or ProviderType.SurrealDBOASIS or ProviderType.QdrantOASIS or ProviderType.RedisOASIS or ProviderType.ValKeyOASIS or ProviderType.GarnetOASIS or ProviderType.KeyDBOASIS or ProviderType.DragonflyOASIS or ProviderType.DynamoDBOASIS or ProviderType.TypesenseOASIS or ProviderType.PocketBaseOASIS or ProviderType.SupabaseOASIS or ProviderType.FirebaseOASIS or ProviderType.WeaviateOASIS or ProviderType.TigrisOASIS or ProviderType.UpstashOASIS or ProviderType.InfluxDBOASIS or ProviderType.CouchbaseOASIS or ProviderType.ArangoDBOASIS or ProviderType.CockroachDBOASIS or ProviderType.TimescaleDBOASIS or ProviderType.CassandraOASIS or ProviderType.RavenDBOASIS or ProviderType.ScyllaDBOASIS or ProviderType.LitestreamOASIS or ProviderType.PineconeOASIS or ProviderType.LanceDBOASIS or ProviderType.NeonOASIS or ProviderType.AlgoliaOASIS or ProviderType.NileOASIS or ProviderType.PlanetScaleOASIS or ProviderType.NetlifyBlobsOASIS or ProviderType.FastlyOASIS or ProviderType.DaprOASIS or ProviderType.CloudflareOASIS or ProviderType.VercelKVOASIS or ProviderType.DenoDeployOASIS or ProviderType.AppwriteOASIS or ProviderType.ConvexOASIS or ProviderType.TursoOASIS or ProviderType.ENSOffchainOASIS or ProviderType.OrbitDBOASIS or ProviderType.GUNOASIS or ProviderType.MilvusOASIS or ProviderType.CloudinaryOASIS or ProviderType.PgVectorOASIS or ProviderType.ProofOfHumanityOASIS or ProviderType.OracleObjectStorageOASIS or ProviderType.SafeOASIS or ProviderType.DruidOASIS or ProviderType.PinotOASIS or ProviderType.TemporalOASIS or ProviderType.TenderlyOASIS or ProviderType.QuickNodeOASIS or ProviderType.DiscordOASIS or ProviderType.LivepeerOASIS or ProviderType.PinataOASIS or ProviderType.PushProtocolOASIS or ProviderType.LayerZeroOASIS or ProviderType.WorldIDOASIS or ProviderType.ReclaimProtocolOASIS or ProviderType.DecentralandOASIS or ProviderType.WakuOASIS or ProviderType.TheGraphOASIS or ProviderType.SubqueryOASIS or ProviderType.SelfProtocolOASIS or ProviderType.HolonymOASIS or ProviderType.CivicOASIS or ProviderType.MapLibreOASIS or ProviderType.GOMapOASIS or ProviderType.TheSandboxOASIS or ProviderType.PolygonIDOASIS or ProviderType.SEEDSOASIS or ProviderType.IntelOpenVINOOASIS or ProviderType.SolanaOASIS or ProviderType.GoogleCloudOASIS or ProviderType.EthereumOASIS or ProviderType.PolygonOASIS or ProviderType.ArbitrumOASIS or ProviderType.CosmosBlockChainOASIS or ProviderType.PolkadotOASIS or ProviderType.NEAROASIS or ProviderType.BaseOASIS or ProviderType.AvalancheOASIS or ProviderType.BNBChainOASIS or ProviderType.OptimismOASIS or ProviderType.LineaOASIS or ProviderType.ScrollOASIS or ProviderType.ZkSyncOASIS or ProviderType.AbstractOASIS or ProviderType.MonadOASIS or ProviderType.SeiOASIS or ProviderType.BerachainOASIS or ProviderType.RoninOASIS or ProviderType.ImmutableZkEVMOASIS or ProviderType.FlowOASIS or ProviderType.EASOASIS or ProviderType.SignProtocolOASIS or ProviderType.FantomOASIS or ProviderType.FilecoinOASIS or ProviderType.TelosOASIS or ProviderType.EOSIOOASIS or ProviderType.ChainLinkOASIS or ProviderType.BlueSkyOASIS or ProviderType.NostrOASIS or ProviderType.MatrixOASIS or ProviderType.BlockStackOASIS or ProviderType.WormholeOASIS or ProviderType.ChainflipOASIS or ProviderType.HyperlaneOASIS or ProviderType.LayerZeroV2OASIS or ProviderType.StargateOASIS or ProviderType.deBridgeOASIS or ProviderType.SynapseOASIS or ProviderType.ConnextOASIS or ProviderType.MidenOASIS or ProviderType.EspressoSystemsOASIS or ProviderType.EigenLayerOASIS or ProviderType.FhenixOASIS or ProviderType.AxelarOASIS or ProviderType.RitualOASIS or ProviderType.CelestiaOASIS or ProviderType.BlockscoutOASIS or ProviderType.ENSOASIS or ProviderType.EclipseOASIS or ProviderType.AkashOASIS or ProviderType.BittensorOASIS or ProviderType.ZcashOASIS or ProviderType.ClickHouseOASIS or ProviderType.QuestDBOASIS or ProviderType.CloudflareD1OASIS or ProviderType.NATSJetStreamOASIS or ProviderType.ThreeFoldOASIS or ProviderType.BitcoinOASIS or ProviderType.XRPLOASIS or ProviderType.StellarOASIS or ProviderType.AlgorandOASIS or ProviderType.AptosOASIS or ProviderType.HashgraphOASIS or ProviderType.SuiOASIS or ProviderType.ElrondOASIS or ProviderType.RadixOASIS or ProviderType.StarknetOASIS or ProviderType.TONOASIS or ProviderType.ArweaveOASIS or ProviderType.CardanoOASIS)))
-                throw new ArgumentException("OrderBy None requires an unsorted protocol read profile or an explicitly unordered federation, without Descending.");
+            if (descending || !unorderedFederation && !unorderedKeyGrouping && (!includeCloudReadProfile
+                || provider is not (ProviderType.LocalFileOASIS or ProviderType.AzureStorageOASIS or ProviderType.ActivityPubOASIS or ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS or ProviderType.AWSS3OASIS or ProviderType.OracleDBOASIS or ProviderType.SQLServerDBOASIS or ProviderType.DuckDBOASIS or ProviderType.CouchDBOASIS or ProviderType.ChromaOASIS or ProviderType.MinIOOASIS or ProviderType.PouchDBOASIS or ProviderType.MeilisearchOASIS or ProviderType.SolrOASIS or ProviderType.ElasticsearchOASIS or ProviderType.OpenSearchOASIS or ProviderType.ArcadeDBOASIS or ProviderType.SurrealDBOASIS or ProviderType.QdrantOASIS or ProviderType.RedisOASIS or ProviderType.ValKeyOASIS or ProviderType.GarnetOASIS or ProviderType.KeyDBOASIS or ProviderType.DragonflyOASIS or ProviderType.DynamoDBOASIS or ProviderType.TypesenseOASIS or ProviderType.PocketBaseOASIS or ProviderType.SupabaseOASIS or ProviderType.FirebaseOASIS or ProviderType.WeaviateOASIS or ProviderType.TigrisOASIS or ProviderType.UpstashOASIS or ProviderType.InfluxDBOASIS or ProviderType.CouchbaseOASIS or ProviderType.ArangoDBOASIS or ProviderType.CockroachDBOASIS or ProviderType.TimescaleDBOASIS or ProviderType.CassandraOASIS or ProviderType.RavenDBOASIS or ProviderType.ScyllaDBOASIS or ProviderType.LitestreamOASIS or ProviderType.PineconeOASIS or ProviderType.LanceDBOASIS or ProviderType.NeonOASIS or ProviderType.AlgoliaOASIS or ProviderType.NileOASIS or ProviderType.PlanetScaleOASIS or ProviderType.NetlifyBlobsOASIS or ProviderType.FastlyOASIS or ProviderType.DaprOASIS or ProviderType.HoloOASIS or ProviderType.CloudflareOASIS or ProviderType.VercelKVOASIS or ProviderType.DenoDeployOASIS or ProviderType.AppwriteOASIS or ProviderType.ConvexOASIS or ProviderType.TursoOASIS or ProviderType.ENSOffchainOASIS or ProviderType.OrbitDBOASIS or ProviderType.GUNOASIS or ProviderType.MilvusOASIS or ProviderType.CloudinaryOASIS or ProviderType.PgVectorOASIS or ProviderType.ProofOfHumanityOASIS or ProviderType.OracleObjectStorageOASIS or ProviderType.SafeOASIS or ProviderType.DruidOASIS or ProviderType.PinotOASIS or ProviderType.TemporalOASIS or ProviderType.TenderlyOASIS or ProviderType.QuickNodeOASIS or ProviderType.InfuraOASIS or ProviderType.DiscordOASIS or ProviderType.LivepeerOASIS or ProviderType.PinataOASIS or ProviderType.PushProtocolOASIS or ProviderType.LayerZeroOASIS or ProviderType.WorldIDOASIS or ProviderType.ReclaimProtocolOASIS or ProviderType.DecentralandOASIS or ProviderType.WakuOASIS or ProviderType.TheGraphOASIS or ProviderType.SubqueryOASIS or ProviderType.SelfProtocolOASIS or ProviderType.HolonymOASIS or ProviderType.CivicOASIS or ProviderType.MapLibreOASIS or ProviderType.GOMapOASIS or ProviderType.TRONOASIS or ProviderType.TheSandboxOASIS or ProviderType.PolygonIDOASIS or ProviderType.SEEDSOASIS or ProviderType.IntelOpenVINOOASIS or ProviderType.SolanaOASIS or ProviderType.GoogleCloudOASIS or ProviderType.EthereumOASIS or ProviderType.PolygonOASIS or ProviderType.ArbitrumOASIS or ProviderType.CosmosBlockChainOASIS or ProviderType.PolkadotOASIS or ProviderType.NEAROASIS or ProviderType.BaseOASIS or ProviderType.AvalancheOASIS or ProviderType.BNBChainOASIS or ProviderType.OptimismOASIS or ProviderType.LineaOASIS or ProviderType.ScrollOASIS or ProviderType.ZkSyncOASIS or ProviderType.AbstractOASIS or ProviderType.MonadOASIS or ProviderType.SeiOASIS or ProviderType.BerachainOASIS or ProviderType.RoninOASIS or ProviderType.ImmutableZkEVMOASIS or ProviderType.FlowOASIS or ProviderType.EASOASIS or ProviderType.SignProtocolOASIS or ProviderType.FantomOASIS or ProviderType.FilecoinOASIS or ProviderType.TelosOASIS or ProviderType.EOSIOOASIS or ProviderType.ChainLinkOASIS or ProviderType.BlueSkyOASIS or ProviderType.NostrOASIS or ProviderType.MatrixOASIS or ProviderType.BlockStackOASIS or ProviderType.WormholeOASIS or ProviderType.ChainflipOASIS or ProviderType.HyperlaneOASIS or ProviderType.LayerZeroV2OASIS or ProviderType.StargateOASIS or ProviderType.deBridgeOASIS or ProviderType.SynapseOASIS or ProviderType.ConnextOASIS or ProviderType.MidenOASIS or ProviderType.EspressoSystemsOASIS or ProviderType.EigenLayerOASIS or ProviderType.FhenixOASIS or ProviderType.AxelarOASIS or ProviderType.RitualOASIS or ProviderType.CelestiaOASIS or ProviderType.BlockscoutOASIS or ProviderType.ENSOASIS or ProviderType.EclipseOASIS or ProviderType.AkashOASIS or ProviderType.BittensorOASIS or ProviderType.ZcashOASIS or ProviderType.ClickHouseOASIS or ProviderType.QuestDBOASIS or ProviderType.CloudflareD1OASIS or ProviderType.NATSJetStreamOASIS or ProviderType.ThreeFoldOASIS or ProviderType.BitcoinOASIS or ProviderType.XRPLOASIS or ProviderType.StellarOASIS or ProviderType.AlgorandOASIS or ProviderType.AptosOASIS or ProviderType.HashgraphOASIS or ProviderType.SuiOASIS or ProviderType.ElrondOASIS or ProviderType.RadixOASIS or ProviderType.StarknetOASIS or ProviderType.TONOASIS or ProviderType.UrbitOASIS or ProviderType.ArweaveOASIS or ProviderType.CardanoOASIS)))
+                throw new ArgumentException("OrderBy None requires a supported unordered query profile, without Descending.");
             var pointPage = query.Skip(skip);
             if (take.HasValue) pointPage = pointPage.Take(take.Value);
             if (pointPage.IsError) throw new ArgumentException(pointPage.Message);
@@ -286,7 +341,7 @@ public static partial class CqlV1Compiler
             alternatives=alternatives==null?next:Expression.OrElse(alternatives,next);
         }
         if(alternatives!=null)condition=condition==null?alternatives:Expression.AndAlso(condition,alternatives);
-        return Expression.Lambda<Func<IHolon,bool>>(condition,child);
+        return Expression.Lambda<Func<IHolon,bool>>(condition ?? Expression.Constant(true),child);
     }
 
     /// <summary>
@@ -323,10 +378,28 @@ public static partial class CqlV1Compiler
         return result.Result;
     }
 
+    private static string StringFilterMethod(CqlV1Operator operation) => operation switch
+    {
+        CqlV1Operator.Contains or CqlV1Operator.NotContains => nameof(string.Contains),
+        CqlV1Operator.StartsWith or CqlV1Operator.NotStartsWith => nameof(string.StartsWith),
+        CqlV1Operator.EndsWith or CqlV1Operator.NotEndsWith => nameof(string.EndsWith),
+        _ => null
+    };
+
+    private static bool IsNegatedStringFilter(CqlV1Operator operation)
+        => operation is CqlV1Operator.NotContains or CqlV1Operator.NotStartsWith or CqlV1Operator.NotEndsWith;
+
     private static Expression Predicate(CqlV1Filter filter, ParameterExpression parameter)
     {
         if (filter == null || !Enum.IsDefined(filter.Operator) || !Enum.IsDefined(filter.Scalar))
             throw new ArgumentException("Defined filter operator and scalar required.");
+        if (filter.Function.HasValue && (filter.Function != CqlV1Function.Utf16Length
+            || filter.Operator is not (CqlV1Operator.Equal or CqlV1Operator.NotEqual
+                or CqlV1Operator.GreaterThan or CqlV1Operator.GreaterThanOrEqual
+                or CqlV1Operator.LessThan or CqlV1Operator.LessThanOrEqual)))
+            throw new ArgumentException("Utf16Length requires an integer comparison.");
+        var presenceTest = filter.Operator is CqlV1Operator.Exists or CqlV1Operator.IsNull
+            or CqlV1Operator.IsMissing or CqlV1Operator.IsNotNull;
         Expression path;
         if (filter.MetadataPath != null)
         {
@@ -334,11 +407,18 @@ public static partial class CqlV1Compiler
                 filter.MetadataPath.Any(s => string.IsNullOrEmpty(s) || s.Length > 64 || s.Any(char.IsControl)))
                 throw new ArgumentException("Use a metadata path of one to four bounded segments, without Field.");
             var segments = Expression.NewArrayInit(typeof(string), filter.MetadataPath.Select(s => Expression.Constant(s)));
-            if (filter.Operator is CqlV1Operator.Exists or CqlV1Operator.IsNull)
+            if (presenceTest)
             {
                 if (filter.Value.ValueKind != JsonValueKind.Undefined) throw new ArgumentException("Existence/null tests do not accept Value.");
-                return Expression.Call(typeof(CosmicQueryMetadata), filter.Operator == CqlV1Operator.Exists ? "Exists" : "IsNull",
-                    null, parameter, segments);
+                Expression MetadataCall(string method) => Expression.Call(typeof(CosmicQueryMetadata), method, null, parameter, segments);
+                return filter.Operator switch
+                {
+                    CqlV1Operator.Exists => MetadataCall(nameof(CosmicQueryMetadata.Exists)),
+                    CqlV1Operator.IsNull => MetadataCall(nameof(CosmicQueryMetadata.IsNull)),
+                    CqlV1Operator.IsMissing => Expression.Not(MetadataCall(nameof(CosmicQueryMetadata.Exists))),
+                    _ => Expression.AndAlso(MetadataCall(nameof(CosmicQueryMetadata.Exists)),
+                        Expression.Not(MetadataCall(nameof(CosmicQueryMetadata.IsNull))))
+                };
             }
             var type = filter.Scalar switch
             {
@@ -352,7 +432,6 @@ public static partial class CqlV1Compiler
         {
             if (filter.Field is not ("Id" or "Name" or "Description" or "Version" or "IsActive" or "ParentHolonId"))
                 throw new ArgumentException("Unsupported canonical query field.");
-            if (filter.Operator is CqlV1Operator.Exists or CqlV1Operator.IsNull) throw new ArgumentException("Existence/null tests require MetadataPath.");
             // Reflection on an interface does not include inherited interfaces.
             // Bind the one declared contract member (e.g. IHolonBase.Name).
             var property = parameter.Type.IsInterface
@@ -360,12 +439,29 @@ public static partial class CqlV1Compiler
                     .Where(member => member.Name == filter.Field).Distinct().Single()
                 : parameter.Type.GetProperty(filter.Field);
             path = Expression.Property(parameter, property);
+            if (presenceTest)
+            {
+                if (path.Type != typeof(string) || filter.Operator is not (CqlV1Operator.IsNull or CqlV1Operator.IsNotNull))
+                    throw new ArgumentException("Canonical null tests require a text field; metadata presence tests require MetadataPath.");
+                if (filter.Value.ValueKind != JsonValueKind.Undefined)
+                    throw new ArgumentException("Null tests do not accept Value.");
+                var absent = Expression.Constant(null, path.Type);
+                return filter.Operator == CqlV1Operator.IsNull
+                    ? Expression.Equal(path, absent) : Expression.NotEqual(path, absent);
+            }
+        }
+
+        if (filter.Function == CqlV1Function.Utf16Length)
+        {
+            if (path.Type != typeof(string))
+                throw new ArgumentException("Utf16Length requires a declared string path.");
+            path = Expression.Convert(Expression.Property(path, nameof(string.Length)), typeof(long));
         }
 
         if (filter.Operator == CqlV1Operator.In)
         {
             if (filter.Value.ValueKind != JsonValueKind.Array || filter.Value.GetArrayLength() is < 1 or > 100)
-                throw new ArgumentException("In requires an array of1–100 exact bounded literals.");
+                throw new ArgumentException("In requires an array of1â€“100 exact bounded literals.");
             var values = Expression.NewArrayInit(path.Type,
                 filter.Value.EnumerateArray().Select(json => Literal(json, path.Type)));
             // One membership AST. Never expand this into point queries or in-memory filtering.
@@ -373,13 +469,26 @@ public static partial class CqlV1Compiler
         }
 
         var literal = Literal(filter.Value, path.Type);
-        if (filter.Operator is CqlV1Operator.Contains or CqlV1Operator.StartsWith or CqlV1Operator.EndsWith)
+        var stringMethod = StringFilterMethod(filter.Operator);
+        if (stringMethod != null)
         {
             if (path.Type != typeof(string)) throw new ArgumentException("String operation requires a string field.");
             // Prefix/suffix single-argument overloads use the current culture. CQL's
             // portable native contract requires ordinal semantics explicitly.
-            var method = typeof(string).GetMethod(filter.Operator.ToString(), new[] { typeof(string), typeof(StringComparison) });
-            return Expression.Call(path, method, literal, Expression.Constant(StringComparison.Ordinal));
+            var method = typeof(string).GetMethod(stringMethod, new[] { typeof(string), typeof(StringComparison) });
+            var match = Expression.Call(path, method, literal, Expression.Constant(StringComparison.Ordinal));
+            if (!IsNegatedStringFilter(filter.Operator))
+                return match;
+
+            // SQL negation excludes null and missing text even when the provider's
+            // boolean NOT would match the absence of a positive pattern.
+            var exists = Predicate(new CqlV1Filter
+            {
+                Field = filter.Field,
+                MetadataPath = filter.MetadataPath,
+                Operator = CqlV1Operator.IsNotNull
+            }, parameter);
+            return Expression.AndAlso(exists, Expression.Not(match));
         }
         var node = filter.Operator switch
         {
@@ -397,7 +506,7 @@ public static partial class CqlV1Compiler
         object value;
         if (type == typeof(string) && json.ValueKind == JsonValueKind.String && json.GetString().Length <= 512) value = json.GetString();
         else if (type == typeof(bool) && json.ValueKind is JsonValueKind.True or JsonValueKind.False) value = json.GetBoolean();
-        else if (type == typeof(long) && json.ValueKind == JsonValueKind.Number && json.TryGetInt64(out var number)) value = number;
+        else if (type == typeof(long) && TryInt64(json, out var number)) value = number;
         else if (type == typeof(int) && json.ValueKind == JsonValueKind.Number && json.TryGetInt32(out var integer)) value = integer;
         else if (type == typeof(Guid) && json.ValueKind == JsonValueKind.String && Guid.TryParseExact(json.GetString(), "D", out var guid)) value = guid;
         else if (type == typeof(ulong) && TryUInt64(json, out var unsigned)) value = unsigned;

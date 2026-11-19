@@ -40,7 +40,16 @@ public partial class HolonRepository
                 var optional = !column.Selector.ValueType.IsValueType || Nullable.GetUnderlyingType(column.Selector.ValueType) != null;
                 bad.Add(optional ? state + "=3" : state + "<>2");
                 var present = "sum(CASE WHEN " + state + "=2 THEN 1 ELSE 0 END)";
-                if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
+                if (column.Operation == CosmicScalarOperation.LongCount)
+                {
+                    var count = "a" + index + "n";
+                    var selectedCount = column.Distinct
+                        ? "count(DISTINCT CASE WHEN " + state + "=2 THEN " + value + " ELSE NULL END COLLATE BINARY)"
+                        : present;
+                    reductions.Add(selectedCount + " AS " + count);
+                    output.Add(count);
+                }
+                else if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
                 {
                     var high = "a" + index + "h"; var low = "a" + index + "l"; var count = "a" + index + "n";
                     if (FloatingNumeric(column.Selector.ValueType))
@@ -93,7 +102,7 @@ public partial class HolonRepository
                 if (column.KeyIndex >= 0)
                     resultOrder.Add("k" + column.KeyIndex + "v" + direction);
                 else if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount)
-                    resultOrder.Add("inputs" + direction);
+                    resultOrder.Add((column.Selector == null ? "inputs" : "a" + selectedOrder.ColumnIndex + "n") + direction);
                 else if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max)
                 {
                     var type = Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;

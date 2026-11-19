@@ -55,11 +55,13 @@ public static partial class CqlV1Endpoint
                 {
                     deadline.Token.ThrowIfCancellationRequested();values[index]=ProjectionWireValue(row.Value.Values[index]);
                 }
-                rows.Add(new{hasRight=row.HasRight,values});
+                rows.Add(intent.Join.Kind == CosmicJoinKind.Full
+                    ? (object)new { hasLeft = row.HasLeft, hasRight = row.HasRight, values }
+                    : new { hasRight = row.HasRight, values });
             }
             deadline.Token.ThrowIfCancellationRequested();
             var response=JsonResponse(new OASISResult<object>(new
-            {version="cql-join-v1",provider=selected.ToString(),kind=intent.Join.Kind.ToString(),columns,rows}){IsLoaded=true});
+            {version="cql-join-v1",provider=selected.ToString(),kind=intent.Join.RestrictsRightToLeftParents?"Child":intent.Join.Kind.ToString(),columns,rows}){IsLoaded=true});
             deadline.Token.ThrowIfCancellationRequested();return response;
         }
         catch(ReadPolicyRejected cause) { return Failure(cause.Status,cause.Code,"The trusted read-access policy did not authorize this request."); }

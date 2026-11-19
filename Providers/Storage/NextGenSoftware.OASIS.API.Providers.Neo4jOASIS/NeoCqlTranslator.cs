@@ -182,6 +182,12 @@ internal sealed partial class NeoCqlTranslator
                 if (comparison.Operator == CosmicQueryComparisonOperator.NotEqual && NullablePath(comparison.Path))
                     compared = "(" + compared + ") OR (" + operand.Null + ")";
                 return Total(compared);
+            case CosmicQueryStringLength length:
+                var lengthText = Operand(length.Path);
+                var supplementary = Bind(@"[\x{10000}-\x{10FFFF}]");
+                var units = Utf16LengthUnits(lengthText.Value, supplementary);
+                return Total("CASE WHEN " + lengthText.Guard + " THEN " + units
+                    + Symbol(length.Operator) + Bind(length.Value) + " ELSE false END");
             case CosmicQueryStringMatch match:
                 var text = Operand(match.Path);
                 var operation = match.Operator switch {
@@ -206,4 +212,9 @@ internal sealed partial class NeoCqlTranslator
             + " AND (NOT " + _projection + ".f_HasChildManifest OR " + projection + ".f_Id IN " + _projection + ".f_ChildIds)"
             + " AND (" + visibility + ")";
 
+
+    internal static string Utf16LengthUnits(string value, string supplementaryParameter) =>
+        "reduce(cqlUnits = 0, cqlCharacter IN split(" + value
+                    + ", '') | cqlUnits + CASE WHEN cqlCharacter = '' THEN 0 WHEN cqlCharacter =~ "
+                    + supplementaryParameter + " THEN 2 ELSE 1 END)";
 }

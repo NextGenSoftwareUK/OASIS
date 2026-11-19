@@ -24,6 +24,8 @@ public sealed class CqlV1Request
     // None is explicit and restricted to the unsorted ActivityPub, IPFS and SOLID point profiles.
     public string OrderBy { get; set; } = "Name";
     public bool Descending { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CqlV1Ordering[]? Ordering { get; set; }
     public int Skip { get; set; }
     public int Take { get; set; } = 25;
     // Explicit execution budget for the leaf endpoint; federation has its own global budget.
@@ -33,8 +35,17 @@ public sealed class CqlV1Request
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class CqlV1Ordering
+{
+    public string? Field { get; set; }
+    public bool Descending { get; set; }
+}
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class CqlV1ChildExists
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Negated { get; set; }
     // Each group requires one visible direct child satisfying its local filters.
     // Separate groups are ANDed and may match different children.
     public CqlV1Filter[] Filters { get; set; } = Array.Empty<CqlV1Filter>();
@@ -44,6 +55,8 @@ public sealed class CqlV1ChildExists
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class CqlV1DescendantExists
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Negated { get; set; }
     // Filtering depth/node bounds are independent of response Graph shape.
     public int MaximumDepth { get; set; } = 8;
     public int MaximumNodes { get; set; } = 1000;
@@ -55,7 +68,10 @@ public sealed class CqlV1DescendantExists
 public enum CqlV1Scalar { String, Integer, Boolean, Guid, DateTime, UInt64, Decimal, Double, Single }
 
 [JsonConverter(typeof(JsonStringEnumConverter<CqlV1Operator>))]
-public enum CqlV1Operator { Equal, NotEqual, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, Contains, StartsWith, EndsWith, Exists, IsNull, In }
+public enum CqlV1Operator { Equal, NotEqual, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, Contains, StartsWith, EndsWith, Exists, IsNull, In, IsMissing, IsNotNull, NotContains, NotStartsWith, NotEndsWith }
+
+[JsonConverter(typeof(JsonStringEnumConverter<CqlV1Function>))]
+public enum CqlV1Function { Utf16Length }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class CqlV1Filter
@@ -65,6 +81,9 @@ public sealed class CqlV1Filter
     public string[]? MetadataPath { get; set; }
     public CqlV1Scalar Scalar { get; set; }
     public CqlV1Operator Operator { get; set; }
+    // Utf16Length compares a string's UTF-16 code-unit count with an exact Int64 bound.
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CqlV1Function? Function { get; set; }
     // In accepts an array of1–100 exact literals; other value operators accept one literal.
     public JsonElement Value { get; set; }
 }

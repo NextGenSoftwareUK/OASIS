@@ -18,6 +18,7 @@ using NextGenSoftware.OASIS.API.Providers.HolonymOASIS;
 using NextGenSoftware.OASIS.API.Providers.CivicOASIS;
 using NextGenSoftware.OASIS.API.Providers.MapLibreOASIS;
 using NextGenSoftware.OASIS.API.Providers.GOMapOASIS;
+using NextGenSoftware.OASIS.API.Providers.TRONOASIS;
 using NextGenSoftware.OASIS.API.Providers.TheSandboxOASIS;
 using NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
@@ -29,6 +30,16 @@ public static class CqlReviewedNetworkReadSourceRegistration
 {
     public static void AddReviewedNetworkReadSources(this IServiceCollection services, IConfiguration configuration, bool sandboxEnabled = false)
     {
+        var tron = configuration["CQL_TRON_PUBLIC_HEADER_QUERY_SOURCE_JSON"];
+        var tronKey = configuration["COSMIC_TRON_PUBLIC_READER_KEY"];
+        if (tron != null || tronKey != null)
+        {
+            if (!sandboxEnabled || string.IsNullOrWhiteSpace(tron) || string.IsNullOrWhiteSpace(tronKey))
+                throw new InvalidOperationException("TRON public header queries require sandbox mode, an explicit catalogue and a separate dedicated reader key.");
+            services.AddSingleton<CqlReadSourceProfile>(_ => new CqlReadSourceProfile(
+                TronPublicHeaderMetadataSource.FromAuthenticatedJson(tron, tronKey)));
+        }
+
         var ronin = configuration["CQL_RONIN_PUBLIC_SOURCE_JSON"];
         if (ronin != null)
         {
@@ -103,8 +114,19 @@ public static class CqlReviewedNetworkReadSourceRegistration
             PolygonIdSchemaQuerySource.ForReviewedTeachingCatalogue);
         Register(services, configuration["CQL_SANDBOX_CONTRACT_QUERY_SOURCE_OWNER"], "Sandbox public contract",
             SandboxContractQuerySource.ForReviewedTeachingCatalogue);
-        Register(services, configuration["CQL_GOMAP_ROUTE_QUERY_SOURCE_OWNER"], "Fixed public GOMap route",
-            GOMapRouteQuerySource.ForReviewedTeachingCatalogue);
+        var goMapOwner = configuration["CQL_GOMAP_ROUTE_QUERY_SOURCE_OWNER"];
+        if (goMapOwner != null)
+        {
+            var originText = configuration["CQL_GOMAP_ROUTE_QUERY_SOURCE_ORIGIN"];
+            if (!Uri.TryCreate(originText, UriKind.Absolute, out var origin) || origin.Scheme != Uri.UriSchemeHttps ||
+                origin.UserInfo.Length != 0 || origin.AbsolutePath != "/" || origin.Query.Length != 0 ||
+                origin.Fragment.Length != 0 || origin.IdnHost.TrimEnd('.').ToLowerInvariant() is
+                    "router.project-osrm.org" or "routing.openstreetmap.de")
+                throw new InvalidOperationException("Hosted GOMap CQL requires a dedicated HTTPS routing origin.");
+
+            Register(services, goMapOwner, "Fixed public GOMap route",
+                owner => GOMapRouteQuerySource.ForHostedTeachingCatalogue(owner, origin));
+        }
         Register(services, configuration["CQL_MAPLIBRE_STYLE_QUERY_SOURCE_OWNER"], "MapLibre demo style",
             MapLibreStyleQuerySource.ForReviewedTeachingCatalogue);
         Register(services, configuration["CQL_CIVIC_NETWORK_QUERY_SOURCE_OWNER"], "Civic public network",

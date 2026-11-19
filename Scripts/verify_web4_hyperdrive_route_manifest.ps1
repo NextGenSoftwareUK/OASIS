@@ -41,6 +41,9 @@ function Get-Disposition([string]$body, [string]$methodName, [string]$controller
     if ($body -match '\b_[a-zA-Z][a-zA-Z0-9_]*(?:Service|Repository|Client)\b') {
         return 'InjectedServiceRepositoryOrClient'
     }
+    if ($body -match '\bCqlV1Endpoint\.Execute[A-Za-z]*Async\s*\(') {
+        return 'InjectedServiceRepositoryOrClient'
+    }
     if ($body -match '\b(?:ProviderManager|IOASIS\w*Provider|GetAndActivateProvider|OASISStorageProvider)\b') {
         return 'ExplicitProviderNativeOrAdministrative'
     }
@@ -73,7 +76,7 @@ $rows = foreach ($file in Get-ChildItem -LiteralPath $controllerRoot -Recurse -F
         $declarationLine = $cursor + 1
         while ($cursor -lt $lines.Count -and $cursor -lt $index + 40) {
             $declaration += ' ' + $lines[$cursor].Trim()
-            if ($declaration -match '\)\s*(?:\{|=>)?\s*$') { break }
+            if ($declaration -match '\)\s*(?:\{|=>|$)') { break }
             $cursor++
         }
         $declaration = Normalize $declaration

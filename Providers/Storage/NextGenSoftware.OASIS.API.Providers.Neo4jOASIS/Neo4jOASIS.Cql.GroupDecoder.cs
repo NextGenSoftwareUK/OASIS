@@ -52,6 +52,12 @@ public partial class Neo4jOASIS
                 throw new InvalidDataException("Native grouped aggregate participation is invalid.");
             var coverage = CosmicGroupedResults.ValidateParticipation(column.Selector.ValueType, inputs, present);
             if (coverage.IsError) throw new InvalidDataException(coverage.Message);
+            if (column.Operation == CosmicScalarOperation.LongCount)
+            {
+                if (aggregate.Count != 1) throw new InvalidDataException("Native grouped selected count packet is invalid.");
+                values[index] = present;
+                continue;
+            }
             if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
             {
                 OASISResult<object> normalized;

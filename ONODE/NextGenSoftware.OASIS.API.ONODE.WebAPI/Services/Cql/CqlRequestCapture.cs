@@ -71,7 +71,7 @@ internal static class CqlRequestCapture
             return new CqlV1Filter
             {
                 Field = filter.Field, MetadataPath = filter.MetadataPath == null ? null : Array(filter.MetadataPath, 8, item => item),
-                Scalar = filter.Scalar, Operator = filter.Operator,
+                Scalar = filter.Scalar, Operator = filter.Operator, Function = filter.Function,
                 Value = scalar.ValueKind == JsonValueKind.Undefined ? default : scalar.Clone()
             };
         }
@@ -79,15 +79,18 @@ internal static class CqlRequestCapture
         return new CqlV1Request
         {
             Provider = value.Provider, OrderBy = value.OrderBy, Descending = value.Descending,
+            Ordering = value.Ordering == null ? null : Array(value.Ordering, 4, term => term == null
+                ? throw new ArgumentException("Missing row ordering.")
+                : new CqlV1Ordering { Field = term.Field, Descending = term.Descending }),
             Skip = value.Skip, Take = value.Take, IncludeMetadata = value.IncludeMetadata,
             MaximumDurationMilliseconds = value.MaximumDurationMilliseconds,
             Filters = Array(value.Filters, 64, Filter), AnyOf = Array(value.AnyOf, 64, Filter),
             AnyChildren = Array(value.AnyChildren, 8, group => group == null
                 ? throw new ArgumentException("Missing child group.")
-                : new CqlV1ChildExists { Filters = Array(group.Filters, 64, Filter), AnyOf = Array(group.AnyOf, 64, Filter) }),
+                : new CqlV1ChildExists { Negated = group.Negated, Filters = Array(group.Filters, 64, Filter), AnyOf = Array(group.AnyOf, 64, Filter) }),
             AnyDescendants = Array(value.AnyDescendants, 8, group => group == null
                 ? throw new ArgumentException("Missing descendant group.")
-                : new CqlV1DescendantExists { MaximumDepth = group.MaximumDepth, MaximumNodes = group.MaximumNodes,
+                : new CqlV1DescendantExists { Negated = group.Negated, MaximumDepth = group.MaximumDepth, MaximumNodes = group.MaximumNodes,
                     Filters = Array(group.Filters, 64, Filter), AnyOf = Array(group.AnyOf, 64, Filter) }),
             Graph = graph == null ? null : new CqlV1Graph { Recursive = graph.Recursive, MaxChildDepth = graph.MaxChildDepth,
                 ChildType = graph.ChildType, MaximumNodes = graph.MaximumNodes,
@@ -105,7 +108,7 @@ internal static class CqlRequestCapture
         var selection = value.Selection;
         var copiedSelection = selection == null ? null : new CqlScalarV1Selection
         {
-            Field = selection.Field, ValueType = selection.ValueType, Nullable = selection.Nullable,
+            Field = selection.Field, ValueType = selection.ValueType, Nullable = selection.Nullable, Function = selection.Function,
             MetadataPath = selection.MetadataPath == null ? null : Array(selection.MetadataPath, 8, item => item)
         };
         var source = Capture(new CqlV1Request
@@ -124,12 +127,73 @@ internal static class CqlRequestCapture
         };
     }
 
+    internal static CqlProjectionV1Request Capture(CqlProjectionV1Request value)
+    {
+        if (value == null) throw new ArgumentException("A projection request is required.");
+        var operation = value.ResultOperation;
+        var mapping = value.VirtualMappingId;
+        var grouping = value.Grouping == null ? null : Capture(value.Grouping);
+        var columns = CaptureColumns(value.Columns);
+        var ordering = value.SelectedOrder == null ? null : Array(value.SelectedOrder, 8, term => term == null
+            ? throw new ArgumentException("Missing selected ordering.")
+            : new CqlGroupedV1Ordering { Alias = term.Alias, Descending = term.Descending });
+        var source = Capture(new CqlV1Request
+        {
+            Provider = value.Provider, Filters = value.Filters, AnyOf = value.AnyOf,
+            AnyChildren = value.AnyChildren, AnyDescendants = value.AnyDescendants,
+            Graph = value.Graph, OrderBy = value.OrderBy, Descending = value.Descending,
+            Skip = value.Skip, Take = value.Take
+        });
+        return new CqlProjectionV1Request
+        {
+            Provider = source.Provider, VirtualMappingId = mapping, ResultOperation = operation,
+            Filters = source.Filters, AnyOf = source.AnyOf, AnyChildren = source.AnyChildren,
+            AnyDescendants = source.AnyDescendants, Graph = source.Graph,
+            OrderBy = source.OrderBy, Descending = source.Descending, Skip = source.Skip, Take = source.Take,
+            Columns = columns, SelectedOrder = ordering, Grouping = grouping
+        };
+    }
+
+    private static CqlMixedGroupingV1Request Capture(CqlMixedGroupingV1Request value)
+    {
+        return new CqlMixedGroupingV1Request
+        {
+            Keys = CaptureColumns(value.Keys),
+            Columns = Array(value.Columns, 32, column => column == null
+                ? throw new ArgumentException("Missing grouped column.")
+                : new CqlGroupedV1Column
+                {
+                    Alias = column.Alias, KeyAlias = column.KeyAlias, Operation = column.Operation, Distinct = column.Distinct,
+                    Selection = column.Selection == null ? null : new CqlScalarV1Selection
+                    {
+                        Field = column.Selection.Field, ValueType = column.Selection.ValueType,
+                        Nullable = column.Selection.Nullable, Function = column.Selection.Function,
+                        MetadataPath = column.Selection.MetadataPath == null ? null
+                            : Array(column.Selection.MetadataPath, 8, item => item)
+                    }
+                }),
+            ResultFilters = Array(value.ResultFilters, 32, filter =>
+            {
+                if (filter == null || filter.Value.ValueKind is JsonValueKind.Object or JsonValueKind.Array
+                    || filter.Value.ValueKind == JsonValueKind.String && filter.Value.GetString()!.Length > 512
+                    || filter.Value.ValueKind == JsonValueKind.Number && filter.Value.GetRawText().Length > 64)
+                    throw new ArgumentException("Grouped filters require bounded scalar literals.");
+                return new CqlGroupedV1Filter { Alias = filter.Alias, Operator = filter.Operator,
+                    Value = filter.Value.ValueKind == JsonValueKind.Undefined ? default : filter.Value.Clone() };
+            }),
+            ResultOrder = Array(value.ResultOrder, 32, order => order == null
+                ? throw new ArgumentException("Missing grouped ordering.")
+                : new CqlGroupedV1Ordering { Alias = order.Alias, Descending = order.Descending }),
+            ResultSkip = value.ResultSkip, ResultTake = value.ResultTake, MaximumGroups = value.MaximumGroups
+        };
+    }
+
     internal static CqlProjectionV1Column[] CaptureColumns(CqlProjectionV1Column[] columns)
     {
         if(columns==null)return null;
         if(columns.Length==0)throw new ArgumentException("Selected indexed intent requires at least one column.");
         return Array(columns,32,column=>column==null?throw new ArgumentException("Missing selected column."):
-            new CqlProjectionV1Column{Alias=column.Alias,Field=column.Field,ValueType=column.ValueType,Nullable=column.Nullable,
+            new CqlProjectionV1Column{Alias=column.Alias,Field=column.Field,ValueType=column.ValueType,Nullable=column.Nullable,Function=column.Function,
                 MetadataPath=column.MetadataPath==null?null:Array(column.MetadataPath,8,item=>item)});
     }
 

@@ -1,5 +1,5 @@
 {
-  "status": "verified_existing_native_contract_source_graph_integration_pending",
+  "status": "verified_source_graph_integrated_compile_pending",
   "run": 44607073292,
   "job": 135853508585,
   "source": "f20298c90df6cbdbe3d9892e92c261779e154607",
@@ -18,7 +18,7 @@
   "combinedGraphBehaviorAccepted": false,
   "behaviorTestsSelected": 0,
   "mongoFixtureStarted": false,
-  "notes": "Missing contract was a source-graph/scanner integration gap, not established absence of real upstream coverage. Located executable MSTest three-provider fixture and verified original exact artifact in RAM, three matching passed cases and three nine-group/three-setup-write reports with all thirteen flags true; disposed, filesWritten0. Observer delegates actual native calls, no synthesized outcome. Existing scanner only considered two Core test projects; changed it to include actual provider integration project, retaining paired switches and missing-contract rejection. Current branch still lacks newer fixture/provider files; do not dispatch another build until matching graph integrated. Shallow local repository has no local merge base yet; GitHub comparison is being retrieved, never use unrelated-history merge/force push or overwrite concurrent module checkouts. Parent API compile/combined96 acceptance remains open; existing older source proofs retained. Actual fixture invokes a typed routedManager parameter, not fixture.Manager; scanner now recognizes declared HolonManager/provider receivers and constructed HolonManager calls without hardcoded operation literals or fake cases. PowerShell syntax and extraction from actual upstream source passed, no runtime test executed. Remote root comparison completed: real merge base exists; local missing base was shallow history, not unrelated repositories. Root source history diverges broadly, so import only reviewed matching fixture/production-provider/API dependencies from immutable verified checkpoint; no broad unverified root-history merge. Storage provider implementations are ordinary parent-tracked files, not private submodules. No more CI dispatch until matching executable source graph is present.",
+  "notes": "Missing contract was a source-graph/scanner integration gap, not established absence of real upstream coverage. Located executable MSTest three-provider fixture and verified original exact artifact in RAM, three matching passed cases and three nine-group/three-setup-write reports with all thirteen flags true; disposed, filesWritten0. Observer delegates actual native calls, no synthesized outcome. Existing scanner only considered two Core test projects; changed it to include actual provider integration project, retaining paired switches and missing-contract rejection. Current branch still lacks newer fixture/provider files; do not dispatch another build until matching graph integrated. Shallow local repository has no local merge base yet; GitHub comparison is being retrieved, never use unrelated-history merge/force push or overwrite concurrent module checkouts. Parent API compile/combined96 acceptance remains open; existing older source proofs retained. Actual fixture invokes a typed routedManager parameter, not fixture.Manager; scanner now recognizes declared HolonManager/provider receivers and constructed HolonManager calls without hardcoded operation literals or fake cases. PowerShell syntax and extraction from actual upstream source passed, no runtime test executed. Remote root comparison completed: real merge base exists; local missing base was shallow history, not unrelated repositories. Root source history diverges broadly, so import only reviewed matching fixture/production-provider/API dependencies from immutable verified checkpoint; no broad unverified root-history merge. Storage provider implementations are ordinary parent-tracked files, not private submodules. No more CI dispatch until matching executable source graph is present. Matching reviewed root source graph is now imported and hash-verified:146 donor blobs,12 owned files preserved/no deletions. One-line route scanner parser corrected;16 previously skipped actions reviewed,793/682 canonical local route pass. Original absent-root-fixture integration gap is source-resolved; combined API/native-project compilation remains unproven. Next run builds both serially in one existing lease, bounded2 workers, zero behavior tests/Mongo fixture.",
   "firstBuildReached": false,
   "artifacts": [],
   "firstFailure": "Public manager method inventory did not include upstream additions/signature change; guard stayed enabled.",
@@ -93,5 +93,19 @@
     "reportedFileLimit": 300,
     "localRepositoryShallow": true,
     "fullHistoryMergePerformed": false
+  },
+  "matchingSourceGraph": {
+    "checkpoint": "38d4320ef7cffa3ce8d6c77cb312dee3f42acb9d",
+    "importedFiles": 146,
+    "preservedOwnedFiles": 12,
+    "sourceBlobMatchesVerified": true,
+    "ownedHashesUnchanged": true,
+    "deletionsApplied": 0,
+    "routeInventoryActions": 793,
+    "routeProviderExternalActions": 682,
+    "canonicalLocalRouteGuardPassed": true,
+    "apiCompilePending": true,
+    "nativeProjectCompilePending": true,
+    "behaviorTestsSelected": 0
   }
 }

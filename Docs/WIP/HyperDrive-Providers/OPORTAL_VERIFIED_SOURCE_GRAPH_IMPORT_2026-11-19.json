@@ -1,0 +1,775 @@
+{
+  "status": "source_and_route_inventory_integrated_compile_pending",
+  "sourceCheckpoint": "38d4320ef7cffa3ce8d6c77cb312dee3f42acb9d",
+  "core": "96f6baea21c1423795f7effcac208a8f6485b30c",
+  "importedFiles": [
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs",
+      "sourceBlob": "391890b58f0398db0e4fe4d2d67cfbfbbdcffe82"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlGroupedV1Request.cs",
+      "sourceBlob": "41ecfae27ccb9dc7980213692525f2cd69acb78a"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlJoinV1Request.cs",
+      "sourceBlob": "ab345dab69893ec7377241367ab5e29d7258be85"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlProjectionV1Request.cs",
+      "sourceBlob": "7a5f2a40e9c15eb606c573b79bffab1c684d1f92"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlScalarV1Request.cs",
+      "sourceBlob": "3e47848d72245a0f0def97422e61af4db45495da"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlV1Request.cs",
+      "sourceBlob": "ee69286d8c85282ae62814c6040f0a03bc50ed9f"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlCompositionV1Compiler.cs",
+      "sourceBlob": "ea284fcd5b369a6c29b689c56df92175385a4227"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlComputedScalarV1Endpoint.cs",
+      "sourceBlob": "8e27600cbf3041f062f9138262485e4e1ab0556c"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlGroupedV1Compiler.cs",
+      "sourceBlob": "555468230bc0d2def0139396fed74b2f35380742"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlHoloOasisReadSourceRegistration.cs",
+      "sourceBlob": "04136c33e0412331e6cd04eedd496bef0b97dca1"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlHostedSources.cs",
+      "sourceBlob": "584eb420189aeb0879ba9dea899d6b694368d4f9"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlJoinV1Compiler.cs",
+      "sourceBlob": "b0bdbb1abcae5fb7147d5fb11b4b928c1f902e0e"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlJoinV1Endpoint.cs",
+      "sourceBlob": "c4705af41289cb19c127ff68168fdd5c17d73ab6"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlNativeFailureDiagnostics.cs",
+      "sourceBlob": "44a7797aba6f19ef767ec33131799667f69bc377"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectionV1Compiler.cs",
+      "sourceBlob": "904ae47bed8185b2d70aef108ce215e232ceeb41"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectionV1Endpoint.cs",
+      "sourceBlob": "983fafa829c13cc2c2a5b6c4e93a8f663d99b787"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlPublicReadCatalogue.cs",
+      "sourceBlob": "b3dc21dffdfad8bfa2e673d3e436efbe98c46ba9"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReadAccessPolicy.cs",
+      "sourceBlob": "066b0a4e33cab10d856c8b7286436f14ad3cb677"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReadSourceProfile.cs",
+      "sourceBlob": "1b665c0daaf07e31ca0c5ff28ad19372386a542e"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlRequestCapture.cs",
+      "sourceBlob": "1f2c56176bee4928e3f05bf6ca2f9c4b7111d333"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReviewedNetworkReadSourceRegistration.cs",
+      "sourceBlob": "d5307bcaaead940e5e31b7d86d3b2b19396adaaf"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlScalarSelectionCompiler.cs",
+      "sourceBlob": "61b56fd5ac9b843431e91aa44208f763b12fa3f9"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlScalarV1Endpoint.cs",
+      "sourceBlob": "87a44335ad992bac909b0b788588c1cddee865c1"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSelectedV1Compiler.cs",
+      "sourceBlob": "62fe3bf468aeaec7696b5f2abdf1deb393cbe2b3"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlUrbitReadSourceRegistration.cs",
+      "sourceBlob": "743324a02c7f457659c88877913fe191f91beff5"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Compiler.cs",
+      "sourceBlob": "d26f3fc577cfd5b8e77f2ddbe28d3984fb9135d3"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Endpoint.cs",
+      "sourceBlob": "c71733d6a511c13f249585ef5e5aa3120573f5c4"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Providers.VirtualMappings.cs",
+      "sourceBlob": "139a271c9fa4f9efadbc5fc62ad1b0072345d9d7"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Providers.cs",
+      "sourceBlob": "8b14a520a733c3077b1018ce1570aa98e548f45e"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlVirtualProjectionV1Compiler.cs",
+      "sourceBlob": "1b61359fac5ae096e4a4b980961c0a0fd1105e8e"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisDevelopmentConductor.cs",
+      "sourceBlob": "87bd0dcd804bf56b2605e906c494b70e0018872f"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisReadSigner.cs",
+      "sourceBlob": "b5407d911ac39bb472d38aac1f44a6a02544d00a"
+    },
+    {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisReadSource.cs",
+      "sourceBlob": "e70f425e51e3bc178f888c2987dcd4433e3bc9a7"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlContract.cs",
+      "sourceBlob": "fe05aed42f99887773fbf231e60740f5c9e9c231"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.Composition.cs",
+      "sourceBlob": "e9f64950a8a585019f1c837a989eee1419051a37"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.DecimalAggregateValue.cs",
+      "sourceBlob": "ae58a7df6367d0c1e492e28b31476316fca91078"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.Floating.cs",
+      "sourceBlob": "53a6ec3d59ca5dd885725949d70ec1cc801c49cb"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.FloatingAggregateValue.cs",
+      "sourceBlob": "f421937d1b1a69d6b84bd1adff073f422db77f4a"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.GroupFilters.cs",
+      "sourceBlob": "c3187d2992f2b8b2a80b2a0242d3e58b5e2c2cd6"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.Grouped.cs",
+      "sourceBlob": "9ae7ef86b58d02cc980b273f0e8702a0faecf627"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.Join.cs",
+      "sourceBlob": "7c07668f56b5bb19faa7a52f4b43e43cc82369b9"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.Ordering.cs",
+      "sourceBlob": "93d0aec38fcee2f6d0cfb4559d226729b6017ec2"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.Projection.cs",
+      "sourceBlob": "492c8c089b33f30d81b4306e47eeeac0dd53c6b6"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.SingleDecimal.cs",
+      "sourceBlob": "32cbcc3d6790026de0b28aea6166fd9703d4e77e"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.cs",
+      "sourceBlob": "dd417f95b85d67ebff4b30c71f962130ee671da9"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Conditional.cs",
+      "sourceBlob": "3f5f40dded58691897fca2b422d4277fe3635dc8"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.ConditionalRecovery.cs",
+      "sourceBlob": "94a3ce96c2e99ceccd7e0849c904ded790c07bbe"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Cql.Composition.cs",
+      "sourceBlob": "077e9badfb3c5825369f04beb461888d98d90389"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Cql.Grouped.cs",
+      "sourceBlob": "431d05e9cffaade224693b941405b14269e390f8"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Cql.Join.cs",
+      "sourceBlob": "a40c577548d7830e91bc6fc55105a79a0195df11"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Cql.Projection.cs",
+      "sourceBlob": "6c892bba5643c07072a4f095335959896b9e9fd4"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.NativeDataImport.cs",
+      "sourceBlob": "c7f8cabcf0aae21d04316db19d09492fb0f48212"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.NativeProjection.cs",
+      "sourceBlob": "5ebd01b33c89b3920ea119d3a67d68cc5dcf7636"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Purge.cs",
+      "sourceBlob": "9bc03b9c24dd7e3c3b6c84653c26f71b8abbfaca"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Seal.cs",
+      "sourceBlob": "ddb669bc0c2b20afd9d4ffffc31ce0675aa3dad8"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoHolonSeal.cs",
+      "sourceBlob": "cf01621921489669e20e6e7092fc96c58e34f964"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoNativeRecordWriter.cs",
+      "sourceBlob": "7153e29a1cd1f9e3a9797dc58bbe0fd438e0edec"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/HolonRepository.Cql.Composition.cs",
+      "sourceBlob": "4af7543e7716fc800e75950f1f6f96cfc6cc366c"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/HolonRepository.Cql.Grouped.cs",
+      "sourceBlob": "c336dd78c330d761d694f0b4312d5f75189d73da"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/HolonRepository.Cql.Join.cs",
+      "sourceBlob": "90736c5293e403ce54e44f25a30f69b0eef40d72"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/HolonRepository.Cql.Projection.cs",
+      "sourceBlob": "4a193c229cb91fcd73e2e50b07d2b391f5e3fbaa"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/HolonRepository.Import.cs",
+      "sourceBlob": "3406551caa0821ead1e0c454bdab161dd99272bd"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/HolonRepository.Purge.cs",
+      "sourceBlob": "1c349422437af01d8ed3496ef574fec38ce67021"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/HolonRepository.Seal.cs",
+      "sourceBlob": "5e113a88895afa62bd843a047368b768bab6bc4f"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/MongoDBContext.cs",
+      "sourceBlob": "213b886a746ffdadf9fc14f4a2d60aedec560486"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Conditional.cs",
+      "sourceBlob": "3fa18c4bdd32c9a1a0b97dae1ee742ef6916acbc"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.ConditionalRecovery.cs",
+      "sourceBlob": "e77f09bbb25db610a592cae57ee5b2234106c18d"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.Composition.cs",
+      "sourceBlob": "55dcb253faf44fe2fe8a0c46bada6a73cfaec880"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.CompositionCompiler.cs",
+      "sourceBlob": "4dee0f6aba8b4677010b08efe4a74f299e13819f"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.CompositionDecoder.cs",
+      "sourceBlob": "7e44e00cedabc98126938518cfe009ed191f2877"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.DetachedDecoder.cs",
+      "sourceBlob": "03e6c171674e06e41e51ff98782235aa450ba7c8"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.DetachedSource.cs",
+      "sourceBlob": "3e21902593350bd2f2727ae129ae17bfd559fc18"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.GroupCompiler.cs",
+      "sourceBlob": "9dc3dc6df8397d2b6e85300d39fb3f7e4ce06c40"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.GroupDecoder.cs",
+      "sourceBlob": "a8457f1711d4b753440fbcf344534f0bdde8b2e7"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.GroupFilters.cs",
+      "sourceBlob": "52eb41278da92eb1981f928671be1cd2836353b0"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.Grouped.cs",
+      "sourceBlob": "ca0b880106e4c2b26c8575fb4b62ed5f223e3d3d"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.Join.cs",
+      "sourceBlob": "2851047091b5d5e0028cf442849bef6848f44fda"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.JoinCompiler.cs",
+      "sourceBlob": "dd80d7676fcdd73744f90d88cd1cba2189a99630"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.JoinDecoder.cs",
+      "sourceBlob": "24139259ebde1b42bc9fa48614b650bc125c1427"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.Projection.cs",
+      "sourceBlob": "37f1a535f4baf2cacd45bbe2ec6c8ab46fbb89d4"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.Source.cs",
+      "sourceBlob": "d65b95eaa6ada0e54e14ee07473d952c783dfbc9"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.NativeDataImport.cs",
+      "sourceBlob": "7ad405973541c0aec7c1d823f5c3576ae47d13a1"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.NativeProjection.cs",
+      "sourceBlob": "00649fa1cfa9708156c67cd8e9676a9aa3a54eab"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/NeoCqlContract.cs",
+      "sourceBlob": "42357414ca6f03104a6aa84c257333b86cf6633f"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/NeoCqlTranslator.Projection.cs",
+      "sourceBlob": "bf0ab550633be662e8e4a046c913044b3f63634c"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/NeoCqlTranslator.cs",
+      "sourceBlob": "c05bfa76349c629ed99ae2e4031ceb9405f13bb0"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Interfaces/IHolonRepository.cs",
+      "sourceBlob": "a500b34b37a0c46cd7a9367018488fb8e4e1b16c"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Conditional.cs",
+      "sourceBlob": "decb4cab75d365ac2fea6cb2524027ec6a0f1550"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.ConditionalReceipt.cs",
+      "sourceBlob": "8101a640be7e3004c170ed7a1d9076f48298d194"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.ConditionalRecovery.cs",
+      "sourceBlob": "7105b644ef99bb086b959b1ead8a3d1a8795bc93"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.Composition.cs",
+      "sourceBlob": "0261f93b1f0b6e03647f0cf49c342ea827522fde"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.CompositionSql.cs",
+      "sourceBlob": "f2ae50dd2ca9bb69bcc39d3f19795952c682e0b8"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.Descendants.cs",
+      "sourceBlob": "a377ff724093b4f86bd353a645ac8337b7494736"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.GroupFilterSql.cs",
+      "sourceBlob": "1b6fc16d36eb883406e75582aa5ef1bf77c29c5e"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.GroupSql.cs",
+      "sourceBlob": "7fb8c6402e0534e5715b46313f43189375030026"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.Grouped.cs",
+      "sourceBlob": "30cf31220a6c0de71a792a91cba76ed516d258c9"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.Join.cs",
+      "sourceBlob": "20ff8965e1d1d6f982bea9ecaa9739866cc50ae0"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.JoinSql.cs",
+      "sourceBlob": "5bedf6c4e25c601536a95bf24120e8b01ee6a1e7"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.Projection.cs",
+      "sourceBlob": "2481af805d7b56db740528020c718ca899759393"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.ProjectionSql.cs",
+      "sourceBlob": "ae0522710fa7dff996d844476d3d5cb6d1309f28"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.cs",
+      "sourceBlob": "eb2dafb302cec43e1c75404c39ab47559a8ff62d"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/SqliteCqlReadBudget.cs",
+      "sourceBlob": "1e1bf37da37595541bbfc4c3c16b50cc4331a5cc"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Conditional.cs",
+      "sourceBlob": "1a06661aec11643efb30498085b4f95d324a5158"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.ConditionalRecovery.cs",
+      "sourceBlob": "0f0335da10d3c2afb9ec6c1fea5eace3b756bb6f"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.Composition.cs",
+      "sourceBlob": "8ee2b2959c1154e5cc4d55aab4eb0d1877f2d00e"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.Grouped.cs",
+      "sourceBlob": "640be15c3909d0c6bd70da90d9a5d2544dd3c7a4"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.Join.cs",
+      "sourceBlob": "74c0435321f74d8b8f39dc1e6bc83be311bba60e"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.Projection.cs",
+      "sourceBlob": "0c53e86c4725e030c892026871d6546188ce8f53"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.NativeDataImport.cs",
+      "sourceBlob": "91faa657b0e7f572b72c30e89ca5e72e81e24423"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.NativeProjection.cs",
+      "sourceBlob": "a91adc4d19f0d928945872f189ed5a49affb4027"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SqliteCqlContract.cs",
+      "sourceBlob": "6bc4a28ba33766c49319ab404f91e3750042765f"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CosmicGroupedDistinctProviderDomainTests.cs",
+      "sourceBlob": "759375e02d67bb9d478fd2cab11fc1ec694d857e"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlComputedLengthProjectionAcceptanceTests.cs",
+      "sourceBlob": "7023dfd3dfad6f42d4d299b3d3f60d1658d2c240"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlEntityProjectionAcceptanceTests.cs",
+      "sourceBlob": "02733a9c3c4589aa05bff472c9f8218f34cbfc21"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlEntitySelectedCardinalityAcceptanceTests.cs",
+      "sourceBlob": "94cece751b5b3a213db81c6c0cdf52d06b468707"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlEntitySelectedReselectionAcceptanceTests.cs",
+      "sourceBlob": "0ace3c9a454e681530537401aa2dc6ac382077e7"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlLinqAcceptanceTests.cs",
+      "sourceBlob": "d5643c7c2a41363fcf2b1124bacefcb8807f6664"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlMappedNativeProjectionCompilerTests.cs",
+      "sourceBlob": "6cf5221c3c1d7c9db607be5b14d873df964a30f0"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlMetadataWireNativeTests.cs",
+      "sourceBlob": "705baff602a6b7fdc082d8e45f16e20267654b00"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlMongoEntityProjectionNativeTests.cs",
+      "sourceBlob": "dd00e5624daff650c7e2a26f75e0b9db8ef11598"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlMongoNativePredicateTests.cs",
+      "sourceBlob": "c7b45256d2102d7b2beb3e3527b8b90e9dccbdd0"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlNativeDoubleProjectionTests.cs",
+      "sourceBlob": "f9a65a403c946c565136857cc3b9856b6742b1bb"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlNeoEntityProjectionNativeTests.cs",
+      "sourceBlob": "08cdf3ec7ae37c28c10ef0bde3f0ecf3f699e0d3"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlSqliteEntityProjectionNativeTests.cs",
+      "sourceBlob": "35ed447da12004931f95625ce79ead1e9d3bfc59"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlSqliteMappedHttpNativeTests.cs",
+      "sourceBlob": "2c8ea9ace5d767a7246dfdacbfbe90a2a91a0900"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlStringLengthNativeTests.cs",
+      "sourceBlob": "acb55af3da02fc6efa5f314e9574750504c003d7"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlStringLengthWireNativeTests.cs",
+      "sourceBlob": "24b477a1a5975e9cb9591bd53f2a85fd75596ff0"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.GroupedDistinct.cs",
+      "sourceBlob": "4e5968d1543d160afaa06fb495e8b7c7a0e7f20d"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.HostedFederation.cs",
+      "sourceBlob": "8a8b51c839500eca022f4ee0930fdaba81b90c21"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.HostedReadPolicy.cs",
+      "sourceBlob": "60c3305f180ff9385d6cbc7fc2b7e4e3491c5ad3"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.Hosting.cs",
+      "sourceBlob": "2227f226febf862aa35e12a8fa4557fa4c10af2d"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.MappedHttp.cs",
+      "sourceBlob": "646a28bcc5461296e214150316da8d5e6f8f5399"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.OriginalEditing.cs",
+      "sourceBlob": "a230f68f9e5465598259a0b62f601c0942378c91"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.OwnedSelectedWrites.cs",
+      "sourceBlob": "97868280ae73ba78b836195f9b62e546b8ddb378"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.PropertyRoutedWrites.cs",
+      "sourceBlob": "0976c2241b808e9cf24e76e10e474e43ed22a42e"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.PropertySelection.cs",
+      "sourceBlob": "f47b89f2e9e91e79d90c98fbe58912b912b18e49"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.PropertyStatus.cs",
+      "sourceBlob": "e29f09bd4468c32f6c5793007e5413695c126b12"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.PropertyStatusRouting.cs",
+      "sourceBlob": "cab958af60baaae18d73a655e4126a518d6b9284"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.PropertyStoredStatus.cs",
+      "sourceBlob": "751399fc2ddb7b80c741768b4b8444cd63e2c823"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.PropertyTracking.cs",
+      "sourceBlob": "243cf5096fb5fa9527faeff5391dfbacc5190b2f"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.SaveDemo.cs",
+      "sourceBlob": "5ca10867170cfa52fe1cb148c61d6a056fb2d982"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.SelectedCustom.cs",
+      "sourceBlob": "be967aa4aba2c4afb320b5a51b0a6b0917ed9f34"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.SelectedEnrollment.cs",
+      "sourceBlob": "45fe9083814cb3796281e57dd48e082bb777ef93"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.SelectedGraph.cs",
+      "sourceBlob": "6bd55be49cbb3af01c5372f2fc9f52593889362a"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.SelectedRoles.cs",
+      "sourceBlob": "6b8fbb2496af2939a236370cbd34b0e694bd5ebb"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests.csproj",
+      "sourceBlob": "f2f4b345e10bf66a9ee1998ec551c716f1f90cf6"
+    }
+  ],
+  "preservedOwnedFiles": {
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Profile.cs": "9343ff6e25bf59b057f4dbd44c2e88df616cedd0",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/AvatarRepository.HistoryPatch.cs": "f6b270820ee8be0d87f4c0483aac02b7db1fa980",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/AvatarRepository.Profile.cs": "f3c55b9846c5820a176ad4b1767e3bba1c7bea81",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/AvatarRepository.cs": "2c27401b75901ff9450bf1fbe129d6499fa268c7",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.AvatarHistory.cs": "f2496a39c0b4828ebda6ce9ace77311d9e682a87",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Profile.cs": "80758d21a6bbf14d96dfb3f03021fea6eeea8533",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.ProfileSchema.cs": "b2a39d1e59cd4952172d96670e82e4c457f0f4bd",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Schema.cs": "f543769db9c36921210a2a1941e26f2a4ecdf680",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Avatar.cs": "f75a719f6c4f095eafa1779043df563ce118b97b",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Profile.cs": "9d770830ee18ae241dbaf0ddf4199c220ff62784",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.VisibilitySchema.cs": "1e00b979578b3ebdd1cc9a0f224cfa481b6fa257",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.cs": "f49f23a2fb9ee1185d86736ed8d527881248537f"
+  },
+  "deletionsApplied": 0,
+  "fullHistoryMergePerformed": false,
+  "apiCompiled": false,
+  "nativeProjectCompiled": false,
+  "behaviorTestsRun": 0,
+  "notes": "Frozen verified Development CQL/provider/native fixture source only; preserve owned profile/index/history/memory implementations and all owned-only files. Batched Git object/hash checks; prior slow serial importer stopped through its owned handle, then all changes reconciled against HEAD and immutable donor. No physical submodule checkout or new runtime/env.",
+  "routeInventoryReview": {
+    "parserFix": "Recognize one-line expression-bodied action signature without consuming subsequent Http attributes.",
+    "newReviewedActions": [
+      {
+        "SourceFile": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs",
+        "Line": "51",
+        "Controller": "CqlV1Controller",
+        "Action": "Indexed",
+        "Verb": "POST",
+        "Template": "indexed",
+        "StorageDisposition": "InjectedServiceRepositoryOrClient"
+      },
+      {
+        "SourceFile": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs",
+        "Line": "55",
+        "Controller": "CqlV1Controller",
+        "Action": "IndexedScalar",
+        "Verb": "POST",
+        "Template": "indexed/scalar",
+        "StorageDisposition": "InjectedServiceRepositoryOrClient"
+      },
+      {
+        "SourceFile": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs",
+        "Line": "59",
+        "Controller": "CqlV1Controller",
+        "Action": "Scalar",
+        "Verb": "POST",
+        "Template": "scalar",
+        "StorageDisposition": "InjectedServiceRepositoryOrClient"
+      },
+      {
+        "SourceFile": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs",
+        "Line": "63",
+        "Controller": "CqlV1Controller",
+        "Action": "Projection",
+        "Verb": "POST",
+        "Template": "projection",
+        "StorageDisposition": "InjectedServiceRepositoryOrClient"
+      },
+      {
+        "SourceFile": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs",
+        "Line": "66",
+        "Controller": "CqlV1Controller",
+        "Action": "MixedProjection",
+        "Verb": "POST",
+        "Template": "projection/mixed",
+        "StorageDisposition": "InjectedServiceRepositoryOrClient"
+      },
+      {
+        "SourceFile": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs",
+        "Line": "71",
+        "Controller": "CqlV1Controller",
+        "Action": "Grouped",
+        "Verb": "POST",
+        "Template": "grouped",
+        "StorageDisposition": "InjectedServiceRepositoryOrClient"
+      },
+      {
+        "SourceFile": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs",
+        "Line": "75",
+        "Controller": "CqlV1Controller",
+        "Action": "Join",
+        "Verb": "POST",
+        "Template": "join",
+        "StorageDisposition": "InjectedServiceRepositoryOrClient"
+      },
+      {
+        "SourceFile": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs",
+        "Line": "79",
+        "Controller": "CqlV1Controller",
+        "Action": "Composition",
+        "Verb": "POST",
+        "Template": "composition",
+        "StorageDisposition": "InjectedServiceRepositoryOrClient"
+      },
+      {
+        "SourceFile": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs",
+        "Line": "83",
+        "Controller": "CqlV1Controller",
+        "Action": "Federation",
+        "Verb": "POST",
+        "Template": "federation",
+        "StorageDisposition": "InjectedServiceRepositoryOrClient"
+      },
+      {
+        "SourceFile": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/NativeDataController.cs",
+        "Line": "113",
+        "Controller": "NativeDataController",
+        "Action": "PostSources",
+        "Verb": "POST",
+        "Template": "{providerType}/sources",
+        "StorageDisposition": "DirectModeAwareManagerBoundary"
+      },
+      {
+        "SourceFile": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/OLandController.Checkout.cs",
+        "Line": "25",
+        "Controller": "OLandController",
+        "Action": "NftMetadata",
+        "Verb": "GET",
+        "Template": "nft-metadata/{orderId}",
+        "StorageDisposition": "InjectedServiceRepositoryOrClient"
+      },
+      {
+        "SourceFile": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/OLandController.Checkout.cs",
+        "Line": "32",
+        "Controller": "OLandController",
+        "Action": "ParcelGrid",
+        "Verb": "GET",
+        "Template": "parcel-grid",
+        "StorageDisposition": "InjectedServiceRepositoryOrClient"
+      },
+      {
+        "SourceFile": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/PlacesController.cs",
+        "Line": "27",
+        "Controller": "PlacesController",
+        "Action": "Visits",
+        "Verb": "GET",
+        "Template": "visits",
+        "StorageDisposition": "CoveredFeatureManagerDelegation"
+      },
+      {
+        "SourceFile": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAdminController.cs",
+        "Line": "99",
+        "Controller": "SubscriptionAdminController",
+        "Action": "CreateAppAccount",
+        "Verb": "POST",
+        "Template": "app-accounts",
+        "StorageDisposition": "InjectedServiceRepositoryOrClient"
+      },
+      {
+        "SourceFile": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs",
+        "Line": "168",
+        "Controller": "SubscriptionController",
+        "Action": "SettleNativeUsage",
+        "Verb": "POST",
+        "Template": "usage/settle-native-v1",
+        "StorageDisposition": "InjectedServiceRepositoryOrClient"
+      },
+      {
+        "SourceFile": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs",
+        "Line": "688",
+        "Controller": "SubscriptionController",
+        "Action": "GetUsage",
+        "Verb": "GET",
+        "Template": "usage",
+        "StorageDisposition": "InjectedServiceRepositoryOrClient"
+      }
+    ],
+    "existingCqlQueryClassifiedAsInjectedBoundary": true,
+    "totalActions": 793,
+    "providerOrExternalManagerActions": 682,
+    "functionalAcceptanceInferred": false,
+    "canonicalLocalVerifierPassed": true
+  },
+  "buildQualification": {
+    "shippingWeb4Api": true,
+    "threeProviderExecutableProject": true,
+    "sameBuildLease": true,
+    "maxWorkers": 2,
+    "behaviorTestsSelected": 0,
+    "mongoFixture": false,
+    "nativeProjectOpenApiGeneration": false,
+    "completed": false
+  }
+}

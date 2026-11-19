@@ -24,28 +24,51 @@ public static partial class CqlV1Endpoint
         try
         {
             http.RequestAborted.ThrowIfCancellationRequested();
+            var selectedCount = request?.Operation is "CountDistinct" or "CountValues";
             var operation = request?.Operation switch
             {
                 "Count" => CosmicScalarOperation.Count,
-                "LongCount" => CosmicScalarOperation.LongCount,
+                "LongCount" or "CountDistinct" or "CountValues" => CosmicScalarOperation.LongCount,
                 "Any" => CosmicScalarOperation.Any,
                 "Min" => CosmicScalarOperation.Min,
                 "Max" => CosmicScalarOperation.Max,
                 "Sum" => CosmicScalarOperation.Sum,
                 "Average" => CosmicScalarOperation.Average,
-                _ => throw new ArgumentException("Select Count, LongCount, Any, Min, Max, Sum or Average.")
+                _ => throw new ArgumentException("Select Count, LongCount, CountDistinct, CountValues, Any, Min, Max, Sum or Average.")
             };
-            var selecting = operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max or CosmicScalarOperation.Sum or CosmicScalarOperation.Average;
+            var selecting = selectedCount || operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max or CosmicScalarOperation.Sum or CosmicScalarOperation.Average;
             if (selecting != (request.Selection != null))
-                throw new ArgumentException("Min/Max/Sum/Average require one selection; count/existence operations do not accept it.");
+                throw new ArgumentException("Selected aggregates require one selection; Count, LongCount and Any do not accept it.");
             var requested = CqlV1Compiler.RequestedProvider(request.Provider, includeCloudReadProfile: true);
             var policy=CaptureReadPolicy(http,actor,requested,providers,admission,includeCloudReadProfile:true);
             var source = CqlV1Compiler.CompileScalarSource(request, actor, policy?.Selected??requested,policy?.Access);
             if (!TryResolveEligible(providers, requested, admission, out var storage, out var adapter, out var selected,policy,includeCloudReadProfile:true))
                 return Failure(403, "CQL_PROVIDER_NOT_ELIGIBLE", "The selected provider is not eligible for this admitted scalar query.");
+            source = source.WithScope(CosmicQueryScope.Named(selected).Result);
+            if (selectedCount)
+            {
+                if (adapter is not ICosmicQueryProjectionCompositionStorageProvider composition)
+                    return Failure(400, "CQL_CAPABILITY_UNSUPPORTED", "The selected provider cannot execute native selected counts.");
+                var selection = request.Selection ?? throw new ArgumentException("Selected count requires a selection.");
+                return await CqlV1Compiler.CompileSelection(new CqlProjectionV1Column
+                {
+                    Alias = "Value", Field = selection.Field, MetadataPath = selection.MetadataPath,
+                    ValueType = selection.ValueType, Nullable = selection.Nullable, Function = selection.Function
+                }, new SelectedCountConsumer(http, providers, storage, composition, source, request.Operation));
+            }
+            if (request.Selection?.Function.HasValue == true)
+            {
+                if (adapter is not ICosmicQueryProjectionCompositionStorageProvider composition)
+                    return Failure(400, "CQL_CAPABILITY_UNSUPPORTED", "The selected provider cannot execute computed scalar queries.");
+                var selection = request.Selection;
+                return await CqlV1Compiler.CompileSelection(new CqlProjectionV1Column
+                {
+                    Alias = "Value", Field = selection.Field, MetadataPath = selection.MetadataPath,
+                    ValueType = selection.ValueType, Nullable = selection.Nullable, Function = selection.Function
+                }, new ComputedScalarConsumer(http, providers, storage, composition, source, operation));
+            }
             if (adapter is not ICosmicQueryScalarStorageProvider scalar)
                 return Failure(400, "CQL_CAPABILITY_UNSUPPORTED", "The selected provider does not implement native scalar queries.");
-            source = source.WithScope(CosmicQueryScope.Named(selected).Result);
             if (selecting)
             {
                 var selection = request.Selection;
@@ -73,8 +96,38 @@ public static partial class CqlV1Endpoint
         catch (Exception) { return Failure(503, "CQL_EXECUTION_FAILED", "The scalar query did not complete. Retain the usage operation ID for reconciliation."); }
     }
 
+    private static async Task<IActionResult> ExecuteSelectedCount<TValue>(HttpContext http, ICqlV1Providers providers,
+        IOASISProvider storage, ICosmicQueryProjectionCompositionStorageProvider adapter,
+        CosmicProjectionQuery<Holon, TValue> intent, string operation)
+    {
+        var selected = adapter.QueryProviderType;
+        var plan = CosmicProjectedCardinalityPlanner.Plan<Holon, TValue, long>(intent,
+            CosmicScalarOperation.LongCount, selected,
+            new[] { new CosmicProjectionCompositionTarget(selected, adapter.QueryCapabilities,
+                adapter.ProjectionCapabilities, adapter.CompositionCapabilities) });
+        if (plan.IsError) return Failure(400, plan.ErrorCode, "The selected provider does not support this selected count.");
+
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(http.RequestAborted);
+        deadline.CancelAfter(TimeSpan.FromSeconds(5));
+        var manager = providers.CreateManager(storage);
+        http.Items[CqlV1ResourceFilter.DispatchedKey] = true;
+        var result = await manager.ExecuteProjectedCardinalityQueryAsync(plan.Result,
+            new ICosmicQueryStorageProvider[] { adapter }, deadline.Token);
+        if (result.IsError) return QueryFailure(http, result.ErrorCode);
+        deadline.Token.ThrowIfCancellationRequested();
+
+        var count = result.Result.Providers.Single();
+        if (count.Provider != selected)
+            return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "Selected count provenance differs from the admitted provider.");
+        return JsonResponse(new OASISResult<object>(new
+        {
+            version = "cql-scalar-v1", provider = selected.ToString(), operation,
+            valueType = "Int64", value = ProjectionWireValue(count.Value)
+        }) { IsLoaded = true });
+    }
+
     private static async Task<IActionResult> ExecuteScalar<TResult>(HttpContext http, ICqlV1Providers providers,
-        IOASISStorageProvider storage, ICosmicQueryScalarStorageProvider adapter, CosmicScalarQuery<Holon, TResult> intent)
+        IOASISProvider storage, ICosmicQueryScalarStorageProvider adapter, CosmicScalarQuery<Holon, TResult> intent)
     {
         var selected = adapter.QueryProviderType;
         var planned = CosmicScalarPlanner.Plan(intent, selected,
@@ -104,16 +157,26 @@ public static partial class CqlV1Endpoint
         return response;
     }
 
+    private sealed record SelectedCountConsumer(HttpContext Http, ICqlV1Providers Providers,
+        IOASISProvider Storage, ICosmicQueryProjectionCompositionStorageProvider Adapter, CosmicQuery<Holon> Source,
+        string Operation)
+        : CqlV1Compiler.ISelectionConsumer<Task<IActionResult>>
+    {
+        public Task<IActionResult> Bind<TValue>(string alias, Expression<Func<Holon, TValue>> selector)
+            => ExecuteSelectedCount(Http, Providers, Storage, Adapter,
+                CqlV1Compiler.CompileSelectedCount(Source, selector, Operation == "CountDistinct"), Operation);
+    }
+
     private sealed class SelectedScalarConsumer : CqlV1Compiler.ISelectionConsumer<Task<IActionResult>>, CqlV1Compiler.IScalarConsumer<Task<IActionResult>>
     {
         private readonly HttpContext http;
         private readonly ICqlV1Providers providers;
-        private readonly IOASISStorageProvider storage;
+        private readonly IOASISProvider storage;
         private readonly ICosmicQueryScalarStorageProvider adapter;
         private readonly CosmicQuery<Holon> source;
         private readonly CosmicScalarOperation operation;
 
-        internal SelectedScalarConsumer(HttpContext http, ICqlV1Providers providers, IOASISStorageProvider storage,
+        internal SelectedScalarConsumer(HttpContext http, ICqlV1Providers providers, IOASISProvider storage,
             ICosmicQueryScalarStorageProvider adapter, CosmicQuery<Holon> source, CosmicScalarOperation operation)
         { this.http = http; this.providers = providers; this.storage = storage; this.adapter = adapter; this.source = source; this.operation = operation; }
 

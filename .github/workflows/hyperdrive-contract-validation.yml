@@ -21,6 +21,10 @@ on:
         description: Build the API without repeating accepted behavior tests
         type: boolean
         default: false
+      build_native_contract_project:
+        description: Also compile the integrated three-provider contract project without executing tests
+        type: boolean
+        default: false
       request_timing_tests:
         description: Verify the changed private-data-free request timing middleware
         type: boolean
@@ -192,6 +196,7 @@ jobs:
         env:
           OASIS_QUALIFICATION_API: ${{ inputs.native_project == 'web5_build' && 'WEB5' || 'WEB4' }}
           OASIS_QUALIFICATION_BUILD_ONLY: ${{ inputs.build_only }}
+          OASIS_QUALIFICATION_NATIVE_CONTRACT_BUILD: ${{ inputs.build_native_contract_project }}
         run: |
           if ($env:OASIS_QUALIFICATION_API -eq 'WEB5' -and $env:OASIS_QUALIFICATION_BUILD_ONLY -ne 'true') {
             throw 'WEB5 selection is a build-only qualification target.'
@@ -204,6 +209,10 @@ jobs:
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner api-qualification-build-ci -Operation {
             dotnet build $project --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
             if ($LASTEXITCODE) { throw 'API qualification build failed.' }
+            if ($env:OASIS_QUALIFICATION_NATIVE_CONTRACT_BUILD -eq 'true') {
+              dotnet build 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests.csproj' --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE) { throw 'Integrated native contract source build failed.' }
+            }
           }
 
       - name: Build actual WEB6 catalogue API without repeating accepted tests
