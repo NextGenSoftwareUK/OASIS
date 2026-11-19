@@ -1,5 +1,5 @@
 {
-  "status": "failed_compile_shared_dependency_corrected_rebuild_pending",
+  "status": "corrected_shared_dependency_build_in_progress",
   "run": 44607073292,
   "job": 135853508585,
   "source": "f20298c90df6cbdbe3d9892e92c261779e154607",
@@ -126,5 +126,25 @@
     "nativeContractProjectCompileReached": false,
     "sourceGuardsPassed": true,
     "failureOwner": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/ConditionalHolonPlan.cs"
+  },
+  "correctedSharedDependencyBuild": {
+    "run": 44618848348,
+    "job": 135894723101,
+    "source": "85837a88adf956b4e549c1e4431b1927ff15bb73",
+    "observedStatus": "in_progress",
+    "activeStep": "Run actions/checkout@v7",
+    "apiBuildAccepted": false,
+    "nativeContractProjectBuildAccepted": false,
+    "behaviorTestsSelected": 0,
+    "mongoFixtureRequested": false
+  },
+  "portalSourceReconciliation": {
+    "head": "5f548052c55174bb3a182f6e48b8e04cb24167cf",
+    "avatarModalBlob": "e09ddab46e072663410dfa4308622324cd3fa025",
+    "dashboardBlob": "0d87be535835f731340f279fcc75e75f2ec85989",
+    "actualPublishedAtomicProfilePathPresent": true,
+    "retainedLocalPortalSourceStale": true,
+    "localPortalHeadPushed": false,
+    "businessCalls": 0
   }
 }
