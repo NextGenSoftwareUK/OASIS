@@ -1,0 +1,36 @@
+{
+  "status": "running-not-accepted",
+  "scope": "Published app terms/estimates/statements reads only; full app charging remains required",
+  "runId": 44465441996,
+  "jobId": 135362016589,
+  "revision": "9ed467ee5f1b2fdd5443444888ab3e07c78d802a",
+  "portalRevision": "f10f0cad34ca19dcbd7091895f5eb5ca98c6e699",
+  "portalSource": "178c236c9672484d223fc1e9cb01d248694430c5",
+  "portalDeliveryRun": 44464960028,
+  "portalDeliveryJob": 135360407063,
+  "portalDeliveryConclusion": "success",
+  "portalUsageSourceSha256": "5b24ca0151100bfdf9b4597377c168423b34ce4f37d91ae6815b9a7f08516265",
+  "filter": "FullyQualifiedName~SubscriptionAppBillingReadsBrowserUsesActualControllerAndOwnedMongo",
+  "backend": "Owned CI loopback MongoDB; seeded statements are read fixtures, not Stripe-issued payment evidence",
+  "pending": [
+    "actual WEB4 build",
+    "published catalogue and malformed/duplicate-term refusal",
+    "immutable snapshot and shipping content equality",
+    "native browser prices/estimates/caps/statements",
+    "owner/session isolation",
+    "billing accessible with usage view disabled",
+    "unchanged stored consent and records",
+    "owned cleanup"
+  ],
+  "notCovered": [
+    "consent activation",
+    "app quota admission",
+    "financial settlement",
+    "statement preparation/collection",
+    "Stripe/webhook/hosted payment",
+    "genuine Wizard",
+    "production Startup",
+    "hosted rollout",
+    "whole OPORTAL"
+  ]
+}
