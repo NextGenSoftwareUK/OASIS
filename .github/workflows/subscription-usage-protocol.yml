@@ -1,378 +1,59 @@
-name: Subscription usage protocol
+name: CQL grouped distinct Ask review qualification
 on:
-  pull_request:
-    branches: [Development, master]
-  push:
-    branches: [Development]
   workflow_dispatch:
     inputs:
-      native_projection_only:
-        description: Build WEB4 and verify scoped CQL, SQLite and three-store native projection without unrelated release suites
-        type: boolean
-        default: false
-      property_tracking_only:
-        description: Verify selected prepared native writes and admission on real MongoDB SQLite Neo4j providers
-        type: boolean
-        default: false
-      property_selection_only:
-        description: Build WEB4 and qualify private selected caller-state acknowledgement publication
-        type: boolean
-        default: false
       source_ref:
-        description: Exact candidate revision to qualify
         type: string
-        required: false
-      policy_native_only:
-        description: Run only the owned storage-policy persistence and mapping-scope fixtures
-        type: boolean
-        default: false
-      cosmos_native:
-        description: Run the isolated Azure Cosmos DB emulator fixture
-        type: boolean
-        default: false
+        required: true
+      website_ref:
+        type: string
+        required: true
 permissions:
   contents: read
 jobs:
-  policy-native:
-    if: ${{ inputs.policy_native_only }}
+  client:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ inputs.source_ref || github.sha }}
-          submodules: recursive
-          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
-      - uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.x
-      - name: Validate exact source and checkout sibling dependencies
+          repository: NextGenSoftwareUK/Web4Site
+          ref: ${{ inputs.website_ref }}
+          persist-credentials: false
+      - name: Verify exact website source
         shell: bash
-        run: |
-          set -euo pipefail
-          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
-          . Docker/oasis-dependency-versions.env
-          git clone --no-checkout "$LIBRARIES_REPO" ../NextGenSoftware-Libraries
-          git -C ../NextGenSoftware-Libraries checkout --detach "$LIBRARIES_COMMIT"
-          git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
-          git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
-      - name: Verify owned native policy persistence and mapped application scope
-        shell: pwsh
-        run: |
-          $before = @(Get-ChildItem ([IO.Path]::GetTempPath()) -Directory -Filter 'oasis-native-sqlite-*' | ForEach-Object FullName)
-          try {
-            & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner storage-policy-native-ci -Operation {
-              dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~ComputedAliasProjectionHttp|FullyQualifiedName~CqlStringLengthWireTests|FullyQualifiedName~CosmicProjectionComputedCompositionProofTests|FullyQualifiedName~HolonStoragePolicyTests|FullyQualifiedName~AvatarSaveWithBlankPasswordDoesNotDiscardCallerChanges'
-              if ($LASTEXITCODE) { throw 'Policy persistence/save invariant regression failed.' }
-              dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~StoragePoliciesPersistAcrossFreshProviders|FullyQualifiedName~NativeMappedRowsRetainTheirApplicationScope'
-              if ($LASTEXITCODE) { throw 'Native policy qualification failed.' }
-            }
-          } finally {
-            $after = @(Get-ChildItem ([IO.Path]::GetTempPath()) -Directory -Filter 'oasis-native-sqlite-*' | ForEach-Object FullName)
-            if (@($after | Where-Object { $_ -notin $before }).Count) { throw 'Owned SQLite policy fixtures were not fully cleaned up.' }
-            Write-Host 'NATIVE_POLICY_CLEANUP_VERIFIED=true'
-          }
-  ledger:
-    if: ${{ !inputs.policy_native_only }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    env:
-      SUBSCRIPTION_TEST_MONGODB_URI: mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000
-      OASIS_OWNED_RECOVERY_REPLICA_URI: mongodb://127.0.0.1:27029/?directConnection=true&serverSelectionTimeoutMS=2000
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: ${{ inputs.source_ref || github.sha }}
-          submodules: recursive
-          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
-      - uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.x
-      - name: Validate property-only qualification scope
-        if: inputs.property_tracking_only || inputs.property_selection_only
         env:
-          NATIVE_PROJECTION_ONLY: ${{ inputs.native_projection_only }}
-          SOURCE_REF: ${{ inputs.source_ref }}
-          PROPERTY_TRACKING_ONLY: ${{ inputs.property_tracking_only }}
-          PROPERTY_SELECTION_ONLY: ${{ inputs.property_selection_only }}
+          WEBSITE_REF: ${{ inputs.website_ref }}
         run: |
-          test "$NATIVE_PROJECTION_ONLY" = true
-          test -n "$SOURCE_REF"
-          if [ "$PROPERTY_SELECTION_ONLY" = true ]; then test "$PROPERTY_TRACKING_ONLY" = true; fi
-      - name: Checkout exact sibling dependencies
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$WEBSITE_REF"
+          test "$WEBSITE_REF" = "485cb86edafb82531449a50f02e8e26f3a18ef8f"
+          node --version
+      - name: Verify only new grouped distinct Ask review controls
         shell: bash
         run: |
           set -euo pipefail
-          . Docker/oasis-dependency-versions.env
-          git clone --no-checkout "$LIBRARIES_REPO" ../NextGenSoftware-Libraries
-          git -C ../NextGenSoftware-Libraries checkout --detach "$LIBRARIES_COMMIT"
-          git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
-          git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
-      - name: Start isolated replica set with fault injection
-        if: ${{ !inputs.property_selection_only }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          docker run --detach --name usage-mongo -p 27029:27029 mongo:8.0.15 --port 27029 --replSet oasisRecoveryRs --bind_ip_all --setParameter enableTestCommands=1
-          for attempt in $(seq 1 60); do
-            if docker exec usage-mongo mongosh --port 27029 --quiet --eval 'db.adminCommand({ping:1})' >/dev/null 2>&1; then break; fi
-            sleep 1
-          done
-          docker exec usage-mongo mongosh --port 27029 --quiet --eval 'rs.initiate({_id:"oasisRecoveryRs",members:[{_id:0,host:"127.0.0.1:27029"}]})'
-          for attempt in $(seq 1 60); do
-            if docker exec usage-mongo mongosh --port 27029 --quiet --eval 'if(!db.hello().isWritablePrimary) quit(1)' >/dev/null 2>&1; then exit 0; fi
-            sleep 1
-          done
-          exit 1
-      - name: Validate sole authority and pinned source graph
-        run: |
-          python3 Scripts/validate_web4_subscription_authority.py
-          python3 Scripts/validate_railway_dependency_manifest.py --require-gitlinks
-          python3 -B -m unittest discover -s Scripts -p test_subscription_worker_gate.py
-          python3 Scripts/validate_subscription_rollout_gate.py
-          pwsh -File Scripts/validate_web6_web4_metering_cutover.ps1
-      - name: Build WEB4 for compiled-controller protocol tests
-        shell: pwsh
-        run: |
-          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner web4-protocol-build-ci -Operation {
-            dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj -c Debug /m:2 /nr:false /p:UseSharedCompilation=false
-            if ($LASTEXITCODE) { throw 'Actual WEB4 source build failed.' }
-          }
-      - name: Verify Azure Cosmos DB virtual query and identity rules
-        if: ${{ !inputs.native_projection_only && (inputs.source_ref != '') }}
-        shell: pwsh
-        run: |
-          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmos-virtual-holon-ci -Operation {
-            dotnet test 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmosNativeDataImportTests'
-            if ($LASTEXITCODE) { throw 'Cosmos DB virtual query qualification failed.' }
-          }
-      - name: Verify native Azure Cosmos DB virtual queries
-        if: ${{ !inputs.native_projection_only && (inputs.source_ref != '' && inputs.cosmos_native) }}
-        shell: pwsh
-        env:
-          OASIS_COSMOSDB_NATIVE: '1'
-        run: |
-          $image = 'mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator@sha256:9a4f69121f20c1d6502db84625c71ebb441ab61b01880a7b2d3d8031c6dac429'
-          $fixture = 'cosmic-native-virtual-cosmos'
-          # Provider activation creates three containers and the virtual query case creates two more.
-          docker run --detach --name $fixture --publish 127.0.0.1:8081:8081 --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=8 $image
-          if ($LASTEXITCODE) { throw 'Cosmos emulator failed to start.' }
-          try {
-            $ready = $false
-            for ($attempt = 0; $attempt -lt 90; $attempt++) {
-              $code = curl --insecure --silent --output /dev/null --max-time 2 --write-out '%{http_code}' https://127.0.0.1:8081/
-              if ($LASTEXITCODE -eq 0 -and $code -in '200','401') { $ready = $true; break }
-              Start-Sleep -Seconds 2
-            }
-            if (!$ready) { throw 'Cosmos emulator did not become ready.' }
-            & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmos-virtual-native-ci -Operation {
-              dotnet test 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~VirtualNativeQueryFiltersBeforeLimitAndProtectsImportIdentity'
-              if ($LASTEXITCODE) { throw 'Native Cosmos virtual query failed.' }
-            }
-          }
-          finally {
-            docker rm --force $fixture | Out-Null
-            if ($LASTEXITCODE) { throw 'Owned Cosmos emulator cleanup failed.' }
-          }
-      - name: WEB4 transactions, ownership, migration and failure injection
-        if: ${{ !inputs.native_projection_only }}
-        run: dotnet test ONODE/Tests/SubscriptionLedger.ProtocolTests/SubscriptionLedger.ProtocolTests.csproj -m:1 --logger trx --results-directory TestResults/authority
-      - name: WEB4 application unit tests
-        if: ${{ !inputs.native_projection_only }}
-        run: dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj -m:1 --filter "Category!=LocalMongoSoak" --logger trx --results-directory TestResults/web4
-      - name: Shared SDK, durable outbox and HTTP lifecycle
-        if: ${{ !inputs.native_projection_only }}
-        run: dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Tests/SubscriptionUsage/SubscriptionUsage.Tests.csproj" -m:1 --logger trx --results-directory TestResults/sdk
-      - name: Independent provider and Stripe reconciliation
-        if: ${{ !inputs.native_projection_only }}
-        run: dotnet test ONODE/SubscriptionReconciliation.Tests/SubscriptionReconciliation.Tests.csproj -m:1 --logger trx --results-directory TestResults/reconciliation
-      - name: WEB6 provider measurement and bounds
-        if: ${{ !inputs.native_projection_only }}
-        run: dotnet run --project WEB6/NextGenSoftware.OASIS.Web6.UsageProtocol.Tests/NextGenSoftware.OASIS.Web6.UsageProtocol.Tests.csproj
-      - name: WEB6 provider recovery and failure injection
-        if: ${{ !inputs.native_projection_only }}
-        run: dotnet run --project WEB6/NextGenSoftware.OASIS.Web6.UsageRecovery.Tests/NextGenSoftware.OASIS.Web6.UsageRecovery.Tests.csproj
-      - name: WEB5 and WEB7-WEB10 transport policy integration
-        if: ${{ !inputs.native_projection_only }}
-        run: dotnet test Tests/SubscriptionServiceAdapters/SubscriptionServiceAdapters.csproj -m:1 --logger trx --results-directory TestResults/services
-      - name: Live runner transport security
-        if: ${{ !inputs.native_projection_only }}
-        run: python3 -m unittest discover -s Scripts -p test_subscription_usage_live_runner.py
-      - name: Signer builds
-        if: ${{ !inputs.native_projection_only }}
-        run: dotnet build Scripts/SubscriptionLedger.Migration/SubscriptionLedger.Migration.csproj -c Release
-      - name: Private operator authentication and audited requeue
-        if: ${{ !inputs.native_projection_only }}
-        run: dotnet test Scripts/SubscriptionLedger.OutboxAdmin.Tests/SubscriptionLedger.OutboxAdmin.Tests.csproj -m:1 --logger trx --results-directory TestResults/operator
-      - name: Private operator publish
-        if: ${{ !inputs.native_projection_only }}
-        run: dotnet publish Scripts/SubscriptionLedger.OutboxAdmin/SubscriptionLedger.OutboxAdmin.csproj -c Release -m:1
-      - name: Verify bounded Blockscout address reads
-        if: ${{ !inputs.native_projection_only }}
-        shell: pwsh
-        run: |
-          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner blockscout-cql-ci -Operation {
-            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~BlockscoutPublicAddressMetadataTests'
-            if ($LASTEXITCODE) { throw 'Blockscout bounded address verification failed.' }
-          }
-      - name: Verify exact CQL literals, projection binding and metered reads
-        if: ${{ !inputs.property_tracking_only }}
-        shell: pwsh
-        run: |
-          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-literal-projection-ci -Operation {
-            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicMixedNumericAggregateTests|FullyQualifiedName~CosmicMixedProjectionCountTests|FullyQualifiedName~ComputedAliasProjectionHttp|FullyQualifiedName~CqlStringLengthWireTests|FullyQualifiedName~NativeRecordFilterTests|FullyQualifiedName~CosmicStringLengthTests|FullyQualifiedName~CosmicQueryExpressionTests|FullyQualifiedName~CosmicFederationIntentFingerprintTests|FullyQualifiedName~CqlInt64WireTests|FullyQualifiedName~CqlMetadataPresenceWireTests|FullyQualifiedName~CosmicGenericMetadataPrecisionTests|FullyQualifiedName~HolonStoragePolicyTests|FullyQualifiedName~AvatarSaveWithBlankPasswordDoesNotDiscardCallerChanges|FullyQualifiedName~CosmicProjectionResultTests|FullyQualifiedName~CosmicProjectionComputedCompositionProofTests|FullyQualifiedName~CosmicJoinResultsTests|FullyQualifiedName~CosmicLinqProjectionElementTests|FullyQualifiedName~CosmicQueryAdmissionTests|FullyQualifiedName~NativeDataImportTests|FullyQualifiedName~NetworkSourceRequiresActiveIndependentQueryEnrollment'
-            if ($LASTEXITCODE) { throw 'CQL literal, projection or metered read verification failed.' }
-          }
-      - name: Verify bounded Axelar headers and Connext origin reads
-        if: ${{ !inputs.native_projection_only }}
-        shell: pwsh
-        run: |
-          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner axelar-cql-ci -Operation {
-            dotnet test 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CrossChain.ProtocolTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~AxelarProtocolTests|FullyQualifiedName~ConnextPublicOriginMetadataTests.ExactKeyQueryReturnsCompleteOrderedRowsOrFails|FullyQualifiedName~ConnextPublicOriginMetadataTests.UniversalReaderAuthenticatesExactLogRequestAndRejectsMissingCredentials'
-            if ($LASTEXITCODE) { throw 'Axelar and Connext native protocol verification failed.' }
-          }
-      - name: Verify Nostr cached signature integrity and live-reader contract
-        if: ${{ !inputs.native_projection_only }}
-        shell: pwsh
-        run: |
-          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner nostr-cql-ci -Operation {
-            dotnet test 'Providers/Social/TestProjects/NextGenSoftware.OASIS.API.Providers.NostrOASIS.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~NostrPublicEventMetadataTests'
-            if ($LASTEXITCODE) { throw 'Nostr public event verification failed.' }
-          }
-      - name: Verify shipping Hedera public account response contract
-        if: ${{ !inputs.native_projection_only }}
-        shell: pwsh
-        run: |
-          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner hedera-cql-ci -Operation {
-            dotnet test Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~HederaPublicAccountMetadataTests|FullyQualifiedName~HederaPublicReadSchedulingTests'
-            if ($LASTEXITCODE) { throw 'Hedera public account qualification failed.' }
-          }
-      - name: Verify configured SQLite Virtual Holon reads
-        if: ${{ inputs.source_ref != '' && !inputs.property_tracking_only }}
-        shell: pwsh
-        run: |
-          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner sqlite-virtual-holon-ci -Operation {
-            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SqliteNativeDataImportTests|FullyQualifiedName~AvatarProfileRegistryNativeTests'
-            if ($LASTEXITCODE) { throw 'SQLite virtual Holon qualification failed.' }
-          }
-      - name: Verify grouped distinct Core and mixed contracts
-        if: ${{ inputs.property_tracking_only }}
-        shell: pwsh
-        run: |
-          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-grouped-distinct-core-ci -Operation {
-            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicGroupedDistinctContractTests|FullyQualifiedName~CosmicMixedNumericAggregateTests.GroupedDistinct' --logger 'trx;LogFileName=grouped-distinct-core.trx' --results-directory TestResults/PropertySelection
-            if ($LASTEXITCODE) { throw 'Grouped distinct Core/mixed contract verification failed.' }
-            [xml]$core = Get-Content TestResults/PropertySelection/grouped-distinct-core.trx
-            $counts = $core.TestRun.ResultSummary.Counters
-            if ([int]$counts.total -ne 12 -or [int]$counts.passed -ne 12 -or [int]$counts.notExecuted -ne 0) {
-              throw 'Exactly12 NEW grouped distinct controls must execute and pass.'
-            }
-            $methods = @($core.TestRun.TestDefinitions.UnitTest)
-            $contracts = @($methods | Where-Object { $_.TestMethod.className -like '*CosmicGroupedDistinctContractTests' })
-            $mixed = @($methods | Where-Object { $_.TestMethod.className -like '*CosmicMixedNumericAggregateTests' -and $_.TestMethod.name -like 'GroupedDistinct*' })
-            if ($methods.Count -ne 12 -or $contracts.Count -ne 4 -or $mixed.Count -ne 8) {
-              throw 'Only four new contract and eight new mixed distinct controls may satisfy this qualification.'
-            }
-            $ids = @($methods | ForEach-Object { $_.id })
-            $results = @($core.TestRun.Results.UnitTestResult)
-            if ($results.Count -ne 12 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
-              throw 'Grouped distinct acceptance cannot inherit unrelated or failed results.'
-            }
-          }
-
-      - name: Verify custom scalar native storage mapping in plain and encrypted modes
-        if: ${{ inputs.source_ref != '' && !inputs.property_selection_only }}
-        shell: pwsh
-        run: |
-          $env:OASIS_CQL_NEO_ENTITY_PROJECTION_ROOT = (Get-Location).Path
-          $env:OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT = (Get-Location).Path
-          New-Item -ItemType Directory -Force TestResults/Neo4jCurrent | Out-Null
-          try {
-            docker run -d --name cql-entity-neo -p 127.0.0.1:17687:7687 -e NEO4J_AUTH=neo4j/oasis-local-test-only neo4j:5.26.12
-            if ($LASTEXITCODE) { throw 'Neo4j fixture did not start.' }
-            $ready = $false
-            for ($attempt = 0; $attempt -lt 45; $attempt++) {
-              docker exec cql-entity-neo cypher-shell -u neo4j -p oasis-local-test-only 'RETURN 1' 2>$null | Out-Null
-              if ($LASTEXITCODE -eq 0) { $ready = $true; break }
-              Start-Sleep -Seconds 2
-            }
-            if (!$ready) { throw 'Neo4j fixture did not become ready.' }
-            & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-entity-projection-ci -Operation {
-              if ('${{ inputs.property_tracking_only }}' -eq 'true') {
-                dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SelectedCustomScalarsUseNativeStorageMapping&Name~SQLLiteDBOASIS' --logger 'trx;LogFileName=property-custom-native.trx' --results-directory TestResults/Neo4jCurrent
-                if ($LASTEXITCODE) { throw 'Selected native property status verification failed.' }
-                [xml]$native = Get-Content TestResults/Neo4jCurrent/property-custom-native.trx
-                $counts = $native.TestRun.ResultSummary.Counters
-                if ([int]$counts.total -ne 2 -or [int]$counts.passed -ne 2 -or [int]$counts.notExecuted -ne 0) {
-                  throw 'Exactly2 SQLite modes affected by the changed receipt owner must execute and pass.'
-                }
-                $ids = @($native.TestRun.TestDefinitions.UnitTest | Where-Object {
-                  $_.TestMethod.name -eq 'SelectedCustomScalarsUseNativeStorageMapping'
-                } | ForEach-Object { $_.id })
-                $results = @($native.TestRun.Results.UnitTestResult)
-                if ($results.Count -ne 2 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
-                  throw 'Unrelated native results cannot satisfy selected-field acceptance.'
-                }
-                  foreach ($provider in 'SQLLiteDBOASIS') {
-                    foreach ($mode in 'plain','protected') {
-                      $report = Get-Content "TestResults/Neo4jCurrent/$provider-property-custom-$mode-native.json" -Raw | ConvertFrom-Json
-                      if ($report.provider -ne $provider -or $report.protectedMetadata -ne ($mode -eq 'protected') -or
-                          $report.checks -ne 8 -or $report.successfulHolonWrites -ne 5 -or
-                          !$report.nativeStorageMappingVerified -or !$report.exactIntegerVerified -or
-                          !$report.storeAsJsonStringVerified -or !$report.nullableScalarVerified -or
-                          !$report.wholeCollectionPropertyVerified -or !$report.unselectedCustomPreservedVerified -or
-                          !$report.historicalReceiptVerified -or !$report.staleConditionVerified -or
-                          !$report.noOrdinaryWriteDowngradeVerified -or !$report.exactCleanupVerified) {
-                        throw "Complete native custom scalar/storage encoding/null/collection/replay/cleanup evidence required for $provider/$mode."
-                      }
-                    }
-                  }
-              } else {
-                dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~EntityProjectionPreservesStagesAndProofBeforeDtoConstruction' --logger 'trx;LogFileName=entity-projection.trx' --results-directory TestResults/Neo4jCurrent
-                if ($LASTEXITCODE) { throw 'Native entity projection failed.' }
-                # The native tests assert the exact fixture count for the checked-out source.
-                $providers = @{ sqlite = 'SQLLiteDBOASIS'; mongo = 'MongoDBOASIS'; neo = 'Neo4jOASIS' }
-                foreach ($store in 'sqlite','mongo','neo') {
-                  $report = Get-Content "TestResults/Neo4jCurrent/$store-entity-projection-native.json" -Raw | ConvertFrom-Json
-                  if ($report.provider -ne $providers[$store] -or $report.checks -lt 1 -or
-                      $report.checks -ne @($report.cases).Count -or !($report.inMemoryFixture -or $report.exactCleanupVerified)) {
-                    throw "Expected a complete native assertion report and fixture cleanup for $store."
-                  }
-                }
-              }
-            }
-          } finally {
-            docker rm -f -v cql-entity-neo
-            if ($LASTEXITCODE) { throw 'Neo4j fixture cleanup failed.' }
-          }
-      - name: Publish the exact WEB4-WEB10 source graph
-        if: ${{ !inputs.native_projection_only }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          dna='OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.json'
-          if [ ! -f "$dna" ]; then cp 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/Default/OASIS_DNA.json' "$dna"; fi
-          star_dna='STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/OASIS_DNA.json'
-          if [ ! -f "$star_dna" ]; then mkdir -p "$(dirname "$star_dna")"; cp "$dna" "$star_dna"; fi
-          projects=(
-            'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj'
-            'STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj'
-            'WEB6/NextGenSoftware.OASIS.Web6.WebAPI/NextGenSoftware.OASIS.Web6.WebAPI.csproj'
-            'WEB7/NextGenSoftware.OASIS.Web7.WebAPI/NextGenSoftware.OASIS.Web7.WebAPI.csproj'
-            'WEB8/NextGenSoftware.OASIS.Web8.WebAPI/NextGenSoftware.OASIS.Web8.WebAPI.csproj'
-            'WEB9/NextGenSoftware.OASIS.Web9.WebAPI/NextGenSoftware.OASIS.Web9.WebAPI.csproj'
-            'WEB10/NextGenSoftware.OASIS.Web10.WebAPI/NextGenSoftware.OASIS.Web10.WebAPI.csproj'
-          )
-          for project in "${projects[@]}"; do
-            dotnet publish "$project" -c Release -m:1 /p:UseAppHost=false
-          done
+          mkdir -p TestResults
+          node --test --test-name-pattern='^grouped distinct WEB6' --test-reporter=junit cql-ask.test.cjs > TestResults/grouped-distinct-ask.xml
+          python3 -B - <<'PY'
+          import xml.etree.ElementTree as E,json
+          root=E.parse('TestResults/grouped-distinct-ask.xml').getroot()
+          allcases=list(root.iter('testcase'))
+          cases=[case for case in allcases if case.attrib['name'].startswith('grouped distinct WEB6 ')]
+          expected={'grouped distinct WEB6 draft retains both counts and requires review before explicit execution',
+            'grouped distinct WEB6 rejects unproved normalized domains before editor or execution'}
+          assert {case.attrib['name'] for case in cases}==expected
+          assert len(cases)==2
+          assert all(case.find('failure') is None and case.find('error') is None and case.find('skipped') is None for case in cases)
+          others=[case for case in allcases if case not in cases]
+          assert all(case.find('skipped') is not None for case in others)
+          report={'website':'485cb86edafb82531449a50f02e8e26f3a18ef8f','newCases':2,'passed':2,'failed':0,'selectedSkipped':0,
+            'unrelatedSkipped':len(others),'modelMockOnly':True,'nativeAcceptance':False}
+          with open('TestResults/grouped-distinct-ask-acceptance.json','w') as out:json.dump(report,out)
+          print(json.dumps(report))
+          PY
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: subscription-protocol-test-results
-          path: |
-            ${{ inputs.property_selection_only && 'TestResults/PropertySelection/*grouped-distinct-core*' || inputs.property_tracking_only && 'TestResults/Neo4jCurrent/*property-custom*' || 'TestResults' }}
-            ${{ inputs.property_tracking_only && !inputs.property_selection_only && 'TestResults/PropertySelection/*property-sqlite-selected-core*' || '' }}
-      - name: Stop temporary database
-        if: ${{ always() && !inputs.property_selection_only }}
-        run: docker rm --force usage-mongo
+          name: grouped-distinct-ask-results
+          path: TestResults/grouped-distinct-ask*
