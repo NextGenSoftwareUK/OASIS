@@ -134,6 +134,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 var admitted = Array.FindIndex(accepted, x => x);
                 Assert.Equal(shards, int.Parse(Environment.GetEnvironmentVariable("OASIS_POOL_SHARDS")!));
                 Assert.Equal(1L, await events.CountDocumentsAsync(new BsonDocument("PooledAppId", app)));
+                var committedAudit = await audit.Find(new BsonDocument("OperationId", new BsonDocument("$in", new BsonArray(ids)))).ToListAsync();
+                Assert.Single(committedAudit);
+                Assert.Equal(ids[admitted], committedAudit[0]["OperationId"].AsString);
+                Assert.Equal("authorized", committedAudit[0]["Kind"].AsString);
+                Assert.Equal(1L, committedAudit[0]["RequestsDelta"].ToInt64());
                 var stored = await apps.Find(new BsonDocument("_id", app)).SingleAsync();
                 Assert.Equal(1L, stored["AuthorizationVersion"].ToInt64());
                 var poolRows = await buckets.Find(new BsonDocument { { "PeriodType", "month" },
