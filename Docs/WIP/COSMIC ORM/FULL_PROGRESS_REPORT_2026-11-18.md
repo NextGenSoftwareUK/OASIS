@@ -4,6 +4,8 @@ Updated 19 November 2026. The full roadmap is active and incomplete. This openin
 
 ## Current engineering gate
 
+Current Core-only qualification: [44570245768](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44570245768), exact parentc82cf9ead5977d69bfa68bec2f178bcb9404f5e7/Core8cffa72d17439e465e96183186512dfebcc89b97, observed live in the WEB4 build. Only twelve new contract/mixed controls are selected; native database startup and accepted suites are excluded. This is foundation qualification, with real native translators and SQL/API/client delivery still pending.
+
 **S05 property entries remain accepted** at61/168 EF/NHibernate rows per primary store,107 open, plus4/13 separate extensions. Its maintained guide and completed audit remain published; accepted S05 cohorts are not rerun.
 
 The next slice is grouped distinct-value counts for the complex SQL and stored/virtual demo. Core8cffa72d17439e465e96183186512dfebcc89b97 prepares immutable intent, explicit path capability enrollment and reuse of the existing mixed distinct-value reducer after identity reconciliation. Legacy/native providers refuse the new operation until explicitly enrolled; computed selectors remain explicitly unsupported until their own function path is implemented.
