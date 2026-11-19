@@ -1,5 +1,5 @@
 {
-  "status": "running-not-accepted",
+  "status": "accepted-scoped",
   "scope": "Published app terms/estimates/statements reads only; full app charging remains required",
   "runId": 44468037293,
   "jobId": 135370466343,
@@ -12,16 +12,6 @@
   "portalUsageSourceSha256": "5b24ca0151100bfdf9b4597377c168423b34ce4f37d91ae6815b9a7f08516265",
   "filter": "FullyQualifiedName~SubscriptionAppBillingReadsBrowserUsesActualControllerAndOwnedMongo",
   "backend": "Owned CI loopback MongoDB; seeded statements are read fixtures, not Stripe-issued payment evidence",
-  "pending": [
-    "actual WEB4 build",
-    "published catalogue and malformed/duplicate-term refusal",
-    "immutable snapshot and shipping content equality",
-    "native browser prices/estimates/caps/statements",
-    "owner/session isolation",
-    "billing accessible with usage view disabled",
-    "unchanged stored consent and records",
-    "owned cleanup"
-  ],
   "notCovered": [
     "consent activation",
     "app quota admission",
@@ -56,5 +46,40 @@
     "nativeTestExecuted": false,
     "ownedRuntimeCacheControlCleanupVerified": true,
     "mongoContainerAbsenceVerified": true
+  },
+  "apiBuildErrors": 0,
+  "totalCases": 1,
+  "passed": 1,
+  "failed": 0,
+  "skipped": 0,
+  "durationSeconds": 14,
+  "actorsVerified": 3,
+  "publishedTermsVerified": true,
+  "immutableCatalogueAndInvalidDuplicateTermsVerified": true,
+  "shippingCatalogueContentEqualityVerified": true,
+  "estimatesAndCapsVerified": true,
+  "statementIsolationVerified": true,
+  "billingAccessibleWhenUsageViewDisabled": true,
+  "lateSessionResponseIgnored": true,
+  "billingWriteRequests": 0,
+  "storedConsentAndCapsUnchanged": true,
+  "statementsUnchanged": 3,
+  "totalBucketsUnchanged": 8,
+  "billingAuditWrites": 0,
+  "billingPanelMs": [
+    261,
+    507,
+    581
+  ],
+  "timingScope": "Isolated CI component; not live dashboard or initial page",
+  "ownedRuntimeBrowserCacheControlCleanupVerified": true,
+  "nativeDatabaseFinalizerPassed": true,
+  "mongoContainerAbsenceVerified": true,
+  "portalDocsCommit": "aaf3860a46979f4c57d080dedcb15aa1885bc598",
+  "artifact": {
+    "id": 14503455665,
+    "bytes": 6480,
+    "sha256": "fe5ae6d6b0058763fc3938a10d240022794585b609f24626857324cc4261419f",
+    "inspection": "Exactly one passed TRX and no-mutation marker read/disposed in RAM; zero local files"
   }
 }
