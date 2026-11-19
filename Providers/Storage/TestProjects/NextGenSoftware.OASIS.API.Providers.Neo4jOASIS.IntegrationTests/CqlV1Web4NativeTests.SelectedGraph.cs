@@ -39,7 +39,12 @@ public sealed partial class CqlV1Web4NativeTests
     public Task ExplicitChildIdentityGraphsRequireVerifiedParentsAndBoundedReads(string providerName)
         => RunSelectedGraphNative(providerName, true);
 
-    private async Task RunSelectedGraphNative(string providerName, bool explicitChildIdentity)
+    [DataTestMethod]
+    [DataRow("MongoDBOASIS")] [DataRow("SQLLiteDBOASIS")] [DataRow("Neo4jOASIS")]
+    public Task TypedSelectedScalarsComposeWithStoredRolesAndPartialViews(string providerName)
+        => RunSelectedGraphNative(providerName, false, true);
+
+    private async Task RunSelectedGraphNative(string providerName, bool explicitChildIdentity, bool roleComposition = false)
     {
         Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -53,7 +58,7 @@ public sealed partial class CqlV1Web4NativeTests
         var sqlite = Path.Combine(work, "graph.sqlite");
         var reportRoot = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT")!);
         var report = Path.Combine(reportRoot, "TestResults/Neo4jCurrent/" + providerName
-            + (explicitChildIdentity ? "-property-parent-native.json" : "-property-graph-native.json"));
+            + (roleComposition ? "-property-role-native.json" : explicitChildIdentity ? "-property-parent-native.json" : "-property-graph-native.json"));
         var mongo = new MongoClient(mongoUri);
         using (var names = await mongo.ListDatabaseNamesAsync())
             Assert.IsFalse((await names.ToListAsync()).Contains(database));
@@ -96,6 +101,11 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsTrue(registry.RegisterProvider(boundary));
             Assert.IsFalse(registry.PublishRoutingOverrides(new ProviderRoutingOverrides(false, false, false), authority).IsError);
             var manager = new HolonManager(null, dna, registry);
+            if (roleComposition)
+            {
+                checks = await VerifyTypedRoleSelectedNative(provider, manager, probe, authority, owner, id);
+                Assert.AreEqual(6, checks); complete = true; return;
+            }
             Guid Revision(IHolon value) => CosmicConcurrency.GetProviderRevisionId(value, authority)!.Value;
             async Task<Holon> Read(Guid record)
             {
@@ -240,6 +250,17 @@ public sealed partial class CqlV1Web4NativeTests
                 }
                 Assert.AreEqual(temp, Path.GetDirectoryName(Path.GetFullPath(work)));
                 Directory.Delete(work, true); Assert.IsFalse(Directory.Exists(work)); checks++;
+                if (roleComposition)
+                {
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        successfulHolonWrites = 9, typedNativeGraphCreatedVerified = true,
+                        scalarSelectionPreservesRolesVerified = true, partialGraphRefusedVerified = true,
+                        partialScalarSavePreservesRolesVerified = true, explicitGraphRoleUpdateVerified = true,
+                        unselectedScalarPreservedVerified = true, comparisonAndFlagsPreservedVerified = true,
+                        historicalReplayPreservesNativeRolesVerified = true, noOrdinarySelectedDowngradeVerified = true,
+                        exactCleanupVerified = true }));
+                }
+                else
                 await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
                     successfulHolonWrites = explicitChildIdentity ? 7 : 6,
                     existingParentPermissionVerified = true, deniedBeforeMutationVerified = true,
