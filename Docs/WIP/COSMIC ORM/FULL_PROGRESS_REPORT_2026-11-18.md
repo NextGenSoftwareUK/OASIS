@@ -4,11 +4,11 @@ Updated 19 November 2026. The full roadmap is active and incomplete. This openin
 
 ## Current engineering gate
 
-**S05 property entries are accepted on MongoDB, SQLite and Neo4j.** Final [44561911974](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44561911974) succeeded on exact parentb1f3c6dd68c131ae4d5fa69b3afa553b32476db7/Core8c1604407c3984e898e3d2ac9270d418dbb902c5: actual WEB4 build, four SQLite SDK controls and both plain/protected native cases, zero failures/skips. Strict4172byte artifact14551720365 proves matching identities/results, eight groups/five writes/all ten markers per native mode, SDK DB/WAL/SHM absence and host stop. RAM-only inspection created no local archive.
+**S05 property entries remain accepted** at61/168 EF/NHibernate rows per primary store,107 open, plus4/13 separate extensions. Its maintained guide and completed audit remain published; accepted S05 cohorts are not rerun.
 
-The completed S05 audit composes retained original/current/reset/flag, selected native/permission/encryption, private acknowledgement/replay, directed replication, parent and typed-role cohorts with the final custom-property proof. The maintained developer guide documents public contracts and executable fixture references. Only S05 is promoted:61/168 EF/NHibernate rows per primary store,107 still open;4/13 extensions remain separate.
+The next slice is grouped distinct-value counts for the complex SQL and stored/virtual demo. Core8cffa72d17439e465e96183186512dfebcc89b97 prepares immutable intent, explicit path capability enrollment and reuse of the existing mixed distinct-value reducer after identity reconciliation. Legacy/native providers refuse the new operation until explicitly enrolled; computed selectors remain explicitly unsupported until their own function path is implemented.
 
-Next implementation priority is more complex SQL/Playground/Ask queries, starting with grouped distinct-value counts and computed grouped selectors on stored and mixed stored/virtual sources. Larger-source planning, full virtual/hybrid/OPORTAL policies and the complete all-provider parity programme remain open. Hosted free-model/browser/live delivery stays gated by the shared-cluster/deployment stand-down.
+Twelve NEW Core/mixed controls are prepared (four contract/eight mixed), covering complete-input and access boundaries, nulls, changed identities/group keys, HAVING/order/page,198-row union, exact adjacent Int64 values and ordinal Unicode/NUL strings. Source remains uncompiled/unqualified. Core-only CI will build WEB4 and run only these new cases without starting Mongo/Neo stores. Actual Mongo/SQLite/Neo native translators, SQL/API/client/Ask exposure and hosted acceptance remain open. No coverage credit is added.
 
 ## Coverage
 
