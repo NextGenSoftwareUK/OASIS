@@ -12,7 +12,9 @@ async function verify({ baseUrl, actors, originalVersion }) {
   const catalogue = '/v1/admin/config/catalogue', validation = catalogue + '/validate', publication = catalogue + '/publish';
   const requests = [], errors = [], forbidden = [];
   let phase = 'launch';
+  const startedAt = Date.now(), phases = [];
   let publicationControls;
+  let denialControls;
   try {
     await context.route('**/*', route => {
       const url = new URL(route.request().url());
@@ -44,7 +46,12 @@ async function verify({ baseUrl, actors, originalVersion }) {
       const [result] = await Promise.all([response(catalogue), page.locator('[data-admin-tab="catalogue"]').click()]);
       await page.waitForLoadState('networkidle'); return result;
     }
-    async function draft(value) { await page.locator('#admin-catalogue-json').fill(JSON.stringify(value, null, 2)); }
+    async function draft(value) {
+      const editor = page.locator('#admin-catalogue-json');
+      assert.equal(await editor.isVisible(), true, 'Catalogue draft editor must be visible before editing.');
+      assert.equal(await editor.isEditable(), true, 'Catalogue draft editor must be editable before editing.');
+      await editor.fill(JSON.stringify(value, null, 2));
+    }
     async function idle() { await page.waitForFunction(() => !document.getElementById('admin-catalogue-validate').disabled && !document.getElementById('admin-catalogue-publish').disabled); }
     async function submit(endpoint, button, expected) {
       const [result] = await Promise.all([response(endpoint), page.locator(button).click()]);
@@ -141,8 +148,20 @@ async function verify({ baseUrl, actors, originalVersion }) {
     assert.equal(await page.locator('#subscription-admin-status').textContent(), '');
     phase = 'ordinary-and-expired-real-web6-denials';
     for (const [index, status] of [[1, 403], [2, 401]]) {
+      phase = 'real-web6-denials-actor-' + index;
+      phases.push({ phase, elapsedMs: Date.now() - startedAt });
       if (index === 2) await actor(index);
       assert.equal((await open()).status(), status);
+      denialControls = await page.evaluate(() => {
+        const editor = document.getElementById('admin-catalogue-json');
+        return { modalVisible: document.querySelector('.js-modal').classList.contains('is-visible'),
+          blockSelected: document.getElementById('subscription-admin-modal-block').classList.contains('is-selected'),
+          panelHidden: document.getElementById('admin-tab-catalogue').hidden,
+          editorDisabled: editor.disabled, editorReadOnly: editor.readOnly,
+          editorHasLayout: !!editor.getClientRects().length,
+          status: document.getElementById('subscription-admin-status').textContent };
+      });
+      phases.push({ phase: phase + '-opened', elapsedMs: Date.now() - startedAt });
       await draft(candidate); await submit(validation, '#admin-catalogue-validate', status);
       await page.locator('#admin-catalogue-reason').fill('Owned unauthorized publication');
       await submit(publication, '#admin-catalogue-publish', status);
@@ -158,7 +177,7 @@ async function verify({ baseUrl, actors, originalVersion }) {
       refreshControlsDisabledUntilReadComplete: true,
       approvedPricesChanged: false, multiHostPublicationVerified: false, fullProductionStartupVerified: false,
       hostedOrStripeVerified: false };
-  } catch (error) { console.error(JSON.stringify({ phase, publicationControls, pageErrors: errors, requests: requests.length })); throw error; }
+  } catch (error) { console.error(JSON.stringify({ phase, elapsedMs: Date.now() - startedAt, phases, publicationControls, denialControls, pageErrors: errors, requests: requests.length })); throw error; }
   finally { await context.close(); }
 }
 module.exports = { verify };
