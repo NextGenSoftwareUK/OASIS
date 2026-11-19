@@ -96,7 +96,7 @@ public sealed partial class CqlV1Web4NativeTests
                 source.MetaData["private-sibling"] = "private-native";
                 source.MetaData[HolonPermissions.MetadataKey] = HolonPermissionSet.Empty.With(b =>
                     b.SetField(HolonPermissionSet.Key(fieldWriter), "description", HolonPermission.Write)
-                     .SetField(HolonPermissionSet.Key(fieldWriter), "metadata.secret", HolonPermission.Write)).Encode().Result;
+                     .SetField(HolonPermissionSet.Key(fieldWriter), "metadata.secret", HolonPermission.Write | HolonPermission.Delete)).Encode().Result;
             }
 
             async Task Save()
