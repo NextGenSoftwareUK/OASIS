@@ -1,6 +1,6 @@
 {
   "scope": "Actual repository/collector/shipping gateway/native Mongo; existing statement INPUTS and real zero-due collection only",
-  "status": "source-prepared-not-accepted",
+  "status": "qualification-in-progress-not-accepted",
   "releaseGates": [
     "historical in-flight transition",
     "genuine Stripe readiness/positive controller/nonzero/signed webhook",
@@ -19,5 +19,8 @@
     "owned database/container absence"
   ],
   "localGeneratedOutputs": 0,
-  "filter": "FullyQualifiedName~OverageCollectionRejectsForeignScopeAndEmptyPayersBeforeMutation"
+  "filter": "FullyQualifiedName~OverageCollectionRejectsForeignScopeAndEmptyPayersBeforeMutation",
+  "sourceCommit": "273849783701ad6ee541d2deb21e1286996d8d1d",
+  "runId": 44532487678,
+  "jobId": 135589176702
 }
