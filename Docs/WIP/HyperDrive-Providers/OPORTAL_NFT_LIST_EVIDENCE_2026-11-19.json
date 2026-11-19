@@ -24,5 +24,17 @@
   "artifactVerifiedInMemory": true,
   "artifactFilesWritten": 0,
   "ownedDatabaseProviderProcessRestorationVerified": true,
-  "ownedMongoAbsenceVerified": true
+  "ownedMongoAbsenceVerified": true,
+  "retry": {
+    "status": "queued",
+    "run": 44602030377,
+    "job": 135835703799,
+    "source": "3791792ff6f8dd99fd524cc7a78f49d51903c7ef",
+    "onodeCore": "16f735439660d8b8d2a8cd0ad114f453ff89bc74",
+    "failedAndNewCasesSelected": 2,
+    "unchangedAcceptedCasesSelected": 0,
+    "ownedRecordsAcrossCases": 22,
+    "nativeAcceptance": false,
+    "cleanupPending": true
+  }
 }
