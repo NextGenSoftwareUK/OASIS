@@ -1,5 +1,5 @@
 {
-  "status": "source-prepared-not-accepted",
+  "status": "qualification-in-progress-not-accepted",
   "filter": "FullyQualifiedName~PersonalConsentBindsPositiveExposureAndPreservesOriginalEvidence",
   "scope": "Actual repository/native Mongo/immutable original consent + positive reservation/acknowledged settlement; original verification/account INPUT fixtures only",
   "required": [
@@ -21,5 +21,7 @@
     "canonical webhook behavior and matching portal current-terms state",
     "full portal/provider/HyperDrive acceptance"
   ],
-  "localGeneratedOutputs": 0
+  "localGeneratedOutputs": 0,
+  "runId": 44519812576,
+  "sourceCommit": "26296ee8056af4136ac813f236cad7bae83bea91"
 }
