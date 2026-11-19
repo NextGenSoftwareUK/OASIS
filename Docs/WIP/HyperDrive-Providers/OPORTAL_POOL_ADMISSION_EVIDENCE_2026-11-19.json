@@ -1,0 +1,59 @@
+{
+  "status": "accepted-scoped-native-admission",
+  "runId": 44477583569,
+  "jobId": 135401757200,
+  "revision": "dd4f980646f562a1df1ede759daf256274414ab0",
+  "scope": "Actual compiled WEB4 repository and native owned MongoDB pool admission; no UI/Stripe acceptance",
+  "filter": "FullyQualifiedName~PooledAdmissionIsExactAcrossShardsAndRejectsStaleAppState",
+  "backend": "Exact owned loopback CI replica set; unique subscription_pool_ database; no shared Atlas or mocks",
+  "notCovered": [
+    "app overage positive consent or charging",
+    "immutable per-operation shard and financial bindings",
+    "in-flight shard count changes",
+    "app cap/settlement/corrections/reconciliation/statement/Stripe collection",
+    "throughput/load/soak or live dashboard timing",
+    "production Startup/rollout",
+    "whole OPORTAL or all-provider HyperDrive"
+  ],
+  "localOutputs": "Compact tracked source/evidence only; no local build/runtime/database/artifact archive",
+  "lastMeasuredFreeCDecimalGB": 38.94,
+  "verified": [
+    "actual WEB4 API build",
+    "eight concurrent reservations for one remaining pool slot with 1/2/16 writer shards",
+    "read all16 historical pool shards",
+    "exactly one new event/audit/request/version fence",
+    "committed replay does not reserve again",
+    "cross-app reuse conflicts",
+    "missing/inactive/non-pooled/stale configuration refusal without usage writes",
+    "independent personal monthly/daily/token/budget restrictions",
+    "temporary process settings restored and exact database/container cleanup"
+  ],
+  "conclusion": "success",
+  "passed": 1,
+  "failed": 0,
+  "skipped": 0,
+  "apiBuildErrors": 0,
+  "durationSeconds": 1,
+  "shardLayouts": [
+    1,
+    2,
+    16
+  ],
+  "concurrentWritersPerLayout": 8,
+  "admittedPerLayout": 1,
+  "refusedPerLayout": 7,
+  "actualAggregatePerLayout": 300000,
+  "newAuditsPerLayout": 1,
+  "appVersionPerLayout": 1,
+  "isolatedCaseElapsedMs": [
+    415,
+    144,
+    215
+  ],
+  "artifactId": 14507890583,
+  "artifactBytes": 1723,
+  "artifactSha256": "1518571252dc289cbd2a09a6dd4e09f1ec64443e07ea370fb5c244c1aeea975f",
+  "artifactEntry": "seal-routing-native.trx",
+  "artifactFilesWritten": 0,
+  "cleanup": "Native unique database absence and temporary process settings restoration verified; owned Mongo container/volumes removed and absence marker passed"
+}
