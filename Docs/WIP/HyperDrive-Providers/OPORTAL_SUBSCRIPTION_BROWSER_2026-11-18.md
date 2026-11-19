@@ -1,3 +1,5 @@
+2026-11-18 REAL SUBSCRIPTION BROWSER RUN ACTIVE: CI44443215270/job135288943998 is qualifying frozen root78373fa8d8ba4db98df19cc2446e17b855441a88 / Core2ae9c2 / STARff20026 / Portal52f342e. Source/route/pin gates passed; actual WEB4 build was running at last inspection. Selects only new SubscriptionBrowserUsesActualControllerAndOwnedMongo, not accepted native cases. Browser three-actor My Subscription/Orders/account-isolation/timings and owned cleanup remain PENDING until terminal logs/TRX. No shared Atlas, live API, Stripe payment, deploy, DNA change or local environment/build/DB/output.
+
 # Real subscription component qualification — 18 November 2026
 
 Current status: prepared; no acceptance until the exact CI run and native/browser report pass.
