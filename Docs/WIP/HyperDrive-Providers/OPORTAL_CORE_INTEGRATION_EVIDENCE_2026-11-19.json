@@ -1,5 +1,5 @@
 {
-  "status": "combined_graph_build_queued",
+  "status": "failed_compile_shared_dependency_corrected_rebuild_pending",
   "run": 44607073292,
   "job": 135853508585,
   "source": "f20298c90df6cbdbe3d9892e92c261779e154607",
@@ -112,12 +112,19 @@
     "run": 44617068327,
     "job": 135888501753,
     "source": "cec1fa89a98b6b366c7f73b0b5f22cd6b0efbb30",
-    "observedStatus": "queued",
+    "observedStatus": "completed",
     "apiBuildAccepted": false,
     "nativeContractProjectBuildAccepted": false,
     "behaviorTestsSelected": 0,
     "mongoFixtureRequested": false,
     "sameBuildLease": true,
-    "maxBuildWorkers": 2
+    "maxBuildWorkers": 2,
+    "conclusion": "failure",
+    "compilerErrors": 14,
+    "artifacts": [],
+    "apiCompileReached": true,
+    "nativeContractProjectCompileReached": false,
+    "sourceGuardsPassed": true,
+    "failureOwner": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/ConditionalHolonPlan.cs"
   }
 }

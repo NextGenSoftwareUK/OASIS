@@ -1,5 +1,5 @@
 {
-  "status": "source_and_route_inventory_integrated_compile_pending",
+  "status": "shared_selected_plan_dependency_integrated_compile_pending",
   "sourceCheckpoint": "38d4320ef7cffa3ce8d6c77cb312dee3f42acb9d",
   "core": "96f6baea21c1423795f7effcac208a8f6485b30c",
   "importedFiles": [
@@ -586,6 +586,14 @@
     {
       "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests.csproj",
       "sourceBlob": "f2f4b345e10bf66a9ee1998ec551c716f1f90cf6"
+    },
+    {
+      "path": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/ConditionalHolonPlan.cs",
+      "sourceBlob": "44bb09c7e203a3bce4dabf91a565693c47cb409b"
+    },
+    {
+      "path": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests/ConditionalHolonPropertyPlanTests.cs",
+      "sourceBlob": "ad8551add6539437e869a513225c373b6dc12a47"
     }
   ],
   "preservedOwnedFiles": {
@@ -771,5 +779,19 @@
     "mongoFixture": false,
     "nativeProjectOpenApiGeneration": false,
     "completed": false
+  },
+  "sharedDependencyCorrection": {
+    "failedRun": 44617068327,
+    "failedJob": 135888501753,
+    "compilerErrors": 14,
+    "cause": "Shared ConditionalHolonPlan remained older than the verified imported native provider selected-write/recovery callers. One primary shared type missing members plus a dependent Mongo overload error.",
+    "reviewedSharedFiles": [
+      "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/ConditionalHolonPlan.cs",
+      "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests/ConditionalHolonPropertyPlanTests.cs"
+    ],
+    "exactDonorHashesVerified": true,
+    "sameVerifiedCheckpoint": "38d4320ef7cffa3ce8d6c77cb312dee3f42acb9d",
+    "unrelatedEvmAndProtocolSupportChangesExcluded": true,
+    "runtimeTestsExecuted": 0
   }
 }
