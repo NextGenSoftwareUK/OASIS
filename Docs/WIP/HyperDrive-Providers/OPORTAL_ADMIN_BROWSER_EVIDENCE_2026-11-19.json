@@ -19,7 +19,7 @@
   ],
   "portalSource": "838c5bb749cfae6c73f39bb7cb45ab4da6d6b02a",
   "bundleJob": 135618169700,
-  "status": "native-browser-qualification-in-progress-not-accepted",
+  "status": "failed-checkout-corrected-retry-active-not-accepted",
   "localGeneratedOutputs": 0,
   "filter": "FullyQualifiedName~SubscriptionAdminReadsAndSessionPrivacyUseActualControllerBrowserAndMongo",
   "fixture": {
@@ -30,7 +30,21 @@
     "businessResponseReplacement": false,
     "financialCollectionSnapshots": 8
   },
-  "sourceCommit": "29ac15ee1e37bf2b301d0e1d1db277fef62359df",
-  "runId": 44542808472,
-  "jobId": 135625373969
+  "sourceCommit": "5d937cd918b384efa37cf3f1d1290b2d2c1cf2ec",
+  "runId": 44544931572,
+  "jobId": 135632855384,
+  "firstAttempt": {
+    "apiBuild": "success",
+    "outcome": "Failed",
+    "failed": 1,
+    "cause": "Pinned sparse checkout omitted actual admin fragment and script",
+    "artifactSha256": "ed36077f6f07952af2a74e2496ed0e3cd81af49b23fdd3cf99491d4bf225fea7",
+    "linkedBuild": "skipped",
+    "runId": 44542808472,
+    "filesWritten": 0,
+    "ownedCleanupVerified": true,
+    "passed": 0,
+    "jobId": 135625373969,
+    "artifactId": 14539389992
+  }
 }
