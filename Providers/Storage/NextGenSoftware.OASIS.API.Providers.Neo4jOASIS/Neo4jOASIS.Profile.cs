@@ -125,6 +125,8 @@ public partial class Neo4jOASIS:IAvatarProfileStorageProvider
                         if(detail.Email!=field.Value){detail.Email=field.Value;detailFields.Add(nameof(IAvatarDetail.Email));}break;
                     case AvatarProfileProperty.Address:
                         if(detail.Address!=field.Value){detail.Address=field.Value;detailFields.Add(nameof(IAvatarDetail.Address));}break;
+                    case AvatarProfileProperty.Portrait:
+                        if(detail.Portrait!=field.Value){detail.Portrait=field.Value;detailFields.Add(nameof(IAvatarDetail.Portrait));}break;
                     default:throw new ProfileRefusal(AvatarProfileErrors.Invalid,"Only editable profile fields are accepted.");
                 }
             }

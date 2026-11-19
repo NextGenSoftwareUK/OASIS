@@ -16,7 +16,7 @@ public partial class SQLLiteDBOASIS:IAvatarProfileStorageProvider
 
     private sealed class ProfileRow
     {
-        public string Title,FirstName,LastName,Username,Email,Address;
+        public string Title,FirstName,LastName,Username,Email,Address,Portrait;
         public int Version;
         public Guid VersionId;
         public object NativeVersionId;
@@ -27,11 +27,11 @@ public partial class SQLLiteDBOASIS:IAvatarProfileStorageProvider
         =>new(){IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause};
 
     private static async Task<ProfileRow> ReadProfileRowAsync(SqliteConnection connection,SqliteTransaction transaction,
-        Guid id,bool detail,CancellationToken token)
+        Guid id,bool detail,CancellationToken token,bool includePortrait=false)
     {
         using var command=connection.CreateCommand();command.Transaction=transaction;
         command.CommandText=detail
-            ? "SELECT Username,Email,Version,VersionId,IsActive,DeletedDate,Address FROM AvatarDetail WHERE Id=$id"
+            ? "SELECT Username,Email,Version,VersionId,IsActive,DeletedDate,Address"+(includePortrait?",Portrait":"")+" FROM AvatarDetail WHERE Id=$id"
             : "SELECT Username,Email,Version,VersionId,IsActive,DeletedDate,Title,FirstName,LastName FROM Avatar WHERE Id=$id";
         command.Parameters.AddWithValue("$id",id.ToString());
         using var reader=await command.ExecuteReaderAsync(token).ConfigureAwait(false);
@@ -40,7 +40,7 @@ public partial class SQLLiteDBOASIS:IAvatarProfileStorageProvider
         string Text(int ordinal)=>reader.IsDBNull(ordinal)?null:reader.GetString(ordinal);
         var row=new ProfileRow{Username=Text(0),Email=Text(1),Version=reader.GetInt32(2),VersionId=reader.GetGuid(3),
             NativeVersionId=reader.GetValue(3),Active=reader.GetBoolean(4),Deleted=reader.GetDateTime(5)!=DateTime.MinValue};
-        if(detail)row.Address=Text(6);
+        if(detail){row.Address=Text(6);if(includePortrait)row.Portrait=Text(7);}
         else {row.Title=Text(6);row.FirstName=Text(7);row.LastName=Text(8);}
         if(await reader.ReadAsync(token).ConfigureAwait(false))throw new InvalidDataException("A profile id identifies multiple native records.");
         return row;
@@ -106,7 +106,7 @@ public partial class SQLLiteDBOASIS:IAvatarProfileStorageProvider
             try
             {
                 var account=await ReadProfileRowAsync(connection,transaction,mutation.AvatarId,false,cancellationToken).ConfigureAwait(false);
-                var detail=await ReadProfileRowAsync(connection,transaction,mutation.AvatarId,true,cancellationToken).ConfigureAwait(false);
+                var detail=await ReadProfileRowAsync(connection,transaction,mutation.AvatarId,true,cancellationToken,mutation.Fields.ContainsKey(AvatarProfileProperty.Portrait)).ConfigureAwait(false);
                 if(!account.Active || account.Deleted || detail.Deleted)
                     throw new ProfileRefusal(AvatarProfileErrors.Forbidden,"The account is not active.");
                 RequireProfileRevision(account,mutation.AvatarRevision);RequireProfileRevision(detail,mutation.DetailRevision);
@@ -125,6 +125,7 @@ public partial class SQLLiteDBOASIS:IAvatarProfileStorageProvider
                         case AvatarProfileProperty.Email:
                             Set(accountFields,"Email",account.Email,field.Value);Set(detailFields,"Email",detail.Email,field.Value);break;
                         case AvatarProfileProperty.Address:Set(detailFields,"Address",detail.Address,field.Value);break;
+                        case AvatarProfileProperty.Portrait:Set(detailFields,"Portrait",detail.Portrait,field.Value);break;
                         default:throw new ProfileRefusal(AvatarProfileErrors.Invalid,"Only editable profile fields are accepted.");
                     }
                 }
@@ -138,7 +139,7 @@ public partial class SQLLiteDBOASIS:IAvatarProfileStorageProvider
                 var accountChanged=await PatchProfileRowAsync(connection,transaction,mutation.AvatarId,account,accountFields,false,modified,mutation.AvatarNextVersionId,cancellationToken).ConfigureAwait(false);
                 var detailChanged=await PatchProfileRowAsync(connection,transaction,mutation.AvatarId,detail,detailFields,true,modified,mutation.DetailNextVersionId,cancellationToken).ConfigureAwait(false);
                 account=await ReadProfileRowAsync(connection,transaction,mutation.AvatarId,false,cancellationToken).ConfigureAwait(false);
-                detail=await ReadProfileRowAsync(connection,transaction,mutation.AvatarId,true,cancellationToken).ConfigureAwait(false);
+                detail=await ReadProfileRowAsync(connection,transaction,mutation.AvatarId,true,cancellationToken,mutation.Fields.ContainsKey(AvatarProfileProperty.Portrait)).ConfigureAwait(false);
                 if(account.Username!=detail.Username || account.Email!=detail.Email)
                     throw new ProfileRefusal(AvatarProfileErrors.Conflict,"The account profile identities are inconsistent.");
                 var snapshot=new AvatarProfileSnapshot(mutation.AvatarId,account.Title,account.FirstName,account.LastName,

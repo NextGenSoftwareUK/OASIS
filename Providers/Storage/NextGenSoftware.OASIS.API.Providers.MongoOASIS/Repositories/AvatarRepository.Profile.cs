@@ -90,6 +90,8 @@ public partial class AvatarRepository
                             if(detail.Email!=field.Value)detailFields.Add(detailUpdate.Set(row=>row.Email,field.Value));break;
                         case AvatarProfileProperty.Address:
                             if(detail.Address!=field.Value)detailFields.Add(detailUpdate.Set(row=>row.Address,field.Value));break;
+                        case AvatarProfileProperty.Portrait:
+                            if(detail.Portrait!=field.Value)detailFields.Add(detailUpdate.Set(row=>row.Portrait,field.Value));break;
                         default:throw new ProfileRefusal(AvatarProfileErrors.Invalid,"Only editable profile fields are accepted.");
                     }
                 }
