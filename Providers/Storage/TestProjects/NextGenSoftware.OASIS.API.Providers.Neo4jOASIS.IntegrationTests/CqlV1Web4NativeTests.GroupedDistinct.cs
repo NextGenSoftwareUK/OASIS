@@ -16,7 +16,15 @@ public sealed partial class CqlV1Web4NativeTests
 {
     [DataTestMethod]
     [DataRow("MongoDBOASIS")] [DataRow("SQLLiteDBOASIS")] [DataRow("Neo4jOASIS")]
-    public async Task GroupedDistinctUsesRealNativeProviderAndCompleteInputProof(string providerName)
+    public Task GroupedDistinctUsesRealNativeProviderAndCompleteInputProof(string providerName)
+        => RunGroupedDistinctNativeFixture(providerName, false);
+
+    [DataTestMethod]
+    [DataRow("MongoDBOASIS")] [DataRow("SQLLiteDBOASIS")] [DataRow("Neo4jOASIS")]
+    public Task GroupedDistinctPrimitiveDomainsUseRealNativeProvider(string providerName)
+        => RunGroupedDistinctNativeFixture(providerName, true);
+
+    private async Task RunGroupedDistinctNativeFixture(string providerName, bool primitiveDomains)
     {
         Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -37,6 +45,7 @@ public sealed partial class CqlV1Web4NativeTests
         };
         var ids = new List<Guid>();
         var complete = false; var active = false; var checks = 0;
+        var queryElapsed = new Dictionary<string, long>();
         var timer = System.Diagnostics.Stopwatch.StartNew();
         var mongo = authority == ProviderType.MongoDBOASIS ? new MongoClient(mongoUri) : null;
         if (mongo != null)
@@ -82,27 +91,73 @@ public sealed partial class CqlV1Web4NativeTests
                 return await CosmicGroupedExecutor.ExecuteAsync(planned.Result,
                     new[] { (ICosmicQueryStorageProvider)provider });
             }
-            var strings = await Seed(("a", "A"), ("a", "a"), ("a", "λ"), ("a", "λ"),
-                ("a", "x\0y"), ("a", "x"), ("a", null));
-            var stringResult = await Run(strings, h => CosmicQueryMetadata.Value<string>(h, "stock"));
-            Assert.IsFalse(stringResult.IsError, stringResult.Message + stringResult.Exception);
-            var stringRow = stringResult.Result.Providers.Single().Rows.Single();
-            Assert.AreEqual(6L, stringRow["Present"]); Assert.AreEqual(5L, stringRow["Unique"]); checks++;
-            var longs = await Seed(("a", 9007199254740992L), ("a", 9007199254740993L),
-                ("a", 9007199254740993L), ("b", null));
-            var integerResult = await Run(longs, h => CosmicQueryMetadata.Value<long?>(h, "stock"));
-            Assert.IsFalse(integerResult.IsError, integerResult.Message + integerResult.Exception);
-            var rows = integerResult.Result.Providers.Single().Rows;
-            Assert.AreEqual(2, rows.Count);
-            Assert.AreEqual(2L, rows.Single(row => (string)row["Category"] == "a")["Unique"]);
-            Assert.AreEqual(0L, rows.Single(row => (string)row["Category"] == "b")["Unique"]); checks++;
-            var invalid = await Seed(("z", "invalid integer"));
-            var invalidResult = await Run(invalid.Concat(longs).ToArray(),
-                h => CosmicQueryMetadata.Value<long?>(h, "stock"), emptyPage: true);
-            Assert.IsTrue(invalidResult.IsError); Assert.AreEqual("CQL_DATA_INVALID", invalidResult.ErrorCode); checks++;
-            var excess = await Run(longs, h => CosmicQueryMetadata.Value<long?>(h, "stock"), 1, true);
-            Assert.IsTrue(excess.IsError); Assert.AreEqual("CQL_QUERY_LIMIT", excess.ErrorCode); checks++;
-            Assert.AreEqual(12, ids.Count);
+            if (primitiveDomains)
+            {
+                async Task Check<T>(string domain, (string Key, object? Value)[] values,
+                    Expression<Func<Holon, T>> selector, long present, long unique)
+                {
+                    var selected = await Seed(values);
+                    var watch = System.Diagnostics.Stopwatch.StartNew();
+                    var result = await Run(selected, selector);
+                    queryElapsed.Add(domain, watch.ElapsedMilliseconds);
+                    Assert.IsFalse(result.IsError, result.Message + result.Exception);
+                    var rows = result.Result.Providers.Single().Rows;
+                    Assert.AreEqual(2, rows.Count);
+                    var populated = rows.Single(row => (string)row["Category"] == "a");
+                    var empty = rows.Single(row => (string)row["Category"] == "b");
+                    Assert.AreEqual(present, populated["Present"], domain);
+                    Assert.AreEqual(unique, populated["Unique"], domain);
+                    Assert.AreEqual(0L, empty["Present"], domain);
+                    Assert.AreEqual(0L, empty["Unique"], domain);
+                    checks++;
+                }
+                await Check("Boolean", new (string, object?)[] {
+                    ("a", true), ("a", false), ("a", true), ("b", null) },
+                    h => CosmicQueryMetadata.Value<bool?>(h, "stock"), 3, 2);
+                await Check("Int32", new (string, object?)[] {
+                    ("a", int.MinValue), ("a", int.MaxValue), ("a", int.MaxValue), ("b", null) },
+                    h => CosmicQueryMetadata.Value<int?>(h, "stock"), 3, 2);
+                var negativeSingleZero = BitConverter.Int32BitsToSingle(int.MinValue);
+                var negativeDoubleZero = BitConverter.Int64BitsToDouble(long.MinValue);
+                Assert.AreEqual(int.MinValue, BitConverter.SingleToInt32Bits(negativeSingleZero));
+                Assert.AreEqual(long.MinValue, BitConverter.DoubleToInt64Bits(negativeDoubleZero));
+                var first = BitConverter.Int32BitsToSingle(BitConverter.SingleToInt32Bits(1f) + 1);
+                var second = BitConverter.Int32BitsToSingle(BitConverter.SingleToInt32Bits(1f) + 2);
+                Assert.AreNotEqual(first, second);
+                await Check("Single", new (string, object?)[] {
+                    ("a", 0f), ("a", negativeSingleZero), ("a", first), ("a", second),
+                    ("a", second), ("b", null) },
+                    h => CosmicQueryMetadata.Value<float?>(h, "stock"), 5, 3);
+                await Check("Double", new (string, object?)[] {
+                    ("a", 0d), ("a", negativeDoubleZero), ("a", double.Epsilon), ("a", -double.Epsilon),
+                    ("a", double.MaxValue), ("a", double.MaxValue), ("a", -double.MaxValue), ("b", null) },
+                    h => CosmicQueryMetadata.Value<double?>(h, "stock"), 7, 5);
+                Assert.AreEqual(22, ids.Count);
+            }
+            else
+            {
+                var strings = await Seed(("a", "A"), ("a", "a"), ("a", "λ"), ("a", "λ"),
+                    ("a", "x\0y"), ("a", "x"), ("a", null));
+                var stringResult = await Run(strings, h => CosmicQueryMetadata.Value<string>(h, "stock"));
+                Assert.IsFalse(stringResult.IsError, stringResult.Message + stringResult.Exception);
+                var stringRow = stringResult.Result.Providers.Single().Rows.Single();
+                Assert.AreEqual(6L, stringRow["Present"]); Assert.AreEqual(5L, stringRow["Unique"]); checks++;
+                var longs = await Seed(("a", 9007199254740992L), ("a", 9007199254740993L),
+                    ("a", 9007199254740993L), ("b", null));
+                var integerResult = await Run(longs, h => CosmicQueryMetadata.Value<long?>(h, "stock"));
+                Assert.IsFalse(integerResult.IsError, integerResult.Message + integerResult.Exception);
+                var rows = integerResult.Result.Providers.Single().Rows;
+                Assert.AreEqual(2, rows.Count);
+                Assert.AreEqual(2L, rows.Single(row => (string)row["Category"] == "a")["Unique"]);
+                Assert.AreEqual(0L, rows.Single(row => (string)row["Category"] == "b")["Unique"]); checks++;
+                var invalid = await Seed(("z", "invalid integer"));
+                var invalidResult = await Run(invalid.Concat(longs).ToArray(),
+                    h => CosmicQueryMetadata.Value<long?>(h, "stock"), emptyPage: true);
+                Assert.IsTrue(invalidResult.IsError); Assert.AreEqual("CQL_DATA_INVALID", invalidResult.ErrorCode); checks++;
+                var excess = await Run(longs, h => CosmicQueryMetadata.Value<long?>(h, "stock"), 1, true);
+                Assert.IsTrue(excess.IsError); Assert.AreEqual("CQL_QUERY_LIMIT", excess.ErrorCode); checks++;
+                Assert.AreEqual(12, ids.Count);
+            }
             complete = true;
         }
         finally
@@ -137,7 +192,17 @@ public sealed partial class CqlV1Web4NativeTests
             if (complete)
             {
                 var root = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT")!);
-                var report = Path.Combine(root, "TestResults/Neo4jCurrent/" + providerName + "-grouped-distinct-native.json");
+                var report = Path.Combine(root, "TestResults/Neo4jCurrent/" + providerName
+                    + (primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
+                if (primitiveDomains)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        successfulHolonWrites = ids.Count, elapsedMilliseconds = timer.ElapsedMilliseconds,
+                        queryElapsedMilliseconds = queryElapsed,
+                        nativeProviderVerified = true, booleanVerified = true, int32Verified = true,
+                        singleVerified = true, doubleVerified = true, adjacentSingleVerified = true,
+                        signedZeroVerified = true, subnormalDoubleVerified = true,
+                        allNullVerified = true, exactCleanupVerified = true }));
+                else
                 await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
                     successfulHolonWrites = ids.Count, elapsedMilliseconds = timer.ElapsedMilliseconds,
                     nativeProviderVerified = true, nonNullCountVerified = true, ordinalUnicodeNullVerified = true,
