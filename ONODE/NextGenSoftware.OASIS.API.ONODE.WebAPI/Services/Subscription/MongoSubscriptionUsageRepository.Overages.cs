@@ -20,8 +20,11 @@ public sealed partial class MongoSubscriptionUsageRepository
     private static string StatementId(string user,string month,string key) => "ovg_"+Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(user+":"+month+":"+key)));
     private static DateTime MonthStart(string month) => DateTime.SpecifyKind(DateTime.ParseExact(month,"yyyy-MM",CultureInfo.InvariantCulture),DateTimeKind.Utc);
 
-    public Task<PaidOverageStatement> PrepareAsync(string userId,string month,string requestKey,CancellationToken token)
+    public Task<PaidOverageStatement> PrepareAsync(string userId,string month,string requestKey,CancellationToken token,bool creditsOnly=false)
     {
+        if (userId?.StartsWith("app:", StringComparison.Ordinal) == true)
+            return PrepareAppStatementAsync(userId.Substring(4), month, requestKey, creditsOnly, token);
+        if (creditsOnly) throw new ArgumentException("Scheduled credit-only preparation is reserved for app accounts.");
         if(!Guid.TryParseExact(userId,"D",out _) || string.IsNullOrWhiteSpace(requestKey) || requestKey.Length>200)
             throw new ArgumentException("A canonical subscriber, month and billing request identity are required.");
         var start=MonthStart(month);var end=start.AddMonths(1);
@@ -112,17 +115,25 @@ public sealed partial class MongoSubscriptionUsageRepository
     public async Task<IReadOnlyList<PaidOverageAccount>> GetClosedAccountsAsync(DateTime now,CancellationToken token)
     {
         var cutoff=new DateTime(now.Year,now.Month,1,0,0,0,DateTimeKind.Utc);
+        var month=now.ToString("yyyy-MM",CultureInfo.InvariantCulture);
         var rows=await _events.Aggregate().Match(x=>x.Status=="settled" && x.PaidOveragePricingVersion!=null && x.BillingStatementId==null &&
             x.AuthorizedAtUtc<cutoff && (x.SettledRequestOverageUsd>0 || x.SettledAiOverageUsd>0))
             .Group<BsonDocument>(new BsonDocument {{"_id",new BsonDocument {{"UserId","$UserId"},
                 {"Month",new BsonDocument("$dateToString",new BsonDocument {{"format","%Y-%m"},{"date","$AuthorizedAtUtc"},{"timezone","UTC"}})}}}})
-            .Limit(25).ToListAsync(token);
+            .Sort(new BsonDocument { { "_id.Month", 1 }, { "_id.UserId", 1 } }).Limit(25).ToListAsync(token);
         var accounts=rows.Select(x=>new PaidOverageAccount(x["_id"]["UserId"].AsString,x["_id"]["Month"].AsString)).ToList();
+        var appRows=await _events.Aggregate().Match(x=>x.Status=="settled" && x.PooledAppId!=null && x.AppBillingStatementId==null &&
+            x.AuthorizedAtUtc<cutoff && x.SettledAppRequestOverageUsd>0)
+            .Group<BsonDocument>(new BsonDocument {{"_id",new BsonDocument {{"AppId","$PooledAppId"},
+                {"Month",new BsonDocument("$dateToString",new BsonDocument {{"format","%Y-%m"},{"date","$AuthorizedAtUtc"},{"timezone","UTC"}})}}}})
+            .Sort(new BsonDocument { { "_id.Month", 1 }, { "_id.AppId", 1 } }).Limit(25).ToListAsync(token);
+        accounts.AddRange(appRows.Select(x=>new PaidOverageAccount(PoolSubject(x["_id"]["AppId"].AsString),x["_id"]["Month"].AsString)));
         var creditFilter=Builders<PaidOverageAdjustment>.Filter.Eq(x=>x.BillingStatementId,null) & Builders<PaidOverageAdjustment>.Filter.Or(
-            Builders<PaidOverageAdjustment>.Filter.Lt(x=>x.Month,now.ToString("yyyy-MM",CultureInfo.InvariantCulture)),Builders<PaidOverageAdjustment>.Filter.Lt(x=>x.AmountUsd,0));
-        var credits=await OverageAdjustments.Find(creditFilter).Limit(100).ToListAsync(token);
-        accounts.AddRange(credits.Select(x=>new PaidOverageAccount(x.UserId,x.Month)));
-        return accounts.Distinct().Take(25).ToArray();
+            Builders<PaidOverageAdjustment>.Filter.Lt(x=>x.Month,month),Builders<PaidOverageAdjustment>.Filter.Lt(x=>x.AmountUsd,0));
+        var credits=await OverageAdjustments.Find(creditFilter).SortBy(x=>x.Month).ThenBy(x=>x.Id).Limit(100).ToListAsync(token);
+        accounts.AddRange(credits.Select(x=>new PaidOverageAccount(x.UserId,x.Month,
+            x.UserId?.StartsWith("app:",StringComparison.Ordinal)==true && x.Month==month)));
+        return accounts.Distinct().OrderBy(x=>x.Month,StringComparer.Ordinal).ThenBy(x=>x.UserId,StringComparer.Ordinal).Take(25).ToArray();
     }
     public async Task<IReadOnlyList<PaidOverageStatement>> GetReadyAsync(DateTime now,CancellationToken token) =>
         await OverageStatements.Find(x=>x.State!="paid" && x.State!="void" && x.State!="uncollectible" && x.NextAttemptAtUtc<=now &&

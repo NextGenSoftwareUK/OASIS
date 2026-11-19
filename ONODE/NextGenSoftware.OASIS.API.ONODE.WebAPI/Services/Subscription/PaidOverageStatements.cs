@@ -11,6 +11,8 @@ public sealed class PaidOverageStatement
 {
     public string AppId {get;set;}
     public string PayerAvatarId {get;set;}
+    public string[] AppConsentIds {get;set;}=Array.Empty<string>();
+    public bool CreditsOnly {get;set;}
     [BsonId] public string Id {get;set;}
     public string UserId {get;set;}
     public string Month {get;set;}
@@ -35,12 +37,12 @@ public sealed class PaidOverageStatement
     public int Attempts {get;set;}
     public string LastError {get;set;}
 }
-public sealed record PaidOverageAccount(string UserId,string Month);
+public sealed record PaidOverageAccount(string UserId,string Month,bool CreditsOnly=false);
 public sealed record PaidOverageInvoiceResult(string InvoiceId,string Status,string HostedInvoiceUrl,long Subtotal,long AmountPaid,bool Attempted);
 
 public interface IPaidOverageStatementStore
 {
-    Task<PaidOverageStatement> PrepareAsync(string userId,string month,string requestKey,CancellationToken token);
+    Task<PaidOverageStatement> PrepareAsync(string userId,string month,string requestKey,CancellationToken token,bool creditsOnly=false);
     Task<IReadOnlyList<PaidOverageAccount>> GetClosedAccountsAsync(DateTime now,CancellationToken token);
     Task<IReadOnlyList<PaidOverageStatement>> GetReadyAsync(DateTime now,CancellationToken token);
     Task<IReadOnlyList<PaidOverageStatement>> GetStatementsAsync(string userId,int limit,CancellationToken token);
@@ -55,6 +57,7 @@ public sealed class PaidOverageAdjustment
 {
     public string Scope {get;set;}
     public string SourceStatementId {get;set;}
+    public string SourceOperationId {get;set;}
     public AppRequestChargeTerms AppRequestChargeTerms {get;set;}
     [BsonId] public string Id {get;set;}
     public string UserId {get;set;}

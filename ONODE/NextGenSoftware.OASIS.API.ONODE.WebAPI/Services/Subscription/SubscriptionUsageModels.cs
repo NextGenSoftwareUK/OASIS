@@ -38,6 +38,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public int? PoolShardCountAtAuthorization { get; set; }
         public AppRequestChargeTerms AppRequestChargeTerms { get; set; }
         public string AppBillingStatementId { get; set; }
+        public long AppChargeVersion { get; set; }
         [BsonRepresentation(BsonType.Decimal128)] public decimal ReservedAppRequestOverageUsd { get; set; }
         [BsonRepresentation(BsonType.Decimal128)] public decimal SettledAppRequestOverageUsd { get; set; }
         public string OperationId { get; set; }

@@ -203,7 +203,7 @@ jobs:
           }
 
       - name: Build updated linked ledger host without repeating accepted tests
-        if: ${{ inputs.native_seal && inputs.native_test_filter == 'FullyQualifiedName~AppRequestChargesUseImmutableConsentExactCapsAndSeparatePayers' }}
+        if: ${{ inputs.native_seal && (inputs.native_test_filter == 'FullyQualifiedName~AppRequestChargesUseImmutableConsentExactCapsAndSeparatePayers' || inputs.native_test_filter == 'FullyQualifiedName~AppStatementsFreezePayersAllocateOnceAndRoundAcrossSubscriptions') }}
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner app-request-charge-protocol-build-ci -Operation {

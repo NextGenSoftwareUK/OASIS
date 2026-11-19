@@ -183,10 +183,14 @@ public sealed partial class MongoSubscriptionUsageRepository
             if (checked(pool.ReservedAppRequestOverageUsd + pool.SettledAppRequestOverageUsd + delta) > operation.AppRequestChargeTerms.MonthlyCapUsd)
                 throw new SubscriptionUsageConflictException("APP_CHARGE_CAP_EXCEEDED: Restoring the charge would exceed its original agreed cap.");
         }
+        // Statement allocation writes this same event. A correction must retry with the
+        // committed allocation identity rather than lose its credit between two snapshots.
+        await _events.UpdateOneAsync(session, x => x.OperationId == operation.OperationId,
+            Builders<UsageEventDocument>.Update.Inc(x => x.AppChargeVersion, 1), cancellationToken: ct);
         if (operation.AppBillingStatementId != null)
             await OverageAdjustments.InsertOneAsync(session, new PaidOverageAdjustment {
                 Id = "app-request:" + correction.Id, UserId = PoolSubject(operation.PooledAppId), Month = correction.Month,
-                Scope = OverageScope, SourceStatementId = operation.AppBillingStatementId,
+                Scope = OverageScope, SourceStatementId = operation.AppBillingStatementId, SourceOperationId = operation.OperationId,
                 AppRequestChargeTerms = operation.AppRequestChargeTerms, AmountUsd = delta,
                 Reason = correction.Reason, EvidenceReference = correction.ExternalReference, CreatedAtUtc = correction.OccurredAtUtc
             }, cancellationToken: ct);
