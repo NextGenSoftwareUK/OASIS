@@ -1,0 +1,41 @@
+{
+  "accepted": true,
+  "runId": 44444491948,
+  "jobId": 135293210192,
+  "parentCommit": "37b381df21bd26ae156a613dcfdec9c1185d7d44",
+  "coreCommit": "2ae9c233319258c6f7cf9aae59d23f38d16aae72",
+  "starCommit": "ff20026a1fa6039ca2cc7997b5daa724b079218a",
+  "portalCommit": "52f342e3c31e4c7d50bec04ec65577508da38058",
+  "sdkCommit": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
+  "test": "SubscriptionBrowserUsesActualControllerAndOwnedMongo",
+  "passed": 1,
+  "failed": 0,
+  "skipped": 0,
+  "actorsVerified": 3,
+  "lateSessionResponseIgnored": true,
+  "timings": [
+    { "openMs": 323, "ordersMs": 408 },
+    { "openMs": 93, "ordersMs": 512 },
+    { "openMs": 95, "ordersMs": 515 }
+  ],
+  "billingWrites": 0,
+  "billingFixtureRecordsUnchanged": true,
+  "actualPopupCssSharedReaderAndGeneratedSdk": true,
+  "actualMvcServiceRepositoryAndNativeAvatarStore": true,
+  "isolatedLoopbackMongo": true,
+  "billingDataIsOwnedSeededFixtureNotStripeIssuedPayment": true,
+  "browserAndOwnedRuntimeCacheControlFilesCleanupPassed": true,
+  "ownedProviderAndDatabaseCleanupPassed": true,
+  "ownedMongoContainerCleanupPassed": true,
+  "productionStartupVerified": false,
+  "stripeCheckoutVerified": false,
+  "wholePortalAccepted": false,
+  "liveTimingClaim": false,
+  "deployed": false,
+  "artifact": {
+    "id": 14491969590,
+    "bytes": 3281,
+    "sha256": "24a35c0618e2aa603f675b80ef71fc317d915cfbe9f0c048aaa17dbdee97d188",
+    "inspection": "terminal logs and metadata; no ZIP download"
+  }
+}
