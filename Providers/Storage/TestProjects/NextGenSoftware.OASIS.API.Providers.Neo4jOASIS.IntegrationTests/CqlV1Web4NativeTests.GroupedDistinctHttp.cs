@@ -20,7 +20,8 @@ public sealed partial class CqlV1Web4NativeTests
         => RunGroupedDistinctNativeFixture(providerName, false, true);
 
     private static async Task<int> VerifyGroupedDistinctMixedNativeHttpProvider(
-        IOASISStorageProvider provider, string work, string database, MongoClient? mongo, List<Guid> created)
+        IOASISStorageProvider provider, string work, string database, MongoClient? mongo, List<Guid> created,
+        bool guidCounts = false, Dictionary<string, long>? queryTimings = null)
     {
         var reader = (INativeDataProjectionQueryProvider)provider;
         var actor = Guid.NewGuid();
@@ -50,10 +51,16 @@ public sealed partial class CqlV1Web4NativeTests
                 ownsMongoSource = true;
                 mongoProvider.NativeImportDatabaseName = nativeMongoDatabase;
                 var source = mongo.GetDatabase(nativeMongoDatabase).GetCollection<BsonDocument>(sourceName);
-                await source.InsertManyAsync(new[] {
+                var nativeRows = new[] {
                     new BsonDocument { { "_id", 1 }, { "text", "😀" } },
                     new BsonDocument { { "_id", 2 }, { "text", "abc\0def" } }
-                });
+                };
+                if (guidCounts)
+                {
+                    nativeRows[0].Add("identity", MixedGuidFirst.ToString("D").ToUpperInvariant());
+                    nativeRows[1].Add("identity", MixedGuidSecond.ToString("D"));
+                }
+                await source.InsertManyAsync(nativeRows);
                 fingerprint = async () => (await source.Find(FilterDefinition<BsonDocument>.Empty)
                     .Sort(new BsonDocument("_id", 1)).ToListAsync()).Select(row => row.ToBson()).ToArray();
             }
@@ -67,7 +74,14 @@ public sealed partial class CqlV1Web4NativeTests
                 {
                     await native.OpenAsync();
                     await using var command = native.CreateCommand();
-                    command.CommandText = "CREATE TABLE items(id INTEGER PRIMARY KEY,text TEXT); INSERT INTO items VALUES(1,$emoji),(2,$nul)";
+                    command.CommandText = guidCounts
+                        ? "CREATE TABLE items(id INTEGER PRIMARY KEY,text TEXT,identity TEXT); INSERT INTO items VALUES(1,$emoji,$first),(2,$nul,$second)"
+                        : "CREATE TABLE items(id INTEGER PRIMARY KEY,text TEXT); INSERT INTO items VALUES(1,$emoji),(2,$nul)";
+                    if (guidCounts)
+                    {
+                        command.Parameters.AddWithValue("$first", MixedGuidFirst.ToString("D").ToUpperInvariant());
+                        command.Parameters.AddWithValue("$second", MixedGuidSecond.ToString("D"));
+                    }
                     command.Parameters.AddWithValue("$emoji", "😀");
                     command.Parameters.AddWithValue("$nul", "abc\0def");
                     await command.ExecuteNonQueryAsync();
@@ -82,23 +96,39 @@ public sealed partial class CqlV1Web4NativeTests
                 var prior = await (await inspection.RunAsync($"MATCH (n:{label}) RETURN count(n) AS n")).SingleAsync();
                 Assert.AreEqual(0L, prior["n"].As<long>());
                 ownsNeoSource = true;
-                await (await inspection.RunAsync($"CREATE (:{label} {{text:$emoji}}), (:{label} {{text:$nul}})",
-                    new { emoji = "😀", nul = "abc\0def" })).ConsumeAsync();
-                fingerprint = async () => (await (await inspection.RunAsync(
-                    $"MATCH (n:{label}) RETURN elementId(n) AS key,n.text AS text ORDER BY key")).ToListAsync())
-                    .Select(row => JsonSerializer.SerializeToUtf8Bytes(new { key = row["key"].As<string>(), text = row["text"].As<string>() })).ToArray();
+                if (guidCounts)
+                {
+                    await (await inspection.RunAsync(
+                        $"CREATE (:{label} {{text:$emoji,identity:$first}}), (:{label} {{text:$nul,identity:$second}})",
+                        new { emoji = "😀", nul = "abc\0def", first = MixedGuidFirst.ToString("D").ToUpperInvariant(),
+                            second = MixedGuidSecond.ToString("D") })).ConsumeAsync();
+                    fingerprint = async () => (await (await inspection.RunAsync(
+                        $"MATCH (n:{label}) RETURN elementId(n) AS key,n.text AS text,n.identity AS identity ORDER BY key")).ToListAsync())
+                        .Select(row => JsonSerializer.SerializeToUtf8Bytes(new { key = row["key"].As<string>(),
+                            text = row["text"].As<string>(), identity = row["identity"].As<string>() })).ToArray();
+                }
+                else
+                {
+                    await (await inspection.RunAsync($"CREATE (:{label} {{text:$emoji}}), (:{label} {{text:$nul}})",
+                        new { emoji = "😀", nul = "abc\0def" })).ConsumeAsync();
+                    fingerprint = async () => (await (await inspection.RunAsync(
+                        $"MATCH (n:{label}) RETURN elementId(n) AS key,n.text AS text ORDER BY key")).ToListAsync())
+                        .Select(row => JsonSerializer.SerializeToUtf8Bytes(new { key = row["key"].As<string>(), text = row["text"].As<string>() })).ToArray();
+                }
             }
             var before = await fingerprint();
+            var mappedFields = new Dictionary<string, string> { ["textAlias"] = "text" };
+            if (guidCounts) mappedFields.Add("guidAlias", "identity");
             var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, actor, reader.NativeDataProviderType,
-                sourceName, VirtualHolonMapping.SandboxConnectionName, reader.DescribeVirtualQueryConnection(null),
-                new Dictionary<string, string> { ["textAlias"] = "text" });
+                sourceName, VirtualHolonMapping.SandboxConnectionName, reader.DescribeVirtualQueryConnection(null), mappedFields);
             var original = await mapping.QueryAsync(actor, reader, null,
                 new[] { new NativeRecordFilter("textAlias", CosmicQueryComparisonOperator.Equal, 2L, NativeRecordFunction.Utf16Length) },
-                new[] { "textAlias" }, 1);
+                guidCounts ? new[] { "textAlias", "guidAlias" } : new[] { "textAlias" }, 1);
             Assert.IsFalse(original.IsError, original.Message + original.Exception);
             Assert.AreEqual(1, original.Result.Count);
             await VerifyMappedNativeHttpAsync(provider, mapping, original.Result.Single(),
-                groupedDistinctOnly: true, createdObserver: created.Add);
+                groupedDistinctOnly: true, createdObserver: created.Add,
+                guidDistinct: guidCounts, queryTimings: queryTimings);
             var after = await fingerprint();
             Assert.AreEqual(before.Length, after.Length);
             for (var index = 0; index < before.Length; index++) CollectionAssert.AreEqual(before[index], after[index]);

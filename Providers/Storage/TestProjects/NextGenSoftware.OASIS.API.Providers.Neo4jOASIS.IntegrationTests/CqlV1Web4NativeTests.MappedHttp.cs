@@ -62,7 +62,8 @@ public sealed partial class CqlV1Web4NativeTests
 
     internal static async Task VerifyMappedNativeHttpAsync(IOASISStorageProvider provider,
         VirtualHolonMapping mapping, VirtualHolonRead original, bool groupedDistinctOnly = false,
-        Action<Guid>? createdObserver = null)
+        Action<Guid>? createdObserver = null, bool guidDistinct = false,
+        Dictionary<string, long>? queryTimings = null)
     {
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -89,6 +90,13 @@ public sealed partial class CqlV1Web4NativeTests
             CreatedByAvatarId = mapping.OwnerAvatarId, IsPublic = false, IsActive = true,
             MetaData = new() { ["textAlias"] = groupedDistinctOnly ? "😀" : "important" }
         };
+        if (guidDistinct)
+        {
+            Assert.IsTrue(groupedDistinctOnly);
+            snapshot.MetaData["guidAlias"] = MixedGuidStale;
+            important.MetaData["guidAlias"] = MixedGuidSecond;
+            longer.MetaData["guidAlias"] = MixedGuidFirst;
+        }
         var created = new List<Guid>();
         var authority = new Authority();
         var outbox = new MongoUsageOutboxStore(uri, usageDb);
@@ -141,7 +149,10 @@ public sealed partial class CqlV1Web4NativeTests
                 };
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearer);
                 request.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("D"));
-                return await http.SendAsync(request);
+                var watch = queryTimings == null ? null : System.Diagnostics.Stopwatch.StartNew();
+                var response = await http.SendAsync(request);
+                if (watch != null) queryTimings!.Add("request" + queryTimings.Count, watch.ElapsedMilliseconds);
+                return response;
             }
             if (groupedDistinctOnly)
             {
@@ -150,6 +161,9 @@ public sealed partial class CqlV1Web4NativeTests
                     new CqlProjectionV1Column { MetadataPath = new[] { "textAlias" },
                         ValueType = "String", Nullable = true, Alias = "Text" }
                 };
+                if (guidDistinct)
+                    body.Columns = body.Columns.Append(new CqlProjectionV1Column { Alias = "Identity",
+                        MetadataPath = new[] { "guidAlias" }, ValueType = "Guid", Nullable = true }).ToArray();
                 body.ResultOperation = CqlProjectionV1ResultOperation.Group;
                 body.Skip = 0;
                 body.Take = 1;
@@ -162,11 +176,11 @@ public sealed partial class CqlV1Web4NativeTests
                         new CqlGroupedV1Column { Alias = "Text", KeyAlias = "Text" },
                         new CqlGroupedV1Column { Alias = "Rows", Operation = "LongCount" },
                         new CqlGroupedV1Column { Alias = "Present", Operation = "LongCount",
-                            Selection = new CqlScalarV1Selection { MetadataPath = new[] { "textAlias" },
-                                ValueType = "String", Nullable = true } },
+                            Selection = new CqlScalarV1Selection { MetadataPath = new[] { guidDistinct ? "guidAlias" : "textAlias" },
+                                ValueType = guidDistinct ? "Guid" : "String", Nullable = true } },
                         new CqlGroupedV1Column { Alias = "Unique", Operation = "LongCount", Distinct = true,
-                            Selection = new CqlScalarV1Selection { MetadataPath = new[] { "textAlias" },
-                                ValueType = "String", Nullable = true } }
+                            Selection = new CqlScalarV1Selection { MetadataPath = new[] { guidDistinct ? "guidAlias" : "textAlias" },
+                                ValueType = guidDistinct ? "Guid" : "String", Nullable = true } }
                     },
                     ResultOrder = new[] { new CqlGroupedV1Ordering { Alias = "Present", Descending = true } }
                 };
@@ -235,6 +249,9 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.AreEqual("zz", preserved.Result.MetaData["textAlias"]?.ToString(),
                     "Read-only reconciliation must not rewrite the stored cached copy.");
 
+                if (guidDistinct)
+                    Assert.AreEqual(MixedGuidStale.ToString("D"), preserved.Result.MetaData["guidAlias"]?.ToString(),
+                        "Read-only reconciliation must not rewrite the stale cached GUID.");
                 await app.StopAsync();
                 return;
             }
