@@ -1,5 +1,5 @@
 {
-  "status": "combined_api_and_native_project_compile_accepted_behavior_pending",
+  "status": "verified_cardinality_delta_merged_current_graph_compile_pending",
   "run": 44607073292,
   "job": 135853508585,
   "source": "f20298c90df6cbdbe3d9892e92c261779e154607",
@@ -14,7 +14,7 @@
   "overlappingRoutingFilesMerged": 2,
   "profileAndCosmicRoutingMarkersVerified": true,
   "parentGitlinkManifestPaired": true,
-  "apiBuildAccepted": true,
+  "apiBuildAccepted": false,
   "combinedGraphBehaviorAccepted": false,
   "behaviorTestsSelected": 0,
   "mongoFixtureStarted": false,
@@ -223,5 +223,29 @@
     "operationContractGuardPassed": true,
     "dependencyManifestPassed": true,
     "artifacts": []
+  },
+  "currentCore": "650188d6f08d82b7a9b3af15c48e7d8018a79c78",
+  "cardinalityDeltaIntegration": {
+    "mergedCore": "650188d6f08d82b7a9b3af15c48e7d8018a79c78",
+    "parents": [
+      "96f6baea21c1423795f7effcac208a8f6485b30c",
+      "12c7d01fc97de94ffde0a4a850048a58c049f828"
+    ],
+    "mergeBase": "8cffa72d17439e465e96183186512dfebcc89b97",
+    "changedFilesFromOwnCore": [
+      "Queries/CosmicGroupedResults.cs"
+    ],
+    "additions": 7,
+    "deletions": 2,
+    "allOtherOwnCoreFilesUnchanged": true,
+    "peerAcceptedRuntimeRun": 44612262294,
+    "peerEvidenceIndependentlyReverified": false,
+    "behaviorTestsRepeated": 0,
+    "parentGitlinkManifestPaired": true,
+    "indexManifestCheckPassed": true,
+    "currentMergedGraphCompiled": false,
+    "existingCompileProofSource": "c943fd7bb6db3f36b1254d7955d2d55ad51e8a23",
+    "existingCompileProofCore": "96f6baea21c1423795f7effcac208a8f6485b30c",
+    "activePortraitRunStillFrozenCore": "96f6baea21c1423795f7effcac208a8f6485b30c"
   }
 }
