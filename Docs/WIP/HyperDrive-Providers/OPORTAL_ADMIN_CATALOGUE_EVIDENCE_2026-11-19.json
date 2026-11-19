@@ -26,7 +26,7 @@
   "sdkCommit": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
   "jobId": 135698915826,
   "web6Commit": "ff6244886b96ba05a59e236a1f54b621f630f5ca",
-  "status": "second-attempt-failed-controls-and-typed-conflict-fixed-awaiting-same-case-verification",
+  "status": "second-attempt-failed-corrected-third-attempt-active-not-accepted",
   "runId": 44563508388,
   "bundleCleanupVerified": true,
   "firstAttempt": {
@@ -77,6 +77,9 @@
     "bundleCleanupVerified": true,
     "adminSha256": "323bbf1f4177739f6632cac08083ad5fa07863ae2d971dc118048dda3d4f7360",
     "web6Commit": "db76289bd12aec0863c36ec29b09e9df4722da3b",
-    "realVerification": "pending"
+    "realVerification": "in_progress",
+    "runId": 44568574464,
+    "jobId": 135717082121,
+    "sourceCommit": "9356e73b0bbf574395018c00a00a1565282069d1"
   }
 }
