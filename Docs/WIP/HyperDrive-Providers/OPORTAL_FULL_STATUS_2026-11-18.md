@@ -13,7 +13,7 @@
 | Browser delivery and cache keys | Portal44423712983/job135222990234 SUCCESS; locked qualified WEB4 bundle, source-derived config/avatar/SDK references, dependency/cache cleanup | Source/build verification; no rollout |
 | Real subscription self reads | Run44430620795/job135246768268 SUCCESS on e32819d: one actual MVC/service/native Mongo case passed, zero failures/skips,1s; self plan/cancellation/order fields, foreign-selector isolation, real missing-subscription actor and unchanged record counts | Not browser checkout, Stripe/webhook, production Startup/JWT or paid admission acceptance |
 | Subscription session read fix | Portala21efc7 binds deferred reads to the captured token and drops superseded/stale responses; focused state checks passed | Native self-read acceptance is recorded above; full UI/billing acceptance remains open |
-| Quest fake-success removal | STAR0269f11 removes four generated-data substitutions; conditions4→0, helper references10→0, thirteen actions retained | Task source pin/manifest now0269f11; WEB5 build44433687385 pending. Running deployment revision was not inspected or changed |
+| Quest fake-success removal | STAR0269f11 removes four generated-data substitutions; conditions4→0, helper references10→0, thirteen actions retained | Task source pin/manifest now0269f11; WEB5 build44433687385/job135257123318 passed (zero errors); real quest/backend/browser acceptance remains open. Running deployment revision was not inspected or changed |
 
 The portrait test report was independently checked: artifact14486235839,1898 bytes, SHA25605ab2ee0453218089a184dce68f72171db5f3dcd894cab12cebe4f2c46be6495. Its test results explicitly record portrait Passed/subscription Failed. It was read and disposed in RAM; no archive or extracted file was written.
 
@@ -21,9 +21,9 @@ The portrait test report was independently checked: artifact14486235839,1898 byt
 
 The native subscription self-read case is **accepted for exact qualification e32819d** (Core2ae9c2 and that snapshot's STARda1cbb4). The earlier portrait case is accepted separately on6e7cb7f. Their accepted cases are not being repeated.
 
-**WEB5 build-only run44433687385** now targets actual task source3aab5dca with synchronized STAR0269f11. The complete reviewed STAR delta from prior source pin1330ffc contains the quest fake-success removal, an existing OAPP startup await and its WebUI AutoMapper16.3 correction. This is a new source graph; earlier acceptance must not be generalized to it. No deployment occurred.
+**WEB5 build-only run44433687385 passed** on actual task source3aab5dca with synchronized STAR0269f11. The complete reviewed STAR delta from prior source pin1330ffc contains the quest fake-success removal, an existing OAPP startup await and its WebUI AutoMapper16.3 correction. This is a new source graph; earlier acceptance must not be generalized to it. No deployment occurred.
 
-The first two WEB5 attempts stopped at source inventory checks: seven real portal actions were missing from the route manifest, then three stale seal entries referenced files absent from this task branch. Those exact entries were reviewed and the inventory updated to763 actions. No COSMIC/CQL runtime files were imported or deleted. The gate is retained; build/runtime acceptance is still pending.
+The first two WEB5 attempts stopped at source inventory checks: seven real portal actions were missing from the route manifest, then three stale seal entries referenced files absent from this task branch. Those exact entries were reviewed and the inventory updated to763 actions. No COSMIC/CQL runtime files were imported or deleted. The retained route, V2 parity and pin gates passed, and the actual STAR WebAPI built successfully with zero errors. Real quest runtime acceptance remains pending.
 
 ## Remaining OPORTAL acceptance
 
@@ -34,7 +34,7 @@ The first two WEB5 attempts stopped at source inventory checks: seven real porta
 | Dashboard/performance | Fresh isolated dashboard and subscription-popup measurements, real card/count/navigation flows and regression audit; no current live speed claim |
 | Every screen/popup | Complete the source-derived acceptance ledger and fix actual wiring/backend gaps; static source checks do not sign off interactions |
 | HyperDrive UI | Current status/preferences/deliveries/storage/error flows with real authenticated behavior and performance evidence |
-| WEB5 read surfaces | Real reads and correct STARNET integration/deep links; qualify quest change without generated success data, then continue other affected controllers |
+| WEB5 read surfaces | Real reads and correct STARNET integration/deep links; verify the compiled quest change against real records, empty/error states and actor isolation without generated success data, then continue other affected controllers |
 
 Historical development/Stripe test-mode browser acceptance dated13–14 October remains valid for its exact deployment. It includes checkout, upgrades/proration, cancellation, invoices and overages. It is not a current-release sign-off. Existing November hosted-payment/Wizard owner actions remain in ACTIONS-FOR-DAVID.md; do not duplicate or re-ask them. Three supplier-evidence recoveries remain deferred and must not be replayed, fabricated or deleted.
 
