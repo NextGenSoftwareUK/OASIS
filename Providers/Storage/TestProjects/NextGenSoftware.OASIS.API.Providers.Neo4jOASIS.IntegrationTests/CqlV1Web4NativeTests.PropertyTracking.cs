@@ -23,7 +23,7 @@ public sealed partial class CqlV1Web4NativeTests
     public Task PropertyTrackingUsesNativeAcknowledgementWithoutLosingInflightIntent(string providerName)
         => RunPropertyNativeFixture(providerName, false);
 
-    private async Task RunPropertyNativeFixture(string providerName, bool propertySelection, bool propertyStatus = false, bool propertyRouted = false, bool propertyStored = false, bool propertyWriteRouted = false, bool propertyOwned = false)
+    private async Task RunPropertyNativeFixture(string providerName, bool propertySelection, bool propertyStatus = false, bool propertyRouted = false, bool propertyStored = false, bool propertyWriteRouted = false, bool propertyOwned = false, bool propertyOriginal = false)
     {
         Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -37,7 +37,7 @@ public sealed partial class CqlV1Web4NativeTests
         Directory.CreateDirectory(work);
         var sqlite = Path.Combine(work, "property.sqlite");
         var reportRoot = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT")!);
-        var report = Path.Combine(reportRoot, "TestResults/Neo4jCurrent/" + providerName + (propertyOwned ? "-property-owned-native.json" : propertyWriteRouted ? "-property-write-routed-native.json" : propertyStored ? "-property-status-stored-native.json" : propertyRouted ? "-property-status-routed-native.json" : propertyStatus ? "-property-status-native.json" : propertySelection ? "-property-selection-native.json" : "-property-tracking-native.json"));
+        var report = Path.Combine(reportRoot, "TestResults/Neo4jCurrent/" + providerName + (propertyOriginal ? "-property-original-native.json" : propertyOwned ? "-property-owned-native.json" : propertyWriteRouted ? "-property-write-routed-native.json" : propertyStored ? "-property-status-stored-native.json" : propertyRouted ? "-property-status-routed-native.json" : propertyStatus ? "-property-status-native.json" : propertySelection ? "-property-selection-native.json" : "-property-tracking-native.json"));
         var operations = new HashSet<Guid>(); var complete = false; var checks = 0;
         var client = new MongoClient(mongoUri);
         using (var names = await client.ListDatabaseNamesAsync())
@@ -61,7 +61,7 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsFalse(activation.IsError, activation.Message); active = true;
             var source = new Holon { Id = id, Name = "original", Description = "description", IsActive = true,
                 MetaData = new() { ["original"] = 9007199254740993L } };
-            var boundary = propertyOwned
+            var boundary = propertyOwned || propertyOriginal
                 ? (IRecoveryMutationBoundary)DispatchProxy.Create<IPropertyOutcomeBoundary, OwnedPropertyBoundary>()
                 : propertyRouted
                 ? (IRecoveryMutationBoundary)DispatchProxy.Create<IPropertyOutcomeBoundary, PropertyOutcomeBoundary>()
@@ -86,7 +86,7 @@ public sealed partial class CqlV1Web4NativeTests
 
             var fieldWriter = Guid.NewGuid();
             HolonMetadataEncryptionPolicy? ownedPolicy = null;
-            if (propertyOwned)
+            if (propertyOwned || propertyOriginal)
             {
                 ownedPolicy = new HolonMetadataEncryptionPolicy("owned-property-write", "fixture-key-v1",
                     new RecoveryPreparationKeys(), new[] { HolonPermissions.MetadataKey });
@@ -125,7 +125,13 @@ public sealed partial class CqlV1Web4NativeTests
                 source.MetaData["branch"] = new Dictionary<string, object> { ["selected"] = 1L, ["sibling"] = 2L };
             }
             await Save();
-            if (propertyOwned)
+            if (propertyOriginal)
+            {
+                checks += await VerifyOriginalEditingNativeWrites(provider, manager, (OwnedPropertyBoundary)probe,
+                    authority, source, actor, fieldWriter, ownedPolicy!, operations);
+                Assert.AreEqual(11, checks);
+            }
+            else if (propertyOwned)
             {
                 checks += await VerifyOwnedSelectedNativeWrites(provider, manager, (OwnedPropertyBoundary)probe,
                     authority, source, actor, fieldWriter, ownedPolicy!, operations);
@@ -333,7 +339,17 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.AreEqual(workRoot, Path.GetDirectoryName(Path.GetFullPath(work)));
                 Directory.Delete(work, true);
                 Assert.IsFalse(Directory.Exists(work));
-                if (propertyOwned)
+                if (propertyOriginal)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new {
+                        provider = providerName, checks, successfulHolonWrites = 5,
+                        originalEditingVerified = true, bulkOriginalVerified = true,
+                        nativeRevisionIsolatedVerified = true, staleRevisionRefused = true,
+                        inflightOriginalRetainedVerified = true, afterRebaseSaveVerified = true,
+                        originalAclCannotGrantManageVerified = true, partialGraphNotUpgradedVerified = true,
+                        historicalReplayVerified = true, privatePublicationVerified = true,
+                        inflightFlagClearingVerified = true, noOrdinaryWriteDowngradeVerified = true,
+                        sourceBaselineUnchangedVerified = true, exactCleanupVerified = true }));
+                else if (propertyOwned)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new {
                         provider = providerName, checks, successfulHolonWrites = 5,
                         ownedSelectedSaveVerified = true, fieldOnlyWriteWithoutReadVerified = true,

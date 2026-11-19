@@ -255,25 +255,25 @@ jobs:
             dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SqliteNativeDataImportTests|FullyQualifiedName~AvatarProfileRegistryNativeTests'
             if ($LASTEXITCODE) { throw 'SQLite virtual Holon qualification failed.' }
           }
-      - name: Verify canonical persistent field permission deltas
+      - name: Verify editable comparison originals and immutable native observations
         if: ${{ inputs.property_tracking_only }}
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-property-selection-ci -Operation {
-            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicCanonicalPermissionChangesTests' --logger 'trx;LogFileName=property-canonical-permission-core.trx' --results-directory TestResults/PropertySelection
-            if ($LASTEXITCODE) { throw 'Canonical permission verification failed.' }
-            [xml]$core = Get-Content TestResults/PropertySelection/property-canonical-permission-core.trx
+            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicOriginalPropertyEditingTests' --logger 'trx;LogFileName=property-original-core.trx' --results-directory TestResults/PropertySelection
+            if ($LASTEXITCODE) { throw 'Original comparison editing verification failed.' }
+            [xml]$core = Get-Content TestResults/PropertySelection/property-original-core.trx
             $counts = $core.TestRun.ResultSummary.Counters
-            if ([int]$counts.total -ne 8 -or [int]$counts.passed -ne 8 -or [int]$counts.notExecuted -ne 0) {
-              throw 'Exactly8 new canonical permission controls must execute and pass.'
+            if ([int]$counts.total -ne 20 -or [int]$counts.passed -ne 20 -or [int]$counts.notExecuted -ne 0) {
+              throw 'Exactly20 new original editing controls must execute and pass.'
             }
             $methods = @($core.TestRun.TestDefinitions.UnitTest)
-            if ($methods.Count -lt 1 -or @($methods | Where-Object { $_.TestMethod.className -notlike '*CosmicCanonicalPermissionChangesTests' }).Count) {
-              throw 'Only the new canonical permission class may satisfy this qualification.'
+            if ($methods.Count -lt 1 -or @($methods | Where-Object { $_.TestMethod.className -notlike '*CosmicOriginalPropertyEditingTests' }).Count) {
+              throw 'Only the new original editing class may satisfy this qualification.'
             }
-            $ids = @($core.TestRun.TestDefinitions.UnitTest | Where-Object { $_.TestMethod.className -like '*CosmicCanonicalPermissionChangesTests' } | ForEach-Object { $_.id })
+            $ids = @($core.TestRun.TestDefinitions.UnitTest | Where-Object { $_.TestMethod.className -like '*CosmicOriginalPropertyEditingTests' } | ForEach-Object { $_.id })
             $results = @($core.TestRun.Results.UnitTestResult)
-            if ($results.Count -ne 8 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
+            if ($results.Count -ne 20 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
               throw 'Selection-only acceptance cannot inherit unrelated test results.'
             }
           }
@@ -296,31 +296,31 @@ jobs:
             if (!$ready) { throw 'Neo4j fixture did not become ready.' }
             & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-entity-projection-ci -Operation {
               if ('${{ inputs.property_tracking_only }}' -eq 'true') {
-                dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~OwnedSelectedFieldsUseNativePermissionsEncryptionAndPrivatePublication' --logger 'trx;LogFileName=property-owned-native.trx' --results-directory TestResults/Neo4jCurrent
+                dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~EditableOriginalsPreserveNativeConditionsAndInflightComparisons' --logger 'trx;LogFileName=property-original-native.trx' --results-directory TestResults/Neo4jCurrent
                 if ($LASTEXITCODE) { throw 'Selected native property status verification failed.' }
-                [xml]$native = Get-Content TestResults/Neo4jCurrent/property-owned-native.trx
+                [xml]$native = Get-Content TestResults/Neo4jCurrent/property-original-native.trx
                 $counts = $native.TestRun.ResultSummary.Counters
                 if ([int]$counts.total -ne 3 -or [int]$counts.passed -ne 3 -or [int]$counts.notExecuted -ne 0) {
                   throw 'Exactly3 real selection-bound read-only status cases must execute and pass.'
                 }
                 $ids = @($native.TestRun.TestDefinitions.UnitTest | Where-Object {
-                  $_.TestMethod.name -eq 'OwnedSelectedFieldsUseNativePermissionsEncryptionAndPrivatePublication'
+                  $_.TestMethod.name -eq 'EditableOriginalsPreserveNativeConditionsAndInflightComparisons'
                 } | ForEach-Object { $_.id })
                 $results = @($native.TestRun.Results.UnitTestResult)
                 if ($results.Count -ne 3 -or @($results | Where-Object { $_.testId -notin $ids -or $_.outcome -ne 'Passed' }).Count) {
                   throw 'Unrelated native results cannot satisfy selected-field acceptance.'
                 }
                 foreach ($provider in 'MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS') {
-                  $report = Get-Content "TestResults/Neo4jCurrent/$provider-property-owned-native.json" -Raw | ConvertFrom-Json
+                  $report = Get-Content "TestResults/Neo4jCurrent/$provider-property-original-native.json" -Raw | ConvertFrom-Json
                   if ($report.provider -ne $provider -or $report.checks -ne 11 -or $report.successfulHolonWrites -ne 5 -or
-                      !$report.ownedSelectedSaveVerified -or !$report.fieldOnlyWriteWithoutReadVerified -or
-                      !$report.privatePublicationVerified -or !$report.encryptedSiblingPreservedVerified -or
-                      !$report.encryptedRemovalVerified -or !$report.staleRevisionRefused -or
-                      !$report.fieldAndManageBeforeIoVerified -or !$report.invalidFieldBeforeIoVerified -or
-                      !$report.inflightEditAndFlagsVerified -or !$report.historicalReplayVerified -or
-                      !$report.noOrdinaryWriteDowngradeVerified -or !$report.sourceBaselineUnchangedVerified -or
-                      !$report.exactCleanupVerified) {
-                    throw "Complete owned selected permissions/encryption/publication/native replay/cleanup evidence required for $provider."
+                      !$report.originalEditingVerified -or !$report.bulkOriginalVerified -or
+                      !$report.nativeRevisionIsolatedVerified -or !$report.staleRevisionRefused -or
+                      !$report.inflightOriginalRetainedVerified -or !$report.afterRebaseSaveVerified -or
+                      !$report.originalAclCannotGrantManageVerified -or !$report.partialGraphNotUpgradedVerified -or
+                      !$report.historicalReplayVerified -or !$report.privatePublicationVerified -or
+                      !$report.inflightFlagClearingVerified -or !$report.noOrdinaryWriteDowngradeVerified -or
+                      !$report.sourceBaselineUnchangedVerified -or !$report.exactCleanupVerified) {
+                    throw "Complete original editing/native condition/inflight/permissions/replay/cleanup evidence required for $provider."
                   }
                 }
               } else {
@@ -367,8 +367,8 @@ jobs:
         with:
           name: subscription-protocol-test-results
           path: |
-            ${{ inputs.property_selection_only && 'TestResults/PropertySelection' || inputs.property_tracking_only && 'TestResults/Neo4jCurrent/*property-owned-native*' || 'TestResults' }}
-            ${{ inputs.property_tracking_only && !inputs.property_selection_only && 'TestResults/PropertySelection/property-canonical-permission-core.trx' || '' }}
+            ${{ inputs.property_selection_only && 'TestResults/PropertySelection' || inputs.property_tracking_only && 'TestResults/Neo4jCurrent/*property-original-native*' || 'TestResults' }}
+            ${{ inputs.property_tracking_only && !inputs.property_selection_only && 'TestResults/PropertySelection/property-original-core.trx' || '' }}
       - name: Stop temporary database
         if: ${{ always() && !inputs.property_selection_only }}
         run: docker rm --force usage-mongo
