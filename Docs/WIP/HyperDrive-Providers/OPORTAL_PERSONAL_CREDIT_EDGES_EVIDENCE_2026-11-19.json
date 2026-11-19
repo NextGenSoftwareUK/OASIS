@@ -1,5 +1,5 @@
 {
-  "status": "source-prepared-not-accepted",
+  "status": "qualification-in-progress-not-accepted",
   "localGeneratedOutputs": 0,
   "required": [
     "actual API and changed linked-host builds",
@@ -21,5 +21,8 @@
     "genuine Stripe readiness/nonzero collection",
     "hosted portal/dashboard/popups/performance",
     "full provider/HyperDrive programme"
-  ]
+  ],
+  "sourceCommit": "8faa949afc05c49c9abea143c50eb60e62b82202",
+  "runId": 44524167999,
+  "jobId": 135560243981
 }

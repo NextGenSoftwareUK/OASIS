@@ -13,7 +13,7 @@
   "runId": 44522842704,
   "jobId": 135555650404,
   "scope": "Actual repository authorization/start/native acknowledgement/settlement/allocation/correction with explicit account/readiness/financial-cost inputs",
-  "status": "qualification-in-progress-not-accepted",
+  "status": "accepted-scoped-original-account-accounting",
   "acceptancePending": [
     "actual API/changed linked-host builds",
     "original-account allocation after current routing removal",
@@ -24,5 +24,20 @@
     "missing proof refusal without financial mutation",
     "native statement and monthly ledger conservation",
     "owned database/container/volume absence"
-  ]
+  ],
+  "artifactId": 14529960715,
+  "artifactBytes": 1802,
+  "artifactSha256": "a662f2308b5feab187a9bd5301bdc126b7f6230dbf0e125e19aaad81e184280e",
+  "result": {
+    "nativeMarkersVerified": true,
+    "linkedHostBuildErrors": 0,
+    "apiBuildErrors": 0,
+    "passed": 1,
+    "artifactFilesWritten": 0,
+    "failed": 0,
+    "durationSeconds": 1,
+    "skipped": 0,
+    "ownedDatabaseAbsenceVerified": true,
+    "ownedMongoAbsenceVerified": true
+  }
 }
