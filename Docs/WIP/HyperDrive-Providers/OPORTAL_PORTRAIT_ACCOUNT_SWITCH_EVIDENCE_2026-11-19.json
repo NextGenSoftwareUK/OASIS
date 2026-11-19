@@ -1,5 +1,5 @@
 {
-  "status": "source_prepared_not_compiled_or_executed",
+  "status": "ci_in_progress_not_accepted",
   "test": "PortraitBrowserAccountSwitchUsesActualHttpAndThreeNativeProviders",
   "portal": "7f01ee9fa20eb2853561f06f587e3758b3146717",
   "sdk": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
@@ -28,5 +28,16 @@
   "concurrentNativeUpdateAccepted": false,
   "productionStartupAccepted": false,
   "hostedAccepted": false,
-  "localRuntimeEnvironmentBuildDatabaseCreated": false
+  "localRuntimeEnvironmentBuildDatabaseCreated": false,
+  "run": 44631122426,
+  "job": 135937702915,
+  "source": "851cad03ca112881c129214052e9e3ce34e240b2",
+  "observedStatus": "in_progress",
+  "apiBuildAccepted": false,
+  "newTestCompiled": false,
+  "browserAccepted": false,
+  "nativeIsolationAccepted": false,
+  "fixtureCleanupVerified": false,
+  "browserRuntimeCleanupVerified": false,
+  "currentRootDecoderChangesNotInFrozenRun": true
 }

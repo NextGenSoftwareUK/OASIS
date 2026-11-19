@@ -1,5 +1,5 @@
 {
-  "status": "current_core650_graph_compiled_basic_portrait_scoped_native_accepted",
+  "status": "two_verified_distinct_decoder_lines_integrated_current_compile_pending",
   "sourceCheckpoint": "38d4320ef7cffa3ce8d6c77cb312dee3f42acb9d",
   "core": "96f6baea21c1423795f7effcac208a8f6485b30c",
   "importedFiles": [
@@ -237,7 +237,9 @@
     },
     {
       "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/HolonRepository.Cql.Grouped.cs",
-      "sourceBlob": "c336dd78c330d761d694f0b4312d5f75189d73da"
+      "sourceBlob": "a256bf4fd899484115a2d9487fb9bb2f9e0f4b7f",
+      "originalSourceBlob": "c336dd78c330d761d694f0b4312d5f75189d73da",
+      "sourceCheckpointOverride": "4bc16067885688f60fffa4241a018afed2e14ef4"
     },
     {
       "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/HolonRepository.Cql.Join.cs",
@@ -297,7 +299,9 @@
     },
     {
       "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.GroupDecoder.cs",
-      "sourceBlob": "a8457f1711d4b753440fbcf344534f0bdde8b2e7"
+      "sourceBlob": "2aabe4b73c23f905bd6d31caa53ef73e91f771be",
+      "originalSourceBlob": "a8457f1711d4b753440fbcf344534f0bdde8b2e7",
+      "sourceCheckpointOverride": "4bc16067885688f60fffa4241a018afed2e14ef4"
     },
     {
       "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.GroupFilters.cs",
@@ -776,8 +780,8 @@
   },
   "deletionsApplied": 0,
   "fullHistoryMergePerformed": false,
-  "apiCompiled": true,
-  "nativeProjectCompiled": true,
+  "apiCompiled": false,
+  "nativeProjectCompiled": false,
   "behaviorTestsRun": 0,
   "notes": "Frozen verified Development CQL/provider/native fixture source only; preserve owned profile/index/history/memory implementations and all owned-only files. Batched Git object/hash checks; prior slow serial importer stopped through its owned handle, then all changes reconciled against HEAD and immutable donor. No physical submodule checkout or new runtime/env.",
   "routeInventoryReview": {
@@ -1107,5 +1111,17 @@
     "nativeContractProjectErrors": 0,
     "newPortraitCasePassed": 1,
     "providerAcceptanceComplete": false
+  },
+  "distinctDecoderDelta": {
+    "checkpoint": "4bc16067885688f60fffa4241a018afed2e14ef4",
+    "files": {
+      "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/HolonRepository.Cql.Grouped.cs": "a256bf4fd899484115a2d9487fb9bb2f9e0f4b7f",
+      "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.GroupDecoder.cs": "2aabe4b73c23f905bd6d31caa53ef73e91f771be"
+    },
+    "exactVerifiedBlobs": true,
+    "callsChanged": 2,
+    "peerRuntimeProof": 44612262294,
+    "acceptedCasesRepeated": 0,
+    "currentCompilePending": true
   }
 }

@@ -1,5 +1,5 @@
 {
-  "status": "merged_cardinality_graph_compile_and_basic_portrait_native_accepted_broader_gates_pending",
+  "status": "verified_decoder_companions_integrated_current_compile_pending_account_switch_run_frozen",
   "run": 44607073292,
   "job": 135853508585,
   "source": "f20298c90df6cbdbe3d9892e92c261779e154607",
@@ -14,7 +14,7 @@
   "overlappingRoutingFilesMerged": 2,
   "profileAndCosmicRoutingMarkersVerified": true,
   "parentGitlinkManifestPaired": true,
-  "apiBuildAccepted": true,
+  "apiBuildAccepted": false,
   "combinedGraphBehaviorAccepted": false,
   "behaviorTestsSelected": 0,
   "mongoFixtureStarted": false,
@@ -263,5 +263,16 @@
     "apiCompilerErrors": 0,
     "nativeContractProjectCompilerErrors": 0,
     "selectedPortraitCasePassed": 1
+  },
+  "distinctDecoderCompanions": {
+    "files": {
+      "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/HolonRepository.Cql.Grouped.cs": "a256bf4fd899484115a2d9487fb9bb2f9e0f4b7f",
+      "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.GroupDecoder.cs": "2aabe4b73c23f905bd6d31caa53ef73e91f771be"
+    },
+    "verifiedDevelopment": "4bc16067885688f60fffa4241a018afed2e14ef4",
+    "sourceChange": "Pass column.Distinct to the existing grouped participation owner on Mongo and Neo4j.",
+    "existingPeerProofReused": true,
+    "currentSourceCompiled": false,
+    "activeAccountSwitchRunStillAtPreDecoderSource": "851cad03ca112881c129214052e9e3ce34e240b2"
   }
 }
