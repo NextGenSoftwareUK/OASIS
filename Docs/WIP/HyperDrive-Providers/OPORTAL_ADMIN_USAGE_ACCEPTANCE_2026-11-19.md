@@ -1,3 +1,5 @@
+2026-11-19 ADMIN APP/USER USAGE QUALIFICATION ACTIVE:44590697379/job135795600451 confirmed in_progress in actual WEB4 API build on d49340aa15e99449204c8b1d7466da02d4775e76/Core d2fc611/frozen Portal5ebe7010/SDKd7aa569. Only NEW SubscriptionAdminUsageUsesActualControllersBrowserAndHistoricalTodayCounts selected after current-day aggregate/canonical UUID corrections. API/native/browser/historical-current stats/cancellation/unchanged state/owned cleanup PENDING. Existing ledger inputs qualify reads, not paid provider execution or payment reconciliation. No accepted owner/catalogue/dashboard/subscription/admin case selected again. No shared Atlas/API/Stripe/DNA/worker/deployment/protected535/543 or local runtime/env/build/database/download/archive/results action. Broader full Startup/hosted/payment/portal/provider/HyperDrive gates remain.
+
 # Administrator usage views
 
 Status: root corrections and one NEW focused real-backend case prepared; API build/browser/native state and cleanup pending. No full admin, portal, hosted or payment acceptance.

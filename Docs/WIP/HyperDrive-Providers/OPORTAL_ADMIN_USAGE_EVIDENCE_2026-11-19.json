@@ -1,0 +1,31 @@
+{
+  "status": "first-admin-usage-case-active-not-accepted",
+  "runId": 44590697379,
+  "jobId": 135795600451,
+  "sourceCommit": "d49340aa15e99449204c8b1d7466da02d4775e76",
+  "coreCommit": "d2fc611338f5fc665ff6e514527593208835c145",
+  "portalGenerated": "5ebe7010a2ae2bed66b06c8237c931480e0b1c76",
+  "sdkCommit": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
+  "filter": "FullyQualifiedName~SubscriptionAdminUsageUsesActualControllersBrowserAndHistoricalTodayCounts",
+  "required": [
+    "actual WEB4 API build",
+    "stored Wizard/User/expired authority",
+    "real app KPI/chart/shards/net corrected top users",
+    "historical chart retains current-day/month aggregates",
+    "canonical uppercase administrator UUID lookup",
+    "actual SDK self/owner under Wizard and ordinary owner",
+    "missing app/invalid ID/range refusal",
+    "real superseded/account-switched read cancellation and cleared private outputs",
+    "ordinary403/expired401",
+    "zero business writes",
+    "eight financial collections/app accounts unchanged",
+    "owned flags/manager/provider/database/browser/runtime/cache/control cleanup"
+  ],
+  "existingLedgerInputsOnly": true,
+  "localGeneratedOutputs": 0,
+  "fullStartupAccepted": false,
+  "hostedPerformanceAccepted": false,
+  "stripeAccepted": false,
+  "paidInferenceProviderExecutionAccepted": false,
+  "fullPortalAccepted": false
+}
