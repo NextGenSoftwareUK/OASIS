@@ -1,21 +1,25 @@
 {
-  "status": "running-not-accepted",
+  "status": "accepted-scoped-native-http-controls",
   "filter": "FullyQualifiedName~SubscriptionAppPayNowUsesActualControllerAndOwnedMongo|FullyQualifiedName~SubscriptionAppStatementRecoveryUsesActualControllerAndOwnedMongo",
   "route": "POST /api/subscription/app-owner/{appId}/payg/pay-now",
   "scope": "Actual HTTP/native Mongo/controller/store/zero-due gateway; persisted statement INPUT fixture only",
   "pending": [
-    "API and changed linked-host builds",
-    "new native HTTP verification and cleanup",
-    "SDK/browser/portal wiring",
+    "actual SDK/browser qualification",
+    "fresh operation allocation through public HTTP/SDK/browser",
     "genuine Stripe nonzero collection and signed webhook",
-    "hosted acceptance"
+    "hosted/full portal acceptance"
   ],
   "localGeneratedOutputs": 0,
   "revision": "77aedbd82bbaa1c0c6f3a1a179d37c42212dcdb0",
   "runId": 44502725197,
   "jobId": 135486375634,
-  "conclusion": null,
-  "cleanup": "Pending for this run",
+  "conclusion": "success",
+  "cleanup": {
+    "workflowMongoContainerVolumesRemoved": true,
+    "workflowMongoAbsenceVerified": true,
+    "ownedDbAndProviderFinalizers": "Passed with both cases",
+    "localGeneratedOutputs": 0
+  },
   "previousAttempt": {
     "runId": 44501229490,
     "jobId": 135481246235,
@@ -28,5 +32,28 @@
       "trxArtifact": "Not uploaded: build_only native artifact gate corrected",
       "localGeneratedOutputs": 0
     }
+  },
+  "results": {
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "durationSeconds": 3
+  },
+  "builds": {
+    "actualWeb4ApiErrors": 0,
+    "linkedHostErrors": 0
+  },
+  "artifact": {
+    "id": 14518148553,
+    "bytes": 3765,
+    "sha256": "47c068ffef058f7075a19141b6ad844db83e32a5b152fedd11cb72d483a2beab",
+    "members": [
+      "seal-routing-native.trx"
+    ],
+    "matchingTestOutcomes": [
+      "SubscriptionAppPayNowUsesActualControllerAndOwnedMongo: Passed",
+      "SubscriptionAppStatementRecoveryUsesActualControllerAndOwnedMongo: Passed"
+    ],
+    "inspection": "RAM-only ZIP/TRX inspection and disposal; filesWritten=0"
   }
 }

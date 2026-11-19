@@ -1,5 +1,5 @@
 {
-  "status": "prepared-not-dispatched-not-accepted",
+  "status": "running-not-accepted",
   "portalSource": "dd5ba68c4da35ede5ac98a536a57e0ee4ac2f35b",
   "portalGenerated": "4fd7cfaa497191eb965748277ec73972e1ffe05f",
   "portalBundleRun": 44503528115,
@@ -13,11 +13,13 @@
     "node --check browser runner and SDK dispatcher"
   ],
   "pending": [
-    "current HTTP qualification",
     "actual browser/native result",
     "native/browser/runtime cleanup",
     "genuine Stripe/nonzero/webhook",
     "hosted/full portal acceptance"
   ],
-  "localGeneratedOutputs": 0
+  "localGeneratedOutputs": 0,
+  "revision": "56d1bff19a96c550c6ad51724bbec84b10b0f424",
+  "runId": 44504319506,
+  "jobId": 135491826067
 }
