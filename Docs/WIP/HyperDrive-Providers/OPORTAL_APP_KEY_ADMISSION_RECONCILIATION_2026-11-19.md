@@ -1,6 +1,6 @@
 # App-key admission evidence reconciliation — 19 November 2026
 
-Status: valid-credential admission already accepted; incomplete-configuration defect found in source, not fixed or qualified yet. OPORTAL remains incomplete.
+Status: valid-credential admission already accepted; incomplete-configuration root fix published in Core 13ba34168d21ec583ccb5057a80edc9bac9444ca. New configuration test prepared; compilation and qualification pending. Public negative admission cases remain open. OPORTAL remains incomplete.
 
 ## Retain existing acceptance without rerunning it
 
