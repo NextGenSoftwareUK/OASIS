@@ -5,6 +5,8 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <!-- These are constructor/configuration tests; native cloud checks use the shared integration host. -->
+    <CopyLocalRuntimeTargetAssets>false</CopyLocalRuntimeTargetAssets>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />

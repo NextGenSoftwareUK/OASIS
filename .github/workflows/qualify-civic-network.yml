@@ -2,7 +2,7 @@ name: Qualify bounded Civic network CQL
 
 on:
   push:
-    branches: [work/cosmic-cql-ton-public]
+    branches: [work/cosmic-cql-ton-public, work/cosmic-teaching-release-candidate]
     paths:
       - '.github/workflows/qualify-civic-network.yml'
       - 'Docker/oasis-dependency-versions.env'

@@ -5,13 +5,22 @@ param(
     [Parameter(Mandatory)][string]$ResultsDirectory,
     [string]$Configuration = 'Release',
     [string]$DesktopProject,
+    [string]$BootLoaderProject,
     [switch]$HoloConformance,
+    [switch]$HoloRouting,
+    [switch]$HoloEdgeReplication,
     [string]$CqlProject
 )
 $ErrorActionPreference = 'Stop'
-if ($DesktopProject -and $CqlProject) { throw 'Select one native qualification project.' }
-if ($HoloConformance -and -not $DesktopProject) {
+if (($BootLoaderProject -and ($DesktopProject -or $HoloConformance -or $HoloRouting -or $HoloEdgeReplication -or $CqlProject)) -or
+    ($DesktopProject -and $CqlProject)) {
+    throw 'Select one provider verification path.'
+}
+if (($HoloConformance -or $HoloRouting -or $HoloEdgeReplication) -and -not $DesktopProject) {
     throw 'HoloOASIS conformance requires the integration test project.'
+}
+if ($HoloEdgeReplication -and ($HoloConformance -or $HoloRouting)) {
+    throw 'Select Edge replication on its own.'
 }
 function Assert-CompleteTestReport([string]$Path, [int]$Minimum) {
     [xml]$report = Get-Content -LiteralPath $Path -Raw
@@ -53,6 +62,7 @@ $fixture = (Resolve-Path -LiteralPath $fixture).Path
 $Happ = (Resolve-Path -LiteralPath $Happ).Path
 if ($CqlProject) { $CqlProject = (Resolve-Path -LiteralPath $CqlProject).Path }
 elseif ($DesktopProject) { $DesktopProject = (Resolve-Path -LiteralPath $DesktopProject).Path }
+elseif ($BootLoaderProject) { $BootLoaderProject = (Resolve-Path -LiteralPath $BootLoaderProject).Path }
 else {
     $holonetRoot = Split-Path (Split-Path $Project -Parent) -Parent
     $legacy = Join-Path $holonetRoot 'NextGenSoftware.Holochain.HoloNET.Client.Tests/Fixtures/legacy-oasis.happ'
@@ -63,12 +73,70 @@ else {
 }
 $ResultsDirectory = (Resolve-Path -LiteralPath $ResultsDirectory).Path
 $saved = @{}
-$names = @('OASIS_CQL_HOLOOASIS_NATIVE', 'OASIS_HOLOCHAIN_ADMIN_URI', 'OASIS_HOLOCHAIN_REPORT_DIR', 'HOLONET_LIVE_ADMIN_URI', 'HOLONET_LIVE_HAPP_PATH', 'HOLONET_LIVE_CLONE_HAPP_PATH', 'HOLONET_LIVE_MEMPROOFS_HAPP_PATH', 'HOLONET_LIVE_HC_BIN', 'HOLONET_GENERATE_HAPP_TO', 'HOLONET_GENERATE_HAPP_VERSION', 'HOLONET_LIVE_GENERATED_HAPP_DIR', 'HOLONET_LIVE_GENERATED_SRC_DIR')
+$names = @('OASIS_CQL_HOLOOASIS_NATIVE', 'OASIS_HOLOCHAIN_ADMIN_URI', 'OASIS_HOLOCHAIN_REPORT_DIR', 'OASIS_HOLO_EDGE_RESTART_RECEIPT', 'HOLONET_LIVE_ADMIN_URI', 'HOLONET_LIVE_HAPP_PATH', 'HOLONET_LIVE_CLONE_HAPP_PATH', 'HOLONET_LIVE_MEMPROOFS_HAPP_PATH', 'HOLONET_LIVE_HC_BIN', 'HOLONET_GENERATE_HAPP_TO', 'HOLONET_GENERATE_HAPP_VERSION', 'HOLONET_LIVE_GENERATED_HAPP_DIR', 'HOLONET_LIVE_GENERATED_SRC_DIR')
 foreach ($name in $names) { $saved[$name] = [Environment]::GetEnvironmentVariable($name) }
 $process = $null
+$startConductor = {
+    if (@(Get-NetTCPConnection -LocalPort 65464 -State Listen -ErrorAction SilentlyContinue).Count) {
+        throw 'The fixed conductor port is already in use; refusing to test an unowned process.'
+    }
+    $start = [Diagnostics.ProcessStartInfo]::new($hc)
+    foreach ($arg in @('sandbox', '--piped', '--holochain-path', $conductor, '-f=65464', 'run', '0')) { $start.ArgumentList.Add($arg) }
+    $start.WorkingDirectory = $fixture
+    $start.UseShellExecute = $false
+    $start.CreateNoWindow = $true
+    $start.RedirectStandardInput = $true
+    $start.RedirectStandardOutput = $true
+    $start.RedirectStandardError = $true
+    $process = [Diagnostics.Process]::Start($start)
+    $stdout = $process.StandardOutput.ReadToEndAsync()
+    $stderr = $process.StandardError.ReadToEndAsync()
+    $process.StandardInput.WriteLine('hosted-disposable-fixture')
+    $process.StandardInput.Close()
+    $ready = $false
+    $deadline = [DateTime]::UtcNow.AddSeconds(60)
+    while ([DateTime]::UtcNow -lt $deadline -and -not $process.HasExited) {
+        $socket = [Net.Sockets.TcpClient]::new()
+        try { $socket.Connect('127.0.0.1', 65464); $ready = $true; break }
+        catch [Net.Sockets.SocketException] { Start-Sleep -Milliseconds 500 }
+        finally { $socket.Dispose() }
+    }
+    if (-not $ready) { throw 'Hosted conductor did not become ready within 60 seconds.' }
+}
+$stopConductor = {
+    if ($process) {
+        # Process.WaitForExit waits for hc itself, not all descendants killed by
+        # Kill(entireProcessTree). Retain owned child handles before termination
+        # and await their exit before starting lifecycle tests.
+        $snapshot = @(Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId)
+        $ownedIds = [Collections.Generic.HashSet[int]]::new()
+        [void]$ownedIds.Add($process.Id)
+        do {
+            $added = $false
+            foreach ($item in $snapshot) {
+                if ($ownedIds.Contains([int]$item.ParentProcessId) -and $ownedIds.Add([int]$item.ProcessId)) { $added = $true }
+            }
+        } while ($added)
+        $children = @($ownedIds | Where-Object { $_ -ne $process.Id } | ForEach-Object {
+            Get-Process -Id $_ -ErrorAction SilentlyContinue
+        })
+        if (-not $process.HasExited) { $process.Kill($true) }
+        $process.WaitForExit()
+        foreach ($child in $children) {
+            try {
+                if (-not $child.WaitForExit(30000)) { throw "Owned conductor child PID $($child.Id) failed to exit within 30 seconds." }
+            }
+            finally { $child.Dispose() }
+        }
+        $stdout.GetAwaiter().GetResult() | Set-Content -LiteralPath (Join-Path $fixture 'conductor.stdout.log')
+        $stderr.GetAwaiter().GetResult() | Set-Content -LiteralPath (Join-Path $fixture 'conductor.stderr.log')
+        $process.Dispose()
+        $process = $null
+    }
+}
 Push-Location $fixture
 try {
-    if (-not $DesktopProject -and -not $CqlProject) {
+    if (-not ($DesktopProject -or $BootLoaderProject -or $CqlProject)) {
         $generated = Join-Path (Split-Path $PSScriptRoot -Parent) 'artifacts/holonet-generated-fixture/package'
         $identity = Get-Content (Join-Path $generated 'manifest.json') -Raw | ConvertFrom-Json
         $clientCommit = (& git -C (Split-Path (Split-Path $Project -Parent) -Parent) rev-parse HEAD).Trim()
@@ -103,37 +171,57 @@ try {
         }
     }
     # Embedded lair uses the verified conductor binary; no additional installation.
-    if (@(Get-NetTCPConnection -LocalPort 65464 -State Listen -ErrorAction SilentlyContinue).Count) {
-        throw 'The fixed conductor port is already in use; refusing to test an unowned process.'
-    }
     'hosted-disposable-fixture' | & $hc sandbox --piped create --in-process-lair --root $fixture --directories conductor
     if ($LASTEXITCODE -ne 0) { throw 'Unable to create the hosted conductor sandbox.' }
-    $start = [Diagnostics.ProcessStartInfo]::new($hc)
-    foreach ($arg in @('sandbox', '--piped', '--holochain-path', $conductor, '-f=65464', 'run', '0')) { $start.ArgumentList.Add($arg) }
-    $start.WorkingDirectory = $fixture
-    $start.UseShellExecute = $false
-    $start.CreateNoWindow = $true
-    $start.RedirectStandardInput = $true
-    $start.RedirectStandardOutput = $true
-    $start.RedirectStandardError = $true
-    $process = [Diagnostics.Process]::Start($start)
-    $stdout = $process.StandardOutput.ReadToEndAsync()
-    $stderr = $process.StandardError.ReadToEndAsync()
-    $process.StandardInput.WriteLine('hosted-disposable-fixture')
-    $process.StandardInput.Close()
-    $ready = $false
-    $deadline = [DateTime]::UtcNow.AddSeconds(60)
-    while ([DateTime]::UtcNow -lt $deadline -and -not $process.HasExited) {
-        $socket = [Net.Sockets.TcpClient]::new()
-        try { $socket.Connect('127.0.0.1', 65464); $ready = $true; break }
-        catch [Net.Sockets.SocketException] { Start-Sleep -Milliseconds 500 }
-        finally { $socket.Dispose() }
-    }
-    if (-not $ready) { throw 'Hosted conductor did not become ready within 60 seconds.' }
+    . $startConductor
     $env:HOLONET_LIVE_ADMIN_URI = 'ws://127.0.0.1:65464'
     $env:HOLONET_LIVE_HAPP_PATH = $Happ
     $env:HOLONET_LIVE_HC_BIN = $hc
-    if ($CqlProject) {
+    if ($BootLoaderProject) {
+        $provider = 'HoloOASIS'
+        $storage = @{
+            OASISProviderBootType = 'Warm'
+            HoloOASIS = @{
+                LocalNodeURI = $env:HOLONET_LIVE_ADMIN_URI
+                UseLocalNode = $true
+                UseHoloNetwork = $false
+                HoloNETORMUseReflection = $false
+            }
+        }
+        foreach ($list in @(
+            'AutoFailOverProviders', 'AutoFailOverLocalProviders', 'AutoReplicationProviders',
+            'AutoLoadBalanceProviders', 'AutoFailOverProvidersForAvatarLogin',
+            'AutoFailOverProvidersForCheckIfEmailAlreadyInUse', 'AutoFailOverProvidersForCheckIfUsernameAlreadyInUse',
+            'AutoFailOverProvidersForCheckIfOASISSystemAccountExists'
+        )) {
+            $storage[$list] = $provider
+        }
+        $dna = @{ OASIS = @{
+            HyperDriveMode = 'OASISHyperDrive2'
+            Logging = @{ LoggingFramework = 'Default'; LogToConsole = $false; LogToFile = $false }
+            ErrorHandling = @{ LogAllErrors = $false; LogAllWarnings = $false }
+            Security = @{ SecretKey = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32)) }
+            StorageProviders = $storage
+            OASISHyperDriveConfig = @{
+                EnabledProviders = @($provider)
+                AutoFailoverProviders = @($provider)
+                AutoReplicationProviders = @($provider)
+                LoadBalancingProviders = @($provider)
+            }
+        } }
+        $dnaPath = Join-Path $fixture 'bootloader-dna.json'
+        try {
+            $dna | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $dnaPath
+            dotnet build $BootLoaderProject --configuration $Configuration /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE -ne 0) { throw 'HoloOASIS BootLoader harness build failed.' }
+            dotnet run --no-build --no-restore --configuration $Configuration --project $BootLoaderProject -- $dnaPath $provider
+            if ($LASTEXITCODE -ne 0) { throw 'Native HoloOASIS BootLoader activation failed.' }
+        }
+        finally {
+            if (Test-Path -LiteralPath $dnaPath) { Remove-Item -LiteralPath $dnaPath }
+        }
+    }
+    elseif ($CqlProject) {
         $env:OASIS_CQL_HOLOOASIS_NATIVE = '1'
         & dotnet test $CqlProject --configuration $Configuration --filter 'FullyQualifiedName~CqlHoloOasisConductorTests' --logger 'trx;LogFileName=holo-cql-native.trx' --results-directory $ResultsDirectory /m:2 /nr:false /p:UseSharedCompilation=false --blame-hang-timeout 2m --blame-hang-dump-type none
         if ($LASTEXITCODE -ne 0) { throw 'Native HoloOASIS CQL lifecycle failed.' }
@@ -142,13 +230,29 @@ try {
     elseif ($DesktopProject) {
         $env:OASIS_HOLOCHAIN_ADMIN_URI = $env:HOLONET_LIVE_ADMIN_URI
         $env:OASIS_HOLOCHAIN_REPORT_DIR = $ResultsDirectory
-        $test = if ($HoloConformance) { 'HoloCoreStorageConformance' } else { 'DesktopAvatarAndHolonCrud' }
-        $minimum = if ($HoloConformance) { 2 } else { 1 }
+        $test = if ($HoloEdgeReplication) { 'EdgeReplayKeepsTheOriginalNativeMutation' } elseif ($HoloRouting) { 'HoloNativeRoutingTests' } elseif ($HoloConformance) { 'HoloCoreStorageConformance' } else { 'DesktopAvatarAndHolonCrud' }
+        $minimum = if ($HoloConformance -or $HoloRouting) { 2 } else { 1 }
         $timeoutOptions = @()
         if ($HoloConformance) { $timeoutOptions = @('--blame-hang-timeout', '2m', '--blame-hang-dump-type', 'none') }
+        if ($HoloRouting) { $timeoutOptions += "/p:HoloRoutingTests=true" }
+        if ($HoloEdgeReplication) { $timeoutOptions += "/p:HoloEdgeReplicationTests=true" }
+        $env:OASIS_HOLO_EDGE_RESTART_RECEIPT = $null
+        if ($HoloEdgeReplication -and $env:OASIS_HOLO_EDGE_COORDINATOR_WASM) {
+            $env:OASIS_HOLO_EDGE_RESTART_RECEIPT = Join-Path $fixture 'edge-restart.json'
+        }
         & dotnet test $DesktopProject --configuration $Configuration --filter "FullyQualifiedName~$test" --logger 'trx;LogFileName=holo-desktop-native.trx' --results-directory $ResultsDirectory /m:2 /nr:false /p:UseSharedCompilation=false @timeoutOptions
         if ($LASTEXITCODE -ne 0) { throw "Native Holo Desktop check failed: $test." }
         Assert-CompleteTestReport (Join-Path $ResultsDirectory 'holo-desktop-native.trx') $minimum
+        if ($HoloEdgeReplication -and $env:OASIS_HOLO_EDGE_RESTART_RECEIPT) {
+            if (-not (Test-Path -LiteralPath $env:OASIS_HOLO_EDGE_RESTART_RECEIPT -PathType Leaf)) {
+                throw 'The in-place upgrade did not produce its restart receipt.'
+            }
+            . $stopConductor
+            . $startConductor
+            & dotnet test $DesktopProject --configuration $Configuration --no-build --no-restore --filter "FullyQualifiedName~$test" --logger 'trx;LogFileName=holo-edge-restart.trx' --results-directory $ResultsDirectory @timeoutOptions
+            if ($LASTEXITCODE -ne 0) { throw 'HoloOASIS Edge replay failed after conductor restart.' }
+            Assert-CompleteTestReport (Join-Path $ResultsDirectory 'holo-edge-restart.trx') 1
+        }
     }
     else {
         # Complementary partitions: auto-start owns its conductors and must run only after this one exits.
@@ -158,39 +262,12 @@ try {
     }
 }
 finally {
-    if ($process) {
-        # Process.WaitForExit waits for hc itself, not all descendants killed by
-        # Kill(entireProcessTree). Retain owned child handles before termination
-        # and await their exit before starting lifecycle tests.
-        $snapshot = @(Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId)
-        $ownedIds = [Collections.Generic.HashSet[int]]::new()
-        [void]$ownedIds.Add($process.Id)
-        do {
-            $added = $false
-            foreach ($item in $snapshot) {
-                if ($ownedIds.Contains([int]$item.ParentProcessId) -and $ownedIds.Add([int]$item.ProcessId)) { $added = $true }
-            }
-        } while ($added)
-        $children = @($ownedIds | Where-Object { $_ -ne $process.Id } | ForEach-Object {
-            Get-Process -Id $_ -ErrorAction SilentlyContinue
-        })
-        if (-not $process.HasExited) { $process.Kill($true) }
-        $process.WaitForExit()
-        foreach ($child in $children) {
-            try {
-                if (-not $child.WaitForExit(30000)) { throw "Owned conductor child PID $($child.Id) failed to exit within 30 seconds." }
-            }
-            finally { $child.Dispose() }
-        }
-        $stdout.GetAwaiter().GetResult() | Set-Content -LiteralPath (Join-Path $fixture 'conductor.stdout.log')
-        $stderr.GetAwaiter().GetResult() | Set-Content -LiteralPath (Join-Path $fixture 'conductor.stderr.log')
-        $process.Dispose()
-    }
+    . $stopConductor
     foreach ($name in $names) { [Environment]::SetEnvironmentVariable($name, $saved[$name]) }
     Pop-Location
 }
 
-if ($DesktopProject -or $CqlProject) { return }
+if ($DesktopProject -or $BootLoaderProject -or $CqlProject) { return }
 
 # The upstream lifecycle tests intentionally kill conductor processes. Keep them
 # isolated from the shared-conductor suite, but require their own release report.

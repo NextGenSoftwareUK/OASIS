@@ -14,11 +14,16 @@ public sealed class KarmaWeightingControllerTests
 
         var positive = controller.GetPositiveKarmaWeighting(KarmaTypePositive.OurWorldHelpOtherPlayer);
         var negative = controller.GetNegativeKarmaWeighting(KarmaTypeNegative.OurWorldDropLitter);
+        var catalog = controller.GetWeightings();
 
         Assert.False(positive.IsError, positive.Message);
         Assert.False(negative.IsError, negative.Message);
         Assert.Equal(KarmaManager.GetKarmaForType(KarmaTypePositive.OurWorldHelpOtherPlayer), positive.Result);
         Assert.Equal(KarmaManager.GetKarmaForType(KarmaTypeNegative.OurWorldDropLitter), negative.Result);
+        Assert.False(catalog.IsError, catalog.Message);
+        Assert.Equal(positive.Result, catalog.Result[nameof(KarmaTypePositive.OurWorldHelpOtherPlayer)]);
+        Assert.Equal(-negative.Result, catalog.Result[nameof(KarmaTypeNegative.OurWorldDropLitter)]);
+        Assert.DoesNotContain(nameof(KarmaTypePositive.Other), catalog.Result.Keys);
     }
 
     [Fact]

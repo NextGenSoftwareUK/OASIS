@@ -97,10 +97,14 @@ public class QdrantNativeBoundaryTests
     public async Task NativeCompletedOperationIsRequiredBeforeCallerIdentityChanges(string mode)
     {
         var transport = new Transport { OnSend = async (request, token) => {
+            if (request.Method == HttpMethod.Post)
+                return Json(new { status = "ok", result = Array.Empty<object>() });
             Assert.AreEqual(HttpMethod.Put, request.Method);
             StringAssert.Contains(request.RequestUri!.Query, "wait=true");
             using var body = JsonDocument.Parse(await request.Content!.ReadAsStringAsync(token));
             var point = body.RootElement.GetProperty("points")[0];
+            Assert.AreEqual(JsonValueKind.Object, point.GetProperty("vector").ValueKind);
+            Assert.IsFalse(point.GetProperty("vector").EnumerateObject().Any());
             using var payload = JsonDocument.Parse(point.GetProperty("payload").GetProperty("data_json").GetString()!);
             Assert.AreEqual(point.GetProperty("id").GetGuid(), payload.RootElement.GetProperty("id").GetGuid());
             return mode == "missing" ? Json(new { status = "ok" }) : Json(new {

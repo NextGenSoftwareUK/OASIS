@@ -27,4 +27,8 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.OracleDBOASIS\NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.csproj" />
     <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="OracleSqliteHyperDriveTests.cs" Condition="'$(OracleRoutingTests)' != 'true'" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" Condition="'$(OracleRoutingTests)' == 'true'" />
+  </ItemGroup>
 </Project>

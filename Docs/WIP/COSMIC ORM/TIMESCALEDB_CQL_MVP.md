@@ -92,33 +92,3 @@ Full CAS, graph/history/metadata depth, Timescale-specific querying, replication
 migration and EF/NHibernate parity remain open. Continue breadth with Cassandra.
 Legacy HyperDrive documentation only.
 [Current status](CURRENT_STATUS.md) / [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
-
-## Recovery laptop handoff
-
-Original local acceptance and the Mongo-paired browser evidence are retained
-at `4018c1d7b`. The recovery branch imports the provider authority and tests
-from that snapshot. The original Linux source and browser session are
-historical evidence. Development WEB4 admission and live verification remain
-separate.
-
-All 12 recovered provider tests passed against Core 68743893cb8ab0f0fc3671f7d7c483cb97df2e8e with no skips.
-Recovery TRX SHA256 f737d1a4b63e1fcf464ff9ef4b1bfc3d810066f3f173405e69687887fc86af09.
-
-### Development WEB4 admission candidate
-
-The profile reuses the provider's native UUID selection through Npgsql.
-It requires verified TLS to one Tiger Cloud service, the `tsdb` database,
-and a dedicated `cosmic_reader` account with SELECT on
-`public.oasis_holons`. The protected `CQL_TIMESCALEDB_QUERY_` settings
-are `HOST`, `PORT`, `READER_PASSWORD` and `PROBE_ID`. The host and port
-must match the reviewed catalogue, and the probe must be its first live ID.
-[CockroachDB](COCKROACHDB_CQL_MVP.md) shares the connection validation and
-public-record probe while retaining its own authority and endpoint settings.
-[Tiger Cloud connection details](https://www.tigerdata.com/docs/integrate/find-connection-details).
-
-All ten protected-settings tests passed. Eight TimescaleDB WEB4 admission and nine CockroachDB regression tests passed at Core
-`6eb8d7dd444b2196c7e2bc598e9a21925cf75750`. An approved hosted
-TimescaleDB source and live Development verification remain open.
-Admission TRX SHA256 5cfdb891db31197c71f9e6c60becebbc666a44264e6594ab9f33b36b6294f80b.
-
-11 November UTC: Development 2ec6cd9cce integrates HyperDrive TimescaleDB native storage conformance. CI 43061942830 passed all 52 checks through the shipping Npgsql adapter on TimescaleDB 2.31.0, with the native extension loaded. Independent SQL verified the owned tombstones and empty current tables. Hosted CQL acceptance remains open.

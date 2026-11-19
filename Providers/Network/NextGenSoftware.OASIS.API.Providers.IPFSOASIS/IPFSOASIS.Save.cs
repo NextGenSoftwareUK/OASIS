@@ -66,8 +66,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             if (string.IsNullOrWhiteSpace(providerKey))
                 throw new ArgumentException("A parent IPFS storage key is required.", nameof(providerKey));
             if (version < 0) throw new ArgumentOutOfRangeException(nameof(version));
-            _idLookup = await LoadLookupToJson();
-            var parent = FindIndexEntry("holon", row =>
+            var parent = await ReadIndexEntryAsync("holon", row =>
                 row.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.IPFSOASIS, out var key) && key == providerKey);
             return await LoadHolonsForParentAsync(parent.Value.Id, type, loadChildren, recursive,
                 maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);

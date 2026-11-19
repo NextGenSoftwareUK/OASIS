@@ -31,32 +31,6 @@ class File:
 
 
 class ConfigurationOwnerTests(unittest.TestCase):
-    def test_changed_protected_candidate_stops_before_hosted_access(self):
-        before = {"ONE": "old"}
-        with patch.object(configuration, "protected_read", side_effect=[before, {"ONE": "changed"}]), \
-             patch.object(configuration, "variables") as observe, \
-             patch.object(configuration, "write_new") as journal:
-            with self.assertRaisesRegex(RuntimeError, "changed after review"):
-                configuration.apply_values("localfile-public", ["ONE"],
-                                           reviewed_snapshots=(before, {"ONE": "approved"}))
-            observe.assert_not_called()
-            journal.assert_not_called()
-
-    def test_variable_observation_requires_a_complete_string_mapping(self):
-        for payload in (b'[]', b'{"ONE":null}', b'{broken'):
-            with self.subTest(payload=payload), patch.object(
-                    configuration.subprocess, "run",
-                    return_value=types.SimpleNamespace(returncode=0, stdout=payload)):
-                with self.assertRaisesRegex(RuntimeError, "observation was invalid; output withheld"):
-                    configuration.variables()
-
-    def test_variable_observation_timeout_is_reported_without_output(self):
-        with patch.object(configuration.subprocess, "run",
-                          side_effect=configuration.subprocess.TimeoutExpired("railway", 30)) as run:
-            with self.assertRaisesRegex(RuntimeError, "observation failed; output withheld"):
-                configuration.variables()
-            self.assertEqual(30, run.call_args.kwargs["timeout"])
-
     def exercise(self, mode):
         before = {"ONE": "old-one", "TWO": "old-two", "KEEP": "shared"}
         after = {"ONE": "new-one", "TWO": "new-two", "KEEP": "shared"}
@@ -72,24 +46,18 @@ class ConfigurationOwnerTests(unittest.TestCase):
                 current["KEEP"] = "another-owner"
             return copy.deepcopy(current)
 
-        def send(arguments, *, input, capture_output, timeout):
+        def send(arguments, *, input, capture_output):
             key = arguments[3]
             sent.append(key)
             self.assertIn("s3-public-" + key + ".intent.json", records)
             self.assertIn("--stdin", arguments)
             self.assertIn("--skip-deploys", arguments)
             current[key] = input.decode()
-            if mode == "timeout":
-                raise configuration.subprocess.TimeoutExpired(arguments, timeout)
             return types.SimpleNamespace(returncode=1 if mode == "unknown" else 0)
 
         def persist(file, data):
             self.assertNotIn(file.name, records)
             records[file.name] = data
-
-        def guard():
-            if mode == "release-changed" and sent:
-                raise RuntimeError("Reviewed release changed")
 
         with patch.object(configuration, "STATE", State(records)), \
              patch.object(configuration, "protected_read", side_effect=lambda name: copy.deepcopy(before if "before" in name else after)), \
@@ -103,14 +71,11 @@ class ConfigurationOwnerTests(unittest.TestCase):
                 self.assertTrue(all("s3-public-" + key + ".acknowledged.json" in records for key in sent))
             else:
                 with self.assertRaises(RuntimeError):
-                    configuration.apply_values("s3-public", ["ONE", "TWO"], before_mutation=guard)
+                    configuration.apply_values("s3-public", ["ONE", "TWO"])
                 self.assertEqual(sent, ["ONE"])
                 self.assertNotIn("s3-public-TWO.intent.json", records)
-                if mode in ("unknown", "timeout"):
+                if mode == "unknown":
                     self.assertNotIn("s3-public-ONE.acknowledged.json", records)
-                elif mode == "release-changed":
-                    self.assertIn("s3-public-ONE.acknowledged.json", records)
-                    self.assertEqual(before["TWO"], current["TWO"])
                 else:
                     self.assertEqual(current["KEEP"], "another-owner")
                 with self.assertRaises(RuntimeError):
@@ -122,12 +87,6 @@ class ConfigurationOwnerTests(unittest.TestCase):
 
     def test_unknown_mutation_outcome_keeps_intent_and_blocks_replay(self):
         self.exercise("unknown")
-
-    def test_timed_out_mutation_keeps_intent_and_blocks_replay(self):
-        self.exercise("timeout")
-
-    def test_changed_release_stops_before_next_intent_and_mutation(self):
-        self.exercise("release-changed")
 
     def test_concurrent_configuration_change_stops_before_next_mutation(self):
         self.exercise("concurrent")

@@ -13,7 +13,7 @@
     <Authors>David Ellams (NextGen Software Ltd)</Authors>
     <PackageTags>OASIS API; Native; WEB4; Provider; zkPass; ZKProof; Identity; Privacy</PackageTags>
     <PackageReleaseNotes>- Initial release as part of OASIS Omniverse ecosystem expansion.
-- Implements OASISStorageProviderBase + IOASISBlockchainStorageProvider for zkPass.
+- Verifies recipient-bound zkPass TransGate EVM attestations.
 - Upgraded to .NET 10.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
@@ -24,6 +24,10 @@
     <Version>2.0.1</Version>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Nethereum.Signer" Version="7.0.0" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Include="..\..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>

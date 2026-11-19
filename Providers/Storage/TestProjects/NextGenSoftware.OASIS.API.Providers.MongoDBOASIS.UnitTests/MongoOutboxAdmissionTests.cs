@@ -14,9 +14,13 @@ public class MongoOutboxAdmissionTests
     public class NoIoProxy : DispatchProxy
     {
         public int Calls;
+        public IMongoClient? NativeClient;
         protected override object? Invoke(MethodInfo? method,object?[]? args)
         {
             if(method?.Name=="GetCollection")return Create<IMongoCollection<BsonDocument>,NoIoProxy>();
+            // Reading the database's owner client is a local handle lookup, not a
+            // network/session operation. Any actual client call still fails below.
+            if(method?.Name=="get_Client")return NativeClient;
             Interlocked.Increment(ref Calls);throw new InvalidOperationException("Invalid admission reached native I/O.");
         }
     }
@@ -27,6 +31,7 @@ public class MongoOutboxAdmissionTests
     {
         var context=(MongoDbContext)RuntimeHelpers.GetUninitializedObject(typeof(MongoDbContext));
         context.MongoClient=DispatchProxy.Create<IMongoClient,NoIoProxy>();context.MongoDB=DispatchProxy.Create<IMongoDatabase,NoIoProxy>();
+        ((NoIoProxy)(object)context.MongoDB).NativeClient=context.MongoClient;
         var store=new MongoHolonReplicationOutbox(context);var client=(NoIoProxy)(object)context.MongoClient;
         using var cancellation=new CancellationTokenSource();if(fault=="cancel")cancellation.Cancel();
         if(fault=="cancel")
@@ -45,6 +50,21 @@ public class MongoOutboxAdmissionTests
             Assert.IsTrue(result.IsError);Assert.IsInstanceOfType<ArgumentException>(result.Exception);
         }
         Assert.AreEqual(0,client.Calls);
+    }
+    [TestMethod]
+    public async Task SessionOwnershipComesFromTheNativeDatabaseRatherThanAMutableContextClient()
+    {
+        var context=(MongoDbContext)RuntimeHelpers.GetUninitializedObject(typeof(MongoDbContext));
+        context.MongoClient=DispatchProxy.Create<IMongoClient,NoIoProxy>();
+        var owner=DispatchProxy.Create<IMongoClient,NoIoProxy>();
+        context.MongoDB=DispatchProxy.Create<IMongoDatabase,NoIoProxy>();
+        ((NoIoProxy)(object)context.MongoDB).NativeClient=owner;
+        var store=new MongoHolonReplicationOutbox(context);
+        var result=await store.ClaimNextAsync("target","worker",TimeSpan.FromMinutes(1));
+        Assert.IsTrue(result.IsError);
+        Assert.IsNotNull(result.Exception);
+        Assert.AreEqual(1,((NoIoProxy)(object)owner).Calls);
+        Assert.AreEqual(0,((NoIoProxy)(object)context.MongoClient).Calls);
     }
     [TestMethod]
     public void InactiveSourceCaptureCannotConstructOrOpenANativeQueue()

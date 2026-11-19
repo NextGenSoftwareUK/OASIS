@@ -89,7 +89,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS
 
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ArweaveOASIS] = uploadResult.Result;
                 result.Result = holon;
-                result.Message = $"Holon saved to Arweave permanently. TxId: {uploadResult.Result}";
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = $"Arweave accepted the holon transaction. TxId: {uploadResult.Result}; confirmation/finality is separate.";
             }
             catch (Exception e)
             {
@@ -129,12 +131,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS
                 }
 
                 result.Result = saved;
+                result.SavedCount = saved.Count;
+                result.IsSaved = saved.Count > 0;
 
                 if (errors.Any())
                 {
                     result.Message = $"Saved {saved.Count} holons with {errors.Count} errors";
-                    if (!continueOnError && errors.Any())
-                        OASISErrorHandling.HandleError(ref result, string.Join("; ", errors));
+                    OASISErrorHandling.HandleError(ref result, string.Join("; ", errors));
                 }
                 else
                 {

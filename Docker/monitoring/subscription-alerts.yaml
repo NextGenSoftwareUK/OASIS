@@ -30,6 +30,18 @@ groups:
         annotations:
           summary: Actual provider usage exceeded an approved reservation
           description: Fix the service pricing/quantity upper bound before allowing further affected provider work.
+      - alert: SubscriptionPoolWarning
+        expr: increase(subscription_ledger_pool_threshold_total{threshold="80"}[10m]) > 0
+        labels: {severity: warning}
+        annotations:
+          summary: A pooled app has used 80% of a shared limit
+          description: The app_id label names the app. Contact the app owner or change its plan before the pool is exhausted.
+      - alert: SubscriptionPoolExhausted
+        expr: increase(subscription_ledger_pool_threshold_total{threshold="100"}[10m]) > 0
+        labels: {severity: critical}
+        annotations:
+          summary: A pooled app has used all of a shared limit
+          description: Users of the app are being denied with APP_ codes. Raise the app plan or wait for the period to reset.
       - alert: SubscriptionQuotaExhaustion
         expr: increase(subscription_ledger_denied_total[10m]) > 20
         for: 5m

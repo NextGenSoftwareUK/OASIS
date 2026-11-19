@@ -27,7 +27,8 @@ public static class SandboxSubscriptionRules
         return new SubscriptionUsagePolicy
         {
             MonthlyRequestLimit = ordinary.MonthlyRequestLimit,
-            DailyCallLimit = DailyDemoCalls,
+            // The demo allowance only ever raises the plan's daily limit, never lowers it.
+            DailyCallLimit = ordinary.DailyCallLimit == 0 ? 0 : Math.Max(ordinary.DailyCallLimit, DailyDemoCalls),
             DailyTokenLimit = ordinary.DailyTokenLimit,
             MonthlyBudgetUsd = ordinary.MonthlyBudgetUsd
         };

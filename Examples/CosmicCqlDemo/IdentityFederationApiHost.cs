@@ -209,21 +209,13 @@ public static class IdentityFederationApiHost
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
                 "Read synthetic holons from MongoDB and retained authenticated native Cassandra through HolonManager.", StringComparison.Ordinal)
                 .Replace("Stop demo and clean fixtures", "Stop demo (keep original Cassandra source)", StringComparison.Ordinal);
-        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MinIOOASIS)
-            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
-                "Read synthetic holons from MongoDB and retained authenticated native MinIO objects through HolonManager.", StringComparison.Ordinal)
-                .Replace("Stop demo and clean fixtures", "Stop demo (keep original MinIO source)", StringComparison.Ordinal);
-        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.PouchDBOASIS)
-            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
-                "Read synthetic holons from MongoDB and retained native PouchDB LevelDB records through HolonManager.", StringComparison.Ordinal)
-                .Replace("Stop demo and clean fixtures", "Stop demo (keep original PouchDB source)", StringComparison.Ordinal);
         if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.ElasticsearchOASIS)
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
-                "Read synthetic holons from MongoDB and retained native Elasticsearch canonical records through HolonManager.", StringComparison.Ordinal)
+                "Read synthetic holons from MongoDB and retained authenticated native Elasticsearch through HolonManager.", StringComparison.Ordinal)
                 .Replace("Stop demo and clean fixtures", "Stop demo (keep original Elasticsearch source)", StringComparison.Ordinal);
         if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.OpenSearchOASIS)
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
-                "Read synthetic holons from MongoDB and retained native OpenSearch through HolonManager.", StringComparison.Ordinal)
+                "Read synthetic holons from MongoDB and retained authenticated native OpenSearch through HolonManager.", StringComparison.Ordinal)
                 .Replace("Stop demo and clean fixtures", "Stop demo (keep original OpenSearch source)", StringComparison.Ordinal);
         if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.CouchbaseOASIS)
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
@@ -253,13 +245,9 @@ public static class IdentityFederationApiHost
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
                 "Read synthetic holons from MongoDB and retained authenticated native Typesense through HolonManager.", StringComparison.Ordinal)
                 .Replace("Stop demo and clean fixtures", "Stop demo (keep original Typesense source)", StringComparison.Ordinal);
-        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.ArcadeDBOASIS)
-            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
-                "Read synthetic holons from MongoDB and retained authenticated native ArcadeDB through HolonManager.", StringComparison.Ordinal)
-                .Replace("Stop demo and clean fixtures", "Stop demo (keep original ArcadeDB source)", StringComparison.Ordinal);
         if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SolrOASIS)
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
-                "Read synthetic holons from MongoDB and retained native Solr through HolonManager.", StringComparison.Ordinal)
+                "Read synthetic holons from MongoDB and retained authenticated native Solr through HolonManager.", StringComparison.Ordinal)
                 .Replace("Stop demo and clean fixtures", "Stop demo (keep original Solr source)", StringComparison.Ordinal);
         if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.ChromaOASIS)
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
@@ -277,13 +265,7 @@ public static class IdentityFederationApiHost
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
                 "Read synthetic holons from MongoDB and retained Realtime Database emulator checkpoint for Firebase through HolonManager.", StringComparison.Ordinal)
                 .Replace("Stop demo and clean fixtures", "Stop demo (keep original Firebase checkpoint)", StringComparison.Ordinal);
-        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.QuestDBOASIS)
-            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
-                "Read enrolled synthetic symbol metadata from native QuestDB and private Mongo copies through HolonManager. This is separate from QuestDB holon storage and hosted enrollment.", StringComparison.Ordinal)
-                .Replace("source.Where(row =&gt; selectedIds.Contains(row.Id));",
-                    "source.Where(row =&gt; selectedSymbols.Contains(\n    CosmicQueryMetadata.Value&lt;string&gt;(row, \"QuestDbSymbol\")));", StringComparison.Ordinal)
-                .Replace("Stop demo and clean fixtures", "Stop demo (keep QuestDB symbols)", StringComparison.Ordinal);
-        if (content != null && content.Keys.Any(key => key is not "all" and not "subset"))
+        if (content != null)
         {
             page = page.Replace("<button id=\"subset\">Query two-record subset</button>",
                 "<button id=\"subset\">Query two-record subset</button>" + ContentButtons, StringComparison.Ordinal);
@@ -300,11 +282,8 @@ public static class IdentityFederationApiHost
                 "subset" => ids.Take(2).ToArray(),
                 _ => null
             };
-            // Explicit CQL presets may select by native metadata rather than IDs.
-            // Their predicates and authority are captured by trusted fixture code.
             CosmicQuery<Holon> contentSource = null;
-            content?.TryGetValue(request.Preset, out contentSource);
-            if (selection == null && contentSource == null)
+            if (selection == null && (content == null || !content.TryGetValue(request.Preset, out contentSource)))
                 return Results.BadRequest(new { code = "DEMO_PRESET_REQUIRED" });
 
             try

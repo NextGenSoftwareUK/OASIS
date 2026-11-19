@@ -267,7 +267,7 @@ export default function Providers() {
           <Chip label={`${total} providers`} color="primary" size="medium" />
         </Box>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          All providers are fully implemented and hot-swappable via OASIS HyperDrive.
+          The OASIS inventory tracks 234 shipping provider projects across storage and other capabilities. HyperDrive compatibility and live backend verification vary by provider.
         </Typography>
       </Grid>
       {Object.entries(providers).map(([group, items]) => (

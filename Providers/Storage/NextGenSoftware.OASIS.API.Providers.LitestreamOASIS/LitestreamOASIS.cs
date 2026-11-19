@@ -50,15 +50,8 @@ namespace NextGenSoftware.OASIS.API.Providers.LitestreamOASIS
         };
 
         public LitestreamOASIS(string databasePath)
-            : this(databasePath, false)
         {
-        }
-
-        protected LitestreamOASIS(string databasePath, bool readOnly)
-        {
-            _connectionString = readOnly
-                ? new SqliteConnectionStringBuilder { DataSource = databasePath, Mode = SqliteOpenMode.ReadOnly, Pooling = false }.ConnectionString
-                : $"Data Source={databasePath}";
+            _connectionString = $"Data Source={databasePath}";
             ProviderName = "LitestreamOASIS";
             ProviderDescription = "Litestream provider (continuously replicated SQLite via Microsoft.Data.Sqlite)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LitestreamOASIS);

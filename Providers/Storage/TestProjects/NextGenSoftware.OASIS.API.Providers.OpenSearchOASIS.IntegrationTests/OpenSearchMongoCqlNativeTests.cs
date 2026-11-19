@@ -19,19 +19,22 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.IntegrationTests;
 public class OpenSearchMongoCqlNativeTests
 {
     [TestMethod]
-    [TestCategory("OpenSearchMongoCqlNative")]
     public async Task NativeOpenSearchMongoFederationRunsSdkAndHttpWithProviderProvenance()
     {
 
-        const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        const string mongoUri = "mongodb://127.0.0.1:27039/?replicaSet=cosmicLinuxDemoRs&serverSelectionTimeoutMS=3000";
         const string database = "cosmic_cql_mongo_opensearch_demo";
         Assert.AreEqual(mongoUri, Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
-        var state = Path.GetDirectoryName(Environment.GetEnvironmentVariable("COSMIC_OPENSEARCH_CQL_SOURCE"))!;
-        using var seed = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(state, "source.json")));
-        var opensearchIds = seed.RootElement.GetProperty("LiveIds").EnumerateArray().Select(v => v.GetGuid()).ToArray();
+        Assert.IsTrue(OperatingSystem.IsLinux(), "This preset certifies the admitted Linux provider source.");
+        var state = Environment.GetEnvironmentVariable("OASIS_OPENSEARCH_CQL_STATE")!;
+        Assert.AreEqual("/var/tmp/oasis-opensearch-cql", state);
+        Assert.IsTrue(File.Exists(Path.Combine(state, "environment.json")), "An admitted retained native OpenSearch environment is required.");
+        Assert.IsTrue(File.Exists(Path.Combine(state, "source-snapshot.json")));
+        using var seed = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(state, "demo-seed.json")));
+        var opensearchIds = seed.RootElement.GetProperty("Ids").EnumerateArray().Select(v => v.GetGuid()).Take(3).ToArray();
         var actor = seed.RootElement.GetProperty("Actor").GetGuid();
         using var sourceLease = new FileStream(Path.Combine(state, "environment.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-        Assert.IsTrue(File.Exists(Path.Combine(state, "bootstrap.ack.json")));
+        Assert.IsFalse(File.Exists(Path.Combine(state, "demo-seed.pending.json")));
         var journal = Path.Combine(state, "mongo.pending.json");
         Assert.IsFalse(File.Exists(journal), "Preserve unfinished Mongo fixture.");
         var client = new MongoClient(mongoUri);
@@ -42,11 +45,15 @@ public class OpenSearchMongoCqlNativeTests
         using (var file = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
         { await JsonSerializer.SerializeAsync(file, new { database, actor, ids = records.Select(r => r.Id) }); file.Flush(true); }
 
-        var opensearch = new OpenSearchOASIS(seed.RootElement.GetProperty("Endpoint").GetString()!, null, null, opensearchIds[0]);
+        using var credentials = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(state, "credentials.json")));
+        Assert.AreEqual(Path.Combine(state, "ca.pem"), Environment.GetEnvironmentVariable("SSL_CERT_FILE"));
+        var opensearch = new OpenSearchOASIS("https://localhost:19201",
+            username: credentials.RootElement.GetProperty("username").GetString(),
+            password: credentials.RootElement.GetProperty("password").GetString());
         var mongo = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(mongoUri, database) { IsVersionControlEnabled = false };
         try
         {
-            var activated = await opensearch.ActivateQuerySourceAsync(default); Assert.IsFalse(activated.IsError, activated.Message + activated.Exception);
+            var activated = await opensearch.ActivateProviderAsync(); Assert.IsFalse(activated.IsError, activated.Message + activated.Exception);
             Assert.IsFalse((await mongo.ActivateProviderAsync()).IsError);
             foreach (var record in records)
             {
@@ -81,8 +88,7 @@ public class OpenSearchMongoCqlNativeTests
                     using var http = new HttpClient { BaseAddress = new Uri(address) };
                     var page = await http.GetStringAsync("/");
                     StringAssert.Contains(page, "<title>CQL - Mongo + OpenSearch</title>");
-                    StringAssert.Contains(page, "OpenSearch"); StringAssert.Contains(page, "native OpenSearch");
-                    Assert.IsFalse(page.Contains("authenticated native OpenSearch"), "Loopback fixture uses no OpenSearch account.");
+                    StringAssert.Contains(page, "OpenSearch"); StringAssert.Contains(page, "retained authenticated native OpenSearch");
                     StringAssert.Contains(page, "Query two-record subset");
                     using var forged = await http.PostAsJsonAsync("/api/cql/federation", new { preset = "all", actorId = Guid.NewGuid() });
                     Assert.AreEqual(HttpStatusCode.BadRequest, forged.StatusCode);
@@ -102,17 +108,17 @@ public class OpenSearchMongoCqlNativeTests
                     using var failed = await http.PostAsJsonAsync("/api/cql/federation", new { preset = "all" });
                     Assert.AreEqual(HttpStatusCode.ServiceUnavailable, failed.StatusCode);
                     Assert.IsFalse((await failed.Content.ReadAsStringAsync()).Contains("rows"));
-                    Assert.IsFalse((await opensearch.ActivateQuerySourceAsync(default)).IsError);
+                    Assert.IsFalse((await opensearch.ActivateProviderAsync()).IsError);
                 }
                 finally { await app.StopAsync(); }
             }
-            if (Environment.GetEnvironmentVariable("OASIS_OPENSEARCH_MONGO_SERVE") == "1")
+            if (Environment.GetEnvironmentVariable("COSMIC_OPENSEARCH_MONGO_SERVE") == "1")
             {
                 await using var interactive = CosmicCqlDemo.IdentityFederationApiHost.Build(manager, mongo, opensearch, actor,
-                    opensearchIds, records.Select(r => r.Id), opensearchIds, "http://127.0.0.1:5138");
+                    opensearchIds, records.Select(r => r.Id), opensearchIds, "http://127.0.0.1:5141");
                 await interactive.StartAsync();
                 var ready = Path.Combine(state, "demo-ready.json");
-                await File.WriteAllTextAsync(ready, JsonSerializer.Serialize(new { url = "http://127.0.0.1:5138/", providers = new[] { "MongoDBOASIS", "OpenSearchOASIS" } }));
+                await File.WriteAllTextAsync(ready, JsonSerializer.Serialize(new { url = "http://127.0.0.1:5141/", providers = new[] { "MongoDBOASIS", "OpenSearchOASIS" } }));
                 await interactive.WaitForShutdownAsync(); File.Delete(ready);
             }
             // This exact database was absent before the journal. Verify all owned
@@ -136,7 +142,7 @@ public class OpenSearchMongoCqlNativeTests
             Assert.IsFalse((await mongo.DeActivateProviderAsync()).IsError);
             await client.DropDatabaseAsync(database);
             using (var names = await client.ListDatabaseNamesAsync()) Assert.IsFalse((await names.ToListAsync()).Contains(database));
-            File.Delete(journal);
+                File.Delete(journal);
         }
         finally { await mongo.DeActivateProviderAsync(); await opensearch.DeActivateProviderAsync(); }
     }

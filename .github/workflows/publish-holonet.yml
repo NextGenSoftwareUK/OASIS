@@ -32,10 +32,18 @@ on:
         description: Also create/update this holochain-client-csharp GitHub release (e.g. v4.4.1) with every package + a zip of each attached (blank = skip; needs publish)
         type: string
         default: ''
+      runtime_tag:
+        description: Also attach the phone runtime libraries (Android .aar files and dependencies, iOS bridge, checksums) from this android-service-runtime release to the GitHub release (blank = skip; needs release_tag)
+        type: string
+        default: 'oasis-holochain-0.7-v1.1.0'
 
 jobs:
   publish:
     runs-on: windows-latest
+    # id-token: NuGet Trusted Publishing (no long-lived API key). The nuget.org policy must name this workflow file (publish-holonet.yml).
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout holochain-client-csharp
@@ -131,11 +139,20 @@ jobs:
             nupkgs-libraries/*.nupkg
             holochain-client-csharp/nupkgs/*.nupkg
 
+      - name: NuGet trusted publishing login (short-lived key, nothing stored)
+        id: nuget_login
+        if: inputs.publish
+        continue-on-error: true
+        uses: NuGet/login@v1
+        with:
+          user: dellams
+
       - name: Push to NuGet.org (libraries first, then HoloNET)
         if: inputs.publish
         shell: pwsh
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          # The trusted-publishing key when the login worked, else the NUGET_API_KEY secret.
+          NUGET_API_KEY: ${{ steps.nuget_login.outputs.NUGET_API_KEY || secrets.NUGET_API_KEY }}
         run: |
           if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) { throw 'NUGET_API_KEY is required.' }
           $pushFailed = 0
@@ -160,6 +177,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
           TAG: ${{ inputs.release_tag }}
+          RUNTIME_TAG: ${{ inputs.runtime_tag }}
         run: |
           $repo = 'holochain-open-dev/holochain-client-csharp'
           $version = $env:TAG.TrimStart('v')
@@ -176,6 +194,20 @@ jobs:
             Remove-Item -LiteralPath (Join-Path $dir '[Content_Types].xml') -Force -ErrorAction SilentlyContinue
             Compress-Archive -Path (Join-Path $dir '*') -DestinationPath "release-assets/$($p.BaseName).zip" -Force
           }
+          # The phone runtimes the Android and iOS templates use (published from NextGenSoftwareUK/android-service-runtime): attach the app
+          # libraries to this release too, so one release has the packages and the runtimes together. The runtime APKs and the Swift conductor stay on
+          # the runtime release (they are large and not needed to build a HoloNET app).
+          if (-not [string]::IsNullOrWhiteSpace($env:RUNTIME_TAG)) {
+            $rtDir = Join-Path $env:RUNNER_TEMP 'runtime-release'
+            New-Item -ItemType Directory -Force -Path $rtDir | Out-Null
+            gh release download $env:RUNTIME_TAG --repo NextGenSoftwareUK/android-service-runtime --dir $rtDir --clobber `
+              -p '*.aar' -p 'holochain-android-dependencies.zip' -p 'HoloNETIosBridge.xcframework.zip' -p 'SHA256SUMS.txt'
+            if ($LASTEXITCODE -ne 0) { throw "Cannot download the runtime release $($env:RUNTIME_TAG)" }
+            foreach ($f in Get-ChildItem $rtDir -File) {
+              $name = if ($f.Name -eq 'SHA256SUMS.txt') { 'runtime-SHA256SUMS.txt' } else { $f.Name }
+              Copy-Item $f.FullName (Join-Path release-assets $name)
+            }
+          }
           # Notes: this version's CHANGELOG section.
           $log = Get-Content holochain-client-csharp/CHANGELOG.md -Raw
           $m = [regex]::Match($log, "(?ms)^## v$([regex]::Escape($version))b.*?(?=^## v)")
@@ -189,3 +221,38 @@ jobs:
           }
           gh release upload $env:TAG (Get-ChildItem release-assets/*).FullName --repo $repo --clobber
 
+  # After a real publish, record what was published so the next global release plans cleanly. The global release's
+  # source-aware NuGet plan needs a standalone receipt in Scripts/nuget-publication-provenance.json and pins in
+  # Docker/oasis-dependency-versions.env (+ the HoloNET-ORM gitlink) that match what was published; without them it
+  # refuses ("Component publication requires a reviewed parent dependency-graph receipt"). The receipt is derived from
+  # publication-source-graph.json, which this run recorded from the exact commits it built.
+  record-receipt:
+    needs: publish
+    if: inputs.publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout OASIS master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+      - name: Download the recorded source graph
+        uses: actions/download-artifact@v4
+        with:
+          name: holonet-nupkgs
+          path: published
+      - name: Record receipt, dependency pins and the HoloNET-ORM gitlink
+        run: |
+          set -euo pipefail
+          out=$(python3 Scripts/record_standalone_receipt.py published/publication-source-graph.json .)
+          echo "$out"
+          version=$(echo "$out" | sed -n 's/^version=//p')
+          orm=$(echo "$out" | sed -n 's/^orm_commit=//p')
+          git update-index --add --cacheinfo 160000,"$orm",HoloNET-ORM
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Scripts/nuget-publication-provenance.json Docker/oasis-dependency-versions.env
+          if git diff --cached --quiet; then echo "Receipt and pins already current."; exit 0; fi
+          git commit -m "Record HoloNET $version standalone publication (receipt, dependency pins, HoloNET-ORM gitlink) from run $GITHUB_RUN_ID"
+          git push origin HEAD:master

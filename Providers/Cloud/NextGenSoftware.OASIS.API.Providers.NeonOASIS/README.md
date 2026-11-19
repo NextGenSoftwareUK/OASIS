@@ -29,6 +29,8 @@ Use this package for the responsibility described above, alongside its owning OA
 
 Provider adapters require their respective service configuration and credentials. Runtime libraries require the host application's lifecycle and persistent paths where applicable. Supply only the settings actually required by the owning component; do not copy production DNA into a client or public release.
 
+For a single Neon endpoint, the default pooler setting adds the `-pooler` hostname suffix and preserves any explicit port. Set `UsePooler` to false to use the configured hostname as supplied. Explicit multi-host lists keep their order and ports. When a list contains a Neon endpoint, Npgsql requires certificate and hostname verification for every host in that connection string.
+
 ## Errors and security
 
 For APIs returning `OASISResult<T>`, check `IsError`, `ErrorCode` and `Message`; do not treat a failed result as success. Preserve useful diagnostics without logging access tokens, passwords or private keys. Keep secrets in the host's appropriate protected configuration or platform storage.

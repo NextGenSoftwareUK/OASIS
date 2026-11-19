@@ -1,0 +1,24 @@
+name: BNB Smart Chain BootLoader
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion, Development]
+    paths:
+      - '.github/workflows/bnb-native-bootloader.yml'
+      - 'Scripts/TestHosts/Invoke-BnbBootLoaderActivation.ps1'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.TestHarness/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/EvmProviderFactory.cs'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.Register.cs'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASISDNA.Blockchain.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bootloader:
+    uses: ./.github/workflows/bnb-native-storage.yml
+    with:
+      bootloader_only: true
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}

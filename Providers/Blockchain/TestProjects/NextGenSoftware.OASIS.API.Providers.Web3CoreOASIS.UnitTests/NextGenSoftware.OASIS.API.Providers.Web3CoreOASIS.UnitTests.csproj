@@ -19,6 +19,8 @@
     <Compile Include="EvmFamilyFactoryTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <Compile Include="../../../../OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/EthereumProviderFactory.cs" Link="Production/EthereumProviderFactory.cs" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.EthereumOASIS/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.RootstockOASIS/NextGenSoftware.OASIS.API.Providers.RootstockOASIS.csproj" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.AvalancheOASIS/NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.csproj" />
     <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
   </ItemGroup>
   <ItemGroup>

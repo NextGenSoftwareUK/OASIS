@@ -87,37 +87,3 @@ Evidence `C:/Source/OASIS-cosmic/TestResults/PineconeCqlCurrent/cql-controls.trx
 SHA2562E6A8FE829010D18BC320D57BA9BE176B2C4DC946B1ED82D0B70A0FD5153AF0E.
 Schema TRX SHA256386ADAAECE0AE46ED933E3CBBDBFB04C3A9921865FABB3FFAD0C8D3D925819DC.
 Native/Mongo-paired/browser acceptance stays red; inventory remains62/226.
-
-## Recovery laptop handoff
-
-The recovery branch carries forward the original bounded native fetch,
-schema and acknowledged-save controls from `68797e85c` and `dce9eb918`.
-The original transport tests used controlled responses. An approved
-native index, WEB4 admission and live visitor proof remain open.
-
-The recovery read profile reuses the native 2026-07 fetch decoder for
-both bounded CQL and activation. It verifies exactly one existing public
-teaching record on activation, with no schema or control-plane request.
-New controlled tests cover public and private probe responses.
-
-The eventual hosted index needs a dedicated project and a DataPlaneViewer
-key. Pinecone's current plan rules restrict scoped keys to Standard or
-Enterprise, so an approved qualifying project is a live gate.
-[Fetch contract](https://docs.pinecone.io/reference/api/2026-07/data-plane/fetch) ·
-[Project roles](https://docs.pinecone.io/admin/projects/projects-overview#data-plane-permissions) ·
-[Key plan rules](https://docs.pinecone.io/admin/projects/manage-api-keys).
-
-All 60 provider tests passed at Core ac21b28d7c9950afdc882c708f6fdd9ea72c396b, including the public and
-private activation probes. Provider TRX SHA256 e968aca3f8438372fdf9ec039b7337517d7d578f61b277521805e70407d33a34.
-
-### Development WEB4 admission candidate
-
-The protected CQL_PINECONE_QUERY_ settings are ORIGIN, READER_KEY and
-PROBE_ID. The reviewed catalogue binds the exact data-plane origin and
-first public UUID. WEB4 admits only GET /vectors/fetch in the holons
-namespace with up to 100 distinct canonical UUIDs. The guarded transport
-uses the configured index only and refuses redirects, writes and scans.
-
-All 15 protected-settings tests passed. All eight WEB4 admission tests passed at Core eb4124a7d750f8cfb0e02bb7113b17c3d556fc7d. An approved dense teaching index, a DataPlaneViewer key and
-live visitor evidence remain open.
-Admission TRX SHA256 2dc57789595a44b063af1bfa75dfef77d179b47cd21b9ad084f994090521de73.

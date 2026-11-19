@@ -20,10 +20,11 @@ public sealed class GOMapRouteQueryTests
     private sealed class Replies : HttpMessageHandler
     {
         public int Calls; public string? Fault; public bool FailSecond;
+        public string ExpectedHost { get; init; } = "router.project-osrm.org";
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
         {
             token.ThrowIfCancellationRequested();Calls++;
-            Assert.AreEqual("router.project-osrm.org",request.RequestUri!.Host);
+            Assert.AreEqual(ExpectedHost,request.RequestUri!.Host);
             Assert.IsTrue(request.RequestUri.AbsolutePath.StartsWith("/route/v1/driving/"));
             Assert.IsNull(request.Headers.Authorization);
             var body="{\"code\":\"Ok\",\"routes\":[{\"distance\":12,\"duration\":4,\"geometry\":{\"type\":\"LineString\",\"coordinates\":[[13,52],[13.1,52.1]]},\"extra\":\"retained\"}],\"waypoints\":[{\"location\":[13,52]},{\"location\":[13.1,52.1]}]}";
@@ -60,9 +61,15 @@ public sealed class GOMapRouteQueryTests
     [TestMethod]
     public async Task FullAndSubsetRetainNativePayloadIdentityAndAttribution()
     {
-        using var replies=new Replies();using var source=new GOMapRouteQuerySource(Owner,Keys,replies);
+        var origin = new Uri("https://routing.example/");
+        using var replies = new Replies { ExpectedHost = origin.Host };
+        using var source = new GOMapRouteQuerySource(Owner, Keys, replies, origin);
         Assert.IsFalse((await source.ActivateQuerySourceAsync()).IsError);
-        Check(await Read(source,Ids),Ids);Check(await Read(source,Ids.Take(2).ToArray()),Ids.Take(2).ToArray());
+        var full = await Read(source, Ids);
+        Check(full, Ids);
+        foreach (var row in full.Result)
+            Assert.AreEqual(origin.AbsoluteUri, row.MetaData["GOMapEndpoint"].ToString());
+        Check(await Read(source,Ids.Take(2).ToArray()),Ids.Take(2).ToArray());
         Assert.AreEqual(6,replies.Calls);
     }
     [DataTestMethod]

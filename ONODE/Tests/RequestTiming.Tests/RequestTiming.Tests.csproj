@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/AvatarProfile/AvatarProfilePatch.cs" Link="AvatarProfilePatch.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/AccessLog/AccessLogOverrides.cs" Link="AccessLogOverrides.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Seal/HolonSealSwitches.cs" Link="HolonSealSwitches.cs" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/RequestTimingMiddleware.cs" Link="RequestTimingMiddleware.cs" />
+    <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Helpers/AuthenticationOperationTrace.cs" Link="AuthenticationOperationTrace.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Operations/HostedMongoWorkerControl.cs" Link="HostedMongoWorkerControl.cs" />
+  </ItemGroup>
+</Project>

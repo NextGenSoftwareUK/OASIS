@@ -8,7 +8,6 @@ import copy
 import hashlib
 import importlib.util
 import json
-import os
 import sys
 import uuid
 
@@ -117,26 +116,21 @@ def prepare():
     after = candidate(before, source)
     state = configuration.STATE
     state.mkdir(parents=True, exist_ok=True)
-    for suffix, value in (("before", before), ("candidate", after)):
-        snapshot = state / (PREFIX + "-" + suffix + "-variables.dpapi")
-        if snapshot.exists():
-            if configuration.protected_read(snapshot.name) != value:
-                raise RuntimeError("Protected Hyperlane preparation differs; reconcile before continuing.")
-        else:
-            configuration.write_new(snapshot,
-                configuration.verification.protected_token(configuration.compact(value).encode()))
+    snapshot = state / (PREFIX + "-before-variables.dpapi")
+    if snapshot.exists():
+        if configuration.protected_read(snapshot.name) != before:
+            raise RuntimeError("Baseline changed; reconcile before another candidate.")
+    else:
+        configuration.write_new(snapshot, configuration.verification.protected_token(configuration.compact(before).encode()))
+    configuration.write_new(state / (PREFIX + "-candidate-variables.dpapi"),
+        configuration.verification.protected_token(configuration.compact(after).encode()))
     review = {"changedKeys": KEYS, "profiles": {"HyperlaneOASIS": source},
         "examples": {"HyperlaneOASIS": json.loads(after[KEYS[2]])},
         "dnaUnchanged": before["OASIS_DNA_JSON"] == after["OASIS_DNA_JSON"], "cloudSpend": 0,
         "policy": "explorer-reported-delivery-state", "independentFinalityProof": False}
     target = ROOT / "TestResults/HyperlanePublicSourceCurrent/prepared-review.json"
     target.parent.mkdir(parents=True, exist_ok=True)
-    review_bytes = (json.dumps(review, indent=2) + "\n").encode()
-    if target.exists():
-        if target.read_bytes() != review_bytes:
-            raise RuntimeError("Existing Hyperlane review differs; reconcile before continuing.")
-    else:
-        configuration.write_new(target, review_bytes)
+    configuration.write_new(target, (json.dumps(review, indent=2) + "\n").encode())
     print("Protected Hyperlane message candidate prepared: three values, four presets; no service mutation or deployment.")
 
 
@@ -145,8 +139,7 @@ def apply():
     after = configuration.protected_read(PREFIX + "-candidate-variables.dpapi")
     if candidate(before, qualified_source()) != after:
         raise RuntimeError("Reviewed candidate/source differs; no mutation permitted.")
-    release_ref = os.environ.get("COSMIC_CQL_REVIEWED_RELEASE_REF", "HEAD")
-    module("Prepare-TenSourcePublicBatch").require_matching_release(configuration, release_ref=release_ref)
+    module("Prepare-TenSourcePublicBatch").require_matching_release(configuration)
     configuration.apply_values(PREFIX, KEYS)
 
 

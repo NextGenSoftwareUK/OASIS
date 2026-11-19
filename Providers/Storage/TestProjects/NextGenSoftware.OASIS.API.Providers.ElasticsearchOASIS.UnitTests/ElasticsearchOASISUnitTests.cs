@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.UnitTests
     [TestClass]
     public class ElasticsearchOASISProviderTests
     {
-        private ElasticsearchOASIS _provider;
+        private ElasticsearchOASIS _provider = null!;
 
         [TestInitialize]
         public void Setup()
@@ -38,12 +38,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.UnitTests
         {
             Assert.IsNotNull(_provider.ProviderDescription);
             Assert.IsFalse(string.IsNullOrEmpty(_provider.ProviderDescription));
-        }
-
-        [TestMethod]
-        public void QueryProviderType_ShouldMatchStorageProvider()
-        {
-            Assert.AreEqual(_provider.ProviderType.Value, _provider.QueryProviderType);
         }
 
         [TestCleanup]

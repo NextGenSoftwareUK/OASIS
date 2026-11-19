@@ -28,8 +28,17 @@ jobs:
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
-      - name: Checkout pinned build dependencies
-        uses: ./OASIS/.github/actions/checkout-pinned-build-dependencies
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
+
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          path: holochain-client-csharp
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
@@ -64,8 +73,17 @@ jobs:
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
-      - name: Checkout pinned build dependencies
-        uses: ./OASIS/.github/actions/checkout-pinned-build-dependencies
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
+
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          path: holochain-client-csharp
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
@@ -100,8 +118,17 @@ jobs:
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
-      - name: Checkout pinned build dependencies
-        uses: ./OASIS/.github/actions/checkout-pinned-build-dependencies
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
+
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          path: holochain-client-csharp
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v6

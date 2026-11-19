@@ -9,32 +9,66 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
-public partial class MongoDBOASIS : ICommittedHolonReplicaStorageProvider, ICommittedHolonReplicaInitializationStorageProvider
+public partial class MongoDBOASIS : IBoundCommittedHolonReplicaStorageProvider, ICommittedHolonReplicaInitializationStorageProvider, IHolonReplicaHeadAuditStorageProvider, ICommittedHolonReplicaReceiptStorageProvider
 {
+    public Task<OASISResult<CommittedHolonReplicaReceiptEvidence>> ReadCommittedHolonReplicaReceiptAsync(
+        CommittedHolonReplicaReceiptReadRequest request, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!IsProviderActivated || _holonRepository == null)
+            return Task.FromResult(new OASISResult<CommittedHolonReplicaReceiptEvidence> {
+                IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_REPLICA_RECEIPT_NOT_READY",
+                Message = "Activate the existing Mongo receiver before reading its historical receipt." });
+        return _holonRepository.ReadCommittedHolonReplicaReceiptAsync(request, cancellationToken);
+    }
+
+    public Task<OASISResult<HolonReplicaHeadReadResult>> ReadHolonReplicaHeadsAsync(
+        HolonReplicaHeadReadRequest request, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!IsProviderActivated || _holonRepository == null)
+            return Task.FromResult(new OASISResult<HolonReplicaHeadReadResult> {
+                IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_REPLICA_HEAD_AUDIT_NOT_READY",
+                Message = "Activate the existing Mongo replica before reading its evidence." });
+        return _holonRepository.ReadHolonReplicaHeadsAsync(request, cancellationToken);
+    }
+
+    public OASISResult<IEnumerable<IHolon>> ApplyBoundCommittedHolonReplica(CommittedHolonReplicaRequest request,
+        CosmicStorageIdentity expectedStorage)
+        => ApplyBoundCommittedHolonReplicaAsync(request, expectedStorage).GetAwaiter().GetResult();
+
+    public Task<OASISResult<IEnumerable<IHolon>>> ApplyBoundCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,
+        CosmicStorageIdentity expectedStorage, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(expectedStorage);
+        return ApplyReplicaAsync(request, false, expectedStorage, cancellationToken);
+    }
+
     public OASISResult<IEnumerable<IHolon>> ApplyCommittedHolonReplica(CommittedHolonReplicaRequest request)
         => ApplyCommittedHolonReplicaAsync(request).GetAwaiter().GetResult();
 
-    public async Task<OASISResult<IEnumerable<IHolon>>> ApplyCommittedHolonReplicaAsync(
+    public Task<OASISResult<IEnumerable<IHolon>>> ApplyCommittedHolonReplicaAsync(
         CommittedHolonReplicaRequest request, CancellationToken cancellationToken = default)
-        => await ApplyReplicaAsync(request, false, cancellationToken).ConfigureAwait(false);
+        => ApplyReplicaAsync(request, false, null, cancellationToken);
 
     public OASISResult<IEnumerable<IHolon>> InitializeCommittedHolonReplica(CommittedHolonReplicaRequest request)
         => InitializeCommittedHolonReplicaAsync(request).GetAwaiter().GetResult();
 
     public Task<OASISResult<IEnumerable<IHolon>>> InitializeCommittedHolonReplicaAsync(
         CommittedHolonReplicaRequest request, CancellationToken cancellationToken = default)
-        => ApplyReplicaAsync(request, true, cancellationToken);
+        => ApplyReplicaAsync(request, true, null, cancellationToken);
 
     private async Task<OASISResult<IEnumerable<IHolon>>> ApplyReplicaAsync(
-        CommittedHolonReplicaRequest request, bool initialize, CancellationToken cancellationToken)
+        CommittedHolonReplicaRequest request, bool initialize, CosmicStorageIdentity expectedStorage, CancellationToken cancellationToken)
     {
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
+            CommittedHolonReplicaPlan.ValidateNativeDestination(request, expectedStorage);
             var plan = initialize ? CommittedHolonReplicaPlan.CreateInitialBaseline(request, Core.Enums.ProviderType.MongoDBOASIS)
                 : CommittedHolonReplicaPlan.Create(request, Core.Enums.ProviderType.MongoDBOASIS);
             return await SaveGraphsAtomicAsync(request.Roots, request.SaveChildren, request.Recursive,
-                request.MaxChildDepth, 0, plan, request.ActorId, cancellationToken).ConfigureAwait(false);
+                request.MaxChildDepth, 0, plan, request.ActorId, cancellationToken, expectedStorage: expectedStorage).ConfigureAwait(false);
         }
         catch (Exception cause)
         {

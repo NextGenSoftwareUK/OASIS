@@ -69,7 +69,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>Reserve against the authenticated avatar and independently authenticated consuming service.</summary>
         [Microsoft.AspNetCore.Authorization.Authorize]
         [HttpPost("usage/authorize")]
-        public async Task<ActionResult> AuthorizeUsage([FromBody] UsageAuthorizationRequest request)
+        public async Task<ActionResult> AuthorizeUsage([FromBody] UsageAuthorizationRequest request, [FromServices] OASISSub.IAppAccountRepository appAccounts = null)
         {
             var userId = GetCurrentUserId();
             if (string.IsNullOrEmpty(userId)) return Unauthorized(new { IsError = true, Message = "User not authenticated." });
@@ -78,7 +78,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 if (request == null) return BadRequest(new { IsError = true, Code = "INVALID_USAGE_AUTHORIZATION" });
                 if (request.GrantId != null) return BadRequest(new { IsError = true, Code = "INVALID_USAGE_AUTHORIZATION", Message = "Delegated grants are only accepted on usage/authorize-delegated." });
                 OASISSub.SubscriptionServiceIdentity.RequireService(HttpContext, _configuration, request.ConsumingService);
-                var decision = await _subscriptionService.AuthorizeUsageAsync(userId, await GetCurrentKarmaAsync(userId), request, HttpContext.RequestAborted);
+                // Optional app credentials (forwarded by the consuming service): the app's plan applies if it beats the user's own.
+                var (app, appError) = await ResolveAppAsync(appAccounts);
+                if (appError != null) return appError;
+                var karma = await GetCurrentKarmaAsync(userId);
+                var decision = app == null
+                    ? await _subscriptionService.AuthorizeUsageAsync(userId, karma, request, HttpContext.RequestAborted)
+                    : await _subscriptionService.AuthorizeUsageAsync(userId, karma, request, app, HttpContext.RequestAborted);
                 return StatusCode(decision.StatusCode, decision);
             }
             catch (UnauthorizedAccessException ex) { return Unauthorized(new { IsError = true, Code = "SERVICE_IDENTITY_REQUIRED", ex.Message }); }
@@ -297,14 +303,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 if (string.IsNullOrWhiteSpace(secretKey))
                     return StatusCode(500, new { IsError = true, Message = "Stripe not configured. Set STRIPE_SECRET_KEY environment variable." });
 
-                StripeConfiguration.ApiKey = secretKey;
-
                 var avatarId = GetCurrentUserId();
                 if (!Guid.TryParseExact(avatarId, "D", out _)) return Unauthorized(new { IsError = true, Message = "An authenticated avatar is required for checkout." });
                 var priceId = GetStripePriceId(plan.Id);
                 if (string.IsNullOrWhiteSpace(priceId))
                     return StatusCode(500, new { IsError = true, Message = $"No Stripe Price ID configured for plan '{plan.Id}'. Set STRIPE_PRICE_{plan.Id.ToUpper()} environment variable." });
 
+                var metadata = new Dictionary<string, string>
+                {
+                    ["avatar_id"] = avatarId,
+                    ["plan_id"] = plan.Id,
+                    ["oasis_ledger_scope"] = OASISSub.SubscriptionMongoConfiguration.DatabaseName(_configuration)
+                };
                 var options = new Stripe.Checkout.SessionCreateOptions
                 {
                     PaymentMethodTypes = new List<string> { "card" },
@@ -317,16 +327,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     CancelUrl = request.CancelUrl ?? "https://oasisomniverse.one/checkout/cancel",
                     Customer = existing?.StripeCustomerId,
                     CustomerEmail = string.IsNullOrEmpty(existing?.StripeCustomerId) ? request.CustomerEmail : null,
-                    SubscriptionData = new Stripe.Checkout.SessionSubscriptionDataOptions { Metadata = new Dictionary<string, string> { { "avatar_id", avatarId }, { "plan_id", plan.Id } } },
-                    Metadata = new Dictionary<string, string>
-                    {
-                        { "avatar_id", avatarId },
-                        { "plan_id", plan.Id }
-                    }
+                    SubscriptionData = new Stripe.Checkout.SessionSubscriptionDataOptions { Metadata = metadata },
+                    Metadata = metadata
                 };
 
                 var service = new Stripe.Checkout.SessionService(StripeClient());
-                var session = await service.CreateAsync(options);
+                var session = await service.CreateAsync(options, cancellationToken: HttpContext.RequestAborted);
 
                 return Ok(new CreateCheckoutSessionResponse
                 {
@@ -365,8 +371,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {return StatusCode(503,new {IsError=true,Message=ex.Message});}
         }
 
-        internal static string CheckoutSuccessUrl(string url) =>
-            url + (url.Contains('?') ? "&" : "?") + "subscribed=1&session_id={CHECKOUT_SESSION_ID}";
+        internal static string CheckoutSuccessUrl(string url)
+        {
+            int fragmentStart = url.IndexOf('#');
+            string destination = fragmentStart < 0 ? url : url[..fragmentStart];
+            string fragment = fragmentStart < 0 ? string.Empty : url[fragmentStart..];
+            string separator = destination.Contains('?') ? "&" : "?";
+            return destination + separator + "subscribed=1&session_id={CHECKOUT_SESSION_ID}" + fragment;
+        }
 
         [Authorize]
         [HttpGet("checkout/session/{sessionId}")]
@@ -376,8 +388,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!Guid.TryParseExact(userId, "D", out _)) return Unauthorized();
             if (string.IsNullOrWhiteSpace(sessionId) || !sessionId.StartsWith("cs_", StringComparison.Ordinal))
                 return BadRequest(new { IsError=true, Message="A Stripe checkout session ID is required." });
-            var session = await new Stripe.Checkout.SessionService(StripeClient()).GetAsync(sessionId, cancellationToken: HttpContext.RequestAborted);
-            if (session.Metadata?.GetValueOrDefault("avatar_id") != userId) return Forbid();
+            Stripe.Checkout.Session session;
+            try
+            {
+                session = await new Stripe.Checkout.SessionService(StripeClient()).GetAsync(sessionId, cancellationToken: HttpContext.RequestAborted);
+            }
+            catch (StripeException ex) when (ex.HttpStatusCode == System.Net.HttpStatusCode.NotFound && ex.StripeError?.Code == "resource_missing")
+            {
+                return NotFound(new { IsError = true, Message = "The Stripe checkout session could not be found." });
+            }
+            if (IsOtherLedger(session.Metadata) || session.Metadata?.GetValueOrDefault("avatar_id") != userId) return Forbid();
             var record = await _subscriptionService.GetSubscriptionAsync(userId);
             bool activated = session.Status == "complete" && (session.PaymentStatus is "paid" or "no_payment_required") &&
                 record != null && record.StripeSubscriptionId == session.SubscriptionId && (record.Status is "active" or "trialing");
@@ -427,6 +447,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 case "checkout.session.completed":
                     var checkout = RequireStripeObject<Stripe.Checkout.Session>(stripeEvent);
+                    if (IsOtherLedger(checkout.Metadata)) return "other_ledger_checkout";
                     subscriptionId = checkout.SubscriptionId;
                     userId = checkout.Metadata?.GetValueOrDefault("avatar_id");
                     break;
@@ -434,8 +455,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 case "customer.subscription.updated":
                 case "customer.subscription.deleted":
                     var subscription = RequireStripeObject<Stripe.Subscription>(stripeEvent);
-                    var sourceScope=subscription.Metadata?.GetValueOrDefault("oasis_ledger_scope");
-                    if(!string.IsNullOrEmpty(sourceScope) && sourceScope!=OASISSub.SubscriptionMongoConfiguration.DatabaseName(_configuration))return "other_ledger_subscription";
+                    if (IsOtherLedger(subscription.Metadata)) return "other_ledger_subscription";
                     subscriptionId = subscription.Id;
                     userId = subscription.Metadata?.GetValueOrDefault("avatar_id");
                     if (string.IsNullOrEmpty(userId))
@@ -462,8 +482,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     if (string.IsNullOrEmpty(userId))
                     {
                         var invoiceSubscription = await new Stripe.SubscriptionService(StripeClient()).GetAsync(subscriptionId, cancellationToken: HttpContext.RequestAborted);
-                        var invoiceScope=invoiceSubscription.Metadata?.GetValueOrDefault("oasis_ledger_scope");
-                        if(!string.IsNullOrEmpty(invoiceScope) && invoiceScope!=OASISSub.SubscriptionMongoConfiguration.DatabaseName(_configuration))return "other_ledger_subscription_invoice";
+                        if (IsOtherLedger(invoiceSubscription.Metadata)) return "other_ledger_subscription_invoice";
                         userId = invoiceSubscription.Metadata?.GetValueOrDefault("avatar_id");
                     }
                     break;
@@ -484,6 +503,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             bool applied = await _billingRepository.ApplyStripeEventAsync(stripeEvent.Id, fingerprint, userId, stripeEvent.Created, async ct =>
             {
                 var canonical = await new Stripe.SubscriptionService(StripeClient()).GetAsync(subscriptionId, cancellationToken: ct);
+                if (IsOtherLedger(canonical.Metadata))
+                    throw new InvalidOperationException("Canonical Stripe subscription belongs to a different billing ledger.");
                 var matchingPlans = Plans.Where(plan => canonical.Items?.Data?.Any(item => item.Price?.Id == GetStripePriceId(plan.Id) && !string.IsNullOrEmpty(item.Price?.Id)) == true).ToList();
                 if (matchingPlans.Count != 1) throw new InvalidOperationException("Canonical Stripe subscription must match exactly one configured OASIS plan price.");
                 var canonicalOwner = canonical.Metadata?.GetValueOrDefault("avatar_id");
@@ -495,6 +516,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     CurrentPeriodStart = canonical.CurrentPeriodStart, CurrentPeriodEnd = canonical.CurrentPeriodEnd, CancelAtPeriodEnd=canonical.CancelAtPeriodEnd, CreatedAt = canonical.Created };
             }, order, HttpContext.RequestAborted);
             return applied ? "applied" : "already_applied";
+        }
+
+        private bool IsOtherLedger(Dictionary<string, string> metadata)
+        {
+            var scope = metadata?.GetValueOrDefault("oasis_ledger_scope");
+            return !string.IsNullOrEmpty(scope) && scope != OASISSub.SubscriptionMongoConfiguration.DatabaseName(_configuration);
         }
 
         private static T RequireStripeObject<T>(Event stripeEvent) where T : class =>
@@ -647,21 +674,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Unauthorized(new { IsError = true, Message = "User not authenticated." });
 
             var now = DateTime.UtcNow;
-            var usage = await _subscriptionService.GetUsageAsync(userId, now.Year, now.Month);
-            var record = await _subscriptionService.GetSubscriptionAsync(userId);
+            var month = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            var ledgerTask = _usageRepository.GetAggregateForPeriodAsync(userId, month, HttpContext.RequestAborted);
+            var recordTask = _subscriptionService.GetSubscriptionAsync(userId);
+            await Task.WhenAll(ledgerTask, recordTask);
+            var ledger = await ledgerTask;
+            var record = await recordTask;
+            var requests = ledger.MonthlyRequests;
             var planId = record?.PlanId ?? "free";
             var plan = Plans.FirstOrDefault(p => p.Id == planId);
             var limit = plan?.MaxRequestsPerMonth ?? 1000;
-            var ledger = _usageRepository == null ? null : await _usageRepository.GetAggregateForPeriodAsync(userId,new DateTime(now.Year,now.Month,1,0,0,0,DateTimeKind.Utc),HttpContext.RequestAborted);
 
             return Ok(new
             {
                 currentMonth = new
                 {
-                    requests = usage.RequestCount,
+                    requests,
                     limit,
-                    remaining = limit < 0 ? -1 : Math.Max(0, limit - usage.RequestCount),
-                    overage = limit < 0 ? 0 : Math.Max(0, usage.RequestCount - limit)
+                    remaining = limit < 0 ? -1 : Math.Max(0, limit - requests),
+                    overage = limit < 0 ? 0 : Math.Max(0, requests - limit)
                 },
                 payAsYouGoEnabled = OASISSub.PaidOveragePricing.HasConsent(record),
                 payAsYouGoAvailable = record?.StripeSubscriptionId != null && record.Status is "active" or "trialing",
@@ -671,8 +702,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 includedAiBudgetUsd = OASISSub.SubscriptionService.GetUsagePolicy(planId,0).MonthlyBudgetUsd,
                 overageCharges = new
                 {
-                    currentMonth = ledger?.SettledOverageUsd ?? 0,
-                    reservedUsd = ledger?.ReservedOverageUsd ?? 0,
+                    currentMonth = ledger.SettledOverageUsd,
+                    reservedUsd = ledger.ReservedOverageUsd,
                     isSupported = true,
                     currency = "USD"
                 },
@@ -821,6 +852,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         // ── Helpers ──────────────────────────────────────────────────────────
+
+        /// <summary>No app headers: (null, null). Valid: the app. Present but invalid, partial, disabled or unsupported: a 401.</summary>
+        private async Task<(OASISSub.AppAccountRecord App, ActionResult Error)> ResolveAppAsync(OASISSub.IAppAccountRepository appAccounts)
+        {
+            var headers = Request.Headers;
+            if (!headers.ContainsKey(OASISSub.AppAccountRules.AppIdHeader) && !headers.ContainsKey(OASISSub.AppAccountRules.AppKeyHeader))
+                return (null, null);
+            var app = appAccounts == null ? null : await appAccounts.VerifyAppCredentialAsync(
+                headers[OASISSub.AppAccountRules.AppIdHeader].ToString(), headers[OASISSub.AppAccountRules.AppKeyHeader].ToString(), HttpContext.RequestAborted);
+            return app != null ? (app, null)
+                : (null, Unauthorized(new { IsError = true, Code = "APP_CREDENTIAL_INVALID", Message = "The app credential is invalid or the app account is disabled." }));
+        }
 
         private string GetCurrentUserId()
         {

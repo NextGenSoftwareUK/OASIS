@@ -2,7 +2,7 @@ name: Qualify bounded SEEDS current settings CQL
 
 on:
   push:
-    branches: [work/cosmic-cql-ton-public]
+    branches: [work/cosmic-cql-ton-public, work/cosmic-teaching-release-candidate]
     paths:
       - '.github/workflows/qualify-seeds-settings.yml'
       - 'Docker/oasis-dependency-versions.env'

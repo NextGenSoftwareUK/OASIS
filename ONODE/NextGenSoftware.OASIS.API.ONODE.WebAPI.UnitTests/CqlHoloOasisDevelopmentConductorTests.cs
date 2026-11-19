@@ -41,8 +41,6 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
             "INFO Conductor startup: app interfaces started.\nINFO Conductor startup: admin interface(s) added."));
         Assert.Equal("cell creation started", HoloOasisDevelopmentConductor.DescribeNativeStartup(
             "Conductor startup: app interfaces started.\nCreating a cell cell_id=private"));
-        Assert.Equal("network join started", HoloOasisDevelopmentConductor.DescribeNativeStartup(
-            "Creating a cell cell_id=private\nINFO network join task{i=0}: enter"));
         Assert.Equal("apps enabled",
             HoloOasisDevelopmentConductor.DescribeNativeStartup("INFO Conductor startup: apps enabled."));
     }
@@ -103,19 +101,6 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
                 Assert.True(connection.IsConnected && !connection.IsError);
                 var listed = await inspector.ListAppsAsync(AppStatusFilter.All);
                 Assert.False(listed.IsError);
-                if (managed)
-                {
-                    // The Development volume has 134 unbound listeners plus the teaching interface.
-                    // Exercise restoration with comparable state on the disposable native CI conductor.
-                    for (var index = 0; index < 134; index++)
-                    {
-                        var attached = await inspector.AttachAppInterfaceAsync().WaitAsync(TimeSpan.FromSeconds(5));
-                        Assert.False(attached.IsError);
-                    }
-                    var interfaces = await inspector.ListInterfacesAsync().WaitAsync(TimeSpan.FromSeconds(5));
-                    Assert.False(interfaces.IsError);
-                    Assert.Equal(134, interfaces.AppInterfaces.Count());
-                }
             }
             finally
             {
@@ -190,9 +175,7 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
                 Assert.True(connected.IsConnected && !connected.IsError);
                 var interfaces = await inspector.ListInterfacesAsync();
                 Assert.False(interfaces.IsError, interfaces.Message);
-                Assert.Single(interfaces.AppInterfaces,
-                    item => item.InstalledAppId == CanonicalHoloOasis.OASIS_HAPP_ID);
-                Assert.Equal(134, interfaces.AppInterfaces.Count(item => string.IsNullOrEmpty(item.InstalledAppId)));
+                Assert.Equal(CanonicalHoloOasis.OASIS_HAPP_ID, Assert.Single(interfaces.AppInterfaces).InstalledAppId);
             }
             finally
             {

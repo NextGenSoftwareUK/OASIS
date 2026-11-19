@@ -36,13 +36,13 @@ jobs:
     secrets:
       PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
-  surrealdb-native-cql:
-    uses: ./.github/workflows/surrealdb-native-cql.yml
+  opensearch-native-cql:
+    uses: ./.github/workflows/opensearch-native-cql.yml
     secrets:
       PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
-  opensearch-native-cql:
-    uses: ./.github/workflows/opensearch-native-cql.yml
+  surrealdb-native-cql:
+    uses: ./.github/workflows/surrealdb-native-cql.yml
     secrets:
       PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
@@ -73,8 +73,22 @@ jobs:
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
-      - name: Checkout pinned build dependencies
-        uses: ./OASIS/.github/actions/checkout-pinned-build-dependencies
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
+
+      - name: Read pinned holochain-client-csharp commit
+        id: holochain-pin
+        run: echo "commit=$(sed -n 's/^HOLOCHAIN_COMMIT=//p' "$GITHUB_WORKSPACE/OASIS/Docker/oasis-dependency-versions.env")" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          path: holochain-client-csharp
+          ref: ${{ steps.holochain-pin.outputs.commit }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
@@ -95,7 +109,7 @@ jobs:
           else
             export OASIS_SUBMODULE_BRANCH=main
           fi
-          git submodule foreach --quiet 'git fetch origin "+refs/heads/$OASIS_SUBMODULE_BRANCH:refs/remotes/origin/$OASIS_SUBMODULE_BRANCH" --quiet'
+          git submodule foreach --quiet 'git fetch --unshallow origin "+refs/heads/$OASIS_SUBMODULE_BRANCH:refs/remotes/origin/$OASIS_SUBMODULE_BRANCH" --quiet 2>/dev/null || git fetch origin "+refs/heads/$OASIS_SUBMODULE_BRANCH:refs/remotes/origin/$OASIS_SUBMODULE_BRANCH" --quiet'
           python3 Scripts/check_submodule_branches.py "$(git rev-parse HEAD)" "$OASIS_TARGET_BRANCH"
 
       - name: Railway Dockerfiles must use the shared dependency manifest
@@ -171,6 +185,7 @@ jobs:
             filter: FullyQualifiedName~ValKeyOASISIntegrationTests
           - name: Garnet
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.GarnetOASIS.IntegrationTests
+            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests
             image: ghcr.io/microsoft/garnet:latest
             ports: 6379:6379
             wait: 6379
@@ -179,11 +194,10 @@ jobs:
 
           - name: Memcached
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MemcachedOASIS.IntegrationTests
+            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests
             image: memcached:1.6-alpine
             ports: 11211:11211
             wait: 11211
-            # The CQL generation and Mongo tests require separately owned fixtures.
-            filter: FullyQualifiedName~MemcachedOASISIntegrationTests
 
           # Document and graph stores.
           - name: MongoDB
@@ -241,6 +255,7 @@ jobs:
             filter: FullyQualifiedName~OpenSearchOASISIntegrationTests
           - name: Elasticsearch
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.IntegrationTests
+            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests
             image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
             ports: 9200:9200
             wait: 9200
@@ -250,17 +265,20 @@ jobs:
               -e ES_JAVA_OPTS=-Xms512m\ -Xmx512m
           - name: Solr
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests
+            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests&FullyQualifiedName!~SolrOASISIntegrationTests
             image: solr:9
             ports: 8983:8983
             wait: 8983
           - name: Meilisearch
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.IntegrationTests
+            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests&FullyQualifiedName!~MeilisearchOASISIntegrationTests
             image: getmeili/meilisearch:v1.7
             ports: 7700:7700
             wait: 7700
             docker_args: -e MEILI_MASTER_KEY=masterKey -e MEILI_ENV=development
           - name: Typesense
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests
+            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests
             image: typesense/typesense:0.25.2
             ports: 8108:8108
             wait: 8108
@@ -283,6 +301,8 @@ jobs:
               -e DEFAULT_VECTORIZER_MODULE=none
           - name: Chroma
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ChromaOASIS.IntegrationTests
+            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests&FullyQualifiedName!~ChromaOASISIntegrationTests
+            # ChromaOASIS no longer creates collections (provisioning is explicit), so the generic auto-create tests cannot run here.
             image: chromadb/chroma:latest
             ports: 8000:8000
             wait: 8000
@@ -297,6 +317,7 @@ jobs:
 
           # Analytical and time-series stores.
           - name: ClickHouse
+            filter: FullyQualifiedName~ClickHouseOASISIntegrationTests
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS.IntegrationTests
             image: clickhouse/clickhouse-server:24-alpine
             ports: 8123:8123
@@ -304,6 +325,7 @@ jobs:
             docker_args: --ulimit nofile=262144:262144 -e CLICKHOUSE_DB=oasis
             test_env: |
               CLICKHOUSE_CONN=Host=127.0.0.1;Port=8123;Database=oasis;Username=default;Password=
+              OASIS_CLICKHOUSE_STORAGE_TEST_WRITES=1
           - name: QuestDB
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.IntegrationTests
             image: questdb/questdb:latest
@@ -313,6 +335,7 @@ jobs:
             filter: FullyQualifiedName~QuestDBOASISIntegrationTests
           - name: InfluxDB
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS.IntegrationTests
+            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests
             image: influxdb:2.7
             ports: 8086:8086
             wait: 8086
@@ -399,6 +422,11 @@ jobs:
             --data-binary 'DEFINE NAMESPACE IF NOT EXISTS oasis; USE NS oasis; DEFINE DATABASE IF NOT EXISTS oasis;' \
             http://127.0.0.1:8000/sql | jq -e 'length > 0 and all(.[]; .status == "OK")'
 
+      - name: Verify the CouchDB CQL reader policy
+        if: matrix.backend.name == 'CouchDB'
+        working-directory: OASIS
+        run: python3 -B Scripts/TestHosts/Test-CouchDbCqlReaderPolicy.py
+
       - name: Export test environment
         if: matrix.backend.test_env != ''
         run: echo "${{ matrix.backend.test_env }}" >> "$GITHUB_ENV"
@@ -423,11 +451,6 @@ jobs:
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as output:
               output.write(f"{variable}={key}\n")
           PY
-
-      - name: Verify the CouchDB CQL reader policy
-        if: matrix.backend.name == 'CouchDB'
-        working-directory: OASIS
-        run: python3 -B Scripts/TestHosts/Test-CouchDbCqlReaderPolicy.py
 
       - name: Run the integration tests
         working-directory: OASIS
@@ -467,6 +490,63 @@ jobs:
           --logger 'trx;LogFileName=s3-compatible-current.trx'
           --results-directory TestResults/HyperDrive-Providers/S3CompatibleCurrent
 
+      - name: Run shipping MinIO adapter conformance on the same service
+        if: matrix.backend.name == 'MinIO'
+        working-directory: OASIS
+        env:
+          OASIS_MINIO_STORAGE_CONFORMANCE: '1'
+          OASIS_MINIO_CONFORMANCE_ENDPOINT: http://127.0.0.1:9000
+          OASIS_MINIO_CONFORMANCE_BUCKET: oasis-s3-conformance
+        run: >-
+          dotnet test
+          Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MinIOOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.MinIOOASIS.IntegrationTests.csproj
+          --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
+          --logger 'trx;LogFileName=minio-adapter-current.trx'
+          --results-directory TestResults/HyperDrive-Providers/S3CompatibleCurrent
+
+      - name: Record S3 producer and consumer identities
+        if: success() && matrix.backend.name == 'MinIO'
+        working-directory: OASIS
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, pathlib, subprocess
+          root = pathlib.Path('.')
+          identities = {}
+          sources = {
+              'NextGenSoftware.OASIS.API.Core': 'OASIS Architecture/NextGenSoftware.OASIS.API.Core',
+              'NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage': 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage',
+              'NextGenSoftware.OASIS.Providers.Shared.S3': 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.S3',
+              'NextGenSoftware.OASIS.API.Providers.AWSS3OASIS': 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AWSS3OASIS',
+              'NextGenSoftware.OASIS.API.Providers.MinIOOASIS': 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MinIOOASIS',
+          }
+          consumers = {
+              'AWS': ('Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests', set(sources) - {'NextGenSoftware.OASIS.API.Providers.MinIOOASIS'}),
+              'MinIO': ('Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MinIOOASIS.IntegrationTests', set(sources) - {'NextGenSoftware.OASIS.API.Providers.AWSS3OASIS'}),
+          }
+          for assembly, project in sources.items():
+              path = root / project / 'bin/Release/net10.0' / (assembly + '.dll')
+              digest = hashlib.sha256(path.read_bytes()).hexdigest()
+              identities[assembly] = {'producer': str(path), 'sha256': digest, 'consumers': {}}
+              for label, (host, dependencies) in consumers.items():
+                  if assembly not in dependencies:
+                      continue
+                  consumed = root / host / 'bin/Release/net10.0' / (assembly + '.dll')
+                  actual = hashlib.sha256(consumed.read_bytes()).hexdigest()
+                  assert actual == digest, f'{label} consumed a different {assembly}'
+                  identities[assembly]['consumers'][label] = actual
+          image = subprocess.check_output(['docker', 'inspect', '--format', '{{.Image}}', 'oasis-backend'], text=True).strip()
+          report = {
+              'sourceCommit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+              'serviceImageId': image,
+              'serviceRepoDigests': json.loads(subprocess.check_output(['docker', 'image', 'inspect', '--format', '{{json .RepoDigests}}', image], text=True)),
+              'assemblies': identities,
+              'scope': 'Fresh CI checkout/build; exact producer/consumer DLL hashes, not portable-PDB source-document verification',
+          }
+          output = root / 'TestResults/HyperDrive-Providers/S3CompatibleCurrent/identities.json'
+          output.parent.mkdir(parents=True, exist_ok=True)
+          output.write_text(json.dumps(report, indent=2) + '\n')
+          PY
+
       - name: Preserve S3-compatible conformance evidence
         if: always() && matrix.backend.name == 'MinIO'
         uses: actions/upload-artifact@v7
@@ -474,7 +554,51 @@ jobs:
           name: s3-compatible-conformance
           path: |
             OASIS/TestResults/ProviderConformanceCurrent/AWSS3OASIS-MinIO/**/report.json*
+            OASIS/TestResults/ProviderConformanceCurrent/MinIOOASIS/**/report.json*
             OASIS/TestResults/HyperDrive-Providers/S3CompatibleCurrent/*.trx
+            OASIS/TestResults/HyperDrive-Providers/S3CompatibleCurrent/identities.json
+          retention-days: 7
+          if-no-files-found: warn
+
+      - name: Verify CQL on the existing S3-compatible service
+        if: matrix.backend.name == 'MinIO'
+        working-directory: OASIS
+        env:
+          OASIS_S3_CQL_NATIVE: '1'
+          OASIS_S3_CQL_ENDPOINT: http://127.0.0.1:9000
+          OASIS_S3_CQL_BUCKET: cosmic-cql-s3
+          OASIS_S3_CQL_STATE: LocalState/COSMIC/S3Cql
+          MINIO_ACCESS_KEY: minioadmin
+          MINIO_SECRET_KEY: minioadmin
+        run: |
+          # Reuse this job's service and separately masked key. The source is
+          # retained across the restart, then retired with this disposable job.
+          export OASIS_S3_CQL_STORAGE_KEY="$OASIS_MINIO_CONFORMANCE_STORAGE_KEY"
+          dotnet test Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests \
+            --configuration Release --no-restore /m:2 /nr:false /p:UseSharedCompilation=false \
+            --filter FullyQualifiedName~AwsS3CqlNativeTests \
+            --logger 'trx;LogFileName=s3-cql-initial.trx' --results-directory TestResults/AwsS3CqlCurrent
+          docker restart --time 15 oasis-backend
+          for i in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:9000/minio/health/ready > /dev/null; then
+              break
+            fi
+            if [ "$i" -eq 60 ]; then exit 1; fi
+            sleep 1
+          done
+          dotnet test Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests \
+            --configuration Release --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false \
+            --filter FullyQualifiedName~AwsS3CqlNativeTests \
+            --logger 'trx;LogFileName=s3-cql-restart.trx' --results-directory TestResults/AwsS3CqlCurrent
+
+      - name: Preserve S3 CQL summaries and test results
+        if: always() && matrix.backend.name == 'MinIO'
+        uses: actions/upload-artifact@v7
+        with:
+          name: s3-cql-native
+          path: |
+            OASIS/TestResults/AwsS3CqlCurrent/*.trx
+            OASIS/LocalState/COSMIC/S3Cql/demo-seed*.json
           retention-days: 7
           if-no-files-found: warn
 
@@ -507,8 +631,22 @@ jobs:
         submodules: recursive
         token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
-    - name: Checkout pinned build dependencies
-      uses: ./OASIS/.github/actions/checkout-pinned-build-dependencies
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Read pinned holochain-client-csharp commit
+      id: holochain-pin
+      run: echo "commit=$(sed -n 's/^HOLOCHAIN_COMMIT=//p' "$GITHUB_WORKSPACE/OASIS/Docker/oasis-dependency-versions.env")" >> "$GITHUB_OUTPUT"
+
+    - name: Checkout holochain-client-csharp
+      uses: actions/checkout@v7
+      with:
+        repository: holochain-open-dev/holochain-client-csharp
+        path: holochain-client-csharp
+        ref: ${{ steps.holochain-pin.outputs.commit }}
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v6
@@ -548,8 +686,22 @@ jobs:
         submodules: recursive
         token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
-    - name: Checkout pinned build dependencies
-      uses: ./OASIS/.github/actions/checkout-pinned-build-dependencies
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Read pinned holochain-client-csharp commit
+      id: holochain-pin
+      run: echo "commit=$(sed -n 's/^HOLOCHAIN_COMMIT=//p' "$GITHUB_WORKSPACE/OASIS/Docker/oasis-dependency-versions.env")" >> "$GITHUB_OUTPUT"
+
+    - name: Checkout holochain-client-csharp
+      uses: actions/checkout@v7
+      with:
+        repository: holochain-open-dev/holochain-client-csharp
+        path: holochain-client-csharp
+        ref: ${{ steps.holochain-pin.outputs.commit }}
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v6
@@ -604,8 +756,22 @@ jobs:
         submodules: recursive
         token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
-    - name: Checkout pinned build dependencies
-      uses: ./OASIS/.github/actions/checkout-pinned-build-dependencies
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Read pinned holochain-client-csharp commit
+      id: holochain-pin
+      run: echo "commit=$(sed -n 's/^HOLOCHAIN_COMMIT=//p' "$GITHUB_WORKSPACE/OASIS/Docker/oasis-dependency-versions.env")" >> "$GITHUB_OUTPUT"
+
+    - name: Checkout holochain-client-csharp
+      uses: actions/checkout@v7
+      with:
+        repository: holochain-open-dev/holochain-client-csharp
+        path: holochain-client-csharp
+        ref: ${{ steps.holochain-pin.outputs.commit }}
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v6
@@ -678,8 +844,22 @@ jobs:
         submodules: recursive
         token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
-    - name: Checkout pinned build dependencies
-      uses: ./OASIS/.github/actions/checkout-pinned-build-dependencies
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Read pinned holochain-client-csharp commit
+      id: holochain-pin
+      run: echo "commit=$(sed -n 's/^HOLOCHAIN_COMMIT=//p' "$GITHUB_WORKSPACE/OASIS/Docker/oasis-dependency-versions.env")" >> "$GITHUB_OUTPUT"
+
+    - name: Checkout holochain-client-csharp
+      uses: actions/checkout@v7
+      with:
+        repository: holochain-open-dev/holochain-client-csharp
+        path: holochain-client-csharp
+        ref: ${{ steps.holochain-pin.outputs.commit }}
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v6
@@ -767,8 +947,22 @@ jobs:
         submodules: recursive
         token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
-    - name: Checkout pinned build dependencies
-      uses: ./OASIS/.github/actions/checkout-pinned-build-dependencies
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Read pinned holochain-client-csharp commit
+      id: holochain-pin
+      run: echo "commit=$(sed -n 's/^HOLOCHAIN_COMMIT=//p' "$GITHUB_WORKSPACE/OASIS/Docker/oasis-dependency-versions.env")" >> "$GITHUB_OUTPUT"
+
+    - name: Checkout holochain-client-csharp
+      uses: actions/checkout@v7
+      with:
+        repository: holochain-open-dev/holochain-client-csharp
+        path: holochain-client-csharp
+        ref: ${{ steps.holochain-pin.outputs.commit }}
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v6
@@ -799,8 +993,22 @@ jobs:
         submodules: recursive
         token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
-    - name: Checkout pinned build dependencies
-      uses: ./OASIS/.github/actions/checkout-pinned-build-dependencies
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Read pinned holochain-client-csharp commit
+      id: holochain-pin
+      run: echo "commit=$(sed -n 's/^HOLOCHAIN_COMMIT=//p' "$GITHUB_WORKSPACE/OASIS/Docker/oasis-dependency-versions.env")" >> "$GITHUB_OUTPUT"
+
+    - name: Checkout holochain-client-csharp
+      uses: actions/checkout@v7
+      with:
+        repository: holochain-open-dev/holochain-client-csharp
+        path: holochain-client-csharp
+        ref: ${{ steps.holochain-pin.outputs.commit }}
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v6
@@ -846,8 +1054,22 @@ jobs:
         submodules: recursive
         token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
-    - name: Checkout pinned build dependencies
-      uses: ./OASIS/.github/actions/checkout-pinned-build-dependencies
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Read pinned holochain-client-csharp commit
+      id: holochain-pin
+      run: echo "commit=$(sed -n 's/^HOLOCHAIN_COMMIT=//p' "$GITHUB_WORKSPACE/OASIS/Docker/oasis-dependency-versions.env")" >> "$GITHUB_OUTPUT"
+
+    - name: Checkout holochain-client-csharp
+      uses: actions/checkout@v7
+      with:
+        repository: holochain-open-dev/holochain-client-csharp
+        path: holochain-client-csharp
+        ref: ${{ steps.holochain-pin.outputs.commit }}
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v6
@@ -905,8 +1127,22 @@ jobs:
         submodules: recursive
         token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
-    - name: Checkout pinned build dependencies
-      uses: ./OASIS/.github/actions/checkout-pinned-build-dependencies
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Read pinned holochain-client-csharp commit
+      id: holochain-pin
+      run: echo "commit=$(sed -n 's/^HOLOCHAIN_COMMIT=//p' "$GITHUB_WORKSPACE/OASIS/Docker/oasis-dependency-versions.env")" >> "$GITHUB_OUTPUT"
+
+    - name: Checkout holochain-client-csharp
+      uses: actions/checkout@v7
+      with:
+        repository: holochain-open-dev/holochain-client-csharp
+        path: holochain-client-csharp
+        ref: ${{ steps.holochain-pin.outputs.commit }}
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v6
@@ -941,8 +1177,22 @@ jobs:
         submodules: recursive
         token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
-    - name: Checkout pinned build dependencies
-      uses: ./OASIS/.github/actions/checkout-pinned-build-dependencies
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Read pinned holochain-client-csharp commit
+      id: holochain-pin
+      run: echo "commit=$(sed -n 's/^HOLOCHAIN_COMMIT=//p' "$GITHUB_WORKSPACE/OASIS/Docker/oasis-dependency-versions.env")" >> "$GITHUB_OUTPUT"
+
+    - name: Checkout holochain-client-csharp
+      uses: actions/checkout@v7
+      with:
+        repository: holochain-open-dev/holochain-client-csharp
+        path: holochain-client-csharp
+        ref: ${{ steps.holochain-pin.outputs.commit }}
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v6

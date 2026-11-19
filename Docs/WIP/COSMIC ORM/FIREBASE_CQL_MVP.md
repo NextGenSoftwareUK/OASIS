@@ -1,50 +1,5 @@
 # Firebase RTDB CQL demo — retained export restoration
 
-## Recovery laptop continuation — 5 November 2026
-
-The implementation and historical acceptance below are retained. The original
-`LocalState/COSMIC/FirebaseCql` export is absent on this laptop; its historical
-hash cannot recreate its original records. A **new, separate recovery fixture**
-is explicitly authorized and lives under
-`LocalState/COSMIC/RecoveryLaptopFirebaseRtdb4112/FirebaseCql`. This recovery does
-not add another provider/profile or certify hosted Firebase.
-
-The official RTDB emulator 4.11.2 JAR has been downloaded (34,495,935 bytes), SHA256
-`b70d99344caf17c98b6f910fa8f6edf32a7c016cb1035e8915f70d38901eb97f`.
-It reuses the admitted Temurin 21 JRE; no new Java environment. Its shipped help
-was inspected. The recovered launcher uses explicit `--recovery-laptop` and
-`--initialize` admission, refuses an existing fixture on initialization and
-requires a checkpoint for subsequent runs. Reports use unique run folders.
-
-Recovery acceptance completed: bounded build passes (0 errors; 1,141 warnings).
-Native CQL and export/restore pass 1/1 each. Manager/Mongo/HTTP passes 1/1;
-actual local browser full/subset results are 5/4, with provider provenance and
-`MovingProviderReads` visible. Stop demo completed, its integration run passed
-1/1, exact temporary Mongo fixture was verified and removed, and both owned
-services stopped. Mongo proves storage closure and native console exit12.
-Listeners19091/27029/5126 are closed. Four admission controls preserve all source
-files. No native disk/crash durability or hosted Firebase claim.
-
-Recovery source hash:
-`da1b155140a29c28508c04623fdd2da6541ef730bcd2ba778c489b7a224d93dc`
-(11 source files, 9,822 bytes). Runtime-root run directories retain original
-TRXs/logs and acceptance receipts: `run-620bbb5ba68d48969d835ff4ae1739e8`
-(native/restored), `run-11f7b7170b38426aa7306b1d7c5832be` (paired),
-`run-e0f529ed885c461d82dbe9c137ecafca` (interactive paired). Both paired runs
-retain Mongo shutdown receipts. Historical evidence remains separate. Counts
-remain100local/60hostedHTTP/28hostedbrowser. See the
-[working launcher guide](../../Devs/FIREBASE_CQL_LOCAL_DEMO.md) and
-[cleanup ledger](RECOVERY_LAPTOP_CLEANUP_LEDGER.md).
-
-WEB4 card32 recovery launcher published as website7410650, Vercel success and
-actual live browser expanded command/guide verified. All112client tests pass.
-Pinned source647b53daffd18293243c81bab69a9bd6cebc0985 guide is HTTP200 and
-Git-blob exact, SHA2562428786139f3f9fb591a4e8f5b0d99ba7c07a1f8f382980ca46cd51cd1b5dd3f.
-Live HTML is Git-blob exact, SHA256452f1def2312a453b8f0ae5132914ef06e2db507f8e8a6a72034318669247db4.
-Runtime-root `publication.json` retains the comparison. This is the local demo
-catalogue, not hosted Firebase certification or API deployment.
-
-
 ## Source recovery — 2 November 2026
 
 34 controlled tests pass, zero failures/skips; provider/native/federated consumer
@@ -133,30 +88,3 @@ atomic concurrency, avatar/detail ownership, central registration, full storage
 conformance and HyperDrive/failover/load-balancing remain separate acceptance work.
 [Historical proof](Archive/FIREBASE_CQL_MVP_PRESERVED_2026-10-30.md),
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md), [later work](AFTER_DEMO_BACKLOG.md).
-
-## Development WEB4 preparation
-
-An explicit query source now activates through one exact native Realtime
-Database key read using the existing REST adapter. Activation verifies a
-public canonical record and refuses missing, deleted, private or mismatched
-rows. The canonical storage provider and CQL query keep their existing
-entry points. Hosted credential scoping, logging review, WEB4 enrollment
-and native hosted qualification remain open.
-[Firebase REST authentication](https://firebase.google.com/docs/database/rest/auth) ·
-[Realtime Database rules](https://firebase.google.com/docs/database/security/rules-conditions).
-
-The WEB4 candidate requires `CQL_FIREBASE_QUERY_ORIGIN`,
-`CQL_FIREBASE_QUERY_PROJECT_ID`, a protected project-bound Firebase ID token
-in `CQL_FIREBASE_QUERY_READER_TOKEN`, and `CQL_FIREBASE_QUERY_PROBE_ID`.
-The guarded client only permits exact teaching-key GETs on the reviewed
-managed HTTPS database. It uses a direct connection and requires .NET
-URI query redaction because Firebase's REST ID token travels in the query.
-Review any deployed request instrumentation and the database's Security
-Rules for the dedicated reader before enrollment.
-[.NET HTTP event redaction](https://learn.microsoft.com/en-us/dotnet/core/compatibility/networking/9.0/query-redaction-events).
-
-The native HTTPS fixture uses `TestCategory=FirebaseHostedCqlNative` and a
-reviewed `COSMIC_FIREBASE_HOSTED_CQL_SOURCE` catalogue with `Actor`,
-three `LiveIds`, `DeletedId` and `MissingId`. Choose a live ID as the
-probe. All eight WEB4 admission tests passed. The native HTTPS fixture
-compiled and awaits a reviewed database and reader.

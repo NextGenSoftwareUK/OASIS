@@ -1,10 +1,30 @@
 require("@nomicfoundation/hardhat-toolbox");
+const path = require("node:path");
 
 const configuredAccounts = process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [];
 const localChainId = Number(process.env.LOCAL_CHAIN_ID || "1337");
+const buildRoot = process.env.OASIS_WEB3CORE_BUILD_ROOT;
+const bnbRpcUrl = process.env.OASIS_BNB_DEPLOY_RPC_URL;
+const bnbChainId = Number(process.env.OASIS_BNB_DEPLOY_CHAIN_ID);
+if (bnbRpcUrl && (!Number.isSafeInteger(bnbChainId) || bnbChainId <= 0)) {
+    throw new Error("BNB deployment requires an explicit positive chain ID.");
+}
 
 module.exports = {
-    solidity: "0.8.20",
+    solidity: {
+        version: "0.8.20",
+        settings: {
+            evmVersion: "paris",
+            optimizer: { enabled: true, runs: 200 },
+        },
+    },
+    paths: {
+        sources: "./Contracts",
+        ...(buildRoot ? {
+            cache: path.join(buildRoot, "cache"),
+            artifacts: path.join(buildRoot, "artifacts"),
+        } : {}),
+    },
     networks: {
         hardhat: {
             chainId: localChainId,
@@ -26,6 +46,13 @@ module.exports = {
             chainId: 421614,
             accounts: configuredAccounts,
         },
+        ...(bnbRpcUrl ? {
+            bnb: {
+                url: bnbRpcUrl,
+                chainId: bnbChainId,
+                accounts: configuredAccounts,
+            },
+        } : {}),
     },
     etherscan: {
         apiKey: process.env.SCAN_API_KEY,

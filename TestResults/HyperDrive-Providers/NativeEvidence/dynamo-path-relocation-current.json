@@ -1,0 +1,73 @@
+{
+  "scope": "Relocated unchanged runtime/data; rerun AWSOASIS52/52 + DynamoDBOASIS52/52, factory27PASS; independent5tablesemptybefore/after. StoppedSQLiteVACUUM+quick_checkPASS; no data reset/seed/new runtime/download.",
+  "jarSha256": "67ed9662164dc9765ff3abca1c2f6f4edb5f6a92269812450215a679bdc71620",
+  "dataBeforeCompactionBytes": 66871,
+  "dataAfterCompactionBytes": 43319,
+  "databaseBytes": 43008,
+  "evidenceFolderBytes": 50876717,
+  "reports": [
+    {
+      "path": "TestResults/AWSProviderEvidence/aws-factory-current.trx.gz",
+      "rawBytes": 41567,
+      "gzipBytes": 4563,
+      "sha256": "bd4bc0b61ebe60581b12668d0127b3afe12bb64aba1287893e58f1c47a364cd4",
+      "rawRemovedAfterVerifiedCompression": true
+    },
+    {
+      "path": "TestResults/AWSProviderEvidence/dynamo-core-current.trx.gz",
+      "rawBytes": 6949,
+      "gzipBytes": 1501,
+      "sha256": "24a1931fcb8bfb4f8d96993d65cb6cf109be35d3f310ee37ac1b0cd30bedc40e",
+      "rawRemovedAfterVerifiedCompression": true
+    }
+  ],
+  "cleanup": {
+    "after": [
+      {
+        "records": 0,
+        "table": "OasisAvatarDetails"
+      },
+      {
+        "records": 0,
+        "table": "OasisAvatars"
+      },
+      {
+        "records": 0,
+        "table": "OasisHolonWritePreparations"
+      },
+      {
+        "records": 0,
+        "table": "OasisHolonWriteReceipts"
+      },
+      {
+        "records": 0,
+        "table": "OasisHolons"
+      }
+    ],
+    "allRecordsCleaned": true,
+    "before": [
+      {
+        "records": 0,
+        "table": "OasisAvatarDetails"
+      },
+      {
+        "records": 0,
+        "table": "OasisAvatars"
+      },
+      {
+        "records": 0,
+        "table": "OasisHolonWritePreparations"
+      },
+      {
+        "records": 0,
+        "table": "OasisHolonWriteReceipts"
+      },
+      {
+        "records": 0,
+        "table": "OasisHolons"
+      }
+    ]
+  },
+  "relocationReceipt": "TestResults/AWSProviderEvidence/container-path-relocation.json",
+  "containerFinalState": "exited"
+}

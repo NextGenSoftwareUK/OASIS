@@ -1,8 +1,12 @@
 # Return after the MVP demo
 
-## Later Virtual Holon extensions
+## Virtual Holons and hybrid import
 
-The first collection-level virtual read is a current priority in the [COSMIC ORM roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md). Follow that proof with virtual and materialized federation, explicit snapshot saves, and hybrid cache expiry, invalidation, erasure and storage accounting.
+Use the [Virtual Holons import proposal](OASIS_Virtual_Holons_Import_Proposal.docx) for the follow-on design. Start with one read-only provider
+collection. Verify stable identity, tenant isolation, bounded native
+execution, provenance, and zero per-row persistence. Prove federation
+with materialized Holons, then verify explicit snapshot saves separately
+from cache expiry, invalidation, erasure, and storage accounting.
 
 Updated 31 October 2026. These remain part of the full goal; they are deferred, not complete.
 
@@ -26,7 +30,7 @@ Recovery: [CURRENT_STATUS](CURRENT_STATUS.md). Acceptance: [checklist](CQL_PARIT
 
 ## Native activation diagnostics found during XRPL demo
 
-Reproducible operator gap: `CqlV1Providers.ActivateReadSourceAsync` discards the provider OASISResult.Exception when raising CQL_SOURCE_ACTIVATION_FAILED; `CqlHostedSources` records/logs only the outer InvalidOperationException and public CQL_SOURCE_UNAVAILABLE. Deployed XRPL endpoint returned HTTP402, but identifying that required a read-only in-container RPC probe. Later preserve a sanitized native failure type/stage/HTTP status for operators, with tests proving credentials, URLs/tokens and raw exception messages stay out of public discovery/logs. Do not add retries or weaken readiness. Evidence and exact original/correction deployments: [XRPL status](XRPL_PUBLIC_SOURCE_STATUS.md#hosted-endpoint-correction). Current demo fix is the explicit, tested free endpoint migration. Recovery reconciliation (8 November): the diagnostics implementation now exists on the task branch, including activation inner-exception preservation, typed operator-only summaries and CqlNativeFailureDiagnosticsTests. Commit210068635b owns the diagnostics source; do not implement a duplicate fix from this historical note. This source inspection does not establish current deployment or a new test pass; retain those acceptance gates separately.
+Reproducible operator gap: `CqlV1Providers.ActivateReadSourceAsync` discards the provider OASISResult.Exception when raising CQL_SOURCE_ACTIVATION_FAILED; `CqlHostedSources` records/logs only the outer InvalidOperationException and public CQL_SOURCE_UNAVAILABLE. Deployed XRPL endpoint returned HTTP402, but identifying that required a read-only in-container RPC probe. Later preserve a sanitized native failure type/stage/HTTP status for operators, with tests proving credentials, URLs/tokens and raw exception messages stay out of public discovery/logs. Do not add retries or weaken readiness. Evidence and exact original/correction deployments: [XRPL status](XRPL_PUBLIC_SOURCE_STATUS.md#hosted-endpoint-correction). Current demo fix is the explicit, tested free endpoint migration; this diagnostics improvement remains open.
 
 Algorand public-source qualification (1 November): anonymous algod versions and indexer block0 agree Mainnet genesis; account address checksum works. Free indexer explicitly rejects account `round` rewind with HTTP400. A future account profile must expose current-state semantics explicitly, or use separately qualified immutable headers; do not promise pinned account snapshots or silently remove a requested round. No Algorand CQL admission granted.
 

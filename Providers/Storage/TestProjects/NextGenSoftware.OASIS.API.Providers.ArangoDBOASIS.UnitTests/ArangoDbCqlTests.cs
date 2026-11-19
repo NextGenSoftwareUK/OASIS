@@ -1,111 +1,74 @@
-using System.Net;
-using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS.UnitTests;
 
 [TestClass]
-public class ArangoDbCqlTests
+public class ArangoDBCqlTests
 {
+    private static CosmicQuery<Holon> Query(Guid[] ids)
+        => CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.ArangoDBOASIS).Result)
+            .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(
+                Guid.NewGuid(), ProviderType.ArangoDBOASIS, ids).Result).Result;
+
     [TestMethod]
-    public async Task NativeKeysReturnThreeTwoAndPagingWithPublicProbe()
+    public void CapturedBusinessKeysCannotEscapeOrMutateAuthorityCatalogue()
     {
-        var ids = Keys();
-        var transport = new CursorTransport(ids);
-        using var client = new HttpClient(transport);
-        var provider = Source(client, ids[0]);
-        transport.PrivateId = ids[0];
-        Assert.IsTrue((await provider.ActivateQuerySourceAsync(default)).IsError);
-        Assert.IsFalse(provider.IsProviderActivated);
-        transport.PrivateId = null;
-        var active = await provider.ActivateQuerySourceAsync(default);
-        Assert.IsFalse(active.IsError, active.Exception?.ToString() ?? active.Message);
-        var query = Query(ids);
-        var all = await provider.ExecuteCosmicQueryAsync(Plan(provider, query));
-        Assert.IsFalse(all.IsError, all.Exception?.ToString() ?? all.Message);
-        CollectionAssert.AreEqual(ids[..3], all.Result.Select(row => row.Id).ToArray());
-        Assert.IsTrue(all.Result.All(row => !row.Children.Any()));
-        var subset = new[] { ids[0], ids[2] };
-        var filtered = await provider.ExecuteCosmicQueryAsync(Plan(provider, query.Where(row => subset.Contains(row.Id)).Result));
-        Assert.IsFalse(filtered.IsError, filtered.Message);
-        CollectionAssert.AreEqual(subset, filtered.Result.Select(row => row.Id).ToArray());
-        var page = await provider.ExecuteCosmicQueryAsync(Plan(provider, query.Skip(1).Result.Take(1).Result));
-        Assert.IsFalse(page.IsError, page.Message);
-        Assert.AreEqual(ids[1], page.Result.Single().Id);
-        Assert.AreEqual(5, transport.Requests);
+        var ids = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
+        var expected = ids[0];
+        var selected = new[] { ids[0], ids[2] };
+        var query = Query(ids.Take(2).ToArray()).Where(h => selected.Contains(h.Id)).Result;
+        selected[0] = Guid.NewGuid();
+        ids[0] = Guid.NewGuid();
+
+        var result = ArangoDbCqlCompiler.Compile(query, ProviderType.ArangoDBOASIS);
+        Assert.IsFalse(result.IsError, result.Message);
+        CollectionAssert.AreEqual(new[] { expected }, result.Result.ToArray());
+        Assert.IsTrue(ArangoDbCqlCompiler.Compile(query, ProviderType.EthereumOASIS).IsError);
+        Assert.AreEqual(0, ArangoDbCqlCompiler.Compile(Query(Array.Empty<Guid>()), ProviderType.ArangoDBOASIS).Result.Count);
     }
 
     [DataTestMethod]
-    [DataRow("foreign")]
-    [DataRow("wrong-id")]
-    [DataRow("duplicate")]
-    [DataRow("http-failure")]
-    [DataRow("cursor-failure")]
-    [DataRow("has-more")]
-    [DataRow("private")]
-    public async Task NativeFailureCannotPublishPartialRows(string mode)
+    [DataRow("name")]
+    [DataRow("metadata")]
+    [DataRow("order")]
+    [DataRow("graph")]
+    [DataRow("bound")]
+    public void UnsupportedShapesRejectInsteadOfScanningNativeRecords(string shape)
     {
-        var ids = Keys();
-        var transport = new CursorTransport(ids);
-        using var client = new HttpClient(transport);
-        var provider = Source(client, ids[0]);
-        Assert.IsFalse((await provider.ActivateQuerySourceAsync(default)).IsError);
-        transport.Mode = mode;
-        var result = await provider.ExecuteCosmicQueryAsync(Plan(provider, Query(ids)));
+        var query = Query(Enumerable.Range(0, shape == "bound" ? 101 : 3).Select(_ => Guid.NewGuid()).ToArray());
+        query = shape switch
+        {
+            "name" => query.Where(h => h.Name == "coffee").Result,
+            "metadata" => query.Where(h => CosmicQueryMetadata.Value<string>(h, "category") == "coffee").Result,
+            "order" => query.OrderBy(h => h.Id).Result,
+            "graph" => query.WithChildren(CosmicQueryGraphOptions.Create(maxChildDepth: 1).Result).Result,
+            _ => query
+        };
+
+        var result = ArangoDbCqlCompiler.Compile(query, ProviderType.ArangoDBOASIS);
         Assert.IsTrue(result.IsError);
         Assert.IsNull(result.Result);
-        Assert.AreEqual(2, transport.Requests);
     }
 
-    private static Guid[] Keys() => Enumerable.Range(0, 5).Select(_ => Guid.NewGuid())
-        .OrderBy(id => id.ToString("D"), StringComparer.Ordinal).ToArray();
-
-    private static ArangoDBOASIS Source(HttpClient client, Guid probe)
-        => new("https://arango.example.test", "reader", "controlled", client, probe);
-
-    private static CosmicQuery<Holon> Query(Guid[] ids)
-        => CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.ArangoDBOASIS).Result)
-            .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(Guid.NewGuid(), ProviderType.ArangoDBOASIS, ids).Result).Result;
-
-    private static CosmicQueryPlan<Holon> Plan(ArangoDBOASIS provider, CosmicQuery<Holon> query) =>
-        CosmicQueryPlanner.Plan(query, ProviderType.ArangoDBOASIS,
-            new[] { new CosmicQueryTarget(ProviderType.ArangoDBOASIS, provider.QueryCapabilities) }).Result;
-
-    private sealed class CursorTransport(Guid[] ids) : HttpMessageHandler
+    [TestMethod]
+    public async Task AdapterRejectsUnsupportedQueryBeforeActivationAndHonoursPreCancellation()
     {
-        internal Guid? PrivateId { get; set; }
-        internal string? Mode { get; set; }
-        internal int Requests { get; private set; }
+        var provider = new ArangoDBOASIS("http://127.0.0.1:1");
+        var query = Query(new[] { Guid.NewGuid() });
+        var plan = CosmicQueryPlanner.Plan(query, ProviderType.ArangoDBOASIS,
+            new[] { new CosmicQueryTarget(ProviderType.ArangoDBOASIS, provider.QueryCapabilities) });
+        Assert.IsFalse(plan.IsError, plan.Message);
 
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-        {
-            Requests++;
-            Assert.AreEqual(HttpMethod.Post, request.Method);
-            Assert.AreEqual("https://arango.example.test/_db/oasis/_api/cursor", request.RequestUri?.AbsoluteUri);
-            Assert.AreEqual("Basic", request.Headers.Authorization?.Scheme);
-            using var json = JsonDocument.Parse(await request.Content!.ReadAsStringAsync(cancellationToken));
-            var body = json.RootElement;
-            Assert.AreEqual(ArangoDBOASIS.NativeIdentityQuery, body.GetProperty("query").GetString());
-            Assert.AreEqual(101, body.GetProperty("batchSize").GetInt32());
-            Assert.AreEqual(15, body.GetProperty("options").GetProperty("maxRuntime").GetInt32());
-            Assert.IsTrue(body.GetProperty("options").GetProperty("failOnWarning").GetBoolean());
-            var selected = body.GetProperty("bindVars").GetProperty("keys").EnumerateArray().Select(value => value.GetGuid()).ToArray();
-            if (Requests == 1) CollectionAssert.AreEqual(new[] { ids[0] }, selected);
-            var rows = selected.Reverse().Where(id => id != ids[4]).Select(id => new
-            {
-                _key = Mode == "foreign" && id == ids[1] ? Guid.NewGuid() : Mode == "duplicate" ? ids[0] : id,
-                id = Mode == "wrong-id" && id == ids[1] ? Guid.NewGuid() : Mode == "duplicate" ? ids[0] : id,
-                isPublic = id != PrivateId && (Mode != "private" || id != ids[1]),
-                deletedDate = id == ids[3] ? DateTime.UtcNow : DateTime.MinValue
-            }).ToArray();
-            return new HttpResponseMessage(Mode == "http-failure" ? HttpStatusCode.InternalServerError : HttpStatusCode.Created)
-            {
-                Content = new StringContent(JsonSerializer.Serialize(new { error = Mode == "cursor-failure",
-                    hasMore = Mode == "has-more", result = rows }))
-            };
-        }
+        var inactive = await provider.ExecuteCosmicQueryAsync(plan.Result);
+        Assert.AreEqual("CQL_PROVIDER_INACTIVE", inactive.ErrorCode);
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+        var stopped = await provider.ExecuteCosmicQueryAsync(plan.Result, cancellationToken: cancelled.Token);
+        Assert.AreEqual("CQL_QUERY_CANCELLED", stopped.ErrorCode);
+        Assert.IsFalse(provider.IsProviderActivated);
     }
 }

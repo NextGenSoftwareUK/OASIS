@@ -20,8 +20,8 @@ DEFAULT_CLI = (Path.home() / "AppData/Local/Microsoft/WinGet/Packages/"
        "OpenJS.NodeJS.LTS_Microsoft.Winget.Source_8wekyb3d8bbwe/"
        "node-v24.19.0-win-x64/node_modules/@railway/cli/bin/railway.exe")
 CLI = Path(os.environ.get("OASIS_RAILWAY_CLI", str(DEFAULT_CLI)))
-COMMON = ["-p", "712f50f6-3b7b-46d4-b229-44b49922f16b", "-e", "dev",
-          "-s", "5123199a-43c4-4439-9921-e10e2aec7841"]
+DEPLOYMENT_SCOPE = ["-e", "dev", "-s", "5123199a-43c4-4439-9921-e10e2aec7841"]
+COMMON = ["-p", "712f50f6-3b7b-46d4-b229-44b49922f16b", *DEPLOYMENT_SCOPE]
 KEYS = ["OASIS_DNA_JSON", "PREPARED_STORAGE_ADMISSION_JSON", "CQL_HOSTED_QUERY_EXAMPLES_JSON",
         "OASIS_SOLID_STORAGE_KEY", "OASIS_SANDBOX_SOLID_BOOTSTRAP_JSON", "OASIS_SANDBOX_SOLID"]
 spec = importlib.util.spec_from_file_location("hosted_verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
@@ -41,20 +41,10 @@ def write_new(path, data):
 
 
 def variables():
-    try:
-        result = subprocess.run([str(CLI), "variables", *COMMON, "--json"],
-                                capture_output=True, timeout=30)
-    except (OSError, subprocess.TimeoutExpired):
-        raise RuntimeError("Hosted variable observation failed; output withheld.") from None
+    result = subprocess.run([str(CLI), "variables", *COMMON, "--json"], capture_output=True)
     if result.returncode:
         raise RuntimeError("Hosted variable observation failed; output withheld.")
-    try:
-        observed = json.loads(result.stdout)
-    except (UnicodeDecodeError, ValueError):
-        raise RuntimeError("Hosted variable observation was invalid; output withheld.") from None
-    if not isinstance(observed, dict) or any(not isinstance(value, str) for value in observed.values()):
-        raise RuntimeError("Hosted variable observation was invalid; output withheld.")
-    return observed
+    return json.loads(result.stdout)
 
 
 def protected_read(name):
@@ -145,12 +135,10 @@ def prepare():
     print("Protected SOLID candidate prepared: six values, four public presets; no service mutation.")
 
 
-def apply_values(prefix, keys, *, reviewed_snapshots=None, before_mutation=None):
+def apply_values(prefix, keys):
     """One mutation/observation owner shared by explicit hosted source publishers."""
     before = protected_read(prefix + "-before-variables.dpapi")
     after = protected_read(prefix + "-candidate-variables.dpapi")
-    if reviewed_snapshots is not None and (before, after) != reviewed_snapshots:
-        raise RuntimeError("Protected configuration changed after review; no mutation sent.")
     expected = copy.deepcopy(before)
     for name in keys:
         intent = STATE / (prefix + "-" + name + ".intent.json")
@@ -158,16 +146,10 @@ def apply_values(prefix, keys, *, reviewed_snapshots=None, before_mutation=None)
             raise RuntimeError("Existing mutation intent; reconcile instead of replaying.")
         if variables() != expected:
             raise RuntimeError("Configuration changed concurrently; no mutation sent.")
-        if before_mutation is not None:
-            before_mutation()
         digest = hashlib.sha256(after[name].encode()).hexdigest()
         write_new(intent, compact({"key": name, "sha256": digest, "skipDeploys": True}).encode())
-        try:
-            result = subprocess.run(
-                [str(CLI), "variable", "set", name, *COMMON, "--stdin", "--skip-deploys", "--json"],
-                input=after[name].encode(), capture_output=True, timeout=60)
-        except (OSError, subprocess.TimeoutExpired):
-            raise RuntimeError("Mutation outcome needs reconciliation; original intent retained.") from None
+        result = subprocess.run([str(CLI), "variable", "set", name, *COMMON, "--stdin", "--skip-deploys", "--json"],
+                                input=after[name].encode(), capture_output=True)
         if result.returncode:
             raise RuntimeError("Mutation outcome needs reconciliation; original intent retained.")
         expected[name] = after[name]

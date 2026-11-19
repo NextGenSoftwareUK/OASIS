@@ -15,7 +15,6 @@ import os
 import re
 import subprocess
 import urllib.error
-import urllib.parse
 import urllib.request
 import uuid
 
@@ -25,17 +24,13 @@ ROOT = Path(__file__).resolve().parents[2]
 BASE = "https://dev.api.web4.oasisomniverse.one/api/"
 BROWSER_ORIGIN = "https://web4.oasisomniverse.one"
 REVIEWED_EXACT_KEY_PROVIDERS = (
-    "HoloOASIS",
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "TenderlyOASIS", "QuickNodeOASIS", "InfuraOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS",
-    "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS", "SelfProtocolOASIS", "HolonymOASIS", "CivicOASIS", "MapLibreOASIS", "GOMapOASIS", "TheSandboxOASIS", "PolygonIDOASIS", "SEEDSOASIS", "IntelOpenVINOOASIS", "WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS", "TRONOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "TenderlyOASIS", "QuickNodeOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS",
+    "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS", "SelfProtocolOASIS", "HolonymOASIS", "CivicOASIS", "MapLibreOASIS", "TheSandboxOASIS", "PolygonIDOASIS", "SEEDSOASIS", "IntelOpenVINOOASIS", "WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS",
 )
 FIXED_PUBLIC_CATALOGUES = {
-    "GOMapOASIS": (
-        "CQL_GOMAP_ROUTE_QUERY_SOURCE_OWNER", "gomap/osrm/berlin/driving", ("west-north", "north-east", "east-west"),
-    ),
     "IntelOpenVINOOASIS": (
         "CQL_OPENVINO_MODEL_QUERY_SOURCE_OWNER", "openvino/owned-models/cosmic_dummy", ("1", "2", "3"),
     ),
@@ -111,20 +106,17 @@ REVIEWED_PUBLIC_CATALOGUE_PROVIDERS = frozenset((*FIXED_PUBLIC_CATALOGUES,
     "CloudinaryOASIS", "OracleObjectStorageOASIS", "ProofOfHumanityOASIS",
     "GUNOASIS", "OrbitDBOASIS", "WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS"))
 
+POLYGON_GATEWAY_CATALOGUES = {
+    "TenderlyOASIS": ("CQL_TENDERLY_POLYGON_QUERY_SOURCE_OWNER", "tenderlypolygon-public-accounts:0x89",
+                     "TenderlyPolygonAccountAddress"),
+    "QuickNodeOASIS": ("CQL_QUICKNODE_POLYGON_QUERY_SOURCE_OWNER", "quicknodepolygon-public-accounts:0x89",
+                       "QuickNodePolygonAccountAddress"),
+}
 POLYGON_GATEWAY_KEYS = (
     "0x0000000000000000000000000000000000000000",
     "0x000000000000000000000000000000000000dead",
     "0x0000000000000000000000000000000000001010",
 )
-EVM_GATEWAY_CATALOGUES = {
-    "TenderlyOASIS": ("CQL_TENDERLY_POLYGON_QUERY_SOURCE_OWNER", "tenderlypolygon-public-accounts:0x89",
-                     "TenderlyPolygonAccountAddress", POLYGON_GATEWAY_KEYS),
-    "QuickNodeOASIS": ("CQL_QUICKNODE_POLYGON_QUERY_SOURCE_OWNER", "quicknodepolygon-public-accounts:0x89",
-                       "QuickNodePolygonAccountAddress", POLYGON_GATEWAY_KEYS),
-    "InfuraOASIS": ("CQL_INFURA_QUERY_SOURCE_OWNER", "infuraethereum-public-accounts:0x1",
-                   "InfuraEthereumAccountAddress", (*POLYGON_GATEWAY_KEYS[:2],
-                       "0x00000000219ab540356cbb839cbe05303d7705fa")),
-}
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(verification)
@@ -185,7 +177,7 @@ def call(route, token=None, body=None, method="POST", operation=None, *, cookie_
             raise RuntimeError("HTTP proof exceeds its response budget.")
         if (response.headers.get("Access-Control-Allow-Origin") != BROWSER_ORIGIN
                 or response.headers.get("Access-Control-Allow-Credentials") != "true"):
-            raise RuntimeError("The exact hosted browser credential origin was not acknowledged.")
+            raise RuntimeError(f"HTTP {response.status}: the exact hosted browser credential origin was not acknowledged.")
         if not raw:
             raise RuntimeError("HTTP acceptance failed with an empty response: " + str(response.status))
         data = json.loads(raw)
@@ -250,13 +242,8 @@ def ready_source(provider, token, require_pair):
     if len(matches) > 1:
         raise RuntimeError(f"{provider} appeared more than once in hosted discovery.")
     source = matches[0] if matches else None
-    if source is None or source.get("available") is not True:
-        code = source.get("errorCode") if source is not None else None
-        if code in ("CQL_SOURCE_NOT_READY", "CQL_SOURCE_UNAVAILABLE"):
-            raise RuntimeError(f"{provider} hosted discovery reports {code}.")
+    if source is None or source.get("available") is not True or (require_pair and source.get("federationAvailable") is not True):
         raise RuntimeError(f"{provider} is absent or unavailable in hosted discovery.")
-    if require_pair and source.get("federationAvailable") is not True:
-        raise RuntimeError(f"{provider} is absent or unavailable for federation in hosted discovery.")
     required = {"public-records", "public-subset"}
     if require_pair:
         required.update(("mongo-public-records", "mongo-public-subset"))
@@ -496,66 +483,14 @@ def native_logical_id(actor, provider, source, key):
     return str(uuid.UUID(bytes_le=bytes(digest)))
 
 
-def reviewed_record_presets(provider, ids, metadata_key=None, metadata_values=None):
-    if (metadata_key is None) != (metadata_values is None):
-        raise ValueError("Metadata selection requires both its field and native keys.")
-    presets = []
-    for suffix, count in (("records", 3), ("subset", 2)):
-        if metadata_key is not None:
-            predicate = {"metadataPath": [metadata_key], "scalar": "String", "operator": "In",
-                         "value": list(metadata_values[:count])}
-        else:
-            predicate = {"field": "Id", "scalar": "Guid", "operator": "In", "value": ids[:count]}
-        selection = {"orderBy": "None", "take": 25, "includeMetadata": True, "filters": [predicate]}
-        presets.extend([
-            {"id": "public-" + suffix, "label": f"{provider} public teaching records ({count})",
-             "request": dict(selection, provider=provider, maximumDurationMilliseconds=30000)},
-            {"id": "mongo-public-" + suffix, "label": f"MongoDB + {provider} ({count} source records)",
-             "operation": "Federation", "request": {
-                "scope": "Named", "providers": ["MongoDBOASIS", provider], "source": selection,
-                "identityMode": "PreserveCopies", "maximumProviderAttempts": 2,
-                "maximumDurationMilliseconds": 30000, "take": 25}},
-        ])
-    return presets
-
-
-def reviewed_tron_header_source(path):
-    if path is None or not path.is_file() or not 0 < path.stat().st_size <= 16384:
-        raise RuntimeError("An explicit retained TRON header catalogue is required.")
-    def unique(pairs):
-        result = {}
-        for key, value in pairs:
-            if key in result:
-                raise ValueError("Duplicate catalogue property.")
-            result[key] = value
-        return result
-    try:
-        source = json.loads(path.read_bytes(), object_pairs_hook=unique)
-        genesis = "00000000000000001ebf88508a03865c71d452e25f4d51194196a1d22b6653dc"
-        expected = {"schema": 1, "rpcUrl": "https://api.trongrid.io/walletsolidity/getblock",
-                    "genesisHash": genesis, "consistency": "SolidityNodeSolidified",
-                    "blockHeights": ["1", "2", "3"], "sourceOwner": "374ef405-02b9-4424-b2c6-3e187104a262"}
-        if not isinstance(source, dict) or type(source.get("schema")) is not int or source != expected:
-            raise ValueError("Retained source identity, heights or fields differ.")
-    except (ValueError, UnicodeError):
-        raise RuntimeError("The retained TRON header catalogue must match exactly; credentials are separate.") from None
-    ids = [native_logical_id(source["sourceOwner"], "TRONOASIS", "tron-public-solidified:" + genesis, height)
-           for height in source["blockHeights"]]
-    return {"presets": reviewed_record_presets("TRONOASIS", ids, "TronBlockHeight", source["blockHeights"]),
-            "sourceBinding": {"CQL_TRON_PUBLIC_HEADER_QUERY_SOURCE_JSON": json.dumps(source, separators=(",", ":"))},
-            "publicIds": ids, "requiredQueryableMetadataKey": "TronBlockHeight"}
-
-
 def reviewed_exact_key_source(provider, path):
-    if provider == "TRONOASIS":
-        return reviewed_tron_header_source(path)
     if path is None or not path.is_file() or not 0 < path.stat().st_size <= 16384:
         raise RuntimeError("An explicit reviewed native teaching catalogue is required.")
     catalogue = json.loads(path.read_bytes())
     try:
         names_only = provider == "ENSOffchainOASIS"
         fixed_public = FIXED_PUBLIC_CATALOGUES.get(provider)
-        evm_gateway = EVM_GATEWAY_CATALOGUES.get(provider)
+        polygon_gateway = POLYGON_GATEWAY_CATALOGUES.get(provider)
         fields = ({"Actor", "LiveIds"} if provider == "NATSJetStreamOASIS" else
                   {"Actor", "Names"} if names_only else {"Actor", "LiveIds", "DeletedId", "MissingId"})
         public_keys = {
@@ -569,10 +504,8 @@ def reviewed_exact_key_source(provider, path):
                                          "objectstorage.us-phoenix-1.oraclecloud.com/n/oraclebigdatadb/b/workshop-data/o",
                                          r"bds-livelabs/[a-z0-9][a-z0-9-]{0,79}\.sh"),
         }.get(provider)
-        if provider == "DynamoDBOASIS":
-            fields.add("Region")
-        if fixed_public or evm_gateway:
-            fields = {"Actor", "Origin"} if provider == "GOMapOASIS" else {"Actor"}
+        if fixed_public or polygon_gateway:
+            fields = {"Actor"}
         elif public_keys:
             fields = {"Actor", public_keys[0]}
         if provider == "CloudinaryOASIS":
@@ -654,22 +587,6 @@ def reviewed_exact_key_source(provider, path):
             fields.add("StoreId")
             if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", catalogue["StoreId"]):
                 raise ValueError("Unexpected Fastly KV store ID.")
-        if provider == "HoloOASIS" and catalogue.get("Mode") == "ManagedLocal":
-            fields.add("Mode")
-        elif provider == "HoloOASIS":
-            fields |= {"Endpoint", "InstalledAppId", "DnaHash", "AgentKey"}
-            endpoint = catalogue["Endpoint"]
-            address = urllib.parse.urlsplit(endpoint)
-            if (not 1 <= len(endpoint) <= 512 or any(ord(character) < 33 for character in endpoint)
-                    or not address.hostname or address.username is not None or "?" in endpoint or "#" in endpoint
-                    or not (address.scheme == "wss"
-                            or address.scheme == "ws" and address.hostname in ("127.0.0.1", "::1", "localhost"))
-                    or address.port == 0
-                    or not re.fullmatch(r"[A-Za-z0-9._-]{1,128}", catalogue["InstalledAppId"])):
-                raise ValueError("Invalid HoloOASIS teaching app endpoint or ID.")
-            for field in ("DnaHash", "AgentKey"):
-                if len(base64.b64decode(catalogue[field], validate=True)) != 39:
-                    raise ValueError("HoloOASIS requires a reviewed native cell identity.")
         if provider == "DaprOASIS":
             fields |= {"Store", "GrpcEndpoint"}
             port = re.fullmatch(r"http://127\.0\.0\.1:([1-9][0-9]{0,4})/", catalogue["GrpcEndpoint"])
@@ -755,19 +672,11 @@ def reviewed_exact_key_source(provider, path):
             raise ValueError("Unexpected Tigris source address.")
         if set(catalogue) != fields:
             raise ValueError("Unexpected teaching catalogue shape.")
-        if evm_gateway:
-            _, namespace, _, keys = evm_gateway
-            ids = [native_logical_id(catalogue["Actor"], provider, namespace, key) for key in keys]
+        if polygon_gateway:
+            _, namespace, _ = polygon_gateway
+            ids = [native_logical_id(catalogue["Actor"], provider, namespace, key) for key in POLYGON_GATEWAY_KEYS]
             record_ids = ids
         elif fixed_public:
-            if provider == "GOMapOASIS":
-                origin = catalogue["Origin"]
-                label = r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?"
-                match = re.fullmatch(rf"https://({label}(?:\.{label})*\.?)(?::([0-9]{{1,5}}))?/?", origin)
-                if (not match or len(match[1].rstrip(".")) > 253
-                        or match[1].rstrip(".") in ("router.project-osrm.org", "routing.openstreetmap.de")
-                        or (match[2] and not 1 <= int(match[2]) <= 65535)):
-                    raise ValueError("A dedicated HTTPS GOMap origin is required.")
             _, namespace, keys = fixed_public
             ids = [native_logical_id(catalogue["Actor"], provider, namespace, key) for key in keys]
             record_ids = ids
@@ -832,17 +741,25 @@ def reviewed_exact_key_source(provider, path):
     except (AttributeError, KeyError, TypeError, ValueError) as error:
         raise RuntimeError("The reviewed teaching catalogue requires canonical, distinct record identities"
                            " and any provider-specific original receipts.") from error
-    presets = reviewed_record_presets(provider, ids,
-        evm_gateway[2] if evm_gateway else None,
-        list(evm_gateway[3]) if evm_gateway else None)
+    presets = []
+    for suffix, count in (("records", 3), ("subset", 2)):
+        if polygon_gateway:
+            predicate = {"metadataPath": [polygon_gateway[2]], "scalar": "String", "operator": "In",
+                         "value": list(POLYGON_GATEWAY_KEYS[:count])}
+        else:
+            predicate = {"field": "Id", "scalar": "Guid", "operator": "In", "value": ids[:count]}
+        selection = {"orderBy": "None", "take": 25, "includeMetadata": True, "filters": [predicate]}
+        presets.extend([
+            {"id": "public-" + suffix, "label": f"{provider} public teaching records ({count})",
+             "request": dict(selection, provider=provider, maximumDurationMilliseconds=30000)},
+            {"id": "mongo-public-" + suffix, "label": f"MongoDB + {provider} ({count} source records)",
+             "operation": "Federation", "request": {
+                "scope": "Named", "providers": ["MongoDBOASIS", provider], "source": selection,
+                "identityMode": "PreserveCopies", "maximumProviderAttempts": 2,
+                "maximumDurationMilliseconds": 30000, "take": 25}},
+        ])
     review = {"presets": presets}
-    if provider == "DynamoDBOASIS":
-        region = catalogue["Region"]
-        if not isinstance(region, str) or not re.fullmatch(r"[a-z]{2}(?:-[a-z0-9]+)+-[1-9][0-9]*", region):
-            raise RuntimeError("A canonical AWS region is required for the reviewed DynamoDB catalogue.")
-        review["sourceBinding"] = {"CQL_DYNAMODB_QUERY_REGION": region,
-                                   "CQL_DYNAMODB_QUERY_PROBE_ID": ids[0]}
-    elif provider == "TigrisOASIS":
+    if provider == "TigrisOASIS":
         review["sourceBinding"] = {"CQL_TIGRIS_QUERY_ORIGIN": catalogue["Endpoint"],
                                    "CQL_TIGRIS_QUERY_BUCKET": catalogue["Bucket"],
                                    "CQL_TIGRIS_QUERY_PROBE_ID": ids[0]}
@@ -893,17 +810,6 @@ def reviewed_exact_key_source(provider, path):
     elif provider == "FastlyOASIS":
         review["sourceBinding"] = {"CQL_FASTLY_QUERY_STORE_ID": catalogue["StoreId"],
                                    "CQL_FASTLY_QUERY_PROBE_ID": ids[0]}
-    elif provider == "HoloOASIS" and catalogue.get("Mode") == "ManagedLocal":
-        review["sourceBinding"] = {
-            "CQL_HOLOOASIS_LOCAL_DEMO__Enabled": "true",
-            "HOLONET_CONDUCTOR_FOLDER": "/data/COSMIC/HoloOasisCql/tools",
-        }
-        review["managedLocalHoloOasis"] = True
-    elif provider == "HoloOASIS":
-        prefix = "CQL_HOLOOASIS_QUERY__"
-        review["sourceBinding"] = {prefix + key: catalogue[key]
-                                   for key in ("Endpoint", "InstalledAppId", "DnaHash", "AgentKey")}
-        review["sourceBinding"].update({prefix + "Zome": "oasis", prefix + "ProbeId": ids[0]})
     elif provider == "DaprOASIS":
         review["sourceBinding"] = {"CQL_DAPR_QUERY_STORE": catalogue["Store"],
                                    "CQL_DAPR_QUERY_GRPC_ENDPOINT": catalogue["GrpcEndpoint"],
@@ -940,14 +846,12 @@ def reviewed_exact_key_source(provider, path):
     elif provider == "TursoOASIS":
         review["sourceBinding"] = {"CQL_TURSO_QUERY_ORIGIN": catalogue["Origin"],
                                    "CQL_TURSO_QUERY_PROBE_ID": ids[0]}
-    elif fixed_public or evm_gateway:
-        setting = (fixed_public or evm_gateway)[0]
+    elif fixed_public or polygon_gateway:
+        setting, _, _ = fixed_public or polygon_gateway
         review["sourceBinding"] = {setting: catalogue["Actor"]}
-        if provider == "GOMapOASIS":
-            review["sourceBinding"]["CQL_GOMAP_ROUTE_QUERY_SOURCE_ORIGIN"] = catalogue["Origin"]
-        if evm_gateway:
+        if polygon_gateway:
             review["publicIds"] = ids
-            review["requiredQueryableMetadataKey"] = evm_gateway[2]
+            review["requiredQueryableMetadataKey"] = polygon_gateway[2]
     elif provider == "TemporalOASIS":
         source = {"owner": catalogue["Actor"], "namespace": namespace,
                   "runs": [{"workflowId": run["WorkflowId"], "runId": run["RunId"]} for run in runs],

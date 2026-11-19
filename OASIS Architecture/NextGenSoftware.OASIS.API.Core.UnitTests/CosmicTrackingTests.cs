@@ -36,9 +36,9 @@ public partial class CosmicTrackingTests
         f.Provider.Setup(p=>p.LoadHolonAsync(quest.Id,false,false,0,true,false,0)).ReturnsAsync(new OASISResult<IHolon>(quest));
         f.Provider.Setup(p=>p.LoadHolonAsync(other.Id,false,false,0,true,false,0)).ReturnsAsync(new OASISResult<IHolon>(other));
         var selectedType=filter ? HolonType.Quest:HolonType.All;
-        var result=synchronous ? f.Manager.SearchHolons("owned",Guid.Empty,searchOnlyForCurrentAvatar:false,maxChildDepth:1,
+        var result=synchronous ? f.Manager.SearchHolons("owned",Guid.Empty,searchOnlyForCurrentAvatar:false,loadChildren:true,maxChildDepth:1,
                 loadChildrenFromProvider:fromProvider,childHolonType:selectedType,providerType:ProviderType.SQLLiteDBOASIS)
-            :await f.Manager.SearchHolonsAsync("owned",Guid.Empty,searchOnlyForCurrentAvatar:false,maxChildDepth:1,
+            :await f.Manager.SearchHolonsAsync("owned",Guid.Empty,searchOnlyForCurrentAvatar:false,loadChildren:true,maxChildDepth:1,
                 loadChildrenFromProvider:fromProvider,childHolonType:selectedType,providerType:ProviderType.SQLLiteDBOASIS);
         result.IsError.Should().BeFalse(result.Message+result.Exception);
         var actual=result.Result.Should().ContainSingle().Subject;
@@ -71,8 +71,8 @@ public partial class CosmicTrackingTests
             .Returns((Guid id,bool children,bool recursive,int depth,bool keepGoing,bool native,int version)=>new OASISResult<IHolon>(records[id]));
         f.Provider.Setup(p=>p.LoadHolonAsync(It.IsAny<Guid>(),false,false,0,true,false,0))
             .ReturnsAsync((Guid id,bool children,bool recursive,int depth,bool keepGoing,bool native,int version)=>new OASISResult<IHolon>(records[id]));
-        var result=synchronous ? f.Manager.LoadAllHolons(cache:false,providerType:ProviderType.SQLLiteDBOASIS)
-            :await f.Manager.LoadAllHolonsAsync(providerType:ProviderType.SQLLiteDBOASIS);
+        var result=synchronous ? f.Manager.LoadAllHolons(loadChildren:true,cache:false,providerType:ProviderType.SQLLiteDBOASIS)
+            :await f.Manager.LoadAllHolonsAsync(loadChildren:true,providerType:ProviderType.SQLLiteDBOASIS);
         result.IsError.Should().BeFalse(result.Message+result.Exception);
         var cursor=result.Result.Should().ContainSingle().Subject;var seen=1;
         while(cursor.Children.Any()){cursor=cursor.Children.Should().ContainSingle().Subject;seen++;}
@@ -107,16 +107,16 @@ public partial class CosmicTrackingTests
         IHolon loaded = null!;
         if (point)
         {
-            var result = synchronous ? f.Manager.LoadHolon(root.Id,maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS)
-                : await f.Manager.LoadHolonAsync(root.Id,maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS);
+            var result = synchronous ? f.Manager.LoadHolon(root.Id,loadChildren:true,maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS)
+                : await f.Manager.LoadHolonAsync(root.Id,loadChildren:true,maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS);
             result.IsError.Should().Be(invalidChild, result.Message + result.Exception);
             if (invalidChild) { result.Result.Should().BeNull(); result.IsLoaded.Should().BeFalse(); result.ErrorCode.Should().Be("HOLON_METADATA_DECRYPTION_FAILED"); }
             else loaded = result.Result;
         }
         else
         {
-            var result = synchronous ? f.Manager.LoadAllHolons(cache:false,providerType:ProviderType.SQLLiteDBOASIS)
-                : await f.Manager.LoadAllHolonsAsync(providerType:ProviderType.SQLLiteDBOASIS);
+            var result = synchronous ? f.Manager.LoadAllHolons(loadChildren:true,cache:false,providerType:ProviderType.SQLLiteDBOASIS)
+                : await f.Manager.LoadAllHolonsAsync(loadChildren:true,providerType:ProviderType.SQLLiteDBOASIS);
             result.IsError.Should().Be(invalidChild, result.Message + result.Exception);
             if (invalidChild) { result.Result.Should().BeNull(); result.IsLoaded.Should().BeFalse(); result.ErrorCode.Should().Be("HOLON_METADATA_DECRYPTION_FAILED"); }
             else loaded = result.Result.Single();
@@ -152,10 +152,10 @@ public partial class CosmicTrackingTests
         f.Provider.Setup(p=>p.LoadHolon(child.Id,false,false,0,true,false,0)).Returns(member);
         f.Provider.Setup(p=>p.LoadHolonAsync(child.Id,false,false,0,true,false,0)).ReturnsAsync(member);
         var result=byKey
-            ? synchronous ? f.Manager.LoadHolon<LoadedRoleOwner>("point-owner",maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS)
-                :await f.Manager.LoadHolonAsync<LoadedRoleOwner>("point-owner",maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS)
-            : synchronous ? f.Manager.LoadHolon<LoadedRoleOwner>(owner.Id,maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS)
-                :await f.Manager.LoadHolonAsync<LoadedRoleOwner>(owner.Id,maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS);
+            ? synchronous ? f.Manager.LoadHolon<LoadedRoleOwner>("point-owner",loadChildren:true,maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS)
+                :await f.Manager.LoadHolonAsync<LoadedRoleOwner>("point-owner",loadChildren:true,maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS)
+            : synchronous ? f.Manager.LoadHolon<LoadedRoleOwner>(owner.Id,loadChildren:true,maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS)
+                :await f.Manager.LoadHolonAsync<LoadedRoleOwner>(owner.Id,loadChildren:true,maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS);
         result.IsError.Should().Be(missing);
         if(missing){result.Result.Should().BeNull();result.ErrorCode.Should().Be("OWNED_POINT_CHILD_FAILURE");result.Exception.Should().BeSameAs(cause);}
         else {result.Result.Extras.Should().ContainSingle().Which.Id.Should().Be(child.Id);result.Result.HasHolonChanged().Should().BeFalse();}
@@ -177,8 +177,8 @@ public partial class CosmicTrackingTests
         f.Provider.Setup(p=>p.LoadAllHolonsAsync(HolonType.All,true,true,0,0,true,false,0)).ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(rows));
         f.Provider.Setup(p=>p.LoadHolon(child.Id,false,false,0,true,false,0)).Returns(new OASISResult<IHolon>(child));
         f.Provider.Setup(p=>p.LoadHolonAsync(child.Id,false,false,0,true,false,0)).ReturnsAsync(new OASISResult<IHolon>(child));
-        var result=synchronous ? f.Manager.LoadAllHolons<LoadedRoleOwner>(cache:false,providerType:ProviderType.SQLLiteDBOASIS)
-            :await f.Manager.LoadAllHolonsAsync<LoadedRoleOwner>(providerType:ProviderType.SQLLiteDBOASIS);
+        var result=synchronous ? f.Manager.LoadAllHolons<LoadedRoleOwner>(loadChildren:true,cache:false,providerType:ProviderType.SQLLiteDBOASIS)
+            :await f.Manager.LoadAllHolonsAsync<LoadedRoleOwner>(loadChildren:true,providerType:ProviderType.SQLLiteDBOASIS);
         result.IsError.Should().BeTrue();result.Result.Should().BeNull();result.IsLoaded.Should().BeFalse();
         result.ErrorCode.Should().Be("COSMIC_CHILD_ROLE_HYDRATION_FAILED");
         result.Exception.Message.Should().Contain("stored roles differ");owner.Children.Should().BeEmpty();
@@ -189,8 +189,8 @@ public partial class CosmicTrackingTests
     public async Task DefaultV2GraphRejectsUndefinedChildTypeBeforeProviderRead(bool synchronous)
     {
         var f=Fixture(true);
-        var result=synchronous ? f.Manager.LoadAllHolons(childHolonType:(HolonType)int.MaxValue,cache:false,providerType:ProviderType.SQLLiteDBOASIS)
-            :await f.Manager.LoadAllHolonsAsync(childHolonType:(HolonType)int.MaxValue,providerType:ProviderType.SQLLiteDBOASIS);
+        var result=synchronous ? f.Manager.LoadAllHolons(loadChildren:true,childHolonType:(HolonType)int.MaxValue,cache:false,providerType:ProviderType.SQLLiteDBOASIS)
+            :await f.Manager.LoadAllHolonsAsync(loadChildren:true,childHolonType:(HolonType)int.MaxValue,providerType:ProviderType.SQLLiteDBOASIS);
         result.IsError.Should().BeTrue();result.ErrorCode.Should().Be("HYPERDRIVE_CHILD_TYPE_INVALID");
         f.Provider.Verify(p=>p.LoadAllHolons(It.IsAny<HolonType>(),It.IsAny<bool>(),It.IsAny<bool>(),It.IsAny<int>(),It.IsAny<int>(),It.IsAny<bool>(),It.IsAny<bool>(),It.IsAny<int>()),Times.Never);
         f.Provider.Verify(p=>p.LoadAllHolonsAsync(It.IsAny<HolonType>(),It.IsAny<bool>(),It.IsAny<bool>(),It.IsAny<int>(),It.IsAny<int>(),It.IsAny<bool>(),It.IsAny<bool>(),It.IsAny<int>()),Times.Never);
@@ -211,8 +211,8 @@ public partial class CosmicTrackingTests
         f.Provider.Setup(p=>p.LoadAllHolonsAsync(HolonType.All,true,true,0,0,true,false,0)).ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(roots));
         f.Provider.Setup(p=>p.LoadHolon(child.Id,false,false,0,true,false,0)).Returns(new OASISResult<IHolon>(child));
         f.Provider.Setup(p=>p.LoadHolonAsync(child.Id,false,false,0,true,false,0)).ReturnsAsync(new OASISResult<IHolon>(child));
-        var result=synchronous ? f.Manager.LoadAllHolons(cache:false,providerType:ProviderType.SQLLiteDBOASIS)
-            :await f.Manager.LoadAllHolonsAsync(providerType:ProviderType.SQLLiteDBOASIS);
+        var result=synchronous ? f.Manager.LoadAllHolons(loadChildren:true,cache:false,providerType:ProviderType.SQLLiteDBOASIS)
+            :await f.Manager.LoadAllHolonsAsync(loadChildren:true,providerType:ProviderType.SQLLiteDBOASIS);
         result.IsError.Should().BeFalse(result.Message+result.Exception);var actual=result.Result.ToArray();actual.Should().HaveCount(2);
         var nested=actual.Single(value=>value.Id==owner.Id).Children.Should().ContainSingle().Subject;
         nested.Id.Should().Be(child.Id);nested.Should().NotBeSameAs(actual.Single(value=>value.Id==child.Id));
@@ -262,16 +262,16 @@ public partial class CosmicTrackingTests
             It.IsAny<int>(),It.IsAny<int>(),It.IsAny<bool>(),It.IsAny<bool>(),It.IsAny<int>()))
             .ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(new IHolon[]{child}));
         var loaded=route switch {
-            "metadata"=>synchronous ? f.Manager.LoadHolonsByMetaData<LoadedRoleOwner>("owned","member",maxChildDepth:depth,providerType:ProviderType.SQLLiteDBOASIS)
-                :await f.Manager.LoadHolonsByMetaDataAsync<LoadedRoleOwner>("owned","member",maxChildDepth:depth,providerType:ProviderType.SQLLiteDBOASIS),
-            "pairs"=>synchronous ? f.Manager.LoadHolonsByMetaData<LoadedRoleOwner>(pairs,MetaKeyValuePairMatchMode.All,maxChildDepth:depth,providerType:ProviderType.SQLLiteDBOASIS)
-                :await f.Manager.LoadHolonsByMetaDataAsync<LoadedRoleOwner>(pairs,MetaKeyValuePairMatchMode.All,maxChildDepth:depth,providerType:ProviderType.SQLLiteDBOASIS),
-            "parent"=>synchronous ? f.Manager.LoadHolonsForParent<LoadedRoleOwner>(parentId,maxChildDepth:depth,providerType:ProviderType.SQLLiteDBOASIS)
-                :await f.Manager.LoadHolonsForParentAsync<LoadedRoleOwner>(parentId,maxChildDepth:depth,providerType:ProviderType.SQLLiteDBOASIS),
-            "parentKey"=>synchronous ? f.Manager.LoadHolonsForParent<LoadedRoleOwner>("owned-parent",maxChildDepth:depth,providerType:ProviderType.SQLLiteDBOASIS)
-                :await f.Manager.LoadHolonsForParentAsync<LoadedRoleOwner>("owned-parent",maxChildDepth:depth,providerType:ProviderType.SQLLiteDBOASIS),
-            _=>synchronous ? f.Manager.LoadAllHolons<LoadedRoleOwner>(maxChildDepth:depth,cache:false,providerType:ProviderType.SQLLiteDBOASIS)
-                :await f.Manager.LoadAllHolonsAsync<LoadedRoleOwner>(maxChildDepth:depth,providerType:ProviderType.SQLLiteDBOASIS)};
+            "metadata"=>synchronous ? f.Manager.LoadHolonsByMetaData<LoadedRoleOwner>("owned","member",loadChildren:true,maxChildDepth:depth,providerType:ProviderType.SQLLiteDBOASIS)
+                :await f.Manager.LoadHolonsByMetaDataAsync<LoadedRoleOwner>("owned","member",loadChildren:true,maxChildDepth:depth,providerType:ProviderType.SQLLiteDBOASIS),
+            "pairs"=>synchronous ? f.Manager.LoadHolonsByMetaData<LoadedRoleOwner>(pairs,MetaKeyValuePairMatchMode.All,loadChildren:true,maxChildDepth:depth,providerType:ProviderType.SQLLiteDBOASIS)
+                :await f.Manager.LoadHolonsByMetaDataAsync<LoadedRoleOwner>(pairs,MetaKeyValuePairMatchMode.All,loadChildren:true,maxChildDepth:depth,providerType:ProviderType.SQLLiteDBOASIS),
+            "parent"=>synchronous ? f.Manager.LoadHolonsForParent<LoadedRoleOwner>(parentId,loadChildren:true,maxChildDepth:depth,providerType:ProviderType.SQLLiteDBOASIS)
+                :await f.Manager.LoadHolonsForParentAsync<LoadedRoleOwner>(parentId,loadChildren:true,maxChildDepth:depth,providerType:ProviderType.SQLLiteDBOASIS),
+            "parentKey"=>synchronous ? f.Manager.LoadHolonsForParent<LoadedRoleOwner>("owned-parent",loadChildren:true,maxChildDepth:depth,providerType:ProviderType.SQLLiteDBOASIS)
+                :await f.Manager.LoadHolonsForParentAsync<LoadedRoleOwner>("owned-parent",loadChildren:true,maxChildDepth:depth,providerType:ProviderType.SQLLiteDBOASIS),
+            _=>synchronous ? f.Manager.LoadAllHolons<LoadedRoleOwner>(loadChildren:true,maxChildDepth:depth,cache:false,providerType:ProviderType.SQLLiteDBOASIS)
+                :await f.Manager.LoadAllHolonsAsync<LoadedRoleOwner>(loadChildren:true,maxChildDepth:depth,providerType:ProviderType.SQLLiteDBOASIS)};
         loaded.IsError.Should().BeFalse(loaded.Message+loaded.Exception);
         var actual=loaded.Result.Should().ContainSingle().Subject;
         actual.Extras.Should().ContainSingle().Which.Id.Should().Be(child.Id);
@@ -296,8 +296,8 @@ public partial class CosmicTrackingTests
         var rejected=new OASISResult<IHolon>{IsError=true,ErrorCode="OWNED_MISSING_MEMBER",Message="owned missing member",Exception=nativeCause};
         f.Provider.Setup(p=>p.LoadHolon(childId,false,false,0,true,false,0)).Returns(rejected);
         f.Provider.Setup(p=>p.LoadHolonAsync(childId,false,false,0,true,false,0)).ReturnsAsync(rejected);
-        var result=synchronous ? f.Manager.LoadAllHolons<LoadedRoleOwner>(maxChildDepth:1,cache:false,providerType:ProviderType.SQLLiteDBOASIS)
-            :await f.Manager.LoadAllHolonsAsync<LoadedRoleOwner>(maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS);
+        var result=synchronous ? f.Manager.LoadAllHolons<LoadedRoleOwner>(loadChildren:true,maxChildDepth:1,cache:false,providerType:ProviderType.SQLLiteDBOASIS)
+            :await f.Manager.LoadAllHolonsAsync<LoadedRoleOwner>(loadChildren:true,maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS);
         result.IsError.Should().Be(missing);
         if(missing){result.Result.Should().BeNull();result.ErrorCode.Should().Be("OWNED_MISSING_MEMBER");result.Exception.Should().BeSameAs(nativeCause);result.IsLoaded.Should().BeFalse();}
         else {var actual=result.Result.Should().ContainSingle().Subject;actual.AllChildren.Should().BeEmpty();actual.HasHolonChanged().Should().BeFalse();}
@@ -381,10 +381,10 @@ public partial class CosmicTrackingTests
         f.Provider.Setup(p=>p.LoadHolonsForParentAsync("parent-role-key",HolonType.All,true,recursive,2,currentDepth,true,true,0))
             .ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(rows));
         var result=byKey
-            ? synchronous ? f.Manager.LoadHolonsForParent<LoadedRoleOwner>("parent-role-key",recursive:recursive,maxChildDepth:2,currentChildDepth:currentDepth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS)
-                :await f.Manager.LoadHolonsForParentAsync<LoadedRoleOwner>("parent-role-key",recursive:recursive,maxChildDepth:2,currentChildDepth:currentDepth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS)
-            : synchronous ? f.Manager.LoadHolonsForParent<LoadedRoleOwner>(parentId,recursive:recursive,maxChildDepth:2,currentChildDepth:currentDepth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS)
-                :await f.Manager.LoadHolonsForParentAsync<LoadedRoleOwner>(parentId,recursive:recursive,maxChildDepth:2,currentChildDepth:currentDepth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS);
+            ? synchronous ? f.Manager.LoadHolonsForParent<LoadedRoleOwner>("parent-role-key",loadChildren:true,recursive:recursive,maxChildDepth:2,currentChildDepth:currentDepth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS)
+                :await f.Manager.LoadHolonsForParentAsync<LoadedRoleOwner>("parent-role-key",loadChildren:true,recursive:recursive,maxChildDepth:2,currentChildDepth:currentDepth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS)
+            : synchronous ? f.Manager.LoadHolonsForParent<LoadedRoleOwner>(parentId,loadChildren:true,recursive:recursive,maxChildDepth:2,currentChildDepth:currentDepth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS)
+                :await f.Manager.LoadHolonsForParentAsync<LoadedRoleOwner>(parentId,loadChildren:true,recursive:recursive,maxChildDepth:2,currentChildDepth:currentDepth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS);
         result.IsError.Should().BeFalse(result.Message+result.Exception);
         var owner=result.Result.Should().ContainSingle().Subject;
         owner.Children.Should().BeEmpty();owner.Extras.Count.Should().Be(selected ? 1:0);
@@ -414,10 +414,10 @@ public partial class CosmicTrackingTests
         f.Provider.Setup(p=>p.LoadHolonsByMetaDataAsync(It.IsAny<Dictionary<string,string>>(),MetaKeyValuePairMatchMode.All,HolonType.All,true,true,2,currentDepth,true,true,0))
             .ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(rows));
         var result=pairs
-            ? synchronous ? f.Manager.LoadHolonsByMetaData<LoadedRoleOwner>(criteria,MetaKeyValuePairMatchMode.All,maxChildDepth:2,currentChildDepth:currentDepth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS)
-                :await f.Manager.LoadHolonsByMetaDataAsync<LoadedRoleOwner>(criteria,MetaKeyValuePairMatchMode.All,maxChildDepth:2,currentChildDepth:currentDepth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS)
-            : synchronous ? f.Manager.LoadHolonsByMetaData<LoadedRoleOwner>("kind","sample",maxChildDepth:2,currentChildDepth:currentDepth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS)
-                :await f.Manager.LoadHolonsByMetaDataAsync<LoadedRoleOwner>("kind","sample",maxChildDepth:2,currentChildDepth:currentDepth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS);
+            ? synchronous ? f.Manager.LoadHolonsByMetaData<LoadedRoleOwner>(criteria,MetaKeyValuePairMatchMode.All,loadChildren:true,maxChildDepth:2,currentChildDepth:currentDepth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS)
+                :await f.Manager.LoadHolonsByMetaDataAsync<LoadedRoleOwner>(criteria,MetaKeyValuePairMatchMode.All,loadChildren:true,maxChildDepth:2,currentChildDepth:currentDepth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS)
+            : synchronous ? f.Manager.LoadHolonsByMetaData<LoadedRoleOwner>("kind","sample",loadChildren:true,maxChildDepth:2,currentChildDepth:currentDepth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS)
+                :await f.Manager.LoadHolonsByMetaDataAsync<LoadedRoleOwner>("kind","sample",loadChildren:true,maxChildDepth:2,currentChildDepth:currentDepth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS);
         result.IsError.Should().BeFalse(result.Message+result.Exception);
         var owner=result.Result.Should().ContainSingle().Subject;
         owner.ChildRoleManifestJson.Should().Be(source.ChildRoleManifestJson);
@@ -491,10 +491,10 @@ public partial class CosmicTrackingTests
         f.Provider.Setup(p=>p.LoadHolon("typed-role-key",true,true,depth,true,true,0)).Returns(new OASISResult<IHolon>(source));
         f.Provider.Setup(p=>p.LoadHolonAsync("typed-role-key",true,true,depth,true,true,0)).ReturnsAsync(new OASISResult<IHolon>(source));
         var result=byKey
-            ? synchronous ? f.Manager.LoadHolon<LoadedRoleOwner>("typed-role-key",maxChildDepth:depth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS)
-                :await f.Manager.LoadHolonAsync<LoadedRoleOwner>("typed-role-key",maxChildDepth:depth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS)
-            : synchronous ? f.Manager.LoadHolon<LoadedRoleOwner>(source.Id,maxChildDepth:depth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS)
-                :await f.Manager.LoadHolonAsync<LoadedRoleOwner>(source.Id,maxChildDepth:depth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS);
+            ? synchronous ? f.Manager.LoadHolon<LoadedRoleOwner>("typed-role-key",loadChildren:true,maxChildDepth:depth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS)
+                :await f.Manager.LoadHolonAsync<LoadedRoleOwner>("typed-role-key",loadChildren:true,maxChildDepth:depth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS)
+            : synchronous ? f.Manager.LoadHolon<LoadedRoleOwner>(source.Id,loadChildren:true,maxChildDepth:depth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS)
+                :await f.Manager.LoadHolonAsync<LoadedRoleOwner>(source.Id,loadChildren:true,maxChildDepth:depth,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS);
         result.IsError.Should().BeFalse(result.Message+result.Exception);result.Result.Children.Should().BeEmpty();
         var loaded=result.Result.Extras.Should().ContainSingle().Subject;
         loaded.Name.Should().Be(child.Name);loaded.VersionId.Should().Be(child.VersionId);loaded.Children.Count.Should().Be(depth==1 ? 0:1);
@@ -1053,13 +1053,30 @@ public partial class CosmicTrackingTests
         root.MetaData["private-parent-note"].ToString().Should().Be("public-unit-test-value");child.ParentHolon.Should().BeSameAs(root);
     }
 
-    private static (HolonManager Manager, Mock<IOASISStorageProvider> Provider, ProviderManager Providers) Fixture(bool v2, bool reject = false, bool conditional = false, bool preparation = false, bool recovery = false, bool preparationRecovery = false)
+    private static CosmicStorageIdentity ControlledNativeIdentity(ProviderType type)
+        =>new(type,new string('A',64),"controlled-store-"+type);
+
+    private static (HolonManager Manager, Mock<IOASISStorageProvider> Provider, ProviderManager Providers) Fixture(bool v2, bool reject = false, bool conditional = false, bool preparation = false, bool recovery = false, bool preparationRecovery = false, bool atomicReplication = false, bool boundReplication = false)
     {
         var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS {
             HyperDriveMode = v2 ? HyperDriveModes.V2 : HyperDriveModes.Legacy,
             StorageProviders = new StorageProviderSettings { LogSwitchingProviders = false } } };
         var p = new Mock<IOASISStorageProvider>(); p.SetupAllProperties();
         if (conditional) p.As<IConditionalHolonStorageProvider>();
+        if (atomicReplication) p.As<IAtomicHolonReplicationStorageProvider>();
+        if (boundReplication)
+        {
+            p.As<IBoundAtomicHolonReplicationStorageProvider>();
+            var outbox = new Mock<IHolonReplicationRouteInventoryOutbox>();
+            outbox.As<IHolonReplicationDestinationCatalogue>()
+                .Setup(value => value.ReadDestinationBindingAsync(It.IsAny<ProviderType>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new OASISResult<HolonReplicationDestinationBinding>());
+            p.As<IBoundHolonReplicationOutboxSource>()
+                .Setup(value => value.GetBoundHolonReplicationOutbox(It.IsAny<CosmicStorageIdentity>()))
+                .Returns(new OASISResult<IHolonReplicationRouteInventoryOutbox>(outbox.Object));
+            p.As<ICosmicStorageIdentityProvider>().Setup(value=>value.CaptureStorageIdentityAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new OASISResult<CosmicStorageIdentity>(ControlledNativeIdentity(ProviderType.SQLLiteDBOASIS)));
+        }
         if (preparation) p.As<IHolonWritePreparationStorageProvider>();
         if (recovery) p.As<IConditionalHolonWriteRecoveryStorageProvider>();
         if (preparationRecovery) p.As<IHolonWritePreparationRecoveryStorageProvider>();

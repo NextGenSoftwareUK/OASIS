@@ -231,6 +231,10 @@ jobs:
     needs: release
     runs-on: windows-latest
     timeout-minutes: 90
+    # id-token: NuGet Trusted Publishing (the nuget.org policy must name publish-mcp.yml; when called from global-release.yml the caller grants id-token too).
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Checkout the exact OASIS source graph
         uses: actions/checkout@v7
@@ -256,15 +260,24 @@ jobs:
           dotnet pack
           OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/NextGenSoftware.OASIS.MCP.Server.csproj
           -c Release -p:Version=${{ inputs.version }} -o OASIS/nupkgs
+      - name: NuGet trusted publishing login (short-lived key, nothing stored)
+        id: nuget_login
+        continue-on-error: true
+        uses: NuGet/login@v1
+        with:
+          user: dellams
       - name: Push to NuGet.org
         shell: pwsh
+        env:
+          # The trusted-publishing key when the login worked, else the NUGET_API_KEY secret.
+          NUGET_API_KEY: ${{ steps.nuget_login.outputs.NUGET_API_KEY || secrets.NUGET_API_KEY }}
         run: |
           Get-ChildItem OASIS/nupkgs/*.nupkg |
             Where-Object { $_.Name -notlike "*.symbols.nupkg" } |
             ForEach-Object {
               dotnet nuget push $_.FullName `
                 --source https://api.nuget.org/v3/index.json `
-                --api-key "${{ secrets.NUGET_API_KEY }}" `
+                --api-key "$env:NUGET_API_KEY" `
                 --skip-duplicate
               if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             }

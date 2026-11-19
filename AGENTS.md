@@ -46,13 +46,9 @@ For a **new chat**, paste: goal + “see `Docs/Devs/STAR_CLI_SessionHandoff.md`�
 
 ## Conventions (this repo)
 
-- Shared OASIS Atlas (dev/staging/production) is not a test target. Use an isolated CI/local MongoDB container, mocks, or owned disposable test stores. Do not run benchmark, soak, replication, sync or background test loops against the shared cluster. Before any unavoidable shared-cluster test, tell David the small operation budget, pauses and capped retries. Never load deployed secrets into test fixtures. This restriction does not authorize stopping unrelated hosted application workers or modifying live obligations.
-
-
 - **Doc locations:** transient documents — progress reports, audits, session handoffs, status/completeness reports, evidence logs — go in `Docs/WIP/`. Only official, lasting docs (guides, policies, architecture, process runbooks) belong in the `Docs` root or `Docs/Devs`.
 
 - Commit ongoing work on the agreed task branch, not directly on `Development`. Batch verified merges/pushes to `Development` once or twice daily rather than pushing every small commit: each dev push triggers Railway builds and frequent pushes can create hundreds of queued deployments. This cadence supersedes the earlier frequent-integration instruction. Do not wait for the entire provider programme to finish or allow task branches to diverge unchecked. Fetch and inspect current shared branch/submodule state first, preserve concurrent contributors' changes, and integrate only the scoped batch with its verification evidence and documented remaining gaps. Incomplete or unverified changes must not be swept into a deployment merely to synchronize branches. Coordinate branch switches in shared checkouts; never force-push shared branches or create another worktree/environment just for this workflow.
-- COSMIC/CQL Development integration: Review Development and HyperDrive every 30 minutes. Batch verified, non-overlapping COSMIC changes and leave at least 30 minutes between Development pushes. Check the latest shared push and the Railway WEB4 queue before integrating. Defer routine pushes while the preceding WEB4 release is queued. Use work/cosmic-cql-ton-public for feature work.
 - **Releases to master promote a snapshot, not `Development`.** Other agents push to `Development` continuously, so cut `release/YYYY-MM-DD` from one chosen commit, tag it `release-YYYY-MM-DD`, and run **Promote Development to master** with `source_ref=release/YYYY-MM-DD`. Fix blockers on the release branch, merge it back afterwards, never move it. Procedure: `Docs/Devs/DEVELOPMENT_TO_MASTER_PROMOTION.md` (section "Release branch snapshot").
 - Reuse the existing task worktree and one reusable provider-test environment. Do not create repeated fresh worktrees, runtime installs or per-run database copies. Exception: one long-lived worktree per concurrent agent is allowed (see `Docs/Devs/AGENT_Long_Running_Work_Guide.md`).
 - Cache pinned runtime executables once; retain compact test reports, but remove disposable test databases and generated outputs after owned processes stop. Validate exact cleanup paths before removal. Never delete source, credentials, user databases or unrelated environments.
@@ -85,3 +81,19 @@ For a **new chat**, paste: goal + “see `Docs/Devs/STAR_CLI_SessionHandoff.md`�
 - `STAR ODK/NextGenSoftware.OASIS.STAR.CLI.Lib/StarnetUiScriptedCreateCli.cs` — generic argv → `CustomCreateParams` for scripted create; `StarCliNonInteractiveCreateKeys.cs` + `STARNETUIBase.CreateAsync` consume it. Prefer extending these over per-holon `Program.cs` forks (see `Docs/Devs/STAR_CLI_NonInteractive.md` § Generic design).
 - `STAR ODK/NextGenSoftware.OASIS.STAR.CLI.Lib/STARNETUIBase.cs` — wizards / `GetConfirmation` (non-interactive work often lands here).
 - Shared prompts: `NextGenSoftware-Libraries/NextGenSoftware.CLI.Engine/CLIEngine.cs` (`NonInteractive`, `AssumeYes`, etc.).
+
+### Building from a fresh checkout
+
+Core is **not** a NuGet package: `OASIS Architecture/NextGenSoftware.OASIS.API.Core`, `ONODE/NextGenSoftware.OASIS.API.ONODE.Core` and `HoloNET-ORM` are git submodules, and the WEB4 projects reference their source. A checkout without them fails restore with NU1605/NU1202 errors that look like a package problem. Before building run:
+
+```bash
+git submodule update --init "OASIS Architecture/NextGenSoftware.OASIS.API.Core" "ONODE/NextGenSoftware.OASIS.API.ONODE.Core" "HoloNET-ORM"
+```
+
+Then, for example, `dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --filter "FullyQualifiedName~Subscription" -m:2 -nr:false -p:UseSharedCompilation=false`. In Git Bash write MSBuild switches with a dash (`-m:2`), because `/m:2` is rewritten into a path. The unit test project can contain compile errors from other in-flight work; check `git log` for the failing file before assuming your change broke it.
+
+## Shared MongoDB Atlas test isolation — owner instruction 2026-11-18
+
+The OASIS shared Atlas cluster used by dev, staging and production is not a test backend. Do not run provider tests, benchmarks, stress/soak loops, replication/sync tests or diagnostic polling against it. Reuse isolated local/CI Mongo containers (real-provider acceptance) or unit-test in-memory substitutes; never substitute mocks for shipping provider implementations. A separate throwaway Atlas project requires its own explicitly identified disposable configuration.
+
+Any exceptional shared-cluster test must be announced to David before it starts, with an explicit small operation bound, pauses between calls and capped retries. Client HTTP timeouts do not bound server-side operations or cancel background work. Do not infer permission from access to deployed credentials. Never copy secrets into source/evidence. Preserve blocked replication deliveries, including535/543; do not replay, clear, reauthorize or advance them to reduce load. Operational worker pauses must be explicit and preserve durable queues. Read Docs/WIP/HyperDrive-Providers/SHARED_MONGO_STANDDOWN_2026-11-18.md before resuming shared diagnostics.

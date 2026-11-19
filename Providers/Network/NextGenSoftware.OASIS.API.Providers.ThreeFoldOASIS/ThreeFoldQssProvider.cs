@@ -24,7 +24,21 @@ public sealed class ThreeFoldOASIS : NextGenSoftware.OASIS.API.Providers.MinIOOA
     }
 
     public ThreeFoldOASIS(string endpoint, string accessKey, string secretKey, string bucketName = "oasis", bool useSSL = true)
-        : base(endpoint, accessKey, secretKey, bucketName, useSSL)
+        : base(endpoint, accessKey, secretKey,
+            () => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend.ResolveEnvironmentKey("OASIS_THREEFOLD_STORAGE_KEY"),
+            bucketName, useSSL)
+    {
+        SetIdentity();
+    }
+
+    public ThreeFoldOASIS(Amazon.S3.IAmazonS3 client, string bucketName, Func<byte[]> storageKeyResolver,
+        string keyPrefix = "oasis/", bool ownsClient = false)
+        : base(client, bucketName, storageKeyResolver, keyPrefix, ownsClient)
+    {
+        SetIdentity();
+    }
+
+    private void SetIdentity()
     {
         ProviderName = "ThreeFoldOASIS";
         ProviderDescription = "ThreeFold QSS provider (S3-compatible object storage via AWSSDK.S3)";

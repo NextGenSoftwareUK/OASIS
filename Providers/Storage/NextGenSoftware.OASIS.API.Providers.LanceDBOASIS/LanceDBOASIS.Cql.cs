@@ -17,20 +17,6 @@ public partial class LanceDBOASIS : ICosmicQueryStorageProvider
 {
     public ProviderType QueryProviderType => Core.Enums.ProviderType.LanceDBOASIS;
     public CosmicQueryCapabilities QueryCapabilities => LanceDBCqlCompiler.Capabilities;
-    protected virtual bool RequiresPublicQueryRecords => false;
-
-    // Only captured canonical UUIDs enter SQL.
-    private static string IdentityPredicate(IEnumerable<Guid> ids) =>
-        "id IN (" + string.Join(",", ids.Select(id => "'" + id.ToString("D") + "'")) + ")";
-
-    protected async Task VerifyPublicQueryProbeAsync(Guid id, CancellationToken cancellationToken)
-    {
-        var records = await QueryArrowRowsAsync(CollHolons, IdentityPredicate(new[] { id }), 1, cancellationToken)
-            .ConfigureAwait(false);
-        if (records.Count != 1 || records[0].Id != id ||
-            JsonSerializer.Deserialize<Holon>(records[0].Json) is not { IsPublic: true, IsDeleted: false } row || row.Id != id)
-            throw new InvalidDataException("The LanceDB probe must be an existing public holon.");
-    }
 
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan, int maximumResults = 100,
@@ -56,7 +42,7 @@ public partial class LanceDBOASIS : ICosmicQueryStorageProvider
             if (selected.Result.Count != 0)
             {
                 // Only captured canonical GUIDs enter SQL; never interpolate caller expressions.
-                var predicate = IdentityPredicate(selected.Result);
+                var predicate = "id IN (" + string.Join(",", selected.Result.Select(id => "'" + id.ToString("D") + "'")) + ")";
                 var records = await QueryArrowRowsAsync(CollHolons, predicate, selected.Result.Count, cancellationToken);
                 foreach (var record in records)
                 {
@@ -66,8 +52,6 @@ public partial class LanceDBOASIS : ICosmicQueryStorageProvider
                     if (row == null || row.Id != record.Id || !plan.Query.ReadAccess.CanRead(row))
                         throw new InvalidDataException("LanceDB payload differs from admitted read authority.");
                     if (row.IsDeleted) continue;
-                    if (RequiresPublicQueryRecords && !row.IsPublic)
-                        throw new InvalidDataException("Native LanceDB teaching record is no longer public.");
                     row.Children = Array.Empty<IHolon>();
                     rows.Add(record.Id, row);
                 }

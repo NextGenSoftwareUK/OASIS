@@ -44,6 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Grpc.Core" Version="2.46.6" />
     <PackageReference Include="TronNet" Version="0.2.0" />
     <PackageReference Include="Nethereum.Signer" Version="7.0.0" />
     <PackageReference Include="Nethereum.ABI" Version="7.0.0" />

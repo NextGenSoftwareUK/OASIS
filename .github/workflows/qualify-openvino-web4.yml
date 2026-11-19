@@ -2,7 +2,7 @@ name: Qualify OpenVINO model metadata WEB4 read integration
 
 on:
   push:
-    branches: [work/cosmic-cql-ton-public]
+    branches: [work/cosmic-cql-ton-public, work/cosmic-teaching-release-candidate]
     paths:
       - '.github/workflows/qualify-openvino-web4.yml'
       - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS/**'

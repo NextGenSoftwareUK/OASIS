@@ -15,45 +15,10 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS;
 
-public partial class ChromaOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
+public partial class ChromaOASIS : ICosmicQueryStorageProvider
 {
     public ProviderType QueryProviderType => Core.Enums.ProviderType.ChromaOASIS;
     public CosmicQueryCapabilities QueryCapabilities => ChromaCqlCompiler.Capabilities;
-
-    public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            using var response = await _http.GetAsync($"{CollectionsUrl}/{CollHolons}",
-                HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-            response.EnsureSuccessStatusCode();
-            using var document = await ReadQueryResponseAsync(response, cancellationToken);
-            var collection = document.RootElement;
-            var id = collection.GetProperty("id").GetString();
-            if (collection.GetProperty("name").GetString() != CollHolons ||
-                !Guid.TryParseExact(id, "D", out var uuid) || uuid == Guid.Empty || id != uuid.ToString("D"))
-                throw new InvalidDataException("Chroma returned an invalid holon collection identity.");
-
-            cancellationToken.ThrowIfCancellationRequested();
-            _collectionIds[CollHolons] = id;
-            IsProviderActivated = true;
-            return new(true);
-        }
-        catch (Exception error)
-        {
-            IsProviderActivated = false;
-            _collectionIds.Remove(CollHolons);
-            return new()
-            {
-                IsError = true,
-                ErrorCount = 1,
-                ErrorCode = error is OperationCanceledException ? "CQL_QUERY_CANCELLED" : "CQL_QUERY_SOURCE_UNAVAILABLE",
-                Message = "Chroma query activation did not verify the existing collection.",
-                Exception = error
-            };
-        }
-    }
 
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan, int maximumResults = 100,
@@ -80,8 +45,7 @@ public partial class ChromaOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQ
                 return Error("CQL_PROVIDER_INACTIVE", "Activate the configured Chroma collections before querying.");
 
             var rows = new Dictionary<Guid, IHolon>();
-            var admittedIds = selected.Result.Where(id => plan.Query.ReadAccess.CanRead(id, false, Guid.Empty)).ToArray();
-            if (admittedIds.Length != 0)
+            if (selected.Result.Count != 0)
             {
                 // Querying may never create collections or resolve a guessed storage authority.
                 if (!_collectionIds.TryGetValue(CollHolons, out var collection) ||
@@ -90,7 +54,7 @@ public partial class ChromaOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQ
 
                 using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 deadline.CancelAfter(TimeSpan.FromSeconds(15));
-                var ids = admittedIds.Select(id => id.ToString("D")).ToArray();
+                var ids = selected.Result.Select(id => id.ToString("D")).ToArray();
                 using var request = new HttpRequestMessage(HttpMethod.Post, $"{CollectionsUrl}/{collection}/get")
                 {
                     Content = Json(new { ids, include = new[] { "documents" }, limit = ids.Length + 1, offset = 0 })
@@ -110,7 +74,7 @@ public partial class ChromaOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQ
                     cancellationToken.ThrowIfCancellationRequested();
                     var key = nativeIds[index].GetString();
                     if (!Guid.TryParseExact(key, "D", out var id) || key != id.ToString("D") ||
-                        !admittedIds.Contains(id) || !seen.Add(id))
+                        !selected.Result.Contains(id) || !seen.Add(id))
                         throw new InvalidDataException("Native identity differs from admitted catalogue.");
                     var json = documents[index].GetString();
                     if (json == null) throw new InvalidDataException("Native document is missing.");
@@ -125,7 +89,7 @@ public partial class ChromaOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQ
             }
 
             // Stable admitted-key order owns pagination; native storage ordering is unspecified.
-            var page = admittedIds.Where(rows.ContainsKey).Select(id => rows[id])
+            var page = selected.Result.Where(rows.ContainsKey).Select(id => rows[id])
                 .Skip(plan.Query.Offset).Take(plan.Query.Limit ?? rows.Count).ToArray();
             if (page.Length > maximumResults)
                 return Error("CQL_QUERY_LIMIT", "Complete page exceeds result budget.");

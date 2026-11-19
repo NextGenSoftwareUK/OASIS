@@ -2,7 +2,7 @@ name: Qualify exact WEB4 native release assets
 
 on:
   push:
-    branches: [work/cosmic-cql-ton-public]
+    branches: [work/cosmic-cql-ton-public, work/cosmic-teaching-release-candidate]
     paths:
       - '.github/workflows/qualify-web4-runtime-assets.yml'
       - 'Docker/Dockerfile.web4'

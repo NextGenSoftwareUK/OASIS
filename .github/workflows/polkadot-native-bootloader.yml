@@ -1,0 +1,21 @@
+name: Polkadot native BootLoader
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/polkadot-native-bootloader.yml'
+      - '.github/workflows/polkadot-native-storage.yml'
+      - 'Scripts/TestHosts/Invoke-PolkadotBootLoaderActivation.ps1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bootloader:
+    uses: ./.github/workflows/polkadot-native-storage.yml
+    with:
+      activation_only: true
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}

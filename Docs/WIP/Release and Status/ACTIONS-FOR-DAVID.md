@@ -998,8 +998,6 @@ Power recovery verified on 11 November UTC: battery 21% and charging (Win32_Batt
 
 ### WEB6 Ask your data Development demo entitlement · 13 November
 
-19 November verification update: Development WEB6 saved DNA and corresponding environment fields still have no GeminiFree/OpenRouter key or Ollama URL/model (presence booleans only; no values disclosed or changed). Existing Free-route configuration action remains pending. No new administrator sign-in, Bronze grant, catalogue write or inference request is being requested. The full goal continues with isolated provider qualification meanwhile.
-
 **Current action, 17 November UTC** Configure a permanent Free WEB6 route and publish the reviewed additive catalogue using existing authorized access or direct owner publication. The earlier one-time Bronze grants are closed and the visitor is back on Free. Earlier sign-in and grant instructions below record previous steps. No new Bronze approval or sign-in is pending. The two Development configuration steps are described below.
 
 Read-only verification during CQL image44208771977: the Development WEB6 service's saved OASIS_DNA_JSON has none of the four requested Free-route fields configured (GeminiFree/OpenRouter keys and Ollama URL/model). Only presence booleans were reported; no secrets/settings were changed. Saved configuration is not proof of what the running deployment has loaded. Existing action remains pending; no new login or Bronze approval is requested.

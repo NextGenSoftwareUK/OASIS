@@ -1,9 +1,5 @@
 # Blockscout public address CQL — native qualification
 
-## Live shipping provider verification
-
-Railway deployment 4c4f2819-8e3b-419a-96ed-3bdc57eb72ed serves Development f35d4a037e53. The shipping BlockscoutOASIS class returned matching native and MongoDB-federated three-record and two-record subsets with Blockscout provenance. Two latency sampling runs encountered HTTP 503/CQL_QUERY_FAILED, once on the first read and once during warm sampling. Railway logged Blockscout native query HTTP 500 failures. The latency comparison remains unverified. The warmed catalogue reported 106/107 native and federated sources available, with Nostr the sole unavailable source. Axelar and Connext were available on this deployment before the proposed activation policy change.
-
 2 November 2026. Native and local CQL/C# verified; HTTP/hosted/card remain red.
 Counts57integrated/52hosted/5browser47open. Original read timeout cause unresolved.
 
@@ -241,17 +237,3 @@ Browser interaction/full native payload copying/reliability remain unverified.
 | `web4-sandbox.html` | 187960 | `8b151b5cf9d1a454d40bfb22e239c802fdec87265b6712a97b6d263f78a41a53` |
 | `cql-demo-preparation.js` | 10241 | `c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a` |
 | `cql-playground.js` | 21871 | `7cb6210b9adda1e83630fc966926772f8338c43163c24d1abd88c626ad1ad649` |
-
-11 November UTC: Blockscout native public explorer address presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
-
-11 November UTC: the warmed Development 323c4f54da catalogue reached 105 available sources on Railway 5c6a6f59. Startup logs recorded a Blockscout activation timeout at 15,005 ms. Preserve its previously accepted browser results; no provider recovery or preset replay was performed.
-
-11 November UTC: Railway WEB4 b5fe79a765 is active. Authenticated discovery with the existing visitor showed 105 of 106 sources available. Nostr returned to available on discovery. Blockscout is the sole unavailable listed source and its activation log shows cancellation after 15,010 ms with no HTTP status. Prior query acceptance is preserved. The existing operator recovery path applies if Blockscout remains unavailable.
-
-11 November UTC: active Railway WEB4 deployment 73edd8aa at 2df4de082f advertised all 106 listed sources available in authenticated discovery. Blockscout recovered from the prior startup cancellation. Previously accepted query results remain scoped to their original runs. No preset was replayed.
-
-11 November UTC: Railway WEB4 moved to CockroachDB storage revision 2dd52cf6c0 (be878360-c4d9-47b4-8d4c-539dfb53fc5d). Authenticated discovery returned 105/106 ready for native and federation. Hedera and Nostr recovered readiness; Blockscout was unavailable. Its startup log records activation cancellation/timeout after 15,004 ms with no upstream HTTP status and unclassified stage. Supabase, TRON and CouchDB remain absent. Combined Supabase/Milvus qualification 43078973607 is active.
-
-## Blockscout Universal API migration
-
-15 November UTC. Blockscout now deprecates per-instance API support and requires a separate Universal API key even on the free tier. The three exact Ethereum address queries returned 403 locally; Railway recorded upstream 500. Connext uses the same deprecated instance for exact transaction logs and returned intermittent 503 through WEB4. The documented migration uses api.blockscout.com with Ethereum chain ID 1 and authorization in a request header. Retain the existing source identity independently of the transport URL so existing holon IDs and provenance survive. Use the existing exact fixture IDs and validate response schema and rate limits before cutover. [API overview](https://docs.blockscout.com/devs/apis) and [API authorization and routes](https://docs.blockscout.com/devs/blockscout-api).

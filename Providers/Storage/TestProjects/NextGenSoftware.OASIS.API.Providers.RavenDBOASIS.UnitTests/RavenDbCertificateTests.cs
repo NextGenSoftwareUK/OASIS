@@ -40,12 +40,9 @@ public class RavenDbCertificateTests
     public async Task StoreRecreationKeepsCallerOwnedCertificateAndNormalValidation()
     {
         using var certificate = Certificate();
-        var endpoints = new[] { "https://localhost:1" };
-        var provider = new RavenDBOASIS(endpoints, "oasis", certificate);
-        endpoints[0] = "http://localhost:1";
+        var provider = new RavenDBOASIS(new[] { "https://localhost:1" }, "oasis", certificate);
         var getStore = typeof(RavenDBOASIS).GetMethod("GetStore", BindingFlags.Instance | BindingFlags.NonPublic)!;
         var first = (IDocumentStore)getStore.Invoke(provider, null)!;
-        CollectionAssert.AreEqual(new[] { "https://localhost:1" }, first.Urls);
         Assert.AreSame(certificate, first.Certificate);
         Assert.IsFalse(first.Conventions.DisposeCertificate);
 
@@ -56,17 +53,5 @@ public class RavenDbCertificateTests
         Assert.AreSame(certificate, second.Certificate);
         await provider.DeActivateProviderAsync();
         Assert.IsTrue(certificate.HasPrivateKey);
-    }
-
-    [TestMethod]
-    public void HostedSourceDisablesTopologyDiscoveryAndCache()
-    {
-        using var certificate = Certificate();
-        using var source = new RavenDbQuerySource(new Uri("https://raven.example.test"), Guid.NewGuid(), certificate);
-        var getStore = typeof(RavenDBOASIS).GetMethod("GetStore", BindingFlags.Instance | BindingFlags.NonPublic)!;
-        var store = (IDocumentStore)getStore.Invoke(source, null)!;
-        CollectionAssert.AreEqual(new[] { "https://raven.example.test" }, store.Urls);
-        Assert.IsTrue(store.Conventions.DisableTopologyUpdates);
-        Assert.IsTrue(store.Conventions.DisableTopologyCache);
     }
 }

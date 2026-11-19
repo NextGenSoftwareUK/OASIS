@@ -95,6 +95,8 @@ public sealed class HolonOutboxDispatcher
             var reconcile=evidence.RequiresNativeReconciliation
                 || applied?.ErrorCode is "COSMIC_REPLICA_ACKNOWLEDGEMENT_INVALID" or "COSMIC_REPLICA_PAYLOAD_INVALID"
                     or "COSMIC_REPLICA_SOURCE_NOT_ENROLLED" or "COSMIC_REPLICA_LINEAGE_CONFLICT"
+                    or "COSMIC_REPLICATION_ROUTE_UNBOUND" or "COSMIC_REPLICATION_ROUTE_CHANGED"
+                    or "COSMIC_REPLICA_STORAGE_BINDING_MISMATCH" or "COSMIC_REPLICA_STORAGE_BINDING_INVALID"
                     or "COSMIC_REPLICA_AUTHORIZATION_DENIED" or "COSMIC_REPLICA_AUTHORIZATION_FAILED";
             var succeeded=applied!=null && !applied.IsError && applied.Result && !reconcile;
             var outcome=succeeded ? HolonDeliveryOutcome.Completed

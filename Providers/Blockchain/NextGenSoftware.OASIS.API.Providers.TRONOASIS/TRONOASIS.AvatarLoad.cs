@@ -89,7 +89,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
-            ResetPublicQueryActivation();
             var response = new OASISResult<bool>();
             await _runtimeLifecycle.WaitAsync();
             try

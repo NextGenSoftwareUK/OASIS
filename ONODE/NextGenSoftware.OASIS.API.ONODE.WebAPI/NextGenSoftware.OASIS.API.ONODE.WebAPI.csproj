@@ -85,6 +85,7 @@
 
   <ItemGroup>
     <Content Update="Configuration\subscription-overage-prices.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Update="Configuration\app-overage-prices.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="OASISSQLLiteDB.db">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -251,7 +252,6 @@
   <ProjectReference Include="../../Providers/Other/NextGenSoftware.OASIS.API.Providers.TemporalOASIS/NextGenSoftware.OASIS.API.Providers.TemporalOASIS.csproj" />
   <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.TenderlyOASIS/NextGenSoftware.OASIS.API.Providers.TenderlyOASIS.csproj" />
   <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.QuickNodeOASIS/NextGenSoftware.OASIS.API.Providers.QuickNodeOASIS.csproj" />
-  <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.InfuraOASIS/NextGenSoftware.OASIS.API.Providers.InfuraOASIS.csproj" />
   <ProjectReference Include="../../Providers/Social/NextGenSoftware.OASIS.API.Providers.DiscordOASIS/NextGenSoftware.OASIS.API.Providers.DiscordOASIS.csproj" />
   <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.LivepeerOASIS/NextGenSoftware.OASIS.API.Providers.LivepeerOASIS.csproj" />
   <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.PinataOASIS/NextGenSoftware.OASIS.API.Providers.PinataOASIS.csproj" />

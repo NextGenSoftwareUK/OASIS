@@ -1,7 +1,5 @@
 # Oracle CQL demo admission
 
-> Historical document recovered on 5 November 2026 from commit `f89cf0085`, blob `c0527a693544d900788a9859d6fc9812349f8694`. Evidence below belongs to that original checkpoint and has not been replayed on this laptop. Hosted Oracle remains deferred by David. See [current launcher recovery](ORACLE_LOCAL_LAUNCHER_RECOVERY.md) and [current programme status](CURRENT_STATUS.md) for the active gates.
-
 28 October 2026. User added Oracle to demo priority2. Selected implementation:
 OracleDBOASIS(native Oracle Database); OCI Object Storage/hosted OCI are separate.
 Storage52/52 is existing native storage evidence, not CQL or hosted-cloud proof.

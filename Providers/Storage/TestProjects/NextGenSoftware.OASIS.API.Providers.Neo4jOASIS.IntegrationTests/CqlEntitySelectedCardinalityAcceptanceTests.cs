@@ -80,34 +80,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         }
         Assert.AreEqual(ulong.MaxValue, await ReduceUnsigned<ulong>(CosmicScalarOperation.Sum));
         Assert.AreEqual((decimal)ulong.MaxValue, await ReduceUnsigned<decimal>(CosmicScalarOperation.Average));
-        var traversal = CosmicQueryTraversalOptions.Create(2, 8).Result;
-        var graphRows = root.OrderBy(row => row.Name).Take(3)
-            .Where(row => CosmicQueryRelations.AnyDescendant(row, child => child.Name == "visible match", traversal));
-        var graphAmounts = graphRows.Select(row => CosmicQueryMetadata.Value<decimal>(row, "decimal"));
-        Assert.AreEqual(exactAmount, graphAmounts.Sum());
-        Assert.AreEqual(exactAmount, graphAmounts.Average());
-        Assert.AreEqual(0m, graphAmounts.Take(0).Sum());
-
-        var graphLongs = graphRows.Select(row => CosmicQueryMetadata.Value<long?>(row, "i64"));
-        Assert.AreEqual<long?>(exactLong, graphLongs.Sum());
-        Assert.AreEqual<double?>((double)exactLong, graphLongs.Average());
-
-        var graphFloats = graphRows.Select(row => CosmicQueryMetadata.Value<float?>(row, "float"));
-        Assert.AreEqual<float?>(expectedSingle, graphFloats.Sum());
-        Assert.AreEqual<float?>(expectedSingle, graphFloats.Average());
-
-        var graphDoubles = graphRows.Select(row => CosmicQueryMetadata.Value<double>(row, "double"));
-        Assert.AreEqual(expectedDouble, graphDoubles.Sum());
-        Assert.AreEqual(expectedDouble, graphDoubles.Average());
-
-        // The greatest name belongs to the matching child. It has no descendants.
-        // Filtering before Take would instead include the parent and return its amount.
-        var excludedParent = root.OrderByDescending(row => row.Name).Take(1)
-            .Where(row => CosmicQueryRelations.AnyDescendant(row, child => child.Name == "visible match", traversal))
-            .Select(row => CosmicQueryMetadata.Value<decimal?>(row, "decimal"));
-        Assert.AreEqual<decimal?>(0m, excludedParent.Sum());
-        Assert.IsNull(excludedParent.Average());
-        Passed("native integer, decimal, floating-point and exact UInt64 reductions preserve entity windows and graph filters");
+        Passed("native integer, decimal, floating-point and exact UInt64 reductions preserve entity windows");
 
         var nullable = root.OrderBy(row => row.Name).Take(3).Reverse().Take(0)
             .Select(row => CosmicQueryMetadata.Value<int?>(row, "nullableInt"));

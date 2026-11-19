@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -49,140 +49,68 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 {
     public partial class EOSIOOASIS
     {
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            if (holons == null)
-                throw new ArgumentNullException(nameof(holons));
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true,
+            bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
+            bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider)
+                .GetAwaiter().GetResult();
 
+        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true,
+            bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
+            bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonBatchAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth);
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonBatchAsync(IEnumerable<IHolon> holons,
+            bool saveChildren, bool recursive, int maxChildDepth, int currentChildDepth)
+        {
+            ArgumentNullException.ThrowIfNull(holons);
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                foreach (var holon in holons)
+                var plan = HolonGraphWritePlan.CreateForSave(holons, saveChildren, recursive, maxChildDepth, currentChildDepth);
+                var rows = plan.Nodes.Select(node => new HolonDto
                 {
-                    var holonInfo = OasisJson.Serialize<object>(holon);
+                    HolonId = node.Snapshot.Id.ToString(),
+                    EntityId = HashUtility.GetNumericHash(node.Snapshot.Id),
+                    Info = OasisJson.Serialize<object>(node.Snapshot)
+                }).ToArray();
+                await _holonRepository.SaveBatchAsync(rows).ConfigureAwait(false);
 
-                    // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
-                    var existAvatar = _holonRepository.Read(holon.Id).Result;
-                    if (existAvatar != null)
-                    {
-                        _holonRepository.Update(new HolonDto
-                        {
-                            Info = holonInfo
-                        }, holon.Id).Wait();
-                    }
-                    else
-                    {
-                        var holonEntityId = HashUtility.GetNumericHash(holon.Id);
-
-                        _holonRepository.Create(new HolonDto
-                        {
-                            Info = holonInfo,
-                            HolonId = holon.Id.ToString(),
-                            EntityId = holonEntityId,
-                            IsDeleted = false
-                        }).Wait();
-                    }
+                foreach (var node in plan.Nodes)
+                {
+                    node.Source.Id = node.Snapshot.Id;
+                    node.Source.ParentHolonId = node.Snapshot.ParentHolonId;
                 }
 
-                result.Result = holons;
+                result.Result = plan.Roots;
                 result.IsSaved = true;
-                result.IsError = false;
+                result.SavedCount = rows.Length;
             }
-            catch (Exception ex)
+            catch (Exception error)
             {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(error), error);
             }
-
             return result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            if (holons == null)
-                throw new ArgumentNullException(nameof(holons));
-
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                foreach (var holon in holons)
-                {
-                    var holonInfo = OasisJson.Serialize<object>(holon);
-
-                    // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
-                    var existAvatar = _holonRepository.Read(holon.Id).Result;
-                    if (existAvatar != null)
-                    {
-                        await _holonRepository.Update(new HolonDto
-                        {
-                            Info = holonInfo
-                        }, holon.Id);
-                    }
-                    else
-                    {
-                        var holonEntityId = HashUtility.GetNumericHash(holon.Id);
-
-                        await _holonRepository.Create(new HolonDto
-                        {
-                            Info = holonInfo,
-                            HolonId = holon.Id.ToString(),
-                            EntityId = holonEntityId,
-                            IsDeleted = false
-                        });
-                    }
-                }
-
-                result.Result = holons;
-                result.IsSaved = true;
-                result.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
-            }
-
-            return result;
-        }
-
-        public override OASISResult<IHolon> DeleteHolon(Guid id)
-        {
-            if (id == null)
-                throw new ArgumentNullException(nameof(id));
-
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                _holonRepository.DeleteHard(id).Wait();
-                result.IsSaved = true;
-                result.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
-            }
-
-            return result;
-        }
+        public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
-            if (id == null)
-                throw new ArgumentNullException(nameof(id));
+            if (id == Guid.Empty)
+                throw new ArgumentException("A nonempty holon ID is required.", nameof(id));
 
             var result = new OASISResult<IHolon>();
             try
             {
-                //if (softDelete)
-                //    await _holonRepository.DeleteSoft(id);
-                //else
-                //    await _holonRepository.DeleteHard(id);
-
-                await _holonRepository.DeleteHard(id);
-                result.IsSaved = true;
+                await _holonRepository.DeleteHard(id).ConfigureAwait(false);
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
                 result.IsError = false;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
             }
 
             return result;
@@ -229,96 +157,21 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (holons == null || !holons.Any())
-                {
-                    OASISErrorHandling.HandleError(ref result, "No holons provided for import");
-                    return result;
-                }
-
-                // Import each holon to EOSIO blockchain
-                foreach (var holon in holons)
-                {
-                    var saveResult = await SaveHolonAsync(holon);
-                    if (saveResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}");
-                        return result;
-                    }
-                }
-
-                result.Result = true;
-                result.IsError = false;
-                result.Message = $"Successfully imported {holons.Count()} holons to EOSIO";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error importing holons to EOSIO: {ex.Message}", ex);
-            }
+            var batch = await SaveHolonsAsync(holons).ConfigureAwait(false);
+            var result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>, bool>(batch);
+            result.Result = batch.IsSaved;
             return result;
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
-        {
-            return ImportAsync(holons).Result;
-        }
+            => ImportAsync(holons).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Export all holons for avatar from EOSIO blockchain
-                var holonsData = await _eosClient.ExportAllDataForAvatarByIdAsync(avatarId);
-                var holons = new List<IHolon>();
-
-                if (holonsData != null)
-                {
-                    // Parse the exported data into holons
-                    var holon = ParseEOSIOToHolon(holonsData);
-                    if (holon != null)
-                    {
-                        holons.Add(holon);
-                    }
-                }
-
-                result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Successfully exported {holons.Count} holons for avatar from EOSIO";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data from EOSIO: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+            => ReadStoredHolonsAsync(row => row.CreatedByAvatarId == avatarId, HolonType.All,
+                false, false, 0, 0, false, version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
-        {
-            return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
-        }
+            => ExportAllDataForAvatarByIdAsync(avatarId, version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {

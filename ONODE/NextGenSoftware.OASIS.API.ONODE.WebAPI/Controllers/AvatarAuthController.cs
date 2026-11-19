@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
+using RequestTiming = NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware.RequestTimingMiddleware;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
@@ -94,10 +95,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 avatarType,
                 OASISType.OASISAPIREST,
                 callerIsWizard: callerIsWizard,
-                // Suppression is honoured for a Wizard caller, and for any caller when the operator has
-                // enabled programmatic signup. Previously a non-Wizard's suppressVerificationEmail:true was
-                // silently ignored, so programmatic signup had no way to complete verification.
-                suppressVerificationEmail: model.SuppressVerificationEmail && (callerIsWizard || ProgrammaticVerificationAllowed())
+                // Suppression is honoured for a Wizard caller. For anyone else it is honoured only when the operator
+                // enabled programmatic signup AND this is a positively identified development server AND the email is
+                // a ".invalid" address (see ProgrammaticVerificationPolicy); otherwise it is ignored and the email is sent.
+                suppressVerificationEmail: Services.ProgrammaticVerificationPolicy.ShouldSuppress(
+                    model.SuppressVerificationEmail, callerIsWizard, model.Email, ProgrammaticVerificationAllowed())
             );
 
             if (exposeDiagnostics)
@@ -146,7 +148,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         /// <summary>
         /// Whether a non-Wizard caller may set suppressVerificationEmail:true (programmatic signup).
-        /// Enabled with OASIS_ALLOW_PROGRAMMATIC_VERIFICATION=true / OASIS:AllowProgrammaticVerification=true.
+        /// Enabled with OASIS_ALLOW_PROGRAMMATIC_VERIFICATION=true / OASIS:AllowProgrammaticVerification=true, and even then
+        /// only on a development server for ".invalid" emails (ProgrammaticVerificationPolicy). This is just the operator switch.
         /// </summary>
         private bool ProgrammaticVerificationAllowed()
         {
@@ -334,17 +337,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISHttpResponseMessage<IAvatar>> Authenticate(AuthenticateRequest request)
         {
+            RequestTiming.Mark(HttpContext, RequestTiming.Phase.EngineConfiguration);
             OASISConfigResult<IAvatar> configResult = await ConfigureOASISEngineAsync<IAvatar>(request);
 
             if (configResult.IsError && configResult.Response != null)
                 return configResult.Response;
 
+            RequestTiming.Mark(HttpContext, RequestTiming.Phase.Authentication);
             var result = await Program.AvatarManager.AuthenticateAsync(request.Username, request.Password, ipAddress(), configResult.AutoReplicationMode, configResult.AutoFailOverMode, configResult.AutoLoadBalanceMode, request.WaitForAutoReplicationResult);
             ResetOASISSettings(request, configResult);
 
             if (!result.IsError && result.Result != null)
             {
-                setTokenCookie(result.Result.RefreshToken);
+                if (!string.IsNullOrEmpty(result.Result.RefreshToken)) // empty while a second sign-in step (MFA) is pending
+                    setTokenCookie(result.Result.RefreshToken);
                 return HttpResponseHelper.FormatResponse(result, HttpStatusCode.OK, request.ShowDetailedSettings);
             }
             else
@@ -476,6 +482,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             var refreshToken = Request.Cookies["refreshToken"];
             if (string.IsNullOrWhiteSpace(refreshToken))
                 refreshToken = body?.RefreshToken;
+            RequestTiming.Mark(HttpContext, RequestTiming.Phase.RefreshSession);
             var response = AvatarManager.RefreshToken(refreshToken, ipAddress());
 
             if (!response.IsError && response.Result != null)

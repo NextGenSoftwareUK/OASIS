@@ -28,10 +28,10 @@ WEB4 checks these before any provider work starts. If a limit is hit, the call i
 
 | Plan | Monthly requests | Daily calls (before karma) | Daily tokens | Monthly AI budget (USD) |
 |---|---:|---:|---:|---:|
-| Free | 1,000 | 20 | 50,000 | $1 |
-| Bronze | 10,000 | 100 | 250,000 | $10 |
-| Silver | 100,000 | 500 | 1,000,000 | $50 |
-| Gold | 1,000,000 | 2,000 | 5,000,000 | $250 |
+| Free | 30,000 | 1,000 | 50,000 | $1 |
+| Bronze | 300,000 | 10,000 | 250,000 | $10 |
+| Silver | 3,000,000 | 100,000 | 1,000,000 | $50 |
+| Gold | 30,000,000 | 1,000,000 | 5,000,000 | $250 |
 | Enterprise | Unlimited | Unlimited | Unlimited | Unlimited |
 
 - Daily counters reset at 00:00 UTC. Monthly counters follow the UTC calendar month.
@@ -52,10 +52,10 @@ Karma raises the **daily call** limit within your plan. It does not change month
 
 | Plan | 0 karma | 1k karma | 20k karma | 100k karma |
 |---|---:|---:|---:|---:|
-| Free | 20 | 40 | 100 | 200 |
-| Bronze | 100 | 200 | 500 | 1,000 |
-| Silver | 500 | 1,000 | 2,500 | 5,000 |
-| Gold | 2,000 | 4,000 | 10,000 | 20,000 |
+| Free | 1,000 | 2,000 | 5,000 | 10,000 |
+| Bronze | 10,000 | 20,000 | 50,000 | 100,000 |
+| Silver | 100,000 | 200,000 | 500,000 | 1,000,000 |
+| Gold | 1,000,000 | 2,000,000 | 5,000,000 | 10,000,000 |
 | Enterprise | ∞ | ∞ | ∞ | ∞ |
 
 ### Limit errors

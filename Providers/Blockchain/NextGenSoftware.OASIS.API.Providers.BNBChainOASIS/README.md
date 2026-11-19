@@ -1,6 +1,6 @@
 # NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
 
-Connects the OASIS to BNB Chain (Binance Smart Chain) -- a high-performance EVM-compatible blockchain with 3-second blocks and minimal transaction fees. Stores OASIS holons, avatars, and BEP-20/BEP-721 tokens. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one
+Connects OASIS to BNB Smart Chain through Nethereum. The Web3Core storage contract stores avatars, avatar details and holons. The adapter also exposes blockchain wallet and NFT operations.
 
 ## Installation
 
@@ -28,9 +28,11 @@ Project references and conditional dependency versions are recorded in the sourc
 
 ## Integration and configuration
 
-Use this package for the responsibility described above, alongside its owning OASIS runtime/provider integration. Inspect the source project's public APIs and owning component documentation for construction and configuration; this package installation command does not start an API server, authenticate an avatar or provision an external service.
+Construct `BNBChainOASIS` with the BSC RPC endpoint, the signing account's private key, the deployed Web3CoreOASIS contract address and the expected chain ID. Use chain ID 56 for mainnet or 97 for BSC testnet. The signing account needs gas funds and permission to write to the contract.
 
-Provider adapters require their respective service configuration and credentials. Runtime libraries require the host application's lifecycle and persistent paths where applicable. Supply only the settings actually required by the owning component; do not copy production DNA into a client or public release.
+Activation checks the RPC chain ID and the presence of deployed contract bytecode. Storage mutations use the node's `eth_gasPrice` quote when signing.
+
+The shared storage suite passed 52 lifecycle checks against official BSC v1.7.8 on an isolated Parlia chain, with separate contracts for sync and async tests. Hosted storage, wallet and NFT acceptance have separate verification scopes. [Native storage evidence](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43084066216)
 
 ## Errors and security
 

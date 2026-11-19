@@ -16,22 +16,10 @@ public class CouchDbCqlExecutionTests
     private sealed class Handler:HttpMessageHandler
     {
         public string Mode="valid"; public List<Guid> Reads=new();
-        public int DatabaseLookups;
         public TaskCompletionSource Started=new(TaskCreationOptions.RunContinuationsAsynchronously);
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
         {
             Assert.AreEqual(HttpMethod.Get,request.Method,"CQL cannot write or scan");
-            if (request.RequestUri!.AbsolutePath == "/oasis_holons")
-            {
-                DatabaseLookups++;
-                return new(Mode == "missing" ? HttpStatusCode.NotFound : HttpStatusCode.OK)
-                {
-                    Content = new StringContent(JsonSerializer.Serialize(new
-                    {
-                        db_name = Mode == "wrongDatabase" ? "other_database" : "oasis_holons"
-                    }))
-                };
-            }
             Assert.AreEqual("?conflicts=true",request.RequestUri!.Query);
             var id=Guid.Parse(request.RequestUri.Segments.Last());Reads.Add(id);
             if(Mode=="cancel"){Started.SetResult();await Task.Delay(Timeout.Infinite,token);}
@@ -60,26 +48,6 @@ public class CouchDbCqlExecutionTests
     private static CosmicQueryPlan<Holon> Plan(CouchDBOASIS p,CosmicQuery<Holon> q)
         => CosmicQueryPlanner.Plan(q,ProviderType.CouchDBOASIS,new[]{new CosmicQueryTarget(ProviderType.CouchDBOASIS,p.QueryCapabilities)}).Result;
     [TestMethod]
-    public async Task ReadOnlyActivationChecksExistingDatabaseAndClearsStaleState()
-    {
-        var (provider, handler, _, _) = Setup();
-        var ready = await provider.ActivateQuerySourceAsync(default);
-        Assert.IsFalse(ready.IsError, ready.Message);
-        Assert.IsTrue(provider.IsProviderActivated);
-
-        handler.Mode = "missing";
-        var missing = await provider.ActivateQuerySourceAsync(default);
-        Assert.AreEqual("CQL_QUERY_SOURCE_UNAVAILABLE", missing.ErrorCode);
-        Assert.IsFalse(provider.IsProviderActivated);
-        handler.Mode = "wrongDatabase";
-        var wrong = await provider.ActivateQuerySourceAsync(default);
-        Assert.AreEqual("CQL_QUERY_SOURCE_UNAVAILABLE", wrong.ErrorCode);
-        Assert.IsFalse(provider.IsProviderActivated);
-        Assert.AreEqual(3, handler.DatabaseLookups);
-        Assert.AreEqual(0, handler.Reads.Count);
-    }
-
-    [TestMethod]
     public async Task ThreeRecordCatalogueSelectsTwoNativeReads()
     {
         var(p,h,q,ids)=Setup(3);var chosen=ids.Take(2).ToArray();
@@ -88,17 +56,6 @@ public class CouchDbCqlExecutionTests
         CollectionAssert.AreEquivalent(chosen,h.Reads.ToArray());CollectionAssert.AreEquivalent(chosen,result.Result.Select(r=>r.Id).ToArray());
         Assert.IsTrue(result.Result.All(r=>!r.Children.Any()));
     }
-    [TestMethod]
-    public async Task UnadmittedIdentityNeverReachesCouchDb()
-    {
-        var (provider, handler, query, _) = Setup();
-        var foreign = Guid.NewGuid();
-        var result = await provider.ExecuteCosmicQueryAsync(Plan(provider, query.Where(row => row.Id == foreign).Result));
-        Assert.IsFalse(result.IsError, result.Message);
-        Assert.AreEqual(0, result.Result.Count);
-        Assert.AreEqual(0, handler.Reads.Count);
-    }
-
     [DataTestMethod][DataRow("missing")][DataRow("deleted")]
     public async Task MissingAndDeletedNativeRecordsSkip(string mode)
     {

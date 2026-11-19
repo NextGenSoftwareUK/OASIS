@@ -6,6 +6,7 @@ using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace SubscriptionLedger.ProtocolTests;
 
@@ -23,7 +24,10 @@ public sealed class MongoLedgerTests : IAsyncLifetime
     private readonly LedgerClock _clock = new();
     private readonly string _user = Guid.NewGuid().ToString("D");
     private readonly FixedPolicyProvider _policy = new();
+    private readonly ITestOutputHelper _output;
     private static readonly SubscriptionUsagePolicy Unlimited = new() { MonthlyRequestLimit = -1 };
+
+    public MongoLedgerTests(ITestOutputHelper output) => _output = output;
 
     public async Task InitializeAsync()
     {
@@ -49,6 +53,113 @@ public sealed class MongoLedgerTests : IAsyncLifetime
 
         Assert.Contains("listIndexes", observed);
         Assert.DoesNotContain("createIndexes", observed);
+    }
+
+    [Fact]
+    public async Task AdminAnalyticsAggregatesNativeBillingAndUsageGroups()
+    {
+        var from = _clock.Now;
+        var to = from.AddDays(1);
+        var empty = await _ledger.GetAdminAnalyticsAsync(from, to, default);
+        Assert.Equal(0L, empty.UsageOperations);
+        Assert.Empty(empty.RevenueByCurrency);
+
+        var db = _client.GetDatabase(_databaseName);
+        await db.GetCollection<SubscriptionRecord>("subscription_records").InsertManyAsync(new[]
+        {
+            new SubscriptionRecord { UserId = _user, PlanId = "bronze", Status = "active" },
+            new SubscriptionRecord { UserId = "trial", PlanId = "bronze", Status = "trialing" },
+            new SubscriptionRecord { UserId = "former", Status = "cancelled" }
+        });
+        await db.GetCollection<OrderRecord>("subscription_orders").InsertManyAsync(new[]
+        {
+            new OrderRecord { StripeInvoiceId = "in_lower", CreatedAt = from, Currency = "usd", Amount = 1.25m },
+            new OrderRecord { StripeInvoiceId = "in_upper", CreatedAt = from, Currency = "USD", Amount = 2.50m },
+            new OrderRecord { StripeInvoiceId = "in_gbp", CreatedAt = from, Currency = "GBP", Amount = 9.00m },
+            new OrderRecord { StripeInvoiceId = "in_outside", CreatedAt = to, Currency = "USD", Amount = 100m },
+            new OrderRecord { StripeInvoiceId = "in_open", CreatedAt = from, Currency = "USD", Amount = 100m, Status = "open" }
+        });
+        BsonDocument Usage(DateTime at, string status, long units, decimal cost) => new()
+        {
+            { "OperationId", Guid.NewGuid().ToString("D") }, { "AuthorizedAtUtc", at }, { "Status", status },
+            { "Units", units }, { "SettledCostUsd", new BsonDecimal128(cost) }
+        };
+        await db.GetCollection<BsonDocument>("subscription_usage_events").InsertManyAsync(new[]
+        {
+            Usage(from, "settled", 7, .031m).Add("Provider", "real").Add("Model", "model"),
+            Usage(from.AddHours(1), "settled", 2, .002m).Add("Provider", "real").Add("Model", "model").Add("Outcome", "failed"),
+            Usage(from.AddHours(2), "expired", 0, 0m),
+            Usage(to, "failed", 100, 100m)
+        });
+
+        var report = await _ledger.GetAdminAnalyticsAsync(from, to, default);
+        Assert.Equal(3L, report.Customers);
+        Assert.Equal(2L, report.ActiveSubscriptions);
+        Assert.Equal(2L, report.SubscriptionsByPlan["bronze"]);
+        Assert.Equal(1L, report.SubscriptionsByPlan["unknown"]);
+        Assert.Equal(3L, report.UsageOperations);
+        Assert.Equal(2L, report.FailedOperations);
+        Assert.Equal(9L, report.SettledUnits);
+        Assert.Equal(.033m, report.UsageCostUsd);
+        Assert.Equal(3.75m, report.RevenueUsd);
+        Assert.Equal(9m, report.RevenueByCurrency["GBP"]);
+        Assert.Equal(2L, report.OperationsByProvider["real"]);
+        Assert.Equal(2L, report.OperationsByModel["model"]);
+        Assert.Equal(1L, report.OperationsByProvider["unknown"]);
+        Assert.Equal(2L, report.OperationsByStatus["settled"]);
+    }
+
+    [Fact]
+    public async Task AdminAnalyticsReturnsGroupsInsteadOfNativeLedgerRows()
+    {
+        const int eventCount = 4096;
+        var from = _clock.Now;
+        var to = from.AddDays(1);
+        var events = _client.GetDatabase(_databaseName).GetCollection<BsonDocument>("subscription_usage_events");
+        var fixture = Enumerable.Range(0, eventCount).Select(index => new BsonDocument
+        {
+            { "OperationId", Guid.NewGuid().ToString("D") },
+            { "AuthorizedAtUtc", from.AddSeconds(index) },
+            { "Provider", index % 2 == 0 ? "native-a" : "native-b" },
+            { "Model", "model" }, { "Status", "settled" },
+            { "Units", 1L }, { "SettledCostUsd", new BsonDecimal128(.001m) }
+        });
+        await events.InsertManyAsync(fixture);
+
+        var batches = new System.Collections.Concurrent.ConcurrentQueue<(int Rows, int Bytes)>();
+        var settings = _client.Settings.Clone();
+        settings.ClusterConfigurator = cluster => cluster.Subscribe<MongoDB.Driver.Core.Events.CommandSucceededEvent>(command =>
+        {
+            if (command.CommandName is not ("find" or "aggregate" or "getMore") ||
+                !command.Reply.TryGetValue("cursor", out var cursor) || !cursor.IsBsonDocument ||
+                !cursor["ns"].AsString.EndsWith(".subscription_usage_events", StringComparison.Ordinal))
+                return;
+            var batch = cursor.AsBsonDocument.GetValue("firstBatch",
+                cursor.AsBsonDocument.GetValue("nextBatch", new BsonArray())).AsBsonArray;
+            batches.Enqueue((batch.Count, command.Reply.ToBson().Length));
+        });
+        var observer = new MongoClient(settings);
+        var repository = new MongoSubscriptionUsageRepository(observer, _databaseName, _clock, _policy);
+        var baseline = observer.GetDatabase(_databaseName).GetCollection<BsonDocument>("subscription_usage_events");
+        batches.Clear();
+        var raw = await baseline.Find(Builders<BsonDocument>.Filter.Gte("AuthorizedAtUtc", from) &
+            Builders<BsonDocument>.Filter.Lt("AuthorizedAtUtc", to)).ToListAsync();
+        var ungrouped = batches.ToArray();
+        batches.Clear();
+
+        var report = await repository.GetAdminAnalyticsAsync(from, to, default);
+        var grouped = batches.ToArray();
+        var ungroupedBytes = ungrouped.Sum(batch => batch.Bytes);
+        var groupedBytes = grouped.Sum(batch => batch.Bytes);
+        Assert.Equal(eventCount, raw.Count);
+        Assert.Equal(eventCount, ungrouped.Sum(batch => batch.Rows));
+        Assert.Equal(2, grouped.Sum(batch => batch.Rows));
+        Assert.InRange(groupedBytes, 1, ungroupedBytes / 10);
+        Assert.Equal((long)eventCount, report.UsageOperations);
+        Assert.Equal(eventCount * .001m, report.UsageCostUsd);
+        Assert.Equal(eventCount / 2L, report.OperationsByProvider["native-a"]);
+        Assert.Equal(eventCount / 2L, report.OperationsByProvider["native-b"]);
+        _output.WriteLine($"Native usage replies: {eventCount} rows / {ungroupedBytes:N0} bytes before grouping, 2 rows / {groupedBytes:N0} bytes after grouping.");
     }
 
     private sealed class FixedPolicyProvider : ISubscriptionUsagePolicyProvider

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -10,6 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 {
     public class MongoDbContext
     {
+        internal const string HolonCollectionName = "Holon";
         // MongoClient must be a singleton — creating multiple instances causes connection pool exhaustion
         private static readonly Dictionary<string, MongoClient> _clients = new();
         private static readonly object _lock = new();
@@ -25,6 +27,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 {
                     var settings = MongoClientSettings.FromConnectionString(connectionString);
                     settings.MaxConnectionPoolSize = 30;
+                    // After an Atlas upgrade, failover or primary change a pooled connection can point at a node that is no
+                    // longer the primary. Fail selection fast (the 30 s default hid it behind every request) and recycle
+                    // idle and old pooled connections so the pool re-resolves the topology instead of holding stale ones.
+                    settings.ServerSelectionTimeout = TimeSpan.FromSeconds(10);
+                    settings.ConnectTimeout = TimeSpan.FromSeconds(10);
+                    settings.MaxConnectionIdleTime = TimeSpan.FromMinutes(5);
+                    settings.MaxConnectionLifeTime = TimeSpan.FromMinutes(30);
                     client = new MongoClient(settings);
                     _clients[connectionString] = client;
                 }
@@ -37,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
        // public IMongoCollection<AvatarThumbnail> AvatarThumbnail => MongoDB.GetCollection<AvatarThumbnail>("Avatar");
         public IMongoCollection<Avatar> Avatar => MongoDB.GetCollection<Avatar>("Avatar");
         //public IMongoCollection<IHolon> Holon => MongoDB.GetCollection<IHolon>("Holon");
-        public IMongoCollection<Holon> Holon => MongoDB.GetCollection<Holon>("Holon");
+        public IMongoCollection<Holon> Holon => MongoDB.GetCollection<Holon>(HolonCollectionName);
         public IMongoCollection<SearchData> SearchData => MongoDB.GetCollection<SearchData>("SearchData");
     }
 }

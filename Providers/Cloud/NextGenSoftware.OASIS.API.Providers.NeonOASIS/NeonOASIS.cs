@@ -16,17 +16,27 @@ public class NeonOASIS : PostgreSqlFamilyProviderBase
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
         var config = new NpgsqlConnectionStringBuilder(connectionString);
-        // Neon pooled connections use the -pooler hostname, not an invented port.
-        // Preserve explicit non-Neon/proxy/multi-host configuration for the caller.
-        var host = config.Host;
-        if (string.IsNullOrWhiteSpace(host)) throw new ArgumentException("An explicit PostgreSQL host is required.", nameof(connectionString));
-        if (!host.Contains(',') && host.EndsWith(".neon.tech", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(config.Host))
+            throw new ArgumentException("An explicit PostgreSQL host is required.", nameof(connectionString));
+
+        var endpoints = config.Host.Split(',', StringSplitOptions.TrimEntries);
+        foreach (var endpoint in endpoints)
         {
+            var portSeparator = endpoint.IndexOf(':');
+            var hostname = portSeparator < 0 ? endpoint : endpoint[..portSeparator];
+            if (!hostname.TrimEnd('.').EndsWith(".neon.tech", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            // Npgsql applies this mode to every host in the connection string.
             config.SslMode = SslMode.VerifyFull;
-            var dot = host.IndexOf('.');
-            if (usePooler && !host[..dot].EndsWith("-pooler", StringComparison.OrdinalIgnoreCase))
-                config.Host = host[..dot] + "-pooler" + host[dot..];
+            if (endpoints.Length == 1 && usePooler)
+            {
+                var dot = hostname.IndexOf('.');
+                if (!hostname[..dot].EndsWith("-pooler", StringComparison.OrdinalIgnoreCase))
+                    config.Host = endpoint.Insert(dot, "-pooler");
+            }
         }
+
         return config.ConnectionString;
     }
 }

@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Text.RegularExpressions;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -28,13 +26,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TablelandOASIS
     public class TablelandOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
     {
         private readonly HttpClient _httpClient;
-
-        private static bool IsTableName(string? name)
-            => name != null && Regex.IsMatch(name, @"\A[A-Za-z_][A-Za-z0-9_]*\z");
+        private bool _isActivated;
 
         public TablelandOASIS(string apiBase = "https://tableland.network")
         {
-            _httpClient = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { BaseAddress = new Uri(apiBase) };
+            _httpClient = new HttpClient { BaseAddress = new Uri(apiBase) };
             _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
             ProviderName = "TablelandOASIS";
             ProviderDescription = "Tableland SQL-on-Chain Data Layer Provider";
@@ -49,20 +45,15 @@ namespace NextGenSoftware.OASIS.API.Providers.TablelandOASIS
             var result = new OASISResult<bool>();
             try
             {
-                using var response = await _httpClient.GetAsync("/api/v1/health");
-                IsProviderActivated = response.IsSuccessStatusCode;
-                if (IsProviderActivated) { result.Result = true; result.Message = "TablelandOASIS activated."; }
+                var response = await _httpClient.GetAsync("/api/v1/health");
+                if (response.IsSuccessStatusCode) { _isActivated = true; result.Result = true; result.Message = "TablelandOASIS activated."; }
                 else OASISErrorHandling.HandleError(ref result, $"TablelandOASIS: Health check failed ({response.StatusCode}).");
             }
-            catch (Exception ex) { IsProviderActivated = false; result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
         }
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override Task<OASISResult<bool>> DeActivateProviderAsync()
-        {
-            IsProviderActivated = false;
-            return Task.FromResult(new OASISResult<bool>(true));
-        }
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync() { _isActivated = false; return new OASISResult<bool>(true); }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -71,22 +62,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TablelandOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var parts = providerKey?.Split(':');
-                if (parts is not { Length: 2 } || !IsTableName(parts[0]) ||
-                    !long.TryParse(parts[1], NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var numericId))
-                {
-                    OASISErrorHandling.HandleError(ref result, "TablelandOASIS: providerKey requires a table name and an integer row ID.");
-                    return result;
-                }
+                var parts = providerKey.Split(':');
+                if (parts.Length < 2) { OASISErrorHandling.HandleError(ref result, "TablelandOASIS: providerKey must be 'tableName:rowId'."); return result; }
                 var tableName = parts[0];
                 var rowId = parts[1];
-                var sql = Uri.EscapeDataString($"SELECT * FROM \"{tableName}\" WHERE id = ?");
-                var parameter = numericId.ToString(CultureInfo.InvariantCulture);
-                using var response = await _httpClient.GetAsync($"/api/v1/query?statement={sql}&params={parameter}");
+                var sql = Uri.EscapeDataString($"SELECT * FROM {tableName} WHERE id = {rowId}");
+                var response = await _httpClient.GetAsync($"/api/v1/query?statement={sql}");
                 if (response.IsSuccessStatusCode)
                 {
                     var body = await response.Content.ReadFromJsonAsync<JsonElement>();
-                    var rows = body.ValueKind == JsonValueKind.Object && body.TryGetProperty("rows", out var r) ? r : body;
+                    var rows = body.TryGetProperty("rows", out var r) ? r : body;
                     if (rows.ValueKind == JsonValueKind.Array && rows.GetArrayLength() > 0)
                     {
                         var row = rows[0];
@@ -113,17 +98,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TablelandOASIS
             var result = new OASISResult<IEnumerable<IHolon>>(); var holons = new List<IHolon>();
             try
             {
-                if (!IsTableName(providerKey))
-                {
-                    OASISErrorHandling.HandleError(ref result, "TablelandOASIS: A valid table name is required.");
-                    return result;
-                }
-                var sql = Uri.EscapeDataString($"SELECT * FROM \"{providerKey}\" LIMIT 1000");
+                var sql = Uri.EscapeDataString($"SELECT * FROM {providerKey} LIMIT 1000");
                 var response = await _httpClient.GetAsync($"/api/v1/query?statement={sql}");
                 if (response.IsSuccessStatusCode)
                 {
                     var body = await response.Content.ReadFromJsonAsync<JsonElement>();
-                    var rows = body.ValueKind == JsonValueKind.Object && body.TryGetProperty("rows", out var r) ? r : body;
+                    var rows = body.TryGetProperty("rows", out var r) ? r : body;
                     if (rows.ValueKind == JsonValueKind.Array)
                         foreach (var row in rows.EnumerateArray())
                         {

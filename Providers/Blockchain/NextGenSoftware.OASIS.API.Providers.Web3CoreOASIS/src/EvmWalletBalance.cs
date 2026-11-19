@@ -13,20 +13,26 @@ namespace NextGenSoftware.OASIS.Providers.Shared.Evm;
 internal static class EvmWalletBalance
 {
     internal static async Task<OASISResult<double>> ReadAsync(IGetWeb3WalletBalanceRequest request,
-        Func<Task<OASISResult<Web3>>> initialize)
+        Func<Task<OASISResult<Web3>>> initialize, BigInteger? expectedChainId = null)
     {
         var result=new OASISResult<double>();
         try
         {
             if(request==null || !Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(request.WalletAddress))
                 throw new ArgumentException("A valid EVM wallet address is required.",nameof(request));
-            var ready=await initialize();
+            var ready=await initialize().ConfigureAwait(false);
             if(ready.IsError)
             {
                 OASISErrorHandling.HandleError(ref result,ready.Message,ready.Exception);result.ErrorCode=ready.ErrorCode;return result;
             }
             var client=ready.Result??throw new InvalidOperationException("EVM balance client was not initialized.");
-            var balance=await client.Eth.GetBalance.SendRequestAsync(request.WalletAddress);
+            if (expectedChainId.HasValue)
+            {
+                var chain = await client.Eth.ChainId.SendRequestAsync().ConfigureAwait(false);
+                if (chain == null || expectedChainId.Value <= 0 || chain.Value != expectedChainId.Value)
+                    throw new InvalidDataException("EVM wallet RPC chain ID does not match the configured chain.");
+            }
+            var balance=await client.Eth.GetBalance.SendRequestAsync(request.WalletAddress).ConfigureAwait(false);
             if(balance==null || balance.Value<0 || balance.Value>=(BigInteger.One<<256))
                 throw new InvalidDataException("Native EVM balance is missing or outside uint256.");
             // The public interface returns double. Avoid an overflowing decimal intermediate;

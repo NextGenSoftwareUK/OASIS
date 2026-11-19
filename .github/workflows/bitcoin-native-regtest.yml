@@ -1,0 +1,113 @@
+name: Bitcoin native regtest
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [work/hyperdrive-provider-completion, work/hyperdrive-bitcoin-avatar-qualification]
+    paths:
+      - '.github/workflows/bitcoin-native-regtest.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests/BitcoinOASISIntegrationTests.cs'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.DeleteSearch.cs'
+
+permissions:
+  contents: read
+
+jobs:
+  esplora-regtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Start and verify disposable Bitcoin Core and Esplora
+        shell: bash
+        run: |
+          set -euo pipefail
+          image='blockstream/esplora@sha256:1d5c64df311cce3e7ab6fd5749f8e65c20099186014c058e561cbf52085ef6db'
+          fixture="oasis-bitcoin-regtest-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          kubo_image='ipfs/kubo@sha256:97ece99cfccea95613ab3634f761d0200e9e8b1f49294b5428e19b5b9056759d'
+          kubo_fixture="$fixture-kubo"
+          cleanup() {
+            local status=$?
+            trap - EXIT
+            if docker container inspect "$fixture" >/dev/null 2>&1; then
+              docker rm -f -v "$fixture" || status=1
+            fi
+            if docker image inspect "$image" >/dev/null 2>&1; then
+              docker image rm "$image" || status=1
+            fi
+            if docker container inspect "$fixture" >/dev/null 2>&1; then
+              echo "The disposable Bitcoin container still exists." >&2
+              status=1
+            fi
+            if docker container inspect "$kubo_fixture" >/dev/null 2>&1; then
+              docker rm -f -v "$kubo_fixture" || status=1
+            fi
+            if docker image inspect "$kubo_image" >/dev/null 2>&1; then
+              docker image rm "$kubo_image" || status=1
+            fi
+            exit "$status"
+          }
+          trap cleanup EXIT
+
+          docker run -d --name "$fixture" -p 127.0.0.1::80 "$image" bash -c '/srv/explorer/run.sh bitcoin-regtest explorer'
+          port=$(docker port "$fixture" 80/tcp | cut -d: -f2)
+          api="http://127.0.0.1:$port/regtest/api"
+          bitcoin() {
+            docker exec "$fixture" /srv/explorer/bitcoin/bin/bitcoin-cli -conf=/data/.bitcoin.conf -datadir=/data/bitcoin -regtest "$@"
+          }
+          for attempt in {1..60}; do
+            if curl -fsS "$api/blocks/tip/height" >/dev/null 2>&1; then
+              break
+            fi
+            sleep 2
+          done
+          genesis=$(bitcoin getblockhash 0)
+          test "$(curl -fsS "$api/block-height/0")" = "$genesis"
+          test "$(bitcoin getblockchaininfo | jq -r .chain)" = regtest
+
+          bitcoin -named createwallet wallet_name=oasis-regtest >/dev/null
+          miner=$(bitcoin -rpcwallet=oasis-regtest getnewaddress)
+          bitcoin -rpcwallet=oasis-regtest generatetoaddress 101 "$miner" >/dev/null
+          test "$(bitcoin -rpcwallet=oasis-regtest getbalance | jq '. > 0')" = true
+          printf 'Esplora fee targets after mining: '
+          curl -fsS "$api/fee-estimates" | jq -c 'keys'
+          test "$(bitcoin getblockcount)" -ge 101
+          docker run -d --name "$kubo_fixture" -p 127.0.0.1::5001 "$kubo_image" daemon --offline
+          kubo_port=$(docker port "$kubo_fixture" 5001/tcp | cut -d: -f2)
+          export OASIS_BITCOIN_KUBO_API="http://127.0.0.1:$kubo_port"
+          for attempt in {1..60}; do
+            if curl -fsS -X POST "$OASIS_BITCOIN_KUBO_API/api/v0/version" >/dev/null 2>&1; then
+              break
+            fi
+            sleep 1
+          done
+          curl -fsS -X POST "$OASIS_BITCOIN_KUBO_API/api/v0/version" | jq -e '.Version == "0.43.1"'
+          export OASIS_BITCOIN_STORAGE_KEY="$(openssl rand -base64 32)"
+          export OASIS_BITCOIN_REGTEST_API="$api"
+          export OASIS_BITCOIN_REGTEST_CONTAINER="$fixture"
+          pwsh -NoProfile -File Scripts/TestHosts/Invoke-BitcoinRegtestTransfer.ps1

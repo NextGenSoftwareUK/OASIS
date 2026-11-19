@@ -68,7 +68,7 @@ public class LocalUsageReservationAuthorityTests
         var service=new Mock<ISubscriptionService>(MockBehavior.Strict);
         var request=new UsageAuthorizationRequest{ConsumingService="WEB4"};
         var decision=new SubscriptionAuthorizationResult{Allowed=true};
-        service.Setup(x=>x.AuthorizeUsageAsync(id.ToString("D"),42,request,It.IsAny<CancellationToken>())).ReturnsAsync(decision);
+        service.Setup(x=>x.AuthorizeUsageAsync(id.ToString("D"),42,request,It.IsAny<AppAccountRecord>(),It.IsAny<CancellationToken>())).ReturnsAsync(decision);
         var authority=new LocalUsageReservationAuthority(service.Object,new Mock<ISubscriptionUsageRepository>(MockBehavior.Strict).Object,
             new HttpContextAccessor{HttpContext=context},(avatar,token)=>{Assert.Equal(id,avatar);return Task.FromResult(42);});
         Assert.Same(decision,await authority.AuthorizeUsageAsync("authenticated-token",request));

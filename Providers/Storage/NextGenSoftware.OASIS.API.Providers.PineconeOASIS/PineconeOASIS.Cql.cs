@@ -47,14 +47,43 @@ public partial class PineconeOASIS : ICosmicQueryStorageProvider
                 // Native retrieval over admitted keys, without vector similarity or collection scans.
                 using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 deadline.CancelAfter(TimeSpan.FromSeconds(15));
-                var fetched = await FetchQueryRowsAsync(selected.Result, deadline.Token);
-                foreach (var (id, row) in fetched)
+                var ids = selected.Result.Select(id => id.ToString("D")).ToArray();
+                var queryString = "namespace=" + Uri.EscapeDataString(CollHolons) + "&" +
+                    string.Join("&", ids.Select(id => "ids=" + Uri.EscapeDataString(id)));
+                using var request = new HttpRequestMessage(HttpMethod.Get, $"{_host}/vectors/fetch?{queryString}");
+                using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+                response.EnsureSuccessStatusCode();
+                using var document = await ReadQueryResponseAsync(response, deadline.Token);
+                if (document.RootElement.GetProperty("namespace").GetString() != CollHolons)
+                    throw new InvalidDataException("Native namespace differs from the selected storage authority.");
+                var records = document.RootElement.GetProperty("vectors");
+                if (records.ValueKind != JsonValueKind.Object || records.EnumerateObject().Count() > ids.Length)
+                    throw new InvalidDataException("Native result exceeds the admitted key catalogue.");
+                var seen = new HashSet<Guid>();
+                foreach (var entry in records.EnumerateObject())
                 {
-                    if (!plan.Query.ReadAccess.CanRead(row))
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var key = entry.Name;
+                    var record = entry.Value;
+                    if (!Guid.TryParseExact(key, "D", out var id) || key != id.ToString("D") ||
+                        !selected.Result.Contains(id) || !seen.Add(id) || record.GetProperty("id").GetString() != key)
+                        throw new InvalidDataException("Native identity differs from admitted catalogue.");
+                    var metadata = record.GetProperty("metadata");
+                    if (metadata.GetProperty("id").GetString() != key)
+                        throw new InvalidDataException("Native metadata identity differs from fetched key.");
+                    if (Encoding.UTF8.GetByteCount(metadata.GetRawText()) > 40960)
+                        throw new NativePayloadLimitException();
+                    var values = record.GetProperty("values");
+                    if (values.ValueKind != JsonValueKind.Array || values.GetArrayLength() != 1 ||
+                        !values[0].TryGetDouble(out var value) || !double.IsFinite(value))
+                        throw new InvalidDataException("Native dense vector differs from the storage contract.");
+                    var json = metadata.GetProperty("_doc").GetString()!;
+                    if (Encoding.UTF8.GetByteCount(json)>40960)
+                        throw new NativePayloadLimitException();
+                    var row = JsonSerializer.Deserialize<Holon>(json);
+                    if (row == null || row.Id != id || !plan.Query.ReadAccess.CanRead(row))
                         throw new InvalidDataException("Native holon differs from read authority.");
                     if (row.IsDeleted) continue;
-                    if (RequiresPublicQueryRecords && !row.IsPublic)
-                        throw new InvalidDataException("Native Pinecone teaching record is no longer public.");
                     row.Children = Array.Empty<IHolon>();
                     rows.Add(id, row);
                 }
@@ -73,62 +102,6 @@ public partial class PineconeOASIS : ICosmicQueryStorageProvider
         catch (Exception cause)
         { return Error("CQL_QUERY_FAILED", "Native Pinecone query failed; no partial rows published.", cause); }
     }
-    protected virtual bool RequiresPublicQueryRecords => false;
-
-    protected async Task VerifyPublicQueryProbeAsync(Guid id, CancellationToken cancellationToken)
-    {
-        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        deadline.CancelAfter(TimeSpan.FromSeconds(15));
-        var rows = await FetchQueryRowsAsync(new[] { id }, deadline.Token).ConfigureAwait(false);
-        if (!rows.TryGetValue(id, out var row) || !row.IsPublic || row.IsDeleted)
-            throw new InvalidDataException("The Pinecone probe must be an existing public holon.");
-    }
-
-    private async Task<Dictionary<Guid, Holon>> FetchQueryRowsAsync(IReadOnlyList<Guid> selected,
-        CancellationToken cancellationToken)
-    {
-        var rows = new Dictionary<Guid, Holon>();
-        var ids = selected.Select(id => id.ToString("D")).ToArray();
-        var queryString = "namespace=" + Uri.EscapeDataString(CollHolons) + "&" +
-            string.Join("&", ids.Select(id => "ids=" + Uri.EscapeDataString(id)));
-        using var request = new HttpRequestMessage(HttpMethod.Get, $"{_host}/vectors/fetch?{queryString}");
-        using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        response.EnsureSuccessStatusCode();
-        using var document = await ReadQueryResponseAsync(response, cancellationToken);
-        if (document.RootElement.GetProperty("namespace").GetString() != CollHolons)
-            throw new InvalidDataException("Native namespace differs from the selected storage authority.");
-        var records = document.RootElement.GetProperty("vectors");
-        if (records.ValueKind != JsonValueKind.Object || records.EnumerateObject().Count() > ids.Length)
-            throw new InvalidDataException("Native result exceeds the admitted key catalogue.");
-        var seen = new HashSet<Guid>();
-        foreach (var entry in records.EnumerateObject())
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var key = entry.Name;
-            var record = entry.Value;
-            if (!Guid.TryParseExact(key, "D", out var id) || key != id.ToString("D") ||
-                !selected.Contains(id) || !seen.Add(id) || record.GetProperty("id").GetString() != key)
-                throw new InvalidDataException("Native identity differs from admitted catalogue.");
-            var metadata = record.GetProperty("metadata");
-            if (metadata.GetProperty("id").GetString() != key)
-                throw new InvalidDataException("Native metadata identity differs from fetched key.");
-            if (Encoding.UTF8.GetByteCount(metadata.GetRawText()) > 40960)
-                throw new NativePayloadLimitException();
-            var values = record.GetProperty("values");
-            if (values.ValueKind != JsonValueKind.Array || values.GetArrayLength() != 1 ||
-                !values[0].TryGetDouble(out var value) || !double.IsFinite(value))
-                throw new InvalidDataException("Native dense vector differs from the storage contract.");
-            var json = metadata.GetProperty("_doc").GetString()!;
-            if (Encoding.UTF8.GetByteCount(json)>40960)
-                throw new NativePayloadLimitException();
-            var row = JsonSerializer.Deserialize<Holon>(json);
-            if (row == null || row.Id != id)
-                throw new InvalidDataException("Native holon differs from read authority.");
-            rows.Add(id, row);
-        }
-        return rows;
-    }
-
     private sealed class NativePayloadLimitException : IOException { }
 
     private static async Task<JsonDocument> ReadQueryResponseAsync(HttpResponseMessage response,CancellationToken token)

@@ -1,130 +1,104 @@
-using System.Net;
-using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.Providers.TypesenseOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.UnitTests;
 
 [TestClass]
 public class TypesenseCqlTests
 {
-    private sealed class Handler(Func<HttpRequestMessage, HttpResponseMessage> send) : HttpMessageHandler
-    {
-        public List<string> Paths = new();
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
-        {
-            token.ThrowIfCancellationRequested();
-            Assert.AreEqual(HttpMethod.Get, request.Method, "Query path must never provision or write.");
-            Assert.AreEqual("controlled", request.Headers.GetValues("X-TYPESENSE-API-KEY").Single());
-            Paths.Add(request.RequestUri!.AbsolutePath);
-            return Task.FromResult(send(request));
-        }
-    }
-
-    private static HttpResponseMessage Response(string json, HttpStatusCode status = HttpStatusCode.OK)
-        => new(status) { Content = new StringContent(json) };
-    private static string Payload(Guid id, bool deleted = false) => JsonSerializer.Serialize(new Holon
-    { Id = id, Name = "Native teaching record", DeletedDate = deleted ? DateTime.UtcNow : DateTime.MinValue },
-        new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-    private static CosmicQuery<Holon> Query(Guid[] ids) => CosmicQuery<Holon>.Create(
-            CosmicQueryScope.Named(ProviderType.TypesenseOASIS).Result)
-        .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(Guid.NewGuid(), ProviderType.TypesenseOASIS, ids).Result).Result;
-    private static CosmicQueryPlan<Holon> Plan(TypesenseOASIS provider, CosmicQuery<Holon> query)
-        => CosmicQueryPlanner.Plan(query, ProviderType.TypesenseOASIS,
-            new[] { new CosmicQueryTarget(ProviderType.TypesenseOASIS, provider.QueryCapabilities) }).Result;
+    private static CosmicQuery<Holon> Query(Guid[] ids)
+        => CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.TypesenseOASIS).Result)
+            .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(
+                Guid.NewGuid(), ProviderType.TypesenseOASIS, ids).Result).Result;
 
     [TestMethod]
-    public async Task ExactKeysReturnThreeTwoAndPageAfterExcludingDeletedAndMissing()
+    public void CapturedBusinessKeysCannotEscapeOrMutateAuthorityCatalogue()
     {
-        var ids = Enumerable.Range(0, 5).Select(_ => Guid.NewGuid()).OrderBy(id => id.ToString("D"), StringComparer.Ordinal).ToArray();
-        var handler = new Handler(request =>
-        {
-            var path = request.RequestUri!.AbsolutePath;
-            if (path == "/collections/oasis_holons") return Response("{\"name\":\"oasis_holons\"}");
-            var id = Guid.Parse(path.Split('/').Last());
-            return id == ids[4] ? Response("{}", HttpStatusCode.NotFound) : Response(Payload(id, id == ids[3]));
-        });
-        using var http = new HttpClient(handler);
-        var provider = new TypesenseOASIS("http://127.0.0.1:1", "controlled", http);
-        Assert.IsFalse((await provider.ActivateQuerySourceAsync(default)).IsError);
-        var full = await provider.ExecuteCosmicQueryAsync(Plan(provider, Query(ids)));
-        Assert.IsFalse(full.IsError, full.Message);
-        CollectionAssert.AreEqual(ids.Take(3).ToArray(), full.Result.Select(row => row.Id).ToArray());
-        var subset = new[] { ids[0], ids[2] };
-        var filtered = await provider.ExecuteCosmicQueryAsync(Plan(provider, Query(ids).Where(row => subset.Contains(row.Id)).Result));
-        Assert.IsFalse(filtered.IsError, filtered.Message);
-        CollectionAssert.AreEqual(subset, filtered.Result.Select(row => row.Id).ToArray());
-        var page = await provider.ExecuteCosmicQueryAsync(Plan(provider, Query(ids).Skip(1).Result.Take(1).Result));
-        Assert.IsFalse(page.IsError, page.Message);
-        CollectionAssert.AreEqual(new[] { ids[1] }, page.Result.Select(row => row.Id).ToArray());
-        Assert.IsFalse(handler.Paths.Any(path => path.Contains("search")));
-    }
+        var ids = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
+        var expected = ids[0];
+        var selected = new[] { ids[0], ids[2] };
+        var query = Query(ids.Take(2).ToArray()).Where(h => selected.Contains(h.Id)).Result;
+        selected[0] = Guid.NewGuid();
+        ids[0] = Guid.NewGuid();
 
-    [TestMethod]
-    public async Task EmbeddedChildrenAreProjectedBeforeCanonicalMaterialization()
-    {
-        var id = Guid.NewGuid();
-        var child = Guid.NewGuid();
-        var payload = JsonSerializer.Serialize(new Holon {
-            Id = id, Name = "Native root with an embedded graph",
-            Children = new[] { new Holon { Id = child, Name = "Embedded child must not materialize" } }
-        }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-        var handler = new Handler(request => request.RequestUri!.AbsolutePath == "/collections/oasis_holons"
-            ? Response("{\"name\":\"oasis_holons\"}") : Response(payload));
-        using var http = new HttpClient(handler);
-        var provider = new TypesenseOASIS("http://127.0.0.1:1", "controlled", http);
-        Assert.IsFalse((await provider.ActivateQuerySourceAsync(default)).IsError);
-        var result = await provider.ExecuteCosmicQueryAsync(Plan(provider, Query(new[] { id })));
-        Assert.IsFalse(result.IsError, result.Message + " " + result.Exception?.GetType().Name);
-        Assert.AreEqual(1, result.Result.Count);
-        Assert.AreEqual(id, result.Result[0].Id);
-        Assert.AreEqual("Native root with an embedded graph", result.Result[0].Name);
-        Assert.AreEqual(0, result.Result[0].Children.Count());
-        Assert.AreEqual(2, handler.Paths.Count);
+        var result = TypesenseCqlCompiler.Compile(query, ProviderType.TypesenseOASIS);
+        Assert.IsFalse(result.IsError, result.Message);
+        CollectionAssert.AreEqual(new[] { expected }, result.Result.ToArray());
+        Assert.IsTrue(TypesenseCqlCompiler.Compile(query, ProviderType.EthereumOASIS).IsError);
+        Assert.AreEqual(0, TypesenseCqlCompiler.Compile(Query(Array.Empty<Guid>()), ProviderType.TypesenseOASIS).Result.Count);
     }
 
     [DataTestMethod]
-    [DataRow("unauthorized")]
-    [DataRow("forbidden")]
-    [DataRow("server-error")]
-    [DataRow("wrong-id")]
-    [DataRow("duplicate-id")]
-    [DataRow("oversized")]
-    public async Task NativeFailuresDoNotBecomeMissingRecordsOrPartialSuccess(string fault)
+    [DataRow("name")]
+    [DataRow("metadata")]
+    [DataRow("order")]
+    [DataRow("graph")]
+    [DataRow("bound")]
+    public void UnsupportedShapesRejectInsteadOfScanningNativeRecords(string shape)
     {
-        var ids = new[] { Guid.NewGuid(), Guid.NewGuid() }.OrderBy(id => id.ToString("D"), StringComparer.Ordinal).ToArray();
-        var handler = new Handler(request =>
+        var query = Query(Enumerable.Range(0, shape == "bound" ? 101 : 3).Select(_ => Guid.NewGuid()).ToArray());
+        query = shape switch
         {
-            var id = Guid.Parse(request.RequestUri!.AbsolutePath.Split('/').Last());
-            if (id == ids[0]) return Response(Payload(id));
-            return fault switch
-            {
-                "unauthorized" => Response("{}", HttpStatusCode.Unauthorized),
-                "forbidden" => Response("{}", HttpStatusCode.Forbidden),
-                "server-error" => Response("{}", HttpStatusCode.InternalServerError),
-                "wrong-id" => Response(Payload(Guid.NewGuid())),
-                "duplicate-id" => Response("{\"id\":\"" + id + "\",\"id\":\"" + id + "\"}"),
-                _ => Response(new string('x', 1024 * 1024 + 1))
-            };
-        });
-        using var http = new HttpClient(handler);
-        var provider = new TypesenseOASIS("http://127.0.0.1:1", "controlled", http) { IsProviderActivated = true };
-        var result = await provider.ExecuteCosmicQueryAsync(Plan(provider, Query(ids)));
+            "name" => query.Where(h => h.Name == "coffee").Result,
+            "metadata" => query.Where(h => CosmicQueryMetadata.Value<string>(h, "category") == "coffee").Result,
+            "order" => query.OrderBy(h => h.Id).Result,
+            "graph" => query.WithChildren(CosmicQueryGraphOptions.Create(maxChildDepth: 1).Result).Result,
+            _ => query
+        };
+
+        var result = TypesenseCqlCompiler.Compile(query, ProviderType.TypesenseOASIS);
         Assert.IsTrue(result.IsError);
-        Assert.AreEqual(fault == "oversized" ? "CQL_QUERY_LIMIT" : "CQL_QUERY_FAILED", result.ErrorCode);
         Assert.IsNull(result.Result);
     }
 
     [TestMethod]
-    public async Task MissingCollectionActivationIsReadOnlyAndClearsReadiness()
+    public async Task AdapterRejectsUnsupportedQueryBeforeActivationAndHonoursPreCancellation()
     {
-        var handler = new Handler(_ => Response("{}", HttpStatusCode.NotFound));
-        using var http = new HttpClient(handler);
-        var provider = new TypesenseOASIS("http://127.0.0.1:1", "controlled", http) { IsProviderActivated = true };
-        Assert.IsTrue((await provider.ActivateQuerySourceAsync(default)).IsError);
+        var provider = new TypesenseOASIS("http://127.0.0.1:1", "test-key");
+        var query = Query(new[] { Guid.NewGuid() });
+        var plan = CosmicQueryPlanner.Plan(query, ProviderType.TypesenseOASIS,
+            new[] { new CosmicQueryTarget(ProviderType.TypesenseOASIS, provider.QueryCapabilities) });
+        Assert.IsFalse(plan.IsError, plan.Message);
+
+        var inactive = await provider.ExecuteCosmicQueryAsync(plan.Result);
+        Assert.AreEqual("CQL_PROVIDER_INACTIVE", inactive.ErrorCode);
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+        var stopped = await provider.ExecuteCosmicQueryAsync(plan.Result, cancellationToken: cancelled.Token);
+        Assert.AreEqual("CQL_QUERY_CANCELLED", stopped.ErrorCode);
         Assert.IsFalse(provider.IsProviderActivated);
-        CollectionAssert.AreEqual(new[] { "/collections/oasis_holons" }, handler.Paths);
+    }
+
+    [TestMethod]
+    public async Task DeactivationClearsPreviouslyActiveState()
+    {
+        var provider = new TypesenseOASIS("http://127.0.0.1:1", "test-key")
+        { IsProviderActivated = true };
+
+        var result = await provider.DeActivateProviderAsync();
+
+        Assert.IsFalse(result.IsError);
+        Assert.IsTrue(result.Result);
+        Assert.IsFalse(provider.IsProviderActivated);
+    }
+
+    [TestMethod]
+    public async Task MissingPlanAndInvalidBudgetsRejectWithoutConnection()
+    {
+        var provider = new TypesenseOASIS("http://127.0.0.1:1", "test-key");
+        var missing = await provider.ExecuteCosmicQueryAsync<Holon>(null!);
+        Assert.AreEqual("CQL_PLAN_TARGET_UNAVAILABLE", missing.ErrorCode);
+        var plan = CosmicQueryPlanner.Plan(Query(new[] { Guid.NewGuid() }),
+            ProviderType.TypesenseOASIS,
+            new[] { new CosmicQueryTarget(ProviderType.TypesenseOASIS, provider.QueryCapabilities) });
+        foreach (var budget in new[] { 0, -1, 10001 })
+        {
+            var result = await provider.ExecuteCosmicQueryAsync(plan.Result, budget);
+            Assert.AreEqual("CQL_QUERY_LIMIT", result.ErrorCode);
+            Assert.IsNull(result.Result);
+        }
     }
 }

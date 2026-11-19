@@ -15,22 +15,15 @@ using ArbitrumProvider = NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.Arbit
 using CosmosProvider = NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.CosmosBlockChainOASIS;
 using EosioProvider = NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOOASIS;
 using EthereumProvider = NextGenSoftware.OASIS.API.Providers.EthereumOASIS.EthereumOASIS_Web3Core;
-using HederaProvider = NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.HashgraphOASIS;
 using HoloOasisProvider = NextGenSoftware.OASIS.API.Providers.HoloOASIS.HoloOASIS;
 using NearProvider = NextGenSoftware.OASIS.API.Providers.NEAROASIS.NEAROASIS;
 using PolkadotProvider = NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotOASIS;
 using PolygonProvider = NextGenSoftware.OASIS.API.Providers.PolygonOASIS.PolygonOASIS;
 using SolanaProvider = NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaOASIS;
-
 using TonProvider = NextGenSoftware.OASIS.API.Providers.TONOASIS.TONOASIS;
-using TronProvider = NextGenSoftware.OASIS.API.Providers.TRONOASIS.TRONOASIS;
+using HederaProvider = NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.HashgraphOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
-
-public sealed class TronPublicCqlConfiguration(string catalogue, string readerKey)
-{
-    internal void Configure(TronProvider provider) => provider.ConfigurePublicHeaderQuery(catalogue, readerKey);
-}
 
 /// <summary>Read the existing host registry. Missing/inactive providers do not trigger activation or failover.</summary>
 public sealed partial class CqlV1Providers : ICqlV1Providers, ICqlVirtualMappingReader
@@ -83,24 +76,21 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
     private readonly string eosioPublicAccountConfiguration;
     private readonly string cosmosPublicValidatorConfiguration;
     private readonly string polkadotPublicHeaderConfiguration;
-    private readonly string hederaPublicAccountConfiguration;
     private readonly string tonPublicHeaderConfiguration;
+    private readonly string hederaPublicAccountConfiguration;
 
     private readonly ILogger<CqlHostedSourceRegistry> logger;
-    private readonly TronPublicCqlConfiguration tronPublicConfiguration;
 
     public CqlHostedSourceRegistry(IEnumerable<CqlReadSourceProfile> profiles = null)
         : this(profiles, NullLogger<CqlHostedSourceRegistry>.Instance) { }
 
     public CqlHostedSourceRegistry(IEnumerable<CqlReadSourceProfile> profiles, ILogger<CqlHostedSourceRegistry> logger,
         IEnumerable<CqlPublicReadCatalogue> publicCatalogues = null, IConfiguration configuration = null,
-        TronPublicCqlConfiguration tronPublicConfiguration = null,
         HoloOasisProvisioning provisionManagedHoloOasis = null)
     {
         this.profiles = (profiles ?? Array.Empty<CqlReadSourceProfile>())
             .ToDictionary(profile => profile.Storage.ProviderType.Value);
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        this.tronPublicConfiguration = tronPublicConfiguration;
         this.provisionManagedHoloOasis = provisionManagedHoloOasis;
         holoOasisCatalogue = publicCatalogues?.SingleOrDefault(catalogue => catalogue.Provider == ProviderType.HoloOASIS);
         solanaPublicAccountConfiguration = configuration?["CQL_SOLANA_PUBLIC_SOURCE_JSON"];
@@ -111,8 +101,8 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         eosioPublicAccountConfiguration = configuration?["CQL_EOSIO_PUBLIC_SOURCE_JSON"];
         cosmosPublicValidatorConfiguration = configuration?["CQL_COSMOS_PUBLIC_SOURCE_JSON"];
         polkadotPublicHeaderConfiguration = configuration?["CQL_POLKADOT_PUBLIC_SOURCE_JSON"];
-        hederaPublicAccountConfiguration = configuration?["CQL_HEDERA_PUBLIC_SOURCE_JSON"];
         tonPublicHeaderConfiguration = configuration?["CQL_TON_PUBLIC_SOURCE_JSON"];
+        hederaPublicAccountConfiguration = configuration?["CQL_HEDERA_PUBLIC_SOURCE_JSON"];
     }
 
     public bool HasIndependentActivation(ProviderType provider) => profiles.ContainsKey(provider);
@@ -139,12 +129,6 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
             if (registration == null || registration.IsError || registration.Result == null)
                 throw new InvalidOperationException("CQL_SOURCE_REGISTRATION_FAILED");
             storage = registration.Result;
-            if (storage is TonProvider ton && tonPublicHeaderConfiguration != null)
-                ton.ConfigurePublicHeaderQuery(tonPublicHeaderConfiguration);
-            if (storage is HederaProvider hedera && hederaPublicAccountConfiguration != null)
-                hedera.ConfigurePublicAccountQuery(hederaPublicAccountConfiguration);
-            if (storage is TronProvider tron)
-                tronPublicConfiguration?.Configure(tron);
             if (storage is HoloOasisProvider holoOasis && holoOasis.QueryCapabilities == null
                 && holoOasisCatalogue?.CopyRecordIds() is { Length: > 0 } recordIds)
             {
@@ -169,6 +153,10 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
                 cosmos.ConfigurePublicValidatorQuery(cosmosPublicValidatorConfiguration);
             if (storage is PolkadotProvider polkadot && polkadotPublicHeaderConfiguration != null)
                 polkadot.ConfigurePublicHeaderQuery(polkadotPublicHeaderConfiguration);
+            if (storage is TonProvider ton && tonPublicHeaderConfiguration != null)
+                ton.ConfigurePublicHeaderQuery(tonPublicHeaderConfiguration);
+            if (storage is HederaProvider hedera && hederaPublicAccountConfiguration != null)
+                hedera.ConfigurePublicAccountQuery(hederaPublicAccountConfiguration);
         }
         if (storage.ProviderType?.Value != provider || storage is not ICosmicQueryStorageProvider adapter
             || adapter.QueryProviderType != provider || adapter.QueryCapabilities == null

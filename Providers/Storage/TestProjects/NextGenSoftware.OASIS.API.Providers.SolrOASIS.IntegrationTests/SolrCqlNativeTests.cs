@@ -1,139 +1,148 @@
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.Core.Queries;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests;
 
-[TestClass]
+[TestClass, DoNotParallelize]
 public class SolrCqlNativeTests
 {
-    public sealed class Source
-    {
-        public string Endpoint { get; set; } = "";
-        public Guid Actor { get; set; }
-        public Guid[] LiveIds { get; set; } = Array.Empty<Guid>();
-        public Guid DeletedId { get; set; }
-        public Guid MissingId { get; set; }
-    }
+    private sealed record Seed(Guid Actor, Guid[] Ids);
+    private sealed class OriginalWithObsoleteField : Holon { public string ObsoleteField { get; set; } = "removed by full replacement"; }
 
     [TestMethod]
-    [TestCategory("SolrCqlNative")]
-    public async Task ExistingNativeRecordsSupportThreeTwoPagingAndSourcePreservation()
+    public async Task NativeSelectionPagingAndBudgetsPreserveOriginalRowsAcrossRestart()
     {
-        var path = Environment.GetEnvironmentVariable("COSMIC_SOLR_CQL_SOURCE");
-        var username = Environment.GetEnvironmentVariable("COSMIC_SOLR_CQL_USERNAME");
-        var password = Environment.GetEnvironmentVariable("COSMIC_SOLR_CQL_PASSWORD");
-        Assert.IsFalse(string.IsNullOrWhiteSpace(path), "Explicit retained source is required.");
-        Assert.AreEqual(username == null, password == null, "Basic authentication requires both values.");
-        var source = JsonSerializer.Deserialize<Source>(await File.ReadAllTextAsync(path!))!;
-        Assert.IsNotNull(source);
-        Assert.IsTrue(Uri.TryCreate(source.Endpoint, UriKind.Absolute, out var endpoint)
-            && endpoint.Scheme == "http" && endpoint.IsLoopback && endpoint.UserInfo.Length == 0
-            && endpoint.AbsolutePath == "/" && endpoint.Query.Length == 0 && endpoint.Fragment.Length == 0);
-        using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(15) };
-        await RunNativeAsync(source, username, password, http, publicSource: false);
-    }
-
-    [TestMethod]
-    [TestCategory("SolrHostedCqlNative")]
-    public async Task QualifiedHttpsSourceSupportsExactPublicQueriesWithoutWrites()
-    {
-        var path = Environment.GetEnvironmentVariable("COSMIC_SOLR_HOSTED_CQL_SOURCE")
-            ?? throw new InvalidOperationException("Explicit hosted teaching source is required.");
-        var username = Environment.GetEnvironmentVariable("CQL_SOLR_QUERY_USERNAME");
-        var password = Environment.GetEnvironmentVariable("CQL_SOLR_QUERY_PASSWORD");
-        Assert.IsFalse(string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password),
-            "Explicit restricted credentials are required.");
-        Assert.IsTrue(new FileInfo(path).Length is > 0 and <= 16384);
-        var source = JsonSerializer.Deserialize<Source>(await File.ReadAllBytesAsync(path))!;
-        Assert.IsNotNull(source);
-        Assert.IsTrue(Uri.TryCreate(source.Endpoint, UriKind.Absolute, out var endpoint)
-            && endpoint.Scheme == "https" && !endpoint.IsLoopback && endpoint.UserInfo.Length == 0
-            && endpoint.AbsolutePath == "/" && endpoint.Query.Length == 0 && endpoint.Fragment.Length == 0);
-        using var http = new HttpClient(new CqlSolrReadSourceRegistration.ExactReadHandler(endpoint!,
-            NativeConnectionGuard.CreateGuardedHttpHandler())) { Timeout = TimeSpan.FromSeconds(15) };
-        await RunNativeAsync(source, username, password, http, publicSource: true);
-    }
-
-    private static async Task RunNativeAsync(Source source, string? username, string? password, HttpClient http, bool publicSource)
-    {
-        Assert.AreNotEqual(Guid.Empty, source.Actor);
-        Assert.AreEqual(3, source.LiveIds.Length);
-        var ids = source.LiveIds.Concat(new[] { source.DeletedId, source.MissingId }).ToArray();
-        Assert.AreEqual(5, ids.Distinct().Count());
-        Assert.IsFalse(ids.Contains(Guid.Empty));
-        var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-        var provider = new SolrOASIS(source.Endpoint, username, password, http);
-        async Task<string[]> Observe()
+        var state = Environment.GetEnvironmentVariable("OASIS_SOLR_CQL_STATE")
+            ?? throw new InvalidOperationException("Persistent source directory required.");
+        Assert.IsTrue(Directory.Exists(state) && File.Exists(Path.Combine(state, "environment.json")), "Original admitted environment required; never create a source from a test.");
+        using var lease = new FileStream(Path.Combine(state, "source.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        var manifest = Path.Combine(state, "demo-seed.json");
+        var pending = Path.Combine(state, "demo-seed.pending.json");
+        Assert.IsFalse(File.Exists(pending), "Preserve uncertain setup; never replay.");
+        var baseline = Path.Combine(state, "source-snapshot.json");
+        if (File.Exists(manifest))
+            Assert.IsTrue(File.Exists(baseline), "Original snapshot missing; never bless replacement state.");
+        else
+            Assert.IsFalse(File.Exists(baseline), "Orphan original snapshot; reconcile without reseeding.");
+        using var credentials = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(state, "credentials.json")));
+        Assert.IsTrue(OperatingSystem.IsLinux());
+        Assert.AreEqual(Path.Combine(state, "ca.pem"), Environment.GetEnvironmentVariable("SSL_CERT_FILE"), "Private CA must be process-scoped; never bypass TLS validation.");
+        using var native = new HttpClient { BaseAddress = new Uri("https://localhost:18983"), Timeout = TimeSpan.FromSeconds(15) };
+        var username = credentials.RootElement.GetProperty("username").GetString()!;
+        var password = credentials.RootElement.GetProperty("password").GetString()!;
+        native.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes(username+":"+password)));
+        async Task<JsonDocument> Get(string path)
         {
-            var observations = new List<string>();
-            foreach (var id in ids)
-            {
-                using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-                using var request = new HttpRequestMessage(HttpMethod.Get,
-                    source.Endpoint.TrimEnd('/') + "/solr/oasis_holons/get?id=" + id.ToString("D") + "&wt=json&omitHeader=false");
-                using var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
-                response.EnsureSuccessStatusCode();
-                using var stream = await response.Content.ReadAsStreamAsync(deadline.Token);
-                using var output = new MemoryStream();
-                var buffer = new byte[8192];
-                int count;
-                while ((count = await stream.ReadAsync(buffer, deadline.Token)) > 0)
-                {
-                    Assert.IsTrue(output.Length + count <= 1024 * 1024, "Native fixture document exceeds budget.");
-                    output.Write(buffer, 0, count);
-                }
-                var bytes = output.ToArray();
-                using var envelope = JsonDocument.Parse(bytes);
-                Assert.AreEqual(0, envelope.RootElement.GetProperty("responseHeader").GetProperty("status").GetInt32());
-                var native = envelope.RootElement.GetProperty("doc");
-                if (id == source.MissingId)
-                {
-                    Assert.AreEqual(JsonValueKind.Null, native.ValueKind);
-                    continue;
-                }
-                var nativeJson = native.GetRawText();
-                var row = JsonSerializer.Deserialize<Holon>(nativeJson, options)!;
-                Assert.AreEqual(id, row.Id);
-                Assert.AreEqual(id == source.DeletedId, row.IsDeleted);
-                if (publicSource)
-                {
-                    Assert.AreEqual(source.Actor, row.CreatedByAvatarId);
-                    Assert.IsTrue(row.IsPublic && !row.Children.Any(), "Hosted source must be public and root-only.");
-                }
-                observations.Add(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(nativeJson))));
-            }
-            return observations.ToArray();
+            using var response = await native.GetAsync(path);
+            response.EnsureSuccessStatusCode();
+            return JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         }
-        var activation = await provider.ActivateQuerySourceAsync(default);
-        Assert.IsFalse(activation.IsError, activation.Message);
-        try
+        using var identity = await Get("/solr/admin/info/system?wt=json");
+        Assert.AreEqual("10.1.0", identity.RootElement.GetProperty("lucene").GetProperty("solr-spec-version").GetString());
+        using var rest = new HttpClient();
+        var provider = new SolrOASIS(rest, "https://localhost:18983", username, password);
+        Seed seed;
+        if (!File.Exists(manifest))
         {
-            var before = await Observe();
-            CosmicQuery<Holon> Query() => CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.SolrOASIS).Result)
-                .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(source.Actor, ProviderType.SolrOASIS, ids).Result).Result;
-            async Task<Guid[]> Read(CosmicQuery<Holon> query)
+            using var absent = await Get("/solr/oasis_holons/select?q=*:*&rows=0&wt=json");
+            Assert.AreEqual(0, absent.RootElement.GetProperty("response").GetProperty("numFound").GetInt32(), "Never adopt existing records.");
+            seed = new Seed(Guid.NewGuid(), Enumerable.Range(0, 3).Select(_ => Guid.NewGuid()).ToArray());
+            using (var intent = new FileStream(pending, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
+            { JsonSerializer.Serialize(intent, seed); intent.Flush(true); }
+            var active = await provider.ActivateProviderAsync();
+            Assert.IsFalse(active.IsError, active.Message);
+            var names = new[] { "Espresso", "Latte", "Tea" };
+            for (var i = 0; i < 3; i++)
             {
-                var plan = CosmicQueryPlanner.Plan(query, ProviderType.SolrOASIS,
-                    new[] { new CosmicQueryTarget(ProviderType.SolrOASIS, provider.QueryCapabilities) });
-                Assert.IsFalse(plan.IsError, plan.Message);
-                var result = await provider.ExecuteCosmicQueryAsync(plan.Result);
-                Assert.IsFalse(result.IsError, result.Message);
-                return result.Result.Select(row => row.Id).ToArray();
+                Holon original = i == 0 ? new OriginalWithObsoleteField() : new Holon();
+                original.Id = seed.Ids[i]; original.Name = names[i]; original.CreatedByAvatarId = seed.Actor; original.IsNewHolon = true;
+                var saved = await provider.SaveHolonAsync(original, saveChildren: false);
+                Assert.IsFalse(saved.IsError, saved.Message);
+                Assert.IsTrue(saved.IsSaved, "Source write requires acknowledgement.");
+                using var receipt = new FileStream(Path.Combine(state, $"source-write-{i}.ack.json"), FileMode.CreateNew, FileAccess.Write, FileShare.Read);
+                JsonSerializer.Serialize(receipt, new { id = seed.Ids[i], acknowledged = true }); receipt.Flush(true);
             }
-            var ordered = source.LiveIds.OrderBy(id => id.ToString("D"), StringComparer.Ordinal).ToArray();
-            CollectionAssert.AreEqual(ordered, await Read(Query()));
-            var subset = new[] { ordered[0], ordered[2] };
-            CollectionAssert.AreEqual(subset, await Read(Query().Where(row => subset.Contains(row.Id)).Result));
-            var excluded = new[] { source.DeletedId, source.MissingId };
-            Assert.AreEqual(0, (await Read(Query().Where(row => excluded.Contains(row.Id)).Result)).Length);
-            CollectionAssert.AreEqual(new[] { ordered[1] }, await Read(Query().Skip(1).Result.Take(1).Result));
-            CollectionAssert.AreEqual(before, await Observe(), "Native source changed during read-only qualification.");
+            var updated = await provider.SaveHolonAsync(new Holon { Id = seed.Ids[0], Name = "Espresso updated",
+                CreatedByAvatarId = seed.Actor }, saveChildren: false);
+            Assert.IsFalse(updated.IsError, updated.Message + updated.Exception);
+            Assert.IsTrue(updated.IsSaved);
+            using (var receipt = new FileStream(Path.Combine(state, "source-update.ack.json"), FileMode.CreateNew, FileAccess.Write, FileShare.Read))
+            { JsonSerializer.Serialize(receipt, new { id = seed.Ids[0], acknowledged = true }); receipt.Flush(true); }
+            File.Move(pending, manifest);
         }
-        finally { await provider.DeActivateProviderAsync(); }
+        else
+        {
+            seed = JsonSerializer.Deserialize<Seed>(await File.ReadAllTextAsync(manifest))!;
+            using var indices = await Get("/solr/admin/cores?action=STATUS&wt=json");
+            CollectionAssert.AreEquivalent(new[] { "oasis_holons", "oasis_avatars", "oasis_avatar_details" }, indices.RootElement.GetProperty("status").EnumerateObject().Select(v => v.Name).ToArray());
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+        }
+        Assert.AreEqual(3, seed.Ids.Distinct().Count());
+        async Task<string[]> Snapshot()
+        {
+            using var all = await Get("/solr/oasis_holons/select?q=*:*&rows=4&wt=json");
+            Assert.AreEqual(3, all.RootElement.GetProperty("response").GetProperty("numFound").GetInt32());
+            var rows = new List<string>();
+            foreach (var id in seed.Ids)
+            {
+                using var record = await Get("/solr/oasis_holons/get?id="+id.ToString("D")+"&wt=json");
+                var value = record.RootElement.GetProperty("doc");
+                Assert.AreEqual(id, value.GetProperty("id").GetGuid());
+                var json = value.GetProperty("data_json").GetString()!;
+                using var payload = JsonDocument.Parse(json);
+                Assert.AreEqual(id, payload.RootElement.GetProperty("id").GetGuid());
+                if (id == seed.Ids[0]) Assert.IsFalse(payload.RootElement.TryGetProperty("obsoleteField", out _), "Full replacement removes original field.");
+                var version = value.GetProperty("_version_").GetInt64();
+                Assert.IsTrue(version > 0);
+                rows.Add(id.ToString("D")+"|"+version+"|"+Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json))));
+            }
+            rows.Sort(StringComparer.Ordinal);
+            using var schema = await Get("/solr/oasis_holons/schema?wt=json&showDefaults=true");
+            rows.Insert(0, "native-schema|"+Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(schema.RootElement.GetProperty("schema").GetRawText()))));
+            return rows.ToArray();
+        }
+        var before = await Snapshot();
+        if (File.Exists(baseline))
+            CollectionAssert.AreEqual(JsonSerializer.Deserialize<string[]>(await File.ReadAllTextAsync(baseline))!, before);
+        else
+        {
+            using var file = new FileStream(baseline, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
+            JsonSerializer.Serialize(file, before); file.Flush(true);
+        }
+        CosmicQueryPlan<Holon> Plan(Guid[] ids, bool paging = false)
+        {
+            var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.SolrOASIS).Result)
+                .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(seed.Actor, ProviderType.SolrOASIS, ids).Result).Result
+                .Where(h => ids.Contains(h.Id)).Result;
+            if (paging) query = query.Skip(1).Result.Take(1).Result;
+            var plan = CosmicQueryPlanner.Plan(query, ProviderType.SolrOASIS,
+                new[] { new CosmicQueryTarget(ProviderType.SolrOASIS, provider.QueryCapabilities) });
+            Assert.IsFalse(plan.IsError, plan.Message);
+            return plan.Result;
+        }
+        foreach (var ids in new[] { seed.Ids, seed.Ids.Take(2).ToArray(), new[] { Guid.NewGuid() } })
+        {
+            var result = await provider.ExecuteCosmicQueryAsync(Plan(ids));
+            Assert.IsFalse(result.IsError, result.Message + result.Exception);
+            CollectionAssert.AreEquivalent(ids.Length == 1 ? Array.Empty<Guid>() : ids, result.Result.Select(r => r.Id).ToArray());
+        }
+        var page = await provider.ExecuteCosmicQueryAsync(Plan(seed.Ids, true));
+        Assert.IsFalse(page.IsError, page.Message);
+        Assert.AreEqual(seed.Ids.OrderBy(id => id.ToString("D"), StringComparer.Ordinal).Skip(1).First(), page.Result.Single().Id);
+        var updatedHead = await provider.ExecuteCosmicQueryAsync(Plan(new[] { seed.Ids[0] }));
+        Assert.IsFalse(updatedHead.IsError, updatedHead.Message + updatedHead.Exception);
+        Assert.AreEqual("Espresso updated", updatedHead.Result.Single().Name);
+        var limited = await provider.ExecuteCosmicQueryAsync(Plan(seed.Ids), maximumResults: 1);
+        Assert.AreEqual("CQL_QUERY_LIMIT", limited.ErrorCode);
+        Assert.IsNull(limited.Result, "Budget failure must not publish partial rows.");
+        CollectionAssert.AreEqual(before, await Snapshot(), "Native canonical payloads/versions/schema must remain unchanged.");
+        Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError);
     }
 }

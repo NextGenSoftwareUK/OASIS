@@ -76,37 +76,6 @@ cluster failover/replication, public hosting, central factory enrollment and ful
 HyperDrive/ORM parity remain separate red gates. Protocol compatibility does not
 certify another provider or any of these broader requirements.
 
-## Development WEB4 candidate
-
-Use a dedicated standalone native Valkey teaching instance with a restricted
-reader and the protected `CQL_VALKEY_QUERY_` settings. The seven setting
-suffixes and TLS requirements match the [Redis candidate](REDIS_CQL_MVP.md),
-with Valkey's own endpoint, encrypted source key, record namespace and public
-probe. WEB4 activates the source through one exact authenticated record read
-using StackExchange.Redis and the Valkey authority.
-
-The hosted proof uses `TestCategory=ValkeyHostedCqlNative` in the Redis
-integration project and `COSMIC_VALKEY_HOSTED_CQL_SOURCE` with the same
-catalogue schema. Confirm the source is native Valkey and the reader has only
-the required handshake and encrypted teaching-record permissions before
-running it. Hosted native, paired HTTP and browser evidence are pending.
-
 [Preserved history](Archive/VALKEY_CQL_MVP_PRESERVED_2026-10-30.md) ·
 [Current status](CURRENT_STATUS.md) · [After-demo backlog](AFTER_DEMO_BACKLOG.md) ·
 [Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
-
-11 November UTC: Valkey candidate 71f7485e2f runs the existing hash-pinned Valkey 9.0.4 restart and encrypted CQL tests in isolated CI with a disposable MongoDB replica for SDK/HTTP federation. Results remain pending. Dragonfly's verified candidate still applies to Development ea54de967e.
-
-11 November UTC: Valkey run 43055058247 stopped before tests because the Ubuntu package origin could not resolve. Candidate bca447e8e4 extracts Valkey 9.0.4 from its digest-pinned official image in CI, verifies the version and executable fingerprint, and uses the same isolated restart/federation assertions. The retained package-based fixture path is preserved.
-
-11 November UTC: Valkey 9.0.4 native CI 43055529432 passed the strict encrypted native CQL, restart, Mongo replica admission and SDK/HTTP federation checks. The official digest-pinned image supplied the executable and the runner verified the same native source after restart. Standard CI routing and hosted TLS acceptance remain open.
-
-11 November UTC: Valkey candidate f6084bf424 routes generic storage to the standard matrix and calls the verified 9.0.4 restart/federation workflow separately. Combined diagnostic 8baa31be52 is submitted on Development ea54de967e. Standard CI and hosted TLS verification remain open.
-
-11 November UTC: both Valkey jobs passed in combined CI 43056231303. Generic storage ran in the standard matrix, and encrypted native CQL, restart and MongoDB federation ran in the dedicated fixture. Combined verified Development batch 7a599d7b9d contains only the independent Dragonfly and Valkey CI changes. Hosted TLS acceptance remains open.
-
-11 November UTC: Development d93d984b7b integrates the verified Redis, Dragonfly and Valkey standard CI routing on top of HyperDrive Hedera changes. The batch contains only the three independently qualified fixture-routing patches. Hosted TLS acceptance remains open for all three.
-
-11 November UTC: all six Redis, Dragonfly and Valkey jobs passed in the standard Development pipeline 43059249089 at d93d984b7b. Each provider passed its generic storage matrix job and its dedicated native restart/federation job. Hosted TLS acceptance remains open.
-
-11 November UTC: Development fa8f81332c carries Valkey 9.0.4 native storage conformance. The shipping StackExchange.Redis adapter passed 52/52 in CI 43091045329, with exact fixture cleanup and an empty native database in both modes. Prior native CQL restart and federation evidence carries forward. Hosted TLS and plaintext migration remain open.

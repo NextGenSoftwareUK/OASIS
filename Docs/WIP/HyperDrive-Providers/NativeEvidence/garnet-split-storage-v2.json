@@ -1,0 +1,108 @@
+{
+  "provider": "GarnetOASIS",
+  "nativeBackend": "Garnet 2.2.5 on Windows loopback",
+  "suite": "core-storage-v2",
+  "coverage": "split native runs",
+  "initialRuns": [
+    {
+      "mode": "async",
+      "reportSha256": "EF1B9AD5B745217601C1D5C47973793246B6BE3768B7D079D090C046BCFAC61B",
+      "passedCases": [
+        "activate",
+        "avatar-save",
+        "avatar-id",
+        "avatar-username",
+        "avatar-email",
+        "detail-save",
+        "detail-id",
+        "detail-username",
+        "detail-email",
+        "graph-save",
+        "holon-id",
+        "holon-update",
+        "holon-update-read",
+        "parent-query",
+        "metadata-query",
+        "batch-save-null-metadata",
+        "import",
+        "owner-export"
+      ],
+      "stoppedAt": "fixture-hard-cleanup-1c209a3eaf3a4ba2b88d861a7088ee25",
+      "failureType": "System.InvalidOperationException",
+      "failureContract": "explicit exact-fixture hard cleanup required",
+      "fixtureCleanupComplete": false
+    },
+    {
+      "mode": "sync",
+      "reportSha256": "EA165F8144C51CD729C353B090A9C49D3D567E80B7D56238D4C6A92D528C57DF",
+      "passedCases": [
+        "activate",
+        "avatar-save",
+        "avatar-id",
+        "avatar-username",
+        "avatar-email",
+        "detail-save",
+        "detail-id",
+        "detail-username",
+        "detail-email",
+        "graph-save",
+        "holon-id",
+        "holon-update",
+        "holon-update-read",
+        "parent-query",
+        "metadata-query",
+        "batch-save-null-metadata",
+        "import",
+        "owner-export"
+      ],
+      "stoppedAt": "fixture-hard-cleanup-4f801d55adc74647baa8c69299241073",
+      "failureType": "System.InvalidOperationException",
+      "failureContract": "explicit exact-fixture hard cleanup required",
+      "fixtureCleanupComplete": false
+    }
+  ],
+  "focusedRuns": [
+    {
+      "scope": "Exact tombstone and avatar/detail cleanup",
+      "reportSha256": "3858EB4BE631B070BAB45C2A7C057B3EA2C30133D134297F16634831B068E240",
+      "tests": [
+        {
+          "name": "RemoveOwnedTombstoneAndAvatarDetail (False)",
+          "outcome": "Passed"
+        },
+        {
+          "name": "RemoveOwnedTombstoneAndAvatarDetail (True)",
+          "outcome": "Passed"
+        }
+      ]
+    },
+    {
+      "scope": "Default deletion and exact hard cleanup of root, batch and import holons",
+      "reportSha256": "9C63F510B692D0ED0F9BEA2CCF01C5061685A7AD878873A9E9E648F5E8264B2F",
+      "tests": [
+        {
+          "name": "DeleteRemainingLifecycleFixtures (True)",
+          "outcome": "Passed"
+        },
+        {
+          "name": "DeleteRemainingLifecycleFixtures (False)",
+          "outcome": "Passed"
+        }
+      ]
+    },
+    {
+      "scope": "Parented child and encrypted relationship index absence with parent preserved",
+      "reportSha256": "11B1607FBE767844858E7D2FB812202FEF1838873E17660DA21ADBD4222BDDC9",
+      "tests": [
+        {
+          "name": "HardDeleteChildRemovesNativeRelationshipIndex (False)",
+          "outcome": "Passed"
+        },
+        {
+          "name": "HardDeleteChildRemovesNativeRelationshipIndex (True)",
+          "outcome": "Passed"
+        }
+      ]
+    }
+  ]
+}

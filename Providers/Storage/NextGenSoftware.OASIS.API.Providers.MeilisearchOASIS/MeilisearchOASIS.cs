@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -14,20 +15,22 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
 {
     /// <summary>
-    /// OASIS provider for Meilisearch â€” a fast, typo-tolerant, RESTful search engine.
+    /// OASIS provider for Meilisearch — a fast, typo-tolerant, RESTful search engine.
     ///
     /// Indexes: oasis_avatars, oasis_avatar_details, oasis_holons
     /// All documents stored with full JSON body; primary key = "id" (string form of GUID).
     ///
     /// Constructor parameters:
-    ///   host   â€” Meilisearch host URL, e.g. "http://localhost:7700"
-    ///   apiKey â€” optional master/API key
+    ///   host   — Meilisearch host URL, e.g. "http://localhost:7700"
+    ///   apiKey — optional master/API key
     /// </summary>
     public partial class MeilisearchOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
@@ -51,13 +54,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
         private const string IdxDetails = "oasis_avatar_details";
         private const string IdxHolons = "oasis_holons";
 
-        public MeilisearchOASIS(string host, string? apiKey = null)
-            : this(host, apiKey, new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })) { }
+        public MeilisearchOASIS(string host, string? apiKey = null) : this(new HttpClient(), host, apiKey) { }
 
-        public MeilisearchOASIS(string host, string? apiKey, HttpClient httpClient)
+        // Supply a dedicated client; it remains caller-owned.
+        public MeilisearchOASIS(HttpClient client, string host, string? apiKey = null)
         {
             _host = host.TrimEnd('/');
-            _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _http = client ?? throw new ArgumentNullException(nameof(client));
             if (!string.IsNullOrEmpty(apiKey))
                 _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
             ProviderName = "MeilisearchOASIS";
@@ -69,40 +72,65 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
         private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
         private StringContent Json(object obj) => new StringContent(Ser(obj), Encoding.UTF8, "application/json");
 
-        private async Task EnsureIndexAsync(string index)
-        {
-            var body = new { uid = index, primaryKey = "id" };
-            var resp = await _http.PostAsync($"{_host}/indexes", Json(body));
-            // 201 = created, 409 = already exists â€” both acceptable
-        }
-
         private async Task<T?> GetDocAsync<T>(string index, string id)
         {
-            var resp = await _http.GetAsync($"{_host}/indexes/{index}/documents/{id}");
-            if (!resp.IsSuccessStatusCode) return default;
-            var json = await resp.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<T>(json, _jsonOpts);
+            using var deadline = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(15));
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"{_host}/indexes/{index}/documents/{id}");
+            using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                using var error = await ReadNativeResponseAsync(response, 65536, deadline.Token);
+                if (error.RootElement.GetProperty("code").GetString() == "document_not_found")
+                    return default;
+            }
+            response.EnsureSuccessStatusCode();
+            using var document = await ReadNativeResponseAsync(response, 4 * 1024 * 1024, deadline.Token);
+            if (document.RootElement.GetProperty("id").GetString() != id)
+                throw new System.IO.InvalidDataException("Native Meilisearch point read returned a different document ID.");
+            return DecodeDocument<T>(document.RootElement);
         }
 
-        private async Task UpsertDocAsync(string index, object doc)
+        private static T? DecodeDocument<T>(JsonElement document)
         {
-            var content = new StringContent($"[{Ser(doc)}]", Encoding.UTF8, "application/json");
-            await _http.PutAsync($"{_host}/indexes/{index}/documents", content);
+            var json = document.GetRawText();
+            return typeof(T) == typeof(AvatarDetail) ? StoredRecordJson.DeserializeStored<T>(json)
+                : typeof(T) == typeof(Holon) ? (T)(object)StoredRecordJson.DeserializeStoredHolon(json)
+                : JsonSerializer.Deserialize<T>(json, _jsonOpts);
         }
 
         private async Task<List<T>> GetAllDocsAsync<T>(string index)
         {
-            var resp = await _http.GetAsync($"{_host}/indexes/{index}/documents?limit=1000");
-            if (!resp.IsSuccessStatusCode) return new List<T>();
-            var json = await resp.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(json);
-            if (!doc.RootElement.TryGetProperty("results", out var results)) return new List<T>();
-            return JsonSerializer.Deserialize<List<T>>(results.GetRawText(), _jsonOpts) ?? new List<T>();
-        }
-
-        private async Task DeleteDocAsync(string index, string id)
-        {
-            await _http.DeleteAsync($"{_host}/indexes/{index}/documents/{id}");
+            const int pageSize = 100;
+            var records = new List<T>();
+            var identities = new HashSet<string>(StringComparer.Ordinal);
+            int? expectedTotal = null;
+            do
+            {
+                using var deadline = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(15));
+                using var response = await _http.GetAsync($"{_host}/indexes/{index}/documents?limit={pageSize}&offset={records.Count}",
+                    HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+                response.EnsureSuccessStatusCode();
+                using var body = await ReadNativeResponseAsync(response, 32 * 1024 * 1024, deadline.Token);
+                var page = body.RootElement;
+                var total = page.GetProperty("total").GetInt32();
+                expectedTotal ??= total;
+                var rows = page.GetProperty("results");
+                if (page.GetProperty("offset").GetInt32() != records.Count || total != expectedTotal ||
+                    rows.GetArrayLength() != Math.Min(pageSize, total - records.Count))
+                    throw new System.IO.InvalidDataException("Native Meilisearch returned an incomplete or inconsistent document page.");
+                foreach (var row in rows.EnumerateArray())
+                {
+                    var identity = row.GetProperty("id").GetString();
+                    if (string.IsNullOrEmpty(identity) || !identities.Add(identity))
+                        throw new System.IO.InvalidDataException("Native Meilisearch returned an invalid or repeated document ID.");
+                    var record = DecodeDocument<T>(row);
+                    if (record is null)
+                        throw new System.IO.InvalidDataException("Native Meilisearch returned an empty record payload.");
+                    records.Add(record);
+                }
+            }
+            while (records.Count < expectedTotal);
+            return records;
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
@@ -110,12 +138,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
             var result = new OASISResult<bool>();
             try
             {
+                IsProviderActivated = false;
                 await EnsureIndexAsync(IdxAvatars);
                 await EnsureIndexAsync(IdxDetails);
                 await EnsureIndexAsync(IdxHolons);
+                await EnsureIdentityFiltersAsync(IdxAvatars);
+                await EnsureIdentityFiltersAsync(IdxDetails);
                 IsProviderActivated = true; result.Result = true; result.IsError = false; result.Message = "MeilisearchOASIS activated.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: Error activating â€” {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: Error activating — {ex.Message}"); }
             return result;
         }
 
@@ -123,20 +154,31 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
         public override async Task<OASISResult<bool>> DeActivateProviderAsync() { IsProviderActivated = false; return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "MeilisearchOASIS deactivated." }); }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
-        // â”€â”€â”€ Avatar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─── Avatar ───────────────────────────────────────────────────────────────
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
             var result = new OASISResult<IAvatar>();
             try
             {
-                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
-                if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MeilisearchOASIS] = avatar.Id.ToString();
-                var doc = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(Ser(avatar), _jsonOpts)!;
-                doc["id"] = JsonDocument.Parse($"\"{avatar.Id}\"").RootElement;
-                await UpsertDocAsync(IdxAvatars, doc);
-                result.Result = avatar; result.IsError = false; result.Message = $"MeilisearchOASIS: Avatar '{avatar.Username}' saved.";
+                ArgumentNullException.ThrowIfNull(avatar);
+                var id = avatar.Id == Guid.Empty ? Guid.NewGuid() : avatar.Id;
+                var keys = avatar.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(avatar.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.MeilisearchOASIS] = id.ToString("D");
+                var document = JsonSerializer.SerializeToNode(avatar, avatar.GetType(), _jsonOpts)!.AsObject();
+                document["id"] = id;
+                document["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                await UpsertDocAsync(IdxAvatars, document);
+
+                avatar.Id = id;
+                avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MeilisearchOASIS] = id.ToString("D");
+                result.Result = avatar;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = $"MeilisearchOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: Error saving avatar: {ex.Message}"); }
             return result;
@@ -150,8 +192,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
             try
             {
                 var a = await GetDocAsync<Avatar>(IdxAvatars, id.ToString());
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No avatar for ID '{id}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "MeilisearchOASIS: Avatar loaded.";
+                if (a == null || a.IsDeleted) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No avatar for ID '{id}'."); return result; }
+                result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "MeilisearchOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}"); }
             return result;
@@ -159,43 +201,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
 
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) => LoadAvatarAsync(id, version).Result;
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                var resp = await _http.GetAsync($"{_host}/indexes/{IdxAvatars}/search?q={Uri.EscapeDataString(username)}&filter=username%20%3D%20%22{Uri.EscapeDataString(username)}%22&limit=1");
-                if (!resp.IsSuccessStatusCode) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: Search failed."); return result; }
-                var json = await resp.Content.ReadAsStringAsync();
-                using var doc = JsonDocument.Parse(json);
-                if (!doc.RootElement.TryGetProperty("hits", out var hits) || hits.GetArrayLength() == 0) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No avatar for username '{username}'."); return result; }
-                var a = JsonSerializer.Deserialize<Avatar>(hits[0].GetRawText(), _jsonOpts);
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No avatar for username '{username}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "MeilisearchOASIS: Avatar loaded.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}"); }
-            return result;
-        }
+        public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
+            => LoadByIdentityAsync<IAvatar, Avatar>(IdxAvatars, "username", username);
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string username, int version = 0) => LoadAvatarByUsernameAsync(username, version).Result;
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                var resp = await _http.GetAsync($"{_host}/indexes/{IdxAvatars}/search?q={Uri.EscapeDataString(avatarEmail)}&filter=email%20%3D%20%22{Uri.EscapeDataString(avatarEmail)}%22&limit=1");
-                if (!resp.IsSuccessStatusCode) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: Search failed."); return result; }
-                var json = await resp.Content.ReadAsStringAsync();
-                using var doc = JsonDocument.Parse(json);
-                if (!doc.RootElement.TryGetProperty("hits", out var hits) || hits.GetArrayLength() == 0) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No avatar for email '{avatarEmail}'."); return result; }
-                var a = JsonSerializer.Deserialize<Avatar>(hits[0].GetRawText(), _jsonOpts);
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No avatar for email '{avatarEmail}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "MeilisearchOASIS: Avatar loaded.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}"); }
-            return result;
-        }
+        public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+            => LoadByIdentityAsync<IAvatar, Avatar>(IdxAvatars, "email", avatarEmail);
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => LoadAvatarByEmailAsync(avatarEmail, version).Result;
 
@@ -215,7 +227,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
                 var all = await GetAllDocsAsync<Avatar>(IdxAvatars);
                 var list = new List<IAvatar>();
                 foreach (var a in all) { if (!a.IsDeleted) list.Add(a); }
-                result.Result = list; result.IsError = false; result.Message = $"MeilisearchOASIS: Loaded {list.Count} avatar(s).";
+                result.Result = list; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"MeilisearchOASIS: Loaded {list.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}"); }
             return result;
@@ -230,15 +242,23 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
             {
                 if (softDelete)
                 {
-                    var loadResult = await LoadAvatarAsync(id);
-                    if (!loadResult.IsError && loadResult.Result != null)
-                    {
-                        var avatar = (Avatar)loadResult.Result; avatar.DeletedDate = DateTime.UtcNow;
-                        await SaveAvatarAsync(avatar);
-                    }
+                    var loaded = await LoadAvatarAsync(id);
+                    if (loaded.IsError || loaded.Result is not Avatar avatar)
+                        throw new InvalidOperationException(loaded.Message, loaded.Exception);
+                    avatar.DeletedDate = DateTime.UtcNow;
+                    var saved = await SaveAvatarAsync(avatar);
+                    if (saved.IsError || !saved.IsSaved || saved.SavedCount != 1)
+                        throw new InvalidOperationException(saved.Message, saved.Exception);
                 }
-                else { await DeleteDocAsync(IdxAvatars, id.ToString()); }
-                result.Result = true; result.IsError = false; result.Message = $"MeilisearchOASIS: Avatar '{id}' deleted.";
+                else
+                {
+                    await DeleteDocAsync(IdxDetails, id.ToString("D"), allowMissing: true);
+                    await DeleteDocAsync(IdxAvatars, id.ToString("D"));
+                }
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.Message = $"MeilisearchOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}"); }
             return result;
@@ -253,18 +273,23 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
             => GuidProviderKeyDeletion.DeleteAvatarAsync(pk, softDelete, DeleteAvatarAsync);
         public override OASISResult<bool> DeleteAvatar(string pk, bool softDelete = true) => DeleteAvatarAsync(pk, softDelete).Result;
 
-        // â”€â”€â”€ AvatarDetail â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─── AvatarDetail ─────────────────────────────────────────────────────────
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail d)
         {
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
-                var doc = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(Ser(d), _jsonOpts)!;
-                doc["id"] = JsonDocument.Parse($"\"{d.Id}\"").RootElement;
-                await UpsertDocAsync(IdxDetails, doc);
-                result.Result = d; result.IsError = false; result.Message = "MeilisearchOASIS: AvatarDetail saved.";
+                ArgumentNullException.ThrowIfNull(d);
+                var id = d.Id == Guid.Empty ? Guid.NewGuid() : d.Id;
+                var document = JsonSerializer.SerializeToNode(d, d.GetType(), _jsonOpts)!.AsObject();
+                document["id"] = id;
+                await UpsertDocAsync(IdxDetails, document);
+                d.Id = id;
+                result.Result = d;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = "MeilisearchOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}"); }
             return result;
@@ -275,51 +300,121 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            try { var d = await GetDocAsync<AvatarDetail>(IdxDetails, id.ToString()); if (d == null) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No detail for ID '{id}'."); return result; } result.Result = d; result.IsError = false; result.Message = "MeilisearchOASIS: AvatarDetail loaded."; }
+            try { var d = await GetDocAsync<AvatarDetail>(IdxDetails, id.ToString()); if (d == null) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No detail for ID '{id}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "MeilisearchOASIS: AvatarDetail loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}"); }
             return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var resp = await _http.GetAsync($"{_host}/indexes/{IdxDetails}/search?q={Uri.EscapeDataString(u)}&filter=username%20%3D%20%22{Uri.EscapeDataString(u)}%22&limit=1"); var json = await resp.Content.ReadAsStringAsync(); using var doc = JsonDocument.Parse(json); if (!doc.RootElement.TryGetProperty("hits", out var hits) || hits.GetArrayLength() == 0) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No detail for username '{u}'."); return result; } var d = JsonSerializer.Deserialize<AvatarDetail>(hits[0].GetRawText(), _jsonOpts); if (d == null) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.Message = "MeilisearchOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}"); } return result; }
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0)
+            => LoadByIdentityAsync<IAvatarDetail, AvatarDetail>(IdxDetails, "username", u);
+
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int version = 0) => LoadAvatarDetailByUsernameAsync(u, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var resp = await _http.GetAsync($"{_host}/indexes/{IdxDetails}/search?q={Uri.EscapeDataString(e)}&filter=email%20%3D%20%22{Uri.EscapeDataString(e)}%22&limit=1"); var json = await resp.Content.ReadAsStringAsync(); using var doc = JsonDocument.Parse(json); if (!doc.RootElement.TryGetProperty("hits", out var hits) || hits.GetArrayLength() == 0) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No detail for email '{e}'."); return result; } var d = JsonSerializer.Deserialize<AvatarDetail>(hits[0].GetRawText(), _jsonOpts); if (d == null) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.Message = "MeilisearchOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}"); } return result; }
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0)
+            => LoadByIdentityAsync<IAvatarDetail, AvatarDetail>(IdxDetails, "email", e);
+
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int version = 0) => LoadAvatarDetailByEmailAsync(e, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try { var all = await GetAllDocsAsync<AvatarDetail>(IdxDetails); result.Result = new List<IAvatarDetail>(all); result.IsError = false; result.Message = $"MeilisearchOASIS: Loaded {all.Count} detail(s)."; }
+            try { var all = await GetAllDocsAsync<AvatarDetail>(IdxDetails); result.Result = new List<IAvatarDetail>(all); result.IsLoaded = true; result.LoadedCount = all.Count; result.Message = $"MeilisearchOASIS: Loaded {all.Count} detail(s)."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}"); }
             return result;
         }
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).Result;
 
-        // â”€â”€â”€ Holons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─── Holons ───────────────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, 0, continueOnError);
+
+        private async Task<OASISResult<IHolon>> SaveHolonGraphAsync(IHolon holon, bool saveChildren, bool recursive,
+            int maxChildDepth, int currentChildDepth, bool continueOnError)
         {
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                var doc = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(Ser(holon), _jsonOpts)!;
-                doc["id"] = JsonDocument.Parse($"\"{holon.Id}\"").RootElement;
-                await UpsertDocAsync(IdxHolons, doc);
-                result.Result = holon; result.IsError = false; result.Message = $"MeilisearchOASIS: Holon '{holon.Name}' saved.";
+                if (IsVersionControlEnabled)
+                    throw new NotSupportedException("Meilisearch historical writes are not implemented.");
+
+                var plan = HolonGraphWritePlan.CreateForSave(new[] { holon }, saveChildren, recursive, maxChildDepth, currentChildDepth);
+                var failed = new HashSet<Guid>();
+                foreach (var node in plan.Nodes)
+                {
+                    if (failed.Contains(node.Snapshot.ParentHolonId))
+                    {
+                        failed.Add(node.Snapshot.Id);
+                        continue;
+                    }
+
+                    try
+                    {
+                        await SavePlannedHolonAsync(node);
+                        if (ReferenceEquals(node.Source, holon))
+                            result.Result = holon;
+                        result.SavedCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        failed.Add(node.Snapshot.Id);
+                        OASISErrorHandling.HandleError(ref result, $"Meilisearch did not save holon '{node.Snapshot.Id}'.", ex);
+                        if (!continueOnError)
+                            break;
+                    }
+                }
+
+                result.IsSaved = result.SavedCount == plan.Nodes.Count;
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: Error saving holon: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}", ex);
+            }
             return result;
+        }
+
+        private async Task SavePlannedHolonAsync(PlannedHolonWrite node)
+        {
+            var snapshot = node.Snapshot;
+            var id = snapshot.Id.ToString("D");
+            var keys = snapshot.ProviderUniqueStorageKey ?? new Dictionary<Core.Enums.ProviderType, string>();
+            keys[Core.Enums.ProviderType.MeilisearchOASIS] = id;
+            var captured = JsonNode.Parse(node.CapturedIntentJson)!.AsObject();
+            var document = new JsonObject();
+            foreach (var property in captured)
+            {
+                if (property.Key != "$type")
+                    document.Add(JsonNamingPolicy.CamelCase.ConvertName(property.Key), property.Value?.DeepClone());
+            }
+            document["id"] = id;
+            document["parentHolonId"] = snapshot.ParentHolonId;
+            document["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+            await UpsertDocAsync(IdxHolons, document);
+
+            node.Source.Id = snapshot.Id;
+            node.Source.ParentHolonId = snapshot.ParentHolonId;
+            node.Source.ProviderUniqueStorageKey = keys;
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>(); var saved = new List<IHolon>();
-            foreach (var h in holons) { var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (!r.IsError && r.Result != null) saved.Add(r.Result); }
-            result.Result = saved; result.IsError = false; result.Message = $"MeilisearchOASIS: Saved {saved.Count} holons."; return result;
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var saved = new List<IHolon>();
+            var errors = new List<string>();
+            foreach (var holon in holons)
+            {
+                var write = await SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError);
+                result.SavedCount += write.SavedCount;
+                if (write.IsError) { errors.Add(write.Message); if (!continueOnError) break; }
+                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+            }
+            result.Result = saved; result.IsError = errors.Count > 0; result.ErrorCount = errors.Count;
+            result.IsSaved = result.SavedCount > 0 && !result.IsError;
+            result.Message = string.Join("; ", errors);
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
@@ -330,8 +425,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
             try
             {
                 var h = await GetDocAsync<Holon>(IdxHolons, id.ToString());
-                if (h == null || h.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No holon for ID '{id}'."); return result; }
-                result.Result = h; result.IsError = false; result.Message = "MeilisearchOASIS: Holon loaded.";
+                if (h == null || h.IsDeleted) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No holon for ID '{id}'."); return result; }
+                result.Result = h; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "MeilisearchOASIS: Holon loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}"); }
             return result;
@@ -349,7 +444,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
             {
                 var all = await GetAllDocsAsync<Holon>(IdxHolons);
                 var list = new List<IHolon>(); foreach (var h in all) { if (h.IsDeleted) continue; if (holonType != HolonType.All && h.HolonType != holonType) continue; list.Add(h); }
-                result.Result = list; result.IsError = false; result.Message = $"MeilisearchOASIS: Loaded {list.Count} holon(s).";
+                result.Result = list; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"MeilisearchOASIS: Loaded {list.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}"); }
             return result;
@@ -365,7 +460,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
                 var all = await GetAllDocsAsync<Holon>(IdxHolons);
                 var list = new List<IHolon>();
                 foreach (var h in all) { if (h.IsDeleted || h.ParentHolonId != id) continue; if (holonType != HolonType.All && h.HolonType != holonType) continue; list.Add(h); }
-                result.Result = list; result.IsError = false; result.Message = $"MeilisearchOASIS: Loaded {list.Count} child holon(s).";
+                result.Result = list; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"MeilisearchOASIS: Loaded {list.Count} child holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}"); }
             return result;
@@ -381,9 +476,24 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete) { var load = await LoadHolonAsync(id); if (!load.IsError && load.Result != null) { var h = (Holon)load.Result; h.DeletedDate = DateTime.UtcNow; await SaveHolonAsync(h); } }
-                else { await DeleteDocAsync(IdxHolons, id.ToString()); }
-                result.Result = true; result.IsError = false; result.Message = $"MeilisearchOASIS: Holon '{id}' deleted.";
+                if (softDelete)
+                {
+                    var loaded = await LoadHolonAsync(id, loadChildren: false);
+                    if (loaded.IsError || loaded.Result is not Holon holon)
+                        throw new InvalidOperationException(loaded.Message, loaded.Exception);
+                    holon.DeletedDate = DateTime.UtcNow;
+                    var saved = await SaveHolonAsync(holon, saveChildren: false);
+                    if (saved.IsError || !saved.IsSaved || saved.SavedCount != 1)
+                        throw new InvalidOperationException(saved.Message, saved.Exception);
+                }
+                else
+                {
+                    await DeleteDocAsync(IdxHolons, id.ToString("D"));
+                }
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.Message = $"MeilisearchOASIS: Holon '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}"); }
             return result;
@@ -393,14 +503,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
         public async Task<OASISResult<bool>> DeleteHolonSoftAsync(string pk, bool softDelete = true) { if (Guid.TryParse(pk, out Guid id)) return await DeleteHolonSoftAsync(id, softDelete); var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, $"MeilisearchOASIS: Invalid GUID '{pk}'."); return r; }
         public OASISResult<bool> DeleteHolonSoft(string pk, bool softDelete = true) => DeleteHolonSoftAsync(pk, softDelete).Result;
 
-        // â”€â”€â”€ Search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─── Search ───────────────────────────────────────────────────────────────
 
 
 
         public string GetProviderVersion() => "1.0.0";
         public Task<string> GetProviderVersionAsync() => Task.FromResult("1.0.0");
 
-        // â”€â”€â”€ Remaining IOASISStorageProvider surface â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─── Remaining IOASISStorageProvider surface ─────────────────────────────
 
 
 
@@ -452,7 +562,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
             if (deleted.IsError)
                 OASISErrorHandling.HandleError(ref result, deleted.Message);
             else
+            {
                 result.Result = loaded.Result;
+                result.IsDeleted = deleted.IsDeleted;
+                result.DeletedCount = deleted.DeletedCount;
+            }
 
             return result;
         }
@@ -495,6 +609,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
             }
 
             result.Result = matches;
+            result.IsLoaded = true;
+            result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -513,8 +629,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
 
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
             {
-                result.Result = new List<IHolon>(all.Result);
-                return result;
+                return all;
             }
 
             var matches = new List<IHolon>();
@@ -537,6 +652,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
             }
 
             result.Result = matches;
+            result.IsLoaded = true;
+            result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -550,7 +667,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
             if (saved.IsError)
                 OASISErrorHandling.HandleError(ref result, saved.Message);
             else
-                result.Result = true;
+                result.Result = saved.IsSaved;
+            result.IsSaved = saved.IsSaved;
+            result.SavedCount = saved.SavedCount;
             return result;
         }
 
@@ -581,6 +700,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
             }
 
             result.Result = owned;
+            result.IsLoaded = true;
+            result.LoadedCount = owned.Count;
             return result;
         }
 
@@ -614,7 +735,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
             return await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
         }
 
-        // â”€â”€â”€ Search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─── Search ──────────────────────────────────────────────────────────────
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
@@ -630,7 +751,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
                 var matchedAvatars = new Dictionary<Guid, IAvatar>();
                 var matchedHolons = new Dictionary<Guid, IHolon>();
 
-                // â”€â”€ Avatars â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                // ── Avatars ──────────────────────────────────────────────────
                 if (wantAvatars)
                 {
                     var avatars = await LoadAllAvatarsAsync(version);
@@ -652,7 +773,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
                     }
                 }
 
-                // â”€â”€ Holons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                // ── Holons ───────────────────────────────────────────────────
                 if (wantHolons)
                 {
                     var holons = await LoadAllHolonsAsync(HolonType.All, loadChildren, recursive, maxChildDepth, 0, continueOnError, false, version);

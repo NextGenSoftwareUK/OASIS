@@ -155,7 +155,7 @@ public partial class CqlV1Web4Tests
             case 2: request.Scope = "Named"; request.Providers = new[] { "MongoDBOASIS", "MongoDBOASIS" }; break;
             case 3: request.Providers = new[] { "Neo4jOASIS" }; break;
             case 4: request.IdentityMode = "Freshest"; break;
-            case 5: request.MaximumDurationMilliseconds = 5001; break;
+            case 5: request.MaximumDurationMilliseconds = 30001; break;
             case 6: request.MaximumOutputBytes = int.MaxValue; break;
             case 7: request.Source.Provider = "MongoDBOASIS"; break;
             case 8: request.Source.Graph = new(); break;

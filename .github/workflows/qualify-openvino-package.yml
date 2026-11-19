@@ -2,7 +2,7 @@ name: Qualify OpenVINO bundle on exact WEB4 base
 
 on:
   push:
-    branches: [work/cosmic-cql-ton-public]
+    branches: [work/cosmic-cql-ton-public, work/cosmic-teaching-release-candidate]
     paths:
       - '.github/workflows/qualify-openvino-package.yml'
       - 'Scripts/TestHosts/Qualify-OpenVinoModelServer.py'

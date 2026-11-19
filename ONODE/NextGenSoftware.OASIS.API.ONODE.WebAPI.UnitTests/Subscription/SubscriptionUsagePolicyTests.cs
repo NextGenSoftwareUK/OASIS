@@ -6,10 +6,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription;
 public class SubscriptionUsagePolicyTests
 {
     [Theory]
-    [InlineData("free", 1000, 20, 50000, 1)]
-    [InlineData("bronze", 10000, 100, 250000, 10)]
-    [InlineData("silver", 100000, 500, 1000000, 50)]
-    [InlineData("gold", 1000000, 2000, 5000000, 250)]
+    [InlineData("free", 30000, 1000, 50000, 1)]
+    [InlineData("bronze", 300000, 10000, 250000, 10)]
+    [InlineData("silver", 3000000, 100000, 1000000, 50)]
+    [InlineData("gold", 30000000, 1000000, 5000000, 250)]
     [InlineData("enterprise", -1, 0, 0, 0)]
     public void EveryPlanHasOneAuthoritativePolicy(string plan, int monthly, int daily, long tokens, decimal budget)
     {
@@ -37,10 +37,10 @@ public class SubscriptionUsagePolicyTests
         SubscriptionService.KarmaMultiplier(karma).Should().Be(multiplier);
 
     [Theory]
-    [InlineData("free", 500, 30)]
-    [InlineData("bronze", 1000, 200)]
-    [InlineData("silver", 5000, 1500)]
-    [InlineData("gold", 100000, 20000)]
+    [InlineData("free", 500, 1500)]
+    [InlineData("bronze", 1000, 20000)]
+    [InlineData("silver", 5000, 300000)]
+    [InlineData("gold", 100000, 10000000)]
     public void KarmaOnlyScalesDailyCalls(string plan, int karma, int expectedDailyCalls)
     {
         var baseline = SubscriptionService.GetUsagePolicy(plan, 0);

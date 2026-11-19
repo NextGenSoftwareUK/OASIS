@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -15,7 +16,7 @@ using NextGenSoftware.OASIS.Common;
 namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Directions
 {
     /// <summary>One bounded OSRM route request. Public demo use is non-commercial and at most one request/second.</summary>
-    public class OSRMDirectionsProvider : IDirectionsAPIProvider
+    public class OSRMDirectionsProvider : IDirectionsAPIProvider, IOASISRoutingProvider
     {
         public const string DefaultBaseUrl = "https://router.project-osrm.org";
         private static readonly HttpClient SharedClient = new HttpClient(new SocketsHttpHandler {
@@ -38,6 +39,19 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Directions
             return result.IsError ? new List<Geolocation>() : new List<Geolocation>(result.Result.Geometry);
         }
 
+        public async Task<RoutingRoute> ComputeRouteAsync(RoutingCoordinate origin, RoutingCoordinate destination,
+            RoutingType travelMode, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var result = await GetRouteAsync(new Geolocation(origin.Latitude, origin.Longitude),
+                new Geolocation(destination.Latitude, destination.Longitude), travelMode, cancellationToken).ConfigureAwait(false);
+            if (result.IsError)
+                throw new InvalidOperationException(result.Message);
+
+            return new RoutingRoute(result.Result.DistanceMetres, result.Result.Geometry.Select(
+                point => new RoutingCoordinate(point.Latitude, point.Longitude)));
+        }
+
         public async Task<OASISResult<OSRMRouteObservation>> GetRouteAsync(Geolocation startPoint, Geolocation endPoint,
             RoutingType routingType = RoutingType.Walking, CancellationToken cancellationToken = default)
         {
@@ -53,6 +67,9 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Directions
                 if (!Uri.TryCreate(BaseUrl, UriKind.Absolute, out var origin) || origin.Scheme != "https" ||
                     origin.UserInfo.Length != 0 || origin.Query.Length != 0 || origin.Fragment.Length != 0 || origin.AbsolutePath != "/")
                     throw new InvalidDataException("An explicit HTTPS OSRM origin without credentials, path or query is required.");
+                if (routingType != RoutingType.Driving &&
+                    string.Equals(origin.GetLeftPart(UriPartial.Authority), DefaultBaseUrl, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidDataException("Configure an OSRM deployment with the requested travel profile. The public demo is driving-only.");
                 var profile = routingType == RoutingType.Driving ? "driving" : routingType == RoutingType.Cycling ? "cycling" : "foot";
                 var url = origin.GetLeftPart(UriPartial.Authority) + "/route/v1/" + profile + "/" +
                     Coordinates(startPoint) + ";" + Coordinates(endPoint) + "?overview=full&geometries=geojson&alternatives=false&steps=false&generate_hints=false";

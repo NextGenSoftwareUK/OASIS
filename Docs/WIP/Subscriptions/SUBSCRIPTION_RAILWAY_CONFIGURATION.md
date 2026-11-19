@@ -86,10 +86,10 @@ WEB4 reads the canonical paid plan from its Stripe-backed subscription record. A
 
 | Plan | Existing Stripe price | Requests/month | Calls/day | Tokens/day | USD usage budget/month |
 |---|---:|---:|---:|---:|---:|
-| Free | 0 | 1,000 | 20 | 50,000 | 1 |
-| Bronze | GBP 9 | 10,000 | 100 | 250,000 | 10 |
-| Silver | GBP 29 | 100,000 | 500 | 1,000,000 | 50 |
-| Gold | GBP 99 | 1,000,000 | 2,000 | 5,000,000 | 250 |
+| Free | 0 | 30,000 | 1,000 | 50,000 | 1 |
+| Bronze | GBP 9 | 300,000 | 10,000 | 250,000 | 10 |
+| Silver | GBP 29 | 3,000,000 | 100,000 | 1,000,000 | 50 |
+| Gold | GBP 99 | 30,000,000 | 1,000,000 | 5,000,000 | 250 |
 | Enterprise | Contact Sales | Unlimited | Unlimited | Unlimited | Unlimited |
 
 Daily limits apply in addition to the monthly limit, across the consuming APIs. Authoritative karma multiplies the daily call allowance: 500→1.5×, 1,000→2×, 5,000→3×, 20,000→5×, 100,000→10×. Resets use UTC calendar days/months. An AI reservation also reserves an input/output/fan-out bound before provider work; the final cost uses measured usage, not the reservation estimate.

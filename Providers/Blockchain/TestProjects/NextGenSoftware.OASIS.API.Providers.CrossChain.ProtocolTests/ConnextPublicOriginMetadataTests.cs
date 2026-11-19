@@ -26,7 +26,6 @@ public class ConnextPublicOriginMetadataTests
     private sealed class Scan : HttpMessageHandler
     {
         public string Fault { get; set; } = "";
-        public string ApiKey { get; init; }
         public int Calls { get; private set; }
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
@@ -34,12 +33,9 @@ public class ConnextPublicOriginMetadataTests
             Calls++;
             Assert.AreEqual(HttpMethod.Get, request.Method);
             var uri = request.RequestUri.AbsoluteUri;
-            var endpoint = ApiKey == null ? Endpoint : "https://api.blockscout.com/1/api/v2/transactions/";
-            Assert.IsTrue(uri.StartsWith(endpoint, StringComparison.Ordinal));
-            Assert.AreEqual(ApiKey, request.Headers.Authorization?.Parameter);
-            Assert.AreEqual(ApiKey == null ? null : "Bearer", request.Headers.Authorization?.Scheme);
+            Assert.IsTrue(uri.StartsWith(Endpoint, StringComparison.Ordinal));
             Assert.IsTrue(uri.EndsWith("/logs", StringComparison.Ordinal));
-            var tx = uri[endpoint.Length..^5];
+            var tx = uri[Endpoint.Length..^5];
             var identity = Events.Single(value => value.TransactionHash == tx);
             var key = identity.TransferId;
             var row = new
@@ -98,19 +94,6 @@ public class ConnextPublicOriginMetadataTests
         var rejectedDelete = await source.DeleteHolonAsync(Guid.NewGuid());
         Assert.AreEqual("CQL_READ_ONLY_SOURCE", rejectedDelete.ErrorCode);
     }
-    [TestMethod]
-    public async Task UniversalReaderAuthenticatesExactLogRequestAndRejectsMissingCredentials()
-    {
-        const string apiKey = "fixture_key";
-        using var explorer = new Scan { ApiKey = apiKey };
-        using var client = new HttpClient(explorer);
-        var expected = Events[0];
-        Assert.AreEqual(expected, await new ConnextOriginEventClient(client, apiKey).ReadAsync(expected, default));
-        await Assert.ThrowsExceptionAsync<InvalidOperationException>(() =>
-            new ConnextOriginEventClient(client, "").ReadAsync(expected, default));
-        Assert.AreEqual(1, explorer.Calls);
-    }
-
     [TestMethod]
     public async Task QualifiedOriginCatalogueExecutesNativeCql()
     {

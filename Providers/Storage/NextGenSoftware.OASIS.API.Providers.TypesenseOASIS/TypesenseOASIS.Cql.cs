@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,62 +12,20 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS;
 
-public partial class TypesenseOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
+public partial class TypesenseOASIS : ICosmicQueryStorageProvider
 {
     public ProviderType QueryProviderType => Core.Enums.ProviderType.TypesenseOASIS;
-    public CosmicQueryCapabilities QueryCapabilities => BoundedIdentityCqlCompiler.Capabilities;
-    private sealed class QueryPayloadLimitException : IOException { }
-
-    private static async Task<byte[]> ReadQueryBodyAsync(HttpResponseMessage response, int maximumBytes, CancellationToken token)
-    {
-        if (response.Content.Headers.ContentLength is long size && size > maximumBytes)
-            throw new QueryPayloadLimitException();
-        using var input = await response.Content.ReadAsStreamAsync(token);
-        using var output = new MemoryStream();
-        var buffer = new byte[8192];
-        int read;
-        while ((read = await input.ReadAsync(buffer, token)) != 0)
-        {
-            if (output.Length + read > maximumBytes) throw new QueryPayloadLimitException();
-            output.Write(buffer, 0, read);
-        }
-        return output.ToArray();
-    }
-
-    public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
-    {
-        IsProviderActivated = false;
-        try
-        {
-            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            deadline.CancelAfter(TimeSpan.FromSeconds(15));
-            using var request = new HttpRequestMessage(HttpMethod.Get, $"{_host}/collections/{ColHolons}");
-            using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
-            response.EnsureSuccessStatusCode();
-            using var document = JsonDocument.Parse(await ReadQueryBodyAsync(response, 64 * 1024, deadline.Token));
-            if (document.RootElement.GetProperty("name").GetString() != ColHolons)
-                throw new InvalidDataException("Existing Typesense collection identity differs.");
-            cancellationToken.ThrowIfCancellationRequested();
-            IsProviderActivated = true;
-            return new(true);
-        }
-        catch (Exception error)
-        {
-            return new() { IsError = true, ErrorCount = 1,
-                ErrorCode = error is OperationCanceledException ? "CQL_QUERY_CANCELLED" : "CQL_QUERY_SOURCE_UNAVAILABLE",
-                Message = "Typesense query activation did not verify the existing collection.", Exception = error };
-        }
-    }
+    public CosmicQueryCapabilities QueryCapabilities => TypesenseCqlCompiler.Capabilities;
 
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
-        CosmicQueryPlan<T> plan, int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
+        CosmicQueryPlan<T> plan, int maximumResults = 100,
+        CancellationToken cancellationToken = default) where T : IHolon
     {
-        OASISResult<IReadOnlyList<IHolon>> Error(string code, string message, Exception? error = null)
-            => new() { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message, Exception = error };
+        OASISResult<IReadOnlyList<IHolon>> Error(string code, string message, Exception? cause = null)
+            => new() { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message, Exception = cause };
         try
         {
             if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != QueryProviderType)
@@ -76,57 +34,61 @@ public partial class TypesenseOASIS : ICosmicQueryStorageProvider, ICosmicReadOn
                 return Error("CQL_QUERY_LIMIT", "Result budget must be between 1 and 10,000.");
             var admission = QueryCapabilities.AdmitPlan(plan);
             if (admission.IsError) return Error(admission.ErrorCode, admission.Message);
-            var selected = BoundedIdentityCqlCompiler.Compile(plan.Query, QueryProviderType, QueryProviderType);
+            var selected = TypesenseCqlCompiler.Compile(plan.Query, QueryProviderType);
             if (selected.IsError) return Error(selected.ErrorCode, selected.Message);
-            if (IsVersionControlEnabled) return Error("CQL_CAPABILITY_UNSUPPORTED", "Typesense historical CQL reads are not implemented.");
+            if (IsVersionControlEnabled) return Error("CQL_CAPABILITY_UNSUPPORTED", "Typesense history is not implemented.");
             cancellationToken.ThrowIfCancellationRequested();
-            if (!IsProviderActivated) return Error("CQL_PROVIDER_INACTIVE", "Activate the existing Typesense query collection first.");
-            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            deadline.CancelAfter(TimeSpan.FromSeconds(15));
-            var rows = new List<IHolon>();
-            long bytes = 0;
-            foreach (var id in selected.Result.Where(id => plan.Query.ReadAccess.CanRead(id, false, Guid.Empty)))
+            if (!IsProviderActivated)
+                return Error("CQL_PROVIDER_INACTIVE", "Activate the configured Typesense indices before querying.");
+
+            var rows = new Dictionary<Guid, IHolon>();
+            if (selected.Result.Count != 0)
             {
-                using var request = new HttpRequestMessage(HttpMethod.Get, $"{_host}/collections/{ColHolons}/documents/{id:D}");
+                // Native retrieval over admitted keys, without full-text ranking, filtering settings or collection scans.
+                using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                deadline.CancelAfter(TimeSpan.FromSeconds(15));
+                var filter = "id:=[" + string.Join(",", selected.Result.Select(id => "`" + id.ToString("D") + "`")) + "]";
+                var path = $"{_host}/collections/oasis_holons/documents/search?q=*&filter_by={Uri.EscapeDataString(filter)}" +
+                    $"&per_page={selected.Result.Count + 1}&page=1&exhaustive_search=true&enable_analytics=false&search_cutoff_ms=15000";
+                using var request = new HttpRequestMessage(HttpMethod.Get, path);
                 using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
-                if (response.StatusCode == HttpStatusCode.NotFound) continue;
                 response.EnsureSuccessStatusCode();
-                var raw = await ReadQueryBodyAsync(response, 1024 * 1024, deadline.Token);
-                bytes += raw.Length;
-                if (bytes > 4 * 1024 * 1024) throw new QueryPayloadLimitException();
-                using var document = JsonDocument.Parse(raw);
-                var names = new HashSet<string>(StringComparer.Ordinal);
-                foreach (var property in document.RootElement.EnumerateObject())
-                    if (!names.Add(property.Name)) throw new InvalidDataException("Duplicate native document property.");
-                if (document.RootElement.GetProperty("id").GetString() != id.ToString("D"))
-                    throw new InvalidDataException("Native Typesense identity differs from selected key.");
-                // Root queries do not materialize the interface-typed embedded
-                // graph. Project it out before the canonical deserializer runs.
-                using var projected = new MemoryStream();
-                using (var writer = new Utf8JsonWriter(projected))
+                using var document = await ReadNativeResponseAsync(response, 4 * 1024 * 1024, deadline.Token);
+                var root = document.RootElement;
+                var records = root.GetProperty("hits");
+                if (root.GetProperty("search_cutoff").GetBoolean() || root.GetProperty("page").GetInt32() != 1 ||
+                    records.ValueKind != JsonValueKind.Array || records.GetArrayLength() > selected.Result.Count ||
+                    root.GetProperty("found").GetInt32() != records.GetArrayLength())
+                    throw new InvalidDataException("Native search did not return the complete admitted key set.");
+                var seen = new HashSet<Guid>();
+                foreach (var hit in records.EnumerateArray())
                 {
-                    writer.WriteStartObject();
-                    foreach (var property in document.RootElement.EnumerateObject())
-                        if (!property.NameEquals("children")) property.WriteTo(writer);
-                    writer.WriteEndObject();
+                    var record = hit.GetProperty("document");
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var key = record.GetProperty("id").GetString();
+                    if (!Guid.TryParseExact(key, "D", out var id) || key != id.ToString("D") ||
+                        !selected.Result.Contains(id) || !seen.Add(id))
+                        throw new InvalidDataException("Native identity differs from admitted catalogue.");
+                    var row = JsonSerializer.Deserialize<Holon>(record.GetRawText(), _jsonOpts);
+                    if (row == null || row.Id != id || !plan.Query.ReadAccess.CanRead(row))
+                        throw new InvalidDataException("Native holon differs from read authority.");
+                    if (row.IsDeleted) continue;
+                    row.Children = Array.Empty<IHolon>();
+                    rows.Add(id, row);
                 }
-                var row = JsonSerializer.Deserialize<Holon>(projected.ToArray(), _jsonOpts);
-                if (row == null || row.Id != id || !plan.Query.ReadAccess.CanRead(row))
-                    throw new InvalidDataException("Native Typesense holon differs from read authority.");
-                if (row.IsDeleted) continue;
-                row.Children = Array.Empty<IHolon>();
-                rows.Add(row);
             }
-            var page = rows.Skip(plan.Query.Offset).Take(plan.Query.Limit ?? rows.Count).ToArray();
-            if (page.Length > maximumResults) return Error("CQL_QUERY_LIMIT", "Complete Typesense page exceeds result budget.");
+            var page = selected.Result.Where(rows.ContainsKey).Select(id => rows[id])
+                .Skip(plan.Query.Offset).Take(plan.Query.Limit ?? rows.Count).ToArray();
+            if (page.Length > maximumResults)
+                return Error("CQL_QUERY_LIMIT", "Complete page exceeds result budget.");
             cancellationToken.ThrowIfCancellationRequested();
             return new(Array.AsReadOnly<IHolon>(page)) { IsLoaded = true, LoadedCount = page.Length };
         }
-        catch (OperationCanceledException error) when (cancellationToken.IsCancellationRequested)
-        { return Error("CQL_QUERY_CANCELLED", "Typesense query cancelled; no partial rows published.", error); }
-        catch (QueryPayloadLimitException error)
-        { return Error("CQL_QUERY_LIMIT", "Typesense native payload exceeds its byte budget.", error); }
-        catch (Exception error)
-        { return Error("CQL_QUERY_FAILED", "Native Typesense query failed; no partial rows published.", error); }
+        catch (OperationCanceledException cause) when (cancellationToken.IsCancellationRequested)
+        { return Error("CQL_QUERY_CANCELLED", "Typesense query cancelled; no partial rows published.", cause); }
+        catch (NativePayloadLimitException cause)
+        { return Error("CQL_QUERY_LIMIT", "Complete native response exceeds 4 MiB.", cause); }
+        catch (Exception cause)
+        { return Error("CQL_QUERY_FAILED", "Native Typesense query failed; no partial rows published.", cause); }
     }
 }

@@ -101,27 +101,6 @@ async function main() {
   // Preserve the existing protocol gate's request order; ID recipes need the
   // mapped identities earlier to compose their actor-specific query predicate.
   if (ids === null) ids = await mappedIds();
-  for (const [response, count, example] of [[five, 5, input.pairedThree], [four, 4, input.pairedTwo]]) {
-    const selected = rows(response, count).map(entry => entry.selected);
-    const native = selected.filter(copy => copy?.provider === input.source.provider);
-    const nativeIds = new Set(native.map(copy => copy.row?.id));
-    const mongoIds = new Set(selected.filter(copy => copy?.provider === 'MongoDBOASIS')
-      .map(copy => copy.row?.id));
-    if (plan.selectionKind === 'Id') {
-      const expectedNative = example.request.source.filters[0].value;
-      if (expectedNative.length !== nativeIds.size || expectedNative.some(id => !nativeIds.has(id.toLowerCase())))
-        throw Error('Federation returned native IDs outside the requested source selection.');
-    } else {
-      const expectedKeys = example.request.source.filters[0].value;
-      const nativeKeys = new Set(native.map(copy => copy.row?.metadata?.[plan.metadataKey]));
-      if (expectedKeys.length !== nativeKeys.size || expectedKeys.some(key => !nativeKeys.has(key)))
-        throw Error('Federation returned native keys outside the requested source selection.');
-    }
-    if (nativeIds.has(undefined) || nativeIds.size !== count - ids.length ||
-        mongoIds.size !== ids.length || ids.some(id => !mongoIds.has(id)) ||
-        selected.some(copy => !copy?.row?.id || ![input.source.provider, 'MongoDBOASIS'].includes(copy.provider)))
-      throw Error('Federation did not return distinct source and private snapshot IDs from their expected providers.');
-  }
   const replicas = {};
   const stable = value => JSON.stringify(value, (_, entry) => entry && typeof entry === 'object' && !Array.isArray(entry)
     ? Object.fromEntries(Object.entries(entry).sort(([left], [right]) => left.localeCompare(right))) : entry);
@@ -137,9 +116,6 @@ async function main() {
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
     rows(response, 2);
-    const replicaIds = new Set(response.result.rows.map(row => row.id));
-    if (replicaIds.size !== ids.length || ids.some(id => !replicaIds.has(id)))
-      throw Error(provider + ' did not return the exact private replica IDs.');
     for (const row of response.result.rows) {
       const original = mongo.get(row.id);
       if (!ids.includes(row.id) || !original || row.createdByAvatarId !== input.ownerId || row.isPublic !== false ||

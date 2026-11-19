@@ -12,12 +12,14 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
@@ -42,7 +44,6 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
         private readonly string _adminEmail;
         private readonly string _adminPassword;
         private string? _adminToken;
-        private readonly string? _queryToken;
 
         private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
         {
@@ -66,19 +67,10 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
-        protected PocketBaseOASIS(string baseUrl, HttpClient httpClient, string queryToken)
-            : this(baseUrl, string.Empty, string.Empty, httpClient)
-        {
-            ArgumentException.ThrowIfNullOrWhiteSpace(queryToken);
-            _queryToken = queryToken;
-        }
-
         // ─── Auth ─────────────────────────────────────────────────────────────────
 
         private async Task EnsureAuthAsync()
         {
-            if (_queryToken != null)
-                throw new InvalidOperationException("The PocketBase query profile cannot authenticate as an administrator.");
             if (_adminToken != null) return;
             var payload = new { identity = _adminEmail, password = _adminPassword };
             using var response = await _http.PostAsync($"{_baseUrl}/api/collections/_superusers/auth-with-password",
@@ -143,7 +135,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             using var response = await _http.GetAsync(url);
             response.EnsureSuccessStatusCode();
             var page = ReadPage(await response.Content.ReadAsStringAsync(), 1);
-            if (page.TotalItems > 1) throw new InvalidDataException("PocketBase singular lookup is ambiguous.");
+            if (page.TotalItems > 1) throw new StorageIdentityAmbiguousException();
             return page.Items!.SingleOrDefault();
         }
 
@@ -217,12 +209,21 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
-                if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.PocketBaseOASIS] = avatar.Id.ToString();
-                var row = new { oasis_id = avatar.Id.ToString(), username = avatar.Username ?? "", email = avatar.Email ?? "", is_deleted = avatar.IsDeleted, data_json = Serialize(avatar) };
-                await UpsertAsync("oasis_avatars", avatar.Id.ToString(), row);
-                result.Result = avatar; result.IsError = false; result.Message = $"PocketBaseOASIS: Avatar '{avatar.Username}' saved.";
+                ArgumentNullException.ThrowIfNull(avatar);
+                var id = avatar.Id == Guid.Empty ? Guid.NewGuid() : avatar.Id;
+                var canonical = JsonSerializer.SerializeToNode(avatar, avatar.GetType(), _jsonOpts)!.AsObject();
+                canonical["id"] = id.ToString("D");
+                var keys = canonical["providerUniqueStorageKey"]?.AsObject() ?? new JsonObject();
+                keys["PocketBaseOASIS"] = id.ToString("D");
+                canonical["providerUniqueStorageKey"] = keys;
+                var row = new { oasis_id = id.ToString("D"), username = avatar.Username ?? "", email = avatar.Email ?? "",
+                    is_deleted = avatar.IsDeleted, data_json = canonical.ToJsonString(_jsonOpts) };
+                await UpsertAsync("oasis_avatars", row.oasis_id, row);
+
+                avatar.Id = id;
+                avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.PocketBaseOASIS] = row.oasis_id;
+                result.Result = avatar; result.IsSaved = true; result.SavedCount = 1; result.Message = $"PocketBaseOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error saving avatar: {ex.Message}"); }
             return result;
@@ -241,10 +242,10 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             {
                 var rec = await GetFirstAsync("oasis_avatars", $"oasis_id='{id}'&&is_deleted=false");
                 var avatar = ParseAvatar(rec);
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar found for ID '{id}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"PocketBaseOASIS: Avatar loaded for ID '{id}'.";
+                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar found for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: Avatar loaded for ID '{id}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar '{id}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar '{id}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
@@ -255,12 +256,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var rec = await GetFirstAsync("oasis_avatars", $"username='{username}'&&is_deleted=false");
+                var rec = await GetFirstAsync("oasis_avatars", $"username={Newtonsoft.Json.JsonConvert.ToString(username)}&&is_deleted=false");
                 var avatar = ParseAvatar(rec);
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar found for username '{username}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"PocketBaseOASIS: Avatar loaded for username '{username}'.";
+                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar found for username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: Avatar loaded for username '{username}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar by username '{username}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar by username '{username}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
@@ -271,12 +272,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var rec = await GetFirstAsync("oasis_avatars", $"email='{avatarEmail}'&&is_deleted=false");
+                var rec = await GetFirstAsync("oasis_avatars", $"email={Newtonsoft.Json.JsonConvert.ToString(avatarEmail)}&&is_deleted=false");
                 var avatar = ParseAvatar(rec);
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar found for email '{avatarEmail}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"PocketBaseOASIS: Avatar loaded for email '{avatarEmail}'.";
+                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar found for email '{avatarEmail}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: Avatar loaded for email '{avatarEmail}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar by email '{avatarEmail}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar by email '{avatarEmail}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
@@ -297,7 +298,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             {
                 var recs = await GetAllAsync("oasis_avatars", "is_deleted=false");
                 var avatars = recs.Select(r => r.DataJson != null ? Deserialize<Avatar>(r.DataJson) : null).Where(a => a != null).Cast<IAvatar>().ToList();
-                result.Result = avatars; result.IsError = false; result.Message = $"PocketBaseOASIS: Loaded {avatars.Count} avatar(s).";
+                result.Result = avatars; result.IsLoaded = true; result.LoadedCount = avatars.Count; result.Message = $"PocketBaseOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading all avatars: {ex.Message}"); }
             return result;
@@ -315,13 +316,48 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
                 await EnsureAuthAsync();
                 var rec = await GetFirstAsync("oasis_avatars", $"oasis_id='{id}'");
                 if (rec == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Avatar '{id}' not found."); return result; }
-                HttpResponseMessage response;
+                if (rec.OasisId != id.ToString("D"))
+                    throw new InvalidDataException("PocketBase lookup returned another logical identity.");
+
+                var path = $"{_baseUrl}/api/collections/oasis_avatars/records/{rec.Id}";
+                var detail = softDelete ? null : await GetFirstAsync("oasis_avatar_details", $"oasis_id='{id}'");
+                if (detail != null)
+                {
+                    if (detail.OasisId != rec.OasisId)
+                        throw new InvalidDataException("PocketBase returned an avatar detail for another identity.");
+                    using var batch = await _http.PostAsync($"{_baseUrl}/api/batch", JsonContent(new
+                    {
+                        requests = new[]
+                        {
+                            new { method = "DELETE", url = $"/api/collections/oasis_avatars/records/{Uri.EscapeDataString(rec.Id)}" },
+                            new { method = "DELETE", url = $"/api/collections/oasis_avatar_details/records/{Uri.EscapeDataString(detail.Id)}" }
+                        }
+                    }));
+                    batch.EnsureSuccessStatusCode();
+                    using var receipt = JsonDocument.Parse(await batch.Content.ReadAsStringAsync());
+                    if (receipt.RootElement.ValueKind != JsonValueKind.Array || receipt.RootElement.GetArrayLength() != 2 ||
+                        receipt.RootElement.EnumerateArray().Any(item => !item.TryGetProperty("status", out var status) ||
+                            !status.TryGetInt32(out var code) || code != 204))
+                        throw new InvalidDataException("PocketBase did not acknowledge both record deletes.");
+                    return new OASISResult<bool> { Result = true, IsDeleted = true, DeletedCount = 1 };
+                }
+                using var response = softDelete
+                    ? await _http.PatchAsync(path, JsonContent(new { is_deleted = true }))
+                    : await _http.DeleteAsync(path);
+                response.EnsureSuccessStatusCode();
                 if (softDelete)
-                    response = await _http.PatchAsync($"{_baseUrl}/api/collections/oasis_avatars/records/{rec.Id}", JsonContent(new { is_deleted = true }));
-                else
-                    response = await _http.DeleteAsync($"{_baseUrl}/api/collections/oasis_avatars/records/{rec.Id}");
-                result.Result = response.IsSuccessStatusCode; result.IsError = !result.Result;
-                result.Message = result.Result ? $"PocketBaseOASIS: Avatar '{id}' {(softDelete ? "soft" : "hard")}-deleted." : "PocketBaseOASIS: Delete failed.";
+                {
+                    var deleted = Deserialize<PbRecord>(await response.Content.ReadAsStringAsync());
+                    if (deleted == null || deleted.Id != rec.Id || deleted.OasisId != rec.OasisId || !deleted.IsDeleted)
+                        throw new InvalidDataException("PocketBase did not acknowledge the requested avatar soft deletion.");
+                }
+                else if (response.StatusCode != System.Net.HttpStatusCode.NoContent)
+                    throw new InvalidDataException("PocketBase did not acknowledge the requested avatar hard deletion.");
+
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.Message = $"PocketBaseOASIS: Avatar '{id}' {(softDelete ? "soft" : "hard")}-deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error deleting avatar '{id}': {ex.Message}"); }
             return result;
@@ -332,7 +368,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
         {
             var a = await LoadAvatarByUsernameAsync(username);
-            if (a.IsError || a.Result == null) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, $"PocketBaseOASIS: Avatar '{username}' not found."); return r; }
+            if (a.IsError || a.Result == null) return new OASISResult<bool> { IsError = true, ErrorCode = a.ErrorCode, ErrorCount = a.ErrorCount, Exception = a.Exception, Message = a.Message };
             return await DeleteAvatarAsync(a.Result.Id, softDelete);
         }
 
@@ -341,7 +377,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
         {
             var a = await LoadAvatarByEmailAsync(email);
-            if (a.IsError || a.Result == null) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, $"PocketBaseOASIS: Avatar with email '{email}' not found."); return r; }
+            if (a.IsError || a.Result == null) return new OASISResult<bool> { IsError = true, ErrorCode = a.ErrorCode, ErrorCount = a.ErrorCount, Exception = a.Exception, Message = a.Message };
             return await DeleteAvatarAsync(a.Result.Id, softDelete);
         }
 
@@ -359,10 +395,13 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                if (avatarDetail.Id == Guid.Empty) avatarDetail.Id = Guid.NewGuid();
-                var row = new { oasis_id = avatarDetail.Id.ToString(), username = avatarDetail.Username ?? "", email = avatarDetail.Email ?? "", data_json = Serialize(avatarDetail) };
-                await UpsertAsync("oasis_avatar_details", avatarDetail.Id.ToString(), row);
-                result.Result = avatarDetail; result.IsError = false; result.Message = "PocketBaseOASIS: AvatarDetail saved.";
+                var id = avatarDetail.Id == Guid.Empty ? Guid.NewGuid() : avatarDetail.Id;
+                var payload = StoredRecordJson.Project<AvatarDetail>(avatarDetail);
+                payload.Id = id;
+                var row = new { oasis_id = id.ToString("D"), username = avatarDetail.Username ?? "", email = avatarDetail.Email ?? "", data_json = StoredRecordJson.Serialize(payload) };
+                await UpsertAsync("oasis_avatar_details", row.oasis_id, row);
+                avatarDetail.Id = id;
+                result.Result = avatarDetail; result.IsSaved = true; result.SavedCount = 1; result.Message = "PocketBaseOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error saving avatar detail: {ex.Message}"); }
             return result;
@@ -370,16 +409,25 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) => SaveAvatarDetailAsync(avatarDetail).Result;
 
+        private static AvatarDetail ParseAvatarDetail(PbRecord record)
+        {
+            var detail = StoredRecordJson.Deserialize<AvatarDetail>(record.DataJson);
+            if (detail == null || !Guid.TryParse(record.OasisId, out var id) || detail.Id != id)
+                throw new InvalidDataException("PocketBase returned an invalid avatar detail payload or record identity.");
+
+            return detail;
+        }
+
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
             try
             {
                 var rec = await GetFirstAsync("oasis_avatar_details", $"oasis_id='{id}'");
-                if (rec?.DataJson == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar detail found for ID '{id}'."); return result; }
-                result.Result = Deserialize<AvatarDetail>(rec.DataJson); result.IsError = false; result.Message = $"PocketBaseOASIS: AvatarDetail loaded for ID '{id}'.";
+                if (rec == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar detail found for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = ParseAvatarDetail(rec); result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: AvatarDetail loaded for ID '{id}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar detail '{id}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar detail '{id}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
@@ -390,11 +438,11 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var rec = await GetFirstAsync("oasis_avatar_details", $"username='{username}'");
-                if (rec?.DataJson == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar detail found for username '{username}'."); return result; }
-                result.Result = Deserialize<AvatarDetail>(rec.DataJson); result.IsError = false; result.Message = $"PocketBaseOASIS: AvatarDetail loaded for username '{username}'.";
+                var rec = await GetFirstAsync("oasis_avatar_details", $"username={Newtonsoft.Json.JsonConvert.ToString(username)}");
+                if (rec == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar detail found for username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = ParseAvatarDetail(rec); result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: AvatarDetail loaded for username '{username}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar detail by username '{username}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar detail by username '{username}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
@@ -405,11 +453,11 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var rec = await GetFirstAsync("oasis_avatar_details", $"email='{email}'");
-                if (rec?.DataJson == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar detail found for email '{email}'."); return result; }
-                result.Result = Deserialize<AvatarDetail>(rec.DataJson); result.IsError = false; result.Message = $"PocketBaseOASIS: AvatarDetail loaded for email '{email}'.";
+                var rec = await GetFirstAsync("oasis_avatar_details", $"email={Newtonsoft.Json.JsonConvert.ToString(email)}");
+                if (rec == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar detail found for email '{email}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = ParseAvatarDetail(rec); result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: AvatarDetail loaded for email '{email}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar detail by email '{email}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar detail by email '{email}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
@@ -421,8 +469,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             try
             {
                 var recs = await GetAllAsync("oasis_avatar_details");
-                var details = recs.Where(r => r.DataJson != null).Select(r => Deserialize<AvatarDetail>(r.DataJson!)).Where(d => d != null).Cast<IAvatarDetail>().ToList();
-                result.Result = details; result.IsError = false; result.Message = $"PocketBaseOASIS: Loaded {details.Count} avatar detail(s).";
+                var details = recs.Select(ParseAvatarDetail).Cast<IAvatarDetail>().ToList();
+                result.Result = details; result.IsLoaded = true; result.LoadedCount = details.Count; result.Message = $"PocketBaseOASIS: Loaded {details.Count} avatar detail(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading all avatar details: {ex.Message}"); }
             return result;
@@ -432,28 +480,38 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
 
         // ─── Holon saving ─────────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, 0);
+
+        private async Task<OASISResult<IHolon>> SaveHolonGraphAsync(IHolon holon, bool saveChildren, bool recursive, int maxChildDepth, int currentDepth)
         {
             var result = new OASISResult<IHolon>();
             try
             {
-                ArgumentNullException.ThrowIfNull(holon);
-                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
-                // Serialize a detached projection using the same canonical codec.
-                // Failed/uncertain writes cannot publish a new ID or provider key.
-                var canonical = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
-                canonical["id"] = id.ToString("D");
-                var keys = canonical["providerUniqueStorageKey"]?.AsObject() ?? new JsonObject();
-                keys["PocketBaseOASIS"] = id.ToString("D");
-                canonical["providerUniqueStorageKey"] = keys;
-                var row = new { oasis_id = id.ToString("D"), parent_holon_id = holon.ParentHolonId == Guid.Empty ? "" : holon.ParentHolonId.ToString(),
-                    holon_type = (int)holon.HolonType, is_deleted = holon.IsDeleted, data_json = canonical.ToJsonString(_jsonOpts) };
-                await UpsertAsync("oasis_holons", id.ToString("D"), row);
-                holon.Id = id;
-                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.PocketBaseOASIS] = id.ToString("D");
-                result.Result = holon; result.IsSaved = true; result.SavedCount = 1;
-                result.Message = $"PocketBaseOASIS: Holon '{holon.Name}' saved.";
+                var plan = HolonGraphWritePlan.CreateForSave(new[] { holon }, saveChildren, recursive, maxChildDepth, currentDepth);
+                foreach (var node in plan.Nodes)
+                {
+                    var snapshot = node.Snapshot;
+                    var id = snapshot.Id.ToString("D");
+                    snapshot.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                    snapshot.ProviderUniqueStorageKey[Core.Enums.ProviderType.PocketBaseOASIS] = id;
+                    var row = new
+                    {
+                        oasis_id = id,
+                        parent_holon_id = snapshot.ParentHolonId == Guid.Empty ? "" : snapshot.ParentHolonId.ToString("D"),
+                        holon_type = (int)snapshot.HolonType,
+                        is_deleted = snapshot.IsDeleted,
+                        data_json = Serialize(snapshot)
+                    };
+                    await UpsertAsync("oasis_holons", id, row).ConfigureAwait(false);
+                    node.Source.Id = snapshot.Id;
+                    node.Source.ParentHolonId = snapshot.ParentHolonId;
+                    node.Source.ProviderUniqueStorageKey = snapshot.ProviderUniqueStorageKey;
+                    result.Result = holon;
+                    result.IsSaved = true;
+                    result.SavedCount++;
+                }
+                result.Message = $"PocketBaseOASIS: {result.SavedCount} holon(s) saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error saving holon '{holon?.Name}': {ex.Message}"); }
             return result;
@@ -465,9 +523,29 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>(); var errors = new List<string>();
-            foreach (var holon in holons) { var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (r.IsError) errors.Add(r.Message ?? ""); else if (r.Result != null) saved.Add(r.Result); }
-            result.Result = saved; result.IsError = errors.Count > 0; result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"PocketBaseOASIS: {saved.Count} holon(s) saved.";
+            var saved = new List<IHolon>();
+            var errors = new List<string>();
+            foreach (var holon in holons)
+            {
+                var write = await SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth).ConfigureAwait(false);
+                if (write.IsSaved && write.Result != null)
+                {
+                    saved.Add(write.Result);
+                    result.SavedCount += write.SavedCount;
+                }
+                if (write.IsError)
+                {
+                    errors.Add(write.Message);
+                    result.Exception ??= write.Exception;
+                    if (!continueOnError) break;
+                }
+            }
+
+            result.Result = saved;
+            result.IsSaved = saved.Count > 0;
+            result.IsError = errors.Count > 0;
+            result.ErrorCount = errors.Count;
+            result.Message = result.IsError ? string.Join("; ", errors) : $"PocketBaseOASIS: {result.SavedCount} holon(s) saved.";
             return result;
         }
 
@@ -493,8 +571,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             {
                 var rec = await GetFirstAsync("oasis_holons", $"oasis_id='{id}'&&is_deleted=false");
                 var holon = ParseHolon(rec);
-                if (holon == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No holon found for ID '{id}'."); return result; }
-                result.Result = holon; result.IsError = false; result.Message = $"PocketBaseOASIS: Holon loaded for ID '{id}'.";
+                if (holon == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No holon found for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = holon; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: Holon loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading holon '{id}': {ex.Message}"); }
             return result;
@@ -520,7 +598,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
                 string? filter = type == HolonType.All ? "is_deleted=false" : $"is_deleted=false&&holon_type={((int)type)}";
                 var recs = await GetAllAsync("oasis_holons", filter);
                 var holons = recs.Select(ParseHolon).Where(h => h != null).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"PocketBaseOASIS: Loaded {holons.Count} holon(s).";
+                result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"PocketBaseOASIS: Loaded {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading all holons: {ex.Message}"); }
             return result;
@@ -537,7 +615,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
                 string filter = type == HolonType.All ? $"parent_holon_id='{id}'&&is_deleted=false" : $"parent_holon_id='{id}'&&is_deleted=false&&holon_type={(int)type}";
                 var recs = await GetAllAsync("oasis_holons", filter);
                 var holons = recs.Select(ParseHolon).Where(h => h != null).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"PocketBaseOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
+                result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"PocketBaseOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading holons for parent '{id}': {ex.Message}"); }
             return result;
@@ -563,11 +641,22 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             try
             {
                 await EnsureAuthAsync();
-                var rec = await GetFirstAsync("oasis_holons", $"oasis_id='{id}'");
+                var rec = await GetFirstAsync("oasis_holons", $"oasis_id='{id}' && is_deleted=false");
                 if (rec == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No holon found with ID '{id}'."); return result; }
                 var loaded = ParseHolon(rec);
-                await _http.PatchAsync($"{_baseUrl}/api/collections/oasis_holons/records/{rec.Id}", JsonContent(new { is_deleted = true }));
-                result.Result = loaded; result.IsError = false; result.Message = $"PocketBaseOASIS: Holon '{id}' soft-deleted.";
+                using var response = await _http.PatchAsync(
+                    $"{_baseUrl}/api/collections/oasis_holons/records/{rec.Id}",
+                    JsonContent(new { is_deleted = true }));
+                response.EnsureSuccessStatusCode();
+                var deleted = Deserialize<PbRecord>(await response.Content.ReadAsStringAsync());
+                if (deleted == null || deleted.Id != rec.Id || deleted.OasisId != rec.OasisId || !deleted.IsDeleted)
+                    throw new InvalidDataException("PocketBase did not acknowledge the requested holon deletion.");
+
+                loaded.DeletedDate = DateTime.UtcNow;
+                result.Result = loaded;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.Message = $"PocketBaseOASIS: Holon '{id}' soft-deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
@@ -591,7 +680,17 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             try
             {
                 string? query = searchParams.SearchGroups?.OfType<SearchTextGroup>().FirstOrDefault()?.SearchQuery?.ToLower();
-                var all = await LoadAllHolonsAsync();
+                var all = await LoadAllHolonsAsync(loadChildren: loadChildren, recursive: recursive,
+                    maxChildDepth: maxChildDepth, continueOnError: continueOnError, version: version);
+                if (all.IsError)
+                    return new OASISResult<ISearchResults>
+                    {
+                        IsError = true,
+                        ErrorCode = all.ErrorCode,
+                        ErrorCount = all.ErrorCount,
+                        Exception = all.Exception,
+                        Message = all.Message
+                    };
                 var holons = all.Result?.ToList() ?? new List<IHolon>();
                 if (!string.IsNullOrEmpty(query)) holons = holons.Where(h => h.Name?.ToLower().Contains(query) == true || h.Description?.ToLower().Contains(query) == true).ToList();
                 result.Result = new SearchResults { SearchResultHolons = holons, NumberOfResults = holons.Count };
@@ -608,9 +707,10 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var all = await LoadAllHolonsAsync(type);
+            var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+            if (all.IsError) return all;
             var holons = all.Result?.Where(h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var v) && v?.ToString() == metaValue).ToList() ?? new List<IHolon>();
-            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"PocketBaseOASIS: Loaded {holons.Count} holon(s) where {metaKey}={metaValue}." };
+            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsLoaded = true, LoadedCount = holons.Count, Message = $"PocketBaseOASIS: Loaded {holons.Count} holon(s) where {metaKey}={metaValue}." };
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -618,10 +718,11 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var all = await LoadAllHolonsAsync(type);
+            var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+            if (all.IsError) return all;
             bool IsMatch(IHolon h) { if (h.MetaData == null) return false; var checks = metaKeyValuePairs.Select(kvp => h.MetaData.TryGetValue(kvp.Key, out var v) && v?.ToString() == kvp.Value); return metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any ? checks.Any(c => c) : checks.All(c => c); }
             var holons = all.Result?.Where(IsMatch).ToList() ?? new List<IHolon>();
-            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"PocketBaseOASIS: Loaded {holons.Count} holon(s) matching metadata filter." };
+            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsLoaded = true, LoadedCount = holons.Count, Message = $"PocketBaseOASIS: Loaded {holons.Count} holon(s) matching metadata filter." };
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -629,23 +730,24 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
 
         // ─── Import / Export ──────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = !s.IsError, IsError = s.IsError, Message = s.Message }; }
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = !s.IsError, IsError = s.IsError, IsSaved = s.IsSaved, SavedCount = s.SavedCount, ErrorCount = s.ErrorCount, Exception = s.Exception, Message = s.Message }; }
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync();
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync(version: version);
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
-            var all = await LoadAllHolonsAsync();
+            var all = await LoadAllHolonsAsync(version: version);
+            if (all.IsError) return all;
             var holons = all.Result?.Where(h => h.CreatedByAvatarId == avatarId).ToList() ?? new List<IHolon>();
-            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"PocketBaseOASIS: Exported {holons.Count} holon(s) for avatar '{avatarId}'." };
+            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsLoaded = true, LoadedCount = holons.Count, Message = $"PocketBaseOASIS: Exported {holons.Count} holon(s) for avatar '{avatarId}'." };
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0) { var a = await LoadAvatarByUsernameAsync(avatarUsername); if (a.IsError || a.Result == null) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, $"PocketBaseOASIS: Avatar '{avatarUsername}' not found."); return r; } return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version); }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0) { var a = await LoadAvatarByUsernameAsync(avatarUsername); if (a.IsError || a.Result == null) return new OASISResult<IEnumerable<IHolon>> { IsError = true, ErrorCode = a.ErrorCode, Exception = a.Exception, Message = a.Message }; return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version); }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0) { var a = await LoadAvatarByEmailAsync(avatarEmailAddress); if (a.IsError || a.Result == null) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, $"PocketBaseOASIS: Avatar with email '{avatarEmailAddress}' not found."); return r; } return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version); }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0) { var a = await LoadAvatarByEmailAsync(avatarEmailAddress); if (a.IsError || a.Result == null) return new OASISResult<IEnumerable<IHolon>> { IsError = true, ErrorCode = a.ErrorCode, Exception = a.Exception, Message = a.Message }; return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version); }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
 
         public bool IsVersionControlEnabled { get; set; } = false;

@@ -1,7 +1,5 @@
 # CQL content-query demo expansion
 
-Recovered from the original COSMIC branch. Verification and registration counts below describe that checkout. For current live Development evidence and rollout gates, see [current status](CURRENT_STATUS.md) and the [current provider matrix](PROVIDER_CQL_AND_SANDBOX_STATUS.md).
-
 Approved30October2026. This is the next priority after the running QuestDB native
 checkpoint, ahead of adding further ID-only provider demos. Full breadth and ORM
 roadmaps remain active; deferred work is not cancelled.

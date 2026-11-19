@@ -167,4 +167,33 @@ public sealed class ConditionalHolonPlanTests
         root.Name="after";Assert.AreNotEqual(original.Fingerprint,ConditionalHolonPlan.Create(request,ProviderType.OracleDBOASIS).Fingerprint);Assert.AreEqual("before",original.Nodes[0].Snapshot.Name);
         Assert.AreNotEqual(original.Fingerprint,ConditionalHolonPlan.Create(Request(new Holon{Id=root.Id,Name="before"},Guid.NewGuid()),ProviderType.OracleDBOASIS).Fingerprint);
     }
+    [TestMethod]
+    public void ReplicationFingerprintIncludesPhysicalSourceAndPreservesUnboundIntent()
+    {
+        var request=Request(new Holon{Id=Guid.NewGuid()},Guid.NewGuid());
+        var identity=new CosmicStorageIdentity(ProviderType.OracleDBOASIS,new string('A',64),Guid.NewGuid());
+        string Fingerprint(HolonReplicationEnrollment value)=>ConditionalHolonPlan.CreateReplicating(request,ProviderType.OracleDBOASIS,value).Fingerprint;
+        var plain=new HolonReplicationEnrollment("source",new[]{"target"});
+        Assert.AreEqual(Fingerprint(plain),Fingerprint(new HolonReplicationEnrollment("source",new[]{"target"},null)));
+        var bound=new HolonReplicationEnrollment("source",new[]{"target"},identity);
+        Assert.AreNotEqual(Fingerprint(plain),Fingerprint(bound));
+        Assert.AreNotEqual(Fingerprint(bound),Fingerprint(new HolonReplicationEnrollment("source",new[]{"target"},
+            new CosmicStorageIdentity(identity.Authority,identity.EndpointFingerprint,Guid.NewGuid()))));
+        Assert.AreSame(identity,bound.SourceStorageIdentity);
+    }
+
+    [TestMethod]
+    public void ExplicitEnrollmentCannotDropOrReplaceEmbeddedSourceBinding()
+    {
+        var root=new Holon{Id=Guid.NewGuid()};var baseRequest=Request(root,Guid.NewGuid());
+        var identity=new CosmicStorageIdentity(ProviderType.OracleDBOASIS,new string('A',64),Guid.NewGuid());
+        var bound=new HolonReplicationEnrollment("source",new[]{"target"},identity);
+        var request=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(baseRequest.Write.OperationId,
+            baseRequest.Write.ActorId,baseRequest.Write.Authority,baseRequest.Write.Conditions,bound),baseRequest.Operation,baseRequest.Roots);
+        Assert.ThrowsException<ArgumentException>(()=>ConditionalHolonPlan.CreateReplicating(request,ProviderType.OracleDBOASIS,
+            new HolonReplicationEnrollment("source",new[]{"target"})));
+        Assert.ThrowsException<ArgumentException>(()=>ConditionalHolonPlan.CreateReplicating(request,ProviderType.OracleDBOASIS,
+            new HolonReplicationEnrollment("source",new[]{"target"},new CosmicStorageIdentity(identity.Authority,identity.EndpointFingerprint,Guid.NewGuid()))));
+    }
+
 }

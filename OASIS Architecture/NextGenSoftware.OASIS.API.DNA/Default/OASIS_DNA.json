@@ -1,5 +1,22 @@
 {
   "OASIS": {
+    "VersionPurge": {"Enabled": false, "ApplyToAll": false, "PurgeAfterDays": 30, "BatchSize": 25, "CycleSeconds": 300, "BackupRetentionDays": 0}, "HolonSeal": {
+      "Enabled": false,
+      "Key": "",
+      "KeyId": "k1",
+      "RetiredKeys": {},
+      "RefreshIntervalSeconds": 30
+    },
+    "UsageVisibility": {
+      "OwnerViewEnabled": true,
+      "WarningsEnabled": true,
+      "EmailEnabled": true,
+      "DefaultWarningPercents": [
+        80,
+        100
+      ],
+      "AppPayAsYouGoEnabled": true
+    },
     "Terms": "Please be kind and respectful to everyone including animals and nature and work hard to co-create a better world for all! Enjoy your stay! :)",
     "Logging": {
       "LoggingFramework": "Default",
@@ -102,6 +119,22 @@
         "WindowSeconds": 60,
         "WindowSegments": 6,
         "QueueLimit": 0
+      },
+      "Mfa": {
+        "Enabled": false,
+        "Issuer": "OASIS",
+        "AvatarTypesThatCannotDisable": [],
+        "Apps": [],
+        "CodeDigits": 6,
+        "TimeStepSeconds": 30,
+        "AllowedDriftSteps": 1,
+        "ChallengeTtlSeconds": 300,
+        "MaxChallengeAttempts": 5,
+        "MaxFailedCodes": 5,
+        "CooldownSeconds": 60,
+        "MaxCooldownSeconds": 3600,
+        "RecoveryCodeCount": 10,
+        "EventRetentionDays": 730
       }
     },
     "Email": {
@@ -123,7 +156,7 @@
       "DectivateProviderTimeOutSeconds": 10,
       "AutoReplicationEnabled": false,
       "AutoFailOverEnabled": true,
-      "AutoLoadBalanceEnabled": true,
+      "AutoLoadBalanceEnabled": false,
       "AutoLoadBalanceReadPollIntervalMins": 10,
       "AutoLoadBalanceWritePollIntervalMins": 10,
       "AutoReplicationProviders": "MongoDBOASIS, ArbitrumOASIS, PolygonOASIS, RootstockOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, PinataOASIS, HoloOASIS, SolanaOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
@@ -140,7 +173,10 @@
         "ServiceEndpoint": "",
         "AuthKey": "",
         "DBName": "",
-        "CollectionNames": "avatars, avatarDetails, holons"
+        "CollectionNames": "avatars, avatarDetails, holons",
+        "IsVersionControlEnabled": false,
+        "NativeImportDatabaseName": "",
+        "NativeImportContainers": ""
       },
       "HoloOASIS": {
         "UseLocalNode": true,
@@ -166,7 +202,8 @@
       },
       "MongoDBOASIS": {
         "DBName": "OASISAPI_DEV",
-        "ConnectionString": "mongodb://localhost:27017"
+        "ConnectionString": "mongodb://localhost:27017",
+        "NativeImportDBName": ""
       },
       "EOSIOOASIS": {
         "AccountName": "oasis",
@@ -184,43 +221,56 @@
         "ChainPrivateKey": "",
         "ChainId": 0,
         "ContractAddress": "",
-        "ConnectionString": "http://testchain.nethereum.com:8545"
+        "ConnectionString": "http://testchain.nethereum.com:8545",
+        "IsVersionControlEnabled": false,
+        "TokenEscrowContractAddress": ""
       },
       "ArbitrumOASIS": {
         "ChainPrivateKey": "",
         "ChainId": 421614,
         "ContractAddress": "0xd56B495571Ea5793fC3960D6af86420dF161c50a",
-        "ConnectionString": "https://sepolia-rollup.arbitrum.io/rpc"
+        "ConnectionString": "https://sepolia-rollup.arbitrum.io/rpc",
+        "IsVersionControlEnabled": false,
+        "TokenEscrowContractAddress": ""
       },
       "RootstockOASIS": {
         "ChainPrivateKey": "",
         "ContractAddress": "",
         "Abi": null,
-        "ConnectionString": "https://public-node.testnet.rsk.co"
+        "ConnectionString": "https://public-node.testnet.rsk.co",
+        "ChainId": 30
       },
       "PolygonOASIS": {
         "ChainPrivateKey": "",
         "ContractAddress": "",
         "Abi": null,
-        "ConnectionString": "https://rpc-amoy.polygon.technology/"
+        "ConnectionString": "https://rpc-amoy.polygon.technology/",
+        "IsVersionControlEnabled": false,
+        "ChainId": 137,
+        "TokenEscrowContractAddress": ""
       },
       "SQLLiteDBOASIS": {
-        "ConnectionString": "Data Source=OASISSQLLiteDB.db"
+        "ConnectionString": "Data Source=OASISSQLLiteDB.db",
+        "NativeImportConnectionString": ""
       },
       "IPFSOASIS": {
         "LookUpIPFSAddress": "QmV7AwEXdAG8r7CTjXRYpDk55aaSbWuNR9kpyycLkjLFE9",
-        "ConnectionString": "http://localhost:5001"
+        "ConnectionString": "http://localhost:5001",
+        "EnableCqlCidKeySets": false,
+        "NativeImportPaths": ""
       },
       "Neo4jOASIS": {
         "Username": "neo4j",
         "Password": "",
-        "ConnectionString": "bolt://localhost:7687"
+        "ConnectionString": "bolt://localhost:7687",
+        "NativeImportLabels": ""
       },
       "SolanaOASIS": {
         "WalletMnemonicWords": "",
         "PrivateKey": "",
         "PublicKey": "",
-        "ConnectionString": "https://api.devnet.solana.com"
+        "ConnectionString": "https://api.devnet.solana.com",
+        "NativeImportPrograms": ""
       },
       "CargoOASIS": {
         "SingingMessage": "",
@@ -229,7 +279,8 @@
         "ConnectionString": ""
       },
       "LocalFileOASIS": {
-        "FilePath": "wallets.json"
+        "FilePath": "wallets.json",
+        "StorageDirectory": ""
       },
       "PinataOASIS": {
         "ConnectionString": "https://api.pinata.cloud?apiKey=YOUR_API_KEY&secretKey=YOUR_SECRET_KEY&jwt=YOUR_JWT&gateway=https://gateway.pinata.cloud"
@@ -248,13 +299,20 @@
       "PolkadotOASIS": {
         "RpcEndpoint": "wss://rpc.polkadot.io",
         "Network": "mainnet",
-        "ConnectionString": ""
+        "ConnectionString": "",
+        "GenesisHash": "",
+        "ChainPrivateKey": "",
+        "StorageContractAccountId": "",
+        "StorageCodeHash": "",
+        "StorageOwnerAccountId": ""
       },
       "BNBChainOASIS": {
         "RpcEndpoint": "https://bsc-dataseed.binance.org",
         "NetworkId": "mainnet",
         "ChainId": "0x38",
-        "ConnectionString": ""
+        "ConnectionString": "",
+        "ChainPrivateKey": "",
+        "ContractAddress": ""
       },
       "FantomOASIS": {
         "RpcEndpoint": "https://rpc.ftm.tools",
@@ -292,13 +350,58 @@
         "RpcEndpoint": "https://api.trongrid.io",
         "Network": "mainnet",
         "ChainId": "0x2b6653dc",
-        "ConnectionString": ""
+        "ConnectionString": "",
+        "StorageContractAddress": "",
+        "StorageOwnerAddress": "",
+        "StorageSigningKeyEnvironmentVariable": "OASIS_TRON_STORAGE_PRIVATE_KEY",
+        "StorageEncryptionKeyEnvironmentVariable": "OASIS_TRON_STORAGE_ENCRYPTION_KEY",
+        "ContractFeeLimitSun": 100000000,
+        "ContractAddress": "",
+        "BridgePoolWalletAddress": "",
+        "EscrowContractAddress": "",
+        "IdBoundTokenEscrow": {
+          "ContractAddress": "",
+          "RuntimeSha256": ""
+        },
+        "FullNodeGrpcEndpoint": "",
+        "SolidityNodeGrpcEndpoint": "",
+        "GenesisBlockId": "",
+        "SigningKeyEnvironmentVariable": "OASIS_TRON_PRIVATE_KEY",
+        "ApiKeyEnvironmentVariable": "OASIS_TRON_API_KEY"
       },
       "HashgraphOASIS": {
         "RpcEndpoint": "https://mainnet-public.mirrornode.hedera.com",
         "Network": "mainnet",
         "ChainId": "0",
-        "ConnectionString": ""
+        "ConnectionString": "",
+        "BridgePoolAccountId": "",
+        "BridgePoolSigningKeyEnvironmentVariable": "OASIS_HEDERA_BRIDGE_POOL_PRIVATE_KEY",
+        "RawTransferAccountId": "",
+        "RawTransferSigningKeyEnvironmentVariable": "OASIS_HEDERA_RAW_TRANSFER_PRIVATE_KEY",
+        "NftEscrowContractId": "",
+        "NftEscrowRuntimeCodeHash": "",
+        "NftEscrowGasLimit": 0,
+        "NftEscrowMaxFeeTinybars": 0,
+        "TokenEscrowContractId": "",
+        "TokenEscrowProtocol": "aggregate-v1",
+        "TokenEscrowRuntimeCodeHash": "",
+        "TokenEscrowGasLimit": 0,
+        "TokenEscrowMaxFeeTinybars": 0,
+        "StorageContractId": "",
+        "StorageOperatorAccountId": "",
+        "StorageSigningKeyType": "der",
+        "StorageSigningKeyEnvironmentVariable": "OASIS_HEDERA_STORAGE_PRIVATE_KEY",
+        "StorageEncryptionKeyEnvironmentVariable": "OASIS_HEDERA_STORAGE_ENCRYPTION_KEY",
+        "StorageGasLimit": 0,
+        "StorageMaxFeeTinybars": 0,
+        "StorageQueryPreparation": {
+          "AuthorizedNodeAccountIds": null,
+          "MaxPaymentTinybars": 0,
+          "MaxTransactionFeeTinybars": 0,
+          "MaximumRequestsPerInvocation": 64,
+          "PersistenceTimeoutMs": 10000
+        },
+        "ConsensusNodes": {}
       },
       "AvalancheOASIS": {
         "RpcEndpoint": "https://api.avax.network/ext/bc/C/rpc",
@@ -313,13 +416,27 @@
         "RpcEndpoint": "https://cosmos-rpc.polkachu.com",
         "Network": "mainnet",
         "ChainId": "cosmoshub-4",
-        "ConnectionString": ""
+        "ConnectionString": "",
+        "MaximumFeeUnitsByDenomination": {},
+        "IdBoundTokenEscrow": {
+          "ContractAddress": "",
+          "CodeSha256": ""
+        },
+        "PrivateKey": "",
+        "ContractAddress": "",
+        "AddressPrefix": "cosmos",
+        "GasPrice": "0.025uatom",
+        "NativeDenom": "uatom",
+        "NativeDecimals": 6
       },
       "NEAROASIS": {
         "RpcEndpoint": "https://rpc.mainnet.near.org",
         "Network": "mainnet",
         "ChainId": "mainnet",
-        "ConnectionString": ""
+        "ConnectionString": "",
+        "ContractAddress": "oasis.near",
+        "AccountId": "",
+        "PrivateKey": ""
       },
       "BaseOASIS": {
         "RpcEndpoint": "https://mainnet.base.org",
@@ -335,7 +452,14 @@
         "Network": "mainnet",
         "ChainId": "mainnet",
         "ContractAddress": "",
-        "ConnectionString": ""
+        "ConnectionString": "",
+        "MaximumGasBudgetMist": "",
+        "IdBoundTokenEscrow": {
+          "EscrowObjectId": ""
+        },
+        "PrivateKey": "",
+        "StorageObjectId": "",
+        "CurrencyObjectId": ""
       },
       "MoralisOASIS": {
         "ApiKey": "",
@@ -347,7 +471,9 @@
         "RpcEndpoint": "https://api.telos.net",
         "Network": "mainnet",
         "ChainId": "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11",
-        "ConnectionString": ""
+        "ConnectionString": "",
+        "AccountName": "",
+        "AccountPrivateKey": ""
       },
       "ActivityPubOASIS": {
         "BaseUrl": "https://mastodon.social",
@@ -356,7 +482,9 @@
         "TimeoutSeconds": 30,
         "EnableCaching": true,
         "CacheExpirationMinutes": 15,
-        "ConnectionString": ""
+        "ConnectionString": "",
+        "EnableCqlStatusKeySets": false,
+        "AccessTokenEnvironmentVariable": ""
       },
       "GoogleCloudOASIS": {
         "ProjectId": "YOUR_PROJECT_ID",
@@ -367,7 +495,8 @@
         "EnableStorage": true,
         "EnableFirestore": true,
         "EnableBigQuery": true,
-        "ConnectionString": ""
+        "ConnectionString": "",
+        "IsVersionControlEnabled": false
       },
       "ZkSyncOASIS": {
         "RpcEndpoint": "https://mainnet.era.zksync.io",
@@ -404,6 +533,69 @@
         "BridgeContractAddress": "",
         "OperatorAccountAlias": "oasis_operator",
         "Network": "sandbox",
+        "ConnectionString": ""
+      },
+      "AWSOASIS": {
+        "IsVersionControlEnabled": false,
+        "Region": "us-east-1",
+        "AccessKey": "",
+        "SecretKey": "",
+        "SessionToken": "",
+        "UseDefaultCredentials": false,
+        "ServiceUrl": "",
+        "ConnectionString": ""
+      },
+      "AWSS3OASIS": {
+        "Region": "",
+        "BucketName": "",
+        "KeyPrefix": "oasis/",
+        "AccessKey": "",
+        "SecretKey": "",
+        "SessionToken": "",
+        "UseDefaultCredentials": false,
+        "StorageEncryptionKeyEnvironmentVariable": "OASIS_AWS_S3_STORAGE_ENCRYPTION_KEY",
+        "IsVersionControlEnabled": false,
+        "PublicObjectMetadataOnly": false,
+        "PublicObjectMetadataKeys": [],
+        "PublicObjectMetadataOwner": "00000000-0000-0000-0000-000000000000",
+        "ConnectionString": ""
+      },
+      "AzureStorageOASIS": {
+        "IsVersionControlEnabled": false,
+        "HolonContainer": "oasis-holons",
+        "AvatarContainer": "oasis-avatars",
+        "AvatarDetailContainer": "oasis-avatar-details",
+        "ConnectionString": ""
+      },
+      "SQLServerDBOASIS": {
+        "ConnectionString": ""
+      },
+      "OracleDBOASIS": {
+        "IsVersionControlEnabled": false,
+        "ConnectionString": ""
+      },
+      "OracleObjectStorageOASIS": {
+        "ConfigFilePath": "",
+        "ProfileName": "DEFAULT",
+        "RegionId": "",
+        "NamespaceName": "",
+        "BucketName": "",
+        "KeyPrefix": "oasis/",
+        "StorageEncryptionKeyEnvironmentVariable": "OASIS_ORACLE_OBJECT_STORAGE_ENCRYPTION_KEY",
+        "IsVersionControlEnabled": false,
+        "ConnectionString": ""
+      },
+      "SOLIDOASIS": {
+        "EnableCqlRecordKeySets": false,
+        "IsVersionControlEnabled": false,
+        "PodRoot": "",
+        "NativeImportContainers": "",
+        "AuthenticationMode": "DpopClientCredentials",
+        "TokenEndpoint": "",
+        "ClientId": "",
+        "StorageKeyEnvironmentVariable": "OASIS_SOLID_STORAGE_KEY",
+        "ClientSecretEnvironmentVariable": "OASIS_SOLID_CLIENT_SECRET",
+        "BearerTokenEnvironmentVariable": "OASIS_SOLID_BEARER_TOKEN",
         "ConnectionString": ""
       }
     },
@@ -588,6 +780,7 @@
       "GroupCacheSeconds": 15
     },
     "Sandbox": {
+      "EnableDevelopmentWeb4Preview": false,
       "Enabled": false,
       "Providers": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS",
       "DemoAvatarUsernamePrefix": "sandbox-",
@@ -602,6 +795,18 @@
       "DemoNeo4jLabel": "ShopLoyaltyMember",
       "MaximumSessionsPerAddressPerHour": 20,
       "MaximumSessionsPerDay": 1000
+    },
+    "AccessLog": {
+      "Enabled": false,
+      "Apps": [],
+      "HolonTypes": [],
+      "Operations": [],
+      "CaptureIp": false,
+      "RetentionDays": 365,
+      "QueueCapacity": 10000,
+      "FlushIntervalSeconds": 5,
+      "BatchSize": 500,
+      "MaxHolonIdsPerEvent": 200
     },
     "Web6": {
       "OllamaBaseUrl": "",
@@ -657,10 +862,10 @@
       "EnableFAHRN": false,
       "EnableHolonicBraid": false,
       "ApiKeys": {
-        "GeminiFree": "",
-        "OpenRouter": "",
         "OpenAI": "",
         "Anthropic": "",
+        "GeminiFree": "",
+        "OpenRouter": "",
         "Gemini": "",
         "Groq": "",
         "Mistral": "",
@@ -780,6 +985,20 @@
         "CustomMetrics": {}
       }
     },
-    "DataDirectory": "oasis-data"
+    "DataDirectory": "oasis-data",
+    "OLand": {
+      "Enabled": false,
+      "MaximumParcelsPerOrder": 1024,
+      "FulfilmentPollSeconds": 10,
+      "QuoteMinutes": 10,
+      "CheckoutMinutes": 30,
+      "MongoDatabase": "oasis_oland",
+      "StripeWebhookSecret": "",
+      "PublicApiBaseUrl": "",
+      "SuccessUrl": "",
+      "CancelUrl": "",
+      "CoinGeckoDemoApiKey": "",
+      "Chains": {}
+    }
   }
 }

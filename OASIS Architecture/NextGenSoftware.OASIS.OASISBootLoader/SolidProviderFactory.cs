@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader;
 
 internal static class SolidProviderFactory
 {
-    internal static SOLIDOASIS Create(SolidOASISProviderSettings settings,string overrideConnectionString=null)
+    internal static SOLIDOASIS Create(SolidOASISProviderSettings settings,string overrideConnectionString=null,bool enableCqlRecordKeySets=false)
     {
         ArgumentNullException.ThrowIfNull(settings);
         if(!Uri.TryCreate(settings.PodRoot,UriKind.Absolute,out var root))

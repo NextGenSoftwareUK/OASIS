@@ -16,11 +16,10 @@ internal sealed class RedisConnectionOwner : IDisposable
     private ConnectionMultiplexer? _client;
     private bool _disposed;
 
-    public RedisConnectionOwner(string configuration) : this(ConfigurationOptions.Parse(configuration)) { }
-
-    public RedisConnectionOwner(ConfigurationOptions configuration)
+    public RedisConnectionOwner(string configuration)
     {
-        _options = configuration.Clone();
+        ArgumentException.ThrowIfNullOrWhiteSpace(configuration);
+        _options=ConfigurationOptions.Parse(configuration);
         _options.AbortOnConnectFail=true;_options.ConnectRetry=0;_options.BacklogPolicy=BacklogPolicy.FailFast;
     }
 

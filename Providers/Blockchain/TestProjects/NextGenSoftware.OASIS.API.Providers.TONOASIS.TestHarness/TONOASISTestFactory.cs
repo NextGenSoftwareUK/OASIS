@@ -1,62 +1,16 @@
 using System;
-using NextGenSoftware.OASIS.API.Providers.TONOASIS;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+namespace NextGenSoftware.OASIS.API.Providers.TONOASIS.TestHarness;
 
-namespace NextGenSoftware.OASIS.API.Providers.TONOASIS.TestHarness
+internal static class TONOASISTestFactory
 {
-    /// <summary>
-    /// Builds the provider under test. Constructor shapes vary across providers, so
-    /// this resolves one reflectively and feeds each parameter from an environment
-    /// variable named TONOASIS_&lt;PARAM&gt;, falling back to a harmless default.
-    /// Keeping it in one place means the tests do not need per-provider wiring.
-    /// </summary>
-    internal static class TONOASISTestFactory
+    private static string Required(string name) => Environment.GetEnvironmentVariable(name) is { Length: > 0 } value
+        ? value : throw new InvalidOperationException("Explicit native configuration required: " + name);
+    public static TONOASIS Create()
     {
-        public static TONOASIS Create()
-        {
-            var type = typeof(TONOASIS);
-
-            foreach (var ctor in SortByFewestParameters(type))
-            {
-                var ps = ctor.GetParameters();
-                var args = new object?[ps.Length];
-                var ok = true;
-
-                for (var i = 0; i < ps.Length; i++)
-                {
-                    var env = Environment.GetEnvironmentVariable(
-                        $"TONOASIS_{ps[i].Name!.ToUpperInvariant()}");
-
-                    if (env != null) { args[i] = Convert.ChangeType(env, ps[i].ParameterType); continue; }
-                    if (ps[i].HasDefaultValue) { args[i] = ps[i].DefaultValue; continue; }
-
-                    var d = Default(ps[i].ParameterType);
-                    if (d == null && ps[i].ParameterType.IsValueType) { ok = false; break; }
-                    args[i] = d;
-                }
-
-                if (!ok) continue;
-                try { return (TONOASIS)ctor.Invoke(args); } catch { /* try the next overload */ }
-            }
-
-            throw new InvalidOperationException(
-                $"Could not construct {typeof(TONOASIS).Name} - no usable constructor.");
-        }
-
-        private static System.Reflection.ConstructorInfo[] SortByFewestParameters(Type t)
-        {
-            var ctors = t.GetConstructors();
-            Array.Sort(ctors, (a, b) => a.GetParameters().Length.CompareTo(b.GetParameters().Length));
-            return ctors;
-        }
-
-        private static object? Default(Type t)
-        {
-            if (t == typeof(string)) return "test";
-            if (t == typeof(bool)) return false;
-            if (t == typeof(int) || t == typeof(long)) return 0;
-            if (t == typeof(Guid)) return Guid.Empty;
-            if (t.IsValueType) return Activator.CreateInstance(t);
-            return null;
-        }
+        var options = new TonSandboxStorageOptions(Required("TONOASIS_NODE_EXECUTABLE"),
+            Required("TONOASIS_WORKER_SCRIPT"), Required("TONOASIS_COMPILED_BINDING"), Required("TONOASIS_SOURCE_DIRECTORY"),
+            Guid.Parse(Required("TONOASIS_SOURCE_ID")), Required("TONOASIS_CODE_HASH"), ReadOnly: true);
+        return new TONOASIS(options, () => PersistedPrivateKeyValueBackend.ResolveEnvironmentKey("TONOASIS_STORAGE_ENCRYPTION_KEY"));
     }
 }

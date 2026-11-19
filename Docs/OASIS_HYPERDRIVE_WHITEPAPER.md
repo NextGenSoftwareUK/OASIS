@@ -93,7 +93,7 @@ The OASIS HyperDrive is the revolutionary auto-failover system that forms the fo
 The OASIS HyperDrive introduces a multi-layered architecture that ensures 100% uptime and optimal performance:
 
 #### Layer 1: Provider Network
-- **Global Provider Network**: 100+ providers across all continents
+- **Global Provider Network**: 234 shipping provider projects in the [provider inventory](WIP/HyperDrive-Providers/PROVIDER_MATRIX.md), with live acceptance tracked per provider
 - **Multi-Protocol Support**: Web2 and Web3 providers
 - **Geographic Distribution**: Providers in every major region
 - **Performance Monitoring**: Real-time performance tracking

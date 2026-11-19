@@ -40,6 +40,10 @@ on:
 jobs:
   publish:
     runs-on: windows-latest
+    # id-token: NuGet Trusted Publishing (the nuget.org policy must name this workflow file).
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout OASIS
@@ -116,11 +120,20 @@ jobs:
           name: oasis-nupkgs
           path: assets/*
 
+      - name: NuGet trusted publishing login (short-lived key, nothing stored)
+        id: nuget_login
+        if: inputs.publish
+        continue-on-error: true
+        uses: NuGet/login@v1
+        with:
+          user: dellams
+
       - name: Push to NuGet.org
         if: inputs.publish
         shell: pwsh
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          # The trusted-publishing key when the login worked, else the NUGET_API_KEY secret.
+          NUGET_API_KEY: ${{ steps.nuget_login.outputs.NUGET_API_KEY || secrets.NUGET_API_KEY }}
         run: |
           if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) { throw 'NUGET_API_KEY is required.' }
           $pushFailed = 0

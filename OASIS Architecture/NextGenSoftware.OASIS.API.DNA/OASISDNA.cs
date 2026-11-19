@@ -31,6 +31,15 @@ namespace NextGenSoftware.OASIS.API.DNA
         public OASISHyperDriveConfig OASISHyperDriveConfig { get; set; }
         public NativeImportSettings NativeImport { get; set; } = new NativeImportSettings();
         public SandboxSettings Sandbox { get; set; } = new SandboxSettings();
+        /// <summary>Opt-in record of who read a holon (ids only). Off by default.</summary>
+        public AccessLogSettings AccessLog { get; set; } = new AccessLogSettings();
+        /// <summary>Opt-in tamper-evident holon version history: master switch and key. Off by default; avatars and apps choose per owner/app.</summary>
+        public HolonSealSettings HolonSeal { get; set; } = new HolonSealSettings();
+
+        /// <summary>Opt-in purge of earlier saved versions of deleted holons (master switch, default off). See <see cref="VersionPurgeSettings"/>.</summary>
+        public VersionPurgeSettings VersionPurge { get; set; } = new VersionPurgeSettings();
+        /// <summary>Owner usage views, usage warnings (with email) and app pay-as-you-go. Node defaults; people and apps can override.</summary>
+        public UsageVisibilitySettings UsageVisibility { get; set; } = new UsageVisibilitySettings();
         public OLandCommerceSettings OLand { get; set; } = new OLandCommerceSettings();
         public CqlSettings Cql { get; set; } = new CqlSettings();
         public Web6Settings Web6 { get; set; } = new Web6Settings();
@@ -129,9 +138,6 @@ namespace NextGenSoftware.OASIS.API.DNA
         public bool InheritedReads { get; set; } = true;
         /// <summary>Seconds a caller's group list is reused between queries; group membership changes take effect within this time.</summary>
         public int GroupCacheSeconds { get; set; } = 15;
-
-        /// <summary>Private Blockscout Universal API credential for the Ethereum CQL address and Connext event readers.</summary>
-        public string BlockscoutUniversalApiKey { get; set; }
     }
 
     /// <summary>The public sandbox: whether this node is one, how its throwaway demo avatars are named, limited and cleaned up.</summary>
@@ -199,9 +205,10 @@ namespace NextGenSoftware.OASIS.API.DNA
     public class Web6Settings
     {
         /// <summary>Default AIProviderType (e.g. "Auto", "OpenAI", "Anthropic", "OpenServ") used by /v1/complete when CompletionRequest.Provider is "auto" or not set.</summary>
+        public string DefaultProvider { get; set; } = "Auto";
+
         public string OllamaBaseUrl { get; set; } = "";
         public string OllamaFreeModel { get; set; } = "";
-        public string DefaultProvider { get; set; } = "Auto";
 
         /// <summary>Default model id used when CompletionRequest.Model is "auto" or not set and the resolved provider is OpenServ.</summary>
         public string DefaultOpenServModel { get; set; } = "gpt-5.4";
@@ -290,9 +297,9 @@ namespace NextGenSoftware.OASIS.API.DNA
     {
         public string OpenAI { get; set; } = "";
         public string Anthropic { get; set; } = "";
+        public string Gemini { get; set; } = "";
         public string GeminiFree { get; set; } = "";
         public string OpenRouter { get; set; } = "";
-        public string Gemini { get; set; } = "";
         public string Groq { get; set; } = "";
         public string Mistral { get; set; } = "";
         public string Cohere { get; set; } = "";
@@ -396,6 +403,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public int JwtTokenExpirationMinutes { get; set; } = 15;
         /// <summary>Refresh token expiration in days. Industry standard 1–30; default 7. Used when issuing refresh tokens and setting auth cookie expiry.</summary>
         public int RefreshTokenExpirationDays { get; set; } = 7;
+        /// <summary>Optional second sign-in step (authenticator app). Off by default.</summary>
+        public MfaSettings Mfa { get; set; } = new MfaSettings();
         public EncryptionSettings AvatarPassword { get; set; }
         public EncryptionSettings OASISProviderPrivateKeys { get; set; }
         /// <summary>Encryption settings applied to holon MetaData at rest. All layers are reversible (no BCrypt). Overridable per SaveHolon call via Holon.DataEncryptionOverride.</summary>

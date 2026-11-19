@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -12,22 +11,6 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS;
 /// <summary>Bind shared bounded-key algebra to this exact storage authority.</summary>
 public static class CouchbaseCqlCompiler
 {
-    internal static void ValidateBucketName(string bucketName)
-    {
-        if (string.IsNullOrEmpty(bucketName) || bucketName.Length > 100 || bucketName[0] == '.' ||
-            bucketName.Any(c => !((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
-                (c >= '0' && c <= '9') || c == '_' || c == '-' || c == '.' || c == '%')))
-            throw new ArgumentException("Use a valid Couchbase bucket identifier, at most 100 characters.", nameof(bucketName));
-    }
-
-    /// <summary>The native SQL++ statement shared by the SDK and guarded Query Service path.</summary>
-    public static string NativeIdentityStatement(string bucket)
-    {
-        ValidateBucketName(bucket);
-        return $"SELECT META(h).id AS `Key`, h.id AS `Id`, h.isDeleted AS `IsDeleted`, h.dataJson AS `DataJson` " +
-            $"FROM `{bucket}`.`_default`.`holons` AS h USE KEYS $keys";
-    }
-
     public static CosmicQueryCapabilities Capabilities => BoundedIdentityCqlCompiler.Capabilities;
 
     public static OASISResult<IReadOnlyList<Guid>> Compile<T>(CosmicQuery<T> query, ProviderType authority) where T : IHolon

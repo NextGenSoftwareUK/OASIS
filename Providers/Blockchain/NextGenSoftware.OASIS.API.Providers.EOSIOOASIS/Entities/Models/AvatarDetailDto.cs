@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
@@ -11,6 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.Models
         public int EntityId { get; set; }
         public string AvatarId { get; set; }
         public string Info { get; set; }
+        public bool? IsDeleted { get; set; }
 
         public IAvatarDetail GetBaseAvatarDetail()
         {

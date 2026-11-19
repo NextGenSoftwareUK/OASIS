@@ -1,62 +1,16 @@
 using System;
-using NextGenSoftware.OASIS.API.Providers.TONOASIS;
+using System.IO;
+namespace NextGenSoftware.OASIS.API.Providers.TONOASIS.UnitTests;
 
-namespace NextGenSoftware.OASIS.API.Providers.TONOASIS.UnitTests
+// Metadata-only fixture. These paths are never activated or treated as a native
+// source. Real storage acceptance uses the explicit native runner/configuration.
+internal static class TONOASISTestFactory
 {
-    /// <summary>
-    /// Builds the provider under test. Constructor shapes vary across providers, so
-    /// this resolves one reflectively and feeds each parameter from an environment
-    /// variable named TONOASIS_&lt;PARAM&gt;, falling back to a harmless default.
-    /// Keeping it in one place means the tests do not need per-provider wiring.
-    /// </summary>
-    internal static class TONOASISTestFactory
+    public static TONOASIS Create()
     {
-        public static TONOASIS Create()
-        {
-            var type = typeof(TONOASIS);
-
-            foreach (var ctor in SortByFewestParameters(type))
-            {
-                var ps = ctor.GetParameters();
-                var args = new object?[ps.Length];
-                var ok = true;
-
-                for (var i = 0; i < ps.Length; i++)
-                {
-                    var env = Environment.GetEnvironmentVariable(
-                        $"TONOASIS_{ps[i].Name!.ToUpperInvariant()}");
-
-                    if (env != null) { args[i] = Convert.ChangeType(env, ps[i].ParameterType); continue; }
-                    if (ps[i].HasDefaultValue) { args[i] = ps[i].DefaultValue; continue; }
-
-                    var d = Default(ps[i].ParameterType);
-                    if (d == null && ps[i].ParameterType.IsValueType) { ok = false; break; }
-                    args[i] = d;
-                }
-
-                if (!ok) continue;
-                try { return (TONOASIS)ctor.Invoke(args); } catch { /* try the next overload */ }
-            }
-
-            throw new InvalidOperationException(
-                $"Could not construct {typeof(TONOASIS).Name} - no usable constructor.");
-        }
-
-        private static System.Reflection.ConstructorInfo[] SortByFewestParameters(Type t)
-        {
-            var ctors = t.GetConstructors();
-            Array.Sort(ctors, (a, b) => a.GetParameters().Length.CompareTo(b.GetParameters().Length));
-            return ctors;
-        }
-
-        private static object? Default(Type t)
-        {
-            if (t == typeof(string)) return "test";
-            if (t == typeof(bool)) return false;
-            if (t == typeof(int) || t == typeof(long)) return 0;
-            if (t == typeof(Guid)) return Guid.Empty;
-            if (t.IsValueType) return Activator.CreateInstance(t);
-            return null;
-        }
+        var root = Path.Combine(Path.GetTempPath(), "cosmic-ton-metadata-only");
+        return new TONOASIS(new TonSandboxStorageOptions(Path.Combine(root, "node.exe"),
+            Path.Combine(root, "native-worker.cjs"), Path.Combine(root, "binding.cjs"), root,
+            Guid.NewGuid(), new string('0', 64)), () => new byte[32]);
     }
 }

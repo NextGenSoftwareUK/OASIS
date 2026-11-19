@@ -6,6 +6,7 @@ import sys
 import os
 import re
 import subprocess
+import uuid
 
 ROOT=Path(__file__).resolve().parents[2]
 PREFIX="ten-source-public"
@@ -47,42 +48,23 @@ def application_keys(before,after,include_optimism=False,include_linea_scroll=Fa
     return apply_keys
 
 def require_matching_release(configuration, *, release_ref="HEAD"):
-    """Require the reviewed local release ref to match the live deployment."""
+    """Return the deployment ID for the exact reviewed release."""
     expected=os.environ.get("COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT", "")
     if not re.fullmatch("[0-9a-f]{40}", expected):
         raise RuntimeError("Set the exact reviewed release SHA in COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT before application")
-    digest = os.environ.get("COSMIC_CQL_EXPECTED_DEPLOYMENT_IMAGE_DIGEST")
-    if digest is not None and not re.fullmatch(r"sha256:[0-9a-f]{64}", digest):
-        raise RuntimeError("Expected deployment image digest must be a full SHA256 digest")
-    revision=subprocess.run(["git", "rev-parse", "--verify", "--end-of-options",
-        release_ref + "^{commit}"], cwd=ROOT, capture_output=True, text=True)
+    revision=subprocess.run(["git", "rev-parse", "--verify", "--end-of-options", release_ref + "^{commit}"], cwd=ROOT, capture_output=True, text=True)
     if revision.returncode or revision.stdout.strip()!=expected:
-        raise RuntimeError("Local release ref differs from the reviewed deployment SHA; no configuration mutation")
-    try:
-        observed=subprocess.run([str(configuration.CLI), "deployment", "list", *configuration.COMMON,
-            "--limit", "1", "--json"], capture_output=True, timeout=30)
-    except (OSError, subprocess.TimeoutExpired):
-        raise RuntimeError("Deployment observation failed; output withheld and no configuration mutation") from None
+        raise RuntimeError("The selected release differs from the reviewed deployment SHA")
+    observed=subprocess.run([str(configuration.CLI), "deployment", "list", *configuration.DEPLOYMENT_SCOPE,
+        "--limit", "1", "--json"], capture_output=True)
     if observed.returncode:
         raise RuntimeError("Deployment observation failed; output withheld and no configuration mutation")
-    try:
-        deployments=json.loads(observed.stdout)
-    except (UnicodeDecodeError, ValueError):
-        raise RuntimeError("Deployment observation was invalid; output withheld and no configuration mutation") from None
-    if (not isinstance(deployments, list) or len(deployments) != 1
-            or not isinstance(deployments[0], dict)
-            or deployments[0].get("status") != "SUCCESS"):
-        raise RuntimeError("The reviewed release must be successfully deployed before configuration application")
-    meta = deployments[0].get("meta")
-    if not isinstance(meta, dict):
-        raise RuntimeError("The successful deployment has no verifiable release metadata")
-    if digest is None:
-        matches = meta.get("commitHash") == expected
-    else:
-        matches = meta.get("imageDigest") == digest and meta.get("commitHash") in (None, expected)
-    if not matches:
-        raise RuntimeError("The successful deployment does not match the reviewed release")
-    return deployments[0].get("id")
+    deployments=json.loads(observed.stdout)
+    if (not isinstance(deployments,list) or len(deployments)!=1
+            or deployments[0].get("status")!="SUCCESS"
+            or deployments[0].get("meta",{}).get("commitHash")!=expected):
+        raise RuntimeError("The exact reviewed release must be successfully deployed")
+    return str(uuid.UUID(deployments[0]["id"]))
 
 def apply(include_optimism=False,include_linea_scroll=False,include_zksync_abstract=False,include_monad=False,include_sei=False):
     prefix="seventeen-source-public" if include_sei else "sixteen-source-public" if include_monad else "fifteen-source-public" if include_zksync_abstract else "thirteen-source-public" if include_linea_scroll else "eleven-source-public" if include_optimism else PREFIX

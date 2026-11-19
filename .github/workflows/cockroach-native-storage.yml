@@ -1,0 +1,96 @@
+name: CockroachDB native storage
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/cockroach-native-storage.yml'
+      - 'Scripts/TestHosts/Install-CosmicCockroachDbRuntime.py'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS/**'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS.IntegrationTests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Run native storage conformance against CockroachDB
+        shell: bash
+        run: |
+          runtime=/var/tmp/oasis-runtimes/cockroach-26.2.9
+          [[ ! -e "$runtime" ]]
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-cockroach.XXXXXXXX")"
+          pid=""
+          cleanup() {
+            status=$?
+            if [[ -n "$pid" ]]; then
+              if (( status != 0 )); then tail -35 "$fixture/server.log"; fi
+              kill -TERM "$pid" 2>/dev/null || true
+              for attempt in {1..20}; do
+                kill -0 "$pid" 2>/dev/null || break
+                sleep 0.25
+              done
+              if kill -0 "$pid" 2>/dev/null; then kill -KILL "$pid"; fi
+              wait "$pid" || true
+            fi
+            if [[ "$fixture" == "$RUNNER_TEMP"/oasis-cockroach.* ]]; then rm -rf -- "$fixture" "$runtime"; fi
+            if [[ ! -e "$fixture" && ! -e "$runtime" ]]; then
+              echo "Removed the owned CockroachDB runtime and fixture."
+            else
+              status=1
+            fi
+            exit "$status"
+          }
+          trap cleanup EXIT
+          mkdir -p "$(dirname "$runtime")"
+          python3 Scripts/TestHosts/Install-CosmicCockroachDbRuntime.py
+          "$runtime/cockroach" start-single-node --insecure --listen-addr=127.0.0.1:26257 \
+            --http-addr=127.0.0.1:18080 --store="$fixture/store" >"$fixture/server.log" 2>&1 &
+          pid=$!
+          sql=("$runtime/cockroach" sql --insecure --host=127.0.0.1:26257)
+          for attempt in {1..45}; do
+            kill -0 "$pid"
+            if timeout 3 "${sql[@]}" --execute='SELECT 1' >/dev/null 2>&1; then break; fi
+            [[ "$attempt" != 45 ]]
+            sleep 2
+          done
+          "${sql[@]}" --execute='SELECT version(); CREATE DATABASE oasis_storage_async; CREATE DATABASE oasis_storage_sync;'
+          export OASIS_COCKROACH_CI_FIXTURE="$fixture"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-CockroachStorage -Operation {
+              dotnet test "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~CoreStorageSuiteAgainstCockroach" /p:CockroachDirectStorageOnly=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "Native CockroachDB storage verification failed." }
+            }'
+          for mode in async sync; do
+            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/oasis_storage_$mode.json" >/dev/null
+          done
+          echo "Verified both CockroachDB storage modes and exact native cleanup."

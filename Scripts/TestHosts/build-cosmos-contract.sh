@@ -20,8 +20,8 @@ cd "$contract"
 # compiler builtins with the same features, in the single existing target cache.
 # build-std and LLVM bulk-memory-opt are unstable interfaces: pin this compiler
 # and require real wasmd deployment validation before accepting a new compiler.
-CARGO_TARGET_DIR="$target" RUSTC_BOOTSTRAP=1 \
+CARGO_TARGET_DIR="$target" CARGO_NET_OFFLINE="${CARGO_NET_OFFLINE:-true}" RUSTC_BOOTSTRAP=1 \
   RUSTFLAGS='-C target-feature=-bulk-memory,-bulk-memory-opt,-reference-types,-multivalue,-nontrapping-fptoint,-sign-ext' \
-  cargo build --release --target wasm32-unknown-unknown --locked --offline \
+  cargo build --release --target wasm32-unknown-unknown --locked \
     -Z build-std=std,panic_abort -j 2
 printf '%s\n' "$target/wasm32-unknown-unknown/release/oasis_cosmos_storage.wasm"

@@ -13,6 +13,11 @@
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/AtomicConformanceCheckpoint.cs" Link="Shared/AtomicConformanceCheckpoint.cs" />
+    <Compile Include="../../../Shared/TestSupport/ControlledS3Client.cs" Link="Shared/ControlledS3Client.cs" />
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="Shared/CoreStorageConformance.cs" />
+    <ProjectReference Include="../../../Cloud/NextGenSoftware.OASIS.API.Providers.AWSS3OASIS/NextGenSoftware.OASIS.API.Providers.AWSS3OASIS.csproj" />
+    <ProjectReference Include="../../../Network/NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS/NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.MinIOOASIS\NextGenSoftware.OASIS.API.Providers.MinIOOASIS.csproj" />
   </ItemGroup>
 </Project>

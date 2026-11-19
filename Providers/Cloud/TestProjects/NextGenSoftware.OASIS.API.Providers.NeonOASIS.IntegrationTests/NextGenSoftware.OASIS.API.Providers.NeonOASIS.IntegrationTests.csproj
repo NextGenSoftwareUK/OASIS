@@ -16,4 +16,7 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.NeonOASIS\NextGenSoftware.OASIS.API.Providers.NeonOASIS.csproj" />
     <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
+  </ItemGroup>
 </Project>

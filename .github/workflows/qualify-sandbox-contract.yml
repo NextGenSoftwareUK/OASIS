@@ -2,7 +2,7 @@ name: Qualify bounded Sandbox contract metadata CQL
 
 on:
   push:
-    branches: [work/cosmic-cql-ton-public]
+    branches: [work/cosmic-cql-ton-public, work/cosmic-teaching-release-candidate]
     paths:
       - '.github/workflows/qualify-sandbox-contract.yml'
       - 'Docker/oasis-dependency-versions.env'

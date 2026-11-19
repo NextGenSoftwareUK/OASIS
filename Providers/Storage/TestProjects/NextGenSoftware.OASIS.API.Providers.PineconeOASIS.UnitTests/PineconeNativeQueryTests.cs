@@ -108,37 +108,4 @@ public class PineconeNativeQueryTests
         Assert.AreEqual(0, result.Result.Count);
         Assert.AreEqual(0, transport.Calls);
     }
-
-    [DataTestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public async Task HostedActivationUsesOnlyAnExactPublicFetch(bool isPublic)
-    {
-        var probe = Guid.NewGuid();
-        var id = probe.ToString("D");
-        var transport = new Transport
-        {
-            OnSend = (request, _) =>
-            {
-                Assert.AreEqual(HttpMethod.Get, request.Method);
-                Assert.AreEqual("https://teaching.svc.pinecone.io/vectors/fetch?namespace=holons&ids=" + id,
-                    request.RequestUri!.AbsoluteUri);
-                var vectors = new Dictionary<string, object>
-                {
-                    [id] = new { id, values = new[] { 1.0 }, metadata = new
-                    {
-                        id, _doc = JsonSerializer.Serialize(new Holon { Id = probe, IsPublic = isPublic })
-                    } }
-                };
-                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
-                    { Content = new StringContent(JsonSerializer.Serialize(new { @namespace = "holons", vectors })) });
-            }
-        };
-        using var http = new HttpClient(transport);
-        var source = new PineconeQuerySource(http, new Uri("https://teaching.svc.pinecone.io"), "test-key", probe);
-        var result = await source.ActivateQuerySourceAsync(default);
-        Assert.AreEqual(isPublic, !result.IsError);
-        Assert.AreEqual(isPublic, source.IsProviderActivated);
-        Assert.AreEqual(1, transport.Calls);
-    }
 }

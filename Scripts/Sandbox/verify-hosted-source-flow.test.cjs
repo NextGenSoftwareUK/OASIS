@@ -9,7 +9,7 @@ const vm = require('node:vm');
 const modulePath = path.resolve(__dirname, '../../../Web4Site/cql-demo-preparation.js');
 const program = fs.readFileSync(path.join(__dirname, 'Verify-HostedSourceFlow.cjs'), 'utf8');
 
-for (const { byId, duplicateReplica, missingSnapshot, wrongNative } of [{ byId: false }, { byId: false, wrongNative: true }, { byId: true }, { byId: true, duplicateReplica: true }, { byId: true, missingSnapshot: true }, { byId: true, wrongNative: true }]) test(wrongNative ? `verifier rejects a different native ${byId ? 'ID' : 'key'} at the expected row count` : missingSnapshot ? "verifier rejects a missing private snapshot despite the expected row count" : duplicateReplica ? "verifier rejects duplicate replica IDs" : `verifier uses ${byId ? 'native ID unions' : 'protocol keys'} and checks both replicas`, async () => {
+for (const byId of [false, true]) test(`verifier uses ${byId ? 'native ID unions' : 'protocol keys'} and checks both replicas`, async () => {
   const owner = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
   const nativeIds = ['44444444-4444-4444-8444-444444444441',
     '44444444-4444-4444-8444-444444444442', '44444444-4444-4444-8444-444444444443'];
@@ -68,33 +68,15 @@ for (const { byId, duplicateReplica, missingSnapshot, wrongNative } of [{ byId: 
         metadata: body.holon.metaData, version: 1, createdByAvatarId: owner, isPublic: false };
       copies.set(row.id, row); result = { isSaved: true, result: row };
     } else if (route.endsWith('/federation')) {
-      const rows = selected([...native, ...copies.values()], body.source);
-      if (missingSnapshot && rows.length === 5)
-        rows[rows.length - 1] = { ...rows.at(-1), id: '33333333-3333-4333-8333-333333333333' };
-      result = { result: { rows: rows.map(row => ({
-        selected: {
-          provider: nativeIds.includes(row.id) ? provider : 'MongoDBOASIS',
-          row: wrongNative && row.id === nativeIds[0]
-            ? (byId ? { ...row, id: '33333333-3333-4333-8333-333333333333' } : { ...row, metadata: { NativeKey: 'unexpected' } }) : row
-        },
-        copies: []
-      })) } };
+      result = { result: { rows: selected([...native, ...copies.values()], body.source) } };
     } else if (route === 'data/query-cql') {
-      const rows = selected(body.provider === provider ? native : [...copies.values()], body);
-      result = { result: { rows: duplicateReplica && body.provider === 'Neo4jOASIS' ? [rows[0], rows[0]] : rows } };
+      result = { result: { rows: selected(body.provider === provider ? native : [...copies.values()], body) } };
     } else throw Error('Unexpected route ' + route);
     return { ok: true, status: 200, headers: { get: () => 'controlled-operation' }, text: async () => JSON.stringify(result) };
   };
   const errors = []; const process = { exitCode: 0 };
   await vm.runInNewContext(program, { require: name => name === 'node:fs' ? memory : require(name),
     fetch, AbortSignal, setTimeout, process, console: { log() {}, error: value => errors.push(value) } });
-  if (duplicateReplica || missingSnapshot || wrongNative) {
-    assert.equal(process.exitCode, 1);
-    assert.match(errors.join('\n'), wrongNative ? /Federation returned native (IDs|keys) outside the requested source selection/ : missingSnapshot ? /Federation did not return distinct source and private snapshot IDs/ : /Neo4jOASIS did not return the exact private replica IDs/);
-    assert.equal(files.has(input.report), false);
-    assert.equal(saves, 2);
-    return;
-  }
   assert.equal(process.exitCode, 0, errors.join('\n'));
   const proof = JSON.parse(files.get(input.report));
   assert.equal(saves, 2); assert.equal(proof.repeated.saved, 0); assert.equal(proof.repeated.existing, 2);

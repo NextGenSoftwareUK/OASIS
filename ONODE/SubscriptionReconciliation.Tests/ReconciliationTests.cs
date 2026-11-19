@@ -132,6 +132,35 @@ public sealed class ReconciliationTests
     }
 
     [MongoFact]
+    public async Task RepeatedReconciliationStatesShareOneReportAndKeepTheLatestCheck()
+    {
+        var client = new MongoClient(Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
+        var database = "r_" + Guid.NewGuid().ToString("N");
+        var first = new DateTimeOffset(2026, 11, 1, 0, 0, 0, TimeSpan.Zero);
+        var earlier = new MongoUsageReconciler(client, database, new TestTimeProvider(first));
+        var later = new MongoUsageReconciler(client, database, new TestTimeProvider(first.AddMinutes(5)));
+        try
+        {
+            await earlier.InitializeAsync(default);
+            await Task.WhenAll(Enumerable.Range(0, 8).Select(index =>
+                (index % 2 == 0 ? earlier : later).RecordFailedCheckAsync(Avatar, "2026-10", "Timeout", default)));
+            await earlier.RecordFailedCheckAsync(Avatar, "2026-10", "Timeout", default);
+            await later.RecordFailedCheckAsync(Avatar, "2026-10", "Unavailable", default);
+            await earlier.RecordFailedCheckAsync(Avatar, "2026-09", "Timeout", default);
+
+            var reports = await earlier.GetReportsAsync(Avatar, "2026-10", default);
+            Assert.Equal(2, reports.Count);
+            var repeated = Assert.Single(reports, report => report.Findings[0].Detail.EndsWith("Timeout"));
+            Assert.Equal(first.AddMinutes(5).UtcDateTime, repeated.CheckedAtUtc);
+            Assert.Single(await earlier.GetReportsAsync(Avatar, "2026-09", default));
+        }
+        finally
+        {
+            await client.DropDatabaseAsync(database);
+        }
+    }
+
+    [MongoFact]
     public async Task ExactCacheReceiptBalancesWithoutPhantomProviderEvidence()
     {
         var client = new MongoClient(Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));

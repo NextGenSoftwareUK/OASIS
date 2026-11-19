@@ -31,13 +31,9 @@ public partial class BlockscoutOASIS : ICosmicQueryStorageProvider, ICosmicReadO
 
     public BlockscoutOASIS(HttpClient client, Uri rest,
         IEnumerable<string> addresses, Guid sourceOwner, bool ownsClient = false)
-        : this(client, rest, addresses, sourceOwner, ownsClient, null) { }
-
-    private BlockscoutOASIS(HttpClient client, Uri rest, IEnumerable<string> addresses, Guid sourceOwner,
-        bool ownsClient, string universalApiKey)
         : this(client)
     {
-        addressesBackend = new AddressesBackend(client, rest, addresses, sourceOwner, ownsClient, universalApiKey);
+        addressesBackend = new AddressesBackend(client, rest, addresses, sourceOwner, ownsClient);
         QueryCapabilities = CosmicQueryCapabilities.ForStringMetadataKeyLookup(AddressMetadata, 42, 8);
     }
 
@@ -46,12 +42,7 @@ public partial class BlockscoutOASIS : ICosmicQueryStorageProvider, ICosmicReadO
 
     /// <summary>Separate host query-profile configuration, never the existing
     /// explorer API-key settings. Reject unknown fields rather than ignore keys.</summary>
-    public static BlockscoutOASIS FromPublicQueryConfiguration(string json) => FromQueryConfiguration(json, null);
-
-    public static BlockscoutOASIS FromUniversalQueryConfiguration(string json, string apiKey)
-        => FromQueryConfiguration(json, apiKey ?? string.Empty);
-
-    private static BlockscoutOASIS FromQueryConfiguration(string json, string universalApiKey)
+    public static BlockscoutOASIS FromPublicQueryConfiguration(string json)
     {
         if (json == null || Encoding.UTF8.GetByteCount(json) > 8192)
             throw new ArgumentException("Bounded explicit Blockscout public source required.");
@@ -73,7 +64,7 @@ public partial class BlockscoutOASIS : ICosmicQueryStorageProvider, ICosmicReadO
         {
             return new BlockscoutOASIS(client, new Uri(root.GetProperty("apiUrl").GetString(), UriKind.Absolute),
                 root.GetProperty("addresses").EnumerateArray().Select(value => value.GetString()),
-                root.GetProperty("sourceOwner").GetGuid(), true, universalApiKey);
+                root.GetProperty("sourceOwner").GetGuid(), true);
         }
         catch { client.Dispose(); throw; }
     }
@@ -231,13 +222,11 @@ public partial class BlockscoutOASIS : ICosmicQueryStorageProvider, ICosmicReadO
         private readonly string sourceName;
         private readonly HttpClient client;
         private readonly Uri api;
-        private readonly string universalApiKey;
         private readonly Guid owner;
         private readonly bool ownsClient;
         public IReadOnlyList<string> Addresses { get; }
 
-        public AddressesBackend(HttpClient client, Uri api, IEnumerable<string> addresses, Guid owner, bool ownsClient,
-            string universalApiKey)
+        public AddressesBackend(HttpClient client, Uri api, IEnumerable<string> addresses, Guid owner, bool ownsClient)
         {
             ArgumentNullException.ThrowIfNull(client);
             if (api == null || api.Scheme != Uri.UriSchemeHttps || api.AbsolutePath != "/api/v2/" || api.AbsoluteUri.Length > 256 ||
@@ -249,13 +238,7 @@ public partial class BlockscoutOASIS : ICosmicQueryStorageProvider, ICosmicReadO
             if (keys.Length is < 1 or > 8 || keys.Distinct(StringComparer.Ordinal).Count() != keys.Length)
                 throw new ArgumentException("One to eight unique addresses required.");
             foreach (string key in keys) Address(key);
-            if (universalApiKey != null && api != new Uri("https://eth.blockscout.com/api/v2/"))
-                throw new ArgumentException("The Universal API query profile requires the canonical Ethereum catalogue.");
-            this.client = client;
-            this.api = universalApiKey == null ? api : new Uri("https://api.blockscout.com/1/api/v2/");
-            this.universalApiKey = universalApiKey;
-            this.owner = owner;
-            this.ownsClient = ownsClient;
+            this.client = client; this.api = api; this.owner = owner; this.ownsClient = ownsClient;
             // Include the explorer instance in provenance and projected identity.
             // Same-owner addresses on another configured explorer cannot collide.
             sourceName = "blockscout-public-addresses:" + api.AbsoluteUri;
@@ -264,8 +247,6 @@ public partial class BlockscoutOASIS : ICosmicQueryStorageProvider, ICosmicReadO
 
         public async Task<IReadOnlyList<IHolon>> ReadAsync(IReadOnlyList<string> keys, CancellationToken token)
         {
-            if (universalApiKey != null && !Regex.IsMatch(universalApiKey, @"\A[A-Za-z0-9_-]{1,256}\z"))
-                throw new InvalidOperationException("A valid Blockscout Universal API credential is required.");
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
             deadline.CancelAfter(TimeSpan.FromSeconds(30));
             var rows = new List<IHolon>();
@@ -279,8 +260,6 @@ public partial class BlockscoutOASIS : ICosmicQueryStorageProvider, ICosmicReadO
             async Task<IHolon> ReadAddressAsync(string address)
             {
                 using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(api, "addresses/" + address));
-                if (universalApiKey != null)
-                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", universalApiKey);
                 using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
                 response.EnsureSuccessStatusCode();
                 await using var stream = await response.Content.ReadAsStreamAsync(deadline.Token);

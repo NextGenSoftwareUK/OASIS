@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -27,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
     /// Avatar provider key = Algorand account address (58-char Base32 string).
     /// Holon provider key  = transaction ID (Base32 string).
     /// </summary>
-    public class AlgorandOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
+    public partial class AlgorandOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
     {
         private readonly HttpClient _algod;
         private readonly HttpClient _indexer;
@@ -37,15 +40,26 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
         public AlgorandOASIS(string algodUrl = null, string indexerUrl = null)
+            : this(algodUrl ?? Environment.GetEnvironmentVariable("ALGORAND_ALGOD_URL"),
+                indexerUrl ?? Environment.GetEnvironmentVariable("ALGORAND_INDEXER_URL"),
+                ReadConfiguredToken(algodUrl, "ALGORAND_ALGOD_URL", "ALGORAND_ALGOD_API_TOKEN"),
+                ReadConfiguredToken(indexerUrl, "ALGORAND_INDEXER_URL", "ALGORAND_INDEXER_API_TOKEN"))
         {
-            _algodUrl = (algodUrl ?? Environment.GetEnvironmentVariable("ALGORAND_ALGOD_URL")
-                         ?? "https://mainnet-api.algonode.cloud").TrimEnd('/');
-            _indexerUrl = (indexerUrl ?? Environment.GetEnvironmentVariable("ALGORAND_INDEXER_URL")
-                           ?? "https://mainnet-idx.algonode.cloud").TrimEnd('/');
-            _algod = new HttpClient { BaseAddress = new Uri(_algodUrl) };
-            _algod.DefaultRequestHeaders.Accept.ParseAdd("application/json");
-            _indexer = new HttpClient { BaseAddress = new Uri(_indexerUrl) };
-            _indexer.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+        }
+
+        public AlgorandOASIS(string algodUrl, string indexerUrl, string algodApiToken, string indexerApiToken)
+            : this(algodUrl, indexerUrl, algodApiToken, indexerApiToken, null)
+        {
+        }
+
+        public AlgorandOASIS(string algodUrl, string indexerUrl, string algodApiToken, string indexerApiToken,
+            AlgorandRecordBoxSettings? recordBoxes)
+        {
+            _algodUrl = (algodUrl ?? "https://mainnet-api.algonode.cloud").TrimEnd('/');
+            _indexerUrl = (indexerUrl ?? "https://mainnet-idx.algonode.cloud").TrimEnd('/');
+            _algod = CreateClient(_algodUrl, "X-Algo-API-Token", algodApiToken);
+            _indexer = CreateClient(_indexerUrl, "X-Indexer-API-Token", indexerApiToken);
+            _recordBoxes = recordBoxes;
 
             ProviderName = "AlgorandOASIS";
             ProviderDescription = "Algorand pure-PoS blockchain provider";
@@ -56,76 +70,165 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
 
         // ─── Activation ───────────────────────────────────────────────────────────
 
+        private static string ReadConfiguredToken(string suppliedUrl, string urlVariable, string tokenVariable) =>
+            suppliedUrl == null && !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(urlVariable))
+                ? Environment.GetEnvironmentVariable(tokenVariable)
+                : null;
+
+        private static HttpClient CreateClient(string url, string tokenHeader, string token)
+        {
+            var hasToken = !string.IsNullOrWhiteSpace(token);
+            var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = !hasToken })
+                { BaseAddress = new Uri(url) };
+            client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+            if (hasToken)
+                client.DefaultRequestHeaders.Add(tokenHeader, token);
+            return client;
+        }
+
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
             try
             {
-                var resp = await _algod.GetAsync("/v2/status");
-                resp.EnsureSuccessStatusCode();
-                using var doc = await JsonDocument.ParseAsync(await resp.Content.ReadAsStreamAsync());
-                ulong lastRound = doc.RootElement.TryGetProperty("last-round", out var lr) ? lr.GetUInt64() : 0;
+                var algod = ReadAlgodRoundAsync();
+                var versions = ReadAlgodNetworkAsync();
+                var indexer = ReadIndexerStatusAsync();
+                await Task.WhenAll(algod, versions, indexer).ConfigureAwait(false);
+                var algodRound = await algod.ConfigureAwait(false);
+                var algodNetwork = await versions.ConfigureAwait(false);
+                var index = await indexer.ConfigureAwait(false);
+                if (algodNetwork.Id != index.GenesisId || algodNetwork.Hash != index.GenesisHash)
+                    throw new InvalidOperationException("Algod and Indexer identify different Algorand networks.");
+                if (_recordBoxes != null)
+                    await VerifyRecordApplicationAsync(_recordBoxes, algodNetwork.Hash).ConfigureAwait(false);
+                IsProviderActivated = true;
                 result.Result = true;
-                result.Message = $"AlgorandOASIS activated. Last round: {lastRound} at {_algodUrl}.";
+                result.Message = $"AlgorandOASIS activated. Algod round {algodRound} at {_algodUrl}. Indexed round {index.Round} at {_indexerUrl}.";
             }
             catch (Exception ex)
             {
+                IsProviderActivated = false;
                 result.Exception = ex;
                 OASISErrorHandling.HandleError(ref result, $"AlgorandOASIS: Error activating: {ex.Message}");
             }
             return result;
         }
 
-        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
+        private async Task<ulong> ReadAlgodRoundAsync()
+        {
+            using var document = await ReadJsonAsync(_algod, "/v2/status").ConfigureAwait(false);
+            if (!document.RootElement.TryGetProperty("last-round", out var round) || !round.TryGetUInt64(out var lastRound))
+                throw new InvalidOperationException("Algod status did not provide a valid last round.");
+            return lastRound;
+        }
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() =>
-            await Task.FromResult(new OASISResult<bool> { Result = true, Message = "AlgorandOASIS deactivated." });
+        private async Task<(string Id, string Hash)> ReadAlgodNetworkAsync()
+        {
+            using var document = await ReadJsonAsync(_algod, "/versions").ConfigureAwait(false);
+            var root = document.RootElement;
+            return ReadNetworkIdentity(root, "genesis_id", "genesis_hash_b64");
+        }
 
-        public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
+        private async Task<(ulong Round, string GenesisId, string GenesisHash)> ReadIndexerStatusAsync()
+        {
+            using var document = await ReadJsonAsync(_indexer, "/health").ConfigureAwait(false);
+            var health = document.RootElement;
+            if (!health.TryGetProperty("db-available", out var database) || database.ValueKind != JsonValueKind.True ||
+                !health.TryGetProperty("is-migrating", out var migrating) || migrating.ValueKind != JsonValueKind.False ||
+                !health.TryGetProperty("round", out var round) || !round.TryGetUInt64(out var indexedRound))
+                throw new InvalidOperationException("Indexer health did not report an available database and a valid round.");
+
+            using var block = await ReadJsonAsync(_indexer, $"/v2/blocks/{indexedRound.ToString(CultureInfo.InvariantCulture)}?header-only=true").ConfigureAwait(false);
+            var header = block.RootElement;
+            if (header.GetProperty("round").GetUInt64() != indexedRound)
+                throw new InvalidOperationException("Indexer did not return the requested network header.");
+            var network = ReadNetworkIdentity(header, "genesis-id", "genesis-hash");
+            return (indexedRound, network.Id, network.Hash);
+        }
+
+        private static (string Id, string Hash) ReadNetworkIdentity(JsonElement document, string idField, string hashField)
+        {
+            var id = document.GetProperty(idField).GetString();
+            var hash = document.GetProperty(hashField).GetString();
+            if (string.IsNullOrWhiteSpace(id) || hash == null || Convert.FromBase64String(hash).Length != 32)
+                throw new InvalidOperationException("Algorand did not return a valid genesis identity.");
+            return (id, hash);
+        }
+
+        private static async Task<JsonDocument> ReadJsonAsync(HttpClient client, string path)
+        {
+            using var response = await client.GetAsync(path).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            using var body = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            return await JsonDocument.ParseAsync(body).ConfigureAwait(false);
+        }
+
+        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().GetAwaiter().GetResult();
+
+        public override Task<OASISResult<bool>> DeActivateProviderAsync() => Task.FromResult(DeActivateProvider());
+
+        public override OASISResult<bool> DeActivateProvider()
+        {
+            IsProviderActivated = false;
+            return new OASISResult<bool> { Result = true, Message = "AlgorandOASIS deactivated." };
+        }
 
         // ─── Avatar: Load ─────────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result,
-                "AlgorandOASIS: Use LoadAvatarByProviderKeyAsync(algorandAddress) instead.");
-            return await Task.FromResult(result);
-        }
+        public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
+            => LoadStoredRecordAsync<Avatar, IAvatar>(id, version, "avatar");
 
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) =>
             LoadAvatarAsync(id, version).Result;
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+            => _recordBoxes != null
+                ? Guid.TryParseExact(providerKey, "D", out var id) && id != Guid.Empty
+                    ? await LoadAvatarAsync(id, version).ConfigureAwait(false)
+                    : new OASISResult<IAvatar> { IsError = true, Message = "An enrolled Algorand avatar key must be an OASIS ID." }
+                : await LoadPublicAccountAsync(providerKey, version).ConfigureAwait(false);
+
+        private async Task<OASISResult<IAvatar>> LoadPublicAccountAsync(string providerKey, int version)
         {
             var result = new OASISResult<IAvatar>();
             try
             {
-                var resp = await _algod.GetAsync($"/v2/accounts/{Uri.EscapeDataString(providerKey)}");
+                if (version != 0)
+                    throw new ArgumentOutOfRangeException(nameof(version), "Algod account lookup returns the current account only.");
+                AlgorandPublicAccountMetadataSource.ValidateAddress(providerKey);
+                using var deadline = new CancellationTokenSource(_algod.Timeout);
+                using var resp = await _algod.GetAsync($"/v2/accounts/{Uri.EscapeDataString(providerKey)}?exclude=all",
+                    HttpCompletionOption.ResponseHeadersRead, deadline.Token).ConfigureAwait(false);
                 resp.EnsureSuccessStatusCode();
-                using var doc = await JsonDocument.ParseAsync(await resp.Content.ReadAsStreamAsync());
-                var acct = doc.RootElement.TryGetProperty("account", out var a) ? a : doc.RootElement;
+                using var stream = await resp.Content.ReadAsStreamAsync(deadline.Token).ConfigureAwait(false);
+                using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: deadline.Token).ConfigureAwait(false);
+                var account = doc.RootElement;
+                string address = account.GetProperty("address").GetString();
+                if (!string.Equals(address, providerKey, StringComparison.Ordinal))
+                    throw new InvalidOperationException("Algod returned a different account address.");
+                string status = account.GetProperty("status").GetString();
+                if (status is not ("Online" or "Offline" or "NotParticipating"))
+                    throw new InvalidOperationException("Algod returned an unrecognized account status.");
 
                 var avatar = new Avatar
                 {
-                    Id = DeriveGuid(providerKey),
-                    Username = providerKey,
-                    Description = $"Algorand account {providerKey}",
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow,
+                    Id = DeriveGuid(address),
+                    Username = address,
+                    Description = $"Algorand account {address}"
                 };
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS] = providerKey;
-                avatar.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["address"] = providerKey;
-                if (acct.TryGetProperty("amount", out var bal))
-                    avatar.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["balance_microALGO"] = bal.GetUInt64().ToString();
-                if (acct.TryGetProperty("amount-without-pending-rewards", out var nb))
-                    avatar.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["balance_without_rewards_microALGO"] = nb.GetUInt64().ToString();
-                if (acct.TryGetProperty("status", out var st))
-                    avatar.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["status"] = st.GetString() ?? string.Empty;
-                if (acct.TryGetProperty("total-assets-opted-in", out var asas))
-                    avatar.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["total_assets_opted_in"] = asas.GetUInt32().ToString();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS] = address;
+                var metadata = GetAlgorandMetadata(avatar);
+                metadata["address"] = address;
+                metadata["balance_microALGO"] = account.GetProperty("amount").GetUInt64().ToString(CultureInfo.InvariantCulture);
+                metadata["balance_without_rewards_microALGO"] = account.GetProperty("amount-without-pending-rewards").GetUInt64().ToString(CultureInfo.InvariantCulture);
+                metadata["status"] = status;
+                metadata["total_assets_opted_in"] = account.GetProperty("total-assets-opted-in").GetUInt64().ToString(CultureInfo.InvariantCulture);
+                metadata["round"] = account.GetProperty("round").GetUInt64().ToString(CultureInfo.InvariantCulture);
                 result.Result = avatar;
-                result.Message = $"AlgorandOASIS: Loaded account '{providerKey}'.";
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
+                result.Message = $"AlgorandOASIS: Loaded account '{address}'.";
             }
             catch (Exception ex)
             {
@@ -139,50 +242,35 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) =>
             LoadAvatarByProviderKeyAsync(providerKey, version).Result;
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0) =>
-            await LoadAvatarByProviderKeyAsync(avatarUsername, version);
+        public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0) =>
+            _recordBoxes == null ? LoadPublicAccountAsync(avatarUsername, version) :
+                LoadEnrolledAvatarByAliasAsync("username", avatarUsername, version);
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) =>
             LoadAvatarByUsernameAsync(avatarUsername, version).Result;
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Email lookup is not supported.");
-            return await Task.FromResult(result);
-        }
+        public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0) =>
+            LoadEnrolledAvatarByAliasAsync("email", avatarEmail, version);
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) =>
             LoadAvatarByEmailAsync(avatarEmail, version).Result;
 
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IAvatar>>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: LoadAllAvatars is not supported.");
-            return await Task.FromResult(result);
-        }
+        public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+            => LoadEnrolledAvatarRecordsAsync<Avatar, IAvatar>("avatar", version);
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) =>
             LoadAllAvatarsAsync(version).Result;
 
         // ─── Avatar: Save / Delete ────────────────────────────────────────────────
 
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
-        {
-            var result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result,
-                "AlgorandOASIS: Algorand accounts are derived from Ed25519 keys — no save operation.");
-            return await Task.FromResult(result);
-        }
+        public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
+            => SaveStoredRecordAsync<Avatar, IAvatar>(avatar, avatar is { Version: > 0 } ? avatar.Version - 1 : 0, "avatar");
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar) => SaveAvatarAsync(avatar).Result;
 
-        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: SaveAvatarDetail is not supported.");
-            return await Task.FromResult(result);
-        }
+        public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
+            => SaveStoredRecordAsync<AvatarDetail, IAvatarDetail>(avatarDetail,
+                avatarDetail is { Version: > 0 } ? avatarDetail.Version - 1 : 0, "avatar-detail");
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) =>
             SaveAvatarDetailAsync(avatarDetail).Result;
@@ -190,38 +278,63 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
             var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Accounts cannot be deleted.");
-            return await Task.FromResult(result);
+            try
+            {
+                var settings = _recordBoxes;
+                if (settings?.WriterSeed == null || !IsProviderActivated)
+                    throw new InvalidOperationException("Activate an enrolled Algorand record writer before deleting an avatar.");
+                if (id == Guid.Empty)
+                    throw new ArgumentException("An enrolled Algorand avatar ID is required.", nameof(id));
+                var deleted = softDelete
+                    ? await DeleteEnrolledAvatarSoftlyAsync(id, settings, CancellationToken.None).ConfigureAwait(false)
+                    : await DeleteEnrolledAvatarPermanentlyAsync(id, settings, CancellationToken.None).ConfigureAwait(false);
+                if (!deleted)
+                    return new OASISResult<bool>
+                    {
+                        IsError = true,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
+                        Message = "The enrolled Algorand avatar was not found."
+                    };
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+            }
+            catch (Exception exception)
+            {
+                OASISErrorHandling.HandleError(ref result, "Could not complete enrolled Algorand avatar deletion.", exception);
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) =>
             DeleteAvatarAsync(id, softDelete).Result;
 
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Accounts cannot be deleted.");
-            return await Task.FromResult(result);
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true) =>
+            Guid.TryParseExact(providerKey, "D", out var id) ?
+                DeleteAvatarAsync(id, softDelete) :
+                Task.FromResult(new OASISResult<bool> { IsError = true, Message = "An enrolled Algorand avatar ID is required." });
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) =>
             DeleteAvatarAsync(providerKey, softDelete).Result;
 
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Accounts cannot be deleted.");
-            return await Task.FromResult(result);
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true) =>
+            DeleteEnrolledAvatarByAliasAsync("username", avatarUsername, softDelete);
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) =>
             DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
 
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true) =>
+            DeleteEnrolledAvatarByAliasAsync("email", avatarEmail, softDelete);
+
+        private async Task<OASISResult<bool>> DeleteEnrolledAvatarByAliasAsync(string kind, string alias, bool softDelete)
         {
-            var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Accounts cannot be deleted.");
-            return await Task.FromResult(result);
+            var target = await LoadEnrolledAvatarByAliasAsync(kind, alias, 0).ConfigureAwait(false);
+            if (target.IsError || target.Result == null)
+                return new OASISResult<bool>
+                {
+                    IsError = true, ErrorCode = target.ErrorCode, Message = target.Message, Exception = target.Exception
+                };
+            return await DeleteAvatarAsync(target.Result.Id, softDelete).ConfigureAwait(false);
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true) =>
@@ -229,12 +342,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
 
         // ─── Avatar Detail ────────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Use LoadAvatarDetailByUsernameAsync(address) instead.");
-            return await Task.FromResult(result);
-        }
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+            => LoadStoredRecordAsync<AvatarDetail, IAvatarDetail>(id, version, "avatar-detail");
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) =>
             LoadAvatarDetailAsync(id, version).Result;
@@ -262,12 +371,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) =>
             LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
 
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: LoadAllAvatarDetails is not supported.");
-            return await Task.FromResult(result);
-        }
+        public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+            => LoadEnrolledAvatarRecordsAsync<AvatarDetail, IAvatarDetail>("avatar-detail", version);
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) =>
             LoadAllAvatarDetailsAsync(version).Result;
@@ -278,6 +383,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
             bool loadChildrenFromProvider = false, int version = 0)
         {
+            if (_recordBoxes != null)
+                return await LoadEnrolledHolonAsync(id, loadChildren, recursive, maxChildDepth,
+                    loadChildrenFromProvider, version).ConfigureAwait(false);
             var result = new OASISResult<IHolon>();
             OASISErrorHandling.HandleError(ref result,
                 "AlgorandOASIS: Use LoadHolonAsync(transactionId) to load an Algorand transaction.");
@@ -294,15 +402,23 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
             bool loadChildrenFromProvider = false, int version = 0)
         {
+            if (_recordBoxes != null && Guid.TryParseExact(providerKey, "D", out var storedId))
+                return await LoadEnrolledHolonAsync(storedId, loadChildren, recursive, maxChildDepth,
+                    loadChildrenFromProvider, version).ConfigureAwait(false);
             var result = new OASISResult<IHolon>();
             try
             {
-                // Use indexer for transaction lookup by ID
-                var resp = await _indexer.GetAsync($"/v2/transactions/{Uri.EscapeDataString(providerKey)}");
-                resp.EnsureSuccessStatusCode();
-                using var doc = await JsonDocument.ParseAsync(await resp.Content.ReadAsStreamAsync());
-                var txn = doc.RootElement.TryGetProperty("transaction", out var t) ? t : doc.RootElement;
-                result.Result = MapTransactionToHolon(txn, providerKey);
+                using var response = await _indexer.GetAsync($"/v2/transactions/{Uri.EscapeDataString(providerKey)}").ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+                using var body = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                using var document = await JsonDocument.ParseAsync(body).ConfigureAwait(false);
+                if (!document.RootElement.TryGetProperty("transaction", out var transaction) ||
+                    !transaction.TryGetProperty("id", out var id) ||
+                    !string.Equals(id.GetString(), providerKey, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("The indexer did not return the requested transaction.");
+
+                result.Result = MapTransactionToHolon(transaction, id.GetString());
+                result.IsLoaded = true;
                 result.Message = $"AlgorandOASIS: Loaded transaction '{providerKey}'.";
             }
             catch (Exception ex)
@@ -324,6 +440,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
             bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
+            if (_recordBoxes != null)
+                return await LoadEnrolledCollectionAsync(null, type, loadChildren, recursive, maxChildDepth,
+                    curentChildDepth, continueOnError, loadChildrenFromProvider, version).ConfigureAwait(false);
             var result = new OASISResult<IEnumerable<IHolon>>();
             OASISErrorHandling.HandleError(ref result,
                 "AlgorandOASIS: LoadAllHolons is not supported — use LoadHolonsForParentAsync(accountAddress) to load an account's transactions.");
@@ -341,6 +460,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true,
             bool loadChildrenFromProvider = false, int version = 0)
         {
+            if (_recordBoxes != null)
+                return await LoadEnrolledCollectionAsync(id, type, loadChildren, recursive, maxChildDepth,
+                    curentChildDepth, continueOnError, loadChildrenFromProvider, version).ConfigureAwait(false);
             var result = new OASISResult<IEnumerable<IHolon>>();
             OASISErrorHandling.HandleError(ref result,
                 "AlgorandOASIS: Use LoadHolonsForParentAsync(algorandAddress) instead.");
@@ -359,32 +481,32 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true,
             bool loadChildrenFromProvider = false, int version = 0)
         {
+            if (_recordBoxes != null && Guid.TryParseExact(providerKey, "D", out var parentId))
+                return await LoadEnrolledCollectionAsync(parentId, type, loadChildren, recursive, maxChildDepth,
+                    curentChildDepth, continueOnError, loadChildrenFromProvider, version).ConfigureAwait(false);
+            if (type != HolonType.All && type != HolonType.Holon)
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    Result = Array.Empty<IHolon>(),
+                    IsLoaded = true,
+                    Message = $"AlgorandOASIS: Account history has no {type} holons."
+                };
+
             // Load transaction history for an Algorand account via the indexer
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                var holons = new List<IHolon>();
-                string nextToken = null;
-                do
-                {
-                    string url = $"/v2/accounts/{Uri.EscapeDataString(providerKey)}/transactions?limit=100" +
-                                 (nextToken != null ? $"&next={Uri.EscapeDataString(nextToken)}" : "");
-                    var resp = await _indexer.GetAsync(url);
-                    if (!resp.IsSuccessStatusCode) break;
-                    using var doc = await JsonDocument.ParseAsync(await resp.Content.ReadAsStreamAsync());
-                    if (doc.RootElement.TryGetProperty("transactions", out var txns))
-                        foreach (var t in txns.EnumerateArray())
-                        {
-                            string txId = t.TryGetProperty("id", out var id) ? id.GetString() ?? string.Empty : string.Empty;
-                            if (!string.IsNullOrEmpty(txId))
-                                holons.Add(MapTransactionToHolon(t, txId));
-                        }
-                    nextToken = doc.RootElement.TryGetProperty("next-token", out var nt) ? nt.GetString() : null;
-                }
-                while (!string.IsNullOrEmpty(nextToken) && holons.Count < 2000);
+                var (holons, hasMore) = await ReadIndexedTransactionsAsync(
+                    $"/v2/accounts/{Uri.EscapeDataString(providerKey)}/transactions?").ConfigureAwait(false);
 
                 result.Result = holons;
-                result.Message = $"AlgorandOASIS: Loaded {holons.Count} transactions for '{providerKey}'.";
+                result.IsLoaded = true;
+                result.LoadedCount = holons.Count;
+                result.IsWarning = hasMore;
+                result.WarningCount = result.IsWarning ? 1 : 0;
+                result.Message = result.IsWarning
+                    ? $"AlgorandOASIS: Returned {holons.Count} transactions for '{providerKey}'. More indexed history is available."
+                    : $"AlgorandOASIS: Loaded {holons.Count} transactions for '{providerKey}'.";
             }
             catch (Exception ex)
             {
@@ -395,6 +517,40 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             return result;
         }
 
+        private const int IndexerTransactionLimit = 2000;
+
+        private async Task<(List<IHolon> Transactions, bool HasMore)> ReadIndexedTransactionsAsync(string query)
+        {
+            // Use the existing client timeout for the complete lookup, including all pages and response bodies.
+            using var deadline = new CancellationTokenSource(_indexer.Timeout);
+            var holons = new List<IHolon>();
+            var transactionIds = new HashSet<string>(StringComparer.Ordinal);
+            var pageTokens = new HashSet<string>(StringComparer.Ordinal);
+            string nextToken = null;
+            do
+            {
+                var pageSize = Math.Min(100, IndexerTransactionLimit - holons.Count);
+                var url = query + $"limit={pageSize}" + (nextToken == null ? "" : $"&next={Uri.EscapeDataString(nextToken)}");
+                using var response = await _indexer.GetAsync(url, HttpCompletionOption.ResponseHeadersRead,
+                    deadline.Token).ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+                using var body = await response.Content.ReadAsStreamAsync(deadline.Token).ConfigureAwait(false);
+                using var document = await JsonDocument.ParseAsync(body, cancellationToken: deadline.Token).ConfigureAwait(false);
+                foreach (var transaction in document.RootElement.GetProperty("transactions").EnumerateArray())
+                {
+                    var transactionId = transaction.GetProperty("id").GetString();
+                    if (string.IsNullOrWhiteSpace(transactionId) || !transactionIds.Add(transactionId))
+                        throw new InvalidOperationException("The indexer returned a missing or repeated transaction identity.");
+                    holons.Add(MapTransactionToHolon(transaction, transactionId));
+                }
+                nextToken = document.RootElement.TryGetProperty("next-token", out var next) ? next.GetString() : null;
+                if (!string.IsNullOrEmpty(nextToken) && !pageTokens.Add(nextToken))
+                    throw new InvalidOperationException("The indexer repeated the transaction page token.");
+            }
+            while (!string.IsNullOrEmpty(nextToken) && holons.Count < IndexerTransactionLimit);
+            return (holons, !string.IsNullOrEmpty(nextToken));
+        }
+
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey,
             HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true,
             int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true,
@@ -402,15 +558,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth,
                 curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey,
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey,
             string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true,
             int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true,
-            bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: LoadHolonsByMetaData is not supported.");
-            return await Task.FromResult(result);
-        }
+            bool loadChildrenFromProvider = false, int version = 0) =>
+            LoadHolonsByMetaDataAsync(new Dictionary<string, string> { [metaKey ?? string.Empty] = metaValue },
+                MetaKeyValuePairMatchMode.All, type, loadChildren, recursive, maxChildDepth, curentChildDepth,
+                continueOnError, loadChildrenFromProvider, version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue,
             HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true,
@@ -426,8 +580,73 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: LoadHolonsByMetaData is not supported.");
-            return await Task.FromResult(result);
+            try
+            {
+                if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
+                    throw new ArgumentException("At least one indexed Algorand transaction field is required.");
+                if (!Enum.IsDefined(typeof(MetaKeyValuePairMatchMode), metaKeyValuePairMatchMode))
+                    throw new ArgumentOutOfRangeException(nameof(metaKeyValuePairMatchMode));
+
+                var filters = metaKeyValuePairs.Select(pair => (Field: pair, Query: AlgorandTransactionFilter(pair.Key, pair.Value))).ToArray();
+                // The Indexer accepts one address-role per query. For an All query with both participants,
+                // push the sender and all non-address fields down, then check both mapped participants.
+                var queries = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All
+                    ? new[] { (Query: string.Join("&", filters.Where(filter =>
+                        filter.Field.Key != "receiver" || !metaKeyValuePairs.ContainsKey("sender")).Select(filter => filter.Query)),
+                        Fields: filters.Select(filter => filter.Field).ToArray()) }
+                    : filters.Select(filter => (filter.Query, Fields: new[] { filter.Field })).ToArray();
+                if (type != HolonType.All && type != HolonType.Holon)
+                    queries = Array.Empty<(string Query, KeyValuePair<string, string>[] Fields)>();
+
+                var pages = await Task.WhenAll(queries.Select(async query =>
+                {
+                    var page = await ReadIndexedTransactionsAsync($"/v2/transactions?{query.Query}&").ConfigureAwait(false);
+                    var exactMatches = page.Transactions.Where(holon => MatchesProjectedMetadata(holon, query.Fields)).ToList();
+                    return (Transactions: exactMatches, page.HasMore);
+                })).ConfigureAwait(false);
+                var matches = pages.SelectMany(page => page.Transactions)
+                    .DistinctBy(holon => holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS])
+                    .Take(IndexerTransactionLimit + 1).ToList();
+                result.IsWarning = matches.Count > IndexerTransactionLimit || pages.Any(page => page.HasMore);
+                result.WarningCount = result.IsWarning ? 1 : 0;
+                result.Result = matches.Take(IndexerTransactionLimit).ToList();
+                result.IsLoaded = true;
+                result.LoadedCount = Math.Min(matches.Count, IndexerTransactionLimit);
+                result.Message = result.IsWarning
+                    ? $"AlgorandOASIS: Returned {result.LoadedCount} matches. More indexed results are available."
+                    : $"AlgorandOASIS: Returned {result.LoadedCount} matches.";
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"AlgorandOASIS: Transaction metadata lookup failed: {ex.Message}");
+            }
+            return result;
+        }
+
+        private static string AlgorandTransactionFilter(string key, string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                throw new ArgumentException($"The metadata field '{key}' requires a value.");
+            string encoded = Uri.EscapeDataString(value);
+            return key switch
+            {
+                "tx_id" => $"txid={encoded}",
+                "tx_type" => $"tx-type={encoded}",
+                "confirmed_round" => $"round={encoded}",
+                "sender" => $"address={encoded}&address-role=sender",
+                "receiver" => $"address={encoded}&address-role=receiver&exclude-close-to=true",
+                "asa_id" => $"asset-id={encoded}",
+                "note" => $"note-prefix={Uri.EscapeDataString(Convert.ToBase64String(Encoding.UTF8.GetBytes(value)))}",
+                _ => throw new ArgumentException($"The metadata field '{key}' is not indexed by this provider.")
+            };
+        }
+
+        private static bool MatchesProjectedMetadata(IHolon holon, IEnumerable<KeyValuePair<string, string>> fields)
+        {
+            var metadata = holon.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS];
+            return fields.Where(field => field.Key is "sender" or "receiver" or "asa_id" or "note").All(field =>
+                metadata.TryGetValue(field.Key, out var value) && StringComparer.Ordinal.Equals(value, field.Value));
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(
@@ -444,11 +663,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
             bool saveChildrenOnProvider = false)
         {
-            // Send an Algorand payment transaction with a note field containing the holon name.
-            // Requires holon.MetaData["SenderAddress"], ["ReceiverAddress"], and ["SignedTxnBase64"].
-            // The caller must sign the transaction offline (Ed25519) and supply the base64-encoded
-            // signed msgpack. This is mandatory for blockchain transactions — private keys must never
-            // leave the client.
+            if (_recordBoxes != null)
+                return await SaveEnrolledHolonAsync(holon, saveChildren).ConfigureAwait(false);
+            // Submit the caller-signed transaction. A submission receipt does not establish confirmation.
             var result = new OASISResult<IHolon>();
             try
             {
@@ -464,22 +681,30 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
                 byte[] signedTxn = Convert.FromBase64String(holon.MetaData["SignedTxnBase64"].ToString()!);
                 using var content = new ByteArrayContent(signedTxn);
                 content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/x-binary");
-                var resp = await _algod.PostAsync("/v2/transactions", content);
-                if (resp.IsSuccessStatusCode)
+                using var response = await _algod.PostAsync("/v2/transactions", content).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode)
                 {
-                    using var doc = await JsonDocument.ParseAsync(await resp.Content.ReadAsStreamAsync());
-                    string txId = doc.RootElement.TryGetProperty("txId", out var tx) ? tx.GetString() ?? string.Empty : string.Empty;
-                    holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS] = txId;
-                    holon.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["tx_id"] = txId;
-                    result.Result = holon;
-                    result.Message = $"AlgorandOASIS: Transaction submitted with ID '{txId}'.";
-                }
-                else
-                {
-                    var body = await resp.Content.ReadAsStringAsync();
+                    var rejected = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     OASISErrorHandling.HandleError(ref result,
-                        $"AlgorandOASIS: Transaction submission failed ({resp.StatusCode}): {body}");
+                        $"AlgorandOASIS: Transaction submission failed ({response.StatusCode}): {rejected}");
+                    return result;
                 }
+
+                using var body = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                using var document = await JsonDocument.ParseAsync(body).ConfigureAwait(false);
+                if (!document.RootElement.TryGetProperty("txId", out var id) || id.ValueKind != JsonValueKind.String ||
+                    id.GetString() is not { Length: 52 } txId ||
+                    !System.Text.RegularExpressions.Regex.IsMatch(txId, "^[A-Z2-7]{52}$"))
+                {
+                    OASISErrorHandling.HandleError(ref result,
+                        "Algod acknowledged submission without a valid transaction ID. Reconcile the signed transaction before resubmitting.");
+                    return result;
+                }
+
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS] = txId;
+                GetAlgorandMetadata(holon)["tx_id"] = txId;
+                result.Result = holon;
+                result.Message = $"AlgorandOASIS: Transaction submitted with ID '{txId}'.";
             }
             catch (Exception ex)
             {
@@ -498,23 +723,40 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
             bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>();
+            var submitted = new List<IHolon>();
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = submitted };
             try
             {
-                foreach (var h in holons)
+                var index = 0;
+                foreach (var holon in holons)
                 {
-                    var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                    if (!r.IsError && r.Result != null) saved.Add(r.Result);
-                    else if (!continueOnError) { OASISErrorHandling.HandleError(ref result, r.Message); return result; }
+                    var response = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth,
+                        continueOnError, saveChildrenOnProvider).ConfigureAwait(false);
+                    if (!response.IsError && response.Result != null)
+                    {
+                        submitted.Add(response.Result);
+                    }
+                    else
+                    {
+                        result.IsError = true;
+                        result.ErrorCount++;
+                        result.ErrorCode ??= response.ErrorCode;
+                        result.Exception ??= response.Exception;
+                        result.InnerMessages.Add($"Item {index}: {response.Message}");
+                        if (!continueOnError)
+                            break;
+                    }
+                    index++;
                 }
-                result.Result = saved;
-                result.Message = $"AlgorandOASIS: Saved {saved.Count} holons.";
+
+                result.Message = result.IsError
+                    ? $"AlgorandOASIS: Submitted {submitted.Count} transactions and rejected {result.ErrorCount}."
+                    : $"AlgorandOASIS: Submitted {submitted.Count} transactions.";
             }
             catch (Exception ex)
             {
                 result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"AlgorandOASIS: Error saving holons: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"AlgorandOASIS: Error submitting transactions: {ex.Message}");
             }
             return result;
         }
@@ -529,6 +771,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
+            if (_recordBoxes != null)
+                return await DeleteStoredHolonAsync(id).ConfigureAwait(false);
             var result = new OASISResult<IHolon>();
             OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Blockchain transactions are immutable and cannot be deleted.");
             return await Task.FromResult(result);
@@ -538,6 +782,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
+            if (_recordBoxes != null && Guid.TryParseExact(providerKey, "D", out var id))
+                return await DeleteStoredHolonAsync(id).ConfigureAwait(false);
             var result = new OASISResult<IHolon>();
             OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Blockchain transactions are immutable and cannot be deleted.");
             return await Task.FromResult(result);
@@ -566,21 +812,18 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
                 {
                     // Indexer supports note-prefix search (base64)
                     string noteB64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(q));
-                    var resp = await _indexer.GetAsync($"/v2/transactions?note-prefix={Uri.EscapeDataString(noteB64)}&limit=100");
-                    if (resp.IsSuccessStatusCode)
-                    {
-                        using var doc = await JsonDocument.ParseAsync(await resp.Content.ReadAsStreamAsync());
-                        if (doc.RootElement.TryGetProperty("transactions", out var txns))
-                            foreach (var t in txns.EnumerateArray())
-                            {
-                                string txId = t.TryGetProperty("id", out var id) ? id.GetString() ?? string.Empty : string.Empty;
-                                if (!string.IsNullOrEmpty(txId))
-                                    searchResults.SearchResultHolons.Add(MapTransactionToHolon(t, txId));
-                            }
-                    }
+                    var (transactions, hasMore) = await ReadIndexedTransactionsAsync(
+                        $"/v2/transactions?note-prefix={Uri.EscapeDataString(noteB64)}&").ConfigureAwait(false);
+                    searchResults.SearchResultHolons = transactions;
+                    result.IsWarning = hasMore;
+                    result.WarningCount = hasMore ? 1 : 0;
                 }
                 result.Result = searchResults;
-                result.Message = $"AlgorandOASIS: Found {searchResults.SearchResultHolons.Count} transactions for '{q}'.";
+                result.IsLoaded = true;
+                result.LoadedCount = searchResults.SearchResultHolons.Count;
+                result.Message = result.IsWarning
+                    ? $"AlgorandOASIS: Returned {result.LoadedCount} transactions for '{q}'. More indexed matches are available."
+                    : $"AlgorandOASIS: Found {result.LoadedCount} transactions for '{q}'.";
             }
             catch (Exception ex)
             {
@@ -663,8 +906,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
         {
             string sender = t.TryGetProperty("sender", out var s) ? s.GetString() ?? string.Empty : string.Empty;
             string txType = t.TryGetProperty("tx-type", out var tt) ? tt.GetString() ?? "unknown" : "unknown";
-            ulong roundTime = t.TryGetProperty("round-time", out var rt) ? rt.GetUInt64() : 0;
-            DateTime ts = roundTime > 0 ? DateTimeOffset.FromUnixTimeSeconds((long)roundTime).UtcDateTime : DateTime.UtcNow;
+            DateTime timestamp = t.TryGetProperty("round-time", out var roundTime)
+                ? DateTimeOffset.FromUnixTimeSeconds(roundTime.GetInt64()).UtcDateTime
+                : default;
 
             // Note field is base64-encoded bytes
             string note = string.Empty;
@@ -677,33 +921,45 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
                 Id = DeriveGuid(txId),
                 Name = string.IsNullOrEmpty(note) ? $"Algorand {txType} tx {txId[..Math.Min(8, txId.Length)]}..." : note,
                 HolonType = HolonType.Holon,
-                CreatedDate = ts,
-                ModifiedDate = ts,
+                CreatedDate = timestamp,
+                ModifiedDate = timestamp,
             };
             h.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS] = txId;
-            h.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["tx_id"] = txId;
-            h.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["sender"] = sender;
-            h.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["tx_type"] = txType;
-            h.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["note"] = note;
+            var metadata = GetAlgorandMetadata(h);
+            metadata["tx_id"] = txId;
+            metadata["sender"] = sender;
+            metadata["tx_type"] = txType;
+            metadata["note"] = note;
             if (t.TryGetProperty("confirmed-round", out var cr))
-                h.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["confirmed_round"] = cr.GetUInt64().ToString();
+                metadata["confirmed_round"] = cr.GetUInt64().ToString();
             if (txType == "pay" && t.TryGetProperty("payment-transaction", out var pay))
             {
                 if (pay.TryGetProperty("receiver", out var rec))
-                    h.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["receiver"] = rec.GetString() ?? string.Empty;
+                    metadata["receiver"] = rec.GetString() ?? string.Empty;
                 if (pay.TryGetProperty("amount", out var amt))
-                    h.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["amount_microALGO"] = amt.GetUInt64().ToString();
+                    metadata["amount_microALGO"] = amt.GetUInt64().ToString();
             }
             else if (txType == "axfer" && t.TryGetProperty("asset-transfer-transaction", out var axfer))
             {
                 if (axfer.TryGetProperty("asset-id", out var assetId))
-                    h.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["asa_id"] = assetId.GetUInt64().ToString();
+                    metadata["asa_id"] = assetId.GetUInt64().ToString();
                 if (axfer.TryGetProperty("amount", out var asaAmt))
-                    h.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["asa_amount"] = asaAmt.GetUInt64().ToString();
+                    metadata["asa_amount"] = asaAmt.GetUInt64().ToString();
                 if (axfer.TryGetProperty("receiver", out var asaRec))
-                    h.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["receiver"] = asaRec.GetString() ?? string.Empty;
+                    metadata["receiver"] = asaRec.GetString() ?? string.Empty;
             }
             return h;
+        }
+
+        private static Dictionary<string, string> GetAlgorandMetadata(IHolonBase holon)
+        {
+            holon.ProviderMetaData ??= new Dictionary<ProviderType, Dictionary<string, string>>();
+            if (!holon.ProviderMetaData.TryGetValue(Core.Enums.ProviderType.AlgorandOASIS, out var metadata) || metadata == null)
+            {
+                metadata = new Dictionary<string, string>();
+                holon.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS] = metadata;
+            }
+            return metadata;
         }
 
         private static Guid DeriveGuid(string key)

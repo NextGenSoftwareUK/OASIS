@@ -2,8 +2,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
-using NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS;
-using NpgsqlTypes;
 
 namespace NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS.UnitTests;
 
@@ -14,19 +12,6 @@ public class CockroachDbCqlTests
         => CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.CockroachDBOASIS).Result)
             .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(
                 Guid.NewGuid(), ProviderType.CockroachDBOASIS, ids).Result).Result;
-
-    [TestMethod]
-    public void NativeCommandUsesUuidOrderAndTypedKeys()
-    {
-        var ids = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
-        const ProviderType authority = ProviderType.CockroachDBOASIS;
-        var result = PostgreSqlCqlCompiler.CompileNative(Query(ids), authority, authority);
-        Assert.IsFalse(result.IsError, result.Message);
-        using var command = result.Result;
-        StringAssert.Contains(command.CommandText, "ORDER BY id LIMIT @take OFFSET @skip");
-        Assert.AreEqual(NpgsqlDbType.Array | NpgsqlDbType.Uuid, command.Parameters["ids"].NpgsqlDbType);
-        CollectionAssert.AreEquivalent(ids, (Guid[])command.Parameters["ids"].Value!);
-    }
 
     [TestMethod]
     public void CapturedBusinessKeysCannotEscapeOrMutateAuthorityCatalogue()

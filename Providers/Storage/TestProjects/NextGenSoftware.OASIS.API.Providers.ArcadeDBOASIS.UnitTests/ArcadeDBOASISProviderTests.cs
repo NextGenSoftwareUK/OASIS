@@ -39,6 +39,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS.UnitTests
             Assert.IsFalse(string.IsNullOrWhiteSpace(_provider.ProviderDescription));
         }
 
+        [TestMethod]
+        public void GetProviderVersion_ShouldReturnValidVersion()
+        {
+            Assert.IsFalse(string.IsNullOrWhiteSpace(_provider.GetProviderVersion()));
+        }
+
         [TestCleanup]
         public void Cleanup()
         {

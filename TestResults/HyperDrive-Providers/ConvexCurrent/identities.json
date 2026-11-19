@@ -1,0 +1,30 @@
+{
+  "before": [
+    {
+      "Dependency": "Core",
+      "SHA256": "E37DF6AE7D71A9BE2699D95485F27DC1A3E2B2C80E6D2D38C71AA9FEB15BFD0D",
+      "SourceDocuments": 852
+    },
+    {
+      "Dependency": "Shared",
+      "SHA256": "1C08FF10E77357F60D09FA7FCFD7CEBED76FF9F1797B683BEBC2053D9FDDCAC8",
+      "SourceDocuments": 56
+    }
+  ],
+  "after": [
+    {
+      "Dependency": "Core",
+      "SHA256": "E37DF6AE7D71A9BE2699D95485F27DC1A3E2B2C80E6D2D38C71AA9FEB15BFD0D",
+      "SourceDocuments": 852
+    },
+    {
+      "Dependency": "Shared",
+      "SHA256": "1C08FF10E77357F60D09FA7FCFD7CEBED76FF9F1797B683BEBC2053D9FDDCAC8",
+      "SourceDocuments": 56
+    }
+  ],
+  "consumerSourceDocuments": 7,
+  "scope": "Local source-matched cohort including owner working Core; not immutable release certification",
+  "providerSourceDocuments": 4,
+  "providerSha256": "D59347F233F2225DCA08727DF4EF73791AB001B2230A505F38D4DC92B74A6A8C"
+}

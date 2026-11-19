@@ -1,0 +1,21 @@
+name: BNB Smart Chain Web3Core deployment
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/bnb-native-deployment.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/hardhat.config.cjs'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/scripts/deploy.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/bnb-native-storage.yml
+    with:
+      deployment_only: true
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}

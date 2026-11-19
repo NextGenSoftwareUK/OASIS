@@ -21,8 +21,8 @@ public class SandboxUsageAllowanceTests
         var ordinary = SubscriptionService.GetUsagePolicy("free", 0);
         var effective = SandboxSubscriptionRules.EffectivePolicy(ordinary, Temporary(), Now);
 
-        Assert.Equal(200, effective.DailyCallLimit);
-        Assert.Equal(20, ordinary.DailyCallLimit);
+        Assert.Equal(1000, ordinary.DailyCallLimit);
+        Assert.Equal(Math.Max(ordinary.DailyCallLimit, SandboxSubscriptionRules.DailyDemoCalls), effective.DailyCallLimit);
         Assert.Equal(ordinary.MonthlyRequestLimit, effective.MonthlyRequestLimit);
         Assert.Equal(ordinary.DailyTokenLimit, effective.DailyTokenLimit);
         Assert.Equal(ordinary.MonthlyBudgetUsd, effective.MonthlyBudgetUsd);
@@ -61,9 +61,9 @@ public class SandboxUsageAllowanceTests
         var ordinary = SubscriptionService.GetUsagePolicy("free", 0);
         var effective = SandboxSubscriptionRules.EffectivePolicy(ordinary, Temporary(), Now);
         var aggregate = new SubscriptionUsageAggregate { DailyCalls = 20, MonthlyRequests = 20 };
-        Assert.Throws<SubscriptionUsageLimitException>(() => SubscriptionUsagePolicyEvaluator.EnsureAuthorized(ordinary, aggregate, 0, 0));
+        SubscriptionUsagePolicyEvaluator.EnsureAuthorized(ordinary, aggregate, 0, 0);
         SubscriptionUsagePolicyEvaluator.EnsureAuthorized(effective, aggregate, 0, 0);
-        aggregate.DailyCalls = 200;
+        aggregate.DailyCalls = effective.DailyCallLimit;
         Assert.Equal("DAILY_CALL_LIMIT_EXCEEDED", Assert.Throws<SubscriptionUsageLimitException>(() =>
             SubscriptionUsagePolicyEvaluator.EnsureAuthorized(effective, aggregate, 0, 0)).Code);
         aggregate.DailyCalls = 20;
@@ -88,9 +88,9 @@ public class SandboxUsageAllowanceTests
         var summary = await service.GetUsageSummaryAsync(record.UserId, 0, default);
 
         Assert.Equal("free", summary.PlanId);
-        Assert.Equal(200, summary.DailyCallLimit);
+        Assert.Equal(1000, summary.DailyCallLimit);
         Assert.Equal(20, summary.DailyCalls);
-        Assert.Equal(180, summary.DailyCallsRemaining);
+        Assert.Equal(980, summary.DailyCallsRemaining);
         Assert.Equal(50_000, summary.DailyTokenLimit);
         Assert.Equal(1m, summary.MonthlyBudgetUsd);
         Assert.False(record.PayAsYouGoEnabled);

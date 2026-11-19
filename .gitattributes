@@ -7,6 +7,9 @@
 # from a Windows checkout/local Railway upload.
 *.sh text eol=lf
 Docker/*.env text eol=lf
+# Solidity metadata hashes include exact source bytes. Keep the shared deployed
+# storage contract reproducible across Windows and Linux verification/builds.
+Providers/Shared/Contracts/OASISKeyValueStore.sol text eol=lf
 ###############################################################################
 # Set default behavior for command prompt diff.
 #
@@ -67,3 +70,5 @@ Docker/*.env text eol=lf
 # Unified-diff context lines representing an empty source line contain one
 # required leading space. Do not flag that patch syntax as trailing whitespace.
 Scripts/patches/*.patch whitespace=-blank-at-eol
+
+Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-*-local-v2.json text eol=lf

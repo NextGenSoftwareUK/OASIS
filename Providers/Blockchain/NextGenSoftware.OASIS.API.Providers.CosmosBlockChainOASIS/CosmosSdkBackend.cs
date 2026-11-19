@@ -125,7 +125,7 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
         cancellationToken.ThrowIfCancellationRequested();
         ObjectDisposedException.ThrowIf(_disposed, this);
         var isMutation = operation is "put" or "delete" or "execute" or "transfer" or "upload" or "instantiate";
-        if(isMutation&&_deploymentGuard!=null)await _deploymentGuard(cancellationToken);
+        if(isMutation&&_deploymentGuard!=null)await _deploymentGuard(cancellationToken).ConfigureAwait(false);
         if (preparationServer != null && !isMutation) throw new ArgumentException("Preparation gate is only valid for a native mutation.");
         // Public asset/contract/transfer facades share this invocation boundary.
         // An ambient owner must cover them too, not just IKeyValueBackend put/delete.
@@ -173,16 +173,16 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
         var errorTask = process.StandardError.ReadToEndAsync(timeout.Token);
         try
         {
-            await process.StandardInput.WriteAsync(JsonSerializer.Serialize(request).AsMemory(), timeout.Token);
+            await process.StandardInput.WriteAsync(JsonSerializer.Serialize(request).AsMemory(), timeout.Token).ConfigureAwait(false);
             process.StandardInput.Close();
-            await process.WaitForExitAsync(timeout.Token);
+            await process.WaitForExitAsync(timeout.Token).ConfigureAwait(false);
             if (preparationTask?.IsFaulted == true)
             {
                 preparationObserved = true;
-                await preparationTask;
+                await preparationTask.ConfigureAwait(false);
             }
-            var output = await outputTask;
-            await errorTask;
+            var output = await outputTask.ConfigureAwait(false);
+            await errorTask.ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(output))
                 throw InvalidEnvelope(isMutation, $"Cosmos SDK exited {process.ExitCode} without a response; native outcome is not established.");
             JsonDocument parsed;
@@ -267,12 +267,12 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
         {
             timeout.Cancel();
             preparationServer?.Dispose();
-            if (!process.HasExited) { process.Kill(entireProcessTree: true); await process.WaitForExitAsync(); }
-            try { await Task.WhenAll(outputTask, errorTask); }
+            if (!process.HasExited) { process.Kill(entireProcessTree: true); await process.WaitForExitAsync().ConfigureAwait(false); }
+            try { await Task.WhenAll(outputTask, errorTask).ConfigureAwait(false); }
             catch (Exception ex) when (ex is OperationCanceledException || ex is IOException || ex is System.Text.DecoderFallbackException) { }
             if (preparationTask != null)
             {
-                try { await preparationTask; }
+                try { await preparationTask.ConfigureAwait(false); }
                 catch (OperationCanceledException) { }
                 catch (Exception) when (preparationObserved) { }
             }

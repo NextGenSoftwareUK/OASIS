@@ -60,7 +60,7 @@ Ordinary database queries can use an ordinary-query-only `PREPARED_STORAGE_ADMIS
     "method": "POST",
     "path": "/api/data/query-cql",
     "policy": {
-      "meterCategory": "cql.query",
+      "meterCategory": "api.request",
       "reservedUnits": 1,
       "estimatedCostUsd": 0.002,
       "fixedCostUsd": 0,

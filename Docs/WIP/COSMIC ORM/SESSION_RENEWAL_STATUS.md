@@ -40,55 +40,6 @@ Updated 1 November 2026. **Live HTTP lifecycle and frontend publication verified
 
 ## Next
 
-The new browser tab loaded `session-renewal-lifetime-v2` and created
-demo avatar sandbox-3a2cb72c. HyperDrive state loaded, and BNB Chain
-native full/subset queries returned 3/2. The original tab remains retained.
-Continue this new session through its normal renewal boundary, then verify
-the same avatar can still query its private records. Startup success alone
-does not prove renewal.
-
-At laptop time 01:34:55 on 5 November, the same sandbox-3a2cb72c browser
-avatar returned both original BNB private IDs at version 1. Its first
-visible signed-in HyperDrive update was 01:15:45, more than nineteen minutes
-earlier. The page uses the published lifetime-v2 module and the checked-in
-JWT lifetime is fifteen minutes. This verifies sustained private access
-under the same visible avatar beyond that lifetime. Exact refresh request
-and token timestamps were not captured, so protocol-level rotation evidence
-still comes from the separately retained HTTP lifecycle.
-
-Published Web4Site `6994b87` advances the session module URL to
-`session-renewal-lifetime-v2`. All 111 website tests passed, including
-delayed authentication consuming the issued lifetime and a response
-arriving after expiry being rejected. Public module and HTML bytes match
-that commit. Module SHA256
-b5297386ba9c9757015443cf52671172e55a1a9ff0f075f271b4337733dbfb87.
-HTML SHA256
-af4726acf773f5c96e7221459457194465f1cbb13b210fbb47603ba00de98fa9.
-The existing browser tab still runs its original module. Keep it retained
-for its original owner. Live browser lifecycle verification of the newly
-published module remains open.
-
-Web4Site candidate `26d2e30` on `codex/cql-session-clock-offset`
-schedules expiry from the JWT's issued lifetime (`exp - iat`) anchored at
-the authentication request start. Authentication and renewal use this
-deadline, so network time consumes the lifetime and the client clock's
-absolute offset does not extend access. Tokens require an issued-at claim.
-Thirteen session tests passed, including clocks 81 seconds behind and five
-minutes ahead. All 109 website tests passed. Publication and live renewal
-verification remain open.
-
-Recovery browser observation, 5 November 2026. Session sandbox-ca8924da
-completed several CQL provider flows, then Avalanche preparation received
-USER_BOUND_BEARER_REQUIRED with request key
-eb97063d-0be1-472a-9711-2231350d8b94. The browser console exposed no warning
-or error. The published web4-session.js SHA256 still matches the verified
-41f7adf87786fc3071b23377eb1278fb4d41ce6f17b8519b19cc8a97acafc856
-and its text matches the local module after line-ending normalization.
-Preparation calls ensureAccessToken, and each request obtains accessContext.
-The denial proves an unauthenticated API principal on that request.
-Token expiry, renewal issuance and deployment-instance signing consistency
-still need direct evidence before assigning a cause. Preserve this avatar.
-
 Continue Starknet selected release and hosted acceptance. Browser renewal/expiry interaction stays separately open while CUA is unavailable; do not resume OS control or ask David to reopen the browser. Preserve the completed session cohort and all original failure evidence.
 
 [Current status](CURRENT_STATUS.md) / [protocol](../../Devs/WEB4_SANDBOX_SESSION_AUTH.md) / [rollout history](Archive/SESSION_RENEWAL_ROLLOUT_HISTORY_2026-11-01.md) / [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).

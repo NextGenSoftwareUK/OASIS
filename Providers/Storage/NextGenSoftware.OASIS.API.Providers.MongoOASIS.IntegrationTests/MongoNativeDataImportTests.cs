@@ -10,10 +10,6 @@ using Xunit;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 
-[CollectionDefinition("Native MongoDB connection policy", DisableParallelization = true)]
-public sealed class NativeMongoConnectionPolicyCollection { }
-
-[Collection("Native MongoDB connection policy")]
 public sealed class MongoNativeDataImportTests
 {
     [Fact]
@@ -123,31 +119,6 @@ public sealed class MongoNativeDataImportTests
             Assert.Equal(NativeRecordHolonMapper.StableHolonId(owner, provider.NativeDataProviderType,
                 "virtual_items", selected.Result[0].NativeKey), mapped.Result[0].Id);
             Assert.Equal("old", mapped.Result[0].MetaData["Label"]);
-
-            // Use the same disposable CI database through the named connection path.
-            var named = new NativeConnection { ["uri"] = connection, ["database"] = nativeDatabase };
-            var namedIdentity = provider.DescribeVirtualQueryConnection(named);
-            var namedMapping = new VirtualHolonMapping(Guid.NewGuid(), 1, owner, provider.NativeDataProviderType,
-                "virtual_items", "owned-ci-source", namedIdentity, mapping.Fields);
-            var definition = namedMapping.ToDefinitionHolon();
-            definition.Version = 1;
-            Assert.DoesNotContain(definition.MetaData.Values.OfType<string>(), value => value.Contains(connection));
-            var rebound = VirtualHolonMapping.FromDefinitionHolon(owner, definition, namedIdentity);
-            var previousPrivatePolicy = NativeConnectionGuard.AllowPrivateOverride;
-            try
-            {
-                NativeConnectionGuard.AllowPrivateOverride = true;
-                var liveNamed = await rebound.QueryAsync(owner, provider, named, "Code", "Case", new[] { "Label" }, 1);
-                Assert.False(liveNamed.IsError, liveNamed.Message);
-                Assert.Equal("old", Assert.Single(liveNamed.Result).MetaData["Label"]);
-                var retargeted = new NativeConnection(named) { ["database"] = nativeDatabase + "_different" };
-                var refused = await rebound.QueryAsync(owner, provider, retargeted, "Code", "Case", new[] { "Label" }, 1);
-                Assert.Equal("VIRTUAL_HOLON_CONNECTION_CHANGED", refused.ErrorCode);
-            }
-            finally
-            {
-                NativeConnectionGuard.AllowPrivateOverride = previousPrivatePolicy;
-            }
 
 
             await items.UpdateOneAsync(new BsonDocument("_id", 1), new BsonDocument("$set", new BsonDocument("label", "fresh")));

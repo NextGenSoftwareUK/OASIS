@@ -7,15 +7,6 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="ArangoDbHostedCqlNativeTests.cs" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(EnableArangoDbHostedCqlNativeTests)' == 'true'">
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <Compile Include="ArangoDbHostedCqlNativeTests.cs" />
-    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReadSourceProfile.cs" Link="Hosted/CqlReadSourceProfile.cs" />
-    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlArangoDbReadSourceRegistration.cs" Link="Hosted/CqlArangoDbReadSourceRegistration.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
@@ -23,5 +14,12 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS\NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs" Link="Demo/IdentityFederationWalkthrough.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationApiHost.cs" Link="Demo/IdentityFederationApiHost.cs" />
+    <Compile Include="../NextGenSoftware.OASIS.API.Providers.LitestreamOASIS.IntegrationTests/LinuxMongoDemoEnvironmentTests.cs" Link="TestSupport/LinuxMongoDemoEnvironmentTests.cs" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
   </ItemGroup>
 </Project>

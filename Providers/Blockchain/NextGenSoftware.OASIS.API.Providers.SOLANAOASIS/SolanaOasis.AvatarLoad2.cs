@@ -327,7 +327,14 @@ public partial class SolanaOASIS
                 if(activation.IsError) throw new InvalidOperationException(activation.Message,activation.Exception);
             }
             var solanaHolonDto = await _solanaRepository.GetAsync<SolanaHolonDto>(providerKey);
-            if(version!=0 && solanaHolonDto.Version!=version) throw new KeyNotFoundException("Solana signature does not reference the requested record version.");
+            if (version != 0 && solanaHolonDto.Version != version)
+                return new OASISResult<IHolon>
+                {
+                    IsError = true,
+                    ErrorCount = 1,
+                    ErrorCode = OASISResultErrorCodes.RecordNotFound,
+                    Message = "Solana signature does not reference the requested record version."
+                };
             var holon=solanaHolonDto.GetHolon();
             holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS]=providerKey;
             var graphRecords=new List<IHolon> {holon};

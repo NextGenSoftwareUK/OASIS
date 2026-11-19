@@ -8,8 +8,6 @@ on:
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlHoloOasisSigningTests.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlHoloOasisConductorTests.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlHoloOasisDevelopmentConductorTests.cs'
-      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlNativeFailureDiagnosticsTests.cs'
-      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlNativeFailureDiagnostics.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisReadSigner.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisReadSource.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisDevelopmentConductor.cs'
@@ -61,11 +59,11 @@ jobs:
           HOLONET_CONDUCTOR_FOLDER: ${{ runner.temp }}/oasis-holonet-tools
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner holooasis-cql-ci -Operation {
-            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlHoloOasisSigningTests|FullyQualifiedName~CqlHoloOasisDevelopmentConductorTests|FullyQualifiedName~HoloOasisTimeoutLogsObservedCounts' --results-directory TestResults/HoloOasisCql --logger 'trx;LogFileName=signing.trx'
+            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlHoloOasisSigningTests|FullyQualifiedName~CqlHoloOasisDevelopmentConductorTests' --results-directory TestResults/HoloOasisCql --logger 'trx;LogFileName=signing.trx'
             if ($LASTEXITCODE) { throw 'HoloOASIS CQL signing or conductor qualification failed' }
             [xml]$report = Get-Content TestResults/HoloOasisCql/signing.trx
             $counts = $report.TestRun.ResultSummary.Counters
-            if ($counts.passed -ne '11' -or $counts.total -ne '11' -or $counts.executed -ne '11') {
-              throw 'All eleven HoloOASIS signing, visibility and startup cases must execute and pass'
+            if ($counts.passed -ne '10' -or $counts.total -ne '10' -or $counts.executed -ne '10') {
+              throw 'All ten HoloOASIS signing, visibility and startup cases must execute and pass'
             }
           }

@@ -11,6 +11,9 @@ $attachedRuntime=$null
 $prior=$env:OASIS_OWNED_NEO4J_URI
 $priorWork=$env:OASIS_OWNED_NEO4J_WORK
 $priorResults=$env:OASIS_OWNED_NEO4J_RESULTS
+$priorInventoryReview=$env:OASIS_OPERATION_INVENTORY_REVIEW
+if($CosmicOperationInventoryInspect){$env:OASIS_OPERATION_INVENTORY_REVIEW="inspect"}
+if($CosmicOperationInventoryReconcile){$env:OASIS_OPERATION_INVENTORY_REVIEW="reconcile"}
 $freeBefore=(Get-PSDrive C).Free
 try {
     $state=(& wsl -d Ubuntu -u root -- podman inspect oasis-neo4j --format '{{.State.Status}} {{.Image}}') -join ''
@@ -33,7 +36,12 @@ try {
     $sourceDriver=Join-Path $taskRoot 'Providers/Storage/Neo4j.Driver.OASIS/Neo4j.Driver.OASIS.csproj'
     $web4=Join-Path $taskRoot 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj'
     $producers=@($shared,$sqlite,$mongo,$sourceDriver,$provider)
+    if($CosmicReplicaHeadAudit -or $CosmicSqliteDestinationLock -or $CosmicNativeRouting){$producers+=@($web4)}
     if(!$nativeAcceptance){$producers+= $web4}
+    # This gate changes WEB4/service tests only; all frozen native dependencies
+    # still undergo the exact Core/Shared/source-driver hash checks below.
+    if($CosmicHostedReplicaAdmission -or $CosmicHostedReplicaRestart -or $CosmicHostedReplicaCrash){$producers=@($web4)}
+    if($CosmicStorageIdentity){$producers=@($provider)}
     foreach($path in ($producers+@($project))){
         & dotnet build $path --no-restore --no-incremental /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if($LASTEXITCODE){throw 'Neo4j producer/consumer build failed.'}
@@ -137,6 +145,7 @@ $expectedCount=if($CosmicReviewedSourceRepair){1}elseif($CosmicSourceCompletion)
             if($attachedRuntime){Write-Output "Owned Neo4j attached WSL process exited: $($attachedRuntime.Id)"; $attachedRuntime.Dispose()}
         }
     } finally {
+        [Environment]::SetEnvironmentVariable('OASIS_OPERATION_INVENTORY_REVIEW',$priorInventoryReview)
         [Environment]::SetEnvironmentVariable('OASIS_OWNED_NEO4J_URI',$prior)
         [Environment]::SetEnvironmentVariable('OASIS_OWNED_NEO4J_WORK',$priorWork)
         [Environment]::SetEnvironmentVariable('OASIS_OWNED_NEO4J_RESULTS',$priorResults)

@@ -1,4 +1,4 @@
-name: Qualify five public readers on the exact release candidate
+name: Qualify six additional public readers on the exact release candidate
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/qualify-cross-chain-five.yml'
       - 'Providers/Blockchain/**'
+      - 'Providers/AI/NextGenSoftware.OASIS.API.Providers.RitualOASIS/**'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/**'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/Cql*HostedAdmissionTests.cs'
   workflow_dispatch:
@@ -49,18 +50,18 @@ jobs:
         working-directory: OASIS
         shell: pwsh
         run: |
-          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cross-chain-five-candidate-ci -Operation {
-            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlLayerZeroHostedAdmissionTests|FullyQualifiedName~CqlStargateHostedAdmissionTests|FullyQualifiedName~CqlDeBridgeHostedAdmissionTests|FullyQualifiedName~CqlSynapseHostedAdmissionTests|FullyQualifiedName~CqlConnextHostedAdmissionTests|FullyQualifiedName~CqlNatsHostedAdmissionTests' --results-directory TestResults/CrossChainFiveCandidateCurrent --logger 'trx;LogFileName=boundary.trx'
-            if ($LASTEXITCODE) { throw 'Five-reader candidate admission failed' }
-            [xml]$report = Get-Content TestResults/CrossChainFiveCandidateCurrent/boundary.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '19' -or $report.TestRun.ResultSummary.Counters.total -ne '19') {
-              throw 'All nineteen candidate admission cases must pass without skips'
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner six-public-readers-candidate-ci -Operation {
+            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlLayerZeroHostedAdmissionTests|FullyQualifiedName~CqlStargateHostedAdmissionTests|FullyQualifiedName~CqlDeBridgeHostedAdmissionTests|FullyQualifiedName~CqlSynapseHostedAdmissionTests|FullyQualifiedName~CqlConnextHostedAdmissionTests|FullyQualifiedName~CqlMidenHostedAdmissionTests|FullyQualifiedName~CqlEspressoHostedAdmissionTests|FullyQualifiedName~CqlEigenLayerHostedAdmissionTests|FullyQualifiedName~CqlFhenixHostedAdmissionTests|FullyQualifiedName~CqlAxelarHostedAdmissionTests|FullyQualifiedName~CqlRitualHostedAdmissionTests|FullyQualifiedName~CqlNatsHostedAdmissionTests' --results-directory TestResults/SixPublicReadersCandidateCurrent --logger 'trx;LogFileName=boundary.trx'
+            if ($LASTEXITCODE) { throw 'Six-reader candidate admission failed' }
+            [xml]$report = Get-Content TestResults/SixPublicReadersCandidateCurrent/boundary.trx
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '25' -or $report.TestRun.ResultSummary.Counters.total -ne '25') {
+              throw 'All twenty-five candidate admission cases must pass without skips'
             }
           }
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: cross-chain-five-candidate-admission
-          path: OASIS/TestResults/CrossChainFiveCandidateCurrent/boundary.trx
+          name: six-public-readers-candidate-admission
+          path: OASIS/TestResults/SixPublicReadersCandidateCurrent/boundary.trx
           if-no-files-found: error
           retention-days: 30

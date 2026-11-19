@@ -27,17 +27,6 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.Common;
-using ConnextSource = NextGenSoftware.OASIS.API.Providers.ConnextOASIS.ConnextOASIS;
-using MidenSource = NextGenSoftware.OASIS.API.Providers.MidenOASIS.MidenPublicBlockHeaderSource;
-using EspressoSource = NextGenSoftware.OASIS.API.Providers.EspressoSystemsOASIS.EspressoPublicBlockHeaderSource;
-using EigenLayerSource = NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS.EigenLayerPublicOperatorSource;
-using FhenixSource = NextGenSoftware.OASIS.API.Providers.FhenixOASIS.FhenixPublicTaskManagerSource;
-using AxelarSource = NextGenSoftware.OASIS.API.Providers.AxelarOASIS.AxelarOASIS;
-using RitualSource = NextGenSoftware.OASIS.API.Providers.RitualOASIS.RitualPublicBlockSource;
-using SynapseSource = NextGenSoftware.OASIS.API.Providers.SynapseOASIS.SynapsePublicTransactionMetadataSource;
-using DeBridgeSource = NextGenSoftware.OASIS.API.Providers.deBridgeOASIS.DeBridgePublicOrderMetadataSource;
-using StargateSource = NextGenSoftware.OASIS.API.Providers.StargateOASIS.StargatePublicMessageMetadataSource;
-using LayerZeroSource = NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS.LayerZeroPublicMessageMetadataSource;
 using HyperlaneSource = NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS.HyperlanePublicMessageMetadataSource;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 using IoFile = System.IO.File;
@@ -56,289 +45,41 @@ public sealed class HyperlaneMongoNativeFactAttribute : FactAttribute
 /// <summary>Real native reads through shipping CQL endpoints over loopback HTTP.
 /// SDK-owned writes seed private Mongo copies. Controlled bearer/admission is
 /// test infrastructure, not production signup/billing or replication proof.</summary>
-public sealed class LayerZeroMongoNativeFactAttribute : FactAttribute
-{
-    public LayerZeroMongoNativeFactAttribute()
-    {
-        if (Environment.GetEnvironmentVariable("COSMIC_LAYERZERO_HTTP_NATIVE") != "owned-local-27029")
-            Skip = "Explicit LayerZero/Mongo native gate.";
-    }
-}
-
-public sealed class StargateMongoNativeFactAttribute : FactAttribute
-{
-    public StargateMongoNativeFactAttribute()
-    {
-        if (Environment.GetEnvironmentVariable("COSMIC_STARGATE_HTTP_NATIVE") != "owned-local-27029")
-            Skip = "Explicit Stargate/Mongo native gate.";
-    }
-}
-
-public sealed class DeBridgeMongoNativeFactAttribute : FactAttribute
-{
-    public DeBridgeMongoNativeFactAttribute()
-    {
-        if (Environment.GetEnvironmentVariable("COSMIC_DEBRIDGE_HTTP_NATIVE") != "owned-local-27029")
-            Skip = "Explicit deBridge/Mongo native gate.";
-    }
-}
-
-public sealed class SynapseMongoNativeFactAttribute : FactAttribute
-{
-    public SynapseMongoNativeFactAttribute()
-    {
-        if (Environment.GetEnvironmentVariable("COSMIC_SYNAPSE_HTTP_NATIVE") != "owned-local-27029")
-            Skip = "Explicit Synapse/Mongo native gate.";
-    }
-}
-
-public sealed class ConnextMongoNativeFactAttribute : FactAttribute
-{
-    public ConnextMongoNativeFactAttribute()
-    {
-        if (Environment.GetEnvironmentVariable("COSMIC_CONNEXT_HTTP_NATIVE") != "owned-local-27029")
-            Skip = "Explicit Connext/Mongo native gate.";
-    }
-}
-
-public sealed class MidenMongoNativeFactAttribute : FactAttribute
-{
-    public MidenMongoNativeFactAttribute()
-    {
-        if (Environment.GetEnvironmentVariable("COSMIC_MIDEN_HTTP_NATIVE") != "owned-local-27029")
-            Skip = "Explicit Miden/Mongo native gate.";
-    }
-}
-
-public sealed class EspressoMongoNativeFactAttribute : FactAttribute
-{
-    public EspressoMongoNativeFactAttribute()
-    {
-        if (Environment.GetEnvironmentVariable("COSMIC_ESPRESSO_HTTP_NATIVE") != "owned-local-27029")
-            Skip = "Explicit Espresso/Mongo native gate.";
-    }
-}
-
-public sealed class EigenLayerMongoNativeFactAttribute : FactAttribute
-{
-    public EigenLayerMongoNativeFactAttribute()
-    {
-        if (Environment.GetEnvironmentVariable("COSMIC_EIGENLAYER_HTTP_NATIVE") != "owned-local-27029")
-            Skip = "Explicit EigenLayer/Mongo native gate.";
-    }
-}
-
-public sealed class FhenixMongoNativeFactAttribute : FactAttribute
-{
-    public FhenixMongoNativeFactAttribute()
-    {
-        if (Environment.GetEnvironmentVariable("COSMIC_FHENIX_HTTP_NATIVE") != "owned-local-27029")
-            Skip = "Explicit Fhenix/Mongo native gate.";
-    }
-}
-
-public sealed class AxelarMongoNativeFactAttribute : FactAttribute
-{
-    public AxelarMongoNativeFactAttribute()
-    {
-        if (Environment.GetEnvironmentVariable("COSMIC_AXELAR_HTTP_NATIVE") != "owned-local-27029")
-            Skip = "Explicit Axelar/Mongo native gate.";
-    }
-}
-
-public sealed class RitualMongoNativeFactAttribute : FactAttribute
-{
-    public RitualMongoNativeFactAttribute()
-    {
-        if (Environment.GetEnvironmentVariable("COSMIC_RITUAL_HTTP_NATIVE") != "owned-local-27029")
-            Skip = "Explicit Ritual/Mongo native gate.";
-    }
-}
-
 public sealed class CqlHyperlaneMongoNativeTests
 {
-    private sealed class Sources(IOASISStorageProvider mongo, IOASISProvider publicSource, ProviderType publicProvider,
+    private const string Database = "cosmic_cql_hyperlane_http_demo";
+    private const string Owner = "cosmic-cql-hyperlane-http-v1";
+    private static readonly ProviderType[] Types = { ProviderType.MongoDBOASIS, ProviderType.HyperlaneOASIS };
+    private sealed class Sources(IOASISStorageProvider mongo, IOASISStorageProvider hyperlaneSource,
         OASISDNA dna, ProviderManager registry) : ICqlV1Providers
     {
         public IOASISProvider Resolve(ProviderType? requested) => requested switch {
             null or ProviderType.MongoDBOASIS => mongo,
-            var provider when provider == publicProvider => publicSource,
+            ProviderType.HyperlaneOASIS => hyperlaneSource,
             _ => throw new InvalidOperationException("Only the two explicitly enrolled native fixture providers are available.") };
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
     [HyperlaneMongoNativeFact]
-    public Task NativeHyperlaneMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
-        => VerifyAsync(ProviderType.HyperlaneOASIS, "Hyperlane", "hyperlane",
-            HyperlaneSource.MessageIdMetadata, HyperlaneSource.FromJson,
-            new[] { "HyperlaneOriginDomainId", "HyperlaneDestinationDomainId" },
-            (native, metadata, _) => Assert.Equal((bool)native.MetaData["HyperlaneIsDelivered"],
-                metadata.GetProperty("HyperlaneIsDelivered").GetBoolean()),
-            Environment.GetEnvironmentVariable("COSMIC_HYPERLANE_HTTP_CONTINUATION") == "original-read-only",
-            "explorer-reported-delivery-state");
-
-    [LayerZeroMongoNativeFact]
-    public Task NativeLayerZeroMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
-        => VerifyAsync(ProviderType.LayerZeroV2OASIS, "LayerZeroV2", "layerzero",
-            LayerZeroSource.MessageIdMetadata, LayerZeroSource.FromJson,
-            new[] { "LayerZeroSourceEndpoint", "LayerZeroDestinationEndpoint" },
-            VerifyScanMetadata, false, "scan-reported-message-status");
-
-    [StargateMongoNativeFact]
-    public Task NativeStargateMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
-        => VerifyAsync(ProviderType.StargateOASIS, "Stargate", "stargate",
-            StargateSource.MessageIdMetadata, StargateSource.FromJson,
-            new[] { "LayerZeroSourceEndpoint", "LayerZeroDestinationEndpoint" },
-            VerifyScanMetadata, false, "scan-reported-stargate-token-messaging");
-
-    [DeBridgeMongoNativeFact]
-    public Task NativeDeBridgeMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
-        => VerifyAsync(ProviderType.deBridgeOASIS, "DeBridge", "debridge",
-            DeBridgeSource.OrderIdMetadata, DeBridgeSource.FromJson, Array.Empty<string>(),
-            (native, metadata, isMongo) =>
-            {
-                foreach (var field in new[] { "DeBridgeSourceChain", "DeBridgeDestinationChain", "DeBridgeGiveAmount" })
-                    Assert.Equal((string)native.MetaData[field], metadata.GetProperty(field).GetString());
-                var state = metadata.GetProperty("DeBridgeOrderState").GetString();
-                Assert.False(string.IsNullOrWhiteSpace(state));
-                if (isMongo) Assert.Equal((string)native.MetaData["DeBridgeOrderState"], state);
-            }, false, "dln-indexed-order-state");
-
-    [SynapseMongoNativeFact]
-    public Task NativeSynapseMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
-        => VerifyAsync(ProviderType.SynapseOASIS, "Synapse", "synapse",
-            SynapseSource.TransactionIdMetadata, SynapseSource.FromJson,
-            new[] { "SynapseOriginChainId", "SynapseDestinationChainId" },
-            (_, _, _) => { }, false, "rfq-indexed-transaction-identity");
-
-    [ConnextMongoNativeFact]
-    public Task NativeConnextMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
-        => VerifyAsync(ProviderType.ConnextOASIS, "Connext", "connext",
-            ConnextSource.TransferIdMetadata, ConnextSource.FromPublicQueryConfiguration,
-            new[] { "ConnextOriginChainId", "ConnextOriginBlockNumber", "ConnextOriginLogIndex" },
-            (native, metadata, _) =>
-            {
-                foreach (var field in new[] { "ConnextOriginTransactionHash", "ConnextOriginBlockHash" })
-                    Assert.Equal((string)native.MetaData[field], metadata.GetProperty(field).GetString());
-            }, false, "ethereum-indexed-origin-event",
-            config => config.GetProperty("events").EnumerateArray()
-                .Select(row => row.GetProperty("transferId").GetString()!).ToArray());
-
-    [MidenMongoNativeFact]
-    public Task NativeMidenHeadersAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
-        => VerifyAsync(ProviderType.MidenOASIS, "Miden", "miden",
-            MidenSource.HeightMetadata, MidenSource.FromJson,
-            new[] { "MidenTimestampUnix" },
-            (native, metadata, _) => Assert.Equal((string)native.MetaData["MidenPreviousCommitment"],
-                metadata.GetProperty("MidenPreviousCommitment").GetString()),
-            Environment.GetEnvironmentVariable("COSMIC_MIDEN_HTTP_RESUME") == "1", "miden-testnet-public-headers",
-            config => config.GetProperty("heights").EnumerateArray().Select(height => height.GetRawText()).ToArray());
-
-    [EspressoMongoNativeFact]
-    public Task NativeEspressoHeadersAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
-        => VerifyAsync(ProviderType.EspressoSystemsOASIS, "Espresso", "espresso",
-            EspressoSource.HeightMetadata, EspressoSource.FromJson,
-            new[] { "EspressoTimestampUnix", "EspressoReportedFinalizedL1Block" },
-            (native, metadata, _) => Assert.Equal((string)native.MetaData["EspressoReportedFinalizedL1Hash"],
-                metadata.GetProperty("EspressoReportedFinalizedL1Hash").GetString()),
-            Environment.GetEnvironmentVariable("COSMIC_ESPRESSO_HTTP_RESUME") == "1", "espresso-mainnet-public-headers",
-            config => config.GetProperty("heights").EnumerateArray().Select(height => height.GetRawText()).ToArray());
-
-    [EigenLayerMongoNativeFact]
-    public Task NativeEigenLayerOperatorsAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
-        => VerifyAsync(ProviderType.EigenLayerOASIS, "EigenLayer", "eigenlayer",
-            EigenLayerSource.AddressMetadata, EigenLayerSource.FromJson, Array.Empty<string>(),
-            (native, metadata, isMongo) =>
-            {
-                Assert.True(metadata.GetProperty("EigenLayerIsOperator").GetBoolean());
-                var hash = metadata.GetProperty("EigenLayerFinalizedBlockHash").GetString()!;
-                var number = metadata.GetProperty("EigenLayerFinalizedBlockNumber").GetString()!;
-                Assert.Matches("^0x[0-9a-f]{64}$", hash);
-                Assert.Matches("^0x[1-9a-f][0-9a-f]*$", number);
-                if (isMongo)
-                {
-                    Assert.Equal((string)native.MetaData["EigenLayerFinalizedBlockHash"], hash);
-                    Assert.Equal((string)native.MetaData["EigenLayerFinalizedBlockNumber"], number);
-                }
-            },
-            Environment.GetEnvironmentVariable("COSMIC_EIGENLAYER_HTTP_RESUME") == "1", "eigenlayer-mainnet-operators",
-            config => config.GetProperty("addresses").EnumerateArray().Select(address => address.GetString()!).ToArray());
-
-    [FhenixMongoNativeFact]
-    public Task NativeFhenixDeploymentsAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
-        => VerifyAsync(ProviderType.FhenixOASIS, "Fhenix", "fhenix",
-            FhenixSource.ChainIdMetadata, FhenixSource.FromJson, Array.Empty<string>(),
-            (_, metadata, _) =>
-            {
-                Assert.Matches("^0x[0-9a-f]{40}$", metadata.GetProperty("FhenixTaskManagerAddress").GetString()!);
-                Assert.Matches("^0x[0-9a-f]{64}$", metadata.GetProperty("FhenixFinalizedBlockHash").GetString()!);
-                Assert.Matches("^0x[1-9a-f][0-9a-f]*$", metadata.GetProperty("FhenixFinalizedBlockNumber").GetString()!);
-            },
-            Environment.GetEnvironmentVariable("COSMIC_FHENIX_HTTP_RESUME") == "1", "fhenix-cofhe-task-managers",
-            config => config.GetProperty("chainIds").EnumerateArray().Select(chainId => chainId.GetString()!).ToArray());
-
-    [AxelarMongoNativeFact]
-    public Task NativeAxelarBlocksAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
-        => VerifyAsync(ProviderType.AxelarOASIS, "AxelarBlock", "axelar",
-            AxelarSource.HeightMetadata, AxelarSource.FromPublicQueryConfiguration, Array.Empty<string>(),
-            (native, metadata, _) =>
-            {
-                Assert.Equal("axelar-dojo-1", metadata.GetProperty("AxelarChainId").GetString());
-                foreach (var field in new[] { "AxelarBlockTimestamp", "AxelarBlockHash" })
-                    Assert.Equal((string)native.MetaData[field], metadata.GetProperty(field).GetString());
-            },
-            Environment.GetEnvironmentVariable("COSMIC_AXELAR_HTTP_RESUME") == "1", "axelar-mainnet-blocks",
-            config => config.GetProperty("heights").EnumerateArray().Select(height => height.GetRawText()).ToArray());
-
-    [RitualMongoNativeFact]
-    public Task NativeRitualBlocksAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
-        => VerifyAsync(ProviderType.RitualOASIS, "Ritual", "ritual",
-            RitualSource.HeightMetadata, RitualSource.FromJson, Array.Empty<string>(),
-            (native, metadata, _) =>
-            {
-                Assert.Equal("784", metadata.GetProperty("RitualChainId").GetString());
-                foreach (var field in new[] { "RitualBlockTimestamp", "RitualBlockHash" })
-                    Assert.Equal((string)native.MetaData[field], metadata.GetProperty(field).GetString());
-            },
-            Environment.GetEnvironmentVariable("COSMIC_RITUAL_HTTP_RESUME") == "1", "ritual-chain-blocks",
-            config => config.GetProperty("heights").EnumerateArray().Select(height => height.GetRawText()).ToArray());
-
-    private static void VerifyScanMetadata(IHolon native, JsonElement metadata, bool isMongo)
+    public async Task NativeHyperlaneMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {
-        Assert.Equal((string)native.MetaData["LayerZeroNonce"], metadata.GetProperty("LayerZeroNonce").GetString());
-        var status = metadata.GetProperty("LayerZeroScanStatus").GetString();
-        Assert.False(string.IsNullOrWhiteSpace(status));
-        if (isMongo) Assert.Equal((string)native.MetaData["LayerZeroScanStatus"], status);
-    }
-
-    private static async Task VerifyAsync<TSource>(ProviderType publicProvider, string directoryPrefix, string fixture,
-        string metadataKey, Func<string, TSource> createSource, string[] endpointFields,
-        Action<IHolon, JsonElement, bool> verifyMetadata, bool continuing, string policy,
-        Func<JsonElement, string[]>? selectCatalogue = null)
-        where TSource : IOASISProvider, ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
-    {
-        var Database = $"cosmic_cql_{fixture}_http_demo";
-        var Owner = $"cosmic-cql-{fixture}-http-v1";
-        var Types = new[] { ProviderType.MongoDBOASIS, publicProvider };
-        var providerName = publicProvider.ToString();
         var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
-        Assert.True(Directory.Exists(Path.Combine(root, $"LocalState/COSMIC/{directoryPrefix}PublicQualificationCurrent")));
+        Assert.True(Directory.Exists(Path.Combine(root, "LocalState/COSMIC/HyperlanePublicQualificationCurrent")));
         const string mongoConnection = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs";
         var mongoUrl = new MongoUrl(mongoConnection);
         Assert.Equal("127.0.0.1", Assert.Single(mongoUrl.Servers).Host);
         Assert.Equal(27029, Assert.Single(mongoUrl.Servers).Port);
         Assert.Equal("oasisRecoveryRs", mongoUrl.ReplicaSetName);
-        var state = Path.Combine(root, $"LocalState/COSMIC/{directoryPrefix}MongoHttpCurrent");
+        var state = Path.Combine(root, "LocalState/COSMIC/HyperlaneMongoHttpCurrent");
         Directory.CreateDirectory(state);
         var intent = Path.Combine(state, "fixture.intent.json");
+        bool continuing = Environment.GetEnvironmentVariable("COSMIC_HYPERLANE_HTTP_CONTINUATION") == "original-read-only";
         if (!continuing) Assert.Empty(Directory.EnumerateFiles(state));
         else Assert.False(IoFile.Exists(Path.Combine(state, "fixture.cleaned.json")));
-        var configPath = Path.Combine(root, $"LocalState/COSMIC/{directoryPrefix}PublicQualificationCurrent/source.json");
+        var configPath = Path.Combine(root, "LocalState/COSMIC/HyperlanePublicQualificationCurrent/source.json");
         var configJson = await IoFile.ReadAllTextAsync(configPath);
         using var config = JsonDocument.Parse(configJson);
-        var allowed = selectCatalogue == null
-            ? config.RootElement.GetProperty("messageIds").EnumerateArray().Select(key => key.GetString()!).ToArray()
-            : selectCatalogue(config.RootElement);
+        var allowed = config.RootElement.GetProperty("messageIds").EnumerateArray().Select(key => key.GetString()!).ToArray();
         Assert.Equal(3, allowed.Length);
         using var previous = continuing ? JsonDocument.Parse(await IoFile.ReadAllTextAsync(intent)) : null;
         var prior = previous?.RootElement;
@@ -352,7 +93,7 @@ public sealed class CqlHyperlaneMongoNativeTests
         var foreignActor = prior?.GetProperty("foreignActor").GetGuid() ?? Guid.NewGuid();
         var nonce = prior?.GetProperty("nonce").GetString() ?? Guid.NewGuid().ToString("D");
         var identities = CqlHostedDemoIdentities.Create(new CqlDemoIdentityRequest {
-            Provider = providerName, Keys = allowed.Take(2).ToArray() }, actor);
+            Provider = "HyperlaneOASIS", Keys = allowed.Take(2).ToArray() }, actor);
         var copies = identities.Records.Select(record => record.Id).ToArray();
         var operations = prior?.GetProperty("operations").EnumerateArray().Select(value => value.GetGuid()).ToArray()
             ?? new[] { Guid.NewGuid(), Guid.NewGuid() };
@@ -382,17 +123,16 @@ public sealed class CqlHyperlaneMongoNativeTests
             file.Flush(true);
         }
 
-        using var publicSource = createSource(configJson);
-        var activation = await publicSource.ActivateQuerySourceAsync(default);
-        Assert.False(activation.IsError, activation.Exception?.ToString() ?? activation.Message);
-        var nativeQuery = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(publicProvider).Result)
+        using var hyperlaneSource = HyperlaneSource.FromJson(configJson);
+        Assert.False((await hyperlaneSource.ActivateQuerySourceAsync(default)).IsError);
+        var nativeQuery = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.HyperlaneOASIS).Result)
             .WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result)
-            .Where(row => allowed.Contains(CosmicQueryMetadata.Value<string>(row, metadataKey)));
+            .Where(row => allowed.Contains(CosmicQueryMetadata.Value<string>(row, HyperlaneSource.MessageIdMetadata)));
         Assert.False(nativeQuery.IsError, nativeQuery.ErrorCode);
-        var plan = CosmicQueryPlanner.Plan(nativeQuery.Result, publicProvider,
-            new[] { new CosmicQueryTarget(publicProvider, publicSource.QueryCapabilities) });
+        var plan = CosmicQueryPlanner.Plan(nativeQuery.Result, ProviderType.HyperlaneOASIS,
+            new[] { new CosmicQueryTarget(ProviderType.HyperlaneOASIS, hyperlaneSource.QueryCapabilities) });
         Assert.False(plan.IsError, plan.ErrorCode);
-        var source = await publicSource.ExecuteCosmicQueryAsync(plan.Result);
+        var source = await hyperlaneSource.ExecuteCosmicQueryAsync(plan.Result);
         Assert.False(source.IsError, source.ErrorCode);
         Assert.Equal(3, source.Result.Count);
 
@@ -413,12 +153,12 @@ public sealed class CqlHyperlaneMongoNativeTests
         var registry = new ProviderManager(null, dna) {
             IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false };
         registry.RegisterProvider(mongo);
-        var providers = new Sources(mongo, publicSource, publicProvider, dna, registry);
+        var providers = new Sources(mongo, hyperlaneSource, dna, registry);
         var manager = providers.CreateManager(mongo);
         for (var index = 0; !continuing && index < identities.Records.Count; index++)
         {
             var identity = identities.Records[index];
-            var original = source.Result.Single(row => (string)row.MetaData[metadataKey] == identity.NativeKey);
+            var original = source.Result.Single(row => (string)row.MetaData[HyperlaneSource.MessageIdMetadata] == identity.NativeKey);
             var metadata = original.MetaData.ToDictionary(pair => pair.Key, pair => pair.Value);
             foreach (var pair in identity.Metadata) metadata[pair.Key] = pair.Value;
             metadata["COSMIC.Demo.Dataset"] = "COSMIC.CQL.Demo.v1";
@@ -438,7 +178,7 @@ public sealed class CqlHyperlaneMongoNativeTests
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { Args = Array.Empty<string>(), ContentRootPath = root });
         builder.Configuration.Sources.Clear();
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> {
-            [CqlPublicReadCatalogue.ConfigurationKey] = JsonSerializer.Serialize(new Dictionary<string, Guid[]> { [providerName] = source.Result.Select(row => row.Id).ToArray() }) });
+            [CqlPublicReadCatalogue.ConfigurationKey] = JsonSerializer.Serialize(new Dictionary<string, Guid[]> { ["HyperlaneOASIS"] = source.Result.Select(row => row.Id).ToArray() }) });
         builder.Logging.ClearProviders(); builder.WebHost.UseUrls("http://127.0.0.1:0");
         builder.Services.AddControllers();
         builder.Services.AddConfiguredCqlReadAccessPolicy(builder.Configuration);
@@ -488,9 +228,9 @@ public sealed class CqlHyperlaneMongoNativeTests
         async Task Execute(HttpContext http, bool federation)
         {
             var handle = (UsageExecutionHandle)http.Items[Web4UsageMeasurement.ExecutionKey]!;
-            var admission = new PreparedStorageExecution(handle, $"native-{fixture}-query", new Dictionary<ProviderType, string>(),
+            var admission = new PreparedStorageExecution(handle, "native-hyperlane-query", new Dictionary<ProviderType, string>(),
                 Types, Types.Select(type => new StorageQueryTariff(type, 0, "native-test")),
-                null!, false, null!, new[] { publicProvider });
+                null!, false, null!, new[] { ProviderType.HyperlaneOASIS });
             IActionResult action;
             if (federation)
             {
@@ -510,11 +250,10 @@ public sealed class CqlHyperlaneMongoNativeTests
         try
         {
             var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
-            var queryDuration = publicProvider is ProviderType.FhenixOASIS or ProviderType.AxelarOASIS or ProviderType.RitualOASIS ? 30000 : 5000;
-            using var http = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromMilliseconds(queryDuration + 15000) };
+            using var http = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(20) };
             var counts = new Dictionary<string, int>();
             object Selection(IEnumerable<string> selected) => new { orderBy = "None", take = 8, includeMetadata = true,
-                filters = new[] { new { metadataPath = new[] { metadataKey }, scalar = "String", @operator = "In", value = selected.ToArray() } } };
+                filters = new[] { new { metadataPath = new[] { HyperlaneSource.MessageIdMetadata }, scalar = "String", @operator = "In", value = selected.ToArray() } } };
             async Task Check(string name, string token, string route, object request, int expected)
             {
                 http.DefaultRequestHeaders.Authorization = new("Bearer", token);
@@ -538,15 +277,16 @@ public sealed class CqlHyperlaneMongoNativeTests
                     Assert.True(selectedIds.Add(id), "Each preserved physical copy must be unique.");
                     var isMongo = copies.Contains(id);
                     Assert.True(isMongo || source.Result.Any(original => original.Id == id));
-                    if (paired) Assert.Equal(isMongo ? "MongoDBOASIS" : providerName, selected.GetProperty("provider").GetString());
+                    if (paired) Assert.Equal(isMongo ? "MongoDBOASIS" : "HyperlaneOASIS", selected.GetProperty("provider").GetString());
                     Assert.Equal(!isMongo, row.GetProperty("isPublic").GetBoolean());
                     var metadata = row.GetProperty("metadata");
-                    var nativeKey = metadata.GetProperty(metadataKey).GetString()!;
+                    var nativeKey = metadata.GetProperty(HyperlaneSource.MessageIdMetadata).GetString()!;
                     var nativeRow = source.Result.Single(value =>
-                        (string)value.MetaData[metadataKey] == nativeKey);
-                    foreach (var field in endpointFields)
+                        (string)value.MetaData[HyperlaneSource.MessageIdMetadata] == nativeKey);
+                    foreach (var field in new[] { "HyperlaneOriginDomainId", "HyperlaneDestinationDomainId" })
                         Assert.Equal((long)nativeRow.MetaData[field], metadata.GetProperty(field).GetInt64());
-                    verifyMetadata(nativeRow, metadata, isMongo);
+                    Assert.Equal((bool)nativeRow.MetaData["HyperlaneIsDelivered"],
+                        metadata.GetProperty("HyperlaneIsDelivered").GetBoolean());
                     if (isMongo)
                     {
                         Assert.Equal(ownerToken, token);
@@ -558,25 +298,25 @@ public sealed class CqlHyperlaneMongoNativeTests
             foreach (var count in new[] { 3, 2 })
             {
                 var selected = allowed.Take(count).ToArray();
-                await Check(fixture + "-" + count, ownerToken, "/api/data/query-cql", new { provider = providerName,
-                    orderBy = "None", take = 8, includeMetadata = true, maximumDurationMilliseconds = queryDuration,
-                    filters = new[] { new { metadataPath = new[] { metadataKey }, scalar = "String", @operator = "In", value = selected } } }, count);
+                await Check("hyperlane-" + count, ownerToken, "/api/data/query-cql", new { provider = "HyperlaneOASIS",
+                    orderBy = "None", take = 8, includeMetadata = true,
+                    filters = new[] { new { metadataPath = new[] { HyperlaneSource.MessageIdMetadata }, scalar = "String", @operator = "In", value = selected } } }, count);
                 await Check("paired-" + count, ownerToken, "/api/data/query-cql/federation", new { scope = "Named",
-                    providers = new[] { "MongoDBOASIS", providerName }, source = Selection(selected),
-                    identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8, maximumDurationMilliseconds = queryDuration }, count + 2);
+                    providers = new[] { "MongoDBOASIS", "HyperlaneOASIS" }, source = Selection(selected),
+                    identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8 }, count + 2);
             }
             await Check("foreign-private", foreignToken, "/api/data/query-cql", new { provider = "MongoDBOASIS",
                 orderBy = "Id", take = 8, filters = new[] { new { field = "Id", scalar = "Guid", @operator = "In", value = copies } } }, 0);
             await Check("foreign-public-pair", foreignToken, "/api/data/query-cql/federation", new { scope = "Named",
-                providers = new[] { "MongoDBOASIS", providerName }, source = Selection(allowed),
-                identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8, maximumDurationMilliseconds = queryDuration }, 3);
+                providers = new[] { "MongoDBOASIS", "HyperlaneOASIS" }, source = Selection(allowed),
+                identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8 }, 3);
             Assert.Equal(configJson, await IoFile.ReadAllTextAsync(configPath));
             Assert.Equal(9, receipts.Count);
-            await IoFile.WriteAllTextAsync(Path.Combine(root, $"TestResults/{directoryPrefix}PublicSourceCurrent/{fixture}-mongo-native-summary.json"),
+            await IoFile.WriteAllTextAsync(Path.Combine(root, "TestResults/HyperlanePublicSourceCurrent/hyperlane-mongo-native-summary.json"),
                 JsonSerializer.Serialize(new { counts, sdkOwnedSaves = continuing ? 0 : 2,
                     receiptCount = receipts.Count, productionBilling = false, replicationAcceptance = false, browserAcceptance = false }));
         }
-        finally { await app.StopAsync(); await publicSource.DeActivateProviderAsync(); }
+        finally { await app.StopAsync(); await hyperlaneSource.DeActivateProviderAsync(); }
         // Success-only cleanup, after HTTP consumers stop and exact ownership
         // checks. Failed/uncertain writes retain the original DB and intent.
         Assert.Equal(2, await native.GetCollection<BsonDocument>("Holon").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
@@ -591,7 +331,7 @@ public sealed class CqlHyperlaneMongoNativeTests
         await using var qualified = new FileStream(Path.Combine(Path.GetDirectoryName(configPath)!,
             "web4-local-qualified.acknowledged.json"), FileMode.CreateNew);
         await JsonSerializer.SerializeAsync(qualified, new { schema = 1, web4LocalQualified = true, sourceSha256,
-            policy, nativeCounts = new[] { 3, 2 }, federationCounts = new[] { 5, 4 },
+            policy = "explorer-reported-delivery-state", nativeCounts = new[] { 3, 2 }, federationCounts = new[] { 5, 4 },
             foreignPrivate = 0, foreignPublic = 3, savedPrivateCopies = 2, fixtureCleaned = true });
         qualified.Flush(true);
     }

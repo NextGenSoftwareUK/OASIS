@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -7,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization.Metadata;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 
@@ -16,12 +18,37 @@ internal sealed class FirebaseMutationReconciliationException(Guid proposedId, E
     : Exception("Firebase write outcome requires reconciliation before replay.", cause), INativeMutationReconciliationRequired
 {
     public Guid ProposedId { get; } = proposedId;
+    public IReadOnlyList<Guid> ProposedIds { get; init; } = new[] { proposedId };
     public string OriginalTransactionId => string.Empty;
 }
 internal sealed class FirebaseRepresentationException(string message) : Exception(message);
 
 public partial class FirebaseOASIS
 {
+    // ParentHolonId is the durable relationship. Embedded navigation objects
+    // from older rows are ignored when reading the canonical record.
+    private static JsonSerializerOptions HolonRowJsonOptions => HolonRowOptions.Value;
+
+    private static readonly Lazy<JsonSerializerOptions> HolonRowOptions = new(() => new JsonSerializerOptions(_jsonOpts)
+    {
+        TypeInfoResolver = new DefaultJsonTypeInfoResolver
+        {
+            Modifiers =
+            {
+                typeInfo =>
+                {
+                    if (!typeof(IHolon).IsAssignableFrom(typeInfo.Type)) return;
+                    for (var index = typeInfo.Properties.Count - 1; index >= 0; index--)
+                    {
+                        if (typeInfo.Properties[index].Name is "children" or "allChildren" or
+                            "parentHolon" or "parentHolon2" or "parentHolon3")
+                            typeInfo.Properties.RemoveAt(index);
+                    }
+                }
+            }
+        }
+    });
+
     // RTDB removes null/empty nodes and stores native JSON numbers. Normalize
     // the declared wire representation before dispatch, not by repairing an
     // acknowledgement afterward. Refuse numbers whose JSON value cannot survive
@@ -69,6 +96,28 @@ public partial class FirebaseOASIS
             throw new FirebaseRepresentationException("Firebase native JSON cannot preserve this numeric value; no write dispatched.");
     }
 
+    internal static string ReadStrongRevisionTag(HttpResponseMessage response)
+    {
+        if (response.Headers.TryGetValues("ETag", out var values))
+        {
+            var tags = values.Take(2).ToArray();
+            if (tags.Length == 1)
+            {
+                var tag = tags[0];
+                if (System.Net.Http.Headers.EntityTagHeaderValue.TryParse(tag, out var parsed) &&
+                    !parsed.IsWeak && parsed.Tag != "*")
+                    return tag;
+
+                // The RTDB emulator also emits an unquoted base64 revision.
+                Span<byte> revision = stackalloc byte[128];
+                if (tag.Length is > 0 and <= 172 && !tag.Any(char.IsWhiteSpace) &&
+                    Convert.TryFromBase64String(tag, revision, out var length) && length > 0)
+                    return tag;
+            }
+        }
+        throw new InvalidDataException("Firebase did not return one strong revision tag.");
+    }
+
     private static async Task<string> ReadFirebaseAcknowledgement(HttpResponseMessage response)
     {
         await using var stream = await response.Content.ReadAsStreamAsync();
@@ -89,7 +138,7 @@ public partial class FirebaseOASIS
         if (document.RootElement.ValueKind == JsonValueKind.Null) return null;
         if (document.RootElement.ValueKind != JsonValueKind.Object)
             throw new InvalidDataException("Firebase canonical holon must be an object or null.");
-        var holon = Deserialize<Holon>(json);
+        var holon = JsonSerializer.Deserialize<Holon>(json, HolonRowJsonOptions);
         if (holon == null || expected == Guid.Empty || holon.Id != expected)
             throw new InvalidDataException("Firebase native key and canonical holon identity disagree.");
         return holon;

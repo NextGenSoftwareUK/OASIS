@@ -704,7 +704,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
         public static IHolon ConvertMongoEntityToOASISHolon(Holon holon, bool mapChildren = true)
         {
             Core.Holons.Holon oasisHolon = new Core.Holons.Holon();
-            oasisHolon.IsNewHolon = false; //TODO: Not sure if best to default all new Holons to have this set to true or not?
+            oasisHolon.IsNewHolon = false; // This holon was materialized from a persisted MongoDB record.
             oasisHolon.Id = holon.HolonId;
             oasisHolon.ChildRoleManifestJson = holon.ChildRoleManifestJson;
             oasisHolon.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey == null ? new Dictionary<ProviderType,string>()
@@ -714,6 +714,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisHolon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Id;
 
             oasisHolon.PreviousVersionId = holon.PreviousVersionId;
+            oasisHolon.VersionSeal = holon.VersionSeal;
+            oasisHolon.PreviousVersionSeal = holon.PreviousVersionSeal;
+            oasisHolon.VersionSealKeyId = holon.VersionSealKeyId;
             oasisHolon.PreviousVersionProviderUniqueStorageKey = holon.PreviousVersionProviderUniqueStorageKey == null ? null
                 : new Dictionary<ProviderType,string>(holon.PreviousVersionProviderUniqueStorageKey);
             oasisHolon.MetaData = holon.MetaData != null ? new Dictionary<string, object>(holon.MetaData) : new Dictionary<string, object>();
@@ -797,6 +800,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisHolon.Version = holon.Version;
             oasisHolon.VersionId = holon.VersionId;
             oasisHolon.PreviousVersionId = holon.PreviousVersionId;
+            oasisHolon.VersionSeal = holon.VersionSeal;
+            oasisHolon.PreviousVersionSeal = holon.PreviousVersionSeal;
+            oasisHolon.VersionSealKeyId = holon.VersionSealKeyId;
             oasisHolon.IsActive = holon.IsActive;
             oasisHolon.IsPublic = holon.IsPublic;
 
@@ -824,6 +830,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoHolon.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey == null ? new Dictionary<ProviderType,string>()
                 : new Dictionary<ProviderType,string>(holon.ProviderUniqueStorageKey);
             mongoHolon.PreviousVersionId = holon.PreviousVersionId;
+            mongoHolon.VersionSeal = holon.VersionSeal;
+            mongoHolon.PreviousVersionSeal = holon.PreviousVersionSeal;
+            mongoHolon.VersionSealKeyId = holon.VersionSealKeyId;
             mongoHolon.PreviousVersionProviderUniqueStorageKey = holon.PreviousVersionProviderUniqueStorageKey == null ? null
                 : new Dictionary<ProviderType,string>(holon.PreviousVersionProviderUniqueStorageKey);
             mongoHolon.ProviderMetaData = CopyProviderMetaData(holon.ProviderMetaData);
@@ -906,6 +915,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoHolon.Version = holon.Version;
             mongoHolon.VersionId = holon.VersionId;
             mongoHolon.PreviousVersionId = holon.PreviousVersionId;
+            mongoHolon.VersionSeal = holon.VersionSeal;
+            mongoHolon.PreviousVersionSeal = holon.PreviousVersionSeal;
+            mongoHolon.VersionSealKeyId = holon.VersionSealKeyId;
             mongoHolon.IsActive = holon.IsActive;
             mongoHolon.IsPublic = holon.IsPublic;
 

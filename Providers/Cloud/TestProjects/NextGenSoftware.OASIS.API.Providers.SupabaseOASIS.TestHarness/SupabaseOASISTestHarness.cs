@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.TestHarness
     /// </summary>
     public static class SupabaseOASISTestHarness
     {
-        public static async Task Main()
+        public static async Task<int> Main()
         {
             Console.WriteLine("SupabaseOASIS Test Harness");
             Console.WriteLine(new string('-', 60));
@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.TestHarness
             if (activated.IsError)
             {
                 Console.WriteLine($"\nSet the SUPABASEOASIS_* environment variables and try again.");
-                return;
+                return 1;
             }
 
             Console.WriteLine($"      name    : {provider.ProviderName}");
@@ -66,6 +66,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.TestHarness
 
             Console.WriteLine(new string('-', 60));
             Console.WriteLine("Done.");
+            return savedAvatar.IsError || loadedAvatar.IsError || byUsername.IsError
+                || savedHolon.IsError || loadedHolon.IsError || deletedHolon.IsError
+                || deletedAvatar.IsError || deactivated.IsError ? 1 : 0;
         }
     }
 }

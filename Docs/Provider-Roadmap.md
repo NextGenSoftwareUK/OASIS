@@ -1,10 +1,10 @@
 # OASIS Provider Inventory & Roadmap
 
-_Last updated: 2026-10-02 — 222 working providers. See [Provider-Summary.md](Provider-Summary.md) for the authoritative full list derived from the filesystem._
+The [current inventory](WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) lists 234 shipping provider projects. The tables below record the October 2026 roadmap.
 
 ---
 
-## Current Provider Inventory
+## October 2026 Provider Inventory
 
 ### Blockchain / L1 / L2
 
@@ -81,7 +81,7 @@ _Last updated: 2026-10-02 — 222 working providers. See [Provider-Summary.md](P
 | Provider | Project | Status |
 |---|---|---|
 | ActivityPub | ActivityPubOASIS | **Done** |
-| Holochain | HoloOASIS / HoloOASIS.Desktop / HoloOASIS.Unity | **Done** |
+| Holochain | HoloOASIS / HoloOASIS.Unity | Canonical HoloOASIS native conformance in progress. HoloOASIS.Desktop is obsolete. |
 | HoloWeb | HoloWebOASIS | **Done** |
 | Scuttlebutt | ScuttlebuttOASIS | **Done** |
 | Urbit | UrbitOASIS | **Done** |

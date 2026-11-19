@@ -1,0 +1,22 @@
+name: BNB Smart Chain native NFT
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/bnb-native-nft.yml'
+      - 'Scripts/TestHosts/deploy-bnb-ci-storage.cjs'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/Web3CoreOASIS.sol'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.IntegrationTests/BnbNativeNftTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nft:
+    uses: ./.github/workflows/bnb-native-storage.yml
+    with:
+      nft_only: true
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}

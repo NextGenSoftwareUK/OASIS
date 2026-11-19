@@ -127,47 +127,5 @@ Generated outputs are regenerable; native source stays outside TestResults.
 Continue other red provider MVPs. Production BootLoader registration and Redis-family
 aliases remain separate gaps; this direct-registration demo does not certify them.
 
-## Development WEB4 candidate
-
-The opt-in registration uses StackExchange.Redis with TLS certificate
-validation. Configure `CQL_REDIS_QUERY_` settings for `ADDRESS` (reviewed public
-IP), `PORT`, `TLS_HOST` (certificate DNS name), `USERNAME`, `PASSWORD`,
-`STORAGE_KEY` (the existing canonical base64 32-byte encryption key) and
-`PROBE_ID` (an existing public teaching holon). Provide credentials and key
-through protected settings. The reviewed source must be a dedicated standalone
-Redis teaching instance using database zero, with a reader limited to the
-required SDK handshake and encrypted teaching-record reads. Activation reads
-one exact existing encrypted record through the shipping adapter.
-
-The local Redis database 11 evidence remains separate. The hosted proof uses
-`TestCategory=RedisHostedCqlNative` in the Redis integration project and
-`COSMIC_REDIS_HOSTED_CQL_SOURCE` pointing to a protected catalogue with
-`Actor`, three `LiveIds`, `DeletedId` and `MissingId`. Confirm native product
-and reader scope before running it, then qualify native/paired WEB4 HTTP and
-browser evidence on the reviewed deployment. Hosted proof is pending.
-
-Publication checkpoint, 5 November 2026. Parent `efbb72e13` and Core
-`0608347443d61839cfde723875678938dc136bfc` are verified local commits. The
-normal Core push returned GitHub's `fatal error in commit_refs_rules`.
-The same account could read the repository, reported write access and
-read the previous published commit. The candidate Core ref and commit
-were absent remotely. The rules API denied visibility for this private
-repository under its current plan. The exact cause of the earlier push error
-remains unconfirmed. Core `f73e719b4e22b8b62ee9d8efc7028dccd22228a7`
-was subsequently published on `codex/cql-dynamodb-hosted` and verified to
-include `06083474`. The dependent parent task branch was published and
-verified at `d3dafb5e0dbd3afe1c13bffc59b74d63614d942a`. Development rollout
-and native TLS qualification are still pending.
-
 [Status](CURRENT_STATUS.md) / [inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) /
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
-
-11 November UTC: Redis candidate 52ea33e543 runs existing encrypted native CQL before and after restart and MongoDB SDK/HTTP federation on digest-pinned disposable services. The existing retained Windows fixture remains supported. Results are pending. The verified Dragonfly/Valkey batch still applies to Development ea54de967e.
-
-11 November UTC: Redis CI 43057101843 passed five strict phases with zero skips: encrypted native CQL, restart, Mongo replica admission, SDK/HTTP federation and a final native recheck. Candidate 8a0503265b routes generic storage to the standard matrix and the native checks to their dedicated fixture. Combined diagnostic db871820ad is submitted. Hosted TLS acceptance remains open.
-
-11 November UTC: both Redis jobs passed in combined CI 43057542686. Generic storage ran in the standard matrix, and encrypted native CQL, restart and MongoDB federation ran in the dedicated fixture. The independently verified Redis, Dragonfly and Valkey changes are prepared as Development batch d93d984b7b on the current Hedera base. Hosted TLS acceptance remains open.
-
-11 November UTC: Development d93d984b7b integrates the verified Redis, Dragonfly and Valkey standard CI routing on top of HyperDrive Hedera changes. The batch contains only the three independently qualified fixture-routing patches. Hosted TLS acceptance remains open for all three.
-
-11 November UTC: all six Redis, Dragonfly and Valkey jobs passed in the standard Development pipeline 43059249089 at d93d984b7b. Each provider passed its generic storage matrix job and its dedicated native restart/federation job. Hosted TLS acceptance remains open.

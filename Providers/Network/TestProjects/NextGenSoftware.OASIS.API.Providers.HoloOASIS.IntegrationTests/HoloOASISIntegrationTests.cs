@@ -1,17 +1,69 @@
+using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.Providers.TestSupport;
 using Xunit;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests;
 
 public class HoloOASISIntegrationTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HoloCoreStorageConformance_PersistsOnOfficialHolochainConductor(bool sync)
+    {
+        var adminUri = Environment.GetEnvironmentVariable("OASIS_HOLOCHAIN_ADMIN_URI")
+            ?? throw new InvalidOperationException("Configure the dedicated conductor admin endpoint.");
+        var results = Environment.GetEnvironmentVariable("OASIS_HOLOCHAIN_REPORT_DIR")
+            ?? throw new InvalidOperationException("Configure the disposable conductor report directory.");
+        var reportPath = Path.Combine(results, sync ? "holo-sync.json" : "holo-async.json");
+        Assert.False(File.Exists(reportPath), "Use a fresh report directory for each conductor run.");
+
+        async Task Checkpoint(CoreStorageConformance.Report report)
+        {
+            await File.WriteAllTextAsync(reportPath + ".next", JsonSerializer.Serialize(report));
+            File.Move(reportPath + ".next", reportPath, overwrite: true);
+        }
+
+        var provider = new HoloOASIS(adminUri, useHoloNetwork: false);
+        var report = await CoreStorageConformance.RunAsync(provider, "HoloOASIS", "native", sync, Checkpoint);
+        Assert.True(report.Succeeded, $"{report.CurrentCase}: {report.FailureType} [{report.FailureContract}]");
+        Assert.Equal(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+        Assert.True(report.FixtureCleanupComplete);
+    }
+
     [Fact]
     public async Task AvatarAndHolonCrud_PersistOnOfficialHolochainConductor()
     {
         string adminUri = Environment.GetEnvironmentVariable("OASIS_HOLOCHAIN_ADMIN_URI")
             ?? throw new InvalidOperationException("Set OASIS_HOLOCHAIN_ADMIN_URI to run the official conductor test.");
-        var provider = new HoloOASIS(adminUri, useHoloNetwork: false);
+        await VerifyCrudAsync(new HoloOASIS(adminUri, useHoloNetwork: false));
+    }
+
+    [Fact]
+    public async Task DesktopAvatarAndHolonCrud_PersistOnOfficialHolochainConductor()
+    {
+        string adminUri = Environment.GetEnvironmentVariable("OASIS_HOLOCHAIN_ADMIN_URI")
+            ?? throw new InvalidOperationException("Configure the dedicated conductor admin endpoint.");
+        var provider = new global::NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.HoloOASIS(adminUri);
+        try
+        {
+            await VerifyCrudAsync(provider);
+        }
+        finally
+        {
+            if (provider.IsProviderActivated)
+            {
+                var result = await provider.DeActivateProviderAsync();
+                Assert.False(result.IsError, result.Message);
+                Assert.True(result.Result);
+            }
+        }
+    }
+
+    private static async Task VerifyCrudAsync(HoloOASIS provider)
+    {
         var activation = await provider.ActivateProviderAsync();
         Assert.False(activation.IsError, activation.Message);
         Assert.True(activation.Result);

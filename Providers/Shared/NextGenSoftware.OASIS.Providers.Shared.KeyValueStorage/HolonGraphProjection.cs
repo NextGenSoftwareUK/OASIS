@@ -18,6 +18,19 @@ public static class HolonGraphProjection
         // Nonrecursive parent lookup returns those immediate children without grandchildren.
         var startDepth=(long)initialDepth+(rootsAreChildren ? 1:0);
         if(rootsAreChildren)loadChildren=loadChildren && recursive;
+        if (!loadChildren || (maxChildDepth != 0 && startDepth >= maxChildDepth))
+        {
+            return root =>
+            {
+                if (root == null)
+                    throw new InvalidDataException("Persisted holon graph contains a null child.");
+
+                var copy = clone(root);
+                copy.Children = new List<IHolon>();
+                return copy;
+            };
+        }
+
         var pool=records.ToArray();
         var children=pool.ToLookup(row=>row.ParentHolonId);
         var identities=pool.ToLookup(row=>row.Id);

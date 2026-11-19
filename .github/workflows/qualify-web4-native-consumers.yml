@@ -2,7 +2,7 @@ name: Qualify pinned WEB4 native runtime consumers
 
 on:
   push:
-    branches: [work/cosmic-cql-ton-public]
+    branches: [work/cosmic-cql-ton-public, work/cosmic-teaching-release-candidate]
     paths:
       - '.github/workflows/qualify-web4-native-consumers.yml'
       - 'Docker/Dockerfile.web4'

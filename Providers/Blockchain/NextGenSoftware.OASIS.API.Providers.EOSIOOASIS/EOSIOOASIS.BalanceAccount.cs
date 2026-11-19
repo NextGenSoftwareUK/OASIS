@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Net.Http;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -350,73 +352,52 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-        public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
+        private static readonly SocketsHttpHandler BalanceTransport = new()
         {
-            return GetBalanceAsync(request).Result;
-        }
+            PooledConnectionLifetime = TimeSpan.FromMinutes(5)
+        };
+
+        public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request) =>
+            GetBalanceAsync(request).GetAwaiter().GetResult();
 
         public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
         {
             var result = new OASISResult<double>();
-            string errorMessage = "Error in GetBalanceAsync method in EOSIOOASIS. Reason: ";
-
             try
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-                if (_eosClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO client is not initialized");
-                    return result;
-                }
+                if (string.IsNullOrWhiteSpace(request?.WalletAddress))
+                    throw new ArgumentException("Wallet address is required.", nameof(request));
 
-                if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Wallet address is required");
-                    return result;
-                }
+                using var client = new EosClient(new Uri(HostURI), BalanceTransport);
+                var node = await client.GetNodeInfo().ConfigureAwait(false);
+                if (node == null || !node.IsNodeInfoCorrect())
+                    throw new InvalidOperationException("The endpoint returned invalid EOSIO node information.");
+                if (!string.IsNullOrWhiteSpace(EOSChainId)
+                    && !string.Equals(node.ChainId, EOSChainId, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("The endpoint chain ID does not match the configured EOSIO chain ID.");
 
-                // Get currency balance from EOSIO
-                var balanceRequest = new GetCurrencyBalanceRequestDto
+                var balances = await client.GetCurrencyBalance(new GetCurrencyBalanceRequestDto
                 {
                     Code = "eosio.token",
                     Account = request.WalletAddress,
                     Symbol = "EOS"
-                };
+                }).ConfigureAwait(false);
 
-                var balances = await _eosClient.GetCurrencyBalance(balanceRequest);
-                if (balances != null && balances.Length > 0)
+                if (balances == null || balances.Length > 1)
+                    throw new InvalidOperationException("The endpoint returned an invalid EOS currency balance response.");
+                if (balances.Length == 1)
                 {
-                    // Parse EOS balance (format: "100.0000 EOS")
-                    var balanceStr = balances[0].Split(' ')[0];
-                    if (double.TryParse(balanceStr, out var balance))
-                    {
-                        result.Result = balance;
-                        result.IsError = false;
-                        result.Message = "Balance retrieved successfully.";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to parse balance");
-                    }
+                    var parts = balances[0]?.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (parts?.Length != 2 || parts[1] != "EOS"
+                        || !decimal.TryParse(parts[0], NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var amount))
+                        throw new InvalidOperationException("The endpoint returned an invalid EOS currency balance.");
+                    result.Result = (double)amount;
                 }
-                else
-                {
-                    result.Result = 0.0;
-                    result.IsError = false;
-                    result.Message = "Balance retrieved successfully (0 EOS).";
-                }
+                result.Message = "EOS balance retrieved successfully.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, "Error retrieving the EOSIO wallet balance.", ex);
             }
             return result;
         }

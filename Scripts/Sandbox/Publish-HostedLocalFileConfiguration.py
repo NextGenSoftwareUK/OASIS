@@ -5,9 +5,7 @@ import copy
 import hashlib
 import importlib.util
 import json
-import os
 import re
-import subprocess
 import sys
 import uuid
 
@@ -147,211 +145,19 @@ def prepare():
     print("Protected LocalFile candidate prepared:five values/four presets,no service mutation or deployment.")
 
 
-def require_data_mount(*, initial_bootstrap=False):
-    instances = os.environ.get("COSMIC_CQL_REVIEWED_INSTANCE_IDS", "").split(",")
-    if any(not re.fullmatch(r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}", instance)
-           for instance in instances) or len(set(instances)) != len(instances):
-        raise RuntimeError("Set the active instance IDs from the reviewed Development deployment")
-    if initial_bootstrap and len(instances) != 1:
-        raise RuntimeError("Initial LocalFile bootstrap requires one reviewed active instance")
-    for instance in instances:
-        try:
-            result = subprocess.run(
-                [str(configuration.CLI), "ssh", *configuration.COMMON, "-d", instance,
-                 "--", "cat", "/proc/self/mountinfo"],
-                capture_output=True, timeout=30)
-        except (OSError, subprocess.TimeoutExpired):
-            raise RuntimeError("Could not inspect the reviewed instance mount") from None
-        mounts = [line.partition(b" - ") for line in result.stdout.splitlines()]
-        data_mounts = [(mount.split(), filesystem.split()) for mount, separator, filesystem in mounts
-                       if separator and mount.split()[4:5] == [b"/data"]]
-        if result.returncode or len(data_mounts) != 1:
-            raise RuntimeError("The reviewed instance must expose a separate writable /data mount")
-        mount, filesystem = data_mounts[0]
-        if len(mount) < 6 or len(filesystem) != 3 or any(
-                b"rw" not in options.split(b",") for options in (mount[5], filesystem[2])):
-            raise RuntimeError("The reviewed instance must expose a separate writable /data mount")
-
-
-def verify_release():
-    guard = module("Prepare-TenSourcePublicBatch")
-    release_ref = os.environ.get("COSMIC_CQL_REVIEWED_RELEASE_REF")
-    if release_ref:
-        return guard.require_matching_release(configuration, release_ref=release_ref)
-    return guard.require_matching_release(configuration)
-
-
-def verify_candidate_base():
-    release_ref = os.environ.get("COSMIC_CQL_REVIEWED_RELEASE_REF", "")
-    expected = os.environ.get("COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT", "")
-    if not release_ref or not re.fullmatch("[0-9a-f]{40}", expected):
-        raise RuntimeError("Set the explicit reviewed release ref and commit.")
-
-    def git(*args):
-        return subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, timeout=30)
-
-    release = git("rev-parse", "--verify", "--end-of-options", release_ref + "^{commit}")
-    if release.returncode or release.stdout.strip() != expected:
-        raise RuntimeError("Local release ref differs from the reviewed deployment SHA.")
-    development = git("ls-remote", "--exit-code", "origin", "refs/heads/Development")
-    match = re.fullmatch(r"([0-9a-f]{40})\trefs/heads/Development\s*", development.stdout)
-    if development.returncode or match is None:
-        raise RuntimeError("Could not verify the current remote Development ref.")
-    base = match[1]
-    ancestry = git("merge-base", "--is-ancestor", base, expected)
-    if ancestry.returncode == 1:
-        raise RuntimeError("The reviewed candidate does not contain current Development.")
-    if ancestry.returncode:
-        raise RuntimeError("Candidate ancestry could not be verified. Fetch and inspect current Development.")
-    return base, expected
-
-
-def verify_mount(*, initial_bootstrap=False, expected_deployment=None):
-    deployment = verify_release()
-    if not isinstance(deployment, str) or not deployment:
-        raise RuntimeError("Reviewed Railway deployment has no deployment ID")
-    if expected_deployment is not None and deployment != expected_deployment:
-        raise RuntimeError("Current deployment is not the reviewed LocalFile settings deployment")
-    require_data_mount(initial_bootstrap=initial_bootstrap)
-    if verify_release() != deployment:
-        raise RuntimeError("Reviewed Railway deployment changed during mount inspection")
-    return deployment
-
-
 def apply():
     before = configuration.protected_read(PREFIX + "-before-variables.dpapi")
     after = configuration.protected_read(PREFIX + "-candidate-variables.dpapi")
     if candidate(before, *qualified_source()) != after:
         raise RuntimeError("Reviewed source/candidate differs;no mutation allowed.")
-    deployment = verify_mount(initial_bootstrap=True)
-
-    def require_original_deployment():
-        if verify_release() != deployment:
-            raise RuntimeError("Reviewed Railway deployment changed before LocalFile settings staging")
-
-    configuration.apply_values(PREFIX, KEYS, reviewed_snapshots=(before, after),
-                               before_mutation=require_original_deployment)
-
-
-def verify_settings():
-    expected_deployment = os.environ.get("COSMIC_CQL_SETTINGS_DEPLOYMENT_ID")
-    if not expected_deployment:
-        raise RuntimeError("Set the deployment ID created by the reviewed LocalFile settings change")
-    deployment = verify_mount(expected_deployment=expected_deployment)
-    expected = configuration.protected_read(PREFIX + "-candidate-variables.dpapi")
-    for key in KEYS:
-        path = configuration.STATE / f"{PREFIX}-{key}.acknowledged.json"
-        if key not in expected or not path.is_file():
-            raise RuntimeError(f"Missing reviewed LocalFile settings acknowledgement for {key}")
-        acknowledgement = json.loads(path.read_bytes())
-        digest = hashlib.sha256(expected[key].encode()).hexdigest()
-        if (acknowledgement.get("key") != key or acknowledgement.get("sha256") != digest
-                or acknowledgement.get("verified") is not True
-                or acknowledgement.get("deploymentTriggered") is not False):
-            raise RuntimeError(f"Invalid reviewed LocalFile settings acknowledgement for {key}")
-    observed = configuration.variables()
-    if any(observed.get(key) != expected[key] for key in KEYS):
-        raise RuntimeError("Development LocalFile settings differ from the reviewed candidate")
-    if observed != expected:
-        raise RuntimeError("Other Development WEB4 settings changed since the LocalFile review; reconcile before acceptance")
-    if verify_release() != deployment:
-        raise RuntimeError("Reviewed Railway deployment changed during settings inspection")
-    return deployment
-
-
-def verify_records():
-    instance = os.environ.get("COSMIC_CQL_REVIEWED_INSTANCE_IDS", "")
-    if not re.fullmatch(r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}", instance):
-        raise RuntimeError("Mounted record verification requires one reviewed active instance.")
-    source, _ = qualified_source()
-    expected = configuration.protected_read(PREFIX + "-candidate-variables.dpapi")
-    if json.loads(expected[KEYS[0]]) != source:
-        raise RuntimeError("Protected LocalFile source differs from native qualification.")
-    deployment = verify_settings()
-
-    def inspect(*args):
-        try:
-            result = subprocess.run(
-                [str(configuration.CLI), "ssh", *configuration.COMMON, "-d", instance, "--", *args],
-                capture_output=True, timeout=30)
-        except (OSError, subprocess.TimeoutExpired):
-            raise RuntimeError("Could not inspect LocalFile on the reviewed instance.") from None
-        if result.returncode:
-            raise RuntimeError("Could not inspect LocalFile on the reviewed instance.")
-        return result.stdout
-
-    for row in source["records"]:
-        path = f"/data/cql-local-file-demo/Holons/{row['id']}.json"
-        if inspect("realpath", "-e", path).rstrip(b"\r\n") != path.encode():
-            raise RuntimeError("Mounted LocalFile teaching record resolves outside its reviewed path.")
-        content = inspect("head", "-c", "32769", path)
-        if not 0 < len(content) <= 32768 or hashlib.sha256(content).hexdigest() != row["sha256"]:
-            raise RuntimeError("Mounted LocalFile teaching record differs from its qualified digest.")
-    if verify_settings() != deployment:
-        raise RuntimeError("Reviewed Railway deployment changed during record inspection.")
-    return deployment, source
-
-
-def mounted_record_receipt(deployment, source):
-    uuid_pattern = r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}"
-    if not isinstance(deployment, str) or not re.fullmatch(uuid_pattern, deployment) or not identity(deployment):
-        raise RuntimeError("A canonical settings deployment ID is required.")
-    image = os.environ.get("COSMIC_CQL_EXPECTED_DEPLOYMENT_IMAGE_DIGEST")
-    commit = os.environ.get("COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT", "")
-    instance = os.environ.get("COSMIC_CQL_REVIEWED_INSTANCE_IDS", "")
-    if not re.fullmatch(r"[0-9a-f]{40}", commit):
-        raise RuntimeError("Exact reviewed commit is required for mounted record evidence.")
-    if image is not None and not re.fullmatch(r"sha256:[0-9a-f]{64}", image):
-        raise RuntimeError("The reviewed image digest must be a full SHA256 digest.")
-    if not re.fullmatch(uuid_pattern, instance) or not identity(instance):
-        raise RuntimeError("One canonical reviewed instance ID is required.")
-    path = ROOT / "TestResults/HostedLocalFileSourceCurrent" / f"mounted-records-{deployment}.json"
-    receipt = {"schema": 1, "deployment": deployment, "instance": instance, "imageDigest": image,
-               "commit": commit, "source": source}
-    return path, receipt
-
-
-def write_mounted_record_receipt(deployment, source):
-    path, receipt = mounted_record_receipt(deployment, source)
-    data = configuration.compact(receipt).encode()
-    if path.exists():
-        if path.read_bytes() != data:
-            raise RuntimeError("Existing mounted record receipt differs. Reconcile the original observation.")
-    else:
-        configuration.write_new(path, data)
-
-
-def require_mounted_record_receipt(source):
-    deployment = os.environ.get("COSMIC_CQL_SETTINGS_DEPLOYMENT_ID", "")
-    path, expected = mounted_record_receipt(deployment, source)
-    if not path.is_file() or not 0 < path.stat().st_size <= 16384:
-        raise RuntimeError("Verify mounted LocalFile records before hosted acceptance.")
-    if json.loads(path.read_bytes()) != expected or verify_release() != deployment:
-        raise RuntimeError("Mounted LocalFile receipt differs from the reviewed source or live deployment.")
-    return expected
+    module("Prepare-TenSourcePublicBatch").require_matching_release(configuration)
+    configuration.apply_values(PREFIX, KEYS)
 
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prepare()
-    elif sys.argv[1:] == ["verify-release"]:
-        verify_release()
-        print("Reviewed Development WEB4 deployment verified.")
-    elif sys.argv[1:] == ["verify-candidate-base"]:
-        base, candidate_sha = verify_candidate_base()
-        print(f"Reviewed LocalFile candidate {candidate_sha} contains current Development {base}.")
-    elif sys.argv[1:] == ["verify-mount"]:
-        deployment = verify_mount()
-        print(f"Reviewed Development WEB4 deployment {deployment} and writable /data mounts verified.")
     elif sys.argv[1:] == ["apply"]:
         apply()
-    elif sys.argv[1:] == ["verify-settings"]:
-        deployment = verify_settings()
-        print(f"Reviewed LocalFile settings and mount verified for deployment {deployment}.")
-    elif sys.argv[1:] == ["verify-records"]:
-        deployment, source = verify_records()
-        write_mounted_record_receipt(deployment, source)
-        print(f"Reviewed LocalFile settings, mount and three teaching records verified for deployment {deployment}.")
     else:
-        raise SystemExit("Use no arguments to prepare, verify-candidate-base before rollout, verify-release, "
-                         "verify-mount, verify-settings or verify-records to inspect, or apply after exact code deployment.")
+        raise SystemExit("Use no arguments to prepare,or apply after exact code deployment.")

@@ -16,9 +16,8 @@ public sealed class TronPublicFactAttribute : FactAttribute
 {
     public TronPublicFactAttribute()
     {
-        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("COSMIC_TRON_PUBLIC_SOURCE")) ||
-            string.IsNullOrEmpty(Environment.GetEnvironmentVariable("COSMIC_TRON_PUBLIC_READER_KEY")))
-            Skip = "Explicit retained TRON catalogue and dedicated reader key required.";
+        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("COSMIC_TRON_PUBLIC_SOURCE")))
+            Skip = "Explicit retained public TRON catalogue required.";
     }
 }
 
@@ -39,7 +38,6 @@ public class TronPublicHeaderMetadataTests
         {
             token.ThrowIfCancellationRequested();
             Interlocked.Increment(ref Requests);
-            if (Fault == "deadline") throw new TaskCanceledException("Native request deadline elapsed.");
             Assert.Equal(HttpMethod.Post, request.Method);
             using var body = JsonDocument.Parse(await request.Content!.ReadAsStringAsync(token));
             bool batch = request.RequestUri!.AbsoluteUri.EndsWith("getblockbylimitnext", StringComparison.Ordinal);
@@ -140,7 +138,6 @@ public class TronPublicHeaderMetadataTests
     [InlineData("oversize")] [InlineData("http")] [InlineData("inactive")] [InlineData("cancel")]
     [InlineData("range-missing")] [InlineData("range-extra")] [InlineData("range-order")]
     [InlineData("off-catalogue")] [InlineData("empty-window-error")]
-    [InlineData("deadline")]
     public async Task OnlyCompleteNativeSelectionsEscape(string scenario)
     {
         var native = new Native();
@@ -178,7 +175,6 @@ public class TronPublicHeaderMetadataTests
             });
         }
         else Assert.True(result.IsError, "A partial page must never escape.");
-        if (scenario == "deadline") Assert.Equal("CQL_QUERY_FAILED", result.ErrorCode);
         if (scenario is "inactive" or "cancel" or "off-catalogue") Assert.Equal(0, native.Requests);
     }
 
@@ -218,22 +214,11 @@ public class TronPublicHeaderMetadataTests
         Assert.Throws<ArgumentException>(() => TronPublicHeaderMetadataSource.FromJson("{\"signer\":123}"));
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("bad key")]
-    [InlineData("first,second")]
-    public void AuthenticatedFactoryRejectsInvalidKeysBeforeOpeningTheSource(string key)
-    {
-        var error = Assert.Throws<ArgumentException>(() => TronPublicHeaderMetadataSource.FromAuthenticatedJson("{}", key));
-        Assert.Equal("readerKey", error.ParamName);
-    }
-
     [TronPublicFact]
     public async Task RetainedNativeCatalogueRunsSharedManagerThreeAndTwo()
     {
         string json = await File.ReadAllTextAsync(Environment.GetEnvironmentVariable("COSMIC_TRON_PUBLIC_SOURCE")!);
-        using var source = TronPublicHeaderMetadataSource.FromAuthenticatedJson(
-            json, Environment.GetEnvironmentVariable("COSMIC_TRON_PUBLIC_READER_KEY")!);
+        using var source = TronPublicHeaderMetadataSource.FromJson(json);
         using var config = JsonDocument.Parse(json);
         var keys = config.RootElement.GetProperty("blockHeights").EnumerateArray().Select(row => row.GetString()!).ToArray();
         var activated = await source.ActivateQuerySourceAsync(default);

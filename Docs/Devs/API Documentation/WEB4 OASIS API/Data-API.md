@@ -13,10 +13,6 @@
 
 The Data API provides comprehensive data management services for the OASIS ecosystem. It handles data storage, retrieval, processing, and analytics with support for multiple data types, real-time updates, and advanced security features.
 
-## Saving typed UTC holon metadata
-
-On WEB4 revisions that support `utcMetadataKeys`, include an optional array of exact top-level keys in the body of `POST /api/data/save-holon`. Each named key must exist in `holon.metaData`. Its value may be null or an ISO UTC timestamp ending in `Z` with up to seven fractional digits. For example, `utcMetadataKeys: ["observedAt"]` declares the value `"2021-01-01T00:00:00.0000001Z"` as a timestamp that a typed CQL date query can read. Omitted keys retain their submitted types. Add this field alongside the normal save operation ID, provider, and expected revisions.
-
 ## Data Management
 
 ### Get All Data
@@ -704,6 +700,112 @@ Authorization: Bearer YOUR_TOKEN
 }
 ```
 
+## Holon Audit Trail
+
+A readable history of a holon, built from the versions OASIS already keeps every time it is saved. Any app gets the same detailed trail (PIPER uses it for its "audit record of authority"), so apps do not need to rebuild it themselves.
+
+### Get Holon Audit Trail
+
+`GET /api/data/holon-audit-trail/{id}?fromVersion=0&toVersion=0&limit=50&offset=0`
+
+`POST /api/data/holon-audit-trail/{id}` (same result; optional body below)
+
+The response also carries `seal`: the result of the opt-in tamper-evidence check (status, `brokenAtVersion`, per-version `versionStatus`, `latestSeal`). See `Docs/Devs/SEALED_HOLON_HISTORY.md`. A separate check without the trail: `GET /api/data/holon-seal/verify/{id}`.
+
+```json
+{
+  "fieldLabels": { "goals": "Therapy goals" },
+  "skipKeys": ["lastSeen", "updatedAt"],
+  "fromVersion": 0,
+  "toVersion": 0,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+Response (newest entry first):
+
+```json
+{
+  "result": {
+    "result": {
+      "holonId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      "latestVersion": 3,
+      "total": 3,
+      "limit": 50,
+      "offset": 0,
+      "entries": [
+        {
+          "version": 3,
+          "timestamp": "2026-11-12T10:15:00Z",
+          "avatarId": "22222222-2222-2222-2222-222222222222",
+          "avatarName": "bob",
+          "action": "updated",
+          "changes": [
+            { "field": "Therapy goals", "oldValue": null, "newValue": "added 1 (Wh blends [g3])" },
+            { "field": "name", "oldValue": "Student", "newValue": "Student B" }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+- **action** is `created`, `updated`, `deleted` or `restored`.
+- **changes** cover the core holon fields (name, description, parent, type, custom type, active, public) and every metadata key. Long values are clipped to about 200 characters. A metadata value that is a JSON list of objects with an `id` is summarised as added / removed / changed records instead of raw JSON.
+- **avatarName** is the avatar's username, or blank when it cannot be read.
+- `skipKeys` (case-insensitive) leaves bookkeeping metadata out; `fieldLabels` renames fields for display.
+- Paging: `limit` (default 50, max 200) and `offset` apply to the newest-first list; `fromVersion` and `toVersion` limit the version range.
+
+**Permissions.** Only callers who may read the holon get its trail (creator, public, or shared with them; Wizards can read any). For everyone else the endpoint returns 403, and the trail only contains the fields that caller is allowed to read, so other avatars' data is never leaked.
+
+**Implementation.** The diff lives in Core (`HolonAuditTrail`, with unit tests) and the controller only loads the versions and applies the read permission.
+
+### How tamper-evident is the version history?
+
+Answer taken from the code (Mongo provider, the default store; other providers differ):
+
+- **Versions are assigned by the server.** Every save increments `Version` (HolonManager) and records `ModifiedByAvatarId` and `ModifiedDate`. There is no endpoint to edit or delete a single old version.
+- **History is append-only inside the record.** The Mongo provider archives the previous revision on every save (`OasisHolonRevisionArchive`). A save that would move the version backwards or change the holon's identity is rejected, and each archived snapshot keeps a SHA-256 checksum that is verified on every read. A corrupted or edited archive entry makes the load fail rather than silently show altered history.
+- **Soft delete keeps everything.** It sets the deleted fields, adds a new version and keeps all earlier versions (and it can be restored; the trail shows `deleted` then `restored`).
+- **Permanent delete removes the whole holon including its history.** `DELETE /api/data/delete-holon/{id}/false` can be called by the holon's creator or a Wizard. History is not preserved after a permanent delete, so an app that needs a lasting record should soft delete only.
+- **Limits.** The checksums are not chained or signed, so someone with direct database access (or a Wizard using the provider layer) could rewrite a snapshot and its checksum. The trail is tamper-resistant against API users but not cryptographically tamper-proof. Where that matters, anchor periodic hashes on a blockchain provider.
+
+## Holon Access Log
+
+Records who READ a holon (the version history only records writes). Off by default and opt-in: set `OASIS.AccessLog.Enabled` to `true` in `OASIS_DNA.json` (on Railway edit the `OASIS_DNA_JSON` variable). With it off nothing is recorded, queued or written. Only ids are stored, never holon content.
+
+### Endpoints
+
+`GET /api/data/holon-access-log/{id}?limit=50&offset=0` - who read this holon, newest first. Only the holon's owner or a Wizard (administrator) may ask; anyone else gets 403.
+
+`GET /api/data/access-log?avatarId={id}&limit=50&offset=0` - an avatar's own reads (default), or any avatar's for a Wizard.
+
+Each entry: `timestamp`, `avatarId`, `avatarName` (username, blank if unreadable), `appId` (from the `X-OASIS-App-Id` header), `operation` (e.g. LoadHolon), `holonType`, `holonIds` and `totalCount`, plus `ipAddress` only when `CaptureIp` is on. When the log is off both endpoints return 404.
+
+### DNA settings (`OASIS.AccessLog`)
+
+| Key | Default | Meaning |
+|---|---|---|
+| Enabled | false | Master switch. Off = zero overhead and no writes. |
+| Apps | [] | App ids to record; empty = all apps once enabled. |
+| HolonTypes | [] | Holon types to record; empty = all. |
+| Operations | [] | LoadHolon, LoadHolonsForParent, LoadAllHolons, LoadHolonsByMetaData, LoadHolonByMetaData, Search...; empty = all reads. |
+| CaptureIp | false | Also store the caller's IP (personal data). |
+| RetentionDays | 365 | Events older than this are deleted automatically (MongoDB TTL index). 0 = keep forever. |
+| QueueCapacity | 10000 | In-memory queue size; when full new events are dropped and counted, a read is never blocked. |
+| FlushIntervalSeconds | 5 | How often the queue is written. |
+| BatchSize | 500 | Events written per batch. |
+| MaxHolonIdsPerEvent | 200 | A bulk read stores ONE event with at most this many ids plus the total count. |
+
+### Things to know
+
+- Events are stored in the MongoDBOASIS database named in `StorageProviders.MongoDBOASIS` (collection `AccessLogEvents`, append-only). MongoDB must be configured or nothing is stored.
+- Volume: every read creates an event (bulk reads one event). A busy app can add millions of rows a year; keep `RetentionDays` sensible and use `Apps`, `HolonTypes` and `Operations` to record only what you need.
+- Writes are asynchronous and best effort: events still queued when the node stops, or dropped when the queue is full, are lost.
+- It only covers reads served through the WEB4 Data API. Reads straight from provider storage, other WEB APIs or direct database access are NOT recorded.
+
 ## Data Security
 
 ### Get Data Security
@@ -833,3 +935,54 @@ Authorization: Bearer YOUR_TOKEN
 ## Navigation
 
 **← Previous:** [Karma API](Karma-API.md) | **Next:** [Wallet API](Wallet-API.md) →
+
+---
+
+## Purging earlier saved versions of a deleted holon (opt-in)
+
+Every save keeps the earlier version, and an API delete is a soft delete (a tombstone version), so a deleted record's history normally remains. The purge feature removes ALL saved versions permanently. It is OFF by default (`OASIS.VersionPurge.Enabled`); see `Docs/Devs/HOLON_VERSION_PURGE.md` for what it removes, what it cannot, and how the node, avatar and app settings combine.
+
+`DELETE /api/data/purge-holon/{id}?allowLive=false` - purge one holon. Caller must be the holon's creator or hold a Delete grant. The holon must already be deleted unless `allowLive=true`. Refused with 409 while a legal hold is set. Result: `status` (`Purged`, `PurgedPartially`, `AlreadyPurged`, `NotFound`, `Forbidden`, `Disabled`, `OnHold`, `NotDeleted`, `Failed`), `versionsRemoved`, `purgedAtUtc`, `stores[]`, `unpurgedStores[]`, `backupNote`. Cannot be undone.
+
+`POST /api/data/purge-holons` body `{"ids":["..."],"allowLive":false}` - batch (max 100). HTTP 200 when the batch ran; read each `results[i].status`.
+
+`POST /api/data/holon-purge-hold/{id}` body `{"reason":"parent access request"}` and `DELETE /api/data/holon-purge-hold/{id}` - set / release a legal hold that blocks both the scheduled worker and the purge calls.
+
+`GET /api/data/holon-purge/status/{id}` - `status` (`none`, `pending`, `purged`, `cancelled`), `hold`, `purgeAfterUtc`, `purgedAtUtc`, `versionsRemoved` (owner only).
+
+`GET /api/data/holon-seal/verify/{id}` returns status `Purged` (to the owner) for a holon that was purged.
+
+Per-avatar and per-app settings: `GET|POST /api/avatar/version-purge` (`{"enabled":true|false|null,"days":0..3650|null}`) and the app-owner settings call (`versionPurgeEnabled`, `versionPurgeDays`).
+
+
+---
+
+## Further endpoints (reference index)
+
+Every route below exists on `api/data/...`; they are listed here so the reference is complete. Where a route has several path variants (extra provider / auto-replication segments) the shortest form is shown. All need a Bearer token unless the controller says otherwise.
+
+| Method | Route | What it does |
+|---|---|---|
+| POST | `/api/data/complete-chunked-file` | Joins previously saved chunks into one file and returns the file's id (the manifest holon's id). |
+| POST | `/api/data/copy-holon` | Copies a holon graph between two explicitly selected storage providers. |
+| GET | `/api/data/copy-holon/providers` | Lists registered storage providers for an explicit copy. |
+| GET | `/api/data/current-avatar/holon-count` | Returns the number of direct holons under the signed-in avatar. |
+| DELETE | `/api/data/delete-holon-by-providerkey/{providerKey}` | Deletes a holon identified by its provider-specific storage key. |
+| GET/POST | `/api/data/load-all-holons` | Load's all holons for the given HolonType. |
+| GET/POST | `/api/data/load-data` | Loads custom data with the given key from the current logged in avatar. |
+| GET/POST | `/api/data/load-file` | Loads a file with the given id. |
+| POST | `/api/data/load-file-chunk` | Loads chunk Index (zero-based) of a chunked file. |
+| POST | `/api/data/load-file-info` | Describes a file. |
+| GET/POST | `/api/data/load-holon` | Load's a holon data object for the given id. |
+| GET/POST | `/api/data/load-holon-by-metadata` | Loads a single holon whose metadata contains the given key/value pair. |
+| GET | `/api/data/load-holon-by-providerkey/{providerKey}` | Loads a holon by its provider-specific storage key. |
+| GET/POST | `/api/data/load-holons-by-metadata` | Loads all holons whose metadata contains the given key/value pair. |
+| GET/POST | `/api/data/load-holons-for-parent` | Load's all holons for the given parent and the given HolonType. |
+| GET | `/api/data/load-holons-for-parent-by-providerkey/{providerKey}` | Loads all child holons for the parent identified by the given provider key. |
+| GET/POST | `/api/data/save-data` | Saves custom data with a given key to the current logged in avatar. |
+| GET/POST | `/api/data/save-file` | Saves a file and returns the id linked to the holon that it is stored in. |
+| POST | `/api/data/save-file-chunk` | Saves one chunk of a large file and returns its id. |
+| POST | `/api/data/save-holon` | Save's a holon data object. |
+| POST | `/api/data/save-holon-off-chain` | Save's a holon data object (meta data) to the given off-chain provider and then links its hash to the on-chain provider. |
+| POST | `/api/data/save-holons` | Saves a collection of holons in a single call. |
+| GET/POST | `/api/data/search-holons` | Searches holons by a text term, optionally filtering by HolonType, parent, and metadata key/value pairs. |

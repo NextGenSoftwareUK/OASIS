@@ -19,6 +19,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         // Usage tracking
         Task<UsageRecord> GetUsageAsync(string userId, int year, int month);
         Task<SubscriptionAuthorizationDecision> AuthorizeUsageAsync(string userId, int karma, UsageAuthorizationRequest request, CancellationToken cancellationToken);
+        /// <summary>As above, evaluated against the app's plan when app credentials were verified (the more generous plan applies).</summary>
+        Task<SubscriptionAuthorizationDecision> AuthorizeUsageAsync(string userId, int karma, UsageAuthorizationRequest request, AppAccountRecord app, CancellationToken cancellationToken);
         Task<UsageSettlementResult> SettleUsageAsync(string userId, UsageSettlementRequest request, CancellationToken cancellationToken);
         Task<SubscriptionUsageSummary> GetUsageSummaryAsync(string userId, int karma, CancellationToken cancellationToken);
         Task<IReadOnlyList<SubscriptionUsageEvent>> GetUsageEventsAsync(string userId, int limit, CancellationToken cancellationToken);

@@ -1,172 +1,112 @@
-# Solr bounded CQL scope
+# Solr CQL MVP — native/restart/paired demo verified
 
-Current local UI address (5 November correction): `http://127.0.0.1:5136/`.
-Original cohort retained; new-address browser/provenance and consumer1/1 pass.
-[Address correction and exact evidence](LOCAL_DEMO_ADDRESS_CORRECTION.md) owns
-publication status; earlier UI addresses below are historical evidence.
+Updated30October2026. Scoped native/restart/Mongo-paired C#/HTTP/browser proof passes.
 
-5 November 2026. Controlled provider/CQL tests: 16 passed, zero failures or
-skips. This is an adapter milestone, not native or hosted acceptance. Coverage
-counts remain 97 local profiles, 60 hosted HTTP proofs and 28 hosted browser flows.
+## Root causes and storage contract
 
-The CQL path uses the shared bounded identity compiler and exact reads through
-`GET /solr/oasis_holons/get?id={canonical-guid}&wt=json&omitHeader=false`.
-Read-only activation checks the existing collection using
-`GET /solr/oasis_holons/schema/uniquekey?wt=json`; successful Solr status and
-`uniqueKey=id` are required. Neither operation creates collections. The normal
-provider activation/provisioning path is not used by CQL activation.
+Old saves posted arbitrary nested holon fields to Solr schema inference and ignored
+HTTP acknowledgements; activation blindly attempted SolrCloud collection creation.
+New storage boundary preserves complete canonical JSON in one stored, unindexed,
+single-value string field data_json. Only id/name/username/email/parentHolonId/
+holonType/isDeleted are native typed projections; nested metadata, arrays and
+precise scalar JSON remain inside the payload. All generic point/search readers
+use this same canonical payload and validate native/payload identity; no raw-document
+fallback. HTTP/status/partial/malformed errors now return real errors rather than
+missing/empty success in those common read helpers. Legacy raw documents need an
+explicit migration; no migration, deletion or automatic schema conversion performed.
 
-Each successful response must contain a successful responseHeader and doc.
-Only HTTP success with explicit `doc:null` means an absent record; HTTP 404,
-authentication, collection errors, malformed responses, wrong identities and
-payload failures return explicit OASISResult errors without partial rows.
-Canonical Holon identity/read authority, deletion filtering, ordering and paging
-are enforced. The transport caps each response at 1 MiB, the query aggregate
-at 4 MiB, and the overall query at 15 seconds. Child graphs are excluded.
-Default HTTP redirects are disabled; an injected client must obey the same
-transport policy. Historical/version-control reads remain explicitly unsupported.
+Upsert is one full-document update with commit=true/waitSearcher=true/versions=true.
+HTTPsuccess, responseHeader.status0/no error/partial and exact adds[id,positiveInt64]
+receipt required before publishing caller identity/provider keys/IsSaved/SavedCount.
+The native version is an acknowledgement, not implemented conditional-write/CAS
+support. Unknown outcomes never trigger replay. HolonManager owns tracking acceptance.
+Batch stop/continue/error/acknowledged counts honored; historyflag rejects.
+Dedicated injected HttpClient remains caller-owned. Envelopes stream-bounded:
+256KiB schema,64KiB update acknowledgement,4MiB reads; native deadlines15s.
 
-The adapter consumes stored camel-case Holon JSON fields, matching the existing
-provider serialization contract. Arbitrary native Solr schema compatibility and nested Holon data have NOT been
-certified; the later native checkpoint proves the explicit scalar teaching schema. The existing
-CRUD collection provisioning/save implementation is not certified by these tests.
-Do not advertise complete provider conformance or import support from this work.
+Activation requires explicitly provisioned cores/collections and verifies all3
+schemas. It never guesses standalone vsSolrCloud admin operations or creates on
+an HTTPerror. Missing/wrong schema rejects and clears stale active state. Required
+uniqueKey=id; exactfield/type/flags verified with showDefaults=true:
 
-## Native acceptance: first seed and retained restart pass
+| Fields | Type | Indexed | Stored | DocValues | MultiValued |
+|---|---|---|---|---|---|
+| id,name,username,email,parentHolonId | string / solr.StrField | true | true | false | false |
+| data_json | string / solr.StrField | false | true | false | false |
+| holonType | pint / solr.IntPointField | true | true | false | false |
+| isDeleted | boolean / solr.BoolField | true | true | false | false |
+| _version_ | plong / solr.LongPointField | false | false | true | false |
 
-`SolrCqlNativeTests.cs` requires explicit COSMIC_SOLR_CQL_SOURCE metadata:
-Endpoint (HTTP loopback origin), Actor, LiveIds (three), DeletedId and MissingId.
-COSMIC_SOLR_CQL_USERNAME and COSMIC_SOLR_CQL_PASSWORD are optional together,
-provided only through the environment. No credentials belong in source metadata.
-It verifies the existing deleted/missing controls, 3/2/0 reads, paging and hashes
-of the four existing native document payloads before/after. It never provisions,
-seeds, repairs or deletes a source. A real source and retained fixture evidence
-are still needed before incrementing coverage or adding a public demo card.
+## CQL scope
 
-At the initial adapter checkpoint no new runtime/download was installed. Java
-was absent from PATH; the retained
-QuestDB 10.1.0 runtime is Java 25.0.2 but is a custom module image (14 modules,
-including io.questdb), not an admitted general Solr runtime. No assumption that
-its version alone proves Solr compatibility. The later native checkpoint supersedes that runtime gate.
-Manager/Mongo/HTTP/browser acceptance remains open.
+Shared bounded identity compiler, trusted complete catalogue <=100GUIDs, identity
+Boolean/equality/membership and stable paging. One native RealTimeGet ids request
+retrieves latest heads without searcher-refresh delay. Explicit fl=id,data_json,
+_version_,omitHeader=false,shards.tolerant=false; emptycatalogue avoids I/O. Validate
+complete response/start/numFound, exact/native/payload IDs, positiveInt64 versions,
+duplicates/read authority. partialResults (including omitted), earlytermination,
+HTTP/malformed/oversized/cancelled reads reject without publishing partialrows.
+Native unordered rows reordered before localpaging. Metadata/order/children/history
+reject; no full-index scan, per-key read loop or hidden content predicate.
 
-Protocol references: [RealTime Get](https://solr.apache.org/guide/solr/9_1/configuration-guide/realtime-get.html),
-[Schema API](https://solr.apache.org/guide/solr/latest/indexing-guide/schema-api.html),
-[Java requirements](https://solr.apache.org/guide/solr/latest/deployment-guide/system-requirements.html).
+## Proving controls
 
+48passed/0failed/0skipped, including5existingprovider tests. Controls cover schema/
+read-only admission, precise nestedpayload serialization, stagedsave publication,
+failed/wrong/oversized/disconnected/status/partial acknowledgements, exactInt64
+versions above2^53, canonical genericload/error paths, partial/omitted/truncated/
+foreign/duplicate/payload/version/page/budget/nativequery errors, batch andhistory.
+Cached producer/unit restores and bounded builds pass; nativeHTTP is injected.
+[Compiler tests](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.UnitTests/SolrCqlTests.cs),
+[native boundary tests](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.UnitTests/SolrNativeTests.cs).
+Raw regenerable evidence TestResults/SolrCqlCurrent/controls.trx SHA256
+`82709e7fcb099c3d1f31b68a94d2d31d7ba3c88e32304dcbec8202b4fffc3636`.
 
-## Native checkpoint — 5 November 2026
+## Native and federated acceptance
 
-Apache Solr 10.1.0 slim on pinned Temurin21.0.13+9 now passes the native fixture:
-one test per run, zero failures/skips, on first accepted seed and retained restart.
-Three live private records and one deleted control were seeded exactly once.
-The missing control stayed absent. Queries returned3/2/0 plus the expected page;
-all four native JSON document hashes remained unchanged across each read-only run.
-The scalar teaching fields have explicit single-valued stored schema definitions;
-this proves that bounded schema only, not arbitrary nested Holon persistence.
+Official free10.1.0-slim image pinned to digest
+`sha256:0586be344eeb1eb5682e0bd1260001e004219ed3bd788d6e0d3620502c057f1c`.
+Retained source `/var/tmp/oasis-solr-cql`, user-managed standalone mode, native
+TLS18983/privateCA/Basic+role authorization,512MiBheap/2CPU/2GiB container. Explicit
+three cores have original unique schema IDs; container/image/mount/source inode
+and schema IDs verified before use. No global trust change or ZooKeeper duplicate.
 
-The first two startup attempts are retained as failures, with no seed dispatch,
-ACK or tests: first a readiness socket timeout during core load, then a503 caused
-by treating core-list presence as readiness. Both owned processes exited0 through
-Jetty's graceful stop. The runner now waits on the actual collection schema API
-with a bounded60second deadline; only connection/timeouts and503 are readiness
-states. Wrong unique keys and other HTTP failures remain errors. Four controlled
-runner tests pass, including readiness/deadline/exit and no seed replay checks.
-The explicit unseeded recovery checked all original intended record keys absent
-before the one journalled POST with commit=true. No save retries occurred.
+Native3/filter2/missing0/page1/budget and original3creates+1fullreplacement pass;
+obsoletepayloadfield removed. Actualrestart preserves canonical JSON/nativeInt64
+versions/fullschema. Five fresh phases each1pass/0skip: native-first/restart,
+Mongo init, federation and native-postpair. C#/HTTP prove provider provenance,
+excludedrecord, forgedactor/unknownpreset and inactiveprovider error/no partial.
+Browser all5/subset4 independently verified on5149. Stopbutton completed runner0;
+ownedMongo fixture removed and bothservices stopped. Retainedsource510,170B after
+collecting16owned stoppedservice logs (247,574B) into TestResults with hash checks.
+Keys/config/coreindexes/seed/receipts/baseline retained; no reseeding/replay.
 
-Source, original intents, dispatch/ACK and failure/success logs are retained under
-`LocalState/COSMIC/RecoveryLaptopSolr1010`; compact native-evidence.json records
-both TRX hashes and counters. The initial successful run was
-unseeded-resume-c75bb54aa04d47329bbdb590fbb65186; restart was
-retained-0d7a9085cb334bd79012c5c7fe71092b. Exact TRX hashes below:
+Initial cores failed because the copied_default configuration enabled schema
+inference requiring text_general. Before anybusinesswrite, same original config
+was repaired in place to explicit ClassicIndexSchemaFactory/updateLog/RTG handlers;
+original default files/hashes/failure retained. No replacement cores/source/keys.
+Native Java completes Jetty/CoreContainer shutdown hooks with SIGTERM143; verifier
+checks143/stopped-by-user/noOOM/noError. Runner success0 is separate from that exit.
 
-- `retained-0d7a9085cb334bd79012c5c7fe71092b.trx`: SHA256 `94b183d594fe7bc87057bc5298e215d968913c0316ce1736848c40d89b69a703`.
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Solr -Federated -Serve
+# Dedicated runner:
+Scripts/TestHosts/Run-CosmicSolrLinuxDemo.ps1 -Federated -Serve
+```
 
-- `unseeded-resume-c75bb54aa04d47329bbdb590fbb65186.trx`: SHA256 `afcb81655de402f459560deca34dd73480349b822fc23791acb11322d2bc20e0`.
+Open http://127.0.0.1:5149/ once ready; use stopbutton for verified teardown.
+[Native proof](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests/SolrCqlNativeTests.cs),
+[paired proof](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests/SolrMongoCqlNativeTests.cs).
+Raw regenerable evidence `TestResults/SolrCqlCurrent/`; federation TRX SHA256
+`bc9650c550fb9293f6b34b09ca0010142a927589195d4caef0a87dea3cdd8f92`, postpair
+`6edf5414fba1ba143ffa0bd479784a73b1f8231e325cf5d3a2e360f99b8a5e4e`.
+Hub58paired/116plans/102paired rejections pass; listeners unchanged.
 
-The loopback listener18883 and stop port17883 are closed. Processes are owned
-by this runner and stop through Jetty, with per-run exit receipts. The default
-runner never seeds. --initialize refuses any existing source/home;
---resume-unseeded refuses any dispatched or acknowledged seed. Builds and runner
-are serialized under Invoke-WithProviderBuildLease.ps1. All1,942 installed runtime
-files match the pinned archive-derived manifest before execution. The verified
-archives were then removed to free132,169,999bytes; expanded reusable runtimes,
-checksums, manifest and receipts remain. No system/PATH/service changes.
+## Remaining gaps
 
-Manager/Mongo/HTTP, local browser and hosted enrollment remain open. Counts are
-unchanged until integrated demo acceptance. Next: reuse this source and the
-existing Mongo environment to prove5/4 native/replica provenance and HTTP flow.
-
-## Integrated local acceptance — 5 November 2026
-
-Manager/Mongo/HTTP paired1/1 and interactive browser1/1 now pass, zero skips.
-Both use the admitted existing Mongo8.2 environment and the acknowledged original
-Solr source. Manager/LINQ and actual Kestrel HTTP return5/4 physical rows with
-Solr3/2 and Mongo2 in both presets; out-of-catalogue Mongo record is excluded.
-Caller actor/unknown preset return400; deactivated Solr returns503 without rows.
-The page accurately says native Solr, without claiming account authentication.
-
-Browser tab5 verified the rendered full5/subset4 JSON and MovingProviderReads,
-then used the stop button. Interactive run0e08b8fd4142424da146fe06e2aceab7 passed;
-original four Solr records remain unchanged. The exact3record Mongo fixture was
-verified/dropped, database absence checked and pending journal removed. Ready
-marker absent; all owned processes stopped and18883/17883/27029/5117 closed.
-No native seed/save replay. Compact paired-browser-evidence.json retains counts
-and TRX hashes. No standalone screenshots were generated.
-
-This adds one scoped local profile:98=3canonical+57public/source+38otherlocal,
-including31recovered historical demos. Hosted HTTP60 and hosted browser28/open32
-are unchanged. Full ORM, CRUD/storage conformance and hosted Solr remain open.
-[Local launcher guide](../../Devs/SOLR_CQL_LOCAL_DEMO.md). WEB4 card is next.
-
-- `paired.trx`: SHA256 `70058347ba4fc1dce30e27136ed150fe5b7a24706f2be11836762752aa717666`.
-
-- `interactive-0e08b8fd4142424da146fe06e2aceab7.trx`: SHA256 `27e93a7635dfc32eeb1c436463793177b0d858efd08ff8ec35d01af103abfee4`.
-
-## Published WEB4 local card
-
-Web4Site72e29ba9e0db5e96df4de1b1293ce61327da6756 publishes card41,
-Solr + MongoDB / Windows local. It explicitly states that Solr is not enrolled
-on the hosted API and uses the retained scalar loopback source. The launch
-command points to Run-CosmicSolrMongoDemo.ps1 -Serve; localhost5117 is shared
-with other teaching demos, so start one at a time. The new launcher audit is
-1/1present; no old accepted launcher/environment was rerun.
-
-All112 existing client tests pass, zero skips. GitHub's Vercel status is success.
-The public sandbox HTML returns200 and matches the exact published Git blob:
-208,508bytes/SHA2565427f03213d97eded12944a949a2e2fc3885904a7a80174080f902707dff82f6.
-The guide and C#links are pinned to parente3e4749ae86c653715561d7acc0d61c722c0d996;
-both raw sources return200 and match committed Git bytes. Guide SHA256
-c44d33d536cdab931d0121646d289f9552e5004b04d070281d9aea94a54da1f9;
-walkthrough SHA2569f5b33ed7c403cea32d7a1db84602fa4b01e5fc77d6d21f28bb8190a8c8455bf.
-An initial comparison incorrectly used checkout bytes with different line endings;
-verification was corrected to the pinned Git blobs. No source mismatch remained.
-
-A signed-out live browser tab verified the CQL card, honest local label and
-expanded exact launcher command. No hosted avatar/session, credentials, source
-cohort, API deployment or settings were created/changed by this publication.
-Hosted Solr and full ORM/HyperDrive/provider gates remain open.
-
-## WEB4 hosted enrollment preparation
-
-The opt-in query profile uses `CQL_SOLR_QUERY_ORIGIN`,
-`CQL_SOLR_QUERY_USERNAME` and `CQL_SOLR_QUERY_PASSWORD`. Use an existing
-owned HTTPS service with read access to the `oasis_holons` collection.
-WEB4 restricts requests to the schema unique-key check and one canonical GUID
-per RealTime Get request. Scans, alternate collections, multi-ID requests
-and updates are refused before transport. The Core tariff, registration and
-four native/Mongo presets passed 18 focused tests with zero skips at Core
-`c5030f9`. TRX SHA-256
-`9eb99c674303864ed9b9af62dc61b4a49fcb8950c8b82ba802f29b0953dd06e2`.
-[Apache Solr RealTime Get](https://solr.apache.org/guide/solr/latest/configuration-guide/realtime-get.html).
-
-The separate `SolrHostedCqlNative` fixture accepts an existing public
-teaching source descriptor via `COSMIC_SOLR_HOSTED_CQL_SOURCE`. Its fields are
-`Endpoint`, `Actor`, three `LiveIds`, one `DeletedId` and one `MissingId`.
-It uses WEB4's actual transport guard and verifies public root ownership,
-native absence, full/subset/paging and unchanged native document hashes.
-Credentials stay in the process environment. The hosted fixture compiled
-with zero errors. Native HTTPS execution and live enrollment remain pending
-owned source access. Existing Windows native and browser evidence is preserved.
-[Owner actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
+Legacy raw-data migration, generic1000rowlist cap/search escaping, avatar ownership,
+delete acknowledgements/softdelete error propagation, child/history/replication/
+conditionalwrites/migration/fullEFparity remain open. No hosted/SolrCloud cluster/fullEFparity or distributedsnapshot certification.
+[RealTimeGet](https://solr.apache.org/guide/solr/9_5/configuration-guide/realtime-get.html),
+[version receipts](https://solr.apache.org/guide/solr/9_9/indexing-guide/partial-document-updates.html).
+[Current status](CURRENT_STATUS.md) / [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).

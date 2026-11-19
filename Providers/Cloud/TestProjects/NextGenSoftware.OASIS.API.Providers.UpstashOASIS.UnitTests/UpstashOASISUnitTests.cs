@@ -49,8 +49,7 @@ namespace NextGenSoftware.OASIS.API.Providers.UpstashOASIS.UnitTests
         [TestCleanup]
         public void Cleanup()
         {
-            if (_provider != null && _provider.IsProviderActivated)
-                _provider.DeActivateProvider();
+            _provider?.Dispose();
         }
     }
 }

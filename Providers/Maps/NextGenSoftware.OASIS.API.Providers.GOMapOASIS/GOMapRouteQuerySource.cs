@@ -33,8 +33,8 @@ public sealed class GOMapRouteQuerySource : KeyValueStorageProviderBase,
     public static GOMapRouteQuerySource ForHostedTeachingCatalogue(Guid owner, Uri origin) =>
         new(new RouteBackend(owner, new[] { "west-north", "north-east", "east-west" }, null, origin));
 
-    internal GOMapRouteQuerySource(Guid owner, IEnumerable<string> routes, HttpMessageHandler? handler)
-        : this(new RouteBackend(owner, routes, handler, null)) { }
+    internal GOMapRouteQuerySource(Guid owner, IEnumerable<string> routes, HttpMessageHandler? handler, Uri? origin = null)
+        : this(new RouteBackend(owner, routes, handler, origin)) { }
     private GOMapRouteQuerySource(RouteBackend backend) : base(backend, Source + ":")
     {
         this.backend = backend;
@@ -102,7 +102,7 @@ public sealed class GOMapRouteQuerySource : KeyValueStorageProviderBase,
             var fields = new Dictionary<string, object> {
                 ["name"] = "Berlin driving route " + key,
                 ["description"] = "Fixed public teaching coordinates; current OSRM observation, not live traffic or a visitor journey.",
-                ["GOMapRouteKey"] = key, ["GOMapRouteProfile"] = "driving", ["GOMapEndpoint"] = OSRMDirectionsProvider.DefaultBaseUrl,
+                ["GOMapRouteKey"] = key, ["GOMapRouteProfile"] = "driving", ["GOMapEndpoint"] = sdk.BaseUrl,
                 ["GOMapRouteJson"] = route.RawJson, ["GOMapResponseSha256"] = route.ResponseSha256,
                 ["GOMapDistanceMetres"] = route.DistanceMetres, ["GOMapDurationSeconds"] = route.DurationSeconds,
                 ["GOMapCoordinateCount"] = route.Geometry.Count, ["GOMapObservedUtc"] = route.ObservedUtc.ToString("O"),

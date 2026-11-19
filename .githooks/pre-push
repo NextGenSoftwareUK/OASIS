@@ -1,27 +1,33 @@
 #!/bin/sh
-# Validate Railway dependency pins in every pushed commit, independent of local checkout/index state.
-root=$(git rev-parse --show-toplevel) || exit 1
-cd "$root" || exit 1
+# Refuses a push when Railway's dependency pins do not match the parent gitlinks.
+# Enable once per clone:  git config core.hooksPath .githooks
+# Fix a refusal with:     python Scripts/sync_railway_dependency_manifest.py && git commit -am "sync Railway pins"
+# (CI also corrects this on Development/master, but fixing it before the push avoids a second deploy.)
+root=$(git rev-parse --show-toplevel) || exit 0
+cd "$root" || exit 0
+[ -f Scripts/sync_railway_dependency_manifest.py ] || exit 0
+# Windows may expose a nonfunctional Microsoft Store alias named python3.
 PY=
-while read -r local_ref local_oid remote_ref remote_oid; do
-  [ "$local_oid" = "0000000000000000000000000000000000000000" ] && continue
-  git cat-file -e "$local_oid" || exit 1
-  # Non-commit tags cannot select a deployment source.
-  snapshot=$(git rev-parse --verify "${local_oid}^{commit}" 2>/dev/null) || continue
-  applicable=$(git ls-tree -r --name-only "$snapshot" -- Docker/oasis-dependency-versions.env Docker/Dockerfile.web4 Docker/Dockerfile.web5 Docker/Dockerfile.web6 Docker/Dockerfile.web7 Docker/Dockerfile.web8 Docker/Dockerfile.web9 Docker/Dockerfile.web10) || exit 1
-  # Legacy trees without WEB4-WEB10 deployment inputs are outside this policy.
-  [ -z "$applicable" ] && continue
-  if [ -z "$PY" ]; then
-    for candidate in python3 python py; do
-      if command -v "$candidate" >/dev/null 2>&1 && "$candidate" -c "" >/dev/null 2>&1; then PY=$candidate; break; fi
-    done
-    if [ -z "$PY" ]; then
-      echo "pre-push: Python is required to verify Railway dependency pins." >&2
-      exit 1
-    fi
+for candidate in python3 python py; do
+  bin=$(command -v "$candidate") || continue
+  if "$bin" -c 'import sys; sys.exit(sys.version_info < (3, 9))' >/dev/null 2>&1; then
+    PY=$bin
+    break
   fi
-  if ! "$PY" Scripts/validate_railway_dependency_manifest.py --require-gitlinks --ref "$snapshot"; then
-    echo "pre-push: Railway dependency verification failed for $local_ref ($snapshot)." >&2
+done
+if [ -z "$PY" ]; then
+  echo "pre-push: a working Python 3.9+ interpreter is required to validate Railway pins." >&2
+  exit 1
+fi
+while read -r local_ref local_oid remote_ref remote_oid; do
+  # Git supplies a zero local object ID for ref deletions, which deploy nothing.
+  [ "$local_oid" = 0000000000000000000000000000000000000000 ] && continue
+  commit=$(git rev-parse --verify "${local_oid}^{commit}" 2>/dev/null) || continue
+  # Legacy branches can predate the Railway WEB4 Dockerfile.
+  git cat-file -e "$commit:Docker/Dockerfile.web4" 2>/dev/null || continue
+  if ! "$PY" Scripts/sync_railway_dependency_manifest.py --check-ref "$commit"; then
+    echo "pre-push: Railway dependency pins do not match gitlinks in $commit ($local_ref -> $remote_ref)." >&2
+    echo "Synchronize and commit the Railway manifest on the revision being pushed." >&2
     exit 1
   fi
 done

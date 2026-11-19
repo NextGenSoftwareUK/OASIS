@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
@@ -18,8 +19,19 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 public sealed partial class NeoHolonReplicationOutbox : IHolonReplicationObligationReader
 {
     private readonly IDriver _driver;
+    private readonly CosmicStorageIdentity _expectedSource;
+    private readonly Uri _sourceEndpoint;
     private const string Now="(datetime.realtime().epochMillis * 10000 + 621355968000000000)";
-    public NeoHolonReplicationOutbox(IDriver driver)=>_driver=driver ?? throw new ArgumentNullException(nameof(driver));
+    public NeoHolonReplicationOutbox(IDriver driver) : this(driver, null, null) { }
+
+    public NeoHolonReplicationOutbox(IDriver driver, CosmicStorageIdentity expectedSource, Uri capturedDriverEndpoint)
+    {
+        _driver=driver ?? throw new ArgumentNullException(nameof(driver));
+        if (expectedSource != null && (expectedSource.Authority != ProviderType.Neo4jOASIS || capturedDriverEndpoint == null))
+            throw new ArgumentException("Bound outbox access requires a Neo identity and its captured native driver endpoint.", nameof(expectedSource));
+        _expectedSource=expectedSource;
+        _sourceEndpoint=capturedDriverEndpoint;
+    }
 
     public Task<OASISResult<HolonDeliveryClaim>> ClaimNextAsync(string targetId,string workerId,TimeSpan leaseDuration,CancellationToken cancellationToken=default)
         =>Execute(async tx=>{
@@ -32,6 +44,9 @@ public sealed partial class NeoHolonReplicationOutbox : IHolonReplicationObligat
                 || state.State==HolonDeliveryState.InFlight && Ticks(row,"LeaseUntilUtcTicks")>now || Ticks(row,"NextAttemptUtcTicks")>now)
                 return (new OASISResult<HolonDeliveryClaim>{Message="The oldest target obligation is blocked, leased or not yet due."},false);
             ValidatePayload(row,state.Operation);
+            var delivery = CommittedHolonReplicaPayload.ReadForTarget(Text(row, "PayloadJson"), targetId);
+            await NeoHolonMigrationFence.AssertUnfencedAsync(tx, HolonGraphWritePlan.Create(delivery.Roots,
+                delivery.SaveChildren, delivery.Recursive, delivery.MaxChildDepth, 0).Nodes.Select(n => n.Snapshot.Id), cancellationToken).ConfigureAwait(false);
             if(state.Attempts==int.MaxValue)throw new InvalidDataException("Outbox attempt count is exhausted.");
             var until=checked(now+leaseDuration.Ticks);var lease=Guid.NewGuid();
             await(await tx.RunAsync("MATCH (o:CosmicHolonOutbox {Sequence:$sequence}) SET o.DeliveryState='InFlight',"
@@ -108,10 +123,30 @@ public sealed partial class NeoHolonReplicationOutbox : IHolonReplicationObligat
             var rows=await(await tx.RunAsync("MATCH (o:CosmicHolonOutbox {TargetId:$target}) WHERE o.DeliveryState<>'Completed' "
                 +"RETURN o ORDER BY o.Sequence LIMIT 1",new{target=targetId}).ConfigureAwait(false)).ToListAsync().ConfigureAwait(false);
             if(rows.Count==0)return (new OASISResult<HolonDeliveryInspection>{Message="No unfinished obligation exists for this target."},false);
-            var row=rows[0]["o"].As<INode>();var value=ValidateRow(row);ValidatePayload(row,value.Operation);
+            var row=rows[0]["o"].As<INode>();var value=ValidateRow(row);var binding=ValidatePayload(row,value.Operation);
             return (new OASISResult<HolonDeliveryInspection>(new HolonDeliveryInspection(Long(row,"Sequence"),value.Operation,targetId,value.State,value.Attempts,
-                Text(row,"LastErrorCode"),Text(row,"LastErrorMessage"),value.Evidence)),false);
+                Text(row,"LastErrorCode"),Text(row,"LastErrorMessage"),value.Evidence,binding)),false);
         },()=>Identity(targetId),cancellationToken);
+
+    public Task<OASISResult<HolonReplicationRoutePage>> ReadRouteHeadsAsync(int pageSize=64,
+        string afterTargetId=null,CancellationToken cancellationToken=default)
+        =>Execute(async tx=>{
+            // Match cursor admission to the native target index's Unicode order;
+            // the pinned engine's scalar comparison has different semantics.
+            var selection=afterTargetId==null
+                ? "MATCH (o:CosmicHolonOutbox) WHERE o.DeliveryState<>'Completed' "
+                : "MATCH (o:CosmicHolonOutbox) USING INDEX o:CosmicHolonOutbox(TargetId) "
+                    +"WHERE o.TargetId>$after AND o.DeliveryState<>'Completed' ";
+            var rows=await(await tx.RunAsync(selection+"WITH o.TargetId AS target,min(o.Sequence) AS first "
+                +"MATCH (o:CosmicHolonOutbox {Sequence:first}) RETURN o ORDER BY target LIMIT $limit",
+                new{after=afterTargetId,limit=pageSize+1}).ConfigureAwait(false)).ToListAsync().ConfigureAwait(false);
+            var heads=rows.Select(record=>{
+                var row=record["o"].As<INode>();var value=ValidateRow(row);var binding=ValidatePayload(row,value.Operation);
+                return new HolonDeliveryInspection(Long(row,"Sequence"),value.Operation,Text(row,"TargetId"),value.State,value.Attempts,
+                    Text(row,"LastErrorCode"),Text(row,"LastErrorMessage"),value.Evidence,binding);
+            }).ToArray();
+            return (new OASISResult<HolonReplicationRoutePage>(new HolonReplicationRoutePage(heads.Take(pageSize),heads.Length>pageSize)),false);
+        },()=>HolonReplicationRoutePage.ValidateRequest(pageSize,afterTargetId),cancellationToken);
 
     private static async Task<(INode Row,long Now)?> LockOwned(IAsyncTransaction tx,HolonDeliveryClaim claim)
     {
@@ -124,13 +159,16 @@ public sealed partial class NeoHolonReplicationOutbox : IHolonReplicationObligat
             && Ticks(row,"LeaseUntilUtcTicks")>now ? (row,now):null;
     }
 
-    private async Task<OASISResult<T>> Execute<T>(Func<IAsyncTransaction,Task<(OASISResult<T> Result,bool Changed)>> action,Action validate,CancellationToken token)
+    private async Task<OASISResult<T>> Execute<T>(Func<IAsyncTransaction,Task<(OASISResult<T> Result,bool Changed)>> action,Action validate,CancellationToken token,
+        string bindingCodePrefix = "COSMIC_OUTBOX_SOURCE_STORAGE_BINDING", string failureCodePrefix = "COSMIC_OUTBOX")
     {
         token.ThrowIfCancellationRequested();IAsyncSession session=null;IAsyncTransaction tx=null;OASISResult<T> result=null;
         var known=false;var commit=false;var close=false;var rollbackFailed=false;Exception failure=null;var cancelled=false;
         try
         {
             validate();session=_driver.AsyncSession();tx=await session.BeginTransactionAsync().ConfigureAwait(false);
+            await Neo4jOASIS.ValidateNativeStorageBindingAsync(tx,_expectedSource,_sourceEndpoint,token,
+                bindingCodePrefix).ConfigureAwait(false);
             var outcome=await action(tx).ConfigureAwait(false);result=outcome.Result;token.ThrowIfCancellationRequested();
             if(outcome.Changed){commit=true;await tx.CommitAsync().ConfigureAwait(false);known=true;}
             else{known=true;close=true;await tx.RollbackAsync().ConfigureAwait(false);}
@@ -149,7 +187,7 @@ public sealed partial class NeoHolonReplicationOutbox : IHolonReplicationObligat
             {
                 if(commit || rollbackFailed)failure=new Neo4jMutationReconciliationException(failure);
                 if(cancelled && !rollbackFailed)throw new OperationCanceledException("Delivery cancelled before commit; cleanup evidence is retained.",failure,token);
-                return Failure<T>(failure);
+                return Failure<T>(failure, failureCodePrefix);
             }
             result.IsWarning=true;result.WarningCount++;result.Exception=Join(result.Exception,failure);
             result.InnerMessages.Add("Delivery outcome is known, but Neo4j transaction or session cleanup failed.");
@@ -185,16 +223,28 @@ public sealed partial class NeoHolonReplicationOutbox : IHolonReplicationObligat
             || string.IsNullOrWhiteSpace(Text(row,"LeaseWorkerId"))))throw new InvalidDataException("Invalid active lease identity.");
         return (operation,state,(int)attempts,HolonRecoveryEvidenceJson.ReadStored(Text(row,"RecoveryEvidenceJson"),Text(row,"RecoveryEvidenceDigest"),state));
     }
-    private static void ValidatePayload(INode row,Guid operation)
+    internal static NextGenSoftware.OASIS.API.Core.Configuration.HolonReplicationRouteBinding ValidatePayload(INode row,Guid operation)
     {
         var json=Text(row,"PayloadJson");
         if(json==null || Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json)))!=Text(row,"PayloadDigest"))throw new InvalidDataException("Outbox payload checksum differs.");
-        var delivery=CommittedHolonReplicaPayload.Read(json);
+        var delivery=CommittedHolonReplicaPayload.ReadForTarget(json,row["TargetId"].As<string>());
         if(delivery.OperationId!=operation || delivery.SourceId!=Text(row,"SourceId") || delivery.SourceAuthority!=ProviderType.Neo4jOASIS
             || Text(row,"SourceAuthority")!=ProviderType.Neo4jOASIS.ToString() || delivery.ActorId.ToString("D")!=Text(row,"ActorId"))
             throw new InvalidDataException("Outbox payload and enrollment disagree.");
+        return delivery.NativeRoutes.SingleOrDefault(route=>route.TargetId == Text(row,"TargetId"));
     }
-    private static OASISResult<T> Failure<T>(Exception cause)=>new(){IsError=true,ErrorCount=1,Exception=cause,Message=cause.Message,
-        ErrorCode=Core.Helpers.NativeMutationReconciliation.IsRequired(cause) ? "COSMIC_OUTBOX_RECONCILIATION_REQUIRED"
-            :cause is InvalidDataException ? "COSMIC_OUTBOX_CORRUPT":cause is TransientException ? "COSMIC_OUTBOX_CONCURRENT_WRITE":"COSMIC_OUTBOX_OPERATION_FAILED"};
+    private static OASISResult<T> Failure<T>(Exception cause, string prefix = "COSMIC_OUTBOX")=>new(){IsError=true,ErrorCount=1,Exception=cause,Message=cause.Message,
+        ErrorCode=Core.Helpers.NativeMutationReconciliation.IsRequired(cause) ? prefix+"_RECONCILIATION_REQUIRED"
+            :cause is Neo4jOASIS.NeoReplicaStorageBindingException binding ? binding.Code :cause is NeoMigrationFenceException fence ? fence.Code
+            :cause is InvalidDataException ? prefix+"_CORRUPT":cause is TransientException ? prefix+"_CONCURRENT_WRITE":prefix+"_OPERATION_FAILED"};
+
+    internal Task<OASISResult<HolonMigrationFenceObservation>> ExecuteMigrationFenceAsync(HolonMigrationFenceRequest request,
+        NeoHolonMigrationFence.Action action, Guid owner, CancellationToken token, string mutationDigest = null)
+        => Execute(async tx => {
+            var observed = await NeoHolonMigrationFence.ApplyAsync(tx, request, action, owner, token, mutationDigest).ConfigureAwait(false);
+            return (new OASISResult<HolonMigrationFenceObservation>(observed.Result) { IsLoaded = !observed.Changed, IsSaved = observed.Changed }, observed.Changed);
+        }, () => { if (request == null || action is NeoHolonMigrationFence.Action.Cancel or NeoHolonMigrationFence.Action.BeginMutation && owner == Guid.Empty)
+            throw new ArgumentException("An exact native migration fence request and owner are required.");
+            if (action == NeoHolonMigrationFence.Action.BeginMutation) _ = new HolonMigrationMutationStartRequest(request, owner, mutationDigest); }, token,
+            "COSMIC_MIGRATION_FENCE_STORAGE", "COSMIC_MIGRATION_FENCE");
 }

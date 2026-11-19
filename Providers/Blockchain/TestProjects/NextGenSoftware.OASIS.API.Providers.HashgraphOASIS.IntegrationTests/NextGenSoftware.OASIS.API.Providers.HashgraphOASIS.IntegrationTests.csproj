@@ -16,9 +16,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.csproj" />
     <None Update="Fixtures\hedera-process-boundary.mjs" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Fixtures\hedera-collection.mjs" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="HederaSqliteHyperDriveTests.cs" Condition="'$(HederaRoutingTests)' != 'true'" />
+    <Compile Include="../../../Shared/TestSupport/NativePriorityRouting.cs" Link="TestSupport/NativePriorityRouting.cs" Condition="'$(HederaRoutingTests)' == 'true'" />
+    <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" Condition="'$(HederaRoutingTests)' == 'true'" />
+  </ItemGroup>
 </Project>

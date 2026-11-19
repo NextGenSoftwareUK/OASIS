@@ -9,23 +9,12 @@ using System.Threading.Tasks;
 namespace NextGenSoftware.OASIS.API.Providers.ConnextOASIS;
 
 /// <summary>Exact Ethereum Connext origin events observed by Blockscout.</summary>
-public sealed class ConnextOriginEventClient
+public sealed class ConnextOriginEventClient(HttpClient client)
 {
     public const string ContractAddress = "0x8898b472c54c31894e3b9bb83cea802a5d0e63c6";
     private const string EventTopic = "0xed8e6ba697dd65259e5ce532ac08ff06d1a3607bcec58f8f0937fe36a5666c54";
     private const int MaximumResponseBytes = 512 * 1024;
     private static readonly Regex Hash = new(@"\A0x[0-9a-f]{64}\z", RegexOptions.CultureInvariant);
-
-    private readonly HttpClient client;
-    private readonly string universalApiKey;
-
-    public ConnextOriginEventClient(HttpClient client) : this(client, null) { }
-
-    internal ConnextOriginEventClient(HttpClient client, string universalApiKey)
-    {
-        this.client = client ?? throw new ArgumentNullException(nameof(client));
-        this.universalApiKey = universalApiKey;
-    }
 
     public sealed record Identity(string TransferId, string TransactionHash, string BlockHash, long BlockNumber, int LogIndex);
 
@@ -36,14 +25,8 @@ public sealed class ConnextOriginEventClient
             !Hash.IsMatch(expected.BlockHash) || expected.BlockNumber <= 0 || expected.LogIndex < 0)
             throw new ArgumentException("A canonical Connext origin event identity is required.", nameof(expected));
 
-        if (universalApiKey != null && !Regex.IsMatch(universalApiKey, @"\A[A-Za-z0-9_-]{1,256}\z"))
-            throw new InvalidOperationException("A valid Blockscout Universal API credential is required.");
-        var endpoint = universalApiKey == null
-            ? "https://eth.blockscout.com/api/v2/transactions/"
-            : "https://api.blockscout.com/1/api/v2/transactions/";
-        using var request = new HttpRequestMessage(HttpMethod.Get, endpoint + expected.TransactionHash + "/logs");
-        if (universalApiKey != null)
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", universalApiKey);
+        using var request = new HttpRequestMessage(HttpMethod.Get,
+            "https://eth.blockscout.com/api/v2/transactions/" + expected.TransactionHash + "/logs");
         request.Headers.Accept.ParseAdd("application/json");
         request.Headers.UserAgent.ParseAdd("OASIS-ConnextRead/1.0");
         using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);

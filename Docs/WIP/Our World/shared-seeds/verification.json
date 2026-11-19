@@ -1,0 +1,21 @@
+{
+  "capturedUtc": "2026-11-02T23:40:49.216141+00:00",
+  "developmentParent": "c0edcb0ed0b81e5d5dd20fc99807163d09833037",
+  "core": "c83e25590474cc3f5bf9380d3e712254a8a9c5b1",
+  "web4Deployment": "22cabb60-492a-432b-8d4b-597a068d621b",
+  "deploymentStatus": "SUCCESS",
+  "apiTestsPassed": 17,
+  "coreRewardTestsPassed": 2,
+  "unityErrors": 0,
+  "unityWarnings": 210,
+  "nativeOwners": [
+    "9d1ba4cc-a701-4167-aec5-128503c72cd8",
+    "d3b92720-643f-4681-aa2e-055c6dd73e43"
+  ],
+  "nativePlant": "da2a5684-2646-43eb-a057-a563295247fd",
+  "nativeCleanup": "Exact owned rows removed and absence asserted",
+  "realKarmaGrantsCreated": 0,
+  "hostedPlantsCreated": 0,
+  "deviceCameraVoiceVerified": false,
+  "openIssue": "Existing NFT full-profile read timeout remains ~110 seconds"
+}

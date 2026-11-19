@@ -1,140 +1,138 @@
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.Core.Queries;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.IntegrationTests;
 
-[TestClass]
+[TestClass, DoNotParallelize]
 public class ElasticsearchCqlNativeTests
 {
-    public sealed class Source
-    {
-        public string Endpoint { get; set; } = "";
-        public Guid Actor { get; set; }
-        public Guid[] LiveIds { get; set; } = Array.Empty<Guid>();
-        public Guid DeletedId { get; set; }
-        public Guid MissingId { get; set; }
-    }
+    private sealed record Seed(Guid Actor, Guid[] Ids);
 
     [TestMethod]
-    [TestCategory("ElasticsearchCqlNative")]
-    public async Task ExistingNativeRecordsSupportThreeTwoPagingAndSourcePreservation()
+    public async Task NativeSelectionPagingAndBudgetsPreserveOriginalRowsAcrossRestart()
     {
-        var path = Environment.GetEnvironmentVariable("COSMIC_ELASTICSEARCH_CQL_SOURCE");
-        var username = Environment.GetEnvironmentVariable("COSMIC_ELASTICSEARCH_CQL_USERNAME");
-        var password = Environment.GetEnvironmentVariable("COSMIC_ELASTICSEARCH_CQL_PASSWORD");
-        Assert.IsFalse(string.IsNullOrWhiteSpace(path), "Explicit retained source is required.");
-        Assert.AreEqual(username == null, password == null, "Basic authentication requires both values.");
-        var source = JsonSerializer.Deserialize<Source>(await File.ReadAllTextAsync(path!))!;
-        Assert.IsNotNull(source);
-        Assert.IsTrue(Uri.TryCreate(source.Endpoint, UriKind.Absolute, out var endpoint)
-            && endpoint.Scheme == "http" && endpoint.IsLoopback && endpoint.UserInfo.Length == 0
-            && endpoint.AbsolutePath == "/" && endpoint.Query.Length == 0 && endpoint.Fragment.Length == 0);
-        using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(15) };
-        await RunNativeAsync(source, username, password, null, http, publicSource: false);
-    }
-
-    [TestMethod]
-    [TestCategory("ElasticsearchHostedCqlNative")]
-    public async Task QualifiedHttpsSourceSupportsExactPublicQueriesWithoutWrites()
-    {
-        var path = Environment.GetEnvironmentVariable("COSMIC_ELASTICSEARCH_HOSTED_CQL_SOURCE")
-            ?? throw new InvalidOperationException("Explicit hosted teaching source is required.");
-        var key = Environment.GetEnvironmentVariable("CQL_ELASTICSEARCH_QUERY_API_KEY");
-        Assert.IsFalse(string.IsNullOrWhiteSpace(key), "Explicit restricted API key is required.");
-        Assert.IsTrue(new FileInfo(path).Length is > 0 and <= 16384);
-        var source = JsonSerializer.Deserialize<Source>(await File.ReadAllBytesAsync(path))!;
-        Assert.IsNotNull(source);
-        Assert.IsTrue(Uri.TryCreate(source.Endpoint, UriKind.Absolute, out var endpoint)
-            && endpoint.Scheme == "https" && !endpoint.IsLoopback && endpoint.UserInfo.Length == 0
-            && endpoint.AbsolutePath == "/" && endpoint.Query.Length == 0 && endpoint.Fragment.Length == 0);
-        using var http = new HttpClient(new CqlSearchDocumentReadSources.ExactReadHandler(endpoint!, "oasis-holons",
-            NativeConnectionGuard.CreateGuardedHttpHandler())) { Timeout = TimeSpan.FromSeconds(15) };
-        await RunNativeAsync(source, null, null, key, http, publicSource: true);
-    }
-
-    private static async Task RunNativeAsync(Source source, string? username, string? password, string? apiKey, HttpClient http, bool publicSource)
-    {
-        Assert.AreNotEqual(Guid.Empty, source.Actor);
-        Assert.AreEqual(3, source.LiveIds.Length);
-        var ids = source.LiveIds.Concat(new[] { source.DeletedId, source.MissingId }).ToArray();
-        Assert.AreEqual(5, ids.Distinct().Count());
-        Assert.IsFalse(ids.Contains(Guid.Empty));
-        var provider = new ElasticsearchOASIS(source.Endpoint, username, password, source.LiveIds[0], http, apiKey);
-        async Task<string[]> Observe()
+        var state = Environment.GetEnvironmentVariable("OASIS_ELASTICSEARCH_CQL_STATE")
+            ?? throw new InvalidOperationException("Persistent source directory required.");
+        Assert.IsTrue(Directory.Exists(state) && File.Exists(Path.Combine(state, "environment.json")), "Original admitted environment required; never create a source from a test.");
+        using var lease = new FileStream(Path.Combine(state, "source.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        var manifest = Path.Combine(state, "demo-seed.json");
+        var pending = Path.Combine(state, "demo-seed.pending.json");
+        Assert.IsFalse(File.Exists(pending), "Preserve uncertain setup; never replay.");
+        var baseline = Path.Combine(state, "source-snapshot.json");
+        if (File.Exists(manifest))
+            Assert.IsTrue(File.Exists(baseline), "Original snapshot missing; never bless replacement state.");
+        else
+            Assert.IsFalse(File.Exists(baseline), "Orphan original snapshot; reconcile without reseeding.");
+        using var credentials = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(state, "credentials.json")));
+        Assert.IsTrue(OperatingSystem.IsLinux());
+        Assert.AreEqual(Path.Combine(state, "ca.pem"), Environment.GetEnvironmentVariable("SSL_CERT_FILE"), "Private CA must be process-scoped; never bypass TLS validation.");
+        using var native = new HttpClient { BaseAddress = new Uri("https://localhost:19200"), Timeout = TimeSpan.FromSeconds(15) };
+        var user = credentials.RootElement.GetProperty("username").GetString()!;
+        var password = credentials.RootElement.GetProperty("password").GetString()!;
+        native.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes(user+":"+password)));
+        async Task<JsonDocument> Get(string path)
         {
-            var observations = new List<string>();
-            foreach (var id in ids)
-            {
-                using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-                using var request = new HttpRequestMessage(HttpMethod.Get,
-                    source.Endpoint.TrimEnd('/') + "/oasis-holons/_doc/" + id.ToString("D") + "?realtime=true&_source=true");
-                using var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
-                if (id == source.MissingId) Assert.AreEqual(System.Net.HttpStatusCode.NotFound,response.StatusCode);
-                else response.EnsureSuccessStatusCode();
-                using var stream = await response.Content.ReadAsStreamAsync(deadline.Token);
-                using var output = new MemoryStream();
-                var buffer = new byte[8192];
-                int count;
-                while ((count = await stream.ReadAsync(buffer, deadline.Token)) > 0)
-                {
-                    Assert.IsTrue(output.Length + count <= 1024 * 1024, "Native fixture document exceeds budget.");
-                    output.Write(buffer, 0, count);
-                }
-                var bytes = output.ToArray();
-                using var envelope = JsonDocument.Parse(bytes);
-                Assert.AreEqual("oasis-holons",envelope.RootElement.GetProperty("_index").GetString());
-                Assert.AreEqual(id.ToString("D"),envelope.RootElement.GetProperty("_id").GetString());
-                if (id == source.MissingId)
-                {
-                    Assert.IsFalse(envelope.RootElement.GetProperty("found").GetBoolean());
-                    Assert.IsFalse(envelope.RootElement.TryGetProperty("_source",out _));
-                    continue;
-                }
-                Assert.IsTrue(envelope.RootElement.GetProperty("found").GetBoolean());
-                var nativeJson = envelope.RootElement.GetProperty("_source").GetRawText();
-                using var canonical=JsonDocument.Parse(envelope.RootElement.GetProperty("_source").GetProperty("dataJson").GetString()!);
-                Assert.AreEqual(id,canonical.RootElement.GetProperty("id").GetGuid());
-                Assert.AreEqual(source.Actor,canonical.RootElement.GetProperty("createdByAvatarId").GetGuid());
-                Assert.AreEqual(id==source.DeletedId,canonical.RootElement.GetProperty("deletedDate").GetDateTime()!=DateTime.MinValue);
-                if (publicSource)
-                {
-                    Assert.IsTrue(canonical.RootElement.GetProperty("isPublic").GetBoolean());
-                    Assert.AreEqual(0, canonical.RootElement.GetProperty("children").GetArrayLength());
-                }
-                observations.Add(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(nativeJson))));
-            }
-            return observations.ToArray();
+            using var response = await native.GetAsync(path);
+            response.EnsureSuccessStatusCode();
+            return JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         }
-        var activation = await provider.ActivateQuerySourceAsync(default);
-        Assert.IsFalse(activation.IsError, activation.Message);
-        try
+        using var identity = await Get("/");
+        Assert.AreEqual("9.5.5", identity.RootElement.GetProperty("version").GetProperty("number").GetString());
+        using var environment = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(state, "environment.json")));
+        Assert.AreEqual(environment.RootElement.GetProperty("observations")[0].GetProperty("clusterUuid").GetString(), identity.RootElement.GetProperty("cluster_uuid").GetString());
+        var provider = new ElasticsearchOASIS("https://localhost:19200", username: user, password: password);
+        Seed seed;
+        if (!File.Exists(manifest))
         {
-            var before = await Observe();
-            CosmicQuery<Holon> Query() => CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.ElasticsearchOASIS).Result)
-                .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(source.Actor, ProviderType.ElasticsearchOASIS, ids).Result).Result;
-            async Task<Guid[]> Read(CosmicQuery<Holon> query)
+            using var absent = await Get("/_cat/indices/oasis-*?format=json");
+            Assert.AreEqual(0, absent.RootElement.GetArrayLength(), "Never adopt existing business indices.");
+            seed = new Seed(Guid.NewGuid(), Enumerable.Range(0, 3).Select(_ => Guid.NewGuid()).ToArray());
+            using (var intent = new FileStream(pending, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
+            { JsonSerializer.Serialize(intent, seed); intent.Flush(true); }
+            var active = await provider.ActivateProviderAsync();
+            Assert.IsFalse(active.IsError, active.Message);
+            var names = new[] { "Espresso", "Latte", "Tea" };
+            for (var i = 0; i < 3; i++)
             {
-                var plan = CosmicQueryPlanner.Plan(query, ProviderType.ElasticsearchOASIS,
-                    new[] { new CosmicQueryTarget(ProviderType.ElasticsearchOASIS, provider.QueryCapabilities) });
-                Assert.IsFalse(plan.IsError, plan.Message);
-                var result = await provider.ExecuteCosmicQueryAsync(plan.Result);
-                Assert.IsFalse(result.IsError, result.Message);
-                return result.Result.Select(row => row.Id).ToArray();
+                var saved = await provider.SaveHolonAsync(new Holon { Id = seed.Ids[i], Name = names[i],
+                    CreatedByAvatarId = seed.Actor, IsNewHolon = true }, saveChildren: false);
+                Assert.IsFalse(saved.IsError, saved.Message);
+                Assert.IsTrue(saved.IsSaved, "Source write requires acknowledgement.");
+                using var receipt = new FileStream(Path.Combine(state, $"source-write-{i}.ack.json"), FileMode.CreateNew, FileAccess.Write, FileShare.Read);
+                JsonSerializer.Serialize(receipt, new { id = seed.Ids[i], acknowledged = true }); receipt.Flush(true);
             }
-            var ordered = source.LiveIds.OrderBy(id => id.ToString("D"), StringComparer.Ordinal).ToArray();
-            CollectionAssert.AreEqual(ordered, await Read(Query()));
-            var subset = new[] { ordered[0], ordered[2] };
-            CollectionAssert.AreEqual(subset, await Read(Query().Where(row => subset.Contains(row.Id)).Result));
-            var excluded = new[] { source.DeletedId, source.MissingId };
-            Assert.AreEqual(0, (await Read(Query().Where(row => excluded.Contains(row.Id)).Result)).Length);
-            CollectionAssert.AreEqual(new[] { ordered[1] }, await Read(Query().Skip(1).Result.Take(1).Result));
-            CollectionAssert.AreEqual(before, await Observe(), "Native source changed during read-only qualification.");
+            File.Move(pending, manifest);
         }
-        finally { await provider.DeActivateProviderAsync(); }
+        else
+        {
+            seed = JsonSerializer.Deserialize<Seed>(await File.ReadAllTextAsync(manifest))!;
+            using var indices = await Get("/_cat/indices/oasis-*?format=json");
+            CollectionAssert.AreEquivalent(new[] { "oasis-holons", "oasis-avatars", "oasis-avatar-details" }, indices.RootElement.EnumerateArray().Select(v => v.GetProperty("index").GetString()).ToArray());
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+        }
+        Assert.AreEqual(3, seed.Ids.Distinct().Count());
+        async Task<string[]> Snapshot()
+        {
+            using (var refreshed = await native.PostAsync("/oasis-holons/_refresh", null)) refreshed.EnsureSuccessStatusCode();
+            using (var count = await Get("/oasis-holons/_count")) Assert.AreEqual(3, count.RootElement.GetProperty("count").GetInt32(), "Only original three source records may exist.");
+            using var response = await native.PostAsJsonAsync("/oasis-holons/_mget", new { ids = seed.Ids });
+            response.EnsureSuccessStatusCode();
+            using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var records = payload.RootElement.GetProperty("docs");
+            Assert.AreEqual(3, records.GetArrayLength());
+            var rows = new List<string>();
+            foreach (var record in records.EnumerateArray())
+            {
+                Assert.IsTrue(record.GetProperty("found").GetBoolean(), "Missing original source is not recreated.");
+                var id = Guid.Parse(record.GetProperty("_id").GetString()!);
+                Assert.IsTrue(seed.Ids.Contains(id));
+                var json = record.GetProperty("_source").GetProperty("dataJson").GetString()!;
+                rows.Add(id.ToString("D") + "|" + record.GetProperty("_version").GetInt64() + "|" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json))));
+            }
+            rows.Sort(StringComparer.Ordinal);
+            using var settings = await Get("/oasis-holons/_settings");
+            rows.Insert(0, "index|"+settings.RootElement.GetProperty("oasis-holons").GetProperty("settings").GetProperty("index").GetProperty("uuid").GetString());
+            return rows.ToArray();
+        }
+        var before = await Snapshot();
+        if (File.Exists(baseline))
+            CollectionAssert.AreEqual(JsonSerializer.Deserialize<string[]>(await File.ReadAllTextAsync(baseline))!, before);
+        else
+        {
+            using var file = new FileStream(baseline, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
+            JsonSerializer.Serialize(file, before); file.Flush(true);
+        }
+        CosmicQueryPlan<Holon> Plan(Guid[] ids, bool paging = false)
+        {
+            var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.ElasticsearchOASIS).Result)
+                .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(seed.Actor, ProviderType.ElasticsearchOASIS, ids).Result).Result
+                .Where(h => ids.Contains(h.Id)).Result;
+            if (paging) query = query.Skip(1).Result.Take(1).Result;
+            var plan = CosmicQueryPlanner.Plan(query, ProviderType.ElasticsearchOASIS,
+                new[] { new CosmicQueryTarget(ProviderType.ElasticsearchOASIS, provider.QueryCapabilities) });
+            Assert.IsFalse(plan.IsError, plan.Message);
+            return plan.Result;
+        }
+        foreach (var ids in new[] { seed.Ids, seed.Ids.Take(2).ToArray(), new[] { Guid.NewGuid() } })
+        {
+            var result = await provider.ExecuteCosmicQueryAsync(Plan(ids));
+            Assert.IsFalse(result.IsError, result.Message + result.Exception);
+            CollectionAssert.AreEquivalent(ids.Length == 1 ? Array.Empty<Guid>() : ids, result.Result.Select(r => r.Id).ToArray());
+        }
+        var page = await provider.ExecuteCosmicQueryAsync(Plan(seed.Ids, true));
+        Assert.IsFalse(page.IsError, page.Message);
+        Assert.AreEqual(seed.Ids.OrderBy(id => id.ToString("D"), StringComparer.Ordinal).Skip(1).First(), page.Result.Single().Id);
+        var limited = await provider.ExecuteCosmicQueryAsync(Plan(seed.Ids), maximumResults: 1);
+        Assert.AreEqual("CQL_QUERY_LIMIT", limited.ErrorCode);
+        Assert.IsNull(limited.Result, "Budget failure must not publish partial rows.");
+        CollectionAssert.AreEqual(before, await Snapshot(), "Native JSON and write times must remain unchanged.");
+        Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError);
     }
 }

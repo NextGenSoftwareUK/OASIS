@@ -1,6 +1,5 @@
 """Prepare a protected WEB4 settings candidate from a reviewed protected baseline."""
 import argparse
-import base64
 import importlib.util
 import json
 import re
@@ -20,7 +19,6 @@ ADMISSION = "PREPARED_STORAGE_ADMISSION_JSON"
 GRANTS = "CQL_PUBLIC_READ_CATALOGUES_JSON"
 EXAMPLES = "CQL_HOSTED_QUERY_EXAMPLES_JSON"
 REQUIRED_SOURCE_TOKENS = {
-    "TRONOASIS": "COSMIC_TRON_PUBLIC_READER_KEY",
     "DaprOASIS": "CQL_DAPR_QUERY_SIDECAR_TOKEN",
     "CloudflareOASIS": "CQL_CLOUDFLARE_KV_QUERY_READER_TOKEN",
     "VercelKVOASIS": "CQL_VERCEL_KV_QUERY_READER_TOKEN",
@@ -53,43 +51,15 @@ def candidate(before, provider, review):
             and (encryption.get("Rijndael256EncryptionEnabled") is True or encryption.get("QuantumEncryptionEnabled") is True)
             and (not isinstance(queryable_keys, list) or metadata_key not in queryable_keys)):
         raise ValueError("The encrypted Mongo metadata key must be explicitly queryable.")
-    bindings = review.get("sourceBinding", {})
-    new_source = {}
-    managed_holo = provider == "HoloOASIS" and review.get("managedLocalHoloOasis") is True
-    if managed_holo:
-        if any(key.startswith("CQL_HOLOOASIS_QUERY__") for key in before):
-            raise ValueError("Managed HoloOASIS requires an empty external reader configuration.")
-        new_source = {key: value for key, value in bindings.items() if key not in before}
-    if any((before | new_source).get(key) != value for key, value in bindings.items()):
+    if any(before.get(key) != value for key, value in review.get("sourceBinding", {}).items()):
         raise ValueError("Protected source settings do not match the reviewed teaching catalogue.")
-    if provider == "DynamoDBOASIS":
-        prefix = "CQL_DYNAMODB_QUERY_"
-        for field, maximum in (("ACCESS_KEY_ID", 128), ("SECRET_ACCESS_KEY", 256), ("SESSION_TOKEN", 16384)):
-            value = before.get(prefix + field)
-            if field == "SESSION_TOKEN" and value is None:
-                continue
-            if not isinstance(value, str) or not 1 <= len(value) <= maximum or any(
-                    not 33 <= ord(character) <= 126 for character in value):
-                raise ValueError("Valid protected DynamoDB reader credentials are required.")
-    if provider == "HoloOASIS" and not managed_holo:
-        prefix = "CQL_HOLOOASIS_QUERY__"
-        for field, minimum, maximum in (("AppToken", 1, 256), ("CapabilitySecret", 64, 64),
-                                        ("SigningKey", 39, 39), ("SigningPrivateKey", 64, 64)):
-            value = before.get(prefix + field)
-            try:
-                valid = (isinstance(value, str) and len(value) <= 344
-                         and minimum <= len(base64.b64decode(value, validate=True)) <= maximum)
-            except ValueError:
-                valid = False
-            if not valid:
-                raise ValueError(f"HoloOASIS requires the protected {field} for its read-only grant.")
     if provider in REQUIRED_SOURCE_TOKENS:
         token = before.get(REQUIRED_SOURCE_TOKENS[provider])
-        maximum_length = {"TRONOASIS": 256, "DenoDeployOASIS": 8192, "TursoOASIS": 8192, "SafeOASIS": 4096, "TemporalOASIS": 4096}.get(provider, 1024)
+        maximum_length = {"DenoDeployOASIS": 8192, "TursoOASIS": 8192, "SafeOASIS": 4096, "TemporalOASIS": 4096}.get(provider, 1024)
         if (not isinstance(token, str) or not 1 <= len(token) <= maximum_length
                 or any(not 33 <= ord(character) <= 126 for character in token)):
             raise ValueError("A valid protected source token is required.")
-        if provider in ("ENSOffchainOASIS", "TemporalOASIS", "TRONOASIS") and "," in token:
+        if provider in ("ENSOffchainOASIS", "TemporalOASIS") and "," in token:
             raise ValueError("A valid protected source token is required.")
         if provider == "SafeOASIS" and not re.fullmatch(r"[A-Za-z0-9._-]{1,4096}", token):
             raise ValueError("A valid protected source token is required.")
@@ -99,7 +69,7 @@ def candidate(before, provider, review):
     grants = json.loads(before.get(GRANTS, "{}"))
     partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
     if (provider in admission["queryOnlyProviders"] or provider in admission["ordinaryProviders"]
-            or any(row["provider"] == provider for row in admission["nativeProviders"] + admission["queryTariffs"] + admission.get("storageTariffs", []))
+            or any(row["provider"] == provider for row in admission["nativeProviders"] + admission["queryTariffs"])
             or provider in grants or partition in before or provider in json.loads(before.get(EXAMPLES, "{}"))):
         raise ValueError("Existing provider settings require explicit reconciliation.")
 
@@ -112,7 +82,7 @@ def candidate(before, provider, review):
     admission["queryOnlyProviders"].append(provider)
     admission["queryTariffs"].append(dict(free[0], provider=provider))
     grants[provider] = review["publicIds"] if metadata_key is not None else full["request"]["filters"][0]["value"]
-    updates = {**new_source, ADMISSION: configuration.compact(admission), GRANTS: configuration.compact(grants),
+    updates = {ADMISSION: configuration.compact(admission), GRANTS: configuration.compact(grants),
                partition: configuration.compact(presets)}
     if any(len(value.encode()) > 32768 for value in updates.values()):
         raise ValueError("Candidate exceeds the hosted variable byte budget.")

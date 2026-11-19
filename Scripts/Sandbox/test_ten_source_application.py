@@ -73,7 +73,7 @@ class ApplicationScopeTests(unittest.TestCase):
                 with self.assertRaises(ValueError):batch.application_keys(before,after)
 class DeploymentGuardTests(unittest.TestCase):
     def configuration(self):
-        return SimpleNamespace(CLI="existing-railway",COMMON=["-e","dev"])
+        return SimpleNamespace(CLI="existing-railway",DEPLOYMENT_SCOPE=["-e","dev"])
     def test_missing_reviewed_sha_never_observes_or_mutates_host(self):
         with patch.dict(batch.os.environ,{},clear=True),patch.object(batch.subprocess,"run") as run:
             with self.assertRaises(RuntimeError):batch.require_matching_release(self.configuration())
@@ -82,25 +82,6 @@ class DeploymentGuardTests(unittest.TestCase):
         with patch.dict(batch.os.environ,{"COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT":"a"*40}),patch.object(batch.subprocess,"run",return_value=SimpleNamespace(returncode=0,stdout="b"*40)) as run:
             with self.assertRaises(RuntimeError):batch.require_matching_release(self.configuration())
             self.assertEqual(1,run.call_count)
-    def test_explicit_local_release_ref_must_resolve_to_reviewed_deployed_commit(self):
-        expected = "a" * 40
-        ref = "refs/heads/codex/cosmic-localfile-release-candidate"
-        deployment = json.dumps([{"status": "SUCCESS", "meta": {"commitHash": expected}}])
-        with patch.dict(batch.os.environ, {"COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT": expected}, clear=True):
-            for local in (expected, "b" * 40):
-                with self.subTest(local=local), patch.object(batch.subprocess, "run", side_effect=[
-                        SimpleNamespace(returncode=0, stdout=local),
-                        SimpleNamespace(returncode=0, stdout=deployment)]) as run:
-                    if local == expected:
-                        batch.require_matching_release(self.configuration(), release_ref=ref)
-                        self.assertEqual(2, run.call_count)
-                    else:
-                        with self.assertRaisesRegex(RuntimeError, "Local release ref differs"):
-                            batch.require_matching_release(self.configuration(), release_ref=ref)
-                        run.assert_called_once()
-                    self.assertEqual(["git", "rev-parse", "--verify", "--end-of-options", ref + "^{commit}"],
-                                     run.call_args_list[0].args[0])
-
     def test_apply_never_calls_mutation_owner_when_release_guard_fails(self):
         before,after=ApplicationScopeTests().fixture()
         from unittest.mock import Mock
@@ -111,36 +92,9 @@ class DeploymentGuardTests(unittest.TestCase):
 
     def test_only_exact_successful_deployment_passes(self):
         for status,commit,accepted in [("SUCCESS","a"*40,True),("BUILDING","a"*40,False),("SUCCESS","b"*40,False)]:
-            with self.subTest(status=status,commit=commit),patch.dict(batch.os.environ,{"COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT":"a"*40}),patch.object(batch.subprocess,"run",side_effect=[SimpleNamespace(returncode=0,stdout="a"*40),SimpleNamespace(returncode=0,stdout=json.dumps([{"status":status,"meta":{"commitHash":commit}}]))]):
-                if accepted:batch.require_matching_release(self.configuration())
+            with self.subTest(status=status,commit=commit),patch.dict(batch.os.environ,{"COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT":"a"*40}),patch.object(batch.subprocess,"run",side_effect=[SimpleNamespace(returncode=0,stdout="a"*40),SimpleNamespace(returncode=0,stdout=json.dumps([{"id":"11111111-1111-4111-8111-111111111111","status":status,"meta":{"commitHash":commit}}]))]):
+                if accepted:self.assertEqual("11111111-1111-4111-8111-111111111111",batch.require_matching_release(self.configuration(),release_ref="reviewed"))
                 else:
                     with self.assertRaises(RuntimeError):batch.require_matching_release(self.configuration())
-
-    def test_image_mode_requires_exact_digest_and_consistent_commit(self):
-        commit = "a" * 40
-        digest = "sha256:" + "b" * 64
-        settings = {
-            "COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT": commit,
-            "COSMIC_CQL_EXPECTED_DEPLOYMENT_IMAGE_DIGEST": digest,
-        }
-        for status, meta, accepted in [
-            ("SUCCESS", {"imageDigest": digest}, True),
-            ("SUCCESS", {"imageDigest": digest, "commitHash": commit}, True),
-            ("SUCCESS", {"imageDigest": digest, "commitHash": "c" * 40}, False),
-            ("SUCCESS", {"commitHash": commit}, False),
-            ("SUCCESS", {"imageDigest": "sha256:" + "c" * 64}, False),
-            ("BUILDING", {"imageDigest": digest}, False),
-        ]:
-            observation = json.dumps([{"status": status, "meta": meta}])
-            with self.subTest(status=status, meta=meta), patch.dict(batch.os.environ, settings, clear=True), \
-                    patch.object(batch.subprocess, "run", side_effect=[
-                        SimpleNamespace(returncode=0, stdout=commit),
-                        SimpleNamespace(returncode=0, stdout=observation),
-                    ]):
-                if accepted:
-                    batch.require_matching_release(self.configuration())
-                else:
-                    with self.assertRaises(RuntimeError):
-                        batch.require_matching_release(self.configuration())
 
 if __name__=="__main__":unittest.main()

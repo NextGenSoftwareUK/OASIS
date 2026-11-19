@@ -18,8 +18,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Seal
     public sealed class HolonSealPolicy : IHolonSealPolicy
     {
         private readonly Func<HolonSealSettings> _settings;
-        private readonly ConcurrentDictionary<Guid, bool> _owners = new ConcurrentDictionary<Guid, bool>();
-        private volatile HashSet<string> _apps = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private readonly HolonSealSwitches _switches = new HolonSealSwitches();
 
         public HolonSealPolicy(Func<HolonSealSettings> settings) { _settings = settings ?? throw new ArgumentNullException(nameof(settings)); }
 
@@ -41,15 +40,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Seal
         public bool ShouldSeal(Guid ownerAvatarId, string appId)
         {
             if (!IsAvailable) return false;
-            if (ownerAvatarId != Guid.Empty && _owners.TryGetValue(ownerAvatarId, out var on) && on) return true;
-            return !string.IsNullOrEmpty(appId) && _apps.Contains(appId);
+            return _switches.IsEnabled(ownerAvatarId, appId);
         }
 
-        public bool OwnerSwitch(Guid avatarId) => _owners.TryGetValue(avatarId, out var on) && on;
-        public bool AppSwitch(string appId) => !string.IsNullOrEmpty(appId) && _apps.Contains(appId);
-        public void SetOwner(Guid avatarId, bool enabled) { if (enabled) _owners[avatarId] = true; else _owners.TryRemove(avatarId, out _); }
-        public void ReplaceOwners(IEnumerable<Guid> avatars) { var keep = new HashSet<Guid>(avatars); foreach (var k in _owners.Keys.ToList()) if (!keep.Contains(k)) _owners.TryRemove(k, out _); foreach (var a in keep) _owners[a] = true; }
-        public void ReplaceApps(IEnumerable<string> appIds) => _apps = new HashSet<string>(appIds.Where(a => !string.IsNullOrEmpty(a)), StringComparer.OrdinalIgnoreCase);
+        public long SwitchRevision => _switches.Revision;
+        public bool TryReplaceSwitches(long revision, IEnumerable<Guid> owners, IEnumerable<string> apps)
+            => _switches.TryReplace(revision, owners, apps);
+        public bool OwnerSwitch(Guid avatarId) => _switches.OwnerEnabled(avatarId);
+        public bool AppSwitch(string appId) => _switches.AppEnabled(appId);
+        public void SetOwner(Guid avatarId, bool enabled) => _switches.SetOwner(avatarId, enabled);
+        public void ReplaceOwners(IEnumerable<Guid> avatars) => _switches.ReplaceOwners(avatars);
+        public void ReplaceApps(IEnumerable<string> appIds) => _switches.ReplaceApps(appIds);
     }
 
     public interface IHolonSealStore

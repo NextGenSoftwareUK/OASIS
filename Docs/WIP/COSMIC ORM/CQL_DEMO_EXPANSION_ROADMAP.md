@@ -1,16 +1,10 @@
 # Hosted CQL demo expansion
 
-## SQL-like text matching
-
-The Playground supports exact, prefix, suffix and substring matches using bounded SQL LIKE patterns. The Ask your data prompt teaches that syntax from Web4Site 44aaa7f. Vercel built that revision and all 177 website tests passed. The exact Playground parser returned the expected rows on live MongoDB, SQLite and Neo4j for each pattern and excluded the negative control. Hosted browser acceptance and a real WEB6 draft remain open.
-
 Updated 1 November 2026. User priority: broader hosted demo before full EF/NHibernate parity.
 The original full roadmap remains active; defer depth the demo does not need.
 Current release state/counts: [CURRENT_STATUS](CURRENT_STATUS.md). Detailed dated checkpoints below are historical.
 
-The [WEB4 sandbox acceptance roadmap](SANDBOX_PROVIDER_DEMO_ROADMAP.md) applies to every provider demo.
-
-## Priority and recommendations
+## Scope and acceptance
 
 | Order | Provider | Evidence and next work |
 |---|---|---|
@@ -25,16 +19,11 @@ The [WEB4 sandbox acceptance roadmap](SANDBOX_PROVIDER_DEMO_ROADMAP.md) applies 
 | 4 | **SOLID** | Hosted HTTP native3/2, Mongo5/4, private preparation/reuse/isolation and exact SQLite/Neo4j copies verified. Browser gate open. Bounded configured encrypted resources, not general Pod search. |
 | 5 | **ActivityPub** | Hosted HTTP/browser native3/2, Mongo5/4, private preparation/reuse/isolation and exact SQLite/Neo4j copies verified. Read-only configured statuses; no posting/authenticated mutation/general account search acceptance inferred. [Earlier profile](CQL_ACTIVITYPUB_NATIVE_PROFILE.md). |
 
-Repository evidence: [provider matrix](../HyperDrive-Providers/PROVIDER_MATRIX.md),
-[Solana submission work](../HyperDrive-Providers/SOLANA_SUBMISSION_CONCURRENCY.md),
-[SOLID audit](../HyperDrive-Providers/SOLID_PROVIDER_IMPLEMENTATION_AUDIT.md).
-Storage conformance is not CQL conformance; emulator/local proof is not hosted-cloud proof.
-Refresh published provider evidence before implementation because that workstream can advance separately.
+## Verified initial list
 
-Official references: [Cosmos query overview](https://learn.microsoft.com/en-us/cosmos-db/query/overview),
-[Solana account-query RPC](https://solana.com/docs/rpc/http/getprogramaccounts).
-Cosmos supports SQL-style selection/filtering/ordering; Solana RPC account filters are narrower.
-Neither reference proves the current OASIS adapter already supports CQL.
+SQLite/MongoDB/Neo4j and Oracle, IPFS, SOLID, ActivityPub, Solana, Azure Cosmos
+emulator, AWS DynamoDB Local, Ethereum, Polygon, Arbitrum V2, Google Firestore
+emulator, Cosmos blockchain, Polkadot and NEAR have linked scoped proofs.
 
 ## Earlier EVM qualification snapshot (historical)
 
@@ -56,57 +45,47 @@ Neither reference proves the current OASIS adapter already supports CQL.
 
 ## Bounded common demo acceptance
 
-1. One readable C# sample and one API demonstration, using synthetic holons and explicit provider scope.
-2. Save/load, edit/save an acknowledged revision, inspect its delta, and query the selected backend.
-3. Start with proven common shapes: typed/metadata equality and range filters, ordering, bounded paging, simple projection and Count/Any where admitted. Freeze the exact cases first; arbitrary LINQ is not required everywhere.
-4. Show provider, execution mode, authoritative record/revision, consistency/finality and any index watermark/lag.
-5. Prove the selected backend supplied the data. Do not silently present a Mongo copy as native chain querying.
-6. Reject unsupported operators during planning. No hidden full-store download, managed filtering, source substitution or implicit retries.
-7. Preserve actor visibility and existing encryption/reserved-metadata policy. Verify the child/depth and conditional-write semantics actually demonstrated; unsupported conditional writes remain explicit.
-8. Test success and failure, record hashes/counts in reports, keep raw evidence in TestResults, and clean only exact owned fixtures.
-9. A cloud claim needs a hosted endpoint. Label chain local-validator/devnet/mainnet accurately; real-money transactions and new paid infrastructure are not implementation prerequisites.
+## Exact next steps
 
-## Different backends, honest execution
+Development `835653f31` is integrated with merged Core `d9f5ec1` and matching pins.
+Core4552/WEB4schema+policy4 pass. [Verification](DEVELOPMENT_SYNC_2026-10-30.md).
 
-Use native supported query shapes first. A persistent query index may be a deliberately designed,
-independently admitted capability for a chain or protocol, with source references and finality/lag
-semantics. It must not be an automatic fallback when native translation fails. Design and disclose
-that execution mode before enrolling richer shapes.
+1. The refreshed inventory has 226 concrete identities, 33 active central cases and
+   11 additional project names requiring classification. These are source facts.
+2. Base and Avalanche MVPs are verified. Avalanche additionally needed an actual
+   factory/encryption chain-identity fix and verified empty-original continuation;
+   [proof](AVALANCHE_CQL_MVP.md). Azure Blob now also has native/restart and paired C#/HTTP/browser proof.
+   S3/TRON adapters and controls exist but native admission remains open. LocalFile
+   native/restart/paired proof is verified. Aptos direct paired proof passes (hub review-gated); Sui full local paired/browser
+   and hub proof passes. Hedera native fee/funding admission is pending; Redis encrypted native/restart/paired
+   and hub proof passes. PostgreSQL native/restart/paired/browser and hub proof passes; continue remaining red provider MVPs.
+3. Continue missing registered storage MVPs, then unregistered/source-only entries.
+   Track actual implementation, registration and external blockers independently.
+4. After breadth, return to the strict [parity checklist](CQL_PARITY_CHECKLIST.md)
+   and deferred ORM/HyperDrive gates; do not change their acceptance definitions.
 
-IPFS deletion must describe the actual catalog/tombstone/unpin behavior, not global erasure of copies.
-SOLID preserves Pod ownership/access; ActivityPub preserves actor/activity semantics.
-Distinguish replicas from distinct holons and do not promise one snapshot across providers.
-HyperDrive automatic failover/replication needs its own verified demo gate; individual CQL support
-does not establish global failover or 100% uptime.
+[Previous expansion history](Archive/CQL_DEMO_EXPANSION_ROADMAP_PRE_ALL_PROVIDER_2026-10-29.md)
+was archived with its superseded next steps intact. Update current status at each milestone.
 
-## Next actions
+PostgreSQL breadth milestone: control8/native1/restart1/paired1 and browser5/4 pass;
+[scope and retained evidence](POSTGRESQL_CQL_MVP.md). Full parity remains open.
 
-- SQLite projection checkpoint is committed; unfinished parity-only depth remains deferred.
-- Cosmos canonical and string/Boolean metadata rows are enrolled/native-proven; native Count/LongCount/Any and projection also pass; conditional Save/durable deltas are explicitly unsupported with pre-activation rejection tests; next implement numeric semantics and remaining lifecycle/HTTP/hosted acceptance; shared manager/LINQ row demo and canonical Version/Id index profile now pass.
-- Solana declared-range source/index SDK, LINQ, rows/projection/cardinality HTTP and interactive launcher now pass. Original-history recovery remains red; no replacement seed is claimed as recovery. Next: common demo metadata/lifecycle capabilities, ongoing index ingestion, hosted-cloud and production auth/durable settlement; preserve all narrower point-profile limits.
-- Keep the full parity checklist strict and update CURRENT_STATUS each milestone. Unfinished Q01f depth remains deferred, not complete.
+SQL Server breadth milestone: control9/native/restart/paired and browser5/4 pass;
+[scope and evidence](SQLSERVER_CQL_MVP.md). Wider parity stays deferred.
 
-Environment update: user explicitly authorized creating missing environments.
-Fresh persistent IPFS and isolated SOLID demo identities now pass native readiness
-using cached runtimes; [commands/evidence](CQL_DEMO_ENVIRONMENTS.md). Active next
-IPFS V2 storage baseline/CQL admission, then SOLID; old-data recovery stays open.
+DuckDB breadth milestone: control14/native/reopen/paired and browser5/4 pass;
+[scope and evidence](DUCKDB_CQL_MVP.md). Wider parity remains deferred.
 
-Unified demo launcher now selects SQLite coffee or IPFS/SOLID/ActivityPub point hosts. ActivityPub nativeinteractivegate1pass against existingpublicstatus, no posting/authentication. See [commands/evidence/limits](CQL_INTERACTIVE_POINT_DEMO.md). Fourproviders inlauncher doesnotcertify full8provider/commonquerydemo orfullparity.
+Upstash hosted breadth milestone: control17/native/repeat/paired/browser5/4 pass;
+[scope and expiry](UPSTASH_CQL_MVP.md). Existing free scratch expires October31.
 
-Live Solana declared-range SDK/index/manager/LINQ and shared C# walkthrough now
-pass against the retained validator with new coverage3073; original recovery stays
-red. [Native command and limits](CQL_SOLANA_DEMO_ADMISSION.md#live-declared-range-sdk-demo-new-range-not-original-recovery).
-Live-source shipping HTTP now passes27requests against the same seed/index and
-validator. Interactive hub now adds Solana on5089 with native leave-running/shutdown acceptance. Next: ongoing index ingestion, production authentication/durable billing and common-demo capability gaps.
+Litestream Linux breadth milestone: native/live file replication/restore/paired and
+browser5/4 pass; [scope/resources](LITESTREAM_CQL_MVP.md). Windows fsync stays red.
 
-SolanaMetadata now explicitly selects the separate schema3 acknowledged fixture/index: live SDK/HTTP42requests and read-only/interactive reuse pass, including nested string/exactInt64 filters and pre-reservation private-root rejection. It shares the retained validator and preserves schema2/original history. Next selected metadata and remaining red demo capabilities; production identity/durable settlement remain open. See CQL_INDEXED_METADATA.md.
+Memcached breadth milestone: native volatile generations/paired/browser5/4/CAS pass;
+[scope/lifecycle](MEMCACHED_CQL_MVP.md). Wider atomicity/durability remain open.
 
-Selected schema3 metadata is now native SDK/HTTP/demo proven (50requests plus
-interactive selection), with no new seed/source writes. Next demo integration:
-reuse Run-CosmicCqlV1Demo.ps1 for the existing three-database group, then the retained
-Cosmos DB CQL profile/runtime for a cloud teaching host. Current hub lacks these
-entries; do not label the Cosmos blockchain runner as the Azure cloud runner.
-This integration takes priority over additional parity-only Solana operators.
+PocketBase native/restart/paired/browser/hub scope is verified: [proof](POCKETBASE_CQL_MVP.md). Next reconcile fetched Development before Supabase resource/storage inspection.
 
 Databases hub native launch is restored after exact archived fixture reconciliation:681SDK queries/138walkthrough HTTP requests/30save checks pass, with cleanup. CosmosDB teaching-host/hub integration also passes native and interactive HTTP lifecycle; browser rendering and remaining red demo/parity gates follow. See CQL_DATABASE_DEMO_HUB.md and CURRENT_STATUS.md.
 
@@ -271,135 +250,3 @@ Starknet bounded header profile: [setup/commented C# guide](../../Devs/STARKNET_
 [Arweave native CQL and commented shared-manager demo](../../Devs/ARWEAVE_PUBLIC_HEADER_CQL_GUIDE.md):33controls/real3/2/actualCLI3/2 plus hosted3/2/Mongo5/4/reuse/privacy/replicas2/2 pass. Browser open. [Evidence and exact historical scope](ARWEAVE_PUBLIC_SOURCE_STATUS.md).
 
 [TON native CQL setup and commented C# candidate](../../Devs/TON_PUBLIC_HEADER_CQL_GUIDE.md):Native32decoder/13query/3error controls, realCQL3/2 and manager/CLI3/2 pass on the qualified recent dataset. API/hosted gates next; [evidence and next root-cause step](TON_PUBLIC_SOURCE_STATUS.md).
-
-## Recovery laptop rollout queue — 4 November 2026
-
-Authenticated Development WEB4 v2 catalogue discovery returned 60 profiles.
-Of these, 59 reported both native and federation availability. Nostr reported
-neither. This is discovery evidence for the existing catalogue.
-
-LocalFile and the locally qualified Hyperlane, LayerZero V2, Stargate,
-deBridge, Synapse, Connext, Miden, Espresso, EigenLayer, Fhenix, Axelar and
-Ritual profiles were absent. LocalFile goes first using the
-[qualified candidate and retained bundle](LOCALFILE_CQL_MVP.md). Review
-the remaining local profiles in scoped Development batches after that gate.
-For each profile, confirm the deployed commit, review the query-only settings,
-then verify hosted native queries, Mongo federation, reuse, privacy and exact
-replicas before publishing its demo. Record browser acceptance separately.
-
-### Additional SQL candidates
-
-| Provider | Verified scope | Next hosted gate |
-|---|---|---|
-| QuestDB | Local native 3/2, WEB4 HTTP federation 5/4 and foreign visibility 0 private/3 public | Qualify a permitted public HTTPS SQL endpoint and its enrolled symbol table. [Evidence](QUESTDB_PUBLIC_SOURCE_STATUS.md) |
-| Cloudflare D1 | Local Worker activation and native 3/2, WEB4 HTTP federation 5/4 and foreign visibility 0 private/3 public | Existing-account development Worker binding and source-bound HTTPS qualification. [Owner dependency](../Release%20and%20Status/ACTIONS-FOR-DAVID.md#cloudflare-d1-worker-for-development-web4) |
-| SQL Server | Recovered original LocalDB CQL, Mongo federation and browser evidence | Select and qualify a Development tenant and fixture before explicit registration and admission. Preserve the original local cohort. [Evidence](SQLSERVER_CQL_MVP.md) |
-
-These candidates follow the LocalFile release gate. The local SQL results
-do not add to the hosted provider count.
-
-For D1, retain the reviewed Worker URL and synthetic projection owner in
-`LocalState/COSMIC/D1WorkerHostedQualificationCurrent/source.json` with
-`schema: 1`, `endpoint`, `sourceOwner`, and `symbols` in the order
-BTC-USDT, ETH-USDT, SOL-USDT. Run the HTTPS qualification before preparing
-Railway settings:
-
-```powershell
-python -B Scripts/Sandbox/Probe-D1WorkerHostedReadiness.py
-python -B Scripts/Sandbox/Publish-HostedD1WorkerConfiguration.py
-```
-
-Continue to preparation only after the probe reports exact 3/2 reads,
-rejection of duplicate and unenrolled symbols, and POST rejection. Keep a
-failed source-bound receipt and its original intent for reconciliation. A
-successful probe qualifies the Worker. Hosted WEB4 discovery, paired
-queries, privacy and replicas remain separate gates.
-
-### NATS JetStream
-
-The retained local JetStream cohort passed native CQL 3/2 and WEB4 HTTP
-federation 5/4 against Core 47c3a84. A second user saw zero private copies
-and three public rows. Hosted enrollment requires a qualified TLS endpoint
-and existing read-only bucket with the exact owner and three enrolled IDs.
-Keep credentials separate from the public profile JSON. WEB4 accepts a paired username/password through the private CQL_NATS_PUBLIC_SOURCE_USERNAME and CQL_NATS_PUBLIC_SOURCE_PASSWORD settings. Qualify that account against the exact bucket and its read-only permissions before enrollment.
-
-The `CQL_NATS_PUBLIC_SOURCE_JSON` contract requires exactly `schema` (value
-1), `endpoint` (a credential-free `tls://` URL), `bucket`, `sourceOwner`
-and `ids`. Use the same three distinct GUIDs in the server-side catalogue
-and the paired presets. Confirm the public records are live and belong to
-the declared owner. The retained recovery fixture is available for loopback
-tests. The hosted TLS endpoint and credential scope still need qualification.
-
-The shipping JSON path rejects loopback endpoints and passes no custom CA
-override to NATS.NET. Qualify the target with a non-loopback DNS name and a
-certificate chain trusted by the WEB4 runtime. The pinned SDK treats the
-`tls://` scheme as TLS required. The retained plaintext loopback fixture
-establishes native read behavior only. [Pinned NATS TLS options](https://github.com/nats-io/nats.net/blob/v3.2.0/src/NATS.Client.Core/NatsTlsOpts.cs)
-
-Use the same IDs for the source and server-side public catalogue. Review the
-explicit query-only tariff and four presets before running the shared hosted
-verifier with a fresh NATS-scoped journal. Keep LocalFile first. Native TLS,
-hosted replicas and browser interaction remain unverified.
-The explicit owned sandbox mode separately qualifies verified TLS at
-127.0.0.1:24222 with a dedicated CA and restricted cql_reader account.
-Real native3/2, permission denials and two restored-source starts passed
-with unchanged values/revisions/TLS identity and no reseeding. Exact scoped
-candidate API/image jobs42398316205/42398318179 are running; eight settings
-are prepared locally but not applied. Hosted HTTP and browser gates remain
-open. The remote mode above retains its nonloopback/trusted-chain contract.
-See [current NATS evidence](NATS_JETSTREAM_CQL_MVP.md).
-
-## Hosted acceptance for prepared exact-key providers
-
-After the LocalFile rollout and each provider's native qualification, use the
-same reviewed teaching catalogue with the Development WEB4 verifier. This
-applies to Meilisearch, Solr, Elasticsearch, OpenSearch, ArcadeDB, SurrealDB,
-Qdrant, Redis, Valkey, DynamoDB, Typesense, MinIO, PocketBase, Supabase and
-Firebase. Confirm the reviewed settings deployment
-and existing source authorization before running either command.
-
-```powershell
-python -B Scripts/Sandbox/Verify-HostedQuerySource.py RedisOASIS --reviewed-exact-key-source <catalogue.json> --readiness
-python -B Scripts/Sandbox/Verify-HostedQuerySource.py RedisOASIS --reviewed-exact-key-source <catalogue.json> --prepare
-```
-
-Use the provider's canonical enum name. The catalogue contains `Actor`,
-three ordered `LiveIds`, `DeletedId` and `MissingId` as canonical UUIDs.
-For MinIO, use the complete qualified native descriptor, including its
-endpoint, bucket, region and original object receipts.
-Prepare the provider's one-setting fragment from that same catalogue:
-
-```powershell
-python -B Scripts/Sandbox/Verify-HostedQuerySource.py RedisOASIS --reviewed-exact-key-source <catalogue.json> --prepare-exact-key-presets <new-fragment.json>
-```
-
-The command creates a new local file for review. Coordinate the fragment
-with the provider's source settings, public grants and query-only tariff.
-To prepare the three changes together from a reviewed protected WEB4
-baseline, use:
-
-```powershell
-python -B Scripts/Sandbox/Prepare-HostedExactKeyConfiguration.py RedisOASIS --catalogue <catalogue.json> --baseline <baseline.dpapi> --output <new-candidate.dpapi>
-```
-
-Review the candidate against the original baseline before applying settings.
-The tool adds the provider's query-only admission, three public IDs and
-preset partition. Review the source credentials and vendor usage separately.
-
-Advertise exactly four presets. Use `Id` membership, unordered selection,
-metadata, a 25-row limit and a 30-second top-level deadline. The paired
-presets use named Mongo and native targets, preserve copies, and allow two
-provider attempts. The subset uses the first two live IDs.
-
-Readiness uses the retained discovery visitor. The acceptance flow checks
-the reviewed presets before creating a visitor, then verifies native 3/2,
-paired 5/4, snapshot reuse, replicas and independent-visitor privacy. Browser
-acceptance and real deployment evidence remain separate.
-
-Published-client compatibility check, 5 November 2026. The downloaded-in-memory
-preparation module matched Web4Site main `fe496ad7`, Git blob
-`030a52827fa0c5844ebf56d9ac7394a3f5b7f92b`. Using generated catalogue fixtures,
-that exact module accepted all twenty paired presets, selected the two
-reviewed native setup IDs with the 30-second deadline and composed the
-expected 5/4 ID unions with two synthetic Mongo IDs. This check used
-controlled inputs and made no CQL, identity-map or save calls.

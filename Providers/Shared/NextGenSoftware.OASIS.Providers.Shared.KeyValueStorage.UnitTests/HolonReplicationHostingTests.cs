@@ -18,7 +18,7 @@ using NextGenSoftware.OASIS.Common;
 namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 
 [TestClass]
-public class HolonReplicationHostingTests
+public partial class HolonReplicationHostingTests
 {
     private static readonly Guid Actor=Guid.Parse("a4f43980-6060-4642-9c94-91d13ee8f47e");
     private static readonly DateTime Now=new(2026,10,19,12,0,0,DateTimeKind.Utc);
@@ -194,6 +194,7 @@ public class HolonReplicationHostingTests
         var receiver=new Receiver();var route=Catalog(new Store(),receiver,policy).Targets.Single();
         var result=await route.ApplyReplicatedMutationAsync(item,default);
         Assert.IsTrue(result.IsError);Assert.AreEqual("COSMIC_REPLICA_PAYLOAD_INVALID",result.ErrorCode);
+        Assert.AreEqual(0,policy.Calls,"Invalid routing assertions must be rejected before authorization.");
         Assert.AreEqual(0,receiver.Calls,"Policy cannot replace the original routing assertions.");
     }
     [DataTestMethod]

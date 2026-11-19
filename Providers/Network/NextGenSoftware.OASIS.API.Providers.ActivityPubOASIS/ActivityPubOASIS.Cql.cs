@@ -43,6 +43,8 @@ public partial class ActivityPubOASIS : ICosmicQueryStorageProvider, ICosmicRead
             if(QueryCapabilities.StringKeySetLookup?.IsKeySetQuery(plan.Query)==true)
                 return await ExecuteCqlStatusKeySetAsync(plan,maximumResults,cancellationToken);
             var key = QueryCapabilities.StringPointLookup.SelectKey(plan.Query).Result;
+            if (string.IsNullOrEmpty(key) || key.Any(c => c < '0' || c > '9'))
+                return CqlError("CQL_INVALID_SOURCE_KEY", "Native Mastodon status keys must be decimal IDs.");
             cancellationToken.ThrowIfCancellationRequested();
             if (!_isActivated)
                 return CqlError("CQL_PROVIDER_INACTIVE","Explicitly activate the configured Mastodon provider before querying.");
@@ -112,9 +114,9 @@ public partial class ActivityPubOASIS : ICosmicQueryStorageProvider, ICosmicRead
     {
         if(response.Content.Headers.ContentLength>CqlMaximumStatusBytes)
             throw new CqlStatusLimitException("The native status response exceeds its bounded payload limit.");
-        using var source=await response.Content.ReadAsStreamAsync(token);using var body=new MemoryStream();
+        using var source=await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false);using var body=new MemoryStream();
         var buffer=new byte[16384];int count;
-        while((count=await source.ReadAsync(buffer.AsMemory(),token))!=0)
+        while((count=await source.ReadAsync(buffer.AsMemory(),token).ConfigureAwait(false))!=0)
         {
             if(body.Length+count>CqlMaximumStatusBytes)throw new CqlStatusLimitException("The native status response exceeds its bounded payload limit.");
             body.Write(buffer,0,count);

@@ -2,7 +2,7 @@ name: Qualify bounded SubQuery dictionary CQL
 
 on:
   push:
-    branches: [work/cosmic-cql-ton-public]
+    branches: [work/cosmic-teaching-release-candidate]
     paths:
       - '.github/workflows/qualify-subquery-dictionary.yml'
       - 'Docker/oasis-dependency-versions.env'

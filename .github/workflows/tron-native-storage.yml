@@ -1,0 +1,157 @@
+name: TRON native storage
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - 'Providers/Shared/Contracts/OASISKeyValueStore.sol'
+      - '.github/workflows/tron-native-storage.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TRONOASIS/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.IntegrationTests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          revision="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+
+      - name: Deploy and exercise shipping storage on native TRON TRE
+        shell: bash
+        run: |
+          umask 077
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-tron.XXXXXXXX")"
+          container=""
+          cleanup() {
+            status=$?
+            if [[ -n "$container" ]]; then
+              if [[ "$status" -ne 0 ]]; then
+                docker inspect --format '{{json .State}}' "$container" || true
+                docker logs --tail 60 "$container" || true
+              fi
+              docker rm --force --volumes "$container"
+              echo "Removed the owned TRON container and ledger."
+            fi
+            if [[ "$fixture" == "$RUNNER_TEMP"/oasis-tron.* && -d "$fixture" ]]; then
+              rm -rf -- "$fixture"
+              test ! -e "$fixture"
+            fi
+          }
+          trap cleanup EXIT
+          image=tronbox/tre@sha256:cbf2973095933e3ae3237767082e29add2f9b647d7a4aebdfb7a953c6e5656ba
+          npm install --prefix "$fixture" --no-save --package-lock=false --no-audit --no-fund solc@0.8.26
+          node - "$fixture" <<'JS'
+          const fs = require("node:fs");
+          const path = require("node:path");
+          const directory = process.argv[2];
+          const solc = require(path.join(directory, "node_modules", "solc"));
+          if (!solc.version().startsWith("0.8.26+")) throw new Error("Solidity compiler version mismatch.");
+          const name = "OASISKeyValueStore.sol";
+          const content = fs.readFileSync("Providers/Shared/Contracts/" + name, "utf8");
+          const result = JSON.parse(solc.compile(JSON.stringify({
+            language: "Solidity", sources: { [name]: { content } },
+            settings: { evmVersion: "paris", optimizer: { enabled: true, runs: 200 },
+              outputSelection: { "*": { "*": ["evm.bytecode.object"] } } },
+          })));
+          for (const error of result.errors ?? []) {
+            if (error.severity === "error") throw new Error(error.formattedMessage);
+          }
+          const bytecode = result.contracts[name].OASISKeyValueStore.evm.bytecode.object;
+          if (!/^(?:[a-fA-F0-9]{2})+$/.test(bytecode)) throw new Error("Invalid contract bytecode.");
+          fs.writeFileSync(path.join(directory, "storage.hex"), bytecode);
+          JS
+          container="$(docker run --detach --memory=2g --cpus=2 --log-opt max-size=10m \
+            -p 127.0.0.1:9090:9090 -p 127.0.0.1:50051:50051 -p 127.0.0.1:50052:50052 \
+            -e useDefaultPrivateKey=true -e accounts=2 -e NO_COLOR=1 "$image")"
+          export OASIS_TRON_LIFECYCLE_RPC=http://127.0.0.1:9090
+          expected_genesis=0000000000000000c93baa76a4a508f798a96f59156d9eb17ecede8ec845df2f
+          for attempt in {1..45}; do
+            [[ "$(docker inspect --format '{{.State.Running}}' "$container")" == true ]] || exit 1
+            if [[ "$(curl --fail --silent --max-time 2 "$OASIS_TRON_LIFECYCLE_RPC/healthcheck")" == OK ]] &&
+               response="$(curl --fail --silent --max-time 5 -H 'Content-Type: application/json' \
+                 --data '{"num":0}' "$OASIS_TRON_LIFECYCLE_RPC/wallet/getblockbynum")" &&
+               [[ -n "$response" ]] &&
+               genesis="$(jq -er '.blockID | select(test("^[0-9a-f]{64}$"))' <<< "$response")"; then
+              if [[ "$genesis" != "$expected_genesis" ]]; then
+                echo "TRON HTTP genesis differs from the pinned private chain: $genesis" >&2
+                exit 1
+              fi
+              break
+            fi
+            if [[ "$attempt" == 45 ]]; then
+              echo "TRE did not return a valid private genesis through the HTTP API." >&2
+              if [[ -n "${response:-}" ]]; then jq -c 'keys' <<< "$response" || true; fi
+              exit 1
+            fi
+            sleep 2
+          done
+          echo "Validated private TRE HTTP genesis. The shipping gRPC client verifies both native endpoints before signing."
+          export OASIS_TRON_LIFECYCLE_GENESIS="$genesis"
+          export OASIS_TRON_LIFECYCLE_CHAIN_ID="0x${genesis: -8}"
+          export OASIS_TRON_LIFECYCLE_NETWORK=local
+          export OASIS_TRON_LIFECYCLE_FULL_GRPC=http://127.0.0.1:50051
+          export OASIS_TRON_LIFECYCLE_SOLIDITY_GRPC=http://127.0.0.1:50052
+          export OASIS_TRON_LIFECYCLE_REPORT_ROOT="$fixture/reports"
+          export OASIS_TRON_BOOTLOADER_ACTIVATION=1 OASIS_TRON_CI_FIXTURE="$fixture"
+          export OASIS_TRON_FRESH_BYTECODE="$fixture/storage.hex"
+          export OASIS_TRON_STORAGE_LIFECYCLE=1 OASIS_TRON_FRESH_LIFECYCLE=1
+          # This well-known key is funded only on the validated private fixture.
+          export OASIS_TRON_STORAGE_PRIVATE_KEY="$(printf '%064x' 1)"
+          export OASIS_TRON_STORAGE_ENCRYPTION_KEY="$(openssl rand -base64 32)"
+          echo "::add-mask::$OASIS_TRON_STORAGE_ENCRYPTION_KEY"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-TronStorage -Operation {
+              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.TRONOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~TronNativeStorageLifecycleTests.SharedStorageLifecycle" /p:TronDirectProviderOnly=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "Native TRON storage verification failed." }
+            }'
+          for mode in async sync; do
+            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/reports/$mode.json" >/dev/null
+            echo "$mode: 26 native checks and empty contract verified."
+          done
+          pwsh -NoProfile -File Scripts/TestHosts/Invoke-TronBootLoaderActivation.ps1

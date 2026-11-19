@@ -492,7 +492,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                         foreach(var version in avatarVersions)await DeleteObservedAcknowledgedAsync(conditional,version.Key,version.Observation,acknowledged);
                     }
                 }
-                return new OASISResult<bool>(true) { IsDeleted = true, Message = $"Avatar {id} {(softDelete ? "soft" : "permanently")} deleted from {Name}." };
+                return new OASISResult<bool>(true) { IsDeleted = true, DeletedCount = 1, Message = $"Avatar {id} {(softDelete ? "soft" : "permanently")} deleted from {Name}." };
             }
             catch (Exception ex) { return Fail<bool>($"Error deleting avatar {id}: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex,
                 ex is StorageLifecycleConflictException ? StorageLifecycleConflictException.ErrorCode:null); }
@@ -641,7 +641,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                         foreach(var version in versions)await DeleteObservedAcknowledgedAsync(conditional,version.Key,version.Observation,acknowledged);
                     }
                 }
-                return new OASISResult<bool>(true) { IsDeleted = true, Message = "Avatar detail deleted." };
+                return new OASISResult<bool>(true) { IsDeleted = true, DeletedCount = 1, Message = "Avatar detail deleted." };
             }
             catch (Exception ex) { return Fail<bool>("Error deleting avatar detail.",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex,
                 ex is StorageLifecycleConflictException ? StorageLifecycleConflictException.ErrorCode:null); }

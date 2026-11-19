@@ -17,7 +17,10 @@ public partial class HolonRepository
     // A missing-row snapshot read is not a native predicate lock. All conditional
     // receipt owners and first preparation claims write this same operation fence.
     private Task<UpdateResult> TouchOperationFenceAsync(IClientSessionHandle session, Guid operation, CancellationToken token)
-        => _dbContext.MongoDB.GetCollection<BsonDocument>("CosmicOperationFence").UpdateOneAsync(session,
+        => TouchOperationFenceAsync(_dbContext.MongoDB,session,operation,token);
+
+    private static Task<UpdateResult> TouchOperationFenceAsync(IMongoDatabase database, IClientSessionHandle session, Guid operation, CancellationToken token)
+        => database.GetCollection<BsonDocument>("CosmicOperationFence").UpdateOneAsync(session,
             new BsonDocument("_id", operation.ToString("D")), new BsonDocument {
                 { "$inc", new BsonDocument("Generation", 1L) },
                 { "$setOnInsert", new BsonDocument("CreatedAtUtc", DateTime.UtcNow) }

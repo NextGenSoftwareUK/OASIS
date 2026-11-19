@@ -175,8 +175,14 @@ public partial class SOLIDOASIS
             if(result.Result==null){result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Requested SOLID record version was not found.";}
             else{result.IsLoaded=true;result.LoadedCount=1;}
         }catch(Exception error){
+            if (error is HttpRequestException { StatusCode: System.Net.HttpStatusCode.NotFound })
+                return new OASISResult<T>
+                {
+                    IsError = true,
+                    ErrorCode = OASISResultErrorCodes.RecordNotFound,
+                    Message = "Requested SOLID record was not found."
+                };
             OASISErrorHandling.HandleError(ref result,"SOLID private record read failed.",error);
-            if(error is HttpRequestException http&&http.StatusCode==System.Net.HttpStatusCode.NotFound)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
         }
         return result;
     }
@@ -187,14 +193,17 @@ public partial class SOLIDOASIS
             RequirePrivateStorage();
             if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
             var container=_privateRecords.Container<T>();
-            using var graph=await ReadPrivateContainerPagesAsync(container);
-            var subject=graph.CreateUriNode(container);
-            var rdfType=graph.CreateUriNode(new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"));
-            if(!graph.GetTriplesWithSubjectPredicate(subject,rdfType).Any(triple=>triple.Object is IUriNode node&&
-                node.Uri.AbsoluteUri is "http://www.w3.org/ns/ldp#BasicContainer" or "http://www.w3.org/ns/ldp#Container"))
-                throw new InvalidDataException("Expected native LDP container type at the requested resource.");
+            using var graph=await ReadPrivateContainerPagesAsync(container, allowMissingContainer: true);
+            if (graph == null)
+            {
+                if (!await IsUnprovisionedContainerAsync(container))
+                    throw new HttpRequestException("SOLID parent lists a collection that could not be read.", null, System.Net.HttpStatusCode.NotFound);
+                result.Result = Array.Empty<T>();
+                result.IsLoaded = true;
+                return result;
+            }
             var ids=new HashSet<Guid>();
-            foreach(var triple in graph.GetTriplesWithSubjectPredicate(subject,graph.CreateUriNode(new Uri("http://www.w3.org/ns/ldp#contains")))){
+            foreach(var triple in ReadContainerMembers(graph, container)){
                 if(triple.Object is not IUriNode member)throw new InvalidDataException("LDP containment must reference a resource URI.");
                 var filename=Path.GetFileNameWithoutExtension(member.Uri.AbsolutePath);
                 if(!Guid.TryParseExact(filename,"D",out var id)||id==Guid.Empty||!member.Uri.Equals(_privateRecords.Resource<T>(id)))
@@ -211,6 +220,35 @@ public partial class SOLIDOASIS
             result.Result=records;result.IsLoaded=true;result.LoadedCount=records.Count;
         }catch(Exception error){OASISErrorHandling.HandleError(ref result,"SOLID private collection read failed.",error);}
         return result;
+    }
+
+    private async Task<bool> IsUnprovisionedContainerAsync(Uri missingContainer)
+    {
+        var pod = new Uri(_podServerUrl + "/");
+        var parent = new Uri(missingContainer, "../");
+        if (!pod.IsBaseOf(parent))
+            throw new InvalidDataException("SOLID collection is outside the configured Pod.");
+        using var graph = await ReadPrivateContainerPagesAsync(parent, allowMissingContainer: parent != pod);
+        if (graph == null)
+            return await IsUnprovisionedContainerAsync(parent);
+        foreach (var triple in ReadContainerMembers(graph, parent))
+        {
+            if (triple.Object is not IUriNode member)
+                throw new InvalidDataException("LDP containment must reference a resource URI.");
+            if (member.Uri.Equals(missingContainer))
+                return false;
+        }
+        return true;
+    }
+
+    private static IEnumerable<Triple> ReadContainerMembers(Graph graph, Uri container)
+    {
+        var subject = graph.CreateUriNode(container);
+        var rdfType = graph.CreateUriNode(new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"));
+        if (!graph.GetTriplesWithSubjectPredicate(subject, rdfType).Any(triple => triple.Object is IUriNode node &&
+            node.Uri.AbsoluteUri is "http://www.w3.org/ns/ldp#BasicContainer" or "http://www.w3.org/ns/ldp#Container"))
+            throw new InvalidDataException("Expected native LDP container type at the requested resource.");
+        return graph.GetTriplesWithSubjectPredicate(subject, graph.CreateUriNode(new Uri("http://www.w3.org/ns/ldp#contains")));
     }
     private async Task<OASISResult<T>> SavePrivateRecordAsync<T>(T source,System.Net.Http.Headers.EntityTagHeaderValue expectedTag=null,bool createOnly=false,string expectedTurtle=null,
         PlannedHolonWrite plannedHolon=null) where T:class,IHolonBase

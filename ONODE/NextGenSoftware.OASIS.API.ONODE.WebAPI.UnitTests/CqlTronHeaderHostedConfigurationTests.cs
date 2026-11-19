@@ -58,22 +58,20 @@ public sealed class CqlTronHeaderHostedConfigurationTests
         var services = new ServiceCollection();
         services.AddReviewedNetworkReadSources(Settings(Catalogue, key), true);
         using var container = services.BuildServiceProvider();
-        var config = container.GetRequiredService<TronPublicCqlConfiguration>();
-        Assert.Throws<ArgumentException>(() => config.Configure(new TRONOASIS()));
+        Assert.Throws<ArgumentException>(() => container.GetServices<CqlReadSourceProfile>().ToArray());
     }
 
     [Fact]
-    public void ExplicitPairConfiguresTheShippingProviderWithoutActivatingStorage()
+    public void ExplicitPairCreatesOnlyAnInactiveReadOnlyProfile()
     {
         var services = new ServiceCollection();
         services.AddReviewedNetworkReadSources(Settings(Catalogue, "controlled-reader"), true);
         using var container = services.BuildServiceProvider();
-        Assert.Empty(container.GetServices<CqlReadSourceProfile>());
-        var source = new TRONOASIS();
-        container.GetRequiredService<TronPublicCqlConfiguration>().Configure(source);
+        var profile = Assert.Single(container.GetServices<CqlReadSourceProfile>());
+        var source = Assert.IsType<TronPublicHeaderMetadataSource>(profile.Storage);
         Assert.False(source.IsProviderActivated);
-        Assert.False(source.IsQuerySourceActivated);
         Assert.Equal(ProviderType.TRONOASIS, source.QueryProviderType);
+        Assert.Same(CqlReadSourceActivationPolicy.None, profile.ActivationPolicy);
     }
 
     [Fact]
@@ -83,8 +81,7 @@ public sealed class CqlTronHeaderHostedConfigurationTests
         var embedded = Catalogue.Replace("\"schema\":1", "\"readerKey\":\"forbidden\",\"schema\":1");
         services.AddReviewedNetworkReadSources(Settings(embedded, "controlled-reader"), true);
         using var container = services.BuildServiceProvider();
-        var config = container.GetRequiredService<TronPublicCqlConfiguration>();
-        Assert.Throws<ArgumentException>(() => config.Configure(new TRONOASIS()));
+        Assert.Throws<ArgumentException>(() => container.GetServices<CqlReadSourceProfile>().ToArray());
     }
 
     [Fact]

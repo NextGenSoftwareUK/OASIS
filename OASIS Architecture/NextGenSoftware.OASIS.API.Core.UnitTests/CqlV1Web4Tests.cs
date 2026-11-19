@@ -64,7 +64,7 @@ public partial class CqlV1Web4Tests
     }
 
     [Theory]
-    [InlineData(0)] [InlineData(1)] [InlineData(2)] [InlineData(3)]
+    [InlineData(0)] [InlineData(1)] [InlineData(2)]
     [InlineData(4)] [InlineData(5)] [InlineData(6)]
     public void ChildExistenceRejectsInvalidOrUnboundedDescriptions(int fault)
     {
@@ -76,12 +76,20 @@ public partial class CqlV1Web4Tests
             case 0:request.AnyChildren=null!;break;
             case 1:request.AnyChildren=new CqlV1ChildExists[]{null!};break;
             case 2:group.Filters=null!;break;
-            case 3:group.Filters=Array.Empty<CqlV1Filter>();break;
             case 4:request.AnyChildren=Enumerable.Repeat(group,5).ToArray();break;
             case 5:request.Filters=Enumerable.Repeat(filter,12).ToArray();break;
             case 6:filter.Field="CreatedByAvatarId";break;
         }
         Assert.Throws<ArgumentException>(()=>CqlV1Compiler.Compile(request,Guid.NewGuid(),ProviderType.MongoDBOASIS));
+    }
+
+    [Fact]
+    public void RelationshipGroupsWithoutFiltersAreAcceptedAsUnfilteredExistence()
+    {
+        var childRequest=new CqlV1Request{AnyChildren=new[]{new CqlV1ChildExists{Filters=Array.Empty<CqlV1Filter>()}}};
+        var descendantRequest=new CqlV1Request{AnyDescendants=new[]{new CqlV1DescendantExists{Filters=Array.Empty<CqlV1Filter>()}}};
+        Assert.NotNull(CqlV1Compiler.Compile(childRequest,Guid.NewGuid(),ProviderType.MongoDBOASIS));
+        Assert.NotNull(CqlV1Compiler.Compile(descendantRequest,Guid.NewGuid(),ProviderType.Neo4jOASIS));
     }
 
     [Fact]
@@ -102,7 +110,7 @@ public partial class CqlV1Web4Tests
     }
 
     [Theory]
-    [InlineData(0)] [InlineData(1)] [InlineData(2)] [InlineData(3)] [InlineData(4)]
+    [InlineData(0)] [InlineData(1)] [InlineData(2)] [InlineData(4)]
     [InlineData(5)] [InlineData(6)] [InlineData(7)] [InlineData(8)] [InlineData(9)]
     [InlineData(10)] [InlineData(11)] [InlineData(12)] [InlineData(13)]
     public void DescendantGroupsRejectInvalidBoundsAndSharedBudgetOverflow(int fault)
@@ -115,7 +123,6 @@ public partial class CqlV1Web4Tests
             case 0:request.AnyDescendants=null!;break;
             case 1:request.AnyDescendants=new CqlV1DescendantExists[]{null!};break;
             case 2:group.Filters=null!;break;
-            case 3:group.Filters=Array.Empty<CqlV1Filter>();break;
             case 4:group.MaximumDepth=0;break;
             case 5:group.MaximumDepth=33;break;
             case 6:group.MaximumNodes=0;break;

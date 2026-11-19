@@ -4,52 +4,6 @@ Required by the user30October2026. Applies to every provider demo produced by th
 work, existing and future, including the first10content-query providers. A local
 C#/HTTP/browser demo is not proof that the provider works in the public sandbox.
 
-This recovered roadmap preserves the original acceptance scope. Its dated
-observations and counts are historical. Use [current status](CURRENT_STATUS.md)
-for current evidence and the [LocalFile rollout](LOCALFILE_CQL_MVP.md) for the
-first live Development gate.
-
-## Current priority demo evidence
-
-- Solana, Ethereum, Polygon, Arbitrum, NEAR, IPFS, ActivityPub, Cosmos Hub and Polkadot retain scoped live HTTP and browser acceptance. Preserve those cohorts.
-- EOS, SOLID and TON passed both public browser presets. The original-owner private MongoDB paired browser presets remain open. Hedera recovered catalogue readiness on WEB4 `f9011d511056`; its bounded public browser subset and native HTTP evidence are retained. The full public browser preset and original-owner private browser cases remain open.
-- TRON CQL is deployed on Development and still requires the dedicated TronGrid key for authenticated qualification and enrollment. Supabase remains a top-priority hosted demo with the deployed reader and an outstanding restricted teaching fixture. GOMap and CouchDB have deployed reader code with their reviewed HTTPS fixtures outstanding.
-- LocalFile CQL acceptance is retained. The ordinary HyperDrive point-routing check is deferred behind the priority demos.
-
-[Current deployment and readiness](CURRENT_STATUS.md) · [Owner actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
-
-## Hosted SQL and Ask Your Data walkthrough
-
-Use a protected Development preview with the matching WEB4 revision and a
-signed-in demo visitor. Use a prepared, populated fixture belonging to that
-visitor. Keep the existing fixture tag and replace `fixtureTag` below with
-it. The current deployment, preview and access state are recorded in
-[Current status](CURRENT_STATUS.md).
-
-In the SQL editor, use **Preview request** to inspect the typed request,
-then **Run CQL** to check that the visible fixture groups by Version and
-returns a positive count. Run the same query with `SQLLiteDBOASIS` and
-`Neo4jOASIS` after confirming their fixture copies are ready.
-
-```sql
-SELECT Version, COUNT(*) AS Total
-FROM MongoDBOASIS
-WHERE metadata.demoTag = 'fixtureTag'
-GROUP BY Version
-HAVING Total >= 1
-ORDER BY Total DESC
-LIMIT 5
-```
-
-In **Ask Your Data**, ask to count the visible MongoDB holons with that
-metadata demo tag by Version, keep counts of one or more, sort by descending
-count, and return up to five groups. Review the generated SQL before running
-it and compare its result to the direct SQL. Verify in the browser that WEB6
-produced the draft, the query only ran after explicit execution, and WEB4
-returned the rows for the selected provider. Record the frontend revision,
-serving WEB4 revision, provider, and result counts without recording session
-credentials.
-
 ## Observed integration points
 
 - Frontend: `C:/Source/Web4Site/web4-sandbox.html` (separate repository).
@@ -119,7 +73,40 @@ Audit existing CQL/API capabilities for the approved10-provider content-query se
 and map the missing sandbox API/UI/runtime pieces. Implement the sandbox CQL
 playground/provider integration alongside that query work, then reconcile remaining
 existing demos. Keep unsupported providers visibly pending rather than fabricating
-results. The separate Web4Site checkout was inspected only; no branch switch,
-frontend edit, deployment, account, environment or new resource was created here.
+results. The CQL client is now implemented in the existing Web4Site checkout; see the
+[current host admission gates](SANDBOX_CQL_ADMISSION.md) and client milestone below.
 
 [Current status](CURRENT_STATUS.md) / [content-query roadmap](CONTENT_QUERY_DEMO_ROADMAP.md).
+
+## CQL tab implementation — 30 October 2026
+
+Existing `C:/Source/Web4Site` on `work/cosmic-cql` now contains the first working
+CQL client: editable bounded JSON, three core provider selectors, seven presets
+(browse, name, description, metadata, AND/OR, count and named federation), actual
+response/provenance display, operation identity, cancellation and session clearing.
+No other provider is represented as hosted/enrolled merely because its local demo passed.
+
+Client controls: 11 Node tests pass, including stale-session response suppression,
+stored HTML rendered as text, cancellation without retry, UTF8 request bounds and
+mandatory idempotency keys. `node --test cql-playground.test.cjs` in Web4Site.
+These controls do not prove native query execution.
+
+Real browser -> existing dev WEB4: demo authentication succeeds; row query returns
+HTTP503 `CQL_ADMISSION_REQUIRED`. No fake rows, alternate endpoint or bypass added.
+This remains **red for a successful public CQL demo**. Evidence is regenerable in
+`C:/Source/OASIS-cosmic/TestResults/Web4SandboxCqlCurrent`.
+
+Exact next step: inspect deployment enrollment for `PREPARED_STORAGE_ADMISSION_JSON`
+and `SUBSCRIPTION_USAGE_ENABLED`, retaining the existing local reservation authority,
+Mongo usage outbox and settlement worker. Enroll exact row/scalar/federation paths
+with explicit operator tariffs and sufficient bounded provider-attempt reservations;
+do not copy illustrative commercial rates or disable admission. Then rerun real
+browser queries with owned records on Mongo/SQLite/Neo4j before expanding the selector.
+The route rejects before provider lookup, so this failure is not proof of a native
+provider defect. Hosted configuration and successful query verification remain open.
+
+Evidence `TestResults/Web4SandboxCqlCurrent/node-tests.log`: 1088 bytes, SHA256 `9929f2fd78fab982e1c0a20fc143c361a5356d1ca1706e0f18072645c33b402a`.
+
+Evidence `TestResults/Web4SandboxCqlCurrent/browser.png`: 204979 bytes, SHA256 `3ac4a4a5c3181914d1707b5ed827694a8f3075b6b7f66b2742e22396a77e02db`.
+
+Follow-up: [host admission root causes, tested free profile and remaining deployment/subscription gates](SANDBOX_CQL_ADMISSION.md).

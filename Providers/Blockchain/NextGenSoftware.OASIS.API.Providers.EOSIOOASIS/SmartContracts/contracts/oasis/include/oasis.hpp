@@ -1,3 +1,4 @@
+#include <eosio/binary_extension.hpp>
 #pragma once
 
 #include <eosio/eosio.hpp>
@@ -25,6 +26,9 @@ public:
     [[eosio::action]] void hardavatar(int32_t entityId);
 
     [[eosio::action]] void adddetail(int32_t entityId, string holonId, string info);
+    [[eosio::action]] void setdetail(int32_t entityId, string holonId, string info);
+    [[eosio::action]] void harddetail(int32_t entityId, string holonId);
+    [[eosio::action]] void softdetail(int32_t entityId, string holonId);
 
 private:
     struct [[eosio::table("holon")]] holon_row
@@ -50,6 +54,7 @@ private:
         int32_t entityId;
         string avatarId;
         string info;
+        eosio::binary_extension<bool> isDeleted;
         uint64_t primary_key() const { return static_cast<uint32_t>(entityId); }
     };
 

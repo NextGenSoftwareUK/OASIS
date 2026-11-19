@@ -31,49 +31,6 @@ public class LanceDbNativeQueryTests
     }
 
     [DataTestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public async Task HostedActivationVerifiesAnExactPublicArrowRow(bool isPublic)
-    {
-        var id = Guid.NewGuid();
-        var transport = new Transport
-        {
-            OnSend = async (request, token) =>
-            {
-                Assert.AreEqual(HttpMethod.Post, request.Method);
-                Assert.AreEqual("/v1/table/oasis_holons/query/", request.RequestUri!.AbsolutePath);
-                using var body = JsonDocument.Parse(await request.Content!.ReadAsStringAsync(token));
-                Assert.AreEqual($"id IN ('{id:D}')", body.RootElement.GetProperty("filter").GetString());
-                Assert.AreEqual(2, body.RootElement.GetProperty("k").GetInt32());
-                Assert.AreEqual(0, body.RootElement.GetProperty("vector").GetArrayLength());
-                Assert.AreEqual(JsonValueKind.Null, body.RootElement.GetProperty("version").ValueKind);
-                var schema = new Schema.Builder().Field(new Field("id", StringType.Default, false))
-                    .Field(new Field("doc", StringType.Default, false)).Build();
-                using var encoded = new MemoryStream();
-                using (var writer = new ArrowFileWriter(encoded, schema, leaveOpen: true))
-                {
-                    using var batch = new RecordBatch(schema, new IArrowArray[]
-                    {
-                        new StringArray.Builder().Append(id.ToString("D")).Build(),
-                        new StringArray.Builder().Append(JsonSerializer.Serialize(new Holon { Id = id, IsPublic = isPublic })).Build()
-                    }, 1);
-                    await writer.WriteRecordBatchAsync(batch, token);
-                    await writer.WriteEndAsync(token);
-                }
-                var content = new ByteArrayContent(encoded.ToArray());
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/vnd.apache.arrow.file");
-                return new HttpResponseMessage(HttpStatusCode.OK) { Content = content };
-            }
-        };
-        using var http = new HttpClient(transport);
-        var source = new LanceDbQuerySource(http, new Uri("https://teaching.lancedb.com"), "test-key", "oasis", id);
-        var result = await source.ActivateQuerySourceAsync(default);
-        Assert.AreEqual(isPublic, !result.IsError);
-        Assert.AreEqual(isPublic, source.IsProviderActivated);
-        Assert.AreEqual(1, transport.Calls);
-    }
-
-    [DataTestMethod]
     [DataRow("success")]
     [DataRow("paging")]
     [DataRow("foreign")]
@@ -106,8 +63,7 @@ public class LanceDbNativeQueryTests
             Assert.AreEqual("id IN (" + string.Join(",", ids.Select(id => "'" + id.ToString("D") + "'")) + ")", body.RootElement.GetProperty("filter").GetString());
             Assert.AreEqual(3, body.RootElement.GetProperty("k").GetInt32());
             Assert.AreEqual(0, body.RootElement.GetProperty("offset").GetInt32());
-            Assert.AreEqual(0, body.RootElement.GetProperty("vector").GetArrayLength(), "Exact key retrieval sends an empty vector.");
-            Assert.AreEqual(JsonValueKind.Null, body.RootElement.GetProperty("version").ValueKind);
+            Assert.IsFalse(body.RootElement.TryGetProperty("vector", out _), "Exact key retrieval is not similarity search.");
             CollectionAssert.AreEqual(new[] { "id", "doc" }, body.RootElement.GetProperty("columns").EnumerateArray().Select(v => v.GetString()).ToArray());
             var schema = new Schema.Builder().Field(new Field("id", StringType.Default, false))
                 .Field(new Field(mode == "columns" ? "other" : "doc", mode == "type" ? (IArrowType)Int32Type.Default : StringType.Default, mode == "null")).Build();

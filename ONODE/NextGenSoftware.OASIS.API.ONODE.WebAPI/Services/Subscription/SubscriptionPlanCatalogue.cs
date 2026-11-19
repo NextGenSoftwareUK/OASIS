@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
@@ -30,19 +33,63 @@ public interface ISubscriptionPlanPriceReader
     Task<SubscriptionPlanPrice> GetAsync(string planId, CancellationToken cancellationToken);
 }
 
-public sealed class StripeSubscriptionPlanPriceReader(IConfiguration configuration) : ISubscriptionPlanPriceReader
+public sealed class StripeSubscriptionPlanPriceReader : ISubscriptionPlanPriceReader
 {
+    private static readonly TimeSpan CataloguePriceLifetime = TimeSpan.FromSeconds(30);
+    private readonly IConfiguration _configuration;
+    private readonly Func<string, IStripeClient> _createClient;
+    private readonly TimeProvider _clock;
+    private readonly ConcurrentDictionary<string, PriceSlot> _slots = new(StringComparer.OrdinalIgnoreCase);
+
+    public StripeSubscriptionPlanPriceReader(IConfiguration configuration)
+        : this(configuration, secret => new StripeClient(secret), TimeProvider.System) { }
+
+    internal StripeSubscriptionPlanPriceReader(IConfiguration configuration, Func<string, IStripeClient> createClient, TimeProvider clock)
+    {
+        _configuration = configuration;
+        _createClient = createClient;
+        _clock = clock;
+    }
+
     public async Task<SubscriptionPlanPrice> GetAsync(string planId, CancellationToken cancellationToken)
     {
-        string secret = SubscriptionStripeConfiguration.SecretKey(configuration);
-        string id = SubscriptionStripeConfiguration.PriceId(configuration, planId);
-        if (string.IsNullOrWhiteSpace(secret) || string.IsNullOrWhiteSpace(id))
+        if (string.IsNullOrWhiteSpace(SubscriptionStripeConfiguration.PriceId(_configuration, planId)))
             throw new InvalidOperationException($"Stripe key and existing price ID are required for plan '{planId}'.");
-        var price = await new PriceService(new StripeClient(secret)).GetAsync(id, cancellationToken: cancellationToken);
-        if (!price.Active || price.Recurring?.Interval != "month" || price.Recurring.IntervalCount != 1 || price.UnitAmount == null)
-            throw new InvalidOperationException($"The configured Stripe price for '{planId}' must be active, fixed, and monthly.");
-        return new(StripeAmount.FromMinorUnits(price.UnitAmount.Value, price.Currency), price.Currency.ToUpperInvariant(), price.Recurring.Interval);
+
+        var slot = _slots.GetOrAdd(planId, _ => new PriceSlot());
+        await slot.Gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            string secret = SubscriptionStripeConfiguration.SecretKey(_configuration);
+            string id = SubscriptionStripeConfiguration.PriceId(_configuration, planId);
+            if (string.IsNullOrWhiteSpace(secret) || string.IsNullOrWhiteSpace(id))
+                throw new InvalidOperationException($"Stripe key and existing price ID are required for plan '{planId}'.");
+            string accountKey = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(secret)));
+            if (slot.Cached is { } cached && cached.AccountKey == accountKey && cached.PriceId == id && cached.ExpiresAt > _clock.GetUtcNow())
+                return cached.Value;
+
+            var price = await new PriceService(_createClient(secret)).GetAsync(id, cancellationToken: cancellationToken).ConfigureAwait(false);
+            if (!price.Active || price.Recurring?.Interval != "month" || price.Recurring.IntervalCount != 1 || price.UnitAmount == null)
+                throw new InvalidOperationException($"The configured Stripe price for '{planId}' must be active, fixed, and monthly.");
+
+            var value = new SubscriptionPlanPrice(StripeAmount.FromMinorUnits(price.UnitAmount.Value, price.Currency),
+                price.Currency.ToUpperInvariant(), price.Recurring.Interval);
+            slot.Cached = new CachedPrice(accountKey, id, _clock.GetUtcNow().Add(CataloguePriceLifetime), value);
+            return value;
+        }
+        finally
+        {
+            slot.Gate.Release();
+        }
     }
+
+    private sealed class PriceSlot
+    {
+        public SemaphoreSlim Gate { get; } = new(1, 1);
+        public CachedPrice Cached { get; set; }
+    }
+
+    private sealed record CachedPrice(string AccountKey, string PriceId, DateTimeOffset ExpiresAt, SubscriptionPlanPrice Value);
 }
 
 public static class StripeAmount
@@ -63,10 +110,10 @@ public sealed class SubscriptionPlanCatalogue(ISubscriptionPlanPriceReader price
 {
     public static IReadOnlyList<SubscriptionPlanDefinition> Definitions { get; } = new[]
     {
-        new SubscriptionPlanDefinition { Id="free", Name="Free", Features=new[]{"1,000 API requests/month", "100 MB storage", "Community support"}, MaxRequestsPerMonth=1000, MaxStorageGB=0, SupportLevel="Community" },
-        new SubscriptionPlanDefinition { Id="bronze", Name="Bronze", Features=new[]{"10,000 API requests/month", "1 GB storage", "Community support", "Basic analytics"}, MaxRequestsPerMonth=10000, MaxStorageGB=1, SupportLevel="Community" },
-        new SubscriptionPlanDefinition { Id="silver", Name="Silver", Features=new[]{"100,000 API requests/month", "10 GB storage", "Email support", "Priority processing", "Advanced analytics"}, MaxRequestsPerMonth=100000, MaxStorageGB=10, SupportLevel="Email" },
-        new SubscriptionPlanDefinition { Id="gold", Name="Gold", Features=new[]{"1,000,000 API requests/month", "100 GB storage", "Priority support", "Advanced analytics", "Custom integrations", "SLA guarantee"}, MaxRequestsPerMonth=1000000, MaxStorageGB=100, SupportLevel="Priority" },
+        new SubscriptionPlanDefinition { Id="free", Name="Free", Features=new[]{"30,000 API requests/month", "100 MB storage", "Community support"}, MaxRequestsPerMonth=30000, MaxStorageGB=0, SupportLevel="Community" },
+        new SubscriptionPlanDefinition { Id="bronze", Name="Bronze", Features=new[]{"300,000 API requests/month", "1 GB storage", "Community support", "Basic analytics"}, MaxRequestsPerMonth=300000, MaxStorageGB=1, SupportLevel="Community" },
+        new SubscriptionPlanDefinition { Id="silver", Name="Silver", Features=new[]{"3,000,000 API requests/month", "10 GB storage", "Email support", "Priority processing", "Advanced analytics"}, MaxRequestsPerMonth=3000000, MaxStorageGB=10, SupportLevel="Email" },
+        new SubscriptionPlanDefinition { Id="gold", Name="Gold", Features=new[]{"30,000,000 API requests/month", "100 GB storage", "Priority support", "Advanced analytics", "Custom integrations", "SLA guarantee"}, MaxRequestsPerMonth=30000000, MaxStorageGB=100, SupportLevel="Priority" },
         new SubscriptionPlanDefinition { Id="enterprise", Name="Enterprise", IsContactSales=true, Features=new[]{"Unlimited API requests", "Unlimited storage", "Dedicated support", "SLA & SSO", "On-premise deployment", "Custom contracts"}, MaxRequestsPerMonth=-1, MaxStorageGB=-1, SupportLevel="Dedicated" }
     };
 

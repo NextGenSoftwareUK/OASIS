@@ -8,6 +8,56 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive;
 /// <summary>Read-only reconciliation of the retained, acknowledged demo cohort; never creates providers or replays writes.</summary>
 public sealed class SandboxHostedReplicationProbe
 {
+    [HostedRoutingOperationProbeFact]
+    public async Task ObserveExactRoutingOperationWithoutPayloads()
+    {
+        var operation = Guid.ParseExact(Environment.GetEnvironmentVariable("OASIS_HOSTED_ROUTING_OPERATION")
+            ?? throw new InvalidOperationException("An acknowledged routing operation is required."), "D");
+        Assert.NotEqual(Guid.Empty, operation);
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        try
+        {
+            var settings = MongoClientSettings.FromConnectionString(Environment.GetEnvironmentVariable("COSMIC_HOSTED_ACCOUNTING_URI"));
+            settings.ApplicationName = "hyperdrive-read-only-routing-operation";
+            settings.MaxConnectionPoolSize = 1;
+            settings.ServerSelectionTimeout = TimeSpan.FromSeconds(10);
+            settings.ReadConcern = ReadConcern.Majority;
+            var outbox = new MongoClient(settings)
+                .GetDatabase(Environment.GetEnvironmentVariable("COSMIC_HOSTED_ACCOUNTING_DATABASE"))
+                .GetCollection<BsonDocument>("CosmicHolonOutbox");
+            var projection = new BsonDocument { { "_id", 0 }, { "Sequence", 1 }, { "TargetId", 1 },
+                { "DeliveryState", 1 }, { "AttemptCount", 1 }, { "LastErrorCode", 1 } };
+            var deliveries = await outbox.Find(new BsonDocument("OperationId", operation.ToString("D")))
+                .Sort(new BsonDocument("Sequence", 1)).Project(projection).Limit(257).ToListAsync(deadline.Token);
+            Assert.InRange(deliveries.Count, 1, 256);
+            foreach (var delivery in deliveries)
+            {
+                var target = delivery["TargetId"].AsString;
+                var head = await outbox.Find(new BsonDocument { { "TargetId", target },
+                        { "DeliveryState", new BsonDocument("$ne", "Completed") } })
+                    .Sort(new BsonDocument("Sequence", 1)).Project(projection)
+                    .Limit(1).SingleOrDefaultAsync(deadline.Token);
+                var provider = target.Split(':').ElementAtOrDefault(1);
+                Console.WriteLine(JsonSerializer.Serialize(new
+                {
+                    provider,
+                    sequence = delivery["Sequence"].ToInt64(),
+                    state = delivery["DeliveryState"].AsString,
+                    headSequence = head?["Sequence"].ToInt64(),
+                    headState = head?["DeliveryState"].AsString,
+                    headErrorCode = head?.GetValue("LastErrorCode", BsonNull.Value).ToString()
+                }));
+            }
+
+            Console.WriteLine($"Exact operation obligations: {deliveries.Count}.");
+        }
+        catch (Exception error)
+        {
+            throw new InvalidOperationException("Read-only operation inspection failed: " + error.GetType().Name);
+        }
+    }
+
+
     [SandboxHostedAccountingProbeFact]
     public async Task ObserveRetainedSourceAndDeliveryObligations()
     {
@@ -55,9 +105,11 @@ public sealed class SandboxHostedReplicationProbe
                 .Limit(1).SingleOrDefaultAsync(deadline.Token);
             var headNodes = new List<object>();
             var headIds = new List<string>();
+            Guid? sourceActorId = null;
             if (sqliteHead != null)
             {
                 using var payload = JsonDocument.Parse(sqliteHead["PayloadJson"].AsString);
+                sourceActorId = payload.RootElement.GetProperty("ActorId").GetGuid();
                 var nodes = payload.RootElement.GetProperty("Nodes");
                 Assert.True(nodes.GetArrayLength() <= 100);
                 foreach (var node in nodes.EnumerateArray())
@@ -65,7 +117,7 @@ public sealed class SandboxHostedReplicationProbe
                     using var record = JsonDocument.Parse(node.GetProperty("RecordJson").GetString()!);
                     var identity = record.RootElement.GetProperty("Id").GetGuid().ToString("D");
                     headIds.Add(identity);
-                    headNodes.Add(new { id = identity, sourceActorId = record.RootElement.GetProperty("CreatedByAvatarId").GetGuid(), version = record.RootElement.GetProperty("Version").GetInt32(),
+                    headNodes.Add(new { id = identity, createdByAvatarId = record.RootElement.GetProperty("CreatedByAvatarId").GetGuid(), version = record.RootElement.GetProperty("Version").GetInt32(),
                         versionId = record.RootElement.GetProperty("VersionId").GetGuid(),
                         previousVersionId = record.RootElement.GetProperty("PreviousVersionId").GetGuid() });
                 }
@@ -104,7 +156,7 @@ public sealed class SandboxHostedReplicationProbe
                 mutationCommands = 0, observedCommands = commands.OrderBy(pair => pair.Key).ToDictionary(pair => pair.Key, pair => pair.Value),
                 sqliteQueueHead = sqliteHead == null ? null : new { sequence = sqliteHead["Sequence"].ToInt64(),
                     operationId = sqliteHead["OperationId"].AsString, state = sqliteHead["DeliveryState"].AsString,
-                    attempts = sqliteHead["AttemptCount"].ToInt32(), payloadDigest = sqliteHead["PayloadDigest"].AsString,
+                    attempts = sqliteHead["AttemptCount"].ToInt32(), sourceActorId, payloadDigest = sqliteHead["PayloadDigest"].AsString,
                     sourceStoreIdentity = ReplicaBaselineRepairCommand.StoreIdentity(Environment.GetEnvironmentVariable("COSMIC_HOSTED_ACCOUNTING_URI")!,
                         Environment.GetEnvironmentVariable("COSMIC_HOSTED_ACCOUNTING_DATABASE")!),
                     errorCode = sqliteHead["LastErrorCode"].IsBsonNull ? null : sqliteHead["LastErrorCode"].AsString,
@@ -119,5 +171,15 @@ public sealed class SandboxHostedReplicationProbe
         {
             throw new InvalidOperationException("Read-only replication observation failed: " + error.GetType().Name + ". No mutation attempted.");
         }
+    }
+}
+
+public sealed class HostedRoutingOperationProbeFactAttribute : Xunit.FactAttribute
+{
+    public HostedRoutingOperationProbeFactAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("COSMIC_HOSTED_ACCOUNTING_PROBE") != "oasis-dev-web4-read-only"
+            || string.IsNullOrEmpty(Environment.GetEnvironmentVariable("OASIS_HOSTED_ROUTING_OPERATION")))
+            Skip = "Requires an explicitly selected hosted routing operation.";
     }
 }

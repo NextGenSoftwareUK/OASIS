@@ -102,8 +102,7 @@ internal static class ReviewedPublicMongoHttpFixture
     }
 
     public static async Task VerifyHttpAsync(ProviderType provider,
-        Func<Guid, (IOASISStorageProvider Source, Guid[] Ids)> sourceFactory, bool resume = false,
-        string? metadataField = null, string[]? metadataKeys = null)
+        Func<Guid, (IOASISStorageProvider Source, Guid[] Ids)> sourceFactory, bool resume = false)
     {
         var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
         const string mongoConnection = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=10000";
@@ -139,14 +138,6 @@ internal static class ReviewedPublicMongoHttpFixture
         var foreignActor = retained?.foreignActor ?? Guid.NewGuid();
         var nonce = retained?.nonce ?? Guid.NewGuid().ToString("D");
         var (storage, allowed) = sourceFactory(actor);
-        Assert.Equal(metadataField is null, metadataKeys is null);
-        if (metadataKeys is not null)
-        {
-            Assert.False(string.IsNullOrWhiteSpace(metadataField));
-            Assert.Equal(3, allowed.Length);
-            Assert.Equal(allowed.Length, metadataKeys.Length);
-            Assert.Equal(metadataKeys.Length, metadataKeys.Distinct(StringComparer.Ordinal).Count());
-        }
         using var sourceLifetime = (IDisposable)storage;
         var copies = retained?.copies ?? new[] { Guid.NewGuid(), Guid.NewGuid() };
         var operations = retained?.operations ?? new[] { Guid.NewGuid(), Guid.NewGuid() };
@@ -167,11 +158,9 @@ internal static class ReviewedPublicMongoHttpFixture
         var activation = await ((ICosmicReadOnlyQueryActivation)storage).ActivateQuerySourceAsync(default);
         Assert.False(activation.IsError, activation.Exception?.ToString());
         var querySource = (ICosmicQueryStorageProvider)storage;
-        var nativeBase = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(provider).Result)
-            .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(actor, provider, allowed).Result).Result;
-        var nativeQuery = metadataKeys is null
-            ? nativeBase.Where(row => allowed.Contains(row.Id))
-            : nativeBase.Where(row => metadataKeys.Contains(CosmicQueryMetadata.Value<string>(row, metadataField!)));
+        var nativeQuery = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(provider).Result)
+            .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(actor, provider, allowed).Result).Result
+            .Where(row => allowed.Contains(row.Id));
         Assert.False(nativeQuery.IsError, nativeQuery.ErrorCode);
         var plan = CosmicQueryPlanner.Plan(nativeQuery.Result, provider,
             new[] { new CosmicQueryTarget(provider, querySource.QueryCapabilities) });
@@ -311,25 +300,8 @@ internal static class ReviewedPublicMongoHttpFixture
             var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
             using var http = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(45) };
             var counts = new Dictionary<string, int>();
-            object Selection(IEnumerable<Guid> selected)
-            {
-                object filter;
-                if (metadataKeys is null)
-                    filter = new { field = "Id", scalar = "Guid", @operator = "In", value = selected.ToArray() };
-                else
-                {
-                    // Private copies retain their source metadata. Select the same native
-                    // keys on both providers, while assertions still check every physical ID.
-                    var keys = selected.Select(id => {
-                        var index = Array.IndexOf(allowed, id);
-                        if (index < 0) index = Array.IndexOf(copies, id);
-                        Assert.InRange(index, 0, metadataKeys.Length - 1);
-                        return metadataKeys[index];
-                    }).Distinct(StringComparer.Ordinal).ToArray();
-                    filter = new { metadataPath = new[] { metadataField }, scalar = "String", @operator = "In", value = keys };
-                }
-                return new { orderBy = "None", take = 8, includeMetadata = true, filters = new[] { filter } };
-            }
+            object Selection(IEnumerable<Guid> selected) => new { orderBy = "None", take = 8, includeMetadata = true,
+                filters = new[] { new { field = "Id", scalar = "Guid", @operator = "In", value = selected.ToArray() } } };
             async Task Check(string name, string token, string route, object request, Guid[] expected)
             {
                 http.DefaultRequestHeaders.Authorization = new("Bearer", token);
@@ -378,10 +350,9 @@ internal static class ReviewedPublicMongoHttpFixture
             foreach (var count in new[] { 3, 2 })
             {
                 var selected = allowed.Take(count).ToArray();
-                var nativeRequest = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(JsonSerializer.Serialize(Selection(selected)))!;
-                nativeRequest.Add("provider", JsonSerializer.SerializeToElement(provider.ToString()));
-                nativeRequest.Add("maximumDurationMilliseconds", JsonSerializer.SerializeToElement(30000));
-                await Check("native-" + count, ownerToken, "/api/data/query-cql", nativeRequest, selected);
+                await Check("native-" + count, ownerToken, "/api/data/query-cql", new { provider = provider.ToString(),
+                    orderBy = "None", take = 8, includeMetadata = true, maximumDurationMilliseconds = 30000,
+                    filters = new[] { new { field = "Id", scalar = "Guid", @operator = "In", value = selected } } }, selected);
                 await Check("paired-" + count, ownerToken, "/api/data/query-cql/federation", new { scope = "Named",
                     providers = new[] { "MongoDBOASIS", provider.ToString() }, source = Selection(selected.Concat(copies)),
                     identityMode = "PreserveCopies", maximumProviderAttempts = 2, maximumDurationMilliseconds = 30000, take = 8 },

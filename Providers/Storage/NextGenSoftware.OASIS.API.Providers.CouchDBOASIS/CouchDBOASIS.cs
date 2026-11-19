@@ -45,6 +45,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
         private const string DbHolons = "oasis_holons";
 
         public CouchDBOASIS(string baseUrl = "http://localhost:5984", string username = null, string password = null)
+            : this(baseUrl, username, password, new HttpClient()) { }
+
+        protected CouchDBOASIS(string baseUrl, string username, string password, HttpClient client)
         {
             _baseUrl = baseUrl.TrimEnd('/');
             ProviderName = "CouchDBOASIS";
@@ -52,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CouchDBOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
-            _http = new HttpClient();
+            _http = client ?? throw new ArgumentNullException(nameof(client));
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
             {

@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
 public partial class HolonRepository
 {
-    public Task<OASISResult<HolonReplicaInitializationOutcome>> ReadReplicaInitializationOutcomeAsync(CommittedHolonReplicaRequest original,CancellationToken token)
+    public Task<OASISResult<HolonReplicaInitializationOutcome>> ReadReplicaInitializationOutcomeAsync(CommittedHolonReplicaRequest original,CancellationToken token,CosmicStorageIdentity expectedStorage=null)
     {
         try
         {
@@ -25,7 +25,11 @@ public partial class HolonRepository
             if(settings.Mode==SqliteOpenMode.Memory || settings.DataSource==":memory:")throw new InvalidOperationException("Durable receipt recovery requires a file-backed authority.");
             settings.Mode=SqliteOpenMode.ReadOnly;settings.Pooling=false;
             using var connection=new SqliteConnection(settings.ToString());connection.Open();
+            using var transaction=connection.BeginTransaction(deferred:true);
+            if(expectedStorage!=null && SqliteStorageIdentity.Read(connection,transaction).BindingFingerprint!=expectedStorage.BindingFingerprint)
+                throw new InvalidDataException("The initialization receipt store differs from the reviewed native target.");
             using var command=connection.CreateCommand();
+            command.Transaction=transaction;
             command.CommandText="SELECT RequestHash,ResultJson FROM CosmicWriteReceipt WHERE OperationId=$id LIMIT 2";
             command.Parameters.AddWithValue("$id",plan.OperationId.ToString("D"));using var reader=command.ExecuteReader();
             string digest=null;

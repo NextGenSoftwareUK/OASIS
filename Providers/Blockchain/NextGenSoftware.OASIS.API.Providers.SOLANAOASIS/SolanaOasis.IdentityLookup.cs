@@ -27,14 +27,19 @@ public partial class SolanaOASIS
             if(collection.Result == null) throw new InvalidOperationException("Solana collection returned no authenticated records.");
             var matches=collection.Result.Where(predicate).Take(2).ToList();
             if(matches.Count>1) throw new StorageIdentityAmbiguousException();
-            if(matches.Count==0) throw new KeyNotFoundException("No stored Solana record matches the requested identity.");
+            if(matches.Count==0) return new OASISResult<T>
+            {
+                IsError = true,
+                ErrorCount = 1,
+                ErrorCode = OASISResultErrorCodes.RecordNotFound,
+                Message = "No stored Solana record matches the requested identity."
+            };
             result.Result=matches[0]; result.IsLoaded=true;result.LoadedCount=1;
         }
         catch(Exception cause)
         {
             OASISErrorHandling.HandleError(ref result,"Solana authenticated identity lookup failed: "+cause.Message,cause);
             if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
-            else if(cause is KeyNotFoundException) result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
         }
         return result;
     }

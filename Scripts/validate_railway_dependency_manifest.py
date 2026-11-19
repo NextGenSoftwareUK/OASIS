@@ -64,23 +64,9 @@ def restored_project_failures(project: Path) -> list[str]:
     return []
 
 
-def read_revision_file(path: Path, revision: str | None) -> str:
-    if revision is None:
-        return path.read_text(encoding="utf-8")
-    result = subprocess.run(
-        ["git", "show", f"{revision}:{path.relative_to(ROOT).as_posix()}"],
-        cwd=ROOT, text=True, encoding="utf-8", capture_output=True,
-    )
-    if result.returncode:
-        raise ValueError(f"Cannot read {path.name} at {revision}: {result.stderr.strip()}")
-    return result.stdout
-
-
-def load_manifest(text: str | None = None) -> dict[str, str]:
-    if text is None:
-        text = read_revision_file(MANIFEST, None)
+def load_manifest() -> dict[str, str]:
     values: dict[str, str] = {}
-    for number, raw in enumerate(text.splitlines(), 1):
+    for number, raw in enumerate(MANIFEST.read_text(encoding="utf-8").splitlines(), 1):
         line = raw.strip()
         if not line or line.startswith("#"):
             continue
@@ -93,9 +79,9 @@ def load_manifest(text: str | None = None) -> dict[str, str]:
     return values
 
 
-def gitlink(path: str, revision: str = "HEAD") -> str:
+def gitlink(path: str) -> str:
     result = subprocess.run(
-        ["git", "rev-parse", f"{revision}:{path}"],
+        ["git", "rev-parse", f"HEAD:{path}"],
         cwd=ROOT,
         text=True,
         capture_output=True,
@@ -145,26 +131,13 @@ def main() -> int:
         "--require-assets", action="store_true",
         help="also require seven existing default cached restore roots to match their logical project paths; implies --require-checkouts",
     )
-    parser.add_argument("--ref", help="validate committed files and gitlinks at this commit or ref")
     args = parser.parse_args()
-    if args.ref and (args.require_checkouts or args.require_assets):
-        parser.error("--ref cannot be combined with working-tree checkout or asset checks")
-    revision = None
-    if args.ref:
-        result = subprocess.run(
-            ["git", "rev-parse", "--verify", "--end-of-options", f"{args.ref}^{{commit}}"],
-            cwd=ROOT, text=True, capture_output=True,
-        )
-        if result.returncode:
-            parser.error("cannot resolve --ref to a commit")
-        revision = result.stdout.strip()
-        args.require_gitlinks = True
     if args.require_assets:
         args.require_checkouts = True
     failures: list[str] = []
 
     try:
-        values = load_manifest(read_revision_file(MANIFEST, revision))
+        values = load_manifest()
     except (OSError, ValueError) as exc:
         print(f"FAIL: {exc}")
         return 1
@@ -177,11 +150,7 @@ def main() -> int:
             failures.append(f"{key} must be a full lowercase 40-character commit SHA")
 
     for dockerfile in DOCKERFILES:
-        try:
-            text = read_revision_file(dockerfile, revision)
-        except (OSError, ValueError) as exc:
-            failures.append(str(exc))
-            continue
+        text = dockerfile.read_text(encoding="utf-8")
         for required in (
             f"FROM {PROVIDER_NODE_IMAGE} AS provider_node",
             "COPY --from=provider_node /usr/local/ /usr/local/",
@@ -203,7 +172,7 @@ def main() -> int:
             if key not in values:
                 continue
             try:
-                actual = gitlink(path, revision or "HEAD")
+                actual = gitlink(path)
             except ValueError as exc:
                 failures.append(str(exc))
                 continue
