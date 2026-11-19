@@ -1,9 +1,9 @@
 {
   "status": "running-not-accepted",
   "scope": "Published app terms/estimates/statements reads only; full app charging remains required",
-  "runId": 44465441996,
-  "jobId": 135362016589,
-  "revision": "9ed467ee5f1b2fdd5443444888ab3e07c78d802a",
+  "runId": 44466938534,
+  "jobId": 135366897667,
+  "revision": "a88fb9921e8bd338423b9b08015b103ae0f05226",
   "portalRevision": "f10f0cad34ca19dcbd7091895f5eb5ca98c6e699",
   "portalSource": "178c236c9672484d223fc1e9cb01d248694430c5",
   "portalDeliveryRun": 44464960028,
@@ -32,5 +32,17 @@
     "production Startup",
     "hosted rollout",
     "whole OPORTAL"
-  ]
+  ],
+  "firstFailure": {
+    "runId": 44465441996,
+    "jobId": 135362016589,
+    "revision": "9ed467ee5f1b2fdd5443444888ab3e07c78d802a",
+    "stage": "shipping WEB4 compile before backend startup",
+    "error": "CS0117 enclosing OASIS File type shadowed System.IO.File",
+    "accepted": false,
+    "nativeFixtureStarted": false,
+    "browserStarted": false,
+    "oldTeardown": "Nonexistent container; no cleanup-success claim",
+    "fix": "Explicit System.IO.File reference; exact owned container existence/removal/absence checks"
+  }
 }
