@@ -18,5 +18,22 @@
     "genuine Stripe/nonzero/webhook",
     "hosted/full portal acceptance"
   ],
-  "localGeneratedOutputs": 0
+  "localGeneratedOutputs": 0,
+  "portalSource": "60cc46740990a6077e5e541bd84a975fb8f39a53",
+  "portalGenerated": "8cfb1d3093f52a1448b5a6aa9d4667f08ccfac51",
+  "portalBundle": {
+    "runId": 44510408450,
+    "jobId": 135512863446,
+    "conclusion": "success",
+    "subscriptionSha256": "412aef468ccd98fd489582969273071bec64c9d7d8cc681fe7a6d600956dac82",
+    "scope": "SDK bundle/cache-reference delivery only; not native/browser/backend acceptance",
+    "ownedNodeModulesAndCacheCleanup": "Succeeded"
+  },
+  "apiSource": "f4a27bc3ee30",
+  "localChecks": [
+    "node syntax",
+    "endpoint source gate",
+    "776 route keys verified",
+    "source whitespace"
+  ]
 }
