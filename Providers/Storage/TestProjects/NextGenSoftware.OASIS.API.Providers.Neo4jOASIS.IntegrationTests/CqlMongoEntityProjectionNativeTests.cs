@@ -57,7 +57,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             await VerifyJoinOutputOrdering(provider, ids, checks);
             await VerifyNativeStringLength(provider, ids, checks);
             await VerifyMongoNativePredicates(provider, client, database, checks);
-            Assert.AreEqual(129,checks.Count);
+            Assert.AreEqual(148,checks.Count);
             var deactivated=await provider.DeActivateProviderAsync();Assert.IsFalse(deactivated.IsError,deactivated.Message);active=false;
             await client.DropDatabaseAsync(database);
             using var remaining=await client.ListDatabaseNamesAsync();Assert.IsFalse((await remaining.ToListAsync()).Contains(database));

@@ -14,6 +14,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
 public partial class Neo4jOASIS : IConditionalHolonReceiptEvidenceStorageProvider
 {
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonPropertyWriteOutcomeAsync(
+        ConditionalHolonPropertyWriteRequest original, CancellationToken cancellationToken = default)
+        => ReadOutcomeAsync(original?.WriteRequest, null, false, cancellationToken, propertyWrite: original);
+
     public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonWriteOutcomeAsync(
         ConditionalHolonWriteRequest original, CancellationToken cancellationToken = default)
         => ReadOutcomeAsync(original, null, false, cancellationToken);
@@ -29,7 +33,8 @@ public partial class Neo4jOASIS : IConditionalHolonReceiptEvidenceStorageProvide
 
     private async Task<OASISResult<ConditionalHolonWriteOutcome>> ReadOutcomeAsync(
         ConditionalHolonWriteRequest original, CosmicStorageIdentity expectedSource, bool requireBinding,
-        CancellationToken cancellationToken, ConditionalHolonReceiptEvidenceRequest evidenceRequest = null)
+        CancellationToken cancellationToken, ConditionalHolonReceiptEvidenceRequest evidenceRequest = null,
+        ConditionalHolonPropertyWriteRequest propertyWrite = null)
     {
         var bound=requireBinding || original?.Write.ReplicationEnrollment?.SourceStorageIdentity!=null;
         var locked=false;
@@ -39,13 +44,16 @@ public partial class Neo4jOASIS : IConditionalHolonReceiptEvidenceStorageProvide
             cancellationToken.ThrowIfCancellationRequested();
             if (requireBinding && expectedSource == null)
                 throw new ArgumentNullException(nameof(expectedSource));
+            if(propertyWrite!=null && !ReferenceEquals(propertyWrite.WriteRequest,original))
+                throw new ArgumentException("Selected status intent belongs to another base request.");
             var enrolledSource = original?.Write.ReplicationEnrollment?.SourceStorageIdentity;
             if (expectedSource != null && (expectedSource.Authority != Core.Enums.ProviderType.Neo4jOASIS
                 || enrolledSource != null && enrolledSource.BindingFingerprint != expectedSource.BindingFingerprint))
                 throw new InvalidDataException("The requested source does not match the original operation binding.");
             expectedSource ??= enrolledSource;
 
-            var plan = original?.Write.ReplicationEnrollment == null
+            var plan = propertyWrite!=null ? ConditionalHolonPlan.CreatePropertyWrite(propertyWrite,Core.Enums.ProviderType.Neo4jOASIS)
+                : original?.Write.ReplicationEnrollment == null
                 ? ConditionalHolonPlan.Create(original, Core.Enums.ProviderType.Neo4jOASIS)
                 : ConditionalHolonPlan.CreateReplicating(original, Core.Enums.ProviderType.Neo4jOASIS, original.Write.ReplicationEnrollment);
             if (!IsProviderActivated || _driver == null)

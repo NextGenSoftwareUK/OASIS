@@ -6,7 +6,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
-public partial class SQLLiteDBOASIS : IConditionalHolonDeltaStorageProvider, IBoundAtomicHolonReplicationStorageProvider
+public partial class SQLLiteDBOASIS : IConditionalHolonPropertyStorageProvider, IBoundAtomicHolonReplicationStorageProvider
 {
     public OASISResult<IEnumerable<IHolon>> ExecuteReplicatingHolonWrite(ConditionalHolonWriteRequest request,
         HolonReplicationEnrollment enrollment)
@@ -18,6 +18,12 @@ public partial class SQLLiteDBOASIS : IConditionalHolonDeltaStorageProvider, IBo
         cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult(_holonRepository.ExecuteReplicatingHolonWrite(request, enrollment, cancellationToken));
     }
+
+    public OASISResult<IEnumerable<IHolon>> ExecuteConditionalHolonPropertyWrite(ConditionalHolonPropertyWriteRequest request)
+        =>_holonRepository.ExecuteConditionalHolonPropertyWrite(request);
+    public Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalHolonPropertyWriteAsync(
+        ConditionalHolonPropertyWriteRequest request,CancellationToken cancellationToken=default)
+        =>_holonRepository.ExecuteConditionalHolonPropertyWriteAsync(request,cancellationToken);
 
     public OASISResult<IEnumerable<IHolon>> ExecuteConditionalHolonWrite(ConditionalHolonWriteRequest request)
         => _holonRepository.ExecuteConditionalHolonWrite(request);

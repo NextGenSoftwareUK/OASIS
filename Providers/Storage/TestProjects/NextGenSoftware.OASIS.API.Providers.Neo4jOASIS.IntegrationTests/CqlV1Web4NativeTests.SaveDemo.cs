@@ -20,6 +20,7 @@ public sealed partial class CqlV1Web4NativeTests
         public readonly List<Guid> MutationIntents = new();
         public readonly List<Guid> PreparationIntents = new();
         public int SuccessfulMutations, GeneratedCommitObservations;
+        public Func<Task>? AfterSuccessfulMutation;
 
         protected override object? Invoke(MethodInfo? method, object?[]? args)
         {
@@ -62,6 +63,7 @@ public sealed partial class CqlV1Web4NativeTests
                     Assert.IsTrue(result.Result.All(record => record.Id != Guid.Empty));
                     GeneratedCommitObservations++;
                 }
+                if (AfterSuccessfulMutation != null) await AfterSuccessfulMutation();
             }
             return result;
         }

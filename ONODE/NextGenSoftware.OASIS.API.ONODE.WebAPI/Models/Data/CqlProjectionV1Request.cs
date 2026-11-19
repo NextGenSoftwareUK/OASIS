@@ -4,12 +4,19 @@ using System.Text.Json.Serialization;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 
+[JsonConverter(typeof(JsonStringEnumConverter<CqlProjectionV1ResultOperation>))]
+public enum CqlProjectionV1ResultOperation { Rows, LongCount, Min, Max, Sum, Average, CountValues, CountDistinct, Group }
+
 /// <summary>Bounded native selected-column intent. Actor and provider eligibility belong to the host.</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class CqlProjectionV1Request
 {
     public string? Provider { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public CqlProjectionV1ResultOperation ResultOperation { get; set; }
     public Guid? VirtualMappingId { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CqlMixedGroupingV1Request? Grouping { get; set; }
     public CqlV1Filter[] Filters { get; set; } = Array.Empty<CqlV1Filter>();
     public CqlV1Filter[] AnyOf { get; set; } = Array.Empty<CqlV1Filter>();
     public CqlV1ChildExists[] AnyChildren { get; set; } = Array.Empty<CqlV1ChildExists>();
@@ -27,9 +34,24 @@ public sealed class CqlProjectionV1Request
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class CqlProjectionV1Column
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CqlV1Function? Function { get; set; }
     public string? Alias { get; set; }
     public string? Field { get; set; }
     public string[]? MetadataPath { get; set; }
     public string? ValueType { get; set; }
     public bool? Nullable { get; set; }
+}
+
+/// <summary>Grouping over the single captured mixed source; no independent source or provider scope.</summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class CqlMixedGroupingV1Request
+{
+    public CqlProjectionV1Column[] Keys { get; set; } = Array.Empty<CqlProjectionV1Column>();
+    public CqlGroupedV1Column[] Columns { get; set; } = Array.Empty<CqlGroupedV1Column>();
+    public CqlGroupedV1Filter[] ResultFilters { get; set; } = Array.Empty<CqlGroupedV1Filter>();
+    public CqlGroupedV1Ordering[] ResultOrder { get; set; } = Array.Empty<CqlGroupedV1Ordering>();
+    public int ResultSkip { get; set; }
+    public int? ResultTake { get; set; }
+    public int MaximumGroups { get; set; } = 25;
 }

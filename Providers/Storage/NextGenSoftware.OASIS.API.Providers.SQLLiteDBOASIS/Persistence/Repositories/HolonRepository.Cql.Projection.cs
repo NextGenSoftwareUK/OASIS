@@ -109,7 +109,7 @@ public partial class HolonRepository
                             {
                                 budget.Check();
                                 var state = reader.GetInt64(column * 2);
-                                var declared = plan.Query.Columns[column].Path.ValueType;
+                                var declared = plan.Query.Columns[column].ValueType;
                                 if (state == 3 || state is < 0 or > 3)
                                     throw new InvalidDataException("Selected metadata path is ambiguous or has the wrong native domain.");
                                 cells[column] = state == 0 || state == 1 ? null

@@ -17,7 +17,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/settings")]
-    public class SettingsController : OASISControllerBase
+    public partial class SettingsController : OASISControllerBase
     {
         private readonly OASISDNA _OASISDNA;
 

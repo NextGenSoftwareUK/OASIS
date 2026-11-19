@@ -102,6 +102,21 @@ public partial class HolonRepository
                     }
                 }
                 if(conflicts.Count!=0) throw new CosmicConcurrencyException(conflicts);
+                if(edit?.PropertyWrite!=null)
+                {
+                    var selected=edit.PropertyWrite.Selections;
+                    var frozen=edit.Nodes.ToDictionary(node=>node.Snapshot.Id,node=>node.Snapshot);
+                    for(var index=0;index<entries.Count;index++)
+                    {
+                        var entry=entries[index];
+                        if(!selected.ContainsKey(entry.HolonId))continue;
+                        observedEntities.TryGetValue(entry.HolonId,out var previous);
+                        var authoritative=previous==null ? null:Core.Serialization.StoredRecordJson.Project<Core.Holons.Holon>(
+                            Helpers.DataHelper.ConvertMongoEntityToOASISHolon(previous,false));
+                        var merged=edit.ApplySelectedValues(authoritative,frozen[entry.HolonId]);
+                        entries[index]=Helpers.DataHelper.ConvertOASISHolonToMongoEntity(merged,false);
+                    }
+                }
                 if(replica==null&&(edit==null||edit.Operation==ConditionalHolonOperation.Save))
                     foreach(var proposal in entries)
                         if(observedEntities.TryGetValue(proposal.HolonId,out var previous))
