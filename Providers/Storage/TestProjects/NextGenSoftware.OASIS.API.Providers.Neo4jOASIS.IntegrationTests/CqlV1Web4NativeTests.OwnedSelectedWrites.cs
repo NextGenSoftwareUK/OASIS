@@ -88,6 +88,14 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsFalse(caller.MetaData.ContainsKey("__oasis_enc__"));
             Assert.AreEqual("dirty unselected local name", caller.Name);
         }
+        // Verify the fixture's persisted direct grant independently of manager authorization.
+        var grantRecord = await provider.LoadHolonAsync(source.Id, false, false, 0, true, false, 0);
+        Assert.IsFalse(grantRecord.IsError, grantRecord.Message + grantRecord.Exception);
+        Assert.IsTrue(grantRecord.Result.MetaData.ContainsKey(HolonPermissions.MetadataKey));
+        var directRights = new HolonAccessResolver(writer, includePublic: false)
+            .WithGroups(Array.Empty<Guid>()).Resolve(grantRecord.Result);
+        Assert.IsTrue(directRights.FieldAllows("description", HolonPermission.Write), "Persisted field-only write grant must resolve.");
+        Assert.IsFalse(directRights.CanSee, "The native fixture must not grant this actor Read.");
         var firstOptions = Options();
         var first = await manager.SaveOwnedHolonAsync(caller, writer, firstOptions, new[] { "/Description" },
             saveChildren: false, providerType: authority);
