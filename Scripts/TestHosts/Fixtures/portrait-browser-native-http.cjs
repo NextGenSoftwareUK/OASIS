@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 
-async function verify({ baseUrl, token, providerType, imageId }) {
+async function verify({ baseUrl, token, providerType, imageId, accountSwitch = false, foreignToken }) {
   const base = new URL(baseUrl);
   assert.equal(base.hostname, '127.0.0.1');
   assert.equal(base.protocol, 'http:');
@@ -13,11 +13,20 @@ async function verify({ baseUrl, token, providerType, imageId }) {
   const initial = await client.profile.getProfile({ providerType, token });
   assert.equal(initial.isError, false, initial.message);
   const owner = initial.result.profile;
+  let foreign;
+  if (accountSwitch) {
+    assert.equal(typeof foreignToken, 'string');
+    const response = await client.profile.getProfile({ providerType, token: foreignToken });
+    assert.equal(response.isError, false, response.message);
+    foreign = response.result.profile;
+    assert.notEqual(foreign.avatarId, owner.avatarId);
+  }
   const { chromium } = require(path.join(process.env.OASIS_PROFILE_BROWSER_RUNTIME, 'node_modules/playwright-core'));
   const context = await chromium.launchPersistentContext(path.join(process.env.OASIS_PROFILE_SDK_HANDOFF_ROOT,
     'browser-profile-' + randomUUID()), { channel: 'chrome', headless: true, timeout: 30000,
     viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce', acceptDownloads: false, serviceWorkers: 'block' });
   const writes = [], errors = [], forbidden = [];
+  let releaseUpload;
   let phase = 'launch';
   try {
     await context.route('**/*', route => {
@@ -59,6 +68,102 @@ async function verify({ baseUrl, token, providerType, imageId }) {
       brush.fillStyle = 'rgb(' + (imageId * 47) + ',91,163)'; brush.fillRect(0, 0, 2, 2);
       return canvas.toDataURL('image/png').split(',')[1];
     }, imageId);
+    if (accountSwitch) {
+      phase = 'hold-original-upload';
+      await page.evaluate(() => {
+        window.portraitOriginalUploadSettled = false;
+        window.portraitOriginalUploadAcknowledged = false;
+        const http = window.oasisClient.http;
+        const request = http.request;
+        http.request = function (...args) {
+          const actual = request.apply(this, args);
+          if (args[0] === 'POST' && args[1] === 'api/avatar/upload-avatar-portrait') {
+            const observed = acknowledged => {
+              // A posted-message task follows the real promise's await continuations.
+              // Return the identical shipping promise; never replace a response or transport.
+              const channel = new MessageChannel();
+              channel.port1.onmessage = () => {
+                window.portraitOriginalUploadAcknowledged = acknowledged;
+                window.portraitOriginalUploadSettled = true;
+                channel.port1.close(); channel.port2.close();
+              };
+              channel.port2.postMessage(null);
+            };
+            actual.then(response => observed(response.isError === false && response.result === true), () => observed(false));
+          }
+          return actual;
+        };
+      });
+      const gate = new Promise(resolve => { releaseUpload = resolve; });
+      const match = url => url.pathname === '/api/avatar/upload-avatar-portrait';
+      let originalBearerVerified = false;
+      await page.route(match, async route => {
+        originalBearerVerified = route.request().headers().authorization === 'Bearer ' + token;
+        await gate;
+        await route.continue();
+      });
+      // Keep the actual response pending without synthesizing a body or a native result.
+      const completion = page.waitForResponse(value => match(new URL(value.url())) && value.request().method() === 'POST')
+        .then(async response => {
+          assert.equal(response.status(), 200);
+          const result = (await response.json()).result;
+          assert.ok(result && typeof result === 'object');
+          assert.equal(result.isError, false, result.message);
+          assert.equal(result.result, true); assert.equal(result.isSaved, true);
+          return { ok: true };
+        }).catch(error => ({ ok: false, message: error.message }));
+      await Promise.all([
+        page.waitForRequest(value => match(new URL(value.url())) && value.method() === 'POST'),
+        page.locator('#avatar-photo-input').setInputFiles({ name: 'portrait.png', mimeType: 'image/png',
+          buffer: Buffer.from(imageBase64, 'base64') })
+      ]);
+      phase = 'switch-to-real-second-account';
+      await page.locator('#avatar-modal-close-btn').click();
+      await page.evaluate(({ foreign, foreignToken }) => {
+        window.portraitSwitchUpdates = [];
+        window.addEventListener('avatarUpdated', event => window.portraitSwitchUpdates.push(event.detail));
+        const profile = { id: foreign.avatarId, username: foreign.username, email: foreign.email,
+          firstName: foreign.firstName, lastName: foreign.lastName, jwtToken: foreignToken };
+        window.oasisClient.setToken(foreignToken, { avatarId: foreign.avatarId });
+        localStorage.setItem('avatar', JSON.stringify(profile));
+        localStorage.setItem('loggedIn', 'true'); window.user = profile;
+      }, { foreign, foreignToken });
+      await Promise.all([
+        page.waitForResponse(value => new URL(value.url()).pathname ===
+          '/api/avatar/get-avatar-portrait-by-username/' + encodeURIComponent(foreign.username)),
+        open()
+      ]);
+      await page.waitForFunction(() => !document.getElementById('avatar-modal-image-large').src.startsWith('data:'));
+      const foreignImage = await page.locator('#avatar-modal-image-large').getAttribute('src');
+      const foreignStatus = await page.locator('#avatar-modal-status').textContent();
+      phase = 'release-original-authenticated-request';
+      releaseUpload();
+      const finished = await completion;
+      assert.equal(finished.ok, true, finished.message);
+      assert.ok(originalBearerVerified, 'Queued request must retain its original signed bearer.');
+      await page.waitForFunction(() => window.portraitOriginalUploadSettled);
+      assert.equal(await page.evaluate(() => window.portraitOriginalUploadAcknowledged), true);
+      await page.waitForFunction(({ foreign, imageBase64, foreignImage, foreignStatus }) => {
+        const current = JSON.parse(localStorage.getItem('avatar'));
+        return current.id === foreign.avatarId && !String(current.avatarImage || current.AvatarImage || '').includes(imageBase64) &&
+          document.getElementById('avatar-modal-image-large').getAttribute('src') === foreignImage &&
+          document.getElementById('avatar-modal-status').textContent === foreignStatus;
+      }, { foreign, imageBase64, foreignImage, foreignStatus });
+      assert.equal(writes.length, 1);
+      assert.equal(writes[0].body.avatarId, owner.avatarId);
+      assert.equal(writes[0].body.username, owner.username); assert.equal(writes[0].body.email, owner.email);
+      assert.equal(writes[0].body.imageBase64, imageBase64);
+      const updates = await page.evaluate(() => window.portraitSwitchUpdates.map(value => ({
+        id: value.id || value.Id || value.avatarId || value.AvatarId,
+        image: value.avatarImage || value.AvatarImage || ''
+      })));
+      assert.ok(updates.every(value => value.id === foreign.avatarId && !value.image.includes(imageBase64)));
+      assert.deepEqual(errors, []); assert.deepEqual(forbidden, []);
+      return { portraitBrowserVerified: true, providerType, imageBase64, uploadRequests: 1,
+        actualFragmentVerified: true, actualSdkHttpVerified: true, reloadWithoutCachedImageVerified: false,
+        accountSwitchVerified: true, queuedOriginalUploadVerified: true, oldAvatarUiPublicationSuppressedVerified: true,
+        concurrentNativeUpdateVerified: false, productionStartupVerified: false };
+    }
     phase = 'actual-file-upload';
     const [uploaded] = await Promise.all([
       page.waitForResponse(value => new URL(value.url()).pathname === '/api/avatar/upload-avatar-portrait' && value.request().method() === 'POST'),
@@ -107,6 +212,9 @@ async function verify({ baseUrl, token, providerType, imageId }) {
       accountSwitchVerified: false, concurrentNativeUpdateVerified: false, productionStartupVerified: false };
   } catch (error) {
     throw new Error('Portrait browser ' + providerType + '/' + phase + ': ' + error.message);
-  } finally { await context.close(); }
+  } finally {
+    if (releaseUpload) releaseUpload();
+    await context.close();
+  }
 }
 module.exports = { verify };

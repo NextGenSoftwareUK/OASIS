@@ -72,7 +72,9 @@ async function consume(name) {
       portraitBrowserVerified: result.portraitBrowserVerified, providerType: result.providerType,
       uploadRequests: result.uploadRequests, actualFragmentVerified: result.actualFragmentVerified,
       actualSdkHttpVerified: result.actualSdkHttpVerified, reloadWithoutCachedImageVerified: result.reloadWithoutCachedImageVerified,
-      accountSwitchVerified: result.accountSwitchVerified, concurrentNativeUpdateVerified: result.concurrentNativeUpdateVerified,
+      accountSwitchVerified: result.accountSwitchVerified, queuedOriginalUploadVerified: result.queuedOriginalUploadVerified,
+      oldAvatarUiPublicationSuppressedVerified: result.oldAvatarUiPublicationSuppressedVerified,
+      concurrentNativeUpdateVerified: result.concurrentNativeUpdateVerified,
       productionStartupVerified: result.productionStartupVerified
     }));
     else if (subscriptionMode) console.log(JSON.stringify(result));

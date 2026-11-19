@@ -63,12 +63,18 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     {
         private readonly IDriver _driver=GraphDatabase.Driver("bolt://127.0.0.1:27687",AuthTokens.Basic("neo4j","oasis-profile-fixture-only"));
         public Neo4jOASIS Provider {get;}=new("bolt://127.0.0.1:27687","neo4j","oasis-profile-fixture-only");
-        private Guid? _owned;
-        public async Task Activate(Guid id)
+        private readonly HashSet<Guid> _owned = new();
+        public async Task TrackOwnedActorAsync(Guid id)
         {
+            Assert.NotEqual(Guid.Empty,id);
+            Assert.DoesNotContain(id,_owned);
             using var session=_driver.AsyncSession();
             var absent=await(await session.RunAsync("MATCH (n) WHERE ((n:Avatar OR n:AvatarDetail) AND n.Id=$id) OR (n:OasisRecordVersion AND n.RecordId=$id) RETURN count(n) AS count",new{id=id.ToString()})).SingleAsync();
-            Assert.Equal(0L,absent["count"].As<long>());_owned=id;
+            Assert.Equal(0L,absent["count"].As<long>());_owned.Add(id);
+        }
+        public async Task Activate(Guid id)
+        {
+            await TrackOwnedActorAsync(id);
             var active=await Provider.ActivateProviderAsync();Assert.False(active.IsError,active.Message);
         }
         public async ValueTask DisposeAsync()
@@ -78,9 +84,9 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 try{await Provider.DeActivateProviderAsync();}
                 finally
                 {
-                    if(_owned.HasValue)
+                    foreach(var owned in _owned)
                     {
-                        using var session=_driver.AsyncSession();var id=_owned.Value.ToString();
+                        using var session=_driver.AsyncSession();var id=owned.ToString();
                         await(await session.RunAsync("MATCH (n) WHERE (n:Avatar OR n:AvatarDetail) AND n.Id=$id DETACH DELETE n",new{id})).ConsumeAsync();
                         await(await session.RunAsync("MATCH (v:OasisRecordVersion) WHERE v.RecordId=$id DELETE v",new{id})).ConsumeAsync();
                         var remaining=await(await session.RunAsync("MATCH (n) WHERE ((n:Avatar OR n:AvatarDetail) AND n.Id=$id) OR (n:OasisRecordVersion AND n.RecordId=$id) RETURN count(n) AS count",new{id})).SingleAsync();

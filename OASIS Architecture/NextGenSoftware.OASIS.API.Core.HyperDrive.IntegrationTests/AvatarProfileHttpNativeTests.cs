@@ -58,7 +58,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task PortraitBrowserUploadUsesActualHttpAndThreeNativeProviders() =>
         RunProfileHttp(HyperDriveModes.V2, true, true, portraitBrowser: true);
 
-    private async Task RunProfileHttp(string mode, bool sdkOnly, bool browser = false, bool portraitBrowser = false)
+    [Fact]
+    public Task PortraitBrowserAccountSwitchUsesActualHttpAndThreeNativeProviders() =>
+        RunProfileHttp(HyperDriveModes.V2, true, true, portraitBrowser: true, portraitAccountSwitch: true);
+
+    private async Task RunProfileHttp(string mode, bool sdkOnly, bool browser = false, bool portraitBrowser = false, bool portraitAccountSwitch = false)
     {
         RequireOwnedFixtures();
         var id = Guid.NewGuid();
@@ -68,6 +72,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         Assert.False((await sqlite.Provider.ActivateProviderAsync()).IsError);
         IOASISStorageProvider[] stores = [mongo.Provider, sqlite.Provider, bolt.Provider];
         await SeedRoutingStores(stores, id);
+        var foreignId = portraitAccountSwitch ? Guid.NewGuid() : Guid.Empty;
+        if (portraitAccountSwitch)
+        {
+            await bolt.TrackOwnedActorAsync(foreignId);
+            await SeedRoutingStores(stores, foreignId);
+        }
         var manager = Routing(stores, true, mode);
         var sdk = new AvatarManager(null, manager.OASISDNA, manager);
 
@@ -182,9 +192,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                         if (portraitBrowser)
                         {
                             var before = await Read(store, id);
+                            var foreignBefore = portraitAccountSwitch ? await Read(store, foreignId) : null;
+                            var foreignPortrait = portraitAccountSwitch ? (await store.LoadAvatarDetailAsync(foreignId)).Result.Portrait : null;
                             var previousPortrait = (await store.LoadAvatarDetailAsync(id)).Result.Portrait;
                             using var uploaded = await ExchangeSdkRequest(new
-                                { baseUrl = address, token = Token(id), providerType = provider.ToString(), imageId = Array.IndexOf(stores, store) + 1 });
+                                { baseUrl = address, token = Token(id), providerType = provider.ToString(), imageId = Array.IndexOf(stores, store) + 1,
+                                    accountSwitch = portraitAccountSwitch, foreignToken = portraitAccountSwitch ? Token(foreignId) : null });
                             Assert.False(uploaded.RootElement.TryGetProperty("isError", out var portraitError) && portraitError.GetBoolean(),
                                 "Actual portrait browser/HTTP verification failed.");
                             Assert.True(uploaded.RootElement.GetProperty("portraitBrowserVerified").GetBoolean());
@@ -202,8 +215,31 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                             Assert.Equal(before.Username, after.Username);
                             Assert.Equal(before.Email, after.Email);
                             Assert.Equal(before.Address, after.Address);
-                            Console.WriteLine("Portrait native persistence verified: " + provider +
-                                "; actual browser upload/read/reload, unchanged profile fields, password and XP.");
+                            if (portraitAccountSwitch)
+                            {
+                                Assert.True(uploaded.RootElement.GetProperty("accountSwitchVerified").GetBoolean());
+                                Assert.True(uploaded.RootElement.GetProperty("queuedOriginalUploadVerified").GetBoolean());
+                                Assert.True(uploaded.RootElement.GetProperty("oldAvatarUiPublicationSuppressedVerified").GetBoolean());
+                                Assert.NotNull(foreignBefore);
+                                var foreignAfter = await Read(store, foreignId);
+                                SameRevisions(foreignBefore, foreignAfter);
+                                Assert.Equal(foreignBefore.Title, foreignAfter.Title);
+                                Assert.Equal(foreignBefore.FirstName, foreignAfter.FirstName);
+                                Assert.Equal(foreignBefore.LastName, foreignAfter.LastName);
+                                Assert.Equal(foreignBefore.Username, foreignAfter.Username);
+                                Assert.Equal(foreignBefore.Email, foreignAfter.Email);
+                                Assert.Equal(foreignBefore.Address, foreignAfter.Address);
+                                var foreignDetail = await store.LoadAvatarDetailAsync(foreignId);
+                                Assert.False(foreignDetail.IsError, foreignDetail.Message);
+                                Assert.Equal(foreignPortrait, foreignDetail.Result.Portrait);
+                                Assert.Equal(42, foreignDetail.Result.XP);
+                                Assert.Equal("stored-hash", (await store.LoadAvatarAsync(foreignId)).Result.Password);
+                                Console.WriteLine("Portrait account-switch native isolation verified: " + provider +
+                                    "; queued upload belongs to original actor, foreign revisions/profile/portrait/password/XP unchanged.");
+                            }
+                            else
+                                Console.WriteLine("Portrait native persistence verified: " + provider +
+                                    "; actual browser upload/read/reload, unchanged profile fields, password and XP.");
                             continue;
                         }
                         var sdkTitle = (browser ? "Browser " : "SDK ") + mode + " " + provider;

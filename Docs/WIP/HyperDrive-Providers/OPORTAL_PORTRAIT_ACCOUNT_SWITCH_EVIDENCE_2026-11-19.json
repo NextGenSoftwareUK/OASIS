@@ -1,0 +1,32 @@
+{
+  "status": "source_prepared_not_compiled_or_executed",
+  "test": "PortraitBrowserAccountSwitchUsesActualHttpAndThreeNativeProviders",
+  "portal": "7f01ee9fa20eb2853561f06f587e3758b3146717",
+  "sdk": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
+  "core": "650188d6f08d82b7a9b3af15c48e7d8018a79c78",
+  "mode": "V2",
+  "providers": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "newCaseCount": 1,
+  "browserHandoffs": 3,
+  "actorsPerStore": 2,
+  "basicAcceptedRunNotRepeated": 44627380956,
+  "actualOriginalUploadHeldAndContinued": true,
+  "businessResponsesReplaced": false,
+  "sdkObserverReturnsIdenticalRealPromise": true,
+  "actualPromiseThenMessageTaskCompletionBarrier": true,
+  "requiredOriginalBearerAndTargetPreserved": true,
+  "requiredForeignUiAndNativeFieldsUnchanged": true,
+  "requiredForeignRevisionsAndPortraitUnchanged": true,
+  "allAdditionalActorsExplicitlyOwnedAndCleanupChecked": true,
+  "accountSwitchAccepted": false,
+  "delayedFileReaderAccepted": false,
+  "sameBearerClientReplacementAccepted": false,
+  "concurrentNativeUpdateAccepted": false,
+  "productionStartupAccepted": false,
+  "hostedAccepted": false,
+  "localRuntimeEnvironmentBuildDatabaseCreated": false
+}
