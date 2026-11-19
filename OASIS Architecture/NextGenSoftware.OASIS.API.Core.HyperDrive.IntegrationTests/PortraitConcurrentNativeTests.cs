@@ -1,5 +1,6 @@
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Providers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
@@ -20,14 +21,15 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly TaskCompletionSource<bool> _released = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private Guid _id;
+        private int _armed;
         private int _claimed;
         public Task<OASISResult<IAvatarDetail>> Captured => _captured.Task;
-        public void Arm(Guid id) { Assert.NotEqual(Guid.Empty, id); _id = id; }
+        public void Arm(Guid id) { Assert.NotEqual(Guid.Empty, id); _id = id; Volatile.Write(ref _armed, 1); }
         public void Release() => _released.TrySetResult(true);
         public async Task<OASISResult<IAvatarDetail>> AfterNativeReadAsync(Guid id, Task<OASISResult<IAvatarDetail>> actual)
         {
             var result = await actual.ConfigureAwait(false);
-            if (_id == id && Interlocked.CompareExchange(ref _claimed, 1, 0) == 0)
+            if (Volatile.Read(ref _armed) == 1 && _id == id && Interlocked.CompareExchange(ref _claimed, 1, 0) == 0)
             {
                 _captured.TrySetResult(result);
                 await _released.Task.WaitAsync(TimeSpan.FromSeconds(30)).ConfigureAwait(false);
