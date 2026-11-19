@@ -1,5 +1,5 @@
 {
-  "status": "native_reproduction_source_prepared_not_compiled_or_executed",
+  "status": "ci_in_progress_native_reproduction_not_accepted",
   "test": "PortraitNativeReadWriteOverlapPreservesNewerProfile",
   "providers": [
     "MongoDBOASIS",
@@ -34,5 +34,13 @@
     "fresh SQLite ADO SELECT Address,Portrait",
     "Neo4j driver current SnapshotJson read"
   ],
-  "entityCacheNotUsedForPersistenceProof": true
+  "entityCacheNotUsedForPersistenceProof": true,
+  "run": 44636523076,
+  "job": 135956359702,
+  "source": "9d9ccac1b5c6540147ba9c26dec663329109daf5",
+  "observedStatus": "in_progress",
+  "apiBuildAccepted": false,
+  "nativeContractProjectBuildAccepted": false,
+  "newTestCompiled": false,
+  "fixtureCleanupVerified": false
 }

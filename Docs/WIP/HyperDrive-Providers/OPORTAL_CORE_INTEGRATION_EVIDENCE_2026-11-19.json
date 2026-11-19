@@ -1,5 +1,5 @@
 {
-  "status": "verified_decoder_companions_integrated_current_compile_pending_account_switch_run_frozen",
+  "status": "current_decoder_graph_compile_and_genuine_native_overlap_repro_in_progress",
   "run": 44607073292,
   "job": 135853508585,
   "source": "f20298c90df6cbdbe3d9892e92c261779e154607",
@@ -284,5 +284,15 @@
     "newCasePassed": 1,
     "nativeProviders": 3,
     "laterDecoderCompanionsNotIncluded": true
+  },
+  "decoderQualification": {
+    "run": 44636523076,
+    "job": 135956359702,
+    "source": "9d9ccac1b5c6540147ba9c26dec663329109daf5",
+    "core": "650188d6f08d82b7a9b3af15c48e7d8018a79c78",
+    "apiCompiled": false,
+    "nativeContractProjectCompiled": false,
+    "selectedNewNativeRows": 3,
+    "previouslyAcceptedCasesSelected": 0
   }
 }
