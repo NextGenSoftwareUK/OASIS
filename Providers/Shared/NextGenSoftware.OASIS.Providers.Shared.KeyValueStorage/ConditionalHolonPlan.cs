@@ -116,6 +116,53 @@ public sealed class ConditionalHolonPlan : IAtomicHolonWritePlan
         }
         Fingerprint=ComputeFingerprint(content);
     }
+    /// <summary>Apply an explicit scalar selection to the native before-image after revision/permission admission.
+    /// Records not selected by this request keep their explicit full-save semantics.
+    /// Parent-edge changes require a graph write rather than an implicit scalar selection.</summary>
+    public Holon ApplySelectedValues(Holon authoritative,Holon submitted)
+        =>ApplyPropertyWriteSelection(PropertyWrite,authoritative,submitted);
+    public static Holon ApplyPropertyWriteSelection(ConditionalHolonPropertyWriteRequest selection,Holon authoritative,Holon submitted)
+    {
+        ArgumentNullException.ThrowIfNull(submitted);
+        if(selection==null || !selection.Selections.ContainsKey(submitted.Id))return submitted;
+        if(authoritative==null || authoritative.ParentHolonId!=submitted.ParentHolonId)
+            throw new ArgumentException("Selected scalar writes require an existing record with the same parent edge.");
+        var merged=selection.ApplyToAuthoritative(authoritative,submitted);
+        if(merged.IsError)throw new System.IO.InvalidDataException(merged.Message,merged.Exception);
+        return (Holon)merged.Result;
+    }
+    /// <summary>Validate selected after-image values, including legitimate absence.
+    /// Unlike write admission, two missing leaves are equal receipt evidence, not a new invalid write.
+    /// This comparison does not replace the receipt's identity/revision/graph/delta integrity checks.</summary>
+    public static void ValidateSelectedAcknowledgement(ConditionalHolonPropertyWriteRequest selection,Holon submitted,Holon acknowledged)
+    {
+        ArgumentNullException.ThrowIfNull(selection);ArgumentNullException.ThrowIfNull(submitted);ArgumentNullException.ThrowIfNull(acknowledged);
+        if(submitted.Id!=acknowledged.Id || !selection.Selections.TryGetValue(submitted.Id,out var paths))
+            throw new System.IO.InvalidDataException("Acknowledged selection belongs to another record.");
+        var expected=(JObject)StoredRecordJson.CaptureRuntimeToken(submitted);
+        var actual=(JObject)StoredRecordJson.CaptureRuntimeToken(acknowledged);
+        foreach(var path in paths)
+        {
+            var before=SelectedReceiptValue(expected,path,out var left);
+            var after=SelectedReceiptValue(actual,path,out var right);
+            if(before!=after || before && !StoredRecordValueEquality.Equivalent(left,right))
+                throw new System.IO.InvalidDataException("Acknowledged selected values differ from their submitted intent.");
+        }
+    }
+    private static bool SelectedReceiptValue(JObject root,string path,out JToken value)
+    {
+        JToken current=root;
+        foreach(var encoded in path.Substring(1).Split('/'))
+        {
+            if(current is not JObject owner)
+                throw new System.IO.InvalidDataException("Acknowledged selected-property ancestry is invalid.");
+            var segment=encoded.Replace("~1","/").Replace("~0","~");
+            var property=owner.Property(segment,StringComparison.Ordinal);
+            if(property==null){value=null;return false;}
+            current=property.Value;
+        }
+        value=current;return true;
+    }
     /// <summary>Exact canonical value binding for an already captured logical intent. The caller supplies its domain/version.</summary>
     public static string ComputeFingerprint(JToken content)
     {

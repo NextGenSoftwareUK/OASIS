@@ -21,7 +21,7 @@ public sealed class Neo4jConditionalReconciliationException(Guid operationId, Ex
     public string OriginalTransactionId => string.Empty; // A logical operation ID is not a native transaction ID.
 }
 
-public partial class Neo4jOASIS : IConditionalHolonDeltaStorageProvider,IBoundAtomicHolonReplicationStorageProvider
+public partial class Neo4jOASIS : IConditionalHolonPropertyStorageProvider,IBoundAtomicHolonReplicationStorageProvider
 {
     private class NeoHolonTransactionState
     {
@@ -44,6 +44,12 @@ public partial class Neo4jOASIS : IConditionalHolonDeltaStorageProvider,IBoundAt
     private sealed class NeoConditionalIntentException() : InvalidOperationException("Operation ID is bound to different write intent or actor.");
     private sealed class NeoConditionalReceiptException(Exception cause) : IOException("Stored conditional acknowledgement is invalid.",cause);
 
+    public OASISResult<IEnumerable<IHolon>> ExecuteConditionalHolonPropertyWrite(ConditionalHolonPropertyWriteRequest request)
+        =>ExecuteConditionalHolonPropertyWriteAsync(request).GetAwaiter().GetResult();
+    public Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalHolonPropertyWriteAsync(
+        ConditionalHolonPropertyWriteRequest request,CancellationToken cancellationToken=default)
+        =>ExecuteConditionalCoreAsync(request?.WriteRequest,request?.WriteRequest.Write.ReplicationEnrollment,cancellationToken,request);
+
     public OASISResult<IEnumerable<IHolon>> ExecuteConditionalHolonWrite(ConditionalHolonWriteRequest request)
         => ExecuteConditionalHolonWriteAsync(request).GetAwaiter().GetResult();
 
@@ -61,12 +67,13 @@ public partial class Neo4jOASIS : IConditionalHolonDeltaStorageProvider,IBoundAt
             : ExecuteConditionalCoreAsync(request,enrollment,cancellationToken);
 
     private async Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalCoreAsync(ConditionalHolonWriteRequest request,
-        HolonReplicationEnrollment enrollment,CancellationToken cancellationToken)
+        HolonReplicationEnrollment enrollment,CancellationToken cancellationToken,ConditionalHolonPropertyWriteRequest propertyWrite=null)
     {
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var plan=enrollment==null ? ConditionalHolonPlan.Create(request,Core.Enums.ProviderType.Neo4jOASIS)
+            var plan=propertyWrite!=null ? ConditionalHolonPlan.CreatePropertyWrite(propertyWrite,Core.Enums.ProviderType.Neo4jOASIS)
+                :enrollment==null ? ConditionalHolonPlan.Create(request,Core.Enums.ProviderType.Neo4jOASIS)
                 :ConditionalHolonPlan.CreateReplicating(request,Core.Enums.ProviderType.Neo4jOASIS,enrollment);
             var expected=enrollment?.SourceStorageIdentity;
             if(expected!=null)await _lifecycleGate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -148,13 +155,15 @@ public partial class Neo4jOASIS : IConditionalHolonDeltaStorageProvider,IBoundAt
         if(conflicts.Count!=0)throw new CosmicConcurrencyException(conflicts);
         if(write.Plan is CommittedHolonReplicaPlan replica)
             return await PrepareCommittedReplicaHolonsAsync(transaction,submitted,observed,write,replica,archive).ConfigureAwait(false);
+        var effective=conditional?.PropertyWrite==null ? submitted
+            :submitted.Select(item=>conditional.ApplySelectedValues(observed[item.Id],item)).ToList();
         if(write.Plan.Operation==ConditionalHolonOperation.Save)
-            foreach(var item in submitted)RequireSaveLifecycle(observed[item.Id],item);
+            foreach(var item in effective)RequireSaveLifecycle(observed[item.Id],item);
         // Keep the locked authoritative before-images; never recapture caller objects.
         write.PreviousRecords=observed.Values.Where(record=>record!=null).Cast<IHolon>().ToArray();
         write.RetainDeltaValues=archive;
         var prepared=new List<Holon>();var now=DateTime.UtcNow;write.MutationUtc=now;
-        foreach(var item in submitted)
+        foreach(var item in effective)
         {
             var previous=observed[item.Id];
             var record=write.Plan.Operation==ConditionalHolonOperation.Save ? item:OasisJson.Project<Holon>(previous);

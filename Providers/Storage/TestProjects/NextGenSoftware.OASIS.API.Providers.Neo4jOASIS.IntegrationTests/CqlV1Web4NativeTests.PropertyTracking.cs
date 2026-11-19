@@ -19,7 +19,10 @@ public sealed partial class CqlV1Web4NativeTests
 {
     [DataTestMethod]
     [DataRow("MongoDBOASIS")] [DataRow("SQLLiteDBOASIS")] [DataRow("Neo4jOASIS")]
-    public async Task PropertyTrackingUsesNativeAcknowledgementWithoutLosingInflightIntent(string providerName)
+    public Task PropertyTrackingUsesNativeAcknowledgementWithoutLosingInflightIntent(string providerName)
+        => RunPropertyNativeFixture(providerName, false);
+
+    private async Task RunPropertyNativeFixture(string providerName, bool propertySelection)
     {
         Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -33,7 +36,7 @@ public sealed partial class CqlV1Web4NativeTests
         Directory.CreateDirectory(work);
         var sqlite = Path.Combine(work, "property.sqlite");
         var reportRoot = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT")!);
-        var report = Path.Combine(reportRoot, "TestResults/Neo4jCurrent/" + providerName + "-property-tracking-native.json");
+        var report = Path.Combine(reportRoot, "TestResults/Neo4jCurrent/" + providerName + (propertySelection ? "-property-selection-native.json" : "-property-tracking-native.json"));
         var operations = new HashSet<Guid>(); var complete = false; var checks = 0;
         var client = new MongoClient(mongoUri);
         using (var names = await client.ListDatabaseNamesAsync())
@@ -96,7 +99,19 @@ public sealed partial class CqlV1Web4NativeTests
             }
             void Mark(string path) => Assert.IsFalse(HolonChangeTracking.SetPropertyModified(source, path).IsError);
 
+            if (propertySelection)
+            {
+                source.MetaData["nullable"] = null!;
+                source.MetaData["branch"] = new Dictionary<string, object> { ["selected"] = 1L, ["sibling"] = 2L };
+            }
             await Save();
+            if (propertySelection)
+            {
+                checks += await VerifySelectedNativeWrites(provider, manager, authority, source, actor, operations, work);
+                Assert.AreEqual(9, checks);
+            }
+            else
+            {
             Assert.IsFalse(HolonChangeTracking.HasChanges(source));
             Assert.AreEqual("\"original\"", Property("/Name").OriginalJson);
             Assert.IsFalse(HolonChangeTracking.SetCurrentPropertyValue(source, "/Name", "discard this").IsError);
@@ -188,6 +203,7 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.AreEqual(5, probe.MutationIntents.Distinct().Count());
             Assert.AreEqual(preparations, probe.PreparationIntents.Count); checks++;
             Assert.AreEqual(12, checks);
+            }
             complete = true;
         }
         finally
@@ -218,6 +234,14 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.AreEqual(workRoot, Path.GetDirectoryName(Path.GetFullPath(work)));
                 Directory.Delete(work, true);
                 Assert.IsFalse(Directory.Exists(work));
+                if (propertySelection)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new {
+                        provider = providerName, checks, successfulHolonWrites = 4,
+                        selectedScalarVerified = true, selectedMetadataVerified = true,
+                        unselectedNativeValuesVerified = true, receiptReplayVerified = true,
+                        changedMaskRefused = true, staleRevisionRefused = true, invalidFieldRefused = true,
+                        callerUnchangedVerified = true, foreignHostWriteRefused = true, exactCleanupVerified = true }));
+                else
                 await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new {
                     provider = providerName, checks, successfulNativeMutations = 5,
                     currentValueEditingVerified = true, propertyResetVerified = true,
