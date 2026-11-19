@@ -89,7 +89,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task SubscriptionAdminAppAccountsUseActualControllerBrowserAndCredentials() =>
         RunSubscriptionHttp(true, usage: true, adminRead: true, adminAccounts: true);
 
-    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false, bool personalBilling = false, bool personalConsentReview = false, bool adminRead = false, bool adminGrant = false, bool adminAccounts = false)
+    [Fact]
+    public Task SubscriptionAdminOutboxUsesActualControllerBrowserAndServiceIsolation() =>
+        RunSubscriptionHttp(true, usage: true, adminRead: true, adminOutbox: true);
+
+    private async Task RunSubscriptionHttp(bool browser, bool usage = false, bool notifications = false, bool ownerSettings = false, bool ownerUsage = false, bool ownerBilling = false, bool billingControls = false, bool ownerPayNow = false, bool statementRecovery = false, bool billingPolicy = false, bool freshAppUsage = false, bool personalBilling = false, bool personalConsentReview = false, bool adminRead = false, bool adminGrant = false, bool adminAccounts = false, bool adminOutbox = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -287,6 +291,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Development" });
             builder.WebHost.UseKestrel().UseUrls("http://127.0.0.1:0");
             builder.Services.AddAuthorization();
+            if (adminOutbox)
+            {
+                builder.Configuration["SUBSCRIPTION_OUTBOX_MONGO_CONNECTION_STRING"] = MongoUri;
+                builder.Configuration["SUBSCRIPTION_OUTBOX_DATABASE"] = databaseName;
+            }
             var policyServiceKey = billingPolicy || freshAppUsage ? Convert.ToHexString(RandomNumberGenerator.GetBytes(32)) : null;
             if (billingPolicy || freshAppUsage)
             {
@@ -369,11 +378,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             });
             app.UseAuthorization();
             app.MapControllers();
-            var adminFixture = adminRead && !adminGrant && !adminAccounts ? await PrepareSubscriptionAdminReadsAsync(db) : null;
+            var adminFixture = adminRead && !adminGrant && !adminAccounts && !adminOutbox ? await PrepareSubscriptionAdminReadsAsync(db) : null;
             var adminGrantFixture = adminGrant ? await PrepareSubscriptionAdminGrantAsync(db, accounts) : null;
             var adminAccountsControl = adminAccounts ? Convert.ToHexString(RandomNumberGenerator.GetBytes(32)) : null;
             var adminAccountsFixture = adminAccounts ? await PrepareSubscriptionAdminAccountsAsync(app, db, repository,
                 adminAccountsControl!) : null;
+            var adminOutboxFixture = adminOutbox ? await PrepareSubscriptionAdminOutboxAsync(db, accounts[0]) : null;
             var personalConsentReviewControl = personalConsentReview ? Convert.ToHexString(RandomNumberGenerator.GetBytes(32)) : null;
             var consentReviewFixture = personalConsentReview ? await PreparePersonalConsentReviewBrowserAsync(app, db, api,
                 repository, accounts, personalConsentReviewControl!) : null;
@@ -434,15 +444,21 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                         personalConsentReviewControl,
                         adminExpectedSubscriptions = adminFixture?.Subscriptions,
                         adminAccountsControl,
+                        outboxOperations = adminOutboxFixture?.Operations.ToDictionary(pair => pair.Key, pair => pair.Value.Id),
                         actors = accounts.Append(missingAccount).Select(actor => new { id = actor, token = Token(actor) }).ToArray()
                     });
                     Assert.False(result.RootElement.TryGetProperty("isError", out var failed) && failed.GetBoolean(),
                         result.RootElement.TryGetProperty("message", out var message) ? message.GetString() : "Browser worker failed.");
-                    Assert.True(result.RootElement.GetProperty(adminAccounts ? "subscriptionAdminAccountsBrowserVerified" : adminGrant ? "subscriptionAdminGrantBrowserVerified" : adminRead ? "subscriptionAdminReadsBrowserVerified" : personalConsentReview ? "personalConsentReviewBrowserVerified" : personalBilling ? "personalBillingBrowserVerified" : freshAppUsage ? "appFreshUsageBrowserVerified" : ownerPayNow ? "appPayNowBrowserVerified" : billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
+                    Assert.True(result.RootElement.GetProperty(adminOutbox ? "subscriptionAdminOutboxBrowserVerified" : adminAccounts ? "subscriptionAdminAccountsBrowserVerified" : adminGrant ? "subscriptionAdminGrantBrowserVerified" : adminRead ? "subscriptionAdminReadsBrowserVerified" : personalConsentReview ? "personalConsentReviewBrowserVerified" : personalBilling ? "personalBillingBrowserVerified" : freshAppUsage ? "appFreshUsageBrowserVerified" : ownerPayNow ? "appPayNowBrowserVerified" : billingControls ? "appBillingControlsBrowserVerified" : ownerBilling ? "appBillingReadBrowserVerified" : ownerUsage ? "appOwnerUsageBrowserVerified" : ownerSettings ? "appOwnerSettingsBrowserVerified" : notifications ? "notificationPreferencesBrowserVerified" :
                         usage ? "subscriptionUsageBrowserVerified" : "subscriptionBrowserVerified").GetBoolean());
                     Assert.Equal(3, result.RootElement.GetProperty("actorsVerified").GetInt32());
                     Assert.True(result.RootElement.GetProperty("lateSessionResponseIgnored").GetBoolean());
                     Console.WriteLine("Subscription browser evidence: " + result.RootElement.GetRawText());
+                    if (adminOutbox)
+                    {
+                        await VerifySubscriptionAdminOutboxAsync(db, adminOutboxFixture!, accounts[0]);
+                        return;
+                    }
                     if (adminAccounts)
                     {
                         await VerifySubscriptionAdminAccountsAsync(db, adminAccountsFixture!, accounts[0]);

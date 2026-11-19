@@ -13,6 +13,7 @@ const personalConsentReviewMode = process.env.OASIS_SUBSCRIPTION_PERSONAL_CONSEN
 const subscriptionAdminReadMode = process.env.OASIS_SUBSCRIPTION_ADMIN_READ_BROWSER_ENABLED === 'true';
 const subscriptionAdminGrantMode = process.env.OASIS_SUBSCRIPTION_ADMIN_GRANT_BROWSER_ENABLED === 'true';
 const subscriptionAdminAccountsMode = process.env.OASIS_SUBSCRIPTION_ADMIN_ACCOUNTS_BROWSER_ENABLED === 'true';
+const subscriptionAdminOutboxMode = process.env.OASIS_SUBSCRIPTION_ADMIN_OUTBOX_BROWSER_ENABLED === 'true';
 const appFreshBillingMode = process.env.OASIS_SUBSCRIPTION_APP_FRESH_BILLING_BROWSER_ENABLED === 'true';
 const appPayNowMode = process.env.OASIS_SUBSCRIPTION_APP_PAY_NOW_BROWSER_ENABLED === 'true';
 const appBillingControlMode = process.env.OASIS_SUBSCRIPTION_APP_BILLING_CONTROL_BROWSER_ENABLED === 'true';
@@ -21,6 +22,7 @@ if (personalConsentReviewMode && !subscriptionMode) throw new Error('Personal co
 if (subscriptionAdminReadMode && !subscriptionMode) throw new Error('Subscription admin reads require the owned subscription browser host.');
 if (subscriptionAdminGrantMode && !subscriptionMode) throw new Error('Subscription admin grants require the owned subscription browser host.');
 if (subscriptionAdminAccountsMode && !subscriptionMode) throw new Error('Subscription admin accounts require the owned subscription browser host.');
+if (subscriptionAdminOutboxMode && !subscriptionMode) throw new Error('Subscription admin outbox requires the owned subscription browser host.');
 if (appFreshBillingMode && !appPayNowMode) throw new Error('Fresh app billing requires the actual app payment browser host.');
 if (appPayNowMode && !appBillingReadMode) throw new Error('App payments require the billing read contract.');
 if (appBillingControlMode && !appBillingReadMode) throw new Error('App billing controls require the billing read contract.');
@@ -31,7 +33,7 @@ if (notificationMode && !usageMode) throw new Error('Notification verification r
 if (usageMode && !subscriptionMode) throw new Error('Usage verification requires subscription browser mode.');
 if (subscriptionMode && !browserMode) throw new Error('Subscription browser verification requires the owned browser runtime.');
 const expectedCases = subscriptionMode ? 1 : 6;
-const { verify } = require(subscriptionAdminAccountsMode ? './subscription-admin-accounts-browser-native-http.cjs' : subscriptionAdminGrantMode ? './subscription-admin-grant-browser-native-http.cjs' : subscriptionAdminReadMode ? './subscription-admin-read-browser-native-http.cjs' : personalConsentReviewMode ? './subscription-personal-consent-review-browser-native-http.cjs' : personalBillingMode ? './subscription-personal-billing-browser-native-http.cjs' : appFreshBillingMode ? './subscription-app-fresh-billing-browser-native-http.cjs' : appPayNowMode ? './subscription-app-pay-now-browser-native-http.cjs' : appBillingControlMode ? './subscription-app-billing-control-browser-native-http.cjs' : appBillingReadMode ? './subscription-app-billing-read-browser-native-http.cjs' : appUsageMode ? './subscription-app-usage-browser-native-http.cjs' : appOwnerMode ? './subscription-app-owner-browser-native-http.cjs' : notificationMode ? './subscription-notifications-browser-native-http.cjs' : usageMode ? './subscription-usage-browser-native-http.cjs' : subscriptionMode ? './subscription-browser-native-http.cjs' :
+const { verify } = require(subscriptionAdminOutboxMode ? './subscription-admin-outbox-browser-native-http.cjs' : subscriptionAdminAccountsMode ? './subscription-admin-accounts-browser-native-http.cjs' : subscriptionAdminGrantMode ? './subscription-admin-grant-browser-native-http.cjs' : subscriptionAdminReadMode ? './subscription-admin-read-browser-native-http.cjs' : personalConsentReviewMode ? './subscription-personal-consent-review-browser-native-http.cjs' : personalBillingMode ? './subscription-personal-billing-browser-native-http.cjs' : appFreshBillingMode ? './subscription-app-fresh-billing-browser-native-http.cjs' : appPayNowMode ? './subscription-app-pay-now-browser-native-http.cjs' : appBillingControlMode ? './subscription-app-billing-control-browser-native-http.cjs' : appBillingReadMode ? './subscription-app-billing-read-browser-native-http.cjs' : appUsageMode ? './subscription-app-usage-browser-native-http.cjs' : appOwnerMode ? './subscription-app-owner-browser-native-http.cjs' : notificationMode ? './subscription-notifications-browser-native-http.cjs' : usageMode ? './subscription-usage-browser-native-http.cjs' : subscriptionMode ? './subscription-browser-native-http.cjs' :
   browserMode ? './profile-browser-native-http.cjs' : './profile-sdk-native-http.cjs');
 const root = fs.realpathSync(process.env.OASIS_PROFILE_SDK_HANDOFF_ROOT);
 const parent = fs.realpathSync(process.env.RUNNER_TEMP);

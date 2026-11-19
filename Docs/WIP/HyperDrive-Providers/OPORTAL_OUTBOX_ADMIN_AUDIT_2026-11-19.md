@@ -1,5 +1,9 @@
 # Outbox administrator acceptance gates
 
+Current implementation: Core `d2fc611338f5fc665ff6e514527593208835c145` on the existing task branch now requires an explicit supported service for administrative snapshots and requeue. The query filters service before state/sort/limit; mutation rejects a persisted-service mismatch before action replay and includes service in its compare-and-set predicate. The public store contract and five existing test call sites were migrated. The shipping administrator controller passes its requested service into both calls. Only the Core gitlink and matching manifest pin advance; the concurrent physical checkout and all other pins are preserved. Source only, not compiled/native accepted yet.
+
+Two NEW cases are prepared for one CI build: `AdministrativeOutboxQueriesAndRequeuesBindPersistedServiceAcrossDatabaseLayouts` and `SubscriptionAdminOutboxUsesActualControllerBrowserAndServiceIsolation`. The first proves absence before owning default database names in the fresh isolated fixture, plus an explicit shared database, filtering/limits, wrong-service mutation and replay refusal without writes, exact action replay and immutable original evidence. The second uses six real no-provider-execution settlements transitioned through the actual store to deadletter in one owned shared override, actual Wizard/ordinary/expired-token authority, real portal/controller calls, requeue across a replaced list row, cancel/no write, changed replay/wrong-service denial and late-session privacy. It must leave only WEB5 pending with one audit action; five foreign operations and financial records must remain unchanged. Browser pin `8a4075b54356e92d054a74f7cc305eac47c898a0`. Actual API/native/browser/cleanup acceptance remains pending.
+
 19 November 2026. Source audit only; no shared database, API, worker or protected delivery was accessed.
 
 ## Repeated browser submission
