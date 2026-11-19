@@ -60,6 +60,6 @@ public sealed class CosmicGroupedDistinctParticipationTests
         }).Result;
         var result = CosmicGroupedResults.Materialize(query,
             new[] { new CosmicGroupedRow(3, new object[] { "same" }, 0L) });
-        Assert.Equal("CQL_DATA_INVALID", result.ErrorCode);
+        Assert.Equal("CQL_PROVIDER_RESULT_INVALID", result.ErrorCode);
     }
 }
