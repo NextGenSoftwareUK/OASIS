@@ -1,3 +1,5 @@
+2026-11-18 USAGE NATIVE BROWSER RUN ACTIVE:44448192100/job135305394232 on exact6927eeafedaf42995c26e412fbc231cc98b7eced/Core2ae9c2/STARff20026/Portalbc615734; source/route/pin gates passed, actual WEB4 build active at last inspection. Selects only SubscriptionUsageBrowserUsesActualControllerAndOwnedMongo. Summary/history/estimate/prices/statements, authoritative karma daily quota, identity/date validation and delayed-session behavior remain unaccepted until terminal logs/report. Notification/app-owner controllers and their wider dependencies are still separate open integration work. Temporary review C:/Source/OASIS2-hyperdrive/Docs/WIP/HyperDrive-Providers/.usage-route-review-377b7bda00a34f65882017ce333b85d6.csv was removed and absence checked. No live/shared Atlas/API calls, local runtime/build/DB/temp output, private pins, DNA, worker or COSMIC change. Cleanup of this CI run remains pending.
+
 # OPORTAL and HyperDrive full status — 18 November 2026
 
 **OPORTAL is not 100% complete or accepted end to end.** Subscriptions, performance and finishing every screen remain the priority. The full provider/HyperDrive programme is also incomplete.
