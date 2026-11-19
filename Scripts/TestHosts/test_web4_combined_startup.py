@@ -7,6 +7,68 @@ import unittest
 
 
 class StartupProbeTests(unittest.TestCase):
+
+    def test_actual_cql_api_package_requires_all_shipping_readers_and_mixed_grouping(self):
+        import json
+        tree = ast.parse(Path(__file__).with_name('qualify_web4_full_package.py').read_text(encoding='utf-8-sig'))
+        probe = next(n.value.value for n in ast.walk(tree) if isinstance(n, ast.Assign)
+                     and any(isinstance(t, ast.Name) and t.id == 'probe' for t in n.targets))
+        harness = r'''
+const vm=require('node:vm'),assert=require('node:assert/strict');
+const o=JSON.parse(process.argv[1]),prefix='NextGenSoftware.OASIS.API.';
+const api=prefix+'ONODE.WebAPI',core=prefix+'Core',providers=['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'];
+const files={
+ ['/app/'+api+'.dll']:Buffer.from(o.apiMissingSymbol?'CqlMixedGroupingV1Request':'CqlMixedGroupingV1Request CompileMixedGrouping'),
+ ['/app/'+core+'.dll']:Buffer.from(o.coreMissingSymbol?'PrepareGrouping':'CosmicMixedGroupingPlan PrepareGrouping')
+};
+const target={[api+'/2.0.0']:{dependencies:{}}},libraries={};
+for(const provider of providers){
+ const name=prefix+'Providers.'+provider,key=name+'/2.0.0',file=name+'.dll';
+ files['/app/'+file]=Buffer.from('ExecuteCosmicQueryAsync');
+ libraries[key]={type:'project'};target[key]={runtime:{[file]:{}}};
+ target[api+'/2.0.0'].dependencies[name]='2.0.0';
+ if(o.provider===provider){
+  if(o.fault==='missingFile')delete files['/app/'+file];
+  if(o.fault==='missingMethod')files['/app/'+file]=Buffer.from('ProviderWithoutCql');
+  if(o.fault==='package')libraries[key].type='package';
+  if(o.fault==='missingRuntime')delete target[key];
+  if(o.fault==='missingAssembly')delete target[key].runtime[file];
+  if(o.fault==='missingDirect')delete target[api+'/2.0.0'].dependencies[name];
+  if(o.fault==='wrongVersion')target[api+'/2.0.0'].dependencies[name]='1.0.0';
+  if(o.fault==='duplicateVersion')libraries[name+'/1.0.0']={type:'project'};
+ }
+}
+if(o.duplicateApi)target[api+'/1.0.0']={dependencies:{}};
+files['/app/'+api+'.deps.json']=JSON.stringify({runtimeTarget:{name:'test'},targets:{test:target},libraries});
+const fs={
+ statSync:p=>{assert(Object.hasOwn(files,p),'Unexpected/missing file: '+p);return {size:files[p].length};},
+ readFileSync:p=>{assert(Object.hasOwn(files,p),'Unexpected/missing read: '+p);return files[p];}
+};
+let ack;
+vm.runInNewContext(PROBE,{
+ require:n=>n==='node:fs'?fs:require(n),Buffer,
+ process:{argv:['node','{}','false','cql-api','false','false']},
+ console:{log:s=>ack=JSON.parse(s)}
+});
+assert.equal(ack.assemblies,5);assert.equal(ack.apiQualified,false);
+assert.equal(ack.modelHashes,false);assert.deepEqual(ack.modelVersions,[]);
+assert.equal(ack.tronReaderPackaged,false);
+'''
+        cases = [('complete', {}, 0),
+                 ('missing-api-contract', {'apiMissingSymbol': True}, 1),
+                 ('missing-core-contract', {'coreMissingSymbol': True}, 1),
+                 ('duplicate-api', {'duplicateApi': True}, 1)]
+        for provider in ['MongoDBOASIS', 'SQLLiteDBOASIS', 'Neo4jOASIS']:
+            for fault in ['missingFile', 'missingMethod', 'package', 'missingRuntime',
+                          'missingAssembly', 'missingDirect', 'wrongVersion', 'duplicateVersion']:
+                cases.append((provider + '-' + fault, {'provider': provider, 'fault': fault}, 1))
+        for label, options, expected in cases:
+            with self.subTest(label=label):
+                result = subprocess.run([os.environ.get('NODE_BINARY', 'node'), '-e',
+                    'const PROBE=' + json.dumps(probe) + ';\n' + harness, json.dumps(options)],
+                    capture_output=True, text=True, timeout=8)
+                self.assertEqual(expected, result.returncode, result.stderr)
+
     def test_tron_api_profile_enrolls_only_isolated_mongo_and_no_native_reader(self):
         import runpy
         import json
