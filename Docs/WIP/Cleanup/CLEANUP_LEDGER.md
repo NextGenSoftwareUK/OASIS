@@ -1,3 +1,5 @@
+2026-11-20 ONODE CI build-only 44743831833/job136313927402 SUCCESS: actual API compiled 0 errors in 5m17.60s, no behavior/native cohorts or test artifacts selected. CI post-job cleanup completed; selected log lines inspected in RAM and discarded, local filesWritten=0. Final Portal source 2243c787 exact verified; no local build/runtime/temp/output cleanup required.
+
 2026-11-20 ONODE source breadth: Node syntax streamed through stdin; remote source verified in RAM. No downloads, environments, databases, build/test outputs, artifacts or temporary source files created locally. No deletion needed. C: observed 38.72 GiB free.
 
 2026-11-20 Gifts/ONET breadth source9b4c8625: reused existing Portal task branch; no physical Portal/submodule edits, worktree/environment/runtime installs, local builds/databases/downloads/results/temp files. Both shipping scripts checked with existing Node via stdin; five exact source/cache proofs and pinned SDK/Core/ONODE contract reads in memory. No tests rerun, shared Atlas/network/backend calls, daemon starts/stops or unrelated deletion. Source/evidence retained; no reclaimed-space claim.
