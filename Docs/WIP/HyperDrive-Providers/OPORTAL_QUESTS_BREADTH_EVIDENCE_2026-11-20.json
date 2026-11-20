@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-20",
+  "status": "source wired and final script syntax accepted; actual API build and runtime acceptance pending",
+  "portalCommit": "dde1cabf3265dc4216bd5c1d522ccd95a4d94ea8",
+  "starCommit": "c94b9c4e36a1ddd36681e0d968f700fcd70efa22",
+  "publishedFilesVerifiedExact": 5,
+  "syntax": {
+    "engine": "Existing node --check through stdin",
+    "exitCode": 0,
+    "popupCodeExecuted": false,
+    "filesWritten": 0
+  },
+  "duplicateReadBlocksRemoved": 3,
+  "controllerMetadataStatusWorkaroundRemoved": true,
+  "guardedReadActions": 6,
+  "sourceCounts": {
+    "publicManagerMethods": 931,
+    "providerBackedManagerMethods": 766,
+    "web4Actions": 800,
+    "providerExternalWeb4Actions": 690
+  },
+  "acceptedTestsRepeated": 0,
+  "localGeneratedFiles": 0,
+  "sharedBackendCalls": 0,
+  "remaining": [
+    "Actual WEB5 API compile",
+    "Manager metadata/objective mapping root acceptance",
+    "Catalogue versus current-avatar semantics acceptance",
+    "Actual browser/SDK/native quest list, search, refresh and detail journeys",
+    "Full Startup/SSO/hosted and whole-site acceptance"
+  ],
+  "summary": "2026-11-20 QUESTS BREADTH SOURCE/SYNTAX WIRED: Portaldde1cabf3265dc4216bd5c1d522ccd95a4d94ea8/STARc94b9c4e36a1ddd36681e0d968f700fcd70efa22; all five published files byte-exact verified. My/catalogue/search tabs use actual captured current-session WEB5 SDK HTTP routes. Canonical rewardXP/rewardKarma/status/progress/objective fields preserve zeros; Refresh, selected-tab count, real errors/warnings and readonly quest/objective/requirements/reward details added. Latest request/session ownership, empty-search invalidation and close/logout cleanup prevent stale results; no guessed DTO aliases or demo-message heuristics. Quest API removes three empty-result duplicate read blocks and the controller metadata status workaround; one typed owner path serves current-avatar lists and status-game projection. Six read guards preserve errors/refuse null successes; invalid identities/types are explicit errors, soft-deletion filtering retained, provider warnings preserved through list/game/search projections. Existing manager metadata/objective promotion, catalogue scope, actual browser/SDK/native journeys, full Startup/hosted and whole-site acceptance remain OPEN; none claimed fixed by UI or compile checks. Existing node syntax check passed final script without executing popup code or writing files; no accepted case repeated. Parent STAR gitlink/manifest paired; Core/ONODE pins and manager931/766, WEB4route800/690 scopes unchanged. Next: one changed WEB5 API build only, no old native/browser cases or syntax repetition. No shared backend/API, funded/on-chain, DNA/worker/LB/deployment/protected-delivery action or laptop build/download/env/DB/results/artifact/extra worktree. Functional breadth first; goal active/incomplete."
+}
