@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 {
     public partial class SQLLiteDBOASIS : IAvatarTombstoneStorageProvider
     {
-        public OASISResult<bool> ApplyAvatarTombstone(AvatarTombstone tombstone) => _avatarRepository.ApplyAvatarTombstone(tombstone);
-        public Task<OASISResult<bool>> ApplyAvatarTombstoneAsync(AvatarTombstone tombstone) => _avatarRepository.ApplyAvatarTombstoneAsync(tombstone);
+        public OASISResult<bool> ApplyAvatarTombstone(AvatarTombstone tombstone) => WithAvatarRepository(repository => repository.ApplyAvatarTombstone(tombstone));
+        public Task<OASISResult<bool>> ApplyAvatarTombstoneAsync(AvatarTombstone tombstone) => WithAvatarRepositoryAsync(repository => repository.ApplyAvatarTombstoneAsync(tombstone));
     }
 }

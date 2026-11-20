@@ -14,7 +14,7 @@ public partial class SQLLiteDBOASIS : ICosmicQueryEntityCountStorageProvider
 
     public Task<OASISResult<long>> ExecuteCosmicEntityCountAsync<T>(CosmicEntityCompositionPlan<T> plan,
         CancellationToken cancellationToken=default) where T:IHolon
-        => ((HolonRepository)_holonRepository).ExecuteCosmicEntityCountAsync(plan,cancellationToken);
+        => WithHolonRepositoryAsync(repository => repository.ExecuteCosmicEntityCountAsync(plan,cancellationToken));
 
     public CosmicEntityCompositionCapabilities EntityCompositionCapabilities => CqlEntityCompositionCapabilities;
     internal static CosmicEntityCompositionCapabilities CqlEntityCompositionCapabilities => new(
@@ -23,5 +23,5 @@ public partial class SQLLiteDBOASIS : ICosmicQueryEntityCountStorageProvider
 
     public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicEntityCompositionAsync<T>(CosmicEntityCompositionPlan<T> plan,
         int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
-        => ((HolonRepository)_holonRepository).ExecuteCosmicEntityCompositionAsync(plan, maximumResults, cancellationToken);
+        => WithHolonRepositoryAsync(repository => repository.ExecuteCosmicEntityCompositionAsync(plan, maximumResults, cancellationToken));
 }

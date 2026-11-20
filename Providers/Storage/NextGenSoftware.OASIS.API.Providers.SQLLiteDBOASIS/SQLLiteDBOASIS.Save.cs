@@ -43,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
 
                 // Load avatar by username and update provider wallets
-                var avatarResult = await _avatarRepository.LoadAvatarByUsernameAsync(username);
+                var avatarResult = await WithAvatarRepositoryAsync(repository => repository.LoadAvatarByUsernameAsync(username));
                 if (avatarResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}", avatarResult.Exception);
@@ -109,7 +109,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
 
                 // Load avatar by email and update provider wallets
-                var avatarResult = await _avatarRepository.LoadAvatarByEmailAsync(email);
+                var avatarResult = await WithAvatarRepositoryAsync(repository => repository.LoadAvatarByEmailAsync(email));
                 if (avatarResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}", avatarResult.Exception);
@@ -261,7 +261,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     result.ErrorCode = allHolons.ErrorCode;
                     return result;
                 }
-                var owner = await _avatarRepository.LoadAvatarByUsernameAsync(avatarUsername);
+                var owner = await WithAvatarRepositoryAsync(repository => repository.LoadAvatarByUsernameAsync(avatarUsername));
                 if (owner.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error resolving export owner: {owner.Message}", owner.Exception);
@@ -311,7 +311,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     result.ErrorCode = allHolons.ErrorCode;
                     return result;
                 }
-                var owner = await _avatarRepository.LoadAvatarByEmailAsync(avatarEmailAddress);
+                var owner = await WithAvatarRepositoryAsync(repository => repository.LoadAvatarByEmailAsync(avatarEmailAddress));
                 if (owner.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error resolving export owner: {owner.Message}", owner.Exception);
@@ -361,7 +361,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
 
                 // Export all holons via current repository API
-                var holons = version==-1?await _holonRepository.ExportAllVersionsAsync():await _holonRepository.LoadAllHolonsAsync(version: version);
+                var holons = version==-1?await WithHolonRepositoryAsync(repository => repository.ExportAllVersionsAsync()):await WithHolonRepositoryAsync(repository => repository.LoadAllHolonsAsync(version: version));
                 if (holons.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading export data: {holons.Message}", holons.Exception);
@@ -449,8 +449,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     }
                 }
 
-                return await _holonRepository.LoadMatchingHolonsAsync(filter, metaKeyValuePairMatchMode,
-                    type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version);
+                return await WithHolonRepositoryAsync(repository => repository.LoadMatchingHolonsAsync(filter, metaKeyValuePairMatchMode,
+                    type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version));
             }
             catch (Exception ex)
             {

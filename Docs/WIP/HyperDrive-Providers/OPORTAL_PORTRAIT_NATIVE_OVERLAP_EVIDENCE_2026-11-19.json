@@ -177,7 +177,7 @@
   "followUp": {
     "fix": "Invoke single finishPortraitUpload owner on finally and synchronous FileReader failure",
     "routingMismatchStillOpenOutsideIsolatedProviderAcceptance": true,
-    "status": "queued_not_accepted",
+    "status": "completed_failure_sqlite_shared_context_concurrency",
     "fixtureScope": "Two new native-acceptance cases disable failover/load balancing/replication so named native backend must answer or fail; old accepted cases unchanged",
     "selectedCases": 2,
     "portalBundle": "4ccf867befa9abb543bb8f4587f07e5914ac6c73",
@@ -185,6 +185,25 @@
     "portalSource": "be7a3f5c9ab28dfa5abeb449d7ea01dcdf0f333f",
     "bundleRun": 44647446920,
     "run": 44647749986,
-    "source": "8fa04636c4b86292f7e4d514dda68f3958f1c9f2"
+    "source": "8fa04636c4b86292f7e4d514dda68f3958f1c9f2",
+    "job": 135994567443,
+    "result": {
+      "fixtureStops": "both success",
+      "filesWritten": 0,
+      "bytes": 7060,
+      "nativeProjectErrors": 0,
+      "failed": 2,
+      "skipped": 0,
+      "apiErrors": 0,
+      "mongoNativeFlowMarkers": 2,
+      "browserRuntimeCleanup": true,
+      "managerRestores": 2,
+      "sha256": "22c75aabd822ffe15ccf1f9c3003d1b9547dc80ce92522c6b637de8756fec5eb",
+      "artifact": 14590840498,
+      "passed": 0,
+      "total": 2,
+      "strictFailedTrxVerified": true,
+      "durationSeconds": 18
+    }
   }
 }

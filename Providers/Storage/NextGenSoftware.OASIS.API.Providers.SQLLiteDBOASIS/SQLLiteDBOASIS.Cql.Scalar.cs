@@ -27,5 +27,5 @@ public partial class SQLLiteDBOASIS : ICosmicQueryScalarStorageProvider
     /// <summary>Native scalar execution reuses the row predicate compiler and bounded SQLite read owner.</summary>
     public Task<OASISResult<TResult>> ExecuteCosmicScalarAsync<T, TResult>(CosmicScalarPlan<T, TResult> plan,
         CancellationToken cancellationToken = default) where T : IHolon
-        => ((HolonRepository)_holonRepository).ExecuteCosmicScalarAsync(plan, cancellationToken);
+        => WithHolonRepositoryAsync(repository => repository.ExecuteCosmicScalarAsync(plan, cancellationToken));
 }

@@ -1,0 +1,129 @@
+{
+  "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452",
+  "apiErrors": 0,
+  "localGeneratedOutputs": 0,
+  "failedRun": 44647749986,
+  "failedJob": 135994567443,
+  "fullBrowserCasesAccepted": 0,
+  "fix": {
+    "retriesAdded": false,
+    "contextOwner": "One new context/repository per native operation; async owner awaits before disposal",
+    "repositoryCallsConverted": 120,
+    "sharedRepositoryFieldsRemoved": 3,
+    "nativeMemoryKeeperPreserved": true,
+    "walletBatch": "One explicit context for entire batch transaction and its private read/write helpers",
+    "globalSerializationAdded": false,
+    "activationSchemaContextRetained": true,
+    "noSharedAvatarHolonWalletTrackedQueriesRemain": true
+  },
+  "artifact": {
+    "exactFailedCases": 2,
+    "filesWritten": 0,
+    "id": 14590840498,
+    "fixtureStops": "both success",
+    "browserRuntimeCleanup": true,
+    "bothMongoNativeFlowMarkers": true,
+    "bytes": 7060,
+    "managerRestores": 2,
+    "sha256": "22c75aabd822ffe15ccf1f9c3003d1b9547dc80ce92522c6b637de8756fec5eb"
+  },
+  "rootCause": "Provider retained one EF DataContext across repository operations; parallel profile and portrait reads failed with second-operation exception",
+  "status": "prepared_not_compiled_not_accepted",
+  "providerSourceOverlays": [
+    {
+      "blob": "01870d785cf6929401333fd0a634278d77d44d08",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Avatar.cs"
+    },
+    {
+      "blob": "63c9f22f0649246d36201f98d93632b28cdf2c1a",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.AvatarDetailDelete.cs"
+    },
+    {
+      "blob": "d1163f06b71c8b70550075f83a58fb117a774572",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Conditional.cs"
+    },
+    {
+      "blob": "c0944009a3b8c45308ae16b53878725cfa8dfd63",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.ConditionalRecovery.cs"
+    },
+    {
+      "blob": "11b09de9c03a7544cb17554818cc08049ef672e9",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.Composition.cs"
+    },
+    {
+      "blob": "dae714968ae586ed4396cb9bbe80305b1ade782e",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.EntityComposition.cs"
+    },
+    {
+      "blob": "09ea5edf08e17718493645356989baeb6260f3d2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.Grouped.cs"
+    },
+    {
+      "blob": "fa6eca8672976e742eb6c5fa38ac01a023605694",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.Join.cs"
+    },
+    {
+      "blob": "6aa2ba0c7c5ee6c6b50a8e712ceae942b2dd7794",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.Projection.cs"
+    },
+    {
+      "blob": "d8e605de6082169dd9a1f20b598fddd90000f581",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.Scalar.cs"
+    },
+    {
+      "blob": "f20f94a934b5916059ff881bb400ee20123edd6f",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.cs"
+    },
+    {
+      "blob": "6a337c0cf62e88deb7f683470cc5ffef70e7f927",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Holon.cs"
+    },
+    {
+      "blob": "6f97d51d4a170216da06af8b6ee1c9e48b6fe178",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.MigrationFence.cs"
+    },
+    {
+      "blob": "1cd0040e9492e79b1673dff9be875ae322ffc0df",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Preparation.cs"
+    },
+    {
+      "blob": "7ad816190936c2999c288f6bea15becfa638b1fc",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Replica.cs"
+    },
+    {
+      "blob": "f97efea536226d75ba7f961b0f227aee68c3abf3",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.ReplicaRecovery.cs"
+    },
+    {
+      "blob": "1cc8e682fd35b4cf59e27155fb8113bfcf13404f",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Save.cs"
+    },
+    {
+      "blob": "82f40527a0fe3e14c62a4cc4f39a81305d846260",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Tombstones.cs"
+    },
+    {
+      "blob": "181555887a0dd785cf59390373476a601277acd9",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.WalletStore.cs"
+    },
+    {
+      "blob": "b733b9571992e0b9eb12ce47ba7a09050ce28b69",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.cs"
+    }
+  ],
+  "failedSource": "8fa04636c4b86292f7e4d514dda68f3958f1c9f2",
+  "nativeProjectErrors": 0,
+  "portal": "4ccf867befa9abb543bb8f4587f07e5914ac6c73",
+  "deployed": false,
+  "nextQualification": {
+    "changedWalletSummaryCase": 1,
+    "newPreferenceRows": 3,
+    "expectedRealBrowserHandoffs": 6,
+    "changedFileMemoryRows": 4,
+    "oldUnchangedAcceptedCohorts": 0,
+    "newWalletBatchRollbackCase": 1,
+    "failedBrowserCases": 2,
+    "expectedTrxResults": 11
+  },
+  "sharedServicesTouched": false
+}

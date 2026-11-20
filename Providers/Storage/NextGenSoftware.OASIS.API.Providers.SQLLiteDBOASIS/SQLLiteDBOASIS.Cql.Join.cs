@@ -25,9 +25,9 @@ public partial class SQLLiteDBOASIS : ICosmicQueryJoinStorageProvider
         CosmicJoinPlan<TLeft, TRight, TKey, TResult> plan, CosmicJoinExecutionLimits limits,
         CancellationToken cancellationToken = default) where TLeft : IHolon where TRight : IHolon
     {
-        if (!IsProviderActivated || _holonRepository is not HolonRepository repository)
+        if (!IsProviderActivated)
             return Task.FromResult(new OASISResult<CosmicJoinPacket>
             { IsError = true, ErrorCode = "CQL_PROVIDER_NOT_READY", Message = "Activate SQLite before native join execution." });
-        return repository.ExecuteCosmicJoinAsync(plan, limits, cancellationToken);
+        return WithHolonRepositoryAsync(repository => repository.ExecuteCosmicJoinAsync(plan, limits, cancellationToken));
     }
 }

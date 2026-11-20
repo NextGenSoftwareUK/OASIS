@@ -19,5 +19,5 @@ public partial class SQLLiteDBOASIS : ICosmicQueryStorageProvider
     /// <summary>Native leaf-row execution of an admitted SQLite-only plan. WEB4 authorization is a separate required boundary.</summary>
     public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
-        => ((HolonRepository)_holonRepository).ExecuteCosmicQueryAsync(plan, maximumResults, cancellationToken);
+        => WithHolonRepositoryAsync(repository => repository.ExecuteCosmicQueryAsync(plan, maximumResults, cancellationToken));
 }

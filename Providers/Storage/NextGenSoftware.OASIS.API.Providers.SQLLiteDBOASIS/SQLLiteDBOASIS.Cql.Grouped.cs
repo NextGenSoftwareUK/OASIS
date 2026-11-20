@@ -68,9 +68,9 @@ public partial class SQLLiteDBOASIS : ICosmicQueryGroupedStorageProvider
         CosmicGroupedPlan<T, TKey, TResult> plan, int maximumGroups = 1000,
         int maximumPayloadBytes = CosmicProjectionResults.MaximumPayloadLimit, CancellationToken cancellationToken = default) where T : IHolon
     {
-        if (!IsProviderActivated || _holonRepository is not HolonRepository repository)
+        if (!IsProviderActivated)
             return Task.FromResult(new OASISResult<IReadOnlyList<CosmicGroupedRow>>
             { IsError = true, ErrorCount = 1, ErrorCode = "CQL_PROVIDER_NOT_READY", Message = "Activate SQLite before native grouped execution." });
-        return repository.ExecuteCosmicGroupedAsync(plan, maximumGroups, maximumPayloadBytes, cancellationToken);
+        return WithHolonRepositoryAsync(repository => repository.ExecuteCosmicGroupedAsync(plan, maximumGroups, maximumPayloadBytes, cancellationToken));
     }
 }

@@ -114,73 +114,73 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
-            var result = _avatarRepository.DeleteAvatar(id, softDelete);
+            var result = WithAvatarRepository(repository => repository.DeleteAvatar(id, softDelete));
             return result;
         }
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
-            var result = _avatarRepository.DeleteAvatar(providerKey, softDelete);
+            var result = WithAvatarRepository(repository => repository.DeleteAvatar(providerKey, softDelete));
             return result;
         }
 
         public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
-            var result = _avatarRepository.DeleteAvatarAsync(id, softDelete);
+            var result = WithAvatarRepositoryAsync(repository => repository.DeleteAvatarAsync(id, softDelete));
             return result;
         }
 
         public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            var result = _avatarRepository.DeleteAvatarAsync(providerKey, softDelete);
+            var result = WithAvatarRepositoryAsync(repository => repository.DeleteAvatarAsync(providerKey, softDelete));
             return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
-            var result = _avatarRepository.DeleteAvatarByEmail(avatarEmail, softDelete);
+            var result = WithAvatarRepository(repository => repository.DeleteAvatarByEmail(avatarEmail, softDelete));
             return result;
         }
 
         public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
-            var result = _avatarRepository.DeleteAvatarByEmailAsync(avatarEmail, softDelete);
+            var result = WithAvatarRepositoryAsync(repository => repository.DeleteAvatarByEmailAsync(avatarEmail, softDelete));
             return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
-            var result = _avatarRepository.DeleteAvatarByUsername(avatarUsername, softDelete);
+            var result = WithAvatarRepository(repository => repository.DeleteAvatarByUsername(avatarUsername, softDelete));
             return result;
         }
 
         public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
-            var result = _avatarRepository.DeleteAvatarByUsernameAsync(avatarUsername, softDelete);
+            var result = WithAvatarRepositoryAsync(repository => repository.DeleteAvatarByUsernameAsync(avatarUsername, softDelete));
             return result;
         }
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
-            var result = _holonRepository.DeleteHolon(id, softDelete: false);
+            var result = WithHolonRepository(repository => repository.DeleteHolon(id, softDelete: false));
             return result;
         }
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
-            var result = _holonRepository.DeleteHolon(providerKey, softDelete: false);
+            var result = WithHolonRepository(repository => repository.DeleteHolon(providerKey, softDelete: false));
             return result;
         }
 
         public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
-            var result = _holonRepository.DeleteHolonAsync(id, softDelete: false);
+            var result = WithHolonRepositoryAsync(repository => repository.DeleteHolonAsync(id, softDelete: false));
             return result;
         }
 
         public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
-            var result = _holonRepository.DeleteHolonAsync(providerKey, softDelete: false);
+            var result = WithHolonRepositoryAsync(repository => repository.DeleteHolonAsync(providerKey, softDelete: false));
             return result;
         }
 
@@ -200,7 +200,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     }
                 }
 
-                var avatarsResult = _avatarRepository.LoadAllAvatars();
+                var avatarsResult = WithAvatarRepository(repository => repository.LoadAllAvatars());
                 if (avatarsResult.IsError || avatarsResult.Result == null)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}", avatarsResult.Exception);
@@ -239,7 +239,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     }
                 }
 
-                var holonsResult = _holonRepository.LoadAllHolons(HolonType.All, true, true, 0, 0, true, 0);
+                var holonsResult = WithHolonRepository(repository => repository.LoadAllHolons(HolonType.All, true, true, 0, 0, true, 0));
                 if (holonsResult.IsError || holonsResult.Result == null)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}", holonsResult.Exception);
@@ -263,49 +263,49 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
-            var result = _avatarDetailRepository.LoadAllAvatarDetails(version);
+            var result = WithAvatarDetailRepository(repository => repository.LoadAllAvatarDetails(version));
             return result;
         }
 
         public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
-            var result = _avatarDetailRepository.LoadAllAvatarDetailsAsync(version);
+            var result = WithAvatarDetailRepositoryAsync(repository => repository.LoadAllAvatarDetailsAsync(version));
             return result;
         }
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
-            var result = _avatarRepository.LoadAllAvatars(version);
+            var result = WithAvatarRepository(repository => repository.LoadAllAvatars(version));
             return result;
         }
 
         public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
-            var result = _avatarRepository.LoadAllAvatarsAsync(version);
+            var result = WithAvatarRepositoryAsync(repository => repository.LoadAllAvatarsAsync(version));
             return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var result = _holonRepository.LoadAllHolons(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version);
+            var result = WithHolonRepository(repository => repository.LoadAllHolons(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version));
             return result;
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var result = _holonRepository.LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version);
+            var result = WithHolonRepositoryAsync(repository => repository.LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version));
             return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
         {
-            var result = _avatarRepository.LoadAvatar(Id, version);
+            var result = WithAvatarRepository(repository => repository.LoadAvatar(Id, version));
             return result;
         }
 
         //public override OASISResult<IAvatar> LoadAvatar(string username, int version = 0)
         //{
-        //    var result = _avatarRepository.LoadAvatar(username, version);
+        //    var result = WithAvatarRepository(repository => repository.LoadAvatar(username, version));
         //    return result;
         //}
 
@@ -330,7 +330,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
 
                 // Load avatar by username and verify password
-                var avatarResult = await _avatarRepository.LoadAvatarAsync(username, version);
+                var avatarResult = await WithAvatarRepositoryAsync(repository => repository.LoadAvatarAsync(username, version));
                 if (avatarResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {avatarResult.Message}");
@@ -365,115 +365,115 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
         {
-            var result = _avatarRepository.LoadAvatarAsync(Id, version);
+            var result = WithAvatarRepositoryAsync(repository => repository.LoadAvatarAsync(Id, version));
             return result;
         }
 
         //public override Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0)
         //{
-        //    var result = _avatarRepository.LoadAvatarAsync(username, version);
+        //    var result = WithAvatarRepositoryAsync(repository => repository.LoadAvatarAsync(username, version));
         //    return result;
         //}
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {
-            var result = _avatarRepository.LoadAvatarByEmail(avatarEmail, version);
+            var result = WithAvatarRepository(repository => repository.LoadAvatarByEmail(avatarEmail, version));
             return result;
         }
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
         {
-            var result = _avatarRepository.LoadAvatarByEmailAsync(avatarEmail, version);
+            var result = WithAvatarRepositoryAsync(repository => repository.LoadAvatarByEmailAsync(avatarEmail, version));
             return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
         {
-            var result = _avatarRepository.LoadAvatarByUsername(avatarUsername, version);
+            var result = WithAvatarRepository(repository => repository.LoadAvatarByUsername(avatarUsername, version));
             return result;
         }
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            var result = _avatarRepository.LoadAvatarByUsernameAsync(avatarUsername, version);
+            var result = WithAvatarRepositoryAsync(repository => repository.LoadAvatarByUsernameAsync(avatarUsername, version));
             return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
         {
-            var result = _avatarDetailRepository.LoadAvatarDetail(id, version);
+            var result = WithAvatarDetailRepository(repository => repository.LoadAvatarDetail(id, version));
             return result;
         }
 
         public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
-            var result = _avatarDetailRepository.LoadAvatarDetailAsync(id, version);
+            var result = WithAvatarDetailRepositoryAsync(repository => repository.LoadAvatarDetailAsync(id, version));
             return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
         {
-            var result = _avatarDetailRepository.LoadAvatarDetailByEmail(avatarEmail, version);
+            var result = WithAvatarDetailRepository(repository => repository.LoadAvatarDetailByEmail(avatarEmail, version));
             return result;
         }
 
         public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
-            var result = _avatarDetailRepository.LoadAvatarDetailByEmailAsync(avatarEmail, version);
+            var result = WithAvatarDetailRepositoryAsync(repository => repository.LoadAvatarDetailByEmailAsync(avatarEmail, version));
             return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
         {
-            var result = _avatarDetailRepository.LoadAvatarDetailByUsername(avatarUsername, version);
+            var result = WithAvatarDetailRepository(repository => repository.LoadAvatarDetailByUsername(avatarUsername, version));
             return result;
         }
 
         public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
-            var result = _avatarDetailRepository.LoadAvatarDetailByUsernameAsync(avatarUsername, version);
+            var result = WithAvatarDetailRepositoryAsync(repository => repository.LoadAvatarDetailByUsernameAsync(avatarUsername, version));
             return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
-            var result = _avatarRepository.LoadAvatarByProviderKey(providerKey, version);
+            var result = WithAvatarRepository(repository => repository.LoadAvatarByProviderKey(providerKey, version));
             return result;
         }
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
-            var result = _avatarRepository.LoadAvatarByProviderKeyAsync(providerKey, version);
+            var result = WithAvatarRepositoryAsync(repository => repository.LoadAvatarByProviderKeyAsync(providerKey, version));
             return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByVerificationToken(string verificationToken, int version = 0)
-            => _avatarRepository.LoadAvatarByVerificationToken(verificationToken, version);
+            => WithAvatarRepository(repository => repository.LoadAvatarByVerificationToken(verificationToken, version));
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string verificationToken, int version = 0)
-            => _avatarRepository.LoadAvatarByVerificationTokenAsync(verificationToken, version);
+            => WithAvatarRepositoryAsync(repository => repository.LoadAvatarByVerificationTokenAsync(verificationToken, version));
 
         public override OASISResult<IAvatar> LoadAvatarByResetToken(string resetToken, int version = 0)
-            => _avatarRepository.LoadAvatarByResetToken(resetToken, version);
+            => WithAvatarRepository(repository => repository.LoadAvatarByResetToken(resetToken, version));
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string resetToken, int version = 0)
-            => _avatarRepository.LoadAvatarByResetTokenAsync(resetToken, version);
+            => WithAvatarRepositoryAsync(repository => repository.LoadAvatarByResetTokenAsync(resetToken, version));
 
         public override OASISResult<IAvatar> LoadAvatarByRefreshToken(string refreshToken, int version = 0)
-            => _avatarRepository.LoadAvatarByRefreshToken(refreshToken, version);
+            => WithAvatarRepository(repository => repository.LoadAvatarByRefreshToken(refreshToken, version));
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string refreshToken, int version = 0)
-            => _avatarRepository.LoadAvatarByRefreshTokenAsync(refreshToken, version);
+            => WithAvatarRepositoryAsync(repository => repository.LoadAvatarByRefreshTokenAsync(refreshToken, version));
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var result = _holonRepository.LoadHolon(id, loadChildren, recursive, maxChildDepth, continueOnError, version);
+            var result = WithHolonRepository(repository => repository.LoadHolon(id, loadChildren, recursive, maxChildDepth, continueOnError, version));
             return result;
         }
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var result = _holonRepository.LoadHolon(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, version);
+            var result = WithHolonRepository(repository => repository.LoadHolon(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, version));
             return result;
         }
 

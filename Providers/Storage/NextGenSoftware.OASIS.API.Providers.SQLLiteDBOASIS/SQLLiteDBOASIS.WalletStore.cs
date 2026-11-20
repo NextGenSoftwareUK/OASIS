@@ -1,4 +1,5 @@
 using System;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,6 +20,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
     {
         private async Task<OASISResult<bool>> StoreOwnedWalletBatchAsync(Dictionary<ProviderType, List<IProviderWallet>> wallets)
         {
+            using var context=new DataContext(_ownConnectionString);
             var result = new OASISResult<bool>();
             var affected = new List<string>();
             var persistenceEntered = false;
@@ -28,21 +30,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     throw new ArgumentException("Every batch wallet requires an explicit avatar owner.");
                 var groups = wallets.SelectMany(entry => entry.Value.Select(wallet => new { Provider = entry.Key, Wallet = wallet }))
                     .GroupBy(entry => entry.Wallet.AvatarId).ToList();
-                await using var transaction = await _appDataContext.Database.BeginTransactionAsync();
+                await using var transaction = await context.Database.BeginTransactionAsync();
                 foreach (var group in groups)
                 {
-                    var owner = await _avatarRepository.LoadAvatarAsync(group.Key);
+                    var owner = await WithAvatarRepositoryAsync(repository => repository.LoadAvatarAsync(group.Key));
                     if (owner.IsError) { result.IsError = true; result.Exception = owner.Exception; result.ErrorCode = owner.ErrorCode; result.Message = owner.Message; return result; }
                     if (owner.Result == null) throw new ArgumentException("Batch wallet owner does not exist.");
                 }
                 foreach (var group in groups)
                 {
-                    var current = await ReadLocalWalletsAsync(group.Key);
+                    var current = await ReadLocalWalletsAsync(context,group.Key);
                     foreach (var provider in group.GroupBy(entry => entry.Provider))
                         current[provider.Key] = provider.Select(entry => entry.Wallet).ToList();
                     affected.Add(group.Key.ToString());
                     persistenceEntered = true;
-                    var saved = await StoreLocalWalletsAsync(group.Key, current);
+                    var saved = await StoreLocalWalletsAsync(context,group.Key, current);
                     if (saved.IsError) { result = saved; return result; }
                 }
                 await transaction.CommitAsync();
@@ -59,7 +61,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 try
                 {
-                    foreach (var entry in _appDataContext.ChangeTracker.Entries<AvatarWalletStore>().Where(entry => affected.Contains(entry.Entity.AvatarId)).ToList())
+                    foreach (var entry in context.ChangeTracker.Entries<AvatarWalletStore>().Where(entry => affected.Contains(entry.Entity.AvatarId)).ToList())
                         entry.State = EntityState.Detached;
                 }
                 catch (Exception cleanup)
@@ -84,6 +86,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
         private async Task<OASISResult<bool>> StoreLocalWalletsAsync(Guid avatarId,
             Dictionary<ProviderType, List<IProviderWallet>> wallets)
         {
+            using var context=new DataContext(_ownConnectionString);
+            return await StoreLocalWalletsAsync(context,avatarId,wallets).ConfigureAwait(false);
+        }
+
+        private async Task<OASISResult<bool>> StoreLocalWalletsAsync(DataContext context,Guid avatarId,
+            Dictionary<ProviderType, List<IProviderWallet>> wallets)
+        {
             var result = new OASISResult<bool>();
             AvatarWalletStore row = null;
             var persistenceEntered = false;
@@ -101,21 +110,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     || (entry.Wallet.ProviderType != NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default && entry.Wallet.ProviderType != entry.Provider)))
                     throw new ArgumentException("Wallet provider types must match their dictionary provider.");
                 var json = StoredRecordJson.SerializeInput(wallets);
-                row = await _appDataContext.AvatarWalletStores.SingleOrDefaultAsync(value => value.AvatarId == avatarId.ToString());
+                row = await context.AvatarWalletStores.SingleOrDefaultAsync(value => value.AvatarId == avatarId.ToString());
                 if (row == null)
                 {
                     row = new AvatarWalletStore { AvatarId = avatarId.ToString() };
-                    _appDataContext.AvatarWalletStores.Add(row);
+                    context.AvatarWalletStores.Add(row);
                 }
                 row.WalletsJson = json;
                 persistenceEntered = true;
-                await _appDataContext.SaveChangesAsync();
+                await context.SaveChangesAsync();
                 result.Result = true;
                 result.IsSaved = true;
             }
             catch (Exception exception)
             {
-                try { if (row != null) _appDataContext.Entry(row).State = EntityState.Detached; }
+                try { if (row != null) context.Entry(row).State = EntityState.Detached; }
                 catch (Exception cleanup) { exception = new AggregateException("SQLite wallet failure cleanup also failed.", exception, cleanup); }
                 if (persistenceEntered) exception = new SqliteMutationReconciliationException(avatarId, exception);
                 result.IsError = true;
@@ -127,7 +136,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         private async Task<Dictionary<ProviderType, List<IProviderWallet>>> ReadLocalWalletsAsync(Guid avatarId)
         {
-            var row = await _appDataContext.AvatarWalletStores.AsNoTracking()
+            using var context=new DataContext(_ownConnectionString);
+            return await ReadLocalWalletsAsync(context,avatarId).ConfigureAwait(false);
+        }
+
+        private async Task<Dictionary<ProviderType, List<IProviderWallet>>> ReadLocalWalletsAsync(DataContext context,Guid avatarId)
+        {
+            var row = await context.AvatarWalletStores.AsNoTracking()
                 .SingleOrDefaultAsync(value => value.AvatarId == avatarId.ToString());
             var result = new Dictionary<ProviderType, List<IProviderWallet>>();
             if (row == null) return result;

@@ -23,9 +23,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
     {
         private readonly DataContext _appDataContext;
 
-        private readonly IAvatarDetailRepository _avatarDetailRepository;
-        private readonly IAvatarRepository _avatarRepository;
-        private readonly IHolonRepository _holonRepository;
         private readonly SqliteConnection _memoryLifetimeConnection;
 
         public SQLLiteDBOASIS(string connectionString)
@@ -55,9 +52,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 _memoryLifetimeConnection = new SqliteConnection(settings.ToString());
             }
             _ownConnectionString = settings.ToString();
-            _avatarDetailRepository = new AvatarDetailRepository(_appDataContext);
-            _avatarRepository = new AvatarRepository(_appDataContext);
-            _holonRepository = new HolonRepository(_appDataContext,()=>IsVersionControlEnabled);
         }
 
         private void EnsureMemoryLifetime()

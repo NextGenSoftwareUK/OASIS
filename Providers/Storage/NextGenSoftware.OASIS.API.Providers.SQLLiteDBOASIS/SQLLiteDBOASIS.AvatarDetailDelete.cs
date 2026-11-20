@@ -8,8 +8,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 {
     public partial class SQLLiteDBOASIS
     {
-        public OASISResult<bool> DeleteAvatarDetail(Guid id, bool softDelete = true) => _avatarDetailRepository.DeleteAvatarDetail(id, softDelete);
-        public Task<OASISResult<bool>> DeleteAvatarDetailAsync(Guid id, bool softDelete = true) => _avatarDetailRepository.DeleteAvatarDetailAsync(id, softDelete);
+        public OASISResult<bool> DeleteAvatarDetail(Guid id, bool softDelete = true) => WithAvatarDetailRepository(repository => repository.DeleteAvatarDetail(id, softDelete));
+        public Task<OASISResult<bool>> DeleteAvatarDetailAsync(Guid id, bool softDelete = true) => WithAvatarDetailRepositoryAsync(repository => repository.DeleteAvatarDetailAsync(id, softDelete));
         public OASISResult<bool> DeleteAvatarDetailByUsername(string username, bool softDelete = true) =>
             DeleteSelectedDetail(LoadAvatarDetailByUsername(username), softDelete);
         public OASISResult<bool> DeleteAvatarDetailByEmail(string email, bool softDelete = true) =>

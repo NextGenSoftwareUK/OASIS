@@ -12,6 +12,64 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 public sealed class SqliteWalletSummaryTests
 {
     [Fact]
+    public async Task WalletBatchContextKeepsBothOwnersAtomicWhenSecondNativeWriteFails()
+    {
+        var folder=Directory.CreateTempSubdirectory("oasis-wallet-context-");
+        var connectionString=$"Data Source={Path.Combine(folder.FullName,"wallets.db")};Pooling=False";
+        try
+        {
+            using var provider=new SQLLiteDBOASIS(connectionString);
+            var activated=await provider.ActivateProviderAsync();Assert.False(activated.IsError,activated.Message);
+            var first=Guid.NewGuid();var second=Guid.NewGuid();
+            foreach(var id in new[]{first,second})
+            {
+                var saved=await provider.SaveAvatarAsync(new Avatar{Id=id,Username="wallet-"+id.ToString("N"),
+                    Email=id.ToString("N")+"@example.test",IsActive=true});
+                Assert.False(saved.IsError,saved.Message);
+            }
+            ProviderWallet Wallet(Guid owner,string address)=>new(){AvatarId=owner,WalletId=Guid.NewGuid(),
+                ProviderType=ProviderType.SolanaOASIS,WalletAddress=address};
+            var a=Wallet(first,"original-first");var b=Wallet(second,"original-second");
+            var batch=new Dictionary<ProviderType,List<IProviderWallet>>{{ProviderType.SolanaOASIS,[a,b]}};
+            var initial=await provider.SaveProviderWalletsAsync(batch);Assert.False(initial.IsError,initial.Message);
+            async Task<Dictionary<string,string>> ReadNative()
+            {
+                using var connection=new Microsoft.Data.Sqlite.SqliteConnection(connectionString);await connection.OpenAsync();
+                using var command=connection.CreateCommand();
+                command.CommandText="SELECT AvatarId,WalletsJson FROM AvatarWalletStores ORDER BY AvatarId";
+                using var reader=await command.ExecuteReaderAsync();var rows=new Dictionary<string,string>();
+                while(await reader.ReadAsync())rows.Add(reader.GetString(0),reader.GetString(1));
+                return rows;
+            }
+            var before=await ReadNative();Assert.Equal(2,before.Count);
+            using(var connection=new Microsoft.Data.Sqlite.SqliteConnection(connectionString))
+            {
+                await connection.OpenAsync();using var command=connection.CreateCommand();
+                // The owned GUID is a fixture literal; SQLite trigger DDL cannot bind parameters.
+                command.CommandText="CREATE TRIGGER refuse_second_wallet BEFORE UPDATE ON AvatarWalletStores WHEN NEW.AvatarId='"+
+                    second.ToString("D")+"' BEGIN SELECT RAISE(ABORT,'owned wallet rollback'); END;";
+                await command.ExecuteNonQueryAsync();
+            }
+            a.WalletAddress="changed-first";b.WalletAddress="changed-second";
+            var failed=await provider.SaveProviderWalletsAsync(batch);Assert.True(failed.IsError);
+            Assert.False(failed.Result);Assert.False(failed.IsSaved);
+            var after=await ReadNative();Assert.Equal(before.Count,after.Count);
+            foreach(var row in before)Assert.Equal(row.Value,after[row.Key]);
+            var loaded=await provider.LoadProviderWalletsForAvatarByIdAsync(first);
+            Assert.False(loaded.IsError,loaded.Message);
+            Assert.Equal("original-first",Assert.Single(loaded.Result[ProviderType.SolanaOASIS]).WalletAddress);
+            Console.WriteLine("SQLite scoped wallet batch native rollback verified: two owners unchanged after second native write refusal.");
+        }
+        finally
+        {
+            Assert.StartsWith(Path.GetFullPath(Path.GetTempPath()),Path.GetFullPath(folder.FullName));
+            Assert.StartsWith("oasis-wallet-context-",folder.Name);folder.Delete(true);
+            Assert.False(Directory.Exists(folder.FullName));
+            Console.WriteLine("Owned SQLite wallet context fixture cleanup verified.");
+        }
+    }
+
+    [Fact]
     public async Task ReadsWalletSummaryFromNativeSqlite()
     {
         var folder = Directory.CreateTempSubdirectory("oasis-wallet-summary-");

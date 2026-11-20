@@ -18,12 +18,12 @@ public partial class SQLLiteDBOASIS : IHolonMigrationMutationStorageProvider, Ne
     public Task<OASISResult<HolonMigrationFenceObservation>> BeginHolonMigrationMutationAsync(HolonMigrationMutationStartRequest request, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (!IsProviderActivated || _holonRepository == null)
+        if (!IsProviderActivated)
             return Task.FromResult(new OASISResult<HolonMigrationFenceObservation> { IsError = true, ErrorCount = 1,
                 ErrorCode = "COSMIC_MIGRATION_FENCE_NOT_READY", Message = "Activate the existing native store before mutation phase admission." });
         if (request == null) return Task.FromResult(new OASISResult<HolonMigrationFenceObservation> { IsError = true, ErrorCount = 1,
             ErrorCode = "COSMIC_MIGRATION_FENCE_OPTIONS_INVALID", Message = "An exact immutable native mutation start request is required." });
-        return _holonRepository.BeginHolonMigrationMutationAsync(request, cancellationToken);
+        return WithHolonRepositoryAsync(repository => repository.BeginHolonMigrationMutationAsync(request, cancellationToken));
     }
 
     public Task<OASISResult<HolonMigrationFenceObservation>> AdoptPreparedHolonReplicaAsync(
@@ -31,23 +31,23 @@ public partial class SQLLiteDBOASIS : IHolonMigrationMutationStorageProvider, Ne
         Guid owner, CancellationToken token = default)
     {
         token.ThrowIfCancellationRequested();
-        if (!IsProviderActivated || _holonRepository == null)
+        if (!IsProviderActivated)
             return Task.FromResult(new OASISResult<HolonMigrationFenceObservation> { IsError = true, ErrorCount = 1,
                 ErrorCode = "COSMIC_MIGRATION_FENCE_NOT_READY", Message = "Activate the existing store before native adoption." });
-        return _holonRepository.AdoptPreparedHolonReplicaAsync(plan, owner, token);
+        return WithHolonRepositoryAsync(repository => repository.AdoptPreparedHolonReplicaAsync(plan, owner, token));
     }
 
     private Task<OASISResult<HolonMigrationFenceObservation>> Fence(HolonMigrationFenceRequest request,
         SqliteHolonMigrationFence.Action action, Guid owner, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
-        if (!IsProviderActivated || _holonRepository == null)
+        if (!IsProviderActivated)
             return Task.FromResult(new OASISResult<HolonMigrationFenceObservation> { IsError = true, ErrorCount = 1,
                 ErrorCode = "COSMIC_MIGRATION_FENCE_NOT_READY", Message = "Activate the existing native store before migration fence operations." });
         return action switch {
-            SqliteHolonMigrationFence.Action.Acquire => _holonRepository.AcquireHolonMigrationFenceAsync(request, token),
-            SqliteHolonMigrationFence.Action.Read => _holonRepository.ReadHolonMigrationFenceAsync(request, token),
-            _ => _holonRepository.CancelHolonMigrationFenceAsync(request, owner, token)
+            SqliteHolonMigrationFence.Action.Acquire => WithHolonRepositoryAsync(repository => repository.AcquireHolonMigrationFenceAsync(request, token)),
+            SqliteHolonMigrationFence.Action.Read => WithHolonRepositoryAsync(repository => repository.ReadHolonMigrationFenceAsync(request, token)),
+            _ => WithHolonRepositoryAsync(repository => repository.CancelHolonMigrationFenceAsync(request, owner, token))
         };
     }
 }

@@ -21,11 +21,11 @@ public partial class SQLLiteDBOASIS : ICosmicQueryEntityProjectionStorageProvide
     public Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteCosmicEntityProjectionAsync<T,TResult>(
         CosmicEntityProjectionPlan<T,TResult> plan,int maximumResults=100,
         int maximumPayloadBytes=CosmicProjectionResults.MaximumPayloadLimit,CancellationToken cancellationToken=default) where T:IHolon
-        => ((HolonRepository)_holonRepository).ExecuteCosmicEntityProjectionAsync(plan,maximumResults,maximumPayloadBytes,cancellationToken);
+        => WithHolonRepositoryAsync(repository => repository.ExecuteCosmicEntityProjectionAsync(plan,maximumResults,maximumPayloadBytes,cancellationToken));
 
     public Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteCosmicProjectionAsync<T, TResult>(
         CosmicProjectionPlan<T, TResult> plan, int maximumResults = 100,
         int maximumPayloadBytes = CosmicProjectionResults.MaximumPayloadLimit,
         CancellationToken cancellationToken = default) where T : IHolon
-        => ((HolonRepository)_holonRepository).ExecuteCosmicProjectionAsync(plan, maximumResults, maximumPayloadBytes, cancellationToken);
+        => WithHolonRepositoryAsync(repository => repository.ExecuteCosmicProjectionAsync(plan, maximumResults, maximumPayloadBytes, cancellationToken));
 }

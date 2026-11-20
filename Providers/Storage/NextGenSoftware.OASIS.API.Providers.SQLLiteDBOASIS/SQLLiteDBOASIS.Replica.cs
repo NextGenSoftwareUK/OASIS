@@ -19,29 +19,29 @@ public partial class SQLLiteDBOASIS : ICommittedHolonReplicaStorageProvider, ICo
 {
     public Task<OASISResult<CommittedHolonReplicaReceiptEvidence>> ReadCommittedHolonReplicaReceiptAsync(
         CommittedHolonReplicaReceiptReadRequest request, CancellationToken cancellationToken = default)
-        => _holonRepository.ReadCommittedHolonReplicaReceiptAsync(request, cancellationToken);
+        => WithHolonRepositoryAsync(repository => repository.ReadCommittedHolonReplicaReceiptAsync(request, cancellationToken));
 
     public Task<OASISResult<HolonReplicaHeadReadResult>> ReadHolonReplicaHeadsAsync(
         HolonReplicaHeadReadRequest request, CancellationToken cancellationToken = default)
-        => _holonRepository.ReadHolonReplicaHeadsAsync(request, cancellationToken);
+        => WithHolonRepositoryAsync(repository => repository.ReadHolonReplicaHeadsAsync(request, cancellationToken));
 
     public OASISResult<IEnumerable<IHolon>> ApplyBoundCommittedHolonReplica(CommittedHolonReplicaRequest request,
         CosmicStorageIdentity expectedStorage)
-        => _holonRepository.ApplyBoundCommittedHolonReplica(request, expectedStorage, CancellationToken.None);
+        => WithHolonRepository(repository => repository.ApplyBoundCommittedHolonReplica(request, expectedStorage, CancellationToken.None));
 
     public Task<OASISResult<IEnumerable<IHolon>>> ApplyBoundCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,
         CosmicStorageIdentity expectedStorage, CancellationToken cancellationToken = default)
-        => Task.FromResult(_holonRepository.ApplyBoundCommittedHolonReplica(request, expectedStorage, cancellationToken));
+        => Task.FromResult(WithHolonRepository(repository => repository.ApplyBoundCommittedHolonReplica(request, expectedStorage, cancellationToken)));
 
     public OASISResult<IEnumerable<IHolon>> ApplyCommittedHolonReplica(CommittedHolonReplicaRequest request)
-        =>_holonRepository.ApplyCommittedHolonReplica(request,CancellationToken.None);
+        =>WithHolonRepository(repository => repository.ApplyCommittedHolonReplica(request,CancellationToken.None));
     public Task<OASISResult<IEnumerable<IHolon>>> ApplyCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,
         CancellationToken cancellationToken=default)
-        =>Task.FromResult(_holonRepository.ApplyCommittedHolonReplica(request,cancellationToken));
+        =>Task.FromResult(WithHolonRepository(repository => repository.ApplyCommittedHolonReplica(request,cancellationToken)));
 
     public OASISResult<IEnumerable<IHolon>> InitializeCommittedHolonReplica(CommittedHolonReplicaRequest request)
-        =>_holonRepository.InitializeCommittedHolonReplica(request,CancellationToken.None);
+        =>WithHolonRepository(repository => repository.InitializeCommittedHolonReplica(request,CancellationToken.None));
     public Task<OASISResult<IEnumerable<IHolon>>> InitializeCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,
         CancellationToken cancellationToken=default)
-        =>Task.FromResult(_holonRepository.InitializeCommittedHolonReplica(request,cancellationToken));
+        =>Task.FromResult(WithHolonRepository(repository => repository.InitializeCommittedHolonReplica(request,cancellationToken)));
 }

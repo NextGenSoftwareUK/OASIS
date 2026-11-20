@@ -1,5 +1,5 @@
 {
-  "status": "verified_neo_guid_source_delta_integrated_current_combined_compile_pending",
+  "status": "verified_development_base_plus_owned_sqlite_lifetime_delta_compile_pending",
   "sourceCheckpoint": "38d4320ef7cffa3ce8d6c77cb312dee3f42acb9d",
   "core": "96f6baea21c1423795f7effcac208a8f6485b30c",
   "importedFiles": [
@@ -1115,16 +1115,16 @@
   "compileSource": "c943fd7bb6db3f36b1254d7955d2d55ad51e8a23",
   "compileErrors": 0,
   "latestCompilation": {
-    "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452",
-    "nativeContractProjectErrors": 0,
-    "browserCasesPassed": 0,
-    "run": 44645656756,
+    "source": "8fa04636c4b86292f7e4d514dda68f3958f1c9f2",
+    "laterNeoGuidAndContextDeltaNotQualified": true,
+    "run": 44647749986,
     "providerAcceptanceComplete": false,
-    "source": "9f35e76a74afbf02b91df3f6a70f7172263a5878",
-    "job": 135987442587,
+    "nativeContractProjectErrors": 0,
     "browserCasesFailed": 2,
+    "browserCasesPassed": 0,
     "apiErrors": 0,
-    "laterNeoGuidImportNotQualified": true
+    "job": 135994567443,
+    "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452"
   },
   "distinctDecoderDelta": {
     "checkpoint": "4bc16067885688f60fffa4241a018afed2e14ef4",
@@ -1147,5 +1147,87 @@
     "combinedCompilePending": true,
     "originalCheckpointEntries": 181,
     "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452"
-  }
+  },
+  "ownedRepositoryLifetimeOverlays": [
+    {
+      "blob": "01870d785cf6929401333fd0a634278d77d44d08",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Avatar.cs"
+    },
+    {
+      "blob": "63c9f22f0649246d36201f98d93632b28cdf2c1a",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.AvatarDetailDelete.cs"
+    },
+    {
+      "blob": "d1163f06b71c8b70550075f83a58fb117a774572",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Conditional.cs"
+    },
+    {
+      "blob": "c0944009a3b8c45308ae16b53878725cfa8dfd63",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.ConditionalRecovery.cs"
+    },
+    {
+      "blob": "11b09de9c03a7544cb17554818cc08049ef672e9",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.Composition.cs"
+    },
+    {
+      "blob": "dae714968ae586ed4396cb9bbe80305b1ade782e",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.EntityComposition.cs"
+    },
+    {
+      "blob": "09ea5edf08e17718493645356989baeb6260f3d2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.Grouped.cs"
+    },
+    {
+      "blob": "fa6eca8672976e742eb6c5fa38ac01a023605694",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.Join.cs"
+    },
+    {
+      "blob": "6aa2ba0c7c5ee6c6b50a8e712ceae942b2dd7794",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.Projection.cs"
+    },
+    {
+      "blob": "d8e605de6082169dd9a1f20b598fddd90000f581",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.Scalar.cs"
+    },
+    {
+      "blob": "f20f94a934b5916059ff881bb400ee20123edd6f",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.cs"
+    },
+    {
+      "blob": "6a337c0cf62e88deb7f683470cc5ffef70e7f927",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Holon.cs"
+    },
+    {
+      "blob": "6f97d51d4a170216da06af8b6ee1c9e48b6fe178",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.MigrationFence.cs"
+    },
+    {
+      "blob": "1cd0040e9492e79b1673dff9be875ae322ffc0df",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Preparation.cs"
+    },
+    {
+      "blob": "7ad816190936c2999c288f6bea15becfa638b1fc",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Replica.cs"
+    },
+    {
+      "blob": "f97efea536226d75ba7f961b0f227aee68c3abf3",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.ReplicaRecovery.cs"
+    },
+    {
+      "blob": "1cc8e682fd35b4cf59e27155fb8113bfcf13404f",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Save.cs"
+    },
+    {
+      "blob": "82f40527a0fe3e14c62a4cc4f39a81305d846260",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Tombstones.cs"
+    },
+    {
+      "blob": "181555887a0dd785cf59390373476a601277acd9",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.WalletStore.cs"
+    },
+    {
+      "blob": "b733b9571992e0b9eb12ce47ba7a09050ce28b69",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.cs"
+    }
+  ]
 }

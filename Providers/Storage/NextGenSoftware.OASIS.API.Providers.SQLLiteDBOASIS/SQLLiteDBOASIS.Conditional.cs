@@ -10,25 +10,25 @@ public partial class SQLLiteDBOASIS : IConditionalHolonPropertyStorageProvider, 
 {
     public OASISResult<IEnumerable<IHolon>> ExecuteReplicatingHolonWrite(ConditionalHolonWriteRequest request,
         HolonReplicationEnrollment enrollment)
-        => _holonRepository.ExecuteReplicatingHolonWrite(request, enrollment, CancellationToken.None);
+        => WithHolonRepository(repository => repository.ExecuteReplicatingHolonWrite(request, enrollment, CancellationToken.None));
 
     public Task<OASISResult<IEnumerable<IHolon>>> ExecuteReplicatingHolonWriteAsync(ConditionalHolonWriteRequest request,
         HolonReplicationEnrollment enrollment, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.FromResult(_holonRepository.ExecuteReplicatingHolonWrite(request, enrollment, cancellationToken));
+        return Task.FromResult(WithHolonRepository(repository => repository.ExecuteReplicatingHolonWrite(request, enrollment, cancellationToken)));
     }
 
     public OASISResult<IEnumerable<IHolon>> ExecuteConditionalHolonPropertyWrite(ConditionalHolonPropertyWriteRequest request)
-        =>_holonRepository.ExecuteConditionalHolonPropertyWrite(request);
+        =>WithHolonRepository(repository => repository.ExecuteConditionalHolonPropertyWrite(request));
     public Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalHolonPropertyWriteAsync(
         ConditionalHolonPropertyWriteRequest request,CancellationToken cancellationToken=default)
-        =>_holonRepository.ExecuteConditionalHolonPropertyWriteAsync(request,cancellationToken);
+        =>WithHolonRepositoryAsync(repository => repository.ExecuteConditionalHolonPropertyWriteAsync(request,cancellationToken));
 
     public OASISResult<IEnumerable<IHolon>> ExecuteConditionalHolonWrite(ConditionalHolonWriteRequest request)
-        => _holonRepository.ExecuteConditionalHolonWrite(request);
+        => WithHolonRepository(repository => repository.ExecuteConditionalHolonWrite(request));
 
     public Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalHolonWriteAsync(
         ConditionalHolonWriteRequest request, CancellationToken cancellationToken = default)
-        => _holonRepository.ExecuteConditionalHolonWriteAsync(request, cancellationToken);
+        => WithHolonRepositoryAsync(repository => repository.ExecuteConditionalHolonWriteAsync(request, cancellationToken));
 }

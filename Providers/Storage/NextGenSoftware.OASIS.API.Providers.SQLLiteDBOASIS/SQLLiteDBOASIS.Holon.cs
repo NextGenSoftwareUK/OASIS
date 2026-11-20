@@ -23,37 +23,37 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var result = _holonRepository.LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, version);
+            var result = WithHolonRepositoryAsync(repository => repository.LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, version));
             return result;
         }
 
         public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var result = _holonRepository.LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, version);
+            var result = WithHolonRepositoryAsync(repository => repository.LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, version));
             return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var result = _holonRepository.LoadHolonsForParent(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version);
+            var result = WithHolonRepository(repository => repository.LoadHolonsForParent(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version));
             return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var result = _holonRepository.LoadHolonsForParent(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version);
+            var result = WithHolonRepository(repository => repository.LoadHolonsForParent(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version));
             return result;
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var result = _holonRepository.LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version);
+            var result = WithHolonRepositoryAsync(repository => repository.LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version));
             return result;
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var result = _holonRepository.LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version);
+            var result = WithHolonRepositoryAsync(repository => repository.LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version));
             return result;
         }
 
@@ -65,49 +65,49 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar)
         {
-            var result = _avatarRepository.SaveAvatar(Avatar);
+            var result = WithAvatarRepository(repository => repository.SaveAvatar(Avatar));
             return result;
         }
 
         public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
         {
-            var result = _avatarRepository.SaveAvatarAsync(Avatar);
+            var result = WithAvatarRepositoryAsync(repository => repository.SaveAvatarAsync(Avatar));
             return result;
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar)
         {
-            var result = _avatarDetailRepository.SaveAvatarDetail(Avatar);
+            var result = WithAvatarDetailRepository(repository => repository.SaveAvatarDetail(Avatar));
             return result;
         }
 
         public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar)
         {
-            var result = _avatarDetailRepository.SaveAvatarDetailAsync(Avatar);
+            var result = WithAvatarDetailRepositoryAsync(repository => repository.SaveAvatarDetailAsync(Avatar));
             return result;
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var result = _holonRepository.SaveHolon(holon, saveChildren, recursive, maxChildDepth, continueOnError);
+            var result = WithHolonRepository(repository => repository.SaveHolon(holon, saveChildren, recursive, maxChildDepth, continueOnError));
             return result;
         }
 
         public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var result = _holonRepository.SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError);
+            var result = WithHolonRepositoryAsync(repository => repository.SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError));
             return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var result = _holonRepository.SaveHolons(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError);
+            var result = WithHolonRepository(repository => repository.SaveHolons(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError));
             return result;
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var result = _holonRepository.SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError);
+            var result = WithHolonRepositoryAsync(repository => repository.SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError));
             return result;
         }
 
@@ -198,8 +198,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                         _ => throw new ArgumentException("Invalid date search operator.")
                     };
                     // Basic in-memory search using available repo APIs
-                    var holonLoad = await _holonRepository.LoadAllHolonsAsync(loadChildren: loadChildren,
-                        recursive: recursive, maxChildDepth: maxChildDepth, continueOnError: continueOnError, version: version);
+                    var holonLoad = await WithHolonRepositoryAsync(repository => repository.LoadAllHolonsAsync(loadChildren: loadChildren,
+                        recursive: recursive, maxChildDepth: maxChildDepth, continueOnError: continueOnError, version: version));
                     if(holonLoad.IsError){
                         OASISErrorHandling.HandleError(ref result,"SQLite holon search failed: "+holonLoad.Message,holonLoad.Exception);
                         return result;
@@ -214,7 +214,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                             var scopeRows=candidates;
                             if(version!=0)
                             {
-                                var scopeLoad=await _holonRepository.LoadAllHolonsAsync(loadChildren:false,version:0);
+                                var scopeLoad=await WithHolonRepositoryAsync(repository => repository.LoadAllHolonsAsync(loadChildren:false,version:0));
                                 if(scopeLoad.IsError)
                                 {
                                     OASISErrorHandling.HandleError(ref result,"SQLite search parent links failed: "+scopeLoad.Message,scopeLoad.Exception);
@@ -267,7 +267,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                         }))));
                     }
 
-                    var avatarLoad = await _avatarRepository.LoadAllAvatarsAsync(version);
+                    var avatarLoad = await WithAvatarRepositoryAsync(repository => repository.LoadAllAvatarsAsync(version));
                     if(avatarLoad.IsError){
                         OASISErrorHandling.HandleError(ref result,"SQLite avatar search failed: "+avatarLoad.Message,avatarLoad.Exception);
                         return result;
@@ -361,7 +361,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
 
                 // Load all avatars and aggregate their provider wallets
-                var allAvatarsResult = await _avatarRepository.LoadAllAvatarsAsync();
+                var allAvatarsResult = await WithAvatarRepositoryAsync(repository => repository.LoadAllAvatarsAsync());
                 if (allAvatarsResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {allAvatarsResult.Message}", allAvatarsResult.Exception);
@@ -457,7 +457,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
 
                 // Load avatar to get provider wallets
-                var avatarResult = await _avatarRepository.LoadAvatarAsync(id);
+                var avatarResult = await WithAvatarRepositoryAsync(repository => repository.LoadAvatarAsync(id));
                 if (avatarResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {avatarResult.Message}", avatarResult.Exception);
@@ -502,7 +502,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
 
                 // Load avatar by username to get provider wallets
-                var avatarResult = await _avatarRepository.LoadAvatarByUsernameAsync(username);
+                var avatarResult = await WithAvatarRepositoryAsync(repository => repository.LoadAvatarByUsernameAsync(username));
                 if (avatarResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}", avatarResult.Exception);
@@ -547,7 +547,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
 
                 // Load avatar by email to get provider wallets
-                var avatarResult = await _avatarRepository.LoadAvatarByEmailAsync(email);
+                var avatarResult = await WithAvatarRepositoryAsync(repository => repository.LoadAvatarByEmailAsync(email));
                 if (avatarResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}", avatarResult.Exception);
@@ -592,7 +592,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
 
                 // Load avatar and update provider wallets
-                var avatarResult = await _avatarRepository.LoadAvatarAsync(id);
+                var avatarResult = await WithAvatarRepositoryAsync(repository => repository.LoadAvatarAsync(id));
                 if (avatarResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {avatarResult.Message}", avatarResult.Exception);
