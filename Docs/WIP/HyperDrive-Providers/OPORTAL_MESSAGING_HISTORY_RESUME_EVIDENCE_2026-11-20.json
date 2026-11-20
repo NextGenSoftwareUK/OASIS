@@ -49,5 +49,13 @@
     "generatedLocalResults": 0,
     "ownedTemporarySyntaxFile": "35KB script exceeded Windows command-length limit; checked with existing Node from exact owned path, removed, absence verified. Initial slash normalization guard corrected before running/deleting.",
     "runtimeCleanup": "Pending actual CI execution"
+  },
+  "pendingRun": {
+    "id": 44729296217,
+    "job": 136264633110,
+    "source": "2fc6f9df9dc0c0298fadfce1536d9274453339a5",
+    "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44729296217",
+    "status": "in_progress",
+    "selection": "Only new read-only pagination/session-resume Fact; accepted cases excluded"
   }
 }
