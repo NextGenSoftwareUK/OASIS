@@ -1,3 +1,7 @@
+20 November — Development rollout verified: Railway deployment 4123ecf2-6464-4f29-b436-7fdd2a18bc22 SUCCESS at exact source 47e5dca48829b5754b02c956af88c6b167940e49 (Core5c). Bounded Swagger GET returned200 in7486ms; no data queries. Saved DNA hash remains unchanged and the saved four-read admission budget is present. This proves deployment/schema readiness, not populated query/browser/free-model acceptance. Development pushes remain authorized; normal cadence at most hourly, critical fixes sooner. Prefer isolated Mongo CI; no shared Atlas loops.
+
+Int32 mixed HTTP qualification dispatched once: run44688872316, immutable source282379bf15c20c2f904490391a50e29ba40c27ad, job136129622464 queued at observation. Three new real-store cases; retained native/contracts13 and editor14 are not rerun. Full parity remains61/168 per primary store plus4/13 extensions.
+
 20 November — Int32 mixed HTTP qualification prepared. Three new cases use the actual controller, Core and Mongo/SQLite/Neo providers with stored/virtual records, a stale cached stock value, a wide native integer, equality/inequality, one final sorted page, foreign-owner refusal, exact usage settlement and source/cache preservation. Four owner calls and one foreign call per store; no accepted native13/editor14 rerun. Qualification is pending. Development47 is building with saved four-read budget; no new deployment or configuration mutation from this batch. No Atlas/PIPER data, local environment, build or database files.
 
 20 November — Development handoff in progress.
