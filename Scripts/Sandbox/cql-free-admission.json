@@ -75,7 +75,7 @@
         "fixedCostUsd": 0,
         "pricingCatalogueVersion": "sandbox-demo-free-v2",
         "requiresProviderMeasurement": true,
-        "maximumProviderAttempts": 3,
+        "maximumProviderAttempts": 4,
         "maximumNativeFeeCostUsd": 0
       }
     },
