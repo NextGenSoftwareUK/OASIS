@@ -86,7 +86,10 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             await bolt.TrackOwnedActorAsync(foreignId);
             await SeedRoutingStores(stores, foreignId);
         }
-        var manager = Routing(stores, true, mode);
+        // These two cases qualify each named native store, not replication.
+        // A failed read must surface instead of passing through another backend.
+        var isolatedPortraitFlow = portraitEditAfterUpload || portraitClientReplacement;
+        var manager = Routing(stores, !isolatedPortraitFlow, mode);
         var sdk = new AvatarManager(null, manager.OASISDNA, manager);
 
         var root = new DirectoryInfo(AppContext.BaseDirectory);
@@ -194,7 +197,10 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     {
                         if (browser)
                         {
-                            var selected = manager.PublishRoutingOverrides(new NextGenSoftware.OASIS.API.Core.Configuration.ProviderRoutingOverrides(), provider);
+                            var selected = manager.PublishRoutingOverrides(isolatedPortraitFlow
+                                ? new NextGenSoftware.OASIS.API.Core.Configuration.ProviderRoutingOverrides(
+                                    autoFailoverEnabled: false, autoReplicationEnabled: false, autoLoadBalancingEnabled: false)
+                                : new NextGenSoftware.OASIS.API.Core.Configuration.ProviderRoutingOverrides(), provider);
                             Assert.False(selected.IsError, selected.Message);
                         }
                         if (portraitBrowser)

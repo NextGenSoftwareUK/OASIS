@@ -64,9 +64,39 @@
     "previousAcceptedCohortsSelected": 0,
     "run": 44645656756,
     "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452",
-    "status": "in_progress_not_accepted",
+    "status": "completed_failure_form_completion_and_provider_mismatch",
     "portal": "2a46fb18b6c939ea77135b84c85d22f8d8a45d88",
     "source": "9f35e76a74afbf02b91df3f6a70f7172263a5878",
-    "expectedNativeHandoffs": 6
+    "expectedNativeHandoffs": 6,
+    "job": 135987442587,
+    "result": {
+      "browserRuntimeCleanup": true,
+      "fixtureStops": "both success",
+      "mongoClientNativePersistenceMarker": true,
+      "filesWritten": 0,
+      "total": 2,
+      "passed": 0,
+      "nativeProjectErrors": 0,
+      "failed": 2,
+      "applicationManagerRestores": 2,
+      "skipped": 0,
+      "strictFailedTrxCasesVerified": 2,
+      "sha256": "0ddf6979aacb6c3947801a561cff3cd849fdde33fcb0b179befd2ddf4746635d",
+      "durationSeconds": 28,
+      "apiErrors": 0,
+      "bytes": 5976,
+      "artifact": 14589196980
+    }
+  },
+  "followUp": {
+    "fix": "Invoke single finishPortraitUpload owner on finally and synchronous FileReader failure",
+    "routingMismatchStillOpenOutsideIsolatedProviderAcceptance": true,
+    "status": "prepared_not_dispatched",
+    "fixtureScope": "Two new native-acceptance cases disable failover/load balancing/replication so named native backend must answer or fail; old accepted cases unchanged",
+    "selectedCases": 2,
+    "portalBundle": "4ccf867befa9abb543bb8f4587f07e5914ac6c73",
+    "accepted": false,
+    "portalSource": "be7a3f5c9ab28dfa5abeb449d7ea01dcdf0f333f",
+    "bundleRun": 44647446920
   }
 }
