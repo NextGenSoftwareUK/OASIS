@@ -76,3 +76,7 @@ Use await session.FindAsync<Holon>(id) for a key lookup. A first lookup reads an
 ## Synchronous entry points (source; native verification pending)
 
 Managed SaveChanges, Read, GetDatabaseValues, Reload, Find, LoadParent and LoadChildren have synchronous forms. Stateless Insert, Save, Delete and Read likewise share the async owned implementations, explicit revisions and acknowledged identity/result publication. The synchronous call waits for that operation to finish and does not create a second persistence path or implicit flush. Existing async entry points remain appropriate for the WEB4 request flow. Source08510d56; its native3 sync/async agreement and write-effect cohort is separate from earlier accepted async cases. Broader graph and mixed lifecycle contracts remain open.
+
+## Stateless logical lifetime (source; native verification pending)
+
+CosmicStatelessSession implements IDisposable. Use using for its logical lifetime; manager/provider connection ownership stays with the caller. An idle session closes idempotently. Dispose during an active operation throws without changing the outstanding operation state, allowing its definite native result to finish. After closure, queries and read/write methods return COSMIC_STATELESS_DISPOSED before evaluating caller roots. A fresh session can use the same borrowed manager/provider. This source has one bounded three-provider lifecycle cohort; no connection pooling or full framework lifetime claim is inferred.
