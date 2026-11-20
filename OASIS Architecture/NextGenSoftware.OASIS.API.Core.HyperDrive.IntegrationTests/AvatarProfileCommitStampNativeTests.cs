@@ -36,6 +36,13 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 .Find(record => record.HolonId == id).Project<BsonDocument>(new BsonDocument()).SingleAsync();
             return row.ToJson();
         }
+        public async Task<string> ReadHolonDocumentNativeAsync(Guid id)
+        {
+            var row = await _client.GetDatabase(_name)
+                .GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon>("Holon")
+                .Find(record => record.HolonId == id).Project<BsonDocument>(new BsonDocument()).SingleAsync();
+            return row.ToJson();
+        }
         public IOASISStorageProvider CreatePreferencePeerProvider(PreferenceNativeReadBarrier barrier) =>
             new PreferenceReadGatedMongo(MongoUri,_name,barrier);
         public async Task<(string? Address,string? Portrait)> ReadPortraitNativeStateAsync(Guid id)
@@ -101,6 +108,13 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 new { id = id.ToString() })).SingleAsync();
             return row["account"].As<string>();
         }
+        public async Task<string> ReadHolonDocumentNativeAsync(Guid id)
+        {
+            using var session = _driver.AsyncSession();
+            var row = await (await session.RunAsync("MATCH (h:Holon {Id:$id}) RETURN h.SnapshotJson AS snapshot",
+                new { id = id.ToString() })).SingleAsync();
+            return row["snapshot"].As<string>();
+        }
         public IOASISStorageProvider CreatePreferencePeerProvider(PreferenceNativeReadBarrier barrier) =>
             new PreferenceReadGatedNeo("bolt://127.0.0.1:27687","neo4j","oasis-profile-fixture-only",barrier);
         public async Task<string?> ReadFirstNameNativeAsync(Guid id)
@@ -124,7 +138,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             Assert.NotEqual(Guid.Empty,id);
             Assert.DoesNotContain(id,_owned);
             using var session=_driver.AsyncSession();
-            var absent=await(await session.RunAsync("MATCH (n) WHERE ((n:Avatar OR n:AvatarDetail) AND n.Id=$id) OR (n:OasisRecordVersion AND n.RecordId=$id) RETURN count(n) AS count",new{id=id.ToString()})).SingleAsync();
+            var absent=await(await session.RunAsync("MATCH (n) WHERE ((n:Avatar OR n:AvatarDetail OR n:Holon) AND n.Id=$id) OR (n:OasisRecordVersion AND n.RecordId=$id) RETURN count(n) AS count",new{id=id.ToString()})).SingleAsync();
             Assert.Equal(0L,absent["count"].As<long>());_owned.Add(id);
         }
         public async Task Activate(Guid id)
@@ -142,9 +156,9 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     foreach(var owned in _owned)
                     {
                         using var session=_driver.AsyncSession();var id=owned.ToString();
-                        await(await session.RunAsync("MATCH (n) WHERE (n:Avatar OR n:AvatarDetail) AND n.Id=$id DETACH DELETE n",new{id})).ConsumeAsync();
+                        await(await session.RunAsync("MATCH (n) WHERE (n:Avatar OR n:AvatarDetail OR n:Holon) AND n.Id=$id DETACH DELETE n",new{id})).ConsumeAsync();
                         await(await session.RunAsync("MATCH (v:OasisRecordVersion) WHERE v.RecordId=$id DELETE v",new{id})).ConsumeAsync();
-                        var remaining=await(await session.RunAsync("MATCH (n) WHERE ((n:Avatar OR n:AvatarDetail) AND n.Id=$id) OR (n:OasisRecordVersion AND n.RecordId=$id) RETURN count(n) AS count",new{id})).SingleAsync();
+                        var remaining=await(await session.RunAsync("MATCH (n) WHERE ((n:Avatar OR n:AvatarDetail OR n:Holon) AND n.Id=$id) OR (n:OasisRecordVersion AND n.RecordId=$id) RETURN count(n) AS count",new{id})).SingleAsync();
                         Assert.Equal(0L,remaining["count"].As<long>());
                     }
                 }
@@ -168,6 +182,14 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             using var connection=new Microsoft.Data.Sqlite.SqliteConnection(Connection);await connection.OpenAsync();
             using var command=connection.CreateCommand();
             command.CommandText="SELECT MetaDataJson FROM Avatar WHERE Id=$id";
+            command.Parameters.AddWithValue("$id",id.ToString());
+            return Assert.IsType<string>(await command.ExecuteScalarAsync());
+        }
+        public async Task<string> ReadHolonMetadataJsonNativeAsync(Guid id)
+        {
+            using var connection=new Microsoft.Data.Sqlite.SqliteConnection(Connection);await connection.OpenAsync();
+            using var command=connection.CreateCommand();
+            command.CommandText="SELECT MetaDataJson FROM Holon WHERE Id=$id";
             command.Parameters.AddWithValue("$id",id.ToString());
             return Assert.IsType<string>(await command.ExecuteScalarAsync());
         }

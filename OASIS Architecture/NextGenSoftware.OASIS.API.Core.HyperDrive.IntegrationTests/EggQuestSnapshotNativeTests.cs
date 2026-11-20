@@ -20,13 +20,16 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             await using var bolt = new BoltStore();
             await bolt.Activate(actor);
             await bolt.TrackOwnedActorAsync(other);
+            var settingsId = (Guid)typeof(HolonManager).GetMethod("GetSettingsHolonId", BindingFlags.Static | BindingFlags.NonPublic)!
+                .Invoke(null, [actor, "Eggs"])!;
+            await bolt.TrackOwnedActorAsync(settingsId);
             using var sqlite = new SqliteStore();
             Assert.False((await sqlite.Provider.ActivateProviderAsync()).IsError);
-            var stores = new (IOASISStorageProvider Provider, Func<Guid, Task<string>> Native)[]
+            var stores = new (IOASISStorageProvider Provider, Func<Guid, Task<string>> Native, Func<Guid, Task<string>> SettingsNative)[]
             {
-                (mongo.Provider, mongo.ReadDocumentNativeAsync),
-                (sqlite.Provider, sqlite.ReadMetadataJsonNativeAsync),
-                (bolt.Provider, bolt.ReadDocumentNativeAsync)
+                (mongo.Provider, mongo.ReadDocumentNativeAsync, mongo.ReadHolonDocumentNativeAsync),
+                (sqlite.Provider, sqlite.ReadMetadataJsonNativeAsync, sqlite.ReadHolonMetadataJsonNativeAsync),
+                (bolt.Provider, bolt.ReadDocumentNativeAsync, bolt.ReadHolonDocumentNativeAsync)
             };
             foreach (var store in stores)
             {
@@ -70,7 +73,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 Assert.False(board.IsError, board.Message);
                 Assert.True(board.IsSaved);
 
-                var native = await store.Native(actor);
+                var native = await store.SettingsNative(settingsId);
                 Assert.Contains("Owned active egg quest", native);
                 Assert.Contains("Owned zero-score avatar", native);
                 Assert.Contains("questLeaderboard", native);
