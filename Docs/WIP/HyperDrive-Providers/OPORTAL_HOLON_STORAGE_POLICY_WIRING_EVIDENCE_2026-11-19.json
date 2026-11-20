@@ -1,5 +1,5 @@
 {
-  "status": "canonical_preference_reader_fix_pending_qualification",
+  "status": "canonical_preference_reader_fix_confirmed_running",
   "finding": "Frozen portal4ccf holon-storage-policy.js calls api/settings/holon-storage-policy, but this worktree had no matching controller route",
   "route": "api/settings/holon-storage-policy",
   "verbs": [
@@ -63,19 +63,14 @@
     "runtimeAccepted": false
   },
   "activeQualification": {
-    "run": 44674578858,
-    "job": 136083253404,
-    "source": "ea00cfb43e54064d73a00bbf1de702eebff36dae",
-    "core": "33712edf309b42635ca756930907db37188d76e9",
-    "portal": "4ccf867befa9abb543bb8f4587f07e5914ac6c73",
-    "sdk": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
-    "status": "confirmed_in_progress",
+    "run": 44676814008,
+    "source": "bb11d43df816d46ffbeaba632bf157ac97535086",
+    "core": "9f740686c1d7eb67c2f3ab11de7754692be7a120",
+    "status": "in_progress",
     "expectedTRXResults": 1,
     "expectedNativeBrowserHandoffs": 3,
     "oldAcceptedCohortsSelected": 0,
-    "productionGraphChanged": false,
-    "deadlinesAndAssertionsChanged": false,
-    "diagnostic": "Only selected owned native policy category and exact decoder error before retained failed assertion"
+    "deadlinesAndAssertionsChanged": false
   },
   "firstQualification": {
     "run": 44670753115,
