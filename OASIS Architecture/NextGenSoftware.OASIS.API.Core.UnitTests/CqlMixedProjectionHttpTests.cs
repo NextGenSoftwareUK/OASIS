@@ -150,7 +150,7 @@ public partial class CqlV1Web4Tests
             MappedProjectionHttpRequest(fixture.MappingId, provider), source, mixed: true));
         Assert.Equal(duplicate ? "CQL_PROVIDER_RESULT_INVALID" : "CQL_VIRTUAL_SOURCE_LIMIT", Code(response));
         Assert.Equal(duplicate ? 1 : 0, source.VirtualCalls);
-        Assert.Equal(2, admitted.Receipts.Count);
+        Assert.Single(admitted.Receipts);
     }
 
     [Fact]

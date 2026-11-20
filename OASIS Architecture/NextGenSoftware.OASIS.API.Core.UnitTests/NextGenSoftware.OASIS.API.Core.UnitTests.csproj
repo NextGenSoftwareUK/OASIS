@@ -52,6 +52,7 @@
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlScalarV1Request.cs" Link="Production/CqlScalarV1Request.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlProjectionV1Request.cs" Link="Production/CqlProjectionV1Request.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectionV1Compiler.cs" Link="Production/CqlProjectionV1Compiler.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlMixedSnapshotAuthority.cs" Link="Production/CqlMixedSnapshotAuthority.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlIndexedV1Request.cs" Link="Production/CqlIndexedV1Request.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlIndexedV1RequestContext.cs" Link="Production/CqlIndexedV1RequestContext.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlIndexedV1Endpoint.cs" Link="Production/CqlIndexedV1Endpoint.cs" />
