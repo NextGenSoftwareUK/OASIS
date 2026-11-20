@@ -151,12 +151,15 @@ jobs:
           sparse-checkout: |
             /assets/components/dashboard.html
             /assets/components/modals/avatar.html
+            /assets/components/modals/hyperdrive.html
             /assets/components/modals/subscription.html
             /assets/components/modals/subscription-admin.html
             /assets/css/
             /assets/fonts/
             /assets/img/loggedin.png
             /assets/js/avatar-modal.js
+            /assets/js/hyperdrive-modal.js
+            /assets/js/holon-storage-policy.js
             /assets/js/subscription-modal.js
             /assets/js/subscription-admin-modal.js
             /assets/js/usage-charts.js
@@ -165,6 +168,22 @@ jobs:
             /assets/js/oasis-web4-sdk.js
             /docs/WIP/PROFILE_BROWSER_BUNDLE_EVIDENCE.json
             /portal.html
+
+      - name: Verify actual HyperDrive browser input blobs
+        if: ${{ contains(inputs.native_test_filter, 'HyperDriveSettingsBrowserUsesActualSdkAndNativeProviders') }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $evidence = Get-Content Docs/WIP/HyperDrive-Providers/OPORTAL_HYPERDRIVE_SETTINGS_BROWSER_EVIDENCE_2026-11-19.json -Raw | ConvertFrom-Json
+          $head = git -C ../portal-profile-browser rev-parse HEAD
+          if ($LASTEXITCODE -or $head -ne $evidence.portal) { throw 'The recorded HyperDrive browser portal revision is required.' }
+          foreach ($entry in $evidence.exactPortalBlobs.PSObject.Properties) {
+            if (!(Test-Path -LiteralPath (Join-Path ../portal-profile-browser $entry.Name) -PathType Leaf)) {
+              throw "Missing actual HyperDrive browser input: $($entry.Name)"
+            }
+            $blob = git -C ../portal-profile-browser hash-object -- $entry.Name
+            if ($LASTEXITCODE -or $blob -ne $entry.Value) { throw "HyperDrive input differs from its recorded blob: $($entry.Name)" }
+          }
 
       - uses: actions/setup-dotnet@v4
         with:

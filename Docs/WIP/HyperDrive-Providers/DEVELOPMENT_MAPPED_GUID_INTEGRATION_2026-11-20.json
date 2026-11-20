@@ -1,5 +1,5 @@
 {
-  "status": "verified_peer_batch_integrated_combined_compile_pending",
+  "status": "combined_API_and_actual_native_project_compile_accepted_peer_CQL_proofs_retained",
   "development": "8017ee4cda3039ab3fe3e87ee170462d8ef73253",
   "previousDevelopment": "b8b344b9153ef570a64425fcb38d8619c11a2fdb",
   "coreMerge": {
@@ -38,7 +38,7 @@
     "sha256": "242290aa968822f764954fdc8b95811dbbba57372c5bccd491b452b92ec429bd",
     "evidence": "Docs/WIP/COSMIC ORM/GUID_MIXED_HTTP_QUALIFICATION.md; peer image/package gates and Development publication recorded in peer CURRENT_STATUS"
   },
-  "next": "Qualify merged source through the already necessary corrected new routing/browser batch; no unchanged peer or owned behavior cohort rerun",
+  "next": "Retain combined compile and peer accepted CQL evidence; separate actual portal browser acceptance remains open.",
   "sharedServicesTouched": false,
   "deploymentPerformed": false,
   "dnaChanges": false,
@@ -54,5 +54,17 @@
     "expectedTRXResults": 4,
     "expectedNativeBrowserHandoffs": 3,
     "unchangedAcceptedCohortsSelected": 0
+  },
+  "combinedBuild": {
+    "run": 44665413205,
+    "job": 136053370753,
+    "source": "d4ca5eb117825c3e7a635ee729ec76ed79703e64",
+    "core": "db589d220112400ca03439083a0c5166e66eb6fb",
+    "apiErrors": 0,
+    "actualNativeProjectCompiled": true,
+    "newPreferenceNativePassed": 3,
+    "oldPeerCqlCasesRerun": 0,
+    "newBrowser": "failed missing test checkout assets; not product CQL failure",
+    "hostedAccepted": false
   }
 }

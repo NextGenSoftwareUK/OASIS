@@ -1,5 +1,5 @@
 {
-  "status": "shipping_graph_compiled_three_rows_fail_at_list_observer_corrected_pending",
+  "status": "scoped_three_native_roundtrip_cases_accepted_browser_separate",
   "test": "HyperDrivePreferencesNativeRoundTripUsesScopedProviderAndPreservesCategories",
   "providers": [
     "MongoDBOASIS",
@@ -40,9 +40,9 @@
     "effectivePolicy": "Use constructor-supplied provider manager instead of process singleton",
     "test": "Assert declared avatarOverrides and effective list, preserve node-default response contract; require independent ADO privacy scalar check for SQLite",
     "compiled": true,
-    "runtimeAccepted": false
+    "runtimeAccepted": true
   },
-  "next": "Compile actual API artifact needed by NEW browser host and run ONLY three failed round-trip rows plus one NEW actual browser case/three native handoffs. Product graph unchanged since5264; old accepted cohorts excluded.",
+  "next": "Retain these three passes; retry ONLY failed new actual browser case after sparse source checkout correction.",
   "sharedServicesTouched": false,
   "hostedAccepted": false,
   "fullPortalAccepted": false,
@@ -81,5 +81,27 @@
     "expectedTRXResults": 4,
     "expectedNativeBrowserHandoffs": 3,
     "unchangedAcceptedCohortsSelected": 0
+  },
+  "acceptance": {
+    "run": 44665413205,
+    "job": 136053370753,
+    "source": "d4ca5eb117825c3e7a635ee729ec76ed79703e64",
+    "core": "db589d220112400ca03439083a0c5166e66eb6fb",
+    "passedNativeRows": 3,
+    "failedNativeRows": 0,
+    "skippedNativeRows": 0,
+    "wholeBatch": "3passed1browser_failed",
+    "categoryPreservationRoutingCaptureEffectivePolicyAndClearInheritance": true,
+    "rawSQLiteMetadataScalar": true,
+    "artifact": 14597149400,
+    "bytes": 3367,
+    "sha256": "b53f76f8167f5b93e78cdda2c7953a96c29ad1dba76a5f249f3ed42e0652db9d",
+    "nativeAcceptanceAndCleanupMarkers": 6,
+    "exactIDsDefinitionsOutcomes": true,
+    "settingsManagerRestored": true,
+    "fixtureStops": "both success",
+    "browserRuntimeCleanup": true,
+    "streamsDisposed": true,
+    "filesWritten": 0
   }
 }

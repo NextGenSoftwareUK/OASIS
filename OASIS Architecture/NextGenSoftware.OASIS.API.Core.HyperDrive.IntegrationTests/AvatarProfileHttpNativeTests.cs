@@ -240,6 +240,10 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                             var before=await Read(store,id);
                             using var verified=await ExchangeSdkRequest(new
                                 {baseUrl=address,token=Token(id),providerType=provider.ToString(),avatarId=id.ToString("D")});
+                            Assert.False(verified.RootElement.TryGetProperty("isError",out var settingsBrowserError)
+                                && settingsBrowserError.GetBoolean(),
+                                verified.RootElement.TryGetProperty("message",out var settingsBrowserMessage)
+                                    ? settingsBrowserMessage.GetString() : "Actual HyperDrive browser verification failed.");
                             Assert.True(verified.RootElement.GetProperty("hyperDriveSettingsBrowserVerified").GetBoolean());
                             Assert.Equal(1,verified.RootElement.GetProperty("saveRequests").GetInt32());
                             var settingsAccount=await store.LoadAvatarAsync(id);Assert.False(settingsAccount.IsError,settingsAccount.Message);

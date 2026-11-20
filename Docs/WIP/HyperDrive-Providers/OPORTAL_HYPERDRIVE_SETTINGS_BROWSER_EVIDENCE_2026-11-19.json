@@ -1,5 +1,5 @@
 {
-  "status": "first_qualification_API_compiled_test_compile_failed_correction_prepared",
+  "status": "first_runtime_failed_missing_owned_CI_assets_checkout_corrected_pending",
   "test": "HyperDriveSettingsBrowserUsesActualSdkAndNativeProviders",
   "resultsExpected": 1,
   "nativeBrowserHandoffsExpected": 3,
@@ -33,7 +33,7 @@
   "fullPortalAccepted": false,
   "sharedServicesTouched": false,
   "localGeneratedOutputs": 0,
-  "next": "Retry same three failed routing round-trip rows plus NEW browser case after test-only naming fix; compile verified Development GUID integration in same necessary batch, no old accepted cohort rerun.",
+  "next": "Retry ONLY this failed browser Fact, three real native handoffs. Do not rerun three accepted direct round-trip rows.",
   "firstQualification": {
     "run": 44663918202,
     "job": 136048503204,
@@ -60,5 +60,25 @@
     "expectedTRXResults": 4,
     "expectedNativeBrowserHandoffs": 3,
     "unchangedAcceptedCohortsSelected": 0
+  },
+  "firstRuntime": {
+    "run": 44665413205,
+    "job": 136053370753,
+    "source": "d4ca5eb117825c3e7a635ee729ec76ed79703e64",
+    "core": "db589d220112400ca03439083a0c5166e66eb6fb",
+    "apiAndTestBuild": "success_zero_errors",
+    "failedBrowserRows": 1,
+    "passedOtherNativeRows": 3,
+    "failure": "Fixture open button stayed disabled: existing sparse checkout omitted actual hyperdrive.html/hyperdrive-modal.js/holon-storage-policy.js",
+    "correction": "Include three exact pinned assets and verify recorded portal/blob SHAs before build; report broker failure before reading success properties",
+    "browserAcceptance": false,
+    "settingsManagerRestored": true,
+    "browserRuntimeCacheControlCleanup": true,
+    "MongoAbsenceVerified": true,
+    "fixtureStops": "both success",
+    "artifact": 14597149400,
+    "bytes": 3367,
+    "sha256": "b53f76f8167f5b93e78cdda2c7953a96c29ad1dba76a5f249f3ed42e0652db9d",
+    "filesWritten": 0
   }
 }

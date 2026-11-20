@@ -2,11 +2,11 @@
   "sourceConsumerReview": "REST SettingsController GET/PUT subscription-settings, GraphQL Query/Mutation and gRPC SettingsGrpcService all call the legacy Core SettingsManager facade. The generated public JS SDK exposes it. Inspected portal settings-modal.js and onet-modal.js have no direct call. Main subscription popup uses separate authoritative ISubscriptionService. Wiring only REST would leave GraphQL/gRPC/aggregate fabricated defaults unresolved.",
   "findings": [
     {
-      "evidence": "Run44651948304 actual SettingsManager saves overwrote a newer native FirstName on Mongo/SQLite/Neo. Core940bd3 preserves conflict/save flags and merges HyperDrive category against one loaded revision. Parent2d6a35 adds native predecessor admission under existing CAS/locked transaction or SQLite account transaction.",
-      "runtimeAccepted": false,
+      "evidence": "Native revision passes44659888087 plus44661680570; new round-trip3 passed44665413205 on mergedCoredb589, including raw SQLite scalar, effective scope and DEFAULT inheritance. Legacy billing defaults remain separate open finding.",
+      "runtimeAccepted": true,
       "id": "HD-PREFS-FULL-ACCOUNT-SAVE",
-      "risk": "Confirmed lost update in all three native providers; prepared correction not yet runtime accepted.",
-      "next": "Run44659229134/job136033042273 selects only three failed preference rows and verifies an explicit fresh save plus public privacy read after conflict. API/native builds and terminal fixture cleanup required."
+      "risk": "Original loss confirmed; native revision conflict/fresh save and category/routing round-trip accepted for Mongo/SQLite/Neo only. Other providers and hosted/full portal remain unaccepted.",
+      "next": "Retain native passes; qualify actual browser via corrected owned sparse checkout."
     },
     {
       "runtimeAccepted": false,
@@ -32,6 +32,6 @@
   "portal": "2a46fb18b6c939ea77135b84c85d22f8d8a45d88",
   "scope": "HyperDrive UI status preferences delivery history and legacy settings subscription facade",
   "sharedServicesTouched": false,
-  "core": "940bd3f30773a650da21132003e5525397fe8080",
-  "status": "confirmed_native_loss_with_revision_correction_pending_qualification"
+  "core": "db589d220112400ca03439083a0c5166e66eb6fb",
+  "status": "scoped_preference_revision_and_native_roundtrip_accepted_legacy_subscription_and_browser_open"
 }
