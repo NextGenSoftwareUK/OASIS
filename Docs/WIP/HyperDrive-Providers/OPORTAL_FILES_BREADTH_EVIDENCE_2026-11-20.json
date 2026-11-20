@@ -1,0 +1,50 @@
+{
+  "status": "source_wired_main_flow_pending",
+  "date": "2026-11-20",
+  "portal": "83848d7b0ef1c36cf1a67c0958e7b9abdee38f66",
+  "changes": [
+    "Initialize canonical SDK session before list/upload/download/delete",
+    "Require actual isError=false result; malformed list does not become empty success",
+    "Upload preserves actual JSON base64 body and fileName/contentType/description query contract",
+    "Download reads actual camelCase FileDownload data/fileName/contentType, releases Blob URL in finally",
+    "Upload/delete success requires actual ID/boolean acknowledgement; no optimistic list mutation",
+    "Ignore obsolete context/read revisions; cancel owned FileReader on close/logout; reset controls and clear private file UI on logout",
+    "Preserve existing dashboard close refresh and API paths; obsolete status timer cannot hide newer operation"
+  ],
+  "contracts": {
+    "list": "getAllFilesStoredForCurrentLoggedInAvatar -> StoredFile[]",
+    "upload": "POST api/files/upload-file, JSON base64 byte[] body and query fields",
+    "download": "downloadFile({fileId}) -> FileDownload",
+    "delete": "deleteFile({fileId}) -> bool",
+    "actor": "Existing FilesController uses authenticated AvatarId; no client actor override"
+  },
+  "validation": {
+    "nodeSyntax": true,
+    "remoteFilesExact": 2,
+    "apiChanged": false,
+    "acceptedTestsRerun": 0,
+    "newRuntimeTests": 0,
+    "runtimeAccepted": false
+  },
+  "coordination": {
+    "lastReviewedDevelopment": "aac9cc3017c0485153b0127138a9a12202b371b8",
+    "deltaCommits": 3,
+    "deltaFiles": 17,
+    "ownedKarmaPortalCodeOverlap": false,
+    "peerIntegration": "Pending scoped CQL donor/evidence review; no import or retest"
+  },
+  "cleanup": {
+    "downloads": 0,
+    "environments": 0,
+    "worktrees": 0,
+    "localBuilds": 0,
+    "generatedResults": 0,
+    "sharedBackendCalls": 0,
+    "syntax": "Existing Node stdin only"
+  },
+  "limits": [
+    "Changed Files browser/backend main-flow verification pending",
+    "No full OPORTAL or hosted acceptance",
+    "No DNA/deployment/shared Atlas action"
+  ]
+}
