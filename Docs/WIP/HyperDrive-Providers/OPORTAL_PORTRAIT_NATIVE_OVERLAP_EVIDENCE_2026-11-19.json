@@ -140,5 +140,19 @@
     "changedPaths": 1,
     "bytesVerified": true,
     "commit": "4ed5e486671a008413ceea3f6b37bb871de3880b"
+  },
+  "correctedBatch": {
+    "cases": [
+      "PortraitBrowserThenProfileEditUsesCommittedRevisionsAndThreeNativeProviders",
+      "ProfileModalClientReplacementUsesActualHttpAndThreeNativeProviders"
+    ],
+    "accepted": false,
+    "previousAcceptedCohortsSelected": 0,
+    "run": 44645656756,
+    "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452",
+    "status": "in_progress_not_accepted",
+    "portal": "2a46fb18b6c939ea77135b84c85d22f8d8a45d88",
+    "source": "9f35e76a74afbf02b91df3f6a70f7172263a5878",
+    "expectedNativeHandoffs": 6
   }
 }
