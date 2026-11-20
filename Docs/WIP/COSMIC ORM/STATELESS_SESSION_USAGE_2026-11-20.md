@@ -1,6 +1,6 @@
 # Stateless bulk sessions — functional breadth
 
-Source: Core `a187a221505fe3c717dc1c415bb883db6ebffe93`, `Queries/CosmicStatelessSession.cs`. Native qualification is pending. This API is excluded from the current session/date release image, which pins accepted Core `7b04e2dc`.
+Source: Core `a187a221505fe3c717dc1c415bb883db6ebffe93`, `Queries/CosmicStatelessSession.cs`. Native qualification passed on all three real stores in run44743889763 (exact source7cf97c6cce6d; artifact14631299627, SHA2564571aa4fed4fdf1ca13a54c094112613d0c3980cee16e477cf5070d7cf7ff1b0). This API is excluded from the current session/date release image, which pins accepted Core `7b04e2dc`.
 
 Use `CosmicStatelessSession.Create(manager, nativeProvider, readAccess)` with the application's existing HolonManager, real native provider and admitted actor policy. Check its OASISResult before using Result. The session borrows those services; it does not open or dispose their connections.
 
@@ -47,6 +47,6 @@ One owned operation runs at a time per stateless session. Cancellation before wr
 
 ## Verification and remaining scope
 
-Three new real MongoDB/SQLite/Neo4j journeys are prepared: assigned-key bulk create, fresh identity and unsubmitted local edits, explicit revision requirement, mixed create/update, stale whole-batch refusal, actor isolation, whole-batch deletion authorization, hard deletion/native absence and exact cleanup. They do not rerun the accepted four stateful session cases.
+Three new real MongoDB/SQLite/Neo4j journeys passed: assigned-key bulk create, fresh identity and unsubmitted local edits, explicit revision requirement, mixed create/update, stale whole-batch refusal, actor isolation, whole-batch deletion authorization, hard deletion/native absence and exact cleanup. They do not rerun the accepted four stateful session cases.
 
 No full EF/NHibernate parity or hosted acceptance is claimed here. Graph attachment/fix-up, mixed save/delete transactions, generated-key stateless inserts, query-based set update/delete and cross-call transactions remain separate open work.
