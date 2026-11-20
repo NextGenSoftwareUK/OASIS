@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-20",
+  "status": "source-wired; cloud syntax, WEB5 build and runtime pending",
+  "portalCommit": "84e793d808113c008df2f4e40fc75ee36dd22cf1",
+  "starCommit": "104745c3feea7604dac7b4f531155afae707851e",
+  "sourceChecks": {
+    "remoteExactFiles": 9,
+    "demoSubstitutionsRemoved": 18,
+    "realManagerCallsUnderBootOwners": 61,
+    "finalNodeSyntax": "pending CI parse-only; no claim from rejected local commands"
+  },
+  "remaining": [
+    "Three exact-source Node syntax checks",
+    "Actual WEB5 API compile",
+    "Browser/SDK/owned-native map data, memberships, selections and paged contacts",
+    "Hosted/full Startup and whole-site acceptance"
+  ],
+  "acceptedTestsRepeated": 0,
+  "localGeneratedFiles": 0,
+  "summary": "2026-11-20 CELESTIAL/OAPP/SOCIAL MAP BREADTH SOURCE WIRED: Portal84e793d808113c008df2f4e40fc75ee36dd22cf1 / STAR104745c3feea7604dac7b4f531155afae707851e. Removed18 demo/empty substitutions across CelestialSpaces/CelestialBodies/OAPPs; one non-action boot owner per controller awaits the real API before61 existing manager calls. Celestial map uses returned nested celestialSpace.celestialBodies memberships joined to celestialBodyId, correct body type/colour and explicit partial read errors; missing memberships remain labelled groups, not fabricated parent edges. OAPP graph has actual node selection/details, reported malformed relationships, honest returned-only links, cleared logout data and no invented Provider column. Social graph uses the canonical current SDK bearer, actual paged messages and visible errors; stale profile-token comparison removed. Nine remote source files exact. Local PowerShell syntax checks for two files rejected by automatic review (blocked by policy); Node REPL parser bootstrap failed (runtime path missing), so no syntax pass is claimed for those final sources. Same CI runner now supports one exact portal SHA sparse checkout and three Node parse-only checks beside actual WEB5 compilation; syntax/build/runtime pending. No accepted behavior cohorts repeated; no live/shared Atlas/PIPER/DNA/worker/LB/deploy/protected delivery action or local downloads/build/env/results/temp sources. Whole OPORTAL/provider/HyperDrive goal remains active and incomplete."
+}

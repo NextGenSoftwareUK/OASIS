@@ -21,6 +21,11 @@ on:
         description: Build the API without repeating accepted behavior tests
         type: boolean
         default: false
+      portal_syntax_ref:
+        description: Optional exact OPORTAL commit for changed map-script syntax checks only
+        type: string
+        required: false
+        default: ''
       build_native_contract_project:
         description: Also compile the integrated three-provider contract project without executing tests
         type: boolean
@@ -79,6 +84,39 @@ jobs:
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
           path: OASIS
           submodules: recursive
+
+      - name: Validate exact map source revision
+        if: ${{ inputs.portal_syntax_ref != '' }}
+        shell: pwsh
+        env:
+          PORTAL_MAP_SOURCE_REF: ${{ inputs.portal_syntax_ref }}
+        run: |
+          if ($env:PORTAL_MAP_SOURCE_REF -notmatch '^[0-9a-f]{40}$') { throw 'An exact portal source commit is required.' }
+
+      - name: Checkout selected map source only
+        if: ${{ inputs.portal_syntax_ref != '' }}
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/OPORTAL-JS
+          ref: ${{ inputs.portal_syntax_ref }}
+          path: oportal-map-source
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /assets/js/celestial-map-modal.js
+            /assets/js/oapp-map-modal.js
+            /assets/js/social-graph-modal.js
+
+      - name: Parse changed map scripts without executing popup code
+        if: ${{ inputs.portal_syntax_ref != '' }}
+        shell: pwsh
+        run: |
+          foreach ($mapScript in @('celestial-map-modal.js', 'oapp-map-modal.js', 'social-graph-modal.js')) {
+            node --check "../oportal-map-source/assets/js/$mapScript"
+            if ($LASTEXITCODE) { throw "Map source syntax failed: $mapScript" }
+            Write-Host "Map source syntax passed: $mapScript"
+          }
 
       # Retired root-only checkout: referenced sibling projects were absent on clean runners.
       - name: Resolve recorded sibling dependency revisions
