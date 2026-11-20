@@ -4,12 +4,14 @@ Status: active, incomplete. Whole-site main-flow acceptance takes priority over 
 
 ## Current source batch
 
-Portal branch `work/oportal-subscription-performance`, commit `13588586c4b0d342382420d940990e04ca906ba9`:
+Portal branch `work/oportal-subscription-performance`, latest source commit `b5267de35d8decca3160da3a72cd253ca4a7050a` (retains prior13588586):
 
 - Settings destinations use existing subscription and HyperDrive surfaces; actual subscription summary replaces fake Free Tier. Three security placeholders remain open.
 - Router covers41 feature keys, with48 hosting paths. Early clicks now wait for the actual mounted fragment; selected target, rather than any visible popup, determines history. Latest queued click wins; navigation, close and logout cancel pending opens. Failed fragment completion reports failure, without a retry loop or substituted content.
 - Classic menu OAPPs, Quests, Missions, Eggs and Game now open their existing screens instead of informational placeholders.
 - Router syntax passed existing Node stdin check. Current remote router, portal cache version and classic menu match the exact intended bytes. No browser/backend acceptance claimed for this new source batch.
+
+- Seven new-menu tab destinations fixed: All/Search OAPPs, All/Search Missions, All Eggs/Egg Quests/Egg Leaderboard. Three openers accept actual tab keys; no substitute records or new backend paths. OAPP session-readiness errors now display in the list. Existing Node stdin syntax passed; all six changed remote source/cache files match intended bytes. Actual main-flow acceptance pending.
 
 ## Main-flow checklist
 
