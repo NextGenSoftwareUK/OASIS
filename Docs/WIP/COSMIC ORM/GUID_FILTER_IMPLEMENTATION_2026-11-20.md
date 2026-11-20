@@ -4,3 +4,8 @@
 
 
 Native qualification must exercise equality/inequality, mixed-case D text and Mongo Standard binary, stale cache crossing, foreign-owner refusal, settled actual usage, non-materialization, source/cache preservation and exact cleanup. Existing accepted rows/grouping proofs retained; full parity remains open.
+
+
+## Invalid native domain guard
+
+2026-11-20 UUID DOMAIN GUARD CORRECTED BEFORE ACCEPTANCE: Mongo UUID normalization now uses conditional domain evaluation, matching existing translator invariants; Boolean AND does not guarantee conversion short-circuit. New owned Int64 identity12 row makes actual HTTP equality/inequality prove non-UUID values are excluded without conversion errors. Mongo native source3rows (other stores2), all included in before/after raw fingerprint and owned cleanup. No assertion weakened or extra fallback. Previous UUID qualification has no accepted cohort; exact corrected source must qualify3native+7contracts. Core5c/UUID feature only; qualified Core25 release image7819 unaffected. No Atlas/PIPER/DNA/live config/deployment or local generated environment/output changes.

@@ -302,7 +302,7 @@ public sealed partial class CqlV1Web4NativeTests
                     + (guidFilterHttp ? "-guid-filter-http-native.json" : predicateCrossingHttp ? "-predicate-crossing-http-native.json" : guidRowsHttp ? "-guid-rows-http-native.json" : mixedGuidHttp ? "-grouped-guid-http-native.json" : guidDomains ? "-grouped-guid-native.json" : sharedInputs ? "-grouped-shared-inputs.json" : singlePerformance ? "-grouped-distinct-single-profile.json" : requiredDomains ? "-grouped-distinct-required-native.json" : mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
                 if (guidFilterHttp)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
-                        successfulHolonWrites = 4, ownedCleanupIds = ids.Count, rawNativeRecords = 2,
+                        successfulHolonWrites = 4, ownedCleanupIds = ids.Count, rawNativeRecords = providerName == "MongoDBOASIS" ? 3 : 2,
                         successfulHttpQueries = 4, foreignOwnerRequests = 1, queryElapsedMilliseconds = queryElapsed,
                         nativeProviderVerified = true, realHttpVerified = true, typedGuidFiltersVerified = true,
                         equalityAndInequalityVerified = true, staleCacheCrossingVerified = true,

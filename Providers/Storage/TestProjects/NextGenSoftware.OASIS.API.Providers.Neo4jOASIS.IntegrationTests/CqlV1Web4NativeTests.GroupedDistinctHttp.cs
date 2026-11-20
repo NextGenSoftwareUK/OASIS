@@ -60,6 +60,10 @@ public sealed partial class CqlV1Web4NativeTests
                     nativeRows[0].Add("identity", MixedGuidFirst.ToString("D").ToUpperInvariant());
                     nativeRows[1].Add("identity", new BsonBinaryData(MixedGuidSecond, GuidRepresentation.Standard));
                 }
+                if (guidFilters)
+                    nativeRows = nativeRows.Concat(new[] { new BsonDocument {
+                        { "_id", 3 }, { "text", "invalid-domain" }, { "identity", new BsonInt64(12) }
+                    } }).ToArray();
                 await source.InsertManyAsync(nativeRows);
                 fingerprint = async () => (await source.Find(FilterDefinition<BsonDocument>.Empty)
                     .Sort(new BsonDocument("_id", 1)).ToListAsync()).Select(row => row.ToBson()).ToArray();
