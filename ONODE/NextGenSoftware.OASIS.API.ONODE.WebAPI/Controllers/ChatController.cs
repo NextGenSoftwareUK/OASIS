@@ -28,6 +28,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return new OASISResult<string> { IsError = true, Message = "The request body is required. Please provide a valid JSON array of participant IDs (at least one)." };
             if (!participantIds.Contains(Avatar.Id))
                 return new OASISResult<string> { IsError = true, ErrorCode = "CHAT_SESSION_FORBIDDEN", Message = "The authenticated avatar must be a chat participant." };
+            // ChatManager attributes the session write to its first participant.
+            participantIds.Remove(Avatar.Id);
+            participantIds.Insert(0, Avatar.Id);
             return await ChatManager.Instance.StartNewChatSessionAsync(participantIds, sessionName);
         }
 

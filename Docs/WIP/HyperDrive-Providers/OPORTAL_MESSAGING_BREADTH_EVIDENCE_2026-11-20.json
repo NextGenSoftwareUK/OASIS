@@ -1,5 +1,5 @@
 {
-  "status": "source_wired_single_main_flow_case_prepared",
+  "status": "real_end_session_failure_root_cause_corrected_runtime_pending",
   "date": "2026-11-20",
   "portal": "f98fa9a305f235747ca495a8240d7cd421b061b3",
   "exactPortalBlobs": {
@@ -13,7 +13,9 @@
     "Actual message timestamp and notification content/createdAt displayed; logout clears private UI",
     "Actual End Session API delegates to real persistent ChatManager with authenticated actor",
     "History delegates to existing participant-authorized manager overload; generated test-data empty-success removed",
-    "Session creation requires authenticated avatar among participants"
+    "Session creation requires authenticated avatar among participants",
+    "EndChatSession metadata-only save explicitly selects no children and no recursion; unloaded child-role invariant preserved",
+    "Session request puts authenticated participant first, matching ChatManager write attribution contract"
   ],
   "test": "MessagingPopupUsesActualSdkHttpAndOwnedMongo",
   "expectedFacts": 1,
@@ -43,5 +45,24 @@
     "newWorktrees": 0,
     "generatedLocalResults": 0,
     "runtimeCleanup": "Pending actual CI execution"
-  }
+  },
+  "core": "5729b1a30b8cc3396d12543d1acb6b501da5f3b3",
+  "attempts": [
+    {
+      "run": 44721474111,
+      "job": 136238033910,
+      "source": "55a4d8ea20167ec63670f7207b675be0e8e9eaae",
+      "core": "33e0ab95af6b7bbce20ee7f74f24717a3f65b158",
+      "conclusion": "failure",
+      "apiCompiled": true,
+      "apiErrors": 0,
+      "apiBuildSeconds": 317.26,
+      "facts": 1,
+      "failure": "Actual End Session persistence rejected unloaded child-role selection; UI correctly displayed the real failure. Main conversation/direct send/mark-read/chat start/chat send reached backend before failure.",
+      "artifact": 14621309773,
+      "bytes": 4704,
+      "sha256": "1c1178211d036850bf47fbff4fe18f23cc5e8dc6290ebacda8a7de442a5cf594",
+      "cleanup": "Owned browser/runtime/cache/control and Mongo container absence verified; no laptop files written."
+    }
+  ]
 }
