@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "run": 44815952650,
+  "job": 136564201378,
+  "source": "8504782753e272e7e9c65821a617bc236d5dd97d",
+  "core": "a7ff6af917b98d0aceae5b625656f0aad1e020c6",
+  "artifact": 14670475872,
+  "bytes": 4231,
+  "sha256": "2e7d51b156a3bc30280e9251b8c93d0051b3a1f4e5e283b320e597d5b47f1ee9",
+  "acceptedLifecycleModelJourneys": 3,
+  "failedUpdateJourneys": 3,
+  "exactFailure": "unchanged explicit update returned no-op at fixture line56",
+  "exactMembers": 4,
+  "timings": {
+    "MongoDBOASIS": {
+      "validation-veto-and-native-absence": 70,
+      "approved-create": 376,
+      "postcommit-callback-failure": 77,
+      "acknowledged-noop-skips-callbacks": 0,
+      "cancelled-validation": 0,
+      "identity-changing-validation-refused": 3,
+      "owned-write-refusal-skips-postcommit": 7,
+      "approved-hard-delete": 30,
+      "verify-physical-absence": 1
+    },
+    "SQLLiteDBOASIS": {
+      "validation-veto-and-native-absence": 147,
+      "approved-create": 263,
+      "postcommit-callback-failure": 28,
+      "acknowledged-noop-skips-callbacks": 0,
+      "cancelled-validation": 0,
+      "identity-changing-validation-refused": 3,
+      "owned-write-refusal-skips-postcommit": 3,
+      "approved-hard-delete": 19,
+      "verify-physical-absence": 1
+    },
+    "Neo4jOASIS": {
+      "validation-veto-and-native-absence": 525,
+      "approved-create": 755,
+      "postcommit-callback-failure": 276,
+      "acknowledged-noop-skips-callbacks": 0,
+      "cancelled-validation": 0,
+      "identity-changing-validation-refused": 12,
+      "owned-write-refusal-skips-postcommit": 8,
+      "approved-hard-delete": 110,
+      "verify-physical-absence": 2
+    }
+  },
+  "localFilesWritten": 0,
+  "overallRunStatus": "failure",
+  "acceptedScope": "lifecycle callbacks and fluent field validation only",
+  "updateAccepted": false,
+  "ownedCiMongoRemoved": true,
+  "ownedCiNeoRemoved": true,
+  "sourceFiles": [
+    "Queries/CosmicSession.Lifecycle.cs",
+    "Queries/CosmicValidationModel.cs"
+  ],
+  "fullEfParity": false
+}
