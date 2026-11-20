@@ -103,6 +103,14 @@
     "portalBundle": "c3211370461e56daf122cbdeb28e6e7c20039040",
     "test": "PortraitBrowserThenProfileEditUsesCommittedRevisionsAndThreeNativeProviders",
     "accepted": false,
-    "status": "prepared_not_dispatched"
+    "status": "in_progress",
+    "run": 44642653244,
+    "source": "192e53001b17339f0e076fc4de2bb7a5594745fa"
+  },
+  "portalLedgerReceipt": {
+    "blob": "12beee92605147a3d0b218504dc33b05eb72bf59",
+    "changedPaths": 1,
+    "bytesVerified": true,
+    "commit": "4ed5e486671a008413ceea3f6b37bb871de3880b"
   }
 }
