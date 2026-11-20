@@ -71,7 +71,7 @@ internal sealed partial class NeoCqlTranslator
         else if (type == typeof(Guid))
         {
             var text="CASE WHEN "+kind+"='string' THEN "+value+" ELSE null END";
-            guard=kind+"='string' AND "+text+" =~ "+Bind(@"\A[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\z");
+            guard=kind+"='string' AND "+text+" =~ "+Bind(NeoCqlProjection.GuidTextPattern);
             value="toLower("+text+")";
         }
         else if (type == typeof(HolonType) || type == typeof(ProviderType))

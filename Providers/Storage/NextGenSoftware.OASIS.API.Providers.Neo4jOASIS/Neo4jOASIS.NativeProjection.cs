@@ -36,6 +36,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             }
             catch (ArgumentException)
             { return NativeProjectionError("NATIVE_PROJECTION_QUERY_INVALID", "A bounded typed predicate and projection are required."); }
+            if (selected.Any(column => column.InputType == typeof(Guid)))
+                parameters.Add("nativeGuidPattern", NeoCqlProjection.GuidTextPattern);
             var unique = new List<NativeProjectionColumn>();
             var indexes = new Dictionary<(string, Type, NativeRecordFunction), int>();
             var positions = new int[selected.Count];
@@ -63,17 +65,21 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             {
                 var column = unique[index]; var fieldIndex = fieldIndexes[column.Field];
                 var property = "raw" + fieldIndex;
-                var type = column.InputType == typeof(string) ? "STRING" : column.InputType == typeof(bool) ? "BOOLEAN" : column.InputType == typeof(double) ? "FLOAT" : "INTEGER";
+                var type = column.InputType == typeof(string) || column.InputType == typeof(Guid) ? "STRING" : column.InputType == typeof(bool) ? "BOOLEAN" : column.InputType == typeof(double) ? "FLOAT" : "INTEGER";
                 var domain = $"{property} IS NOT NULL AND {property} IS :: {type}";
+                if (column.InputType == typeof(Guid))
+                    domain += $" AND CASE WHEN {property} IS :: STRING THEN {property} =~ $nativeGuidPattern ELSE false END";
                 if (column.InputType == typeof(int)) domain += $" AND {property} >= -2147483648 AND {property} <= 2147483647";
                 if (column.InputType == typeof(double))
                     domain += $" AND {property} >= -$nativeFiniteDoubleMax AND {property} <= $nativeFiniteDoubleMax";
                 // Neo4j null properties are absent. Preserve that native missing state.
                 var state = $"CASE WHEN {property} IS NULL THEN 0 WHEN {domain} THEN "
                     + (column.Function == NativeRecordFunction.Utf16Length ? $"CASE WHEN ib{fieldIndex} <= 1048576 THEN 2 ELSE 4 END" : "2") + " ELSE 3 END";
-                var bytes = column.ValueType == typeof(string) ? "ib" + fieldIndex : "8";
+                var bytes = column.ValueType == typeof(string) ? "ib" + fieldIndex
+                    : column.ValueType == typeof(Guid) ? "36" : "8";
                 var value = column.Function == NativeRecordFunction.Utf16Length
-                    ? NeoCqlTranslator.Utf16LengthUnits(property, "$projectionSupplementary") : property;
+                    ? NeoCqlTranslator.Utf16LengthUnits(property, "$projectionSupplementary")
+                    : column.InputType == typeof(Guid) ? "toLower(" + property + ")" : property;
                 cells.Add($"{{s:{state}, b:{bytes}, v:CASE WHEN {domain} AND ib{fieldIndex} <= 1048576 THEN {value} ELSE null END}} AS c{index}");
             }
             var total = positions.Length == 0 ? "0" : string.Join(" + ", positions.Select(index => $"c{index}.b"));
@@ -120,6 +126,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                             var native = cursor.Current["v" + positions[index]];
                             if (selected[index].ValueType == typeof(int) && native is long number && number >= int.MinValue && number <= int.MaxValue)
                                 value = (int)number;
+                            else if (selected[index].ValueType == typeof(Guid) && native is string text
+                                && Guid.TryParseExact(text, "D", out var guid)) value = guid;
                             else if (native != null && native.GetType() == selected[index].ValueType) value = native;
                             else return NativeProjectionError("NATIVE_PROJECTION_DATA_INVALID", "A native output differs from its exact declared domain.");
                         }

@@ -51,6 +51,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 {
                     var input = Quote(column.Field);
                     var domain = column.InputType == typeof(string) ? $"typeof({input}) = 'text'"
+                        : column.InputType == typeof(Guid) ? SqliteCqlGuid.TextDomain(input)
                         : column.InputType == typeof(bool) ? $"typeof({input}) = 'integer' AND {input} IN (0,1)"
                         : column.InputType == typeof(int) ? $"typeof({input}) = 'integer' AND {input} BETWEEN -2147483648 AND 2147483647"
                         : column.InputType == typeof(double) ? $"typeof({input}) = 'real' AND {input} BETWEEN $nativeDoubleMin AND $nativeDoubleMax"
@@ -58,7 +59,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     outputs.Add($"CASE WHEN {input} IS NULL THEN 1 WHEN {domain} THEN 2 ELSE 3 END");
                     // Read size before retrieving text into managed memory. Computed lengths transfer only integers.
                     outputs.Add(column.ValueType == typeof(string)
-                        ? $"CASE WHEN {input} IS NULL THEN 8 WHEN {domain} THEN length(CAST({input} AS BLOB)) ELSE 0 END" : "8");
+                        ? $"CASE WHEN {input} IS NULL THEN 8 WHEN {domain} THEN length(CAST({input} AS BLOB)) ELSE 0 END"
+                        : column.ValueType == typeof(Guid) ? $"CASE WHEN {input} IS NULL THEN 8 ELSE 36 END" : "8");
                     var value = column.Function == NativeRecordFunction.Utf16Length
                         ? $"{SqliteCqlReadBudget.TextStringLengthFunction}({input})" : input;
                     outputs.Add($"CASE WHEN {domain} THEN {value} ELSE NULL END");
@@ -92,7 +94,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                             remaining -= bytes;
                             if (state == 1) { cells[index] = new NativeProjectionCell(NativeProjectionValueState.Null); continue; }
                             var valueType = selected[index].ValueType;
-                            object value = valueType == typeof(string) ? reader.GetString(offset + 2)
+                            object value;
+                            if (valueType == typeof(Guid))
+                            {
+                                if (!Guid.TryParseExact(reader.GetString(offset + 2), "D", out var guid))
+                                    return ProjectionError("NATIVE_PROJECTION_DATA_INVALID", "The declared UUID output is invalid.");
+                                value = guid;
+                            }
+                            else value = valueType == typeof(string) ? reader.GetString(offset + 2)
                                 : valueType == typeof(bool) ? reader.GetInt64(offset + 2) == 1
                                 : valueType == typeof(int) ? checked((int)reader.GetInt64(offset + 2))
                                 : valueType == typeof(double) ? (object)reader.GetDouble(offset + 2)
