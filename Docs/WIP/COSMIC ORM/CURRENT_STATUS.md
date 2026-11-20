@@ -1,3 +1,10 @@
+20 November — SESSION INSPECTION NATIVE QUALIFICATION RUNNING.
+Run44837204603/job136636553139 on frozen60582e70f0a04da2cf12d15b22baa768963d9b27/Core01d10ae033608064e7f6b34fa434e4166073de27 selects ONLY3new actual provider journeys; prior accepted cohorts excluded. Expected2owned IDs/3logical writes/7timings/9flags per store and exact cleanup. Source fixture37063fa8f7c9fdffb2a5667c778ea2d8db1795b9. Compilation/native result pending; no parity credit.
+
+Independent integrated release image44833377210/job136623653871 remains BUILDING exact67e58b16872f1e7009d0652fc4156e963954bd84/Core861, preserving current Development3c4f557c ONODE/STAR changes. New inspection source is excluded. Last Railway read confirms3c4f557c SUCCESS on7c687326-aa47-4d3c-b3f0-e5f2ea473e35; saved DNA hash0755d6b0 unchanged and AutoLoadBalancefalse, no queue. Loaded effective DNA not independently exposed. Previous source8377 image/package44821820588/44828462049 strictly accepted, not reused as proof for a different source tree. No duplicate image or old native tests dispatched.
+
+No laptop build/runtime/env/database/image/archive/results installed or retained. Qualification uses existing isolated CI services. Browser disposable folder remains explicitly pending due execution policy rejection, owned Chrome absent. No shared Atlas/PIPER/DNA/staging/production action.
+
 20 November — SESSION INSPECTION / DEFAULT READ-ONLY SOURCE PREPARED.
 Core01d10ae adds GetEntries immutable state/mode snapshots with live entity references, HasChanges through existing State owner, and Set/GetDefaultReadOnly. The default affects only newly materialized tracked CQL/LINQ/Find roots, never existing modes or explicit Add/Attach; Clear retains default and removes entries. Busy/disposed guards apply. No storage/query permission or writer change. Source only, not compiled/native accepted and excluded from frozen integrated release67e58b/Core861.
 

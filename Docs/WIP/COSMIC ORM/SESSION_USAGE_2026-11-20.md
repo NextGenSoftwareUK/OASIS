@@ -114,3 +114,11 @@ Explicit existing-root Update passed all three stores in44819045003. The manager
 ## Fluent validation usage
 
 Create a CosmicValidationModelBuilder, configure Entity<Holon>().Property(row => row.Name).IsRequired().HasMaxLength(80), then Build() and pass model.CreateLifecycle() to session.SetLifecycle. Decimal or nullable-decimal trusted getters can use HasPrecision(precision,scale); values requiring rounding are rejected, trailing zero scale is not additional value precision. Models are immutable snapshots of builder rules. These are selected-root application validation rules, not native schema constraints, query aliases or virtual-holon mappings. The original native lifecycle/model3 evidence remains in LIFECYCLE_MODEL_NATIVE_ACCEPTANCE_2026-11-20.json.
+
+## Session inspection and default read-only loading (source; native pending)
+
+GetEntries() returns immutable State/IsReadOnly snapshots with references to the live tracked roots. Inspect again after edits or saves. HasChanges() uses the same entity-state owner as SaveChanges, excluding ignored read-only scalar edits and including explicit additions/deletions/updates. Neither method queries, flushes nor runs lifecycle callbacks.
+
+SetDefaultReadOnly(true) makes only subsequently materialized tracked roots read-only, through the shared CQL/LINQ/Find publication owner. Existing tracked roots retain their current mode; explicit Add/Attach remain mutable. SetReadOnly still changes an individual existing root. Clear removes entries but retains this session default; no-tracking reads do not register roots. GetDefaultReadOnly reports the setting. Busy/disposed guards apply.
+
+This is pending native qualification44837204603; it is excluded from the frozen Core861 Development release candidate. It does not grant permissions or assert full session/graph parity.
