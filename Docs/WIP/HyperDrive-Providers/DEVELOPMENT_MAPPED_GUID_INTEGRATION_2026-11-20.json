@@ -4,7 +4,10 @@
   "previousDevelopment": "b8b344b9153ef570a64425fcb38d8619c11a2fdb",
   "coreMerge": {
     "sha": "db589d220112400ca03439083a0c5166e66eb6fb",
-    "parents": ["2a594676a0ae6dbe90c9099af0ba972bdf61add0", "f1e150ce7124b6b631955a09322e82647dc5875e"],
+    "parents": [
+      "2a594676a0ae6dbe90c9099af0ba972bdf61add0",
+      "f1e150ce7124b6b631955a09322e82647dc5875e"
+    ],
     "commonAncestor": "12c7d01fc97de94ffde0a4a850048a58c049f828",
     "onlyChangedFileAgainstOwnedHead": "Objects/NativeData/NativeRecordProjection.cs",
     "delta": "Admit exact Guid input and account16managed bytes; all owned settings/profile/portrait changes retained"
@@ -14,7 +17,12 @@
     "peerEvidenceDocuments": 2,
     "exactDonorBlobsVerified": 11,
     "application": "Checked exact scoped unified patches, then applied; did not replace whole provider files or import peer test projects",
-    "scope": ["WEB4 virtual projection Guid compiler", "Mongo UUID normalization/native projections", "Neo UUID domain/native projections", "SQLite exact ASCII Guid domain/native projections"],
+    "scope": [
+      "WEB4 virtual projection Guid compiler",
+      "Mongo UUID normalization/native projections",
+      "Neo UUID domain/native projections",
+      "SQLite exact ASCII Guid domain/native projections"
+    ],
     "ownedAccountGuardsAndSQLiteRepositoryWalletSourcesUnchanged": 5,
     "nativeSQLiteConnectionOwner": "Existing OpenNativeAsync lease retained; no EF repository delegate exists in this direct ADO file",
     "newerUnqualifiedCacheAuthorityFixImported": false
@@ -34,5 +42,17 @@
   "sharedServicesTouched": false,
   "deploymentPerformed": false,
   "dnaChanges": false,
-  "localGeneratedOutputs": 0
+  "localGeneratedOutputs": 0,
+  "activeQualification": {
+    "run": 44665413205,
+    "job": 136053370753,
+    "source": "d4ca5eb117825c3e7a635ee729ec76ed79703e64",
+    "core": "db589d220112400ca03439083a0c5166e66eb6fb",
+    "portal": "4ccf867befa9abb543bb8f4587f07e5914ac6c73",
+    "sdk": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
+    "status": "confirmed_in_progress",
+    "expectedTRXResults": 4,
+    "expectedNativeBrowserHandoffs": 3,
+    "unchangedAcceptedCohortsSelected": 0
+  }
 }
