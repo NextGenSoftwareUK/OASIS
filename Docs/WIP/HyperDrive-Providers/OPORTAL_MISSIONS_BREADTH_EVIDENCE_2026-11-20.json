@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-20",
+  "status": "source wired and final script syntax accepted; actual WEB5 build and runtime acceptance pending",
+  "portalCommit": "5dc95653c4b6e69e8e2a71c29b1cf1d8e55fc825",
+  "starCommit": "2222ae783ce085992c03360e383ceea1108a2de4",
+  "publishedFilesVerifiedExact": 5,
+  "syntax": {
+    "engine": "Existing node --check through stdin",
+    "sourceCharacters": 12577,
+    "exitCode": 0,
+    "popupCodeExecuted": false,
+    "filesWritten": 0
+  },
+  "generatedResponseBranchesRemoved": 16,
+  "realActions": 27,
+  "initializationOwners": 1,
+  "scatteredInitializationWaitsRemoved": 6,
+  "guardedReadActions": 6,
+  "sourceCounts": {
+    "publicManagerMethods": 931,
+    "providerBackedManagerMethods": 766,
+    "web4Actions": 800,
+    "providerExternalWeb4Actions": 690
+  },
+  "acceptedTestsRepeated": 0,
+  "localGeneratedFiles": 0,
+  "sharedBackendCalls": 0,
+  "coordination": {
+    "development": "04bc1c586fb00cebfebb01f8cd7841d352aa63d9",
+    "unchanged": true,
+    "importedOrDeployed": false
+  },
+  "remaining": [
+    "Actual WEB5 API compile",
+    "Manager metadata and relationship semantics acceptance",
+    "Actual browser/SDK/native list, search, refresh and detail journeys",
+    "Full Startup/SSO/hosted and whole-site acceptance"
+  ],
+  "summary": "2026-11-20 MISSIONS BREADTH SOURCE/SYNTAX WIRED: Portal5dc95653c4b6e69e8e2a71c29b1cf1d8e55fc825/STAR2222ae783ce085992c03360e383ceea1108a2de4; five published files byte-exact verified. My/catalogue/search use actual SDK HTTP routes with awaited captured current bearer, latest-request/session ownership, true empty states and real errors/warnings. Canonical missionType/rewardXP/rewardKarma/status/progress fields preserve zeros; Refresh and readonly mission/objective/requirement/reward details are wired. Returned linked quest/chapter records show actual names/IDs without claiming full lazy relation loading. Empty search invalidates late replies; close/logout clear private display state. Mission API removes16generated demo branches, gives27real actions one awaited initialization filter instead of6scattered waits, guards6read actions against null success and preserves warning/error metadata in filtered projections. Existing node syntax passed final12577character script with no popup code executed or generated files. Parent STAR gitlink and dependency manifest paired; Core/ONODE and manager931/766, WEB4route800/690 scopes unchanged. Development04bc1c586fb00cebfebb01f8cd7841d352aa63d9 rechecked unchanged; CQL isolation preserved, no blind pin import or deployment. Actual WEB5 compile, manager metadata/relationship semantics, browser/SDK/native journeys, full Startup/SSO/hosted and whole OPORTAL remain OPEN. Quests accepted syntax/API compile retained without repeat; no business/native/browser case selected. No shared backend/API/DNA/worker/LB/deployment/protected-delivery action or laptop build/download/env/DB/results/artifact/extra worktree. Functional breadth first; goal active/incomplete."
+}
