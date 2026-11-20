@@ -1,5 +1,5 @@
 {
-  "status": "source_wired_api_build_only_queued",
+  "status": "api_compiled_popup_main_flow_pending",
   "date": "2026-11-20",
   "portal": "cffe83ad55c3147c4dd73197edeacdf6cf25c3ef",
   "changes": [
@@ -16,13 +16,13 @@
     "sourceRouteGate": "796 controller actions /685 intentional provider/external-manager actions",
     "lineReferencesUpdated": 20,
     "dispositionsChanged": 0,
-    "apiCompile": false,
+    "apiCompile": true,
     "runtimeAccepted": false,
     "acceptedCohortsRerun": 0
   },
   "scopeLimits": [
     "Browser/backend main-flow acceptance pending",
-    "Build-only CI next, no behavior cohort rerun",
+    "Build-only CI succeeded; no behavior cohort rerun",
     "No full OPORTAL or hosted acceptance"
   ],
   "cleanup": {
@@ -37,10 +37,15 @@
   "activeQualification": {
     "run": 44699166672,
     "source": "616616fdf611af0b53ae8696e41e9e384c9cbeb2",
-    "status": "queued",
+    "status": "success",
     "buildOnly": true,
     "behaviorTests": false,
     "nativeFixtures": false,
-    "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44699166672"
+    "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44699166672",
+    "job": 136163095496,
+    "errors": 0,
+    "buildDurationSeconds": 382.84,
+    "behaviorStepsVerifiedSkipped": true,
+    "logsReadInMemory": true
   }
 }
