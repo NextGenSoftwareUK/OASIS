@@ -36,3 +36,7 @@ The representative native journey creates two owned rows, checks repeated identi
 ## Standard LINQ tracking modes (source, native acceptance pending)
 
 Core4565e3ec adds `session.Linq<Holon>(trackResults:false)` and `AsNoTracking()` / `AsTracking()` on session queries. The tracking mode follows standard query composition, asynchronous enumeration and entity terminals. Both explicit CQL and standard LINQ use one identity publication owner. Scalar projections read stored values, rather than injecting unsaved tracked values into query execution. The extended three-provider journey verifies entity identity, pending edits, scalar projection, Count, tracking modes and foreign-actor exclusion. Full graph relationship fix-up remains open.
+
+## Read-mode acceptance
+
+Run44712697888 on frozen02f0d4cb/Core99d2 passed the three native read-mode/reload journeys. Strict artifact14617648973 (3065bytes; SHA256766e496df49d1b92d68d474ca1c57bad464d59d0e3ff73ef03fc1db75918a995) confirms no-tracking, pending-value preservation, explicit reload, actor isolation and exact cleanup. This acceptance does not replace pending verification of the materially changed standard LINQ bridge in44716587086.
