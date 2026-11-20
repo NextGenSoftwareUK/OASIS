@@ -32,7 +32,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns>Comprehensive OASIS settings including HyperDrive, notifications, privacy, etc.</returns>
         [Authorize]
         [HttpGet("get-all-settings-for-current-logged-in-avatar")]
-        public async Task<OASISResult<Dictionary<string, object>>> GetAllSettingsForCurrentLoggedInAvatar()
+        public async Task<OASISResult<Dictionary<string, object>>> GetAllSettingsForCurrentLoggedInAvatar(
+            [FromServices] ISubscriptionSettingsAuthority subscriptions)
         {
             try
             {
@@ -45,44 +46,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     };
                 }
 
-                OASISResult<Dictionary<string, object>> result = null;
-                try
-                {
-                    result = await Program.SettingsManager.GetAllSettingsAsync(Avatar.Id);
-                }
-                catch
-                {
-                    // If real data unavailable, use test data
-                }
-
-                // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
-                {
-                    return new OASISResult<Dictionary<string, object>>
-                    {
-                        Result = new Dictionary<string, object>(),
-                        IsError = false,
-                        Message = "Settings retrieved successfully (using test data)"
-                    };
-                }
-
-                return result;
+                return await Program.SettingsManager.GetAllSettingsAsync(Avatar.Id, subscriptions, HttpContext.RequestAborted);
             }
             catch (Exception ex)
             {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    return new OASISResult<Dictionary<string, object>>
-                    {
-                        Result = new Dictionary<string, object>(),
-                        IsError = false,
-                        Message = "Settings retrieved successfully (using test data)"
-                    };
-                }
                 return new OASISResult<Dictionary<string, object>>
                 {
                     IsError = true,
+                    ErrorCode = "SETTINGS_READ_FAILED",
                     Message = $"Error retrieving settings: {ex.Message}",
                     Exception = ex
                 };
@@ -225,7 +196,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns>Subscription and plan settings</returns>
         [Authorize]
         [HttpGet("subscription-settings")]
-        public async Task<OASISResult<Dictionary<string, object>>> GetSubscriptionSettings()
+        public async Task<OASISResult<Dictionary<string, object>>> GetSubscriptionSettings(
+            [FromServices] ISubscriptionSettingsAuthority subscriptions)
         {
             if (Avatar == null)
             {
@@ -236,7 +208,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 };
             }
 
-            return await Program.SettingsManager.GetSubscriptionSettingsAsync(Avatar.Id);
+            return await Program.SettingsManager.GetSubscriptionSettingsAsync(Avatar.Id, subscriptions, HttpContext.RequestAborted);
         }
 
         /// <summary>
@@ -246,7 +218,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns>Success status</returns>
         [Authorize]
         [HttpPut("subscription-settings")]
-        public async Task<OASISResult<bool>> UpdateSubscriptionSettings([FromBody] Dictionary<string, object> settings)
+        public async Task<OASISResult<bool>> UpdateSubscriptionSettings([FromBody] Dictionary<string, object> settings,
+            [FromServices] ISubscriptionSettingsAuthority subscriptions)
         {
             if (settings == null)
                 return new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON object with subscription settings." };
@@ -259,7 +232,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 };
             }
 
-            return await Program.SettingsManager.UpdateSubscriptionSettingsAsync(Avatar.Id, settings);
+            return await Program.SettingsManager.UpdateSubscriptionSettingsAsync(Avatar.Id, settings, subscriptions, HttpContext.RequestAborted);
         }
 
         /// <summary>

@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Grpc.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc;
@@ -12,13 +13,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
 {
     public class SettingsGrpcService : SettingsService.SettingsServiceBase
     {
+        private readonly ISubscriptionSettingsAuthority _subscriptions;
+        public SettingsGrpcService(ISubscriptionSettingsAuthority subscriptions) =>
+            _subscriptions = subscriptions ?? throw new ArgumentNullException(nameof(subscriptions));
+
         public override async Task<JsonResponse> GetAllSettings(GetAllSettingsRequest request, ServerCallContext context)
         {
             try
             {
                 if (!Guid.TryParse(request.AvatarId, out var avatarId))
                     return new JsonResponse { IsError = true, Message = "Invalid avatar ID." };
-                var result = await SettingsManager.Instance.GetAllSettingsAsync(avatarId);
+                var result = await SettingsManager.Instance.GetAllSettingsAsync(avatarId, _subscriptions, context.CancellationToken);
                 return result.IsError
                     ? new JsonResponse { IsError = true, Message = result.Message }
                     : new JsonResponse { Json = JsonSerializer.Serialize(result.Result) };
@@ -60,7 +65,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
             {
                 if (!Guid.TryParse(request.AvatarId, out var avatarId))
                     return new JsonResponse { IsError = true, Message = "Invalid avatar ID." };
-                var result = await SettingsManager.Instance.GetSubscriptionSettingsAsync(avatarId);
+                var result = await SettingsManager.Instance.GetSubscriptionSettingsAsync(avatarId, _subscriptions, context.CancellationToken);
                 return result.IsError
                     ? new JsonResponse { IsError = true, Message = result.Message }
                     : new JsonResponse { Json = JsonSerializer.Serialize(result.Result) };
@@ -129,7 +134,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
                 if (!Guid.TryParse(request.AvatarId, out var avatarId))
                     return new OASISGrpcResponse { IsError = true, Message = "Invalid avatar ID." };
                 var settings = JsonSerializer.Deserialize<Dictionary<string, object>>(request.SettingsJson) ?? new Dictionary<string, object>();
-                var result = await SettingsManager.Instance.UpdateSubscriptionSettingsAsync(avatarId, settings);
+                var result = await SettingsManager.Instance.UpdateSubscriptionSettingsAsync(avatarId, settings, _subscriptions, context.CancellationToken);
                 return result.IsError ? new OASISGrpcResponse { IsError = true, Message = result.Message } : new OASISGrpcResponse();
             }
             catch (Exception ex) { return new OASISGrpcResponse { IsError = true, Message = ex.Message }; }

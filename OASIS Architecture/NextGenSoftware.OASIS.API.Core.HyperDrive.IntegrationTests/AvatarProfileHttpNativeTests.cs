@@ -78,7 +78,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task HolonStoragePolicyBrowserUsesActualSdkAndNativeProviders() =>
         RunProfileHttp(HyperDriveModes.V2,true,true,hyperDriveSettingsBrowser:true,holonStoragePolicyBrowser:true);
 
-    private async Task RunProfileHttp(string mode, bool sdkOnly, bool browser = false, bool portraitBrowser = false, bool portraitAccountSwitch = false, bool portraitEditAfterUpload = false, bool portraitClientReplacement = false, bool hyperDriveSettingsBrowser = false, bool holonStoragePolicyBrowser = false)
+    [Fact]
+    public Task SubscriptionSettingsHttpUsesCanonicalBillingAndPreservesThreeNativeAccounts() =>
+        RunProfileHttp(HyperDriveModes.V2,false,hyperDriveSettingsBrowser:true,subscriptionSettings:true);
+
+    private async Task RunProfileHttp(string mode, bool sdkOnly, bool browser = false, bool portraitBrowser = false, bool portraitAccountSwitch = false, bool portraitEditAfterUpload = false, bool portraitClientReplacement = false, bool hyperDriveSettingsBrowser = false, bool holonStoragePolicyBrowser = false, bool subscriptionSettings = false)
     {
         RequireOwnedFixtures();
         var id = Guid.NewGuid();
@@ -129,6 +133,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         try
         {
             var api = AssemblyLoadContext.Default.LoadFromAssemblyPath(artifact);
+            await using var subscriptionLedger = subscriptionSettings ? await SubscriptionSettingsFixture.Create(api) : null;
             var type = api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SelfAvatarProfileController", true)!;
             Type? portraitController = null;
             Type? settingsController=null;
@@ -155,6 +160,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 portraitManagerField.SetValue(null, sdk);
             }
             var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Development" });
+            if(subscriptionLedger!=null)
+            {
+                builder.Services.AddSingleton<ISubscriptionSettingsAuthority>(subscriptionLedger.Authority);
+                builder.Configuration["OASIS:UseTestDataWhenLiveDataNotAvailable"]="true";
+            }
             if (portraitBrowser) builder.Configuration["OASIS:UseTestDataWhenLiveDataNotAvailable"] = "false";
             builder.WebHost.UseKestrel().UseUrls("http://127.0.0.1:0");
             builder.Services.AddControllers().ConfigureApplicationPartManager(parts =>
@@ -238,6 +248,15 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 foreach (var store in stores)
                 {
                     var provider = store.ProviderType.Value;
+                    if(subscriptionLedger!=null)
+                    {
+                        var selected=manager.PublishRoutingOverrides(
+                            new NextGenSoftware.OASIS.API.Core.Configuration.ProviderRoutingOverrides(
+                                autoFailoverEnabled:false,autoReplicationEnabled:false,autoLoadBalancingEnabled:false),provider);
+                        Assert.False(selected.IsError,selected.Message);
+                        await VerifySubscriptionSettingsHttp(client,subscriptionLedger,store,id);
+                        continue;
+                    }
                     if (sdkOnly)
                     {
                         if (browser)

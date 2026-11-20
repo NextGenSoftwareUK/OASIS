@@ -471,40 +471,50 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
 
         // ── Settings ──────────────────────────────────────────────────────────────
 
-        public async Task<Dictionary<string, object>> GetAllSettings(Guid avatarId)
+        public async Task<Dictionary<string, object>> GetAllSettings(Guid avatarId,
+            [Service] ISubscriptionSettingsAuthority subscriptions)
         {
-            var result = await SettingsManager.Instance.GetAllSettingsAsync(avatarId);
-            return result.IsError || result.Result == null ? new Dictionary<string, object>() : result.Result;
+            var result = await SettingsManager.Instance.GetAllSettingsAsync(avatarId, subscriptions);
+            return RequireSettingsResult(result);
         }
 
         public async Task<Dictionary<string, object>> GetHyperDriveSettings(Guid avatarId)
         {
             var result = await SettingsManager.Instance.GetHyperDriveSettingsAsync(avatarId);
-            return result.IsError || result.Result == null ? new Dictionary<string, object>() : result.Result;
+            return RequireSettingsResult(result);
         }
 
         public async Task<Dictionary<string, object>> GetSystemSettings(Guid avatarId)
         {
             var result = await SettingsManager.Instance.GetSystemSettingsAsync(avatarId);
-            return result.IsError || result.Result == null ? new Dictionary<string, object>() : result.Result;
+            return RequireSettingsResult(result);
         }
 
-        public async Task<Dictionary<string, object>> GetSubscriptionSettings(Guid avatarId)
+        public async Task<Dictionary<string, object>> GetSubscriptionSettings(Guid avatarId,
+            [Service] ISubscriptionSettingsAuthority subscriptions)
         {
-            var result = await SettingsManager.Instance.GetSubscriptionSettingsAsync(avatarId);
-            return result.IsError || result.Result == null ? new Dictionary<string, object>() : result.Result;
+            var result = await SettingsManager.Instance.GetSubscriptionSettingsAsync(avatarId, subscriptions);
+            return RequireSettingsResult(result);
+        }
+
+        private static Dictionary<string, object> RequireSettingsResult(NextGenSoftware.OASIS.Common.OASISResult<Dictionary<string, object>> result)
+        {
+            if (result == null || result.IsError || result.Result == null)
+                throw new GraphQLException(ErrorBuilder.New().SetCode(result?.ErrorCode ?? "SETTINGS_READ_FAILED")
+                    .SetMessage(result?.Message ?? "Settings could not be read.").Build());
+            return result.Result;
         }
 
         public async Task<Dictionary<string, object>> GetNotificationSettings(Guid avatarId)
         {
             var result = await SettingsManager.Instance.GetNotificationSettingsAsync(avatarId);
-            return result.IsError || result.Result == null ? new Dictionary<string, object>() : result.Result;
+            return RequireSettingsResult(result);
         }
 
         public async Task<Dictionary<string, object>> GetPrivacySettings(Guid avatarId)
         {
             var result = await SettingsManager.Instance.GetPrivacySettingsAsync(avatarId);
-            return result.IsError || result.Result == null ? new Dictionary<string, object>() : result.Result;
+            return RequireSettingsResult(result);
         }
 
         // ── HyperDrive ────────────────────────────────────────────────────────────

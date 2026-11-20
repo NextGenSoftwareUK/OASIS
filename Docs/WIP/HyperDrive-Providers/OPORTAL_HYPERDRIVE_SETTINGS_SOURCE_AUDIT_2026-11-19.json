@@ -13,7 +13,7 @@
       "evidence": "SettingsManager.GetSubscriptionInfoAsync creates active Bronze/card/now+30days and invented limits/counts on missing stored settings; GetSubscriptionSettingsAsync also substitutes those fields",
       "owner": "Legacy api/settings/subscription-settings and all-settings aggregate; current SubscriptionController subscriptions/me uses ISubscriptionService and is separate",
       "id": "LEGACY-SUBSCRIPTION-FABRICATED-ACTIVE-PLAN",
-      "next": "Trace consumers and actual subscription read contract, replace fabricated entitlement values with authoritative service projection; prohibit direct preference writes from changing entitlements"
+      "next": "Source corrected in Core11ebf588 and explicit WEB4 authority; qualify new native HTTP fixture, then remaining transport/hosted billing flows"
     },
     {
       "limits": "Source inspection is not hosted timing, full Startup, native/browser or reliability acceptance",
@@ -44,5 +44,6 @@
     "legacyWrite": "Core UpdateSubscriptionSettingsAsync targets Holon subscription settings, separate from canonical billing repository",
     "remainingInvariant": "Billing/entitlement display must use canonical subscription authority across REST aggregate, GraphQL, gRPC and SDK; preference writes must not alter billing state",
     "newRuntimeAcceptance": false
-  }
+  },
+  "subscriptionAuthorityEvidence": "OPORTAL_SUBSCRIPTION_SETTINGS_AUTHORITY_EVIDENCE_2026-11-20.json"
 }

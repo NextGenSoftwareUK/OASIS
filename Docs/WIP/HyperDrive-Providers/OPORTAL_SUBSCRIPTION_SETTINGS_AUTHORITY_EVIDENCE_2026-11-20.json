@@ -1,0 +1,53 @@
+{
+  "status": "source_wired_native_http_qualification_prepared",
+  "core": "11ebf588e88c3f7ae03fdd9a71ec1a753afd68c5",
+  "invariant": "Subscription plan, activity, quotas and paid preference state come from the canonical billing/usage authority; avatar or Holon settings never grant entitlement",
+  "implementation": [
+    "Required ISubscriptionSettingsAuthority parameter on Core GetAll/GetSubscription/UpdateSubscription; no optional global authority or legacy fallback",
+    "REST action service injection, GraphQL service injection and gRPC constructor injection use the registered WEB4 SubscriptionSettingsAuthority",
+    "Read canonical billing record plus current monthly aggregate; missing billing record has no plan/expiry/payment method/quota fabrication",
+    "Only Boolean payAsYouGoEnabled=false accepted here, using existing transactional billing preference/audit/version path; plans/payment/renewal and paid opt-in use canonical billing/consent flows",
+    "SubscriptionRecord.IsActiveAt shares the existing status/expiry invariant with native reservation authorization",
+    "Remove aggregate controller silent catch and test-data success substitution; aggregate retains section error code; GraphQL settings reads surface errors",
+    "Remove unused HolonManager construction and all Holon-backed legacy subscription reads/writes"
+  ],
+  "compatibility": [
+    "HTTP routes and JS SDK method names unchanged",
+    "Core callers now supply the billing authority explicitly; all known REST/GraphQL/gRPC callers updated",
+    "Invented legacy fields maxAvatars/maxOAPPs/paymentMethod/billingEmail/features are not emitted without authoritative data",
+    "Existing central Wizard gates for GraphQL/gRPC remain unchanged"
+  ],
+  "manifest": {
+    "routes": 796,
+    "fullSourceGuards": "pending CI on actual pinned Core",
+    "providerBacked": 754,
+    "reviewedAuthorityDelegations": 3,
+    "remoteCoreBytesVerified": true,
+    "allRouteDispositionsPreserved": true,
+    "managerMethods": 928,
+    "externalManagerRoutes": 685
+  },
+  "qualification": {
+    "runtimeAccepted": false,
+    "scope": "Actual signed-bearer MVC/Core/billing repository plus native Mongo/SQLite/Neo4j avatar preservation; no browser/GraphQL/gRPC execution claim",
+    "expectedHttpNativeProviderFlows": 3,
+    "controls": [
+      "Absent read does not create a free/paid subscription",
+      "Genuine seeded native silver record and catalogue quotas/monthly aggregate",
+      "Plan/extra field/string bool/foreign owner field refusals, query cannot change actor",
+      "Paid opt-in requires verified consent; actual opt-out preserves plan/expiry and appends one billing audit/version",
+      "Expired record inactive; unknown plan propagates aggregate error even with test-data flag true",
+      "Selected native avatar profile/password/metadata and foreign billing record unchanged",
+      "Owned ledger initialized by real free-plan transaction, exact generated database dropped and absence verified"
+    ],
+    "oldAcceptedTestsSelected": 0,
+    "test": "SubscriptionSettingsHttpUsesCanonicalBillingAndPreservesThreeNativeAccounts",
+    "expectedFacts": 1,
+    "compiled": false
+  },
+  "deploymentChanged": false,
+  "sharedAtlasTouched": false,
+  "localGeneratedOutputs": 0,
+  "developmentReviewed": "2d62db9f90447599cc8e140edd57a7ccc574ac2a",
+  "fullPortalAccepted": false
+}

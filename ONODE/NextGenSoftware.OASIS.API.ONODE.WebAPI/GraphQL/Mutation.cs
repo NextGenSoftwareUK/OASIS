@@ -487,10 +487,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
             return !result.IsError;
         }
 
-        public async Task<bool> UpdateSubscriptionSettings(Guid avatarId, [GraphQLType(typeof(HotChocolate.Types.AnyType))] Dictionary<string, object> settings)
+        public async Task<bool> UpdateSubscriptionSettings(Guid avatarId, [GraphQLType(typeof(HotChocolate.Types.AnyType))] Dictionary<string, object> settings,
+            [Service] NextGenSoftware.OASIS.API.Core.Interfaces.ISubscriptionSettingsAuthority subscriptions)
         {
-            var result = await SettingsManager.Instance.UpdateSubscriptionSettingsAsync(avatarId, settings);
-            return !result.IsError;
+            var result = await SettingsManager.Instance.UpdateSubscriptionSettingsAsync(avatarId, settings, subscriptions);
+            if (result == null || result.IsError || !result.Result || !result.IsSaved)
+                throw new GraphQLException(ErrorBuilder.New().SetCode(result?.ErrorCode ?? "SUBSCRIPTION_SETTINGS_SAVE_FAILED")
+                    .SetMessage(result?.Message ?? "The billing preference could not be saved.").Build());
+            return true;
         }
 
         public async Task<bool> UpdateNotificationSettings(Guid avatarId, [GraphQLType(typeof(HotChocolate.Types.AnyType))] Dictionary<string, object> settings)
