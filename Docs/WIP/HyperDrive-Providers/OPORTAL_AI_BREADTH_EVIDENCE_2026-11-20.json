@@ -1,6 +1,6 @@
 {
   "date": "2026-11-20",
-  "status": "source-wired; actual WEB6 build and runtime pending",
+  "status": "source and actual WEB6 build passed; runtime acceptance pending",
   "portalCommit": "74233cb884b6380379a1e017a4ff11abe5e4be35",
   "web6Commit": "228d94c994384ae0ed9a68d4eedcd6a5fafa5009",
   "sourceChecks": {
@@ -11,7 +11,7 @@
   "acceptedTestsRepeated": 0,
   "localGeneratedFiles": 0,
   "sharedServicesTouched": false,
-  "summary": "2026-11-20 AI POPUP BREADTH SOURCE WIRED: Portal74233cb884b6380379a1e017a4ff11abe5e4be35 / WEB6abbfd494fb0b2b5473d80b4dab0f0984e7b8d4d8. Six tabs use awaited canonical SDK bearer and real contracts: model/subscription reads, acknowledged text chat, explicit image provider and base64 display, personal User-holon memory creation and bool save, owner-bound registered adapters, Problem/EligibleAgentIds reasoning and Mermaid graph save/load. Failed chat preserves input/history; refresh controls replace dead loading states and no background polling. Restored missing v1/orchestrators routes using the existing manager, owner/type-bound list/invoke and credential-free projections. Retired DALL-E choices removed; OpenAI image default now supported GPT Image1.5 per current official API reference. Seven remote source files exact and existing Node stdin syntax checks pass. Parent WEB6 gitlink/manifest paired; one actual WEB6 build-only target added, compile pending; accepted tests not selected. Remaining runtime gates: actual browser/SDK/owned native memory and braid state, reasoning/adapter/backend outcomes and isolated real AI credentials/receipts. Image model unit-price admission must be verified before hosted execution; existing manager gRPC JSON stub remains an explicit programme gap, not full transport acceptance. No full OPORTAL/provider/HyperDrive claim. Shared Atlas/PIPER/DNA/services/workers/deployments untouched; no local downloads/build/env/results/temp files.",
+  "summary": "2026-11-20 AI POPUP SOURCE + ACTUAL WEB6 BUILD VERIFIED:44750755058/job136337717147 SUCCESS on3ac1ddd77ef7/WEB6228d94c99438/Portal74233cb884b6. Actual WEB6 API including MCP tools compiled0errors in2m42.73s; provider-I/O928/754 and WEB4 routes798/688 source gates pass. Restored registered-adapter routes, owner-bound manager/projections, supported GPT Image1.5 default and six-tab real request/response wiring. First compile failure44748398773 retained; three stale MCP settings calls now use the existing authenticated WEB4 REST billing authority with strict requested/caller-ID match. No mock/dummy authority or fallback. Eight remote sources exact; existing Node stdin checks pass. Behavior/native suites/artifact steps excluded, no accepted cohort rerun. Browser/owned-native memory and braid persistence, real adapter/reasoning results, isolated AI receipts and image unit-price admission still pending; existing gRPC stub remains an explicit programme gap. No full AI/OPORTAL/provider/HyperDrive acceptance claim. CI post-job cleanup passed; log inspection in RAM/filesWritten0. No local builds/downloads/envs/results, shared services/DNA/workers/deployment changes.",
   "finalScriptBlob": "c134b35a7798e42d2572aeed1a7e73a71802ed5a",
   "finalScriptExact": true,
   "apiBuild": {
@@ -35,5 +35,16 @@
     "exact": true,
     "migration": "existing authenticated WEB4 REST owner; strict current caller; no fallback or dummy interface"
   },
-  "correctedBuild": "pending"
+  "correctedBuild": {
+    "run": 44750755058,
+    "job": 136337717147,
+    "source": "3ac1ddd77ef7b35f6f2ac12cf62b14699c32263a",
+    "status": "success",
+    "target": "actual WEB6 API build-only",
+    "errors": 0,
+    "duration": "00:02:42.73",
+    "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44750755058",
+    "cleanup": "post-job cleanup passed; no behavior/native/artifact cohorts selected; log inspection in RAM/filesWritten0"
+  },
+  "sourceBatchSummary": "2026-11-20 AI POPUP BREADTH SOURCE WIRED: Portal74233cb884b6380379a1e017a4ff11abe5e4be35 / WEB6abbfd494fb0b2b5473d80b4dab0f0984e7b8d4d8. Six tabs use awaited canonical SDK bearer and real contracts: model/subscription reads, acknowledged text chat, explicit image provider and base64 display, personal User-holon memory creation and bool save, owner-bound registered adapters, Problem/EligibleAgentIds reasoning and Mermaid graph save/load. Failed chat preserves input/history; refresh controls replace dead loading states and no background polling. Restored missing v1/orchestrators routes using the existing manager, owner/type-bound list/invoke and credential-free projections. Retired DALL-E choices removed; OpenAI image default now supported GPT Image1.5 per current official API reference. Seven remote source files exact and existing Node stdin syntax checks pass. Parent WEB6 gitlink/manifest paired; one actual WEB6 build-only target added, compile pending; accepted tests not selected. Remaining runtime gates: actual browser/SDK/owned native memory and braid state, reasoning/adapter/backend outcomes and isolated real AI credentials/receipts. Image model unit-price admission must be verified before hosted execution; existing manager gRPC JSON stub remains an explicit programme gap, not full transport acceptance. No full OPORTAL/provider/HyperDrive claim. Shared Atlas/PIPER/DNA/services/workers/deployments untouched; no local downloads/build/env/results/temp files."
 }
