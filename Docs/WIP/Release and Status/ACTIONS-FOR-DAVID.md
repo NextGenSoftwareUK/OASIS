@@ -1094,3 +1094,19 @@ If the owner elects to re-enable the setting after verification, review these ex
 - `Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.TestHarness/OASIS_DNA.Development.json`
 - `Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.TelegramOASIS.TestHarness/OASIS_DNA.json`
 - `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.TestHarness/OASIS_DNA.json`
+
+## GATED-RELEASE-RAILWAY-CREDENTIALS-2026-11-20
+
+Status: blocked, 20 November 2026. The login hotfix is on `master` (d62d28e9, master CI green, run 44672495323) but the `Gated Railway release` run 44675640513 failed in its `staging` job with `ValueError: Missing environment-scoped Railway credential`. Production was skipped. Nothing was deployed by this workflow.
+
+Reason: `Scripts/railway_release_gate.py` needs a Railway project token scoped to the target environment, read from the secret `RAILWAY_TOKEN` of each GitHub environment. Agents cannot create it (`projectTokenCreate` returns Not Authorized) and credentials must never be copied into chat or files.
+
+Owner steps:
+1. Railway, project OASIS, Settings, Tokens: create a project token for the **staging** environment.
+2. GitHub, NextGenSoftwareUK/OASIS, Settings, Environments, `oasis-staging-gated`, Environment secrets: add `RAILWAY_TOKEN` with that token.
+3. Create a project token for the **production** environment and add it as `RAILWAY_TOKEN` in `oasis-production-gated`; the production job also reads `RAILWAY_STAGING_TOKEN` (add the staging token there as well).
+4. Re-run the failed `Gated Railway release` run (or dispatch it from master with the full SHA), then press Review deployments for `oasis-staging-gated` and later `oasis-production-gated` (reviewer dellams).
+
+Also seen in that run's log: `digest-mismatch: error` during staging preflight; the owning session should check it after the credential is in place.
+
+Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
