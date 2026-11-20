@@ -272,6 +272,19 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                                 ? new {baseUrl=address,token=Token(id),providerType=provider.ToString(),avatarId=id.ToString("D"),applicationId=policyAppId.ToString("D")}
                                 : (object)new {baseUrl=address,token=Token(id),providerType=provider.ToString(),avatarId=id.ToString("D")};
                             using var verified=await ExchangeSdkRequest(settingsHandoff);
+                            if(holonStoragePolicyBrowser && verified.RootElement.TryGetProperty("isError",out var policyHandoffError)
+                                && policyHandoffError.GetBoolean())
+                            {
+                                var policyReadback=await store.LoadAvatarAsync(id);
+                                Assert.False(policyReadback.IsError,policyReadback.Message);
+                                var policyDocument=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson
+                                    .CaptureRuntimeToken(policyReadback.Result.MetaData)["preferences"]?["holonStoragePolicies"];
+                                Console.WriteLine("Owned native storage policy category readback: "+
+                                    policyDocument?.ToString(Newtonsoft.Json.Formatting.None));
+                                var policyDecoded=SettingsManager.ReadHolonStoragePolicy(policyReadback.Result,policyAppId);
+                                Console.WriteLine("Owned storage policy decoder failure: "+policyDecoded.ErrorCode+"; "+
+                                    policyDecoded.Exception?.GetType().Name+"; "+policyDecoded.Exception?.Message);
+                            }
                             Assert.False(verified.RootElement.TryGetProperty("isError",out var settingsBrowserError)
                                 && settingsBrowserError.GetBoolean(),
                                 verified.RootElement.TryGetProperty("message",out var settingsBrowserMessage)

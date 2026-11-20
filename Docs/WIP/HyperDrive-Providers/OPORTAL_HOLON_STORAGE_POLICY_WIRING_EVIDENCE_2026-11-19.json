@@ -1,5 +1,5 @@
 {
-  "status": "failed_storage_browser_diagnostic_retry_confirmed_queued",
+  "status": "post_save_policy_decode_failure_confirmed_native_category_diagnostics_prepared",
   "finding": "Frozen portal4ccf holon-storage-policy.js calls api/settings/holon-storage-policy, but this worktree had no matching controller route",
   "route": "api/settings/holon-storage-policy",
   "verbs": [
@@ -27,7 +27,7 @@
     "lineReferencesRefreshed": true,
     "sourceGuard": "passed"
   },
-  "next": "Retry ONLY same failed storage browser Fact with bounded response/feedback diagnostics; no timeout increase, assertion weakening or old accepted cohort rerun.",
+  "next": "Retry ONLY same failed storage browser Fact with native category/decoder diagnostics; keep same product graph, assertions and deadlines. No UI or serializer workaround until native representation is known.",
   "compiled": true,
   "runtimeAccepted": false,
   "hostedAccepted": false,
@@ -69,7 +69,7 @@
     "core": "33712edf309b42635ca756930907db37188d76e9",
     "portal": "4ccf867befa9abb543bb8f4587f07e5914ac6c73",
     "sdk": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
-    "status": "confirmed_queued",
+    "status": "completed_failure_confirmed_policy_read_invalid",
     "expectedTRXResults": 1,
     "expectedNativeBrowserHandoffs": 3,
     "oldAcceptedCohortsSelected": 0,
@@ -98,6 +98,35 @@
       "exactFailedResultDefinitionAndID": true,
       "settingsManagerRestored": true,
       "browserRuntimeCacheControlCleanup": true,
+      "fixtureStops": "both success",
+      "streamsDisposed": true,
+      "filesWritten": 0
+    }
+  },
+  "diagnosticQualification": {
+    "run": 44672946740,
+    "job": 136077959036,
+    "source": "f7c43d4557d5d005c711fb63ba3236161577cd8e",
+    "core": "33712edf309b42635ca756930907db37188d76e9",
+    "apiAndNativeCompile": "success_zero_errors",
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0,
+    "durationSeconds": 35,
+    "phase": "save avatar Hybrid",
+    "initialGet": "isError=false, all policies null, memoryCacheSupported=false",
+    "save": "HTTP200 isError=false result=true",
+    "confirmationGet": "HTTP200 isError=true HOLON_STORAGE_POLICY_INVALID",
+    "feedback": "The saved storage policy is invalid; it was not replaced with a default.",
+    "nextDiagnostic": "Read only holonStoragePolicies category from actual native loaded test account and exact Core decoder exception before preserving failed assertion",
+    "artifact": {
+      "id": 14600114909,
+      "bytes": 4564,
+      "sha256": "5b8a42a1463f1e206bafb833da5a2c7def80475a3d9691c6a9d2137c65821650",
+      "exactFailedResultDefinitionAndID": true,
+      "settingsManagerRestored": true,
+      "browserRuntimeCacheControlCleanup": true,
+      "MongoAbsence": true,
       "fixtureStops": "both success",
       "streamsDisposed": true,
       "filesWritten": 0
