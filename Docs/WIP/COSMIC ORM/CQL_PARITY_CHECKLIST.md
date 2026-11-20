@@ -493,7 +493,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | O05 | Configurable transaction isolation / repeatable-read snapshots | ❌ | ❌ | ❌ | Moving provider reads are not repeatable isolation. |
 | O06 | Ambient System.Transactions / distributed enlistment | ❌ | ❌ | ❌ | No shared cross-store atomicity proof. |
 | O07 | Automatic execution strategies with transaction-safe retry policy | ❌ | ❌ | ❌ | Receipt recovery forbids replay; not generic retry-strategy parity. |
-| O08 | First-level session cache | ❌ | ❌ | ❌ | No identity-map/session cache certification. |
+| O08 | First-level session cache | ❌ | ❌ | ❌ | Root identity materialization native verified44736376145. FindAsync key cache with fresh native ID-only authorization, no negative cache and detach reload source Core c1c631a now separately qualifying. Full cache row remains open. |
 | O09 | Pluggable second-level entity/collection cache | ❌ | ❌ | ❌ | No invalidation/concurrency/grant-revocation matrix. |
 | O10 | Query cache and invalidation | ❌ | ❌ | ❌ | No complete query cache certification. |
 | O11 | Context/session pooling and factory lifecycle | ❌ | ❌ | ❌ | Request-owned managers do not prove pooling parity. |
