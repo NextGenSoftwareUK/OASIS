@@ -1,0 +1,37 @@
+{
+  "sourceConsumerReview": "Portal settings-modal.js is account recovery UI; no direct subscription-settings/getAllSettings call found in inspected settings-modal.js and onet-modal.js. Broader SDK/external callers still require review.",
+  "findings": [
+    {
+      "evidence": "SettingsManager.UpdateHyperDriveSettingsAsync reads preferences; UpdateAvatarPreferencesAsync reads full avatar again, edits metadata category and calls SaveAvatarAsync",
+      "runtimeAccepted": false,
+      "id": "HD-PREFS-FULL-ACCOUNT-SAVE",
+      "risk": "Concurrent unrelated account/profile/preference fields may be overwritten; source finding requires deterministic native reproduction before claiming loss",
+      "next": "Pause real native avatar read, commit independent native update, resume actual settings save; require preservation or explicit conflict"
+    },
+    {
+      "runtimeAccepted": false,
+      "evidence": "SettingsManager.GetSubscriptionInfoAsync creates active Bronze/card/now+30days and invented limits/counts on missing stored settings; GetSubscriptionSettingsAsync also substitutes those fields",
+      "owner": "Legacy api/settings/subscription-settings and all-settings aggregate; current SubscriptionController subscriptions/me uses ISubscriptionService and is separate",
+      "id": "LEGACY-SUBSCRIPTION-FABRICATED-ACTIVE-PLAN",
+      "next": "Trace consumers and actual subscription read contract, replace fabricated entitlement values with authoritative service projection; prohibit direct preference writes from changing entitlements"
+    },
+    {
+      "limits": "Source inspection is not hosted timing, full Startup, native/browser or reliability acceptance",
+      "evidence": "Status and metrics controllers read registered provider/config/monitor state, not explicit native data queries; UI polls every30s only while routing panel open and document visible. Delivery GET is separate and defaults limit25 with authenticated avatar filter.",
+      "runtimeAccepted": false,
+      "id": "HD-UI-READ-SCOPE"
+    }
+  ],
+  "sourceCounters": {
+    "routingPreferenceFullAvatarSaves": 1,
+    "notMeasuredDatabaseQueryCounts": true,
+    "postSaveConfirmationHttpReads": 1,
+    "routingPreferenceSaveAvatarReads": 2
+  },
+  "localGeneratedOutputs": 0,
+  "portal": "2a46fb18b6c939ea77135b84c85d22f8d8a45d88",
+  "scope": "HyperDrive UI status preferences delivery history and legacy settings subscription facade",
+  "sharedServicesTouched": false,
+  "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452",
+  "status": "source_audit_findings_not_runtime_acceptance"
+}
