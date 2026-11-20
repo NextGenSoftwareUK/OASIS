@@ -70,7 +70,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task ProfileModalClientReplacementUsesActualHttpAndThreeNativeProviders() =>
         RunProfileHttp(HyperDriveModes.V2, true, true, portraitBrowser: true, portraitClientReplacement: true);
 
-    private async Task RunProfileHttp(string mode, bool sdkOnly, bool browser = false, bool portraitBrowser = false, bool portraitAccountSwitch = false, bool portraitEditAfterUpload = false, bool portraitClientReplacement = false)
+    [Fact]
+    public Task HyperDriveSettingsBrowserUsesActualSdkAndNativeProviders() =>
+        RunProfileHttp(HyperDriveModes.V2,true,true,hyperDriveSettingsBrowser:true);
+
+    private async Task RunProfileHttp(string mode, bool sdkOnly, bool browser = false, bool portraitBrowser = false, bool portraitAccountSwitch = false, bool portraitEditAfterUpload = false, bool portraitClientReplacement = false, bool hyperDriveSettingsBrowser = false)
     {
         RequireOwnedFixtures();
         var id = Guid.NewGuid();
@@ -79,16 +83,19 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         using var sqlite = new SqliteStore();
         Assert.False((await sqlite.Provider.ActivateProviderAsync()).IsError);
         IOASISStorageProvider[] stores = [mongo.Provider, sqlite.Provider, bolt.Provider];
-        await SeedRoutingStores(stores, id);
+        var settingsPassword=hyperDriveSettingsBrowser
+            ? NextGenSoftware.OASIS.API.Core.Helpers.PasswordEncryptionHelper.HashPassword("owned-browser-routing-password",null)
+            : "stored-hash";
+        await SeedRoutingStores(stores, id,password:settingsPassword);
         var foreignId = portraitAccountSwitch ? Guid.NewGuid() : Guid.Empty;
         if (portraitAccountSwitch)
         {
             await bolt.TrackOwnedActorAsync(foreignId);
             await SeedRoutingStores(stores, foreignId);
         }
-        // These two cases qualify each named native store, not replication.
+        // These cases qualify each named native store, not replication.
         // A failed read must surface instead of passing through another backend.
-        var isolatedPortraitFlow = portraitEditAfterUpload || portraitClientReplacement;
+        var isolatedPortraitFlow = portraitEditAfterUpload || portraitClientReplacement || hyperDriveSettingsBrowser;
         var manager = Routing(stores, !isolatedPortraitFlow, mode);
         var sdk = new AvatarManager(null, manager.OASISDNA, manager);
 
@@ -111,12 +118,26 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         }
         FieldInfo? portraitManagerField = null;
         object? previousPortraitManager = null;
+        FieldInfo? settingsManagerField=null;
+        object? previousSettingsManager=null;
+        SettingsManager? settingsManager=null;
         AssemblyLoadContext.Default.Resolving += Resolve;
         try
         {
             var api = AssemblyLoadContext.Default.LoadFromAssemblyPath(artifact);
             var type = api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SelfAvatarProfileController", true)!;
             Type? portraitController = null;
+            Type? settingsController=null;
+            if(hyperDriveSettingsBrowser)
+            {
+                settingsController=api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SettingsController",true)!;
+                settingsManagerField=api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Program",true)!
+                    .GetField("_settingsManager",BindingFlags.Static|BindingFlags.NonPublic)!;
+                previousSettingsManager=settingsManagerField.GetValue(null);
+                settingsManager=(SettingsManager)Activator.CreateInstance(typeof(SettingsManager),
+                    BindingFlags.Instance|BindingFlags.NonPublic,null,[null,manager.OASISDNA,manager],null)!;
+                settingsManagerField.SetValue(null,settingsManager);
+            }
             if (portraitBrowser)
             {
                 portraitController = api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.AvatarProfileController", true)!;
@@ -132,10 +153,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             builder.Services.AddControllers().ConfigureApplicationPartManager(parts =>
             {
                 parts.ApplicationParts.Clear(); parts.ApplicationParts.Add(new AssemblyPart(api));
-                parts.FeatureProviders.Add(new ProfileControllerFeature(portraitController == null ? [type] : [type, portraitController]));
+                parts.FeatureProviders.Add(new ProfileControllerFeature(settingsController!=null ? [type,settingsController]
+                    : portraitController == null ? [type] : [type, portraitController]));
             }).AddControllersAsServices();
             builder.Services.AddTransient(type, _ => Activator.CreateInstance(type,
                 BindingFlags.Instance | BindingFlags.NonPublic, null, [sdk], null)!);
+            if(hyperDriveSettingsBrowser)builder.Services.AddAuthorization();
             await using var app = builder.Build();
             using var portalFiles = browser
                 ? new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
@@ -146,7 +169,9 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             {
                 app.UseStaticFiles(new Microsoft.AspNetCore.Builder.StaticFileOptions { FileProvider = portalFiles });
                 app.MapGet("/__profile_browser", async () => Microsoft.AspNetCore.Http.Results.Content(
-                    await File.ReadAllTextAsync(Path.Combine(root.FullName, "Scripts/TestHosts/Fixtures/profile-browser-host.html")),
+                    await File.ReadAllTextAsync(Path.Combine(root.FullName, hyperDriveSettingsBrowser
+                        ? "Scripts/TestHosts/Fixtures/hyperdrive-settings-browser-host.html"
+                        : "Scripts/TestHosts/Fixtures/profile-browser-host.html")),
                     "text/html"));
             }
             var key = new SymmetricSecurityKey(RandomNumberGenerator.GetBytes(64));
@@ -175,8 +200,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     }
                     catch (SecurityTokenException) { context.Response.StatusCode = 401; return; }
                 }
+                if(hyperDriveSettingsBrowser && context.Request.Path.StartsWithSegments("/api") &&
+                    context.User.Identity?.IsAuthenticated!=true)
+                {context.Response.StatusCode=401;return;}
                 await next(context);
             });
+            if(hyperDriveSettingsBrowser)app.UseAuthorization();
             app.MapControllers();
             await app.StartAsync();
             try
@@ -202,6 +231,31 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                                     autoFailoverEnabled: false, autoReplicationEnabled: false, autoLoadBalancingEnabled: false)
                                 : new NextGenSoftware.OASIS.API.Core.Configuration.ProviderRoutingOverrides(), provider);
                             Assert.False(selected.IsError, selected.Message);
+                        }
+                        if(hyperDriveSettingsBrowser)
+                        {
+                            var privacy=await settingsManager!.UpdatePrivacySettingsAsync(id,
+                                new Dictionary<string,object>{{"profileVisibility","private"}});
+                            Assert.False(privacy.IsError,privacy.Message);Assert.True(privacy.IsSaved);
+                            var before=await Read(store,id);
+                            using var verified=await ExchangeSdkRequest(new
+                                {baseUrl=address,token=Token(id),providerType=provider.ToString(),avatarId=id.ToString("D")});
+                            Assert.True(verified.RootElement.GetProperty("hyperDriveSettingsBrowserVerified").GetBoolean());
+                            Assert.Equal(1,verified.RootElement.GetProperty("saveRequests").GetInt32());
+                            var native=await store.LoadAvatarAsync(id);Assert.False(native.IsError,native.Message);
+                            Assert.Equal(settingsPassword,native.Result.Password);Assert.Equal("private",StoredPrivacy(native.Result));
+                            var overrides=NextGenSoftware.OASIS.API.Core.Configuration.AvatarHyperDriveSettings.FromAvatar(native.Result);
+                            Assert.False(overrides.IsError,overrides.Message);Assert.NotNull(overrides.Result);
+                            Assert.True(overrides.Result.AutoFailoverEnabled);
+                            Assert.False(overrides.Result.AutoReplicationEnabled);Assert.False(overrides.Result.AutoLoadBalancingEnabled);
+                            Assert.Equal(new[]{provider},overrides.Result.FailoverProviders);
+                            var after=await Read(store,id);
+                            Assert.Equal(before.FirstName,after.FirstName);Assert.Equal(before.LastName,after.LastName);
+                            Assert.Equal(before.Username,after.Username);Assert.Equal(before.Email,after.Email);
+                            Assert.Equal(42,(await store.LoadAvatarDetailAsync(id)).Result.XP);
+                            Console.WriteLine("HyperDrive settings browser native persistence verified: "+provider+
+                                "; actual SDK/controller/save/confirmation/reopen, protected profile/password/privacy/XP retained.");
+                            continue;
                         }
                         if (portraitBrowser)
                         {
@@ -364,6 +418,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         }
         finally
         {
+            if(settingsManagerField!=null)
+            {
+                settingsManagerField.SetValue(null,previousSettingsManager);
+                Assert.Same(previousSettingsManager,settingsManagerField.GetValue(null));
+                Console.WriteLine("Owned HyperDrive settings HTTP application manager restored.");
+            }
             if (portraitManagerField != null)
             {
                 portraitManagerField.SetValue(null, previousPortraitManager);

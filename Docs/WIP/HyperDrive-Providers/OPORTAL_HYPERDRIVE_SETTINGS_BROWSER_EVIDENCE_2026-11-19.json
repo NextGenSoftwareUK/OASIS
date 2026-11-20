@@ -1,0 +1,33 @@
+{
+  "status": "new_actual_browser_case_prepared_not_compiled_or_accepted",
+  "test": "HyperDriveSettingsBrowserUsesActualSdkAndNativeProviders",
+  "resultsExpected": 1,
+  "nativeBrowserHandoffsExpected": 3,
+  "providers": ["MongoDBOASIS", "SQLLiteDBOASIS", "Neo4jOASIS"],
+  "portal": "4ccf867befa9abb543bb8f4587f07e5914ac6c73",
+  "sdk": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
+  "exactPortalBlobs": {
+    "assets/js/hyperdrive-modal.js": "dcc534609aa4f5429c5a4443e1a3fc6c04a3d18f",
+    "assets/components/modals/hyperdrive.html": "14cadb384a73ae44acdc02b06cb528fb9cf7a401",
+    "assets/js/holon-storage-policy.js": "07648dd4bf114692cff63cb59f2314d80dc1167f"
+  },
+  "method": "Existing actual profile HTTP host extended only for new selected mode; actual SettingsController and scoped shipping SettingsManager, signed bearer validation and native actor lookup; real portal fragment/scripts/styles and shipping SDK; original static application manager restored",
+  "required": [
+    "one real PUT and three real GETs per native store: initial load, save confirmation, reopen",
+    "actual settings form fields, effective provider label and close/reopen persistence",
+    "canonical native routing capture matches selected store",
+    "profile names username email password privacy and XP retained",
+    "no other API calls or external backend access",
+    "all three handoffs, application manager restoration and existing owned browser/runtime/cache/control and fixture cleanup"
+  ],
+  "syntaxChecks": "node --check passes for new browser module and changed broker",
+  "businessResponsesReplaced": false,
+  "fallbackReplicationAndBalancingDisabledForFixtureAcceptance": true,
+  "productionStartupAccepted": false,
+  "hostedAccepted": false,
+  "fullHyperDriveAccepted": false,
+  "fullPortalAccepted": false,
+  "sharedServicesTouched": false,
+  "localGeneratedOutputs": 0,
+  "next": "Wait for existing routing round-trip qualification44662677763 to become terminal, then qualify only this new browser case against frozen shipping graph"
+}

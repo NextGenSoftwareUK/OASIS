@@ -2,6 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const portraitBrowserMode = process.env.OASIS_PORTRAIT_BROWSER_ENABLED === 'true';
+const hyperDriveSettingsMode = process.env.OASIS_HYPERDRIVE_SETTINGS_BROWSER_ENABLED === 'true';
 const profileHydrationMode = process.env.OASIS_PROFILE_HYDRATION_BROWSER_ENABLED === 'true';
 const browserMode = process.env.OASIS_PROFILE_BROWSER_ENABLED === 'true';
 const subscriptionMode = process.env.OASIS_SUBSCRIPTION_BROWSER_ENABLED === 'true';
@@ -46,8 +47,10 @@ if (subscriptionMode && !browserMode) throw new Error('Subscription browser veri
 if (portraitBrowserMode && (!browserMode || subscriptionMode)) throw new Error('Portrait verification requires the three-provider profile browser host.');
 const portraitHandoffs = Number(process.env.OASIS_PORTRAIT_BROWSER_HANDOFF_COUNT || '3');
 if (portraitBrowserMode && ![3, 6].includes(portraitHandoffs)) throw new Error('Select exactly three or six owned portrait handoffs.');
-const expectedCases = portraitBrowserMode ? portraitHandoffs : subscriptionMode ? 1 : 6;
-const { verify } = require(portraitBrowserMode ? './portrait-browser-native-http.cjs' : profileHydrationMode ? './profile-hydration-browser-native-http.cjs' : subscriptionAdminUsageMode ? './subscription-admin-usage-browser-native-http.cjs' : subscriptionAdminOwnersMode ? './subscription-admin-owners-browser-native-http.cjs' : dashboardMode ? './dashboard-browser-native-http.cjs' : subscriptionAdminCatalogueMode ? './subscription-admin-catalogue-browser-native-http.cjs' : subscriptionAdminOutboxMode ? './subscription-admin-outbox-browser-native-http.cjs' : subscriptionAdminAccountsMode ? './subscription-admin-accounts-browser-native-http.cjs' : subscriptionAdminGrantMode ? './subscription-admin-grant-browser-native-http.cjs' : subscriptionAdminReadMode ? './subscription-admin-read-browser-native-http.cjs' : personalConsentReviewMode ? './subscription-personal-consent-review-browser-native-http.cjs' : personalBillingMode ? './subscription-personal-billing-browser-native-http.cjs' : appFreshBillingMode ? './subscription-app-fresh-billing-browser-native-http.cjs' : appPayNowMode ? './subscription-app-pay-now-browser-native-http.cjs' : appBillingControlMode ? './subscription-app-billing-control-browser-native-http.cjs' : appBillingReadMode ? './subscription-app-billing-read-browser-native-http.cjs' : appUsageMode ? './subscription-app-usage-browser-native-http.cjs' : appOwnerMode ? './subscription-app-owner-browser-native-http.cjs' : notificationMode ? './subscription-notifications-browser-native-http.cjs' : usageMode ? './subscription-usage-browser-native-http.cjs' : subscriptionMode ? './subscription-browser-native-http.cjs' :
+if (hyperDriveSettingsMode && (!browserMode || subscriptionMode || portraitBrowserMode))
+  throw new Error('HyperDrive settings requires its three-provider browser host.');
+const expectedCases = hyperDriveSettingsMode ? 3 : portraitBrowserMode ? portraitHandoffs : subscriptionMode ? 1 : 6;
+const { verify } = require(hyperDriveSettingsMode ? './hyperdrive-settings-browser-native-http.cjs' : portraitBrowserMode ? './portrait-browser-native-http.cjs' : profileHydrationMode ? './profile-hydration-browser-native-http.cjs' : subscriptionAdminUsageMode ? './subscription-admin-usage-browser-native-http.cjs' : subscriptionAdminOwnersMode ? './subscription-admin-owners-browser-native-http.cjs' : dashboardMode ? './dashboard-browser-native-http.cjs' : subscriptionAdminCatalogueMode ? './subscription-admin-catalogue-browser-native-http.cjs' : subscriptionAdminOutboxMode ? './subscription-admin-outbox-browser-native-http.cjs' : subscriptionAdminAccountsMode ? './subscription-admin-accounts-browser-native-http.cjs' : subscriptionAdminGrantMode ? './subscription-admin-grant-browser-native-http.cjs' : subscriptionAdminReadMode ? './subscription-admin-read-browser-native-http.cjs' : personalConsentReviewMode ? './subscription-personal-consent-review-browser-native-http.cjs' : personalBillingMode ? './subscription-personal-billing-browser-native-http.cjs' : appFreshBillingMode ? './subscription-app-fresh-billing-browser-native-http.cjs' : appPayNowMode ? './subscription-app-pay-now-browser-native-http.cjs' : appBillingControlMode ? './subscription-app-billing-control-browser-native-http.cjs' : appBillingReadMode ? './subscription-app-billing-read-browser-native-http.cjs' : appUsageMode ? './subscription-app-usage-browser-native-http.cjs' : appOwnerMode ? './subscription-app-owner-browser-native-http.cjs' : notificationMode ? './subscription-notifications-browser-native-http.cjs' : usageMode ? './subscription-usage-browser-native-http.cjs' : subscriptionMode ? './subscription-browser-native-http.cjs' :
   browserMode ? './profile-browser-native-http.cjs' : './profile-sdk-native-http.cjs');
 const root = fs.realpathSync(process.env.OASIS_PROFILE_SDK_HANDOFF_ROOT);
 const parent = fs.realpathSync(process.env.RUNNER_TEMP);
@@ -70,7 +73,8 @@ async function consume(name) {
     const input = fs.readFileSync(path.join(root, name), 'utf8');
     if (Buffer.byteLength(input) > 8192) throw new Error('Bounded SDK handoff input required.');
     result = await verify(JSON.parse(input));
-    if (portraitBrowserMode) console.log(JSON.stringify({
+    if (hyperDriveSettingsMode) console.log(JSON.stringify(result));
+    else if (portraitBrowserMode) console.log(JSON.stringify({
       portraitBrowserVerified: result.portraitBrowserVerified, providerType: result.providerType,
       uploadRequests: result.uploadRequests, actualFragmentVerified: result.actualFragmentVerified,
       actualSdkHttpVerified: result.actualSdkHttpVerified, reloadWithoutCachedImageVerified: result.reloadWithoutCachedImageVerified,
