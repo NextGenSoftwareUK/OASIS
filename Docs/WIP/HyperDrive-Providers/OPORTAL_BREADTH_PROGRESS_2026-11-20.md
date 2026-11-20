@@ -4,7 +4,7 @@ Status: active, incomplete. Whole-site main-flow acceptance takes priority over 
 
 ## Current source batch
 
-Portal branch `work/oportal-subscription-performance`, latest source commit `4ffb630317e2565dfb03760e624fb326bb71b030` (retains prior tab/navigation batches):
+Portal branch `work/oportal-subscription-performance`, latest portal source commit `cffe83ad55c3147c4dd73197edeacdf6cf25c3ef` (retains prior breadth batches):
 
 - Settings destinations use existing subscription and HyperDrive surfaces; actual subscription summary replaces fake Free Tier. Three security placeholders remain open.
 - Router covers41 feature keys, with48 hosting paths. Early clicks now wait for the actual mounted fragment; selected target, rather than any visible popup, determines history. Latest queued click wins; navigation, close and logout cancel pending opens. Failed fragment completion reports failure, without a retry loop or substituted content.
@@ -14,6 +14,8 @@ Portal branch `work/oportal-subscription-performance`, latest source commit `4ff
 - Seven new-menu tab destinations fixed: All/Search OAPPs, All/Search Missions, All Eggs/Egg Quests/Egg Leaderboard. Three openers accept actual tab keys; no substitute records or new backend paths. OAPP session-readiness errors now display in the list. Existing Node stdin syntax passed; all six changed remote source/cache files match intended bytes. Actual main-flow acceptance pending.
 
 - Notification inbox now uses real initialized SDK reads and acknowledged JSON-array updates; failed/anonymous reads no longer show demo records. Explicit errors, pagination/refresh, late-fragment event delegation and no background polling. Four remote source/cache files match; Node stdin syntax passed. Actual browser/native acceptance remains pending; see OPORTAL_NOTIFICATION_PANEL_EVIDENCE_2026-11-20.json. Usage notification settings are separate and retain prior evidence.
+
+- Karma source corrects fake1000 API success, discarded zero/negative scores, mismatched stats fields and mixed record formats. Uses actual score/stats and paged owner-scoped activity projection; Refresh/LoadMore/explicit failures. Node syntax/4remote byte checks and796/685route gate pass; API compile and browser/native acceptance pending. See OPORTAL_KARMA_BREADTH_EVIDENCE_2026-11-20.json.
 
 ## Main-flow checklist
 

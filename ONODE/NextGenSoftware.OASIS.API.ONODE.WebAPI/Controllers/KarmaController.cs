@@ -137,41 +137,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                OASISResult<long> result = null;
-                try
-                {
-                    result = await KarmaManager.Instance.GetKarmaAsync(avatarId);
-                }
-                catch
-                {
-                    // If real data unavailable, use test data
-                }
-
-                // Return test data if setting is enabled and result is null, has error, or result is 0
-                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError))
-                {
-                    return new OASISResult<long>
+                return await KarmaManager.Instance.GetKarmaAsync(avatarId)
+                    ?? new OASISResult<long>
                     {
-                        Result = 1000,
-                        IsError = false,
-                        Message = "Karma retrieved successfully (using test data)"
+                        IsError = true,
+                        Message = "The karma service did not return a result."
                     };
-                }
-
-                return result;
             }
             catch (Exception ex)
             {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    return new OASISResult<long>
-                    {
-                        Result = 1000,
-                        IsError = false,
-                        Message = "Karma retrieved successfully (using test data)"
-                    };
-                }
                 return new OASISResult<long>
                 {
                     IsError = true,

@@ -1,0 +1,37 @@
+{
+  "status": "source_wired_api_compile_pending",
+  "date": "2026-11-20",
+  "portal": "cffe83ad55c3147c4dd73197edeacdf6cf25c3ef",
+  "changes": [
+    "Score endpoint returns actual KarmaManager result or real error; fake1000/test-data branches and silent catch removed",
+    "Popup preserves authoritative zero and negative scores instead of substituting profile cache",
+    "Stats keys totalEarned,totalSpent,netKarma,transactionCount match actual manager dictionary",
+    "Akashic records use existing owner-scoped api/karma/activity projection, title/description and isPositive sign; no unrelated getKarmaHistory fallback",
+    "Full history via50entry pages and explicit LoadMore; Refresh action and visible per-section failures",
+    "Initialize session before reads; closed/replaced/logout context ignores obsolete responses; weighting session errors explicit"
+  ],
+  "validation": {
+    "nodeSyntax": true,
+    "remoteBytesMatch": 4,
+    "sourceRouteGate": "796 controller actions /685 intentional provider/external-manager actions",
+    "lineReferencesUpdated": 20,
+    "dispositionsChanged": 0,
+    "apiCompile": false,
+    "runtimeAccepted": false,
+    "acceptedCohortsRerun": 0
+  },
+  "scopeLimits": [
+    "Browser/backend main-flow acceptance pending",
+    "Build-only CI next, no behavior cohort rerun",
+    "No full OPORTAL or hosted acceptance"
+  ],
+  "cleanup": {
+    "localBuilds": 0,
+    "downloads": 0,
+    "environments": 0,
+    "worktrees": 0,
+    "generatedResults": 0,
+    "sharedAtlasOperations": 0,
+    "syntax": "Existing Node stdin"
+  }
+}
