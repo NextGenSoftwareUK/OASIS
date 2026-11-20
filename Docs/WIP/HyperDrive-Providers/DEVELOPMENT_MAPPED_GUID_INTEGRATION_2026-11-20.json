@@ -1,0 +1,38 @@
+{
+  "status": "verified_peer_batch_integrated_combined_compile_pending",
+  "development": "8017ee4cda3039ab3fe3e87ee170462d8ef73253",
+  "previousDevelopment": "b8b344b9153ef570a64425fcb38d8619c11a2fdb",
+  "coreMerge": {
+    "sha": "db589d220112400ca03439083a0c5166e66eb6fb",
+    "parents": ["2a594676a0ae6dbe90c9099af0ba972bdf61add0", "f1e150ce7124b6b631955a09322e82647dc5875e"],
+    "commonAncestor": "12c7d01fc97de94ffde0a4a850048a58c049f828",
+    "onlyChangedFileAgainstOwnedHead": "Objects/NativeData/NativeRecordProjection.cs",
+    "delta": "Admit exact Guid input and account16managed bytes; all owned settings/profile/portrait changes retained"
+  },
+  "parentImport": {
+    "runtimeFiles": 9,
+    "peerEvidenceDocuments": 2,
+    "exactDonorBlobsVerified": 11,
+    "application": "Checked exact scoped unified patches, then applied; did not replace whole provider files or import peer test projects",
+    "scope": ["WEB4 virtual projection Guid compiler", "Mongo UUID normalization/native projections", "Neo UUID domain/native projections", "SQLite exact ASCII Guid domain/native projections"],
+    "ownedAccountGuardsAndSQLiteRepositoryWalletSourcesUnchanged": 5,
+    "nativeSQLiteConnectionOwner": "Existing OpenNativeAsync lease retained; no EF repository delegate exists in this direct ADO file",
+    "newerUnqualifiedCacheAuthorityFixImported": false
+  },
+  "peerAcceptanceRetainedNotRerun": {
+    "run": 44648510340,
+    "job": 135997167051,
+    "source": "004e2ac6b125ed96029e4a169cb35a8b276aba61",
+    "contractPassed": 6,
+    "nativeHttpPassed": 3,
+    "artifact": 14590910634,
+    "bytes": 5053,
+    "sha256": "242290aa968822f764954fdc8b95811dbbba57372c5bccd491b452b92ec429bd",
+    "evidence": "Docs/WIP/COSMIC ORM/GUID_MIXED_HTTP_QUALIFICATION.md; peer image/package gates and Development publication recorded in peer CURRENT_STATUS"
+  },
+  "next": "Qualify merged source through the already necessary corrected new routing/browser batch; no unchanged peer or owned behavior cohort rerun",
+  "sharedServicesTouched": false,
+  "deploymentPerformed": false,
+  "dnaChanges": false,
+  "localGeneratedOutputs": 0
+}

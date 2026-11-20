@@ -52,10 +52,11 @@ public static partial class CqlV1Compiler
             {
                 "String" => typeof(string),
                 "Boolean" => typeof(bool),
+                "Guid" => typeof(Guid),
                 "Int32" => typeof(int),
                 "Int64" => typeof(long),
                 "Double" => typeof(double),
-                _ => throw new ArgumentException("This virtual source supports String, Boolean, Int32, Int64 and finite Double projections.")
+                _ => throw new ArgumentException("This virtual source supports String, Boolean, Guid, Int32, Int64 and finite Double projections.")
             };
             var function = column.Function switch
             {

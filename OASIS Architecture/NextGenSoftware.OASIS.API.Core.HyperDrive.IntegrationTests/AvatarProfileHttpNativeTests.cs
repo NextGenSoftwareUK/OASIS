@@ -242,9 +242,9 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                                 {baseUrl=address,token=Token(id),providerType=provider.ToString(),avatarId=id.ToString("D")});
                             Assert.True(verified.RootElement.GetProperty("hyperDriveSettingsBrowserVerified").GetBoolean());
                             Assert.Equal(1,verified.RootElement.GetProperty("saveRequests").GetInt32());
-                            var native=await store.LoadAvatarAsync(id);Assert.False(native.IsError,native.Message);
-                            Assert.Equal(settingsPassword,native.Result.Password);Assert.Equal("private",StoredPrivacy(native.Result));
-                            var overrides=NextGenSoftware.OASIS.API.Core.Configuration.AvatarHyperDriveSettings.FromAvatar(native.Result);
+                            var settingsAccount=await store.LoadAvatarAsync(id);Assert.False(settingsAccount.IsError,settingsAccount.Message);
+                            Assert.Equal(settingsPassword,settingsAccount.Result.Password);Assert.Equal("private",StoredPrivacy(settingsAccount.Result));
+                            var overrides=NextGenSoftware.OASIS.API.Core.Configuration.AvatarHyperDriveSettings.FromAvatar(settingsAccount.Result);
                             Assert.False(overrides.IsError,overrides.Message);Assert.NotNull(overrides.Result);
                             Assert.True(overrides.Result.AutoFailoverEnabled);
                             Assert.False(overrides.Result.AutoReplicationEnabled);Assert.False(overrides.Result.AutoLoadBalancingEnabled);

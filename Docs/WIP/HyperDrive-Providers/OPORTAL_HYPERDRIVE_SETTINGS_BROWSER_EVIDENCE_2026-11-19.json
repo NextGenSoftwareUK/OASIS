@@ -1,9 +1,13 @@
 {
-  "status": "new_actual_browser_case_prepared_not_compiled_or_accepted",
+  "status": "first_qualification_API_compiled_test_compile_failed_correction_prepared",
   "test": "HyperDriveSettingsBrowserUsesActualSdkAndNativeProviders",
   "resultsExpected": 1,
   "nativeBrowserHandoffsExpected": 3,
-  "providers": ["MongoDBOASIS", "SQLLiteDBOASIS", "Neo4jOASIS"],
+  "providers": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
   "portal": "4ccf867befa9abb543bb8f4587f07e5914ac6c73",
   "sdk": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
   "exactPortalBlobs": {
@@ -29,5 +33,20 @@
   "fullPortalAccepted": false,
   "sharedServicesTouched": false,
   "localGeneratedOutputs": 0,
-  "next": "Wait for existing routing round-trip qualification44662677763 to become terminal, then qualify only this new browser case against frozen shipping graph"
+  "next": "Retry same three failed routing round-trip rows plus NEW browser case after test-only naming fix; compile verified Development GUID integration in same necessary batch, no old accepted cohort rerun.",
+  "firstQualification": {
+    "run": 44663918202,
+    "job": 136048503204,
+    "source": "8767e1ad25ec8f23cf178382b75c924437a83df6",
+    "core": "2a594676a0ae6dbe90c9099af0ba972bdf61add0",
+    "apiBuild": "success_zero_errors",
+    "testCompile": "CS0136 local native shadows enclosing local in existing shared fixture",
+    "correction": "Rename only new-flow local to settingsAccount",
+    "behaviorTestsExecuted": 0,
+    "artifactCount": 0,
+    "browserRuntimeCacheControlCleanupVerified": true,
+    "MongoAbsenceVerified": true,
+    "fixtureStops": "both success",
+    "localGeneratedOutputs": 0
+  }
 }
