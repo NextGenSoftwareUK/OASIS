@@ -90,6 +90,14 @@ public sealed partial class CqlV1Web4NativeTests
         var detachedNoop=await session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
         Assert.IsFalse(detachedNoop.IsError,detachedNoop.Message);
         Assert.IsFalse(detachedNoop.IsSaved);
+        first.Name="explicitly discard this edit";
+        clock.Restart();
+        var refreshed=await session.ReloadAsync(first);
+        timings["explicit-reload"]=clock.ElapsedMilliseconds;
+        Assert.IsFalse(refreshed.IsError,refreshed.Message+refreshed.Exception);
+        Assert.AreSame(first,refreshed.Result);
+        Assert.AreEqual("session changed",first.Name);
+        Assert.AreEqual(CosmicEntityState.Unchanged,session.State(first).Result);
         Assert.IsFalse(session.Detach(second).IsError);
         Assert.AreEqual(CosmicEntityState.Detached,session.State(second).Result);
         Assert.IsFalse(session.Clear().IsError);
