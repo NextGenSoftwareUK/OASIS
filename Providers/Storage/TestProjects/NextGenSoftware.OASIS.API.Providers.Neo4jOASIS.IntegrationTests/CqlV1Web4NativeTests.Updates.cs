@@ -42,7 +42,7 @@ public sealed partial class CqlV1Web4NativeTests
             IsPublic=false,IsActive=true,IsNewHolon=true};
         ownedIds.Add(root.Id);Assert.IsFalse(original.Add(root).IsError);
         Saved(await Timed("create-owned-root",()=>original.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))));
-        var stale=HolonChangeTracking.Clone(root);var dto=HolonChangeTracking.Clone(root);
+        var stale=(Holon)HolonChangeTracking.Clone(root);var dto=(Holon)HolonChangeTracking.Clone(root);
         dto.Name="detached persisted";
         Assert.IsFalse(current.Update(dto).IsError);Assert.AreEqual(CosmicEntityState.Modified,current.State(dto).Result);
         var conflictInstance=current.Update(HolonChangeTracking.Clone(dto));

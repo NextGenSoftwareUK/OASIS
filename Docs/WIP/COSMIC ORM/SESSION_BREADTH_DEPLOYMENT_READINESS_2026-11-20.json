@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "source": "04bc1c586fb00cebfebb01f8cd7841d352aa63d9",
+  "core": "13db344f64b3f9c1ae2a10543be4818807f054bb",
+  "deployment": "ddb4417b-7cc0-464c-bb29-1b791504391c",
+  "deploymentStatus": "SUCCESS",
+  "pushedUtc": "2026-11-20T19:59:25.847973+00:00",
+  "nativeRuns": [
+    44774548460,
+    44777556408,
+    44780582654,
+    44783441788,
+    44787039375
+  ],
+  "image": {
+    "run": 44793095032,
+    "job": 136485577681,
+    "digest": "sha256:5eef6a4dbf898bf50f809d84268a855867fff0642254d466157702877a30e2f1"
+  },
+  "package": {
+    "run": 44797921197,
+    "job": 136502233335,
+    "artifact": 14659202707,
+    "bytes": 783,
+    "sha256": "4a70467e43e25d1646912160b98ab521841783f6610d1a71b2c85825d1cde9f6",
+    "strictVerified": true
+  },
+  "swagger": {
+    "http": 200,
+    "bytes": 2954809,
+    "elapsedMilliseconds": 12483,
+    "cqlPostRoutes": 11
+  },
+  "savedDnaSha256": "0755d6b0d5aef81ce47b35cf7e49cc380935ee069a08bedcc041d5280ac40c33",
+  "savedAutoLoadBalanceEnabled": false,
+  "loadedDnaIndependentlyVerified": false,
+  "applicationDataQueries": 0,
+  "configurationWrites": 0,
+  "populatedBrowserModelFlowVerified": false,
+  "stagingProductionTouched": false,
+  "localArtifactFiles": 0,
+  "cleanup": {
+    "removedPath": "C:\\Source\\OASIS2\\LocalState\\COSMIC\\session-breadth-development-release-handoff.json",
+    "bytes": 1194,
+    "basis": "canonical local proof and status durable before removal; serialized remote recording pending"
+  }
+}

@@ -100,3 +100,7 @@ Update(entity) queues detached values edited before registration or an explicit 
 ## Existing legacy update revisions
 
 Explicit Update preserves existing conditional-write revision semantics: a present Guid.Empty token is a valid legacy observation; null is create-only and cannot authorize an existing update. Native revision and owner checks still decide the write. The new focused empty-token native assertion is pending qualification.
+
+## Validation and acknowledged save callbacks
+
+SetLifecycle(new CosmicSessionLifecycle(beforeSave,afterSave)) configures optional per-session selected-batch callbacks; SetLifecycle(null) clears them while idle. BeforeSave must return an explicitly successful OASISResult<bool> before native dispatch. It may edit selected current values, but not identity. Session reentrancy is refused until both the write and callback outcome finish. AfterSave runs only after an acknowledged native write and session publication, with IsCommitted=true. If it fails, the result remains IsSaved=true with the native payload/receipt and explicit COSMIC_SESSION_POST_COMMIT_CALLBACK_FAILED. Repair the callback separately; do not retry a committed mutation. No-op/native-refused saves do not call AfterSave. The new three-store lifecycle native cohort is pending; full framework lifecycle parity remains open.
