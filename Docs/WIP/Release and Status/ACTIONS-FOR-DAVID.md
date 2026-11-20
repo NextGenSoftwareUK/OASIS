@@ -46,6 +46,8 @@ Or with an authenticator code (codes last ~30 s, so a later package may still pr
 - [ ] All seven published.
 - [ ] Told Claude, who then refreshes the lock files and pushes piper-server and piper-ui (both already on `^2.0.15`, committed, not pushed).
 
+2026-11-20 A1 / OPORTAL SDK target clarification RESOLVED: David confirmed the fixes are in npm repositories. Current source inspection identified WEB4 main2.0.18/f03f11c and WEB5 master1.0.8/1001eb4; the named fix branches had already been merged/deleted, while local remote-tracking refs retained them. The earlier absence of those branch names did not prove the fixes absent. WEB4 fixes were integrated with the existing Portal atomic profile client on owned SDK3d292c0, retaining both parent histories and accurate request types; the physical messaging checkout was unchanged. WEB6 published2.1.2 verified. Portal package declaration checkpoint7ef2941 uses fixed source pins; lock/bundle generation and compatibility remain agent-owned. No further owner information, publishing/2FA or tool-repair action requested for this update. Earlier A1/A2 publishing actions for other versions/packages are preserved; this entry does not certify all seven packages released. David latest branch instruction applies only to OPORTAL existing dev; OASIS remains on its task branch.
+
 ### A2. One-time: npm trusted publishing (so releases publish on push)
 
 Each SDK repo has a GitHub workflow `publish.yml` that publishes on push whenever `package.json` has a version not yet on npm. It needs npm to trust it (no token, no 2FA):
