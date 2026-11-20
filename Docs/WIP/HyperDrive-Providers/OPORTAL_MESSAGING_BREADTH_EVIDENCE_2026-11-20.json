@@ -1,0 +1,47 @@
+{
+  "status": "source_wired_single_main_flow_case_prepared",
+  "date": "2026-11-20",
+  "portal": "f98fa9a305f235747ca495a8240d7cd421b061b3",
+  "exactPortalBlobs": {
+    "assets/js/messaging-modal.js": "fe24f7839d8a2c1e4963a36424163aa71cca41cb",
+    "assets/components/modals/messaging.html": "35f77990f0edf870ef31e42968dc94ae0f22c467",
+    "assets/js/oasis-web4-sdk.js": "850ee98adb5663b56644edddc842175dfb5f939c",
+    "portal.html": "1707edd6f8686bbf67e163e3d22565cbdb48b533"
+  },
+  "changes": [
+    "Messaging main actions await initialized SDK session and use current token store",
+    "Actual message timestamp and notification content/createdAt displayed; logout clears private UI",
+    "Actual End Session API delegates to real persistent ChatManager with authenticated actor",
+    "History delegates to existing participant-authorized manager overload; generated test-data empty-success removed",
+    "Session creation requires authenticated avatar among participants"
+  ],
+  "test": "MessagingPopupUsesActualSdkHttpAndOwnedMongo",
+  "expectedFacts": 1,
+  "plannedScope": [
+    "Actual fragment/SDK/compiled Messaging+Chat controllers/owned native Mongo",
+    "Conversations/thread/reply/send/refresh, notifications/MarkAll, live chat/start/send/end",
+    "Cold native readback verifies direct messages/read flags/chat history/ended session; account revisions preserved",
+    "Managers restored, exact owned native database absent, browser runtime cleanup"
+  ],
+  "validation": {
+    "browserSyntax": true,
+    "brokerSyntax": true,
+    "remoteSourceAndCacheExact": true,
+    "routeManifestActions": 797,
+    "routeManifestExternalOrProviderActions": 686,
+    "apiCompiled": false,
+    "runtimeAccepted": false
+  },
+  "limits": [
+    "Not full production Startup/authentication/usage/billing/hosted/all-site acceptance",
+    "No unchanged accepted cohort rerun or shared Atlas/PIPER calls"
+  ],
+  "cleanup": {
+    "localBuilds": 0,
+    "localDownloads": 0,
+    "newEnvironments": 0,
+    "newWorktrees": 0,
+    "generatedLocalResults": 0,
+    "runtimeCleanup": "Pending actual CI execution"
+  }
+}

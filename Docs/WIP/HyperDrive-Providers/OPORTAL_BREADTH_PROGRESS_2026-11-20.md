@@ -2,6 +2,10 @@
 
 Status: active, incomplete. Whole-site main-flow acceptance takes priority over additional hardening and optimization. This is a navigation/main-action checklist, not a claim that an opening function proves backend functionality. Retain previously accepted scoped evidence in OPORTAL_FULL_STATUS_2026-11-18.md; do not rerun unchanged accepted cohorts.
 
+## Messaging source batch
+
+2026-11-20 MESSAGING BREADTH SOURCE WIRED: Portal f98fa9a3/JSfe24f783 source/cache exact bytes and Node syntax verified. Actions wait for initialized canonical SDK session; message timestamp/notification content+createdAt fixed, logout clears private UI. Missing POST end-chat-session route now delegates to persistent ChatManager with authenticated actor. History calls existing participant-authorized overload and no longer converts backend errors into generated empty success; session creation requires authenticated avatar in participant list. Scoped route review passes797actions/686provider-external; other rows preserved. ONE new MessagingPopupUsesActualSdkHttpAndOwnedMongo browser/real SDK/compiled controllers/owned Mongo case prepared across four tabs and persisted state. Actual build/browser/native/cleanup acceptance pending; full OPORTAL incomplete. Prior accepted cases excluded. See OPORTAL_MESSAGING_BREADTH_EVIDENCE_2026-11-20.json. No local build/download/env/results, shared Atlas/PIPER/DNA/deployment action.
+
 ## Latest functional acceptance
 
 Files popup and notification panel main actions passed one combined actual browser/SDK/compiled API/owned Mongo Fact: run44716851404,18.69seconds. Files upload/reopen/download/delete and notifications pagination/single read/MarkAll/refresh verified; cold native readback and cleanup proven. Hosted integration and full production Startup remain outside this scope. Other screens remain open; no accepted cohort rerun. See OPORTAL_POPUP_FUNCTIONAL_SMOKE_2026-11-20.json.

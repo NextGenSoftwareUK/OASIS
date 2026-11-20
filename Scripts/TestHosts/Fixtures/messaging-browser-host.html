@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><title>Owned Messaging verification</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/dashboard.css">
+  <link rel="stylesheet" href="/assets/css/modals-new.css">
+  <link rel="stylesheet" href="/assets/css/oasis-portal-extra.css">
+  <link rel="stylesheet" href="/assets/css/oasis-portal-extra2.css">
+</head>
+<body>
+  <button id="fixture-open-messaging" type="button" onclick="window.openMessagingModal()">Open Messages</button>
+  <div class="modal js-modal"></div>
+  <script src="/assets/js/oasis-web4-sdk.js"></script>
+  <script>
+    window.oasisClient = new window.OASISClient({baseUrl: location.origin, persistSession: false});
+    var owner = JSON.parse(localStorage.getItem('avatar'));
+    window.oasisClient.setToken(owner.jwtToken, {avatarId: owner.id});
+    window.jwtReadyPromise = Promise.resolve();
+  </script>
+  <script src="/assets/js/messaging-modal.js"></script>
+  <script>
+    fetch('/assets/components/modals/messaging.html').then(async function (response) {
+      if (!response.ok) throw new Error('Actual Messaging fragment could not be loaded.');
+      document.querySelector('.js-modal').innerHTML = await response.text();
+      window.dispatchEvent(new CustomEvent('portal-modal-ready', {detail: {route: 'messages'}}));
+      window.dispatchEvent(new CustomEvent('portal-components-ready'));
+      window.__messagingReady = true;
+    });
+  </script>
+</body>
+</html>
