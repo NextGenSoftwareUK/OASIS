@@ -63,7 +63,7 @@ public sealed partial class CqlV1Web4NativeTests
     internal static async Task VerifyMappedNativeHttpAsync(IOASISStorageProvider provider,
         VirtualHolonMapping mapping, VirtualHolonRead original, bool groupedDistinctOnly = false,
         Action<Guid>? createdObserver = null, bool guidDistinct = false,
-        Dictionary<string, long>? queryTimings = null, Guid? virtualOnlyId = null, bool guidRows = false)
+        Dictionary<string, long>? queryTimings = null, Guid? virtualOnlyId = null, bool guidRows = false, bool predicateCrossing = false)
     {
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -107,14 +107,14 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 var prior = await provider.LoadHolonAsync(row.Id);
                 Assert.IsNull(prior.Result, "Never overwrite an existing fixture record.");
-                if (guidDistinct)
+                if (guidDistinct || predicateCrossing)
                 {
                     created.Add(row.Id);
                     createdObserver?.Invoke(row.Id);
                 }
                 var saved = await provider.SaveHolonAsync(row);
                 Assert.IsFalse(saved.IsError, saved.Message + saved.Exception);
-                if (!guidDistinct)
+                if (!guidDistinct && !predicateCrossing)
                 {
                     created.Add(row.Id);
                     createdObserver?.Invoke(row.Id);
@@ -161,6 +161,55 @@ public sealed partial class CqlV1Web4NativeTests
                 var response = await http.SendAsync(request);
                 if (watch != null) queryTimings!.Add("request" + queryTimings.Count, watch.ElapsedMilliseconds);
                 return response;
+            }
+            if (predicateCrossing)
+            {
+                body.Columns = new[] {
+                    new CqlProjectionV1Column { Field = "Id", Alias = "Id" },
+                    new CqlProjectionV1Column { MetadataPath = new[] { "textAlias" }, ValueType = "String", Alias = "Text" }
+                };
+                body.Filters = new[] { new CqlV1Filter { MetadataPath = new[] { "textAlias" },
+                    Scalar = CqlV1Scalar.String, Operator = CqlV1Operator.Equal,
+                    Value = JsonSerializer.SerializeToElement("zz") } };
+                async Task<JsonElement> ReadCrossingRows()
+                {
+                    using var response = await Send(ownerToken);
+                    var content = await response.Content.ReadAsStringAsync();
+                    Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, content);
+                    Assert.AreEqual("settled", response.Headers.GetValues("X-OASIS-Usage-Settlement").Single());
+                    var operation = await outbox.GetAsync(
+                        response.Headers.GetValues("X-OASIS-Operation-Id").Single(), CancellationToken.None);
+                    Assert.AreEqual("settled", operation.State);
+                    Assert.AreEqual(3, operation.ProviderAttempts.Count);
+                    Assert.AreEqual(3, operation.Receipts.Count);
+                    Assert.AreEqual(0.006m, authority.Settlements[operation.Id].ActualCostUsd);
+                    using var parsed = JsonDocument.Parse(content);
+                    return parsed.RootElement.GetProperty("result").GetProperty("rows").Clone();
+                }
+                var stale = await ReadCrossingRows();
+                Assert.AreEqual(0, stale.GetArrayLength(),
+                    "The live native value is emoji, so its old materialized zz cache must not satisfy WHERE text = zz.");
+                body.Filters[0].Value = JsonSerializer.SerializeToElement("😀");
+                var live = await ReadCrossingRows();
+                CollectionAssert.AreEquivalent(new[] { original.Id, longer.Id },
+                    live.EnumerateArray().Select(row => row[0].GetGuid()).ToArray());
+                Assert.IsTrue(live.EnumerateArray().All(row => row[1].GetString() == "😀"));
+                using (var response = await Send(otherToken))
+                {
+                    Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode, await response.Content.ReadAsStringAsync());
+                    var operation = await outbox.GetAsync(
+                        response.Headers.GetValues("X-OASIS-Operation-Id").Single(), CancellationToken.None);
+                    Assert.AreEqual("settled", operation.State);
+                    Assert.AreEqual(2, operation.ProviderAttempts.Count);
+                    Assert.AreEqual(2, operation.Receipts.Count);
+                }
+                Assert.AreEqual(3, authority.Settlements.Count);
+                var preserved = await provider.LoadHolonAsync(snapshot.Id);
+                Assert.IsFalse(preserved.IsError, preserved.Message + preserved.Exception);
+                Assert.IsNotNull(preserved.Result);
+                Assert.AreEqual("zz", preserved.Result.MetaData["textAlias"]?.ToString());
+                await app.StopAsync();
+                return;
             }
             if (guidRows)
             {

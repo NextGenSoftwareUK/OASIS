@@ -21,7 +21,7 @@ public sealed partial class CqlV1Web4NativeTests
 
     private static async Task<int> VerifyGroupedDistinctMixedNativeHttpProvider(
         IOASISStorageProvider provider, string work, string database, MongoClient? mongo, List<Guid> created,
-        bool guidCounts = false, Dictionary<string, long>? queryTimings = null, bool guidRows = false)
+        bool guidCounts = false, Dictionary<string, long>? queryTimings = null, bool guidRows = false, bool predicateCrossing = false)
     {
         var reader = (INativeDataProjectionQueryProvider)provider;
         var actor = Guid.NewGuid();
@@ -140,7 +140,7 @@ public sealed partial class CqlV1Web4NativeTests
             }
             await VerifyMappedNativeHttpAsync(provider, mapping, original.Result.Single(),
                 groupedDistinctOnly: true, createdObserver: created.Add,
-                guidDistinct: guidCounts, queryTimings: queryTimings, virtualOnlyId: virtualOnlyId, guidRows: guidRows);
+                guidDistinct: guidCounts, queryTimings: queryTimings, virtualOnlyId: virtualOnlyId, guidRows: guidRows, predicateCrossing: predicateCrossing);
             if (guidCounts && mongoProvider != null)
             {
                 // UUID legacy subtype does not encode a unique byte-order convention.
