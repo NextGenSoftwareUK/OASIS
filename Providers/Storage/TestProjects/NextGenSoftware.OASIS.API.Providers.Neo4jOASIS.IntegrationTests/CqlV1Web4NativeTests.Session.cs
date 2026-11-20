@@ -65,7 +65,7 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.AreSame(first,terminal);
         Assert.AreEqual(2,linqRoot.Result.Where(row=>ids.Contains(row.Id)).Count());
         clock.Restart();
-        var untrackedLinq=await linqRoot.Result.AsNoTracking()
+        var untrackedLinq=await linqRoot.Result.AsCosmicNoTracking()
             .Where(row=>ids.Contains(row.Id)).ToCosmicListAsync();
         timings["standard-linq-no-tracking"]=clock.ElapsedMilliseconds;
         Assert.IsFalse(untrackedLinq.IsError,untrackedLinq.Message+untrackedLinq.Exception);
@@ -74,7 +74,7 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.AreEqual(CosmicEntityState.Detached,session.State(untrackedFirst).Result);
         untrackedFirst.Name="untracked LINQ edit";
         Assert.AreEqual(CosmicEntityState.Unchanged,session.State(first).Result);
-        Assert.AreSame(first,linqRoot.Result.AsNoTracking().AsTracking().Single(row=>row.Id==first.Id));
+        Assert.AreSame(first,linqRoot.Result.AsCosmicNoTracking().AsCosmicTracking().Single(row=>row.Id==first.Id));
 
         first.Name="session changed";
         Assert.AreEqual(CosmicEntityState.Modified,session.State(first).Result);
