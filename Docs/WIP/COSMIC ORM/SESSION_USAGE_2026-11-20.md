@@ -92,3 +92,7 @@ Stateless logical closure passed actual MongoDB/SQLite/Neo4j run44783441788 on C
 ## Stateless LINQ native acceptance
 
 Run44787039375 verified real MongoDB/SQLite/Neo4j standard stateless LINQ rows, entity/scalar terminals and projection; fresh identities, explicit tracking refusal, current actor isolation and closed query refusal. The changed shared wrapper also preserved managed sequence/scalar identity and no-tracking without flushing local edits.3passed/0failed/0skipped,2owned records per store, exact cleanup. Artifact14655706163/3105B/SHA2562562b2a8b6bb7c2be96508429ae005795df61fc85a350cf8e03d35966cc9008a. Source Core13db awaits the combined image/package/deployment gates; full context/graph/transaction/cache framework requirements remain separate.
+
+## Explicit existing-root Update (native verification pending)
+
+Update(entity) queues detached values edited before registration or an explicit tracked mutable-root update without accepting them as a database baseline. SaveChanges requires an existing accepted/native/supplied provider revision for each explicit update; null create-only is invalid. Missing revision rejects the whole pending batch before writes. Actual owner permissions and optimistic concurrency apply. Supply complete root values; partial patches and disconnected graph merge retain their separate contract. Reload/Detach/Clear/Dispose cancel intent; read-only-to-mutable baseline transitions cancel prior explicit update intent. Failed saves retain intent for deliberate resolution. Source892322 has a separate native3 cohort.
