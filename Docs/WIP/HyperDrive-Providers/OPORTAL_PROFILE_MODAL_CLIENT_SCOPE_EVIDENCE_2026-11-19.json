@@ -1,0 +1,29 @@
+{
+  "productionStartupAccepted": false,
+  "portalSource": "d7f14205bec919330c7762518b70070f1acca1ea",
+  "status": "in_progress_not_accepted",
+  "accepted": false,
+  "newCases": 1,
+  "source": "3e3a2b20d95927a5d366764139a5ae0c2c25e9b0",
+  "postHandlerObservation": "MessageChannel posted task after actual SDK promise settlement",
+  "heldOriginalGetContinued": true,
+  "localGeneratedOutputs": 0,
+  "hostedAccepted": false,
+  "realSdkClients": true,
+  "run": 44644013596,
+  "sharedServicesTouched": false,
+  "portalBundle": "2a46fb18b6c939ea77135b84c85d22f8d8a45d88",
+  "priorAcceptedCohortsRepeated": 0,
+  "bundleRun": 44643238871,
+  "businessResponsesReplaced": false,
+  "core": "5cd6bb231116535e208678d9344fc253a409550b",
+  "nativeProviderHandoffs": 3,
+  "test": "ProfileModalClientReplacementUsesActualHttpAndThreeNativeProviders",
+  "required": [
+    "same bearer replacement cannot publish old profile",
+    "no old localStorage mutation or avatarUpdated event",
+    "old editor disabled",
+    "genuine replacement SDK reopens and uploads",
+    "exact image native persistence and protected profile/password/XP unchanged"
+  ]
+}
