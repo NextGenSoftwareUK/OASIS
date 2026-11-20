@@ -186,7 +186,7 @@ public sealed partial class CqlV1Web4NativeTests
                     Assert.AreEqual("settled", response.Headers.GetValues("X-OASIS-Usage-Settlement").Single());
                     using var parsed = JsonDocument.Parse(content);
                     var result = parsed.RootElement.GetProperty("result");
-                    Assert.AreEqual(mapping.Id.ToString("D"), result.GetProperty("virtualMappingId").GetString());
+                    Assert.AreEqual("cql-projection-v1", result.GetProperty("version").GetString());
                     var operation = await outbox.GetAsync(
                         response.Headers.GetValues("X-OASIS-Operation-Id").Single(), CancellationToken.None);
                     Assert.AreEqual("settled", operation.State);
@@ -209,6 +209,8 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.AreEqual(4, provenance.Length);
                 var virtualRows = provenance.Where(row => row.GetProperty("representation").GetString() == "Virtual").ToArray();
                 Assert.AreEqual(2, virtualRows.Length);
+                foreach (var row in virtualRows)
+                    Assert.AreEqual(mapping.Id.ToString("D"), row.GetProperty("mappingId").GetString());
                 Assert.AreEqual(1, virtualRows.Count(row => row.GetProperty("alsoMaterialized").GetBoolean()));
                 Assert.AreEqual(2, provenance.Count(row => row.GetProperty("representation").GetString() == "Materialized"));
                 body.OrderBy = "None";
