@@ -1,12 +1,12 @@
 {
-  "sourceConsumerReview": "Portal settings-modal.js is account recovery UI; no direct subscription-settings/getAllSettings call found in inspected settings-modal.js and onet-modal.js. Broader SDK/external callers still require review.",
+  "sourceConsumerReview": "REST SettingsController GET/PUT subscription-settings, GraphQL Query/Mutation and gRPC SettingsGrpcService all call the legacy Core SettingsManager facade. The generated public JS SDK exposes it. Inspected portal settings-modal.js and onet-modal.js have no direct call. Main subscription popup uses separate authoritative ISubscriptionService. Wiring only REST would leave GraphQL/gRPC/aggregate fabricated defaults unresolved.",
   "findings": [
     {
-      "evidence": "SettingsManager.UpdateHyperDriveSettingsAsync reads preferences; UpdateAvatarPreferencesAsync reads full avatar again, edits metadata category and calls SaveAvatarAsync",
+      "evidence": "Run44651948304 actual SettingsManager saves overwrote a newer native FirstName on Mongo/SQLite/Neo. Core940bd3 preserves conflict/save flags and merges HyperDrive category against one loaded revision. Parent2d6a35 adds native predecessor admission under existing CAS/locked transaction or SQLite account transaction.",
       "runtimeAccepted": false,
       "id": "HD-PREFS-FULL-ACCOUNT-SAVE",
-      "risk": "Concurrent unrelated account/profile/preference fields may be overwritten; source finding requires deterministic native reproduction before claiming loss",
-      "next": "Pause real native avatar read, commit independent native update, resume actual settings save; require preservation or explicit conflict"
+      "risk": "Confirmed lost update in all three native providers; prepared correction not yet runtime accepted.",
+      "next": "Run44659229134/job136033042273 selects only three failed preference rows and verifies an explicit fresh save plus public privacy read after conflict. API/native builds and terminal fixture cleanup required."
     },
     {
       "runtimeAccepted": false,
@@ -26,12 +26,12 @@
     "routingPreferenceFullAvatarSaves": 1,
     "notMeasuredDatabaseQueryCounts": true,
     "postSaveConfirmationHttpReads": 1,
-    "routingPreferenceSaveAvatarReads": 2
+    "routingPreferenceSaveAvatarReads": 1
   },
   "localGeneratedOutputs": 0,
   "portal": "2a46fb18b6c939ea77135b84c85d22f8d8a45d88",
   "scope": "HyperDrive UI status preferences delivery history and legacy settings subscription facade",
   "sharedServicesTouched": false,
-  "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452",
-  "status": "source_audit_findings_not_runtime_acceptance"
+  "core": "940bd3f30773a650da21132003e5525397fe8080",
+  "status": "confirmed_native_loss_with_revision_correction_pending_qualification"
 }
