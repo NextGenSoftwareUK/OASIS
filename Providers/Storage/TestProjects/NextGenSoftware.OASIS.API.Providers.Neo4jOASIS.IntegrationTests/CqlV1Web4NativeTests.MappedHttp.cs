@@ -63,7 +63,7 @@ public sealed partial class CqlV1Web4NativeTests
     internal static async Task VerifyMappedNativeHttpAsync(IOASISStorageProvider provider,
         VirtualHolonMapping mapping, VirtualHolonRead original, bool groupedDistinctOnly = false,
         Action<Guid>? createdObserver = null, bool guidDistinct = false,
-        Dictionary<string, long>? queryTimings = null, Guid? virtualOnlyId = null, bool guidRows = false, bool predicateCrossing = false, bool guidFilters = false)
+        Dictionary<string, long>? queryTimings = null, Guid? virtualOnlyId = null, bool guidRows = false, bool predicateCrossing = false, bool guidFilters = false, bool int32Http = false)
     {
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -96,6 +96,12 @@ public sealed partial class CqlV1Web4NativeTests
             snapshot.MetaData["guidAlias"] = MixedGuidStale;
             important.MetaData["guidAlias"] = MixedGuidSecond;
             longer.MetaData["guidAlias"] = MixedGuidFirst;
+        }
+        if (int32Http)
+        {
+            snapshot.MetaData["stockAlias"] = -1;
+            important.MetaData["stockAlias"] = 7;
+            longer.MetaData["stockAlias"] = 5;
         }
         var created = new List<Guid>();
         var authority = new Authority();
@@ -161,6 +167,70 @@ public sealed partial class CqlV1Web4NativeTests
                 var response = await http.SendAsync(request);
                 if (watch != null) queryTimings!.Add("request" + queryTimings.Count, watch.ElapsedMilliseconds);
                 return response;
+            }
+            if (int32Http)
+            {
+                Assert.IsTrue(virtualOnlyId.HasValue);
+                body.Columns = new[] {
+                    new CqlProjectionV1Column { Field = "Id", Alias = "Id" },
+                    new CqlProjectionV1Column { MetadataPath = new[] { "stockAlias" }, ValueType = "Int32", Nullable = false, Alias = "Stock" }
+                };
+                body.Filters = new[] { new CqlV1Filter { MetadataPath = new[] { "stockAlias" },
+                    Scalar = CqlV1Scalar.Int32, Operator = CqlV1Operator.Equal, Value = JsonSerializer.SerializeToElement(5) } };
+                var expected = new Dictionary<Guid,int> { [original.Id]=5, [longer.Id]=5,
+                    [virtualOnlyId.Value]=7, [important.Id]=7 };
+                async Task<JsonElement> ReadInt32(int attempts = 4)
+                {
+                    using var response = await Send(ownerToken);
+                    var content = await response.Content.ReadAsStringAsync();
+                    Assert.AreEqual(HttpStatusCode.OK,response.StatusCode,content);
+                    Assert.AreEqual("settled",response.Headers.GetValues("X-OASIS-Usage-Settlement").Single());
+                    var operation = await outbox.GetAsync(response.Headers.GetValues("X-OASIS-Operation-Id").Single(),CancellationToken.None);
+                    Assert.AreEqual("settled",operation.State);
+                    Assert.AreEqual(attempts,operation.ProviderAttempts.Count); Assert.AreEqual(attempts,operation.Receipts.Count);
+                    Assert.AreEqual(attempts*0.002m,authority.Settlements[operation.Id].ActualCostUsd);
+                    using var parsed = JsonDocument.Parse(content);
+                    var result = parsed.RootElement.GetProperty("result");
+                    Assert.AreEqual("cql-projection-v1",result.GetProperty("version").GetString());
+                    var rows = result.GetProperty("rows").EnumerateArray().ToArray();
+                    Assert.AreEqual(rows.Length,result.GetProperty("provenance").GetArrayLength());
+                    foreach(var row in rows) {
+                        Assert.AreEqual(2,row.GetArrayLength());
+                        Assert.IsTrue(expected.ContainsKey(row[0].GetGuid()));
+                        Assert.AreEqual(expected[row[0].GetGuid()],row[1].GetInt32());
+                    }
+                    return result.Clone();
+                }
+                static Guid[] Keys(JsonElement result) => result.GetProperty("rows").EnumerateArray().Select(row=>row[0].GetGuid()).ToArray();
+                var first = await ReadInt32();
+                CollectionAssert.AreEquivalent(new[]{original.Id,longer.Id},Keys(first));
+                Assert.IsTrue(first.GetProperty("provenance").EnumerateArray().Any(row=>
+                    row.GetProperty("representation").GetString()=="Virtual" && row.GetProperty("alsoMaterialized").GetBoolean()));
+                body.Filters[0].Operator = CqlV1Operator.NotEqual;
+                var otherStock = await ReadInt32();
+                CollectionAssert.AreEquivalent(new[]{virtualOnlyId.Value,important.Id},Keys(otherStock));
+                body.Filters[0].Operator = CqlV1Operator.Equal;
+                body.Filters[0].Value = JsonSerializer.SerializeToElement(-1);
+                Assert.AreEqual(0,Keys(await ReadInt32(3)).Length,"Stale cached stock must not satisfy the predicate.");
+                body.Filters[0].Operator = CqlV1Operator.GreaterThanOrEqual;
+                body.Filters[0].Value = JsonSerializer.SerializeToElement(0);
+                body.OrderBy="None"; body.SelectedOrder=new[]{
+                    new CqlGroupedV1Ordering{Alias="Stock",Descending=true}, new CqlGroupedV1Ordering{Alias="Id"} };
+                body.Skip=1; body.Take=2;
+                var page=await ReadInt32();
+                CollectionAssert.AreEqual(expected.OrderByDescending(row=>row.Value).ThenBy(row=>row.Key).Skip(1).Take(2).Select(row=>row.Key).ToArray(),Keys(page));
+                using(var response=await Send(otherToken)) {
+                    Assert.AreEqual(HttpStatusCode.NotFound,response.StatusCode,await response.Content.ReadAsStringAsync());
+                    var operation=await outbox.GetAsync(response.Headers.GetValues("X-OASIS-Operation-Id").Single(),CancellationToken.None);
+                    Assert.AreEqual("settled",operation.State);
+                    Assert.AreEqual(2,operation.ProviderAttempts.Count);Assert.AreEqual(2,operation.Receipts.Count);
+                }
+                Assert.AreEqual(5,authority.Settlements.Count);
+                var preserved=await provider.LoadHolonAsync(snapshot.Id);
+                Assert.IsNotNull(preserved.Result); Assert.AreEqual("-1",preserved.Result.MetaData["stockAlias"]?.ToString());
+                Assert.IsNull((await provider.LoadHolonAsync(virtualOnlyId.Value)).Result,"Read must not materialize the native-only row.");
+                await app.StopAsync();
+                return;
             }
             if (predicateCrossing)
             {
