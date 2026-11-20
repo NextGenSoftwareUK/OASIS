@@ -55,7 +55,8 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     }
 
     private static string? StoredPrivacy(IAvatar avatar) =>
-        (string?)JObject.FromObject(avatar.MetaData ?? new Dictionary<string,object>())["preferences"]?["privacy"]?["profileVisibility"];
+        (string?)NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.CaptureRuntimeToken(
+            avatar.MetaData ?? new Dictionary<string,object>())["preferences"]?["privacy"]?["profileVisibility"];
 
     [Theory]
     [InlineData("MongoDBOASIS")]
@@ -69,6 +70,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         IAsyncDisposable? asyncOwner=null;IDisposable? syncOwner=null;
         Task<OASISResult<bool>>? saving=null;
         Func<Task<string?>>? nativeFirstName=null;
+        Func<Task<string?>>? nativePrivacy=null;
         try
         {
             switch(providerName)
@@ -80,7 +82,9 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 case "SQLLiteDBOASIS":
                     var sqlite=new SqliteStore();syncOwner=sqlite;owner=sqlite.Provider;
                     var active=await owner.ActivateProviderAsync();Assert.False(active.IsError,active.Message);
-                    reader=sqlite.CreatePreferencePeerProvider(barrier);nativeFirstName=()=>sqlite.ReadFirstNameNativeAsync(id);break;
+                    reader=sqlite.CreatePreferencePeerProvider(barrier);nativeFirstName=()=>sqlite.ReadFirstNameNativeAsync(id);
+                    nativePrivacy=async () => (string?)JObject.Parse(await sqlite.ReadMetadataJsonNativeAsync(id))
+                        ["preferences"]?["privacy"]?["profileVisibility"];break;
                 case "Neo4jOASIS":
                     var neo=new BoltStore();asyncOwner=neo;await neo.Activate(id);owner=neo.Provider;
                     reader=neo.CreatePreferencePeerProvider(barrier);nativeFirstName=()=>neo.ReadFirstNameNativeAsync(id);break;
@@ -129,6 +133,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 var persisted=await owner.LoadAvatarAsync(id);Assert.False(persisted.IsError,persisted.Message);
                 Assert.Equal(storedPassword,persisted.Result.Password);
                 Assert.Equal("private",StoredPrivacy(persisted.Result));
+                if(nativePrivacy!=null)Assert.Equal("private",await nativePrivacy());
                 var privacy=await settings.GetPrivacySettingsAsync(id);Assert.False(privacy.IsError,privacy.Message);
                 Assert.Equal("private",privacy.Result["profileVisibility"]?.ToString());
                 Console.WriteLine("Preference explicit fresh action after conflict verified: "+providerName);

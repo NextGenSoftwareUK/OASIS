@@ -22,7 +22,7 @@
   ],
   "rows": 3,
   "noArgumentPeerFactoriesUnchanged": true,
-  "status": "native_loss_confirmed_correction_qualification_running",
+  "status": "revision_fix_native_Mongo_Neo_pass_SQLite_readback_observer_corrected_pending",
   "preference": "preferences.privacy.profileVisibility=private",
   "businessResponsesReplaced": false,
   "fixtureOwnerConstructorsUnchanged": true,
@@ -39,7 +39,7 @@
     "source": "c4a66d01805c24b8186217bec0bce22d61870300",
     "run": 44659888087,
     "job": 136035247377,
-    "status": "in_progress_API_build",
+    "status": "completed_two_passed_one_SQLite_readback_failed",
     "expectedResults": 3,
     "expectedBrowserHandoffs": 0,
     "unchangedAcceptedCohortsSelected": 0,
@@ -93,5 +93,34 @@
     "mongoAbsenceVerified": true,
     "correction": "Retain existing constructor-supplied ProviderManager in readonly field",
     "localFilesWritten": 0
+  },
+  "correctionNativeResult": {
+    "run": 44659888087,
+    "job": 136035247377,
+    "source": "c4a66d01805c24b8186217bec0bce22d61870300",
+    "core": "a4c34c846ec7dcc0bab8ecf5ef55fec29fb062a2",
+    "apiAndNativeBuilds": "success_zero_errors",
+    "passedProviders": [
+      "MongoDBOASIS",
+      "Neo4jOASIS"
+    ],
+    "failedProvider": "SQLLiteDBOASIS",
+    "failedAssertion": "Expected private, actual null at StoredPrivacy after explicit fresh save; prior newer native name/password preservation and conflict assertions reached",
+    "observerFinding": "JObject.FromObject does not use canonical JsonElement converter; replace with canonical CaptureRuntimeToken and add independent fresh ADO MetaDataJson assertion",
+    "artifact": {
+      "id": 14595646789,
+      "bytes": 2290,
+      "sha256": "51f22c0aa3b6a8096e66c0a260dcd8ad4f1e98ef472583e393eeae7671dca400",
+      "results": 3,
+      "passed": 2,
+      "failed": 1,
+      "skipped": 0,
+      "exactDefinitionsAndIDs": true,
+      "orderingAndCleanupMarkers": 6,
+      "passedFreshActionAndPreservationMarkers": 4,
+      "fixtureStops": "both success",
+      "streamsDisposed": true,
+      "filesWritten": 0
+    }
   }
 }

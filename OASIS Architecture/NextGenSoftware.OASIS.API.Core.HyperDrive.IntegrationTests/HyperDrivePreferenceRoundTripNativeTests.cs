@@ -1,5 +1,4 @@
 using System.Reflection;
-using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -66,7 +65,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 {{AvatarHyperDriveSettings.AutoFailoverProviders,"DEFAULT"}});
             Assert.False(clear.IsError,clear.Message);Assert.True(clear.IsSaved);
             var final=await owner.LoadAvatarAsync(id);Assert.False(final.IsError,final.Message);
-            var json=JObject.FromObject(final.Result.MetaData);
+            var json=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.CaptureRuntimeToken(final.Result.MetaData);
             Assert.Null(json["preferences"]?[AvatarHyperDriveSettings.Category]?[AvatarHyperDriveSettings.AutoFailoverProviders]);
             Assert.Equal("private",StoredPrivacy(final.Result));
             var inherited=AvatarHyperDriveSettings.FromAvatar(final.Result);

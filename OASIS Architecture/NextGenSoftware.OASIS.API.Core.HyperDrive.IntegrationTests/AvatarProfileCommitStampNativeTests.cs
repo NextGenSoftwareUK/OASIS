@@ -144,6 +144,14 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         public IOASISStorageProvider CreatePeerProvider() => new SQLLiteDBOASIS(Connection);
         public IOASISStorageProvider CreatePreferencePeerProvider(PreferenceNativeReadBarrier barrier) =>
             new PreferenceReadGatedSqlite(Connection,barrier);
+        public async Task<string> ReadMetadataJsonNativeAsync(Guid id)
+        {
+            using var connection=new Microsoft.Data.Sqlite.SqliteConnection(Connection);await connection.OpenAsync();
+            using var command=connection.CreateCommand();
+            command.CommandText="SELECT MetaDataJson FROM Avatar WHERE Id=$id";
+            command.Parameters.AddWithValue("$id",id.ToString());
+            return Assert.IsType<string>(await command.ExecuteScalarAsync());
+        }
         public async Task<string?> ReadFirstNameNativeAsync(Guid id)
         {
             using var connection=new Microsoft.Data.Sqlite.SqliteConnection(Connection);await connection.OpenAsync();
