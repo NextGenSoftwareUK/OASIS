@@ -1,21 +1,37 @@
 {
   "date": "2026-11-20",
-  "status": "source-wired; cloud syntax, WEB5 build and runtime pending",
+  "status": "source, three exact-source Node syntax checks and actual WEB5 build passed; runtime acceptance pending",
   "portalCommit": "84e793d808113c008df2f4e40fc75ee36dd22cf1",
   "starCommit": "104745c3feea7604dac7b4f531155afae707851e",
   "sourceChecks": {
     "remoteExactFiles": 9,
     "demoSubstitutionsRemoved": 18,
     "realManagerCallsUnderBootOwners": 61,
-    "finalNodeSyntax": "pending CI parse-only; no claim from rejected local commands"
+    "finalNodeSyntax": "all three scripts passed in CI at exact portal SHA; no popup execution"
   },
   "remaining": [
-    "Three exact-source Node syntax checks",
-    "Actual WEB5 API compile",
     "Browser/SDK/owned-native map data, memberships, selections and paged contacts",
     "Hosted/full Startup and whole-site acceptance"
   ],
   "acceptedTestsRepeated": 0,
   "localGeneratedFiles": 0,
-  "summary": "2026-11-20 CELESTIAL/OAPP/SOCIAL MAP BREADTH SOURCE WIRED: Portal84e793d808113c008df2f4e40fc75ee36dd22cf1 / STAR104745c3feea7604dac7b4f531155afae707851e. Removed18 demo/empty substitutions across CelestialSpaces/CelestialBodies/OAPPs; one non-action boot owner per controller awaits the real API before61 existing manager calls. Celestial map uses returned nested celestialSpace.celestialBodies memberships joined to celestialBodyId, correct body type/colour and explicit partial read errors; missing memberships remain labelled groups, not fabricated parent edges. OAPP graph has actual node selection/details, reported malformed relationships, honest returned-only links, cleared logout data and no invented Provider column. Social graph uses the canonical current SDK bearer, actual paged messages and visible errors; stale profile-token comparison removed. Nine remote source files exact. Local PowerShell syntax checks for two files rejected by automatic review (blocked by policy); Node REPL parser bootstrap failed (runtime path missing), so no syntax pass is claimed for those final sources. Same CI runner now supports one exact portal SHA sparse checkout and three Node parse-only checks beside actual WEB5 compilation; syntax/build/runtime pending. No accepted behavior cohorts repeated; no live/shared Atlas/PIPER/DNA/worker/LB/deploy/protected delivery action or local downloads/build/env/results/temp sources. Whole OPORTAL/provider/HyperDrive goal remains active and incomplete."
+  "summary": "2026-11-20 MAPS SOURCE / THREE CLOUD SYNTAX CHECKS / ACTUAL WEB5 BUILD VERIFIED:44759917819/job136369401139 SUCCESS onef920fa8d7c9/STAR104745c3feea/Portal84e793d80811. Three explicit Node parse-only success markers verified for celestial-map-modal.js/oapp-map-modal.js/social-graph-modal.js at the exact sparse source checkout; popup code not executed. Actual WEB5 API compiled0errors in3m30.84s; manager928/754 and WEB4 routes798/688 gates pass. Removed18 generated/empty substitutions in three STAR controllers and await boot before61 real manager calls. Celestial memberships use actual returned nested body IDs, not guessed parent fields; real partial errors remain visible. OAPP map adds actual node details and clears logout data; no invented Provider column. Social graph uses canonical current bearer and actual paged messages. Nine source files exact. Prior local PowerShell syntax rejection and parser bootstrap failure retained; final syntax qualified safely in CI. All behavior/native/artifact cohorts excluded, no accepted tests repeated. Browser/SDK/owned-native map/selection/membership/contact acceptance and hosted/full Startup/whole-site acceptance remain pending. CI post-job cleanup passed, selected logs inspected in RAM/filesWritten0. No laptop downloads/build/env/database/results/temp sources or shared Atlas/PIPER/DNA/worker/LB/deploy/protected-delivery action. Goal active, incomplete; functional breadth remains first.",
+  "apiBuild": {
+    "run": 44759917819,
+    "job": 136369401139,
+    "source": "ef920fa8d7c9f730c34d6ece38fe701092835c26",
+    "status": "success",
+    "target": "actual WEB5 compile plus three exact-source Node syntax checks only",
+    "errors": 0,
+    "duration": "00:03:30.84",
+    "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44759917819",
+    "syntaxPassed": [
+      "celestial-map-modal.js",
+      "oapp-map-modal.js",
+      "social-graph-modal.js"
+    ],
+    "cleanup": "CI post-job cleanup passed; behavior/native/artifact suites excluded; log inspection in RAM/filesWritten0"
+  },
+  "developmentReview": "6498c9fb unchanged; no peer import/retest",
+  "sourceBatchSummary": "2026-11-20 CELESTIAL/OAPP/SOCIAL MAP BREADTH SOURCE WIRED: Portal84e793d808113c008df2f4e40fc75ee36dd22cf1 / STAR104745c3feea7604dac7b4f531155afae707851e. Removed18 demo/empty substitutions across CelestialSpaces/CelestialBodies/OAPPs; one non-action boot owner per controller awaits the real API before61 existing manager calls. Celestial map uses returned nested celestialSpace.celestialBodies memberships joined to celestialBodyId, correct body type/colour and explicit partial read errors; missing memberships remain labelled groups, not fabricated parent edges. OAPP graph has actual node selection/details, reported malformed relationships, honest returned-only links, cleared logout data and no invented Provider column. Social graph uses the canonical current SDK bearer, actual paged messages and visible errors; stale profile-token comparison removed. Nine remote source files exact. Local PowerShell syntax checks for two files rejected by automatic review (blocked by policy); Node REPL parser bootstrap failed (runtime path missing), so no syntax pass is claimed for those final sources. Same CI runner now supports one exact portal SHA sparse checkout and three Node parse-only checks beside actual WEB5 compilation; syntax/build/runtime pending. No accepted behavior cohorts repeated; no live/shared Atlas/PIPER/DNA/worker/LB/deploy/protected delivery action or local downloads/build/env/results/temp sources. Whole OPORTAL/provider/HyperDrive goal remains active and incomplete."
 }
