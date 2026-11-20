@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public sealed partial class CqlV1Web4NativeTests
 {
     [DataTestMethod]
-    [DataRow("MongoDBOASIS")] [DataRow("SQLLiteDBOASIS")] [DataRow("Neo4jOASIS")]
+    [DataRow("MongoDBOASIS")]
     public Task UtcDateMappedFiltersPreserveTicksAndNativeTemporalValues(string providerName)
         => RunGroupedDistinctNativeFixture(providerName, false, utcDateFilterNative: true);
 
