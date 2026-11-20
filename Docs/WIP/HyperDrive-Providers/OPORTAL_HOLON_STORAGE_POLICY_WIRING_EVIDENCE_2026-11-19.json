@@ -1,5 +1,5 @@
 {
-  "status": "native_policy_category_and_decoder_observation_confirmed_running",
+  "status": "canonical_preference_reader_fix_pending_qualification",
   "finding": "Frozen portal4ccf holon-storage-policy.js calls api/settings/holon-storage-policy, but this worktree had no matching controller route",
   "route": "api/settings/holon-storage-policy",
   "verbs": [
@@ -8,7 +8,7 @@
     "DELETE"
   ],
   "controller": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/HolonStoragePolicyController.cs",
-  "core": "33712edf309b42635ca756930907db37188d76e9",
+  "core": "9f740686c1d7eb67c2f3ab11de7754692be7a120",
   "existingCoreOwner": "SettingsManager.HolonStoragePolicies.cs; Get/Save/ResetHolonStoragePolicyAsync",
   "implementation": [
     "Authenticated avatar supplies owner; optional application override remains scoped to that avatar",
@@ -27,7 +27,7 @@
     "lineReferencesRefreshed": true,
     "sourceGuard": "passed"
   },
-  "next": "Retry ONLY same failed storage browser Fact with native category/decoder diagnostics; keep same product graph, assertions and deadlines. No UI or serializer workaround until native representation is known.",
+  "next": "Run ONLY same failed storage browser Fact against canonical preference reader fix; unchanged deadlines/assertions, no accepted cohorts repeated.",
   "compiled": true,
   "runtimeAccepted": false,
   "hostedAccepted": false,
@@ -132,5 +132,24 @@
       "streamsDisposed": true,
       "filesWritten": 0
     }
+  },
+  "nativeDecoderFinding": {
+    "run": 44674578858,
+    "job": 136083253404,
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0,
+    "exception": "ArgumentException: duplicate key $type",
+    "storedPolicy": "Intact version1 Hybrid JSON string",
+    "fix": "Remove separate metadata object reader; use existing ReadAvatarPreferences and ReadAvatarPreferenceCategories",
+    "artifact": 14602152192,
+    "bytes": 4828,
+    "sha256": "357d7bee2245b452e6bc01d4c009fcb01867e618d7cacc4057376ecd9208974f",
+    "exactFailedResultVerified": true,
+    "managerRestored": true,
+    "browserRuntimeCleanup": true,
+    "MongoAbsence": true,
+    "fixtureStops": "both success",
+    "filesWritten": 0
   }
 }
