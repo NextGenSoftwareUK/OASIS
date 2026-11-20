@@ -4,7 +4,7 @@ Status: active, incomplete. Whole-site main-flow acceptance takes priority over 
 
 ## Current source batch
 
-Portal branch `work/oportal-subscription-performance`, latest portal source commit `83848d7b0ef1c36cf1a67c0958e7b9abdee38f66` (retains prior breadth batches):
+Portal branch `work/oportal-subscription-performance`, latest portal source commit `0e316bd090e1ba0698c9c4ae4c89489d0310e381` (retains prior breadth batches):
 
 - Settings destinations use existing subscription and HyperDrive surfaces; actual subscription summary replaces fake Free Tier. Three security placeholders remain open.
 - Router covers41 feature keys, with48 hosting paths. Early clicks now wait for the actual mounted fragment; selected target, rather than any visible popup, determines history. Latest queued click wins; navigation, close and logout cancel pending opens. Failed fragment completion reports failure, without a retry loop or substituted content.
@@ -74,7 +74,7 @@ Inventory:44 actual popup templates (43 declared in portal-components.js plus th
 
 - Dashboard and notifications panel: complete their main navigation/read/action pass; retain existing bearer/usage evidence.
 - Settings security: Enable2FA, SignOutAllSessions and DeleteAccount remain unfinished. Current-token revoke is not all-session revocation. Avatar DELETE is not proof of permanent deletion of all associated data. No replacement claims or unsafe backend actions made.
-- New-menu game entries ODOOM, OQUAKE, Our World and StarCraft2 still show Coming Soon. Connect them only to an accurate supported destination; do not invent game IDs or claim a native launch from a catalogue link.
+- New-menu ODOOM, OQUAKE, Our World and StarCraft2 now browse the actual catalogue filtered by title, with query history and honest empty/error states. No native launch claimed. STARfbe7c02f removes generated demo catalogue responses and awaits shared boot before cross-game quests. Actual WEB5 compile and browser/native acceptance pending; see OPORTAL_GAMES_BREADTH_EVIDENCE_2026-11-20.json. Other unused STAR CRUD demo branches remain later programme work.
 - The dormant generic side-nav.html still contains placeholder entries; classic/new menu loading is owned by portal-components.js. Track reachability separately; do not count a dormant template cleanup as runtime completion.
 - Browser opening/loading/main-action checks for the changed source remain pending. Keep shared Atlas/PIPER held; use existing isolated real-backend test resources when runtime checks become necessary.
 
