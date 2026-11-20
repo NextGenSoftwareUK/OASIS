@@ -1,6 +1,6 @@
 {
   "date": "2026-11-20",
-  "status": "provider scalar decode fixed in source; selected changed compile/native acceptance pending",
+  "status": "native manager main flow accepted across MongoDB/SQLite/Neo4j; browser and HTTP/full site acceptance open",
   "portalCommit": "bc61029019faebef627bdd54f3c598178f8cb5b3",
   "sourceChecks": {
     "remoteExactFiles": 4,
@@ -14,9 +14,10 @@
     ]
   },
   "remaining": [
-    "One new three-provider durable quest/leaderboard/hatch native journey",
-    "Wizard publisher HTTP authorization and browser/SDK end-to-end acceptance",
+    "Wizard publisher HTTP authorization",
+    "Actual browser/SDK tabs and hatch action",
     "Global versus avatar collection catalogue semantics",
+    "Server gameplay hatch eligibility and reward policy",
     "Full Startup/hosted and whole-site acceptance"
   ],
   "acceptedTestsRepeated": 0,
@@ -37,7 +38,7 @@
     "conclusion": "failure"
   },
   "initialSourceSummary": "2026-11-20 EGGS MAIN-FLOW SOURCE WIRED: Portal bc61029019faebef627bdd54f3c598178f8cb5b3. Four tabs now await the canonical current SDK session, use actual Egg/EggQuest/EggQuestLeaderboard fields (questName, rewards, avatarName, rank, score), preserve zero values, expose Refresh and actual request failures, and reject malformed lists. Hatch buttons respect isHatchable and require the returned requested egg ID/isHatched acknowledgement; no generated reward claims, repeated hatch submissions or old status timers. Removed eight EggsController demo/empty success substitutions; actual manager results/errors retained. Four remote source files exact; WEB4 route review798/688 passes. One exact-source Eggs-only cloud syntax check and actual WEB4 build are being prepared; accepted map checks/behavior/native cohorts will not be repeated. Full Eggs acceptance remains OPEN: GetAllEggs currently has avatar collection semantics, current quests/quest leaderboard read process dictionaries without a durable producer, and real browser/native hatch/reopen plus gameplay policy remain unqualified. These agent-owned backend gaps are not marked complete or replaced by unrelated competition data. Development6498c9fb rechecked unchanged; no peer import/retest. Shared Atlas/PIPER/DNA/worker/LB/deploy/protected-delivery holds preserved; no laptop builds/downloads/env/results/temp source files. Whole OPORTAL/provider/HyperDrive goal active/incomplete, breadth first.",
-  "summary": "2026-11-20 DURABLE EGG QUEST/BACKEND SOURCE IMPLEMENTED: Core e07d3dee5b490401580e53f317332bcca9a3cc1e removes both process-only quest/leaderboard dictionaries. Readers use actual avatar settings from the selected provider; trusted publisher snapshots use the same SaveSetting owner, validate identities/progress/ranks, preserve zero scores and bind quest AvatarId to the target. New WEB4 PUT api/eggs/{avatarId}/quests and /quest-leaderboard require Wizard in source. No substitution of EggCollection competition data. Root manager review930/760 and routes800/690 include only scoped Egg changes; unrelated CSV rows/order preserved. One NEW EggQuestSnapshotsAndHatchPersistAcrossThreeOwnedNativeStores case prepared: actual MongoDB/SQLite/Neo4j raw reads, cold managers, active quest/rewards and ranked zero-score data, refused invalid replacement preserving state, real hatch/collection preservation, clearing quests without clearing board and foreign profile preservation, owned cleanup. Existing loopback fixtures and build lease reused; no accepted case selected. This is source implementation, not runtime/HTTP-authority acceptance: actual new native case, API build, Eggs syntax, publisher HTTP authorization, global catalogue semantics and full site still open. Core parent gitlink/manifest paired; physical submodule/dirty Portal preserved. No local build/download/env/results/native DB or shared service/DNA/worker/deploy action.",
+  "summary": "2026-11-20 EGGS DURABLE MAIN FLOW NATIVE ACCEPTED:44772243917/job136412659659 SUCCESS on583794f3654e68725a90de23197104cb5035190c/Core54ded2cc048aba33ff09fe64f99ba07dcb85bebe/Portalbc61029019faebef627bdd54f3c598178f8cb5b3. Actual WEB4 API compiled0errors4m48.50s; manager930/760 and route800/690 gates pass. ONE corrected new Fact passed8.6678207s across actual owned MongoDB/SQLite/Neo4j: persisted active/completed quests, ranked leaderboard preserving zero score, cold reads, invalid replacement refusal preserving previous state, real hatch and cold collection preservation, independent quest clearing and foreign profile/account fields unchanged. Native Holon observers verify actual records; both earlier failures retained and fixed in their responsible layers. Artifact14646879508/1573B SHA54f3a8790c24e364665f2361b8fb89c7f22c7ef55d6d48531802e12fcba66edd strictly verified in RAM: exact1TRX, linked test/execution identity,1passed/0failed/0skipped,3provider proof markers and final owned-scope absence proof. Mongo/Bolt and all post-job cleanup steps passed; filesWritten0. Eggs-only syntax from44767859286 retained; no accepted older cohort or syntax rerun. Remaining: Wizard publisher HTTP authorization, actual browser/SDK tabs and hatch, global-vs-own catalogue semantics, server gameplay eligibility/rewards policy, full Startup/hosted/site acceptance. Whole OPORTAL remains incomplete; Competition breadth fixes next, no broad hardening/optimization. Development4f832aa2491ac608b268c7b735c378370dd1cb21 reviewed: one scoped CQL stateless-session Core/manifest/evidence batch, no popup overlap/import/retest or deployment. No shared Atlas/PIPER/DNA/worker/LB/protected-delivery action or laptop build/download/env/DB/results/artifact.",
   "observerCorrection": "Native Holon observers and actual private settings-ID authority; exact owned Bolt Holon/history cleanup. Assertions retained. Shipping Core/API/Portal unchanged.",
   "failedRetry": {
     "runId": 44770648378,
@@ -47,5 +48,45 @@
     "cause": "provider JSON string scalar rejected by CLR-string-only decoder",
     "localFilesWritten": 0
   },
-  "scalarRootCauseFix": "2026-11-20 EGGS JSON SCALAR ROOT CAUSE FIXED IN SOURCE: retry44770648378/job136407089383 compiled but one native case failed6s during cold quest read because provider metadata string scalars are JSON-wrapped rather than always CLR string. Core54ded2cc048aba33ff09fe64f99ba07dcb85bebe now uses one typed Egg snapshot reader for collection/quests/leaderboard: CLR string, STJ string scalar and Newtonsoft string scalar share string semantics; non-string/blank/malformed snapshots return actual errors. This also fixes the existing collection reader silently treating a wrapped collection as empty, enabling genuine cold hatch reads. No stringification fallback or swallowed error. Remote source byte-exact; parent pin/manifest paired, Egg-only manifest line references updated; method/route counts unchanged. Next verification selects only the same failed native Fact plus changed actual API build, no accepted unrelated tests or syntax repeat. Prior failures retained; full Eggs/browser/whole portal remains incomplete. Second run owned native fixtures/post-job cleanup passed; no local generated output or shared service action."
+  "scalarRootCauseFix": "2026-11-20 EGGS JSON SCALAR ROOT CAUSE FIXED IN SOURCE: retry44770648378/job136407089383 compiled but one native case failed6s during cold quest read because provider metadata string scalars are JSON-wrapped rather than always CLR string. Core54ded2cc048aba33ff09fe64f99ba07dcb85bebe now uses one typed Egg snapshot reader for collection/quests/leaderboard: CLR string, STJ string scalar and Newtonsoft string scalar share string semantics; non-string/blank/malformed snapshots return actual errors. This also fixes the existing collection reader silently treating a wrapped collection as empty, enabling genuine cold hatch reads. No stringification fallback or swallowed error. Remote source byte-exact; parent pin/manifest paired, Egg-only manifest line references updated; method/route counts unchanged. Next verification selects only the same failed native Fact plus changed actual API build, no accepted unrelated tests or syntax repeat. Prior failures retained; full Eggs/browser/whole portal remains incomplete. Second run owned native fixtures/post-job cleanup passed; no local generated output or shared service action.",
+  "acceptedValidation": {
+    "runId": 44772243917,
+    "jobId": 136412659659,
+    "sourceCommit": "583794f3654e68725a90de23197104cb5035190c",
+    "conclusion": "success",
+    "apiBuild": {
+      "errors": 0,
+      "duration": "00:04:48.50"
+    },
+    "nativeFact": "EggQuestSnapshotsAndHatchPersistAcrossThreeOwnedNativeStores",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "durationSeconds": 8.6678207,
+    "providers": [
+      "MongoDBOASIS",
+      "SQLLiteDBOASIS",
+      "Neo4jOASIS"
+    ],
+    "artifact": {
+      "id": 14646879508,
+      "bytes": 1573,
+      "sha256": "54f3a8790c24e364665f2361b8fb89c7f22c7ef55d6d48531802e12fcba66edd",
+      "exactTrxEntries": 1,
+      "identityVerified": true,
+      "nativeProofMarkers": 3,
+      "scopeAbsenceVerified": true,
+      "verification": "RAM only",
+      "filesWritten": 0
+    },
+    "nativeAndPostJobCleanup": "passed",
+    "acceptedOlderCohortsRepeated": 0,
+    "acceptedSyntaxRepeated": 0
+  },
+  "developmentReview": {
+    "sha": "4f832aa2491ac608b268c7b735c378370dd1cb21",
+    "changedFiles": 3,
+    "overlap": "Core pin/manifest; CQL stateless session implementation does not touch popup paths",
+    "importedOrRetested": false
+  }
 }
