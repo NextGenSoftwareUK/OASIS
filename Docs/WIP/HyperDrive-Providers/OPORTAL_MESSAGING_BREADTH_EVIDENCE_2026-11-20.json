@@ -106,9 +106,19 @@
     "exactIdentityCountersAndNativeProofMarkersVerified": true,
     "inspection": "RAM only; streams disposed; local filesWritten0"
   },
-  "remainingMainFlowGaps": [
+  "remainingMainFlowGapsAtThatAcceptance": [
     "Conversation overview currently covers first50 messages; complete directory pagination remains open",
     "Messaging notifications tab currently displays first20; bell panel pagination is separately accepted",
     "Current live-chat session is in memory; resuming existing active sessions after full-page reload remains open"
+  ],
+  "subsequentFunctionalAcceptance": {
+    "evidence": "OPORTAL_MESSAGING_HISTORY_RESUME_EVIDENCE_2026-11-20.json",
+    "run": 44731899782,
+    "conclusion": "success",
+    "scope": "List/history pagination, CSS visibility and persisted chat resumption after full page reload through actual SDK/compiled API/owned native Mongo"
+  },
+  "currentOutstandingScope": [
+    "Hosted integration and full production Startup/authentication/usage/billing pipeline",
+    "Whole OPORTAL completeness remains separate"
   ]
 }

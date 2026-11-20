@@ -1,5 +1,5 @@
 {
-  "status": "real_visibility_defect_corrected_read_only_case_pending",
+  "status": "pagination_history_and_page_reload_resumption_verified_owned_native_backend",
   "date": "2026-11-20",
   "portal": "7b1c100a613bd3a06976b1816d25be7bda4673ac",
   "core": "5729b1a30b8cc3396d12543d1acb6b501da5f3b3",
@@ -32,14 +32,15 @@
     "browserSyntax": true,
     "brokerSyntax": true,
     "shippingScriptSyntax": true,
-    "fourRemoteSourceCacheFilesExact": true,
     "routeManifestActions": 798,
     "routeManifestExternalOrProviderActions": 687,
     "apiCompiled": true,
-    "runtimeAccepted": false,
+    "runtimeAccepted": true,
     "previousAcceptedCaseRerun": false,
-    "apiCompiledSource": "2fc6f9df9dc0c0298fadfce1536d9274453339a5 (shipping API unchanged by CSS correction)",
-    "correctedStylesAndCacheExact": true
+    "apiCompiledSource": "39d7a65f2fa10fb9beb6078b7377b62493a94fa5",
+    "correctedStylesAndCacheExact": true,
+    "sdkRouteBuilderForwardsPaginationQueries": true,
+    "exactPortalInputsVerified": 6
   },
   "limits": [
     "Not full production Startup/authentication/usage/billing/hosted/all-site acceptance",
@@ -52,7 +53,10 @@
     "newWorktrees": 0,
     "generatedLocalResults": 0,
     "ownedTemporarySyntaxFile": "35KB script exceeded Windows command-length limit; checked with existing Node from exact owned path, removed, absence verified. Initial slash normalization guard corrected before running/deleting.",
-    "runtimeCleanup": "Pending actual CI execution"
+    "runtimeCleanup": "Owned browser/runtime/cache/control cleanup, Mongo fixture absence and Neo stop succeeded",
+    "nativeDatabaseAbsenceVerified": true,
+    "applicationManagersRestored": true,
+    "localArtifactFilesWritten": 0
   },
   "attempts": [
     {
@@ -72,12 +76,42 @@
       "cleanup": "Owned browser/runtime/cache/control and Mongo fixture absence verified; local artifact filesWritten0"
     }
   ],
-  "pendingRun": {
+  "source": "39d7a65f2fa10fb9beb6078b7377b62493a94fa5",
+  "run": {
     "id": 44731899782,
     "job": 136273531990,
     "source": "39d7a65f2fa10fb9beb6078b7377b62493a94fa5",
     "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44731899782",
-    "status": "in_progress",
-    "selection": "Only same failed read-only pagination/session-resume Fact; accepted cases excluded"
+    "status": "completed",
+    "selection": "Only same failed read-only pagination/session-resume Fact; accepted cases excluded",
+    "conclusion": "success",
+    "facts": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "durationSeconds": 28.0375589,
+    "apiBuildSeconds": 365.74,
+    "apiBuildErrors": 0
+  },
+  "browserResult": {
+    "messagingHistoryResumeVerified": true,
+    "providerType": "MongoDBOASIS",
+    "messagePages": 2,
+    "notificationPages": 3,
+    "chatPages": 2,
+    "pageReloadVerified": true,
+    "apiWrites": 0
+  },
+  "artifact": {
+    "id": 14627646008,
+    "bytes": 4253,
+    "sha256": "bb3e1d228fd5772a28020539d285b1e885e2c8c6dea95a8bc12385675997fcee",
+    "entries": [
+      "profile-sdk-native.trx"
+    ],
+    "testId": "e7476517-ca84-45c7-7b68-649f8a0725e5",
+    "executionId": "77fed85e-bea3-4c76-85f1-497275ce6ff9",
+    "exactIdentityCountersAndNativeProofMarkersVerified": true,
+    "inspection": "RAM only; streams disposed; local filesWritten0"
   }
 }
