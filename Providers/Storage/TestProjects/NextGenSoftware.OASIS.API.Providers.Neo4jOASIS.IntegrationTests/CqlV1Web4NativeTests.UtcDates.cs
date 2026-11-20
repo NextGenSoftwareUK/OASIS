@@ -29,7 +29,8 @@ public sealed partial class CqlV1Web4NativeTests
         var priorMongo = mp?.NativeImportDatabaseName;
         var priorSqlite = sp?.NativeImportConnectionString;
         var priorLabels = np?.NativeImportLabels;
-        var nativeDb = database + "_utc_date_native";
+        var nativeDb = database + "_utc";
+        Assert.IsTrue(nativeDb.Length <= 63, "Owned Mongo fixture database name must fit the native limit.");
         var sqlitePath = Path.GetFullPath(Path.Combine(work, "utc-date-native.sqlite"));
         var label = "UtcDateNative_" + Guid.NewGuid().ToString("N");
         var sourceName = np == null ? "items" : label;
