@@ -1,0 +1,53 @@
+{
+  "status": "source_wired_read_only_main_flow_case_prepared",
+  "date": "2026-11-20",
+  "portal": "77e8e5b025b7eacc72564459c223a1c0ded4ae81",
+  "core": "5729b1a30b8cc3396d12543d1acb6b501da5f3b3",
+  "exactPortalBlobs": {
+    "assets/js/messaging-modal.js": "e471c4b1d7fac723ae5548b2b7eb1da07828f90f",
+    "assets/components/modals/messaging.html": "d029f5578d5e9eb782392fec17d9cc19782c370d",
+    "assets/js/portal-components.js": "8677002ab8d0232907078109171a84a4c5340045",
+    "assets/js/oasis-web4-sdk.js": "850ee98adb5663b56644edddc842175dfb5f939c",
+    "portal.html": "d6cc02537744f58ffdac9a398ede4d94d57cee37"
+  },
+  "changes": [
+    "Explicit bounded pagination for conversation overview and notification tab; unread counts label loaded rows",
+    "New authenticated active-sessions API delegates to existing real ChatManager",
+    "Persisted active-session chooser allows resumption after full page reload and choosing another chat without ending one",
+    "Older chat history pages merge with latest-page reads; selected-chat polling preserves loaded older records",
+    "Script/component/fragment cache versions updated together"
+  ],
+  "test": "MessagingHistoryAndSessionResumeUseActualSdkHttpAndOwnedMongo",
+  "expectedFacts": 1,
+  "scope": [
+    "Actual fragment/SDK/compiled Messaging+Chat controllers/owned native Mongo",
+    "52real inbound messages/notifications place an older conversation beyond first50 and require three20row notification pages",
+    "51real chat messages cross the50row history boundary once",
+    "Read-only browser pages lists, loads older chat, chooses existing session and resumes same ID after full page reload",
+    "Cold native managers verify counts/read flags/history/active session/account revisions; browser makes zero API writes"
+  ],
+  "validation": {
+    "browserSyntax": true,
+    "brokerSyntax": true,
+    "shippingScriptSyntax": true,
+    "fourRemoteSourceCacheFilesExact": true,
+    "routeManifestActions": 798,
+    "routeManifestExternalOrProviderActions": 687,
+    "apiCompiled": false,
+    "runtimeAccepted": false,
+    "previousAcceptedCaseRerun": false
+  },
+  "limits": [
+    "Not full production Startup/authentication/usage/billing/hosted/all-site acceptance",
+    "Earlier send/read/end case and exact Portal pin retained; only new read-only case selected"
+  ],
+  "cleanup": {
+    "localBuilds": 0,
+    "localDownloads": 0,
+    "newEnvironments": 0,
+    "newWorktrees": 0,
+    "generatedLocalResults": 0,
+    "ownedTemporarySyntaxFile": "35KB script exceeded Windows command-length limit; checked with existing Node from exact owned path, removed, absence verified. Initial slash normalization guard corrected before running/deleting.",
+    "runtimeCleanup": "Pending actual CI execution"
+  }
+}

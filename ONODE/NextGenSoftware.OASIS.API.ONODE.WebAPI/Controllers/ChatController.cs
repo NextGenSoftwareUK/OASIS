@@ -62,6 +62,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await ChatManager.Instance.GetChatHistoryAsync(sessionId, Avatar.Id, limit, offset);
         }
 
+        /// <summary>Gets persisted active sessions for the authenticated participant.</summary>
+        [Authorize]
+        [HttpGet("active-sessions")]
+        public Task<OASISResult<List<ChatSession>>> GetActiveSessions() =>
+            ChatManager.Instance.GetActiveSessionsAsync(Avatar.Id);
+
         /// <summary>Ends a persisted session for an authenticated participant.</summary>
         [Authorize]
         [HttpPost("end-chat-session/{sessionId}")]

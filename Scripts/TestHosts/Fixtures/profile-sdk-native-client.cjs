@@ -78,7 +78,10 @@ async function consume(name) {
   try {
     const input = fs.readFileSync(path.join(root, name), 'utf8');
     if (Buffer.byteLength(input) > 8192) throw new Error('Bounded SDK handoff input required.');
-    result = await verify(JSON.parse(input));
+    const request = JSON.parse(input);
+    const selectedVerify = messagingMode && request.scenario === 'history-resume'
+      ? require('./messaging-history-resume-browser-native-http.cjs').verify : verify;
+    result = await selectedVerify(request);
     if (messagingMode || popupBreadthMode || hyperDriveSettingsMode) console.log(JSON.stringify(result));
     else if (portraitBrowserMode) console.log(JSON.stringify({
       portraitBrowserVerified: result.portraitBrowserVerified, providerType: result.providerType,
