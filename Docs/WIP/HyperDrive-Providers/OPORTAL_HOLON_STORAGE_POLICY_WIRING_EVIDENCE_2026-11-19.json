@@ -1,0 +1,35 @@
+{
+  "status": "missing_route_implemented_source_review_only_pending_compile_and_native_browser",
+  "finding": "Frozen portal4ccf holon-storage-policy.js calls api/settings/holon-storage-policy, but this worktree had no matching controller route",
+  "route": "api/settings/holon-storage-policy",
+  "verbs": ["GET", "PUT", "DELETE"],
+  "controller": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/HolonStoragePolicyController.cs",
+  "core": "33712edf309b42635ca756930907db37188d76e9",
+  "existingCoreOwner": "SettingsManager.HolonStoragePolicies.cs; Get/Save/ResetHolonStoragePolicyAsync",
+  "implementation": [
+    "Authenticated avatar supplies owner; optional application override remains scoped to that avatar",
+    "Existing strict six-field version1 codec owns request parsing and response policy JSON",
+    "GET returns avatar/application/effective policy and actual supported cache capability",
+    "PUT and DELETE preserve native saved flags, conflict codes, warnings and errors",
+    "Known Dictionary/JObject/JsonElement metadata carriers preserve unselected values",
+    "No import, migration, data visibility filtering, record rewrite or cache insertion occurs when editing policy"
+  ],
+  "currentCacheCapability": "None only; existing unsupported Memory admission is centralized in SupportsReadCache and reported truthfully",
+  "routeManifest": {
+    "actions": 796,
+    "providerExternalManagerActions": 685,
+    "addedReviewedActions": 3,
+    "existingHandReviewedDispositionsRetained": 793,
+    "lineReferencesRefreshed": true,
+    "sourceGuard": "passed"
+  },
+  "next": "Add one NEW actual storage-tab browser/API/native case across Mongo/SQLite/Neo covering avatar/app save, inheritance, reset, invalid input and protected fields; do not repeat accepted routing popup",
+  "compiled": false,
+  "runtimeAccepted": false,
+  "hostedAccepted": false,
+  "fullPortalAccepted": false,
+  "sharedServicesTouched": false,
+  "dnaChanges": false,
+  "deploymentPerformed": false,
+  "localGeneratedOutputs": 0
+}
