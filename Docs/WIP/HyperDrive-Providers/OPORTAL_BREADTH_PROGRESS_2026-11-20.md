@@ -2,6 +2,10 @@
 
 Status: active, incomplete. Whole-site main-flow acceptance takes priority over additional hardening and optimization. This is a navigation/main-action checklist, not a claim that an opening function proves backend functionality. Retain previously accepted scoped evidence in OPORTAL_FULL_STATUS_2026-11-18.md; do not rerun unchanged accepted cohorts.
 
+## Latest functional acceptance
+
+Files popup and notification panel main actions passed one combined actual browser/SDK/compiled API/owned Mongo Fact: run44716851404,18.69seconds. Files upload/reopen/download/delete and notifications pagination/single read/MarkAll/refresh verified; cold native readback and cleanup proven. Hosted integration and full production Startup remain outside this scope. Other screens remain open; no accepted cohort rerun. See OPORTAL_POPUP_FUNCTIONAL_SMOKE_2026-11-20.json.
+
 ## Current source batch
 
 Portal branch `work/oportal-subscription-performance`, latest portal source commit `0e316bd090e1ba0698c9c4ae4c89489d0310e381` (retains prior breadth batches):
@@ -49,7 +53,7 @@ Inventory:44 actual popup templates (43 declared in portal-components.js plus th
 | onode | Load node information and supported node actions | Open — scoped evidence retained, full flow not yet accepted |
 | eggs | Load egg tabs and supported hatch action | Open — scoped evidence retained, full flow not yet accepted |
 | ai | Load models/conversations and complete supported AI request | Open — scoped evidence retained, full flow not yet accepted |
-| files | List and complete supported file actions | Open — scoped evidence retained, full flow not yet accepted |
+| files | List, upload, reopen, download and delete | Main actions verified through owned native Mongo; hosted/full Startup integration open |
 | competition | Load competition lists and supported actions | Open — scoped evidence retained, full flow not yet accepted |
 | clan | Load clan tabs and supported membership actions | Open — scoped evidence retained, full flow not yet accepted |
 | gifts | Load gifts and supported send/claim actions | Open — scoped evidence retained, full flow not yet accepted |
@@ -72,7 +76,7 @@ Inventory:44 actual popup templates (43 declared in portal-components.js plus th
 
 ## Additional surfaces and known gaps
 
-- Dashboard and notifications panel: complete their main navigation/read/action pass; retain existing bearer/usage evidence.
+- Dashboard: complete its main navigation/read/action pass; retain existing bearer/usage evidence. Notification panel main actions now verified through owned native Mongo; hosted/full Startup integration open.
 - Settings security: Enable2FA, SignOutAllSessions and DeleteAccount remain unfinished. Current-token revoke is not all-session revocation. Avatar DELETE is not proof of permanent deletion of all associated data. No replacement claims or unsafe backend actions made.
 - New-menu ODOOM, OQUAKE, Our World and StarCraft2 now browse the actual catalogue filtered by title, with query history and honest empty/error states. No native launch claimed. STARfbe7c02f removes generated demo catalogue responses and awaits shared boot before cross-game quests. Actual WEB5 build-only44707402181/job136190325864 SUCCESS0errors; source/pin gates pass, behavior/native steps skipped. Browser/native acceptance remains pending; see OPORTAL_GAMES_BREADTH_EVIDENCE_2026-11-20.json. Other unused STAR CRUD demo branches remain later programme work.
 - The dormant generic side-nav.html still contains placeholder entries; classic/new menu loading is owned by portal-components.js. Track reachability separately; do not count a dormant template cleanup as runtime completion.

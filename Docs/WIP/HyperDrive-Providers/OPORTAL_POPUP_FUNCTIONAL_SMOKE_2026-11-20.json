@@ -1,5 +1,5 @@
 {
-  "status": "new_combined_functional_case_prepared",
+  "status": "combined_main_actions_verified_owned_native_backend",
   "date": "2026-11-20",
   "portal": "a7610f5060db43f0aad5e213bda40b52d8040c0e",
   "exactPortalBlobs": {
@@ -26,8 +26,8 @@
   "validation": {
     "browserSyntax": true,
     "brokerSyntax": true,
-    "apiCompiled": false,
-    "runtimeAccepted": false,
+    "apiCompiled": true,
+    "runtimeAccepted": true,
     "backendMocks": false,
     "responseReplacement": false
   },
@@ -37,6 +37,50 @@
     "newWorktrees": 0,
     "newEnvironments": 0,
     "generatedLocalResults": 0,
-    "download": "Browser-owned CI file removed after byte comparison; existing owned browser profile/runtime cleanup reused"
+    "download": "Browser-owned CI file removed after byte comparison; existing owned browser profile/runtime cleanup reused",
+    "browserRuntimeCacheControlVerified": true,
+    "nativeMongoFixtureAbsenceVerified": true,
+    "neoFixtureStopSucceeded": true,
+    "nativeDatabaseAbsenceVerified": true,
+    "applicationManagersRestored": true,
+    "artifactLocalFilesWritten": 0
+  },
+  "source": "9856167cd97a78e4ec53612a23ee97675ae74523",
+  "run": {
+    "id": 44716851404,
+    "job": 136222338493,
+    "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44716851404",
+    "conclusion": "success",
+    "facts": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "durationSeconds": 18.6921332,
+    "apiBuildSeconds": 388.62,
+    "apiBuildErrors": 0,
+    "previouslyAcceptedCohortsRerun": false
+  },
+  "browserResult": {
+    "filesPopupVerified": true,
+    "notificationsPanelVerified": true,
+    "providerType": "MongoDBOASIS",
+    "uploadRequests": 1,
+    "downloadRequests": 1,
+    "deleteRequests": 1,
+    "notificationWrites": 2,
+    "browserDownloadDeleted": true
+  },
+  "artifact": {
+    "id": 14620930705,
+    "bytes": 3915,
+    "sha256": "8a3ff7d594ce2abc45e1eb1ef8ed9b005778dd4b1560a646685864df9f7abee4",
+    "entries": [
+      "profile-sdk-native.trx"
+    ],
+    "testId": "d53e696b-1f26-677a-f70a-3a6d864babed",
+    "executionId": "5fcab756-de67-4af5-8908-d23143e112a8",
+    "identityAndCountersVerified": true,
+    "nativeReadbackManagerRestorationAndDatabaseAbsenceMarkersVerified": true,
+    "inspection": "RAM only; streams disposed; no files written. Explicit GitHub User-Agent required. Proof markers are in the TRX run output rather than the individual result output."
   }
 }

@@ -46,5 +46,10 @@
     "Changed Files browser/backend main-flow verification pending",
     "No full OPORTAL or hosted acceptance",
     "No DNA/deployment/shared Atlas action"
-  ]
+  ],
+  "subsequentFunctionalAcceptance": {
+    "evidence": "OPORTAL_POPUP_FUNCTIONAL_SMOKE_2026-11-20.json",
+    "run": 44716851404,
+    "scope": "Actual popup main actions through real SDK, compiled controller and owned native Mongo; hosted/full Startup/all-site acceptance excluded"
+  }
 }
