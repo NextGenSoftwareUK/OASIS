@@ -1,5 +1,5 @@
 {
-  "status": "canonical_preference_reader_fix_confirmed_running",
+  "status": "actual_storage_policy_browser_native_three_provider_accepted",
   "finding": "Frozen portal4ccf holon-storage-policy.js calls api/settings/holon-storage-policy, but this worktree had no matching controller route",
   "route": "api/settings/holon-storage-policy",
   "verbs": [
@@ -15,7 +15,7 @@
     "Existing strict six-field version1 codec owns request parsing and response policy JSON",
     "GET returns avatar/application/effective policy and actual supported cache capability",
     "PUT and DELETE preserve native saved flags, conflict codes, warnings and errors",
-    "Known Dictionary/JObject/JsonElement metadata carriers preserve unselected values",
+    "Existing canonical preference/category readers own metadata decoding; no separate object-copy parser",
     "No import, migration, data visibility filtering, record rewrite or cache insertion occurs when editing policy"
   ],
   "currentCacheCapability": "None only; existing unsupported Memory admission is centralized in SupportsReadCache and reported truthfully",
@@ -27,9 +27,9 @@
     "lineReferencesRefreshed": true,
     "sourceGuard": "passed"
   },
-  "next": "Run ONLY same failed storage browser Fact against canonical preference reader fix; unchanged deadlines/assertions, no accepted cohorts repeated.",
+  "next": "Retain accepted storage/routing/profile cohorts. Continue authoritative subscription settings wiring and remaining portal panels; hosted Stripe/full Startup/performance and HyperDrive reliability remain open.",
   "compiled": true,
-  "runtimeAccepted": false,
+  "runtimeAccepted": true,
   "hostedAccepted": false,
   "fullPortalAccepted": false,
   "sharedServicesTouched": false,
@@ -64,13 +64,40 @@
   },
   "activeQualification": {
     "run": 44676814008,
+    "job": 136090499391,
     "source": "bb11d43df816d46ffbeaba632bf157ac97535086",
     "core": "9f740686c1d7eb67c2f3ab11de7754692be7a120",
-    "status": "in_progress",
-    "expectedTRXResults": 1,
-    "expectedNativeBrowserHandoffs": 3,
+    "status": "success",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "durationSeconds": 34,
+    "actualNativeBrowserHandoffs": 3,
+    "providers": [
+      "MongoDBOASIS",
+      "SQLLiteDBOASIS",
+      "Neo4jOASIS"
+    ],
+    "perProviderHttp": {
+      "PUT": 2,
+      "GET": 8,
+      "DELETE": 2
+    },
+    "scope": "Policy editing/inheritance/reset/reopen and protected account fields only",
     "oldAcceptedCohortsSelected": 0,
-    "deadlinesAndAssertionsChanged": false
+    "deadlinesAndAssertionsChanged": false,
+    "artifact": {
+      "sha256": "fb894cf87d7dee38d45f62389efe70b2187e004d829bae35cd0bd155ef939067",
+      "bytes": 4938,
+      "MongoAbsence": true,
+      "threeNativeSuccessMarkers": true,
+      "exactSinglePassedResultVerified": true,
+      "managerRestored": true,
+      "fixtureStops": "both success",
+      "browserRuntimeCleanup": true,
+      "filesWritten": 0,
+      "id": 14603175664
+    }
   },
   "firstQualification": {
     "run": 44670753115,

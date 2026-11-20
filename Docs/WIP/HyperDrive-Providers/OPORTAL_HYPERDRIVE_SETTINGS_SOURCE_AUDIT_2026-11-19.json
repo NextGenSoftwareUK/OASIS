@@ -33,5 +33,16 @@
   "scope": "HyperDrive UI status preferences delivery history and legacy settings subscription facade",
   "sharedServicesTouched": false,
   "core": "db589d220112400ca03439083a0c5166e66eb6fb",
-  "status": "scoped_preference_revision_and_native_roundtrip_accepted_legacy_subscription_and_browser_open"
+  "status": "scoped_preference_revision_and_native_roundtrip_accepted_legacy_subscription_and_browser_open",
+  "legacySubscriptionAuthorityTrace": {
+    "verification": "source_only",
+    "rest": "SettingsController delegates current Avatar.Id to Core SettingsManager",
+    "graphql": "Query/Mutation delegate requested avatarId to Core; Startup UseField OASISGraphQLAuthorizationMiddleware requires Wizard for these non-public root fields",
+    "grpc": "SettingsGrpcService delegates requested AvatarId to Core; Startup registers OASISGrpcAuthorizationInterceptor, Wizard required for these non-public methods",
+    "anonymousOrOrdinaryAvatarAccessClaim": "not inferred from resolver methods; central Wizard gate must be preserved",
+    "mainPortalBilling": "SubscriptionController subscriptions/me reads ISubscriptionService.GetSubscriptionAsync; missing record returns an empty list, not active Bronze",
+    "legacyWrite": "Core UpdateSubscriptionSettingsAsync targets Holon subscription settings, separate from canonical billing repository",
+    "remainingInvariant": "Billing/entitlement display must use canonical subscription authority across REST aggregate, GraphQL, gRPC and SDK; preference writes must not alter billing state",
+    "newRuntimeAcceptance": false
+  }
 }
