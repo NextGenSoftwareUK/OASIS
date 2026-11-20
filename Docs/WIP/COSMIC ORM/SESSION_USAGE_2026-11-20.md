@@ -88,3 +88,7 @@ stateless.Linq<Holon>() returns an actor/authority-bound native IQueryable. Rows
 ## Native lifetime acceptance
 
 Stateless logical closure passed actual MongoDB/SQLite/Neo4j run44783441788 on Core7e107c1a. Busy closure refuses without abandoning the active write; closed methods refuse before root enumeration; disposal is idempotent; a fresh session uses the same borrowed provider for read/update/delete and physical absence checks. Artifact14653352215,2980bytes,SHA256d86c8e2e3b015f72817a76af140948d970cc0c6f19c6c21a879d98a6cba85404. Shared stateless LINQ has a separate new cohort; these results do not certify its changed shared wrappers. Navigation Core035 alone is deployed/metadata-ready at74bc; full populated browser/model and wider framework acceptance remain open.
+
+## Stateless LINQ native acceptance
+
+Run44787039375 verified real MongoDB/SQLite/Neo4j standard stateless LINQ rows, entity/scalar terminals and projection; fresh identities, explicit tracking refusal, current actor isolation and closed query refusal. The changed shared wrapper also preserved managed sequence/scalar identity and no-tracking without flushing local edits.3passed/0failed/0skipped,2owned records per store, exact cleanup. Artifact14655706163/3105B/SHA2562562b2a8b6bb7c2be96508429ae005795df61fc85a350cf8e03d35966cc9008a. Source Core13db awaits the combined image/package/deployment gates; full context/graph/transaction/cache framework requirements remain separate.

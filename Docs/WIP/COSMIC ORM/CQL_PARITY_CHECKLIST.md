@@ -369,7 +369,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | S16 | Set-based update without loading tracked entities | ❌ | ❌ | ❌ | No proven ExecuteUpdate / bulk HQL equivalent. |
 | S17 | Set-based delete without loading tracked entities | ❌ | ❌ | ❌ | No proven ExecuteDelete / bulk HQL equivalent. |
 | S18 | Insert-select / bulk insert from a query | ❌ | ❌ | ❌ | No proven equivalent. |
-| S19 | Stateless session bulk-processing API | ❌ | ❌ | ❌ | Native3 bulk read/save/delete44743889763, generated/assigned create-only insert44756910311, synchronous root operations44780582654 and logical closure/borrowed-provider lifetime44783441788 verified. Stateless standard LINQ Core13db has a separate pending cohort. Full row semantics remain open; retained evidence is in SESSION_USAGE_2026-11-20.md. |
+| S19 | Stateless session bulk-processing API | ❌ | ❌ | ❌ | Native3 bulk CRUD44743889763, generated/assigned inserts44756910311, synchronous entry points44780582654, logical lifetime44783441788 and standard stateless LINQ/shared managed owner44787039375 verified. Scope/cleanup proofs and usage are retained; broader framework-equivalence row remains open. |
 | S20 | Flush modes and explicit flush boundaries | ❌ | ❌ | ❌ | No unit-of-work flush mode contract. |
 | S21 | Save interceptors, lifecycle events and validation callbacks | ❌ | ❌ | ❌ | Partial callbacks need ordering/error/reentrancy coverage. |
 
