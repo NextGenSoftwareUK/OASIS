@@ -1,5 +1,5 @@
 {
-  "status": "source_wired_api_compile_pending",
+  "status": "source_wired_api_build_only_queued",
   "date": "2026-11-20",
   "portal": "cffe83ad55c3147c4dd73197edeacdf6cf25c3ef",
   "changes": [
@@ -33,5 +33,14 @@
     "generatedResults": 0,
     "sharedAtlasOperations": 0,
     "syntax": "Existing Node stdin"
+  },
+  "activeQualification": {
+    "run": 44699166672,
+    "source": "616616fdf611af0b53ae8696e41e9e384c9cbeb2",
+    "status": "queued",
+    "buildOnly": true,
+    "behaviorTests": false,
+    "nativeFixtures": false,
+    "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44699166672"
   }
 }
