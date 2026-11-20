@@ -71,5 +71,13 @@
       "sha256": "ba8221305ce143716eee8cf2ce1c2d75594cec48287a2fb3c43e3c514805a538",
       "cleanup": "Owned browser/runtime/cache/control and Mongo fixture absence verified; local artifact filesWritten0"
     }
-  ]
+  ],
+  "pendingRun": {
+    "id": 44731899782,
+    "job": 136273531990,
+    "source": "39d7a65f2fa10fb9beb6078b7377b62493a94fa5",
+    "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44731899782",
+    "status": "in_progress",
+    "selection": "Only same failed read-only pagination/session-resume Fact; accepted cases excluded"
+  }
 }
