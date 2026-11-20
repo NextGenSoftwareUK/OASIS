@@ -53,10 +53,11 @@ public static partial class CqlV1Compiler
                 "String" => typeof(string),
                 "Boolean" => typeof(bool),
                 "Guid" => typeof(Guid),
+                "DateTime" => typeof(DateTime),
                 "Int32" => typeof(int),
                 "Int64" => typeof(long),
                 "Double" => typeof(double),
-                _ => throw new ArgumentException("This virtual source supports String, Boolean, Guid, Int32, Int64 and finite Double projections.")
+                _ => throw new ArgumentException("This virtual source supports String, Boolean, Guid, UTC DateTime, Int32, Int64 and finite Double projections.")
             };
             var function = column.Function switch
             {
@@ -138,10 +139,11 @@ public static partial class CqlV1Compiler
                 CqlV1Scalar.String => typeof(string),
                 CqlV1Scalar.Boolean => typeof(bool),
                 CqlV1Scalar.Guid => typeof(Guid),
+                CqlV1Scalar.DateTime => typeof(DateTime),
                 CqlV1Scalar.Integer => typeof(long),
                 CqlV1Scalar.Int32 => typeof(int),
                 CqlV1Scalar.Double => typeof(double),
-                _ => throw new ArgumentException("This virtual source supports String, Boolean, Guid, Int32, Int64 and finite Double scalar predicates.")
+                _ => throw new ArgumentException("This virtual source supports String, Boolean, Guid, UTC DateTime, Int32, Int64 and finite Double scalar predicates.")
             };
             return new NativeRecordFilter(filter.MetadataPath[0], operation, Literal(filter.Value, matchType).Value);
         }).ToArray();

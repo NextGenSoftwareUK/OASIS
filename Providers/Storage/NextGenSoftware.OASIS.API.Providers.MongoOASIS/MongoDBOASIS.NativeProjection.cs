@@ -114,6 +114,12 @@ public partial class MongoDBOASIS : INativeDataProjectionQueryProvider
                                 return NativeProjectionError("NATIVE_PROJECTION_DATA_INVALID", "The normalized UUID output is invalid.");
                             value = guid;
                         }
+                        if (state == 2 && selected[index].ValueType == typeof(DateTime))
+                        {
+                            if (value is not long ticks || ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
+                                return NativeProjectionError("NATIVE_PROJECTION_DATA_INVALID", "The normalized UTC ticks are invalid.");
+                            value = new DateTime(ticks, DateTimeKind.Utc);
+                        }
                         if (state == 2 && (value == null || value.GetType() != selected[index].ValueType))
                             return NativeProjectionError("NATIVE_PROJECTION_DATA_INVALID", "The output differs from its exact declared domain.");
                         values[index] = new NativeProjectionCell((NativeProjectionValueState)state, value);
@@ -133,6 +139,7 @@ public partial class MongoDBOASIS : INativeDataProjectionQueryProvider
 
     private static BsonValue NativeProjectionCellExpression(NativeProjectionColumn column)
     {
+        if (column.InputType == typeof(DateTime)) return MongoNativeUtcDate.Cell("$" + column.Field);
         var expected = column.InputType == typeof(string) ? "string" : column.InputType == typeof(bool) ? "bool"
             : column.InputType == typeof(int) ? "int" : column.InputType == typeof(double) ? "double" : "long";
         BsonValue domain = column.InputType == typeof(Guid)
@@ -216,6 +223,12 @@ public partial class MongoDBOASIS : INativeDataProjectionQueryProvider
                 CosmicQueryComparisonOperator.LessThanOrEqual => "$lte",
                 _ => throw new ArgumentException("Unknown native comparison.")
             };
+            if (match.Value is DateTime stamp)
+            {
+                filters.Add(new BsonDocument("$expr", MongoNativeUtcDate.Comparison(
+                    new BsonString("$" + match.Field), symbol, stamp)));
+                continue;
+            }
             if (match.Value is Guid guid)
             {
                 var input = new BsonString("$" + match.Field);

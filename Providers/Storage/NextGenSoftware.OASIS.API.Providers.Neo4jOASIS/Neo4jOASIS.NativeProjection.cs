@@ -65,6 +65,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             {
                 var column = unique[index]; var fieldIndex = fieldIndexes[column.Field];
                 var property = "raw" + fieldIndex;
+                if (column.InputType == typeof(DateTime))
+                {
+                    cells.Add(NeoCqlDate.NativeCell(property, value => BindNativeUtcParameter(parameters, value)) + $" AS c{index}");
+                    continue;
+                }
                 var type = column.InputType == typeof(string) || column.InputType == typeof(Guid) ? "STRING" : column.InputType == typeof(bool) ? "BOOLEAN" : column.InputType == typeof(double) ? "FLOAT" : "INTEGER";
                 var domain = $"{property} IS NOT NULL AND {property} IS :: {type}";
                 if (column.InputType == typeof(Guid))
@@ -124,7 +129,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                         if (state == 2)
                         {
                             var native = cursor.Current["v" + positions[index]];
-                            if (selected[index].ValueType == typeof(int) && native is long number && number >= int.MinValue && number <= int.MaxValue)
+                            if (selected[index].ValueType == typeof(DateTime) && native is long ticks
+                                && ticks >= DateTime.MinValue.Ticks && ticks <= DateTime.MaxValue.Ticks)
+                                value = new DateTime(ticks, DateTimeKind.Utc);
+                            else if (selected[index].ValueType == typeof(int) && native is long number && number >= int.MinValue && number <= int.MaxValue)
                                 value = (int)number;
                             else if (selected[index].ValueType == typeof(Guid) && native is string text
                                 && Guid.TryParseExact(text, "D", out var guid)) value = guid;
@@ -155,6 +163,13 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 
         private static OASISResult<IReadOnlyList<NativeProjectionRow>> NativeProjectionError(string code, string message)
             => new OASISResult<IReadOnlyList<NativeProjectionRow>> { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message };
+        private static string BindNativeUtcParameter(IDictionary<string, object> parameters, object value)
+        {
+            var name = "nativeUtcValue" + parameters.Count;
+            parameters.Add(name, value);
+            return "$" + name;
+        }
+
         private static string CompileNativePredicateWhere(IReadOnlyList<NativeRecordFilter> matches, IDictionary<string, object> parameters)
         {
             var predicates = new List<string>(matches.Count);
@@ -166,6 +181,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     string text when text.Length <= 4096 => "STRING",
                     bool => "BOOLEAN",
                     Guid => "STRING",
+                    DateTime => "ZONED DATETIME",
                     int or long => "INTEGER",
                     double number when double.IsFinite(number) => "FLOAT",
                     _ => null
@@ -200,6 +216,13 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     };
                     var expression = $"CASE WHEN {property} IS NOT NULL AND {property} IS :: STRING THEN {property} {method} ${parameter} ELSE false END";
                     predicates.Add(match.Operator == CosmicQueryComparisonOperator.NotEqual ? $"NOT ({expression})" : expression);
+                }
+                else if (match.Value is DateTime stamp)
+                {
+                    parameters.Add(parameter, stamp.Ticks);
+                    predicates.Add(NeoCqlDate.NativeComparison(property, symbol, "$" + parameter,
+                        value => BindNativeUtcParameter(parameters, value)));
+                    continue;
                 }
                 else if (match.Value is Guid guid)
                 {

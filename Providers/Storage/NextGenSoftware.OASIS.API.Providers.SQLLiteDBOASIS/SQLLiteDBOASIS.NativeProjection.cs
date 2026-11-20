@@ -51,6 +51,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 {
                     var input = Quote(column.Field);
                     var domain = column.InputType == typeof(string) ? $"typeof({input}) = 'text'"
+                        : column.InputType == typeof(DateTime) ? SqliteCqlDate.GuardValue($"typeof({input})", input)
                         : column.InputType == typeof(Guid) ? SqliteCqlGuid.TextDomain(input)
                         : column.InputType == typeof(bool) ? $"typeof({input}) = 'integer' AND {input} IN (0,1)"
                         : column.InputType == typeof(int) ? $"typeof({input}) = 'integer' AND {input} BETWEEN -2147483648 AND 2147483647"
@@ -62,7 +63,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                         ? $"CASE WHEN {input} IS NULL THEN 8 WHEN {domain} THEN length(CAST({input} AS BLOB)) ELSE 0 END"
                         : column.ValueType == typeof(Guid) ? $"CASE WHEN {input} IS NULL THEN 8 ELSE 36 END" : "8");
                     var value = column.Function == NativeRecordFunction.Utf16Length
-                        ? $"{SqliteCqlReadBudget.TextStringLengthFunction}({input})" : input;
+                        ? $"{SqliteCqlReadBudget.TextStringLengthFunction}({input})"
+                        : column.InputType == typeof(DateTime) ? SqliteCqlDate.ColumnValue(input) : input;
                     outputs.Add($"CASE WHEN {domain} THEN {value} ELSE NULL END");
                 }
                 command.CommandText = $"SELECT {string.Join(", ", outputs)} FROM {Quote(sourceName)} WHERE {predicates} ORDER BY rowid LIMIT $take";
@@ -95,7 +97,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                             if (state == 1) { cells[index] = new NativeProjectionCell(NativeProjectionValueState.Null); continue; }
                             var valueType = selected[index].ValueType;
                             object value;
-                            if (valueType == typeof(Guid))
+                            if (valueType == typeof(DateTime))
+                            {
+                                if (!SqliteCqlDate.TryReadNative(reader.GetString(offset + 2), out var utc))
+                                    return ProjectionError("NATIVE_PROJECTION_DATA_INVALID", "The normalized UTC output is invalid.");
+                                value = utc;
+                            }
+                            else if (valueType == typeof(Guid))
                             {
                                 if (!Guid.TryParseExact(reader.GetString(offset + 2), "D", out var guid))
                                     return ProjectionError("NATIVE_PROJECTION_DATA_INVALID", "The declared UUID output is invalid.");
@@ -156,6 +164,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                         var expression = $"CASE WHEN typeof({column}) = 'text' THEN {SqliteCqlReadBudget.TextStringMatchFunction}({column}, $match{index}, $function{index}) ELSE 0 END";
                         predicates.Add(match.Operator == CosmicQueryComparisonOperator.NotEqual ? $"NOT ({expression})" : expression);
                         command.Parameters.AddWithValue($"$function{index}", (long)match.Function);
+                    }
+                    else if (match.Value is DateTime stamp)
+                    {
+                        var domain = SqliteCqlDate.GuardValue($"typeof({column})", column);
+                        predicates.Add($"({domain} AND {SqliteCqlDate.ColumnValue(column)} {symbol} $match{index})");
+                        command.Parameters.AddWithValue($"$match{index}", SqliteCqlDate.Literal(stamp));
+                        continue;
                     }
                     else if (match.Value is Guid guid)
                     {
