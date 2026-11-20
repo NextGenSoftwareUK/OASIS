@@ -84,9 +84,10 @@ public partial class CqlV1Web4Tests
                 .Append(new CosmicQueryMetadataCapability(typeof(string),
                     new[] { CosmicQueryComparisonOperator.Equal, CosmicQueryComparisonOperator.NotEqual })).ToArray());
 
-    private static void MappedProjectionHttpAdapter(Source source, ProviderType provider, IReadOnlyList<CosmicProjectionRow> rows)
+    private static void MappedProjectionHttpAdapter(Source source, ProviderType provider, IReadOnlyList<CosmicProjectionRow> rows,
+        IReadOnlyList<CosmicProjectionRow>? snapshotRows = null)
     {
-        var adapter = ProjectionAdapter(source, provider, rows);
+        var adapter = ProjectionAdapter(source, provider, rows, snapshotRows);
         var capabilities = new CosmicQueryCapabilities(Capabilities.Features | CosmicQueryFeatures.Metadata,
             Capabilities.CanonicalFields.ToArray(), new[] { new CosmicQueryMetadataCapability(typeof(string),
                 new[] { CosmicQueryComparisonOperator.Equal }) });
