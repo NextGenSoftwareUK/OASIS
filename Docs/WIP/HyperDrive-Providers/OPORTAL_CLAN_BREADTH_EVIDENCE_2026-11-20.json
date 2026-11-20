@@ -1,0 +1,29 @@
+{
+  "date": "2026-11-20",
+  "status": "source wired; actual API compile and browser/native acceptance pending",
+  "portal": "abda5b4607abaedfa90e628ea6f53de840f70321",
+  "coreCommit": "e7c3702a519b750a7d261b94a9f34037b0214e98",
+  "exactPortalBlobs": {
+    "assets/js/clan-modal.js": "dd287f3171b960201093586a5b0e7fcffe9b64b3",
+    "assets/components/modals/clan.html": "1b3bc23b549a680828663de2cd4b32c2989c4aab",
+    "assets/js/portal-components.js": "673bac243b2af9035aa72706fa448b54cb4c43ab",
+    "portal.html": "62d04edb48f2812d2a91849eecf01f5f1c161053",
+    "assets/js/oasis-web4-sdk.js": "850ee98adb5663b56644edddc842175dfb5f939c",
+    "assets/css/style.css": "497ac6cf5b4e27919e52df6c34de9ddff6f52909",
+    "assets/css/dashboard.css": "cd90154ad9d9e1570aa47357a4d8552efe258365",
+    "assets/css/modals-new.css": "dd2b564e7b53af4f02316c6e73b47a3e423a8991",
+    "assets/css/oasis-portal-extra.css": "1a1dc948d308d5e38fd8c7471b5f227403572cc6",
+    "assets/css/oasis-portal-extra2.css": "d70dfdc175b5c4bfa751457583d163c0a2b8e5ad"
+  },
+  "coreSourceExact": true,
+  "nativeCase": "ClanPopupUsesActualSdkHttpAndOwnedMongo",
+  "expectedBrowserWrites": 7,
+  "acceptedTestsRepeated": 0,
+  "localGeneratedFiles": 0,
+  "remaining": [
+    "Actual WEB4 compile and Clan-only syntax",
+    "One new actual browser/SDK/compiled-controller/owned Mongo main flow",
+    "Full Startup/SSO/hosted and whole-site acceptance"
+  ],
+  "summary": "2026-11-20 CLAN BREADTH SOURCE WIRED: Portalabda5b4607abaedfa90e628ea6f53de840f70321/Coree7c3702a519b750a7d261b94a9f34037b0214e98. Actual memberIds drive counts and ownership UI; treasury uses real inventory and preserves quantity0. One selected-clan read replaces duplicate member reads. All main actions await canonical current SDK bearer, verify returned IDs/bool acknowledgements, preserve real errors/warnings, refresh actual state and clear private UI on logout/close. Create/edit/member add/remove/leave/delete and Refresh are wired; no status timers, guessed list shapes or invented names/counts. Core name-lookup backend failures now refuse creation unless the result is genuine typed absence; empty member IDs/nonexistent avatars refuse, lookup/mutation codes propagate, and deletion requires true persistence acknowledgement. WEB4 lookup errors retain not-found versus unavailable meaning. Eleven exact remote source/input blobs include four changed Portal files plus real SDK/styles; dirty physical Portal/submodules preserved. Parent Core pin/manifest paired; only13Clan manifest line references updated, counts remain931/766 and WEB4 routes800/690. ONE NEW ClanPopupUsesActualSdkHttpAndOwnedMongo browser/SDK/compiled Clan+AvatarProfile controllers/owned Mongo case prepared: foreign treasury zero/owner UI, create/edit, real directory add/remove/re-add, reopen, actual member account leave, owner delete, seven acknowledged writes, native foreign-clan/account-revision guards and owned cleanup. Existing browser runner/build lease reused; no accepted case selected again. Compile/syntax/browser/native acceptance pending; scoped MVC/JWT host does not establish full production Startup/SSO/hosted or whole-site acceptance. No shared Atlas/PIPER/DNA/worker/LB/deployment/protected-delivery action or laptop build/download/env/DB/results/artifact. Whole goal active/incomplete, functional breadth first."
+}

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><title>Owned Clan verification</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/dashboard.css">
+  <link rel="stylesheet" href="/assets/css/modals-new.css">
+  <link rel="stylesheet" href="/assets/css/oasis-portal-extra.css">
+  <link rel="stylesheet" href="/assets/css/oasis-portal-extra2.css">
+</head>
+<body>
+  <button id="fixture-open-clan" type="button" onclick="window.openClanModal()">Open Clans</button>
+  <div class="modal js-modal"></div>
+  <script src="/assets/js/oasis-web4-sdk.js"></script>
+  <script>
+    window.user = JSON.parse(localStorage.getItem('avatar'));
+    window.oasisClient = new window.OASISClient({baseUrl: location.origin, persistSession: false});
+    window.oasisClient.setToken(window.user.jwtToken, {avatarId: window.user.id});
+    window.jwtReadyPromise = Promise.resolve();
+  </script>
+  <script src="/assets/js/clan-modal.js"></script>
+  <script>
+    fetch('/assets/components/modals/clan.html').then(async function (response) {
+      if (!response.ok) throw new Error('Actual Clan fragment could not be loaded.');
+      document.querySelector('.js-modal').innerHTML = await response.text();
+      window.dispatchEvent(new CustomEvent('portal-modal-ready', {detail: {route: 'clan'}}));
+      window.dispatchEvent(new CustomEvent('portal-components-ready'));
+      window.__clanReady = true;
+    });
+  </script>
+</body>
+</html>

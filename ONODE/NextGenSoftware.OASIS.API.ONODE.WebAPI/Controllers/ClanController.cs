@@ -64,7 +64,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        /// <summary>Update clan name/description. Caller should be owner (enforcement can be added).</summary>
+        /// <summary>Update clan name/description as its owner or a Wizard.</summary>
         [HttpPut("{clanId:guid}")]
         [Authorize]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<IClan>), StatusCodes.Status200OK)]
@@ -119,7 +119,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 var result = await ClanManager.LoadClanAsync(clanId, providerType ?? ProviderType.Default);
                 if (result.IsError && result.Result == null)
-                    return HttpResponseHelper.FormatResponse(result, HttpStatusCode.NotFound);
+                    return HttpResponseHelper.FormatResponse(result, result.ErrorCode == OASISResultErrorCodes.RecordNotFound
+                        ? HttpStatusCode.NotFound : HttpStatusCode.ServiceUnavailable);
                 return HttpResponseHelper.FormatResponse(result);
             }
             catch (Exception ex)
@@ -151,7 +152,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 }
                 var result = await ClanManager.LoadClanByNameAsync(name.Trim(), providerType ?? ProviderType.Default);
                 if (result.IsError && result.Result == null)
-                    return HttpResponseHelper.FormatResponse(result, HttpStatusCode.NotFound);
+                    return HttpResponseHelper.FormatResponse(result, result.ErrorCode == OASISResultErrorCodes.RecordNotFound
+                        ? HttpStatusCode.NotFound : HttpStatusCode.ServiceUnavailable);
                 return HttpResponseHelper.FormatResponse(result);
             }
             catch (Exception ex)
@@ -201,7 +203,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     return refusal;
                 var result = await ClanManager.DeleteClanAsync(clanId, storageProvider);
                 if (result.IsError && !result.Result)
-                    return HttpResponseHelper.FormatResponse(result, HttpStatusCode.NotFound);
+                    return HttpResponseHelper.FormatResponse(result, result.ErrorCode == OASISResultErrorCodes.RecordNotFound
+                        ? HttpStatusCode.NotFound : HttpStatusCode.ServiceUnavailable);
                 return HttpResponseHelper.FormatResponse(result);
             }
             catch (Exception ex)
@@ -307,7 +310,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 var result = await ClanManager.GetClanMembersAsync(clanId, providerType ?? ProviderType.Default);
                 if (result.IsError && result.Result == null)
-                    return HttpResponseHelper.FormatResponse(result, HttpStatusCode.NotFound);
+                    return HttpResponseHelper.FormatResponse(result, result.ErrorCode == OASISResultErrorCodes.RecordNotFound
+                        ? HttpStatusCode.NotFound : HttpStatusCode.ServiceUnavailable);
                 return HttpResponseHelper.FormatResponse(result);
             }
             catch (Exception ex)
