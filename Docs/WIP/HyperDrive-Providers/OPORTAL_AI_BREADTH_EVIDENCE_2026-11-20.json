@@ -1,15 +1,39 @@
 {
   "date": "2026-11-20",
   "status": "source-wired; actual WEB6 build and runtime pending",
-  "portalCommit": "347b28e065921c25a5551171ea3bbf40da7baa54",
-  "web6Commit": "abbfd494fb0b2b5473d80b4dab0f0984e7b8d4d8",
+  "portalCommit": "74233cb884b6380379a1e017a4ff11abe5e4be35",
+  "web6Commit": "228d94c994384ae0ed9a68d4eedcd6a5fafa5009",
   "sourceChecks": {
-    "remoteExactFiles": 7,
+    "remoteExactFiles": 8,
     "nodeSyntax": "passed via stdin"
   },
   "officialImageContract": "https://developers.openai.com/api/reference/python/resources/images/methods/generate",
   "acceptedTestsRepeated": 0,
   "localGeneratedFiles": 0,
   "sharedServicesTouched": false,
-  "summary": "2026-11-20 AI POPUP BREADTH SOURCE WIRED: Portal347b28e065921c25a5551171ea3bbf40da7baa54 / WEB6abbfd494fb0b2b5473d80b4dab0f0984e7b8d4d8. Six tabs use awaited canonical SDK bearer and real contracts: model/subscription reads, acknowledged text chat, explicit image provider and base64 display, personal User-holon memory creation and bool save, owner-bound registered adapters, Problem/EligibleAgentIds reasoning and Mermaid graph save/load. Failed chat preserves input/history; refresh controls replace dead loading states and no background polling. Restored missing v1/orchestrators routes using the existing manager, owner/type-bound list/invoke and credential-free projections. Retired DALL-E choices removed; OpenAI image default now supported GPT Image1.5 per current official API reference. Seven remote source files exact and existing Node stdin syntax checks pass. Parent WEB6 gitlink/manifest paired; one actual WEB6 build-only target added, compile pending; accepted tests not selected. Remaining runtime gates: actual browser/SDK/owned native memory and braid state, reasoning/adapter/backend outcomes and isolated real AI credentials/receipts. Image model unit-price admission must be verified before hosted execution; existing manager gRPC JSON stub remains an explicit programme gap, not full transport acceptance. No full OPORTAL/provider/HyperDrive claim. Shared Atlas/PIPER/DNA/services/workers/deployments untouched; no local downloads/build/env/results/temp files."
+  "summary": "2026-11-20 AI POPUP BREADTH SOURCE WIRED: Portal74233cb884b6380379a1e017a4ff11abe5e4be35 / WEB6abbfd494fb0b2b5473d80b4dab0f0984e7b8d4d8. Six tabs use awaited canonical SDK bearer and real contracts: model/subscription reads, acknowledged text chat, explicit image provider and base64 display, personal User-holon memory creation and bool save, owner-bound registered adapters, Problem/EligibleAgentIds reasoning and Mermaid graph save/load. Failed chat preserves input/history; refresh controls replace dead loading states and no background polling. Restored missing v1/orchestrators routes using the existing manager, owner/type-bound list/invoke and credential-free projections. Retired DALL-E choices removed; OpenAI image default now supported GPT Image1.5 per current official API reference. Seven remote source files exact and existing Node stdin syntax checks pass. Parent WEB6 gitlink/manifest paired; one actual WEB6 build-only target added, compile pending; accepted tests not selected. Remaining runtime gates: actual browser/SDK/owned native memory and braid state, reasoning/adapter/backend outcomes and isolated real AI credentials/receipts. Image model unit-price admission must be verified before hosted execution; existing manager gRPC JSON stub remains an explicit programme gap, not full transport acceptance. No full OPORTAL/provider/HyperDrive claim. Shared Atlas/PIPER/DNA/services/workers/deployments untouched; no local downloads/build/env/results/temp files.",
+  "finalScriptBlob": "c134b35a7798e42d2572aeed1a7e73a71802ed5a",
+  "finalScriptExact": true,
+  "apiBuild": {
+    "run": 44748398773,
+    "job": 136329597524,
+    "source": "fff8e0243f9dfa58c77c7d92dc0de088d6f44422",
+    "status": "failure",
+    "target": "actual WEB6 API; build-only; accepted tests excluded",
+    "errors": 3,
+    "duration": "00:02:37.58",
+    "cause": "MCP direct subscription settings calls omitted required billing authority",
+    "cleanup": "post-job cleanup passed; zero behavior tests/artifacts; RAM log inspection/filesWritten0"
+  },
+  "developmentReview": {
+    "head": "6498c9fb54773bc31cdaaf56304094ad30a94b36",
+    "changes": "one scoped CQL session/date batch, 10 files; Core/manifest plus native projections/compiler/evidence",
+    "integration": "reviewed, no peer import or rerun; keep this AI graph exact during qualification"
+  },
+  "correctedMcpSource": {
+    "blob": "d15500481654f074fb9f385b169e6a93ce077c78",
+    "exact": true,
+    "migration": "existing authenticated WEB4 REST owner; strict current caller; no fallback or dummy interface"
+  },
+  "correctedBuild": "pending"
 }

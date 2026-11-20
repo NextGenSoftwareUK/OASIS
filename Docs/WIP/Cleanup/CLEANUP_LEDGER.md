@@ -1,3 +1,5 @@
+2026-11-20 WEB6 failed build44748398773/job136329597524:3compile errors/0behavior cases, post-job cleanup passed. Selected log lines and MCP/Core contracts inspected in RAM, filesWritten0. No local output/download/environment/database/artifact created. Invalid cacheinfo argument was rejected before index mutation; exact published WEB6 SHA staged subsequently and paired with manifest.
+
 2026-11-20 AI source breadth: seven exact remote sources and WEB6 contracts held/verified in RAM; existing Node syntax streamed via stdin. No local installs/downloads/envs/build outputs/results/databases/archives/temp sources created, nothing to delete. Physical private submodules and dirty Portal checkout preserved.
 
 2026-11-20 ONODE CI build-only 44743831833/job136313927402 SUCCESS: actual API compiled 0 errors in 5m17.60s, no behavior/native cohorts or test artifacts selected. CI post-job cleanup completed; selected log lines inspected in RAM and discarded, local filesWritten=0. Final Portal source 2243c787 exact verified; no local build/runtime/temp/output cleanup required.
