@@ -22,7 +22,7 @@
   ],
   "rows": 3,
   "noArgumentPeerFactoriesUnchanged": true,
-  "status": "native_account_lost_update_confirmed_all_three_stores",
+  "status": "native_loss_confirmed_correction_qualification_running",
   "preference": "preferences.privacy.profileVisibility=private",
   "businessResponsesReplaced": false,
   "fixtureOwnerConstructorsUnchanged": true,
@@ -35,14 +35,15 @@
     "Neo4jOASIS"
   ],
   "activeQualification": {
-    "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452",
-    "status": "completed_three_preference_rows_failed",
-    "expectedResults": 11,
-    "portal": "4ccf867befa9abb543bb8f4587f07e5914ac6c73",
-    "source": "a2038700293681125d2bf324ada1dd7818590e2b",
-    "run": 44651948304,
-    "expectedBrowserHandoffs": 6,
-    "unchangedAcceptedCohortsSelected": 0
+    "core": "a4c34c846ec7dcc0bab8ecf5ef55fec29fb062a2",
+    "source": "c4a66d01805c24b8186217bec0bce22d61870300",
+    "run": 44659888087,
+    "job": 136035247377,
+    "status": "in_progress_API_build",
+    "expectedResults": 3,
+    "expectedBrowserHandoffs": 0,
+    "unchangedAcceptedCohortsSelected": 0,
+    "freshExplicitActionAfterDefiniteConflictRequired": true
   },
   "result": {
     "source": "a2038700293681125d2bf324ada1dd7818590e2b",
@@ -76,6 +77,21 @@
     "existingOtherCaseDefaultsUnchanged": true,
     "credential": "Seed real PasswordEncryptionHelper hash before full-save path so protected-credential assertion uses valid stored representation",
     "lostFirstNameEvidenceRetained": true,
-    "shippingPreferenceFixImplemented": false
+    "shippingPreferenceFixImplemented": true
+  },
+  "correctionFirstBuild": {
+    "run": 44659229134,
+    "job": 136033042273,
+    "source": "2d6a35caf034485a02f9de151069a2d94d83fd6a",
+    "core": "940bd3f30773a650da21132003e5525397fe8080",
+    "status": "failed_API_compile",
+    "error": "CS0103 undeclared SettingsManager._providerManager",
+    "nativeTestsExecuted": 0,
+    "artifacts": 0,
+    "fixtureStart": "skipped",
+    "fixtureStops": "both success",
+    "mongoAbsenceVerified": true,
+    "correction": "Retain existing constructor-supplied ProviderManager in readonly field",
+    "localFilesWritten": 0
   }
 }
