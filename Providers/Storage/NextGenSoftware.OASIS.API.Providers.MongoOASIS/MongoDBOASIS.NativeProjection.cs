@@ -136,7 +136,7 @@ public partial class MongoDBOASIS : INativeDataProjectionQueryProvider
         var expected = column.InputType == typeof(string) ? "string" : column.InputType == typeof(bool) ? "bool"
             : column.InputType == typeof(int) ? "int" : column.InputType == typeof(double) ? "double" : "long";
         BsonValue domain = column.InputType == typeof(Guid)
-            ? MongoCqlTranslator.GuidDomain("$$input") : ProjectionOperation("$eq", "$$kind", expected);
+            ? MongoCqlTranslator.GuidDomain("$$input", allowCSharpLegacy: false) : ProjectionOperation("$eq", "$$kind", expected);
         if (column.InputType == typeof(double))
             domain = ProjectionOperation("$and", domain,
                 ProjectionOperation("$gte", "$$input", -double.MaxValue),

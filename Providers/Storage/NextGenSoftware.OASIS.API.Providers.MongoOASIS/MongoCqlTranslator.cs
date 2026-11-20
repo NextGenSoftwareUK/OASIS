@@ -88,7 +88,7 @@ internal sealed partial class MongoCqlTranslator
         yield return new BsonBinaryData(value,GuidRepresentation.Standard);
         yield return new BsonBinaryData(value,GuidRepresentation.CSharpLegacy);
     }
-    internal static BsonValue GuidDomain(BsonValue value)
+    internal static BsonValue GuidDomain(BsonValue value, bool allowCSharpLegacy = true)
     {
         var text=new BsonDocument("$regexMatch",new BsonDocument{{"input",value},{"regex",Literal(@"\A[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\z")}});
         // BSON BinData ordering is length, subtype, unsigned bytes. These inclusive
@@ -96,8 +96,11 @@ internal sealed partial class MongoCqlTranslator
         BsonValue BinaryRange(BsonBinarySubType subtype)=>Op("$and",
             Op("$gte",value,Literal(new BsonBinaryData(new byte[16],subtype))),
             Op("$lte",value,Literal(new BsonBinaryData(Enumerable.Repeat((byte)255,16).ToArray(),subtype))));
+        var binary = allowCSharpLegacy
+            ? Op("$or", BinaryRange(BsonBinarySubType.UuidStandard), BinaryRange(BsonBinarySubType.UuidLegacy))
+            : BinaryRange(BsonBinarySubType.UuidStandard);
         return Choose(Op("$eq",Type(value),Literal("string")),text,
-            Op("$and",Op("$eq",Type(value),Literal("binData")),Op("$or",BinaryRange(BsonBinarySubType.UuidStandard),BinaryRange(BsonBinarySubType.UuidLegacy))));
+            Op("$and",Op("$eq",Type(value),Literal("binData")),binary));
     }
     private static BsonValue Domain(BsonValue value,Type declared,bool metadata=false)
     {

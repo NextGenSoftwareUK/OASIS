@@ -58,7 +58,7 @@ public sealed partial class CqlV1Web4NativeTests
                 if (guidCounts)
                 {
                     nativeRows[0].Add("identity", MixedGuidFirst.ToString("D").ToUpperInvariant());
-                    nativeRows[1].Add("identity", MixedGuidSecond.ToString("D"));
+                    nativeRows[1].Add("identity", new BsonBinaryData(MixedGuidSecond, GuidRepresentation.Standard));
                 }
                 await source.InsertManyAsync(nativeRows);
                 fingerprint = async () => (await source.Find(FilterDefinition<BsonDocument>.Empty)
@@ -141,6 +141,29 @@ public sealed partial class CqlV1Web4NativeTests
             await VerifyMappedNativeHttpAsync(provider, mapping, original.Result.Single(),
                 groupedDistinctOnly: true, createdObserver: created.Add,
                 guidDistinct: guidCounts, queryTimings: queryTimings, virtualOnlyId: virtualOnlyId);
+            if (guidCounts && mongoProvider != null)
+            {
+                // UUID legacy subtype does not encode a unique byte-order convention.
+                // Native import admits Standard UUIDs; do not guess an external legacy representation.
+                var nativeSource = mongo!.GetDatabase(nativeMongoDatabase).GetCollection<BsonDocument>(sourceName);
+                var probeId = new BsonDocument("_id", 3);
+                Assert.AreEqual(0L, await nativeSource.CountDocumentsAsync(probeId));
+                await nativeSource.InsertOneAsync(new BsonDocument { { "_id", 3 }, { "text", "legacy-format-probe" },
+                    { "identity", new BsonBinaryData(MixedGuidFirst, GuidRepresentation.CSharpLegacy) } });
+                try
+                {
+                    var refused = await mapping.QueryProjectionAsync(actor, reader, null,
+                        new[] { new NativeRecordFilter("textAlias", CosmicQueryComparisonOperator.Equal, "legacy-format-probe") },
+                        new[] { new NativeProjectionColumn("guidAlias", "Identity", typeof(Guid)) }, 1);
+                    Assert.IsTrue(refused.IsError);
+                    Assert.AreEqual("NATIVE_PROJECTION_DATA_INVALID", refused.ErrorCode);
+                }
+                finally
+                {
+                    var removed = await nativeSource.DeleteOneAsync(probeId);
+                    Assert.AreEqual(1L, removed.DeletedCount);
+                }
+            }
             var after = await fingerprint();
             Assert.AreEqual(before.Length, after.Length);
             for (var index = 0; index < before.Length; index++) CollectionAssert.AreEqual(before[index], after[index]);
