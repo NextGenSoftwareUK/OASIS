@@ -22,7 +22,7 @@
   ],
   "rows": 3,
   "noArgumentPeerFactoriesUnchanged": true,
-  "status": "prepared_not_dispatched_not_accepted",
+  "status": "native_account_lost_update_confirmed_all_three_stores",
   "preference": "preferences.privacy.profileVisibility=private",
   "businessResponsesReplaced": false,
   "fixtureOwnerConstructorsUnchanged": true,
@@ -36,12 +36,46 @@
   ],
   "activeQualification": {
     "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452",
-    "status": "in_progress_not_accepted",
+    "status": "completed_three_preference_rows_failed",
     "expectedResults": 11,
     "portal": "4ccf867befa9abb543bb8f4587f07e5914ac6c73",
     "source": "a2038700293681125d2bf324ada1dd7818590e2b",
     "run": 44651948304,
     "expectedBrowserHandoffs": 6,
     "unchangedAcceptedCohortsSelected": 0
+  },
+  "result": {
+    "source": "a2038700293681125d2bf324ada1dd7818590e2b",
+    "actual": "Before",
+    "artifact": {
+      "walletFixtureCleanup": true,
+      "exactDefinitionsAndResults": 11,
+      "fixtureStops": "both success",
+      "preferenceOrderingAndCleanupMarkers": 6,
+      "bytes": 10543,
+      "skipped": 0,
+      "managerRestores": 2,
+      "id": 14591543263,
+      "sha256": "c4c0d3333a2eb3f15573c18bde9469f877f62919396bca4031d52c04f543e99f",
+      "browserNativeMarkers": 6,
+      "failed": 4,
+      "passed": 7,
+      "browserRuntimeCleanup": true,
+      "streamsDisposed": true,
+      "filesWritten": 0
+    },
+    "job": 136008747054,
+    "failedRows": 3,
+    "field": "FirstName",
+    "cleanupVerifiedInAllRows": true,
+    "orderingVerifiedInAllRows": true,
+    "expected": "Newer preference account <provider>",
+    "run": 44651948304
+  },
+  "nextFixtureCorrections": {
+    "existingOtherCaseDefaultsUnchanged": true,
+    "credential": "Seed real PasswordEncryptionHelper hash before full-save path so protected-credential assertion uses valid stored representation",
+    "lostFirstNameEvidenceRetained": true,
+    "shippingPreferenceFixImplemented": false
   }
 }

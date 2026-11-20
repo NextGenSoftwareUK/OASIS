@@ -205,5 +205,35 @@
       "strictFailedTrxVerified": true,
       "durationSeconds": 18
     }
+  },
+  "latestBrowserAcceptance": {
+    "source": "a2038700293681125d2bf324ada1dd7818590e2b",
+    "hostedAccepted": false,
+    "sdk": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
+    "job": 136008747054,
+    "productionStartupAccepted": false,
+    "wholePortalAccepted": false,
+    "artifact": {
+      "walletFixtureCleanup": true,
+      "exactDefinitionsAndResults": 11,
+      "fixtureStops": "both success",
+      "preferenceOrderingAndCleanupMarkers": 6,
+      "bytes": 10543,
+      "skipped": 0,
+      "managerRestores": 2,
+      "id": 14591543263,
+      "sha256": "c4c0d3333a2eb3f15573c18bde9469f877f62919396bca4031d52c04f543e99f",
+      "browserNativeMarkers": 6,
+      "failed": 4,
+      "passed": 7,
+      "browserRuntimeCleanup": true,
+      "streamsDisposed": true,
+      "filesWritten": 0
+    },
+    "portal": "4ccf867befa9abb543bb8f4587f07e5914ac6c73",
+    "nativeHandoffs": 6,
+    "twoExactBrowserCasesPassed": true,
+    "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452",
+    "run": 44651948304
   }
 }

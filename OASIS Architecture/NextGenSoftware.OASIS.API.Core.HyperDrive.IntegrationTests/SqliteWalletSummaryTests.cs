@@ -36,7 +36,7 @@ public sealed class SqliteWalletSummaryTests
             {
                 using var connection=new Microsoft.Data.Sqlite.SqliteConnection(connectionString);await connection.OpenAsync();
                 using var command=connection.CreateCommand();
-                command.CommandText="SELECT AvatarId,WalletsJson FROM AvatarWalletStores ORDER BY AvatarId";
+                command.CommandText="SELECT AvatarId,WalletsJson FROM AvatarWalletStore ORDER BY AvatarId";
                 using var reader=await command.ExecuteReaderAsync();var rows=new Dictionary<string,string>();
                 while(await reader.ReadAsync())rows.Add(reader.GetString(0),reader.GetString(1));
                 return rows;
@@ -46,7 +46,7 @@ public sealed class SqliteWalletSummaryTests
             {
                 await connection.OpenAsync();using var command=connection.CreateCommand();
                 // The owned GUID is a fixture literal; SQLite trigger DDL cannot bind parameters.
-                command.CommandText="CREATE TRIGGER refuse_second_wallet BEFORE UPDATE ON AvatarWalletStores WHEN NEW.AvatarId='"+
+                command.CommandText="CREATE TRIGGER refuse_second_wallet BEFORE UPDATE ON AvatarWalletStore WHEN NEW.AvatarId='"+
                     second.ToString("D")+"' BEGIN SELECT RAISE(ABORT,'owned wallet rollback'); END;";
                 await command.ExecuteNonQueryAsync();
             }

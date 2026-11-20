@@ -1,6 +1,7 @@
 using System.Reflection;
 using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Providers;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -87,7 +88,10 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             }
             Assert.NotSame(owner,reader);
             var activation=await reader.ActivateProviderAsync();Assert.False(activation.IsError,activation.Message);
-            var before=await SeedRoutingStores([owner],id);
+            // This path legitimately processes credentials during a full save.
+            // Seed a real shipping hash so credential preservation is meaningful.
+            var storedPassword=PasswordEncryptionHelper.HashPassword("owned-preference-test-password",null);
+            var before=await SeedRoutingStores([owner],id,password:storedPassword);
             var original=await owner.LoadAvatarAsync(id);Assert.False(original.IsError,original.Message);
             var originalPrivacy=StoredPrivacy(original.Result);
             var routing=Routing([reader],false,HyperDriveModes.V2);
@@ -111,7 +115,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             var account=await owner.LoadAvatarAsync(id);Assert.False(account.IsError,account.Message);
             Assert.Equal(newer,account.Result.FirstName);
             Assert.Equal(before.LastName,account.Result.LastName);Assert.Equal(before.Username,account.Result.Username);
-            Assert.Equal(before.Email,account.Result.Email);Assert.Equal("stored-hash",account.Result.Password);
+            Assert.Equal(before.Email,account.Result.Email);Assert.Equal(storedPassword,account.Result.Password);
             var detail=await owner.LoadAvatarDetailAsync(id);Assert.False(detail.IsError,detail.Message);Assert.Equal(42,detail.Result.XP);
             if(result.IsError)
             {

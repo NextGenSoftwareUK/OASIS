@@ -1,5 +1,5 @@
 {
-  "status": "verified_development_base_plus_owned_sqlite_lifetime_delta_compile_pending",
+  "status": "combined_shipping_neo_guid_and_sqlite_lifetime_source_compiled_scoped_native_browser_passes",
   "sourceCheckpoint": "38d4320ef7cffa3ce8d6c77cb312dee3f42acb9d",
   "core": "96f6baea21c1423795f7effcac208a8f6485b30c",
   "importedFiles": [
@@ -792,8 +792,8 @@
   },
   "deletionsApplied": 0,
   "fullHistoryMergePerformed": false,
-  "apiCompiled": false,
-  "nativeProjectCompiled": false,
+  "apiCompiled": true,
+  "nativeProjectCompiled": true,
   "behaviorTestsRun": 0,
   "notes": "Frozen verified Development CQL/provider/native fixture source only; preserve owned profile/index/history/memory implementations and all owned-only files. Batched Git object/hash checks; prior slow serial importer stopped through its owned handle, then all changes reconciled against HEAD and immutable donor. No physical submodule checkout or new runtime/env.",
   "routeInventoryReview": {
@@ -1115,16 +1115,19 @@
   "compileSource": "c943fd7bb6db3f36b1254d7955d2d55ad51e8a23",
   "compileErrors": 0,
   "latestCompilation": {
-    "source": "8fa04636c4b86292f7e4d514dda68f3958f1c9f2",
-    "laterNeoGuidAndContextDeltaNotQualified": true,
-    "run": 44647749986,
-    "providerAcceptanceComplete": false,
+    "source": "a2038700293681125d2bf324ada1dd7818590e2b",
+    "fileMemoryRowsPassed": 4,
     "nativeContractProjectErrors": 0,
-    "browserCasesFailed": 2,
-    "browserCasesPassed": 0,
+    "walletSummaryPassed": 1,
+    "run": 44651948304,
+    "preferenceRowsFailed": 3,
+    "providerAcceptanceComplete": false,
+    "job": 136008747054,
+    "walletHarnessFailed": 1,
     "apiErrors": 0,
-    "job": 135994567443,
-    "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452"
+    "browserCasesPassed": 2,
+    "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452",
+    "laterTestOnlyCorrectionsNotQualified": true
   },
   "distinctDecoderDelta": {
     "checkpoint": "4bc16067885688f60fffa4241a018afed2e14ef4",
@@ -1144,7 +1147,7 @@
     "neoGuidB8Entries": 6,
     "development": "b8b344b9153ef570a64425fcb38d8619c11a2fdb",
     "decoder4bcEntries": 2,
-    "combinedCompilePending": true,
+    "combinedCompilePending": false,
     "originalCheckpointEntries": 181,
     "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452"
   },
@@ -1229,5 +1232,6 @@
       "blob": "b733b9571992e0b9eb12ce47ba7a09050ce28b69",
       "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.cs"
     }
-  ]
+  ],
+  "currentHarnessDeltaCompilePending": true
 }

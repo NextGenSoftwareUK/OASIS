@@ -204,14 +204,14 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             throw new InvalidOperationException("Both exact owned loopback fixtures are required.");
     }
 
-    private static async Task<AvatarProfileSnapshot> SeedRoutingStores(IOASISStorageProvider[] providers,Guid id)
+    private static async Task<AvatarProfileSnapshot> SeedRoutingStores(IOASISStorageProvider[] providers,Guid id,string password="stored-hash")
     {
         var username="profile-route-"+id.ToString("N");var accountVersion=Guid.NewGuid();var detailVersion=Guid.NewGuid();
         AvatarProfileSnapshot? baseline=null;
         foreach(var provider in providers)
         {
             var account=await provider.SaveAvatarAsync(new Avatar{Id=id,Username=username,Email=username+"@example.test",
-                Title="Before",FirstName="Before",LastName="Name",Password="stored-hash",IsActive=true,
+                Title="Before",FirstName="Before",LastName="Name",Password=password,IsActive=true,
                 CreatedDate=new DateTime(2026,1,1,0,0,0,DateTimeKind.Utc),Version=1,VersionId=accountVersion,
                 AvatarType=new EnumValue<AvatarType>(AvatarType.User)});
             var detail=await provider.SaveAvatarDetailAsync(new AvatarDetail{Id=id,Username=username,Email=username+"@example.test",

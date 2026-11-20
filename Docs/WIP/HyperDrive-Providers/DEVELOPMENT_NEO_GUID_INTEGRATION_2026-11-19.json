@@ -1,10 +1,10 @@
 {
   "deployed": false,
   "peerTestSourcesNotImported": true,
-  "status": "verified_development_source_integrated_current_combined_graph_compile_pending",
+  "status": "verified_development_semantic_base_and_owned_context_overlay_compiled",
   "dnaChanged": false,
   "independentRuntimeRetested": false,
-  "currentGraphCompileAccepted": false,
+  "currentGraphCompileAccepted": true,
   "previousDevelopment": "ca6fc88c3c3066a0d3d1b940960a8dcd047d8439",
   "source": "b8b344b9153ef570a64425fcb38d8619c11a2fdb",
   "entries": [
@@ -58,5 +58,14 @@
   "frozenPortalRun": 44647749986,
   "frozenRunDoesNotQualifyLaterImport": true,
   "peerEvidenceDocs": 3,
-  "localGeneratedOutputs": 0
+  "localGeneratedOutputs": 0,
+  "compileQualification": {
+    "peerCqlRuntimeRetainedNotRepeated": true,
+    "nativeProjectErrors": 0,
+    "currentOwnedContextOverlayRecorded": true,
+    "apiErrors": 0,
+    "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452",
+    "source": "a2038700293681125d2bf324ada1dd7818590e2b",
+    "run": 44651948304
+  }
 }
