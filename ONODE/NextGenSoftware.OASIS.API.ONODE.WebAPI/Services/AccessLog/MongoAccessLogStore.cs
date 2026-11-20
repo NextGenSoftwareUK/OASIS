@@ -131,9 +131,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.AccessLog
         {
             // ExecuteAsync may never enter when shutdown cancels its scheduled start.
             // Wait for the periodic reader before taking ownership of the final drain.
+            var stopping = base.StopAsync(cancellationToken);
+            // Base installs its stop-wait callback synchronously. Register the
+            // I/O budget afterwards so documented LIFO cancellation runs it before
+            // that wait can finish and dispose our registration.
             using var shutdownBudget = cancellationToken.Register(
                 static state => ((CancellationTokenSource)state).Cancel(), _flushCancellation);
-            await base.StopAsync(cancellationToken).ConfigureAwait(false);
+            await stopping.ConfigureAwait(false);
             await _service.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
 

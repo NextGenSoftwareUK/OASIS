@@ -8,3 +8,13 @@ Invariant: ordinary shutdown stops scheduling work and waits for an accepted per
 The new store control makes an event visible and pauses the acknowledgement. The normal-stop case deterministically checks that the write token remains uncancelled and StopAsync is pending until the acknowledgement is released. The deadline case verifies cancellation remains bounded and the uncertainty is counted, with no blind retry or extra insert. The original native failure retained a stored event, so this is not evidence of missing PIPER records.
 
 No timeout was increased and no assertion was weakened. Five unit cases and the two materially affected periodic native cases must pass before acceptance. All Mongo operations are in the existing isolated CI replica; shared Atlas remains unused.
+
+
+## Deadline callback ownership gate
+
+2026-11-20 NORMAL ACK STOP4 CONTROLS ACCEPTED / DEADLINE ORDER FIXED:44666343173/job136056463526 exact76e7717a executed5unit cases,4passed1failed,0skip; strict2286byte14598061880/SHA256ad6709cca0bda76a9719786617756f16fcbe96fa029f27cfd9a13a46f1461e7b onlyshutdown-unit.trx. New normal visibility-beforeack control PASSED plus3existing lifecycle controls. Failedforced-budget case caught newregistration ordering: baseStop's newer cancellation-wait callback could resume and dispose the older scoped I/O callback before it ran. Start baseStop first, register I/O budget after its wait registration, then await it; documented synchronous LIFO order now cancels accepted I/O before waiter continuation. No timeout/assertion changes. Retain4unit passes; retry ONLY failedbudgettrue unit row plus2periodic native rows notyetexecuted. Runtimeacceptancepending. CQLcacheauthority native9 accepted14597792968 retained; remaining mixed-unit/admission44668404772 active withnoDBcontainers. Dev8017 exactRailwaye99SUCCESS+Swagger200/savedDNAunchanged; newcache/Audit code remainsfeature-only. No PIPER/sharedAtlas/DNA/staging/prod or local generatedruntime/env/build/DB/image/results.
+
+
+.NET10 BackgroundService.StopAsync synchronously installs a cancellation-aware wait for ExecuteTask; cancellation callbacks run in documented synchronous LIFO order. The I/O budget callback must be registered after that waiter so it runs before an awakened continuation can dispose it. The new deadline control caught precisely that ordering issue; the ordinary acknowledgement control already passed. Do not weaken the token assertion or increase the observation deadline.
+
+Primary references: https://raw.githubusercontent.com/dotnet/runtime/v10.0.0/src/libraries/Microsoft.Extensions.Hosting.Abstractions/src/BackgroundService.cs and https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtokensource.cancel?view=net-10.0
