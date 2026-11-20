@@ -46,3 +46,7 @@ Run44712697888 on frozen02f0d4cb/Core99d2 passed the three native read-mode/relo
 Call Remove(entity, softDelete:true/false) on an existing tracked root, then SaveChangesAsync with an explicit operation identity. Delete permission is checked against every stored record before the single native transaction; original provider revisions are required. Success publishes the native acknowledgements and detaches deleted roots; an error retains pending deletion and operation identity for reconciliation. CancelRemoval cancels only local intent; explicit ReloadAsync also clears pending removal after an authorized refresh. Removing a new, uncommitted Add only detaches it.
 
 An explicitly supplied parent must match its authoritative record before commit. Children are not selected for deletion. The current native atomic request supports a single operation kind, so pending save/delete or soft/hard mixtures are refused before any write. Full mixed atomic lifecycle remains open; never interpret separately sequenced operations as one atomic flush.
+
+## Captured query values
+
+Instance auto-properties may be captured as query parameters without calling application getters: the compiler reads validated compiler-generated backing fields. For computed/custom getters, evaluate the value explicitly into a local variable before composing the query. Arbitrary getters, methods and static initialization are not executed by query binding. The native lifecycle journeys exercise captured entity Id; the security control requires a rejected computed getter to remain uncalled.
