@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><title>Owned file and notification verification</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/dashboard.css">
+  <link rel="stylesheet" href="/assets/css/modals-new.css">
+  <link rel="stylesheet" href="/assets/css/oasis-portal-extra.css">
+  <link rel="stylesheet" href="/assets/css/oasis-portal-extra2.css">
+</head>
+<body>
+  <button id="fixture-open-files" type="button" onclick="window.openFilesModal()">Open Files</button>
+  <button id="notif-bell-btn" type="button">Notifications</button><span id="notif-bell-badge" hidden></span>
+  <div class="modal js-modal"></div><div id="fixture-notifications"></div>
+  <script src="/assets/js/oasis-web4-sdk.js"></script>
+  <script>
+    window.oasisClient = new window.OASISClient({baseUrl: location.origin, persistSession: false});
+    var owner = JSON.parse(localStorage.getItem('avatar'));
+    window.oasisClient.setToken(owner.jwtToken, {avatarId: owner.id});
+    window.jwtReadyPromise = Promise.resolve();
+  </script>
+  <script src="/assets/js/files-modal.js"></script>
+  <script src="/assets/js/notifications.js"></script>
+  <script>
+    Promise.all([
+      ['files', '/assets/components/modals/files.html', '.js-modal'],
+      ['notifications-panel', '/assets/components/notifications-panel.html', '#fixture-notifications']
+    ].map(async function (entry) {
+      var response = await fetch(entry[1]);
+      if (!response.ok) throw new Error('Actual portal fragment could not be loaded.');
+      document.querySelector(entry[2]).innerHTML = await response.text();
+      window.dispatchEvent(new CustomEvent('portal-modal-ready', {detail: {route: entry[0]}}));
+    })).then(function () {
+      window.dispatchEvent(new CustomEvent('portal-components-ready'));
+      window.__filesNotificationsReady = true;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+{
+  "status": "new_combined_functional_case_prepared",
+  "date": "2026-11-20",
+  "portal": "a7610f5060db43f0aad5e213bda40b52d8040c0e",
+  "exactPortalBlobs": {
+    "assets/js/files-modal.js": "ae8293d0ffad932f50a28fe5078565de9625795a",
+    "assets/js/notifications.js": "4bddb518a51d1177c055379db8e2446b979502d4",
+    "assets/components/notifications-panel.html": "32ca15ba0b15fb0e30509071f287f89d030e3db3",
+    "assets/js/oasis-web4-sdk.js": "850ee98adb5663b56644edddc842175dfb5f939c",
+    "assets/components/modals/files.html": "3582415b55e7ab17c99a657c68ac9d43df9c4e1a"
+  },
+  "test": "FilesAndNotificationPopupsUseActualSdkHttpAndOwnedMongo",
+  "expectedFacts": 1,
+  "scope": [
+    "Actual Files popup list/upload/reopen/download/delete through real SDK and compiled controller into owned Mongo",
+    "Actual notification panel load/pagination/single read/mark all/refresh; cold native manager verifies51 persisted read flags",
+    "Fifty-one small actual notifications cross the50row page boundary once; no load benchmark",
+    "Foreign file bytes and authenticated actor account revisions preserved",
+    "Owned Mongo DB absence, singleton restoration, browser/download/runtime/control cleanup"
+  ],
+  "limits": [
+    "Owned MVC/JWT/native path, not full production Startup/authentication/usage/billing pipeline",
+    "No real shared Atlas/PIPER calls; no hosted/all-portal acceptance from this case",
+    "Only this new combined Fact selected; previously accepted cohorts excluded"
+  ],
+  "validation": {
+    "browserSyntax": true,
+    "brokerSyntax": true,
+    "apiCompiled": false,
+    "runtimeAccepted": false,
+    "backendMocks": false,
+    "responseReplacement": false
+  },
+  "cleanup": {
+    "localBuilds": 0,
+    "localDownloads": 0,
+    "newWorktrees": 0,
+    "newEnvironments": 0,
+    "generatedLocalResults": 0,
+    "download": "Browser-owned CI file removed after byte comparison; existing owned browser profile/runtime cleanup reused"
+  }
+}
