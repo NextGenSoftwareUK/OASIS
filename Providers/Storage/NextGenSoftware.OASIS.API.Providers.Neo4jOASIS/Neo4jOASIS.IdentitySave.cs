@@ -29,6 +29,9 @@ public partial class Neo4jOASIS
         {
             var observed=await ReadLockedIdentityAsync(transaction,kind,staged.Id,readCurrent).ConfigureAwait(false);
             RequireSaveLifecycle(observed.Previous,staged);
+            if(observed.Previous!=null)
+                AccountSaveRevision.RequireDeclaredSuccessor(observed.Previous.Version,observed.Previous.VersionId,
+                    staged.Version,staged.VersionId,staged.PreviousVersionId);
             if(archiveVersions)await StoredRecordVersions.StampAsync(staged.Id,staged,observed.Previous,stored=>ArchiveRecordVersionAsync(transaction,kind,stored)).ConfigureAwait(false);
             var parameters=nativeFields(staged);
             parameters["id"]=staged.Id.ToString();parameters["snapshot"]=OasisJson.Serialize(staged);

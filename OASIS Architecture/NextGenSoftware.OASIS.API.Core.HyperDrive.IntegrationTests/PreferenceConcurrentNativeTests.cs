@@ -123,6 +123,15 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 Assert.False(string.IsNullOrWhiteSpace(result.ErrorCode));
                 Assert.Contains("CONFLICT",result.ErrorCode,StringComparison.Ordinal);
                 Assert.Equal(originalPrivacy,StoredPrivacy(account.Result));
+                var fresh=await settings.UpdatePrivacySettingsAsync(id,new Dictionary<string,object>{{"profileVisibility","private"}});
+                Assert.False(fresh.IsError,fresh.Message);Assert.True(fresh.Result);Assert.True(fresh.IsSaved);
+                Assert.Equal(newer,await nativeFirstName());
+                var persisted=await owner.LoadAvatarAsync(id);Assert.False(persisted.IsError,persisted.Message);
+                Assert.Equal(storedPassword,persisted.Result.Password);
+                Assert.Equal("private",StoredPrivacy(persisted.Result));
+                var privacy=await settings.GetPrivacySettingsAsync(id);Assert.False(privacy.IsError,privacy.Message);
+                Assert.Equal("private",privacy.Result["profileVisibility"]?.ToString());
+                Console.WriteLine("Preference explicit fresh action after conflict verified: "+providerName);
             }
             else
             {
