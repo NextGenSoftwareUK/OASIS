@@ -2,7 +2,7 @@
   "date": "2026-11-20",
   "status": "source wired; actual API compile and browser/native acceptance pending",
   "portal": "abda5b4607abaedfa90e628ea6f53de840f70321",
-  "coreCommit": "949833ae481e8a02746e2daadb7289ce020de4dc",
+  "coreCommit": "a11239000270ef676613b1cf798542a2526783c7",
   "exactPortalBlobs": {
     "assets/js/clan-modal.js": "dd287f3171b960201093586a5b0e7fcffe9b64b3",
     "assets/components/modals/clan.html": "1b3bc23b549a680828663de2cd4b32c2989c4aab",
@@ -48,5 +48,18 @@
     ],
     "importedOrRetested": false
   },
-  "deleteContractCorrection": "2026-11-20 CLAN FIRST BUILD RESULT RETAINED:44784871769/job136456935191 onf68f404ff62e passed Clan-only syntax and all10exact browser input blobs; actual WEB4 build stopped after1m28.82s at CS0023 in the new deletion check. No browser/native case executed. The real HolonManager DeleteHolonAsync returns OASISResult<IHolon>, not bool; Core949833ae481e8a02746e2daadb7289ce020de4dc now validates matching returned clan identity and persisted deletion timestamp. Exact source and soft-delete contract reviewed; no fake success or alternate delete path. Parent pin/manifest paired; only Clan source/route line references updated. Retry will build the changed API and run only the same new Clan browser flow; passed popup syntax is not selected again. Owned fixture absence/post-job cleanup passed; no laptop outputs or shared service action. Whole site remains incomplete; breadth-first work continues."
+  "deleteContractCorrection": "2026-11-20 CLAN FIRST BUILD RESULT RETAINED:44784871769/job136456935191 onf68f404ff62e passed Clan-only syntax and all10exact browser input blobs; actual WEB4 build stopped after1m28.82s at CS0023 in the new deletion check. No browser/native case executed. The real HolonManager DeleteHolonAsync returns OASISResult<IHolon>, not bool; Core949833ae481e8a02746e2daadb7289ce020de4dc now validates matching returned clan identity and persisted deletion timestamp. Exact source and soft-delete contract reviewed; no fake success or alternate delete path. Parent pin/manifest paired; only Clan source/route line references updated. Retry will build the changed API and run only the same new Clan browser flow; passed popup syntax is not selected again. Owned fixture absence/post-job cleanup passed; no laptop outputs or shared service action. Whole site remains incomplete; breadth-first work continues.",
+  "retryValidation": {
+    "runId": 44787129695,
+    "jobId": 136464837688,
+    "sourceCommit": "4db94dc10584b7cce00406b162af6018be691228",
+    "status": "completed",
+    "portalSyntax": "retained original pass; excluded from retry",
+    "selectedCase": "ClanPopupUsesActualSdkHttpAndOwnedMongo",
+    "acceptedCasesRepeated": 0,
+    "conclusion": "failure",
+    "apiBuild": "failed: literal newline escape in C# condition; 1m05.25s",
+    "browserNative": "not executed"
+  },
+  "sourceLineCorrection": "2026-11-20 CLAN RETRY BUILD RESULT RETAINED:44787129695/job136464837688 on4db94dc10584 stopped during actual WEB4 compile1m05.25s because the previous correction inserted a literal newline escape into the C# condition (CS1056 and related parse diagnostics). No browser/native case executed; syntax from the first run remains accepted and was excluded. Corea11239000270ef676613b1cf798542a2526783c7 replaces that exact escape with an actual source line break; corrected condition inspected directly and remote bytes verified. Existing tests/assertions unchanged. Parent pin/manifest and Clan-only line references synchronized; next run builds corrected API and selects only the same new Clan browser case. Native absence/post-job cleanup passed, no laptop generated output or shared service action. Failure remains engineering-owned; OPORTAL not complete."
 }
