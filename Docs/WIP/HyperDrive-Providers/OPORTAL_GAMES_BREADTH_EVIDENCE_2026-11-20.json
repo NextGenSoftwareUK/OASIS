@@ -1,5 +1,5 @@
 {
-  "status": "source_wired_web5_compile_pending",
+  "status": "source_wired_web5_build_only_running",
   "date": "2026-11-20",
   "portal": "0e316bd090e1ba0698c9c4ae4c89489d0310e381",
   "star": "fbe7c02f4a138d0a3fc7c3a7e3e71cdf1603c4f9",
@@ -41,5 +41,16 @@
     "generatedResults": 0,
     "sharedBackendCalls": 0,
     "syntax": "Existing Node stdin only"
+  },
+  "activeQualification": {
+    "run": 44707402181,
+    "source": "c77c90437f9fde8837db5f42f923e80dc69ebe8a",
+    "star": "fbe7c02f4a138d0a3fc7c3a7e3e71cdf1603c4f9",
+    "status": "in_progress",
+    "api": "WEB5",
+    "buildOnly": true,
+    "behaviorTests": false,
+    "nativeFixtures": false,
+    "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44707402181"
   }
 }
