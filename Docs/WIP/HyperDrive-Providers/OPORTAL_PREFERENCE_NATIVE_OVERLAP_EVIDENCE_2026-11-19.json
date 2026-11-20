@@ -1,0 +1,37 @@
+{
+  "compileIncludesVerifiedDevelopmentNeoGuidDelta": true,
+  "browserAccepted": false,
+  "method": "Actual SettingsManager.UpdatePrivacySettingsAsync through nonpublic shipping scope constructor; two real shipping clients on same owned DB; actual native avatar reader held after base read",
+  "oldAcceptedCohortsSelected": 0,
+  "hostedAccepted": false,
+  "required": [
+    "newer independently committed account FirstName survives",
+    "protected names identity password and XP unchanged",
+    "persisted private preference and native saved flags or typed explicit conflict with original preference"
+  ],
+  "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452",
+  "concurrentlyChangedField": "FirstName on Avatar account",
+  "localGeneratedOutputs": 0,
+  "sharedServicesTouched": false,
+  "retryAllowed": false,
+  "saveMethodsInherited": true,
+  "rawObservers": [
+    "Mongo typed authoritative account collection",
+    "fresh SQLite ADO SELECT FirstName",
+    "Neo driver Avatar SnapshotJson"
+  ],
+  "rows": 3,
+  "noArgumentPeerFactoriesUnchanged": true,
+  "status": "prepared_not_dispatched_not_accepted",
+  "preference": "preferences.privacy.profileVisibility=private",
+  "businessResponsesReplaced": false,
+  "fixtureOwnerConstructorsUnchanged": true,
+  "test": "PreferenceNativeReadWriteOverlapPreservesNewerAccount",
+  "readResultUnchanged": true,
+  "mode": "V2",
+  "providers": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ]
+}

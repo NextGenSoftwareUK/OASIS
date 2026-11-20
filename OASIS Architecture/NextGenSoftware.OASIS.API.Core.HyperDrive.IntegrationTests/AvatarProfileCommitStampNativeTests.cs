@@ -29,6 +29,8 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         private readonly PortraitNativeReadBarrier? _portraitBarrier;
         public MongoStore(PortraitNativeReadBarrier? barrier = null) => _portraitBarrier = barrier;
         public IOASISStorageProvider CreatePeerProvider() => new MongoDBOASIS(MongoUri,_name);
+        public IOASISStorageProvider CreatePreferencePeerProvider(PreferenceNativeReadBarrier barrier) =>
+            new PreferenceReadGatedMongo(MongoUri,_name,barrier);
         public async Task<(string? Address,string? Portrait)> ReadPortraitNativeStateAsync(Guid id)
         {
             var row=await _client.GetDatabase(_name)
@@ -80,6 +82,15 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             : new PortraitReadGatedNeo("bolt://127.0.0.1:27687","neo4j","oasis-profile-fixture-only",barrier);
         public IOASISStorageProvider CreatePeerProvider() =>
             new Neo4jOASIS("bolt://127.0.0.1:27687","neo4j","oasis-profile-fixture-only");
+        public IOASISStorageProvider CreatePreferencePeerProvider(PreferenceNativeReadBarrier barrier) =>
+            new PreferenceReadGatedNeo("bolt://127.0.0.1:27687","neo4j","oasis-profile-fixture-only",barrier);
+        public async Task<string?> ReadFirstNameNativeAsync(Guid id)
+        {
+            using var session=_driver.AsyncSession();
+            var row=await(await session.RunAsync("MATCH (a:Avatar {Id:$id}) RETURN a.SnapshotJson AS account",
+                new{id=id.ToString()})).SingleAsync();
+            return (string?)Newtonsoft.Json.Linq.JObject.Parse(row["account"].As<string>())["FirstName"];
+        }
         public async Task<(string? Address,string? Portrait)> ReadPortraitNativeStateAsync(Guid id)
         {
             using var session=_driver.AsyncSession();
@@ -131,6 +142,17 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         public SqliteStore(PortraitNativeReadBarrier? barrier = null) => Provider=barrier==null
             ? new SQLLiteDBOASIS(Connection) : new PortraitReadGatedSqlite(Connection,barrier);
         public IOASISStorageProvider CreatePeerProvider() => new SQLLiteDBOASIS(Connection);
+        public IOASISStorageProvider CreatePreferencePeerProvider(PreferenceNativeReadBarrier barrier) =>
+            new PreferenceReadGatedSqlite(Connection,barrier);
+        public async Task<string?> ReadFirstNameNativeAsync(Guid id)
+        {
+            using var connection=new Microsoft.Data.Sqlite.SqliteConnection(Connection);await connection.OpenAsync();
+            using var command=connection.CreateCommand();
+            command.CommandText="SELECT FirstName FROM Avatar WHERE Id=$id";
+            command.Parameters.AddWithValue("$id",id.ToString());
+            var value=await command.ExecuteScalarAsync();
+            return value is DBNull?null:(string?)value;
+        }
         public async Task<(string? Address,string? Portrait)> ReadPortraitNativeStateAsync(Guid id)
         {
             using var connection=new Microsoft.Data.Sqlite.SqliteConnection(Connection);await connection.OpenAsync();

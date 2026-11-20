@@ -1,5 +1,5 @@
 {
-  "status": "two_verified_distinct_decoder_lines_integrated_current_compile_pending",
+  "status": "verified_neo_guid_source_delta_integrated_current_combined_compile_pending",
   "sourceCheckpoint": "38d4320ef7cffa3ce8d6c77cb312dee3f42acb9d",
   "core": "96f6baea21c1423795f7effcac208a8f6485b30c",
   "importedFiles": [
@@ -161,7 +161,9 @@
     },
     {
       "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.Grouped.cs",
-      "sourceBlob": "9ae7ef86b58d02cc980b273f0e8702a0faecf627"
+      "sourceBlob": "50da7ed4c859876d12f8a8ea67d98e79e3a1a18f",
+      "originalSourceBlob": "9ae7ef86b58d02cc980b273f0e8702a0faecf627",
+      "sourceCheckpointOverride": "b8b344b9153ef570a64425fcb38d8619c11a2fdb"
     },
     {
       "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.Join.cs",
@@ -197,7 +199,9 @@
     },
     {
       "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Cql.Grouped.cs",
-      "sourceBlob": "431d05e9cffaade224693b941405b14269e390f8"
+      "sourceBlob": "a727c8894eb5aaf821c99353d9b334fcdf9c7754",
+      "originalSourceBlob": "431d05e9cffaade224693b941405b14269e390f8",
+      "sourceCheckpointOverride": "b8b344b9153ef570a64425fcb38d8619c11a2fdb"
     },
     {
       "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Cql.Join.cs",
@@ -295,7 +299,9 @@
     },
     {
       "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.GroupCompiler.cs",
-      "sourceBlob": "9dc3dc6df8397d2b6e85300d39fb3f7e4ce06c40"
+      "sourceBlob": "ac7c8225ab8c5cac8e1b812f30604374d32a6422",
+      "originalSourceBlob": "9dc3dc6df8397d2b6e85300d39fb3f7e4ce06c40",
+      "sourceCheckpointOverride": "b8b344b9153ef570a64425fcb38d8619c11a2fdb"
     },
     {
       "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.GroupDecoder.cs",
@@ -309,7 +315,9 @@
     },
     {
       "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.Grouped.cs",
-      "sourceBlob": "ca0b880106e4c2b26c8575fb4b62ed5f223e3d3d"
+      "sourceBlob": "4d2b26d406bbca36dc35f258ea80d3537d79eaba",
+      "originalSourceBlob": "ca0b880106e4c2b26c8575fb4b62ed5f223e3d3d",
+      "sourceCheckpointOverride": "b8b344b9153ef570a64425fcb38d8619c11a2fdb"
     },
     {
       "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.Join.cs",
@@ -385,7 +393,9 @@
     },
     {
       "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.GroupSql.cs",
-      "sourceBlob": "7fb8c6402e0534e5715b46313f43189375030026"
+      "sourceBlob": "7e2d3b2efad6ffbd95572fa099fcfac1e1f243c4",
+      "originalSourceBlob": "7fb8c6402e0534e5715b46313f43189375030026",
+      "sourceCheckpointOverride": "b8b344b9153ef570a64425fcb38d8619c11a2fdb"
     },
     {
       "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.Grouped.cs",
@@ -429,7 +439,9 @@
     },
     {
       "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.Grouped.cs",
-      "sourceBlob": "640be15c3909d0c6bd70da90d9a5d2544dd3c7a4"
+      "sourceBlob": "3dc375e9f3d04170dd486c059788e82f24fa9a89",
+      "originalSourceBlob": "640be15c3909d0c6bd70da90d9a5d2544dd3c7a4",
+      "sourceCheckpointOverride": "b8b344b9153ef570a64425fcb38d8619c11a2fdb"
     },
     {
       "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.Join.cs",
@@ -1103,14 +1115,16 @@
   "compileSource": "c943fd7bb6db3f36b1254d7955d2d55ad51e8a23",
   "compileErrors": 0,
   "latestCompilation": {
-    "run": 44627380956,
-    "job": 135924703982,
-    "source": "bd58740495173e42e624c9c4f2e0029e0d523f50",
-    "core": "650188d6f08d82b7a9b3af15c48e7d8018a79c78",
-    "apiErrors": 0,
+    "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452",
     "nativeContractProjectErrors": 0,
-    "newPortraitCasePassed": 1,
-    "providerAcceptanceComplete": false
+    "browserCasesPassed": 0,
+    "run": 44645656756,
+    "providerAcceptanceComplete": false,
+    "source": "9f35e76a74afbf02b91df3f6a70f7172263a5878",
+    "job": 135987442587,
+    "browserCasesFailed": 2,
+    "apiErrors": 0,
+    "laterNeoGuidImportNotQualified": true
   },
   "distinctDecoderDelta": {
     "checkpoint": "4bc16067885688f60fffa4241a018afed2e14ef4",
@@ -1122,6 +1136,16 @@
     "callsChanged": 2,
     "peerRuntimeProof": 44612262294,
     "acceptedCasesRepeated": 0,
-    "currentCompilePending": true
+    "currentCompilePending": false,
+    "qualifiedCompileRun": 44636523076
+  },
+  "currentSource": {
+    "totalOriginalImportEntries": 189,
+    "neoGuidB8Entries": 6,
+    "development": "b8b344b9153ef570a64425fcb38d8619c11a2fdb",
+    "decoder4bcEntries": 2,
+    "combinedCompilePending": true,
+    "originalCheckpointEntries": 181,
+    "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452"
   }
 }
