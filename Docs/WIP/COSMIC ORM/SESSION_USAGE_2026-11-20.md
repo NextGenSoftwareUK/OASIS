@@ -50,3 +50,7 @@ An explicitly supplied parent must match its authoritative record before commit.
 ## Captured query values
 
 Instance auto-properties may be captured as query parameters without calling application getters: the compiler reads validated compiler-generated backing fields. For computed/custom getters, evaluate the value explicitly into a local variable before composing the query. Arbitrary getters, methods and static initialization are not executed by query binding. The native lifecycle journeys exercise captured entity Id; the security control requires a rejected computed getter to remain uncalled.
+
+## Captured query values
+
+Instance auto-properties may be captured as query parameters without calling application getters: the compiler reads validated compiler-generated backing fields. For computed/custom getters, evaluate the value explicitly into a local variable before composing the query. Arbitrary getters, methods and static initialization are not executed by query binding. The native lifecycle journeys exercise captured entity Id; the security control requires a rejected computed getter to remain uncalled.
