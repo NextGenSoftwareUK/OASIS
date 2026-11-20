@@ -5,18 +5,26 @@
   "sourceChecks": {
     "remoteExactFiles": 4,
     "demoSubstitutionsRemoved": 8,
-    "web4Routes": 798,
-    "providerExternalRoutes": 688
+    "web4Routes": 800,
+    "providerExternalRoutes": 690,
+    "coreSourceExact": true,
+    "managerReview": [
+      930,
+      760
+    ]
   },
   "remaining": [
-    "Selected Eggs script syntax check",
+    "Selected Eggs script syntax",
     "Actual WEB4 compile",
+    "One new three-provider durable quest/leaderboard/hatch native journey",
+    "Wizard publisher HTTP authorization and browser/SDK end-to-end acceptance",
     "Global versus avatar collection catalogue semantics",
-    "Durable quest and quest-leaderboard read/write owners; current getters use process dictionaries",
-    "Real browser/SDK/native hatch/reopen and gameplay policy qualification",
     "Full Startup/hosted and whole-site acceptance"
   ],
   "acceptedTestsRepeated": 0,
   "localGeneratedFiles": 0,
-  "summary": "2026-11-20 EGGS MAIN-FLOW SOURCE WIRED: Portal bc61029019faebef627bdd54f3c598178f8cb5b3. Four tabs now await the canonical current SDK session, use actual Egg/EggQuest/EggQuestLeaderboard fields (questName, rewards, avatarName, rank, score), preserve zero values, expose Refresh and actual request failures, and reject malformed lists. Hatch buttons respect isHatchable and require the returned requested egg ID/isHatched acknowledgement; no generated reward claims, repeated hatch submissions or old status timers. Removed eight EggsController demo/empty success substitutions; actual manager results/errors retained. Four remote source files exact; WEB4 route review798/688 passes. One exact-source Eggs-only cloud syntax check and actual WEB4 build are being prepared; accepted map checks/behavior/native cohorts will not be repeated. Full Eggs acceptance remains OPEN: GetAllEggs currently has avatar collection semantics, current quests/quest leaderboard read process dictionaries without a durable producer, and real browser/native hatch/reopen plus gameplay policy remain unqualified. These agent-owned backend gaps are not marked complete or replaced by unrelated competition data. Development6498c9fb rechecked unchanged; no peer import/retest. Shared Atlas/PIPER/DNA/worker/LB/deploy/protected-delivery holds preserved; no laptop builds/downloads/env/results/temp source files. Whole OPORTAL/provider/HyperDrive goal active/incomplete, breadth first."
+  "summary": "2026-11-20 EGGS MAIN-FLOW SOURCE WIRED: Portal bc61029019faebef627bdd54f3c598178f8cb5b3. Four tabs now await the canonical current SDK session, use actual Egg/EggQuest/EggQuestLeaderboard fields (questName, rewards, avatarName, rank, score), preserve zero values, expose Refresh and actual request failures, and reject malformed lists. Hatch buttons respect isHatchable and require the returned requested egg ID/isHatched acknowledgement; no generated reward claims, repeated hatch submissions or old status timers. Removed eight EggsController demo/empty success substitutions; actual manager results/errors retained. Four remote source files exact; WEB4 route review798/688 passes. One exact-source Eggs-only cloud syntax check and actual WEB4 build are being prepared; accepted map checks/behavior/native cohorts will not be repeated. Full Eggs acceptance remains OPEN: GetAllEggs currently has avatar collection semantics, current quests/quest leaderboard read process dictionaries without a durable producer, and real browser/native hatch/reopen plus gameplay policy remain unqualified. These agent-owned backend gaps are not marked complete or replaced by unrelated competition data. Development6498c9fb rechecked unchanged; no peer import/retest. Shared Atlas/PIPER/DNA/worker/LB/deploy/protected-delivery holds preserved; no laptop builds/downloads/env/results/temp source files. Whole OPORTAL/provider/HyperDrive goal active/incomplete, breadth first.",
+  "coreCommit": "e07d3dee5b490401580e53f317332bcca9a3cc1e",
+  "durableSourceSummary": "2026-11-20 DURABLE EGG QUEST/BACKEND SOURCE IMPLEMENTED: Core e07d3dee5b490401580e53f317332bcca9a3cc1e removes both process-only quest/leaderboard dictionaries. Readers use actual avatar settings from the selected provider; trusted publisher snapshots use the same SaveSetting owner, validate identities/progress/ranks, preserve zero scores and bind quest AvatarId to the target. New WEB4 PUT api/eggs/{avatarId}/quests and /quest-leaderboard require Wizard in source. No substitution of EggCollection competition data. Root manager review930/760 and routes800/690 include only scoped Egg changes; unrelated CSV rows/order preserved. One NEW EggQuestSnapshotsAndHatchPersistAcrossThreeOwnedNativeStores case prepared: actual MongoDB/SQLite/Neo4j raw reads, cold managers, active quest/rewards and ranked zero-score data, refused invalid replacement preserving state, real hatch/collection preservation, clearing quests without clearing board and foreign profile preservation, owned cleanup. Existing loopback fixtures and build lease reused; no accepted case selected. This is source implementation, not runtime/HTTP-authority acceptance: actual new native case, API build, Eggs syntax, publisher HTTP authorization, global catalogue semantics and full site still open. Core parent gitlink/manifest paired; physical submodule/dirty Portal preserved. No local build/download/env/results/native DB or shared service/DNA/worker/deploy action.",
+  "newNativeCase": "EggQuestSnapshotsAndHatchPersistAcrossThreeOwnedNativeStores"
 }

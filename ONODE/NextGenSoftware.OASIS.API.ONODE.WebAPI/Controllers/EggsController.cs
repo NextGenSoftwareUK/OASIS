@@ -126,6 +126,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
+        /// <summary>Publishes a trusted game's per-avatar egg quest snapshot.</summary>
+        [Authorize(AvatarType.Wizard)]
+        [HttpPut("{avatarId:guid}/quests")]
+        public Task<OASISResult<List<EggQuest>>> PublishEggQuests(Guid avatarId, [FromBody] List<EggQuest> quests)
+        {
+            return EggsManager.Instance.SaveEggQuestsAsync(avatarId, quests);
+        }
+
+        /// <summary>Publishes the trusted game's ranked quest snapshot for an avatar.</summary>
+        [Authorize(AvatarType.Wizard)]
+        [HttpPut("{avatarId:guid}/quest-leaderboard")]
+        public Task<OASISResult<List<EggQuestLeaderboard>>> PublishEggQuestLeaderboard(
+            Guid avatarId, [FromBody] List<EggQuestLeaderboard> entries)
+        {
+            return EggsManager.Instance.SaveEggQuestLeaderboardAsync(avatarId, entries);
+        }
+
         /// <summary>
         /// Discover a new egg
         /// </summary>

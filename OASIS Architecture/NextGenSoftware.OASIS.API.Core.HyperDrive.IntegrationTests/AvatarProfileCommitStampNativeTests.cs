@@ -29,6 +29,13 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         private readonly PortraitNativeReadBarrier? _portraitBarrier;
         public MongoStore(PortraitNativeReadBarrier? barrier = null) => _portraitBarrier = barrier;
         public IOASISStorageProvider CreatePeerProvider() => new MongoDBOASIS(MongoUri,_name);
+        public async Task<string> ReadDocumentNativeAsync(Guid id)
+        {
+            var row = await _client.GetDatabase(_name)
+                .GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar>("Avatar")
+                .Find(record => record.HolonId == id).Project<BsonDocument>(new BsonDocument()).SingleAsync();
+            return row.ToJson();
+        }
         public IOASISStorageProvider CreatePreferencePeerProvider(PreferenceNativeReadBarrier barrier) =>
             new PreferenceReadGatedMongo(MongoUri,_name,barrier);
         public async Task<(string? Address,string? Portrait)> ReadPortraitNativeStateAsync(Guid id)
@@ -87,6 +94,13 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             : new PortraitReadGatedNeo("bolt://127.0.0.1:27687","neo4j","oasis-profile-fixture-only",barrier);
         public IOASISStorageProvider CreatePeerProvider() =>
             new Neo4jOASIS("bolt://127.0.0.1:27687","neo4j","oasis-profile-fixture-only");
+        public async Task<string> ReadDocumentNativeAsync(Guid id)
+        {
+            using var session = _driver.AsyncSession();
+            var row = await (await session.RunAsync("MATCH (a:Avatar {Id:$id}) RETURN a.SnapshotJson AS account",
+                new { id = id.ToString() })).SingleAsync();
+            return row["account"].As<string>();
+        }
         public IOASISStorageProvider CreatePreferencePeerProvider(PreferenceNativeReadBarrier barrier) =>
             new PreferenceReadGatedNeo("bolt://127.0.0.1:27687","neo4j","oasis-profile-fixture-only",barrier);
         public async Task<string?> ReadFirstNameNativeAsync(Guid id)

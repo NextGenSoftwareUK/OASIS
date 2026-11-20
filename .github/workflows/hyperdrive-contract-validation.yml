@@ -22,7 +22,7 @@ on:
         type: boolean
         default: false
       portal_syntax_ref:
-        description: Optional exact OPORTAL commit for changed map-script syntax checks only
+        description: Optional exact OPORTAL commit for changed popup syntax checks only
         type: string
         required: false
         default: ''
@@ -114,7 +114,7 @@ jobs:
             /assets/js/social-graph-modal.js
             /assets/js/eggs-modal.js
 
-      - name: Parse changed map scripts without executing popup code
+      - name: Parse selected popup scripts without executing popup code
         if: ${{ inputs.portal_syntax_ref != '' }}
         shell: pwsh
         env:
@@ -128,7 +128,7 @@ jobs:
           foreach ($mapScript in $selectedScripts) {
             node --check "../oportal-map-source/assets/js/$mapScript"
             if ($LASTEXITCODE) { throw "Map source syntax failed: $mapScript" }
-            Write-Host "Map source syntax passed: $mapScript"
+            Write-Host "Popup source syntax passed: $mapScript"
           }
 
       # Retired root-only checkout: referenced sibling projects were absent on clean runners.
