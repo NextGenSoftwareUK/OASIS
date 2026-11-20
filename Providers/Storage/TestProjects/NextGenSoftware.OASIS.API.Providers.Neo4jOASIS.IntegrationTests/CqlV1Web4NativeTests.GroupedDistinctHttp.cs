@@ -21,7 +21,7 @@ public sealed partial class CqlV1Web4NativeTests
 
     private static async Task<int> VerifyGroupedDistinctMixedNativeHttpProvider(
         IOASISStorageProvider provider, string work, string database, MongoClient? mongo, List<Guid> created,
-        bool guidCounts = false, Dictionary<string, long>? queryTimings = null)
+        bool guidCounts = false, Dictionary<string, long>? queryTimings = null, bool guidRows = false)
     {
         var reader = (INativeDataProjectionQueryProvider)provider;
         var actor = Guid.NewGuid();
@@ -140,7 +140,7 @@ public sealed partial class CqlV1Web4NativeTests
             }
             await VerifyMappedNativeHttpAsync(provider, mapping, original.Result.Single(),
                 groupedDistinctOnly: true, createdObserver: created.Add,
-                guidDistinct: guidCounts, queryTimings: queryTimings, virtualOnlyId: virtualOnlyId);
+                guidDistinct: guidCounts, queryTimings: queryTimings, virtualOnlyId: virtualOnlyId, guidRows: guidRows);
             if (guidCounts && mongoProvider != null)
             {
                 // UUID legacy subtype does not encode a unique byte-order convention.
@@ -167,7 +167,7 @@ public sealed partial class CqlV1Web4NativeTests
             var after = await fingerprint();
             Assert.AreEqual(before.Length, after.Length);
             for (var index = 0; index < before.Length; index++) CollectionAssert.AreEqual(before[index], after[index]);
-            return 3;
+            return guidRows ? 4 : 3;
         }
         finally
         {
