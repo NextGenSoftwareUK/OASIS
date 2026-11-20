@@ -1,0 +1,22 @@
+{
+  "unitTestProjectNotImported": true,
+  "peerImage": 44633071518,
+  "baseBlob": "f22efc1dd9ffb608bd80abb461d636b001a1d7aa",
+  "peerPackage": 44636914218,
+  "deployedByThisSession": false,
+  "localGeneratedOutputs": 0,
+  "peerRuntimeArtifact": {
+    "bytes": 3289,
+    "id": 14580988609,
+    "sha256": "4569f619541f30a1a1835fb25abaf989fe5f787a9158631c9f3dc508124b6460"
+  },
+  "status": "verified_peer_shutdown_source_integrated_current_combined_graph_not_yet_compiled",
+  "scope": "Move final accepted access-log drain to StopAsync after periodic reader stops; caller cancellation respected",
+  "peerTestsRetainedNotRepeated": true,
+  "currentGraphQualification": "Next necessary new profile client replacement case",
+  "peerRuntime": 44631225149,
+  "importedBlob": "809211ab74e262408efc33820d06e5d9842e2f19",
+  "development": "ca6fc88c3c3066a0d3d1b940960a8dcd047d8439",
+  "settingsChanged": false,
+  "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/AccessLog/MongoAccessLogStore.cs"
+}

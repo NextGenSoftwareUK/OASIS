@@ -121,7 +121,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.AccessLog
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
                 await _service.FlushAsync(stoppingToken).ConfigureAwait(false);
             }
-            await _service.FlushAsync().ConfigureAwait(false);
+        }
+
+        public override async Task StopAsync(CancellationToken cancellationToken)
+        {
+            // ExecuteAsync may never enter when shutdown cancels its scheduled start.
+            // Wait for the periodic reader before taking ownership of the final drain.
+            await base.StopAsync(cancellationToken).ConfigureAwait(false);
+            await _service.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }
