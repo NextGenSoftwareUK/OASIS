@@ -91,7 +91,8 @@ public partial class CqlV1Web4Tests
         {
             0 => CqlV1Endpoint.ExecuteAsync(admitted.Http, new CqlV1Request(), source),
             1 => CqlV1Endpoint.ExecuteScalarAsync(admitted.Http, new CqlScalarV1Request { Operation = "Count" }, source),
-            2 => CqlV1Endpoint.ExecuteProjectionAsync(admitted.Http, new CqlProjectionV1Request(), source),
+            2 => CqlV1Endpoint.ExecuteProjectionAsync(admitted.Http, new CqlProjectionV1Request
+            { Columns = new[] { new CqlProjectionV1Column { Alias = "label", Field = "Name" } } }, source),
             3 => CqlV1Endpoint.ExecuteGroupedAsync(admitted.Http, new CqlGroupedV1Request(), source),
             4 => CqlV1Endpoint.ExecuteJoinAsync(admitted.Http, new CqlJoinV1Request(), source),
             _ => CqlV1Endpoint.ExecuteCompositionAsync(admitted.Http, new CqlCompositionV1Request(), source)
