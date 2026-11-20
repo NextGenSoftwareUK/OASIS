@@ -126,9 +126,21 @@ public sealed partial class CqlV1Web4NativeTests
                 guidCounts ? new[] { "textAlias", "guidAlias" } : new[] { "textAlias" }, 1);
             Assert.IsFalse(original.IsError, original.Message + original.Exception);
             Assert.AreEqual(1, original.Result.Count);
+            Guid? virtualOnlyId = null;
+            if (guidCounts)
+            {
+                var virtualOnly = await mapping.QueryAsync(actor, reader, null,
+                    new[] { new NativeRecordFilter("textAlias", CosmicQueryComparisonOperator.Equal, 7L,
+                        NativeRecordFunction.Utf16Length) }, new[] { "textAlias", "guidAlias" }, 1);
+                Assert.IsFalse(virtualOnly.IsError, virtualOnly.Message + virtualOnly.Exception);
+                virtualOnlyId = virtualOnly.Result.Single().Id;
+                Assert.IsNull((await provider.LoadHolonAsync(virtualOnlyId.Value)).Result);
+                // Track the owned identity for failure cleanup without materializing it.
+                created.Add(virtualOnlyId.Value);
+            }
             await VerifyMappedNativeHttpAsync(provider, mapping, original.Result.Single(),
                 groupedDistinctOnly: true, createdObserver: created.Add,
-                guidDistinct: guidCounts, queryTimings: queryTimings);
+                guidDistinct: guidCounts, queryTimings: queryTimings, virtualOnlyId: virtualOnlyId);
             var after = await fingerprint();
             Assert.AreEqual(before.Length, after.Length);
             for (var index = 0; index < before.Length; index++) CollectionAssert.AreEqual(before[index], after[index]);

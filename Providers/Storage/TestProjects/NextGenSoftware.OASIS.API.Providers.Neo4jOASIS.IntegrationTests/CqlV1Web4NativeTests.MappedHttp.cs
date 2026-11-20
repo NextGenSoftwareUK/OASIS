@@ -63,7 +63,7 @@ public sealed partial class CqlV1Web4NativeTests
     internal static async Task VerifyMappedNativeHttpAsync(IOASISStorageProvider provider,
         VirtualHolonMapping mapping, VirtualHolonRead original, bool groupedDistinctOnly = false,
         Action<Guid>? createdObserver = null, bool guidDistinct = false,
-        Dictionary<string, long>? queryTimings = null)
+        Dictionary<string, long>? queryTimings = null, Guid? virtualOnlyId = null)
     {
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -107,10 +107,18 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 var prior = await provider.LoadHolonAsync(row.Id);
                 Assert.IsNull(prior.Result, "Never overwrite an existing fixture record.");
+                if (guidDistinct)
+                {
+                    created.Add(row.Id);
+                    createdObserver?.Invoke(row.Id);
+                }
                 var saved = await provider.SaveHolonAsync(row);
                 Assert.IsFalse(saved.IsError, saved.Message + saved.Exception);
-                created.Add(row.Id);
-                createdObserver?.Invoke(row.Id);
+                if (!guidDistinct)
+                {
+                    created.Add(row.Id);
+                    createdObserver?.Invoke(row.Id);
+                }
             }
             await outbox.InitializeAsync(CancellationToken.None); initialized = true;
             var secret = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
@@ -162,8 +170,12 @@ public sealed partial class CqlV1Web4NativeTests
                         ValueType = "String", Nullable = true, Alias = "Text" }
                 };
                 if (guidDistinct)
+                {
+                    Assert.IsTrue(virtualOnlyId.HasValue);
+                    body.Filters[0].Operator = CqlV1Operator.GreaterThanOrEqual;
                     body.Columns = body.Columns.Append(new CqlProjectionV1Column { Alias = "Identity",
                         MetadataPath = new[] { "guidAlias" }, ValueType = "Guid", Nullable = true }).ToArray();
+                }
                 body.ResultOperation = CqlProjectionV1ResultOperation.Group;
                 body.Skip = 0;
                 body.Take = 1;
@@ -205,15 +217,23 @@ public sealed partial class CqlV1Web4NativeTests
                 using (var response = await Send(ownerToken))
                 {
                     var rows = (await SuccessfulRows(response)).EnumerateArray().ToArray();
-                    Assert.AreEqual(2, rows.Length);
+                    Assert.AreEqual(guidDistinct ? 3 : 2, rows.Length);
                     Assert.AreEqual("😀", rows[0][0].GetString());
                     Assert.AreEqual("2", rows[0][1].GetString());
                     Assert.AreEqual("2", rows[0][2].GetString());
                     Assert.AreEqual("1", rows[0][3].GetString());
-                    Assert.AreEqual("xy", rows[1][0].GetString());
-                    Assert.AreEqual("1", rows[1][1].GetString());
-                    Assert.AreEqual("1", rows[1][2].GetString());
-                    Assert.AreEqual("1", rows[1][3].GetString());
+                    var importantIndex = guidDistinct ? 2 : 1;
+                    Assert.AreEqual("xy", rows[importantIndex][0].GetString());
+                    Assert.AreEqual("1", rows[importantIndex][1].GetString());
+                    Assert.AreEqual("1", rows[importantIndex][2].GetString());
+                    Assert.AreEqual("1", rows[importantIndex][3].GetString());
+                    if (guidDistinct)
+                    {
+                        Assert.AreEqual("abc\0def", rows[1][0].GetString());
+                        Assert.AreEqual("1", rows[1][1].GetString());
+                        Assert.AreEqual("1", rows[1][2].GetString());
+                        Assert.AreEqual("1", rows[1][3].GetString());
+                    }
                     Assert.IsFalse(rows.Any(row => row[0].GetString() == "zz"),
                         "The live native winner must remove the stale materialized group key.");
                 }
@@ -250,8 +270,13 @@ public sealed partial class CqlV1Web4NativeTests
                     "Read-only reconciliation must not rewrite the stored cached copy.");
 
                 if (guidDistinct)
+                {
+                    Assert.AreEqual(4, created.Count);
                     Assert.AreEqual(MixedGuidStale.ToString("D"), preserved.Result.MetaData["guidAlias"]?.ToString(),
                         "Read-only reconciliation must not rewrite the stale cached GUID.");
+                    Assert.IsNull((await provider.LoadHolonAsync(virtualOnlyId!.Value)).Result,
+                        "The participating virtual-only GUID row must remain unstored.");
+                }
                 await app.StopAsync();
                 return;
             }

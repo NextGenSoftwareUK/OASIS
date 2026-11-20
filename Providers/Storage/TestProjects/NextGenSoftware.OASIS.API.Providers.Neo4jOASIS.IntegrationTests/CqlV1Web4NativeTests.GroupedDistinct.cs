@@ -104,7 +104,7 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 checks = await VerifyGroupedDistinctMixedNativeHttpProvider(provider, work, database, mongo, ids,
                     guidCounts: true, queryTimings: queryElapsed);
-                Assert.AreEqual(4, ids.Count);
+                Assert.AreEqual(5, ids.Count, "Four stored writes and one virtual-only cleanup identity.");
             }
             else if (guidDomains)
             {
@@ -296,10 +296,11 @@ public sealed partial class CqlV1Web4NativeTests
                     + (mixedGuidHttp ? "-grouped-guid-http-native.json" : guidDomains ? "-grouped-guid-native.json" : sharedInputs ? "-grouped-shared-inputs.json" : singlePerformance ? "-grouped-distinct-single-profile.json" : requiredDomains ? "-grouped-distinct-required-native.json" : mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
                 if (mixedGuidHttp)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
-                        successfulHolonWrites = ids.Count, rawNativeRecords = 2, successfulHttpQueries = 2,
+                        successfulHolonWrites = 4, ownedCleanupIds = ids.Count, rawNativeRecords = 2, successfulHttpQueries = 2,
                         foreignOwnerRequests = 1, queryElapsedMilliseconds = queryElapsed,
                         nativeProviderVerified = true, realHttpVerified = true, storedVirtualSameGroupVerified = true,
-                        guidNormalizedIdentityVerified = true, distinctCountVerified = true, havingPagingVerified = true,
+                        guidNormalizedIdentityVerified = true, virtualOnlyRemainsUnstoredVerified = true,
+                        distinctCountVerified = true, havingPagingVerified = true,
                         staleCacheReconciledVerified = true, foreignOwnerRefused = true,
                         nativeSourceUnchangedVerified = true, storedCacheUnchangedVerified = true,
                         usageSettledVerified = true, exactCleanupVerified = true }));
