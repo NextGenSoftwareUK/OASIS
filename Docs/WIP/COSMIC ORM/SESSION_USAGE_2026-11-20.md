@@ -62,3 +62,9 @@ Instance auto-properties may be captured as query parameters without calling app
 ## Captured query values
 
 Instance auto-properties may be captured as query parameters without calling application getters: the compiler reads validated compiler-generated backing fields. For computed/custom getters, evaluate the value explicitly into a local variable before composing the query. Arbitrary getters, methods and static initialization are not executed by query binding. The native lifecycle journeys exercise captured entity Id; the security control requires a rejected computed getter to remain uncalled.
+
+## Explicit read-only roots (source; native verification pending)
+
+Call session.SetReadOnly(entity) after an existing root is tracked. Scalar edits remain local and are excluded from SaveChangesAsync; State reports Unchanged. Explicit Remove still queues an authorized conditional deletion. Reload refreshes the root while retaining its read-only mode. Detach, Clear and Dispose remove session flags.
+
+SetReadOnly(entity,false) adopts current root values as the new baseline, matching the explicit mutable transition contract. It does not retroactively flush edits made while read-only. Call ReloadAsync first to discard those edits and restore database values. Later mutable changes are eligible for the next explicit SaveChangesAsync. Added roots must first commit their create. Per-query default read-only mode, graph-wide transitions and full framework parity are not claimed from this source.
