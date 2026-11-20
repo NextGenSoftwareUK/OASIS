@@ -1,8 +1,8 @@
 {
   "date": "2026-11-20",
-  "status": "source wired and final script syntax accepted; actual API build and runtime acceptance pending",
+  "status": "source corrected after missing-import compile failure; actual WEB5 retry pending",
   "portalCommit": "dde1cabf3265dc4216bd5c1d522ccd95a4d94ea8",
-  "starCommit": "c94b9c4e36a1ddd36681e0d968f700fcd70efa22",
+  "starCommit": "5a13fc55320a27c362495e4f0a459eeec690c05b",
   "publishedFilesVerifiedExact": 5,
   "syntax": {
     "engine": "Existing node --check through stdin",
@@ -29,5 +29,26 @@
     "Actual browser/SDK/native quest list, search, refresh and detail journeys",
     "Full Startup/SSO/hosted and whole-site acceptance"
   ],
-  "summary": "2026-11-20 QUESTS BREADTH SOURCE/SYNTAX WIRED: Portaldde1cabf3265dc4216bd5c1d522ccd95a4d94ea8/STARc94b9c4e36a1ddd36681e0d968f700fcd70efa22; all five published files byte-exact verified. My/catalogue/search tabs use actual captured current-session WEB5 SDK HTTP routes. Canonical rewardXP/rewardKarma/status/progress/objective fields preserve zeros; Refresh, selected-tab count, real errors/warnings and readonly quest/objective/requirements/reward details added. Latest request/session ownership, empty-search invalidation and close/logout cleanup prevent stale results; no guessed DTO aliases or demo-message heuristics. Quest API removes three empty-result duplicate read blocks and the controller metadata status workaround; one typed owner path serves current-avatar lists and status-game projection. Six read guards preserve errors/refuse null successes; invalid identities/types are explicit errors, soft-deletion filtering retained, provider warnings preserved through list/game/search projections. Existing manager metadata/objective promotion, catalogue scope, actual browser/SDK/native journeys, full Startup/hosted and whole-site acceptance remain OPEN; none claimed fixed by UI or compile checks. Existing node syntax check passed final script without executing popup code or writing files; no accepted case repeated. Parent STAR gitlink/manifest paired; Core/ONODE pins and manager931/766, WEB4route800/690 scopes unchanged. Next: one changed WEB5 API build only, no old native/browser cases or syntax repetition. No shared backend/API, funded/on-chain, DNA/worker/LB/deployment/protected-delivery action or laptop build/download/env/DB/results/artifact/extra worktree. Functional breadth first; goal active/incomplete."
+  "summary": "2026-11-20 QUESTS FIRST COMPILE RESULT RETAINED:44816539344/job136566216232 on7550e64fc6853e2772a7c4316d6a4dbfe50fc506 passed all manager931/766, WEB4route800/690, storage parity and dependency gates; actual WEB5 build failed2m49.71s with four CS0103 references to OASISResultHelper. No behavior/native/browser cases executed. Root cause was my missing Core.Helpers import in the new projection code. The real declaration was checked directly; STAR5a13fc55320a27c362495e4f0a459eeec690c05b adds that namespace only, preserves warning/error copying, and is byte-exact verified. Parent STAR pin/manifest paired. Passed final Quests syntax and four Portaldde1cabf source files are unchanged and will not repeat; retry selects the changed actual WEB5 compile only. First failure and successful post-job cleanup retained. Native metadata/objective mapping, catalogue semantics, actual browser/SDK/native journeys, full Startup/hosted and whole portal remain open. No shared service action or laptop build/download/env/database/result/artifact. Goal active/incomplete; breadth first.",
+  "buildAttempts": [
+    {
+      "run": 44816539344,
+      "job": 136566216232,
+      "parent": "7550e64fc6853e2772a7c4316d6a4dbfe50fc506",
+      "star": "c94b9c4e36a1ddd36681e0d968f700fcd70efa22",
+      "conclusion": "failure",
+      "buildElapsed": "00:02:49.71",
+      "errors": 4,
+      "rootCause": "Missing NextGenSoftware.OASIS.API.Core.Helpers import",
+      "diagnostic": "CS0103 OASISResultHelper",
+      "businessNativeBrowserCasesExecuted": 0,
+      "postJobCleanup": "passed",
+      "retained": true
+    }
+  ],
+  "correction": {
+    "star": "5a13fc55320a27c362495e4f0a459eeec690c05b",
+    "sourceVerifiedExact": true,
+    "change": "Import actual helper namespace; no behavior or passed syntax changes"
+  }
 }
