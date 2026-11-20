@@ -84,3 +84,7 @@ CosmicStatelessSession implements IDisposable. Use using for its logical lifetim
 ## Stateless standard LINQ (source; native verification pending)
 
 stateless.Linq<Holon>() returns an actor/authority-bound native IQueryable. Rows and entity terminals are freshly materialized; scalar/DTO projections stay native. AsCosmicNoTracking is available; AsCosmicTracking is explicitly refused for stateless queries. The same logical operation gate and closed-session refusal apply to async sequences and synchronous terminals. Managed queries use the shared wrapper with their original identity/publication owner. The new native3 cohort verifies that affected managed sequence/scalar and no-tracking behavior alongside stateless functionality; older accepted suites are retained.
+
+## Native lifetime acceptance
+
+Stateless logical closure passed actual MongoDB/SQLite/Neo4j run44783441788 on Core7e107c1a. Busy closure refuses without abandoning the active write; closed methods refuse before root enumeration; disposal is idempotent; a fresh session uses the same borrowed provider for read/update/delete and physical absence checks. Artifact14653352215,2980bytes,SHA256d86c8e2e3b015f72817a76af140948d970cc0c6f19c6c21a879d98a6cba85404. Shared stateless LINQ has a separate new cohort; these results do not certify its changed shared wrappers. Navigation Core035 alone is deployed/metadata-ready at74bc; full populated browser/model and wider framework acceptance remain open.
