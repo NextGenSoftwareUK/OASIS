@@ -128,7 +128,8 @@ public partial class AvatarRepository
                 if(avatar.Username!=detail.Username || avatar.Email!=detail.Email)
                     throw new ProfileRefusal(AvatarProfileErrors.Conflict,"The account profile identities are inconsistent.");
                 var snapshot=new AvatarProfileSnapshot(avatar.HolonId,avatar.Title,avatar.FirstName,avatar.LastName,
-                    avatar.Username,avatar.Email,detail.Address,new(avatar.Version,avatar.VersionId),new(detail.Version,detail.VersionId));
+                    avatar.Username,avatar.Email,detail.Address,new(avatar.Version,avatar.VersionId),new(detail.Version,detail.VersionId),
+                    mutation.Fields.ContainsKey(AvatarProfileProperty.Portrait)?AvatarProfileSnapshot.ComputePortraitSha256(detail.Portrait):null);
                 var changed=accountFields.Count>0 || detailFields.Count>0;
                 commitAttempted=changed;
                 await session.CommitTransactionAsync(cancellationToken).ConfigureAwait(false);

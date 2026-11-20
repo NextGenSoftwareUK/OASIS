@@ -103,9 +103,37 @@
     "portalBundle": "c3211370461e56daf122cbdeb28e6e7c20039040",
     "test": "PortraitBrowserThenProfileEditUsesCommittedRevisionsAndThreeNativeProviders",
     "accepted": false,
-    "status": "in_progress",
+    "status": "completed_failure_router_acknowledgment_missing_portrait_proof",
     "run": 44642653244,
-    "source": "192e53001b17339f0e076fc4de2bb7a5594745fa"
+    "source": "192e53001b17339f0e076fc4de2bb7a5594745fa",
+    "job": 135977345852,
+    "failure": {
+      "apiErrors": 0,
+      "failed": 1,
+      "filesWritten": 0,
+      "fixtureStops": "both success",
+      "sha256": "7ac3277cd75d68934c542bb91630b88632d07e1be886e51be2b37da74853a7fc",
+      "skipped": 0,
+      "artifact": 14586739266,
+      "bytes": 3588,
+      "cause": "ProfileValue did not include new Portrait enum; native commit cannot be acknowledged without bounded portrait proof",
+      "browserRuntimeCleanup": true,
+      "applicationManagerRestored": true,
+      "nativeProjectErrors": 0,
+      "strictFailedTrxVerified": true,
+      "errorCode": "AVATAR_PROFILE_COMMITTED_EVIDENCE_INVALID",
+      "durationSeconds": 17,
+      "passed": 0,
+      "phase": "MongoDBOASIS/actual-file-upload"
+    },
+    "correction": {
+      "retryAllowed": false,
+      "normalTextProfileLoadsImage": false,
+      "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452",
+      "status": "prepared_not_accepted",
+      "scope": "Native portrait mutation returns bounded SHA256; router compares submitted image digest and replica digest with unchanged revision/flags verification; original snapshot constructor retained",
+      "imageInProfileResponse": false
+    }
   },
   "portalLedgerReceipt": {
     "blob": "12beee92605147a3d0b218504dc33b05eb72bf59",

@@ -143,7 +143,8 @@ public partial class SQLLiteDBOASIS:IAvatarProfileStorageProvider
                 if(account.Username!=detail.Username || account.Email!=detail.Email)
                     throw new ProfileRefusal(AvatarProfileErrors.Conflict,"The account profile identities are inconsistent.");
                 var snapshot=new AvatarProfileSnapshot(mutation.AvatarId,account.Title,account.FirstName,account.LastName,
-                    account.Username,account.Email,detail.Address,new(account.Version,account.VersionId),new(detail.Version,detail.VersionId));
+                    account.Username,account.Email,detail.Address,new(account.Version,account.VersionId),new(detail.Version,detail.VersionId),
+                    mutation.Fields.ContainsKey(AvatarProfileProperty.Portrait)?AvatarProfileSnapshot.ComputePortraitSha256(detail.Portrait):null);
                 commitEntered=accountChanged || detailChanged;
                 await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
                 result.Result=snapshot;result.IsSaved=accountChanged || detailChanged;

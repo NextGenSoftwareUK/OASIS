@@ -140,7 +140,8 @@ public partial class Neo4jOASIS:IAvatarProfileStorageProvider
             return(new OASISResult<AvatarProfileSnapshot>
             {
                 Result=new(mutation.AvatarId,account.Title,account.FirstName,account.LastName,account.Username,account.Email,detail.Address,
-                    new(account.Version,account.VersionId),new(detail.Version,detail.VersionId)),
+                    new(account.Version,account.VersionId),new(detail.Version,detail.VersionId),
+                    mutation.Fields.ContainsKey(AvatarProfileProperty.Portrait)?AvatarProfileSnapshot.ComputePortraitSha256(detail.Portrait):null),
                 IsSaved=changed,SavedCount=(accountFields.Count>0?1:0)+(detailFields.Count>0?1:0)
             },changed);
         }).ConfigureAwait(false);

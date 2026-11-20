@@ -1,7 +1,7 @@
 'use strict';
 const assert = require('node:assert/strict');
 const path = require('node:path');
-const { randomUUID } = require('node:crypto');
+const { randomUUID, createHash } = require('node:crypto');
 
 async function verify({ baseUrl, token, providerType, imageId, accountSwitch = false, foreignToken, editAfterPortrait = false, replaceClientWhileProfilePending = false }) {
   const base = new URL(baseUrl);
@@ -234,6 +234,7 @@ async function verify({ baseUrl, token, providerType, imageId, accountSwitch = f
       const commit = JSON.parse(confirmation.metaData.avatarProfileCommit);
       assert.equal(commit.providerType, providerType);
       assert.equal(commit.profile.avatarId, owner.avatarId);
+      assert.equal(commit.profile.portraitSha256, createHash('sha256').update(imageBase64, 'utf8').digest('base64'));
       assert.notEqual(commit.profile.detailRevision.versionId, owner.detailRevision.versionId);
       assert.equal(Object.hasOwn(commit.profile, 'portrait'), false);
       const newAddress = 'After portrait ' + providerType;
