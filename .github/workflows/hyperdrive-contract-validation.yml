@@ -113,6 +113,7 @@ jobs:
             /assets/js/oapp-map-modal.js
             /assets/js/social-graph-modal.js
             /assets/js/eggs-modal.js
+            /assets/js/competition-modal.js
 
       - name: Parse selected popup scripts without executing popup code
         if: ${{ inputs.portal_syntax_ref != '' }}
@@ -122,7 +123,7 @@ jobs:
         run: |
           $selectedScripts = @('celestial-map-modal.js', 'oapp-map-modal.js', 'social-graph-modal.js')
           if ($env:PORTAL_SYNTAX_FILE) {
-            if ($env:PORTAL_SYNTAX_FILE -notin @('celestial-map-modal.js', 'oapp-map-modal.js', 'social-graph-modal.js', 'eggs-modal.js')) { throw 'Unsupported popup syntax target.' }
+            if ($env:PORTAL_SYNTAX_FILE -notin @('celestial-map-modal.js', 'oapp-map-modal.js', 'social-graph-modal.js', 'eggs-modal.js', 'competition-modal.js')) { throw 'Unsupported popup syntax target.' }
             $selectedScripts = @($env:PORTAL_SYNTAX_FILE)
           }
           foreach ($mapScript in $selectedScripts) {

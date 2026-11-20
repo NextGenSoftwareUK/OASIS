@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-20",
+  "status": "source wired; actual WEB5 compile/syntax/native/browser/HTTP acceptance pending",
+  "portalCommit": "af82fe78836522571cfea2d5e58d4bb97a3a850e",
+  "coreCommit": "26b9e8f1d323991443310f94b9edcba24c8740e4",
+  "starCommit": "1e09e7195ca336d31f0629da5ffad24bbf605d3a",
+  "remoteExactFiles": 6,
+  "demoBranchesRemoved": 6,
+  "starActions": 11,
+  "managerManifest": {
+    "public": 931,
+    "providerBacked": 766
+  },
+  "web4Routes": {
+    "actions": 800,
+    "providerExternal": 690,
+    "changed": false
+  },
+  "nativeCase": "CompetitionCataloguesRankAndRegistrationPersistAcrossThreeOwnedNativeStores",
+  "acceptedTestsRepeated": 0,
+  "filesGeneratedLocally": 0,
+  "remaining": [
+    "Actual WEB5 build",
+    "Competition-only source syntax",
+    "One new three-provider native journey",
+    "Actual browser/SDK tab navigation, pagination and registration",
+    "Wizard publisher HTTP authorization",
+    "Full Startup/hosted and whole-site acceptance"
+  ],
+  "summary": "2026-11-20 COMPETITION BREADTH SOURCE WIRED: Portalaf82fe78836522571cfea2d5e58d4bb97a3a850e/Core26b9e8f1d323991443310f94b9edcba24c8740e4/STAR1e09e7195ca336d31f0629da5ffad24bbf605d3a. Three tabs use captured current SDK bearer and actual DTOs; score0 and negative values preserved, real rank/identity, explicit errors/warnings, Refresh and50row Load more, real tournament dates/status/capacity/registration, bool-acknowledged joins and fresh readback.39actual competition selectors and five calendar seasons. Removed six STAR demo branches; one awaited boot filter covers11actions. Real persisted league catalogue with Wizard league/tournament publishers; no fabricated Bronze/Silver/Gold list. Rank/league/leaderboard/tournament reads no longer create settings or rewrite rank projections; projections remain on actual score writes. Stats reads rank once and distinguishes typed unranked absence from errors. Optional explicit competition query limits registration lookup to that actual catalogue; existing callers without a selector retain their defined search. Six remote source/cache files verified byte-exact; paired parent Core/STAR pins and manifest; manager review931/766, WEB4 routes unchanged800/690. ONE NEW three-provider native main-flow case prepared using existing owned loopback fixtures: empty reads create no native settings, real league publishing/zero-score rank, immutable repeated reads, cold tournament registration/duplicate acknowledgement, raw native data and exact cleanup. Actual WEB5 compile, Competition-only syntax and native/browser/HTTP/full Startup acceptance pending. No accepted cohort selected again; breadth first, whole OPORTAL incomplete. No local builds/downloads/envs/DB/results/artifacts or shared Atlas/PIPER/DNA/workers/LB/deployment/protected-delivery actions."
+}

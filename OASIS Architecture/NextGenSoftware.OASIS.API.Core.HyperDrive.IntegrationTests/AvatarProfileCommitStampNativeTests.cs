@@ -43,6 +43,9 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 .Find(record => record.HolonId == id).Project<BsonDocument>(new BsonDocument()).SingleAsync();
             return row.ToJson();
         }
+        public async Task<bool> HolonExistsNativeAsync(Guid id) => await _client.GetDatabase(_name)
+            .GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon>("Holon")
+            .CountDocumentsAsync(record => record.HolonId == id) != 0;
         public IOASISStorageProvider CreatePreferencePeerProvider(PreferenceNativeReadBarrier barrier) =>
             new PreferenceReadGatedMongo(MongoUri,_name,barrier);
         public async Task<(string? Address,string? Portrait)> ReadPortraitNativeStateAsync(Guid id)
@@ -114,6 +117,13 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             var row = await (await session.RunAsync("MATCH (h:Holon {Id:$id}) RETURN h.SnapshotJson AS snapshot",
                 new { id = id.ToString() })).SingleAsync();
             return row["snapshot"].As<string>();
+        }
+        public async Task<bool> HolonExistsNativeAsync(Guid id)
+        {
+            using var session = _driver.AsyncSession();
+            var row = await (await session.RunAsync("MATCH (h:Holon {Id:$id}) RETURN count(h) AS count",
+                new { id = id.ToString() })).SingleAsync();
+            return row["count"].As<long>() != 0;
         }
         public IOASISStorageProvider CreatePreferencePeerProvider(PreferenceNativeReadBarrier barrier) =>
             new PreferenceReadGatedNeo("bolt://127.0.0.1:27687","neo4j","oasis-profile-fixture-only",barrier);
@@ -192,6 +202,14 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             command.CommandText="SELECT MetaDataJson FROM Holon WHERE Id=$id";
             command.Parameters.AddWithValue("$id",id.ToString());
             return Assert.IsType<string>(await command.ExecuteScalarAsync());
+        }
+        public async Task<bool> HolonExistsNativeAsync(Guid id)
+        {
+            using var connection=new Microsoft.Data.Sqlite.SqliteConnection(Connection);await connection.OpenAsync();
+            using var command=connection.CreateCommand();
+            command.CommandText="SELECT COUNT(*) FROM Holon WHERE Id=$id";
+            command.Parameters.AddWithValue("$id",id.ToString());
+            return Assert.IsType<long>(await command.ExecuteScalarAsync()) != 0;
         }
         public async Task<string?> ReadFirstNameNativeAsync(Guid id)
         {
