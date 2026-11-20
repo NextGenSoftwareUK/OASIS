@@ -1,15 +1,15 @@
 {
   "status": "source_wired_breadth_batch_runtime_pending",
   "date": "2026-11-20",
-  "portal": "89fc019a68570ed6b9130225ef6cb3d488a2c04a",
+  "portal": "9b4c862573c13ad26add815784e7daa81c60a14c",
   "core": "5729b1a30b8cc3396d12543d1acb6b501da5f3b3",
   "onodeCore": "16f735439660d8b8d2a8cd0ad114f453ff89bc74",
   "exactPortalBlobs": {
-    "assets/js/gifts-modal.js": "8a63259fd8c63a14999f0d7722f121e4fce129ae",
-    "assets/js/onet-modal.js": "0712fd3c325416feec3bcd5cf50e6147d6a24a85",
+    "assets/js/gifts-modal.js": "112a9a11b76a2e4759a9b9f2176406f9880d369f",
+    "assets/js/onet-modal.js": "a7c64d4a7ad8adcd536ffc54b7975ec00602ed00",
     "assets/components/modals/gifts.html": "9cc34c1a498533393f67ed892ead2cf23dbd9105",
     "assets/js/portal-components.js": "02a4a2cf7d556d7681e4b86f8a84eab4e7792d52",
-    "portal.html": "ff2aa6814f77c86933bdb5f3b4e0882afcad762f"
+    "portal.html": "af7769774fc6b362f059c28dacba7bc46329f40c"
   },
   "gifts": [
     "All actions obtain initialized SDK/current bearer/actor context; stale views cannot publish responses",
@@ -19,7 +19,8 @@
     "Real server warning flags read from the SDK raw OASIS envelope; partial follow-up failures not reported as full success",
     "History Refresh/Load older activity uses existing50row paged route; actual enum string/date/id fields",
     "Incoming label matches API receivedGifts count of gifts addressed to actor, including pending",
-    "Acknowledged send does not hold its button while read-only inbox/stat refresh finishes"
+    "Acknowledged send does not hold its button while read-only inbox/stat refresh finishes",
+    "Initialized context is revalidated before dispatch; direct send pins the captured token in actual SDK request options"
   ],
   "onet": [
     "Active ONODE request now uses actual authenticated SDK HTTP against Wizard-protected api/v1/onode/active-nodes; 401/403 are not fake empty node lists",
@@ -28,7 +29,8 @@
     "Canonical SDK context, per-view/token guards, escaped error text, single status timer and immediate read refresh after actual acknowledgement",
     "Overview independently reports failed reads; connected node failure differs from genuine empty list; unavailable optional live metrics use dash",
     "Unused raw-fetch helpers and unreachable whole-DNA renderer removed; topology displays actual returned data rather than invented node labels",
-    "Logout clears private views and pending responses cannot overwrite another popup"
+    "Logout clears private views and pending responses cannot overwrite another popup",
+    "Initialized context is revalidated before dispatch as well as before publishing results"
   ],
   "validation": {
     "giftsNodeSyntax": true,
