@@ -68,12 +68,12 @@ public partial class CqlV1Web4Tests
         var capabilities = new CosmicQueryCapabilities(Capabilities.Features | CosmicQueryFeatures.Metadata,
             Capabilities.CanonicalFields.ToArray(), new[] { new CosmicQueryMetadataCapability(typeof(double),
                 new[] { CosmicQueryComparisonOperator.GreaterThanOrEqual }) });
-        stored.Adapter.SetupGet(value => value.QueryCapabilities).Returns(capabilities);
-        adapter.SetupGet(value => value.QueryCapabilities).Returns(capabilities);
+        stored.Adapter.SetupGet(value => value.QueryCapabilities).Returns(MixedSnapshotCapabilities(capabilities));
+        adapter.SetupGet(value => value.QueryCapabilities).Returns(MixedSnapshotCapabilities(capabilities));
         adapter.SetupGet(value => value.ProjectionCapabilities).Returns(new CosmicProjectionCapabilities(
             new[] { new CosmicProjectionFieldCapability("Id", typeof(Guid)) }, new[] { typeof(double) }));
         var source = new DoubleMappedHttpSource(stored, mapping.Id, read.Result);
-        var admitted = Admission(provider, maximumProviderAttempts: 3);
+        var admitted = Admission(provider, maximumProviderAttempts: 4);
         var result = MixedProjectionResponse(await admitted.Policy.RunAsync(() =>
             CqlV1Endpoint.ExecuteProjectionAsync(admitted.Http, request, source, mixed: true)));
         var row = Assert.Single(result.GetProperty("rows").EnumerateArray());
@@ -83,6 +83,6 @@ public partial class CqlV1Web4Tests
         var provenance = Assert.Single(result.GetProperty("provenance").EnumerateArray());
         Assert.Equal("Virtual", provenance.GetProperty("representation").GetString());
         Assert.True(provenance.GetProperty("alsoMaterialized").GetBoolean());
-        Assert.Single(admitted.Receipts);
+        Assert.Equal(2, admitted.Receipts.Count);
     }
 }

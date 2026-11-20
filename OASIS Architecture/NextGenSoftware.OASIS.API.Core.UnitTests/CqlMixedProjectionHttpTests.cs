@@ -77,14 +77,21 @@ public partial class CqlV1Web4Tests
         return (mapping.Id, Assert.Single(read.Result));
     }
 
+    private static CosmicQueryCapabilities MixedSnapshotCapabilities(CosmicQueryCapabilities original)
+        => new(original.Features | CosmicQueryFeatures.Not | CosmicQueryFeatures.Metadata | CosmicQueryFeatures.Membership,
+            original.CanonicalFields.ToArray(),
+            original.MetadataTypes.Where(item => item.ValueType != typeof(string))
+                .Append(new CosmicQueryMetadataCapability(typeof(string),
+                    new[] { CosmicQueryComparisonOperator.Equal, CosmicQueryComparisonOperator.NotEqual })).ToArray());
+
     private static void MappedProjectionHttpAdapter(Source source, ProviderType provider, IReadOnlyList<CosmicProjectionRow> rows)
     {
         var adapter = ProjectionAdapter(source, provider, rows);
         var capabilities = new CosmicQueryCapabilities(Capabilities.Features | CosmicQueryFeatures.Metadata,
             Capabilities.CanonicalFields.ToArray(), new[] { new CosmicQueryMetadataCapability(typeof(string),
                 new[] { CosmicQueryComparisonOperator.Equal }) });
-        source.Adapter.SetupGet(value => value.QueryCapabilities).Returns(capabilities);
-        adapter.SetupGet(value => value.QueryCapabilities).Returns(capabilities);
+        source.Adapter.SetupGet(value => value.QueryCapabilities).Returns(MixedSnapshotCapabilities(capabilities));
+        adapter.SetupGet(value => value.QueryCapabilities).Returns(MixedSnapshotCapabilities(capabilities));
         adapter.SetupGet(value => value.ProjectionCapabilities).Returns(new CosmicProjectionCapabilities(
             new[] { new CosmicProjectionFieldCapability("Id", typeof(Guid)) }, new[] { typeof(string) })
             .WithFunctions(CosmicProjectionFunction.Utf16Length));
@@ -104,7 +111,7 @@ public partial class CqlV1Web4Tests
             new CosmicProjectionRow(otherId, "important", 9, 9)
         });
         var source = new MappedProjectionHttpSource(stored, fixture.MappingId, new[] { fixture.Row });
-        var admitted = Admission(provider, maximumProviderAttempts: 3);
+        var admitted = Admission(provider, maximumProviderAttempts: 4);
         var response = await admitted.Policy.RunAsync(() => CqlV1Endpoint.ExecuteProjectionAsync(admitted.Http,
             MappedProjectionHttpRequest(fixture.MappingId, provider), source, mixed: true));
         Assert.True(response is FileContentResult, response is ObjectResult error
@@ -123,7 +130,7 @@ public partial class CqlV1Web4Tests
             .GetProperty("alsoMaterialized").GetBoolean());
         Assert.Single(provenance.Where(row => row.GetProperty("representation").GetString() == "Materialized"));
         Assert.Equal(1, source.VirtualCalls);
-        Assert.Single(admitted.Receipts);
+        Assert.Equal(2, admitted.Receipts.Count);
     }
 
     [Theory]
@@ -138,16 +145,16 @@ public partial class CqlV1Web4Tests
             Enumerable.Range(0, 100).Select(_ => new CosmicProjectionRow(Guid.NewGuid(), "stored", 6, 6)).ToArray());
         var source = new MappedProjectionHttpSource(stored, fixture.MappingId,
             duplicate ? new[] { fixture.Row, fixture.Row } : new[] { fixture.Row });
-        var admitted = Admission(provider, maximumProviderAttempts: 3);
+        var admitted = Admission(provider, maximumProviderAttempts: 4);
         var response = await admitted.Policy.RunAsync(() => CqlV1Endpoint.ExecuteProjectionAsync(admitted.Http,
             MappedProjectionHttpRequest(fixture.MappingId, provider), source, mixed: true));
         Assert.Equal(duplicate ? "CQL_PROVIDER_RESULT_INVALID" : "CQL_VIRTUAL_SOURCE_LIMIT", Code(response));
         Assert.Equal(duplicate ? 1 : 0, source.VirtualCalls);
-        Assert.Single(admitted.Receipts);
+        Assert.Equal(2, admitted.Receipts.Count);
     }
 
     [Fact]
-    public async Task ComputedAliasProjectionHttpMixedRequiresItsThreeAttemptAdmissionBeforeNativeMapping()
+    public async Task ComputedAliasProjectionHttpMixedRequiresItsFourAttemptAdmissionBeforeNativeMapping()
     {
         var provider = ProviderType.MongoDBOASIS;
         var fixture = await MappedProjectionHttpRow(provider);
