@@ -49,5 +49,11 @@
   "sharedAtlasTouched": false,
   "localGeneratedOutputs": 0,
   "developmentReviewed": "2d62db9f90447599cc8e140edd57a7ccc574ac2a",
-  "fullPortalAccepted": false
+  "fullPortalAccepted": false,
+  "performanceFollowup": {
+    "sourceVisibleAggregateAvatarPreferenceReads": 4,
+    "measuredNativeQueryCount": false,
+    "next": "Consolidate aggregate HyperDrive/notification/privacy/system settings around one validated avatar snapshot after authority qualification"
+  },
+  "canonicalBillingOwnerGuard": "REST uses authenticated Avatar.Id. GraphQL/gRPC aggregate and billing operations also enforce existing RequireSubscriber matching before Core delegation, retaining their existing Wizard gates. Transport runtime qualification remains open."
 }

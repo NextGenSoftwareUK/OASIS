@@ -472,8 +472,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
         // ── Settings ──────────────────────────────────────────────────────────────
 
         public async Task<Dictionary<string, object>> GetAllSettings(Guid avatarId,
-            [Service] ISubscriptionSettingsAuthority subscriptions)
+            [Service] ISubscriptionSettingsAuthority subscriptions,
+            [Service] Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor)
         {
+            Services.Subscription.SubscriptionServiceIdentity.RequireSubscriber(httpContextAccessor.HttpContext, avatarId.ToString("D"));
             var result = await SettingsManager.Instance.GetAllSettingsAsync(avatarId, subscriptions);
             return RequireSettingsResult(result);
         }
@@ -491,8 +493,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
         }
 
         public async Task<Dictionary<string, object>> GetSubscriptionSettings(Guid avatarId,
-            [Service] ISubscriptionSettingsAuthority subscriptions)
+            [Service] ISubscriptionSettingsAuthority subscriptions,
+            [Service] Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor)
         {
+            Services.Subscription.SubscriptionServiceIdentity.RequireSubscriber(httpContextAccessor.HttpContext, avatarId.ToString("D"));
             var result = await SettingsManager.Instance.GetSubscriptionSettingsAsync(avatarId, subscriptions);
             return RequireSettingsResult(result);
         }

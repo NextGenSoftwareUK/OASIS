@@ -23,6 +23,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
             {
                 if (!Guid.TryParse(request.AvatarId, out var avatarId))
                     return new JsonResponse { IsError = true, Message = "Invalid avatar ID." };
+                Services.Subscription.SubscriptionServiceIdentity.RequireSubscriber(context.GetHttpContext(), avatarId.ToString("D"));
                 var result = await SettingsManager.Instance.GetAllSettingsAsync(avatarId, _subscriptions, context.CancellationToken);
                 return result.IsError
                     ? new JsonResponse { IsError = true, Message = result.Message }
@@ -65,6 +66,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
             {
                 if (!Guid.TryParse(request.AvatarId, out var avatarId))
                     return new JsonResponse { IsError = true, Message = "Invalid avatar ID." };
+                Services.Subscription.SubscriptionServiceIdentity.RequireSubscriber(context.GetHttpContext(), avatarId.ToString("D"));
                 var result = await SettingsManager.Instance.GetSubscriptionSettingsAsync(avatarId, _subscriptions, context.CancellationToken);
                 return result.IsError
                     ? new JsonResponse { IsError = true, Message = result.Message }
@@ -134,6 +136,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
                 if (!Guid.TryParse(request.AvatarId, out var avatarId))
                     return new OASISGrpcResponse { IsError = true, Message = "Invalid avatar ID." };
                 var settings = JsonSerializer.Deserialize<Dictionary<string, object>>(request.SettingsJson) ?? new Dictionary<string, object>();
+                Services.Subscription.SubscriptionServiceIdentity.RequireSubscriber(context.GetHttpContext(), avatarId.ToString("D"));
                 var result = await SettingsManager.Instance.UpdateSubscriptionSettingsAsync(avatarId, settings, _subscriptions, context.CancellationToken);
                 return result.IsError ? new OASISGrpcResponse { IsError = true, Message = result.Message } : new OASISGrpcResponse();
             }

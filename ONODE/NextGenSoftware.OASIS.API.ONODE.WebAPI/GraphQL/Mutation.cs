@@ -488,8 +488,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
         }
 
         public async Task<bool> UpdateSubscriptionSettings(Guid avatarId, [GraphQLType(typeof(HotChocolate.Types.AnyType))] Dictionary<string, object> settings,
-            [Service] NextGenSoftware.OASIS.API.Core.Interfaces.ISubscriptionSettingsAuthority subscriptions)
+            [Service] NextGenSoftware.OASIS.API.Core.Interfaces.ISubscriptionSettingsAuthority subscriptions,
+            [Service] Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor)
         {
+            NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.SubscriptionServiceIdentity.RequireSubscriber(
+                httpContextAccessor.HttpContext, avatarId.ToString("D"));
             var result = await SettingsManager.Instance.UpdateSubscriptionSettingsAsync(avatarId, settings, subscriptions);
             if (result == null || result.IsError || !result.Result || !result.IsSaved)
                 throw new GraphQLException(ErrorBuilder.New().SetCode(result?.ErrorCode ?? "SUBSCRIPTION_SETTINGS_SAVE_FAILED")

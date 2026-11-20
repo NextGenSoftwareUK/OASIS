@@ -45,5 +45,6 @@
     "remainingInvariant": "Billing/entitlement display must use canonical subscription authority across REST aggregate, GraphQL, gRPC and SDK; preference writes must not alter billing state",
     "newRuntimeAcceptance": false
   },
-  "subscriptionAuthorityEvidence": "OPORTAL_SUBSCRIPTION_SETTINGS_AUTHORITY_EVIDENCE_2026-11-20.json"
+  "subscriptionAuthorityEvidence": "OPORTAL_SUBSCRIPTION_SETTINGS_AUTHORITY_EVIDENCE_2026-11-20.json",
+  "canonicalBillingOwnerGuard": "Legacy GraphQL/gRPC aggregate and subscription read/update now call existing RequireSubscriber before the canonical authority; existing Wizard gates retained. Runtime transport qualification pending."
 }
