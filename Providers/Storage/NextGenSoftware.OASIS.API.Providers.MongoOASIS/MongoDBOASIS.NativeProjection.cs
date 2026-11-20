@@ -216,6 +216,15 @@ public partial class MongoDBOASIS : INativeDataProjectionQueryProvider
                 CosmicQueryComparisonOperator.LessThanOrEqual => "$lte",
                 _ => throw new ArgumentException("Unknown native comparison.")
             };
+            if (match.Value is Guid guid)
+            {
+                var input = new BsonString("$" + match.Field);
+                filters.Add(new BsonDocument("$expr", ProjectionCondition(
+                    MongoCqlTranslator.GuidDomain(input, allowCSharpLegacy: false),
+                    ProjectionOperation(symbol, MongoCqlTranslator.ComparableGuid(input),
+                        new BsonString(guid.ToString("N"))), BsonBoolean.False)));
+                continue;
+            }
             (BsonValue literal, string type) = match.Value switch
             {
                 string text when text.Length <= 4096 => ((BsonValue)new BsonString(text), "string"),

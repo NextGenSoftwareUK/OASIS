@@ -55,7 +55,7 @@ public partial class CqlV1Web4Tests
         MappedProjectionHttpAdapter(stored, provider, Enumerable.Range(0, 99)
             .Select(_ => new CosmicProjectionRow(Guid.NewGuid())).ToArray());
         var source = new IdentityMappedHttpSource(stored, live.MappingId, live.Rows);
-        var admission = Admission(provider, maximumProviderAttempts: 3);
+        var admission = Admission(provider, maximumProviderAttempts: 4);
         var result = MixedProjectionResponse(await admission.Policy.RunAsync(() =>
             CqlV1Endpoint.ExecuteProjectionAsync(admission.Http, CountHttpRequest(live.MappingId, provider), source, mixed: true)));
         Assert.Equal("cql-scalar-v1", result.GetProperty("version").GetString());
@@ -63,7 +63,7 @@ public partial class CqlV1Web4Tests
         Assert.Equal("Int64", result.GetProperty("valueType").GetString());
         Assert.Equal("198", result.GetProperty("value").GetString());
         Assert.False(result.GetProperty("canPrepareSnapshot").GetBoolean());
-        Assert.Single(admission.Receipts);
+        Assert.Equal(2, admission.Receipts.Count);
     }
 
     [Theory]
@@ -87,7 +87,7 @@ public partial class CqlV1Web4Tests
         if (invalid == "skip") request.Skip = 1;
         if (invalid == "take") request.Take = 2;
         if (invalid == "ordering") request.Descending = true;
-        var admission = Admission(provider, maximumProviderAttempts: invalid == "budget" ? 2 : 3);
+        var admission = Admission(provider, maximumProviderAttempts: invalid == "budget" ? 3 : 4);
         var response = await admission.Policy.RunAsync(() =>
             CqlV1Endpoint.ExecuteProjectionAsync(admission.Http, request, source, mixed: invalid != "ordinary-route"));
         Assert.Equal(invalid == "budget" ? "CQL_ADMISSION_REQUIRED" : "CQL_REQUEST_INVALID", Code(response));
@@ -117,7 +117,7 @@ public partial class CqlV1Web4Tests
             })
             .ReturnsAsync(new OASISResult<IReadOnlyList<CosmicProjectionRow>>(rows) { IsLoaded = true });
         var source = new IdentityMappedHttpSource(stored, live.MappingId, live.Rows);
-        var admission = Admission(provider, maximumProviderAttempts: 3);
+        var admission = Admission(provider, maximumProviderAttempts: 4);
         var result = MixedProjectionResponse(await admission.Policy.RunAsync(() =>
             CqlV1Endpoint.ExecuteProjectionAsync(admission.Http, request, source, mixed: true)));
         Assert.Equal("LongCount", result.GetProperty("operation").GetString());

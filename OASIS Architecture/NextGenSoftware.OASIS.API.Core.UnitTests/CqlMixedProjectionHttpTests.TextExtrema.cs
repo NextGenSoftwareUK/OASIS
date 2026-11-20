@@ -63,7 +63,7 @@ public partial class CqlV1Web4Tests
             new CosmicProjectionRow(row.Id, "!"), new CosmicProjectionRow(Guid.NewGuid(), "A"),
             new CosmicProjectionRow(Guid.NewGuid(), (object)null!) });
         var source = new TextExtremaMappedHttpSource(stored, mapping.Id, read.Result);
-        var admission = Admission(provider, maximumProviderAttempts: 3);
+        var admission = Admission(provider, maximumProviderAttempts: 4);
         var result = MixedProjectionResponse(await admission.Policy.RunAsync(() =>
             CqlV1Endpoint.ExecuteProjectionAsync(admission.Http, request, source, mixed: true)));
         Assert.Equal("cql-scalar-v1", result.GetProperty("version").GetString());
@@ -72,6 +72,6 @@ public partial class CqlV1Web4Tests
         Assert.Equal(operation == CqlProjectionV1ResultOperation.Min ? "A" : "z",
             result.GetProperty("value").GetString());
         Assert.False(result.GetProperty("canPrepareSnapshot").GetBoolean());
-        Assert.Single(admission.Receipts);
+        Assert.Equal(2, admission.Receipts.Count);
     }
 }

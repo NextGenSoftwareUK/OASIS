@@ -24,11 +24,14 @@ public static partial class CqlV1Compiler
     }
 
     internal static CosmicProjectionQuery<Holon, CosmicProjectionRecord> CompileProjection(
-        CqlProjectionV1Request request, Guid actor, ProviderType? provider, CosmicQueryReadAccess access, int? branchLimit)
+        CqlProjectionV1Request request, Guid actor, ProviderType? provider, CosmicQueryReadAccess access, int? branchLimit, Guid? excludedVirtualMappingId = null)
     {
         if (request == null || request.Take is < 0 or > 100 || request.Columns == null
             || request.Columns.Length is < 1 or > CosmicProjectionQuery<Holon, CosmicProjectionRecord>.MaximumColumns)
             throw new ArgumentException("Projection requires one to32 columns and Take0–100.");
+        if (excludedVirtualMappingId.HasValue && (!branchLimit.HasValue ||
+                request.VirtualMappingId != excludedVirtualMappingId))
+            throw new ArgumentException("Cache authority must bind the same mixed mapping.");
         var order = branchLimit.HasValue ? null : request.SelectedOrder;
         if (order != null && (order.Length is < 1 or > CosmicQuery<Holon>.MaximumOrderings
             || request.OrderBy != "None" || request.Descending || request.Skip is < 0 or > 1000))
@@ -38,7 +41,7 @@ public static partial class CqlV1Compiler
             request.AnyDescendants, request.Graph, branchLimit.HasValue ? "Id" : order == null ? request.OrderBy : "Id",
             branchLimit == null && request.Descending,
             order == null && branchLimit == null ? request.Skip : 0, order == null ? branchLimit ?? request.Take : null, access,
-            includeCloudReadProfile: true);
+            includeCloudReadProfile: true, excludedVirtualMappingId: excludedVirtualMappingId);
         var columns = request.Columns.Select(ProjectionColumn).ToArray();
         if (order != null && order.Any(term => request.Columns.Any(column =>
             column.Alias == term?.Alias && column.Function.HasValue)))

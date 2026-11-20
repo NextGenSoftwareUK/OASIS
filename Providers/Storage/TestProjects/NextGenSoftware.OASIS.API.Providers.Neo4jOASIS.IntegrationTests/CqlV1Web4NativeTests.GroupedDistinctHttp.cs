@@ -21,7 +21,7 @@ public sealed partial class CqlV1Web4NativeTests
 
     private static async Task<int> VerifyGroupedDistinctMixedNativeHttpProvider(
         IOASISStorageProvider provider, string work, string database, MongoClient? mongo, List<Guid> created,
-        bool guidCounts = false, Dictionary<string, long>? queryTimings = null)
+        bool guidCounts = false, Dictionary<string, long>? queryTimings = null, bool guidRows = false, bool predicateCrossing = false, bool guidFilters = false)
     {
         var reader = (INativeDataProjectionQueryProvider)provider;
         var actor = Guid.NewGuid();
@@ -60,6 +60,10 @@ public sealed partial class CqlV1Web4NativeTests
                     nativeRows[0].Add("identity", MixedGuidFirst.ToString("D").ToUpperInvariant());
                     nativeRows[1].Add("identity", new BsonBinaryData(MixedGuidSecond, GuidRepresentation.Standard));
                 }
+                if (guidFilters)
+                    nativeRows = nativeRows.Concat(new[] { new BsonDocument {
+                        { "_id", 3 }, { "text", "invalid-domain" }, { "identity", new BsonInt64(12) }
+                    } }).ToArray();
                 await source.InsertManyAsync(nativeRows);
                 fingerprint = async () => (await source.Find(FilterDefinition<BsonDocument>.Empty)
                     .Sort(new BsonDocument("_id", 1)).ToListAsync()).Select(row => row.ToBson()).ToArray();
@@ -140,8 +144,8 @@ public sealed partial class CqlV1Web4NativeTests
             }
             await VerifyMappedNativeHttpAsync(provider, mapping, original.Result.Single(),
                 groupedDistinctOnly: true, createdObserver: created.Add,
-                guidDistinct: guidCounts, queryTimings: queryTimings, virtualOnlyId: virtualOnlyId);
-            if (guidCounts && mongoProvider != null)
+                guidDistinct: guidCounts, queryTimings: queryTimings, virtualOnlyId: virtualOnlyId, guidRows: guidRows, predicateCrossing: predicateCrossing, guidFilters: guidFilters);
+            if (guidCounts && mongoProvider != null && !guidFilters)
             {
                 // UUID legacy subtype does not encode a unique byte-order convention.
                 // Native import admits Standard UUIDs; do not guess an external legacy representation.
@@ -167,7 +171,7 @@ public sealed partial class CqlV1Web4NativeTests
             var after = await fingerprint();
             Assert.AreEqual(before.Length, after.Length);
             for (var index = 0; index < before.Length; index++) CollectionAssert.AreEqual(before[index], after[index]);
-            return 3;
+            return guidFilters ? 5 : guidRows ? 4 : 3;
         }
         finally
         {
