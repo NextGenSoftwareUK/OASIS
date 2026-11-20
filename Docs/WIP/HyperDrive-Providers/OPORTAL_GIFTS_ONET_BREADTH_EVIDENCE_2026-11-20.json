@@ -1,0 +1,61 @@
+{
+  "status": "source_wired_breadth_batch_runtime_pending",
+  "date": "2026-11-20",
+  "portal": "89fc019a68570ed6b9130225ef6cb3d488a2c04a",
+  "core": "5729b1a30b8cc3396d12543d1acb6b501da5f3b3",
+  "onodeCore": "16f735439660d8b8d2a8cd0ad114f453ff89bc74",
+  "exactPortalBlobs": {
+    "assets/js/gifts-modal.js": "8a63259fd8c63a14999f0d7722f121e4fce129ae",
+    "assets/js/onet-modal.js": "0712fd3c325416feec3bcd5cf50e6147d6a24a85",
+    "assets/components/modals/gifts.html": "9cc34c1a498533393f67ed892ead2cf23dbd9105",
+    "assets/js/portal-components.js": "02a4a2cf7d556d7681e4b86f8a84eab4e7792d52",
+    "portal.html": "ff2aa6814f77c86933bdb5f3b4e0882afcad762f"
+  },
+  "gifts": [
+    "All actions obtain initialized SDK/current bearer/actor context; stale views cannot publish responses",
+    "Canonical list/history DTOs; malformed results are explicit errors, never fake empty data",
+    "Send query giftType=Custom/message plus JSON metadata matches actual controller binding; only acknowledged stored Gift ID clears form",
+    "Receive/Open require true acknowledgement and refresh actual inbox without optimistic local state",
+    "Real server warning flags read from the SDK raw OASIS envelope; partial follow-up failures not reported as full success",
+    "History Refresh/Load older activity uses existing50row paged route; actual enum string/date/id fields",
+    "Incoming label matches API receivedGifts count of gifts addressed to actor, including pending",
+    "Acknowledged send does not hold its button while read-only inbox/stat refresh finishes"
+  ],
+  "onet": [
+    "Active ONODE request now uses actual authenticated SDK HTTP against Wizard-protected api/v1/onode/active-nodes; 401/403 are not fake empty node lists",
+    "Start/Stop/Connect/Disconnect/Broadcast require actual bool true acknowledgement, matching pinned ONETManager return contracts",
+    "Raw OASIS warning flags are explicit; real HTTP/permission/transport failures retained",
+    "Canonical SDK context, per-view/token guards, escaped error text, single status timer and immediate read refresh after actual acknowledgement",
+    "Overview independently reports failed reads; connected node failure differs from genuine empty list; unavailable optional live metrics use dash",
+    "Unused raw-fetch helpers and unreachable whole-DNA renderer removed; topology displays actual returned data rather than invented node labels",
+    "Logout clears private views and pending responses cannot overwrite another popup"
+  ],
+  "validation": {
+    "giftsNodeSyntax": true,
+    "onetNodeSyntax": true,
+    "fiveRemoteSourceCacheFilesExact": true,
+    "actualSdkModuleAndRoutesConfirmed": true,
+    "rawOasisWarningFlagContractConfirmed": true,
+    "primaryCoreGiftSourceBlob": "aeca99542b7096ddaede9aede126481294db1945",
+    "primaryOnetManagerSourceBlob": "a9a6ee31db291ca2664691858fe87116496bf87d",
+    "shippingApiChanged": false,
+    "runtimeAccepted": false,
+    "newTestsOrAcceptedCohortsRerun": 0
+  },
+  "remaining": [
+    "Combined actual browser/SDK/API/native main-flow qualification pending; this source batch is not whole-popup or hosted acceptance",
+    "GiftsManager currently does not reject empty/unknown recipient IDs before durable save; server-side recipient admission remains agent-owned work before full acceptance",
+    "Actual ONET operator/peer/broadcast qualification needs owned isolated network context; shared Atlas/live network holds remain in effect",
+    "Full OPORTAL, production Startup/billing/authentication and hosted gates remain open"
+  ],
+  "cleanup": {
+    "localBuilds": 0,
+    "localDownloads": 0,
+    "newEnvironments": 0,
+    "newWorktrees": 0,
+    "generatedLocalResults": 0,
+    "temporaryFilesCreated": 0,
+    "syntax": "Existing Node stdin only",
+    "remoteProof": "RAM only; no local archives/results or physical Portal/submodule edits"
+  }
+}
