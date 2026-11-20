@@ -74,7 +74,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task HyperDriveSettingsBrowserUsesActualSdkAndNativeProviders() =>
         RunProfileHttp(HyperDriveModes.V2,true,true,hyperDriveSettingsBrowser:true);
 
-    private async Task RunProfileHttp(string mode, bool sdkOnly, bool browser = false, bool portraitBrowser = false, bool portraitAccountSwitch = false, bool portraitEditAfterUpload = false, bool portraitClientReplacement = false, bool hyperDriveSettingsBrowser = false)
+    [Fact]
+    public Task HolonStoragePolicyBrowserUsesActualSdkAndNativeProviders() =>
+        RunProfileHttp(HyperDriveModes.V2,true,true,hyperDriveSettingsBrowser:true,holonStoragePolicyBrowser:true);
+
+    private async Task RunProfileHttp(string mode, bool sdkOnly, bool browser = false, bool portraitBrowser = false, bool portraitAccountSwitch = false, bool portraitEditAfterUpload = false, bool portraitClientReplacement = false, bool hyperDriveSettingsBrowser = false, bool holonStoragePolicyBrowser = false)
     {
         RequireOwnedFixtures();
         var id = Guid.NewGuid();
@@ -128,9 +132,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             var type = api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SelfAvatarProfileController", true)!;
             Type? portraitController = null;
             Type? settingsController=null;
+            Type? storagePolicyController=null;
             if(hyperDriveSettingsBrowser)
             {
                 settingsController=api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SettingsController",true)!;
+                if(holonStoragePolicyBrowser)
+                    storagePolicyController=api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.HolonStoragePolicyController",true)!;
                 settingsManagerField=api.GetType("NextGenSoftware.OASIS.API.ONODE.WebAPI.Program",true)!
                     .GetField("_settingsManager",BindingFlags.Static|BindingFlags.NonPublic)!;
                 previousSettingsManager=settingsManagerField.GetValue(null);
@@ -153,12 +160,21 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             builder.Services.AddControllers().ConfigureApplicationPartManager(parts =>
             {
                 parts.ApplicationParts.Clear(); parts.ApplicationParts.Add(new AssemblyPart(api));
-                parts.FeatureProviders.Add(new ProfileControllerFeature(settingsController!=null ? [type,settingsController]
-                    : portraitController == null ? [type] : [type, portraitController]));
+                var selectedControllers=new List<Type>{type};
+                if(settingsController!=null)selectedControllers.Add(settingsController);
+                if(storagePolicyController!=null)selectedControllers.Add(storagePolicyController);
+                if(portraitController!=null)selectedControllers.Add(portraitController);
+                parts.FeatureProviders.Add(new ProfileControllerFeature(selectedControllers.ToArray()));
             }).AddControllersAsServices();
             builder.Services.AddTransient(type, _ => Activator.CreateInstance(type,
                 BindingFlags.Instance | BindingFlags.NonPublic, null, [sdk], null)!);
             if(hyperDriveSettingsBrowser)builder.Services.AddAuthorization();
+            if(holonStoragePolicyBrowser)builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options=>
+            {
+                options.JsonSerializerOptions.IgnoreNullValues=true;
+                options.JsonSerializerOptions.ReferenceHandler=System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+                options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter(allowIntegerValues:true));
+            });
             await using var app = builder.Build();
             using var portalFiles = browser
                 ? new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
@@ -238,26 +254,54 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                                 new Dictionary<string,object>{{"profileVisibility","private"}});
                             Assert.False(privacy.IsError,privacy.Message);Assert.True(privacy.IsSaved);
                             var before=await Read(store,id);
-                            using var verified=await ExchangeSdkRequest(new
-                                {baseUrl=address,token=Token(id),providerType=provider.ToString(),avatarId=id.ToString("D")});
+                            var policyAppId=holonStoragePolicyBrowser?Guid.NewGuid():Guid.Empty;
+                            if(holonStoragePolicyBrowser && provider==ProviderType.MongoDBOASIS)
+                            {
+                                using var invalidPolicy=await client.PutAsJsonAsync("/api/settings/holon-storage-policy",new
+                                    {schemaVersion=2,mode="Hybrid",readCache="None",maximumCacheBytes=0,
+                                        maximumCacheAgeSeconds=0,materializeOnExplicitSave=false});
+                                Assert.Equal(HttpStatusCode.BadRequest,invalidPolicy.StatusCode);
+                                using var unsupportedPolicy=await client.PutAsJsonAsync("/api/settings/holon-storage-policy",new
+                                    {schemaVersion=1,mode="Hybrid",readCache="Memory",maximumCacheBytes=1024,
+                                        maximumCacheAgeSeconds=60,materializeOnExplicitSave=false});
+                                using var unsupportedJson=JsonDocument.Parse(await unsupportedPolicy.Content.ReadAsStringAsync());
+                                Assert.True(unsupportedJson.RootElement.GetProperty("isError").GetBoolean());
+                                Assert.Equal("HOLON_STORAGE_POLICY_UNSUPPORTED",unsupportedJson.RootElement.GetProperty("errorCode").GetString());
+                            }
+                            object settingsHandoff=holonStoragePolicyBrowser
+                                ? new {baseUrl=address,token=Token(id),providerType=provider.ToString(),avatarId=id.ToString("D"),applicationId=policyAppId.ToString("D")}
+                                : (object)new {baseUrl=address,token=Token(id),providerType=provider.ToString(),avatarId=id.ToString("D")};
+                            using var verified=await ExchangeSdkRequest(settingsHandoff);
                             Assert.False(verified.RootElement.TryGetProperty("isError",out var settingsBrowserError)
                                 && settingsBrowserError.GetBoolean(),
                                 verified.RootElement.TryGetProperty("message",out var settingsBrowserMessage)
                                     ? settingsBrowserMessage.GetString() : "Actual HyperDrive browser verification failed.");
-                            Assert.True(verified.RootElement.GetProperty("hyperDriveSettingsBrowserVerified").GetBoolean());
-                            Assert.Equal(1,verified.RootElement.GetProperty("saveRequests").GetInt32());
+                            Assert.True(verified.RootElement.GetProperty(holonStoragePolicyBrowser
+                                ? "holonStoragePolicyBrowserVerified" : "hyperDriveSettingsBrowserVerified").GetBoolean());
+                            Assert.Equal(holonStoragePolicyBrowser?4:1,verified.RootElement.GetProperty("saveRequests").GetInt32());
                             var settingsAccount=await store.LoadAvatarAsync(id);Assert.False(settingsAccount.IsError,settingsAccount.Message);
                             Assert.Equal(settingsPassword,settingsAccount.Result.Password);Assert.Equal("private",StoredPrivacy(settingsAccount.Result));
+                            if(holonStoragePolicyBrowser)
+                            {
+                                var finalPolicy=SettingsManager.ReadHolonStoragePolicy(settingsAccount.Result,policyAppId);
+                                Assert.False(finalPolicy.IsError,finalPolicy.Message);Assert.NotNull(finalPolicy.Result);
+                                Assert.Null(finalPolicy.Result.AvatarPolicy);Assert.Null(finalPolicy.Result.ApplicationPolicy);
+                                Assert.Null(finalPolicy.Result.EffectivePolicy);
+                            }
+                            else
+                            {
                             var overrides=NextGenSoftware.OASIS.API.Core.Configuration.AvatarHyperDriveSettings.FromAvatar(settingsAccount.Result);
                             Assert.False(overrides.IsError,overrides.Message);Assert.NotNull(overrides.Result);
                             Assert.True(overrides.Result.AutoFailoverEnabled);
                             Assert.False(overrides.Result.AutoReplicationEnabled);Assert.False(overrides.Result.AutoLoadBalancingEnabled);
                             Assert.Equal(new[]{provider},overrides.Result.FailoverProviders);
+                            }
                             var after=await Read(store,id);
                             Assert.Equal(before.FirstName,after.FirstName);Assert.Equal(before.LastName,after.LastName);
                             Assert.Equal(before.Username,after.Username);Assert.Equal(before.Email,after.Email);
                             Assert.Equal(42,(await store.LoadAvatarDetailAsync(id)).Result.XP);
-                            Console.WriteLine("HyperDrive settings browser native persistence verified: "+provider+
+                            Console.WriteLine((holonStoragePolicyBrowser?"Holon storage policy browser native lifecycle verified: ":
+                                "HyperDrive settings browser native persistence verified: ")+provider+
                                 "; actual SDK/controller/save/confirmation/reopen, protected profile/password/privacy/XP retained.");
                             continue;
                         }

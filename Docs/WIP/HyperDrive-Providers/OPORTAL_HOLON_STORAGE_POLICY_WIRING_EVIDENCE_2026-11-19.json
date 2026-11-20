@@ -1,8 +1,12 @@
 {
-  "status": "missing_route_implemented_source_review_only_pending_compile_and_native_browser",
+  "status": "new_actual_storage_tab_browser_case_prepared_compile_and_runtime_pending",
   "finding": "Frozen portal4ccf holon-storage-policy.js calls api/settings/holon-storage-policy, but this worktree had no matching controller route",
   "route": "api/settings/holon-storage-policy",
-  "verbs": ["GET", "PUT", "DELETE"],
+  "verbs": [
+    "GET",
+    "PUT",
+    "DELETE"
+  ],
   "controller": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/HolonStoragePolicyController.cs",
   "core": "33712edf309b42635ca756930907db37188d76e9",
   "existingCoreOwner": "SettingsManager.HolonStoragePolicies.cs; Get/Save/ResetHolonStoragePolicyAsync",
@@ -23,7 +27,7 @@
     "lineReferencesRefreshed": true,
     "sourceGuard": "passed"
   },
-  "next": "Add one NEW actual storage-tab browser/API/native case across Mongo/SQLite/Neo covering avatar/app save, inheritance, reset, invalid input and protected fields; do not repeat accepted routing popup",
+  "next": "Compile actual API and execute ONLY this NEW browser Fact/three native handoffs under existing bounded CI lease/runtime/fixture cleanup. Retain accepted routing popup and native round-trip cohorts.",
   "compiled": false,
   "runtimeAccepted": false,
   "hostedAccepted": false,
@@ -31,5 +35,31 @@
   "sharedServicesTouched": false,
   "dnaChanges": false,
   "deploymentPerformed": false,
-  "localGeneratedOutputs": 0
+  "localGeneratedOutputs": 0,
+  "qualificationPlan": {
+    "test": "HolonStoragePolicyBrowserUsesActualSdkAndNativeProviders",
+    "resultsExpected": 1,
+    "nativeBrowserHandoffsExpected": 3,
+    "providers": [
+      "MongoDBOASIS",
+      "SQLLiteDBOASIS",
+      "Neo4jOASIS"
+    ],
+    "portal": "4ccf867befa9abb543bb8f4587f07e5914ac6c73",
+    "sdk": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
+    "perProvider": {
+      "PUT": 2,
+      "DELETE": 2,
+      "GET": 8
+    },
+    "scopeSequence": "avatar Hybrid -> app inherits -> app Virtual -> reset app inherits -> reset avatar -> close/reopen empty",
+    "invalidSchemaAndUnsupportedCache": "two real HTTP refusals once before first browser flow",
+    "nativeFinal": "avatar/app/effective policy absent after explicit resets; names identity password privacy XP preserved",
+    "productionSerializerOptions": "null-ignore, reference-loop and string enum settings applied for new mode",
+    "oldAcceptedCohortsSelected": 0,
+    "businessResponsesReplaced": false,
+    "nodeSyntax": "passed",
+    "routeGuard": "796/685 passed",
+    "runtimeAccepted": false
+  }
 }

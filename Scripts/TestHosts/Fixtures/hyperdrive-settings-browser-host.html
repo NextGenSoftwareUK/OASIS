@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="/assets/css/oasis-portal-extra2.css">
 </head>
 <body>
-  <button id="fixture-open-hyperdrive" type="button" disabled onclick="window.openHyperdriveModal('settings')">Open routing settings</button>
+  <button id="fixture-open-hyperdrive" type="button" disabled onclick="window.openHyperdriveModal(new URLSearchParams(location.search).get('panel')==='storage'?'storage':'settings')">Open HyperDrive settings</button>
   <div class="modal js-modal"></div>
   <script src="/assets/js/oasis-web4-sdk.js"></script>
   <script>
