@@ -6,11 +6,13 @@ on:
     paths:
       - 'ONODE/**'
       - 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/**'
+      - '.github/workflows/onet-onode-tests.yml'
   pull_request:
     branches: [ master ]
     paths:
       - 'ONODE/**'
       - 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/**'
+      - '.github/workflows/onet-onode-tests.yml'
 
 env:
   DOTNET_VERSION: '10.0.x'
