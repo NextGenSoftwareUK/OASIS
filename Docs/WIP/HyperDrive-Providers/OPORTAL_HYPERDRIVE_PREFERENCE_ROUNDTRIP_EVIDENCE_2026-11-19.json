@@ -77,7 +77,7 @@
     "core": "db589d220112400ca03439083a0c5166e66eb6fb",
     "portal": "4ccf867befa9abb543bb8f4587f07e5914ac6c73",
     "sdk": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
-    "status": "confirmed_in_progress",
+    "status": "completed_API_and_native_project_compile_success_3native_passed_1browser_asset_failure",
     "expectedTRXResults": 4,
     "expectedNativeBrowserHandoffs": 3,
     "unchangedAcceptedCohortsSelected": 0
