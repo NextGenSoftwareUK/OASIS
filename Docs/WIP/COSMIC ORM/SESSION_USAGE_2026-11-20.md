@@ -96,3 +96,7 @@ Run44787039375 verified real MongoDB/SQLite/Neo4j standard stateless LINQ rows, 
 ## Explicit existing-root Update (native verification pending)
 
 Update(entity) queues detached values edited before registration or an explicit tracked mutable-root update without accepting them as a database baseline. SaveChanges requires an existing accepted/native/supplied provider revision for each explicit update; null create-only is invalid. Missing revision rejects the whole pending batch before writes. Actual owner permissions and optimistic concurrency apply. Supply complete root values; partial patches and disconnected graph merge retain their separate contract. Reload/Detach/Clear/Dispose cancel intent; read-only-to-mutable baseline transitions cancel prior explicit update intent. Failed saves retain intent for deliberate resolution. Source892322 has a separate native3 cohort.
+
+## Existing legacy update revisions
+
+Explicit Update preserves existing conditional-write revision semantics: a present Guid.Empty token is a valid legacy observation; null is create-only and cannot authorize an existing update. Native revision and owner checks still decide the write. The new focused empty-token native assertion is pending qualification.

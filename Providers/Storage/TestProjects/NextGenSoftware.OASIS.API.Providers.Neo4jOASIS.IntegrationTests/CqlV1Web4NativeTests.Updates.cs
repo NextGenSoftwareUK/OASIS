@@ -57,7 +57,15 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.AreNotEqual(beforeForced,CosmicConcurrency.GetProviderRevisionId(dto,native.QueryProviderType));
 
         stale.Name="stale must not win";Assert.IsFalse(staleContext.Update(stale).IsError);
-        var staleWrite=await Timed("stale-update-refused",()=>staleContext.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid())));
+        var staleWrite=await Timed("stale-update-refused",async ()=>{
+            // An explicit empty GUID is an existing legacy token, not create-only.
+            // Against this newer token it must reach native concurrency refusal.
+            var legacyToken=await staleContext.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid(),
+                new Dictionary<Guid,Guid?> {{stale.Id,Guid.Empty}}));
+            Assert.IsTrue(legacyToken.IsError);Assert.IsFalse(legacyToken.IsSaved);
+            Assert.AreEqual(CosmicConcurrencyException.Code,legacyToken.ErrorCode);
+            return await staleContext.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+        });
         Assert.IsTrue(staleWrite.IsError);Assert.IsFalse(staleWrite.IsSaved);
         Assert.AreEqual(CosmicEntityState.Modified,staleContext.State(stale).Result);
         var forbidden=HolonChangeTracking.Clone(dto);forbidden.Name="foreign must not win";
