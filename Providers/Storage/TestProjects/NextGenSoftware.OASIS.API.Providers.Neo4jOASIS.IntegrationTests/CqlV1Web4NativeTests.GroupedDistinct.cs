@@ -30,7 +30,7 @@ public sealed partial class CqlV1Web4NativeTests
         => RunGroupedDistinctNativeFixture(providerName, false, requiredDomains: true);
 
     private async Task RunGroupedDistinctNativeFixture(string providerName, bool primitiveDomains, bool mixedHttp = false,
-        bool requiredDomains = false, bool singlePerformance = false, bool sharedInputs = false, bool guidDomains = false, bool mixedGuidHttp = false, bool guidRowsHttp = false, bool predicateCrossingHttp = false)
+        bool requiredDomains = false, bool singlePerformance = false, bool sharedInputs = false, bool guidDomains = false, bool mixedGuidHttp = false, bool guidRowsHttp = false, bool predicateCrossingHttp = false, bool guidFilterHttp = false)
     {
         Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -106,10 +106,10 @@ public sealed partial class CqlV1Web4NativeTests
                     queryTimings: queryElapsed, predicateCrossing: true);
                 Assert.AreEqual(4, ids.Count);
             }
-            else if (mixedGuidHttp || guidRowsHttp)
+            else if (mixedGuidHttp || guidRowsHttp || guidFilterHttp)
             {
                 checks = await VerifyGroupedDistinctMixedNativeHttpProvider(provider, work, database, mongo, ids,
-                    guidCounts: true, queryTimings: queryElapsed, guidRows: guidRowsHttp);
+                    guidCounts: true, queryTimings: queryElapsed, guidRows: guidRowsHttp || guidFilterHttp, guidFilters: guidFilterHttp);
                 Assert.AreEqual(5, ids.Count, "Four stored writes and one virtual-only cleanup identity.");
             }
             else if (guidDomains)
@@ -299,8 +299,16 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 var root = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT")!);
                 var report = Path.Combine(root, "TestResults/Neo4jCurrent/" + providerName
-                    + (predicateCrossingHttp ? "-predicate-crossing-http-native.json" : guidRowsHttp ? "-guid-rows-http-native.json" : mixedGuidHttp ? "-grouped-guid-http-native.json" : guidDomains ? "-grouped-guid-native.json" : sharedInputs ? "-grouped-shared-inputs.json" : singlePerformance ? "-grouped-distinct-single-profile.json" : requiredDomains ? "-grouped-distinct-required-native.json" : mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
-                if (predicateCrossingHttp)
+                    + (guidFilterHttp ? "-guid-filter-http-native.json" : predicateCrossingHttp ? "-predicate-crossing-http-native.json" : guidRowsHttp ? "-guid-rows-http-native.json" : mixedGuidHttp ? "-grouped-guid-http-native.json" : guidDomains ? "-grouped-guid-native.json" : sharedInputs ? "-grouped-shared-inputs.json" : singlePerformance ? "-grouped-distinct-single-profile.json" : requiredDomains ? "-grouped-distinct-required-native.json" : mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
+                if (guidFilterHttp)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        successfulHolonWrites = 4, ownedCleanupIds = ids.Count, rawNativeRecords = 2,
+                        successfulHttpQueries = 4, foreignOwnerRequests = 1, queryElapsedMilliseconds = queryElapsed,
+                        nativeProviderVerified = true, realHttpVerified = true, typedGuidFiltersVerified = true,
+                        equalityAndInequalityVerified = true, staleCacheCrossingVerified = true,
+                        nativeSourceUnchangedVerified = true, storedCacheUnchangedVerified = true,
+                        usageSettledVerified = true, exactCleanupVerified = true }));
+                else if (predicateCrossingHttp)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
                         successfulHolonWrites = 4, ownedCleanupIds = ids.Count, rawNativeRecords = 2,
                         successfulHttpQueries = 2, foreignOwnerRequests = 1, queryElapsedMilliseconds = queryElapsed,
