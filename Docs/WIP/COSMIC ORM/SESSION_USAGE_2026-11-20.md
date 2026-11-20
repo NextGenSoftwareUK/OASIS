@@ -122,3 +122,7 @@ GetEntries() returns immutable State/IsReadOnly snapshots with references to the
 SetDefaultReadOnly(true) makes only subsequently materialized tracked roots read-only, through the shared CQL/LINQ/Find publication owner. Existing tracked roots retain their current mode; explicit Add/Attach remain mutable. SetReadOnly still changes an individual existing root. Clear removes entries but retains this session default; no-tracking reads do not register roots. GetDefaultReadOnly reports the setting. Busy/disposed guards apply.
 
 This is pending native qualification44837204603; it is excluded from the frozen Core861 Development release candidate. It does not grant permissions or assert full session/graph parity.
+
+## Session inspection native acceptance
+
+Run44837204603 passed the new inspection/default read-only journey on all three native stores. Exact proof is SESSION_INSPECTION_NATIVE_ACCEPTANCE_2026-11-20.json. Earlier source-only notes are historical; runtime delivery remains separate. No accepted session cohort was repeated.

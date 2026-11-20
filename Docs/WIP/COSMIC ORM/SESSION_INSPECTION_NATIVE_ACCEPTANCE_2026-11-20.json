@@ -1,0 +1,20 @@
+{
+  "run": 44837204603,
+  "job": 136636553139,
+  "source": "60582e70f0a04da2cf12d15b22baa768963d9b27",
+  "core": "01d10ae033608064e7f6b34fa434e4166073de27",
+  "artifact": 14678588732,
+  "artifactBytes": 3013,
+  "sha256": "219bb456c6d3f69e4d41828e3197cc2e26d161f801a093499cfdbfe43d7a7c95",
+  "passed": 3,
+  "failed": 0,
+  "skipped": 0,
+  "perProvider": {
+    "ownedIds": 2,
+    "logicalWrites": 3,
+    "timings": 7,
+    "verifiedFlags": 9
+  },
+  "localArtifactFilesWritten": 0,
+  "liveAcceptance": false
+}
