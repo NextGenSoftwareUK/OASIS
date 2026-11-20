@@ -60,6 +60,7 @@ async function verify({baseUrl, token, avatarId, olderRecipientId, sessionId, pr
     assert.equal(await page.locator('#msg-stat-chats').innerText(), '1');
     await page.locator('[data-chat-resume="' + sessionId + '"]').click();
     await page.waitForFunction(() => document.querySelectorAll('#msg-chat-messages .msg-chat-bubble').length === 50);
+    assert.equal(await page.locator('#msg-no-session').isVisible(), false);
     assert.doesNotMatch(await page.locator('#msg-chat-messages').innerText(), /Owned chat message 0\b/);
     await page.locator('#msg-chat-older-btn').click();
     await page.waitForFunction(() => document.querySelectorAll('#msg-chat-messages .msg-chat-bubble').length === 51);
@@ -75,6 +76,7 @@ async function verify({baseUrl, token, avatarId, olderRecipientId, sessionId, pr
     assert.equal(await page.locator('#msg-chat-messages .msg-chat-bubble').count(), 51);
     assert.match(await page.locator('#msg-chat-messages').innerText(), /Owned chat message 0\b/);
     await page.locator('#msg-chat-choose-btn').click();
+    assert.equal(await page.locator('#msg-chat-session-wrap').isVisible(), false);
     await page.locator('[data-chat-resume="' + sessionId + '"]').waitFor({state: 'visible'});
     await page.locator('[data-chat-resume="' + sessionId + '"]').click();
     await page.waitForFunction(() => document.querySelectorAll('#msg-chat-messages .msg-chat-bubble').length === 50);

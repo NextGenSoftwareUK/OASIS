@@ -1,21 +1,23 @@
 {
-  "status": "source_wired_read_only_main_flow_case_prepared",
+  "status": "real_visibility_defect_corrected_read_only_case_pending",
   "date": "2026-11-20",
-  "portal": "77e8e5b025b7eacc72564459c223a1c0ded4ae81",
+  "portal": "7b1c100a613bd3a06976b1816d25be7bda4673ac",
   "core": "5729b1a30b8cc3396d12543d1acb6b501da5f3b3",
   "exactPortalBlobs": {
     "assets/js/messaging-modal.js": "e471c4b1d7fac723ae5548b2b7eb1da07828f90f",
     "assets/components/modals/messaging.html": "d029f5578d5e9eb782392fec17d9cc19782c370d",
     "assets/js/portal-components.js": "8677002ab8d0232907078109171a84a4c5340045",
     "assets/js/oasis-web4-sdk.js": "850ee98adb5663b56644edddc842175dfb5f939c",
-    "portal.html": "d6cc02537744f58ffdac9a398ede4d94d57cee37"
+    "portal.html": "d8be8d7242e15ee262f2a6926e4ce73fb92ffc8b",
+    "assets/css/style.css": "497ac6cf5b4e27919e52df6c34de9ddff6f52909"
   },
   "changes": [
     "Explicit bounded pagination for conversation overview and notification tab; unread counts label loaded rows",
     "New authenticated active-sessions API delegates to existing real ChatManager",
     "Persisted active-session chooser allows resumption after full page reload and choosing another chat without ending one",
     "Older chat history pages merge with latest-page reads; selected-chat polling preserves loaded older records",
-    "Script/component/fragment cache versions updated together"
+    "Script/component/fragment cache versions updated together",
+    "CSS owners honor hidden on shared buttons and selected-chat chooser; stylesheet cache version updated"
   ],
   "test": "MessagingHistoryAndSessionResumeUseActualSdkHttpAndOwnedMongo",
   "expectedFacts": 1,
@@ -33,9 +35,11 @@
     "fourRemoteSourceCacheFilesExact": true,
     "routeManifestActions": 798,
     "routeManifestExternalOrProviderActions": 687,
-    "apiCompiled": false,
+    "apiCompiled": true,
     "runtimeAccepted": false,
-    "previousAcceptedCaseRerun": false
+    "previousAcceptedCaseRerun": false,
+    "apiCompiledSource": "2fc6f9df9dc0c0298fadfce1536d9274453339a5 (shipping API unchanged by CSS correction)",
+    "correctedStylesAndCacheExact": true
   },
   "limits": [
     "Not full production Startup/authentication/usage/billing/hosted/all-site acceptance",
@@ -50,12 +54,22 @@
     "ownedTemporarySyntaxFile": "35KB script exceeded Windows command-length limit; checked with existing Node from exact owned path, removed, absence verified. Initial slash normalization guard corrected before running/deleting.",
     "runtimeCleanup": "Pending actual CI execution"
   },
-  "pendingRun": {
-    "id": 44729296217,
-    "job": 136264633110,
-    "source": "2fc6f9df9dc0c0298fadfce1536d9274453339a5",
-    "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44729296217",
-    "status": "in_progress",
-    "selection": "Only new read-only pagination/session-resume Fact; accepted cases excluded"
-  }
+  "attempts": [
+    {
+      "id": 44729296217,
+      "job": 136264633110,
+      "source": "2fc6f9df9dc0c0298fadfce1536d9274453339a5",
+      "portal": "77e8e5b025b7eacc72564459c223a1c0ded4ae81",
+      "conclusion": "failure",
+      "apiErrors": 0,
+      "apiBuildSeconds": 411.07,
+      "facts": 1,
+      "durationSeconds": 26,
+      "cause": "After successfully loading52 real messages, Load older remained visually displayed despite hidden=true: shared .button display:inline-flex overrode browser hidden styling. Selector corrected in CSS owner; same invariant fixed for .msg-no-session display:flex. No assertions weakened.",
+      "artifact": 14626366391,
+      "bytes": 3168,
+      "sha256": "ba8221305ce143716eee8cf2ce1c2d75594cec48287a2fb3c43e3c514805a538",
+      "cleanup": "Owned browser/runtime/cache/control and Mongo fixture absence verified; local artifact filesWritten0"
+    }
+  ]
 }
