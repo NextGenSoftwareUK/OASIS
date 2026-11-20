@@ -1,5 +1,5 @@
 {
-  "status": "real_end_session_failure_root_cause_corrected_runtime_pending",
+  "status": "main_actions_verified_owned_native_backend",
   "date": "2026-11-20",
   "portal": "f98fa9a305f235747ca495a8240d7cd421b061b3",
   "exactPortalBlobs": {
@@ -31,8 +31,8 @@
     "remoteSourceAndCacheExact": true,
     "routeManifestActions": 797,
     "routeManifestExternalOrProviderActions": 686,
-    "apiCompiled": false,
-    "runtimeAccepted": false
+    "apiCompiled": true,
+    "runtimeAccepted": true
   },
   "limits": [
     "Not full production Startup/authentication/usage/billing/hosted/all-site acceptance",
@@ -44,7 +44,10 @@
     "newEnvironments": 0,
     "newWorktrees": 0,
     "generatedLocalResults": 0,
-    "runtimeCleanup": "Pending actual CI execution"
+    "runtimeCleanup": "Owned browser/runtime/cache/control cleanup verified; native Mongo fixture absence and Neo stop succeeded",
+    "nativeDatabaseAbsenceVerified": true,
+    "applicationManagersRestored": true,
+    "localArtifactFilesWritten": 0
   },
   "core": "5729b1a30b8cc3396d12543d1acb6b501da5f3b3",
   "attempts": [
@@ -65,12 +68,47 @@
       "cleanup": "Owned browser/runtime/cache/control and Mongo container absence verified; no laptop files written."
     }
   ],
-  "pendingRun": {
+  "source": "a4d743f13393046bbe5fbb59a737b68e31183ed0",
+  "run": {
     "id": 44724107783,
     "job": 136247043366,
     "source": "a4d743f13393046bbe5fbb59a737b68e31183ed0",
     "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44724107783",
-    "status": "in_progress",
-    "selection": "Only same failed MessagingPopupUsesActualSdkHttpAndOwnedMongo; no accepted cohort rerun"
-  }
+    "status": "completed",
+    "selection": "Only same failed MessagingPopupUsesActualSdkHttpAndOwnedMongo; no accepted cohort rerun",
+    "conclusion": "success",
+    "facts": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "durationSeconds": 7.9514229,
+    "apiBuildSeconds": 410.11,
+    "apiBuildErrors": 0
+  },
+  "browserResult": {
+    "messagingPopupVerified": true,
+    "providerType": "MongoDBOASIS",
+    "directMessages": 1,
+    "readWrites": 2,
+    "chatStarts": 1,
+    "chatMessages": 1,
+    "chatEnds": 1
+  },
+  "artifact": {
+    "id": 14623672353,
+    "bytes": 4052,
+    "sha256": "5a932a495850a2e3cc662d1cf2b86b2d67af1d0b09b6799224d62268f1c95a3e",
+    "entries": [
+      "profile-sdk-native.trx"
+    ],
+    "testId": "392f8679-2df2-b1b5-8fe9-293ababf0321",
+    "executionId": "10b1e24f-dde6-4adc-9c10-53a50faa4c9d",
+    "exactIdentityCountersAndNativeProofMarkersVerified": true,
+    "inspection": "RAM only; streams disposed; local filesWritten0"
+  },
+  "remainingMainFlowGaps": [
+    "Conversation overview currently covers first50 messages; complete directory pagination remains open",
+    "Messaging notifications tab currently displays first20; bell panel pagination is separately accepted",
+    "Current live-chat session is in memory; resuming existing active sessions after full-page reload remains open"
+  ]
 }
