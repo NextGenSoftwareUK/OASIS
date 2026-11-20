@@ -1,7 +1,11 @@
 {
-  "status": "three_new_rows_failed_corrections_prepared_not_accepted",
+  "status": "shipping_graph_compiled_three_rows_fail_at_list_observer_corrected_pending",
   "test": "HyperDrivePreferencesNativeRoundTripUsesScopedProviderAndPreservesCategories",
-  "providers": ["MongoDBOASIS", "SQLLiteDBOASIS", "Neo4jOASIS"],
+  "providers": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
   "firstRun": {
     "run": 44661680570,
     "job": 136041161540,
@@ -35,12 +39,35 @@
     "routingRead": "Decode native dictionary/JObject/JsonElement metadata through canonical contract, report malformed metadata as typed invalid routing error",
     "effectivePolicy": "Use constructor-supplied provider manager instead of process singleton",
     "test": "Assert declared avatarOverrides and effective list, preserve node-default response contract; require independent ADO privacy scalar check for SQLite",
-    "compiled": false,
+    "compiled": true,
     "runtimeAccepted": false
   },
-  "next": "Compile changed API graph and run ONLY the three failed new round-trip rows; retain all previously accepted cohorts",
+  "next": "Compile actual API artifact needed by NEW browser host and run ONLY three failed round-trip rows plus one NEW actual browser case/three native handoffs. Product graph unchanged since5264; old accepted cohorts excluded.",
   "sharedServicesTouched": false,
   "hostedAccepted": false,
   "fullPortalAccepted": false,
-  "localGeneratedOutputs": 0
+  "localGeneratedOutputs": 0,
+  "secondRun": {
+    "run": 44662677763,
+    "job": 136044421789,
+    "source": "5264f18469c1ef2f7db9238dc4072c098c964080",
+    "core": "2a594676a0ae6dbe90c9099af0ba972bdf61add0",
+    "apiBuild": "success_zero_errors",
+    "results": 3,
+    "passed": 0,
+    "failed": 3,
+    "skipped": 0,
+    "failure": "All rows reached effective-list assertion; CaptureRuntimeToken emits typed list envelope, test indexed it as plain JArray",
+    "correction": "Assert actual Dictionary<string,object> and IEnumerable<string> result contract directly; no shipping response/parser change",
+    "artifact": {
+      "id": 14595954732,
+      "bytes": 2294,
+      "sha256": "7721fb1bc0cb4f0182d0041f60bd69614081c62efe05bbd58bb6f32d07aeeb17",
+      "exactDefinitionsResultsIDs": true,
+      "routingCleanupMarkers": 3,
+      "fixtureStops": "both success",
+      "streamsDisposed": true,
+      "filesWritten": 0
+    }
+  }
 }

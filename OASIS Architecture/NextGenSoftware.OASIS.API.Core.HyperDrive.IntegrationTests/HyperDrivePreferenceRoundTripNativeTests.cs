@@ -68,10 +68,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             Assert.False(captured.Result.AutoLoadBalancingEnabled);
             Assert.Equal(new[]{owner.ProviderType.Value},captured.Result.FailoverProviders);
             var visible=await settings.GetHyperDriveSettingsAsync(id);Assert.False(visible.IsError,visible.Message);
-            var visibleJson=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.CaptureRuntimeToken(visible.Result);
-            Assert.Equal(providerName,(string?)visibleJson["avatarOverrides"]?[AvatarHyperDriveSettings.AutoFailoverProviders]);
-            Assert.Null(visibleJson["effective"]?["error"]);
-            Assert.Equal(providerName,(string?)visibleJson["effective"]?[AvatarHyperDriveSettings.AutoFailoverProviders]?[0]);
+            var declared=Assert.IsType<Dictionary<string,object>>(visible.Result["avatarOverrides"]);
+            Assert.Equal(providerName,Assert.IsType<string>(declared[AvatarHyperDriveSettings.AutoFailoverProviders]));
+            var effective=Assert.IsType<Dictionary<string,object>>(visible.Result["effective"]);
+            Assert.False(effective.ContainsKey("error"));
+            Assert.Equal(new[]{providerName},Assert.IsAssignableFrom<IEnumerable<string>>(
+                effective[AvatarHyperDriveSettings.AutoFailoverProviders]));
             var clear=await settings.UpdateHyperDriveSettingsAsync(id,new Dictionary<string,object>
                 {{AvatarHyperDriveSettings.AutoFailoverProviders,"DEFAULT"}});
             Assert.False(clear.IsError,clear.Message);Assert.True(clear.IsSaved);
