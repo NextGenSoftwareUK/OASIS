@@ -1,0 +1,52 @@
+{
+  "status": "source_wired_runtime_pending",
+  "date": "2026-11-20",
+  "portalSource": "4ffb630317e2565dfb03760e624fb326bb71b030",
+  "changes": [
+    "Remove signed-out and failed-read demo notifications",
+    "Use initialized oasisClient tokenStore and shipping messaging.getNotifications",
+    "Use shipping SDK http.post with JSON array matching existing mark-notifications-read controller contract",
+    "Mark local records read only after isError false and result true; explicit errors preserve unacknowledged state",
+    "Mark all scans actual notification pages until final short page; duplicate IDs refuse inconsistent pagination",
+    "Load more and explicit refresh; no background polling",
+    "Delegated handlers cover asynchronously inserted controls; pending early bell click opens once real fragment mounts"
+  ],
+  "contracts": {
+    "read": "GET api/messaging/notifications?limit=50&offset=N",
+    "write": "POST api/messaging/mark-notifications-read",
+    "body": "JSON array of notification IDs",
+    "actor": "Existing REST controller uses authenticated Avatar.Id; no client actor query/body override",
+    "fields": [
+      "id",
+      "type",
+      "title",
+      "content",
+      "createdAt",
+      "isRead"
+    ],
+    "sdkNote": "Generated operation helper builds object bodies. Existing shipping SDK HTTP client used for required array body, matching messaging popup path."
+  },
+  "validation": {
+    "nodeSyntax": true,
+    "remoteBytesMatch": 4,
+    "runtimeAccepted": false,
+    "sharedBackendOperations": 0,
+    "acceptedTestsRerun": 0,
+    "newRuntimeTests": 0
+  },
+  "scopeLimits": [
+    "No real browser/native notification flow accepted yet",
+    "No full Startup or hosted acceptance",
+    "No full OPORTAL completion",
+    "Settings three security stubs and four named game links remain open"
+  ],
+  "cleanup": {
+    "downloads": 0,
+    "environments": 0,
+    "worktrees": 0,
+    "localBuilds": 0,
+    "localGeneratedResults": 0,
+    "syntaxInput": "stdin only",
+    "sourceEvidenceRetained": true
+  }
+}
