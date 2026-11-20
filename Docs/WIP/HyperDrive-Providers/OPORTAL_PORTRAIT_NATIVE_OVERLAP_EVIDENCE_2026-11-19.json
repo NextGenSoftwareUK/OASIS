@@ -177,12 +177,14 @@
   "followUp": {
     "fix": "Invoke single finishPortraitUpload owner on finally and synchronous FileReader failure",
     "routingMismatchStillOpenOutsideIsolatedProviderAcceptance": true,
-    "status": "prepared_not_dispatched",
+    "status": "queued_not_accepted",
     "fixtureScope": "Two new native-acceptance cases disable failover/load balancing/replication so named native backend must answer or fail; old accepted cases unchanged",
     "selectedCases": 2,
     "portalBundle": "4ccf867befa9abb543bb8f4587f07e5914ac6c73",
     "accepted": false,
     "portalSource": "be7a3f5c9ab28dfa5abeb449d7ea01dcdf0f333f",
-    "bundleRun": 44647446920
+    "bundleRun": 44647446920,
+    "run": 44647749986,
+    "source": "8fa04636c4b86292f7e4d514dda68f3958f1c9f2"
   }
 }
