@@ -31,6 +31,10 @@ Links: [full handoff](../COSMIC%20ORM/CLOUD_HANDOFF_2026-11-18.md), [official Cl
 
 ### WEB4 COSMIC demo preview access · 13 November
 
+20 November connected-access evidence: read-only Vercel list_projects for the existing oasis-team scope returned403 forbidden/not authorized. This agrees with the existing team-access blocker; no additional sign-in request, consent link, account change, production publication or competing owner action was made. Existing owner decision/access step remains pending. Native ORM/API work and isolated CI continue independently.
+
+
+
 20 November evidence update (same open action; no new sign-in request). Latest existing-branch Web4Site a85d93b6 preview is built successfully: https://web4-site-kpgpby09s-oasis-team.vercel.app/web4-sandbox.html (GitHub deployment7935475840). The public web4.oasisomniverse.one/web4-sandbox.html static page returned200 but lacks the newer Ask Your Data tab and virtual-mapping controls. Engineering's11 new actual-handler acknowledgement/source-guard tests passed; signed-in hosted acceptance remains open. Existing owner step remains authorize the existing OASIS Vercel team connection or arrange the agreed Development sandbox website publication using the already recorded hostname decision. Do not disable deployment protection or expose secrets. Permanent Free WEB6 route/catalogue action remains separate below; no new Bronze grant requested.
 
 
