@@ -64,5 +64,13 @@
       "sha256": "1c1178211d036850bf47fbff4fe18f23cc5e8dc6290ebacda8a7de442a5cf594",
       "cleanup": "Owned browser/runtime/cache/control and Mongo container absence verified; no laptop files written."
     }
-  ]
+  ],
+  "pendingRun": {
+    "id": 44724107783,
+    "job": 136247043366,
+    "source": "a4d743f13393046bbe5fbb59a737b68e31183ed0",
+    "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44724107783",
+    "status": "in_progress",
+    "selection": "Only same failed MessagingPopupUsesActualSdkHttpAndOwnedMongo; no accepted cohort rerun"
+  }
 }
