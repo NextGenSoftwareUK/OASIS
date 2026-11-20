@@ -1,5 +1,5 @@
 {
-  "status": "source_wired_native_http_qualification_prepared",
+  "status": "api_native_compiled_snapshot_comparator_corrected_retry_prepared",
   "core": "11ebf588e88c3f7ae03fdd9a71ec1a753afd68c5",
   "invariant": "Subscription plan, activity, quotas and paid preference state come from the canonical billing/usage authority; avatar or Holon settings never grant entitlement",
   "implementation": [
@@ -19,7 +19,7 @@
   ],
   "manifest": {
     "routes": 796,
-    "fullSourceGuards": "pending CI on actual pinned Core",
+    "fullSourceGuards": "passed on actual pinned Core in run44683316436",
     "providerBacked": 754,
     "reviewedAuthorityDelegations": 3,
     "remoteCoreBytesVerified": true,
@@ -43,7 +43,48 @@
     "oldAcceptedTestsSelected": 0,
     "test": "SubscriptionSettingsHttpUsesCanonicalBillingAndPreservesThreeNativeAccounts",
     "expectedFacts": 1,
-    "compiled": false
+    "compiled": true,
+    "active": {
+      "run": 44683316436,
+      "job": 136111627615,
+      "source": "2ddbed8b357bb51d562448d14829b38e76f3b9f3",
+      "core": "11ebf588e88c3f7ae03fdd9a71ec1a753afd68c5",
+      "status": "completed_failure",
+      "activeStep": null,
+      "browserDownloads": false,
+      "nativeProfileSdk": false
+    },
+    "firstQualification": {
+      "run": 44683316436,
+      "job": 136111627615,
+      "source": "2ddbed8b357bb51d562448d14829b38e76f3b9f3",
+      "core": "11ebf588e88c3f7ae03fdd9a71ec1a753afd68c5",
+      "apiBuild": "success_zero_errors",
+      "nativeProjectCompiled": true,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "durationSeconds": 7,
+      "nativeSuccessMarkers": 0,
+      "failure": "New test compared two AvatarProfileSnapshot instances with object equality; shipping snapshot/revision classes have no value-equality override",
+      "sourceProof": "Core Interfaces/Providers/IAvatarProfileStorageProvider.cs blob310d935e4ca5cb206d50ec099c8547220ea31645 at11ebf588",
+      "controlsReached": "First Mongo flow reached final profile-preservation check after actual absence/quotas/owner/consent/opt-out audit/version/expiry/aggregate-error assertions",
+      "fix": "Compare every snapshot scalar value and both revision stamps with existing SameRevisions; keep password/metadata assertions",
+      "shippingCodeChangedForRetry": false,
+      "deadlinesRelaxed": false,
+      "artifact": {
+        "bytes": 4053,
+        "MongoFixtureAbsence": true,
+        "streamsDisposed": true,
+        "exactSingleFailedResultVerified": true,
+        "sha256": "7b218e608f51ac24cfdbce3bf65f8116e8297689ca11b65e46d151f239c6294f",
+        "managerRestored": true,
+        "fixtureStops": "both success",
+        "filesWritten": 0,
+        "id": 14605209086,
+        "ownedBillingDatabaseAbsenceAndForeignRecordPreserved": true
+      }
+    }
   },
   "deploymentChanged": false,
   "sharedAtlasTouched": false,

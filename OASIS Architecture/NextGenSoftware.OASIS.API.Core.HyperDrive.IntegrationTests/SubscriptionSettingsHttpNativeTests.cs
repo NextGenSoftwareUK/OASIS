@@ -181,7 +181,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             Assert.Equal("SUBSCRIPTION_PLAN_UNKNOWN",invalid.RootElement.GetProperty("errorCode").GetString());
             Assert.DoesNotContain("using test data",invalid.RootElement.GetProperty("message").GetString());
         }
-        Assert.Equal(before,await Read(store,avatarId));
+        var currentProfile=await Read(store,avatarId);
+        SameRevisions(before,currentProfile);
+        Assert.Equal((before.AvatarId,before.Title,before.FirstName,before.LastName,before.Username,
+                before.Email,before.Address,before.PortraitSha256),
+            (currentProfile.AvatarId,currentProfile.Title,currentProfile.FirstName,currentProfile.LastName,currentProfile.Username,
+                currentProfile.Email,currentProfile.Address,currentProfile.PortraitSha256));
         var after=await store.LoadAvatarAsync(avatarId);
         Assert.False(after.IsError,after.Message);
         Assert.Equal(password,after.Result.Password);
