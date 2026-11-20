@@ -1,6 +1,6 @@
 {
   "date": "2026-11-20",
-  "status": "source wired; Inventory-only syntax/WEB5 compile and browser/native acceptance pending",
+  "status": "source wired; Inventory-only syntax and actual WEB5 compile accepted; browser/native acceptance pending",
   "portal": "676c28b0762d4a3ee4d9077f0ecd55738543b8a7",
   "starCommit": "d89302fb501b71d307c4c8fb4a5b3391994f32a4",
   "coreCommit": "a11239000270ef676613b1cf798542a2526783c7",
@@ -16,10 +16,21 @@
   "acceptedTestsRepeated": 0,
   "localGeneratedFiles": 0,
   "remaining": [
-    "Inventory-only syntax",
-    "Actual WEB5 compile",
     "Actual browser/SDK/native My Items and STARNET catalogue/detail interactions",
     "Full Startup/hosted and whole-site acceptance"
   ],
-  "summary": "2026-11-20 INVENTORY BREADTH SOURCE WIRED: Portal676c28b0762d4a3ee4d9077f0ecd55738543b8a7/STARd89302fb501b71d307c4c8fb4a5b3391994f32a4. My Items uses actual WEB4 api/avatar/inventory; STARNET catalogue uses actual WEB5 api/inventoryitems, both via captured current SDK bearer. Strict lists/identities, true empty states, real errors/warnings, current-session caches, selected-tab status ownership, Refresh/search and readonly full item details are wired. Actual image2DURI/object3DURI fields, quantity0 and numeric item type0 preserved; no guessed image aliases or message-string demo heuristics. Logout/close clear private rows/counts/details. InventoryItemsController removes four generated-data branches and one null-to-empty success; one non-action boot filter awaits shared initialization before21real actions, replacing repeated per-action waits. Changed GetAll null response is explicit failure. Five remote source/cache files verified before final selected-tab refinement; final exact-source verification and Competition-independent Inventory-only syntax/actual WEB5 build next. Parent STAR pin/manifest paired; Corea112 unchanged, manager931/766 and WEB4 route800/690 scopes unchanged. No accepted native/browser case selected; Inventory browser/SDK/real backend and full Startup/hosted/site acceptance remain OPEN. Clan evidence1bf65c pushed after its long-running existing push completed; no duplicate push or test run. No laptop builds/downloads/envs/DB/results/artifacts, extra worktree or shared Atlas/PIPER/DNA/worker/LB/deployment/protected-delivery action. Functional breadth remains first; goal active/incomplete."
+  "summary": "2026-11-20 INVENTORY COMPILE/SYNTAX ACCEPTED: 44802265050/job136517161955 SUCCESS on fd110632e3ec334414d9e86854063b5ed0eddcdb, Portal676c28b0762d4a3ee4d9077f0ecd55738543b8a7 and STARd89302fb501b71d307c4c8fb4a5b3391994f32a4. Actual WEB5 API compiled with 0 errors in 3m46.42s; Inventory-only syntax, manager931/766, WEB4 routes800/690, storage parity and exact dependency gates passed. Build-only selection skipped all behavioral/native/browser cases and artifact upload; no accepted test repeated. All post-job cleanup passed; logs inspected in RAM only, no local generated outputs/downloads/envs/DB/results/artifacts. Inventory browser/SDK/real-backend main flows and full Startup/hosted/site acceptance remain OPEN. Wallet breadth source audit identifies stale stored-token rejection, hidden API errors and missing zero-balance rendering; no Wallet changes or funded/on-chain calls yet. Existing shared-service/deployment/worker/DNA/protected-delivery holds preserved. Goal active/incomplete; functional breadth first.",
+  "validation": {
+    "run": 44802265050,
+    "job": 136517161955,
+    "parent": "fd110632e3ec334414d9e86854063b5ed0eddcdb",
+    "conclusion": "success",
+    "buildErrors": 0,
+    "buildElapsed": "00:03:46.42",
+    "inventorySyntax": "passed",
+    "behavioralCasesExecuted": 0,
+    "artifactUpload": "skipped",
+    "postJobCleanup": "passed",
+    "localFilesWritten": 0
+  }
 }
