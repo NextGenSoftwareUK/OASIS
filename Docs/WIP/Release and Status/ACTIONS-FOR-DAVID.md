@@ -31,6 +31,8 @@ Links: [full handoff](../COSMIC%20ORM/CLOUD_HANDOFF_2026-11-18.md), [official Cl
 
 ### WEB4 COSMIC demo preview access · 13 November
 
+20 November native-access update. Existing installed Vercel58.4 CLI credentials successfully inspected the exact oasis-team/web4-site project without a new login, consent, linking or protection/configuration change. The connected tool still403 is a separate path. Native protected-preview request returned no HTTP result; this is an engineering-owned client diagnostic, not a request for David to sign in again. Signed-in browser acceptance remains open, and the permanent Free model/catalogue action stays separate. No production website publication or access-control change was made.
+
 20 November connected-access evidence: read-only Vercel list_projects for the existing oasis-team scope returned403 forbidden/not authorized. This agrees with the existing team-access blocker; no additional sign-in request, consent link, account change, production publication or competing owner action was made. Existing owner decision/access step remains pending. Native ORM/API work and isolated CI continue independently.
 
 
