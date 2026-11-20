@@ -1,7 +1,7 @@
 {
   "date": "2026-11-20",
   "scope": "Holon Browser and published-version Diff main-flow source",
-  "status": "source-wired; actual WEB5 compile and browser/native acceptance pending",
+  "status": "source and actual WEB5 build passed; browser/native acceptance pending",
   "portalCommit": "95c24a366d7675eb33cd5ef1b17650453ea70386",
   "starCommit": "0bc4d64f6dc32070ea2c19e2ebd3d8d6e1cd2a94",
   "sourceChecks": {
@@ -11,7 +11,6 @@
     "realManagerCallsUnderBootFilter": 21
   },
   "remaining": [
-    "Actual WEB5 API compilation",
     "Browser/SDK with actual owned-native published versions and cold boot",
     "Hosted/full Startup and all-portal acceptance"
   ],
@@ -19,5 +18,18 @@
   "localGeneratedFiles": 0,
   "sharedServicesTouched": false,
   "dnaSettingsChanged": false,
-  "summary": "2026-11-20 HOLON BROWSER / PUBLISHED DIFF BREADTH SOURCE WIRED: Portal95c24a366d7675eb33cd5ef1b17650453ea70386 / STAR0bc4d64f6dc32070ea2c19e2ebd3d8d6e1cd2a94. HolonsController removes all four demo substitution branches and uses one non-action MVC filter to await existing shared boot before all21 real manager calls, including cold detail/history. Browser uses actual createdProviderType/instanceSavedOnProviderType, STARNET ID and published version; failed reads stay errors, invalid lists are not filtered into fake empty success. Browser detail opens Diff through the existing queued router with the actual STARNET DNA ID. Diff uses starnetdna.version/versionSequence rather than native integer revision, groups published versions and loads both actual selected versions from the real version endpoint before rendering; verifies returned domain ID/version and preserves current-session guards. No message-string demo heuristics or synthetic records. Seven remote source files exact; two-script existing Node syntax checks pass. STAR parent gitlink/manifest paired. Actual WEB5 compilation and browser/SDK/owned-native multi-version acceptance pending; no full popup/site/provider/HyperDrive completion claim. Accepted tests not selected again. Shared Atlas/PIPER/DNA/worker/LB/deploy/protected-delivery holds preserved; no local builds/downloads/envs/results/temp outputs."
+  "summary": "2026-11-20 HOLON BROWSER/DIFF SOURCE + ACTUAL WEB5 BUILD VERIFIED:44755467900/job136353934459 SUCCESS oncb6a5e086c66/STAR0bc4d64f6dc3/Portal95c24a366d76. Actual WEB5 API compiled0errors in3m35.20s; manager928/754 and WEB4 route798/688 source gates pass. All four HolonsController demo substitutions removed; one non-action filter awaits shared boot before21 real manager calls. Browser uses actual created/saved provider and STARNET identity; opens the existing queued Diff route. Diff uses published starnetdna.version/versionSequence, then reads both exact selected versions and verifies their domain ID/version before rendering. Seven remote source files exact and both scripts pass existing Node syntax checks. Behavior/native/artifact cohorts excluded; no accepted tests repeated. Browser/SDK/owned-native multi-version and cold boot runtime, hosted/full Startup and whole-site acceptance remain pending. No full popup/site/provider/HyperDrive completion claim. CI post-job cleanup passed; selected logs inspected in RAM/filesWritten0. No local builds/downloads/envs/results or shared-service/DNA/worker/LB/deployment/protected-delivery action.",
+  "apiBuild": {
+    "run": 44755467900,
+    "job": 136353934459,
+    "source": "cb6a5e086c6609dbf2353d870a3287c381f02ef9",
+    "status": "success",
+    "target": "actual WEB5 build-only; behavior/native excluded",
+    "errors": 0,
+    "duration": "00:03:35.20",
+    "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44755467900",
+    "cleanup": "post-job cleanup passed; all behavior/native/artifact cohorts excluded; logs inspected in RAM/filesWritten0"
+  },
+  "developmentReview": "6498c9fb unchanged, no peer import/retest",
+  "sourceBatchSummary": "2026-11-20 HOLON BROWSER / PUBLISHED DIFF BREADTH SOURCE WIRED: Portal95c24a366d7675eb33cd5ef1b17650453ea70386 / STAR0bc4d64f6dc32070ea2c19e2ebd3d8d6e1cd2a94. HolonsController removes all four demo substitution branches and uses one non-action MVC filter to await existing shared boot before all21 real manager calls, including cold detail/history. Browser uses actual createdProviderType/instanceSavedOnProviderType, STARNET ID and published version; failed reads stay errors, invalid lists are not filtered into fake empty success. Browser detail opens Diff through the existing queued router with the actual STARNET DNA ID. Diff uses starnetdna.version/versionSequence rather than native integer revision, groups published versions and loads both actual selected versions from the real version endpoint before rendering; verifies returned domain ID/version and preserves current-session guards. No message-string demo heuristics or synthetic records. Seven remote source files exact; two-script existing Node syntax checks pass. STAR parent gitlink/manifest paired. Actual WEB5 compilation and browser/SDK/owned-native multi-version acceptance pending; no full popup/site/provider/HyperDrive completion claim. Accepted tests not selected again. Shared Atlas/PIPER/DNA/worker/LB/deploy/protected-delivery holds preserved; no local builds/downloads/envs/results/temp outputs."
 }
