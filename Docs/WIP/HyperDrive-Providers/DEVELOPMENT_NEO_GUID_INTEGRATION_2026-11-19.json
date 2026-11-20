@@ -1,0 +1,62 @@
+{
+  "deployed": false,
+  "peerTestSourcesNotImported": true,
+  "status": "verified_development_source_integrated_current_combined_graph_compile_pending",
+  "dnaChanged": false,
+  "independentRuntimeRetested": false,
+  "currentGraphCompileAccepted": false,
+  "previousDevelopment": "ca6fc88c3c3066a0d3d1b940960a8dcd047d8439",
+  "source": "b8b344b9153ef570a64425fcb38d8619c11a2fdb",
+  "entries": [
+    {
+      "after": "d589bf10a606cd9946e9aeb76c7b52a0eac33e00",
+      "before": null,
+      "path": "Docs/WIP/COSMIC ORM/DEVELOPMENT_NEO_GUID_BATCH_2026-11-19.md"
+    },
+    {
+      "after": "a4577c039dbff7a15f1ef46f9bedf1026cafc8a0",
+      "before": null,
+      "path": "Docs/WIP/COSMIC ORM/GUID_GROUPED_DISTINCT_QUALIFICATION.md"
+    },
+    {
+      "after": "5ed40c268e1e5b7a96f6bd2c9a399c579174a308",
+      "before": null,
+      "path": "Docs/WIP/COSMIC ORM/NEO_GROUPED_INPUT_NORMALIZATION.md"
+    },
+    {
+      "after": "50da7ed4c859876d12f8a8ea67d98e79e3a1a18f",
+      "before": "9ae7ef86b58d02cc980b273f0e8702a0faecf627",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.Grouped.cs"
+    },
+    {
+      "after": "a727c8894eb5aaf821c99353d9b334fcdf9c7754",
+      "before": "431d05e9cffaade224693b941405b14269e390f8",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Cql.Grouped.cs"
+    },
+    {
+      "after": "ac7c8225ab8c5cac8e1b812f30604374d32a6422",
+      "before": "9dc3dc6df8397d2b6e85300d39fb3f7e4ce06c40",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.GroupCompiler.cs"
+    },
+    {
+      "after": "4d2b26d406bbca36dc35f258ea80d3537d79eaba",
+      "before": "ca0b880106e4c2b26c8575fb4b62ed5f223e3d3d",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.Grouped.cs"
+    },
+    {
+      "after": "7e2d3b2efad6ffbd95572fa099fcfac1e1f243c4",
+      "before": "7fb8c6402e0534e5715b46313f43189375030026",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.GroupSql.cs"
+    },
+    {
+      "after": "3dc375e9f3d04170dd486c059788e82f24fa9a89",
+      "before": "640be15c3909d0c6bd70da90d9a5d2544dd3c7a4",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.Grouped.cs"
+    }
+  ],
+  "shippingSourceFiles": 6,
+  "frozenPortalRun": 44647749986,
+  "frozenRunDoesNotQualifyLaterImport": true,
+  "peerEvidenceDocs": 3,
+  "localGeneratedOutputs": 0
+}
