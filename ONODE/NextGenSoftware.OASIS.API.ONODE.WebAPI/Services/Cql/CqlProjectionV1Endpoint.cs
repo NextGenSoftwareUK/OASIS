@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.Common;
@@ -34,12 +35,13 @@ public static partial class CqlV1Endpoint
                 return Failure(400, "CQL_REQUEST_INVALID",
                     "Use the mixed projection route with a nonempty mapping ID, or the ordinary route without a mapping.");
             if (mixed && execution.MaximumProviderAttempts != CosmicQueryHttpRoutes.MixedProjectionAttempts)
-                return Failure(503, "CQL_ADMISSION_REQUIRED", "Mixed projection requires three admitted provider attempts.");
+                return Failure(503, "CQL_ADMISSION_REQUIRED", "Mixed projection requires four admitted provider attempts.");
             var virtualProjection = request?.VirtualMappingId.HasValue == true
                 ? CqlV1Compiler.CompileVirtualProjection(request)
                 : null;
             var intent = CqlV1Compiler.CompileProjection(request, actor, policy?.Selected??requested, policy?.Access,
-                virtualProjection == null ? null : CqlVirtualProjection.MaximumRows);
+                virtualProjection == null ? null : CqlVirtualProjection.MaximumRows,
+                virtualProjection == null ? null : request.VirtualMappingId);
             var mixedGrouping = request.ResultOperation == CqlProjectionV1ResultOperation.Group
                 ? CqlV1Compiler.CompileMixedGrouping(intent, request.Grouping) : null;
             if (!TryResolveEligible(providers, requested, admission, out var storage, out var rowAdapter, out var selected,policy,includeCloudReadProfile:true))
@@ -91,7 +93,7 @@ public static partial class CqlV1Endpoint
             if (output.Provider != selected) return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "Projection provenance differs from its admitted provider.");
             if (virtualProjection != null)
                 return await CompleteVirtualProjectionAsync(http, request, intent, output.Rows, virtualProjection,
-                    providers, actor, selected, mixedGrouping, deadline.Token);
+                    providers, actor, selected, mixedGrouping, manager, adapter, deadline.Token);
             var columns = SelectedWireColumns(intent.Columns);
             var rows = SelectedWireRows(output.Rows, deadline.Token);
             deadline.Token.ThrowIfCancellationRequested();
@@ -116,7 +118,7 @@ public static partial class CqlV1Endpoint
         IReadOnlyList<CosmicProjectionRecord> materialized, CqlVirtualProjection virtualProjection,
         ICqlV1Providers providers, Guid actor, ProviderType selected,
         CosmicMixedGroupingPlan<Holon, CosmicProjectionRecord, CosmicProjectionRecord> mixedGrouping,
-        CancellationToken cancellationToken)
+        HolonManager manager, ICosmicQueryProjectionStorageProvider adapter, CancellationToken cancellationToken)
     {
         if (materialized.Count >= CqlVirtualProjection.MaximumRows)
             return Failure(400, "CQL_VIRTUAL_SOURCE_LIMIT", "Narrow the filter so both branches fit the mixed projection budget.");
@@ -137,6 +139,41 @@ public static partial class CqlV1Endpoint
             }, native.ErrorCode, native.Message);
         if (!native.IsLoaded || native.Result == null)
             return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "The mapped source did not return a loaded result.");
+        if (native.Result.Count >= CqlVirtualProjection.MaximumRows)
+            return Failure(400, "CQL_VIRTUAL_SOURCE_LIMIT", "A saturated native branch cannot prove complete results.");
+        var snapshotIds = new HashSet<Guid>();
+        var nativeIds = native.Result.Where(row => row != null).Select(row => row.Id).ToArray();
+        if (nativeIds.Length != native.Result.Count || nativeIds.Any(id => id == Guid.Empty) ||
+            nativeIds.Distinct().Count() != nativeIds.Length)
+            return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "Native logical identities are invalid or duplicated.");
+        if (nativeIds.Length != 0)
+        {
+            var snapshotIntent = CqlV1Compiler.CompileSnapshotIdentityProjection(actor, selected,
+                intent.Source.ReadAccess, request.VirtualMappingId.Value, nativeIds);
+            var snapshotAdmission = CosmicProjectionPlanner.Plan(snapshotIntent, selected,
+                new[] { new CosmicProjectionTarget(selected, adapter.QueryCapabilities, adapter.ProjectionCapabilities) });
+            if (snapshotAdmission.IsError)
+                return Failure(400, snapshotAdmission.ErrorCode, "The provider cannot prove mapped snapshot provenance.");
+            var snapshots = await manager.ExecuteProjectionQueryAsync(snapshotAdmission.Result,
+                new ICosmicQueryStorageProvider[] { adapter }, maximumResults: CqlVirtualProjection.MaximumRows,
+                maximumPayloadBytes: MaximumResponseBytes, cancellationToken: cancellationToken);
+            if (snapshots.IsError) return QueryFailure(http, snapshots.ErrorCode);
+            if (snapshots.Result == null || snapshots.Result.Providers.Count != 1)
+                return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "Snapshot provenance is incomplete.");
+            var snapshotOutput = snapshots.Result.Providers.Single();
+            if (snapshotOutput.Provider != selected)
+                return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "Snapshot provenance differs from its authority.");
+            if (snapshotOutput.Rows.Count >= CqlVirtualProjection.MaximumRows)
+                return Failure(400, "CQL_VIRTUAL_SOURCE_LIMIT", "Snapshot identity proof exceeds the mixed budget.");
+            var admittedIds = new HashSet<Guid>(nativeIds);
+            foreach (var snapshot in snapshotOutput.Rows)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (snapshot.Values.Count != 1 || snapshot.Values[0] is not Guid id ||
+                    id == Guid.Empty || !admittedIds.Contains(id) || !snapshotIds.Add(id))
+                    return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "Snapshot identities are invalid, duplicated or outside the native result.");
+            }
+        }
         if (mixedGrouping != null)
         {
             var grouped = CosmicMixedProjectionResults.Group(mixedGrouping, actor, request.VirtualMappingId.Value,
@@ -213,7 +250,7 @@ public static partial class CqlV1Endpoint
             rows.Add(winner.Record.Values.Select(ProjectionWireValue).ToArray());
             if (winner.Virtual is { } row)
                 provenance.Add(new { representation = "Virtual", provider = row.Provider.ToString(), row.MappingId,
-                    row.MappingVersion, row.FetchedAt, alsoMaterialized = winner.AlsoMaterialized });
+                    row.MappingVersion, row.FetchedAt, alsoMaterialized = winner.AlsoMaterialized || snapshotIds.Contains(winner.Id) });
             else
                 provenance.Add(new { representation = "Materialized", provider = selected.ToString() });
         }

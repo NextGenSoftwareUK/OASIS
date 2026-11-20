@@ -46,7 +46,7 @@ public partial class CqlV1Web4Tests
             new CqlGroupedV1Ordering { Alias = "Units", Descending = true },
             new CqlGroupedV1Ordering { Alias = "Text" });
         request.Skip = 1; request.Take = 1;
-        var admitted = Admission(provider, maximumProviderAttempts: 3);
+        var admitted = Admission(provider, maximumProviderAttempts: 4);
         var response = await admitted.Policy.RunAsync(() =>
             CqlV1Endpoint.ExecuteProjectionAsync(admitted.Http, request, source, mixed: true));
         var result = MixedProjectionResponse(response);
@@ -70,7 +70,7 @@ public partial class CqlV1Web4Tests
         var source = new MappedProjectionHttpSource(stored, fixture.MappingId, new[] { fixture.Row });
         var request = OrderedMappedProjectionRequest(fixture.MappingId, provider,
             new CqlGroupedV1Ordering { Alias = "Units" }, new CqlGroupedV1Ordering { Alias = "Text" });
-        var admitted = Admission(provider, maximumProviderAttempts: 3);
+        var admitted = Admission(provider, maximumProviderAttempts: 4);
         var result = MixedProjectionResponse(await admitted.Policy.RunAsync(() =>
             CqlV1Endpoint.ExecuteProjectionAsync(admitted.Http, request, source, mixed: true)));
         var rows = result.GetProperty("rows").EnumerateArray().ToArray();
@@ -88,7 +88,7 @@ public partial class CqlV1Web4Tests
         var source = new MappedProjectionHttpSource(stored, fixture.MappingId, new[] { fixture.Row });
         var request = OrderedMappedProjectionRequest(fixture.MappingId, provider,
             new CqlGroupedV1Ordering { Alias = "Units" });
-        var admitted = Admission(provider, maximumProviderAttempts: 3);
+        var admitted = Admission(provider, maximumProviderAttempts: 4);
         var result = MixedProjectionResponse(await admitted.Policy.RunAsync(() =>
             CqlV1Endpoint.ExecuteProjectionAsync(admitted.Http, request, source, mixed: true)));
         var rows = result.GetProperty("rows").EnumerateArray().ToArray();
@@ -118,7 +118,7 @@ public partial class CqlV1Web4Tests
         if (invalid == "null") request.SelectedOrder = new CqlGroupedV1Ordering[] { null! };
         if (invalid == "source-order") request.OrderBy = "Id";
         if (invalid == "descending-flag") request.Descending = true;
-        var admitted = Admission(provider, maximumProviderAttempts: 3);
+        var admitted = Admission(provider, maximumProviderAttempts: 4);
         var response = await admitted.Policy.RunAsync(() =>
             CqlV1Endpoint.ExecuteProjectionAsync(admitted.Http, request, source, mixed: true));
         Assert.Equal("CQL_REQUEST_INVALID", Code(response));
@@ -134,7 +134,7 @@ public partial class CqlV1Web4Tests
         var stored = new Source(provider);
         MappedProjectionHttpAdapter(stored, provider, Array.Empty<CosmicProjectionRow>());
         var source = new MappedProjectionHttpSource(stored, fixture.MappingId, new[] { fixture.Row });
-        var admitted = Admission(provider, maximumProviderAttempts: 3);
+        var admitted = Admission(provider, maximumProviderAttempts: 4);
         var response = await admitted.Policy.RunAsync(() => CqlV1Endpoint.ExecuteProjectionAsync(admitted.Http,
             MappedProjectionHttpRequest(fixture.MappingId, provider), source, mixed: true));
         Assert.Equal("CQL_VIRTUAL_SOURCE_LIMIT", Code(response));
@@ -149,7 +149,7 @@ public partial class CqlV1Web4Tests
         MappedProjectionHttpAdapter(stored, provider, new[] {
             new CosmicProjectionRow(id, "first", 5, 5), new CosmicProjectionRow(id, "second", 6, 6) });
         var source = new MappedProjectionHttpSource(stored, fixture.MappingId, new[] { fixture.Row });
-        var admitted = Admission(provider, maximumProviderAttempts: 3);
+        var admitted = Admission(provider, maximumProviderAttempts: 4);
         var response = await admitted.Policy.RunAsync(() => CqlV1Endpoint.ExecuteProjectionAsync(admitted.Http,
             MappedProjectionHttpRequest(fixture.MappingId, provider), source, mixed: true));
         Assert.Equal("CQL_PROVIDER_RESULT_INVALID", Code(response));
@@ -195,7 +195,7 @@ public partial class CqlV1Web4Tests
         var source = new MappedProjectionHttpSource(stored, fixture.MappingId, new[] { fixture.Row });
         var request = OrderedMappedProjectionRequest(fixture.MappingId, provider,
             new CqlGroupedV1Ordering { Alias = "Units" });
-        var admitted = Admission(provider, maximumProviderAttempts: 3);
+        var admitted = Admission(provider, maximumProviderAttempts: 4);
         var result = MixedProjectionResponse(await admitted.Policy.RunAsync(() =>
             CqlV1Endpoint.ExecuteProjectionAsync(admitted.Http, request, source, mixed: true)));
         Assert.Equal(new[] { first, second, fixture.Row.Id }.OrderBy(id => id),

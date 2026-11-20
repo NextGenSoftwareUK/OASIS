@@ -64,7 +64,7 @@ public partial class CqlV1Web4Tests
         MappedProjectionHttpAdapter(stored, provider, new[] {
             new CosmicProjectionRow(native.Id), new CosmicProjectionRow(otherId) });
         var source = new IdentityMappedHttpSource(stored, mapping.Id, read.Result);
-        var admitted = Admission(provider, maximumProviderAttempts: 3);
+        var admitted = Admission(provider, maximumProviderAttempts: 4);
         var result = MixedProjectionResponse(await admitted.Policy.RunAsync(() =>
             CqlV1Endpoint.ExecuteProjectionAsync(admitted.Http, request, source, mixed: true)));
         Assert.Single(result.GetProperty("columns").EnumerateArray());
@@ -75,6 +75,6 @@ public partial class CqlV1Web4Tests
         var provenance = result.GetProperty("provenance").EnumerateArray();
         Assert.True(Assert.Single(provenance.Where(item => item.GetProperty("representation").GetString() == "Virtual"))
             .GetProperty("alsoMaterialized").GetBoolean());
-        Assert.Single(admitted.Receipts);
+        Assert.Equal(2, admitted.Receipts.Count);
     }
 }

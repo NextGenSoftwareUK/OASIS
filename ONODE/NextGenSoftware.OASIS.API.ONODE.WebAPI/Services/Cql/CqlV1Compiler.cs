@@ -7,6 +7,7 @@ using System.Globalization;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 
@@ -201,7 +202,7 @@ public static partial class CqlV1Compiler
         CqlV1Filter[] anyOf, CqlV1ChildExists[] anyChildren, CqlV1DescendantExists[] anyDescendants,
         CqlV1Graph graphDescription, string orderBy, bool descending, int skip, int? take,CosmicQueryReadAccess access=null,
         bool bindAccess=true, bool includeCloudReadProfile=false, bool indexedSource=false, bool unorderedFederation=false,
-        bool unorderedKeyGrouping=false)
+        bool unorderedKeyGrouping=false, Guid? excludedVirtualMappingId=null)
     {
         if(access!=null)
         {
@@ -240,6 +241,23 @@ public static partial class CqlV1Compiler
         // and paging. Shared-index metadata cannot grant access; Wizard does not bypass this.
         var query = CosmicQuery<Holon>.Create(provider.HasValue ? CosmicQueryScope.Named(provider.Value).Result : CosmicQueryScope.CurrentDefault);
         if (bindAccess) query = Add(query, actor, access, provider);
+        if (excludedVirtualMappingId.HasValue)
+        {
+            if (excludedVirtualMappingId.Value == Guid.Empty)
+                throw new ArgumentException("An authoritative virtual mapping must be nonempty.");
+            var snapshotRow = Expression.Parameter(typeof(Holon), "snapshot");
+            var owned = Expression.Equal(Expression.Property(snapshotRow, nameof(Holon.CreatedByAvatarId)),
+                Expression.Constant(actor));
+            var boundMapping = Predicate(new CqlV1Filter {
+                MetadataPath = new[] { VirtualHolonRead.SnapshotProvenanceMetadataKey,
+                    VirtualHolonRead.SnapshotMappingIdMetadataKey },
+                Scalar = CqlV1Scalar.String, Operator = CqlV1Operator.Equal,
+                Value = JsonSerializer.SerializeToElement(excludedVirtualMappingId.Value.ToString("D"))
+            }, snapshotRow);
+            // The mapped source owns these caches. Exclude them natively before
+            // user predicates, projection-domain validation and the branch page.
+            query = Add(query, snapshotRow, Expression.Not(Expression.AndAlso(owned, boundMapping)));
+        }
         if(graphDescription!=null)
         {
             var graph=graphDescription;

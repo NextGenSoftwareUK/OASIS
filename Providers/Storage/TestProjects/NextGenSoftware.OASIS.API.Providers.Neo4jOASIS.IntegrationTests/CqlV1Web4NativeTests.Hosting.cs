@@ -209,8 +209,9 @@ public sealed partial class CqlV1Web4NativeTests
     {
         if (!IsQueryRoute(http)) return null;
         var path = http.Request.Path.Value?.TrimEnd('/');
-        var attempts = path?.Equals("/api/data/query-cql/federation", StringComparison.OrdinalIgnoreCase) == true ||
-            path?.Equals("/api/data/query-cql/projection/mixed", StringComparison.OrdinalIgnoreCase) == true ? 3 : 1;
+        var attempts = path?.Equals("/api/data/query-cql/federation", StringComparison.OrdinalIgnoreCase) == true ? 3
+            : path?.Equals("/api/data/query-cql/projection/mixed", StringComparison.OrdinalIgnoreCase) == true
+                ? NextGenSoftware.OASIS.API.Core.Queries.CosmicQueryHttpRoutes.MixedProjectionAttempts : 1;
         return new UsageEndpointPolicy
         {
             MeterCategory = "cql.query", ReservedUnits = 1, EstimatedCostUsd = 0.002m * attempts,
