@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-20",
+  "status": "source-only; runtime pending",
+  "portalCommit": "b93ce89750e67bcfb2f04632db7bc68dfdce08d3",
+  "remoteExactFiles": 4,
+  "nodeSyntax": "pass, stdin",
+  "routeManifest": [
+    798,
+    688
+  ],
+  "summary": "2026-11-20 ONODE BREADTH SOURCE WIRED: Portal b93ce89750e67bcfb2f04632db7bc68dfdce08d3; four remote files exact and existing Node stdin syntax passed. Explicit API-managed/registered-node selection; authenticated SDK requests use captured current bearer. Service commands target actual node/service, use server command IDs, bounded Pending/Executing status reads, real Done/Error and no timeout resubmission. Provider writes use supervisor payloads and readback confirmation; root reads the same supervisor owner. Removed fabricated service rows, false success, queued log polling and incorrect metric units. Live updates opt-in with owned socket/timer lifetime. Root retains producer provider/window/latency fields, owns audit issuer and authenticates browser WS before acceptance; closed subscriptions unregister and broadcasts are awaited. Remaining agent-owned gaps: registered-node individual peers, server-side non-secret DNA/config view, actual browser/API/supervisor runtime acceptance. No full DNA requested/displayed. Actual WEB4 compilation pending. No accepted tests repeated or shared services/DNA/deployment/worker actions; no local builds/downloads/envs/results. Whole OPORTAL incomplete; breadth-first priority.",
+  "acceptedTestsRepeated": 0,
+  "localGeneratedFiles": 0
+}
