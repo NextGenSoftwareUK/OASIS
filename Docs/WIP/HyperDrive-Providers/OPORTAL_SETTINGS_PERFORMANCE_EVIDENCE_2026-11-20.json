@@ -1,5 +1,5 @@
 {
-  "status": "source_implemented_new_native_qualification_prepared",
+  "status": "two_new_native_facts_accepted_breadth_first_resumed",
   "core": "33e0ab95af6b7bbce20ee7f74f24717a3f65b158",
   "changes": [
     "GetAllSettings uses one native avatar snapshot for four preference categories",
@@ -7,8 +7,8 @@
     "Eight subscription constructor index sites use shared VerifiedMongoIndexes owner; ready schema is verified read-only, missing schema created, mismatches fail"
   ],
   "sourceVerified": true,
-  "compiled": false,
-  "runtimeAccepted": false,
+  "compiled": true,
+  "runtimeAccepted": true,
   "tests": [
     {
       "name": "AggregateSettingsUsesOneNativeAvatarSnapshotAcrossProviders",
@@ -48,6 +48,23 @@
   "DNAChanged": false,
   "deploymentChanged": false,
   "localGeneratedOutputs": 0,
-  "next": "Build actual API and select only two NEW native Facts in existing leased CI environment",
-  "fullPortalAccepted": false
+  "next": "Finish whole-site popup/main-action wiring and basic real-flow acceptance; defer more hardening and optimization",
+  "fullPortalAccepted": false,
+  "activeQualification": {
+    "run": 44690875185,
+    "source": "a56dcdaddce8a44c4cc5eeedb592e266e6b9be85",
+    "core": "33e0ab95af6b7bbce20ee7f74f24717a3f65b158",
+    "status": "success",
+    "expectedFacts": 2,
+    "acceptedCohortsSelected": 0,
+    "browserDownloads": false,
+    "artifact": {
+      "id": 14608782881,
+      "bytes": 2760,
+      "sha256": "3a1e1689407df1cc110edfda95c60928b655402a549bb066300cc0dba58fb7e6",
+      "passed": 2,
+      "proofMarkers": 8,
+      "filesWritten": 0
+    }
+  }
 }
