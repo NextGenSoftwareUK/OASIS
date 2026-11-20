@@ -1,5 +1,5 @@
 {
-  "status": "first_actual_browser_timeout_diagnostics_prepared_no_acceptance",
+  "status": "failed_storage_browser_diagnostic_retry_confirmed_queued",
   "finding": "Frozen portal4ccf holon-storage-policy.js calls api/settings/holon-storage-policy, but this worktree had no matching controller route",
   "route": "api/settings/holon-storage-policy",
   "verbs": [
@@ -63,16 +63,18 @@
     "runtimeAccepted": false
   },
   "activeQualification": {
-    "run": 44670753115,
-    "job": 136070867135,
-    "source": "48a7f61995e21ca1c78b5ffca399326e5d8a014b",
+    "run": 44672946740,
+    "job": 136077959036,
+    "source": "f7c43d4557d5d005c711fb63ba3236161577cd8e",
     "core": "33712edf309b42635ca756930907db37188d76e9",
     "portal": "4ccf867befa9abb543bb8f4587f07e5914ac6c73",
     "sdk": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
-    "status": "completed_failure_browser_timeout",
+    "status": "confirmed_queued",
     "expectedTRXResults": 1,
     "expectedNativeBrowserHandoffs": 3,
-    "oldAcceptedCohortsSelected": 0
+    "oldAcceptedCohortsSelected": 0,
+    "productionGraphChanged": false,
+    "deadlinesAndAssertionsChanged": false
   },
   "firstQualification": {
     "run": 44670753115,
