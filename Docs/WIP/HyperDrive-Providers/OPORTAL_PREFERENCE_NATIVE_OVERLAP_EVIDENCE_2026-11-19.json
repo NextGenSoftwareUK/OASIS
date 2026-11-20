@@ -33,5 +33,15 @@
     "MongoDBOASIS",
     "SQLLiteDBOASIS",
     "Neo4jOASIS"
-  ]
+  ],
+  "activeQualification": {
+    "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452",
+    "status": "in_progress_not_accepted",
+    "expectedResults": 11,
+    "portal": "4ccf867befa9abb543bb8f4587f07e5914ac6c73",
+    "source": "a2038700293681125d2bf324ada1dd7818590e2b",
+    "run": 44651948304,
+    "expectedBrowserHandoffs": 6,
+    "unchangedAcceptedCohortsSelected": 0
+  }
 }
