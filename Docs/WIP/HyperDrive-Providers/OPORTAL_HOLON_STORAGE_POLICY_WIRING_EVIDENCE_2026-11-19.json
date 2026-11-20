@@ -1,5 +1,5 @@
 {
-  "status": "new_actual_storage_tab_qualification_confirmed_running",
+  "status": "first_actual_browser_timeout_diagnostics_prepared_no_acceptance",
   "finding": "Frozen portal4ccf holon-storage-policy.js calls api/settings/holon-storage-policy, but this worktree had no matching controller route",
   "route": "api/settings/holon-storage-policy",
   "verbs": [
@@ -27,8 +27,8 @@
     "lineReferencesRefreshed": true,
     "sourceGuard": "passed"
   },
-  "next": "Compile actual API and execute ONLY this NEW browser Fact/three native handoffs under existing bounded CI lease/runtime/fixture cleanup. Retain accepted routing popup and native round-trip cohorts.",
-  "compiled": false,
+  "next": "Retry ONLY same failed storage browser Fact with bounded response/feedback diagnostics; no timeout increase, assertion weakening or old accepted cohort rerun.",
+  "compiled": true,
   "runtimeAccepted": false,
   "hostedAccepted": false,
   "fullPortalAccepted": false,
@@ -69,9 +69,36 @@
     "core": "33712edf309b42635ca756930907db37188d76e9",
     "portal": "4ccf867befa9abb543bb8f4587f07e5914ac6c73",
     "sdk": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
-    "status": "confirmed_in_progress",
+    "status": "completed_failure_browser_timeout",
     "expectedTRXResults": 1,
     "expectedNativeBrowserHandoffs": 3,
     "oldAcceptedCohortsSelected": 0
+  },
+  "firstQualification": {
+    "run": 44670753115,
+    "job": 136070867135,
+    "source": "48a7f61995e21ca1c78b5ffca399326e5d8a014b",
+    "core": "33712edf309b42635ca756930907db37188d76e9",
+    "apiBuild": "success_zero_errors",
+    "actualNativeProjectCompiled": true,
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0,
+    "durationSeconds": 33,
+    "actualHttpControls": "schema2 bad-request and unsupported Memory error assertions reached before browser",
+    "browserTraffic": "initial GET200, first PUT200 and confirmation GET200; waitForFunction10s timed out",
+    "cause": "not established; do not change business behavior based on timeout",
+    "diagnosticChange": "Record named phase, actual popup feedback and bounded public policy response fields; same assertions/deadlines/no replacement",
+    "artifact": {
+      "id": 14599757874,
+      "bytes": 4607,
+      "sha256": "24e3b04d69d489e35f8af72f8890275480a532c633986ec09138034bbf51ef71",
+      "exactFailedResultDefinitionAndID": true,
+      "settingsManagerRestored": true,
+      "browserRuntimeCacheControlCleanup": true,
+      "fixtureStops": "both success",
+      "streamsDisposed": true,
+      "filesWritten": 0
+    }
   }
 }

@@ -13,6 +13,8 @@ async function verify({baseUrl,token,providerType,avatarId,applicationId}) {
     'browser-profile-'+randomUUID()),{channel:'chrome',headless:true,timeout:30000,
     viewport:{width:1440,height:1000},acceptDownloads:false,serviceWorkers:'block'});
   const writes=[],reads=[],errors=[],forbidden=[];
+  const replies=[],replyReads=[];
+  let page,phase='initial load';
   try {
     await context.route('**/*',route=>{
       const url=new URL(route.request().url());
@@ -24,13 +26,28 @@ async function verify({baseUrl,token,providerType,avatarId,applicationId}) {
       localStorage.setItem('loggedIn','true');
       localStorage.setItem('avatar',JSON.stringify({id:avatarId,jwtToken:token}));
     },{token,avatarId});
-    const page=await context.newPage();page.setDefaultTimeout(10000);
+    page=await context.newPage();page.setDefaultTimeout(10000);
     page.on('pageerror',error=>errors.push(error.message));
     page.on('request',request=>{
       const url=new URL(request.url());if(!url.pathname.startsWith('/api/'))return;
       const item={method:request.method(),path:url.pathname,app:url.searchParams.get('applicationId')};
       if(request.method()==='GET')reads.push(item);
       else writes.push({...item,body:request.method()==='PUT'?request.postDataJSON():null});
+    });
+    page.on('response',response=>{
+      if(new URL(response.url()).pathname!=='/api/settings/holon-storage-policy')return;
+      replyReads.push((async()=>{
+        const value=await response.json();
+        const selectedPolicy=p=>p===null?null:p&&typeof p==='object'
+          ? {keys:Object.keys(p),schemaVersion:p.schemaVersion,mode:p.mode,readCache:p.readCache,maximumCacheBytes:p.maximumCacheBytes,
+            maximumCacheAgeSeconds:p.maximumCacheAgeSeconds,materializeOnExplicitSave:p.materializeOnExplicitSave}
+          : {type:typeof p};
+        replies.push({method:response.request().method(),status:response.status(),isError:value.isError,
+          errorCode:value.errorCode,result:typeof value.result==='boolean'?value.result:{
+            keys:Object.keys(value.result||{}),applicationId:value.result?.applicationId,avatarPolicy:selectedPolicy(value.result?.avatarPolicy),
+            applicationPolicy:selectedPolicy(value.result?.applicationPolicy),
+            effectivePolicy:selectedPolicy(value.result?.effectivePolicy),memoryCacheSupported:value.result?.memoryCacheSupported}});
+      })().catch(error=>replies.push({method:response.request().method(),status:response.status(),responseBodyReadError:error.name})));
     });
     await page.goto(baseUrl+'/__profile_browser?panel=storage');
     await page.locator('#fixture-open-hyperdrive').click();
@@ -46,22 +63,22 @@ async function verify({baseUrl,token,providerType,avatarId,applicationId}) {
     await ready();assert.equal(await field('mode').inputValue(),'');
     assert.equal(await field('readCache').locator('option[value="Memory"]').isDisabled(),true);
     await field('mode').selectOption('Hybrid');
-    await field('materializeOnExplicitSave').uncheck();await save();
+    phase='save avatar Hybrid';await field('materializeOnExplicitSave').uncheck();await save();
     assert.equal(await field('mode').inputValue(),'Hybrid');
     assert.equal(await field('materializeOnExplicitSave').isChecked(),false);
-    await field('scope').selectOption('application');await field('applicationId').fill(applicationId);
+    phase='load application inheritance';await field('scope').selectOption('application');await field('applicationId').fill(applicationId);
     await page.locator('#hd-storage-load').click();await ready();
     assert.equal(await field('mode').inputValue(),'');
     assert.match(await page.locator('#hd-storage-effective').innerText(),/Hybrid.*inherited/);
-    await field('mode').selectOption('Virtual');await save();
+    phase='save application Virtual';await field('mode').selectOption('Virtual');await save();
     assert.equal(await field('mode').inputValue(),'Virtual');
-    await field('mode').selectOption('');await save();
+    phase='reset application';await field('mode').selectOption('');await save();
     assert.match(await page.locator('#hd-storage-effective').innerText(),/Hybrid.*inherited/);
-    await field('scope').selectOption('avatar');await page.locator('#hd-storage-load').click();await ready();
+    phase='reload avatar';await field('scope').selectOption('avatar');await page.locator('#hd-storage-load').click();await ready();
     assert.equal(await field('mode').inputValue(),'Hybrid');
-    await field('mode').selectOption('');await save();
+    phase='reset avatar';await field('mode').selectOption('');await save();
     assert.match(await page.locator('#hd-storage-effective').innerText(),/No saved override/);
-    await page.locator('#hd-close-btn').click();await page.locator('#fixture-open-hyperdrive').click();await ready();
+    phase='reopen';await page.locator('#hd-close-btn').click();await page.locator('#fixture-open-hyperdrive').click();await ready();
     assert.equal(await field('mode').inputValue(),'');
     assert.equal(writes.length,4);assert.deepEqual(writes.map(r=>r.method),['PUT','PUT','DELETE','DELETE']);
     assert.deepEqual(writes.map(r=>r.app),[null,applicationId,applicationId,null]);
@@ -74,6 +91,11 @@ async function verify({baseUrl,token,providerType,avatarId,applicationId}) {
     await page.locator('#hd-close-btn').click();
     return {holonStoragePolicyBrowserVerified:true,providerType,saveRequests:writes.length,reads:reads.length,
       avatarApplicationInheritanceAndResetVerified:true};
+  } catch(error) {
+    await Promise.allSettled(replyReads);
+    const feedback=page?await page.locator('#hd-storage-feedback').textContent({timeout:1000}):'page not created';
+    throw new Error('Storage phase '+phase+' failed; feedback='+JSON.stringify(feedback)+
+      '; writes='+writes.length+'; reads='+reads.length+'; replies='+JSON.stringify(replies)+'; '+error.message);
   } finally {await context.close();}
 }
 module.exports={verify};
