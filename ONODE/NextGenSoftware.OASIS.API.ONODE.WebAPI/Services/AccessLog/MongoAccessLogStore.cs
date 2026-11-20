@@ -90,7 +90,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.AccessLog
         private readonly IServiceProvider _services;
         private readonly ILogger<AccessLogFlushHostedService> _logger;
         private DateTime _lastOverrideRefresh = DateTime.MinValue;
-        public AccessLogFlushHostedService(AccessLogService service, Func<AccessLogSettings> settings, ILogger<AccessLogFlushHostedService> logger, IServiceProvider services = null) { _service = service; _settings = settings; _logger = logger; _services = services; }
+        // Timer cancellation stops scheduling; only the caller's shutdown budget
+        // may cancel a write already accepted by the store.
+        private readonly CancellationTokenSource _flushCancellation = new CancellationTokenSource();
+        private readonly CancellationToken _flushToken;
+        public AccessLogFlushHostedService(AccessLogService service, Func<AccessLogSettings> settings, ILogger<AccessLogFlushHostedService> logger, IServiceProvider services = null) { _service = service; _settings = settings; _logger = logger; _services = services; _flushToken = _flushCancellation.Token; }
 
         private async Task RefreshOverridesAsync(CancellationToken c)
         {
@@ -119,7 +123,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.AccessLog
                 try { await Task.Delay(TimeSpan.FromSeconds(seconds), stoppingToken).ConfigureAwait(false); } catch (OperationCanceledException) { break; }
                 try { await RefreshOverridesAsync(stoppingToken).ConfigureAwait(false); }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
-                await _service.FlushAsync(stoppingToken).ConfigureAwait(false);
+                await _service.FlushAsync(_flushToken).ConfigureAwait(false);
             }
         }
 
@@ -127,8 +131,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.AccessLog
         {
             // ExecuteAsync may never enter when shutdown cancels its scheduled start.
             // Wait for the periodic reader before taking ownership of the final drain.
+            using var shutdownBudget = cancellationToken.Register(
+                static state => ((CancellationTokenSource)state).Cancel(), _flushCancellation);
             await base.StopAsync(cancellationToken).ConfigureAwait(false);
             await _service.FlushAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        public override void Dispose()
+        {
+            _flushCancellation.Cancel();
+            base.Dispose();
+            _flushCancellation.Dispose();
         }
     }
 }
