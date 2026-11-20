@@ -1,7 +1,7 @@
 {
   "productionStartupAccepted": false,
   "portalSource": "d7f14205bec919330c7762518b70070f1acca1ea",
-  "status": "in_progress_not_accepted",
+  "status": "completed_failure_same_missing_portrait_acknowledgment_proof",
   "accepted": false,
   "newCases": 1,
   "source": "3e3a2b20d95927a5d366764139a5ae0c2c25e9b0",
@@ -25,5 +25,34 @@
     "old editor disabled",
     "genuine replacement SDK reopens and uploads",
     "exact image native persistence and protected profile/password/XP unchanged"
-  ]
+  ],
+  "job": 135981902581,
+  "results": {
+    "apiErrors": 0,
+    "durationSeconds": 11,
+    "passed": 0,
+    "failed": 1,
+    "phase": "MongoDBOASIS/actual-file-upload",
+    "priorClientChecks": "First provider reached upload after real replacement read, no all-provider acceptance",
+    "nativeProjectErrors": 0,
+    "skipped": 0
+  },
+  "artifact": {
+    "bytes": 3754,
+    "strictFailedTrxVerified": true,
+    "id": 14588296118,
+    "sha256": "723e941996273bc1a4eb1f15c31688ab4c4d21d8e460983e637013329ce2f666",
+    "applicationManagerRestored": true,
+    "filesWritten": 0,
+    "fixtureStops": "both success",
+    "browserRuntimeCleanup": true
+  },
+  "correction": {
+    "selectedCases": 2,
+    "olderAcceptedCohortsSelected": 0,
+    "reason": "Only two failed cases, shared native acknowledgment invariant and current client-scoped portal source",
+    "expectedRealNativeHandoffs": 6,
+    "status": "prepared_not_dispatched",
+    "core": "a01e4be15cca3ad2f2abe14c4989e35276e92452"
+  }
 }
