@@ -364,7 +364,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | S11 | Update an existing entity with optimistic revision condition | [✅][R] | [✅][R] | [✅][R] | Same native REST matrix verifies winner/stale conditions. |
 | S12 | Hard delete with optimistic revision condition | [✅][T] | [✅][T] | [✅][T] | Signed REST/GraphQL/gRPC deletion matrix, retained full native gate. |
 | S13 | Async persistence and cancellation across entity graph operations | ❌ | ❌ | ❌ | Async healthy calls exist; complete cancellation/ownership row unverified. |
-| S14 | Sync/async semantic parity for persistence | ❌ | ❌ | ❌ | Synchronous managed/stateless root persistence and read/navigation entry points share existing async owners in Core08510d56; a new native3 sync/async agreement, stale refusal and physical-delete cohort is qualifying. Full graph/platform semantics remain open. |
+| S14 | Sync/async semantic parity for persistence | ❌ | ❌ | ❌ | Managed/stateless synchronous roots, navigation then update, async value agreement, generated insert, stale refusal and physical deletes native verified44780582654 on all3 (artifact14652163229). Full graph/platform contract remains open. |
 | S15 | Statement batching / ordered write-behind | ❌ | ❌ | ❌ | Explicit graph batches do not certify write-behind. |
 | S16 | Set-based update without loading tracked entities | ❌ | ❌ | ❌ | No proven ExecuteUpdate / bulk HQL equivalent. |
 | S17 | Set-based delete without loading tracked entities | ❌ | ❌ | ❌ | No proven ExecuteDelete / bulk HQL equivalent. |

@@ -80,3 +80,7 @@ Managed SaveChanges, Read, GetDatabaseValues, Reload, Find, LoadParent and LoadC
 ## Stateless logical lifetime (source; native verification pending)
 
 CosmicStatelessSession implements IDisposable. Use using for its logical lifetime; manager/provider connection ownership stays with the caller. An idle session closes idempotently. Dispose during an active operation throws without changing the outstanding operation state, allowing its definite native result to finish. After closure, queries and read/write methods return COSMIC_STATELESS_DISPOSED before evaluating caller roots. A fresh session can use the same borrowed manager/provider. This source has one bounded three-provider lifecycle cohort; no connection pooling or full framework lifetime claim is inferred.
+
+## Stateless standard LINQ (source; native verification pending)
+
+stateless.Linq<Holon>() returns an actor/authority-bound native IQueryable. Rows and entity terminals are freshly materialized; scalar/DTO projections stay native. AsCosmicNoTracking is available; AsCosmicTracking is explicitly refused for stateless queries. The same logical operation gate and closed-session refusal apply to async sequences and synchronous terminals. Managed queries use the shared wrapper with their original identity/publication owner. The new native3 cohort verifies that affected managed sequence/scalar and no-tracking behavior alongside stateless functionality; older accepted suites are retained.
