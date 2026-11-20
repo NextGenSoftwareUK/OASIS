@@ -369,7 +369,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | S16 | Set-based update without loading tracked entities | ❌ | ❌ | ❌ | No proven ExecuteUpdate / bulk HQL equivalent. |
 | S17 | Set-based delete without loading tracked entities | ❌ | ❌ | ❌ | No proven ExecuteDelete / bulk HQL equivalent. |
 | S18 | Insert-select / bulk insert from a query | ❌ | ❌ | ❌ | No proven equivalent. |
-| S19 | Stateless session bulk-processing API | ❌ | ❌ | ❌ | Direct provider methods are not a certified stateless session. |
+| S19 | Stateless session bulk-processing API | ❌ | ❌ | ❌ | Shared CosmicStatelessSession native-verified on all3: [assigned-key read/save/delete, fresh identities, stale/foreign refusal](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44743889763) and [generated/assigned create-only insertion, no phantom IDs/no upsert](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44756910311). [Usage](STATELESS_SESSION_USAGE_2026-11-20.md). This replaces the earlier no-API note; complete framework-equivalence row remains open, counts unchanged. |
 | S20 | Flush modes and explicit flush boundaries | ❌ | ❌ | ❌ | No unit-of-work flush mode contract. |
 | S21 | Save interceptors, lifecycle events and validation callbacks | ❌ | ❌ | ❌ | Partial callbacks need ordering/error/reentrancy coverage. |
 
