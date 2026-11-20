@@ -30,7 +30,12 @@ Make sure you check out the Overview and Benefits Of Building On The WEB 4 OASIS
 | | RecoveryCodeCount, EventRetentionDays | 10, 730 | Recovery codes and audit retention. |
 | `OASIS.UsageVisibility` | OwnerViewEnabled, WarningsEnabled, EmailEnabled, AppPayAsYouGoEnabled | true | Usage views and warnings (email uses `OASIS.Email`). |
 | | DefaultWarningPercents | [80, 100] | Warning thresholds. |
+| `OASIS.HolonSeal` | Enabled | false | Master switch for sealed (tamper-evident) holon history. Off = nothing is sealed whatever people or apps chose. |
+| | Key | "" | Secret that seals versions (HMAC). Empty = sealing unavailable. Use 32+ random characters; never commit a real value. |
+| | KeyId | "k1" | Id of the current key, stored on every seal. Change it when you rotate the key. |
+| | RetiredKeys | {} | Earlier keys by id, used only to verify old seals after a rotation. |
+| | RefreshIntervalSeconds | 30 | How often each node refreshes the avatar and app switches. |
 
-The access log and MFA store their data in the MongoDBOASIS database named in `StorageProviders.MongoDBOASIS`. People and app accounts can override the usage visibility defaults (and apps the access log) in the portal; their choice wins.
+The access log and MFA store their data in the MongoDBOASIS database named in `StorageProviders.MongoDBOASIS`. People and app accounts can override the usage visibility defaults (and apps the access log) in the portal; their choice wins. Sealed history is chosen per owner avatar (Settings > Security) or per app (app-owner settings): a save is sealed when the master switch and key are set and either of them is on. See `Docs/Devs/SEALED_HOLON_HISTORY.md`.
 
 Copies to keep in sync: `Default/OASIS_DNA.json`, the test-harness copies in the OASIS2 repo, the STAR ODK `STARDNA/DNA/Default/OASIS_DNA.json` and the NuGet OAPP template, and Railway `OASIS_DNA_JSON`. `OASIS_DNA_SYSTEM.json` is encrypted binary and is not edited.
