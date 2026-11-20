@@ -1,5 +1,5 @@
 {
-  "status": "api_native_compiled_snapshot_comparator_corrected_retry_prepared",
+  "status": "canonical_billing_settings_http_native_accepted_transport_hosted_open",
   "core": "11ebf588e88c3f7ae03fdd9a71ec1a753afd68c5",
   "invariant": "Subscription plan, activity, quotas and paid preference state come from the canonical billing/usage authority; avatar or Holon settings never grant entitlement",
   "implementation": [
@@ -28,8 +28,8 @@
     "externalManagerRoutes": 685
   },
   "qualification": {
-    "runtimeAccepted": false,
-    "scope": "Actual signed-bearer MVC/Core/billing repository plus native Mongo/SQLite/Neo4j avatar preservation; no browser/GraphQL/gRPC execution claim",
+    "runtimeAccepted": true,
+    "scope": "Actual signed-bearer REST/Core/canonical owned Mongo billing ledger; unchanged account fields/revisions/password/metadata verified in MongoDB, SQLite and Neo4j",
     "expectedHttpNativeProviderFlows": 3,
     "controls": [
       "Absent read does not create a free/paid subscription",
@@ -45,14 +45,39 @@
     "expectedFacts": 1,
     "compiled": true,
     "active": {
-      "run": 44683316436,
-      "job": 136111627615,
-      "source": "2ddbed8b357bb51d562448d14829b38e76f3b9f3",
+      "run": 44685226050,
+      "job": 136117853965,
+      "source": "ccf39bc633e29c819cab7386e7465e7198e99b87",
       "core": "11ebf588e88c3f7ae03fdd9a71ec1a753afd68c5",
-      "status": "completed_failure",
-      "activeStep": null,
+      "status": "success",
+      "apiBuild": "success_zero_errors",
+      "nativeProjectCompiled": true,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "durationSeconds": 11,
+      "billingLedger": "owned loopback Mongo",
+      "nativeAccountPreservationStores": [
+        "MongoDBOASIS",
+        "SQLLiteDBOASIS",
+        "Neo4jOASIS"
+      ],
+      "shippingGraphChangedForRetry": false,
       "browserDownloads": false,
-      "nativeProfileSdk": false
+      "oldAcceptedCohortsSelected": 0,
+      "artifact": {
+        "filesWritten": 0,
+        "streamsDisposed": true,
+        "sha256": "0a6f3915003c1061109c017d59355a3326a2a1219774e852df3a48de8abbfb7c",
+        "threeNativeAccountMarkers": true,
+        "fixtureStops": "both success",
+        "exactSinglePassedResultDefinitionAndID": true,
+        "MongoFixtureAbsence": true,
+        "bytes": 4053,
+        "managerRestored": true,
+        "id": 14605948894,
+        "ownedBillingDatabaseAbsenceAndForeignRecordPreserved": true
+      }
     },
     "firstQualification": {
       "run": 44683316436,
@@ -84,7 +109,15 @@
         "id": 14605209086,
         "ownedBillingDatabaseAbsenceAndForeignRecordPreserved": true
       }
-    }
+    },
+    "remainingAcceptance": [
+      "Shipping SDK execution",
+      "GraphQL/gRPC runtime",
+      "Full production Startup",
+      "Hosted browser/timings",
+      "Genuine Stripe lifecycle",
+      "Remaining OPORTAL screens"
+    ]
   },
   "deploymentChanged": false,
   "sharedAtlasTouched": false,
@@ -94,7 +127,35 @@
   "performanceFollowup": {
     "sourceVisibleAggregateAvatarPreferenceReads": 4,
     "measuredNativeQueryCount": false,
-    "next": "Consolidate aggregate HyperDrive/notification/privacy/system settings around one validated avatar snapshot after authority qualification"
+    "next": "Consolidate aggregate HyperDrive/notification/privacy/system settings around one validated avatar snapshot after authority qualification",
+    "constructorIndexAudit": {
+      "sourceOnly": true,
+      "atLeastLiteralCreateSites": 8,
+      "files": "MongoSubscriptionUsageRepository*.cs",
+      "scope": "Repository construction invokes index creation; audit all constructor initializers and measure cold/read-only reopening",
+      "existingSharedOwner": "Core.Services.Subscriptions.VerifiedMongoIndexes.EnsureAsync",
+      "helperBlob": "81d403f95227689c362eee67dbf5d1135968982f",
+      "hostedTimingMeasured": false
+    },
+    "isolatedAggregateBaseline": {
+      "run": 44685226050,
+      "artifact": 14605948894,
+      "source": "ccf39bc633e29c819cab7386e7465e7198e99b87",
+      "samples": 6,
+      "milliseconds": [
+        87.0462,
+        7.6269,
+        16.4459,
+        13.652,
+        38.1529,
+        42.5955
+      ],
+      "origin": "Actual Kestrel Request finished entries in accepted TRX stdout",
+      "scope": "Owned CI functional aggregate HTTP requests, including typed error responses, with services initialized; not hosted UI or cold repository initialization",
+      "additionalTestsRun": 0,
+      "artifactReadFilesWritten": 0
+    }
   },
-  "canonicalBillingOwnerGuard": "REST uses authenticated Avatar.Id. GraphQL/gRPC aggregate and billing operations also enforce existing RequireSubscriber matching before Core delegation, retaining their existing Wizard gates. Transport runtime qualification remains open."
+  "canonicalBillingOwnerGuard": "REST uses authenticated Avatar.Id. GraphQL/gRPC aggregate and billing operations also enforce existing RequireSubscriber matching before Core delegation, retaining their existing Wizard gates. Transport runtime qualification remains open.",
+  "integrationBundle": "Core authority contract/SettingsManager signatures must be integrated with parent REST/GraphQL/gRPC callers, authority implementation, Startup registration, model/authorization invariant and paired gitlink/manifest; do not advance Core alone"
 }

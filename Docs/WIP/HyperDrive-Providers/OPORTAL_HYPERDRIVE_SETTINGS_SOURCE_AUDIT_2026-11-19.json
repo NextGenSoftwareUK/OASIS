@@ -10,10 +10,11 @@
     },
     {
       "runtimeAccepted": false,
-      "evidence": "SettingsManager.GetSubscriptionInfoAsync creates active Bronze/card/now+30days and invented limits/counts on missing stored settings; GetSubscriptionSettingsAsync also substitutes those fields",
+      "evidence": "Core11eb removes fabricated plan/card/expiry/quotas and Holon billing writes; run44685226050 actual REST/Core/owned Mongo ledger passed1Fact with protected Mongo/SQLite/Neo native avatar data. GraphQL/gRPC/SDK execution and hosted/full Startup remain open.",
       "owner": "Legacy api/settings/subscription-settings and all-settings aggregate; current SubscriptionController subscriptions/me uses ISubscriptionService and is separate",
       "id": "LEGACY-SUBSCRIPTION-FABRICATED-ACTIVE-PLAN",
-      "next": "Source corrected in Core11ebf588 and explicit WEB4 authority; qualify new native HTTP fixture, then remaining transport/hosted billing flows"
+      "next": "Retain accepted HTTP/native scope; verify actual SDK and GraphQL/gRPC/production Startup paths. Complete snapshot/index performance audit and genuine billing flows.",
+      "httpNativeAccepted": true
     },
     {
       "limits": "Source inspection is not hosted timing, full Startup, native/browser or reliability acceptance",
@@ -33,7 +34,7 @@
   "scope": "HyperDrive UI status preferences delivery history and legacy settings subscription facade",
   "sharedServicesTouched": false,
   "core": "db589d220112400ca03439083a0c5166e66eb6fb",
-  "status": "scoped_preference_revision_and_native_roundtrip_accepted_legacy_subscription_and_browser_open",
+  "status": "scoped_preferences_storage_and_legacy_billing_http_native_accepted_transports_hosted_open",
   "legacySubscriptionAuthorityTrace": {
     "verification": "source_only",
     "rest": "SettingsController delegates current Avatar.Id to Core SettingsManager",
