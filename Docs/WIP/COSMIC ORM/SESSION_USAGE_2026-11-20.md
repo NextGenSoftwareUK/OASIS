@@ -72,3 +72,7 @@ SetReadOnly(entity,false) adopts current root values as the new baseline, matchi
 ## Canonical root Find (source; native verification pending)
 
 Use await session.FindAsync<Holon>(id) for a key lookup. A first lookup reads and tracks the authorized native row. A persisted cache hit still queries only the native ID under the same caller policy before returning the tracked instance; pending scalar edits remain intact. An unauthorized or absent persisted identity returns no loaded entity even if a caller previously attached that key. Missing keys are not cached, and Detach permits a fresh native load. Local uncommitted Adds return caller-provided state; tracked key mutation is refused. Find does not implicitly flush. This is neither a cached authorization decision nor a provider/query-wide result cache; graph/composite-key model tooling retains its own roadmap.
+
+## Synchronous entry points (source; native verification pending)
+
+Managed SaveChanges, Read, GetDatabaseValues, Reload, Find, LoadParent and LoadChildren have synchronous forms. Stateless Insert, Save, Delete and Read likewise share the async owned implementations, explicit revisions and acknowledged identity/result publication. The synchronous call waits for that operation to finish and does not create a second persistence path or implicit flush. Existing async entry points remain appropriate for the WEB4 request flow. Source08510d56; its native3 sync/async agreement and write-effect cohort is separate from earlier accepted async cases. Broader graph and mixed lifecycle contracts remain open.

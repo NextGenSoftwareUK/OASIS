@@ -358,13 +358,13 @@ older chronological roadmap is supporting history, not the source of green statu
 | S05 | Property-level original/current values and explicit modified flags | [✅][S05E] | [✅][S05E] | [✅][S05E] | Public entry guide/audit plus retained Core/native/permissions/encryption/replication/graph evidence; final SQLite4 SDK+2 native44561911974. Full session/ORM parity remains separate. |
 | S06 | Notification/proxy change tracking | ❌ | ❌ | ❌ | No full notification/proxy proof. |
 | S07 | Attach/update/merge disconnected graphs | ❌ | ❌ | ❌ | Conditional save is not general session merge semantics. |
-| S08 | Detach/clear session and read-only entities | ❌ | ❌ | ❌ | Root Detach/Clear and no-tracking/LINQ tracking toggles native verified44736376145. Explicit SetReadOnly/IsReadOnly, mutable baseline, Reload retention and delete/detach/clear source Core d064 now separately qualifying; full row acceptance remains pending. |
+| S08 | Detach/clear session and read-only entities | ❌ | ❌ | ❌ | Root Detach/Clear/no-tracking and LINQ tracking toggles verified44736376145; explicit read-only root lifecycle now native verified44774548460 (all3, artifact14648887588). Full broader entity lifecycle remains open. |
 | S09 | Refresh/reload and database values without losing unsaved state | ❌ | ❌ | ❌ | Database values preserving pending edits and explicit root reload retaining identity/baseline native verified44712697888 (all three stores, strict artifact14617648973). Graph reload/conflict lifecycle remains open. |
 | S10 | Persist a new assigned-key entity | [✅][R] | [✅][R] | [✅][R] | VerifyShippingRestAsync loops all stores; signed create assertions. |
 | S11 | Update an existing entity with optimistic revision condition | [✅][R] | [✅][R] | [✅][R] | Same native REST matrix verifies winner/stale conditions. |
 | S12 | Hard delete with optimistic revision condition | [✅][T] | [✅][T] | [✅][T] | Signed REST/GraphQL/gRPC deletion matrix, retained full native gate. |
 | S13 | Async persistence and cancellation across entity graph operations | ❌ | ❌ | ❌ | Async healthy calls exist; complete cancellation/ownership row unverified. |
-| S14 | Sync/async semantic parity for persistence | ❌ | ❌ | ❌ | Needs explicit per-store case mapping, not an async-only green. |
+| S14 | Sync/async semantic parity for persistence | ❌ | ❌ | ❌ | Synchronous managed/stateless root persistence and read/navigation entry points share existing async owners in Core08510d56; a new native3 sync/async agreement, stale refusal and physical-delete cohort is qualifying. Full graph/platform semantics remain open. |
 | S15 | Statement batching / ordered write-behind | ❌ | ❌ | ❌ | Explicit graph batches do not certify write-behind. |
 | S16 | Set-based update without loading tracked entities | ❌ | ❌ | ❌ | No proven ExecuteUpdate / bulk HQL equivalent. |
 | S17 | Set-based delete without loading tracked entities | ❌ | ❌ | ❌ | No proven ExecuteDelete / bulk HQL equivalent. |
