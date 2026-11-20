@@ -1,5 +1,5 @@
 {
-  "status": "new_actual_storage_tab_browser_case_prepared_compile_and_runtime_pending",
+  "status": "new_actual_storage_tab_qualification_confirmed_running",
   "finding": "Frozen portal4ccf holon-storage-policy.js calls api/settings/holon-storage-policy, but this worktree had no matching controller route",
   "route": "api/settings/holon-storage-policy",
   "verbs": [
@@ -61,5 +61,17 @@
     "nodeSyntax": "passed",
     "routeGuard": "796/685 passed",
     "runtimeAccepted": false
+  },
+  "activeQualification": {
+    "run": 44670753115,
+    "job": 136070867135,
+    "source": "48a7f61995e21ca1c78b5ffca399326e5d8a014b",
+    "core": "33712edf309b42635ca756930907db37188d76e9",
+    "portal": "4ccf867befa9abb543bb8f4587f07e5914ac6c73",
+    "sdk": "d7aa569a2bb0fe4f4243f2a78027558688c8597e",
+    "status": "confirmed_in_progress",
+    "expectedTRXResults": 1,
+    "expectedNativeBrowserHandoffs": 3,
+    "oldAcceptedCohortsSelected": 0
   }
 }
