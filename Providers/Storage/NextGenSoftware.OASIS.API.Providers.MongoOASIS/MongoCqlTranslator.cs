@@ -88,7 +88,7 @@ internal sealed partial class MongoCqlTranslator
         yield return new BsonBinaryData(value,GuidRepresentation.Standard);
         yield return new BsonBinaryData(value,GuidRepresentation.CSharpLegacy);
     }
-    private static BsonValue GuidDomain(BsonValue value)
+    internal static BsonValue GuidDomain(BsonValue value)
     {
         var text=new BsonDocument("$regexMatch",new BsonDocument{{"input",value},{"regex",Literal(@"\A[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\z")}});
         // BSON BinData ordering is length, subtype, unsigned bytes. These inclusive
@@ -190,7 +190,7 @@ internal sealed partial class MongoCqlTranslator
     }
     private static BsonValue At(CosmicQueryPath path,Func<BsonValue,BsonValue> predicate,string prefix="cqlm")
         =>path.IsMetadata?Metadata(path.Segments,value=>WithMetadataOperand(value,path,predicate,prefix),prefix):predicate(Canonical(path));
-    private static BsonValue ComparableGuid(BsonValue value)
+    internal static BsonValue ComparableGuid(BsonValue value)
     {
         var text = new BsonDocument("$replaceAll", new BsonDocument {
             {"input", new BsonDocument("$toLower", value)}, {"find", Literal("-")}, {"replacement", Literal("")} });

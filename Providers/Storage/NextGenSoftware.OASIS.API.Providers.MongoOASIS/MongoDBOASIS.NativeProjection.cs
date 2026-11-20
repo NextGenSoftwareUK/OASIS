@@ -107,7 +107,13 @@ public partial class MongoDBOASIS : INativeDataProjectionQueryProvider
                             return NativeProjectionError("NATIVE_PROJECTION_RESOURCE_LIMIT", "The source text exceeds its computation budget.");
                         if (state is < 0 or > 2 || state != 2 && !selected[index].Nullable)
                             return NativeProjectionError("NATIVE_PROJECTION_DATA_INVALID", "The input differs from its declared domain or nullability.");
-                        var value = state == 2 ? ToScalar(cell["v"]) : null;
+                        object value = state == 2 ? ToScalar(cell["v"]) : null;
+                        if (state == 2 && selected[index].ValueType == typeof(Guid))
+                        {
+                            if (value is not string text || !Guid.TryParseExact(text, "N", out var guid))
+                                return NativeProjectionError("NATIVE_PROJECTION_DATA_INVALID", "The normalized UUID output is invalid.");
+                            value = guid;
+                        }
                         if (state == 2 && (value == null || value.GetType() != selected[index].ValueType))
                             return NativeProjectionError("NATIVE_PROJECTION_DATA_INVALID", "The output differs from its exact declared domain.");
                         values[index] = new NativeProjectionCell((NativeProjectionValueState)state, value);
@@ -129,7 +135,8 @@ public partial class MongoDBOASIS : INativeDataProjectionQueryProvider
     {
         var expected = column.InputType == typeof(string) ? "string" : column.InputType == typeof(bool) ? "bool"
             : column.InputType == typeof(int) ? "int" : column.InputType == typeof(double) ? "double" : "long";
-        BsonValue domain = ProjectionOperation("$eq", "$$kind", expected);
+        BsonValue domain = column.InputType == typeof(Guid)
+            ? MongoCqlTranslator.GuidDomain("$$input") : ProjectionOperation("$eq", "$$kind", expected);
         if (column.InputType == typeof(double))
             domain = ProjectionOperation("$and", domain,
                 ProjectionOperation("$gte", "$$input", -double.MaxValue),
@@ -150,9 +157,11 @@ public partial class MongoDBOASIS : INativeDataProjectionQueryProvider
             { "default", 3 }
         });
         var bytes = column.ValueType == typeof(string)
-            ? ProjectionCondition(domain, new BsonDocument("$strLenBytes", "$$input"), 8) : (BsonValue)8;
+            ? ProjectionCondition(domain, new BsonDocument("$strLenBytes", "$$input"), 8)
+            : column.ValueType == typeof(Guid) ? (BsonValue)32 : (BsonValue)8;
         var value = column.Function == NativeRecordFunction.Utf16Length
-            ? (BsonValue)new BsonDocument("$toInt", MongoCqlTranslator.Utf16LengthUnits("$$input")) : (BsonValue)"$$input";
+            ? (BsonValue)new BsonDocument("$toInt", MongoCqlTranslator.Utf16LengthUnits("$$input"))
+            : column.InputType == typeof(Guid) ? MongoCqlTranslator.ComparableGuid("$$input") : (BsonValue)"$$input";
         return new BsonDocument("$let", new BsonDocument
         {
             { "vars", new BsonDocument { { "input", "$" + column.Field }, { "kind", new BsonDocument("$type", "$" + column.Field) } } },

@@ -309,10 +309,8 @@ public partial class HolonRepository
             if (type == typeof(DateTime)) return SqliteCqlDate.Guard(alias);
             if (type == typeof(Guid))
             {
-                // JSON stores Guid as canonical D text. Reject malformed text instead of coercing it.
-                const string hex = "[0-9a-fA-F]";
-                var pattern = string.Join("-", new[] { 8, 4, 4, 4, 12 }.Select(count => string.Concat(Enumerable.Repeat(hex, count))));
-                return alias + ".type = 'text' AND length(CAST(" + alias + ".value AS BLOB)) = 36 AND " + alias + ".value GLOB '" + pattern + "'";
+                // JSON and raw mapped columns share one exact ASCII D-format domain.
+                return alias + ".type = 'text' AND " + SqliteCqlGuid.TextDomain(alias + ".value");
             }
             if (type == typeof(decimal)) return "(" + SqliteCqlDecimal.Column(alias) + ") IS NOT NULL";
             if (type == typeof(double) || type == typeof(float)) return "(" + SqliteCqlFloating.Column(alias, type) + ") IS NOT NULL";
