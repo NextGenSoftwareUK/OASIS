@@ -351,15 +351,15 @@ older chronological roadmap is supporting history, not the source of green statu
 
 | ID | EF / NHibernate feature and required semantics | SQLite | MongoDB | Neo4j | Proving evidence or exact remaining gap |
 |---|---|---|---|---|---|
-| S01 | Identity map: one instance per key within a session | ❌ | ❌ | ❌ | Detached query copies intentionally do not prove identity resolution. |
-| S02 | Context/session unit of work spanning multiple pending entities | ❌ | ❌ | ❌ | Per-holon Save and explicit batches are not SaveChanges/Flush parity. |
-| S03 | Added/Unchanged/Modified/Deleted/Detached state transitions | ❌ | ❌ | ❌ | Map all transitions and provider evidence before promoting. |
+| S01 | Identity map: one instance per key within a session | ❌ | ❌ | ❌ | Root-entity session identity baseline native verified44705892869; standard LINQ root materialization source integrated Core4565e3ec, verification pending. Graph-wide identity/fix-up remains open. |
+| S02 | Context/session unit of work spanning multiple pending entities | ❌ | ❌ | ❌ | Pending create/update unit of work baseline native verified44705892869; shared native LINQ/session integration source complete, native acceptance pending. Mixed deletion and broader transaction lifecycle remain open. |
+| S03 | Added/Unchanged/Modified/Deleted/Detached state transitions | ❌ | ❌ | ❌ | Added/Unchanged/Modified/Detached baseline native verified; Deleted and mixed atomic lifecycle remain open. |
 | S04 | Snapshot dirty detection and no-op saves | [✅][SV] | [✅][SV] | [✅][SV] | **DEMO** — [Save steps 2–6][SV]: acknowledged and freshly loaded no-ops preserve revision and create no delta, mutation or preparation receipt; local typed/metadata edits become dirty, acknowledged update becomes clean. [Native observer][SB], [all-three gate][G]. |
 | S05 | Property-level original/current values and explicit modified flags | [✅][S05E] | [✅][S05E] | [✅][S05E] | Public entry guide/audit plus retained Core/native/permissions/encryption/replication/graph evidence; final SQLite4 SDK+2 native44561911974. Full session/ORM parity remains separate. |
 | S06 | Notification/proxy change tracking | ❌ | ❌ | ❌ | No full notification/proxy proof. |
 | S07 | Attach/update/merge disconnected graphs | ❌ | ❌ | ❌ | Conditional save is not general session merge semantics. |
-| S08 | Detach/clear session and read-only entities | ❌ | ❌ | ❌ | No complete session API proof. |
-| S09 | Refresh/reload and database values without losing unsaved state | ❌ | ❌ | ❌ | Explicit conflict/reload ownership matrix needed. |
+| S08 | Detach/clear session and read-only entities | ❌ | ❌ | ❌ | Detach/Clear baseline native verified; native no-tracking plus LINQ AsNoTracking/AsTracking source implemented, extended verification pending. Full read-only entity lifecycle remains open. |
+| S09 | Refresh/reload and database values without losing unsaved state | ❌ | ❌ | ❌ | Authorized database values preserve pending edits and explicit ReloadAsync retains root identity; read-mode/reload native44712697888 running. Graph reload/conflict lifecycle remains open. |
 | S10 | Persist a new assigned-key entity | [✅][R] | [✅][R] | [✅][R] | VerifyShippingRestAsync loops all stores; signed create assertions. |
 | S11 | Update an existing entity with optimistic revision condition | [✅][R] | [✅][R] | [✅][R] | Same native REST matrix verifies winner/stale conditions. |
 | S12 | Hard delete with optimistic revision condition | [✅][T] | [✅][T] | [✅][T] | Signed REST/GraphQL/gRPC deletion matrix, retained full native gate. |

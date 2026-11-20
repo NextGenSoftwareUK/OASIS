@@ -50,6 +50,32 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(initial.IsError,initial.Message+initial.Exception);
         Assert.AreEqual(2,initial.Result.Count);
         Assert.AreSame(first,initial.Result.Single(row=>row.Id==first.Id));
+        var linqRoot=session.Linq<Holon>();
+        Assert.IsFalse(linqRoot.IsError,linqRoot.Message);
+        clock.Restart();
+        var standardRows=await linqRoot.Result.Where(row=>ids.Contains(row.Id))
+            .OrderBy(row=>row.Name).Take(2).ToCosmicListAsync();
+        timings["standard-linq-query"]=clock.ElapsedMilliseconds;
+        Assert.IsFalse(standardRows.IsError,standardRows.Message+standardRows.Exception);
+        Assert.AreEqual(2,standardRows.Result.Count);
+        Assert.AreSame(first,standardRows.Result.Single(row=>row.Id==first.Id));
+        clock.Restart();
+        var terminal=linqRoot.Result.Single(row=>row.Id==first.Id);
+        timings["standard-linq-entity-terminal"]=clock.ElapsedMilliseconds;
+        Assert.AreSame(first,terminal);
+        Assert.AreEqual(2,linqRoot.Result.Where(row=>ids.Contains(row.Id)).Count());
+        clock.Restart();
+        var untrackedLinq=await linqRoot.Result.AsNoTracking()
+            .Where(row=>ids.Contains(row.Id)).ToCosmicListAsync();
+        timings["standard-linq-no-tracking"]=clock.ElapsedMilliseconds;
+        Assert.IsFalse(untrackedLinq.IsError,untrackedLinq.Message+untrackedLinq.Exception);
+        var untrackedFirst=untrackedLinq.Result.Single(row=>row.Id==first.Id);
+        Assert.AreNotSame(first,untrackedFirst);
+        Assert.AreEqual(CosmicEntityState.Detached,session.State(untrackedFirst).Result);
+        untrackedFirst.Name="untracked LINQ edit";
+        Assert.AreEqual(CosmicEntityState.Unchanged,session.State(first).Result);
+        Assert.AreSame(first,linqRoot.Result.AsNoTracking().AsTracking().Single(row=>row.Id==first.Id));
+
         first.Name="session changed";
         Assert.AreEqual(CosmicEntityState.Modified,session.State(first).Result);
         clock.Restart();
@@ -58,6 +84,15 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(again.IsError,again.Message+again.Exception);
         Assert.AreSame(first,again.Result.Single(row=>row.Id==first.Id));
         Assert.AreEqual("session changed",first.Name,"A query must not overwrite unsaved tracked values.");
+        clock.Restart();
+        var projected=await linqRoot.Result.Where(row=>ids.Contains(row.Id))
+            .Select(row=>row.Name).ToCosmicListAsync();
+        timings["standard-linq-projection"]=clock.ElapsedMilliseconds;
+        Assert.IsFalse(projected.IsError,projected.Message+projected.Exception);
+        CollectionAssert.AreEquivalent(new[]{"session first","session second"},projected.Result.ToArray());
+        Assert.AreSame(first,linqRoot.Result.Single(row=>row.Id==first.Id));
+        Assert.AreEqual("session changed",first.Name,"LINQ identity resolution must preserve pending edits.");
+
         Assert.AreEqual(CosmicEntityState.Modified,session.State(first).Result);
         clock.Restart();
         var databaseValues=await session.GetDatabaseValuesAsync(first);
@@ -120,6 +155,10 @@ public sealed partial class CqlV1Web4NativeTests
         timings["foreign-private-query"]=clock.ElapsedMilliseconds;
         Assert.IsFalse(denied.IsError,denied.Message+denied.Exception);
         Assert.AreEqual(0,denied.Result.Count,"Session tracking must not bypass native actor permissions.");
+        var foreignLinq=foreign.Linq<Holon>();
+        Assert.IsFalse(foreignLinq.IsError,foreignLinq.Message);
+        Assert.AreEqual(0,foreignLinq.Result.Where(row=>ids.Contains(row.Id)).Count());
+
         return 1;
     }
 }

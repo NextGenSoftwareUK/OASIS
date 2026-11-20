@@ -318,7 +318,7 @@ public sealed partial class CqlV1Web4NativeTests
                         nativeProviderVerified = true, ownedBatchVerified = true, identityResolutionVerified = true,
                         pendingValuesPreservedVerified = true, stateTransitionsVerified = true,
                         clearReloadVerified = true, actorIsolationVerified = true, exactCleanupVerified = true,
-                        noTrackingVerified = true, databaseValuesVerified = true, explicitReloadVerified = true }));
+                        noTrackingVerified = true, databaseValuesVerified = true, explicitReloadVerified = true, standardLinqVerified = true, linqTrackingModesVerified = true }));
                 else if (utcDateFilterNative)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
                         rawNativeRecords = providerName == "MongoDBOASIS" ? 17 : providerName == "Neo4jOASIS" ? 18 : 15,
