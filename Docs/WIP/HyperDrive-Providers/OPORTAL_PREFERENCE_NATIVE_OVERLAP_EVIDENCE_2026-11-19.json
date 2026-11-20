@@ -22,7 +22,7 @@
   ],
   "rows": 3,
   "noArgumentPeerFactoriesUnchanged": true,
-  "status": "revision_fix_native_Mongo_Neo_pass_SQLite_readback_observer_corrected_pending",
+  "status": "scoped_revision_conflict_and_fresh_save_accepted_all_three_through_two_runs_later_roundtrip_changes_unqualified",
   "preference": "preferences.privacy.profileVisibility=private",
   "businessResponsesReplaced": false,
   "fixtureOwnerConstructorsUnchanged": true,
@@ -122,5 +122,17 @@
       "streamsDisposed": true,
       "filesWritten": 0
     }
+  },
+  "SQLiteCorrectionAcceptance": {
+    "run": 44661680570,
+    "job": 136041161540,
+    "source": "babfd2b55da0af507346d767036877054c14daf1",
+    "core": "a4c34c846ec7dcc0bab8ecf5ef55fec29fb062a2",
+    "passedRows": 1,
+    "nativeSQLMetadataAndPublicPrivacyRead": true,
+    "MongoAndNeoPreviouslyAcceptedNotRerun": true,
+    "artifact": 14595034294,
+    "sha256": "0ca066fdc8e21ddcc153b9fac98e11cf85213a082b294fb3777083ed9c923b99",
+    "fullPortalAccepted": false
   }
 }

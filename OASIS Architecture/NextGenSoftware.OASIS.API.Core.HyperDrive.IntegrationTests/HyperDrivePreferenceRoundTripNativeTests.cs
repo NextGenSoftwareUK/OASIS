@@ -20,6 +20,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         RequireOwnedFixtures();
         var id=Guid.NewGuid();
         IOASISStorageProvider? owner=null;
+        Func<Task<string>>? sqliteMetadata=null;
         IAsyncDisposable? asyncOwner=null;IDisposable? syncOwner=null;
         try
         {
@@ -29,6 +30,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     var mongo=new MongoStore();asyncOwner=mongo;await mongo.Activate();owner=mongo.Provider;break;
                 case "SQLLiteDBOASIS":
                     var sqlite=new SqliteStore();syncOwner=sqlite;owner=sqlite.Provider;
+                    sqliteMetadata=()=>sqlite.ReadMetadataJsonNativeAsync(id);
                     var activation=await owner.ActivateProviderAsync();Assert.False(activation.IsError,activation.Message);break;
                 case "Neo4jOASIS":
                     var neo=new BoltStore();asyncOwner=neo;await neo.Activate(id);owner=neo.Provider;break;
@@ -54,13 +56,22 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             var account=await owner.LoadAvatarAsync(id);Assert.False(account.IsError,account.Message);
             Assert.Equal(before.FirstName,account.Result.FirstName);Assert.Equal(password,account.Result.Password);
             Assert.Equal("private",StoredPrivacy(account.Result));
+            if(sqliteMetadata!=null)
+            {
+                using var raw=System.Text.Json.JsonDocument.Parse(await sqliteMetadata());
+                Assert.Equal("private",raw.RootElement.GetProperty("preferences").GetProperty("privacy")
+                    .GetProperty("profileVisibility").GetString());
+            }
             var captured=AvatarHyperDriveSettings.FromAvatar(account.Result);
             Assert.False(captured.IsError,captured.Message);Assert.NotNull(captured.Result);
             Assert.True(captured.Result.AutoFailoverEnabled);Assert.False(captured.Result.AutoReplicationEnabled);
             Assert.False(captured.Result.AutoLoadBalancingEnabled);
             Assert.Equal(new[]{owner.ProviderType.Value},captured.Result.FailoverProviders);
             var visible=await settings.GetHyperDriveSettingsAsync(id);Assert.False(visible.IsError,visible.Message);
-            Assert.Equal(providerName,visible.Result[AvatarHyperDriveSettings.AutoFailoverProviders]?.ToString());
+            var visibleJson=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.CaptureRuntimeToken(visible.Result);
+            Assert.Equal(providerName,(string?)visibleJson["avatarOverrides"]?[AvatarHyperDriveSettings.AutoFailoverProviders]);
+            Assert.Null(visibleJson["effective"]?["error"]);
+            Assert.Equal(providerName,(string?)visibleJson["effective"]?[AvatarHyperDriveSettings.AutoFailoverProviders]?[0]);
             var clear=await settings.UpdateHyperDriveSettingsAsync(id,new Dictionary<string,object>
                 {{AvatarHyperDriveSettings.AutoFailoverProviders,"DEFAULT"}});
             Assert.False(clear.IsError,clear.Message);Assert.True(clear.IsSaved);

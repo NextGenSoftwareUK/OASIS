@@ -544,7 +544,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 ProviderKeysJson = System.Text.Json.JsonSerializer.Serialize(keys),
                 ProviderWalletsJson = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(avatar.ProviderWallets ?? new Dictionary<ProviderType,List<IProviderWallet>>()),
                 ParentHolonId = avatar.ParentHolonId,
-                MetaDataJson = System.Text.Json.JsonSerializer.Serialize(avatar.MetaData ?? new Dictionary<string,object>()),
+                MetaDataJson = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(avatar.MetaData ?? new Dictionary<string,object>()),
                 Version = avatar.Version,
                 IsActive = avatar.IsActive,
                 IsPublic = avatar.IsPublic,
