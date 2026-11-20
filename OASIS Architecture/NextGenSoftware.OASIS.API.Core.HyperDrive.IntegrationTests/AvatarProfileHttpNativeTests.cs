@@ -66,7 +66,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task PortraitBrowserThenProfileEditUsesCommittedRevisionsAndThreeNativeProviders() =>
         RunProfileHttp(HyperDriveModes.V2, true, true, portraitBrowser: true, portraitEditAfterUpload: true);
 
-    private async Task RunProfileHttp(string mode, bool sdkOnly, bool browser = false, bool portraitBrowser = false, bool portraitAccountSwitch = false, bool portraitEditAfterUpload = false)
+    [Fact]
+    public Task ProfileModalClientReplacementUsesActualHttpAndThreeNativeProviders() =>
+        RunProfileHttp(HyperDriveModes.V2, true, true, portraitBrowser: true, portraitClientReplacement: true);
+
+    private async Task RunProfileHttp(string mode, bool sdkOnly, bool browser = false, bool portraitBrowser = false, bool portraitAccountSwitch = false, bool portraitEditAfterUpload = false, bool portraitClientReplacement = false)
     {
         RequireOwnedFixtures();
         var id = Guid.NewGuid();
@@ -202,7 +206,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                             using var uploaded = await ExchangeSdkRequest(new
                                 { baseUrl = address, token = Token(id), providerType = provider.ToString(), imageId = Array.IndexOf(stores, store) + 1,
                                     accountSwitch = portraitAccountSwitch, foreignToken = portraitAccountSwitch ? Token(foreignId) : null,
-                                    editAfterPortrait = portraitEditAfterUpload });
+                                    editAfterPortrait = portraitEditAfterUpload, replaceClientWhileProfilePending = portraitClientReplacement });
                             Assert.False(uploaded.RootElement.TryGetProperty("isError", out var portraitError) && portraitError.GetBoolean(),
                                 "Actual portrait browser/HTTP verification failed.");
                             Assert.True(uploaded.RootElement.GetProperty("portraitBrowserVerified").GetBoolean());
@@ -220,6 +224,12 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                             Assert.Equal(before.Username, after.Username);
                             Assert.Equal(before.Email, after.Email);
                             Assert.Equal(portraitEditAfterUpload ? "After portrait " + provider : before.Address, after.Address);
+                            if (portraitClientReplacement)
+                            {
+                                Assert.True(uploaded.RootElement.GetProperty("sameBearerClientReplacementVerified").GetBoolean());
+                                Console.WriteLine("Profile modal client replacement native persistence verified: " + provider +
+                                    "; original read cannot publish, genuine replacement SDK reopens and uploads one portrait, protected fields unchanged.");
+                            }
                             if (portraitEditAfterUpload)
                             {
                                 Assert.True(uploaded.RootElement.GetProperty("editAfterPortraitVerified").GetBoolean());

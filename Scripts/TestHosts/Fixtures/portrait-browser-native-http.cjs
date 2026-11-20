@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 
-async function verify({ baseUrl, token, providerType, imageId, accountSwitch = false, foreignToken, editAfterPortrait = false }) {
+async function verify({ baseUrl, token, providerType, imageId, accountSwitch = false, foreignToken, editAfterPortrait = false, replaceClientWhileProfilePending = false }) {
   const base = new URL(baseUrl);
   assert.equal(base.hostname, '127.0.0.1');
   assert.equal(base.protocol, 'http:');
@@ -62,6 +62,52 @@ async function verify({ baseUrl, token, providerType, imageId, accountSwitch = f
     }
     phase = 'open-actual-profile';
     await open();
+    if (replaceClientWhileProfilePending) {
+      phase = 'replace-sdk-client-during-real-profile-read';
+      await page.locator('#avatar-modal-close-btn').click();
+      await page.evaluate(() => {
+        const original = window.oasisClient.profile.getProfile.bind(window.oasisClient.profile);
+        window.oldProfileReadSettled = false;
+        window.oldProfilePublications = [];
+        window.addEventListener('avatarUpdated', event => window.oldProfilePublications.push(event.detail));
+        window.oasisClient.profile.getProfile = function (...args) {
+          const pending = original(...args);
+          const finished = () => {
+            const channel = new MessageChannel();
+            channel.port1.onmessage = () => {
+              window.oldProfileReadSettled = true;
+              channel.port1.close(); channel.port2.close();
+            };
+            channel.port2.postMessage(null);
+          };
+          pending.then(finished, finished);
+          return pending;
+        };
+      });
+      const gate = new Promise(resolve => { releaseUpload = resolve; });
+      const isProfileRead = value => new URL(value.url()).pathname === '/api/avatar/profile' && value.method() === 'GET';
+      const holdRead = async route => { await gate; await route.continue(); };
+      await page.route('**/api/avatar/profile', holdRead);
+      await Promise.all([
+        page.waitForRequest(isProfileRead), page.locator('#fixture-open-profile').click()
+      ]);
+      const storedBefore = await page.evaluate(() => localStorage.getItem('avatar'));
+      await page.evaluate(({ token, id }) => {
+        window.oasisClient = new window.OASISClient({ baseUrl: location.origin, persistSession: false });
+        window.oasisClient.setToken(token, { avatarId: id });
+      }, { token, id: owner.avatarId });
+      releaseUpload();
+      await page.waitForFunction(() => window.oldProfileReadSettled);
+      await page.unroute('**/api/avatar/profile', holdRead);
+      assert.equal(await page.locator('#av-title').isDisabled(), true);
+      assert.equal(await page.locator('#avatar-modal-save-btn').isDisabled(), true);
+      assert.equal(await page.evaluate(() => localStorage.getItem('avatar')), storedBefore);
+      assert.deepEqual(await page.evaluate(() => window.oldProfilePublications), []);
+      assert.equal(writes.length, 0);
+      phase = 'reopen-with-genuine-replacement-sdk';
+      await page.locator('#avatar-modal-close-btn').click();
+      await open();
+    }
     const imageBase64 = await page.evaluate(imageId => {
       const canvas = document.createElement('canvas'); canvas.width = 2; canvas.height = 2;
       const brush = canvas.getContext('2d');
@@ -245,6 +291,7 @@ async function verify({ baseUrl, token, providerType, imageId, accountSwitch = f
     assert.equal(writes.length, 1); assert.deepEqual(errors, []); assert.deepEqual(forbidden, []);
     return { portraitBrowserVerified: true, providerType, imageBase64, uploadRequests: 1,
       actualFragmentVerified: true, actualSdkHttpVerified: true, reloadWithoutCachedImageVerified: true,
+      sameBearerClientReplacementVerified: replaceClientWhileProfilePending,
       accountSwitchVerified: false, concurrentNativeUpdateVerified: false, productionStartupVerified: false };
   } catch (error) {
     throw new Error('Portrait browser ' + providerType + '/' + phase + ': ' + error.message);

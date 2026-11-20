@@ -75,6 +75,7 @@ async function consume(name) {
       accountSwitchVerified: result.accountSwitchVerified, queuedOriginalUploadVerified: result.queuedOriginalUploadVerified,
       oldAvatarUiPublicationSuppressedVerified: result.oldAvatarUiPublicationSuppressedVerified,
       editAfterPortraitVerified: result.editAfterPortraitVerified, profilePatchRequests: result.profilePatchRequests,
+      sameBearerClientReplacementVerified: result.sameBearerClientReplacementVerified,
       concurrentNativeUpdateVerified: result.concurrentNativeUpdateVerified,
       productionStartupVerified: result.productionStartupVerified
     }));
