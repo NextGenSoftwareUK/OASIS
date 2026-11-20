@@ -1,6 +1,6 @@
 {
   "date": "2026-11-20",
-  "status": "source wired; actual API compile and browser/native acceptance pending",
+  "status": "actual browser/SDK/compiled-controller/owned Mongo main actions accepted; full Startup/SSO/hosted/site remain open",
   "portal": "abda5b4607abaedfa90e628ea6f53de840f70321",
   "coreCommit": "a11239000270ef676613b1cf798542a2526783c7",
   "exactPortalBlobs": {
@@ -21,11 +21,10 @@
   "acceptedTestsRepeated": 0,
   "localGeneratedFiles": 0,
   "remaining": [
-    "Actual WEB4 compile and Clan-only syntax",
-    "One new actual browser/SDK/compiled-controller/owned Mongo main flow",
-    "Full Startup/SSO/hosted and whole-site acceptance"
+    "Full production Startup/SSO/hosted integration",
+    "Other OPORTAL screens and whole-site acceptance"
   ],
-  "summary": "2026-11-20 CLAN BREADTH SOURCE WIRED: Portalabda5b4607abaedfa90e628ea6f53de840f70321/Coree7c3702a519b750a7d261b94a9f34037b0214e98. Actual memberIds drive counts and ownership UI; treasury uses real inventory and preserves quantity0. One selected-clan read replaces duplicate member reads. All main actions await canonical current SDK bearer, verify returned IDs/bool acknowledgements, preserve real errors/warnings, refresh actual state and clear private UI on logout/close. Create/edit/member add/remove/leave/delete and Refresh are wired; no status timers, guessed list shapes or invented names/counts. Core name-lookup backend failures now refuse creation unless the result is genuine typed absence; empty member IDs/nonexistent avatars refuse, lookup/mutation codes propagate, and deletion requires true persistence acknowledgement. WEB4 lookup errors retain not-found versus unavailable meaning. Eleven exact remote source/input blobs include four changed Portal files plus real SDK/styles; dirty physical Portal/submodules preserved. Parent Core pin/manifest paired; only13Clan manifest line references updated, counts remain931/766 and WEB4 routes800/690. ONE NEW ClanPopupUsesActualSdkHttpAndOwnedMongo browser/SDK/compiled Clan+AvatarProfile controllers/owned Mongo case prepared: foreign treasury zero/owner UI, create/edit, real directory add/remove/re-add, reopen, actual member account leave, owner delete, seven acknowledged writes, native foreign-clan/account-revision guards and owned cleanup. Existing browser runner/build lease reused; no accepted case selected again. Compile/syntax/browser/native acceptance pending; scoped MVC/JWT host does not establish full production Startup/SSO/hosted or whole-site acceptance. No shared Atlas/PIPER/DNA/worker/LB/deployment/protected-delivery action or laptop build/download/env/DB/results/artifact. Whole goal active/incomplete, functional breadth first.",
+  "summary": "2026-11-20 CLAN MAIN ACTIONS BROWSER/NATIVE ACCEPTED:44789491814/job136473063350 SUCCESS on482f63b3ae6486c70db6aabe41fa4feba2324771/Corea11239000270ef676613b1cf798542a2526783c7/Portalabda5b4607abaedfa90e628ea6f53de840f70321. Actual WEB4 API compiled0errors4m14.21s; manager931/766, route800/690, dependency and10exact browser-input blob gates pass. ONE NEW ClanPopupUsesActualSdkHttpAndOwnedMongo Fact passed17.5637634s: actual popup/SDK/compiled Clan+AvatarProfile controllers and owned Mongo, foreign treasury quantity0, create/edit, actual directory add/remove/re-add, cold reopen, member account leave and owner delete. Exactly7writes:1create/1edit/2add/2remove-or-leave/1delete; browser page errors/API failures/unexpected API endpoints0. Cold real manager list and native BSON verify foreign clan unchanged and owner/member logical revisions preserved. Artifact14655932374/4168B SHA64f8305352559cb561592a919ac81978c90266253f7b6f4efe2cf39d8dc64832 verified in RAM: exact1TRX, linked test/execution identities,1passed/0failed/0skipped,3native/restoration/absence markers. Browser/runtime/cache/control, Mongo and all post-job cleanup passed; filesWritten0. Earlier2compile failures retained and corrected; original Clan syntax pass retained without repeat. No previously accepted case repeated. This accepts the scoped MVC/signed-JWT/native main flow; full production Startup/SSO/hosted and whole OPORTAL remain OPEN. Inventory is next in the breadth pass; broader hardening/optimization follows functional breadth. No shared Atlas/PIPER/DNA/workers/LB/deployment/protected-delivery action, laptop builds/downloads/envs/DB/results/artifacts, extra worktree or local runtime install. Goal active/incomplete.",
   "validation": {
     "runId": 44784871769,
     "jobId": 136456935191,
@@ -61,5 +60,56 @@
     "apiBuild": "failed: literal newline escape in C# condition; 1m05.25s",
     "browserNative": "not executed"
   },
-  "sourceLineCorrection": "2026-11-20 CLAN RETRY BUILD RESULT RETAINED:44787129695/job136464837688 on4db94dc10584 stopped during actual WEB4 compile1m05.25s because the previous correction inserted a literal newline escape into the C# condition (CS1056 and related parse diagnostics). No browser/native case executed; syntax from the first run remains accepted and was excluded. Corea11239000270ef676613b1cf798542a2526783c7 replaces that exact escape with an actual source line break; corrected condition inspected directly and remote bytes verified. Existing tests/assertions unchanged. Parent pin/manifest and Clan-only line references synchronized; next run builds corrected API and selects only the same new Clan browser case. Native absence/post-job cleanup passed, no laptop generated output or shared service action. Failure remains engineering-owned; OPORTAL not complete."
+  "sourceLineCorrection": "2026-11-20 CLAN RETRY BUILD RESULT RETAINED:44787129695/job136464837688 on4db94dc10584 stopped during actual WEB4 compile1m05.25s because the previous correction inserted a literal newline escape into the C# condition (CS1056 and related parse diagnostics). No browser/native case executed; syntax from the first run remains accepted and was excluded. Corea11239000270ef676613b1cf798542a2526783c7 replaces that exact escape with an actual source line break; corrected condition inspected directly and remote bytes verified. Existing tests/assertions unchanged. Parent pin/manifest and Clan-only line references synchronized; next run builds corrected API and selects only the same new Clan browser case. Native absence/post-job cleanup passed, no laptop generated output or shared service action. Failure remains engineering-owned; OPORTAL not complete.",
+  "acceptedValidation": {
+    "runId": 44789491814,
+    "jobId": 136473063350,
+    "sourceCommit": "482f63b3ae6486c70db6aabe41fa4feba2324771",
+    "conclusion": "success",
+    "apiBuild": {
+      "errors": 0,
+      "duration": "00:04:14.21"
+    },
+    "case": "ClanPopupUsesActualSdkHttpAndOwnedMongo",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "durationSeconds": 17.5637634,
+    "browserWrites": {
+      "create": 1,
+      "edit": 1,
+      "memberAdd": 2,
+      "memberRemoveOrLeave": 2,
+      "delete": 1,
+      "total": 7
+    },
+    "browserPageErrors": 0,
+    "apiFailures": 0,
+    "unexpectedApiEndpoints": 0,
+    "treasuryZeroQuantity": true,
+    "coldReopen": true,
+    "accountSwitchAndLeave": true,
+    "coldNativeForeignClanPreserved": true,
+    "ownerMemberRevisionsPreserved": true,
+    "acceptedCasesRepeated": 0,
+    "acceptedSyntaxRepeated": 0
+  },
+  "artifact": {
+    "id": 14655932374,
+    "bytes": 4168,
+    "sha256": "64f8305352559cb561592a919ac81978c90266253f7b6f4efe2cf39d8dc64832",
+    "exactTrxEntries": 1,
+    "linkedIdentityVerified": true,
+    "proofMarkers": 3,
+    "verification": "RAM only",
+    "filesWritten": 0
+  },
+  "cleanup": {
+    "browserRuntimeCacheAndControl": "passed",
+    "nativeMongoDatabaseAndContainerAbsence": "passed",
+    "managerRestoration": "passed",
+    "postJobSteps": "passed",
+    "localGeneratedFiles": 0
+  },
+  "nextBreadth": "Inventory actual fields/catalogue and supported main actions; no Inventory edit or acceptance claimed yet."
 }
