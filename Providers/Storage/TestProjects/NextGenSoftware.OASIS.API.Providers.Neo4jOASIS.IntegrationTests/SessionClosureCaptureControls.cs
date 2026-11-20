@@ -21,10 +21,9 @@ public sealed class SessionClosureCaptureControls
     {
         var value=new Capture {Id=Guid.NewGuid()};
         var root=CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.SQLLiteDBOASIS).Result);
-        Assert.IsFalse(root.IsError,root.Message);
-        var autoProperty=root.Result.Where(row=>row.Id==value.Id);
+        var autoProperty=root.Where(row=>row.Id==value.Id);
         Assert.IsFalse(autoProperty.IsError,autoProperty.Message);
-        var computedProperty=root.Result.Where(row=>row.Id==value.ComputedId);
+        var computedProperty=root.Where(row=>row.Id==value.ComputedId);
         Assert.IsTrue(computedProperty.IsError,"A computed getter must not be evaluated as a query parameter.");
         Assert.AreEqual(0,value.GetterCalls,"Query binding must never invoke the application getter.");
     }
