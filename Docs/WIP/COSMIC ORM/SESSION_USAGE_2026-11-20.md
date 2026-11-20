@@ -40,3 +40,9 @@ Core4565e3ec adds `session.Linq<Holon>(trackResults:false)` and `AsCosmicNoTrack
 ## Read-mode acceptance
 
 Run44712697888 on frozen02f0d4cb/Core99d2 passed the three native read-mode/reload journeys. Strict artifact14617648973 (3065bytes; SHA256766e496df49d1b92d68d474ca1c57bad464d59d0e3ff73ef03fc1db75918a995) confirms no-tracking, pending-value preservation, explicit reload, actor isolation and exact cleanup. This acceptance does not replace pending verification of the materially changed standard LINQ bridge in44716587086.
+
+## Deferred root deletion (source, native qualification pending)
+
+Call Remove(entity, softDelete:true/false) on an existing tracked root, then SaveChangesAsync with an explicit operation identity. Delete permission is checked against every stored record before the single native transaction; original provider revisions are required. Success publishes the native acknowledgements and detaches deleted roots; an error retains pending deletion and operation identity for reconciliation. CancelRemoval cancels only local intent; explicit ReloadAsync also clears pending removal after an authorized refresh. Removing a new, uncommitted Add only detaches it.
+
+An explicitly supplied parent must match its authoritative record before commit. Children are not selected for deletion. The current native atomic request supports a single operation kind, so pending save/delete or soft/hard mixtures are refused before any write. Full mixed atomic lifecycle remains open; never interpret separately sequenced operations as one atomic flush.

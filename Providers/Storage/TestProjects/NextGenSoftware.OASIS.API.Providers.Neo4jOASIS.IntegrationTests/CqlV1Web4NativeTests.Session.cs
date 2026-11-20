@@ -159,6 +159,114 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(foreignLinq.IsError,foreignLinq.Message);
         Assert.AreEqual(0,foreignLinq.Result.Where(row=>ids.Contains(row.Id)).Count());
 
+
+        var secondTracked=reloaded.Result.Single(row=>row.Id==second.Id);
+        var thirdTracked=reloaded.Result.Single(row=>row.Id==third.Id);
+        var notInserted=New("not inserted");
+        Assert.IsFalse(session.Add(notInserted).IsError);
+        Assert.IsFalse(session.Remove(notInserted).IsError);
+        Assert.AreEqual(CosmicEntityState.Detached,session.State(notInserted).Result);
+        var removedNewNoop=await session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+        Assert.IsFalse(removedNewNoop.IsError,removedNewNoop.Message);
+        Assert.IsFalse(removedNewNoop.IsSaved);
+
+        Assert.IsFalse(session.Remove(persisted).IsError);
+        Assert.AreEqual(CosmicEntityState.Deleted,session.State(persisted).Result);
+        Assert.IsFalse(session.CancelRemoval(persisted).IsError);
+        Assert.AreEqual(CosmicEntityState.Unchanged,session.State(persisted).Result);
+        Assert.IsFalse(session.Remove(persisted).IsError);
+        clock.Restart();
+        var cancelByReload=await session.ReloadAsync(persisted);
+        timings["reload-cancels-removal"]=clock.ElapsedMilliseconds;
+        Assert.IsFalse(cancelByReload.IsError,cancelByReload.Message+cancelByReload.Exception);
+        Assert.AreEqual(CosmicEntityState.Unchanged,session.State(persisted).Result);
+
+        secondTracked.Name="must remain a local edit";
+        Assert.IsFalse(session.Remove(persisted).IsError);
+        var unsupportedMix=await session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+        Assert.IsTrue(unsupportedMix.IsError);
+        Assert.IsFalse(unsupportedMix.IsSaved);
+        Assert.AreEqual("COSMIC_ATOMIC_OPERATION_UNSUPPORTED",unsupportedMix.ErrorCode);
+        Assert.AreEqual(CosmicEntityState.Deleted,session.State(persisted).Result);
+        Assert.IsFalse(session.CancelRemoval(persisted).IsError);
+        var unchangedStored=await session.ReloadAsync(secondTracked);
+        Assert.IsFalse(unchangedStored.IsError,unchangedStored.Message);
+        Assert.AreEqual("session second",secondTracked.Name,"An unsupported mixed flush must not publish a partial update.");
+
+        var storedParent=persisted.ParentHolonId;
+        persisted.ParentHolonId=Guid.NewGuid();
+        Assert.IsFalse(session.Remove(persisted).IsError);
+        clock.Restart();
+        var wrongParent=await session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+        Assert.IsTrue(wrongParent.IsError);
+        Assert.IsFalse(wrongParent.IsSaved);
+        Assert.AreEqual("COSMIC_WRITE_INTENT_INVALID",wrongParent.ErrorCode);
+        var resetParent=await session.ReloadAsync(persisted);
+        Assert.IsFalse(resetParent.IsError,resetParent.Message);
+        Assert.AreEqual(storedParent,persisted.ParentHolonId);
+        Assert.AreEqual(CosmicEntityState.Unchanged,session.State(persisted).Result);
+        timings["deletion-parent-preflight"]=clock.ElapsedMilliseconds;
+
+        var other=New("private foreign survivor");
+        other.CreatedByAvatarId=foreign.ActorId;
+        ownedIds.Add(other.Id);
+        var otherCreated=await manager.SaveOwnedHolonsAsync(new[]{other},foreign.ActorId,
+            new CosmicWriteOptions(Guid.NewGuid()),saveChildren:false,recursive:false,providerType:session.Authority);
+        Assert.IsFalse(otherCreated.IsError,otherCreated.Message+otherCreated.Exception);
+        Assert.IsTrue(otherCreated.IsSaved);
+        var blocked=HolonChangeTracking.Clone(other);
+        Assert.IsFalse(session.Attach(blocked).IsError);
+        Assert.IsFalse(session.Remove(persisted).IsError);
+        Assert.IsFalse(session.Remove(blocked).IsError);
+        clock.Restart();
+        var deniedBatch=await session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+        timings["whole-delete-batch-authorization"]=clock.ElapsedMilliseconds;
+        Assert.IsTrue(deniedBatch.IsError,"One foreign root must reject the whole deletion batch.");
+        Assert.IsFalse(deniedBatch.IsSaved);
+        Assert.AreEqual(CosmicEntityState.Deleted,session.State(persisted).Result);
+        Assert.AreEqual(CosmicEntityState.Deleted,session.State(blocked).Result);
+        Assert.IsFalse(session.CancelRemoval(persisted).IsError);
+        Assert.IsFalse(session.CancelRemoval(blocked).IsError);
+        Assert.IsFalse(session.Detach(blocked).IsError);
+        var survivor=await foreign.GetDatabaseValuesAsync(other);
+        Assert.IsFalse(survivor.IsError,survivor.Message);
+        Assert.IsTrue(survivor.IsLoaded);
+        Assert.AreEqual("private foreign survivor",survivor.Result.Name);
+
+        Assert.IsFalse(session.Remove(persisted,softDelete:true).IsError);
+        clock.Restart();
+        var softDeleted=await session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+        Assert.IsFalse(softDeleted.IsError,softDeleted.Message+softDeleted.Exception);
+        Assert.IsTrue(softDeleted.IsSaved);
+        Assert.IsTrue(softDeleted.IsDeleted);
+        Assert.AreEqual(CosmicEntityState.Detached,session.State(persisted).Result);
+        Assert.IsTrue(persisted.IsDeleted);
+        Assert.IsFalse(persisted.IsActive);
+        Assert.AreEqual(actor,persisted.DeletedByAvatarId);
+        var retained=await provider.LoadHolonAsync(persisted.Id,loadChildren:false,recursive:false);
+        Assert.IsFalse(retained.IsError,retained.Message+retained.Exception);
+        Assert.IsNotNull(retained.Result,"Soft deletion must retain the native record.");
+        Assert.IsTrue(retained.Result.IsDeleted);
+        Assert.IsFalse(retained.Result.IsActive);
+        timings["soft-delete-retains-native-record"]=clock.ElapsedMilliseconds;
+
+        Assert.IsFalse(session.Remove(secondTracked,softDelete:false).IsError);
+        Assert.IsFalse(session.Remove(thirdTracked,softDelete:false).IsError);
+        clock.Restart();
+        var hardDeleted=await session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+        Assert.IsFalse(hardDeleted.IsError,hardDeleted.Message+hardDeleted.Exception);
+        Assert.IsTrue(hardDeleted.IsSaved);
+        Assert.IsTrue(hardDeleted.IsDeleted);
+        foreach(var deleted in new[]{secondTracked,thirdTracked})
+        {
+            Assert.AreEqual(CosmicEntityState.Detached,session.State(deleted).Result);
+            Assert.IsTrue(deleted.IsDeleted);
+            var missing=await provider.LoadHolonAsync(deleted.Id,loadChildren:false,recursive:false);
+            Assert.IsNull(missing.Result,"A native hard-deleted record must be absent.");
+            Assert.IsTrue(!missing.IsError || missing.ErrorCode==NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,
+                missing.Message+missing.Exception);
+        }
+        timings["atomic-hard-delete-two-roots"]=clock.ElapsedMilliseconds;
         return 1;
     }
 }

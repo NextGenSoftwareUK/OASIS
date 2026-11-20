@@ -314,11 +314,11 @@ public sealed partial class CqlV1Web4NativeTests
                     + (sessionJourney ? "-session-native-journey.json" : utcDateFilterNative ? "-utc-date-filter-native.json" : int32FilterHttp ? "-int32-filter-http-native.json" : int32FilterNative ? "-int32-filter-native.json" : guidFilterHttp ? "-guid-filter-http-native.json" : predicateCrossingHttp ? "-predicate-crossing-http-native.json" : guidRowsHttp ? "-guid-rows-http-native.json" : mixedGuidHttp ? "-grouped-guid-http-native.json" : guidDomains ? "-grouped-guid-native.json" : sharedInputs ? "-grouped-shared-inputs.json" : singlePerformance ? "-grouped-distinct-single-profile.json" : requiredDomains ? "-grouped-distinct-required-native.json" : mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
                 if (sessionJourney)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
-                        ownedCleanupIds = ids.Count, successfulHolonWrites = 4, queryElapsedMilliseconds = queryElapsed,
+                        ownedCleanupIds = ids.Count, successfulHolonWrites = 8, queryElapsedMilliseconds = queryElapsed,
                         nativeProviderVerified = true, ownedBatchVerified = true, identityResolutionVerified = true,
                         pendingValuesPreservedVerified = true, stateTransitionsVerified = true,
                         clearReloadVerified = true, actorIsolationVerified = true, exactCleanupVerified = true,
-                        noTrackingVerified = true, databaseValuesVerified = true, explicitReloadVerified = true, standardLinqVerified = true, linqTrackingModesVerified = true }));
+                        noTrackingVerified = true, databaseValuesVerified = true, explicitReloadVerified = true, standardLinqVerified = true, linqTrackingModesVerified = true, deferredDeletionVerified = true, removalCancellationVerified = true, wholeBatchDeleteAuthorizationVerified = true, softRecordRetainedVerified = true, hardRecordsAbsentVerified = true, parentBoundBeforeWriteVerified = true, unsupportedMixNotCommittedVerified = true }));
                 else if (utcDateFilterNative)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
                         rawNativeRecords = providerName == "MongoDBOASIS" ? 17 : providerName == "Neo4jOASIS" ? 18 : 15,
