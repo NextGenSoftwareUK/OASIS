@@ -28,7 +28,7 @@
     "sha256": "22c75aabd822ffe15ccf1f9c3003d1b9547dc80ce92522c6b637de8756fec5eb"
   },
   "rootCause": "Provider retained one EF DataContext across repository operations; parallel profile and portrait reads failed with second-operation exception",
-  "status": "scoped_context_fix_browser_memory_single_wallet_accepted_batch_rollback_pending",
+  "status": "scoped_context_fix_browser_memory_wallet_summary_and_batch_rollback_accepted",
   "providerSourceOverlays": [
     {
       "blob": "01870d785cf6929401333fd0a634278d77d44d08",
@@ -181,5 +181,31 @@
     "sevenPassesMustNotBeRerunUnchanged": true,
     "confirmed": "Newer independent FirstName reverted to Before on all3 native stores",
     "walletRollbackHarness": "Used plural DbSet instead of declared singular Table AvatarWalletStore; corrected2 SQL literals, rollback assertions unchanged"
+  },
+  "walletRollbackAcceptance": {
+    "skipped": 0,
+    "neoFixture": "not started",
+    "selectedCases": 1,
+    "passed": 1,
+    "run": 44654281791,
+    "browserRuntimeInstalled": false,
+    "failed": 0,
+    "artifact": {
+      "streamsDisposed": true,
+      "strictPassedTrxIdNameCountersVerified": true,
+      "bytes": 1508,
+      "ownedFixtureCleanupMarker": true,
+      "filesWritten": 0,
+      "twoOwnerNativeRollbackMarker": true,
+      "sha256": "315bd0261139df6249d71cce0b1d8d77374b53c18ffd2c158c3b671d67aa41b6",
+      "id": 14591863544
+    },
+    "durationSeconds": 2,
+    "job": 136016573274,
+    "sevenAcceptedCasesRepeated": 0,
+    "shippingSourceUnchangedFromA203": true,
+    "apiRebuilt": false,
+    "mongoFixtureStop": "success",
+    "source": "7d2d302b4dfaf04d64bbd73d212f3b9409d51366"
   }
 }
