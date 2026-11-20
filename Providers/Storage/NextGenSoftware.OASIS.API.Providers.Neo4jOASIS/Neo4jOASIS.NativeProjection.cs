@@ -165,6 +165,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 {
                     string text when text.Length <= 4096 => "STRING",
                     bool => "BOOLEAN",
+                    Guid => "STRING",
                     int or long => "INTEGER",
                     double number when double.IsFinite(number) => "FLOAT",
                     _ => null
@@ -199,6 +200,14 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     };
                     var expression = $"CASE WHEN {property} IS NOT NULL AND {property} IS :: STRING THEN {property} {method} ${parameter} ELSE false END";
                     predicates.Add(match.Operator == CosmicQueryComparisonOperator.NotEqual ? $"NOT ({expression})" : expression);
+                }
+                else if (match.Value is Guid guid)
+                {
+                    var pattern = $"nativeGuidFilterPattern{index}";
+                    parameters.Add(pattern, NeoCqlProjection.GuidTextPattern);
+                    parameters.Add(parameter, guid.ToString("D"));
+                    predicates.Add($"CASE WHEN {property} IS :: STRING THEN {property} =~ ${pattern} AND toLower({property}) {symbol} ${parameter} ELSE false END");
+                    continue;
                 }
                 else
                 {

@@ -157,6 +157,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                         predicates.Add(match.Operator == CosmicQueryComparisonOperator.NotEqual ? $"NOT ({expression})" : expression);
                         command.Parameters.AddWithValue($"$function{index}", (long)match.Function);
                     }
+                    else if (match.Value is Guid guid)
+                    {
+                        predicates.Add($"({SqliteCqlGuid.TextDomain(column)} AND lower({column}) COLLATE BINARY {symbol} $match{index})");
+                        command.Parameters.AddWithValue($"$match{index}", guid.ToString("D"));
+                        continue;
+                    }
                     else
                     {
                         var atomic = $"typeof({column}) = $type{index} AND {column} COLLATE BINARY {symbol} $match{index}";
