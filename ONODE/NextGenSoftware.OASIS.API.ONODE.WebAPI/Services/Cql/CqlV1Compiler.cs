@@ -440,7 +440,7 @@ public static partial class CqlV1Compiler
             }
             var type = filter.Scalar switch
             {
-                CqlV1Scalar.String => typeof(string), CqlV1Scalar.Integer => typeof(long),
+                CqlV1Scalar.String => typeof(string), CqlV1Scalar.Integer => typeof(long), CqlV1Scalar.Int32 => typeof(int),
                 CqlV1Scalar.UInt64 => typeof(ulong), CqlV1Scalar.Decimal => typeof(decimal), CqlV1Scalar.Double => typeof(double), CqlV1Scalar.Single => typeof(float),
                 CqlV1Scalar.Boolean => typeof(bool), CqlV1Scalar.DateTime => typeof(DateTime), _ => typeof(Guid)
             };

@@ -212,6 +212,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 else
                 {
                     var domain = $"{property} IS NOT NULL AND {property} IS :: {type}";
+                    if (match.Value is int)
+                        domain += $" AND {property} >= -2147483648 AND {property} <= 2147483647";
                     if (match.Value is double)
                     {
                         parameters["nativeFiniteDoubleMax"] = double.MaxValue;

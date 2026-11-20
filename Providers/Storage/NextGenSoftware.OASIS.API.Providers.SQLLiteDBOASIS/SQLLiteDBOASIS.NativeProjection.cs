@@ -166,6 +166,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     else
                     {
                         var atomic = $"typeof({column}) = $type{index} AND {column} COLLATE BINARY {symbol} $match{index}";
+                        if (match.Value is int)
+                            atomic += $" AND {column} BETWEEN -2147483648 AND 2147483647";
                         if (match.Value is double)
                         {
                             atomic += $" AND {column} BETWEEN $finiteMin{index} AND $finiteMax{index}";
