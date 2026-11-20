@@ -1,0 +1,47 @@
+{
+  "date": "2026-11-20",
+  "status": "source wired and syntax accepted; browser and real-backend acceptance open",
+  "portalCommit": "7dd9c94245ec3fdb2b1b618d4c673f7c87e56b13",
+  "walletScriptBlob": "35d139749790ec4a4c606b88774412f326f46e44",
+  "portalHtmlBlob": "6bb6264fff413c21b173176834fc02d3dd9a9019",
+  "sourceVerification": "Both published files verified byte-exact at the final Portal commit",
+  "syntax": {
+    "command": "Existing node --check reading the script through stdin",
+    "exitCode": 0,
+    "popupCodeExecuted": false,
+    "filesWritten": 0
+  },
+  "changes": [
+    "Await canonical jwtReadyPromise and capture current SDK bearer and window.user identity before loading",
+    "Remove localStorage profile/token authentication and guessed wallet/token response shapes",
+    "Read actual grouped provider wallets through the captured SDK HTTP client with private-key decryption false",
+    "Render actual SolanaWalletAsset mint/symbol/amount/rawAmount/decimals contract and preserve zero balances",
+    "Show actual wallet, portfolio, asset, activity-pagination and clipboard failures instead of silently returning null",
+    "Clear private rows, activity, statistics, address selection and form state on close/logout",
+    "Invalidate late reads across closed or changed sessions and refresh the selected tab",
+    "Advance wallet script cache version to 20261120-breadth19"
+  ],
+  "retained": [
+    "Existing explicit Solana wallet creation and confirmed SOL transfer SDK paths",
+    "Finalized activity pagination and token rendering in batches of 50",
+    "Partial portfolio valuation remains visibly partial",
+    "No unsupported wallet-network capability is advertised as implemented"
+  ],
+  "remaining": [
+    "Actual browser/SDK/API/native wallet list, tabs, refresh, creation and close/reopen flows",
+    "Real Solana asset and activity reads through a separately owned backend",
+    "Authorized funded transfer and receipt verification",
+    "Full Startup, SSO, hosted deployment and whole-site acceptance"
+  ],
+  "acceptedTestsRepeated": 0,
+  "sharedBackendCalls": 0,
+  "fundedOrOnChainCalls": 0,
+  "localBuildsDownloadsEnvironmentsDatabasesResultsArtifacts": 0,
+  "wholePortalComplete": false,
+  "coordination": {
+    "development": "74bcfd4ffe060f55704df2d6b7d3e9fe21521685",
+    "cqlStatusReviewed": true,
+    "cqlCurrentSource": "9baee7a1048632c114719d4064b3dcc94ae7e95b",
+    "importedOrDeployed": false
+  }
+}
