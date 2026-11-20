@@ -40,6 +40,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
         }
         public MongoDBOASIS Provider {get;private set;}=null!;
         internal IMongoDatabase Admin=>_client.GetDatabase("admin");
+        internal Task SetAvatarReadProfilingAsync(bool enabled) => _client.GetDatabase(_name)
+            .RunCommandAsync<BsonDocument>(new BsonDocument("profile",enabled?2:0));
+        internal Task<long> AvatarReadCommandCountAsync() => _client.GetDatabase(_name)
+            .GetCollection<BsonDocument>("system.profile").CountDocumentsAsync(new BsonDocument("$or",new BsonArray {
+                new BsonDocument("command.find","Avatar"),new BsonDocument("command.aggregate","Avatar") }));
         // The independent observer is outside Provider's app-name-scoped fault.
         // Native verification must not wait for the faulted client's next heartbeat.
         internal async Task<AvatarProfileSnapshot> ReadNative(Guid id)

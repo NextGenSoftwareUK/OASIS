@@ -1,0 +1,53 @@
+{
+  "status": "source_implemented_new_native_qualification_prepared",
+  "core": "33e0ab95af6b7bbce20ee7f74f24717a3f65b158",
+  "changes": [
+    "GetAllSettings uses one native avatar snapshot for four preference categories",
+    "Individual and aggregate settings share category builders; existing defaults and response keys retained",
+    "Eight subscription constructor index sites use shared VerifiedMongoIndexes owner; ready schema is verified read-only, missing schema created, mismatches fail"
+  ],
+  "sourceVerified": true,
+  "compiled": false,
+  "runtimeAccepted": false,
+  "tests": [
+    {
+      "name": "AggregateSettingsUsesOneNativeAvatarSnapshotAcrossProviders",
+      "scope": "Actual signed-bearer HTTP with distinct persisted categories across Mongo/SQLite/Neo plus canonical Mongo billing",
+      "nativeResourceProof": "Owned Mongo engine profiler expects two Avatar read commands for Mongo binding (authentication plus snapshot), one authentication read for other bindings",
+      "stateGuards": "Selected preferences, profile/revisions/password/metadata preserved; profiler disabled and existing owned fixture cleanup"
+    },
+    {
+      "name": "SubscriptionRepositoryReopenVerifiesIndexesWithoutSchemaWrites",
+      "scope": "Actual compiled repository and native Mongo",
+      "controls": [
+        "Initialize missing schema and ledger through real shipping path",
+        "Block createIndexes for tagged client; reopening and real ledger read must succeed",
+        "Explicit write probe must receive native8000 error",
+        "Existing mismatched index refused and unchanged",
+        "Missing index recreated with original declared key definition",
+        "Failpoint disabled and exact owned billing DB dropped/foreign record preserved"
+      ]
+    }
+  ],
+  "baseline": {
+    "run": 44685226050,
+    "core": "11ebf588e88c3f7ae03fdd9a71ec1a753afd68c5",
+    "aggregateRequestMs": [
+      87.0462,
+      7.6269,
+      16.4459,
+      13.652,
+      38.1529,
+      42.5955
+    ],
+    "scope": "Initialized owned CI functional requests including errors; not hosted latency"
+  },
+  "oldAcceptedCohortsSelected": 0,
+  "browserDownloads": false,
+  "sharedServicesTouched": false,
+  "DNAChanged": false,
+  "deploymentChanged": false,
+  "localGeneratedOutputs": 0,
+  "next": "Build actual API and select only two NEW native Facts in existing leased CI environment",
+  "fullPortalAccepted": false
+}

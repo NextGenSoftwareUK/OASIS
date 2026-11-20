@@ -82,7 +82,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public Task SubscriptionSettingsHttpUsesCanonicalBillingAndPreservesThreeNativeAccounts() =>
         RunProfileHttp(HyperDriveModes.V2,false,hyperDriveSettingsBrowser:true,subscriptionSettings:true);
 
-    private async Task RunProfileHttp(string mode, bool sdkOnly, bool browser = false, bool portraitBrowser = false, bool portraitAccountSwitch = false, bool portraitEditAfterUpload = false, bool portraitClientReplacement = false, bool hyperDriveSettingsBrowser = false, bool holonStoragePolicyBrowser = false, bool subscriptionSettings = false)
+    [Fact]
+    public Task AggregateSettingsUsesOneNativeAvatarSnapshotAcrossProviders() =>
+        RunProfileHttp(HyperDriveModes.V2,false,hyperDriveSettingsBrowser:true,subscriptionSettings:true,aggregateSnapshot:true);
+
+    private async Task RunProfileHttp(string mode, bool sdkOnly, bool browser = false, bool portraitBrowser = false, bool portraitAccountSwitch = false, bool portraitEditAfterUpload = false, bool portraitClientReplacement = false, bool hyperDriveSettingsBrowser = false, bool holonStoragePolicyBrowser = false, bool subscriptionSettings = false, bool aggregateSnapshot = false)
     {
         RequireOwnedFixtures();
         var id = Guid.NewGuid();
@@ -254,7 +258,10 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                             new NextGenSoftware.OASIS.API.Core.Configuration.ProviderRoutingOverrides(
                                 autoFailoverEnabled:false,autoReplicationEnabled:false,autoLoadBalancingEnabled:false),provider);
                         Assert.False(selected.IsError,selected.Message);
-                        await VerifySubscriptionSettingsHttp(client,subscriptionLedger,store,id);
+                        if(aggregateSnapshot)
+                            await VerifyAggregateSnapshotHttp(client,subscriptionLedger,store,sdk,mongo,id);
+                        else
+                            await VerifySubscriptionSettingsHttp(client,subscriptionLedger,store,id);
                         continue;
                     }
                     if (sdkOnly)
