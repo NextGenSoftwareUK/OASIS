@@ -31,31 +31,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 // Use EggsManager for business logic
                 var result = await EggsManager.Instance.GetAllEggsAsync(AvatarId);
 
-                // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
-                {
-                    return new OASISResult<List<Egg>>
-                    {
-                        Result = new List<Egg>(),
-                        IsError = false,
-                        Message = "Eggs retrieved successfully (using test data)"
-                    };
-                }
 
                 return result;
             }
             catch (Exception ex)
             {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    return new OASISResult<List<Egg>>
-                    {
-                        Result = new List<Egg>(),
-                        IsError = false,
-                        Message = "Eggs retrieved successfully (using test data)"
-                    };
-                }
                 return new OASISResult<List<Egg>>
                 {
                     IsError = true,
@@ -78,31 +58,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 // Use EggsManager for business logic
                 var result = await EggsManager.Instance.GetCurrentEggQuestsAsync(AvatarId);
 
-                // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
-                {
-                    return new OASISResult<List<EggQuest>>
-                    {
-                        Result = new List<EggQuest>(),
-                        IsError = false,
-                        Message = "Egg quests retrieved successfully (using test data)"
-                    };
-                }
 
                 return result;
             }
             catch (Exception ex)
             {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    return new OASISResult<List<EggQuest>>
-                    {
-                        Result = new List<EggQuest>(),
-                        IsError = false,
-                        Message = "Egg quests retrieved successfully (using test data)"
-                    };
-                }
                 return new OASISResult<List<EggQuest>>
                 {
                     IsError = true,
@@ -125,31 +85,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 // Use EggsManager for business logic
                 var result = await EggsManager.Instance.GetCurrentEggQuestLeaderboardAsync(AvatarId);
 
-                // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
-                {
-                    return new OASISResult<List<EggQuestLeaderboard>>
-                    {
-                        Result = new List<EggQuestLeaderboard>(),
-                        IsError = false,
-                        Message = "Egg quest leaderboard retrieved successfully (using test data)"
-                    };
-                }
 
                 return result;
             }
             catch (Exception ex)
             {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    return new OASISResult<List<EggQuestLeaderboard>>
-                    {
-                        Result = new List<EggQuestLeaderboard>(),
-                        IsError = false,
-                        Message = "Egg quest leaderboard retrieved successfully (using test data)"
-                    };
-                }
                 return new OASISResult<List<EggQuestLeaderboard>>
                 {
                     IsError = true,
@@ -172,31 +112,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 // Use EggsManager for business logic
                 var result = await EggsManager.Instance.GetAllEggsAsync(Avatar.Id);
 
-                // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
-                {
-                    return new OASISResult<List<Egg>>
-                    {
-                        Result = new List<Egg>(),
-                        IsError = false,
-                        Message = "My eggs retrieved successfully (using test data)"
-                    };
-                }
 
                 return result;
             }
             catch (Exception ex)
             {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    return new OASISResult<List<Egg>>
-                    {
-                        Result = new List<Egg>(),
-                        IsError = false,
-                        Message = "My eggs retrieved successfully (using test data)"
-                    };
-                }
                 return new OASISResult<List<Egg>>
                 {
                     IsError = true,

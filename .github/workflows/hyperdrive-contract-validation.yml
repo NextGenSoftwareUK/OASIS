@@ -26,6 +26,11 @@ on:
         type: string
         required: false
         default: ''
+      portal_syntax_file:
+        description: Optional single changed popup filename; empty checks the three map scripts
+        type: string
+        required: false
+        default: ''
       build_native_contract_project:
         description: Also compile the integrated three-provider contract project without executing tests
         type: boolean
@@ -107,12 +112,20 @@ jobs:
             /assets/js/celestial-map-modal.js
             /assets/js/oapp-map-modal.js
             /assets/js/social-graph-modal.js
+            /assets/js/eggs-modal.js
 
       - name: Parse changed map scripts without executing popup code
         if: ${{ inputs.portal_syntax_ref != '' }}
         shell: pwsh
+        env:
+          PORTAL_SYNTAX_FILE: ${{ inputs.portal_syntax_file }}
         run: |
-          foreach ($mapScript in @('celestial-map-modal.js', 'oapp-map-modal.js', 'social-graph-modal.js')) {
+          $selectedScripts = @('celestial-map-modal.js', 'oapp-map-modal.js', 'social-graph-modal.js')
+          if ($env:PORTAL_SYNTAX_FILE) {
+            if ($env:PORTAL_SYNTAX_FILE -notin @('celestial-map-modal.js', 'oapp-map-modal.js', 'social-graph-modal.js', 'eggs-modal.js')) { throw 'Unsupported popup syntax target.' }
+            $selectedScripts = @($env:PORTAL_SYNTAX_FILE)
+          }
+          foreach ($mapScript in $selectedScripts) {
             node --check "../oportal-map-source/assets/js/$mapScript"
             if ($LASTEXITCODE) { throw "Map source syntax failed: $mapScript" }
             Write-Host "Map source syntax passed: $mapScript"
