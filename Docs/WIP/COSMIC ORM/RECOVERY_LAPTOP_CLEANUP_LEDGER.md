@@ -8317,3 +8317,5 @@ Owned Chrome stopped; marker/path and process absence verified before normal rec
 21 November — Holo timeout source increment: no local build/runtime/download/database/artifact; thin scoped index removed. Existing package/image journals remain necessary until durable delivery. No conductor state cleanup or data deletion.
 
 21 November — Combined snapshot package781bytes inspected in RAM only, no local archive/image. Retain compact active unfiltered-snapshot-image-handoff.json and holo-readiness-240-qualification.json until durable rollout/qualification evidence; no local builds/environments.
+
+21 November — Retain compact holo-readiness-240-image-handoff.json (candidate91423bce/image44946308915) plus qualification journal until exact-image delivery outcome is durable. No local image/archive/build/database/environment. Scoped index removed; frozen source tag is necessary release provenance, not another branch/worktree.
