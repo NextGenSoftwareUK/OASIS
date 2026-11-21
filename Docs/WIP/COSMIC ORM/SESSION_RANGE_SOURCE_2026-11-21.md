@@ -13,3 +13,5 @@ Qualification uses the existing session-entry workflow with the new range contra
 ## Focused contract and WEB4 compile accepted
 
 Run44945637242/job136972218756 on e2161fb6 succeeded: one new range rule/partial-result/reentrancy/no-I/O test plus three entry compatibility tests,4passed/0failed/0skipped. Actual WEB4 compiled0errors5m49.13s. Artifact14723827093 is1808bytes, SHA2569b59cd0d788ed61d7ee977e190932265efea0a1cf765f4b3a63c02ff2dfcd77c; exact entry.trx and all four names/outcomes verified in RAM. Source Core3b69eedb. Earlier source-only status is superseded by this scoped contract/build acceptance; native save acceptance and full framework parity remain open.
+
+Native representative qualification prepared: three cases only, selecting real MongoDB/SQLite/Neo4j, two private roots, absence before SaveChanges, explicit create, AttachRange baseline/no-op, one update and foreign-private read exclusion. Existing fixture owns exact DB/work/container cleanup and writes evidence only after cleanup. Isolated CI Mongo/Neo; no shared Atlas/live operations. Native results pending; frozen timeout image excludes range Core.
