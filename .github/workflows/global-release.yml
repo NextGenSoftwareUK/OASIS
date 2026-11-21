@@ -722,6 +722,15 @@ jobs:
           ./Scripts/New-OASISReleaseNotes.ps1 -Component STARRuntime -Version '${{ needs.plan.outputs.star_version }}' -OutputPath 'artifacts/global-release/star-runtime.md'
           gh release create $tag artifacts/global-release/assets/*.zip --title 'STAR ODK Runtime v${{ needs.plan.outputs.star_version }}' --notes-file 'artifacts/global-release/star-runtime.md' --verify-tag=false
 
+  star-installers:
+    # Windows (.exe), macOS (.pkg/.dmg) and Linux (.tar.gz/.deb/.rpm) installers, attached to the STAR release.
+    if: inputs.star_runtime && inputs.publish
+    needs: [plan, star-runtime-release]
+    uses: ./.github/workflows/star-installers.yml
+    with:
+      version: ${{ needs.plan.outputs.star_version }}
+    secrets: inherit
+
   mcp:
     if: inputs.mcp_server
     needs: plan
