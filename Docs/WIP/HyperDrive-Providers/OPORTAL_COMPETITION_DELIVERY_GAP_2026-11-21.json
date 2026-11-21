@@ -63,5 +63,13 @@
     "status": "queued",
     "scope": "source-only generation; no runtime/fixtures/build",
     "reason": "SaveLeaguesAsync addition and JoinTournamentAsync signature change require reviewed manifest before compile"
+  },
+  "portalCounterFix": {
+    "commit": "c26436b2f652266da8830acb41c03d2f2910fbb1",
+    "branch": "dev",
+    "change": "Populate existing tournament counter from validated loaded catalogue; no extra HTTP request",
+    "validation": "existing Node syntax check and diff check passed",
+    "runtimeAcceptance": "pending actual Competition browser flow",
+    "catalogueBrowserPin": "Unchanged2472; running Quests/Missions test excludes Competition change"
   }
 }
