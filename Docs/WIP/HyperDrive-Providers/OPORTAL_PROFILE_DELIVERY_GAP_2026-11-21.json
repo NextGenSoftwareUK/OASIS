@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-21",
+  "status": "source delivery gap confirmed; current hosted behavior not tested",
+  "development": "f54923d82ac8bffa7877d9307f18e879d41a8254",
+  "currentCore": "7165ab625f90501047ca10c3b9f193ed0498caf5",
+  "retainedAcceptance": {
+    "run": 44605454429,
+    "job": 135847816728,
+    "source": "a4412568e922a09ef5dd8101d049ec5e651f3b7e",
+    "core": "13ba34168d21ec583ccb5057a80edc9bac9444ca",
+    "scope": "profile hydration acceptance only; original evidence scopes remain authoritative"
+  },
+  "portalCall": {
+    "script": "assets/js/avatar-modal.js",
+    "sdk": "assets/js/oasis-web4-sdk.js",
+    "method": "PATCH",
+    "route": "api/avatar/profile"
+  },
+  "controller": {
+    "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SelfAvatarProfileController.cs",
+    "acceptedBlob": "169c862d55afed5e542158314808f9b4e04150e1",
+    "currentBlob": null
+  },
+  "manager": {
+    "path": "Managers/AvatarManager/AvatarManager-ApplyProfile.cs",
+    "acceptedBlob": "fabf25fae48782db1c5183f9c65326ad9ab5513d",
+    "currentBlob": null
+  },
+  "additionalChangedContracts": [
+    "Interfaces/Providers/IAvatarProfileStorageProvider.cs",
+    "Managers/OASIS HyperDrive/OASISHyperDrive.Profile.cs"
+  ],
+  "next": "Trace full accepted controller/service/Core/provider contract graph and reconcile scoped changes with current CQL source. Preserve accepted native/browser cases; run only required new composition checks and changed behavior. No shared-cluster request is authorized by this audit.",
+  "subscriptionReview": "Controller/three Core subscription source differences located but not yet assessed; no subscription regression conclusion."
+}
