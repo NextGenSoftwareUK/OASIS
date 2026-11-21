@@ -23,7 +23,8 @@
   "qualification": {
     "run": 44943023703,
     "control": "39d1238a87bb12cdaded4f31edf6a2eb16e706da",
-    "status": "queued",
-    "mode": "real native quest-empty only"
+    "status": "in_progress",
+    "mode": "real native quest-empty only",
+    "job": 136964180359
   }
 }

@@ -60,5 +60,42 @@
   ],
   "sharedBackendTestCalls": 0,
   "runningSettingsVerified": false,
-  "wholeGoalComplete": false
+  "wholeGoalComplete": false,
+  "sourceSettings": {
+    "autoFailOver": true,
+    "autoReplication": false,
+    "autoLoadBalance": true
+  },
+  "startupFilesVerified": [
+    {
+      "service": "WEB5 STAR API",
+      "runtimeCommit": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+      "autoFailOver": true,
+      "autoReplication": false,
+      "autoLoadBalance": true,
+      "scope": "Running container revision and /app/OASIS_DNA.json selected fields only; not app in-memory acknowledgement"
+    },
+    {
+      "service": "WEB7 SYMBIOTIC API",
+      "runtimeCommit": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+      "autoFailOver": true,
+      "autoReplication": false,
+      "autoLoadBalance": true,
+      "scope": "Running container revision and /app/OASIS_DNA.json selected fields only; not app in-memory acknowledgement"
+    },
+    {
+      "service": "WEB8 IGN API",
+      "runtimeCommit": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+      "autoFailOver": true,
+      "autoReplication": false,
+      "autoLoadBalance": true,
+      "scope": "Running container revision and /app/OASIS_DNA.json selected fields only; not app in-memory acknowledgement"
+    }
+  ],
+  "remainingStartupServices": [
+    "WEB4 OASIS API",
+    "WEB6 AI API",
+    "WEB9 SINGULARITIY API",
+    "WEB10 THE SOURCE API"
+  ]
 }
