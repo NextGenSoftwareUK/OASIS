@@ -1,5 +1,6 @@
 {
-  "status": "compile-running-not-deployed",
+  "status": "compile-accepted-native-pending-not-deployed",
+  "compileResult": { "errors": 0, "elapsed": "00:05:11.32", "behaviorCasesExecuted": 0, "postJobCleanup": "passed" },
   "compileRun": 44885520700,
   "compileJob": 136789850263,
   "controlSource": "d03d665b7a5ba7e9c4afc6249098d8fd3de04db4",
