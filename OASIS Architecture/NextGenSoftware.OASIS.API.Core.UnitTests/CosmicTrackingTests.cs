@@ -1056,13 +1056,14 @@ public partial class CosmicTrackingTests
     private static CosmicStorageIdentity ControlledNativeIdentity(ProviderType type)
         =>new(type,new string('A',64),"controlled-store-"+type);
 
-    private static (HolonManager Manager, Mock<IOASISStorageProvider> Provider, ProviderManager Providers) Fixture(bool v2, bool reject = false, bool conditional = false, bool preparation = false, bool recovery = false, bool preparationRecovery = false, bool atomicReplication = false, bool boundReplication = false)
+    private static (HolonManager Manager, Mock<IOASISStorageProvider> Provider, ProviderManager Providers) Fixture(bool v2, bool reject = false, bool conditional = false, bool preparation = false, bool recovery = false, bool preparationRecovery = false, bool atomicReplication = false, bool boundReplication = false, bool property = false)
     {
         var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS {
             HyperDriveMode = v2 ? HyperDriveModes.V2 : HyperDriveModes.Legacy,
             StorageProviders = new StorageProviderSettings { LogSwitchingProviders = false } } };
         var p = new Mock<IOASISStorageProvider>(); p.SetupAllProperties();
         if (conditional) p.As<IConditionalHolonStorageProvider>();
+        if (property) p.As<IConditionalHolonPropertyStorageProvider>();
         if (atomicReplication) p.As<IAtomicHolonReplicationStorageProvider>();
         if (boundReplication)
         {
