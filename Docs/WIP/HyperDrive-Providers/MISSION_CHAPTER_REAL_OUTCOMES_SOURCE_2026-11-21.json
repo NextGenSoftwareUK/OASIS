@@ -37,10 +37,12 @@
     ]
   },
   "qualification": {
-    "status": "typed-readback-diagnostic-prepared",
+    "status": "queued",
     "mode": "catalogue",
     "sourceUnchanged": true,
-    "change": "Verify acknowledged native mission/chapter saves through real typed point readback; include underlying native exception type/message on failure."
+    "change": "Verify acknowledged native mission/chapter saves through real typed point readback; include underlying native exception type/message on failure.",
+    "run": 44947727586,
+    "control": "bddf5fa6025777b628b39c31c6ae0f4b9cfd337f"
   },
   "failedAttempts": [
     {
