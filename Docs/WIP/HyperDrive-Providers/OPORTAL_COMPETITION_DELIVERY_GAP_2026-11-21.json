@@ -1,6 +1,6 @@
 {
   "date": "2026-11-21",
-  "status": "verified source delivery gap; no implementation or test replay",
+  "status": "scoped source restoration prepared; compile/composition/browser gates open",
   "acceptedRun": 44777915227,
   "acceptedScope": "three-provider native main flow; browser/HTTP/full Startup not accepted",
   "core": {
@@ -28,5 +28,21 @@
     "same": true
   },
   "next": "Reconcile existing accepted Core/STAR changes into current dependency history, compile only changed composition, then new actual browser/HTTP breadth. Preserve native acceptance; do not replay unchanged three-provider case.",
-  "runningCatalogueCheck": "44959193440 remains frozen; no modification or restart"
+  "runningCatalogueCheck": "44959193440 remains frozen; no modification or restart",
+  "preparedScopedSources": {
+    "core": {
+      "commit": "11ca31041a111961199adde66e6b152456e2b277",
+      "tag": "qualification/competition-delivery-2026-11-21-11ca3104",
+      "blob": "c7c03ecae2f2966de6a5a03a9eec933cf276751f",
+      "base": "bcee0c264cfdedb70edf4631f08613b26f6cae18",
+      "status": "source-only-uncompiled"
+    },
+    "star": {
+      "commit": "3e2b299f6426c1e5cf5e55e65a71d75536007673",
+      "tag": "qualification/competition-delivery-2026-11-21-3e2b299f",
+      "blob": "0b39c83e9230d8df19f13251012ff6cf681d6867",
+      "base": "6edca43dce1cb1b2079b1df68ae085131970d69e",
+      "status": "source-only-uncompiled"
+    }
+  }
 }
