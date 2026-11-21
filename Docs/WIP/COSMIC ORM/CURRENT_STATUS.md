@@ -1,3 +1,6 @@
+21 November — SINGLE-ENTITY ENTRY CONTRACT ACCEPTED / ACTUAL WEB4 BUILD PASSED.
+Run44891869607/job136809234588 completed successfully on exact ec127ea75/Core553182248. Three EntryInspectionKeepsDetachedTrackedReadOnlyAndDisposedSemanticsWithoutIo cases passed for MongoDB/SQLite/Neo4j authority identities,0failed0skipped; strict providers permit no I/O. Actual WEB4 build succeeded0errors. RAM-only inspection verified exact entry.trx, artifact14702729585 (1644B), SHAe788ad9b4892d4f7e9f70ba8cab9603a1df6a8c7cdbb5637c5edf88dfc2eb76d. First artifact filename assumption was rejected before acceptance, corrected to actual entry.trx; no shipping/test rerun. This qualifies the SDK contract/build only; no native I/O/live/full-framework credit. Frozen demo source6b5713f7 still pins Core13fabae5, intentionally excluding new SDK work. Image44891296213 remains in progress. No live data/config/deploy change.
+
 21 November — MAPPED DATE KEYS ACCEPTED / REVIEWED WEBSITE PREVIEW READY.
 Native run44890869474 passed3/failed0/skipped0 for MongoDB/SQLite/Neo4j. Strict RAM inspection of artifact14702812086 (3029 bytes, SHA256 2e452d267c07c5195465b5293ce1344c91ecaba99d1f792bed88abdaa0f7d3c8) verified all12 flags/store and exact cleanup. Canonical DateTime evidence updated; no accepted cohort rerun.
 
