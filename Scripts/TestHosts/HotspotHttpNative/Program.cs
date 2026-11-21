@@ -30,7 +30,8 @@ Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
 var dna = new OASISDNA { OASIS = new() {
-    HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new(),
+    HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
+        AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
     Logging = new() { LogToConsole = false, LogToFile = false }, ErrorHandling = new(),
     Security = new() { SecretKey = Convert.ToBase64String(secret) }, Email = new(),
     SubscriptionConfig = new() { PlanType = "Gold" },

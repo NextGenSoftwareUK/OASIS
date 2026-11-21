@@ -61,8 +61,15 @@
     {
       "run": 44896756330,
       "control": "66c3bea0ff93debe59445c8bf7ec513d2a947ef1",
-      "status": "in_progress",
-      "change": "Explicit test-host JWT bearer package; shipping source unchanged"
+      "status": "completed",
+      "change": "Explicit test-host JWT bearer package; shipping source unchanged",
+      "job": 136823965644,
+      "conclusion": "failure",
+      "stage": "runtime configuration validation before HTTP",
+      "buildErrors": 0,
+      "buildElapsed": "00:03:27.61",
+      "error": "AutoFailoverProviders empty while V2 automation enabled",
+      "databaseDnaContainerCleanup": "verified"
     }
   ]
 }
