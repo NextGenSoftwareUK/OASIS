@@ -1,3 +1,5 @@
+21 November — Neo activation CI complete:3contract checks +1real native journey accepted. Owned2holons removed/absence checked; GitHub Neo container and network teardown succeeded.1518B/1244B ZIPs inspected in RAM only,0archive/output files retained. Compact JSON retained in source; CI artifact retention2days. Last local free43.66GiB. No local builds/runtimes/DBs/images/envs/downloads/new worktrees.
+
 21 November — Neo cold-read native CI: one GitHub-owned pinned disposable Neo4j service;2owned fixture holon IDs removed/absence asserted in finally, service lifecycle owned by GitHub. Local source only; no laptop database/container/image/build/environment/download/artifact created. CI compact TRX retention2days, no shared Atlas access.
 
 21 November — Neo read-activation source/CI: no local install/download/build/runtime/DB/browser/archive/test output or worktree. CI TRX retention2days. Last measured C free43.63GiB.
