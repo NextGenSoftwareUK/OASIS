@@ -41,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     if (AdmittedStorageManagerAcquisition.TryCreate(
                         () => OASISBootLoader.OASISBootLoader.OASISDNA,
                         () => ProviderManager.Instance.CurrentStorageProvider,
-                        (provider, dna) => new MapManager(provider, AvatarId, dna),
+                        (provider, dna) => new MapManager(new HolonManager(null, dna, ProviderManager.Instance), AvatarId),
                         out MapManager admitted, admissionOnly: false))
                         _mapManager = admitted;
                     else
