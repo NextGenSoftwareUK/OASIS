@@ -1,9 +1,9 @@
 {
   "scope": "quest",
-  "status": "canonical-graph-new-data-qualification-prepared-not-release-ready",
-  "base": "3159c8fb14e00b2f6a7b4f793c2e2fe54b91fddf",
-  "candidate": "4020b5830e8437cabb1f878c63ad45c4b8ac85df",
-  "tag": "qualification/mission-graph-2026-11-21-4020b583",
+  "status": "mongo-manager-ack-fix-prepared-uncompiled",
+  "base": "f54923d82ac8bffa7877d9307f18e879d41a8254",
+  "candidate": "5d050dd659b35dbfe56eb11fcf6c86bc4d26c830",
+  "tag": "qualification/mission-ack-2026-11-21-5d050dd6",
   "buildProjects": [
     "WEB5"
   ],
@@ -13,15 +13,16 @@
     "Docker/oasis-dependency-versions.env",
     "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.Core",
-    "STAR ODK"
+    "STAR ODK",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Graph.cs"
   ],
   "star": {
-    "base": "d97be575f4ee7ca3861c67709f6a6b3d4b002ddf",
-    "candidate": "277a4b515646abf5b84d89ac5d1dfa7f12ed3af4",
+    "base": "ead6c9cab83c0144c64cf3bfa22f94733a0aeaf5",
+    "candidate": "6edca43dce1cb1b2079b1df68ae085131970d69e",
     "scope": "Nine catalogue calls use explicit shallow loader; detail manager reads stay explicit/deep.",
     "previousCandidate": "78eabe52e5e474c21367959cecfcb900709db169"
   },
-  "preserved": "Qualified hotspot/Map/current CQL/Core13, all other pins and settings",
+  "preserved": "Current verified Developmentf549 CQL/session/snapshot/provider import/Holo deadline/package policies; only named graph source and paired pins change.",
   "remaining": "Actual mission/chapter compile and representative real outcomes, then scoped delivery; full goal remains incomplete.",
   "attempts": [
     {
@@ -40,7 +41,7 @@
   ],
   "previousCandidate": "25c4d178b8ba955d948465a7be7dd92617cdb06c",
   "qualification": {
-    "status": "source-gates-passed-awaiting-dispatch",
+    "status": "prepared-awaiting-source-gates",
     "mode": "catalogue",
     "scope": "One real new-data graph lifecycle: mission plus chapter and physical child saved once, shallow collections absent, explicit detail preserves both roles/typed metadata, API shallow catalogues/detail/missing errors. No accepted cohort replay."
   },
@@ -61,8 +62,8 @@
   "portal": "2472bf56b0d104c93626d3bba7fe29b16323712c",
   "supersededPopupCandidate": "489cee90879f6b3bdafcc7f4a14b3c9dfcb0a7c0",
   "core": {
-    "base": "13fabae5a78c70b961c300657a875f1cfabe238d",
-    "candidate": "db28ee5b8b470ceb6cfd50aae0b4da78a5296590",
+    "base": "7165ab625f90501047ca10c3b9f193ed0498caf5",
+    "candidate": "bcee0c264cfdedb70edf4631f08613b26f6cae18",
     "scope": "One role-binding file; explicit stored-record registration uses existing canonical codec and shared identity/revision guards; existing runtime binding contract preserved."
   },
   "releaseGate": "Legacy Mission metadata/role-manifest compatibility assessment or explicit migration required before Development deployment; new-data qualification alone cannot accept existing records.",

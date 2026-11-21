@@ -1,0 +1,12 @@
+{
+  "base": "f54923d82ac8bffa7877d9307f18e879d41a8254",
+  "candidate": "5d050dd659b35dbfe56eb11fcf6c86bc4d26c830",
+  "core": "bcee0c264cfdedb70edf4631f08613b26f6cae18",
+  "onode": "3d4c0e0ed38c0642ccbab2187499650e17095ed2",
+  "star": "6edca43dce1cb1b2079b1df68ae085131970d69e",
+  "tree": "278601265e001f801a45f579988c5007cda9d98f",
+  "status": "prepared-uncompiled-unaccepted",
+  "coreTag": "qualification/mission-ack-2026-11-21-bcee0c26",
+  "starTag": "qualification/mission-ack-2026-11-21-6edca43d",
+  "candidateTag": "qualification/mission-ack-2026-11-21-5d050dd6"
+}
