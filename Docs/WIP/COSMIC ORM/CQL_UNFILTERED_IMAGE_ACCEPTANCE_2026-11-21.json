@@ -6,9 +6,26 @@
   "imageConclusion": "success",
   "digest": "sha256:bbd69aa3d0ee5512206cbe18016634f9682d26a4131108da6683ce0b2a87638a",
   "packageRun": 44894688335,
-  "packageObservedStatus": "queued",
-  "packageAccepted": false,
-  "developmentPushed": false,
+  "packageObservedStatus": "completed",
+  "packageAccepted": true,
+  "developmentPushed": true,
   "hostedAccepted": false,
-  "localImageDownloaded": false
+  "localImageDownloaded": false,
+  "packageJob": 136817727944,
+  "packageArtifact": {
+    "id": 14703765335,
+    "bytes": 782,
+    "sha256": "ff6d830c2caba3517f0977fa1ca615f96489b81d47c0ba7f0103382665836ad4",
+    "expectedEntries": [
+      "Web4FullPackage/acknowledged.json",
+      "Web4FullPackage/cleanup.json"
+    ],
+    "filesWritten": 0
+  },
+  "apiQualified": false,
+  "ownedContainerAbsent": true,
+  "dataWrites": 0,
+  "developmentDeployment": "1fa92e09-c55b-4a34-8913-0c5d6b0d4f54",
+  "developmentObservedStatus": "QUEUED",
+  "developmentLoadBalancingSaved": true
 }
