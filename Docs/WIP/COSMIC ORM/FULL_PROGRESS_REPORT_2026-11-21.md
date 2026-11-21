@@ -1,3 +1,8 @@
+21 November — EXACT BOOLEAN WHERE IMAGE RUNNING; NEW NATIVE/HOSTED ACCEPTANCE OPEN.
+Immutable source1bb737b84ab9e103ebfee169d6773845c1ceda85/tagcosmic-cql-where-1bb737b84ab9 on current Dev8a4e0a8b contains only13WHERE API runtime paths plus1scope note. Entire API directory equals qualified26b5bea9 byte-for-byte; all dependency pins and provider runtimes unchanged. Image44880188523 verified in_progress, not yet accepted. API5checks/build and website4checks retained without repetition. Native execution/hosted walkthrough/public website publication remain open; no Development push for this feature, no source-only feature recorded live. Existing Neo live scalar proof remains valid; Holo timeout separately open.
+
+Owned non-secret LocalState/COSMIC/boolean-where-image-handoff.json retains exact source/phase/run to prevent duplicate dispatch; remove after durable canonical final outcome. No local image/build/env/runtime/database/archive/worktree installation or shared Atlas/PIPER/DNA/staging/production action. Full goal active61/168+4/13.
+
 21 November — COMPLEX SQL WHERE BREADTH SOURCE AND API BUILD ACCEPTED; NOT DEPLOYED.
 New typed WHERE tree supports nested AND/OR/NOT and child/descendant composition through the existing Core compiler/access owner.31nodes/8levels share existing12filter/4relationship budgets; complete shape validation precedes expression allocation. Mutable wire nodes/literals deep-captured before awaits. Rows/scalar/projection/grouped/join/federation/indexed source owners carry the same tree. Unsupported mixed virtual pushdown refuses explicitly rather than dropping WHERE.
 
