@@ -1,0 +1,39 @@
+{
+  "status": "accepted-scoped",
+  "runId": 44881715794,
+  "jobId": 136778248680,
+  "source": "864bcb3757a1f06d9f9f28c6e1f88504dcf3db9a",
+  "portalSource": "e0bd575b9bf2cdcd124d30e94fe6477518dd38f7",
+  "case": "MapRendererDisplaysSegmentedGpxInActualBrowser",
+  "apiBuild": { "errors": 0, "elapsed": "00:04:22.17" },
+  "results": { "passed": 1, "failed": 0, "skipped": 0, "reportedDurationSeconds": 19 },
+  "verified": [
+    "Actual published MapLibre 6.19 ESM, CSS and worker",
+    "Actual GPX popup import with preserved track segments",
+    "Native WebGL canvas and visible cyan route pixels decoded in RAM",
+    "Zoom redraw and close disposal",
+    "Zero API mutations and unchanged native avatar revisions",
+    "Owned browser/runtime/cache/control cleanup and Mongo fixture absence"
+  ],
+  "excluded": [
+    "Public basemap tiles: valid explicit background-only style selected",
+    "Other asset and Places map layers",
+    "Production Startup, authentication and deployed OPORTAL",
+    "Direct Our World cloud publication and combined cross-app activity API",
+    "Whole OPORTAL or provider/HyperDrive programme acceptance"
+  ],
+  "artifact": {
+    "id": 14698770346,
+    "zipBytes": 2606,
+    "sha256": "13fe1c5f10d9d76a87188437f2a535c36449845ba0a27ba46404832da368f1f1",
+    "entry": "profile-sdk-native.trx",
+    "entryBytes": 9333,
+    "exactResultIdentityVerified": true,
+    "nativeProofMarker": "MAP_RENDERER_BROWSER_NATIVE_PROOF:",
+    "verification": "ZIP structure, digest, entry size, TRX counters, exact case/outcome and native marker checked in RAM",
+    "localFilesWritten": 0
+  },
+  "priorFailureRetained": { "runId": 44880806189, "reason": "Harness rejected the actual Portal Google Fonts stylesheet; explicit allowlist corrected before this retry" },
+  "sharedBackendOperations": 0,
+  "acceptedCasesRepeated": 0
+}
