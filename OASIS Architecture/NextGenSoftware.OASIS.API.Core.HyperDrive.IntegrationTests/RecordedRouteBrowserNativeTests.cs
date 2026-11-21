@@ -31,7 +31,11 @@ public sealed partial class AvatarProfileCommitStampNativeTests
     public async Task MapRendererDisplaysSegmentedGpxInActualBrowser()
         => await RunRecordedRouteBrowserHost(true);
 
-    private async Task RunRecordedRouteBrowserHost(bool rendererOnly)
+    [Fact]
+    public async Task OurWorldPublicationReopensInPortalThroughActualHttpAndMongo()
+        => await RunRecordedRouteBrowserHost(false, true);
+
+    private async Task RunRecordedRouteBrowserHost(bool rendererOnly, bool ourWorld = false)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -102,7 +106,8 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 string Token(Guid id)=>new JwtSecurityTokenHandler().WriteToken(new JwtSecurityToken("owned-route-fixture","owned-route-http",
                     [new Claim(ClaimTypes.NameIdentifier,id.ToString())],expires:DateTime.UtcNow.AddMinutes(5),signingCredentials:new SigningCredentials(key,SecurityAlgorithms.HmacSha256)));
                 var address=app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
-                using var result=await ExchangeSdkRequest(new{baseUrl=address,token=Token(owner),avatarId=owner,otherToken=Token(reader),otherId=reader,providerType="MongoDBOASIS"},TimeSpan.FromMinutes(2));
+                var worldRouteId=ourWorld?await PublishActualOurWorldRequest(address,Token(owner),owner): (Guid?)null;
+                using var result=await ExchangeSdkRequest(new{baseUrl=address,token=Token(owner),avatarId=owner,otherToken=Token(reader),otherId=reader,providerType="MongoDBOASIS",ourWorldRouteId=worldRouteId},TimeSpan.FromMinutes(2));
                 Assert.False(result.RootElement.TryGetProperty("isError",out var error)&&error.GetBoolean(),
                     result.RootElement.TryGetProperty("message",out var message)?message.GetString():"Route browser failed.");
                 if(rendererOnly)
@@ -110,6 +115,14 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     Assert.True(result.RootElement.GetProperty("mapRendererVerified").GetBoolean());
                     SameRevisions(ownerBefore,await mongo.ReadNative(owner));SameRevisions(readerBefore,await mongo.ReadNative(reader));
                     Console.WriteLine("MAP_RENDERER_BROWSER_NATIVE_PROOF: actual shipping MapLibre/GPX controls, native WebGL canvas, visible route pixels and navigation, zero mutations and unchanged avatar revisions.");
+                    return;
+                }
+                if(ourWorld)
+                {
+                    Assert.True(result.RootElement.GetProperty("ourWorldPublicationVerified").GetBoolean());
+                    Assert.Equal(worldRouteId,result.RootElement.GetProperty("routeId").GetGuid());
+                    SameRevisions(ownerBefore,await mongo.ReadNative(owner));SameRevisions(readerBefore,await mongo.ReadNative(reader));
+                    Console.WriteLine("OUR_WORLD_ROUTE_HTTP_PORTAL_NATIVE_PROOF: pinned shipping Our World builder, real signed HTTP/MVC/owned Mongo private publication and precise native readback, actual Portal popup reopening with zero browser mutations and unchanged avatar revisions. Unity UI/transport and production Startup remain excluded.");
                     return;
                 }
                 Assert.True(result.RootElement.GetProperty("recordedRoutePopupVerified").GetBoolean());

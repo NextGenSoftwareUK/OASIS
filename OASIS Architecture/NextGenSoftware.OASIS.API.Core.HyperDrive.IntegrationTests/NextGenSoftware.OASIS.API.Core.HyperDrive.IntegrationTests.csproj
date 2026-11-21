@@ -6,6 +6,10 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
+  <ItemGroup Condition="Exists('../../../ourworld-route-source/Assets/_Game/Scripts/OASISIntegration/WalkingRoutePublication.cs')">
+    <Compile Include="../../../ourworld-route-source/Assets/_Game/Scripts/OASISIntegration/WalkingProgress.cs" Link="OurWorld/WalkingProgress.cs" />
+    <Compile Include="../../../ourworld-route-source/Assets/_Game/Scripts/OASISIntegration/WalkingRoutePublication.cs" Link="OurWorld/WalkingRoutePublication.cs" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Seal/HolonSealSwitches.cs" Link="Production/HolonSealSwitches.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/AvatarProfile/AvatarProfilePatch.cs" Link="Production/AvatarProfilePatch.cs" />
