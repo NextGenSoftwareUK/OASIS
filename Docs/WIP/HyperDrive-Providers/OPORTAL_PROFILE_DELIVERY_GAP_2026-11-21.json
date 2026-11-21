@@ -110,5 +110,13 @@
     "classifierLfSha256": "08551b5538b3758bc2dcf26e6a0473f7f1f0c7050a09fe16e8db99110f1d1d91",
     "runtimeChanges": 0,
     "temporaryFilesWritten": 0
+  },
+  "compileQualification": {
+    "run": 44964322574,
+    "job": 137029807264,
+    "control": "c9fa2feb91548b59de9c44b83fb06ca8994667a2",
+    "candidate": "3715fa9f4a026d727cd22456d52f3159124912e9",
+    "status": "pending",
+    "scope": "WEB4 combined current API/provider compilation only; no accepted native/browser replay"
   }
 }
