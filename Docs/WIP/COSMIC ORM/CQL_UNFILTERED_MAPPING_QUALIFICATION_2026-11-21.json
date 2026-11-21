@@ -47,10 +47,23 @@
   "sqliteRetryRun": 44888307669,
   "sqliteRetryJob": 136798344832,
   "previousMongoNeoCasesRepeated": false,
-  "imageSource": "6fc00e9465d298a84e48f7bfc904e4e29ae3e0ec",
-  "imageRun": 44889042435,
+  "imageSource": "6b5713f7d02379a6bd1769c13981d22682ee7b0d",
+  "imageRun": 44891296213,
   "imageObservedStatus": "queued",
   "imageQualified": false,
   "packageQualified": false,
-  "developmentPushed": false
+  "developmentPushed": false,
+  "compositionCoreSource": "13fabae5a78c70b961c300657a875f1cfabe238d",
+  "sharedMapPreserved": true,
+  "previousImage": {
+    "source": "6fc00e9465d298a84e48f7bfc904e4e29ae3e0ec",
+    "run": 44889042435,
+    "job": 136800612368,
+    "buildSucceeded": true,
+    "digest": "sha256:cc41e5e3d80f843207ebf092b37510ce81a9d5a38245443d392c7e6e896fcfaf",
+    "supersededBecause": "Development advanced to reviewed Map98ccee24",
+    "packageRun": 44890945656,
+    "queuedPackageCancellationAcknowledged": true,
+    "deployed": false
+  }
 }
