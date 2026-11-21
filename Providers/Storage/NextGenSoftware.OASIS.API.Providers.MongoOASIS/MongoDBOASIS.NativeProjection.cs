@@ -26,7 +26,7 @@ public partial class MongoDBOASIS : INativeDataProjectionQueryProvider
         BsonDocument match;
         try
         {
-            var matches = NativeRecordFilter.Capture(filters);
+            var matches = NativeRecordFilter.CaptureForProjection(filters);
             selected = NativeProjectionColumn.Capture(columns);
             if (matches.Any(item => !IsNativeScalarField(item.Field))
                 || selected.Any(item => item.Field == "_id" || !IsNativeScalarField(item.Field)))
@@ -268,7 +268,7 @@ public partial class MongoDBOASIS : INativeDataProjectionQueryProvider
                 });
             filters.Add(atomic);
         }
-        return filters.Count == 1 ? filters[0] : new BsonDocument("$and", new BsonArray(filters));
+        return filters.Count == 0 ? new BsonDocument() : filters.Count == 1 ? filters[0] : new BsonDocument("$and", new BsonArray(filters));
 
     }
 

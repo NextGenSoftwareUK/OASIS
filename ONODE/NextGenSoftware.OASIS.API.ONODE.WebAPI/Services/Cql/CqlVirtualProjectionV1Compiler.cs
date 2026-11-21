@@ -93,8 +93,8 @@ public static partial class CqlV1Compiler
 
     internal static NativeRecordFilter[] CompileVirtualMatches(CqlV1Filter[] filters)
     {
-        if (filters is not { Length: >= 1 and <= 8 })
-            throw new ArgumentException("Mixed projection supports one to eight typed metadata filters.");
+        if (filters is not { Length: <= 8 })
+            throw new ArgumentException("Mixed projection supports zero to eight typed metadata filters within its bounded source.");
         return filters.Select(filter =>
         {
             if (filter == null || filter.Field != null || filter.MetadataPath is not { Length: 1 })
