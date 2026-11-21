@@ -170,8 +170,13 @@ public sealed class MapRoutesController : OASISControllerBase
         if (points == null || points.IsDeleted || points.CustomHolonType != GeometryType || points.ParentHolonId != id ||
             points.CreatedByAvatarId != row.CreatedByAvatarId || points.IsPublic != row.IsPublic)
             return Error<object>("The route summary and geometry do not agree.");
+        var headerRevision = CosmicConcurrency.GetProviderRevisionId(row, header.Result.Authority);
+        var geometryRevision = CosmicConcurrency.GetProviderRevisionId(points, header.Result.Authority);
+        if (!headerRevision.HasValue || !geometryRevision.HasValue)
+            return Error<object>("The route authority did not return its concurrency revisions.");
         var result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<HolonAuthorityRead, object>(geometry);
-        result.Result = new { Header = row, Geometry = points, Authority = header.Result.Authority.ToString() };
+        result.Result = new { Header = row, Geometry = points, Authority = header.Result.Authority.ToString(),
+            ExpectedRevisions = new Dictionary<Guid, Guid?> { [id] = headerRevision, [points.Id] = geometryRevision } };
         if (header.IsWarning) { result.IsWarning = true; result.Message = string.Join(" ", new[] { header.Message, result.Message }.Where(m => !string.IsNullOrWhiteSpace(m))); }
         return result;
     }

@@ -82,13 +82,14 @@ public sealed partial class AvatarProfileCommitStampNativeTests
             Assert.True(((OASISResult<object>)await Call(reader, "Get", id)).IsError);
             var first = await Detail(owner);
             Dictionary<Guid, Guid?> Revisions(JsonElement detail) => new()
-            { [id] = detail.GetProperty("header").GetProperty("versionId").GetGuid(),
-              [geometryId] = detail.GetProperty("geometry").GetProperty("versionId").GetGuid() };
+            { [id] = detail.GetProperty("expectedRevisions").GetProperty(id.ToString("D")).GetGuid(),
+              [geometryId] = detail.GetProperty("expectedRevisions").GetProperty(geometryId.ToString("D")).GetGuid() };
+            Assert.NotEqual(first.GetProperty("header").GetProperty("versionId").GetGuid(), Revisions(first)[id]);
             var payload = first.GetProperty("geometry").GetProperty("metaData").GetProperty("payload").GetString();
             object Access(Dictionary<Guid, Guid?> versions, bool visible, string name) => Model("RouteAccessRequest", new
             { operationId = Guid.NewGuid(), providerType = "MongoDBOASIS", expectedRevisions = versions, isPublic = visible, name });
             var publicWrite = (OASISResult<IEnumerable<IHolon>>)await Call(owner, "UpdateAccess", id, Access(Revisions(first), true, "Owned route"));
-            Assert.False(publicWrite.IsError, publicWrite.Message); Assert.True(publicWrite.IsSaved);
+            Assert.False(publicWrite.IsError, $"{publicWrite.ErrorCode}: {publicWrite.Message} | {publicWrite.Exception}"); Assert.True(publicWrite.IsSaved);
             var shared = await Detail(reader);
             Assert.True(((OASISResult<IEnumerable<IHolon>>)await Call(reader, "UpdateAccess", id, Access(Revisions(shared), false, "Foreign rename"))).IsError);
             var revoked = (OASISResult<IEnumerable<IHolon>>)await Call(owner, "UpdateAccess", id, Access(Revisions(shared), false, "Renamed route"));
