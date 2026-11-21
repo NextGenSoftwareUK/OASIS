@@ -1,5 +1,5 @@
 {
-  "status": "actual native controller/browser source integrated; CI compile/runtime pending",
+  "status": "first native browser case failed; focused diagnostics prepared",
   "portal": "34c264a9845dfb5437de369e22f7f917cd354eef",
   "shippingChanges": "Karma ledger captures current SDK bearer, pages flattened activity and displays real signed values; activity feed captures bearer.",
   "prepared": [
@@ -19,5 +19,14 @@
   "validation": "Browser verifier Node syntax passed only. No browser/native run or completion claimed.",
   "cleanup": "No install, download, browser process, local build or test database/result created. Compact source fixtures retained.",
   "test": "KarmaPopupsUseActualSdkHttpAndOwnedMongo",
-  "nativeHost": "Actual compiled KarmaController, isolated real MongoStore and actual AvatarManager; 51 seeded durable records; authenticated loopback MVC with shipping SDK and popup assets."
+  "nativeHost": "Actual compiled KarmaController, isolated real MongoStore and actual AvatarManager; 51 seeded durable records; authenticated loopback MVC with shipping SDK and popup assets.",
+  "firstRun": {
+    "run": 44853332475,
+    "job": 136689608217,
+    "parent": "0a5b1973ea096c97000059648bc80404d2754389",
+    "apiBuild": "passed",
+    "case": "1 failed, reported35s; browser waitForFunction timed out15000ms; page stage not reported",
+    "cleanup": "Owned browser/runtime/cache/control and Mongo absence verified; CI post-jobs passed"
+  },
+  "next": "Same single failed case, with sanitized stage/visible-status/request-path diagnostics; no successful accepted cohort rerun."
 }
