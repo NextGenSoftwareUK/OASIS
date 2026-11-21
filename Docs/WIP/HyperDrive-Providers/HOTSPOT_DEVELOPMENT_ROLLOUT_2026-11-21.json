@@ -1,7 +1,7 @@
 {
   "source": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
   "previous": "6b5713f7d02379a6bd1769c13981d22682ee7b0d",
-  "status": "six-dev-services-success-and-startup-files-verified-web4-building",
+  "status": "seven-dev-rollouts-success-startup-files-verified",
   "push": "Normal hooked fast-forward; remote Development exact source verified",
   "changedPaths": [
     "Docker/oasis-dependency-versions.env",
@@ -18,7 +18,7 @@
     {
       "service": "WEB4 OASIS API",
       "id": "715347fa-f200-4bae-8546-5cfe4db440ca",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "commit": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4"
     },
     {
@@ -59,7 +59,7 @@
     }
   ],
   "sharedBackendTestCalls": 0,
-  "runningSettingsVerified": false,
+  "runningSettingsVerified": true,
   "wholeGoalComplete": false,
   "sourceSettings": {
     "autoFailOver": true,
@@ -114,9 +114,16 @@
       "autoReplication": false,
       "autoLoadBalance": true,
       "scope": "Running container revision and startup DNA selected fields only; not app in-memory acknowledgement"
+    },
+    {
+      "service": "WEB4 OASIS API",
+      "runtimeCommit": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+      "autoFailOver": true,
+      "autoReplication": false,
+      "autoLoadBalance": true,
+      "scope": "Running container revision and startup DNA selected fields only; not app in-memory acknowledgement"
     }
   ],
-  "remainingStartupServices": [
-    "WEB4 OASIS API"
-  ]
+  "remainingStartupServices": [],
+  "runningSettingsVerificationScope": "All seven container revisions and selected startup-file flags only; app in-memory/effective per-avatar policy and hosted authenticated geo flows not independently verified"
 }
