@@ -1,5 +1,5 @@
 {
-  "status": "UI source checks passed; backend dispatch compilation and real-map journeys pending",
+  "status": "UI source checks and actual changed WEB4 API compilation passed; real-map journeys remain open",
   "portal": "8c23f04",
   "onodeCore": "c49616b29ff92954ffa346b7c861121a00342711",
   "onodeBlob": "49721475c571ebc5ac8ffeca740119777dd01a25",
@@ -14,14 +14,25 @@
     "Changed script Node syntax",
     "Endpoint drift check",
     "Whitespace",
-    "Published ONODE source exact byte match and pinned Core map-interface members inspected"
+    "Published ONODE source exact byte match and pinned Core map-interface members inspected",
+    "Map fragment IDs and three source-hash cache references match",
+    "Actual changed WEB4 API compiles"
   ],
   "open": [
     "Real persisted/provider nearby/search: current backend still generates sample locations",
     "Discovery/social/exploration sources and competition error handling",
     "Actual controller object-parameter binding and provider activation",
-    "Actual renderer/provider control and browser/native-store journeys",
-    "Changed actual API compile"
+    "Actual renderer/provider control and browser/native-store journeys"
   ],
-  "cleanup": "No local build, install, download, browser, database, results, archive or new worktree. Compact source/docs retained. No shared Mongo/API or worker/DNA/deployment action."
+  "cleanup": "No local build, install, download, browser, database, results, archive or new worktree. Compact source/docs retained. No shared Mongo/API or worker/DNA/deployment action.",
+  "build": {
+    "run": 44859324262,
+    "job": 136708801738,
+    "parent": "6d7c60be2b15eec6992ad86f1f88cee0b50db64f",
+    "conclusion": "success",
+    "errors": 0,
+    "elapsed": "00:04:34.12",
+    "scope": "Build only; behavioral tests, database/browser fixture starts and artifact upload skipped; post-job cleanup passed"
+  },
+  "diskFreeBytesObserved": 46867963904
 }
