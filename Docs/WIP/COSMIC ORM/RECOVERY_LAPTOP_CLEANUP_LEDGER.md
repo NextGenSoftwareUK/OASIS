@@ -8351,3 +8351,5 @@ Owned Chrome stopped; marker/path and process absence verified before normal rec
 21 November — Parameter example: one changed-flow Node check ran from Git source in RAM using existing executable;56old cases excluded. No output files/archive/env/runtime/build/native database/API call. Necessary source Git objects retained; scoped index removed. Active Holo release journal retained.
 
 21 November — Dependency-history guard qualified read-only against4existing real source histories. No temp Git repositories/worktrees/fixtures/builds/downloads/envs/files created by checks. Source Git objects retained; publisher index removed. Current Holo image journal remains required; no active image cancelled/restarted for elapsed queue time.
+
+21 November — Bounded parameter lists:4compiler controls in RAM, no output files/DB/API/env/download. Current-status source condensed into actual checkpoint; earlier history retained at prior Git revision and canonical evidence docs. Local historical notes preserved without new duplicate file. Image44951130403 kept active; necessary Holo journals retained.

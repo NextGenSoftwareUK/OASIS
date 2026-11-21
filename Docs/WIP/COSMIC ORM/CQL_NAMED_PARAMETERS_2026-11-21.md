@@ -23,3 +23,9 @@ No backend deployment change is required for the emitted existing typed requests
 Website7632ab2566ca90cc2f290a10104f10f4d285673d adds Load parameter example. It uses the explicitly selected ready MongoDB/SQLite/Neo4j source, fills a bounded Id/Name/Version query with Version>=@minimum and IsActive=@active, and fills JSON minimum1/activetrue. It does not fetch, compile or execute until the visitor chooses Preview/Run. Other/unavailable providers produce an explicit message and leave the existing editor unchanged.
 
 One new actual-controller/compiler check passed;56existing Ask cases excluded. It verifies selected Neo provider, exact JSON values, review-only load, successful bound preview, unsupported-provider refusal preserving the editor, zero WEB6 calls. Previous three parameter controls retained without replay. Browser/live/publication acceptance remains open.
+
+## Bounded list parameters
+
+Websitecdae5413b9338771428fba4e51d27bfac8994a83 supports Name IN (@names) / NOT IN (@names) with JSON {"names":["Coffee","Tea"]}. An array must be the sole complete IN list and contain1–40 present, non-null, non-nested scalar values. Exact numeric objects retain Int64/Decimal digits inside lists. Existing profile/membership/filter limits may be lower. Comments around the placeholder remain valid. No array can expand a field, operator, provider or arbitrary clause.
+
+Four compiler controls passed/0failed/0skipped, including the two scalar controls rerun because the shared literal owner was refactored. Actual request equivalence covers text IN/NOT IN and lossless Int64 membership on MongoDB/SQLite/Neo4j selections. Empty/oversized/null/nested and structural misuse refuse. Previous two UI-controller parameter checks retained without replay. No native/browser/hosted/publication acceptance claimed.
