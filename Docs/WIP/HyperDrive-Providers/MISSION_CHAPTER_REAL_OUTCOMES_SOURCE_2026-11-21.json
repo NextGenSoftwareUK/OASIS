@@ -197,7 +197,16 @@
     "sourceGate": "Direct current-shared parent/exact four root paths/one Core role-binding file/three exact ONODE graph files/peer package+Map preservation and ONET exclusion verified; paired manifest check-ref passed.",
     "fixture": "One real new-data graph lifecycle: mission plus chapter and physical child saved once, shallow collections absent, explicit detail preserves both roles/typed metadata, API shallow catalogues/detail/missing errors. No accepted cohort replay.",
     "releaseGate": "Legacy Mission metadata/role-manifest compatibility assessment or explicit migration required before Development deployment; new-data qualification alone cannot accept existing records.",
-    "supersededUnrunRoot": "1f780e28ccc1bffc1375b338a6108319bd1c75c1"
+    "supersededUnrunRoot": "1f780e28ccc1bffc1375b338a6108319bd1c75c1",
+    "qualification": {
+      "run": 44956075171,
+      "job": 137004387677,
+      "control": "568ba0b60d0ed1af0b1efcc3607731cdb9605406",
+      "status": "in_progress",
+      "mode": "catalogue",
+      "scope": "First canonical new-data graph lifecycle on fresh4020; no accepted native/empty/geo/browser replay",
+      "cleanup": "Owned DB/DNA/container absence pending terminal result"
+    }
   },
   "restorationCoordination": {
     "peerStatusReviewed": true,
