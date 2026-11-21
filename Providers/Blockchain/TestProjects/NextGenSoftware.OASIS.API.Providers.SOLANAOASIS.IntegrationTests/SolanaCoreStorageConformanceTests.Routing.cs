@@ -1,0 +1,119 @@
+using System.Net;
+using System.Net.Sockets;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.Providers.TestSupport;
+using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
+
+namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests;
+
+public partial class SolanaCoreStorageConformanceTests
+{
+    [DataTestMethod, DataRow(false), DataRow(true)]
+    public async Task RoutesAcrossNativeSolanaAndSqlite(bool sync)
+    {
+        Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
+        var fixture = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_SOLANA_ROUTING_DIRECTORY")!);
+        Assert.AreEqual(Path.GetFullPath(Environment.GetEnvironmentVariable("RUNNER_TEMP")!), Path.GetDirectoryName(fixture));
+        StringAssert.StartsWith(Path.GetFileName(fixture), "oasis-agave.");
+
+        var database = Path.Combine(fixture, sync ? "sync.db" : "async.db");
+        Assert.IsFalse(File.Exists(database));
+        using var sqlite = new SqliteProvider($"Data Source={database};Pooling=False");
+        var missing = Path.Combine(fixture, "missing.db");
+        using var unavailableSqlite = new SqliteProvider($"Data Source={missing};Mode=ReadWrite;Pooling=False;Default Timeout=1");
+        using var closed = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        closed.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+        var solana = await OpenFreshValidator();
+        var unavailableSolana = await OpenFreshValidator($"http://127.0.0.1:{((IPEndPoint)closed.LocalEndPoint!).Port}");
+        try
+        {
+            var active = await solana.ActivateProviderAsync();
+            Assert.IsTrue(!active.IsError && active.Result, active.Message);
+            active = await sqlite.ActivateProviderAsync();
+            Assert.IsTrue(!active.IsError && active.Result, active.Message);
+
+            await NativePriorityRouting.VerifyAsync(solana, sqlite, unavailableSolana, unavailableSqlite, sync);
+            Assert.IsFalse(File.Exists(missing));
+            var staleReplica = new Holon { Id = Guid.NewGuid(), Name = "SQLite-only holon", CreatedByAvatarId = Guid.NewGuid() };
+            var saved = await sqlite.SaveHolonAsync(staleReplica, saveChildren: false);
+            Assert.IsTrue(!saved.IsError && saved.IsSaved, saved.Message);
+            Assert.AreEqual(staleReplica.Id, (await sqlite.LoadHolonAsync(staleReplica.Id, loadChildren: false)).Result?.Id);
+
+            var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
+            {
+                HyperDriveMode = HyperDriveModes.V2,
+                StorageProviders = new StorageProviderSettings(),
+                SubscriptionConfig = new SubscriptionConfig { PlanType = "Gold" }
+            } };
+            var manager = new ProviderManager(null, dna) { IsAutoFailOverEnabled = true };
+            manager.RegisterProvider(solana);
+            manager.RegisterProvider(sqlite);
+            Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(new[]
+            {
+                new EnumValue<ProviderType>(solana.ProviderType.Value),
+                new EnumValue<ProviderType>(sqlite.ProviderType.Value)
+            }).IsError);
+            var router = new OASISHyperDrive(manager);
+            var request = new StorageOperationRequest { Operation = "LoadHolon", HolonId = staleReplica.Id,
+                PreferredProvider = solana.ProviderType.Value, LoadChildren = false };
+            var absent = sync ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, absent.ErrorCode, absent.Message);
+            Assert.IsNull(absent.Result);
+            Assert.AreEqual(0L, manager.PerformanceMonitor.GetMetrics(sqlite.ProviderType.Value)?.TotalRequests ?? 0);
+
+            var records = await solana.LoadAllHolonsAsync(HolonType.All, loadChildren: false);
+            Assert.IsFalse(records.IsError, records.Message);
+            var fixtures = records.Result.ToArray();
+            CollectionAssert.AreEquivalent(
+                new[] { $"priority routing {solana.ProviderType.Value}", $"priority routing {sqlite.ProviderType.Value}" },
+                fixtures.Select(record => record.Name).ToArray());
+            foreach (var record in fixtures)
+            {
+                var signature = record.ProviderUniqueStorageKey[solana.ProviderType.Value];
+                var matching = new StorageOperationRequest
+                {
+                    Operation = "LoadHolonByProviderKey", ProviderKey = signature,
+                    PreferredProvider = solana.ProviderType.Value, LoadChildren = false
+                };
+                var loaded = sync ? router.RouteRequest<IHolon>(matching) : await router.RouteRequestAsync<IHolon>(matching);
+                Assert.IsTrue(!loaded.IsError && loaded.IsLoaded, loaded.Message);
+                Assert.AreEqual(record.Id, loaded.Result.Id);
+                matching.Version = checked(loaded.Result.Version + 1);
+                var wrongVersion = sync ? router.RouteRequest<IHolon>(matching) : await router.RouteRequestAsync<IHolon>(matching);
+                Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, wrongVersion.ErrorCode, wrongVersion.Message);
+                Assert.IsNull(wrongVersion.Result);
+                Assert.AreEqual(0L, manager.PerformanceMonitor.GetMetrics(sqlite.ProviderType.Value)?.TotalRequests ?? 0);
+
+                var removed = await solana.DeleteHolonAsync(record.Id);
+                Assert.IsTrue(!removed.IsError && removed.IsDeleted && removed.DeletedCount == 1, removed.Message);
+            }
+
+            var current = await OpenFreshValidator();
+            try
+            {
+                var remaining = await current.LoadAllHolonsAsync(HolonType.All, loadChildren: false);
+                Assert.IsFalse(remaining.IsError, remaining.Message);
+                Assert.IsFalse(remaining.Result.Any(), "Native finalized history must project no active fixture records.");
+            }
+            finally
+            {
+                await current.DeActivateProviderAsync();
+            }
+        }
+        finally
+        {
+            await solana.DeActivateProviderAsync();
+            await unavailableSolana.DeActivateProviderAsync();
+            await sqlite.DeActivateProviderAsync();
+        }
+    }
+}

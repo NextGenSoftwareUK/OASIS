@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.BitcoinOASIS\NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.csproj" />
+    <ProjectReference Include="..\..\..\Storage\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj" />
   </ItemGroup>
 
 </Project>

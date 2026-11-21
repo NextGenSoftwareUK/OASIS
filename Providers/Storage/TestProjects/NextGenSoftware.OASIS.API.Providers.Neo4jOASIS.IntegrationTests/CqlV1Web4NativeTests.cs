@@ -21,7 +21,7 @@ using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLit
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
-[TestClass]
+[TestClass, DoNotParallelize]
 public sealed partial class CqlV1Web4NativeTests
 {
     [TestMethod]

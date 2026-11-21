@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.Holochain.HoloNET.Client;
+using NextGenSoftware.Holochain.HoloNET.Client.Interfaces;
 using NextGenSoftware.Holochain.HoloNET.ORM.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
@@ -19,11 +20,27 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
         private static Guid ParseGuidOrEmpty(string value) => Guid.TryParse(value, out Guid parsed) ? parsed : Guid.Empty;
         public static bool UseReflection { get; set; }
 
+        internal static void MapNativeHolonMetadata(IRecord record, IHcHolon holon)
+        {
+            // The HoloNET scalar mapper cannot preserve MessagePack maps.
+            var options = MessagePack.MessagePackSerializerOptions.Standard.WithSecurity(MessagePack.MessagePackSecurity.UntrustedData);
+            using var entry = JsonDocument.Parse(MessagePack.MessagePackSerializer.ConvertToJson(record.Bytes, options));
+            if (!entry.RootElement.TryGetProperty("meta_data", out var metadata) || metadata.ValueKind == JsonValueKind.Null)
+            {
+                holon.MetaData = null;
+                return;
+            }
+
+            // HoloNET ORM encodes dictionaries as JSON strings in its zome payload.
+            var json = metadata.ValueKind == JsonValueKind.String ? metadata.GetString() : metadata.GetRawText();
+            holon.MetaData = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+        }
+
         public static IHcAvatar ConvertAvatarToHoloOASISAvatar(IAvatar avatar, IHcAvatar hcAvatar)
         {
+            RequirePublicWallets(avatar.ProviderWallets);
             hcAvatar.Id = avatar.Id;
             hcAvatar.Username = avatar.Username;
-            hcAvatar.Password = avatar.Password;
             hcAvatar.Email = avatar.Email;
             hcAvatar.Title = avatar.Title;
             hcAvatar.Name = avatar.Name;
@@ -48,13 +65,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             //hcAvatar.CustomKey = avatar.CustomKey;
             hcAvatar.IsActive = avatar.IsActive;
             hcAvatar.IsBeamedIn = avatar.IsBeamedIn;
-            hcAvatar.JwtToken = avatar.JwtToken;
             hcAvatar.LastBeamedIn = avatar.LastBeamedIn;
             hcAvatar.LastBeamedOut = avatar.LastBeamedOut;
             hcAvatar.MetaData = avatar.MetaData;
             //hcAvatar.ParentHolon = avatar.ParentHolon;
             hcAvatar.ParentHolonId = avatar.ParentHolonId;
-            hcAvatar.PasswordReset = avatar.PasswordReset;
             hcAvatar.PreviousVersionId = avatar.PreviousVersionId;
             hcAvatar.PreviousVersionProviderUniqueStorageKey = avatar.PreviousVersionProviderUniqueStorageKey;
             hcAvatar.ProviderMetaData = avatar.ProviderMetaData;
@@ -62,11 +77,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             hcAvatar.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = hcAvatar.EntryHash;
             hcAvatar.ProviderUsername = avatar.ProviderUsername;
             hcAvatar.ProviderWallets = avatar.ProviderWallets;
-            hcAvatar.RefreshToken = avatar.RefreshToken;
-            hcAvatar.RefreshTokens = avatar.RefreshTokens;
-            hcAvatar.ResetToken = avatar.ResetToken;
-            hcAvatar.ResetTokenExpires = avatar.ResetTokenExpires;
-            hcAvatar.VerificationToken = avatar.VerificationToken;
             hcAvatar.Verified = avatar.Verified;
             hcAvatar.Version = avatar.Version;
             hcAvatar.VersionId = avatar.VersionId;
@@ -80,7 +90,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             {
                 Id = hcAvatar.Id,
                 Username = hcAvatar.Username,
-                Password = hcAvatar.Password,
                 Email = hcAvatar.Email,
                 Title = hcAvatar.Title,
                 Description = hcAvatar.Description,
@@ -103,24 +112,17 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 CustomKey = hcAvatar.CustomKey,
                 IsActive = hcAvatar.IsActive,
                 IsBeamedIn = hcAvatar.IsBeamedIn,
-                JwtToken = hcAvatar.JwtToken,
                 LastBeamedIn = hcAvatar.LastBeamedIn,
                 LastBeamedOut = hcAvatar.LastBeamedOut,
                 MetaData = hcAvatar.MetaData,
                 //ParentHolon = hcAvatar.ParentHolon,
                 ParentHolonId = hcAvatar.ParentHolonId,
-                PasswordReset = hcAvatar.PasswordReset,
                 PreviousVersionId = hcAvatar.PreviousVersionId,
                 PreviousVersionProviderUniqueStorageKey = hcAvatar.PreviousVersionProviderUniqueStorageKey,
                 ProviderMetaData = hcAvatar.ProviderMetaData,
                 ProviderUniqueStorageKey = hcAvatar.ProviderUniqueStorageKey,
                 ProviderUsername = hcAvatar.ProviderUsername,
                 ProviderWallets = hcAvatar.ProviderWallets,
-                RefreshToken = hcAvatar.RefreshToken,
-                RefreshTokens = hcAvatar.RefreshTokens,
-                ResetToken = hcAvatar.ResetToken,
-                ResetTokenExpires = hcAvatar.ResetTokenExpires,
-                VerificationToken = hcAvatar.VerificationToken,
                 Verified = hcAvatar.Verified,
                 Version = hcAvatar.Version,
                 VersionId = hcAvatar.VersionId
@@ -137,7 +139,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             {
                 Id = new Guid(keyValuePair["id"]),
                 Username = keyValuePair["username"],
-                Password = keyValuePair["password"],
                 Email = keyValuePair["email"],
                 Title = keyValuePair["title"],
                 //Name = keyValuePair["name"],
@@ -158,28 +159,21 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 Children = (IList<IHolon>)JsonSerializer.Deserialize(keyValuePair["children"], typeof(IList<IHolon>)),
                 CreatedOASISType = new Utilities.EnumValue<OASISType>((OASISType)Enum.Parse(typeof(OASISType), keyValuePair["created_oasis_type"])),
                 CreatedProviderType = new Utilities.EnumValue<ProviderType>((ProviderType)Enum.Parse(typeof(ProviderType), keyValuePair["created_provider_type"])),
-                CustomKey = keyValuePair["custom_key"],
+                CustomKey = keyValuePair.TryGetValue("custom_key", out var customKey) ? customKey : null,
                 IsActive = Convert.ToBoolean(keyValuePair["is_active"]),
                 IsBeamedIn = Convert.ToBoolean(keyValuePair["is_beamed_in"]),
-                JwtToken = keyValuePair["jwt_token"],
-                LastBeamedIn = Convert.ToDateTime(keyValuePair["last_beamed_in"]),
-                LastBeamedOut = Convert.ToDateTime(keyValuePair["last_beamed_out"]),
+                LastBeamedIn = ReadOptionalAvatarDate(keyValuePair["last_beamed_in"]),
+                LastBeamedOut = ReadOptionalAvatarDate(keyValuePair["last_beamed_out"]),
                 MetaData = (Dictionary<string, object>)JsonSerializer.Deserialize(keyValuePair["meta_data"], typeof(Dictionary<string, object>)),
                 //ParentHolon = keyValuePair["parent_holon"],
                 ParentHolonId = new Guid(keyValuePair["parent_holon_id"]),
-                PasswordReset = Convert.ToDateTime(keyValuePair["password_reset"]),
                 PreviousVersionId = new Guid(keyValuePair["previous_version_id"]),
                 PreviousVersionProviderUniqueStorageKey = (Dictionary<ProviderType, string>)JsonSerializer.Deserialize(keyValuePair["previous_version_provider_unique_storage_key"], typeof(Dictionary<ProviderType, string>)),
                 ProviderMetaData = (Dictionary<ProviderType, Dictionary<string, string>>)JsonSerializer.Deserialize(keyValuePair["provider_meta_data"], typeof(Dictionary<ProviderType, Dictionary<string, string>>)),
                 ProviderUniqueStorageKey = (Dictionary<ProviderType, string>)JsonSerializer.Deserialize(keyValuePair["provider_unique_storage_key"], typeof(Dictionary<ProviderType, string>)),
-                ProviderUsername = (Dictionary<ProviderType, string>)JsonSerializer.Deserialize(keyValuePair["provider_user_name"], typeof(Dictionary<ProviderType, string>)),
+                ProviderUsername = JsonSerializer.Deserialize<Dictionary<ProviderType, string>>(keyValuePair["provider_username"]),
                 ProviderWallets = (Dictionary<ProviderType, List<IProviderWallet>>)JsonSerializer.Deserialize(keyValuePair["provider_wallets"], typeof(Dictionary<ProviderType, List<IProviderWallet>>)),
-                RefreshToken = keyValuePair["refresh_token"],
-                RefreshTokens = (List<RefreshToken>)JsonSerializer.Deserialize(keyValuePair["refresh_tokens"], typeof(List<RefreshToken>)),
-                ResetToken = keyValuePair["reset_token"],
-                ResetTokenExpires = Convert.ToDateTime(keyValuePair["reset_token_expires"]),
-                VerificationToken = keyValuePair["verification_token"],
-                Verified = Convert.ToDateTime(keyValuePair["verified"]),
+                Verified = ReadOptionalAvatarDate(keyValuePair["verified"]),
                 Version = Convert.ToInt32(keyValuePair["version"]),
                 VersionId = new Guid(keyValuePair["version_id"])
             };
@@ -190,56 +184,68 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
 
         public static dynamic ConvertAvatarToParamsObject(IAvatar avatar)
         {
+            RequirePublicWallets(avatar.ProviderWallets);
             return new
             {
                 id = avatar.Id.ToString(),
-                username = avatar.Username,
-                password = avatar.Password,
-                email = avatar.Email,
-                name = avatar.Name,
-                description = avatar.Description,
-                title = avatar.Title,
-                first_name = avatar.FirstName,
-                last_name = avatar.LastName,
+                username = avatar.Username ?? string.Empty,
+                email = avatar.Email ?? string.Empty,
+                name = avatar.Name ?? string.Empty,
+                description = avatar.Description ?? string.Empty,
+                title = avatar.Title ?? string.Empty,
+                first_name = avatar.FirstName ?? string.Empty,
+                last_name = avatar.LastName ?? string.Empty,
                 created_by = avatar.CreatedByAvatarId.ToString(),
-                created_date = avatar.CreatedDate.ToString(),
+                created_date = avatar.CreatedDate.ToString("O"),
                 modified_by = avatar.ModifiedByAvatarId.ToString(),
-                modified_date = avatar.ModifiedDate.ToString(),
+                modified_date = avatar.ModifiedDate.ToString("O"),
                 deleted_by = avatar.DeletedByAvatarId.ToString(),
-                deleted_date = avatar.DeletedDate,
-                holon_type = avatar.HolonType,
+                deleted_date = avatar.DeletedDate.ToString("O"),
+                holon_type = avatar.HolonType.ToString(),
                 accept_terms = avatar.AcceptTerms,
-                all_child_id_list_cache = avatar.AllChildIdListCache,
-                avatar_type = avatar.AvatarType,
-                child_id_list_cache = avatar.ChildIdListCache,
-                children = avatar.Children, //JsonSerializer.Serialize(avatar.Children), //TODO: We may need to serialize a few of these props if they are not supported...
-                created_oasis_type = avatar.CreatedOASISType,
-                created_provider_type = avatar.CreatedProviderType,
-                //custom_key = avatar.CustomKey,
+                all_child_id_list_cache = avatar.AllChildIdListCache ?? string.Empty,
+                avatar_type = avatar.AvatarType?.Value.ToString() ?? default(AvatarType).ToString(),
+                child_id_list_cache = avatar.ChildIdListCache ?? string.Empty,
+                children = JsonSerializer.Serialize(avatar.Children),
+                created_oasis_type = avatar.CreatedOASISType?.Value.ToString() ?? default(OASISType).ToString(),
+                created_provider_type = avatar.CreatedProviderType?.Value.ToString() ?? default(ProviderType).ToString(),
                 is_active = avatar.IsActive,
                 is_beamed_in = avatar.IsBeamedIn,
-                jwt_token = avatar.JwtToken,
-                last_beamed_in = avatar.LastBeamedIn,
-                last_beamed_out = avatar.LastBeamedOut,
-                meta_data = avatar.MetaData,
-                //ParentHolon = avatar.ParentHolon,
-                parent_holon_id = avatar.ParentHolonId,
-                password_reset = avatar.PasswordReset,
-                previous_version_id = avatar.PreviousVersionId,
-                previous_version_provider_unique_storage_key = avatar.PreviousVersionProviderUniqueStorageKey,
-                provider_meta_data = avatar.ProviderMetaData,
-                provider_unique_storage_key = avatar.ProviderUniqueStorageKey,
-                provider_username = avatar.ProviderUsername,
-                provider_wallets = avatar.ProviderWallets,
-                refresh_token = avatar.RefreshToken,
-                refresh_tokens = avatar.RefreshTokens,
-                reset_token = avatar.ResetToken,
-                reset_token_expires = avatar.ResetTokenExpires,
-                verification_token = avatar.VerificationToken,
-                verified = avatar.Verified,
+                last_beamed_in = avatar.LastBeamedIn?.ToString("O") ?? string.Empty,
+                last_beamed_out = avatar.LastBeamedOut?.ToString("O") ?? string.Empty,
+                meta_data = JsonSerializer.Serialize(avatar.MetaData),
+                parent_holon_id = avatar.ParentHolonId.ToString(),
+                previous_version_id = avatar.PreviousVersionId.ToString(),
+                previous_version_provider_unique_storage_key = JsonSerializer.Serialize(avatar.PreviousVersionProviderUniqueStorageKey),
+                provider_meta_data = JsonSerializer.Serialize(avatar.ProviderMetaData),
+                provider_unique_storage_key = JsonSerializer.Serialize(avatar.ProviderUniqueStorageKey),
+                provider_username = JsonSerializer.Serialize(avatar.ProviderUsername),
+                provider_wallets = JsonSerializer.Serialize(avatar.ProviderWallets),
+                verified = avatar.Verified?.ToString("O") ?? string.Empty,
                 version = avatar.Version,
-                version_id = avatar.VersionId
+                version_id = avatar.VersionId.ToString()
             };
+        }
+
+        private static DateTime? ReadOptionalAvatarDate(string value) =>
+            string.IsNullOrEmpty(value) ? (DateTime?)null : DateTime.Parse(value, null, System.Globalization.DateTimeStyles.RoundtripKind);
+
+        private static void RequirePublicWallets(Dictionary<ProviderType, List<IProviderWallet>> wallets)
+        {
+            if (wallets == null)
+                return;
+
+            foreach (var group in wallets.Values)
+            {
+                if (group == null)
+                    continue;
+
+                foreach (var wallet in group)
+                {
+                    if (!string.IsNullOrEmpty(wallet?.PrivateKey) || !string.IsNullOrEmpty(wallet?.SecretRecoveryPhrase))
+                        throw new InvalidOperationException("HoloOASIS public avatar entries cannot store wallet signing credentials.");
+                }
+            }
         }
 
         public static IHcAvatarDetail ConvertAvatarDetailToHoloOASISAvatarDetail(IAvatarDetail avatarDetail, IHcAvatarDetail hcAvatarDetail)
@@ -332,12 +338,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 Children = hcAvatarDetail.Children,
                 Country = hcAvatarDetail.Country,
                 County = hcAvatarDetail.County,
-                CreatedByAvatarId = new Guid(hcAvatarDetail.CreatedBy),
+                CreatedByAvatarId = ParseGuidOrEmpty(hcAvatarDetail.CreatedBy),
                 CreatedDate = hcAvatarDetail.CreatedDate,
                 CreatedOASISType = hcAvatarDetail.CreatedOASISType,
                 CreatedProviderType = hcAvatarDetail.CreatedProviderType,
                 CustomKey = hcAvatarDetail.CustomKey,
-                DeletedByAvatarId = new Guid(hcAvatarDetail.DeletedBy),
+                DeletedByAvatarId = ParseGuidOrEmpty(hcAvatarDetail.DeletedBy),
                 DeletedDate = hcAvatarDetail.DeletedDate,
                 Description = hcAvatarDetail.Description,
                 DimensionLevelIds = (Dictionary<DimensionLevel, Guid>)hcAvatarDetail.DimensionLevelIds,
@@ -359,7 +365,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 MetaData = hcAvatarDetail.MetaData,
                 Mobile = hcAvatarDetail.Mobile,
                 Model3D = hcAvatarDetail.Model3D,
-                ModifiedByAvatarId = new Guid(hcAvatarDetail.ModifiedBy),
+                ModifiedByAvatarId = ParseGuidOrEmpty(hcAvatarDetail.ModifiedBy),
                 ModifiedDate = hcAvatarDetail.ModifiedDate,
                 // Name is read-only, use the Name property from the source
                 // The Name property will be computed from FirstName, LastName, Title in AvatarDetail
@@ -386,7 +392,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 ActiveObjectiveId = hcAvatarDetail.ActiveObjectiveId
             };
 
-            avatarDetail.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = hcAvatarDetail.EntryHash;
+            avatarDetail.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+            avatarDetail.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = hcAvatarDetail.ActionHash;
             return avatarDetail;
         }
 
@@ -535,6 +542,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             hcHolon.Name = holon.Name;
             hcHolon.Description = holon.Description;
             hcHolon.CreatedBy = holon.CreatedByAvatarId.ToString();
+            if (hcHolon is HcHolon nativeHolon)
+                nativeHolon.CreatedByAvatarId = holon.CreatedByAvatarId;
             hcHolon.CreatedDate = holon.CreatedDate;
             hcHolon.ModifiedBy = holon.ModifiedByAvatarId.ToString();
             hcHolon.ModifiedDate = holon.ModifiedDate;
@@ -550,6 +559,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             hcHolon.CreatedProviderType = holon.CreatedProviderType;
             //hcHolon.CustomKey = holon.CustomKey;
             hcHolon.IsActive = holon.IsActive;
+            hcHolon.IsPublic = holon.IsPublic;
             hcHolon.MetaData = holon.MetaData;
             hcHolon.ParentHolonId = holon.ParentHolonId;
             hcHolon.PreviousVersionId = holon.PreviousVersionId;
@@ -589,7 +599,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 Id = hcHolon.Id,
                 Name = hcHolon.Name,
                 Description = hcHolon.Description,
-                CreatedByAvatarId = ParseGuidOrEmpty(hcHolon.CreatedBy),
+                CreatedByAvatarId = (hcHolon as HcHolon)?.CreatedByAvatarId ?? ParseGuidOrEmpty(hcHolon.CreatedBy),
                 CreatedDate = hcHolon.CreatedDate,
                 ModifiedByAvatarId = ParseGuidOrEmpty(hcHolon.ModifiedBy),
                 ModifiedDate = hcHolon.ModifiedDate,
@@ -603,6 +613,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 CreatedProviderType = hcHolon.CreatedProviderType,
                 CustomKey = hcHolon.CustomKey,
                 IsActive = hcHolon.IsActive,
+                IsPublic = hcHolon.IsPublic,
                 MetaData = hcHolon.MetaData,
                 ParentHolonId = hcHolon.ParentHolonId,
                 PreviousVersionId = hcHolon.PreviousVersionId,
@@ -639,9 +650,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
 
         public static IHolon ConvertKeyValuePairToHolon(Dictionary<string, string> keyValuePair)
         {
+            var ownerId = keyValuePair.TryGetValue("created_by_avatar_id", out var owner)
+                ? Guid.Parse(owner)
+                : ParseGuidOrEmpty(keyValuePair["created_by"]);
             Holon holon = new Holon
             {
                 Id = new Guid(keyValuePair["id"]),
+                IsPublic = keyValuePair.TryGetValue("is_public", out var visibility) &&
+                    bool.TryParse(visibility, out var isPublic) && isPublic,
                 HolonType = (HolonType)Enum.Parse(typeof(HolonType), keyValuePair["holon_type"]),
                 // Name property is read-only in AvatarDetail, will be computed from FirstName, LastName, Title
                 Description = keyValuePair["description"],
@@ -652,7 +668,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 CreatedProviderType = new Utilities.EnumValue<ProviderType>((ProviderType)Enum.Parse(typeof(ProviderType), keyValuePair["created_provider_type"])),
                 CustomKey = keyValuePair["custom_key"],
                 IsActive = Convert.ToBoolean(keyValuePair["is_active"]),
-                CreatedByAvatarId = new Guid(keyValuePair["created_by"]),
+                CreatedByAvatarId = ownerId,
                 CreatedDate = Convert.ToDateTime(keyValuePair["created_date"]),
                 ModifiedByAvatarId = new Guid(keyValuePair["modified_by"]),
                 ModifiedDate = Convert.ToDateTime(keyValuePair["modified_date"]),
@@ -699,6 +715,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 name = holon.Name,
                 description = holon.Description,
                 created_by = holon.CreatedByAvatarId.ToString(),
+                created_by_avatar_id = holon.CreatedByAvatarId.ToString(),
                 created_date = holon.CreatedDate.ToString(),
                 modified_by = holon.ModifiedByAvatarId.ToString(),
                 modified_date = holon.ModifiedDate.ToString(),
@@ -712,6 +729,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 created_provider_type = holon.CreatedProviderType,
                 //custom_key = holon.CustomKey,
                 is_active = holon.IsActive,
+                is_public = holon.IsPublic,
                 meta_data = holon.MetaData,
                 parent_holon_id = holon.ParentHolonId,
                 previous_version_id = holon.PreviousVersionId,
@@ -749,6 +767,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
 
         public static OASISResult<T> ConvertHCResponseToOASISResult<T>(ZomeFunctionCallBackEventArgs response, HcObjectTypeEnum hcObjectType, IHoloNETAuditEntryBase hcObject, OASISResult<T> result) where T : IHolonBase
         {
+            return ConvertHCResponseToOASISResult(response, hcObjectType, hcObject, result, UseReflection);
+        }
+
+        internal static OASISResult<T> ConvertHCResponseToOASISResult<T>(ZomeFunctionCallBackEventArgs response, HcObjectTypeEnum hcObjectType, IHoloNETAuditEntryBase hcObject, OASISResult<T> result, bool useReflection) where T : IHolonBase
+        {
             //We can also get the result from the EntryDataObject if we wanted.
             //if (response != null && response.Records != null && response.Records.Count > 0 && response.Records[0] != null && response.Records[0].EntryDataObject != null)
             //{
@@ -768,7 +791,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             //    }
             //}
 
-            if (UseReflection)
+            if (useReflection)
             {
                 switch (hcObjectType)
                 {
@@ -781,6 +804,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                         break;
 
                     case HcObjectTypeEnum.Holon:
+                        MapNativeHolonMetadata(response.Records[0], (IHcHolon)hcObject);
                         result.Result = (T)ConvertHcHolonToHolon((IHcHolon)hcObject);
                         break;
                 }

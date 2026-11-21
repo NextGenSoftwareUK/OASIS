@@ -76,6 +76,37 @@ public class CosmicProjectionResultTests
         Assert.Equal(7, result.Result.Single().Version);
     }
 
+    public sealed record Envelope(string Name)
+    {
+        public Snapshot Detail { get; init; }
+    }
+
+    [Fact]
+    public void NestedDtoUsesOnlyValidatedScalarLeaves()
+    {
+        var captured = CosmicQuery<Holon>.Create().Select(holon => new Envelope(holon.Name)
+        {
+            Detail = new Snapshot { Label = holon.Name, Revision = holon.Version }
+        });
+        Assert.False(captured.IsError, captured.Message);
+        var query = captured.Result.Select(row => row).Result;
+        Assert.Equal(new[] { "Name", "Detail.Label", "Detail.Revision" }, query.OutputAliases);
+
+        Snapshot.Calls = 0;
+        var invalid = CosmicProjectionResults.Materialize(query,
+            new[] { new CosmicProjectionRow("coffee", "detail", 1), new CosmicProjectionRow("tea", "detail", "2") });
+        Assert.True(invalid.IsError);
+        Assert.Equal(0, Snapshot.Calls);
+
+        var valid = CosmicProjectionResults.Materialize(query, new[] { new CosmicProjectionRow("coffee", "detail", 1) });
+        Assert.False(valid.IsError, valid.Message);
+        var result = Assert.Single(valid.Result);
+        Assert.Equal("coffee", result.Name);
+        Assert.Equal("detail", result.Detail.Label);
+        Assert.Equal(1, result.Detail.Revision);
+        Assert.Equal(1, Snapshot.Calls);
+    }
+
     public class ThrowingSetter
     {
         public string Label { get => "unused"; set => throw new InvalidOperationException("controlled application setter"); }

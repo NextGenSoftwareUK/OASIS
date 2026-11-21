@@ -81,7 +81,7 @@ The [current inventory](WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) lists 234 s
 | Provider | Project | Status |
 |---|---|---|
 | ActivityPub | ActivityPubOASIS | **Done** |
-| Holochain | HoloOASIS / HoloOASIS.Desktop / HoloOASIS.Unity | **Done** |
+| Holochain | HoloOASIS / HoloOASIS.Unity | Canonical HoloOASIS native conformance in progress. HoloOASIS.Desktop is obsolete. |
 | HoloWeb | HoloWebOASIS | **Done** |
 | Scuttlebutt | ScuttlebuttOASIS | **Done** |
 | Urbit | UrbitOASIS | **Done** |

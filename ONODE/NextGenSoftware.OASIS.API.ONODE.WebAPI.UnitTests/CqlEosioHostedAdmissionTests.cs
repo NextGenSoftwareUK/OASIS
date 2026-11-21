@@ -33,10 +33,12 @@ public class CqlEosioHostedAdmissionTests
     }
 
     [Fact]
-    public async Task PublicAccountPresetsPlanNativeThreeTwoAndMongoPairsWithoutWallets()
+    public async Task ShippingEosioProviderPlansPublicThreeTwoAndMongoPairs()
     {
         var keys = new[] { "eosio", "eosio.token", "eosio.msig" };
-        using var source = EosioPublicAccountMetadataSource.FromJson(JsonSerializer.Serialize(new {
+        using var source = new EOSIOOASIS("http://127.0.0.1:1", keys[0],
+            EosioPublicAccountMetadataSource.MainnetChainId, string.Empty);
+        source.ConfigurePublicAccountQuery(JsonSerializer.Serialize(new {
             schema=1,apiUrl="https://example.invalid/",chainId=EosioPublicAccountMetadataSource.MainnetChainId,accounts=keys,sourceOwner=Guid.NewGuid()}));
         var rows = new List<object>();
         foreach (var count in new[] { 3, 2 })
@@ -77,7 +79,7 @@ public class CqlEosioHostedAdmissionTests
 
     private sealed class ReadyRegistry(NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider source) : ICqlHostedSourceRegistry
     {
-        public NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider Find(ProviderType provider)
+        public NextGenSoftware.OASIS.API.Core.Interfaces.IOASISProvider Find(ProviderType provider)
             => provider == ProviderType.EOSIOOASIS ? source : null!;
         public Task ActivateReadSourceAsync(ProviderType provider, CancellationToken token)
         {

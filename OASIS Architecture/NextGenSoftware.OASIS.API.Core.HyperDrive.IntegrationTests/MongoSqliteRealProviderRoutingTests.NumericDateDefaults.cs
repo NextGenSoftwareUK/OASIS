@@ -71,9 +71,13 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 result.Result.SearchResultHolons.Select(row=>row.Id).Should().BeEquivalentTo(ids,"group={0}, stored metadata={1}",group.GetType().Name,metadataEvidence);
                 result.Result.SearchResultAvatars.Select(row=>row.Id).Should().BeEquivalentTo(new[] {avatar.Id});
             }
-            var empty=synchronous ? mongo.Search(new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=null!})
-                :await mongo.SearchAsync(new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=null!});
-            empty.IsError.Should().BeFalse(empty.Exception?.ToString() ?? empty.Message);empty.Result.NumberOfResults.Should().Be(0);
+            var noGroups = new SearchParams { SearchOnlyForCurrentAvatar = false, SearchGroups = null! };
+            var all = synchronous ? mongo.Search(noGroups, loadChildren: false)
+                : await mongo.SearchAsync(noGroups, loadChildren: false);
+            all.IsError.Should().BeFalse(all.Exception?.ToString() ?? all.Message);
+            all.Result.SearchResultHolons.Select(row => row.Id).Should().BeEquivalentTo(ids);
+            all.Result.SearchResultAvatars.Select(row => row.Id).Should().Equal(avatar.Id);
+            all.Result.NumberOfResults.Should().Be(ids.Length + 1);
             (await sqlite.ActivateProviderAsync()).IsError.Should().BeFalse();
             foreach(var row in new[] {park,quest}) (await sqlite.SaveHolonAsync(row,saveChildren:false)).IsError.Should().BeFalse();
             (await sqlite.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();

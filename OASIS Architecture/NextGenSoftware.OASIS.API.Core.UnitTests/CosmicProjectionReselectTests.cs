@@ -6,6 +6,23 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public sealed partial class CosmicLinqProjectionElementTests
 {
+    [Fact]
+    public void ReselectsNestedAnonymousLeavesWithoutBuildingIntermediateObjects()
+    {
+        var source = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.SQLLiteDBOASIS).Result);
+        var query = source.Select(row => new { Detail = new { row.Version, row.Name }, row.Id }).Result;
+        var result = query.Select(row => row.Detail.Name);
+        Assert.False(result.IsError, result.Message);
+        Assert.Equal(new[] { 1 }, result.Result.OutputColumnIndices);
+        var rows = CosmicProjectionResults.Materialize(result.Result,
+            new[] { new CosmicProjectionRow(7, "sample", Guid.NewGuid()) });
+        Assert.False(rows.IsError, rows.Message);
+        Assert.Equal("sample", Assert.Single(rows.Result));
+
+        var opaque = source.Select(row => new { Detail = new RenamedDto { Renamed = row.Name } }).Result;
+        Assert.Equal("CQL_PROJECTION_UNSUPPORTED", opaque.Select(row => row.Detail.Renamed).ErrorCode);
+    }
+
     public sealed class RenamedDto
     {
         public string? Renamed { get; set; }

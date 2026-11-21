@@ -59,7 +59,9 @@ public class AwsS3CqlNativeTests
             using var writer = Open();
             var active = await writer.ActivateProviderAsync();
             Assert.IsFalse(active.IsError, active.Message + active.Exception);
-            var names = new[] { "Espresso", "Latte", "Tea" };
+            // Long unique markers: a 3 letter name such as "Tea" appears by chance in random base64 ciphertext often enough
+            // to make the plaintext-leak check below fail intermittently.
+            var names = new[] { "Espresso-Quartz-7F3A91", "Latte-Quartz-9C1B42", "Tea-Quartz-2D8E65" };
             for (var i = 0; i < 3; i++)
             {
                 var saved = await writer.SaveHolonAsync(new Holon { Id = seed.Ids[i], Name = names[i],
@@ -88,7 +90,7 @@ public class AwsS3CqlNativeTests
                 using var response = await client.GetObjectAsync(bucket, item.Key);
                 using var reader = new StreamReader(response.ResponseStream);
                 var body = await reader.ReadToEndAsync();
-                foreach (var name in new[] { "Espresso", "Latte", "Tea" })
+                foreach (var name in new[] { "Espresso-Quartz-7F3A91", "Latte-Quartz-9C1B42", "Tea-Quartz-2D8E65" })
                 { Assert.IsFalse(item.Key.Contains(name)); Assert.IsFalse(body.Contains(name)); }
                 values.Add(item.Key + "|" + response.ETag + "|" + body);
             }

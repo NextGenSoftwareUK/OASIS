@@ -39,4 +39,10 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="SolanaCoreStorageConformanceTests.Routing.cs" />
+    <Compile Include="SolanaCoreStorageConformanceTests.Routing.cs" Condition="'$(SolanaRoutingTests)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/NativePriorityRouting.cs" Link="TestSupport/NativePriorityRouting.cs" Condition="'$(SolanaRoutingTests)' == 'true'" />
+    <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" Condition="'$(SolanaRoutingTests)' == 'true' and '$(SolanaDirectProviderOnly)' == 'true'" />
+  </ItemGroup>
 </Project>

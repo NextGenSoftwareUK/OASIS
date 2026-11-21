@@ -25,6 +25,8 @@ public sealed class TonPublicHeaderMetadataSource : KeyValueStorageProviderBase,
     ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
 {
     public const string AddressMetadata = "TonBlockRootHash";
+    internal static readonly CosmicQueryCapabilities PublicCapabilities =
+        CosmicQueryCapabilities.ForStringMetadataKeyLookup(AddressMetadata, 44, 8);
     private readonly HeadersBackend headers;
     private bool disposed;
 
@@ -39,15 +41,21 @@ public sealed class TonPublicHeaderMetadataSource : KeyValueStorageProviderBase,
         ProviderDescription = "Read-only explicit historical Ton gateway headers";
         ProviderType = new EnumValue<PType>(PType.TONOASIS);
         ProviderCategory = new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-        QueryCapabilities = CosmicQueryCapabilities.ForStringMetadataKeyLookup(AddressMetadata, 44, 8);
     }
 
     public PType QueryProviderType => PType.TONOASIS;
-    public CosmicQueryCapabilities QueryCapabilities { get; }
+    public CosmicQueryCapabilities QueryCapabilities => PublicCapabilities;
 
     /// <summary>Separate host query-profile configuration, never the existing
     /// signed Ton storage settings. Reject unknown fields rather than ignore keys.</summary>
     public static TonPublicHeaderMetadataSource FromJson(string json)
+    {
+        var client = new HttpClient(NativeConnectionGuard.CreateGuardedHttpHandler()) { Timeout = TimeSpan.FromSeconds(15) };
+        try { return new TonPublicHeaderMetadataSource(CreateHeaders(json, client, ownsClient: true)); }
+        catch { client.Dispose(); throw; }
+    }
+
+    internal static HeadersBackend CreateHeaders(string json, HttpClient client, bool ownsClient = false)
     {
         if (json == null || Encoding.UTF8.GetByteCount(json) > 8192)
             throw new ArgumentException("Bounded explicit TON source required.");
@@ -67,10 +75,8 @@ public sealed class TonPublicHeaderMetadataSource : KeyValueStorageProviderBase,
             return new TonPublicHeaderReference(TonPublicHeaderReference.UInt32Token(value.GetProperty("seqno")),
                 value.GetProperty("rootHash").GetString(), value.GetProperty("fileHash").GetString());
         }).ToArray();
-        var client = new HttpClient(NativeConnectionGuard.CreateGuardedHttpHandler()) { Timeout = TimeSpan.FromSeconds(15) };
-        try { return new TonPublicHeaderMetadataSource(client, new Uri(root.GetProperty("restUrl").GetString(), UriKind.Absolute),
-            blocks, root.GetProperty("sourceOwner").GetGuid(), true); }
-        catch { client.Dispose(); throw; }
+        return new HeadersBackend(client, new Uri(root.GetProperty("restUrl").GetString(), UriKind.Absolute),
+            blocks, root.GetProperty("sourceOwner").GetGuid(), ownsClient);
     }
 
     public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
@@ -91,34 +97,38 @@ public sealed class TonPublicHeaderMetadataSource : KeyValueStorageProviderBase,
         }
     }
 
-    public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
+    public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
+        => ExecutePublicQueryAsync(headers, !disposed && IsProviderActivated, plan, maximumResults, cancellationToken);
+
+    internal static async Task<OASISResult<IReadOnlyList<IHolon>>> ExecutePublicQueryAsync<T>(
+        HeadersBackend headers, bool activated, CosmicQueryPlan<T> plan, int maximumResults,
+        CancellationToken cancellationToken) where T : IHolon
     {
         try
         {
-            ObjectDisposedException.ThrowIf(disposed, this);
-            if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != QueryProviderType)
+            if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != PType.TONOASIS)
                 return Failure("CQL_PLAN_TARGET_UNAVAILABLE", "One explicitly admitted public Ton source is required.");
             if (maximumResults is < 1 or > 10000) return Failure("CQL_QUERY_LIMIT", "A bounded result budget is required.");
-            var admitted = QueryCapabilities.AdmitPlan(plan);
+            var admitted = PublicCapabilities.AdmitPlan(plan);
             if (admitted.IsError) return Failure(admitted.ErrorCode, admitted.Message);
             IReadOnlyList<string> keys;
-            if (QueryCapabilities.StringKeySetLookup.IsKeySetQuery(plan.Query))
+            if (PublicCapabilities.StringKeySetLookup.IsKeySetQuery(plan.Query))
             {
-                var selected = QueryCapabilities.StringKeySetLookup.SelectKeys(plan.Query);
+                var selected = PublicCapabilities.StringKeySetLookup.SelectKeys(plan.Query);
                 if (selected.IsError) return Failure(selected.ErrorCode, selected.Message);
                 keys = selected.Result;
             }
             else
             {
-                var selected = QueryCapabilities.StringPointLookup.SelectKey(plan.Query);
+                var selected = PublicCapabilities.StringPointLookup.SelectKey(plan.Query);
                 if (selected.IsError) return Failure(selected.ErrorCode, selected.Message);
                 keys = new[] { selected.Result };
             }
             if (keys.Any(key => !headers.Addresses.Contains(key, StringComparer.Ordinal)))
                 return Failure("CQL_INVALID_SOURCE_KEY", "Select addresses from the configured header catalogue.");
             cancellationToken.ThrowIfCancellationRequested();
-            if (!IsProviderActivated) return Failure("CQL_PROVIDER_INACTIVE", "Activate the configured public source first.");
+            if (!activated) return Failure("CQL_PROVIDER_INACTIVE", "Activate the configured public source first.");
             var native = await headers.ReadAsync(keys, cancellationToken);
             var rows = native.Where(row => plan.Query.ReadAccess == null || plan.Query.ReadAccess.CanRead(row))
                 .Skip(plan.Query.Offset).Take(plan.Query.Limit ?? native.Count).ToArray();
@@ -156,7 +166,7 @@ public sealed class TonPublicHeaderMetadataSource : KeyValueStorageProviderBase,
             foreach (var item in value.EnumerateArray()) Unique(item);
     }
 
-    private sealed class HeadersBackend : IKeyValueBackend, IDisposable
+    internal sealed class HeadersBackend : IKeyValueBackend, IDisposable
     {
         private readonly HttpClient client;
         private readonly Uri endpoint;

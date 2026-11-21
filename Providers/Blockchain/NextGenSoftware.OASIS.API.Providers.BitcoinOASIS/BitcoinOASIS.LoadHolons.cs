@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -49,6 +49,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         {
             var response = new OASISResult<IEnumerable<IHolon>>();
             var savedHolons = new List<IHolon>();
+            var failures = new List<string>();
+            var receipts = new List<string>();
+            response.Result = savedHolons;
 
             try
             {
@@ -62,29 +65,56 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     }
                 }
 
+                ArgumentNullException.ThrowIfNull(holons);
+                var position = 0;
                 foreach (var holon in holons)
                 {
+                    position++;
                     var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                    if (saveResult.IsError && !continueOnError)
+                    if (saveResult.Result != null)
+                        savedHolons.Add(saveResult.Result);
+                    if (saveResult.MetaData.TryGetValue("BitcoinAcknowledgedTransactionIds", out var graphReceipts))
                     {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to save holon {holon.Id}: {saveResult.Message}");
-                        return response;
+                        receipts.AddRange(graphReceipts.Split(','));
+                        response.SavedCount += saveResult.SavedCount;
                     }
                     else if (!saveResult.IsError)
                     {
-                        savedHolons.Add(saveResult.Result);
+                        receipts.Add(saveResult.Result.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS]);
+                        response.SavedCount++;
                     }
+
+                    if (!saveResult.IsError)
+                        continue;
+
+                    failures.Add($"Holon at position {position}: {saveResult.Message}");
+                    if (saveResult.ErrorCode == BitcoinBroadcastOutcomeUnknown)
+                    {
+                        response.ErrorCode = saveResult.ErrorCode;
+                        response.MetaData = saveResult.MetaData;
+                        break;
+                    }
+                    if (!continueOnError)
+                        break;
                 }
 
-                response.Result = savedHolons;
-                response.IsError = false;
-                response.Message = $"Saved {savedHolons.Count} holons to Bitcoin blockchain";
+                if (failures.Count > 0)
+                {
+                    OASISErrorHandling.HandleError(ref response,
+                        $"Bitcoin acknowledged {response.SavedCount} holon publications. {failures.Count} attempts lack acknowledgement.");
+                    response.ErrorCount = failures.Count;
+                    response.InnerMessages.AddRange(failures);
+                }
+                else
+                    response.Message = $"Bitcoin acknowledged {response.SavedCount} holon publications.";
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref response, $"Error saving holons to Bitcoin: {ex.Message}", ex);
             }
 
+            if (receipts.Count > 0)
+                response.MetaData["BitcoinAcknowledgedTransactionIds"] = string.Join(",", receipts);
             return response;
         }
 
@@ -93,220 +123,24 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return DeleteHolonAsync(id).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-        {
-            var response = new OASISResult<IHolon>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Bitcoin is immutable, so we can't actually delete
-                // Instead, we mark the holon as deleted in a new transaction
-                var deleteData = new
-                {
-                    action = "delete",
-                    holonId = id.ToString(),
-                    timestamp = DateTime.UtcNow
-                };
-
-                var deleteJson = JsonSerializer.Serialize(deleteData);
-                var deleteBytes = Encoding.UTF8.GetBytes(deleteJson);
-
-                // Create Bitcoin transaction with delete marker
-                var transactionRequest = new
-                {
-                    inputs = new[]
-                    {
-                        new
-                        {
-                            txid = "", // Will be filled by UTXO lookup
-                            vout = 0
-                        }
-                    },
-                    outputs = new[]
-                    {
-                        new
-                        {
-                            address = "", // OP_RETURN transaction
-                            value = 0,
-                            script = Convert.ToHexString(deleteBytes)
-                        }
-                    }
-                };
-
-                // Submit transaction to Bitcoin network
-                var jsonContent = JsonSerializer.Serialize(transactionRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var submitResponse = await _httpClient.PostAsync("/tx", content);
-                if (submitResponse.IsSuccessStatusCode)
-                {
-                    response.Result = new Holon { Id = id };
-                    response.IsError = false;
-                    response.Message = "Holon deletion marked successfully on Bitcoin blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to mark holon deletion on Bitcoin: {submitResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref response, $"Error marking holon deletion on Bitcoin: {ex.Message}", ex);
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+            => DeleteWalletHolonAsync(() => LoadHolonAsync(id, loadChildren: false));
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
             return DeleteHolonAsync(providerKey).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
-        {
-            var response = new OASISResult<IHolon>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Bitcoin is immutable, so we can't actually delete
-                // Instead, we mark the holon as deleted in a new transaction
-                var deleteData = new
-                {
-                    action = "delete",
-                    providerKey = providerKey,
-                    timestamp = DateTime.UtcNow
-                };
-
-                var deleteJson = JsonSerializer.Serialize(deleteData);
-                var deleteBytes = Encoding.UTF8.GetBytes(deleteJson);
-
-                // Create Bitcoin transaction with delete marker
-                var transactionRequest = new
-                {
-                    inputs = new[]
-                    {
-                        new
-                        {
-                            txid = "", // Will be filled by UTXO lookup
-                            vout = 0
-                        }
-                    },
-                    outputs = new[]
-                    {
-                        new
-                        {
-                            address = "", // OP_RETURN transaction
-                            value = 0,
-                            script = Convert.ToHexString(deleteBytes)
-                        }
-                    }
-                };
-
-                // Submit transaction to Bitcoin network
-                var jsonContent = JsonSerializer.Serialize(transactionRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var submitResponse = await _httpClient.PostAsync("/tx", content);
-                if (submitResponse.IsSuccessStatusCode)
-                {
-                    response.Result = new Holon { Name = "Bitcoin Deletion Marker", Description = "Holon deletion marked on Bitcoin blockchain" };
-                    response.IsError = false;
-                    response.Message = "Holon deletion marked successfully on Bitcoin blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to mark holon deletion on Bitcoin: {submitResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref response, $"Error marking holon deletion on Bitcoin: {ex.Message}", ex);
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+            => DeleteWalletHolonAsync(() => ResolveWalletHolonForDeleteAsync(providerKey));
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
         }
 
-        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-        {
-            var response = new OASISResult<ISearchResults>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Search Bitcoin blockchain for transactions matching search criteria
-                var searchRequest = new
-                {
-                    query = "", // ISearchParams doesn't have SearchQuery, using empty string
-                    filters = new
-                    {
-                        fromDate = DateTime.MinValue, // ISearchParams doesn't have FromDate, using MinValue
-                        toDate = DateTime.MaxValue, // ISearchParams doesn't have ToDate, using MaxValue
-                        version = version
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(searchRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var searchResponse = await _httpClient.PostAsync("/search", content);
-                if (searchResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await searchResponse.Content.ReadAsStringAsync();
-                    var searchData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    var results = new SearchResults();
-                    // Parse search results and populate results object
-
-                    response.Result = results;
-                    response.IsError = false;
-                    response.Message = "Search completed successfully on Bitcoin blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to search Bitcoin blockchain: {searchResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref response, $"Error searching Bitcoin blockchain: {ex.Message}", ex);
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+            => SearchWalletRecordsAsync(searchParams, loadChildren, recursive, maxChildDepth, version);
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
         {
@@ -331,15 +165,20 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 
                 // Import holons to Bitcoin blockchain
                 var importResult = await SaveHolonsAsync(holons);
+                response.SavedCount = importResult.SavedCount;
+                response.ErrorCode = importResult.ErrorCode;
+                response.MetaData = importResult.MetaData;
+                response.InnerMessages = importResult.InnerMessages;
                 if (importResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref response, $"Failed to import holons to Bitcoin: {importResult.Message}");
+                    response.ErrorCount = importResult.ErrorCount;
                     return response;
                 }
 
                 response.Result = true;
                 response.IsError = false;
-                response.Message = $"Successfully imported {holons.Count()} holons to Bitcoin blockchain";
+                response.Message = $"Bitcoin acknowledged {response.SavedCount} imported holons.";
             }
             catch (Exception ex)
             {
@@ -354,173 +193,24 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return ExportAllAsync(version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Export all data from Bitcoin blockchain
-                var exportRequest = new
-                {
-                    version = version,
-                    includeDeleted = false
-                };
-
-                var jsonContent = JsonSerializer.Serialize(exportRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var exportResponse = await _httpClient.PostAsync("/export", content);
-                if (exportResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await exportResponse.Content.ReadAsStringAsync();
-                    var exportData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    var holons = new List<IHolon>();
-                    // Parse export data and populate holons list
-
-                    response.Result = holons;
-                    response.IsError = false;
-                    response.Message = "Export completed successfully from Bitcoin blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to export from Bitcoin blockchain: {exportResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref response, $"Error exporting from Bitcoin blockchain: {ex.Message}", ex);
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+            => LoadAllHolonsAsync(loadChildren: false, version: version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
         {
             return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Export all data for specific avatar from Bitcoin blockchain
-                var exportRequest = new
-                {
-                    avatarId = avatarId.ToString(),
-                    version = version,
-                    includeDeleted = false
-                };
-
-                var jsonContent = JsonSerializer.Serialize(exportRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var exportResponse = await _httpClient.PostAsync("/export/avatar", content);
-                if (exportResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await exportResponse.Content.ReadAsStringAsync();
-                    var exportData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    var holons = new List<IHolon>();
-                    // Parse export data and populate holons list
-
-                    response.Result = holons;
-                    response.IsError = false;
-                    response.Message = "Avatar data export completed successfully from Bitcoin blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to export avatar data from Bitcoin blockchain: {exportResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref response, $"Error exporting avatar data from Bitcoin blockchain: {ex.Message}", ex);
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+            => ExportWalletHolonsForOwnerAsync(avatarId, version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
         {
             return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Export all data for specific avatar by username from Bitcoin blockchain
-                var exportRequest = new
-                {
-                    avatarUsername = avatarUsername,
-                    version = version,
-                    includeDeleted = false
-                };
-
-                var jsonContent = JsonSerializer.Serialize(exportRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var exportResponse = await _httpClient.PostAsync("/export/avatar/username", content);
-                if (exportResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await exportResponse.Content.ReadAsStringAsync();
-                    var exportData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    var holons = new List<IHolon>();
-                    // Parse export data and populate holons list
-
-                    response.Result = holons;
-                    response.IsError = false;
-                    response.Message = "Avatar data export completed successfully from Bitcoin blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to export avatar data from Bitcoin blockchain: {exportResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref response, $"Error exporting avatar data from Bitcoin blockchain: {ex.Message}", ex);
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+            => ExportWalletHolonsForAvatarAsync(LoadAvatarByUsernameAsync(avatarUsername), version);
 
     }
 }

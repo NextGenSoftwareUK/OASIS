@@ -139,7 +139,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     return TestDataHelper.CreateErrorResponse<byte[]>("Forbidden. You do not have permission to access this file.", null, System.Net.HttpStatusCode.Forbidden);
             }
 
-            OASISResult<byte[]> response = await HolonManager.LoadFileAsync(request.Id, AvatarId);
+            OASISResult<byte[]> response = await ExpandChunkedFileAsync(await HolonManager.LoadFileAsync(request.Id, AvatarId));
             ResetOASISSettings(request, configResult);
 
             return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);

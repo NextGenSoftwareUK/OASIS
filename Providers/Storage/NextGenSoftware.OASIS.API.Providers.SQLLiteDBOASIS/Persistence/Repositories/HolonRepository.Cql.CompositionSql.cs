@@ -47,7 +47,8 @@ public partial class HolonRepository
             "row_number() OVER (ORDER BY " + sourceOrder + ") AS position",
             "\"Holon\".\"Id\" AS id", "\"Holon\".\"IsPublic\" AS public", "\"Holon\".\"CreatedByAvatarId\" AS creator"
         };
-        for (var index = 0; index < query.Columns.Count; index++) Cell(query.Columns[index].Path, "v" + index);
+        for (var index = 0; index < query.Columns.Count; index++)
+            EncodedCell(translator.ProjectionOperand(query.Columns[index], "composedv" + index, comparable: true), "v" + index);
         for (var index = 0; index < query.Source.Orderings.Count; index++) Cell(query.Source.Orderings[index].Path, "o" + index);
         var inputLimit = translator.Bind(Math.Min(query.Source.Limit.HasValue ? (long)query.Source.Limit.Value : long.MaxValue,
             (long)limits.MaximumInputRows + 1));
@@ -71,13 +72,22 @@ public partial class HolonRepository
             else if (stage is CosmicSelectedOrderStage ordering)
             {
                 var keys = ordering.Orderings.Select(item => "v" + item.ColumnIndex + "v"
-                    + CqlSqlTranslator.SelectedCollation(query.Columns[item.ColumnIndex].Path.ValueType)
+                    + CqlSqlTranslator.SelectedCollation(query.Columns[item.ColumnIndex].ValueType)
                     + (item.Descending ? " DESC" : " ASC")).ToList();
                 keys.Add(previousRank + " ASC");
                 ranking = "row_number() OVER (ORDER BY " + string.Join(",", keys) + ")";
             }
             else if (stage is CosmicSelectedReverseStage)
                 ranking = "row_number() OVER (ORDER BY " + previousRank + " DESC)";
+            else if (stage is CosmicSelectedDistinctStage distinct)
+            {
+                var duplicateRank = "distinctRank" + index;
+                var column = "v" + distinct.ColumnIndex + "v"
+                    + CqlSqlTranslator.SelectedCollation(query.Columns[distinct.ColumnIndex].ValueType);
+                from = "(SELECT *,row_number() OVER (PARTITION BY " + column + " ORDER BY " + previousRank
+                    + ") AS " + duplicateRank + " FROM " + from + ")";
+                tail = " WHERE " + duplicateRank + " = 1";
+            }
             else if (stage is CosmicSelectedWindowStage window)
                 tail = " ORDER BY " + previousRank + " LIMIT " + translator.Bind(window.Kind == CosmicSelectedWindowKind.Take ? (long)window.Count : -1L)
                     + " OFFSET " + translator.Bind(window.Kind == CosmicSelectedWindowKind.Skip ? (long)window.Count : 0L);
@@ -103,7 +113,10 @@ public partial class HolonRepository
 
         void Cell(CosmicQueryPath path, string alias)
         {
-            var operand = translator.ProjectionOperand(path, "composed" + alias, comparable: true);
+            EncodedCell(translator.ProjectionOperand(path, "composed" + alias, comparable: true), alias);
+        }
+        void EncodedCell((string State, string Value) operand, string alias)
+        {
             cells.Add(operand.State + " AS " + alias + "s"); cells.Add(operand.Value + " AS " + alias + "v");
         }
     }
@@ -116,7 +129,7 @@ public partial class HolonRepository
             => TranslateSelectedPredicate(predicate, path =>
             {
                 var index = !path.IsMetadata && path.Segments.Count == 1
-                    ? query.Columns.ToList().FindIndex(column => column.Alias == path.Segments[0] && column.Path.ValueType == path.ValueType) : -1;
+                    ? query.Columns.ToList().FindIndex(column => column.Alias == path.Segments[0] && column.ValueType == path.ValueType) : -1;
                 if (index < 0) throw new NotSupportedException("Composition filter requires an exact selected alias.");
                 var type = Nullable.GetUnderlyingType(path.ValueType) ?? path.ValueType;
                 return new GroupFilterCell

@@ -2,7 +2,7 @@ using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.Providers.NostrOASIS;
+using NostrProvider = NextGenSoftware.OASIS.API.Providers.NostrOASIS.NostrOASIS;
 
 namespace CosmicCqlDemo;
 
@@ -21,7 +21,7 @@ public static class NostrPublicWalkthrough
         // An event ID identifies immutable signed content, not a current profile.
         var json = await File.ReadAllTextAsync(configurationPath, cancellationToken);
 
-        using var source = NostrPublicEventMetadataSource.FromJson(json);
+        using var source = NostrProvider.FromPublicQueryConfiguration(json);
         using var configuration = JsonDocument.Parse(json);
 
         var keys = configuration.RootElement.GetProperty("eventIds")

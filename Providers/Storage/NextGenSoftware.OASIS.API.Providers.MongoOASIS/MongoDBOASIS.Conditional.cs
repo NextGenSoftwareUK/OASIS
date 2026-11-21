@@ -9,7 +9,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
-public partial class MongoDBOASIS : IConditionalHolonDeltaStorageProvider,IBoundAtomicHolonReplicationStorageProvider
+public partial class MongoDBOASIS : IConditionalHolonPropertyStorageProvider,IBoundAtomicHolonReplicationStorageProvider
 {
     public OASISResult<IEnumerable<IHolon>> ExecuteReplicatingHolonWrite(ConditionalHolonWriteRequest request,HolonReplicationEnrollment enrollment)
         =>ExecuteReplicatingHolonWriteAsync(request,enrollment).GetAwaiter().GetResult();
@@ -20,6 +20,12 @@ public partial class MongoDBOASIS : IConditionalHolonDeltaStorageProvider,IBound
             ErrorCode="COSMIC_REPLICATION_ENROLLMENT_REQUIRED",Message="Atomic replication requires explicit enrollment."})
             :ExecuteConditionalCoreAsync(request,enrollment,cancellationToken);
 
+    public OASISResult<IEnumerable<IHolon>> ExecuteConditionalHolonPropertyWrite(ConditionalHolonPropertyWriteRequest request)
+        =>ExecuteConditionalHolonPropertyWriteAsync(request).GetAwaiter().GetResult();
+    public Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalHolonPropertyWriteAsync(
+        ConditionalHolonPropertyWriteRequest request,CancellationToken cancellationToken=default)
+        =>ExecuteConditionalCoreAsync(request?.WriteRequest,request?.WriteRequest.Write.ReplicationEnrollment,cancellationToken,request);
+
     public OASISResult<IEnumerable<IHolon>> ExecuteConditionalHolonWrite(ConditionalHolonWriteRequest request)
         => ExecuteConditionalHolonWriteAsync(request).GetAwaiter().GetResult();
 
@@ -28,12 +34,13 @@ public partial class MongoDBOASIS : IConditionalHolonDeltaStorageProvider,IBound
         =>ExecuteConditionalCoreAsync(request,request?.Write.ReplicationEnrollment,cancellationToken);
 
     private async Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalCoreAsync(ConditionalHolonWriteRequest request,
-        HolonReplicationEnrollment enrollment,CancellationToken cancellationToken)
+        HolonReplicationEnrollment enrollment,CancellationToken cancellationToken,ConditionalHolonPropertyWriteRequest propertyWrite=null)
     {
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var plan = enrollment==null ? ConditionalHolonPlan.Create(request, Core.Enums.ProviderType.MongoDBOASIS)
+            var plan = propertyWrite!=null ? ConditionalHolonPlan.CreatePropertyWrite(propertyWrite,Core.Enums.ProviderType.MongoDBOASIS)
+                :enrollment==null ? ConditionalHolonPlan.Create(request, Core.Enums.ProviderType.MongoDBOASIS)
                 :ConditionalHolonPlan.CreateReplicating(request,Core.Enums.ProviderType.MongoDBOASIS,enrollment);
             return await SaveGraphsAtomicAsync(request.Roots, request.SaveChildren, request.Recursive,
                 request.MaxChildDepth, 0, plan, request.Write.ActorId, cancellationToken, expectedStorage: enrollment?.SourceStorageIdentity).ConfigureAwait(false);

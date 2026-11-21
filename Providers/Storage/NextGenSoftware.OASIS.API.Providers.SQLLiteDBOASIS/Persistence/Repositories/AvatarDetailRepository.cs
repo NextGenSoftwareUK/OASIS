@@ -50,6 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         IsLoaded = false,
                         IsError = false,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
                         Message = "No Avatar Detail Found"
                     };
                 return new OASISResult<IAvatarDetail>
@@ -88,6 +89,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         IsLoaded = false,
                         IsError = false,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
                         Message = "No Avatar Detail Found"
                     };
                 return new OASISResult<IAvatarDetail>
@@ -126,6 +128,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         IsLoaded = false,
                         IsError = false,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
                         Message = "No Avatar Detail Found"
                     };
                 return new OASISResult<IAvatarDetail>
@@ -163,6 +166,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         IsLoaded = false,
                         IsError = false,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
                         Message = "No Avatar Detail Found"
                     };
                 return new OASISResult<IAvatarDetail>
@@ -202,6 +206,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         IsLoaded = false,
                         IsError = false,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
                         Message = "No Avatar Detail Found"
                     };
                 return new OASISResult<IAvatarDetail>
@@ -240,6 +245,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         IsLoaded = false,
                         IsError = false,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
                         Message = "No Avatar Detail Found"
                     };
                 return new OASISResult<IAvatarDetail>

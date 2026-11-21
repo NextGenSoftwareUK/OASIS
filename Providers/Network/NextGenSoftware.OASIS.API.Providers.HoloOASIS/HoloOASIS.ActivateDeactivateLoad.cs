@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.Holochain.HoloNET.Client.Interfaces;
+using NextGenSoftware.Holochain.HoloNET.ORM.Interfaces;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -41,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
     public partial class HoloOASIS
     {
-
+        private bool _ownsAppClient;
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
@@ -102,11 +103,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                                 OASIS_HAPP_ID,
                                 OASIS_HAPP_PATH,
                                 OASIS_HAPP_ROLE_NAME,
-                                CapGrantAccessType.Transferable);
+                                CapGrantAccessType.Transferable,
+                                uninstallhAppIfAlreadyInstalled: false);
 
                             if (installedAppResult != null && installedAppResult.IsSuccess && !installedAppResult.IsError)
                             {
                                 BindAppClient(installedAppResult.HoloNETClientAppAgent);
+                                _ownsAppClient = true;
                                 IsProviderActivated = true;
                                 result.Result = true;
                             }
@@ -159,20 +162,21 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
             try
             {
-                if (HoloNETClientAdmin != null && !HoloNETClientAdmin.IsDisconnecting)
-                {
-                    holoNETClientAdminResult = await HoloNETClientAdmin.DisconnectAsync();
-
-                    if (!(holoNETClientAdminResult != null && !holoNETClientAdminResult.IsError && holoNETClientAdminResult.IsDisconnected))
-                        OASISErrorHandling.HandleError(ref result, $"Error Occured In HoloOASIS Provider in DeActivateProviderAsync calling HoloNETClientAdmin.DisconnectAsync() method. Reason: {holoNETClientAdminResult.Message}");
-                }
-
+                // The admin connection owns the conductor. Close the app socket before it shuts down the process.
                 if (HoloNETClientAppAgent != null && !HoloNETClientAppAgent.IsDisconnecting)
                 {
                     holoNETClientAppAgent = await HoloNETClientAppAgent.DisconnectAsync();
 
                     if (!(holoNETClientAppAgent != null && !holoNETClientAppAgent.IsError && holoNETClientAppAgent.IsDisconnected))
-                        OASISErrorHandling.HandleError(ref result, $"Error Occured In HoloOASIS Provider in DeActivateProviderAsync calling HoloNETClientAdmin.DisconnectAsync() method. Reason: {holoNETClientAppAgent.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"HoloOASIS app connection did not disconnect. {holoNETClientAppAgent?.Message}");
+                }
+
+                if (HoloNETClientAdmin != null && !HoloNETClientAdmin.IsDisconnecting)
+                {
+                    holoNETClientAdminResult = await HoloNETClientAdmin.DisconnectAsync();
+
+                    if (!(holoNETClientAdminResult != null && !holoNETClientAdminResult.IsError && holoNETClientAdminResult.IsDisconnected))
+                        OASISErrorHandling.HandleError(ref result, $"HoloOASIS admin connection did not disconnect. {holoNETClientAdminResult?.Message}");
                 }
 
                 if (HoloNETClientAdmin != null)
@@ -187,8 +191,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     (holoNETClientAppAgent != null && holoNETClientAppAgent.IsDisconnected && !holoNETClientAppAgent.IsError);
                 if (adminDisconnected && appDisconnected)
                 {
-                    result.Result = true;
                     IsProviderActivated = false;
+                    if (_ownsAppClient)
+                    {
+                        var closedApp = HoloNETClientAppAgent;
+                        HoloNETClientAppAgent = null;
+                        _genericRepository = null;
+                        _ownsAppClient = false;
+                        (closedApp as IDisposable)?.Dispose();
+                    }
+                    result.Result = true;
                 }
             }
             catch (Exception e)
@@ -317,24 +329,73 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return _genericRepository.Load<IAvatarDetail>(HcObjectTypeEnum.AvatarDetail, "username", avatarUsername, ZOME_LOAD_AVATAR_DETAIL_BY_USERNAME_FUNCTION);
         }
 
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
-        {
-            return await _avatarRepository.LoadAvatarsAsync("avatars", "", ZOME_LOAD_ALL_AVATARS_FUNCTION, version);
-        }
+        public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0) =>
+            LoadNativeAvatarCollectionAsync<HcAvatar, IAvatar>(ZOME_LOAD_ALL_AVATARS_FUNCTION, version, DataHelper.ConvertHcAvatarToAvatar);
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
-            return _avatarRepository.LoadAvatars("avatars", "", ZOME_LOAD_ALL_AVATARS_FUNCTION, version);
+            return Task.Run(() => LoadAllAvatarsAsync(version)).GetAwaiter().GetResult();
         }
 
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-        {
-            return await _avatarDetailRepository.LoadAvatarDetailsAsync("avatarsDetails", "", ZOME_LOAD_ALL_AVATARS_DETAILS_FUNCTION, version);
-        }
+        public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0) =>
+            LoadNativeAvatarCollectionAsync<HcAvatarDetail, IAvatarDetail>(ZOME_LOAD_ALL_AVATARS_DETAILS_FUNCTION, version, DataHelper.ConvertHcAvatarDetailToAvatarDetail);
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
-            return _avatarDetailRepository.LoadAvatarDetails("avatarsDetails", "", ZOME_LOAD_ALL_AVATARS_DETAILS_FUNCTION, version);
+            return Task.Run(() => LoadAllAvatarDetailsAsync(version)).GetAwaiter().GetResult();
+        }
+
+        private async Task<OASISResult<IEnumerable<TAvatar>>> LoadNativeAvatarCollectionAsync<TEntry, TAvatar>(
+            string function, int version, Func<TEntry, TAvatar> convert)
+            where TEntry : class, IHoloNETAuditEntryBase
+            where TAvatar : IHolonBase
+        {
+            var result = new OASISResult<IEnumerable<TAvatar>>();
+            if (version != 0)
+            {
+                OASISErrorHandling.HandleError(ref result, "This Holochain collection query supports current records.");
+                return result;
+            }
+
+            try
+            {
+                var response = await HoloNETClientAppAgent.CallZomeFunctionAsync("oasis", function, paramsObject: null,
+                    entryDataObjectTypeReturnedFromZome: typeof(TEntry));
+                if (response == null || response.IsError || response.Records == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, response?.Message ?? $"No records response from Holochain {function}.");
+                    return result;
+                }
+
+                var current = new Dictionary<Guid, TAvatar>();
+                foreach (var record in response.Records)
+                {
+                    var entry = (object)record.EntryDataObject as TEntry;
+                    if (entry == null || string.IsNullOrWhiteSpace(record.ActionHash) ||
+                        record.EntryKeyValuePairs == null || !record.EntryKeyValuePairs.TryGetValue("id", out var value) ||
+                        !Guid.TryParse(value as string, out var id) || id == Guid.Empty)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Holochain {function} returned an invalid avatar record.");
+                        return result;
+                    }
+
+                    entry.ActionHash = record.ActionHash;
+                    var avatar = convert(entry);
+                    avatar.Id = id;
+                    // The conductor returns linked actions oldest first.
+                    current[id] = avatar;
+                }
+
+                result.Result = current.Values.ToList();
+                result.IsLoaded = true;
+                result.LoadedCount = current.Count;
+            }
+            catch (Exception error)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Holochain {function} collection read failed.", error);
+            }
+
+            return result;
         }
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
@@ -362,21 +423,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             OASISResult<bool> result = new OASISResult<bool>();
             try
             {
-                OASISResult<IAvatar> avatar = await LoadAvatarAsync(id);
-                if (avatar.IsError || avatar.Result?.ProviderUniqueStorageKey == null ||
-                    !avatar.Result.ProviderUniqueStorageKey.TryGetValue(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.HoloOASIS, out string actionHash) ||
-                    string.IsNullOrWhiteSpace(actionHash))
-                {
-                    OASISErrorHandling.HandleError(ref result, avatar.Message ?? $"Avatar {id} was not found on Holochain.");
-                    return result;
-                }
-
-                OASISResult<IHolon> response = await _genericRepository.DeleteAsync(HcObjectTypeEnum.Avatar, "actionHash", actionHash, ZOME_DELETE_AVATAR_FUNCTION);
+                OASISResult<IHolon> response = await _genericRepository.DeleteAsync(
+                    HcObjectTypeEnum.Avatar, "id", id.ToString("D"), ZOME_DELETE_AVATAR_BY_ID_FUNCTION);
 
                 if (response != null && !response.IsError && response.IsDeleted)
                 {
                     result.Result = true;
-                    result.IsError = false;
+                    result.IsDeleted = true;
+                    result.DeletedCount = response.DeletedCount;
                     result.Message = "Avatar deleted successfully from Holochain";
                 }
                 else
@@ -404,7 +458,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 if (response != null && !response.IsError && response.IsDeleted)
                 {
                     result.Result = true;
-                    result.IsError = false;
+                    result.IsDeleted = true;
+                    result.DeletedCount = response.DeletedCount;
                     result.Message = "Avatar deleted successfully from Holochain";
                 }
                 else

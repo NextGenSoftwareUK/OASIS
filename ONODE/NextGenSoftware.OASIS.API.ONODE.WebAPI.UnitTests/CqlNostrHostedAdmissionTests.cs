@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
-using NextGenSoftware.OASIS.API.Providers.NostrOASIS;
+using NostrProvider = NextGenSoftware.OASIS.API.Providers.NostrOASIS.NostrOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
@@ -36,13 +36,13 @@ public class CqlNostrHostedAdmissionTests
     public async Task PublicEventPresetsPlanNativeThreeTwoAndMongoPairsWithoutRelayPublications()
     {
         var keys = new[] { new string('a',64), new string('b',64), new string('c',64) };
-        using var source = NostrPublicEventMetadataSource.FromJson(JsonSerializer.Serialize(new {
+        using var source = NostrProvider.FromPublicQueryConfiguration(JsonSerializer.Serialize(new {
             schema=1,relayUrl="wss://example.invalid/",eventIds=keys,sourceOwner=Guid.NewGuid()}));
         var rows = new List<object>();
         foreach (var count in new[] { 3, 2 })
         {
             var selection = new { orderBy = "None", take = 8, filters = new[] {
-                new { metadataPath = new[] { NostrPublicEventMetadataSource.AddressMetadata },
+                new { metadataPath = new[] { NostrProvider.AddressMetadata },
                     scalar = "String", @operator = "In", value = keys.Take(count).ToArray() } } };
             rows.Add(new { id = "native-" + count, label = "Nostr signed public events", request = new {
                 provider = "NostrOASIS", selection.orderBy, selection.take, selection.filters } });
@@ -53,7 +53,7 @@ public class CqlNostrHostedAdmissionTests
         var examples = CqlHostedQueryExamples.FromJson(JsonSerializer.Serialize(new Dictionary<string, object> {
             ["NostrOASIS"] = rows }));
         var planned = examples.For(ProviderType.NostrOASIS, source.QueryCapabilities,
-            _ => CosmicQueryCapabilities.ForStringMetadataKeyLookup(NostrPublicEventMetadataSource.AddressMetadata, 64, 8));
+            _ => CosmicQueryCapabilities.ForStringMetadataKeyLookup(NostrProvider.AddressMetadata, 64, 8));
         Assert.Equal(4, planned.Count);
         Assert.All(planned, example => Assert.True(example.Available, example.ErrorCode));
 
@@ -77,7 +77,7 @@ public class CqlNostrHostedAdmissionTests
 
     private sealed class ReadyRegistry(NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider source) : ICqlHostedSourceRegistry
     {
-        public NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider Find(ProviderType provider)
+        public NextGenSoftware.OASIS.API.Core.Interfaces.IOASISProvider Find(ProviderType provider)
             => provider == ProviderType.NostrOASIS ? source : null!;
         public Task ActivateReadSourceAsync(ProviderType provider, CancellationToken token)
         {

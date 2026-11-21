@@ -1,0 +1,139 @@
+name: Qualify HoloOASIS Edge replay on a native conductor
+
+on:
+  push:
+    tags: ['ci-hyperdrive-holo-edge-replay-*', 'ci-hyperdrive-holo-wallet-*']
+
+permissions:
+  contents: read
+
+jobs:
+  conductor:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          fetch-depth: 3
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Resolve and validate exact pins
+        id: dependency
+        working-directory: OASIS
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify public wallet serialization
+        if: startsWith(github.ref_name, 'ci-hyperdrive-holo-wallet-')
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          $project = 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.UnitTests.csproj'
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-HoloWalletSerialization -Operation {
+            dotnet test $project --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~AvatarSerializationRejectsWalletCredentialsInBothModes' --logger 'console;verbosity=normal'
+            if ($LASTEXITCODE) { throw "HoloOASIS wallet serialization tests exited $LASTEXITCODE" }
+          }
+      - name: Check out the pinned prior hApp fixture
+        if: startsWith(github.ref_name, 'ci-hyperdrive-holo-edge-replay-')
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: 201691ce590871ff41cae625e68043a23deb0471
+          path: OASIS-prior-happ
+          sparse-checkout: Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/oasis.happ
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - name: Prepare the prior app and the tested replacement coordinator
+        if: startsWith(github.ref_name, 'ci-hyperdrive-holo-edge-replay-')
+        working-directory: OASIS
+        shell: bash
+        run: |
+          set -euo pipefail
+          export HOLO_EDGE_FIXTURES="$RUNNER_TEMP/oasis-holo-edge-fixtures"
+          python - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+          import os
+          import re
+          import zlib
+
+          package = 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/oasis.happ'
+          old = (Path('..') / 'OASIS-prior-happ' / package).read_bytes()
+          if sha256(old).hexdigest() != 'eb6e48a7448c074c64635189f664c5842a86006f569074a05d42ef27ff0eb988':
+              raise SystemExit('Prior hApp hash mismatch')
+          h_app = zlib.decompress(Path(package).read_bytes(), 31)
+          candidates = []
+          for marker in re.finditer(b'\x1f\x8b\x08', h_app):
+              try:
+                  dna = zlib.decompress(h_app[marker.start():], 31)
+              except zlib.error:
+                  continue
+              for module in re.finditer(b'\xc6....\x00asm\x01\x00\x00\x00', dna, re.DOTALL):
+                  start = module.start()
+                  size = int.from_bytes(dna[start + 1:start + 5], 'big')
+                  wasm = dna[start + 5:start + 5 + size]
+                  if sha256(wasm).hexdigest() == '2697393d8e8ee529cd3480cff6ea97a330ab87bf3ccd2aad9fcbf2825aec9425':
+                      candidates.append(wasm)
+          if len(candidates) != 1:
+              raise SystemExit('Expected one source-matched coordinator WASM')
+          fixture = Path(os.environ['HOLO_EDGE_FIXTURES'])
+          fixture.mkdir()
+          (fixture / 'prior.oasis.happ').write_bytes(old)
+          (fixture / 'oasis.wasm').write_bytes(candidates[0])
+          PY
+      - name: Verify the bound bundle and run the native Edge test
+        if: startsWith(github.ref_name, 'ci-hyperdrive-holo-edge-replay-')
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          $package = 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP'
+          $manifest = Get-Content -LiteralPath "$package/build-manifest.json" -Raw | ConvertFrom-Json
+          $happ = "$package/oasis.happ"
+          if ($manifest.schemaVersion -ne 1 -or $manifest.sourceCommit -cne '7e7051bc77e49b8fde8143ac3097232644c8ab24' -or
+              (Get-FileHash -LiteralPath $happ -Algorithm SHA256).Hash -ine $manifest.artifactSha256) {
+            throw 'The candidate hApp does not match the replay fix and its checked-in manifest.'
+          }
+          Write-Output "Candidate $env:GITHUB_SHA, hApp source $($manifest.sourceCommit), hApp SHA-256 $($manifest.artifactSha256)"
+          $results = Join-Path $env:RUNNER_TEMP 'oasis-holo-edge-replay'
+          New-Item -ItemType Directory -Path $results | Out-Null
+          $fixtures = Join-Path $env:RUNNER_TEMP 'oasis-holo-edge-fixtures'
+          $env:OASIS_HOLO_EDGE_PRIOR_HAPP = Join-Path $fixtures 'prior.oasis.happ'
+          $env:OASIS_HOLO_EDGE_COORDINATOR_WASM = Join-Path $fixtures 'oasis.wasm'
+          if (!(Test-Path -LiteralPath $env:OASIS_HOLO_EDGE_PRIOR_HAPP -PathType Leaf) -or
+              !(Test-Path -LiteralPath $env:OASIS_HOLO_EDGE_COORDINATOR_WASM -PathType Leaf)) {
+            throw 'In-place coordinator update fixtures are missing.'
+          }
+          $env:OASIS_HOLO_BATCH_BENCHMARK = '1'
+          $client = '../holochain-client-csharp/NextGenSoftware.Holochain.HoloNET.Client.Tests/NextGenSoftware.Holochain.HoloNET.Client.Tests.csproj'
+          $tests = 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-HoloEdgeReplay -Operation {
+            & Scripts/test_holonet_live_release.ps1 -Project $client -Happ $happ -ResultsDirectory $results -DesktopProject $tests -HoloEdgeReplication
+          }
+      - uses: actions/upload-artifact@v4
+        if: always() && startsWith(github.ref_name, 'ci-hyperdrive-holo-edge-replay-')
+        with:
+          name: holo-edge-replay-report
+          path: |
+            ${{ runner.temp }}/oasis-holo-edge-replay/*.trx
+            ${{ runner.temp }}/oasis-holo-edge-replay/holo-indexed-read-timing.json
+          if-no-files-found: ignore
+          retention-days: 2

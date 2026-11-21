@@ -27,11 +27,42 @@ public sealed class HolonReplicaInitializationPreparationTests
         Assert.AreEqual(actor,result.Result.OperatorId);Assert.AreEqual(operation,result.Result.InitializationOperationId);
         Assert.AreEqual(source.Observation.Inspection.OperationId,result.Result.SourceOperationId);
         Assert.AreEqual(source.Observation.PayloadDigest,result.Result.SourcePayloadDigest);
+        Assert.IsNull(policy.ReadContext.SourceOperationId);
+        Assert.IsNull(policy.ReadContext.SourcePayloadDigest);
+        Assert.IsNull(policy.ReadContext.SourceErrorCode);
+        Assert.AreEqual<Guid?>(source.Observation.Inspection.OperationId, policy.ApprovalContext.SourceOperationId);
+        Assert.AreEqual(source.Observation.PayloadDigest, policy.ApprovalContext.SourcePayloadDigest);
+        Assert.AreEqual(source.Observation.Inspection.ErrorCode, policy.ApprovalContext.SourceErrorCode);
         Assert.AreEqual(2,policy.Calls);Assert.AreEqual(1,source.Reads);Assert.AreEqual(1,source.Peeks);Assert.AreEqual(0,source.Mutations);
         Assert.AreEqual(result.Result.Fingerprint,(await prepare.PrepareAsync(actor,6,operation)).Result.Fingerprint);
         var metadata=System.Text.Json.JsonSerializer.Serialize(result.Result);
         Assert.IsFalse(metadata.Contains("private-source-value"));Assert.IsFalse(metadata.Contains("PayloadJson"));
         Assert.AreNotEqual(result.Result.Fingerprint,(await prepare.PrepareAsync(Guid.NewGuid(),6,operation)).Result.Fingerprint);
+    }
+
+    [TestMethod]
+    public async Task AuthorizationDenialAfterReviewBlocksExecutionWithTheSamePayload()
+    {
+        var source = new Source();
+        var policy = new Policy();
+        var preparation = Prepare(source, policy);
+        var reviewed = await preparation.PrepareAsync(Guid.NewGuid(), 6, Guid.NewGuid());
+        Assert.IsFalse(reviewed.IsError, reviewed.Message);
+        policy.OnApproval = () =>
+        {
+            var original = source.Observation;
+            var inspection = original.Inspection;
+            source.Observation = new(new HolonDeliveryInspection(inspection.Sequence, inspection.OperationId,
+                inspection.TargetId, inspection.State, inspection.AttemptCount, "COSMIC_REPLICA_AUTHORIZATION_DENIED",
+                null, inspection.RecoveryEvidence), original.PayloadJson, original.PayloadDigest);
+        };
+
+        var result = await preparation.ReauthorizeApplicationAsync(reviewed.Result);
+
+        Assert.AreEqual("COSMIC_REPLICA_INITIALIZATION_SOURCE_CHANGED", result.ErrorCode);
+        Assert.IsNull(result.Result);
+        Assert.AreEqual(3, source.Reads);
+        Assert.AreEqual(0, source.Mutations);
     }
 
     [DataTestMethod]
@@ -48,7 +79,7 @@ public sealed class HolonReplicaInitializationPreparationTests
 
     [DataTestMethod]
     [DataRow("digest")] [DataRow("state")] [DataRow("target")] [DataRow("attempts")]
-    [DataRow("error")] [DataRow("native-unknown")] [DataRow("missing-evidence")]
+    [DataRow("error")] [DataRow("authorization-denied")] [DataRow("native-unknown")] [DataRow("missing-evidence")]
     public async Task UnboundOrUncertainSourceEvidenceNeverProducesAnInitializationIntent(string invalid)
     {
         var source=new Source(invalid);var result=await Prepare(source,new()).PrepareAsync(Guid.NewGuid(),6,Guid.NewGuid());
@@ -86,11 +117,16 @@ public sealed class HolonReplicaInitializationPreparationTests
     [DataTestMethod]
     [DataRow("normal")] [DataRow("committed-response-lost")] [DataRow("submitted-no-receipt")]
     [DataRow("source-response-lost")] [DataRow("policy-revoked")] [DataRow("journal-changed")]
+    [DataRow("completed-before-submit")]
+    [DataRow("wrong-target-receipt")]
     public async Task DurableApplicationRecoversOriginalOutcomesWithoutBlindResubmission(string scenario)
     {
         var source=new Source();var policy=new Policy();var preparation=Prepare(source,policy);
         var actor=Guid.NewGuid();var operation=Guid.NewGuid();var target=new ApplicationTarget(scenario);
-        var directory=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../../TestResults/ReplicaInitializationApplicationCurrent"));
+        var fixtureRoot = Environment.GetEnvironmentVariable("OASIS_REPLICA_APPLICATION_TEST_ROOT");
+        var directory = fixtureRoot == null
+            ? Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../../TestResults/ReplicaInitializationApplicationCurrent"))
+            : Path.Combine(fixtureRoot, "ReplicaInitializationApplicationCurrent");
         Directory.CreateDirectory(directory);
         var journal=Path.Combine(directory,scenario+".json");
         foreach(var file in new[]{journal,journal+".tmp",journal+".lock"})Assert.IsFalse(File.Exists(file),"Preserve previous unknown application evidence: "+file);
@@ -106,7 +142,37 @@ public sealed class HolonReplicaInitializationPreparationTests
         });
         try
         {
+            if (scenario == "completed-before-submit")
+            {
+                var approvals = 0;
+                policy.OnApproval = () =>
+                {
+                    if (++approvals != 2) return;
+                    var current = source.Observation;
+                    var inspection = current.Inspection;
+                    source.Observation = new(new HolonDeliveryInspection(inspection.Sequence, inspection.OperationId,
+                        inspection.TargetId, HolonDeliveryState.Completed, inspection.AttemptCount, inspection.ErrorCode,
+                        inspection.Message, inspection.RecoveryEvidence), current.PayloadJson, current.PayloadDigest);
+                };
+                var rejected = await application.ExecuteAsync(actor, 6, operation, journal);
+                Assert.AreEqual("COSMIC_REPLICA_INITIALIZATION_SOURCE_CHANGED", rejected.ErrorCode);
+                Assert.AreEqual(0, target.Writes);
+                Assert.AreEqual(0, completions);
+                var resumedCompleted = await application.ExecuteAsync(actor, 6, operation, journal);
+                Assert.AreEqual("COSMIC_REPLICA_INITIALIZATION_SOURCE_INVALID", resumedCompleted.ErrorCode);
+                Assert.AreEqual(0, target.Writes);
+                passed = true;
+                return;
+            }
             var first=await application.ExecuteAsync(actor,6,operation,journal);
+            if (scenario == "wrong-target-receipt")
+            {
+                Assert.AreEqual("COSMIC_REPLICA_INITIALIZATION_RECEIPT_MISMATCH", first.ErrorCode);
+                Assert.AreEqual(0, target.Writes);
+                Assert.AreEqual(0, completions);
+                passed = true;
+                return;
+            }
             Assert.AreEqual(1,target.Writes);
             Assert.AreEqual(scenario is "committed-response-lost" or "submitted-no-receipt" or "source-response-lost",first.IsError,first.Message+first.Exception);
             if(scenario=="policy-revoked")policy.Deny="approval";
@@ -152,7 +218,8 @@ public sealed class HolonReplicaInitializationPreparationTests
         public Task<OASISResult<HolonReplicaInitializationOutcome>> ReadReplicaInitializationOutcomeAsync(CommittedHolonReplicaRequest request,CancellationToken token=default)
         {
             var plan=CommittedHolonReplicaPlan.CreateInitialBaseline(request,ProviderType.SQLLiteDBOASIS);
-            return Task.FromResult(new OASISResult<HolonReplicaInitializationOutcome>(new(request.OperationId,ProviderType.SQLLiteDBOASIS,
+            var authority = scenario == "wrong-target-receipt" ? ProviderType.MongoDBOASIS : ProviderType.SQLLiteDBOASIS;
+            return Task.FromResult(new OASISResult<HolonReplicaInitializationOutcome>(new(request.OperationId,authority,
                 committed ? ConditionalHolonReceiptState.Committed:ConditionalHolonReceiptState.Absent,plan.Fingerprint,committed ? new string('A',64):null)));
         }
     }
@@ -161,13 +228,19 @@ public sealed class HolonReplicaInitializationPreparationTests
     {
         public string BindingIdentity {get;private set;}="policy-v1";
         public string Deny;public int Calls;
+        public Action OnApproval;
+        public HolonReplicaInitializationAuthorizationContext ReadContext;
+        public HolonReplicaInitializationAuthorizationContext ApprovalContext;
         public Task<OASISResult<bool>> AuthorizeAsync(HolonReplicaInitializationAuthorizationContext context,CancellationToken token)
         {
             Calls++;var read=context.Stage==HolonReplicaInitializationAuthorizationStage.ReadHeldSource;
+            if (read) ReadContext = context;
+            else ApprovalContext = context;
             if(Deny=="null")return Task.FromResult<OASISResult<bool>>(null);
             if(Deny is "error" or "warning")return Task.FromResult(new OASISResult<bool>(true){IsError=Deny=="error",IsWarning=Deny=="warning",Exception=new InvalidOperationException("Controlled authorization failure")});
             if(!read && Deny=="binding")BindingIdentity="policy-v2";
             if(!read && Deny=="mutate")context.Mutation.Roots[0].Name="policy must not replace this";
+            if (!read) OnApproval?.Invoke();
             return Task.FromResult(new OASISResult<bool>(!(read && Deny=="read" || !read && Deny=="approval")));
         }
     }
@@ -185,7 +258,12 @@ public sealed class HolonReplicaInitializationPreparationTests
                 record.CreatedByAvatarId,ConditionalHolonOperation.Save,new[]{record}));
             var inspection=new HolonDeliveryInspection(6,operation,invalid=="target" ? "wrong-target":"target-v1",
                 invalid=="state" ? HolonDeliveryState.Pending:HolonDeliveryState.ReconciliationRequired,invalid=="attempts" ? 0:1,
-                invalid=="error" ? "OTHER_ERROR":"COSMIC_REPLICA_LINEAGE_CONFLICT",null,
+                invalid switch
+                {
+                    "error" => "OTHER_ERROR",
+                    "authorization-denied" => "COSMIC_REPLICA_AUTHORIZATION_DENIED",
+                    _ => "COSMIC_REPLICA_LINEAGE_CONFLICT"
+                },null,
                 invalid=="missing-evidence" ? null:new HolonDeliveryRecoveryEvidence(invalid=="native-unknown",Array.Empty<string>()));
             Observation=new(inspection,payload,invalid=="digest" ? new string('0',64):Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(payload))));
         }

@@ -49,6 +49,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
              Response.StatusCode = (int)HolonWriteEndpoint.Status(modeCheck);
              return HttpResponseHelper.FormatResponse(modeCheck, HolonWriteEndpoint.Status(modeCheck), request.ShowDetailedSettings);
          }
+         var metadata = HolonWriteEndpoint.BindUtcMetadata(request);
+         if (metadata.IsError)
+         {
+             var status = HolonWriteEndpoint.Status(metadata);
+             Response.StatusCode = (int)status;
+             return HttpResponseHelper.FormatResponse(metadata, status, request?.ShowDetailedSettings ?? false);
+         }
          var isV2Write = engineMode == NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2;
          if (isV2Write)
          {

@@ -22,7 +22,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\Shared\TestSupport\CoreStorageConformance.cs" Link="Shared\CoreStorageConformance.cs" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.HoloOASIS\NextGenSoftware.OASIS.API.Providers.HoloOASIS.csproj" />
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="HoloNativeRoutingTests.cs" Condition="'$(HoloRoutingTests)' != 'true'" />
+    <Compile Remove="HoloNativeEdgeReplicationTests.cs" Condition="'$(HoloEdgeReplicationTests)' != 'true'" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge.csproj" Condition="'$(HoloEdgeReplicationTests)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/NativePriorityRouting.cs" Link="TestSupport/NativePriorityRouting.cs" Condition="'$(HoloRoutingTests)' == 'true'" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.1.1" Condition="'$(HoloRoutingTests)' == 'true'" />
+    <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" Condition="'$(HoloRoutingTests)' == 'true'" />
+  </ItemGroup>
 </Project>

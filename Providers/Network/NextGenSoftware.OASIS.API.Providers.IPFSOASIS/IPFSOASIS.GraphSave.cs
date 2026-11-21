@@ -48,6 +48,8 @@ public partial class IPFSOASIS
                 node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
                 node.Source.ProviderUniqueStorageKey=new Dictionary<Core.Enums.ProviderType,string>(node.Snapshot.ProviderUniqueStorageKey);
                 node.Source.PreviousVersionProviderUniqueStorageKey=new Dictionary<Core.Enums.ProviderType,string>(node.Snapshot.PreviousVersionProviderUniqueStorageKey);
+                CosmicConcurrency.SetProviderRevisionId(node.Source, Core.Enums.ProviderType.IPFSOASIS,
+                    CosmicConcurrency.GetProviderRevisionId(node.Snapshot, Core.Enums.ProviderType.IPFSOASIS).Value);
                 if(node.Source is Holon caller)caller.ChildRoleManifestJson=node.Snapshot.ChildRoleManifestJson;
             }
             catch(Exception cause)

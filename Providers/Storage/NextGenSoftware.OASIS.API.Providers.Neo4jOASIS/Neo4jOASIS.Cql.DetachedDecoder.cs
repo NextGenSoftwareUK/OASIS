@@ -15,7 +15,8 @@ public partial class Neo4jOASIS
         private static readonly Encoding Utf8 = new UTF8Encoding(false, true);
         protected NeoCqlDetachedSourceDecoder(Action check) { this.check = check; }
         protected CosmicJoinInputRow Source(object raw, CosmicQueryReadAccess access,
-            Type[] keyDomains, Type[] valueDomains, Type[] orderingDomains, ref long bytes, int maximumBytes)
+            Type[] keyDomains, Type[] valueDomains, Type[] orderingDomains, ref long bytes, int maximumBytes,
+            bool includeNativeByteFloor=false)
         {
             if(raw is not IDictionary<string,object> source || source.Count!=12)throw Invalid("Native detached source shape is invalid.");
             if(Flag(source,"cycle"))throw Invalid("Native detached traversal encountered a cycle.");
@@ -34,6 +35,7 @@ public partial class Neo4jOASIS
             var keyValues=Cells("keys",keyDomains,false,out _);
             var selected=Cells("values",valueDomains,false,out _);
             var order=Cells("ordering",orderingDomains,true,out var states);
+            if(includeNativeByteFloor)measured=Math.Max(measured,checked(bytes+lower));
             if(measured>maximumBytes)throw new NeoCqlLimitException("Native detached source exceeds remaining bytes.");
             bytes=measured;
             return new CosmicJoinInputRow(id,visible,creator,keyValues,selected,order,states);

@@ -29,7 +29,7 @@ amount strings are never converted to floating point or display units.
 
 ```csharp
 // Reuse the existing anonymous profile. No API key belongs in this schema.
-using var source = BlockscoutPublicAddressMetadataSource.FromJson(configurationJson);
+using var source = BlockscoutOASIS.FromPublicQueryConfiguration(configurationJson);
 
 var activated = await source.ActivateQuerySourceAsync(cancellationToken);
 if (activated.IsError)

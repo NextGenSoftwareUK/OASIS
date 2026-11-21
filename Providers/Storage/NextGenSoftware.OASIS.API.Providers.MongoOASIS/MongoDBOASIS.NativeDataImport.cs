@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.API.Core.Queries;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 /// <see cref="NativeConnection"/> (<c>uri</c> and <c>database</c>) it reads whatever the caller points it at; with none it
 /// reads <see cref="NativeImportDatabaseName"/> on this deployment, which must not be the OASIS database.
 /// </summary>
-public partial class MongoDBOASIS : INativeDataImportProvider
+public partial class MongoDBOASIS : INativeDataQueryProvider
 {
     private static readonly JsonWriterSettings CanonicalJson = new() { OutputMode = JsonOutputMode.CanonicalExtendedJson };
     private static readonly JsonWriterSettings ReadableJson = new() { OutputMode = JsonOutputMode.RelaxedExtendedJson };
@@ -121,6 +122,117 @@ public partial class MongoDBOASIS : INativeDataImportProvider
         finally { lease?.Dispose(); }
         return result;
     }
+
+    public string DescribeVirtualQueryConnection(NativeConnection connection)
+    {
+        if (connection != null)
+            return DescribeNativeConnection(connection);
+        if (!IsProviderActivated || Database?.MongoClient == null ||
+            string.IsNullOrWhiteSpace(NativeImportDatabaseName) ||
+            string.Equals(NativeImportDatabaseName, DBName, StringComparison.Ordinal))
+            throw new NativeConnectionRefusedException("The configured native MongoDB source is unavailable.");
+
+        var servers = Database.MongoClient.Settings.Servers.Select(server => server.ToString().ToLowerInvariant())
+            .OrderBy(server => server, StringComparer.Ordinal);
+        return "mongodb-configured://" + string.Join(",", servers) + "/" + NativeImportDatabaseName;
+    }
+
+    /// <summary>Reads an explicitly projected, exact scalar match from the authoritative native collection.</summary>
+    public Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
+        string sourceName, string matchField, object matchValue, IReadOnlyList<string> fields, int limit,
+        NativeConnection connection = null, CancellationToken cancellationToken = default) =>
+        QueryNativeRecordsAsync(sourceName, new[] { new KeyValuePair<string, object>(matchField, matchValue) },
+            fields, limit, connection, cancellationToken);
+
+    public Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
+        string sourceName, IReadOnlyList<KeyValuePair<string, object>> matches, IReadOnlyList<string> fields, int limit,
+        NativeConnection connection = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return QueryNativePredicateRecordsAsync(sourceName, NativeRecordFilter.CaptureEqualities(matches),
+                fields, limit, connection, cancellationToken);
+        }
+        catch (ArgumentException)
+        {
+            return Task.FromResult(Refuse(new OASISResult<IReadOnlyList<NativeRecord>>(),
+                "One to eight typed scalar matches are required.", "NATIVE_QUERY_INVALID"));
+        }
+    }
+
+    public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativePredicateRecordsAsync(
+        string sourceName, IReadOnlyList<NativeRecordFilter> matches, IReadOnlyList<string> fields, int limit,
+        NativeConnection connection = null, CancellationToken cancellationToken = default)
+    {
+        var result = new OASISResult<IReadOnlyList<NativeRecord>>();
+        if (string.IsNullOrWhiteSpace(sourceName) || sourceName.StartsWith("system.", StringComparison.Ordinal)
+            || matches == null || matches.Count is < 1 or > 8
+            || matches.Any(match => match == null || !IsNativeScalarField(match.Field)) || fields == null || fields.Count is < 1 or > 32
+            || fields.Any(field => field == "_id" || !IsNativeScalarField(field))
+            || fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || limit is < 1 or > 100)
+            return Refuse(result, "A native collection, one to eight exact scalar matches, one to 32 unique fields and a limit of one to 100 are required.",
+                "NATIVE_QUERY_INVALID");
+
+        matches = NativeRecordFilter.Capture(matches);
+        fields = fields.ToArray();
+        BsonDocument filter;
+        try { filter = CompileNativePredicateFilter(matches); }
+        catch (ArgumentException)
+        { return Refuse(result, "The exact native predicate is unsupported.", "NATIVE_QUERY_INVALID"); }
+
+        IDisposable lease = null;
+        try
+        {
+            var resolved = await ResolveNativeDatabaseAsync(connection, cancellationToken).ConfigureAwait(false);
+            lease = resolved.Lease;
+            var projection = new BsonDocument("_id", 1);
+            foreach (var field in fields)
+                projection.Add(field, 1);
+
+            const int maximumProjectionBytes = 1024 * 1024;
+            using var cursor = await resolved.Database.GetCollection<BsonDocument>(sourceName)
+                .Find(filter, new FindOptions
+                {
+                    MaxTime = NativeOperationLimit,
+                    Collation = new Collation("simple"),
+                    BatchSize = 8
+                })
+                .Sort(Builders<BsonDocument>.Sort.Ascending("_id"))
+                .Limit(limit).Project<BsonDocument>(projection)
+                .ToCursorAsync(cancellationToken).ConfigureAwait(false);
+            var records = new List<NativeRecord>(limit);
+            var remainingBytes = maximumProjectionBytes;
+            while (await cursor.MoveNextAsync(cancellationToken).ConfigureAwait(false))
+            {
+                foreach (var document in cursor.Current)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    remainingBytes -= document.ToBson().Length;
+                    if (remainingBytes < 0)
+                        return Refuse(result, "The projected native MongoDB data exceeds the virtual query byte limit.",
+                            "NATIVE_QUERY_PAYLOAD_LIMIT");
+                    records.Add(ToNativeRecord(sourceName, document));
+                }
+            }
+            result.Result = records.AsReadOnly();
+            result.IsLoaded = true;
+            return result;
+        }
+        catch (NativeConnectionRefusedException cause)
+        {
+            return Refuse(result, Redact(connection, cause.Message), "NATIVE_IMPORT_CONNECTION_REFUSED");
+        }
+        catch (Exception cause) when (cause is MongoException or InvalidOperationException or FormatException or OverflowException)
+        {
+            return Refuse(result, "The native MongoDB query failed.", "NATIVE_QUERY_FAILED");
+        }
+        finally { lease?.Dispose(); }
+    }
+
+    private static bool IsNativeScalarField(string field) =>
+        field is { Length: > 0 and <= 128 } &&
+        (char.IsAsciiLetter(field[0]) || field[0] == '_') &&
+        field.All(character => char.IsAsciiLetterOrDigit(character) || character == '_');
 
     internal static NativeRecord ToNativeRecord(string sourceName, BsonDocument document)
     {

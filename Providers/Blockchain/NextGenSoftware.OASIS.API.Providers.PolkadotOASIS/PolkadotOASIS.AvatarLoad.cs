@@ -81,6 +81,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
+            ResetPublicQueryActivation();
             var response = new OASISResult<bool>();
             await _lifecycleGate.WaitAsync();
 

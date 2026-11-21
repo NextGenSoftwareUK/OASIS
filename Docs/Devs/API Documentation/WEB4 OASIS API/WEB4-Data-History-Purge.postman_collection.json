@@ -1,0 +1,318 @@
+{
+  "info": {
+    "name": "WEB4 Data history, seal and version purge",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Opt-in history features. No credentials are stored: set bearerToken, web4BaseUrl and appId as variables."
+  },
+  "item": [
+    {
+      "name": "Holon history and tamper evidence",
+      "item": [
+        {
+          "name": "Audit trail of a holon",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/data/holon-audit-trail/00000000-0000-0000-0000-000000000000?fromVersion=0&toVersion=0&limit=50&offset=0"
+          }
+        },
+        {
+          "name": "Verify the seal chain",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/data/holon-seal/verify/00000000-0000-0000-0000-000000000000",
+            "description": "Status Purged is returned to the owner for a purged holon."
+          }
+        },
+        {
+          "name": "Who read this holon (access log)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/data/holon-access-log/00000000-0000-0000-0000-000000000000?limit=50&offset=0"
+          }
+        },
+        {
+          "name": "My reads (access log)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/data/access-log?limit=50&offset=0"
+          }
+        },
+        {
+          "name": "My sealed-history setting",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/avatar/holon-seal"
+          }
+        },
+        {
+          "name": "Set my sealed-history setting",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/avatar/holon-seal",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Version purge (opt-in)",
+      "item": [
+        {
+          "name": "Purge one holon's versions",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/data/purge-holon/00000000-0000-0000-0000-000000000000?allowLive=false",
+            "description": "Creator or Delete grant. Holon must be deleted unless allowLive=true. Cannot be undone."
+          }
+        },
+        {
+          "name": "Purge many holons",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/data/purge-holons",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ids\": [\n    \"00000000-0000-0000-0000-000000000000\"\n  ],\n  \"allowLive\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Set legal hold",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/data/holon-purge-hold/00000000-0000-0000-0000-000000000000",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"parent access request\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Release legal hold",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/data/holon-purge-hold/00000000-0000-0000-0000-000000000000"
+          }
+        },
+        {
+          "name": "Purge status of a holon",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/data/holon-purge/status/00000000-0000-0000-0000-000000000000"
+          }
+        },
+        {
+          "name": "My version-purge setting",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/avatar/version-purge"
+          }
+        },
+        {
+          "name": "Set my version-purge setting",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/avatar/version-purge",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": true,\n  \"days\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "App-owner settings (all overrides)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/app-owner/{{appId}}/settings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ownerViewEnabled\": null,\n  \"warningsEnabled\": null,\n  \"accessLogEnabled\": null,\n  \"sealedHistoryEnabled\": null,\n  \"versionPurgeEnabled\": true,\n  \"versionPurgeDays\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "web4BaseUrl",
+      "value": "https://dev.api.web4.oasisomniverse.one"
+    },
+    {
+      "key": "bearerToken",
+      "value": ""
+    },
+    {
+      "key": "appId",
+      "value": ""
+    }
+  ]
+}

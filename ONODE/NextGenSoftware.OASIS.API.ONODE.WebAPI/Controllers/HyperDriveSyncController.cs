@@ -132,6 +132,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return StatusCode((int)status, result);
         }
 
+        [Authorize]
+        [HttpGet("deliveries")]
+        public async Task<IActionResult> ReadDeliveries([FromQuery] int limit = 25, CancellationToken cancellationToken = default)
+        {
+            if (AvatarId == Guid.Empty)
+                return Unauthorized();
+            if (limit < 1 || limit > 50)
+                return BadRequest(new OASISResult<bool>
+                    { IsError = true, Message = "Use a delivery list limit between 1 and 50." });
+
+            var provider = await GetAndActivateDefaultStorageProviderAsync().ConfigureAwait(false);
+            if (provider == null || provider.IsError || !(provider.Result is IHostedHyperDriveDeliveryReader reader))
+                return StatusCode((int)HttpStatusCode.ServiceUnavailable, new OASISResult<bool>
+                    { IsError = true, Message = "Hosted delivery history is unavailable on this node." });
+
+            var result = await reader.ReadRecentDeliveriesAsync(AvatarId, limit, cancellationToken).ConfigureAwait(false);
+            if (result.IsError)
+                return StatusCode((int)HttpStatusCode.ServiceUnavailable, new OASISResult<bool>
+                    { IsError = true, Message = "Could not load hosted delivery history." });
+            return Ok(result);
+        }
+
         private IActionResult SyncError(HttpStatusCode status, string code, string message) =>
             StatusCode((int)status, new OASISResult<SyncExchangeResponse>
             {

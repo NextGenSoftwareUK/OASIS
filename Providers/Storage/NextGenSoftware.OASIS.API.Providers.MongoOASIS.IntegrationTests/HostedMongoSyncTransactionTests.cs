@@ -19,6 +19,63 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 public sealed class HostedMongoSyncTransactionTests
 {
     [Fact]
+    public async Task PortalDeliveryHistoryIsAvatarScopedBoundedAndReadOnly()
+    {
+        var connectionString = RequiredConnectionString();
+        var databaseName = NewDatabaseName("portal_delivery_history");
+        var client = new MongoClient(connectionString);
+        try
+        {
+            var provider = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(connectionString, databaseName);
+            var activation = await provider.ActivateProviderAsync();
+            Assert.False(activation.IsError, activation.Message);
+
+            var owner = Guid.NewGuid();
+            var other = Guid.NewGuid();
+            var first = CreateOperation(owner, Guid.NewGuid(), "{\"private\":\"first\"}");
+            var stranger = CreateOperation(other, Guid.NewGuid(), "{\"private\":\"stranger\"}");
+            var last = CreateOperation(owner, Guid.NewGuid(), "{\"private\":\"last\"}");
+            foreach (var operation in new[] { first, stranger, last })
+            {
+                var apply = await provider.ApplyOperationsAsync(operation.AvatarId, operation.DeviceId, new[] { operation }, default);
+                Assert.False(apply.IsError, apply.Message);
+            }
+
+            var claim = await provider.ClaimFanOutAsync("portal-test-worker", 1, DateTime.UtcNow.AddMinutes(3), default);
+            Assert.False(claim.IsError, claim.Message);
+            Assert.Equal(first.OperationId, Assert.Single(claim.Result.Items).OperationId);
+
+            var page = await provider.ReadRecentDeliveriesAsync(owner, 2, default);
+            Assert.False(page.IsError, page.Message);
+            Assert.Collection(page.Result,
+                latest => { Assert.Equal(last.OperationId, latest.OperationId); Assert.Equal("Queued", latest.State); },
+                leased => { Assert.Equal(first.OperationId, leased.OperationId); Assert.Equal("Delivering", leased.State); });
+            var limited = await provider.ReadRecentDeliveriesAsync(owner, 1, default);
+            Assert.Equal(last.OperationId, Assert.Single(limited.Result).OperationId);
+            var unrelated = await provider.ReadRecentDeliveriesAsync(other, 50, default);
+            Assert.Equal(stranger.OperationId, Assert.Single(unrelated.Result).OperationId);
+            Assert.Empty((await provider.ReadRecentDeliveriesAsync(Guid.NewGuid(), 25, default)).Result);
+            Assert.True((await provider.ReadRecentDeliveriesAsync(Guid.Empty, 25, default)).IsError);
+            Assert.True((await provider.ReadRecentDeliveriesAsync(owner, 51, default)).IsError);
+
+            var failed = await provider.FailFanOutAsync(first.OperationId, "portal-test-worker", "TEST_RETRY",
+                "Internal fixture detail", DateTime.UtcNow.AddMinutes(1), default);
+            Assert.False(failed.IsError, failed.Message);
+            var history = await provider.ReadRecentDeliveriesAsync(owner, 2, default);
+            Assert.False(history.IsError, history.Message);
+            var retry = Assert.Single(history.Result, entry => entry.OperationId == first.OperationId);
+            Assert.Equal("RetryScheduled", retry.State);
+            Assert.NotNull(retry.NextAttemptUtc);
+            Assert.DoesNotContain("Internal fixture detail", System.Text.Json.JsonSerializer.Serialize(history.Result));
+        }
+        finally
+        {
+            await client.DropDatabaseAsync(databaseName);
+            Console.WriteLine("Removed isolated MongoDB delivery history database.");
+        }
+    }
+
+    [Fact]
     public async Task GeoNftAvailabilityIsAuthoritativePrivateAndStableAcrossUnchangedPulls()
     {
         string connectionString = RequiredConnectionString();

@@ -625,6 +625,61 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         // ── UPDATE ────────────────────────────────────────────────────────────
 
+        public sealed record AvatarDirectoryEntry(Guid Id, string Username, string Name);
+
+        [Authorize]
+        [HttpGet("search-directory")]
+        [ProducesResponseType(typeof(OASISResult<AvatarDirectoryEntry[]>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<OASISResult<AvatarDirectoryEntry[]>>> SearchDirectory([FromQuery] string query)
+        {
+            if (AvatarId == Guid.Empty)
+                return Unauthorized();
+
+            query = query?.Trim() ?? string.Empty;
+            if (query.Length < 2 || query.Length > 80)
+                return BadRequest(new OASISResult<AvatarDirectoryEntry[]>
+                {
+                    IsError = true,
+                    Message = "Use between 2 and 80 characters to search the avatar directory."
+                });
+
+            var search = await SearchManager.Instance.SearchAsync(new SearchParams
+            {
+                AvatarId = AvatarId,
+                SearchOnlyForCurrentAvatar = false,
+                SearchGroups =
+                [
+                    new SearchTextGroup
+                    {
+                        HolonType = HolonType.Avatar,
+                        SearchAvatars = true,
+                        SearchQuery = query,
+                        AvatarSearchParams = new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams
+                        {
+                            Username = true,
+                            FirstName = true,
+                            LastName = true
+                        }
+                    }
+                ]
+            }, allowDuplicates: false, loadChildren: false, recursive: false, continueOnError: false);
+            if (search.IsError || search.Result == null)
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new OASISResult<AvatarDirectoryEntry[]>
+                {
+                    IsError = true,
+                    Message = "The avatar directory is unavailable."
+                });
+
+            var entries = search.Result.SearchResultAvatars?
+                .Where(avatar => avatar.Id != Guid.Empty && !avatar.IsDeleted && avatar.IsActive)
+                .Take(20)
+                .Select(avatar => new AvatarDirectoryEntry(avatar.Id, avatar.Username,
+                    string.Join(" ", new[] { avatar.FirstName, avatar.LastName }.Where(name => !string.IsNullOrWhiteSpace(name)))))
+                .ToArray() ?? [];
+            return Ok(new OASISResult<AvatarDirectoryEntry[]> { Result = entries });
+        }
+
+
         [Authorize]
         [HttpPost("search")]
         public async Task<OASISHttpResponseMessage<ISearchResults>> SearchAvatar(SearchParams searchParams)
@@ -979,6 +1034,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 return HttpResponseHelper.FormatResponse(new OASISResult<IEnumerable<IInventoryItem>> { IsError = true, Message = $"Error loading avatar inventory: {ex.Message}", Exception = ex }, HttpStatusCode.InternalServerError);
             }
+        }
+
+        /// <summary>Returns the number of inventory entries owned by the signed-in avatar.</summary>
+        [Authorize]
+        [HttpGet("inventory/count")]
+        [ProducesResponseType(typeof(OASISResult<int>), StatusCodes.Status200OK)]
+        public async Task<OASISResult<int>> GetAvatarInventoryCount()
+        {
+            if (AvatarId == Guid.Empty)
+                return new OASISResult<int> { IsError = true, Message = "Sign in to read your inventory count." };
+
+            var inventory = await AvatarManager.GetAvatarInventoryAsync(AvatarId);
+            if (inventory.IsError || inventory.Result == null)
+                return new OASISResult<int> { IsError = true, Message = "Could not read your inventory count." };
+
+            return new OASISResult<int>(inventory.Result.Count());
         }
 
         [HttpPost("inventory")]

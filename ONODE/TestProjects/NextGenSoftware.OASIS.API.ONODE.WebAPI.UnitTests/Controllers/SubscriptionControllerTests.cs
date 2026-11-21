@@ -19,6 +19,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Controllers
     public class SubscriptionControllerTests
     {
         private readonly Mock<OASISSub.ISubscriptionService> _mockService;
+        private readonly Mock<ISubscriptionUsageRepository> _usage = new();
         private readonly Mock<IConfiguration> _mockConfig;
         private readonly SubscriptionController _controller;
         private readonly string _testUserId = Guid.NewGuid().ToString();
@@ -31,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Controllers
             var prices = new Mock<OASISSub.ISubscriptionPlanPriceReader>();
             prices.Setup(p => p.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                   .ReturnsAsync(new OASISSub.SubscriptionPlanPrice(10m, "USD", "month"));
-            _controller = new SubscriptionController(_mockConfig.Object, _mockService.Object,
+            _controller = new SubscriptionController(_mockConfig.Object, _mockService.Object, _usage.Object,
                 planCatalogue: new OASISSub.SubscriptionPlanCatalogue(prices.Object));
 
             // Wire up a fake authenticated context so GetCurrentUserId() returns a value
@@ -210,20 +211,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Controllers
         public async Task GetUsage_ShouldReturnUsageData()
         {
             var now = DateTime.UtcNow;
-            var usage = new UsageRecord
-            {
-                UserId = _testUserId,
-                Year = now.Year,
-                Month = now.Month,
-                RequestCount = 250
-            };
             var subscription = new SubscriptionRecord
             {
                 UserId = _testUserId,
                 PlanId = "bronze",
                 Status = "active"
             };
-            _mockService.Setup(s => s.GetUsageAsync(_testUserId, now.Year, now.Month)).ReturnsAsync(usage);
+            _usage.Setup(r => r.GetAggregateForPeriodAsync(_testUserId, new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new SubscriptionUsageAggregate { MonthlyRequests = 250 });
             _mockService.Setup(s => s.GetSubscriptionAsync(_testUserId)).ReturnsAsync(subscription);
 
             var result = await _controller.GetUsage() as OkObjectResult;

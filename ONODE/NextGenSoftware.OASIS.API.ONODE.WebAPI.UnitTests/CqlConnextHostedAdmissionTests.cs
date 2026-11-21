@@ -3,6 +3,7 @@ using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.API.Providers.ConnextOASIS;
+using ConnextProvider = NextGenSoftware.OASIS.API.Providers.ConnextOASIS.ConnextOASIS;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
@@ -14,7 +15,7 @@ public class CqlConnextHostedAdmissionTests
     {
         const string provider = nameof(ProviderType.ConnextOASIS);
         var keys = Enumerable.Range(1, 3).Select(value => $"0x{value:x64}").ToArray();
-        using var source = ConnextPublicOriginMetadataSource.FromJson(JsonSerializer.Serialize(new
+        using var source = ConnextProvider.FromPublicQueryConfiguration(JsonSerializer.Serialize(new
         {
             schema = 1,
             events = keys.Select((key, index) => new
@@ -37,7 +38,7 @@ public class CqlConnextHostedAdmissionTests
                 orderBy = "None", take = 25, includeMetadata = true,
                 filters = new[] { new
                 {
-                    metadataPath = new[] { ConnextPublicOriginMetadataSource.TransferIdMetadata },
+                    metadataPath = new[] { ConnextProvider.TransferIdMetadata },
                     scalar = "String", @operator = "In", value = keys.Take(count).ToArray()
                 } }
             };

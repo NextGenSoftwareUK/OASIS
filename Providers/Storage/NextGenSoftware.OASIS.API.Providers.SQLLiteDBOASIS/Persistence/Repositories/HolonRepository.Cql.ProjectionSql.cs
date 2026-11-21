@@ -11,6 +11,19 @@ public partial class HolonRepository
     {
         internal bool IndexedProjectionColumns { get; set; }
 
+        internal (string State, string Value) ProjectionOperand(CosmicProjectionColumn column, string prefix, bool comparable = false)
+        {
+            if (column == null) throw new ArgumentNullException(nameof(column));
+            if (column.Function == CosmicProjectionFunction.None) return ProjectionOperand(column.Path, prefix, comparable);
+            if (column.Function != CosmicProjectionFunction.Utf16Length ||
+                column.Path.ValueType != typeof(string) ||
+                (Nullable.GetUnderlyingType(column.ValueType) ?? column.ValueType) != typeof(int))
+                throw new NotSupportedException("The computed projection has no admitted native implementation.");
+            var source = ProjectionOperand(column.Path, prefix, comparable);
+            return (source.State, "CASE WHEN (" + source.State + ")=2 THEN "
+                + SqliteCqlReadBudget.TextStringLengthFunction + "(" + source.Value + ") ELSE NULL END");
+        }
+
         internal (string State, string Value) ProjectionOperand(CosmicQueryPath path, string prefix, bool comparable = false)
         {
             if (path.IsMetadata)
@@ -56,7 +69,7 @@ public partial class HolonRepository
             var sql = new List<string>();
             for (var index = 0; index < columns.Count; index++)
             {
-                var operand = ProjectionOperand(columns[index].Path, "cqlproject" + index);
+                var operand = ProjectionOperand(columns[index], "cqlproject" + index);
                 sql.Add(operand.State + " AS p" + index + "s");
                 sql.Add(operand.Value + " AS p" + index + "v");
             }

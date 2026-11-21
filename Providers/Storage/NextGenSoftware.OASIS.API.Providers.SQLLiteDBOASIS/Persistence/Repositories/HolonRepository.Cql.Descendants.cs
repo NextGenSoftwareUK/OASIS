@@ -28,6 +28,18 @@ public partial class HolonRepository
                 + "WHERE member.type='text' AND member.value=lower(" + child.CanonicalColumn("Id") + ")) END)";
         }
 
+        internal string ScopedJoinChildPredicate(CqlSqlTranslator parent, string admittedParents)
+        {
+            HasRelationship = true;
+            var parentId = parent.CanonicalColumn("Id");
+            var childId = CanonicalColumn("Id");
+            return "EXISTS (SELECT 1 FROM (" + admittedParents + ") AS admitted "
+                + "JOIN Holon AS \"joinParent\" ON " + parentId + " COLLATE NOCASE = admitted.id "
+                + "WHERE " + CanonicalColumn("ParentHolonId") + " COLLATE NOCASE = " + parentId
+                + " AND " + childId + " COLLATE NOCASE <> " + parentId
+                + " AND " + MembershipSql(parent, this) + ")";
+        }
+
         private string VisibilitySql(CqlSqlTranslator child)
         {
             if (_access == null) return "1";

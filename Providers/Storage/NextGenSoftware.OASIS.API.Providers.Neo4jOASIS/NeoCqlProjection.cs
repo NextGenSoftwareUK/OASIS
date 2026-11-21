@@ -12,6 +12,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 internal static class NeoCqlProjection
 {
     internal const long SchemaVersion = 3;
+    internal const string GuidTextPattern = @"\A[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\z";
 
     internal static string PathKey(IReadOnlyList<string> segments)
         => "m_" + Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(segments)))

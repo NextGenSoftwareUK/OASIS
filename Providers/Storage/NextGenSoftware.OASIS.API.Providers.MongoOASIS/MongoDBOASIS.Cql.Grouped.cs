@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Driver;
+using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -49,8 +50,19 @@ public partial class MongoDBOASIS : ICosmicQueryGroupedStorageProvider
                 | CosmicQueryFeatures.MixedNumericComparison | CosmicQueryFeatures.FieldComparison,
                 keys.Select(Scalar).ToArray(), aggregates.Select(value =>
                     new CosmicGroupedAggregateFilteringCapability(value.Operation, Scalar(value.ValueType))).ToArray());
+            // Distinct equality is enrolled independently from ordinary participation counts.
+            var distinctTypes = new[] { typeof(Guid), typeof(Guid?), typeof(string), typeof(bool), typeof(bool?),
+                typeof(int), typeof(int?), typeof(long), typeof(long?),
+                typeof(float), typeof(float?), typeof(double), typeof(double?) };
+            var distinct = new CosmicProjectionCapabilities(
+                CqlProjectionCapabilities.CanonicalFields.Where(field => distinctTypes.Contains(field.ValueType)).ToArray(),
+                CqlProjectionCapabilities.MetadataTypes.Where(distinctTypes.Contains).ToArray(),
+                CqlProjectionCapabilities.MaximumColumns);
+            if (CqlProjectionCapabilities.MetadataRootKeys != null)
+                distinct = distinct.WithMetadataRoots(CqlProjectionCapabilities.MetadataRootKeys);
             return new CosmicGroupedCapabilities(CqlProjectionCapabilities, CqlScalarCapabilities,
-                new CosmicGroupedOrderingCapabilities(keys, aggregates), supportsResultPaging: true, filtering: filters);
+                new CosmicGroupedOrderingCapabilities(keys, aggregates), supportsResultPaging: true, filtering: filters,
+                selectedCountCapabilities: CqlProjectionCapabilities, distinctSelectedCountCapabilities: distinct);
         }
     }
     public static CosmicGroupedCapabilities CqlGroupedCapabilities => GroupContract.Value;
@@ -85,7 +97,14 @@ public partial class MongoDBOASIS : ICosmicQueryGroupedStorageProvider
         catch (MongoCommandException cause) when (cause.Code == 146 || cause.Code == 292)
         { return GroupedCqlFailure("CQL_QUERY_LIMIT", "Projection exceeded its native in-memory budget.", cause); }
         catch (MongoExecutionTimeoutException cause) { return GroupedCqlFailure("CQL_QUERY_TIMEOUT", cause.Message, cause); }
-        catch (Exception cause) { return GroupedCqlFailure("CQL_QUERY_FAILED", "MongoDB grouping did not complete.", cause); }
+        catch (Exception cause)
+        {
+            var diagnostic = cause is MongoCommandException command
+                ? $"MongoDB grouped CQL command failed with server code {command.Code}."
+                : $"MongoDB grouped CQL failed with {cause.GetType().Name}.";
+            LoggingManager.Log(diagnostic, LogType.Error);
+            return GroupedCqlFailure("CQL_QUERY_FAILED", "MongoDB grouping did not complete.", cause);
+        }
     }
 
     private static OASISResult<IReadOnlyList<CosmicGroupedRow>> GroupedCqlFailure(string code, string message, Exception cause = null)

@@ -19,6 +19,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         [HolochainRustFieldName("id")]
         public Guid Id { get; set; }
 
+        [HolochainRustFieldName("created_by_avatar_id")]
+        public Guid? CreatedByAvatarId { get; set; }
+
         [HolochainRustFieldName("name")]
         public string Name { get; set; }
 
@@ -57,6 +60,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         [HolochainRustFieldName("is_active")]
         public bool IsActive { get; set; }
+
+        [HolochainRustFieldName("is_public")]
+        public bool IsPublic { get; set; }
 
         [HolochainRustFieldName("created_provider_type")]
         public EnumValue<ProviderType> CreatedProviderType { get; set; }

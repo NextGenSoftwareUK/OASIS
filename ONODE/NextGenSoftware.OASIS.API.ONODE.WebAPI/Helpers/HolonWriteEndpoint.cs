@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -13,6 +14,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.Common;
 using SaveHolonRequest = NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.SaveHolonRequest;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cosmic;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
 {
@@ -45,6 +47,39 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
                 managerRequired: false, requireAdmission: requireAdmission);
             return invalid == null ? new OASISResult<T>()
                 : Error<T>(invalid.Value.Code, invalid.Value.Message);
+        }
+
+        internal static OASISResult<IHolon> BindUtcMetadata(SaveHolonRequest request)
+        {
+            if (request?.UtcMetadataKeys == null || request.UtcMetadataKeys.Length == 0)
+                return new OASISResult<IHolon>();
+
+            var metadata = request.Holon?.MetaData;
+            if (metadata == null || request.UtcMetadataKeys.Length > metadata.Count)
+                return Error<IHolon>("COSMIC_WRITE_INTENT_INVALID", "UTC metadata keys must identify values in the submitted holon.");
+
+            var converted = new Dictionary<string, object>(StringComparer.Ordinal);
+            foreach (var key in request.UtcMetadataKeys)
+            {
+                if (string.IsNullOrEmpty(key) || !metadata.TryGetValue(key, out var raw) || converted.ContainsKey(key))
+                    return Error<IHolon>("COSMIC_WRITE_INTENT_INVALID", "Each UTC metadata key must identify one distinct submitted value.");
+                if (raw == null || raw is JsonElement { ValueKind: JsonValueKind.Null })
+                {
+                    converted.Add(key, null);
+                    continue;
+                }
+                var text = raw switch
+                {
+                    string value => value,
+                    JsonElement { ValueKind: JsonValueKind.String } value => value.GetString(),
+                    _ => null
+                };
+                if (!CqlV1Compiler.TryUtcDate(text, out var timestamp))
+                    return Error<IHolon>("COSMIC_WRITE_INTENT_INVALID", "Declared UTC metadata must use an ISO timestamp ending in Z with at most seven fractional digits.");
+                converted.Add(key, timestamp);
+            }
+            foreach (var pair in converted) metadata[pair.Key] = pair.Value;
+            return new OASISResult<IHolon>();
         }
 
         /// <summary>URL aliases retain the same revision intent through a

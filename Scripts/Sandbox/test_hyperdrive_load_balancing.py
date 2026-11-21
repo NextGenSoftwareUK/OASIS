@@ -25,7 +25,8 @@ class RouteEvidenceTests(unittest.TestCase):
     def test_read_only_expired_session_never_creates_or_sends_a_request(self):
         import base64
         claims = base64.urlsafe_b64encode(json.dumps({"exp": 1}).encode()).decode().rstrip("=")
-        with patch.object(Path, "exists", return_value=True), patch.object(Path, "read_bytes", return_value=b"controlled"), \
+        with patch.object(Path, "exists", return_value=True), patch.object(Path, "read_text", return_value='{"id":"owner"}'), \
+                patch.object(Path, "read_bytes", return_value=b"controlled"), \
                 patch.object(gate.flow.verification, "protected_token", return_value=("header." + claims + ".signature").encode()), \
                 patch.object(gate.flow, "call") as request, patch.object(gate.flow, "write_new") as write:
             with self.assertRaises(RuntimeError):
@@ -71,6 +72,28 @@ class RouteEvidenceTests(unittest.TestCase):
                 "ServingProvider": "MongoDBOASIS", "Succeeded": True, "RequestedStrategy": "Auto"}
             response = {"result": expected, "metaData": {"hyperDriveRoute": json.dumps(route)}}
             self.assertEqual(gate.verify_response(response, expected, requested), route)
+
+    def test_round_robin_requires_the_response_to_name_the_requested_strategy(self):
+        expected = {"id": "owned", "name": "Coffee", "version": 1, "createdByAvatarId": "actor"}
+        route = {"RequestedProvider": "Default", "InitialProvider": "SQLLiteDBOASIS",
+                 "ServingProvider": "SQLLiteDBOASIS", "Succeeded": True, "RequestedStrategy": "RoundRobin"}
+        response = {"result": expected, "metaData": {"hyperDriveRoute": json.dumps(route)}}
+        self.assertEqual(gate.verify_response(response, expected, "Default", strategy="RoundRobin"), route)
+        with self.assertRaises(ValueError):
+            gate.verify_response(response, expected, "Default")
+        for invalid_version in (True, 1.0, "1"):
+            with self.subTest(version=invalid_version), self.assertRaises(ValueError):
+                gate.verify_response(
+                    {**response, "result": {**expected, "version": invalid_version}},
+                    expected, "Default", strategy="RoundRobin")
+
+    def test_default_read_with_failover_disabled_cannot_change_serving_provider(self):
+        expected = {"id": "owned", "name": "Coffee", "version": 1, "createdByAvatarId": "actor"}
+        route = {"RequestedProvider": "Default", "InitialProvider": "MongoDBOASIS",
+                 "ServingProvider": "Neo4jOASIS", "Succeeded": True, "RequestedStrategy": "Auto"}
+        response = {"result": expected, "metaData": {"hyperDriveRoute": json.dumps(route)}}
+        with self.assertRaises(ValueError):
+            gate.verify_response(response, expected, "Default")
 
     def test_missing_shared_foreign_failed_or_different_provider_evidence_is_rejected(self):
         expected = {"id": "owned", "name": "Coffee", "version": 1, "createdByAvatarId": "actor"}

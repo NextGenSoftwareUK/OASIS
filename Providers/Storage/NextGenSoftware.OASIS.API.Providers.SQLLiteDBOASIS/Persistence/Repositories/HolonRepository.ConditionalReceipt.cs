@@ -20,10 +20,10 @@ public partial class HolonRepository
         => ConditionalHolonPlan.ComputeFingerprint(new JObject(document.Properties()
             .Where(property => property.Name != "digest").Select(property => new JProperty(property.Name, property.Value.DeepClone()))));
 
-    private static string WriteConditionalReceipt(IEnumerable<IHolon> roots, ConditionalHolonWriteRequest request, string fingerprint, HolonCommittedDelta delta)
+    private static string WriteConditionalReceipt(IEnumerable<IHolon> roots, ConditionalHolonWriteRequest request, string fingerprint, HolonCommittedDelta delta,ConditionalHolonPropertyWriteRequest propertyWrite=null)
     {
         var document = new JObject {
-            ["format"] = 3, ["fingerprintFormat"] = ConditionalFingerprintFormat(request),
+            ["format"] = 3, ["fingerprintFormat"] = ConditionalFingerprintFormat(request,propertyWrite),
             ["operationId"] = request.Write.OperationId, ["actor"] = request.Write.ActorId,
             ["authority"] = request.Write.Authority.ToString(), ["operation"] = request.Operation.ToString(),
             ["intent"] = fingerprint, ["graph"] = ConditionalHolonReceipt.Write(roots), ["delta"] = delta.StoredJson
@@ -33,7 +33,7 @@ public partial class HolonRepository
     }
 
     private IEnumerable<IHolon> ReadConditionalReceipt(string json, ConditionalHolonWriteRequest request,
-        PreparedGraph expectedGraph, string fingerprint,out HolonCommittedDelta delta)
+        PreparedGraph expectedGraph, string fingerprint,out HolonCommittedDelta delta,ConditionalHolonPropertyWriteRequest propertyWrite=null)
     {
         delta=null;
         try
@@ -41,7 +41,7 @@ public partial class HolonRepository
             var document = JObject.Parse(json, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
             var format=document["format"]?.Type==JTokenType.Integer ? document.Value<int>("format"):0;
             if (format is not (2 or 3) || document.Count != (format==3 ? 10:9)
-                || document["fingerprintFormat"]?.Type != JTokenType.Integer || document.Value<int>("fingerprintFormat") != ConditionalFingerprintFormat(request)
+                || document["fingerprintFormat"]?.Type != JTokenType.Integer || document.Value<int>("fingerprintFormat") != ConditionalFingerprintFormat(request,propertyWrite)
                 || document["digest"]?.Type != JTokenType.String || document.Value<string>("digest") != ReceiptDigest(document)
                 || document["operationId"]?.Type != JTokenType.String || document.Value<string>("operationId") != request.Write.OperationId.ToString("D")
                 || document["actor"]?.Type != JTokenType.String || document.Value<string>("actor") != request.Write.ActorId.ToString("D")
@@ -74,9 +74,25 @@ public partial class HolonRepository
             }
             // Delete consumes authoritative persisted values rather than caller edits;
             // its binding is the selected revisions, operation, actor and tombstone.
-            if (request.Operation == ConditionalHolonOperation.Save
-                && ConditionalFingerprint(request, PrepareGraph(roots, true, true, 0)) != ConditionalFingerprint(request, expectedGraph))
-                throw new InvalidDataException("Receipt persistent values differ from the original submitted intent.");
+            if (request.Operation == ConditionalHolonOperation.Save)
+            {
+                var acknowledged=PrepareGraph(roots,true,true,0);
+                if(propertyWrite!=null)
+                {
+                    for(var index=0;index<acknowledged.Nodes.Count;index++)
+                    {
+                        var node=acknowledged.Nodes[index];
+                        if(!propertyWrite.Selections.ContainsKey(node.Snapshot.Id))continue;
+                        // Compare only selected acknowledged values against their submitted intent.
+                        // The integrity-bound receipt/delta retains the actual unselected native after-image.
+                        var template=expectedNodes[node.Snapshot.Id].Snapshot;
+                        ConditionalHolonPlan.ValidateSelectedAcknowledgement(propertyWrite,template,node.Snapshot);
+                        acknowledged.Nodes[index]=node with { Snapshot=template };
+                    }
+                }
+                if(ConditionalFingerprint(request,acknowledged,propertyWrite)!=ConditionalFingerprint(request,expectedGraph,propertyWrite))
+                    throw new InvalidDataException("Receipt persistent values differ from the selected submitted intent.");
+            }
             if(format==3)
             {
                 delta=HolonCommittedDelta.ReadStored(document.Value<string>("delta"));

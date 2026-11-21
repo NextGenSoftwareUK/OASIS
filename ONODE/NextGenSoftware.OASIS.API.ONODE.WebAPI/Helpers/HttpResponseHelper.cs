@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
         public static OASISHttpResponseMessage<T> FormatResponse<T>(OASISHttpResponseMessage<T> response, HttpStatusCode statusCode = HttpStatusCode.OK, bool showDetailedSettings = false)
         {
             //Make sure no Error Details are in the Message.
-            if (response.Result.IsError && response.Result.Message.IndexOf("\n\nError Details:\n") > 0)
+            if (response.Result.IsError && !string.IsNullOrEmpty(response.Result.Message) && response.Result.Message.IndexOf("\n\nError Details:\n") > 0)
                 response.Result.Message = response.Result.Message.Substring(0, response.Result.Message.IndexOf("\n\nError Details:\n"));
 
             //Replace unsupported chars.

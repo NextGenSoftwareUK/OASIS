@@ -57,6 +57,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
                 if (result.IsError)
                     return new AuthenticateAvatarResponse { IsError = true, Message = result.Message };
 
+                // A second sign-in step (MFA) cannot be completed over gRPC: fail closed, never hand out tokens.
+                if (result.Result?.MetaData != null && result.Result.MetaData.ContainsKey("mfaRequired"))
+                    return new AuthenticateAvatarResponse { IsError = true, Message = "This avatar requires a second sign-in step (MFA). Use REST api/avatar/authenticate then api/avatar/authenticate-mfa." };
+
                 return new AuthenticateAvatarResponse
                 {
                     Avatar = MapAvatar(result.Result),
