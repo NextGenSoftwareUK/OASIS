@@ -60,9 +60,18 @@
   "inventoryQualification": {
     "run": 44960440455,
     "control": "d51db1cd654f2d566d2ca8aa12e77fa8aad2716a",
-    "status": "queued",
+    "status": "success-reviewed",
     "scope": "source-only generation; no runtime/fixtures/build",
-    "reason": "SaveLeaguesAsync addition and JoinTournamentAsync signature change require reviewed manifest before compile"
+    "reason": "SaveLeaguesAsync addition and JoinTournamentAsync signature change require reviewed manifest before compile",
+    "job": 137017844282,
+    "artifact": 14729298861,
+    "zipBytes": 39407,
+    "managers": 930,
+    "routes": 830,
+    "managerAdded": 2,
+    "managerRemoved": 1,
+    "routeChanges": 0,
+    "temporaryFilesWritten": 0
   },
   "portalCounterFix": {
     "commit": "c26436b2f652266da8830acb41c03d2f2910fbb1",
@@ -71,5 +80,12 @@
     "validation": "existing Node syntax check and diff check passed",
     "runtimeAcceptance": "pending actual Competition browser flow",
     "catalogueBrowserPin": "Unchanged2472; running Quests/Missions test excludes Competition change"
+  },
+  "reviewedCandidate": {
+    "candidate": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
+    "tag": "qualification/competition-inventory-2026-11-21-0cfb0953",
+    "manifestBlob": "919543e08a5e7ef1cf641820f14de8c8d3bfbb2d",
+    "scope": "four paths onf549; current-source inventory retained in candidate Git tree, original task-branch manifest preserved",
+    "status": "uncompiled"
   }
 }
