@@ -1,0 +1,114 @@
+{
+  "source": "43dd47c1241b3707022abba4c9d395f2813fe173",
+  "reason": "Only SDK integration, current runtime ancestry and the existing Neo managed cold-read case changed; unchanged provider cohorts retained.",
+  "requestedCancellations": [
+    {
+      "run": 44870788551,
+      "name": "Qualify bounded OpenVINO model server client",
+      "status": 202
+    },
+    {
+      "run": 44870788669,
+      "name": "Qualify Holonym WEB4 read integration",
+      "status": 202
+    },
+    {
+      "run": 44870788568,
+      "name": "Qualify Self Protocol WEB4 read integration",
+      "status": 202
+    },
+    {
+      "run": 44870788471,
+      "name": "Qualify Civic WEB4 read integration",
+      "status": 202
+    },
+    {
+      "run": 44870788618,
+      "name": "Qualify Sandbox contract WEB4 read integration",
+      "status": 202
+    },
+    {
+      "run": 44870788616,
+      "name": "Qualify bounded owned OpenVINO versioned model CQL",
+      "status": 202
+    },
+    {
+      "run": 44870788489,
+      "name": "Qualify bounded Holonym current attestation CQL",
+      "status": 202
+    },
+    {
+      "run": 44870788671,
+      "name": "Qualify MapLibre WEB4 read integration",
+      "status": 202
+    },
+    {
+      "run": 44870788746,
+      "name": "Qualify bounded Polygon ID pinned schema CQL",
+      "status": 202
+    },
+    {
+      "run": 44870788549,
+      "name": "Qualify GOMapRoute WEB4 read integration",
+      "status": 202
+    },
+    {
+      "run": 44870788529,
+      "name": "Qualify bounded MapLibre current style CQL",
+      "status": 202
+    },
+    {
+      "run": 44870788561,
+      "name": "Qualify bounded Self Protocol registry CQL",
+      "status": 202
+    },
+    {
+      "run": 44870788649,
+      "name": "Qualify bounded SEEDS current settings CQL",
+      "status": 202
+    },
+    {
+      "run": 44870788563,
+      "name": "Qualify SEEDS settings WEB4 read integration",
+      "status": 202
+    },
+    {
+      "run": 44870788620,
+      "name": "Qualify Polygon ID schema WEB4 read integration",
+      "status": 202
+    },
+    {
+      "run": 44870788718,
+      "name": "Qualify OpenVINO model metadata WEB4 read integration",
+      "status": 202
+    },
+    {
+      "run": 44870788541,
+      "name": "Qualify bounded Civic network CQL",
+      "status": 202
+    },
+    {
+      "run": 44870788617,
+      "name": "Qualify bounded Sandbox contract metadata CQL",
+      "status": 202
+    }
+  ],
+  "retained": [
+    {
+      "run": 44870788651,
+      "name": "Qualify exact Railway dependency checkouts",
+      "status": "queued"
+    },
+    {
+      "run": 44870788700,
+      "name": "Qualify native Neo4j cold read activation",
+      "status": "queued"
+    },
+    {
+      "run": 44870787182,
+      "name": ".github/workflows/publish-mcp.yml",
+      "status": "completed"
+    }
+  ],
+  "noOtherSourceRunsModified": true
+}
