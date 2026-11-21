@@ -22,7 +22,7 @@
   "newBrowserHelperCasesPassed": 1,
   "browserSnapshotMaximumCandidates": 200,
   "browserVerified": false,
-  "deployed": false,
+  "deployed": true,
   "nativeQualificationSource": "4acff4b102b0a5424b0906074d5d943b8ec32c56",
   "nativeQualificationRun": 44940844848,
   "nativeQualificationJob": 136957463175,
@@ -40,10 +40,10 @@
     "exactEntry": "snapshot.trx",
     "filesWritten": 0
   },
-  "deliveryCandidate": "42a13288100085314041e7305bbbdca400f11fed",
-  "deliveryTag": "cosmic-cql-snapshot-2d114754f7fa",
-  "deliveryBaseDevelopment": "d40364ed16c567750bc1ea000d7ee9d6196cd0fd",
-  "deliveryChangedPaths": 7,
+  "deliveryCandidate": "f54923d82ac8bffa7877d9307f18e879d41a8254",
+  "deliveryTag": "cosmic-cql-qualified-batch-f54923d82ac8",
+  "deliveryBaseDevelopment": "3159c8fb14e00b2f6a7b4f793c2e2fe54b91fddf",
+  "deliveryChangedPaths": 14,
   "deliveryApiDirectoryExact": true,
   "imageDispatched": true,
   "nativeInitialFailure": {
@@ -85,8 +85,8 @@
       }
     }
   },
-  "packageAccepted": false,
-  "deliverySuperseded": true,
+  "packageAccepted": true,
+  "deliverySuperseded": false,
   "compositionPeerDevelopment": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
   "compositionCompilePending": false,
   "priorDeliveryCandidates": [
@@ -134,5 +134,8 @@
     "digest": "sha256:ce464edd4c60ea4474278650064bcafbfaed8f7126a753138e675428ab3b8f58",
     "runtimeReadinessAccepted": false
   },
-  "deliveryGate": "Current nine-path image/package and successful exact Development rollout pending; hosted harness must refuse until those gates are accepted."
+  "deliveryGate": "Current nine-path image/package and successful exact Development rollout pending; hosted harness must refuse until those gates are accepted.",
+  "deployment": "88620d5d-7d91-4922-8e43-554ac984f71d",
+  "packageRun": 44956782867,
+  "deliveryCore": "7165ab625f90501047ca10c3b9f193ed0498caf5"
 }
