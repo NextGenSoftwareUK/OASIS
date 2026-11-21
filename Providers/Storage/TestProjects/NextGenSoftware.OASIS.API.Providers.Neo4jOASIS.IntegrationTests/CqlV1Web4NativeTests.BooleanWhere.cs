@@ -77,7 +77,8 @@ public sealed partial class CqlV1Web4NativeTests
         timer.Restart();var names=await projection.ExecuteCosmicProjectionAsync(selected.Result,maximumResults:10);
         timings.Add("native-projection",timer.ElapsedMilliseconds);
         Assert.IsFalse(names.IsError,names.Message);
-        CollectionAssert.AreEquivalent(new[] {"Coffee","Tea"},names.Result.ToArray());
+        Assert.IsTrue(names.Result.All(row => row.Values.Count == 1 && row.Values[0] is string));
+        CollectionAssert.AreEquivalent(new[] {"Coffee","Tea"},names.Result.Select(row => (string)row.Values[0]).ToArray());
 
         var other=CqlV1Compiler.Compile(new CqlV1Request {Provider=authority.ToString(),Where=tree,
             Filters=new[] {new CqlV1Filter {Field="Id",Scalar=CqlV1Scalar.Guid,Operator=CqlV1Operator.In,
