@@ -1,5 +1,5 @@
 {
-  "status": "Persisted catalogue accepted against actual compiled manager and owned Mongo/SQLite; controller change compile pending",
+  "status": "Persisted catalogue native Mongo/SQLite accepted; changed controller actual API compilation accepted; HTTP/browser/renderer remain open",
   "onodeCore": "21f448a990c4d9843d7747de09bf11d68b2473d1",
   "mapBlob": "31cca8aaeae066588e9a1b6ab4b0911b54f9d75c",
   "baseBlob": "996cf6d38d599760726c412401aa46000b3e3427",
@@ -47,5 +47,20 @@
     "result": "1 passed / 0 failed, reported4s; actual compiled manager/ToHolon, genuine native Mongo and SQLite; stable IDs, zero/near/datelined distances, filtering, invalid inputs/persisted data, unchanged accounts.",
     "cleanup": "Native scopes disposed; owned Mongo fixture absence and all post-job cleanup passed. No SDK/browser installation or local artifacts."
   },
-  "controllerFollowup": "MapController V2 acquisition now uses existing AdmittedStorageManagerAcquisition with unbound HolonManager; legacy mode remains explicit. BindRequired enforces both nearby query coordinates instead of missing values defaulting to zero. Not covered by accepted parentae8 native run; changed compile pending."
+  "controllerFollowup": "MapController V2 uses existing admitted acquisition with unbound HolonManager; legacy mode explicit. BindRequired enforces latitude/longitude presence. Actual API compile accepted; HTTP model-binding/routing/browser behavior not yet accepted.",
+  "controllerBuild": {
+    "run": 44861691502,
+    "job": 136716282786,
+    "parent": "43764916ecae9068a2b54c787316046210a2fe61",
+    "status": "completed",
+    "scope": "Actual changed WEB4 API build only; accepted native catalogue case not repeated",
+    "conclusion": "success",
+    "errors": 0,
+    "elapsed": "00:04:15.23",
+    "cleanup": "Behavior tests, native/browser fixture startup and artifact upload skipped; all post-job cleanup passed."
+  },
+  "coordination": {
+    "developmentReviewed": "3bba5467e82169f0eeaa80b449b2ba000a15f89b",
+    "result": "Fetched Development; recent CQL/session, live conductor and STAR release work preserved. No new shared MapController edits beyond historic ownership baseline. No blanket integration/deployment of incomplete provider programme."
+  }
 }
