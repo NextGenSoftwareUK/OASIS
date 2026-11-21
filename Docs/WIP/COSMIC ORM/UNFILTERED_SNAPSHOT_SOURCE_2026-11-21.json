@@ -23,10 +23,10 @@
   "browserSnapshotMaximumCandidates": 200,
   "browserVerified": false,
   "deployed": false,
-  "nativeQualificationSource": "5c1b20b430fa85479e5255106f5d1ab1fd2271cf",
-  "nativeQualificationRun": 44939785488,
+  "nativeQualificationSource": "4acff4b102b0a5424b0906074d5d943b8ec32c56",
+  "nativeQualificationRun": 44940844848,
   "nativeQualificationJob": 136954233377,
-  "nativeQualificationObservedStatus": "corrected_fixture_prepared",
+  "nativeQualificationObservedStatus": "in_progress",
   "selectedNativeCases": 3,
   "qualificationConclusion": "success",
   "coreCasesPassed": 2,
@@ -54,5 +54,6 @@
     "shippingSourceChanged": false,
     "ownedMongoCleanupPassed": true,
     "ownedServiceCleanupPassed": true
-  }
+  },
+  "hostedVerifierSource": "4acff4b102b0a5424b0906074d5d943b8ec32c56"
 }
