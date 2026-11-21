@@ -29,3 +29,5 @@ Frozen7c5f0a164cf18f55903d1fa3e009dc5eaec93a1f/tagcosmic-holo-readiness-240-7c5f
 The existing COSMIC feature integrated Development ancestry in2c2298c02b82e61416ef432bbc3a59980bd87202. New exact image dispatch acknowledged once; observe same candidate/source. Prior91423bce image44946308915 remains in progress and is preserved as superseded-base evidence, not authorized for stale Development replacement. Both image handles and original candidates remain in the compact handoff journal. No new branch/worktree/environment or local image/download.
 
 Combined image/package/live readiness remain pending. Compilation/native behavior acceptance from prior source is retained without rerunning unrelated accepted cohorts.
+
+Read-only Railway preflight: saved Development WEB4 load balancing=true; active peer46ca1820 BUILDING, fcb6e088 QUEUED, last successful606e1a52. Preserve peer rollouts. No new rollout while active ones remain. These are deployment/saved-config observations, not loaded in-memory Holo cell readiness.

@@ -8323,3 +8323,5 @@ Owned Chrome stopped; marker/path and process absence verified before normal rec
 21 November — Range1808byte TRX and timeout351byte compilation artifact verified only in RAM; no local artifact/archive/build. Qualification journal updated terminal-success; retain with active image journal until durable delivery. Thin index removed.
 
 21 November — Current240-second handoff retains original91423 image and integrated7c5f candidate; necessary until delivery evidence. No local image/build/install/download/worktree or owned DB. Thin index absent after each scoped operation. Last C-drive free42259226624bytes; no claim that unrelated space changes are ours.
+
+21 November — Native range qualification44947147551 executes owned isolated databases/outputs only on CI; local installs/builds/artifacts0. Retain its eventual compact artifact evidence, remove no shared user data. Railway preflight read only; no local files produced apart from necessary scoped source/index, removed by publisher.
