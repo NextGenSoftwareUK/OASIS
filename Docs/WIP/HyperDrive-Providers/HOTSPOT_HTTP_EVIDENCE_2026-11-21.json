@@ -1,0 +1,31 @@
+{
+  "candidate": "cf10bbb6eb686491c730737c3f66629c514d0817",
+  "control": "dac9f79ecf763204320c0bbee4cc2829ace51a52",
+  "run": 44938611564,
+  "job": 136950665372,
+  "conclusion": "success",
+  "buildErrors": 0,
+  "buildElapsed": "00:03:45.64",
+  "scope": "Actual OASISAPI boot with constructed loopback DNA, real MVC GeoHotSpotsController, JwtBearer signature validation and native actor resolution",
+  "checks": [
+    "First authenticated nearby request succeeds with empty native catalogue",
+    "Zero coordinates valid",
+    "Missing latitude rejected400",
+    "Missing longitude rejected400",
+    "Out of bounds latitude rejected400",
+    "Zero radius rejected400",
+    "Anonymous rejected401"
+  ],
+  "cleanup": [
+    "Owned Mongo database absent",
+    "Exact temporary fixture DNA absent",
+    "Owned container absent"
+  ],
+  "notAccepted": [
+    "Nonempty HTTP geo catalogue/radius ordering",
+    "Browser geo layers/progressive rendering",
+    "Full production Startup/SSO",
+    "Hosted rollout",
+    "Complete OPORTAL/provider/HyperDrive"
+  ]
+}
