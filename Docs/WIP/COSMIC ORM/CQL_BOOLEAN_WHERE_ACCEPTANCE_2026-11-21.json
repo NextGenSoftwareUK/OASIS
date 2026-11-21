@@ -1,0 +1,46 @@
+{
+  "date": "2026-11-21",
+  "apiSource": "26b5bea93286d0949d03447ef22ce05975bb7e88",
+  "runtimeSource": "6638ee95bf5f5c308af005ab8171e8bc982febc1",
+  "nativeHostLinksSource": "5f2e30dac71d88ed57f60e90d691af2962fb8f7b",
+  "apiRun": 44879292648,
+  "apiJob": 136770822069,
+  "apiBuildSucceeded": true,
+  "newCasesPassed": 5,
+  "failed": 0,
+  "skipped": 0,
+  "artifact": 14697179177,
+  "artifactBytes": 1931,
+  "artifactSha256": "4b1c3647cbdbdf9eba636bdc67af8764db6bc9bb8bf9259189457b1f131748ba",
+  "exactArtifactEntries": [
+    "where.trx"
+  ],
+  "onlyNewTestClassVerified": true,
+  "websiteSource": "3d055a1dc681362a63f0b79b2179fd5de377ecdf",
+  "websiteNewCasesPassed": 4,
+  "websiteFailed": 0,
+  "websiteSkipped": 0,
+  "syntax": [
+    "AND precedence over OR",
+    "nested parentheses",
+    "NOT over Boolean groups",
+    "nested child and descendant predicates"
+  ],
+  "limits": {
+    "nodes": 31,
+    "depth": 8,
+    "sharedFilters": 12,
+    "sharedRelationships": 4
+  },
+  "actorAuthorityAndVisibilityOwnerUnchanged": true,
+  "callerCaptureDeepCopied": true,
+  "existingRequestFormatPreservedWhenRepresentable": true,
+  "newNativeExecutionAccepted": false,
+  "newHostedBrowserAccepted": false,
+  "developmentPublished": false,
+  "mixedVirtualWhereAdmitted": false,
+  "oldAcceptedNativeCohortsRepeated": false,
+  "localBuilds": 0,
+  "localInstalls": 0,
+  "liveDataCalls": 0
+}

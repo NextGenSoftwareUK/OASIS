@@ -1,3 +1,10 @@
+21 November — COMPLEX SQL WHERE BREADTH SOURCE AND API BUILD ACCEPTED; NOT DEPLOYED.
+New typed WHERE tree supports nested AND/OR/NOT and child/descendant composition through the existing Core compiler/access owner.31nodes/8levels share existing12filter/4relationship budgets; complete shape validation precedes expression allocation. Mutable wire nodes/literals deep-captured before awaits. Rows/scalar/projection/grouped/join/federation/indexed source owners carry the same tree. Unsupported mixed virtual pushdown refuses explicitly rather than dropping WHERE.
+
+Exact source26b5bea9 CI44879292648/job136770822069 SUCCESS:5new compiler/ownership/budget cases passed, actual WEB4 build succeeded. Strict1931byte RAM artifact14697179177/SHA4b1c3647cbdbdf9eba636bdc67af8764db6bc9bb8bf9259189457b1f131748ba contains only where.trx,5passed/0failed/0skipped and exact new test class. Native test host explicit shared links added5f2e30da; that host is not separately build-accepted yet.
+
+Website3d055a1d normal-pushed to existing branch:4focused Node18 checks passed in RAM for precedence/parentheses, NOT/nested relationships, retained flat request forms and bounds/public-profile refusal. Source can express OR of independent AND groups and arbitrary nested Boolean relationships. Existing flat representation remains when exact; no runtime retry/fallback. New native execution, full hosted browser and public website publication are OPEN. No accepted native cohort rerun, local build/install/environment/database/image/archive/worktree or live data call. Full EF61/168+4/13 unchanged; Holo timeout remains separately open.
+
 21 November — HOLO TIMEOUT NARROWED; OLD LISTENER ACCUMULATION NOT PRESENT.
 Selected deployment5b247a68 logs show1persisted app interface,480successful cell-list replies and0running cells over124476ms, stage network join started. Existing readiness budget120s; no blind increase made. Read-only runtime probe finds dotnet but no Holochain/lair process, consistent with StartAndProvisionAsync failure->StopAsync and AutoShutdown ownership. No manual restart or native state change.
 
