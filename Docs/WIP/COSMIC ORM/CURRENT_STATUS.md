@@ -1,3 +1,5 @@
+Fresh source composition: ONODEd51bdd8 merges reviewed restoration51e0 with current packagedf3e; exact5restored+3package blobs verified, published through existing COSMIC branch81ec while preserving/excluding its separate ONET change. Root integrates Dev3159 ancestry; next batch can include native-accepted Core7165. Actual combined build still required. Prior77e image succeeded but is not deployable over newer package history.
+
 # COSMIC / CQL current checkpoint
 
 Updated 2026-11-21T21:46:28.305326+00:00. Full goal remains active and incomplete. Work on existing root/Core branch work/cosmic-cql-ton-public and website branch work/cosmic-cql only.
@@ -6,7 +8,7 @@ Updated 2026-11-21T21:46:28.305326+00:00. Full goal remains active and incomplet
 
 - Development load balancing was enabled across WEB4–WEB10 and seven rollout/startup-DNA checks passed. Last selected WEB4 saved-config check was true. This is activation proof, not blanket replica correctness.
 - HoloOASIS remains intermittent at retained native network join.240-second persisted-cell readiness is implemented; actual source WEB4/WEB5 compiled. It is NOT verified live. No conductor/lair reset or PIPER data change.
-- Exact timeout/snapshot image44951130403/job136989072275 is building immutable77e206b3a8240964e57261ef0c6dc76e30e0bfe3. It pins Core13bd and restored ONODE51e0/STARead6c, directly on restoration309eed, itself on Dev17f2. Preserve this producer; no queue-time replay.
+- Exact timeout/snapshot image44951130403/job136989072275 completed successfully for immutable77e206b3a8240964e57261ef0c6dc76e30e0bfe3 (superseded dependency ancestry; not deployed). It pins Core13bd and restored ONODE51e0/STARead6c, directly on restoration309eed, itself on Dev17f2. Preserve this producer; no queue-time replay.
 - Last observed Development3159c8fb14e00b2f6a7b4f793c2e2fe54b91fddf includes newer package history. Do not push the older prepared graph over it. A fresh merge of package and restored histories is required before deployment.
 - Peer restorationf8bee compile44948349449 passed actual WEB4/WEB5 zero errors. Fresh restoration309eed compile-only44952260483 is separately pending in peer status. Unfinished quest/mission work is independent and must not hold the CQL/Holo scope.
 - No new Development source push, staging/production promotion or current public website publication has occurred in this batch.

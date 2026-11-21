@@ -65,3 +65,11 @@ Native all-four-range44948941338 has started (owned CI containers initializing).
 One image dispatch for77e206b3 acknowledged with fresh shared Development still17f2f1e8. The exact image build now qualifies the combined WEB4 graph directly; no second standalone CQL compile is required before starting this build. This supersedes the earlier self-imposed pre-build wait, not any deployment gate. Peer compilef8bee acceptance, exact restored source identity and earlier native snapshot proof remain retained; actual77e source/image/package/rollout still must pass.
 
 Initial workflow list had not yet exposed its run ID after acknowledged204. Preserve the existing dispatch journal and reconcile the same source; do not dispatch another producer for visibility delay. No Development push, local image download or staging/production action.
+
+## Fresh package/restoration histories composed without another branch
+
+ONODE reviewed compositiond51bdd8cba5183c9a7597f85f1d6ddd4be20d629 merges restored51e0 and current Development packagedf3e histories. Five qualified interface/Map/base/geo/shallow files match restored source exactly; three current activation/package-store/publish files match df3e exactly. The initial identity assertion incorrectly classified Activate.Part1 as unchanged; inspection showed exactly four valid package-store lines. The corrected source sets retain both features, not strip package changes.
+
+Published via existing private COSMIC branch81ec030d8b2839934373b97e784b1023d80d112e. Its pre-existing ONETDiscovery.Core.cs change remains on that branch but is excluded from the reviewed parent composition pinned by the root. Both old branch and reviewed composition are ancestors; no new branch, checkout, worktree or force-push.
+
+Current77e image44951130403 succeeded, digest58175516218f2fcbba3cb90938cc2ccf8ee1b7b6835c9884dccb76e7a29564c7, but cannot overwrite newer Dev3159 package ancestry. Do not spend another package job on that superseded graph. The next exact batch includes native-accepted Core7165, reviewed ONODEd51b and preserved STARead6, retaining all current package history. Actual combined build/package/rollout remain required; no new native cohort rerun.
