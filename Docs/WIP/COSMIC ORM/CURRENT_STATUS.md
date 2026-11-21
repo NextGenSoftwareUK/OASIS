@@ -1,3 +1,5 @@
+2026-11-21 qualified batch now frozen at f54923d82ac8bffa7877d9307f18e879d41a8254, directly on Development3159c8fb. Includes native-accepted Core7165 ranges, reviewed ONODEd51/STARead6 history, 240-second readiness and snapshot source. Whole WEB4 API and three provider directories match feature source; three dependency histories preserve current Development ancestry. Image44955207943 and exact WEB4/WEB5 composition44955232840 are authoritatively QUEUED. One dispatch each; no duplicate producer, Development push or live acceptance. Package qualification follows successful exact image. Local free space44269977600 bytes; no runtime/build/database/image install; temporary publication index absent.
+
 Fresh source composition: ONODEd51bdd8 merges reviewed restoration51e0 with current packagedf3e; exact5restored+3package blobs verified, published through existing COSMIC branch81ec while preserving/excluding its separate ONET change. Root integrates Dev3159 ancestry; next batch can include native-accepted Core7165. Actual combined build still required. Prior77e image succeeded but is not deployable over newer package history.
 
 # COSMIC / CQL current checkpoint

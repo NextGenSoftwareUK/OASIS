@@ -1,3 +1,5 @@
+2026-11-21 qualified batch now frozen at f54923d82ac8bffa7877d9307f18e879d41a8254, directly on Development3159c8fb. Includes native-accepted Core7165 ranges, reviewed ONODEd51/STARead6 history, 240-second readiness and snapshot source. Whole WEB4 API and three provider directories match feature source; three dependency histories preserve current Development ancestry. Image44955207943 and exact WEB4/WEB5 composition44955232840 are authoritatively QUEUED. One dispatch each; no duplicate producer, Development push or live acceptance. Package qualification follows successful exact image. Local free space44269977600 bytes; no runtime/build/database/image install; temporary publication index absent.
+
 # Persisted Holo cell readiness budget — 21 November 2026
 
 David explicitly requested doubling the current timeout. The current shipping owner is HoloOasisDevelopmentConductor.PersistedCellReadinessBudget, increased from 120 to 240 seconds. This waits for the exact persisted app cell; it does not replace native readiness with a timer, retry provisioning, create another interface, or reset conductor/lair data.
