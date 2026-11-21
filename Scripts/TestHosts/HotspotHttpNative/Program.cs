@@ -287,7 +287,7 @@ try
             "; observed=" + MissionReadbackFacts(detailedMission));
         var storedChapter = await data.LoadHolonAsync<Chapter>(chapterId, loadChildren: false, providerType: ProviderType.MongoDBOASIS);
         Require(!storedChapter.IsError && storedChapter.Result != null && storedChapter.Result.Name == chapter.Name &&
-            storedChapter.Result.ParentHolonId == missionId && storedChapter.Result.ChapterDisplayName == "Act" && ((NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons.IQuestBase)storedChapter.Result).Status == QuestStatus.NotStarted &&
+            storedChapter.Result.ParentHolonId == missionId && storedChapter.Result.ChapterDisplayName == "Act" && ((NextGenSoftware.OASIS.API.Core.Interfaces.STAR.IQuestBase)storedChapter.Result).Status == QuestStatus.NotStarted &&
             Newtonsoft.Json.Linq.JObject.FromObject(storedChapter.Result).Value<string>("StatusDisplay") == "Act 0/0",
             "Owned typed chapter readback failed: " + storedChapter.Message + "; " +
             storedChapter.Exception?.GetBaseException().GetType().FullName + ": " + storedChapter.Exception?.GetBaseException().Message);
