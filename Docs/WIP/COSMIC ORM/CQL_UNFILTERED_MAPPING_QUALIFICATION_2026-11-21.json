@@ -1,0 +1,22 @@
+{
+  "unitSource": "c3878a657a7952dc5b84bfdb43d867f2442aff76",
+  "coreSource": "33a21b6141852bd7f61e8eab2ed354cb0bbc9de0",
+  "unitRun": 44886656181,
+  "unitJob": 136793281159,
+  "unitArtifact": 14699959522,
+  "unitArtifactBytes": 1937,
+  "unitArtifactSha256": "3f42c664b08e92f35a895c15e4fae3170e6311cb983027bebd0e5ba9cef51eeb",
+  "unitPassed": 5,
+  "unitFailed": 0,
+  "unitSkipped": 0,
+  "actualWeb4BuildSucceeded": true,
+  "nativeSource": "4dbd26270c3a24305d68fbca692c334d6bb9bf38",
+  "nativeRun": 44887621608,
+  "nativeJob": 136796248116,
+  "nativeAccepted": false,
+  "websiteSource": "3d8f108f6161b8b4a0e6c8e2f80d1358fb6185f8",
+  "newParserCasesPassed": 9,
+  "hostedAcceptance": false,
+  "publicPublicationVerified": false,
+  "archiveWrittenToDisk": false
+}
