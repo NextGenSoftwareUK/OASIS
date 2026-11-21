@@ -4,7 +4,7 @@ on:
     inputs:
       candidate_scope:
         type: choice
-        options: [map, hotspot, quest, competition]
+        options: [map, hotspot, quest, competition, profile]
         default: map
       native_check:
         type: boolean
@@ -44,6 +44,7 @@ jobs:
             Scripts/TestHosts/Fixtures/hotspot-development-candidate.json
             Scripts/TestHosts/Fixtures/quest-authoritative-candidate.json
             Scripts/TestHosts/Fixtures/competition-development-candidate.json
+            Scripts/TestHosts/Fixtures/profile-development-candidate.json
             Scripts/TestHosts/MapDevelopmentNative
             Scripts/TestHosts/HotspotDevelopmentNative
             Scripts/TestHosts/HotspotHttpNative
@@ -65,9 +66,10 @@ jobs:
         env:
           CANDIDATE_SCOPE: ${{ inputs.candidate_scope }}
         run: |
-          if ($env:CANDIDATE_SCOPE -notin @('map','hotspot','quest','competition')) { throw 'Unsupported candidate scope.' }
-          if ($env:CANDIDATE_SCOPE -notin @('map','competition') -and '${{ inputs.inventory_only }}' -eq 'true') { throw 'Only map and competition scopes generate source inventories.' }
-          $files = @{ map='Scripts/TestHosts/Fixtures/map-development-candidate.json'; hotspot='Scripts/TestHosts/Fixtures/hotspot-development-candidate.json'; quest='Scripts/TestHosts/Fixtures/quest-authoritative-candidate.json'; competition='Scripts/TestHosts/Fixtures/competition-development-candidate.json' }
+          if ($env:CANDIDATE_SCOPE -notin @('map','hotspot','quest','competition','profile')) { throw 'Unsupported candidate scope.' }
+          if ($env:CANDIDATE_SCOPE -notin @('map','competition','profile') -and '${{ inputs.inventory_only }}' -eq 'true') { throw 'Only map, competition and profile scopes generate source inventories.' }
+          $files = @{ map='Scripts/TestHosts/Fixtures/map-development-candidate.json'; hotspot='Scripts/TestHosts/Fixtures/hotspot-development-candidate.json'; quest='Scripts/TestHosts/Fixtures/quest-authoritative-candidate.json'; competition='Scripts/TestHosts/Fixtures/competition-development-candidate.json'; profile='Scripts/TestHosts/Fixtures/profile-development-candidate.json' }
+          if ($env:CANDIDATE_SCOPE -eq 'profile' -and '${{ inputs.native_check }}' -eq 'true') { throw 'Profile restoration descriptor selects source review/compilation only.' }
           $file = $files[$env:CANDIDATE_SCOPE]
           $candidate = Get-Content $file -Raw | ConvertFrom-Json
           if ($env:CANDIDATE_SCOPE -eq 'competition' -and '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -ne 'competition-browser') { throw 'Competition requires its explicit browser host.' }

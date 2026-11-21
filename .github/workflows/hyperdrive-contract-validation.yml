@@ -29,7 +29,7 @@ on:
       candidate_scope:
         description: Select the immutable scoped delivery candidate
         type: choice
-        options: [map, hotspot, quest, competition]
+        options: [map, hotspot, quest, competition, profile]
         default: map
       build_api:
         description: Also build the shipping WEB4 API for a native integration check

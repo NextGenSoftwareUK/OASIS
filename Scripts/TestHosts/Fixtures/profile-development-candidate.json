@@ -1,0 +1,26 @@
+{
+  "scope": "profile",
+  "status": "source-prepared-awaiting-inventory",
+  "base": "f54923d82ac8bffa7877d9307f18e879d41a8254",
+  "candidate": "8bd1165f7f297a0c37be35b6e65c7ecd8dee6fe9",
+  "tag": "qualification/profile-restoration-2026-11-21-8bd1165f",
+  "buildProjects": [
+    "WEB4"
+  ],
+  "allowedPaths": [
+    "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SelfAvatarProfileController.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Profile.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/AvatarRepository.Profile.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Profile.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.ProfileSchema.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Schema.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Profile.cs"
+  ],
+  "core": {
+    "base": "7165ab625f90501047ca10c3b9f193ed0498caf5",
+    "candidate": "be6849c724bea7e75ffa57eff300493c2d6e924f"
+  },
+  "remaining": "Review generated source inventories, compile current API/provider graph, qualify changed composition and deliver; original accepted native/browser evidence retained."
+}
