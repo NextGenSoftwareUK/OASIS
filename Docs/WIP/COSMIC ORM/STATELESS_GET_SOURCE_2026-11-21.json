@@ -1,0 +1,21 @@
+{
+  "coreSource": "b8b69aef680f8c74e449739e8849db53159a510c",
+  "coreBase": "7165ab625f90501047ca10c3b9f193ed0498caf5",
+  "phase": "qualification_source_pushed",
+  "nativeAccepted": false,
+  "developmentPushed": false,
+  "source": "a7b1df5f73ab8d906c8cedac093cc32dd571fdb5",
+  "coreControls": 2,
+  "nativeJourneys": 3,
+  "automaticWorkflowExpected": true,
+  "run": 44959006866,
+  "status": "queued",
+  "conclusion": null,
+  "implementation": "fresh actor/authority-bound Get/GetAsync, shared ReadAsync owner",
+  "tracking": false,
+  "absenceCached": false,
+  "implicitWrites": false,
+  "fullParityCredit": false,
+  "localBuilds": 0,
+  "localRuntimeInstalls": 0
+}

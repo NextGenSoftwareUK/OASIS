@@ -144,3 +144,17 @@ Inspect IsError before using the result or calling SaveChanges. On a later item/
 After successful registration, call SaveChangesAsync with an explicit CosmicWriteOptions operation identity. The existing native owned writer enforces permissions, original revisions and definite acknowledgement; no range method bypasses that owner. Keep SaveChanges operation identity when reconciling an uncertain write. Combining updates with deletions or mixing soft/hard deletion still requires unsupported mixed atomic semantics and is refused before writing. Calling several SaveChanges operations does not create one database transaction.
 
 For import workers, read a bounded native page, select AddRange for new full holons or the existing virtual mapping workflow for pointer-only data, and explicitly save only the intended full roots. Range registration does not import native tables, resolve virtual records, replicate data or choose full/virtual/hybrid policy by itself.
+
+## Stateless identity lookup (source; native qualification pending)
+
+Use await session.GetAsync<Holon>(id, cancellationToken) or session.Get<Holon>(id).
+Both perform a fresh query through the session's named authority and actor-bound native read owner.
+They never use a managed identity map, cache absence, track returned entities or implicitly save edits.
+An absent or unauthorized key returns success with Result=null and IsLoaded=false.
+A visible key returns a fresh detached instance with IsLoaded=true.
+Empty keys, pre-cancellation, closed sessions and authority drift refuse before native dispatch.
+Incomplete native reads and duplicate or mismatched identities are errors.
+
+This does not grant update/delete permission. Explicit persistence still requires the existing
+owned operation and revision contract. The new two-control/three-store CI journey is pending at
+run44959006866; source presence does not certify native support, full parity or live delivery.
