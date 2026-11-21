@@ -79,6 +79,10 @@ jobs:
           $env:OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT=(Get-Location).Path
           New-Item -ItemType Directory TestResults/Neo4jCurrent | Out-Null
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-session-range-native-ci -Operation {
+            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicSessionEntryTests|FullyQualifiedName~CosmicSessionRegistrationTests' --results-directory TestResults/SessionRange --logger 'trx;LogFileName=entry.trx'
+            if ($LASTEXITCODE) { throw 'Session range contract failed' }
+            [xml]$contract=Get-Content TestResults/SessionRange/entry.trx
+            if ($contract.TestRun.ResultSummary.Counters.passed -ne '5' -or $contract.TestRun.ResultSummary.Counters.total -ne '5') { throw 'All five shared session checks must pass' }
             dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SessionRangesSaveAndAttachThroughNativeAuthority' --results-directory TestResults/Neo4jCurrent --logger 'trx;LogFileName=mapping-native.trx'
             if ($LASTEXITCODE) { throw 'Native session range qualification failed' }
             [xml]$report=Get-Content TestResults/Neo4jCurrent/mapping-native.trx
@@ -99,6 +103,7 @@ jobs:
         with:
           name: cql-session-range-native
           path: |
+            OASIS/TestResults/SessionRange/entry.trx
             OASIS/TestResults/Neo4jCurrent/mapping-native.trx
             OASIS/TestResults/Neo4jCurrent/*-session-range-native.json
           if-no-files-found: ignore

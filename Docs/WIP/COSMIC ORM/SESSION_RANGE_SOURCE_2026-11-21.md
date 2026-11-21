@@ -21,3 +21,9 @@ Native representative qualification prepared: three cases only, selecting real M
 UpdateRange and RemoveRange now use the same guarded range traversal as AddRange/AttachRange, and the same UpdateCore/RemoveCore rules as their single-root methods. No native I/O or implicit flush. Explicit update revisions remain required by SaveChanges; removing uncommitted added roots detaches them. On failure the Result list identifies accepted earlier local operations, which remain applied (including detach for added removals); no rollback or database transaction claim.
 
 One strict no-I/O contract covers update/deletion intent, added-root detach and invalid update refusal. Five selected checks including the existing entry compatibility and registration checks qualify the changed shared owner. This increment remains source-only until results. Existing native44947147551 is pinned to the earlier AddRange/AttachRange Core3b69 and must not be claimed to cover the new update/removal range methods. Timeout image7c5f remains unchanged.
+
+## Native qualification compile blocker identified and repaired
+
+Run44947147551 failed before native execution/no artifact: two CS1503 at MapController44. ONODE34a8685e MapManager supports (IOASISStorageProvider,Guid,OASISDNA), while the root caller still passed (HolonManager,Guid) from the earlier dependency contract. Corrected the caller to pass the already admitted provider, actor and DNA. No overload shim, dependency rollback, new fallback or permission bypass.
+
+Queued own image44946907870 and five-check44947664565 cancellation acknowledged because they contain the same proven compile mismatch; not an observation timeout and no accepted result discarded. New native qualification runs the five shared Core controls followed by only the three new native range cases under one build lease, retaining both TRX files and exact cleanup evidence. No accepted old native cohort replay.

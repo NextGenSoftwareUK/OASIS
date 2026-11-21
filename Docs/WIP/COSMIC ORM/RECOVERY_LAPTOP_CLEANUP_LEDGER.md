@@ -8329,3 +8329,5 @@ Owned Chrome stopped; marker/path and process absence verified before normal rec
 21 November — Prior timeout image terminalSUCCESS preserved remotely only; no local image or log archive downloaded. Combined image queued, native isolated CI databases active and their owned cleanup must run before result acceptance. Compact active journal updated; no additional local environment/output.
 
 21 November — Update/removal range source and five-case CI qualification add no local runtime/build/test output/database/archive/model/env/download. Scoped index removed; current timeout release journals retained. No shared Atlas/PIPER operation or new branch/worktree.
+
+21 November — Failed native range44947147551 had no TRX/artifact because WEB4 compilation failed before tests. Owned Mongo stop/container cleanup steps ran; preserve terminal job evidence. Own queued doomed image/contract cancellation acknowledged to avoid wasted CI. No local downloads/build/env or PIPER action.
