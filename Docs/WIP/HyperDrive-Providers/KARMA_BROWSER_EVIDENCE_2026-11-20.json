@@ -1,0 +1,19 @@
+{
+  "status": "browser verifier prepared; actual controller/native host integration pending",
+  "portal": "34c264a",
+  "shippingChanges": "Karma ledger captures current SDK bearer, pages flattened activity and displays real signed values; activity feed captures bearer.",
+  "prepared": [
+    "Scripts/TestHosts/Fixtures/karma-browser-host.html",
+    "Scripts/TestHosts/Fixtures/karma-browser-native-http.cjs"
+  ],
+  "requiredProof": [
+    "Actual Chromium page and shipping WEB4 SDK/HTML/scripts",
+    "Compiled real KarmaController with actual AvatarManager and isolated native Mongo",
+    "51 native records including negative and zero; older page and provider chart",
+    "Token-free cached avatar, account-switch empty result, anonymous HTTP401",
+    "No provider/API writes during browsing; original native avatar revisions preserved",
+    "Owned browser/controller/database cleanup"
+  ],
+  "validation": "Browser verifier Node syntax passed only. No browser/native run or completion claimed.",
+  "cleanup": "No install, download, browser process, local build or test database/result created. Compact source fixtures retained."
+}
