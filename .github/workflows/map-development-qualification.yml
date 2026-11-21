@@ -4,7 +4,7 @@ on:
     inputs:
       candidate_scope:
         type: choice
-        options: [map, hotspot, quest]
+        options: [map, hotspot, quest, competition]
         default: map
       native_check:
         type: boolean
@@ -43,6 +43,7 @@ jobs:
             Scripts/TestHosts/Fixtures/map-development-candidate.json
             Scripts/TestHosts/Fixtures/hotspot-development-candidate.json
             Scripts/TestHosts/Fixtures/quest-authoritative-candidate.json
+            Scripts/TestHosts/Fixtures/competition-development-candidate.json
             Scripts/TestHosts/MapDevelopmentNative
             Scripts/TestHosts/HotspotDevelopmentNative
             Scripts/TestHosts/HotspotHttpNative
@@ -62,9 +63,10 @@ jobs:
         env:
           CANDIDATE_SCOPE: ${{ inputs.candidate_scope }}
         run: |
-          if ($env:CANDIDATE_SCOPE -notin @('map','hotspot','quest')) { throw 'Unsupported candidate scope.' }
+          if ($env:CANDIDATE_SCOPE -notin @('map','hotspot','quest','competition')) { throw 'Unsupported candidate scope.' }
           if ($env:CANDIDATE_SCOPE -ne 'map' -and '${{ inputs.inventory_only }}' -eq 'true') { throw 'Only map scope generates WEB4 inventories.' }
-          $files = @{ map='Scripts/TestHosts/Fixtures/map-development-candidate.json'; hotspot='Scripts/TestHosts/Fixtures/hotspot-development-candidate.json'; quest='Scripts/TestHosts/Fixtures/quest-authoritative-candidate.json' }
+          $files = @{ map='Scripts/TestHosts/Fixtures/map-development-candidate.json'; hotspot='Scripts/TestHosts/Fixtures/hotspot-development-candidate.json'; quest='Scripts/TestHosts/Fixtures/quest-authoritative-candidate.json'; competition='Scripts/TestHosts/Fixtures/competition-development-candidate.json' }
+          if ($env:CANDIDATE_SCOPE -eq 'competition' -and '${{ inputs.native_check }}' -eq 'true') { throw 'Competition native/browser host is not selected by this compile-only descriptor.' }
           $file = $files[$env:CANDIDATE_SCOPE]
           $candidate = Get-Content $file -Raw | ConvertFrom-Json
           "file=$file" >> $env:GITHUB_OUTPUT

@@ -44,5 +44,17 @@
       "base": "6edca43dce1cb1b2079b1df68ae085131970d69e",
       "status": "source-only-uncompiled"
     }
+  },
+  "independentCandidate": {
+    "base": "f54923d82ac8bffa7877d9307f18e879d41a8254",
+    "candidate": "1947857365cf9cc243d046428211d7cdbab029dd",
+    "tag": "qualification/competition-isolated-2026-11-21-19478573",
+    "core": "048f79dbe9b3589a09ab90657511fe760c7a18ea",
+    "coreTag": "qualification/competition-isolated-2026-11-21-048f79db",
+    "star": "cf763aecfff7cc33d6aeacc9121db01c767a50f6",
+    "starTag": "qualification/competition-isolated-2026-11-21-cf763aec",
+    "status": "source-prepared-uncompiled",
+    "excluded": "Mission/Chapter/Quest changes, stored role binding and Mongo graph acknowledgement fix",
+    "temporaryIndexes": "all three removed in finally"
   }
 }

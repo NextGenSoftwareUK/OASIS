@@ -1,0 +1,24 @@
+{
+  "scope": "competition",
+  "status": "compile-only-prepared-not-runtime-accepted",
+  "base": "f54923d82ac8bffa7877d9307f18e879d41a8254",
+  "candidate": "1947857365cf9cc243d046428211d7cdbab029dd",
+  "tag": "qualification/competition-isolated-2026-11-21-19478573",
+  "buildProjects": [
+    "WEB5"
+  ],
+  "allowedPaths": [
+    "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "STAR ODK"
+  ],
+  "core": {
+    "base": "7165ab625f90501047ca10c3b9f193ed0498caf5",
+    "candidate": "048f79dbe9b3589a09ab90657511fe760c7a18ea"
+  },
+  "star": {
+    "base": "ead6c9cab83c0144c64cf3bfa22f94733a0aeaf5",
+    "candidate": "cf763aecfff7cc33d6aeacc9121db01c767a50f6"
+  },
+  "remaining": "Fresh composition compilation, then actual Competition browser/HTTP; retained native evidence is not current hosted acceptance."
+}
