@@ -1,0 +1,60 @@
+{
+  "date": "2026-11-21",
+  "developmentSource": "8a4e0a8ba68b923feafeaeab0a95582506201537",
+  "deployment": "5b247a68-be53-4bcb-976f-0091f9d11ab7",
+  "holoStartup": {
+    "stage": "network join started",
+    "category": "timeout",
+    "elapsedMilliseconds": 124476,
+    "persistedAppInterfaces": 1,
+    "successfulCellListReplies": 480,
+    "runningCells": 0,
+    "readinessBudgetSeconds": 120
+  },
+  "runtimeObservation": {
+    "conductorProcessPresent": false,
+    "lairProcessPresent": false,
+    "dotnetProcessPresent": true,
+    "shutdownMatchesOwnedFailureCleanup": true
+  },
+  "networkDns": {
+    "dev-test-bootstrap2.holochain.org": true,
+    "use1-1.relay.n0.iroh-canary.iroh.link": true
+  },
+  "networkHttpsHead": [
+    {
+      "host": "dev-test-bootstrap2.holochain.org",
+      "tlsAndHttp": true,
+      "httpStatus": 404,
+      "elapsedMilliseconds": 414
+    },
+    {
+      "host": "use1-1.relay.n0.iroh-canary.iroh.link",
+      "tlsAndHttp": true,
+      "httpStatus": 404,
+      "elapsedMilliseconds": 102
+    }
+  ],
+  "interpretation": [
+    "No redundant persisted-listener accumulation in this run",
+    "Admin RPC remained responsive while no cell ran",
+    "Root-path HEAD 404 proves HTTP reachability only; not bootstrap/relay protocol health",
+    "DNS failure and simple TLS/HTTP reachability failure not reproduced",
+    "No conductor-versus-application root cause attributed",
+    "Failed provisioning shuts down its owned conductor by existing source contract"
+  ],
+  "nativeRestartPerformed": false,
+  "settingsWrites": 0,
+  "dataWrites": 0,
+  "piperOperations": 0,
+  "filesInstalled": 0,
+  "runtimeUsed": "existing Railway executable and already packaged Node",
+  "localPythonRemoteProbe": "not available through initial command forms; no install or repeated environment setup",
+  "rawSshOutputRetained": false,
+  "rawCredentialsPrinted": false,
+  "remaining": [
+    "Capture evidence of the actual stalled native join or reproduce it in an isolated retained-state diagnostic",
+    "Resolve HoloOASIS startup without discarding state or weakening readiness",
+    "Prevent slow readiness from delaying unrelated providers through a properly qualified lifecycle design"
+  ]
+}
