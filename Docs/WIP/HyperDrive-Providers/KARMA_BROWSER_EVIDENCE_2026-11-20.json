@@ -1,5 +1,5 @@
 {
-  "status": "exact browser checkout corrected after preflight failure; runtime pending",
+  "status": "Required CORS middleware added to isolated controller host; focused runtime verification pending",
   "portal": "34c264a9845dfb5437de369e22f7f917cd354eef",
   "shippingChanges": "Karma ledger captures current SDK bearer, pages flattened activity and displays real signed values; activity feed captures bearer.",
   "prepared": [
@@ -28,7 +28,7 @@
     "case": "1 failed, reported35s; browser waitForFunction timed out15000ms; page stage not reported",
     "cleanup": "Owned browser/runtime/cache/control and Mongo absence verified; CI post-jobs passed"
   },
-  "next": "Same single failed case, with sanitized stage/visible-status/request-path diagnostics; no successful accepted cohort rerun.",
+  "next": "Run only KarmaPopupsUseActualSdkHttpAndOwnedMongo against corrected owned host; retain failures and verify cleanup.",
   "diagnosticRun": {
     "run": 44854668543,
     "job": 136693945702,
@@ -41,5 +41,15 @@
     "job": 136698357771,
     "result": "Stopped before build/database: browser script missing. Earlier replacement had affected syntax-only checkout. Correct browser checkout section now contains both scripts and fragments.",
     "artifact": "No TRX exists because no tests ran; artifact step consequently failed. No runtime/data cleanup required."
-  }
+  },
+  "controllerRun": {
+    "run": 44856497519,
+    "job": 136699841195,
+    "parent": "4b87ace3e24a5b5d9b8323e7be453f0a8b91afb9",
+    "result": "Asset preflight and API compilation passed; first real activity GET returned500. Retained TRX identifies missing test-host CORS middleware required by controller metadata.",
+    "artifact": 14687743792,
+    "sha256": "f341a6c773085d70a50a4f3eabee4f1e048f097f79ffbed0dbd936026cc05b5d",
+    "cleanup": "Browser/runtime/cache/control cleanup and native Mongo database absence passed; archive inspected only in RAM."
+  },
+  "hostCorrection": "Register AddCors, explicitly UseRouting then UseCors before UseAuthorization. Shipping Startup already registers and runs CORS; no production policy change or permissive origin policy added."
 }

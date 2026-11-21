@@ -76,6 +76,7 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     parts.ApplicationParts.Clear(); parts.ApplicationParts.Add(new AssemblyPart(api));
                     parts.FeatureProviders.Add(new ProfileControllerFeature(controllers));
                 }).AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
+                builder.Services.AddCors();
                 builder.Services.AddAuthorization();
                 await using var app = builder.Build();
                 using var portal = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
@@ -105,6 +106,8 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                     }
                     await next(context);
                 });
+                app.UseRouting();
+                app.UseCors();
                 app.UseAuthorization(); app.MapControllers(); await app.StartAsync();
                 try
                 {
