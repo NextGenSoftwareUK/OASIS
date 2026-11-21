@@ -13,6 +13,8 @@ using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
@@ -29,6 +31,8 @@ var dnaPath = Path.Combine(Path.GetTempPath(), database + ".json");
 Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
+var mode = Environment.GetEnvironmentVariable("OASIS_HOTSPOT_HTTP_MODE") ?? "binding";
+Require(mode is "binding" or "populated", "Unsupported hotspot HTTP check mode.");
 var dna = new OASISDNA { OASIS = new() {
     HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
         AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
@@ -65,6 +69,25 @@ try
     Require(!selected.IsError, "Owned provider selection failed: " + selected.Message);
     var boot = await new OASISAPI().BootOASISAsync(dna, startApolloServer: false);
     Require(!boot.IsError && boot.Result, "Real isolated runtime boot failed: " + boot.Message);
+    var expected = new List<Guid>();
+    if (mode == "populated")
+    {
+        var data = new HolonManager(provider, dna, ProviderManager.Instance);
+        foreach (var item in new[] { (lat: 0d, visible: true, active: true), (lat: .001d, visible: true, active: true),
+            (lat: 5d, visible: true, active: true), (lat: 0d, visible: false, active: true), (lat: 0d, visible: true, active: false) })
+        {
+            var id = Guid.NewGuid();
+            var hotspot = new GeoHotSpot { Id = id, Name = "Owned HTTP hotspot " + id.ToString("N"),
+                Lat = item.lat, Long = 0, IsActive = item.active, IsVisibleOnMap = item.visible,
+                HotSpotRadiusInMetres = 17, TextContent = "Native HTTP geometry",
+                STARNETDNA = new STARNETDNA { Id = id, CreatedByAvatarId = actor, Version = "1.0.0", VersionSequence = 1 } };
+            hotspot.MetaData["STARNETHolonId"] = id.ToString("D");
+            hotspot.MetaData["GeoHotSpotType"] = GeoHotSpotType.Map.ToString();
+            var saved = await data.SaveHolonAsync<GeoHotSpot>(hotspot, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);
+            Require(!saved.IsError && saved.IsSaved, "Owned HTTP hotspot seed failed: " + saved.Message);
+            if (item.lat < 1 && item.visible && item.active) expected.Add(id);
+        }
+    }
     var builder = WebApplication.CreateBuilder(); builder.Logging.ClearProviders(); builder.WebHost.UseUrls("http://127.0.0.1:0");
     var key = new SymmetricSecurityKey(secret);
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {
@@ -95,6 +118,18 @@ try
     Require(initial.IsSuccessStatusCode && !body.RootElement.GetProperty("isError").GetBoolean(),
         "First authenticated nearby HTTP read failed: " + (int)initial.StatusCode + ": " + body.RootElement.GetProperty("message").GetString());
     Require(body.RootElement.GetProperty("result").ValueKind == JsonValueKind.Array, "Nearby HTTP response is not a catalogue.");
+    if (mode == "populated")
+    {
+        var rows = body.RootElement.GetProperty("result").EnumerateArray().ToArray();
+        Require(rows.Select(row => row.GetProperty("id").GetGuid()).SequenceEqual(expected),
+            "Populated HTTP radius/visibility/activity/distance ordering returned unexpected canonical IDs.");
+        Require(rows[0].GetProperty("lat").GetDouble() == 0 && rows[1].GetProperty("lat").GetDouble() == .001 &&
+            rows.All(row => row.GetProperty("long").GetDouble() == 0 && row.GetProperty("hotSpotRadiusInMetres").GetInt32() == 17 &&
+                row.GetProperty("textContent").GetString() == "Native HTTP geometry"), "Derived typed hotspot fields changed across HTTP serialization.");
+        Console.WriteLine("HOTSPOT_POPULATED_HTTP_PROOF: five native hotspot roots through real boot/MVC/JWT; two nearby active visible records returned in distance order with exact typed fields; far/hidden/inactive excluded. Browser/production Startup excluded.");
+    }
+    else
+    {
     foreach (var query in new[] { "latitude=0", "longitude=0", "latitude=91&longitude=0", "latitude=0&longitude=0&radiusKm=0" })
     {
         using var invalid = await http.GetAsync("/api/GeoHotSpots/nearby?" + query);
@@ -104,6 +139,7 @@ try
     using var anonymous = await http.GetAsync("/api/GeoHotSpots/nearby?latitude=0&longitude=0");
     Require(anonymous.StatusCode == HttpStatusCode.Unauthorized, "Anonymous nearby read was not rejected.");
     Console.WriteLine("HOTSPOT_HTTP_NATIVE_PROOF: real isolated boot, MVC nearby action, signed native actor, zero coordinates, required/bounded coordinates, radius and anonymous rejection passed. Full production Startup/SSO/browser excluded.");
+    }
 }
 finally
 {

@@ -221,6 +221,10 @@ jobs:
           $candidate = Get-Content (Join-Path ../qualification-control $env:CANDIDATE_FILE) -Raw | ConvertFrom-Json
           $hostName = if ($env:CANDIDATE_SCOPE -eq 'hotspot') { if ($candidate.nativeHost) { $candidate.nativeHost } else { 'HotspotDevelopmentNative' } } else { 'MapDevelopmentNative' }
           if ($hostName -notin @('MapDevelopmentNative','HotspotDevelopmentNative','HotspotHttpNative')) { throw 'Unsupported native qualification host.' }
+          if ($hostName -eq 'HotspotHttpNative') {
+            $env:OASIS_HOTSPOT_HTTP_MODE = if ($candidate.nativeMode) { $candidate.nativeMode } else { 'binding' }
+            if ($env:OASIS_HOTSPOT_HTTP_MODE -notin @('binding','populated')) { throw 'Unsupported hotspot HTTP check mode.' }
+          }
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner map-development-native-ci -Operation {
             dotnet build "../qualification-control/Scripts/TestHosts/$hostName/$hostName.csproj" --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false "/p:OASISCandidateRoot=$((Get-Location).Path)"
             if ($LASTEXITCODE) { throw "Combined Development native $hostName host build failed." }

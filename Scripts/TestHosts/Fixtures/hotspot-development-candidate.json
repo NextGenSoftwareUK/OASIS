@@ -121,5 +121,6 @@
       "fixtures": 0,
       "behaviorCases": 0
     }
-  }
+  },
+  "nativeMode": "populated"
 }
