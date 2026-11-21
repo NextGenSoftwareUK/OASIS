@@ -1,0 +1,28 @@
+{
+  "websiteCommit": "d462899f78bdc3a6f3179411d5c96e192255c251",
+  "baseWebsite": "a85d93b6d85c72b1e3373ee8b2050b4b511cb0c4",
+  "branch": "work/cosmic-cql",
+  "passed": 3,
+  "failed": 0,
+  "skipped": 0,
+  "providerPayloadComparison": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "scope": [
+    "scalar aliases",
+    "selected fields",
+    "computed length",
+    "typed metadata",
+    "grouping",
+    "joined columns",
+    "clause boundaries",
+    "duplicate and missing alias refusals"
+  ],
+  "priorSuitesRerun": false,
+  "nativeQueries": 0,
+  "localFilesWritten": 0,
+  "productionPublished": false,
+  "hostedBrowserAccepted": false
+}
