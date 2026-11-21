@@ -1,0 +1,30 @@
+{
+  "status": "source-prepared-not-compiled-not-deployed",
+  "repository": "NextGenSoftwareUK/STAR-ODK",
+  "base": "6774caf10a4d37cba5575e497c0a0499f118b6d0",
+  "candidate": "78eabe52e5e474c21367959cecfcb900709db169",
+  "tag": "qualification/quest-authoritative-2026-11-21-78eabe52",
+  "file": "NextGenSoftware.OASIS.STAR.WebAPI/Controllers/QuestsController.Quest.cs",
+  "diff": {
+    "files": 1,
+    "additions": 0,
+    "deletions": 66
+  },
+  "changes": [
+    "Remove four generated-success substitutions from catalogue/by-ID success/error paths",
+    "Remove four avatar-scoped empty-list alternate queries in all-for-avatar/game and by-status/game",
+    "Keep existing authoritative manager calls, status filtering, authorization and real exception paths"
+  ],
+  "remaining": [
+    "Compile exact follow-up",
+    "Representative real empty-quest API check",
+    "Current populated browser result and safe integration"
+  ],
+  "currentBrowser": {
+    "run": 44941055967,
+    "job": 136958129072,
+    "runtime": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+    "status": "in_progress",
+    "sourceUnchanged": true
+  }
+}
