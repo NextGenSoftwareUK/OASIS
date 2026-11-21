@@ -127,7 +127,7 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - name: Compile selected combined Development APIs
-        if: ${{ !inputs.inventory_only }}
+        if: ${{ !inputs.inventory_only && !inputs.native_check }}
         shell: pwsh
         env:
           CANDIDATE_FILE: ${{ steps.candidate.outputs.file }}

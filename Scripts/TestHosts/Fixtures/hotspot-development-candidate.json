@@ -1,5 +1,5 @@
 {
-  "status": "combined-compile-queued-native-and-delivery-pending",
+  "status": "combined-compile-passed-native-and-delivery-pending",
   "compileRun": 44893706298,
   "compileJob": 136814765491,
   "controlSource": "3e6c368b0c0f52a176adddf92a52d6312360c96f",
@@ -7,7 +7,10 @@
   "base": "98ccee24f6a3eb0a35604b7dad82076908579fd5",
   "candidate": "cf10bbb6eb686491c730737c3f66629c514d0817",
   "tag": "qualification/hotspot-shallow-2026-11-21-cf10bbb6",
-  "buildProjects": ["WEB4", "WEB5"],
+  "buildProjects": [
+    "WEB4",
+    "WEB5"
+  ],
   "onode": {
     "base": "b6819c2bcb815e26f7cef6266d8c7481dde4964c",
     "candidate": "9c8b8478e38bbb06ae334578f0546e3f34b48a4d",
@@ -24,5 +27,14 @@
     "STAR ODK"
   ],
   "unchanged": "Qualified Map batch/Core, CQL/STARNET work, all other pins, DNA and environment/worker configuration",
-  "remaining": "Actual combined compilation; real native typed hydration/shallow graph/visibility/provider behavior; HTTP binding, browser layers and safe delivery. Full OPORTAL/provider/HyperDrive remains open."
+  "remaining": "Real native typed hydration/shallow graph/visibility/provider behavior; HTTP binding, browser layers and safe delivery. Full OPORTAL/provider/HyperDrive remains open.",
+  "compileResult": {
+    "conclusion": "success",
+    "web4Errors": 0,
+    "web4Elapsed": "00:06:12.33",
+    "web5Errors": 0,
+    "web5Elapsed": "00:00:38.22",
+    "fixtures": 0,
+    "behaviorCases": 0
+  }
 }
