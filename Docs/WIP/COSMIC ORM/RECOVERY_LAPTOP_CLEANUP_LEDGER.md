@@ -8343,3 +8343,5 @@ Owned Chrome stopped; marker/path and process absence verified before normal rec
 21 November — Fresh restored candidate77e206 prepared/tagged through scoped temporary index; index absence verified. One active Holo journal preserves all migrated snapshot evidence and prior candidates. No new local build/env/database/image/archive/download/worktree; no image dispatched while fresh peer compile pending.
 
 21 November — One exact restored77e206 CI image dispatch acknowledged, remote build only. Active Holo journal is required for unknown/visibility reconciliation; do not remove or redispatch it. No local image/env/database/build/archive/download. Existing duplicate old snapshot journal remains absent.
+
+21 November — Named SQL parameter source/tests executed through existing Node in RAM from Git source.3selected checks pass/55excluded; no files/test outputs/archive/download/env/runtime/build/database/image created. Necessary source Git objects retained; scoped index removed after website/root publication. Existing Holo image/native journals retained.
