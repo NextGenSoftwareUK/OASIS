@@ -1,0 +1,189 @@
+# Builds the STAR CLI/ODK installers for a STAR ODK Runtime release and attaches them to it:
+#   Windows  star-cli-<v>-win-x64.exe              (Inno Setup, adds star to PATH)
+#   macOS    star-cli-<v>-osx-x64/-osx-arm64 .pkg + .dmg
+#   Linux    star-cli-<v>-linux-x64/-linux-arm64 .tar.gz, .deb, .rpm
+#
+# It packages the release's own STAR.Runtime.v<v>.<rid>.zip archives (single-file builds), so
+# nothing is rebuilt and every installer contains exactly what the release ships. The installer
+# scripts live in STAR ODK (NextGenSoftware.OASIS.STAR.CLI/installers).
+#
+# Runs automatically at the end of a global release, by hand for any version, and once when this
+# file changes (for the latest STAR ODK Runtime release).
+name: STAR ODK installers
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: STAR ODK Runtime version, e.g. 4.2.0
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      version:
+        description: STAR ODK Runtime version, e.g. 4.2.0 (empty = latest release)
+        required: false
+        type: string
+  push:
+    branches: [Development, master]
+    paths: [.github/workflows/star-installers.yml]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: star-installers-${{ inputs.version || github.ref }}
+  cancel-in-progress: false
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  # STAR ODK branch holding the installer scripts: Development while this runs from Development, main otherwise.
+  STAR_ODK_REF: ${{ github.ref_name == 'Development' && 'Development' || 'main' }}
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      tag: ${{ steps.v.outputs.tag }}
+    steps:
+      - id: v
+        shell: bash
+        run: |
+          set -euo pipefail
+          v='${{ inputs.version }}'
+          if [ -z "$v" ]; then
+            tag=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 100 --exclude-drafts --exclude-pre-releases --json tagName --jq '[.[] | select(.tagName | startswith("STAR-ODK-Runtime"))][0].tagName')
+            v="${tag##*-v}"
+          fi
+          tag="STAR-ODK-Runtime-v$v"
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json tagName > /dev/null
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Building STAR CLI installers for $tag" >> "$GITHUB_STEP_SUMMARY"
+
+  windows:
+    needs: plan
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/STAR-ODK
+          ref: ${{ env.STAR_ODK_REF }}
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: star
+      - name: Get the win-x64 release build
+        shell: pwsh
+        run: |
+          $v = '${{ needs.plan.outputs.version }}'
+          gh release download '${{ needs.plan.outputs.tag }}' --repo $env:GITHUB_REPOSITORY --pattern "STAR.Runtime.v$v.win-x64.zip" --dir dl --clobber
+          $publish = 'star/NextGenSoftware.OASIS.STAR.CLI/publish/win-x64'
+          Expand-Archive "dl/STAR.Runtime.v$v.win-x64.zip" -DestinationPath $publish -Force
+          if (-not (Test-Path "$publish/star.exe")) { throw "star.exe is not in the release archive" }
+      - name: Build the installer (Inno Setup)
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress | Out-Null
+          $iscc = @("${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe", "${env:ProgramFiles}\Inno Setup 6\ISCC.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $iscc) { throw 'Inno Setup was not installed' }
+          & $iscc "/DMyAppVersion=${{ needs.plan.outputs.version }}" 'star/NextGenSoftware.OASIS.STAR.CLI/installers/windows/star-cli.iss'
+          if ($LASTEXITCODE -ne 0) { throw 'Inno Setup failed' }
+      - name: Attach to the release
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem 'star/NextGenSoftware.OASIS.STAR.CLI/publish/installers/*.exe'
+          if (-not $files) { throw 'No installer was produced' }
+          gh release upload '${{ needs.plan.outputs.tag }}' $files.FullName --repo $env:GITHUB_REPOSITORY --clobber
+
+  macos:
+    needs: plan
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-15-intel, rid: osx-x64 }
+          - { os: macos-latest, rid: osx-arm64 }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/STAR-ODK
+          ref: ${{ env.STAR_ODK_REF }}
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: star
+      - name: Get the ${{ matrix.rid }} release build
+        shell: bash
+        run: |
+          set -euo pipefail
+          v='${{ needs.plan.outputs.version }}'
+          gh release download '${{ needs.plan.outputs.tag }}' --repo "$GITHUB_REPOSITORY" --pattern "STAR.Runtime.v$v.${{ matrix.rid }}.zip" --dir dl --clobber
+          publish="star/NextGenSoftware.OASIS.STAR.CLI/publish/${{ matrix.rid }}"
+          mkdir -p "$publish"
+          unzip -o -q "dl/STAR.Runtime.v$v.${{ matrix.rid }}.zip" -d "$publish"
+          test -f "$publish/star"
+          chmod +x "$publish/star"
+      - name: Build the .pkg and .dmg
+        shell: bash
+        env:
+          VERSION: ${{ needs.plan.outputs.version }}
+          OASIS_SCRIPT_NO_PAUSE: '1'
+        run: bash star/NextGenSoftware.OASIS.STAR.CLI/installers/macos/build-installer.sh '${{ matrix.rid }}'
+      - name: Attach to the release
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(star/NextGenSoftware.OASIS.STAR.CLI/publish/installers/*.pkg star/NextGenSoftware.OASIS.STAR.CLI/publish/installers/*.dmg)
+          [ ${#files[@]} -gt 0 ] || { echo 'No installer was produced'; exit 1; }
+          gh release upload '${{ needs.plan.outputs.tag }}' "${files[@]}" --repo "$GITHUB_REPOSITORY" --clobber
+
+  linux:
+    needs: plan
+    strategy:
+      fail-fast: false
+      matrix:
+        rid: [linux-x64, linux-arm64]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/STAR-ODK
+          ref: ${{ env.STAR_ODK_REF }}
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: star
+      - name: Install fpm (for .deb and .rpm)
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ruby ruby-dev build-essential rpm > /dev/null
+          sudo gem install --no-document fpm > /dev/null
+      - name: Get the ${{ matrix.rid }} release build
+        shell: bash
+        run: |
+          set -euo pipefail
+          v='${{ needs.plan.outputs.version }}'
+          gh release download '${{ needs.plan.outputs.tag }}' --repo "$GITHUB_REPOSITORY" --pattern "STAR.Runtime.v$v.${{ matrix.rid }}.zip" --dir dl --clobber
+          publish="star/NextGenSoftware.OASIS.STAR.CLI/publish/${{ matrix.rid }}"
+          mkdir -p "$publish"
+          unzip -o -q "dl/STAR.Runtime.v$v.${{ matrix.rid }}.zip" -d "$publish"
+          test -f "$publish/star"
+          chmod +x "$publish/star"
+      - name: Build the .tar.gz, .deb and .rpm
+        shell: bash
+        env:
+          VERSION: ${{ needs.plan.outputs.version }}
+          SKIP_PUBLISH: '1'
+          OASIS_SCRIPT_NO_PAUSE: '1'
+        run: bash star/NextGenSoftware.OASIS.STAR.CLI/installers/linux/build-installer.sh '${{ matrix.rid }}'
+      - name: Attach to the release
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          out=star/NextGenSoftware.OASIS.STAR.CLI/publish/installers
+          files=("$out"/*.tar.gz "$out"/*.deb "$out"/*.rpm)
+          [ ${#files[@]} -gt 0 ] || { echo 'No installer was produced'; exit 1; }
+          gh release upload '${{ needs.plan.outputs.tag }}' "${files[@]}" --repo "$GITHUB_REPOSITORY" --clobber
