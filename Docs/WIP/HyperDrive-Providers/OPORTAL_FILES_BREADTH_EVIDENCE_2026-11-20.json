@@ -51,5 +51,11 @@
     "evidence": "OPORTAL_POPUP_FUNCTIONAL_SMOKE_2026-11-20.json",
     "run": 44716851404,
     "scope": "Actual popup main actions through real SDK, compiled controller and owned native Mongo; hosted/full Startup/all-site acceptance excluded"
+  },
+  "sourceRecheck20261121": {
+    "scriptAndFragmentUnchanged": true,
+    "acceptedRun": 44716851404,
+    "runtimeTestsRerun": 0,
+    "evidence": "OPORTAL_POPUP_FUNCTIONAL_SMOKE_2026-11-20.json"
   }
 }

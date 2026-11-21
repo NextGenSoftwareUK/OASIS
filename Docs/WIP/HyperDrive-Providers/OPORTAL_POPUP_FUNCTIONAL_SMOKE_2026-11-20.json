@@ -82,5 +82,18 @@
     "identityAndCountersVerified": true,
     "nativeReadbackManagerRestorationAndDatabaseAbsenceMarkersVerified": true,
     "inspection": "RAM only; streams disposed; no files written. Explicit GitHub User-Agent required. Proof markers are in the TRX run output rather than the individual result output."
+  },
+  "sourceIdentityRecheck20261121": {
+    "portal": "70f69eb",
+    "files": {
+      "assets/js/files-modal.js": "ae8293d0ffad932f50a28fe5078565de9625795a",
+      "assets/js/notifications.js": "4bddb518a51d1177c055379db8e2446b979502d4",
+      "assets/components/notifications-panel.html": "32ca15ba0b15fb0e30509071f287f89d030e3db3",
+      "assets/components/modals/files.html": "3582415b55e7ab17c99a657c68ac9d43df9c4e1a"
+    },
+    "allFourMatchAcceptedBlobs": true,
+    "acceptedRuntimeRun": 44716851404,
+    "runtimeTestsRerun": 0,
+    "scope": "Exact popup script/fragment source identity only; original real SDK/controller/native proof remains scoped to original source graph, not current hosted/full Startup acceptance."
   }
 }
