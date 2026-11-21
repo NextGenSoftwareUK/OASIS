@@ -1,0 +1,56 @@
+{
+  "run": 44963517771,
+  "job": 137027308347,
+  "source": "4029c45bebc6f92fef5595c34d2d67a9d4ee706b",
+  "artifact": 14730284433,
+  "bytes": 1714,
+  "sha256": "94a1cd8e6cacb2936f66eedbce3d250009614308481233f550f969e623848348",
+  "entries": [
+    "Neo4jOASIS-set-native.json",
+    "mapping-native.trx"
+  ],
+  "trx": {
+    "total": "1",
+    "executed": "1",
+    "passed": "1",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "report": {
+    "provider": "Neo4jOASIS",
+    "checks": 7,
+    "ownedCleanupIds": 4,
+    "successfulHolonWrites": 4,
+    "queryElapsedMilliseconds": {
+      "create-owned": 889,
+      "create-foreign": 279,
+      "union": 773,
+      "concat": 518,
+      "intersect": 488,
+      "except": 405,
+      "concat-window": 493,
+      "bound-before-empty-page": 554,
+      "ordinary-get": 320
+    },
+    "nativeProviderVerified": true,
+    "allFourSetOperationsVerified": true,
+    "concatMultiplicityVerified": true,
+    "independentWindowsVerified": true,
+    "foreignRowsHiddenVerified": true,
+    "inputLimitBeforeEmptyOutputVerified": true,
+    "ordinaryReadPreservedVerified": true,
+    "exactCleanupVerified": true
+  },
+  "containerStop": "success"
+}
