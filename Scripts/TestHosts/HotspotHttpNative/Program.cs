@@ -172,7 +172,8 @@ try
             using var reply = await http.GetAsync(route);
             var document = JsonDocument.Parse(await reply.Content.ReadAsStringAsync());
             Require(reply.IsSuccessStatusCode && !document.RootElement.GetProperty("isError").GetBoolean(),
-                "Real catalogue read failed: " + route);
+                "Real catalogue read failed: " + route + " HTTP " + (int)reply.StatusCode + ": " +
+                (document.RootElement.TryGetProperty("message", out var message) ? message.GetString() : "No API error message."));
             return document;
         }
         foreach (var kind in new[] { "missions", "chapters" })

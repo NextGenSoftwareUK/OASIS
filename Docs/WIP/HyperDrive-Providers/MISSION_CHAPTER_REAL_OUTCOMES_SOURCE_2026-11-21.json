@@ -1,5 +1,5 @@
 {
-  "status": "source-prepared-not-compiled-not-deployed",
+  "status": "compiled-first-real-catalogue-read-failed-not-deployed",
   "source": "f1aa884d90123afea87d4daec39afff4e022339b",
   "base": "a11d88bc09d90c318551df4fc0d90871e92c638b",
   "tag": "qualification/catalogue-truth-2026-11-21-f1aa884d",
@@ -37,10 +37,28 @@
     ]
   },
   "qualification": {
-    "status": "queued",
+    "status": "diagnostic-retry-prepared",
     "mode": "catalogue",
-    "scope": "Real boot/JWT/MVC/native empty and populated mission/chapter catalogues, avatar lists, details and missing-record errors. No accepted quest/geo replay, browser or mutations.",
-    "run": 44945597897,
-    "control": "744cc7e9becd16f3d311bd86e4f28768cacd75a5"
-  }
+    "sourceUnchanged": true,
+    "change": "Include exact owned API status/message at failed read; same assertions and source."
+  },
+  "failedAttempts": [
+    {
+      "status": "completed",
+      "mode": "catalogue",
+      "scope": "Real boot/JWT/MVC/native empty and populated mission/chapter catalogues, avatar lists, details and missing-record errors. No accepted quest/geo replay, browser or mutations.",
+      "run": 44945597897,
+      "control": "744cc7e9becd16f3d311bd86e4f28768cacd75a5",
+      "job": 136972102015,
+      "conclusion": "failure",
+      "hostBuildErrors": 0,
+      "hostBuildElapsed": "00:05:31.65",
+      "failure": "First GET /api/missions rejected by real-result assertion; original helper omitted API diagnostic",
+      "cleanup": [
+        "Owned Mongo database absence verified",
+        "Exact temporary DNA absence verified",
+        "Owned Mongo container absence verified"
+      ]
+    }
+  ]
 }
