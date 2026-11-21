@@ -21,6 +21,8 @@ public sealed class CqlGroupedV1Request
     /// <summary>Limit published groups; omission retains the complete bounded result.</summary>
     public int? ResultTake { get; set; }
     public int MaximumGroups { get; set; } = 25;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CqlWhereV1Predicate? Where { get; set; }
     public CqlV1Filter[] Filters { get; set; } = Array.Empty<CqlV1Filter>();
     public CqlV1Filter[] AnyOf { get; set; } = Array.Empty<CqlV1Filter>();
     public CqlV1ChildExists[] AnyChildren { get; set; } = Array.Empty<CqlV1ChildExists>();

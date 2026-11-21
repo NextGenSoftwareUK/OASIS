@@ -126,7 +126,7 @@ public static partial class CqlV1Compiler
         if (request.Ordering == null)
             return CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
                 request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,
-                access, includeCloudReadProfile: true);
+                access, includeCloudReadProfile: true, where: request.Where);
 
         var authority = access?.Authority ?? provider;
         if (!authority.HasValue || !Supported(authority.Value) || request.Ordering.Length is < 1 or > 4
@@ -134,7 +134,7 @@ public static partial class CqlV1Compiler
             throw new ArgumentException("Ordering requires one native MongoDB, SQLite or Neo4j source, OrderBy None and Skip 0–1000.");
 
         var source = CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
-            request.AnyDescendants, request.Graph, "Id", false, 0, null, access, includeCloudReadProfile: true);
+            request.AnyDescendants, request.Graph, "Id", false, 0, null, access, includeCloudReadProfile: true, where: request.Where);
         var fields = new HashSet<string>(StringComparer.Ordinal);
         foreach (var term in request.Ordering)
         {
@@ -157,7 +157,7 @@ public static partial class CqlV1Compiler
     {
         if (request == null) throw new ArgumentException("A scalar query description is required.");
         return CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
-            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access,includeCloudReadProfile:true);
+            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access,includeCloudReadProfile:true, where: request.Where);
     }
 
     internal static CosmicQuery<Holon> CompileIndexedScalarSource(CqlScalarV1Request request, Guid actor,
@@ -168,7 +168,7 @@ public static partial class CqlV1Compiler
             throw new ArgumentException("Indexed cardinality requires an alias-owned source and Count, LongCount or Any.");
         var source = CompileSource(actor, requirement.Source.SourceProvider, request.Filters, request.AnyOf,
             request.AnyChildren, request.AnyDescendants, null, request.OrderBy, request.Descending,
-            request.Skip, request.Take, access, includeCloudReadProfile: true, indexedSource: true);
+            request.Skip, request.Take, access, includeCloudReadProfile: true, indexedSource: true, where: request.Where);
         var indexed = source.WithIndexedSource(requirement);
         if (indexed.IsError) throw new ArgumentException(indexed.Message);
         return indexed.Result;
@@ -181,7 +181,7 @@ public static partial class CqlV1Compiler
             throw new ArgumentException("Indexed rows require Take1-100 with alias-owned provider and no graph.");
         var source = CompileSource(actor, requirement.Source.SourceProvider, request.Filters, request.AnyOf,
             request.AnyChildren, request.AnyDescendants, null, request.OrderBy, request.Descending,
-            request.Skip, request.Take, access, includeCloudReadProfile:true, indexedSource:true);
+            request.Skip, request.Take, access, includeCloudReadProfile:true, indexedSource:true, where: request.Where);
         var indexed = source.WithIndexedSource(requirement);
         if(indexed.IsError)throw new ArgumentException(indexed.Message);
         return indexed.Result;
@@ -195,14 +195,14 @@ public static partial class CqlV1Compiler
             throw new ArgumentException("Federation source requires Take1-100 and no duplicate provider or graph selector.");
         return CompileSource(actor, null, request.Filters, request.AnyOf, request.AnyChildren, request.AnyDescendants,
             null, request.OrderBy, request.Descending, request.Skip, request.Take,
-            bindAccess: false, unorderedFederation: true);
+            bindAccess: false, unorderedFederation: true, where: request.Where);
     }
 
     private static CosmicQuery<Holon> CompileSource(Guid actor, ProviderType? provider, CqlV1Filter[] filters,
         CqlV1Filter[] anyOf, CqlV1ChildExists[] anyChildren, CqlV1DescendantExists[] anyDescendants,
         CqlV1Graph graphDescription, string orderBy, bool descending, int skip, int? take,CosmicQueryReadAccess access=null,
         bool bindAccess=true, bool includeCloudReadProfile=false, bool indexedSource=false, bool unorderedFederation=false,
-        bool unorderedKeyGrouping=false, Guid? excludedVirtualMappingId=null)
+        bool unorderedKeyGrouping=false, Guid? excludedVirtualMappingId=null, CqlWhereV1Predicate where=null)
     {
         if(access!=null)
         {
@@ -236,6 +236,9 @@ public static partial class CqlV1Compiler
             var limits=CosmicQueryTraversalOptions.Create(group.MaximumDepth,group.MaximumNodes);
             if(limits.IsError)throw new ArgumentException(limits.Message);
         }
+
+        var relationshipCount = anyChildren.Length + anyDescendants.Length;
+        if (where != null) ValidateWhere(where, ref filterCount, ref relationshipCount);
 
         // Mandatory access restriction enters the SAME native plan before filters, ordering
         // and paging. Shared-index metadata cannot grant access; Wizard does not bypass this.
@@ -277,6 +280,7 @@ public static partial class CqlV1Compiler
             query=expanded.Result;
         }
         var parameter = Expression.Parameter(typeof(Holon), "h");
+        if (where != null) query = Add(query, parameter, WhereExpression(where, parameter));
         foreach (var filter in filters)
             query = Add(query, parameter, Predicate(filter, parameter));
 
