@@ -10,6 +10,32 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public sealed class CosmicSessionRegistrationTests
 {
     [Fact]
+    public void UpdateAndRemoveRangesPreserveSharedRootIntentWithoutIo()
+    {
+        var dna=new OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {HyperDriveMode=HyperDriveModes.V2}};
+        var provider=new Mock<ICosmicQueryStorageProvider>(MockBehavior.Strict);
+        provider.SetupGet(p=>p.QueryProviderType).Returns(ProviderType.MongoDBOASIS);
+        using var session=CosmicSession.Create(new HolonManager(null,dna,new ProviderManager(null,dna)),
+            provider.Object,CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result).Result;
+        var first=new Holon{Id=Guid.NewGuid()};
+        var second=new Holon{Id=Guid.NewGuid()};
+        Assert.False(session.UpdateRange(new[]{first,second}).IsError);
+        Assert.Equal(CosmicEntityState.Modified,session.State(first).Result);
+        Assert.False(session.RemoveRange(new[]{first,second},softDelete:false).IsError);
+        Assert.Equal(CosmicEntityState.Deleted,session.State(first).Result);
+        Assert.Equal(CosmicEntityState.Deleted,session.State(second).Result);
+        session.Clear();
+        var fresh=new Holon{Id=Guid.NewGuid()};
+        Assert.False(session.Add(fresh).IsError);
+        Assert.False(session.RemoveRange(new[]{fresh}).IsError);
+        Assert.Equal(CosmicEntityState.Detached,session.State(fresh).Result);
+        var invalid=session.UpdateRange(new[]{new Holon()});
+        Assert.True(invalid.IsError);Assert.Equal("COSMIC_SESSION_UPDATE_INVALID",invalid.ErrorCode);
+        Assert.Empty(invalid.Result);
+        Assert.All(provider.Invocations,call=>Assert.Equal("get_QueryProviderType",call.Method.Name));
+    }
+
+    [Fact]
     public void RangesShareSingleRegistrationRulesAndPreserveAcceptedRootsWithoutIo()
     {
         var dna=new OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {HyperDriveMode=HyperDriveModes.V2}};

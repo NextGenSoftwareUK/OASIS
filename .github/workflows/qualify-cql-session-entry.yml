@@ -53,7 +53,7 @@ jobs:
             dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicSessionEntryTests|FullyQualifiedName~CosmicSessionRegistrationTests' --results-directory TestResults/SessionEntry --logger 'trx;LogFileName=entry.trx'
             if ($LASTEXITCODE) { throw 'Session registration contract failed' }
             [xml]$report = Get-Content TestResults/SessionEntry/entry.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '4' -or $report.TestRun.ResultSummary.Counters.total -ne '4') { throw 'All four session checks must pass' }
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '5' -or $report.TestRun.ResultSummary.Counters.total -ne '5') { throw 'All five session checks must pass' }
             dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI /m:2 /nr:false /p:UseSharedCompilation=false
             if ($LASTEXITCODE) { throw 'Actual WEB4 composition failed to compile' }
           }
