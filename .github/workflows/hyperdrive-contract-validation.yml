@@ -14,6 +14,10 @@ on:
       - '.github/workflows/hyperdrive-contract-validation.yml'
   workflow_dispatch:
     inputs:
+      map_development_candidate:
+        description: Compile only the immutable scoped Map candidate on current Development
+        type: boolean
+        default: false
       build_api:
         description: Also build the shipping WEB4 API for a native integration check
         type: boolean
@@ -81,7 +85,12 @@ on:
         type: string
 
 jobs:
+  map-development:
+    if: ${{ inputs.map_development_candidate }}
+    uses: ./.github/workflows/map-development-qualification.yml
+    secrets: inherit
   manifests-and-contracts:
+    if: ${{ !inputs.map_development_candidate }}
     runs-on: ${{ (inputs.native_seal || inputs.build_only) && 'ubuntu-latest' || 'windows-latest' }}
     defaults:
       run:
