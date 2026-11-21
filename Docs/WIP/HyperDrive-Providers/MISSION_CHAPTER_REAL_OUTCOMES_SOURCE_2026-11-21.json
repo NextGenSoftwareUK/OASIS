@@ -53,7 +53,7 @@
       "conclusion": "failure",
       "hostBuildErrors": 0,
       "hostBuildElapsed": "00:05:31.65",
-      "failure": "First GET /api/missions rejected by real-result assertion; original helper omitted API diagnostic",
+      "failure": "First populated GET /api/missions failed after both empty catalogues and native mission/chapter saves completed (stack Program.cs:204); original helper omitted API diagnostic",
       "cleanup": [
         "Owned Mongo database absence verified",
         "Exact temporary DNA absence verified",
