@@ -1,5 +1,5 @@
 {
-  "status": "map-native-and-inventories-accepted-refreshed-composition-compile-pending-not-deployed",
+  "status": "scoped-source-native-and-refreshed-compile-accepted-ready-for-development-not-deployed",
   "nativeFirstFailure": {
     "run": 44886265686,
     "job": 136792116183,
@@ -25,7 +25,14 @@
   "nativeJob": 136793958347,
   "nativeControlSource": "a9ddcf5eeac29ed5628cc59420a8a8d2b056fb18",
   "compileResult": {
-    "status": "queued for refreshed composition; no result accepted"
+    "status": "passed",
+    "errors": 0,
+    "elapsed": "00:04:36.50",
+    "sourceInventories": "929 manager methods / 830 routes verified; not provider coverage",
+    "classifierRegressions": "six passed",
+    "behaviorCasesRepeated": 0,
+    "fixturesStarted": 0,
+    "postJobCleanup": "passed"
   },
   "compileRun": 44888729281,
   "compileJob": 136799637621,
