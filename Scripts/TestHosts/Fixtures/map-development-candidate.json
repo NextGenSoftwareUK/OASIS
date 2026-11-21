@@ -25,11 +25,11 @@
   "nativeJob": 136793958347,
   "nativeControlSource": "a9ddcf5eeac29ed5628cc59420a8a8d2b056fb18",
   "compileResult": {
-    "status": "pending for refreshed composition"
+    "status": "queued for refreshed composition; no result accepted"
   },
-  "compileRun": null,
-  "compileJob": null,
-  "controlSource": null,
+  "compileRun": 44888729281,
+  "compileJob": 136799637621,
+  "controlSource": "7ee26249d7d588abc5226b0d855752715238ac32",
   "base": "ed8de501451daec297ae10b0772531232e8ceccf",
   "candidate": "98ccee24f6a3eb0a35604b7dad82076908579fd5",
   "tag": "qualification/map-development-2026-11-21-98ccee24",
