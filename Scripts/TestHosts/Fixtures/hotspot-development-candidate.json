@@ -1,8 +1,7 @@
 {
-  "status": "prior-native-http-accepted-refreshed-composition-build-pending",
-  "compileRun": 44893706298,
-  "compileJob": 136814765491,
-  "controlSource": "3e6c368b0c0f52a176adddf92a52d6312360c96f",
+  "status": "refreshed-composition-compile-in-progress",
+  "compileRun": 44939192959,
+  "controlSource": "2244959386762043ddaaf87b08ff4b8c25fdfee2",
   "scope": "hotspot",
   "base": "6b5713f7d02379a6bd1769c13981d22682ee7b0d",
   "candidate": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
@@ -28,15 +27,6 @@
   ],
   "unchanged": "Qualified Map batch/Core, CQL/STARNET work, all other pins, DNA and environment/worker configuration",
   "remaining": "Compile refreshed composition preserving Core13/CQL; representative nonempty geo HTTP/browser layers and safe delivery. Full goal incomplete.",
-  "compileResult": {
-    "conclusion": "success",
-    "web4Errors": 0,
-    "web4Elapsed": "00:06:12.33",
-    "web5Errors": 0,
-    "web5Elapsed": "00:00:38.22",
-    "fixtures": 0,
-    "behaviorCases": 0
-  },
   "nativeResult": {
     "run": 44894925177,
     "job": 136818427991,
@@ -44,7 +34,8 @@
     "conclusion": "success",
     "buildErrors": 0,
     "buildElapsed": "00:06:47.74",
-    "cleanupVerified": true
+    "cleanupVerified": true,
+    "candidate": "cf10bbb6eb686491c730737c3f66629c514d0817"
   },
   "nativeHost": "HotspotHttpNative",
   "httpAttempts": [
@@ -115,5 +106,20 @@
     ]
   },
   "previousCandidate": "cf10bbb6eb686491c730737c3f66629c514d0817",
-  "previousBase": "98ccee24f6a3eb0a35604b7dad82076908579fd5"
+  "previousBase": "98ccee24f6a3eb0a35604b7dad82076908579fd5",
+  "previousCompile": {
+    "candidate": "cf10bbb6eb686491c730737c3f66629c514d0817",
+    "run": 44893706298,
+    "job": 136814765491,
+    "control": "3e6c368b0c0f52a176adddf92a52d6312360c96f",
+    "result": {
+      "conclusion": "success",
+      "web4Errors": 0,
+      "web4Elapsed": "00:06:12.33",
+      "web5Errors": 0,
+      "web5Elapsed": "00:00:38.22",
+      "fixtures": 0,
+      "behaviorCases": 0
+    }
+  }
 }
