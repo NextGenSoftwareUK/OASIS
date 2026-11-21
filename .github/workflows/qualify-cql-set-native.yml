@@ -4,6 +4,8 @@ on:
   push:
     branches: [work/cosmic-cql-ton-public]
     paths:
+      - "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicSetQueryContractTests.cs"
+      - "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicSetQueryExecutorTests.cs"
       - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.NativeSets.cs"
       - ".github/workflows/qualify-cql-set-native.yml"
   workflow_dispatch:

@@ -21,7 +21,7 @@ public sealed class CosmicSetQueryExecutorTests
                 if(!DenyName)fields.Add(new("Name",typeof(string),new[]{CosmicQueryComparisonOperator.Equal},
                     Array.Empty<CosmicQueryStringOperator>(),supportsOrdering:true));
                 return new(CosmicQueryFeatures.And|CosmicQueryFeatures.Or|CosmicQueryFeatures.BooleanConstant|
-                    CosmicQueryFeatures.Ordering|CosmicQueryFeatures.Paging,fields);
+                    CosmicQueryFeatures.Ordering|CosmicQueryFeatures.Paging,fields.ToArray());
             }
         }
         public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(

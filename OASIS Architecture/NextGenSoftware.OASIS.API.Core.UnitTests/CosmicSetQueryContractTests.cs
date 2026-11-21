@@ -41,7 +41,7 @@ public sealed class CosmicSetQueryContractTests
         var actor=Guid.NewGuid();var root=Root(actor);
         Assert.Equal("CQL_SET_ACCESS_MISMATCH",CosmicSetQuery<Holon>.Create(root,Root(Guid.NewGuid()),CosmicSetQueryKind.Union).ErrorCode);
         Assert.Equal("CQL_SET_SCOPE_MISMATCH",CosmicSetQuery<Holon>.Create(root,Root(actor,ProviderType.SQLLiteDBOASIS),CosmicSetQueryKind.Union).ErrorCode);
-        var unbound=CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.MongoDBOASIS).Result).Result;
+        var unbound=CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.MongoDBOASIS).Result);
         Assert.Equal("CQL_SET_ACCESS_MISMATCH",CosmicSetQuery<Holon>.Create(unbound,unbound,CosmicSetQueryKind.Union).ErrorCode);
         Assert.Equal("CQL_SET_QUERY_INVALID",CosmicSetQuery<Holon>.Create(root,root,(CosmicSetQueryKind)99).ErrorCode);
     }
