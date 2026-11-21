@@ -382,7 +382,7 @@ function Get-PlannedPackageVersion($Project, $PublishedRelease) {
     }
 }
 
-function Get-PackageReleaseNotes($Project, [string]$Version, $PublishedRelease) {
+function Get-PackageReleaseNotes($Project, [string]$Version, $PublishedRelease, $Graph = $null) {
     $description = Get-ProjectProperty $Project.Xml 'Description'
     $relativeProject = $Project.File.FullName.Substring($repoRoot.Length).TrimStart('\', '/')
     $projectDirectory = Split-Path $relativeProject -Parent
@@ -397,6 +397,21 @@ function Get-PackageReleaseNotes($Project, [string]$Version, $PublishedRelease) 
             [pscustomobject]@{ Sha = $parts[0]; Subject = $subject }
         }
     } | Group-Object Subject | ForEach-Object { $_.Group[0] } | Select-Object -First 50)
+    if ($changes.Count -eq 0 -and $Graph -and ($Graph.baselineCommit -is [string]) -and $Graph.baselineCommit -match '^[0-9a-fA-F]{40}$') {
+        # A package is rebuilt when anything in its source graph changed (a dependency, a pinned
+        # submodule, shared build files), not only its own folder. Report those commits.
+        # The analyzer prefixes inputs of this repository with 'OASIS/'; map them back to repository-relative paths.
+        $inputPaths = @($Graph.changedInputs | ForEach-Object { ([string]$_) -replace '^OASIS/', '' } | Where-Object { $_ -and (Test-Path -LiteralPath (Join-Path $repoRoot $_)) } | Select-Object -First 200)
+        if ($inputPaths.Count -gt 0) {
+            $changes = @(& git -C $repoRoot log --no-merges --format='%H%x09%s' "$($Graph.baselineCommit)..HEAD" -- @($inputPaths) 2>$null | ForEach-Object {
+        $parts = $_ -split "`t", 2
+        $subject = if ($parts.Count -eq 2) { $parts[1] -replace '^\s*[-*]\s*', '' } else { '' }
+        if ($subject -and $subject -notmatch '^(Merge |Promote |chore: bump submodule|chore: update submodule)') {
+            [pscustomobject]@{ Sha = $parts[0]; Subject = $subject }
+        }
+    } | Group-Object Subject | ForEach-Object { $_.Group[0] } | Select-Object -First 50)
+        }
+    }
     $lines = [Collections.Generic.List[string]]::new()
     $lines.Add("$($Project.PackageId) v$Version")
     $lines.Add('')
@@ -404,7 +419,13 @@ function Get-PackageReleaseNotes($Project, [string]$Version, $PublishedRelease) 
     $lines.Add('')
     $lines.Add("What's new $rangeDescription")
     if ($changes.Count -eq 0) {
-        $lines.Add('- Initial validated package contents and metadata for this release line.')
+        $changedInputs = if ($Graph) { @($Graph.changedInputs | ForEach-Object { ([string]$_) -replace '^OASIS/', '' } | Select-Object -First 15) } else { @() }
+        if ($changedInputs.Count -gt 0) {
+            $lines.Add('- Rebuilt because these package inputs changed (no commit touched the package folder itself):')
+            foreach ($changedInput in $changedInputs) { $lines.Add("  - $changedInput") }
+        }
+        elseif (-not $PublishedRelease) { $lines.Add('- Initial public release of this package.') }
+        else { $lines.Add('- No source change was detected for this package; it is republished unchanged from the coordinated release.') }
     }
     else {
         foreach ($change in $changes) { $lines.Add("- $($change.Subject) ($($change.Sha.Substring(0, 7)))") }
@@ -546,6 +567,12 @@ if ($NuGetPackages) {
     $packageProjects = @(Get-PackageProjects)
     $excludedIds = if ($reviewedPlan) { @($reviewedPlan.excludedPackageIds) } else { @($ExcludedPackageIds) }
     $expectedExclusionCount = if ($reviewedPlan) { [int]$reviewedPlan.expectedExcludedPackageCount } else { $ExpectedExcludedPackageCount }
+    # The MCP Server is released on its own (publish-mcp.yml) and is never part of the global release or the
+    # bulk NuGet publication; rebuilding the same version here collides on the immutable registry.
+    if (-not $reviewedPlan -and 'NextGenSoftware.OASIS.MCP.Server' -notin @($excludedIds)) {
+        $excludedIds = @($excludedIds) + 'NextGenSoftware.OASIS.MCP.Server'
+        $expectedExclusionCount++
+    }
     if (@($excludedIds).Count -ne $expectedExclusionCount) { throw "Exclusion scope mismatch: expected $expectedExclusionCount IDs, received $(@($excludedIds).Count)." }
     if (@($excludedIds | Sort-Object -Unique).Count -ne @($excludedIds).Count) { throw 'Excluded package IDs must be unique.' }
     foreach ($excludedId in $excludedIds) {
@@ -602,7 +629,7 @@ if ($NuGetPackages) {
             version = $version
             project = $_.File.FullName.Substring($repoRoot.Length).TrimStart('\', '/').Replace('\', '/')
             previousVersion = if ($publishedRelease) { $publishedRelease.Version } else { $null }
-            releaseNotes = Get-PackageReleaseNotes $_ $version $publishedRelease
+            releaseNotes = Get-PackageReleaseNotes $_ $version $publishedRelease ($sourceGraphs.($_.PackageId))
         }
     })
     $unchangedPackages = @($sourceDecisions | Where-Object { -not $_.graph.changed })
