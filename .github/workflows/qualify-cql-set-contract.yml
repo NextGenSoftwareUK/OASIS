@@ -5,6 +5,7 @@ on:
     branches: [work/cosmic-cql-ton-public]
     paths:
       - "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicSetQueryContractTests.cs"
+      - "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicSetQueryExecutorTests.cs"
       - ".github/workflows/qualify-cql-set-contract.yml"
   workflow_dispatch:
 
@@ -49,10 +50,10 @@ jobs:
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-set-contract-ci -Operation {
-            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicSetQueryContractTests' --results-directory TestResults/SetContract --logger 'trx;LogFileName=entry.trx'
+            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicSetQueryContractTests|FullyQualifiedName~CosmicSetQueryExecutorTests' --results-directory TestResults/SetContract --logger 'trx;LogFileName=entry.trx'
             if ($LASTEXITCODE) { throw 'Session registration contract failed' }
             [xml]$report = Get-Content TestResults/SetContract/entry.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '4' -or $report.TestRun.ResultSummary.Counters.total -ne '4') { throw 'All four set contract checks must pass' }
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '7' -or $report.TestRun.ResultSummary.Counters.total -ne '7') { throw 'All seven set model and execution controls must pass' }
             dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI /m:2 /nr:false /p:UseSharedCompilation=false
             if ($LASTEXITCODE) { throw 'Actual WEB4 composition failed to compile' }
           }
