@@ -2479,3 +2479,5 @@ Quest78e source correction uses exact GitHub blobs/commit/immutable tag only; no
 Browser44941055967 runtime failure before browser: actual owned DB/tempDNA/container/browser runtime/cache absence markers verified. Host build0errors; no browser launched because populated assertion preceded it. All logs RAM-only, no local runtime/build/env/download/database/output/worktree. Fixture lifecycle correction uses one owned acknowledged soft-delete, assertions unchanged.
 
 Inactive fixture source refined before dispatch: actual existing-record update and native readback replace unrun soft-delete setup. No deletion was executed. Same owned DB scope, no local builds/env/output/downloads/runtime/worktree.
+
+Lifecycle-corrected44941942658 current live handle; only existing isolated CI scope, no local runtime/env/build/install/download/database/browser/output/worktree or shared API/DNA/worker change. Previous DB/DNA/container/runtime/cache cleanup verified; new cleanup pending.
