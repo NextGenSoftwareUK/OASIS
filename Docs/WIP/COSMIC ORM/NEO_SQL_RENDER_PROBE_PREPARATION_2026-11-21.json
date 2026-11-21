@@ -1,0 +1,14 @@
+{
+  "sourceScope": "operator browser harness only",
+  "syntaxPassed": true,
+  "node": "existing18",
+  "numericCountValidation": true,
+  "renderedAliasAndValueValidation": true,
+  "rawScalarValuesInReport": false,
+  "runtimeAccepted": false,
+  "liveCalls": 0,
+  "newEnvironments": 0,
+  "existingAcceptedProvidersRepeated": false,
+  "backendImageRun": 44866523001,
+  "backendImageSource": "eb8499df642322db817a5dbc546a472c490c9b16"
+}

@@ -56,6 +56,7 @@ const pending = new Map(), ready = new Map(), readyWaiters = new Map(), loadWait
 const blocked = [], exceptions = [], protocolErrors = [];
 const report = { owner, url, applicationDataRequestsSent: 0, filesInstalled: 0, configurationWrites: 0 };
 const assets = new Map(), apiCounts = new Map(), scalarResponses = [];
+const scalarValues = []; // Compare rendered output in memory; do not include raw values in reports.
 const assetHashes = new Map();
 const scalarRequests = new Set();
 const completedSqlProviders = [];
@@ -202,7 +203,9 @@ async function event(message) {
   } else if (sqlFlow && message.method === 'Network.loadingFinished' && scalarRequests.delete(p.requestId)) {
     const body = await send('Network.getResponseBody', { requestId: p.requestId }, message.sessionId);
     const value = JSON.parse(body.base64Encoded ? Buffer.from(body.body, 'base64').toString('utf8') : body.body);
-    scalarResponses.push({ acknowledged: value.isError === false, resultPresent: value.result !== undefined && value.result !== null });
+    scalarValues.push(value.result?.value);
+    scalarResponses.push({ acknowledged: value.isError === false, resultPresent: value.result !== undefined && value.result !== null,
+      nonnegativeIntegerCount: Number.isSafeInteger(value.result?.value) && value.result.value >= 0 });
   } else if ((sqlFlow ? message.method === 'Page.domContentEventFired' : message.method === 'Page.loadEventFired') && loadWaiters.has(message.sessionId)) {
     loadWaiters.get(message.sessionId)(); loadWaiters.delete(message.sessionId);
   }
@@ -263,11 +266,16 @@ async function event(message) {
         await evaluate(`document.getElementById('cql-text').value=${JSON.stringify('SELECT COUNT(*) Total FROM ')}+${JSON.stringify(provider)};document.getElementById('cql-run-text').click();true`);
         await waitFor(() => scalarResponses.length > before, provider + ' SQL response');
         if (!scalarResponses[before].acknowledged || !scalarResponses[before].resultPresent) throw new Error(provider + ' SQL request was not acknowledged.');
+        if (!scalarResponses[before].nonnegativeIntegerCount) throw new Error(provider + ' COUNT response was not a nonnegative integer.');
+        const expectedNote = provider + ' · Total: ' + scalarValues[before];
+        await waitFor(() => evaluate(`document.getElementById('cql-note').textContent === ${JSON.stringify(expectedNote)}`), provider + ' rendered SQL alias and scalar');
+        scalarResponses[before].renderedAliasAndValueVerified = true;
         completedSqlProviders.push(provider);
         await new Promise(resolve => setTimeout(resolve, 600));
       }
       report.sqlEditorRequestsAcknowledged = scalarResponses;
       report.sqlEditorApiJourneyVerified = true;
+      report.scalarResultRenderingVerified = true;
       report.populatedSqlResultsVerified = false;
       report.fullBrowserDataFlowVerified = false;
     }
