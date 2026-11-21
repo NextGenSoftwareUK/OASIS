@@ -719,6 +719,18 @@ jobs:
       version: ${{ needs.plan.outputs.star_version }}
     secrets: inherit
 
+  publish-runtimes:
+    # Publishes any new OASIS, STAR or Edge Runtime release to STARNET so the STAR CLI and the STARNET
+    # web UI can install it. Versions STARNET already has are skipped.
+    if: ${{ always() && inputs.publish && (needs.runtime-release.result == 'success' || needs.star-runtime-release.result == 'success' || needs.edge-standalone.result == 'success') }}
+    needs: [plan, runtime-release, star-runtime-release, edge-standalone]
+    uses: ./.github/workflows/publish-runtimes.yml
+    with:
+      oasis_version: ${{ needs.runtime-release.result == 'success' && needs.plan.outputs.oasis_version || '' }}
+      star_version: ${{ needs.star-runtime-release.result == 'success' && needs.plan.outputs.star_version || '' }}
+      edge_version: ${{ needs.edge-standalone.result == 'success' && needs.plan.outputs.edge_version || '' }}
+    secrets: inherit
+
   optional-established-release-workflows:
     if: inputs.publish && (contains(inputs.optional_components, 'oide') || contains(inputs.optional_components, 'hyperdrive_client'))
     needs: plan
