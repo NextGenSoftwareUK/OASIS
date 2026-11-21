@@ -1,3 +1,8 @@
+21 November — ALL THREE NATIVE BOOLEAN WHERE JOURNEYS ACCEPTED.
+Corrected89d00c0b run44881512855/job136777616639 SUCCESS. Strict2759byte RAM artifact14698351931/SHA4669c8b405eb2437aa8ae6f5656e34e1811491806f90c8bbe74e1ad23e0c5707 contains exactly1TRX+3providerJSON;3passed/0failed/0skipped,4checks/5owned holons/5logical writes/4timings per real MongoDB/SQLite/Neo4j, all8flags and exact cleanup verified. Paged Tea identity, count2, typed projected Coffee/Tea values and foreign-actor0roots passed with hidden child visibility enforced. Earlier448807 failure retained, no accepted cohort rerun; timings are CI observations, not production benchmarks. API tree equals exact1bb737b8 image; no runtime source/image rebuild.
+
+Website d70124d0 updates four affected compatibility cases that formerly required new Boolean forms to throw. Only those4cases ran/passed; unrelated accepted cases were not executed. SQL/Ask/runtime files remain exactly2bbdfc94; pinned preview/browser hashes remain valid. Image/package and API5/SQL4 evidence retained. Hosted walk/model/virtual-hybrid/full EF programme remains open61/168+4/13. No shared Atlas/PIPER/DNA/staging/production operation or local build/install/env/database/image/archive.
+
 21 November — WHERE IMAGE/PACKAGE ACCEPTED; NATIVE ASSERTION FIX RETRY RUNNING.
 Exact1bb737b8 image44880188523/job136773568801 SUCCESS, digestb834d04f9b9d51bfe96680acfd7bb483fd3fec82b654adae516f83bd53086da3. Package44881253419 SUCCESS: strict782byte artifact14697803383/SHA b71f2c03aa4247719bdd536e6a2a67906516c7473fa0922b4eb03e9965349782 verifies exact source/digest/tag,5assemblies/source hashes/CQL graph and container absent/dataWrites0. apiQualified=false remains explicit; no live acceptance inferred.
 
