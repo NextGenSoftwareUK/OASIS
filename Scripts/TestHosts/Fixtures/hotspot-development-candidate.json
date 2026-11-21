@@ -1,24 +1,24 @@
 {
-  "status": "scoped-hotspot-source-compile-native-http-browser-accepted-delivery-pending",
+  "status": "map-package-composition-source-verified-compile-pending",
   "compileRun": 44939192959,
   "controlSource": "2244959386762043ddaaf87b08ff4b8c25fdfee2",
   "scope": "hotspot",
-  "base": "6b5713f7d02379a6bd1769c13981d22682ee7b0d",
-  "candidate": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
-  "tag": "qualification/hotspot-shallow-2026-11-21-606e1a52",
+  "base": "fcb6e08809e7abd6e75294795b617e706f32f343",
+  "candidate": "f8bee8a4c8ca5a5598759aa4aeb409b45292f86a",
+  "tag": "qualification/map-package-2026-11-21-f8bee8a4",
   "buildProjects": [
     "WEB4",
     "WEB5"
   ],
   "onode": {
-    "base": "b6819c2bcb815e26f7cef6266d8c7481dde4964c",
-    "candidate": "9c8b8478e38bbb06ae334578f0546e3f34b48a4d",
-    "scope": "One shared async catalogue implementation with explicit shallow entry point/interface; old async call retains its previous depth contract; sync/async subtype reads forward the requested provider; provider constructor uses the category enum."
+    "base": "34a8685e42250509627ca717fd4fdfc32a9aa198",
+    "candidate": "1fe579cf5e385b4a6ecce12934a7dd7578c2340c",
+    "scope": "Restore five exact qualified Map/shallow files, preserve all package-download changes; both histories retained."
   },
   "star": {
-    "base": "d687095c4db7611575002db361b972052d17e28f",
-    "candidate": "6774caf10a4d37cba5575e497c0a0499f118b6d0",
-    "scope": "GeoHotSpotsController only: no test-success substitutions, awaited shared boot, typed shallow catalogue reads, required/finite coordinates, active/visible radius filtering and stable distance order."
+    "base": "872f0be88214dcc893561a56cdee611964e28916",
+    "candidate": "1de76d2d5b1428ac3c645139823757224a1e2ca3",
+    "scope": "Restore exact qualified GeoHotSpotsController, preserve PackagesController; both histories retained."
   },
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
@@ -26,7 +26,7 @@
     "STAR ODK"
   ],
   "unchanged": "Qualified Map batch/Core, CQL/STARNET work, all other pins, DNA and environment/worker configuration",
-  "remaining": "Compile refreshed composition preserving Core13/CQL; representative nonempty geo HTTP/browser layers and safe delivery. Full goal incomplete.",
+  "remaining": "New combined WEB4/WEB5 compilation and fresh Development review before integration; accepted native/HTTP/browser cohorts retained without replay.",
   "nativeResult": {
     "run": 44894925177,
     "job": 136818427991,
@@ -177,5 +177,6 @@
       "error": "Returned canonical IDs differ; inactive create seed conflicted with activation lifecycle",
       "cleanup": "Database/DNA/container/browser runtime/cache absence verified"
     }
-  ]
+  ],
+  "previousAcceptedCandidate": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4"
 }
