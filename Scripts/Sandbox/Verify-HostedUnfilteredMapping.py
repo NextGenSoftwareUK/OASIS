@@ -31,7 +31,8 @@ def main():
     provider = args.provider
     if args.snapshot:
         snapshot_proof = json.loads((ROOT / "Docs/WIP/COSMIC ORM/UNFILTERED_SNAPSHOT_SOURCE_2026-11-21.json").read_text(encoding="utf-8-sig"))
-        if not snapshot_proof.get("nativeAccepted") or args.commit != snapshot_proof.get("deliveryCandidate"):
+        if (not snapshot_proof.get("nativeAccepted") or snapshot_proof.get("deliverySuperseded")
+                or args.commit != snapshot_proof.get("deliveryCandidate")):
             parser.error("Wait for the qualified exact snapshot delivery candidate before any hosted requests.")
     state = (ROOT / "LocalState/COSMIC/HostedUnfilteredSnapshotCurrent" if args.snapshot else STATE_ROOT) / provider
     for proof_file in (ROOT / "Docs/WIP/COSMIC ORM").glob("CQL_UNFILTERED_SNAPSHOT*HOSTED_ACCEPTANCE*.json" if args.snapshot else "CQL_UNFILTERED*HOSTED_ACCEPTANCE*.json"):

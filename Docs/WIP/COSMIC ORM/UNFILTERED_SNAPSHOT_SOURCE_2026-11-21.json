@@ -90,6 +90,14 @@
   "imageConclusion": "success",
   "imageDigest": "sha256:ffa4565b1a54525a1ee5592512961ce35c3d1feaeccc6c28b7fbf6e6cb7a4547",
   "packageRun": 44942744524,
-  "packageObservedStatus": "queued",
-  "packageAccepted": false
+  "packageObservedStatus": "completed",
+  "packageAccepted": true,
+  "deliverySuperseded": true,
+  "compositionPeerDevelopment": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+  "compositionCompilePending": true,
+  "packageArtifact": {
+    "id": 14722003029,
+    "bytes": 781,
+    "sha256": "139b948e559acbb84f271d45bba043514b09e4adbfdf9e4aad1f04aa94030f8e"
+  }
 }
