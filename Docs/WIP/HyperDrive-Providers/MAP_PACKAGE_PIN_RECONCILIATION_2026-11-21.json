@@ -94,10 +94,13 @@
   "noCheckoutSwitch": true,
   "excluded": "Unaccepted quest/mission/chapter changes",
   "qualification": {
-    "status": "source-retained-combined-popup-build-planned",
-    "scope": "One combined current-publishing/catalogue/model/popup API build will verify refreshed source; no separate redundant309eed compile or accepted behavior replay.",
-    "combinedCandidate": "489cee90879f6b3bdafcc7f4a14b3c9dfcb0a7c0"
+    "run": 44952260483,
+    "control": "63bbf71c4967a15e9fbfb69f8c52eceaab45887d",
+    "status": "queued",
+    "scope": "Actual WEB4+WEB5 compile only on309eed/51e0/ead6; no native/browser fixture or accepted behavior replay",
+    "reason": "Unfinished catalogue graph contract must not hold up independently scoped qualified Map restoration."
   },
   "pairedPinCheckRef": "passed",
-  "refPublication": "First POST connection ended prematurely; subsequent GET confirmed tag absent, then one create returned exact SHA. Initial dependent fetch missed tag; later exact-source check-ref completed successfully. No tag moved or duplicate run dispatched."
+  "refPublication": "First POST connection ended prematurely; subsequent GET confirmed tag absent, then one create returned exact SHA. Initial dependent fetch missed tag; later exact-source check-ref completed successfully. No tag moved or duplicate run dispatched.",
+  "heldCatalogueCandidate": "489cee90879f6b3bdafcc7f4a14b3c9dfcb0a7c0"
 }

@@ -1,5 +1,5 @@
 {
-  "status": "persistence-root-fix-prepared-not-compiled-not-deployed",
+  "status": "catalogue-graph-contract-incomplete-not-deployed",
   "source": "82d929588fcdf3b6bd02a26874484a942fab3d7e",
   "base": "1de76d2d5b1428ac3c645139823757224a1e2ca3",
   "tag": "qualification/catalogue-hydration-2026-11-21-82d92958",
@@ -38,13 +38,14 @@
     ]
   },
   "qualification": {
-    "status": "in_progress",
+    "status": "completed",
     "mode": "catalogue",
     "scope": "Previously failed native/HTTP catalogue cohort; add one real chapter through existing IMission interface, verify native concrete collection/display/status and HTTP detail. No unchanged accepted cohorts.",
     "run": 44949649529,
     "control": "55d97420c6d8601e743bd846ba7eb40a1cf27ac5",
     "sourceChecks": "Exact two ONODE model files, three unchanged real-outcome controller blobs, preserved package/qualified Map composition, direct parent and exact three root paths; check-ref paired-pin gate passed.",
-    "job": 136984535198
+    "job": 136984535198,
+    "conclusion": "failure"
   },
   "failedAttempts": [
     {
@@ -99,6 +100,24 @@
         "Exact temporary DNA absence verified",
         "Owned Mongo container absence verified"
       ]
+    },
+    {
+      "status": "completed",
+      "mode": "catalogue",
+      "scope": "Previously failed native/HTTP catalogue cohort; add one real chapter through existing IMission interface, verify native concrete collection/display/status and HTTP detail. No unchanged accepted cohorts.",
+      "run": 44949649529,
+      "control": "55d97420c6d8601e743bd846ba7eb40a1cf27ac5",
+      "sourceChecks": "Exact two ONODE model files, three unchanged real-outcome controller blobs, preserved package/qualified Map composition, direct parent and exact three root paths; check-ref paired-pin gate passed.",
+      "job": 136984535198,
+      "conclusion": "failure",
+      "hostBuildErrors": 0,
+      "hostBuildElapsed": "00:07:15.30",
+      "failure": "Owned typed mission readback compound field assertion failed; API message/base exception empty in emitted diagnostic. Exact differing field not reported.",
+      "cleanup": [
+        "Owned Mongo database absence verified",
+        "Exact temporary DNA absence verified",
+        "Owned Mongo container absence verified"
+      ]
     }
   ],
   "previousSource": "f1aa884d90123afea87d4daec39afff4e022339b",
@@ -118,11 +137,11 @@
   "supersededUnrunRoot": "81c0a0dabbcaf0b5741e8efaeb93ccb968a2059d",
   "additionalParent": "f1aa884d90123afea87d4daec39afff4e022339b",
   "preparedPopupBrowser": {
-    "status": "host-and-workflow-wired-not-built-not-executed-not-dispatched",
+    "status": "wired-held-after-native-failure-not-dispatched",
     "host": "Scripts/TestHosts/Fixtures/catalogue-browser-host.html",
     "browser": "Scripts/TestHosts/Fixtures/catalogue-browser-native-http.cjs",
     "scope": "Actual Portal WEB5 SDK, Quests and Missions fragments/scripts; owned native populated my/all/search/refresh/details and logout clear; exactly eight GETs and zero browser mutations; no response replacement.",
-    "remaining": "Wait for native44949649529, then execute first popup flow on combined current source. No separate redundant restoration compile planned for this same combined build.",
+    "remaining": "Correct canonical chapter child-role capture/materialization and explicit detail reads; shallow reads must not be expected to hydrate chapter roles. Then qualify corrected native flow before popup execution.",
     "candidate": "489cee90879f6b3bdafcc7f4a14b3c9dfcb0a7c0",
     "base": "17f2f1e83577961d21cb0c458dc2412b918d4cad",
     "tree": "ac40b7700028ccc968b572cf44a0081890fc164a",
@@ -131,5 +150,11 @@
     "star": "d97be575f4ee7ca3861c67709f6a6b3d4b002ddf",
     "portal": "efe4e9652a18595eae4077893b9475a2d59c8486",
     "sourceChecks": "Clean object-only merges; exact two model and three controller blobs match pending native source, preserving current publishing and qualified mapping; paired-pin check-ref passed."
+  },
+  "sourceGraphFinding": {
+    "confirmedSource": "Core StoredRecordJson excludes holon navigation; Holon CaptureChildCollections/GetChildRoleBindings declare Children only; Mission has no Chapters role override. HydrateTypedLoadedRoles returns immediately when loadChildren=false.",
+    "incorrectFixtureAssumption": "Nonempty chapter list was expected from a shallow point read after saveChildren=false.",
+    "requiredInvariant": "Persist chapter relationships through the canonical graph owner, preserve public collection mutation semantics, keep catalogue reads shallow and load child details explicitly. Do not duplicate holons into metadata or add alternate query fallbacks.",
+    "runtimeLimit": "This source finding does not establish which field caused the combined assertion; future failed diagnostics must include selected owned IDs/count/display fields."
   }
 }

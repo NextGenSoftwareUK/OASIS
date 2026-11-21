@@ -50,5 +50,15 @@
     "artifactUpload": "skipped",
     "postJobCleanup": "passed",
     "localFilesWritten": 0
+  },
+  "catalogueFollowup20261121": {
+    "run": 44949649529,
+    "job": 136984535198,
+    "conclusion": "failure",
+    "buildErrors": 0,
+    "elapsed": "00:07:15.30",
+    "scope": "Owned native/HTTP catalogue qualification stopped at compound typed readback fields; no popup/browser acceptance.",
+    "required": "Canonical chapter graph contract and explicit detail versus shallow list semantics",
+    "evidence": "MISSION_CHAPTER_REAL_OUTCOMES_SOURCE_2026-11-21.json"
   }
 }
