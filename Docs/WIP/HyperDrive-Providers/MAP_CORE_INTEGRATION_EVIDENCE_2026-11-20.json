@@ -1,5 +1,5 @@
 {
-  "status": "Source/static qualification retained; first combined build failed in checker before compilation; corrected build-only run queued; runtime and scoped dev delivery pending",
+  "status": "Combined Core WEB4 compilation accepted on faf29edf71; subsequent route API and hotspot source still require qualification; scoped dev delivery pending",
   "priorCore": "03087911cd9d2a6c3a421014e52555bff8aeb063",
   "repairedCqlCore": "cd0849607d8739666a0d7dc7f0f236a623935e01",
   "qualifiedCqlCore": "01d10ae033608064e7f6b34fa434e4166073de27",
@@ -60,9 +60,13 @@
     "run": 44872549334,
     "job": 136750081798,
     "head": "faf29edf71a0ce664b4dbc86349a0457bf59a371",
-    "status": "queued",
+    "status": "completed",
     "buildOnly": true,
-    "nativeOrBrowserCasesSelected": 0
+    "nativeOrBrowserCasesSelected": 0,
+    "conclusion": "success",
+    "apiBuildErrors": 0,
+    "apiBuildElapsed": "00:05:11.80",
+    "behaviorCasesExecuted": 0
   },
   "previousBuild": {
     "run": 44868003895,

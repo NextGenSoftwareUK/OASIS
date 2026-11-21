@@ -22,6 +22,10 @@ on:
         description: Build the API without repeating accepted behavior tests
         type: boolean
         default: false
+      build_web5_after_web4:
+        description: Also compile changed WEB5 source in the same leased build batch
+        type: boolean
+        default: false
       portal_syntax_ref:
         description: Optional exact OPORTAL commit for changed popup syntax checks only
         type: string
@@ -323,6 +327,7 @@ jobs:
           OASIS_QUALIFICATION_API: ${{ inputs.native_project == 'web6_build' && 'WEB6' || inputs.native_project == 'web5_build' && 'WEB5' || 'WEB4' }}
           OASIS_QUALIFICATION_BUILD_ONLY: ${{ inputs.build_only }}
           OASIS_QUALIFICATION_NATIVE_CONTRACT_BUILD: ${{ inputs.build_native_contract_project }}
+          OASIS_QUALIFICATION_WEB5_AFTER_WEB4: ${{ inputs.build_web5_after_web4 }}
         run: |
           if ($env:OASIS_QUALIFICATION_API -in @('WEB5', 'WEB6') -and $env:OASIS_QUALIFICATION_BUILD_ONLY -ne 'true') {
             throw 'WEB5/WEB6 selection is a build-only qualification target.'
@@ -337,6 +342,13 @@ jobs:
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner api-qualification-build-ci -Operation {
             dotnet build $project --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
             if ($LASTEXITCODE) { throw 'API qualification build failed.' }
+            if ($env:OASIS_QUALIFICATION_WEB5_AFTER_WEB4 -eq 'true') {
+              if ($env:OASIS_QUALIFICATION_API -ne 'WEB4' -or $env:OASIS_QUALIFICATION_BUILD_ONLY -ne 'true') {
+                throw 'Sequential WEB4/WEB5 compilation requires the WEB4 build-only target.'
+              }
+              dotnet build 'STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj' --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE) { throw 'Changed WEB5 API qualification build failed.' }
+            }
             if ($env:OASIS_QUALIFICATION_NATIVE_CONTRACT_BUILD -eq 'true') {
               dotnet build 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests.csproj' --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
               if ($LASTEXITCODE) { throw 'Integrated native contract source build failed.' }

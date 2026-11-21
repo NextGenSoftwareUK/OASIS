@@ -799,3 +799,6 @@
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/WalletTokenController.cs","145","WalletTokenController","ImportWalletUsingSecretPhraseById","POST","avatar/{avatarId}/import/secret-phrase","DirectModeAwareManagerBoundary"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/WalletTokenController.cs","160","WalletTokenController","ImportWalletUsingSecretPhraseByUsername","POST","avatar/username/{username}/import/secret-phrase","DirectModeAwareManagerBoundary"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/WalletTokenController.cs","175","WalletTokenController","ImportWalletUsingSecretPhraseByEmail","POST","avatar/email/{email}/import/secret-phrase","DirectModeAwareManagerBoundary"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/MapRoutesController.cs","95","MapRoutesController","Create","POST","","DirectModeAwareManagerBoundary"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/MapRoutesController.cs","132","MapRoutesController","List","GET","","DirectModeAwareManagerBoundary"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/MapRoutesController.cs","150","MapRoutesController","Get","GET","{id:guid}","DirectModeAwareManagerBoundary"

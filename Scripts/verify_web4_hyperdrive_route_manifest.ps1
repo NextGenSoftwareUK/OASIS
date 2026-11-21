@@ -23,6 +23,8 @@ function Normalize([string]$value) {
 }
 
 function Get-Disposition([string]$body, [string]$methodName, [string]$controllerName) {
+    # Route actions use the lazily acquired Data manager and the owned batch-write boundary.
+    if ($controllerName -eq 'MapRoutesController') { return 'DirectModeAwareManagerBoundary' }
     if ($controllerName -in @('HyperDriveController', 'HyperDriveSyncController', 'ProviderController')) {
         return 'HyperDriveOrProviderControlPlane'
     }
