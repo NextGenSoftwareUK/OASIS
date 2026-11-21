@@ -59,3 +59,9 @@ Current candidate77e206b3a8240964e57261ef0c6dc76e30e0bfe3/tagcosmic-holo-readine
 The restored MapManager(HolonManager,Guid) constructor is present. Both current candidate and featureca7b6f54 preserve the original admitted-manager MapController owner; the temporary provider-constructor adaptation is no longer needed. Constructor presence and exact controller tree identity checked; no new parallel/fallback path. Official manifest/ref validator passed, temporary index absent.
 
 Native all-four-range44948941338 has started (owned CI containers initializing). Prior restorationf8bee compiled successfully; fresh309eed compile still pending in peer status. Current image is deliberately NOT dispatched until that fresh qualification is reconciled. The one active Holo handoff journal carries all prior contract/native/package evidence; old duplicate journal remains removed.
+
+## Exact combined image qualification dispatched
+
+One image dispatch for77e206b3 acknowledged with fresh shared Development still17f2f1e8. The exact image build now qualifies the combined WEB4 graph directly; no second standalone CQL compile is required before starting this build. This supersedes the earlier self-imposed pre-build wait, not any deployment gate. Peer compilef8bee acceptance, exact restored source identity and earlier native snapshot proof remain retained; actual77e source/image/package/rollout still must pass.
+
+Initial workflow list had not yet exposed its run ID after acknowledged204. Preserve the existing dispatch journal and reconcile the same source; do not dispatch another producer for visibility delay. No Development push, local image download or staging/production action.
