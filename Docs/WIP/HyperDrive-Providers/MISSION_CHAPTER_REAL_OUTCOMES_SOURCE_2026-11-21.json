@@ -27,10 +27,10 @@
     "chapterDeletions": 27
   },
   "rootCandidate": {
-    "candidate": "81c0a0dabbcaf0b5741e8efaeb93ccb968a2059d",
+    "candidate": "f069e9976fb7604c2f3ca73f7a30775876023a1d",
     "base": "f8bee8a4c8ca5a5598759aa4aeb409b45292f86a",
-    "tree": "b47feb163b24b1639c8e2889837f95204ebebd92",
-    "tag": "qualification/catalogue-hydration-2026-11-21-81c0a0da",
+    "tree": "fbeda8e52b59bde98b5d01088890ac057ab6ffb0",
+    "tag": "qualification/catalogue-hydration-2026-11-21-f069e997",
     "allowedPaths": [
       "Docker/oasis-dependency-versions.env",
       "ONODE/NextGenSoftware.OASIS.API.ONODE.Core",
@@ -40,7 +40,8 @@
   "qualification": {
     "status": "root-fix-prepared-not-dispatched",
     "mode": "catalogue",
-    "scope": "Same previously failed native/HTTP catalogue cohort with nonempty mission chapter readback, persisted display name and canonical status; no accepted geo/quest replay."
+    "scope": "Previously failed native/HTTP catalogue cohort; add one real chapter through existing IMission interface, verify native concrete collection/display/status and HTTP detail. No unchanged accepted cohorts.",
+    "dispatchHeld": "Restoration compile44948349449/job136980553768 still queued. Avoid replacing a pending run in the shared concurrency group; no new diagnostic dispatch yet."
   },
   "failedAttempts": [
     {
@@ -99,13 +100,16 @@
   ],
   "previousSource": "f1aa884d90123afea87d4daec39afff4e022339b",
   "onodeModelFix": {
-    "source": "8aadefa35c927b314a581ecc672f8df13f7216ea",
+    "source": "a1ca35c72470811a73d3e0bd0b5beebffd1e033c",
     "parent": "1fe579cf5e385b4a6ecce12934a7dd7578c2340c",
     "files": [
       "Holons/STARNET/Quest System/Mission.cs",
       "Holons/STARNET/Quest System/Chapter.cs"
     ],
     "invariant": "Declared concrete JSON-backed persisted chapter collection reconstructs actual chapters; one persisted status owner per chapter; display name persists.",
-    "scope": "Existing explicit IMission adapter preserved; JSON array/metadata key Chapters retained; no alternate readers or generated success."
-  }
+    "scope": "Existing explicit IMission adapter preserved; JSON array/metadata key Chapters retained; no alternate readers or generated success.",
+    "previousSource": "8aadefa35c927b314a581ecc672f8df13f7216ea",
+    "interfaceMutation": "Existing IMission.Chapters returns a live IList view over the concrete persisted collection; Add/Insert/index/remove/clear remain attached. Setter materializes validated concrete records before replacement."
+  },
+  "supersededUnrunRoot": "81c0a0dabbcaf0b5741e8efaeb93ccb968a2059d"
 }

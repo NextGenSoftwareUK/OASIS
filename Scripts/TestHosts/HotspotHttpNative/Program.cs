@@ -187,8 +187,10 @@ try
         var chapter = new Chapter { Id = chapterId, Name = "Owned catalogue chapter", Description = "Native chapter detail", ChapterDisplayName = "Act",
             STARNETDNA = new STARNETDNA { Id = chapterId, CreatedByAvatarId = actor, Version = "1.0.0", VersionSequence = 1 } };
         var mission = new Mission { Id = missionId, Name = "Owned catalogue mission", Description = "Native mission detail",
-            Chapters = new List<Chapter> { chapter },
             STARNETDNA = new STARNETDNA { Id = missionId, CreatedByAvatarId = actor, Version = "1.0.0", VersionSequence = 1 } };
+        ((NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons.IMission)mission).Chapters.Add(chapter);
+        Require(mission.Chapters.Count == 1 && mission.Chapters[0].Id == chapterId,
+            "Existing IMission chapter mutation did not reach the persisted collection.");
         foreach (var holon in new NextGenSoftware.OASIS.API.Core.Interfaces.IHolon[] { mission, chapter })
         {
             holon.MetaData["STARNETHolonId"] = holon.Id.ToString();
