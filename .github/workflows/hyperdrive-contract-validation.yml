@@ -9,6 +9,7 @@ on:
       - 'Docs/Devs/HYPERDRIVE_*'
       - 'Scripts/verify_hyperdrive_provider_io_manifest.ps1'
       - 'Scripts/verify_hyperdrive_v2_operation_contracts.ps1'
+      - 'Scripts/TestHosts/Test-HyperDriveOperationInventory.ps1'
       - 'Scripts/verify_web4_hyperdrive_route_manifest.ps1'
       - '.github/workflows/hyperdrive-contract-validation.yml'
   workflow_dispatch:
@@ -303,7 +304,9 @@ jobs:
 
       - name: Verify V2 storage-operation parity and coverage
         shell: pwsh
-        run: ./Scripts/verify_hyperdrive_v2_operation_contracts.ps1
+        run: |
+          ./Scripts/TestHosts/Test-HyperDriveOperationInventory.ps1
+          ./Scripts/verify_hyperdrive_v2_operation_contracts.ps1
 
       - name: Verify candidate dependency pins
         shell: pwsh
