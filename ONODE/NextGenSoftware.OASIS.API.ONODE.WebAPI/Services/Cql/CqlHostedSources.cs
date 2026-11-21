@@ -67,7 +67,10 @@ public sealed class CqlHostedSources : BackgroundService
         this.publicCatalogues = (publicCatalogues ?? Array.Empty<CqlPublicReadCatalogue>()).ToDictionary(policy => policy.Provider);
         providers = admission?.QueryProviders.ToArray() ?? Array.Empty<ProviderType>();
         queryOnly = new HashSet<ProviderType>(admission?.QueryOnlyProviders ?? Array.Empty<ProviderType>());
-        activationStates = queryOnly.ToDictionary(type => type, _ => new ActivationState());
+        // Canonical Neo4j implements explicit read-only verification; never invoke its
+        // write-capable storage activation for hosted query enrollment.
+        activationStates = queryOnly.Concat(providers.Where(type => type == ProviderType.Neo4jOASIS))
+            .Distinct().ToDictionary(type => type, _ => new ActivationState());
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -75,7 +78,7 @@ public sealed class CqlHostedSources : BackgroundService
         hostStoppingToken = stoppingToken;
         var started = Stopwatch.GetTimestamp();
         const int maximumConcurrentReaders = 3;
-        var ordered = queryOnly.OrderBy(type => type.ToString(), StringComparer.Ordinal).ToArray();
+        var ordered = activationStates.Keys.OrderBy(type => type.ToString(), StringComparer.Ordinal).ToArray();
         // Only registered, independently owned profiles may use the parallel
         // lane. Shared BootLoader registrations still run in a single sequence.
         var independent = ordered.Where(registry.HasIndependentActivation).ToHashSet();
@@ -222,10 +225,10 @@ public sealed class CqlHostedSources : BackgroundService
     private ICosmicQueryStorageProvider ReadyAdapter(ProviderType type)
     {
         if (!providers.Contains(type) || failures.ContainsKey(type)
-            || queryOnly.Contains(type) && !verified.ContainsKey(type)) return null;
+            || activationStates.ContainsKey(type) && !verified.ContainsKey(type)) return null;
         var storage = registry.Find(type);
         var adapter = storage as ICosmicQueryStorageProvider;
-        var active = queryOnly.Contains(type) && storage is ICosmicReadOnlyQueryActivation readSource
+        var active = storage is ICosmicReadOnlyQueryActivation readSource
             ? readSource.IsQuerySourceActivated : storage?.IsProviderActivated == true;
         return active && storage.ProviderType?.Value == type
             && adapter?.QueryProviderType == type && adapter.QueryCapabilities != null

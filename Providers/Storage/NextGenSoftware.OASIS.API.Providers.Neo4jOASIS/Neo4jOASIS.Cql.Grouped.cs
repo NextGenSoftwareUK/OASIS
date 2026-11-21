@@ -96,7 +96,7 @@ public partial class Neo4jOASIS : ICosmicQueryGroupedStorageProvider
             if (maximumGroups < 0 || maximumGroups > plan.Query.Grouping.Options.MaximumGroups
                 || maximumPayloadBytes < 0 || maximumPayloadBytes > plan.Query.Grouping.Options.MaximumPayloadBytes)
                 return GroupedCqlFailure("CQL_QUERY_LIMIT", "Grouped output bounds are invalid.");
-            if (!IsProviderActivated || _driver == null)
+            if (!IsQuerySourceActivated || _driver == null)
                 return GroupedCqlFailure("CQL_PROVIDER_INACTIVE", "Neo4j provider is not activated.");
             var command = CompileCqlGrouped(plan.Query, maximumGroups, maximumPayloadBytes);
             using var budget = readBudget = new NeoCqlReadBudget(maximumPayloadBytes, cancellationToken);

@@ -1,3 +1,5 @@
+21 November — Neo read-activation source/CI: no local install/download/build/runtime/DB/browser/archive/test output or worktree. CI TRX retention2days. Last measured C free43.63GiB.
+
 21 November — SESSION INSPECTION DEPLOYED / PUBLIC SCHEMA READY; LIVE NEO REMAINS OPEN.
 Exact Development3bba5467e82169f0eeaa80b449b2ba000a15f89b/Core01d10ae033608064e7f6b34fa434e4166073de27 deployed successfully as Railway7c3f14f4-c74f-4340-b0c5-f09c899703bd. Native inspection3 accepted; exact combined Holo image44854701764/digestaeedb511 and strict package44857060403/782B accepted. Concurrent Holo code preserved, no old native cohort repeated. Public Swagger200/2,954,809bytes/25,473ms/11CQLPOST+Int32 schema. This is a schema transfer observation, not a query performance benchmark. SavedDNA0755d6b0/LBfalse unchanged; loaded effective DNA not independently verified.
 
