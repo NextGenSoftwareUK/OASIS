@@ -1,0 +1,21 @@
+{
+  "operation": "git multi-pack-index verify then expire",
+  "scope": "C:\\Source\\OASIS2\\.git\\objects\\pack",
+  "officialSemantics": "Only MIDX-tracked packs with no referenced objects; keep/cruft packs protected.",
+  "source": "https://git-scm.com/docs/git-multi-pack-index",
+  "before": {
+    "files": 28337,
+    "bytes": 5728390910
+  },
+  "after": {
+    "files": 4181,
+    "bytes": 2521861759
+  },
+  "bytesReclaimed": 3206529151,
+  "filesRemoved": 24156,
+  "refsUnchangedDuringOperation": false,
+  "workingIndexUnchanged": true,
+  "currentFeatureAndImageCandidateObjectsPresent": true,
+  "manualSourcePackDeletion": false,
+  "elapsedSeconds": 81.49
+}

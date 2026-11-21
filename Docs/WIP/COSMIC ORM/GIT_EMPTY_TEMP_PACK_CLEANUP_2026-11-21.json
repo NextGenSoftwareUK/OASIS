@@ -1,0 +1,31 @@
+{
+  "BytesRemoved": 72,
+  "SourcePackDeletion": false,
+  "Retained": [],
+  "Removed": [
+    {
+      "Path": "C:\\Source\\OASIS2\\.git\\objects\\pack\\tmp_pack_atbZS3",
+      "Bytes": 12
+    },
+    {
+      "Path": "C:\\Source\\OASIS2\\.git\\objects\\pack\\tmp_pack_bOXXSI",
+      "Bytes": 12
+    },
+    {
+      "Path": "C:\\Source\\OASIS2\\.git\\objects\\pack\\tmp_pack_H3kuEx",
+      "Bytes": 12
+    },
+    {
+      "Path": "C:\\Source\\OASIS2\\.git\\objects\\pack\\tmp_pack_nXXSPx",
+      "Bytes": 12
+    },
+    {
+      "Path": "C:\\Source\\OASIS2\\.git\\objects\\pack\\tmp_pack_PMjYoH",
+      "Bytes": 12
+    },
+    {
+      "Path": "C:\\Source\\OASIS2\\.git\\objects\\pack\\tmp_pack_rPBRyw",
+      "Bytes": 12
+    }
+  ]
+}
