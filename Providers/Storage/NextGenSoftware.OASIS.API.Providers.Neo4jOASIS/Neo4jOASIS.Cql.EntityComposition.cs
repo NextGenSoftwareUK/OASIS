@@ -77,15 +77,41 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
             + " SKIP $entityOffset LIMIT $entityTake WITH collect({h:h,p:p}) AS candidates "
             + "WITH candidates AS entitySource,candidates AS selected,false AS entityCycle,"
             + "size(candidates)>$entityInputBound AS entityLimit,0 AS entityWork ");
+        AppendCqlEntityStages(text,plan.Query.Source,plan.Query.Stages,translator);
+        if(relationOnly)
+        {
+            const string relationFields="entityValid,entitySource,selected,entityCycle,entityLimit";
+            var relationErrors=compiled.Translator.TraversalClauses.Count==0 ? "" : " UNION ALL "+compiled.EligibleSource
+                +"WHERE "+compiled.Cycle+" OR "+compiled.TraversalLimit
+                +" RETURN true AS entityValid,[] AS entitySource,[] AS selected,"+compiled.Cycle
+                +" AS entityCycle,"+compiled.TraversalLimit+" AS entityLimit LIMIT 1";
+            return "CALL { "+compiled.Source+"WHERE NOT valid RETURN false AS entityValid,[] AS entitySource,[] AS selected,"
+                +"false AS entityCycle,false AS entityLimit LIMIT 1"+relationErrors+" UNION ALL "+text
+                +" RETURN true AS entityValid,entitySource,selected,entityCycle,entityLimit } RETURN "+relationFields;
+        }
+        AppendCqlEntityPublication(text,countOnly,projection,maximumProjectionBytes,translator);
+        var sourceErrors = compiled.Translator.TraversalClauses.Count == 0 ? "" : " UNION ALL " + compiled.EligibleSource
+            + "WHERE " + compiled.Cycle + " OR " + compiled.TraversalLimit + " RETURN " + invalid
+            + compiled.Cycle + " AS traversalCycle," + compiled.TraversalLimit + " AS traversalLimit,false AS entityInput" + nullCount +emptySelection+ " LIMIT 1";
+        return "CALL { " + compiled.Source + "WHERE NOT valid RETURN " + invalid
+            + "false AS traversalCycle,false AS traversalLimit,false AS entityInput" + nullCount+emptySelection + " LIMIT 1" + sourceErrors
+            + " UNION ALL " + text + " } RETURN " + fields+(projection==null ? "" : " ORDER BY entityPosition");
+    }
+
+
+    private static void AppendCqlEntityStages<T>(StringBuilder text,CosmicQuery<T> source,
+        IReadOnlyList<CosmicEntityStage> stages,NeoCqlTranslator translator) where T:IHolon
+    {
+        var parameters=translator.Parameters;
         var index = 0;
-        foreach (var stage in plan.Query.Stages)
+        foreach (var stage in stages)
         {
             // Work and failure state survive every later window, even Take(0).
             text.Append("WITH entitySource,selected,entityCycle,entityLimit,entityWork+size(selected) AS entityWork ")
                 .Append("WITH entitySource,selected,entityCycle,entityLimit OR entityWork>$entityWorkBound AS entityLimit,entityWork ");
             if (stage is CosmicEntityFilterStage<T> filter)
             {
-                var native = new NeoCqlTranslator("h", "p", parameters, plan.Query.Source.ReadAccess);
+                var native = new NeoCqlTranslator("h", "p", parameters, source.ReadAccess);
                 var predicate = string.Join(" AND ", filter.Predicate.Predicates.Select(native.Translate));
                 var cycle = native.TraversalCycles.Count == 0 ? "false" : "(" + string.Join(" OR ", native.TraversalCycles) + ")";
                 var limit = native.TraversalLimits.Count == 0 ? "false" : "(" + string.Join(" OR ", native.TraversalLimits) + ")";
@@ -121,26 +147,27 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
             else throw new NotSupportedException("Unknown native entity stage.");
             index++;
         }
-        if(relationOnly)
-        {
-            const string relationFields="entityValid,entitySource,selected,entityCycle,entityLimit";
-            var relationErrors=compiled.Translator.TraversalClauses.Count==0 ? "" : " UNION ALL "+compiled.EligibleSource
-                +"WHERE "+compiled.Cycle+" OR "+compiled.TraversalLimit
-                +" RETURN true AS entityValid,[] AS entitySource,[] AS selected,"+compiled.Cycle
-                +" AS entityCycle,"+compiled.TraversalLimit+" AS entityLimit LIMIT 1";
-            return "CALL { "+compiled.Source+"WHERE NOT valid RETURN false AS entityValid,[] AS entitySource,[] AS selected,"
-                +"false AS entityCycle,false AS entityLimit LIMIT 1"+relationErrors+" UNION ALL "+text
-                +" RETURN true AS entityValid,entitySource,selected,entityCycle,entityLimit } RETURN "+relationFields;
-        }
+    }
+
+    private static void AppendCqlEntityPublication(StringBuilder text,bool countOnly,
+        IReadOnlyList<CosmicProjectionColumn> projection,int maximumProjectionBytes,
+        NeoCqlTranslator translator,bool orderedOccurrences=false)
+    {
+        var parameters=translator.Parameters;
         var entries="CASE WHEN entityCycle OR entityLimit THEN [{h:null,p:null,input:false}] "
             + "ELSE [item IN entitySource | {h:item.h,p:item.p,input:true}] + "
             + (countOnly ? "[{h:null,p:null,input:false,count:size(selected)}]" : "[item IN selected[..$entityOutputTake] | {h:item.h,p:item.p,input:false}]") + " END";
         if(projection==null)
         {
-        text.Append("UNWIND "+entries+" AS entry ")
+        if(orderedOccurrences)
+            text.Append("WITH entityCycle,entityLimit,"+entries+" AS entries ")
+                .Append("UNWIND CASE WHEN size(entries)=0 THEN [] ELSE range(0,size(entries)-1) END AS setEntryPosition ")
+                .Append("WITH entries[setEntryPosition] AS entry,setEntryPosition,entityCycle,entityLimit ");
+        else text.Append("UNWIND "+entries+" AS entry ");
+        text
             .Append("RETURN entry.h.Id AS id,entry.h.ProviderRevisionId AS revision,NOT(entityCycle OR entityLimit) AS valid,"
                 + "CASE WHEN size(entry.h.SnapshotJson)<=2097152 THEN entry.h.SnapshotJson ELSE null END AS snapshot,"
-                + "entityCycle AS traversalCycle,entityLimit AS traversalLimit,entry.input AS entityInput" + (countOnly ? ",entry.count AS entityCount " : " "));
+                + "entityCycle AS traversalCycle,entityLimit AS traversalLimit,entry.input AS entityInput" + (countOnly ? ",entry.count AS entityCount " : " ")+(orderedOccurrences?",setEntryPosition ":""));
         }
         else
         {
@@ -161,11 +188,5 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
                 +"NOT entry.input AND ("+lower+")>$entityProjectionBytes AS payloadLimit,"
                 +"CASE WHEN entry.input OR ("+lower+")>$entityProjectionBytes THEN [] ELSE "+cells+" END AS cells ");
         }
-        var sourceErrors = compiled.Translator.TraversalClauses.Count == 0 ? "" : " UNION ALL " + compiled.EligibleSource
-            + "WHERE " + compiled.Cycle + " OR " + compiled.TraversalLimit + " RETURN " + invalid
-            + compiled.Cycle + " AS traversalCycle," + compiled.TraversalLimit + " AS traversalLimit,false AS entityInput" + nullCount +emptySelection+ " LIMIT 1";
-        return "CALL { " + compiled.Source + "WHERE NOT valid RETURN " + invalid
-            + "false AS traversalCycle,false AS traversalLimit,false AS entityInput" + nullCount+emptySelection + " LIMIT 1" + sourceErrors
-            + " UNION ALL " + text + " } RETURN " + fields+(projection==null ? "" : " ORDER BY entityPosition");
     }
 }
