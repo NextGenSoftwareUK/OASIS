@@ -1,0 +1,19 @@
+{
+  "scope": "Actual Map popup/WEB4 browser SDK/MVC Map+MapRoutes controllers/owned native Mongo with signed fixture JWTs and real actor records",
+  "source": "6b16acf268823b4e6b5f3876a9ca2b03d2ffb555",
+  "portal": "70c596c7a0da0bb2ae5d81b8a839ef04de5da080",
+  "run": 44879185464,
+  "job": 136770502188,
+  "conclusion": "success",
+  "apiBuildErrors": 0,
+  "apiBuildElapsed": "00:06:41.29",
+  "test": "RecordedRoutePopupUsesActualSdkHttpAndOwnedMongo",
+  "passed": 1,
+  "failed": 0,
+  "skipped": 0,
+  "reportedTestDuration": "7 s (whole case, not page latency)",
+  "checks": ["Real GPX file import: four points/two disconnected segments", "Seven-digit UTC precision reaches native storage", "Reported source identity preserved", "Private publication and saved-state reopening", "Public rename", "Copy access-controlled route link", "Shared reader deep-link query and disabled editing", "Owner public revocation", "Revoked reader refusal and blank private view", "Logout clearing", "Exactly three mutation requests", "Native visibility/geometry/source/parent/owner checks", "Avatar logical revision preservation"],
+  "artifact": {"id":14697372303,"zipBytes":3579,"sha256":"d63a8425c839730683c45afb73f62a04df147612045b8a07ff183ad7db6e4d74","entry":"profile-sdk-native.trx","uncompressedBytes":36821,"exactResultIdentity":true,"nativeCompletionMarker":true,"filesWritten":0},
+  "cleanup": "Owned browser/runtime/cache/control removal and Mongo fixture absence verified; terminal job/post cleanup success; artifact inspected only in RAM",
+  "notAccepted": ["Interactive MapLibre/basemap rendering", "Other map layers/Places API browser flow", "Full Portal navigation/production Startup/SSO/admission", "Hosted delivery", "Distributed revocation across providers", "Map API cross-app asset/activity aggregation", "Our World direct cloud publishing", "Route deletion/selected-recipient ACL", "Complete OPORTAL/providers/HyperDrive"]
+}
