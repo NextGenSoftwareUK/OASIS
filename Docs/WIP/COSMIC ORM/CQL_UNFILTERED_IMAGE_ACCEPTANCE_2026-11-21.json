@@ -9,7 +9,7 @@
   "packageObservedStatus": "completed",
   "packageAccepted": true,
   "developmentPushed": true,
-  "hostedAccepted": false,
+  "hostedAccepted": true,
   "localImageDownloaded": false,
   "packageJob": 136817727944,
   "packageArtifact": {
@@ -29,5 +29,12 @@
   "developmentObservedStatus": "SUCCESS",
   "developmentLoadBalancingSaved": true,
   "hostedMongoAccepted": true,
-  "hostedAllThreeAccepted": false
+  "hostedAllThreeAccepted": true,
+  "hostedBrowserAccepted": false,
+  "hostedScope": "Bounded unfiltered SQL compiled to live mixed projection, owned mapping creation and exact conditional cleanup",
+  "hostedRows": {
+    "MongoDBOASIS": 6,
+    "SQLLiteDBOASIS": 4,
+    "Neo4jOASIS": 3
+  }
 }
