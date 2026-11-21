@@ -75,9 +75,22 @@ internal static class CqlRequestCapture
                 Value = scalar.ValueKind == JsonValueKind.Undefined ? default : scalar.Clone()
             };
         }
+        int whereNodes = 0;
+        CqlWhereV1Predicate Where(CqlWhereV1Predicate node, int depth)
+        {
+            if (node == null || depth > 8 || ++whereNodes > 31)
+                throw new ArgumentException("WHERE capture exceeds its node/depth bound.");
+            return new CqlWhereV1Predicate {
+                Kind = node.Kind, Filter = node.Filter == null ? null : Filter(node.Filter),
+                Terms = node.Terms == null ? null : Array(node.Terms, 12, term => Where(term, depth + 1)),
+                Match = node.Match == null ? null : Where(node.Match, depth + 1),
+                MaximumDepth = node.MaximumDepth, MaximumNodes = node.MaximumNodes
+            };
+        }
         var graph = value.Graph;
         return new CqlV1Request
         {
+            Where = value.Where == null ? null : Where(value.Where, 1),
             Provider = value.Provider, OrderBy = value.OrderBy, Descending = value.Descending,
             Ordering = value.Ordering == null ? null : Array(value.Ordering, 4, term => term == null
                 ? throw new ArgumentException("Missing row ordering.")
@@ -113,6 +126,7 @@ internal static class CqlRequestCapture
         };
         var source = Capture(new CqlV1Request
         {
+            Where = value.Where,
             Provider = value.Provider, Filters = value.Filters, AnyOf = value.AnyOf,
             AnyChildren = value.AnyChildren, AnyDescendants = value.AnyDescendants,
             Graph = value.Graph, OrderBy = value.OrderBy, Descending = value.Descending,
@@ -121,6 +135,7 @@ internal static class CqlRequestCapture
         return new CqlScalarV1Request
         {
             Operation = operation, Selection = copiedSelection, Provider = source.Provider,
+            Where = source.Where,
             Filters = source.Filters, AnyOf = source.AnyOf, AnyChildren = source.AnyChildren,
             AnyDescendants = source.AnyDescendants, Graph = source.Graph,
             OrderBy = source.OrderBy, Descending = source.Descending, Skip = source.Skip, Take = take
@@ -139,6 +154,7 @@ internal static class CqlRequestCapture
             : new CqlGroupedV1Ordering { Alias = term.Alias, Descending = term.Descending });
         var source = Capture(new CqlV1Request
         {
+            Where = value.Where,
             Provider = value.Provider, Filters = value.Filters, AnyOf = value.AnyOf,
             AnyChildren = value.AnyChildren, AnyDescendants = value.AnyDescendants,
             Graph = value.Graph, OrderBy = value.OrderBy, Descending = value.Descending,
@@ -147,6 +163,7 @@ internal static class CqlRequestCapture
         return new CqlProjectionV1Request
         {
             Provider = source.Provider, VirtualMappingId = mapping, ResultOperation = operation,
+            Where = source.Where,
             Filters = source.Filters, AnyOf = source.AnyOf, AnyChildren = source.AnyChildren,
             AnyDescendants = source.AnyDescendants, Graph = source.Graph,
             OrderBy = source.OrderBy, Descending = source.Descending, Skip = source.Skip, Take = source.Take,
