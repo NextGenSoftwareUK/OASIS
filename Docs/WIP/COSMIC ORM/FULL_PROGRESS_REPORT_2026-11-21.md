@@ -1,3 +1,5 @@
+21 November — CURRENT ACCEPTED INCREMENT: all four root-session range methods native verified on MongoDB/SQLite/Neo4j (44948941338:5Core+3native, exact cleanup/artifact in SESSION_RANGE_NATIVE_ACCEPTANCE_2026-11-21.json). Named SQL parameters sourcea90ccc58 passed3focused compiler/editor checks; public/live acceptance pending. Full framework counts61/168+4/13 unchanged. Timeout240 release still queued44951130403/current77e/Core13bd and excludes range SDK.
+
 21 November — CURRENT CHECKPOINT:240-SECOND HOLO DELIVERY / SHARED SESSION BREADTH (supersedes earlier in-flight notes).
 
 | Area | Implemented / accepted evidence | Remaining live or feature requirement |

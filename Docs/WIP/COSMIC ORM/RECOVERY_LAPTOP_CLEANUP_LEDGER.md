@@ -8345,3 +8345,5 @@ Owned Chrome stopped; marker/path and process absence verified before normal rec
 21 November — One exact restored77e206 CI image dispatch acknowledged, remote build only. Active Holo journal is required for unknown/visibility reconciliation; do not remove or redispatch it. No local image/env/database/build/archive/download. Existing duplicate old snapshot journal remains absent.
 
 21 November — Named SQL parameter source/tests executed through existing Node in RAM from Git source.3selected checks pass/55excluded; no files/test outputs/archive/download/env/runtime/build/database/image created. Necessary source Git objects retained; scoped index removed after website/root publication. Existing Holo image/native journals retained.
+
+21 November — Native range4891byte artifact verified in RAM only:5Core+3native pass, exact3provider cleanup flags and CI-owned container stop succeeded. No local archive/report/DB/env/image created. Canonical compact JSON evidence committed; raw ZIP/TRX not retained locally. Scoped index removed; active timeout handoff retained.
