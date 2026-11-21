@@ -1,11 +1,12 @@
 {
-  "status": "compile-accepted-native-host-failed-retry-preparing-not-deployed",
+  "status": "compile-accepted-native-retry-and-inventory-review-running-not-deployed",
   "nativeFirstFailure": { "run": 44886265686, "job": 136792116183, "phase": "new host compilation", "error": "CS0136 local detail name collision", "runtimeChecksExecuted": 0, "apiErrors": 0, "apiElapsed": "00:03:53.25", "hostErrors": 1, "containerCleanup": "passed" },
-  "inventoryRun": 44886740723,
-  "inventoryControlSource": "69c6613367c4db68a8c3c696cda444f23b2c7fb4",
-  "nativeRun": 44886265686,
-  "nativeJob": 136792116183,
-  "nativeControlSource": "8d27b6bc03e856403726f76c3bb4c99138190965",
+  "inventoryFirstGeneration": { "run": 44886740723, "job": 136793539290, "status": "mechanically-passed-not-approved", "artifact": 14699959095, "reviewGap": "Plain repository and FromServices boundaries were labelled local; corrected checker requires regeneration", "localFilesWritten": 0 },
+  "inventoryRun": 44887162948,
+  "inventoryControlSource": "cba02302533c440e7ee56499ff32a5919a50bb76",
+  "nativeRun": 44886878662,
+  "nativeJob": 136793958347,
+  "nativeControlSource": "a9ddcf5eeac29ed5628cc59420a8a8d2b056fb18",
   "compileResult": { "errors": 0, "elapsed": "00:05:11.32", "behaviorCasesExecuted": 0, "postJobCleanup": "passed" },
   "compileRun": 44885520700,
   "compileJob": 136789850263,
@@ -35,5 +36,5 @@
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/MapRoutesController.cs"
   ],
   "preserved": "Current Development CQL/API/provider changes, all other dependency pins, newer HolonWriteEndpoint UTC handling and all DNA/service configurations",
-  "remaining": "Compile, combined native/HTTP qualification, inventory review, safe Development integration and deployment verification"
+  "remaining": "Combined native/HTTP qualification, reviewed inventories, safe Development integration and deployment verification"
 }
