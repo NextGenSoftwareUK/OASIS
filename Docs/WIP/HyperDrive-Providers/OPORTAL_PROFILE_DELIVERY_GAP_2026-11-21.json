@@ -62,7 +62,27 @@
   "inventoryQualification": {
     "run": 44963177205,
     "control": "14fbf5cfab7285a616aa5148bab73f73aad47a18",
-    "status": "in-progress",
-    "scope": "source-only, no build/runtime/data fixtures"
+    "status": "success-reviewed",
+    "scope": "source-only, no build/runtime/data fixtures",
+    "job": 137026273422,
+    "artifact": 14730188476,
+    "zipBytes": 39533,
+    "managers": 930,
+    "routes": 832,
+    "managerAdded": 1,
+    "routeAdded": 2,
+    "removed": 0,
+    "runtimeChanges": 0,
+    "temporaryFilesWritten": 0
+  },
+  "reviewedCandidate": {
+    "candidate": "308a681ea7675e30cf09114cdf060db8160b358d",
+    "tag": "qualification/profile-inventory-2026-11-21-308a681e",
+    "manifestBlobs": {
+      "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv": "787b897338362ce7f4f49f5e86c3b42947a35ff1",
+      "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv": "3e117fcf1a3898e15abee1a817bb00bfa47f5b90"
+    },
+    "status": "uncompiled",
+    "scope": "eleven paths onf549, no unrelated source"
   }
 }
