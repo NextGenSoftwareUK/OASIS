@@ -1,0 +1,16 @@
+{
+  "source": "f54923d82ac8bffa7877d9307f18e879d41a8254",
+  "provider": "SQLLiteDBOASIS",
+  "sessionRevoked": true,
+  "dataWritesDispatched": 0,
+  "mappingSaved": false,
+  "snapshotSaved": false,
+  "queryAccepted": false,
+  "localJournalReconciliationRequired": true,
+  "completedCalls": 4,
+  "failure": "Windows WinError5 replacing fixture.json.new with fixture.json at pre-save checkpoint",
+  "fileReadOnly": false,
+  "rootCauseEstablished": false,
+  "originalJournalsRetained": true,
+  "protectedCredentialsRemoved": true
+}

@@ -1,0 +1,22 @@
+{
+  "deployment": "88620d5d-7d91-4922-8e43-554ac984f71d",
+  "source": "f54923d82ac8bffa7877d9307f18e879d41a8254",
+  "websiteCompiler": "3d8f108f6161b8b4a0e6c8e2f80d1358fb6185f8",
+  "provider": "Neo4jOASIS",
+  "mappingId": "19cf7373-5f55-470b-8255-0a4f7ebfc843",
+  "snapshotId": "3e1e3bbf-7a89-846c-8ac8-83a6bf430f4b",
+  "nativeSource": "ShopLoyaltyMember",
+  "mixedRowsReturned": 3,
+  "queryAccepted": true,
+  "unfilteredSqlCompiled": true,
+  "snapshotIdentityReconciliationVerified": true,
+  "exactSnapshotCleanupVerified": true,
+  "exactMappingCleanupVerified": true,
+  "sessionRevoked": true,
+  "completed": true,
+  "calls": 13,
+  "browserVerified": false,
+  "nativeDataImported": false,
+  "protectedCredentialsRemoved": true,
+  "piperDataTouched": false
+}
