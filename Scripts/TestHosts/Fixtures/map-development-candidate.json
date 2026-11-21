@@ -1,0 +1,29 @@
+{
+  "status": "qualification-pending-not-deployed",
+  "base": "1bb737b84ab9e103ebfee169d6773845c1ceda85",
+  "candidate": "591f14f63227ce62a3c3f855198b3df91c53adf0",
+  "tag": "qualification/map-development-2026-11-21-591f14f6",
+  "core": {
+    "base": "319613115da3aab3290782450f4ee68ffc7fe5f9",
+    "candidate": "06b433d51aa1a087569a72a5cb018e76ce8e9917",
+    "tag": "qualification/map-development-2026-11-21-06b433d5",
+    "changedFiles": ["Managers/CompetitionManager.cs"],
+    "scope": "13-line caller-scoped factory/constructor insertion only; other shared competition behavior preserved"
+  },
+  "onode": {
+    "base": "ac12ee38aeaf877611ad52d59d8a737772cda139",
+    "candidate": "33188f07f4eac1c4e2424b24e92a58a878f10e9c",
+    "tag": "qualification/map-development-2026-11-21-33188f07",
+    "changedFiles": ["Managers/MapManager.cs", "Managers/OASIS ONODE Core/OASISManager.cs"],
+    "scope": "Persisted catalogue/scoped visits plus seven-line caller-storage constructor; all other shared files preserved"
+  },
+  "allowedPaths": [
+    "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.Core",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/MapController.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/MapRoutesController.cs"
+  ],
+  "preserved": "Current Development CQL/API/provider changes, all other dependency pins, newer HolonWriteEndpoint UTC handling and all DNA/service configurations",
+  "remaining": "Compile, combined native/HTTP qualification, inventory review, safe Development integration and deployment verification"
+}

@@ -1,0 +1,88 @@
+name: Scoped Map Development qualification
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: scoped-map-development-qualification
+  cancel-in-progress: false
+jobs:
+  compile-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: qualification-control
+          sparse-checkout: Scripts/TestHosts/Fixtures/map-development-candidate.json
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - name: Read immutable qualification candidate
+        id: candidate
+        shell: pwsh
+        working-directory: qualification-control
+        run: |
+          $candidate = Get-Content Scripts/TestHosts/Fixtures/map-development-candidate.json -Raw | ConvertFrom-Json
+          foreach ($key in @('candidate','base')) {
+            if ($candidate.$key -notmatch '^[0-9a-f]{40}$') { throw 'An exact candidate/base commit is required.' }
+            "$key=$($candidate.$key)" >> $env:GITHUB_OUTPUT
+          }
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.candidate.outputs.candidate }}
+          path: OASIS
+          fetch-depth: 2
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Verify scoped source and resolve unchanged sibling dependencies
+        id: dependencies
+        shell: pwsh
+        env:
+          CANDIDATE_SHA: ${{ steps.candidate.outputs.candidate }}
+          BASE_SHA: ${{ steps.candidate.outputs.base }}
+        run: |
+          $candidate = Get-Content ../qualification-control/Scripts/TestHosts/Fixtures/map-development-candidate.json -Raw | ConvertFrom-Json
+          if ((git rev-parse HEAD) -ne $env:CANDIDATE_SHA) { throw 'Candidate source mismatch.' }
+          if ((git rev-parse HEAD^) -ne $env:BASE_SHA) { throw 'Candidate parent mismatch.' }
+          $actual = @(git diff --name-only $env:BASE_SHA HEAD)
+          if ($actual.Count -ne $candidate.allowedPaths.Count -or @(Compare-Object ($actual | Sort-Object) ($candidate.allowedPaths | Sort-Object)).Count) { throw 'Candidate includes unexpected source changes.' }
+          $manifest = Get-Content Docker/oasis-dependency-versions.env
+          foreach ($key in @('LIBRARIES_COMMIT','HOLOCHAIN_COMMIT')) {
+            $lines = @($manifest | Where-Object { $_ -match "^${key}=" })
+            if ($lines.Count -ne 1) { throw 'Sibling dependency pin missing.' }
+            $revision = $lines[0].Substring($key.Length + 1)
+            if ($revision -notmatch '^[0-9a-f]{40}$') { throw 'Invalid sibling dependency pin.' }
+            "$key=$revision" >> $env:GITHUB_OUTPUT
+          }
+          python Scripts/sync_railway_dependency_manifest.py --check
+          if ($LASTEXITCODE) { throw 'Candidate manifest differs from gitlinks.' }
+          python Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          if ($LASTEXITCODE) { throw 'Candidate dependency policy failed.' }
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Compile actual combined Development WEB4 API only
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner map-development-candidate-ci -Operation {
+            dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE) { throw 'Combined Development Map API build failed.' }
+          }
+          Write-Host 'MAP_DEVELOPMENT_COMPILE: actual scoped candidate compiled; no behavior, Unity, deployed or complete-OPORTAL acceptance inferred.'
