@@ -1,7 +1,7 @@
 {
   "source": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
   "previous": "6b5713f7d02379a6bd1769c13981d22682ee7b0d",
-  "status": "three-dev-services-success-four-pending",
+  "status": "six-dev-services-success-and-startup-files-verified-web4-building",
   "push": "Normal hooked fast-forward; remote Development exact source verified",
   "changedPaths": [
     "Docker/oasis-dependency-versions.env",
@@ -18,7 +18,7 @@
     {
       "service": "WEB4 OASIS API",
       "id": "715347fa-f200-4bae-8546-5cfe4db440ca",
-      "status": "QUEUED",
+      "status": "BUILDING",
       "commit": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4"
     },
     {
@@ -30,7 +30,7 @@
     {
       "service": "WEB6 AI API",
       "id": "6d25586c-0d7e-410f-a757-574d32cee3b3",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "commit": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4"
     },
     {
@@ -48,13 +48,13 @@
     {
       "service": "WEB9 SINGULARITIY API",
       "id": "250b4346-6e1f-4646-8ec3-0d92053289b8",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "commit": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4"
     },
     {
       "service": "WEB10 THE SOURCE API",
       "id": "04698af2-32bb-4ea8-8c25-374cfc96d80b",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "commit": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4"
     }
   ],
@@ -90,12 +90,33 @@
       "autoReplication": false,
       "autoLoadBalance": true,
       "scope": "Running container revision and /app/OASIS_DNA.json selected fields only; not app in-memory acknowledgement"
+    },
+    {
+      "service": "WEB6 AI API",
+      "runtimeCommit": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+      "autoFailOver": true,
+      "autoReplication": false,
+      "autoLoadBalance": true,
+      "scope": "Running container revision and startup DNA selected fields only; not app in-memory acknowledgement"
+    },
+    {
+      "service": "WEB9 SINGULARITIY API",
+      "runtimeCommit": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+      "autoFailOver": true,
+      "autoReplication": false,
+      "autoLoadBalance": true,
+      "scope": "Running container revision and startup DNA selected fields only; not app in-memory acknowledgement"
+    },
+    {
+      "service": "WEB10 THE SOURCE API",
+      "runtimeCommit": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+      "autoFailOver": true,
+      "autoReplication": false,
+      "autoLoadBalance": true,
+      "scope": "Running container revision and startup DNA selected fields only; not app in-memory acknowledgement"
     }
   ],
   "remainingStartupServices": [
-    "WEB4 OASIS API",
-    "WEB6 AI API",
-    "WEB9 SINGULARITIY API",
-    "WEB10 THE SOURCE API"
+    "WEB4 OASIS API"
   ]
 }
