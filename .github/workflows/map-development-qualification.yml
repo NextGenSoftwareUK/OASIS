@@ -2,6 +2,10 @@ name: Scoped Map Development qualification
 on:
   workflow_dispatch:
     inputs:
+      candidate_scope:
+        type: choice
+        options: [map, hotspot]
+        default: map
       native_check:
         type: boolean
         default: false
@@ -10,6 +14,9 @@ on:
         default: false
   workflow_call:
     inputs:
+      candidate_scope:
+        type: string
+        default: map
       native_check:
         type: boolean
         default: false
@@ -34,6 +41,7 @@ jobs:
           path: qualification-control
           sparse-checkout: |
             Scripts/TestHosts/Fixtures/map-development-candidate.json
+            Scripts/TestHosts/Fixtures/hotspot-development-candidate.json
             Scripts/TestHosts/MapDevelopmentNative
             Scripts/verify_web4_hyperdrive_route_manifest.ps1
             Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1
@@ -43,8 +51,14 @@ jobs:
         id: candidate
         shell: pwsh
         working-directory: qualification-control
+        env:
+          CANDIDATE_SCOPE: ${{ inputs.candidate_scope }}
         run: |
-          $candidate = Get-Content Scripts/TestHosts/Fixtures/map-development-candidate.json -Raw | ConvertFrom-Json
+          if ($env:CANDIDATE_SCOPE -notin @('map','hotspot')) { throw 'Unsupported candidate scope.' }
+          if ($env:CANDIDATE_SCOPE -eq 'hotspot' -and ('${{ inputs.native_check }}' -eq 'true' -or '${{ inputs.inventory_only }}' -eq 'true')) { throw 'Hotspot scope currently supports combined compilation only; no native acceptance may be inferred.' }
+          $file = if ($env:CANDIDATE_SCOPE -eq 'hotspot') { 'Scripts/TestHosts/Fixtures/hotspot-development-candidate.json' } else { 'Scripts/TestHosts/Fixtures/map-development-candidate.json' }
+          $candidate = Get-Content $file -Raw | ConvertFrom-Json
+          "file=$file" >> $env:GITHUB_OUTPUT
           if ('${{ inputs.inventory_only }}' -eq 'true' -and '${{ inputs.native_check }}' -eq 'true') { throw 'Inventory-only mode must not run native fixtures.' }
           foreach ($key in @('candidate','base')) {
             if ($candidate.$key -notmatch '^[0-9a-f]{40}$') { throw 'An exact candidate/base commit is required.' }
@@ -64,8 +78,9 @@ jobs:
         env:
           CANDIDATE_SHA: ${{ steps.candidate.outputs.candidate }}
           BASE_SHA: ${{ steps.candidate.outputs.base }}
+          CANDIDATE_FILE: ${{ steps.candidate.outputs.file }}
         run: |
-          $candidate = Get-Content ../qualification-control/Scripts/TestHosts/Fixtures/map-development-candidate.json -Raw | ConvertFrom-Json
+          $candidate = Get-Content (Join-Path ../qualification-control $env:CANDIDATE_FILE) -Raw | ConvertFrom-Json
           if ((git rev-parse HEAD) -ne $env:CANDIDATE_SHA) { throw 'Candidate source mismatch.' }
           if ((git rev-parse HEAD^) -ne $env:BASE_SHA) { throw 'Candidate parent mismatch.' }
           $actual = @(git diff --name-only $env:BASE_SHA HEAD)
@@ -110,15 +125,23 @@ jobs:
         if: ${{ !inputs.inventory_only }}
         with:
           dotnet-version: '10.0.x'
-      - name: Compile actual combined Development WEB4 API only
+      - name: Compile selected combined Development APIs
         if: ${{ !inputs.inventory_only }}
         shell: pwsh
+        env:
+          CANDIDATE_FILE: ${{ steps.candidate.outputs.file }}
         run: |
+          $candidate = Get-Content (Join-Path ../qualification-control $env:CANDIDATE_FILE) -Raw | ConvertFrom-Json
+          $projects = if ($candidate.buildProjects) { @($candidate.buildProjects) } else { @('WEB4') }
+          if (@($projects | Where-Object { $_ -notin @('WEB4','WEB5') }).Count) { throw 'Unsupported qualification build target.' }
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner map-development-candidate-ci -Operation {
-            dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
-            if ($LASTEXITCODE) { throw 'Combined Development Map API build failed.' }
+            foreach ($target in $projects) {
+              $project = if ($target -eq 'WEB5') { 'STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj' } else { 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj' }
+              dotnet build $project --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE) { throw "Combined Development $target API build failed." }
+            }
           }
-          Write-Host 'MAP_DEVELOPMENT_COMPILE: actual scoped candidate compiled; no behavior, Unity, deployed or complete-OPORTAL acceptance inferred.'
+          Write-Host 'SCOPED_DEVELOPMENT_COMPILE: selected actual candidate APIs compiled; no behavior, Unity, deployed or complete-OPORTAL acceptance inferred.'
       - name: Generate source inventories for review without runtime changes
         if: ${{ inputs.inventory_only }}
         shell: pwsh

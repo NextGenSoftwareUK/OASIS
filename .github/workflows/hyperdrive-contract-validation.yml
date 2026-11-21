@@ -26,6 +26,11 @@ on:
         description: Generate only the scoped candidate source inventories for review
         type: boolean
         default: false
+      candidate_scope:
+        description: Select the immutable scoped delivery candidate
+        type: choice
+        options: [map, hotspot]
+        default: map
       build_api:
         description: Also build the shipping WEB4 API for a native integration check
         type: boolean
@@ -99,6 +104,7 @@ jobs:
     with:
       native_check: ${{ inputs.map_development_native }}
       inventory_only: ${{ inputs.map_development_inventory }}
+      candidate_scope: ${{ inputs.candidate_scope || 'map' }}
     secrets: inherit
   manifests-and-contracts:
     if: ${{ !inputs.map_development_candidate }}
