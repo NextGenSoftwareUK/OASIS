@@ -55,6 +55,23 @@
   "remaining": [
     "Capture evidence of the actual stalled native join or reproduce it in an isolated retained-state diagnostic",
     "Resolve HoloOASIS startup without discarding state or weakening readiness",
-    "Prevent slow readiness from delaying unrelated providers through a properly qualified lifecycle design"
-  ]
+    "Prevent slow readiness from delaying unrelated providers through a properly qualified lifecycle design",
+    "Intermittence confirmed: previous boot catalogue Holo available, configuration-only reuse-image rollout timed out at network join again; isolate native join without attributing it to load balancing or claiming permanent readiness."
+  ],
+  "postLoadBalancingRollout": {
+    "deployment": "e6f141b7-5a78-450c-8a85-c67ed45b5d2c",
+    "timeoutTimestamp": "2026-11-21T08:56:36.969016544Z",
+    "timeout": true,
+    "networkJoinMentioned": true,
+    "startupCompletedTimestamp": "2026-11-21T08:56:40.062165233Z",
+    "startupReaders": 105,
+    "startupVerified": 100,
+    "startupElapsedMilliseconds": 131530,
+    "autoLoadBalanceStartupDna": true,
+    "holoFixed": false,
+    "loadBalancingCausalAttribution": false,
+    "manualRestartForDiagnosis": false,
+    "dataQueries": 0,
+    "dataWrites": 0
+  }
 }
