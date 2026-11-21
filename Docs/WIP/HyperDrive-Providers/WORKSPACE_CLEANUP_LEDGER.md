@@ -2469,3 +2469,5 @@ New browser44940180748 live handle: existing ephemeral CI only; nativeDB/tempDNA
 Broader Portal status headers refreshed preserving original bytes/history. Source-only docs; no runtime/build/install/download/env/database/browser/output/worktree added locally. Current CI44940180748 at native/browser step, cleanup pending. C free43,849,097,216bytes; no local owned generated outputs from this work.
 
 Geo browser44940180748 compile failure: host never executed, so no host DB/tempDNA or browser process created. Always cleanup confirmed owned Mongo container and geo-browser-owned runtime/cache absent. Logs inspected RAM only. Missing import source fixed, no local runtime/install/download/build/output/env/worktree.
+
+Corrected browser44941055967 live; same owned CI cleanup scope, no local runtime/env/install/build/download/browser/database/output/worktree. No shared Atlas/PIPER/source-DNA/worker changes; previous runtime/cache/container cleanup verified.
