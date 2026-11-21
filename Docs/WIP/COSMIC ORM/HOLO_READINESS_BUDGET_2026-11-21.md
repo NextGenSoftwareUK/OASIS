@@ -31,3 +31,5 @@ The existing COSMIC feature integrated Development ancestry in2c2298c02b82e61416
 Combined image/package/live readiness remain pending. Compilation/native behavior acceptance from prior source is retained without rerunning unrelated accepted cohorts.
 
 Read-only Railway preflight: saved Development WEB4 load balancing=true; active peer46ca1820 BUILDING, fcb6e088 QUEUED, last successful606e1a52. Preserve peer rollouts. No new rollout while active ones remain. These are deployment/saved-config observations, not loaded in-memory Holo cell readiness.
+
+Original91423bce image44946308915/job136974290676 terminalSUCCESS, digest sha256:10ffc6fe0487678b25b8f52e43e4151705831244cbaf37ccb9883f3f0ce1438e. Retain remote artifact as superseded-base provenance; no separate package run or deployment. Current combined7c5f0a16 image44946907870/job136977414701 confirmed queued. Native range44947147551/job136976863629 is in progress at its selected test step with isolated Mongo started; not yet accepted.

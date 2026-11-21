@@ -8325,3 +8325,5 @@ Owned Chrome stopped; marker/path and process absence verified before normal rec
 21 November — Current240-second handoff retains original91423 image and integrated7c5f candidate; necessary until delivery evidence. No local image/build/install/download/worktree or owned DB. Thin index absent after each scoped operation. Last C-drive free42259226624bytes; no claim that unrelated space changes are ours.
 
 21 November — Native range qualification44947147551 executes owned isolated databases/outputs only on CI; local installs/builds/artifacts0. Retain its eventual compact artifact evidence, remove no shared user data. Railway preflight read only; no local files produced apart from necessary scoped source/index, removed by publisher.
+
+21 November — Prior timeout image terminalSUCCESS preserved remotely only; no local image or log archive downloaded. Combined image queued, native isolated CI databases active and their owned cleanup must run before result acceptance. Compact active journal updated; no additional local environment/output.
