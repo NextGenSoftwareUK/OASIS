@@ -184,10 +184,11 @@ try
         }
         var data = new HolonManager(provider, dna, ProviderManager.Instance);
         var missionId = Guid.NewGuid(); var chapterId = Guid.NewGuid();
-        var mission = new Mission { Id = missionId, Name = "Owned catalogue mission", Description = "Native mission detail",
-            STARNETDNA = new STARNETDNA { Id = missionId, CreatedByAvatarId = actor, Version = "1.0.0", VersionSequence = 1 } };
-        var chapter = new Chapter { Id = chapterId, Name = "Owned catalogue chapter", Description = "Native chapter detail",
+        var chapter = new Chapter { Id = chapterId, Name = "Owned catalogue chapter", Description = "Native chapter detail", ChapterDisplayName = "Act",
             STARNETDNA = new STARNETDNA { Id = chapterId, CreatedByAvatarId = actor, Version = "1.0.0", VersionSequence = 1 } };
+        var mission = new Mission { Id = missionId, Name = "Owned catalogue mission", Description = "Native mission detail",
+            Chapters = new List<Chapter> { chapter },
+            STARNETDNA = new STARNETDNA { Id = missionId, CreatedByAvatarId = actor, Version = "1.0.0", VersionSequence = 1 } };
         foreach (var holon in new NextGenSoftware.OASIS.API.Core.Interfaces.IHolon[] { mission, chapter })
         {
             holon.MetaData["STARNETHolonId"] = holon.Id.ToString();
@@ -199,11 +200,15 @@ try
         var savedChapter = await data.SaveHolonAsync<Chapter>(chapter, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);
         Require(!savedChapter.IsError && savedChapter.IsSaved, "Owned chapter persistence failed: " + savedChapter.Message);
         var storedMission = await data.LoadHolonAsync<Mission>(missionId, loadChildren: false, providerType: ProviderType.MongoDBOASIS);
-        Require(!storedMission.IsError && storedMission.Result != null && storedMission.Result.Name == mission.Name,
+        Require(!storedMission.IsError && storedMission.Result != null && storedMission.Result.Name == mission.Name &&
+            storedMission.Result.Chapters.Count == 1 && storedMission.Result.Chapters[0].Id == chapterId &&
+            storedMission.Result.Chapters[0].ChapterDisplayName == "Act",
             "Owned typed mission readback failed: " + storedMission.Message + "; " +
             storedMission.Exception?.GetBaseException().GetType().FullName + ": " + storedMission.Exception?.GetBaseException().Message);
         var storedChapter = await data.LoadHolonAsync<Chapter>(chapterId, loadChildren: false, providerType: ProviderType.MongoDBOASIS);
-        Require(!storedChapter.IsError && storedChapter.Result != null && storedChapter.Result.Name == chapter.Name,
+        Require(!storedChapter.IsError && storedChapter.Result != null && storedChapter.Result.Name == chapter.Name &&
+            storedChapter.Result.ChapterDisplayName == "Act" && storedChapter.Result.Status == QuestStatus.NotStarted &&
+            storedChapter.Result.StatusDisplay == "Act 0/0",
             "Owned typed chapter readback failed: " + storedChapter.Message + "; " +
             storedChapter.Exception?.GetBaseException().GetType().FullName + ": " + storedChapter.Exception?.GetBaseException().Message);
         foreach (var item in new[] { (kind: "missions", id: missionId, name: mission.Name), (kind: "chapters", id: chapterId, name: chapter.Name) })
@@ -220,6 +225,13 @@ try
             Require(detail.RootElement.GetProperty("result").GetProperty("id").GetGuid() == item.id &&
                 detail.RootElement.GetProperty("result").GetProperty("name").GetString() == item.name,
                 "Native detail identity/typed name was not preserved: " + item.kind);
+            if (item.kind == "missions")
+                Require(detail.RootElement.GetProperty("result").GetProperty("chapters").GetArrayLength() == 1 &&
+                    detail.RootElement.GetProperty("result").GetProperty("chapters")[0].GetProperty("id").GetGuid() == chapterId,
+                    "Real mission detail lost its persisted chapter collection.");
+            else
+                Require(detail.RootElement.GetProperty("result").GetProperty("statusDisplay").GetString() == "Act 0/0",
+                    "Real chapter detail lost its persisted display name.");
             using var absent = await http.GetAsync("/api/" + item.kind + "/" + Guid.NewGuid());
             using var missing = JsonDocument.Parse(await absent.Content.ReadAsStringAsync());
             Require(missing.RootElement.GetProperty("isError").GetBoolean(), "Missing native detail became generated success: " + item.kind);

@@ -1,3 +1,5 @@
+2026-11-21 readback44947727586 terminal failure: remote owned Mongo DB, exact tempDNA and container absence verified from logs. Browser setup skipped; no laptop build/runtime/env/database/download/archive/result created. Root-fix source and compact failure evidence retained, no blocked-cleanup bypass.
+
 2026-11-21 package-pin reconciliation: fetched exact required Git source commits/tags only; no worktree/checkout switch, runtime/install/build/database/browser/image/archive created locally. Compact tracked source proof retained. Compile-only44948349449 selects no DB/browser fixture; existing44947727586 owned remote DB/DNA/container cleanup remains pending terminal result. No historical blocked-deletion bypass.
 
 2026-11-21 diagnostic44946592926: owned remote DB/tempDNA/container absence verified; browser setup skipped. Owned broad git source search processes stopped by exact command-line match; no local runtime/build/database/download/result environment created. Necessary Git source objects retained; no deletion bypass or unrelated process stop. C free43484790784B observed.

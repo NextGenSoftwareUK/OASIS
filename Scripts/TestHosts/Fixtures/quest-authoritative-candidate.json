@@ -1,9 +1,9 @@
 {
   "scope": "quest",
-  "status": "mission-chapter-source-awaiting-real-outcome-qualification",
-  "base": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
-  "candidate": "2fdd74ec79d2f8b5da2c9fe197456a4c06c6c6e7",
-  "tag": "qualification/catalogue-truth-2026-11-21-2fdd74ec",
+  "status": "persisted-collection-root-fix-awaiting-real-qualification",
+  "base": "f8bee8a4c8ca5a5598759aa4aeb409b45292f86a",
+  "candidate": "81c0a0dabbcaf0b5741e8efaeb93ccb968a2059d",
+  "tag": "qualification/catalogue-hydration-2026-11-21-81c0a0da",
   "buildProjects": [
     "WEB5"
   ],
@@ -11,12 +11,13 @@
   "nativeMode": "catalogue",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.Core",
     "STAR ODK"
   ],
   "star": {
-    "base": "6774caf10a4d37cba5575e497c0a0499f118b6d0",
-    "candidate": "f1aa884d90123afea87d4daec39afff4e022339b",
-    "scope": "Accepted quest changes plus mission/chapter generated-success removal and awaited boot.",
+    "base": "1de76d2d5b1428ac3c645139823757224a1e2ca3",
+    "candidate": "82d929588fcdf3b6bd02a26874484a942fab3d7e",
+    "scope": "Exact quest/mission/chapter real-outcome controllers composed with qualified hotspot and new PackagesController; both histories preserved.",
     "previousCandidate": "78eabe52e5e474c21367959cecfcb900709db169"
   },
   "preserved": "Qualified hotspot/Map/current CQL/Core13, all other pins and settings",
@@ -38,7 +39,13 @@
   ],
   "previousCandidate": "25c4d178b8ba955d948465a7be7dd92617cdb06c",
   "qualification": {
-    "status": "prepared-not-dispatched",
-    "mode": "mission/chapter real outcomes only"
+    "status": "root-fix-prepared-not-dispatched",
+    "mode": "catalogue",
+    "scope": "Previously failed real cohort plus nonempty typed mission chapter readback and canonical chapter status/display."
+  },
+  "onode": {
+    "base": "1fe579cf5e385b4a6ecce12934a7dd7578c2340c",
+    "candidate": "8aadefa35c927b314a581ecc672f8df13f7216ea",
+    "scope": "Concrete JSON-backed Mission.Chapters with explicit existing IMission adapter; Chapter display text no longer hides persisted status, custom display name persisted."
   }
 }

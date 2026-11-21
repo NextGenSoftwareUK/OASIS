@@ -1,6 +1,6 @@
 {
-  "status": "compiled-first-real-catalogue-read-failed-not-deployed",
-  "source": "f1aa884d90123afea87d4daec39afff4e022339b",
+  "status": "persistence-root-fix-prepared-not-compiled-not-deployed",
+  "source": "82d929588fcdf3b6bd02a26874484a942fab3d7e",
   "base": "a11d88bc09d90c318551df4fc0d90871e92c638b",
   "tag": "qualification/catalogue-truth-2026-11-21-f1aa884d",
   "files": [
@@ -27,22 +27,20 @@
     "chapterDeletions": 27
   },
   "rootCandidate": {
-    "candidate": "2fdd74ec79d2f8b5da2c9fe197456a4c06c6c6e7",
-    "base": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
-    "tree": "cc18a4849f3b6b21a33e2f1f7265f3d12e667d44",
-    "tag": "qualification/catalogue-truth-2026-11-21-2fdd74ec",
+    "candidate": "81c0a0dabbcaf0b5741e8efaeb93ccb968a2059d",
+    "base": "f8bee8a4c8ca5a5598759aa4aeb409b45292f86a",
+    "tree": "b47feb163b24b1639c8e2889837f95204ebebd92",
+    "tag": "qualification/catalogue-hydration-2026-11-21-81c0a0da",
     "allowedPaths": [
       "Docker/oasis-dependency-versions.env",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.Core",
       "STAR ODK"
     ]
   },
   "qualification": {
-    "status": "queued",
+    "status": "root-fix-prepared-not-dispatched",
     "mode": "catalogue",
-    "sourceUnchanged": true,
-    "change": "Verify acknowledged native mission/chapter saves through real typed point readback; include underlying native exception type/message on failure.",
-    "run": 44947727586,
-    "control": "bddf5fa6025777b628b39c31c6ae0f4b9cfd337f"
+    "scope": "Same previously failed native/HTTP catalogue cohort with nonempty mission chapter readback, persisted display name and canonical status; no accepted geo/quest replay."
   },
   "failedAttempts": [
     {
@@ -79,6 +77,35 @@
         "Exact temporary DNA absence verified",
         "Owned Mongo container absence verified"
       ]
+    },
+    {
+      "status": "completed",
+      "mode": "catalogue",
+      "sourceUnchanged": true,
+      "change": "Verify acknowledged native mission/chapter saves through real typed point readback; include underlying native exception type/message on failure.",
+      "run": 44947727586,
+      "control": "bddf5fa6025777b628b39c31c6ae0f4b9cfd337f",
+      "job": 136978633193,
+      "conclusion": "failure",
+      "hostBuildErrors": 0,
+      "hostBuildElapsed": "00:04:51.53",
+      "failure": "Native typed mission readback: System.ArgumentException: Could not cast or convert from System.String to IList<IChapter>.",
+      "cleanup": [
+        "Owned Mongo database absence verified",
+        "Exact temporary DNA absence verified",
+        "Owned Mongo container absence verified"
+      ]
     }
-  ]
+  ],
+  "previousSource": "f1aa884d90123afea87d4daec39afff4e022339b",
+  "onodeModelFix": {
+    "source": "8aadefa35c927b314a581ecc672f8df13f7216ea",
+    "parent": "1fe579cf5e385b4a6ecce12934a7dd7578c2340c",
+    "files": [
+      "Holons/STARNET/Quest System/Mission.cs",
+      "Holons/STARNET/Quest System/Chapter.cs"
+    ],
+    "invariant": "Declared concrete JSON-backed persisted chapter collection reconstructs actual chapters; one persisted status owner per chapter; display name persists.",
+    "scope": "Existing explicit IMission adapter preserved; JSON array/metadata key Chapters retained; no alternate readers or generated success."
+  }
 }
