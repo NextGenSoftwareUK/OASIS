@@ -87,5 +87,21 @@
     "manifestBlob": "919543e08a5e7ef1cf641820f14de8c8d3bfbb2d",
     "scope": "four paths onf549; current-source inventory retained in candidate Git tree, original task-branch manifest preserved",
     "status": "uncompiled"
+  },
+  "compileQualification": {
+    "run": 44961406639,
+    "job": 137020800599,
+    "control": "c1cbcf96bc2caa7dbd5948aa4581b5526421a764",
+    "candidate": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
+    "status": "pending"
+  },
+  "browserPreparation": {
+    "status": "two fixture files prepared; native host integration not yet implemented or executed",
+    "portal": "c26436b2f652266da8830acb41c03d2f2910fbb1",
+    "scope": "actual SDK/component; leaderboard zero score, refresh, real rank/league, loaded tournament counter, one join and fresh catalogue, close/reopen/logout",
+    "expectedRequests": 7,
+    "expectedWrites": 1,
+    "syntax": "node --check passed",
+    "remaining": "integrate real owned Mongo seed/native readback and workflow selector after compile; no fabricated responses"
   }
 }

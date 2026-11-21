@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Owned Competition popup verification</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/dashboard.css">
+<link rel="stylesheet" href="/assets/css/modals-new.css">
+<link rel="stylesheet" href="/assets/css/oasis-advanced-modals.css">
+<link rel="stylesheet" href="/assets/css/oasis-portal-extra.css">
+<link rel="stylesheet" href="/assets/css/oasis-portal-extra2.css"></head><body>
+<button id="fixture-open-competition" onclick="window.openCompetitionModal()">Competition</button>
+<div class="modal js-modal"></div>
+<script src="/assets/js/oasis-web5-sdk.js"></script><script>
+window.user=JSON.parse(localStorage.getItem('avatar'));
+window.starClient=new window.STARClient({baseUrl:location.origin,persistSession:false});
+var bearer=sessionStorage.getItem('ownedCatalogueBearer');
+window.starClient.setToken(bearer,{avatarId:window.user.id});
+sessionStorage.removeItem('ownedCatalogueBearer');bearer=null;
+window.jwtReadyPromise=Promise.resolve();
+</script>
+<script src="/assets/js/competition-modal.js"></script>
+<script>
+Promise.all(['competition'].map(async function(route){
+var response=await fetch('/assets/components/modals/'+route+'.html');
+if(!response.ok)throw new Error('Actual Competition fragment missing: '+route);
+var host=document.createElement('div');host.innerHTML=await response.text();
+document.querySelector('.js-modal').appendChild(host);
+window.dispatchEvent(new CustomEvent('portal-modal-ready',{detail:{route:route}}));
+})).then(function(){window.__competitionReady=true;});
+</script></body></html>
