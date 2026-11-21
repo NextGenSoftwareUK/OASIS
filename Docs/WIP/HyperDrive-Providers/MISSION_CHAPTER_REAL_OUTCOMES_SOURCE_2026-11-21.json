@@ -1,8 +1,8 @@
 {
   "status": "source-prepared-not-compiled-not-deployed",
-  "source": "fa80613f72620c768520a7abc453dad3498a0293",
-  "base": "78eabe52e5e474c21367959cecfcb900709db169",
-  "tag": "qualification/catalogue-truth-2026-11-21-fa80613f",
+  "source": "f1aa884d90123afea87d4daec39afff4e022339b",
+  "base": "a11d88bc09d90c318551df4fc0d90871e92c638b",
+  "tag": "qualification/catalogue-truth-2026-11-21-f1aa884d",
   "files": [
     "MissionsController.cs",
     "ChaptersController.cs"
@@ -12,11 +12,18 @@
     "chapters": 4
   },
   "boot": "One awaited non-action filter per controller; prior action-level waits removed",
-  "requiredBeforeUse": "Recompose these two exact controller files onto corrected questa11 source; fa806 inherits failed quest78 and must not be deployed",
+  "requiredBeforeUse": "Actual compile and representative real mission/chapter outcome acceptance; no deployment/source readiness claim.",
   "remaining": [
-    "Corrected-quest source composition",
     "Actual compile",
     "Representative real mission/chapter outcomes",
     "Scoped delivery"
-  ]
+  ],
+  "supersededSource": "fa80613f72620c768520a7abc453dad3498a0293",
+  "diff": {
+    "files": 2,
+    "missionAdditions": 17,
+    "missionDeletions": 127,
+    "chapterAdditions": 17,
+    "chapterDeletions": 27
+  }
 }

@@ -2,8 +2,8 @@
   "status": "source-prepared-not-compiled-not-deployed",
   "repository": "NextGenSoftwareUK/STAR-ODK",
   "base": "6774caf10a4d37cba5575e497c0a0499f118b6d0",
-  "candidate": "78eabe52e5e474c21367959cecfcb900709db169",
-  "tag": "qualification/quest-authoritative-2026-11-21-78eabe52",
+  "candidate": "a11d88bc09d90c318551df4fc0d90871e92c638b",
+  "tag": "qualification/quest-authoritative-2026-11-21-a11d88bc",
   "file": "NextGenSoftware.OASIS.STAR.WebAPI/Controllers/QuestsController.Quest.cs",
   "diff": {
     "files": 1,
@@ -30,15 +30,31 @@
   },
   "rootCandidate": {
     "base": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
-    "candidate": "25c4d178b8ba955d948465a7be7dd92617cdb06c",
-    "tree": "d54490fd04b004b5846399e0f3b2847520d94b9b",
-    "tag": "qualification/quest-authoritative-2026-11-21-25c4d178",
-    "changedPaths": [
-      "STAR ODK",
-      "Docker/oasis-dependency-versions.env"
-    ],
-    "status": "source-prepared-dedicated-qualification-scope-wired",
+    "candidate": "ff71e005312c9d6eb965ebdcd18d140a1d127881",
+    "tree": "27d9f663545147be492191a7208b36da70230532",
+    "tag": "qualification/quest-authoritative-2026-11-21-ff71e005",
+    "status": "corrected-source-qualification-in-progress",
     "nativeMode": "quest-empty"
   },
-  "preparedVerification": "Separate real boot/JWT/MVC empty catalogue and four avatar/status endpoint reads; no hotspot/binding/browser cohort replay selected."
+  "preparedVerification": "Separate real boot/JWT/MVC empty catalogue and four avatar/status endpoint reads; no hotspot/binding/browser cohort replay selected.",
+  "supersededSource": "78eabe52e5e474c21367959cecfcb900709db169",
+  "qualification": {
+    "run": 44944060273,
+    "control": "30ce34df598663de3b1db7a2794a6152895b346a",
+    "status": "in_progress",
+    "mode": "quest-empty only"
+  },
+  "failedAttempt": {
+    "run": 44943023703,
+    "control": "39d1238a87bb12cdaded4f31edf6a2eb16e706da",
+    "status": "completed",
+    "mode": "real native quest-empty only",
+    "job": 136964180359,
+    "conclusion": "failure",
+    "stage": "shipping WEB5 compilation",
+    "buildElapsed": "00:03:59.42",
+    "error": "Orphaned else in quest status read after alternate-query removal",
+    "runtimeCases": 0,
+    "containerCleanup": "verified"
+  }
 }

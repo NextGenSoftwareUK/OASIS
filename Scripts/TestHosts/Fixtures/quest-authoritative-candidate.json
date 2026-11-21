@@ -1,6 +1,6 @@
 {
   "scope": "quest",
-  "status": "corrected-shipping-source-retry-pending",
+  "status": "corrected-quest-source-qualification-in-progress",
   "base": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
   "candidate": "ff71e005312c9d6eb965ebdcd18d140a1d127881",
   "tag": "qualification/quest-authoritative-2026-11-21-ff71e005",
@@ -36,5 +36,11 @@
       "containerCleanup": "verified"
     }
   ],
-  "previousCandidate": "25c4d178b8ba955d948465a7be7dd92617cdb06c"
+  "previousCandidate": "25c4d178b8ba955d948465a7be7dd92617cdb06c",
+  "qualification": {
+    "run": 44944060273,
+    "control": "30ce34df598663de3b1db7a2794a6152895b346a",
+    "status": "in_progress",
+    "mode": "quest-empty only"
+  }
 }
