@@ -31,6 +31,9 @@ Links: [full handoff](../COSMIC%20ORM/CLOUD_HANDOFF_2026-11-18.md), [official Cl
 
 ### WEB4 COSMIC demo preview access · 13 November
 
+21 November: preview static access works via existing scoped OIDC; credentialed preview auth preflight returns wildcard/no credentials. Approved public WEB4 origin permits credentials. Bounded candidate browser test there established and revoked one demo session; later test failed to establish its session. SQL journey and auth diagnostic are agent-owned, not a new request for David to sign in or change protection/CORS. Free-model configuration remains a separate existing owner action.
+
+
 20 November: protected preview access resolved using existing Vercel CLI scoped OIDC (HTTP200), no login/protection/configuration change. Controlled browser rendered sandbox tabs, backend requests blocked. Full SQL/Ask browser journey remains engineering work; Free-model configuration remains the existing separate owner action.
 
 

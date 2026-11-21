@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "scope": "Candidate preview assets at approved public WEB4 origin; not public website publication acceptance",
+  "origin": "https://web4.oasisomniverse.one",
+  "preview": "https://web4-site-kpgpby09s-oasis-team.vercel.app",
+  "development": "67e58b16872f1e7009d0652fc4156e963954bd84",
+  "attempts": [
+    {
+      "outcome": "SQL response deadline",
+      "demoSessionEstablished": true,
+      "demoSessionRevoked": true,
+      "providerDiscoveryCalls": 1,
+      "applicationDataRequests": 0,
+      "ownedBrowserStopped": true,
+      "harnessFinding": "Waited on unmanaged SQL button instead of query/discovery readiness; no production button defect established."
+    },
+    {
+      "outcome": "Page.navigate deadline",
+      "demoSessionRequested": false,
+      "applicationDataRequests": 0,
+      "ownedBrowserStopped": true,
+      "harnessFinding": "Navigation and page-load waits now observed together; bounded navigation deadline exceeds individual asset transfer deadline."
+    },
+    {
+      "outcome": "Demo session not established",
+      "demoSessionRequested": true,
+      "demoSessionEstablished": false,
+      "serverSessionCreationConfirmed": false,
+      "revocationConfirmed": false,
+      "applicationDataRequests": 0,
+      "ownedBrowserStopped": true,
+      "harnessFinding": "Auth response status/error-code observation added; no further auth retry this turn."
+    }
+  ],
+  "runtimeInstalls": 0,
+  "newWorktrees": 0,
+  "configurationWrites": 0,
+  "publicWebsitePublicationVerified": false,
+  "sqlEditorApiJourneyVerified": false,
+  "fullBrowserDataFlowVerified": false,
+  "profileCleanupPending": "C:/Source/OASIS2/LocalState/COSMIC/RecoveryLaptopHostedBrowserCurrent",
+  "piperDataChanged": false
+}
