@@ -42,11 +42,6 @@ on:
         required: true
         type: boolean
         default: true
-      mcp_server:
-        description: Release MCP Server to GitHub, NuGet, and npm
-        required: true
-        type: boolean
-        default: true
       optional_components:
         description: 'Optional comma-separated releases: our_world,odoom,oquake,oide,onode_manager,hyperdrive_client'
         required: true
@@ -111,10 +106,6 @@ on:
         description: "Release OASIS Native Endpoint"
         type: boolean
         default: true
-      mcp_server:
-        description: "Release MCP Server to GitHub, NuGet, and npm"
-        type: boolean
-        default: true
       optional_components:
         description: "Optional comma-separated releases: our_world,odoom,oquake,oide,onode_manager,hyperdrive_client"
         type: string
@@ -151,7 +142,6 @@ jobs:
       edge_unity_nuget_version: ${{ steps.versions.outputs.edge_unity_nuget_version }}
       ogengine_version: ${{ steps.versions.outputs.ogengine_version }}
       native_version: ${{ steps.versions.outputs.native_version }}
-      mcp_version: ${{ steps.versions.outputs.mcp_version }}
       our_world_version: ${{ steps.versions.outputs.our_world_version }}
       odoom_version: ${{ steps.versions.outputs.odoom_version }}
       oquake_version: ${{ steps.versions.outputs.oquake_version }}
@@ -210,7 +200,7 @@ jobs:
           -EdgeUnity $${{ inputs.ogengine_client }}
           -OGEngineClient $${{ inputs.ogengine_client }}
           -NativeEndpoint $${{ inputs.native_endpoint }}
-          -MCPServer $${{ inputs.mcp_server }}
+          -MCPServer $false
           -OurWorld $${{ contains(inputs.optional_components, 'our_world') }}
           -ODOOM $${{ contains(inputs.optional_components, 'odoom') }}
           -OQUAKE $${{ contains(inputs.optional_components, 'oquake') }}
@@ -264,7 +254,6 @@ jobs:
           "edge_unity_nuget_version=$($plan.releaseVersions.edgeUnityNuget)" >> $env:GITHUB_OUTPUT
           "ogengine_version=$($plan.releaseVersions.ogEngineClient)" >> $env:GITHUB_OUTPUT
           "native_version=$($plan.releaseVersions.nativeEndpoint)" >> $env:GITHUB_OUTPUT
-          "mcp_version=$($plan.releaseVersions.mcpServer)" >> $env:GITHUB_OUTPUT
           "our_world_version=$($plan.releaseVersions.ourWorld)" >> $env:GITHUB_OUTPUT
           "odoom_version=$($plan.releaseVersions.odoom)" >> $env:GITHUB_OUTPUT
           "oquake_version=$($plan.releaseVersions.oquake)" >> $env:GITHUB_OUTPUT
@@ -283,7 +272,6 @@ jobs:
           if ('${{ inputs.edge_runtime }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component EdgeRuntime -Version $plan.releaseVersions.edgeRuntime -OutputPath artifacts/global-release/release-notes/edge-runtime.md }
           if ('${{ inputs.ogengine_client }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component OGEngineClient -Version $plan.releaseVersions.ogEngineClient -OutputPath artifacts/global-release/release-notes/ogengine-client.md }
           if ('${{ inputs.native_endpoint }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component NativeEndpoint -Version $plan.releaseVersions.nativeEndpoint -OutputPath artifacts/global-release/release-notes/native-endpoint.md }
-          if ('${{ inputs.mcp_server }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component MCPServer -Version $plan.releaseVersions.mcpServer -OutputPath artifacts/global-release/release-notes/mcp-server.md }
           if ('${{ contains(inputs.optional_components, 'our_world') }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component OurWorld -Version $plan.releaseVersions.ourWorld -OutputPath artifacts/global-release/release-notes/our-world.md }
           if ('${{ contains(inputs.optional_components, 'odoom') }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component ODOOM -Version $plan.releaseVersions.odoom -OutputPath artifacts/global-release/release-notes/odoom.md }
           if ('${{ contains(inputs.optional_components, 'oquake') }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component OQUAKE -Version $plan.releaseVersions.oquake -OutputPath artifacts/global-release/release-notes/oquake.md }
@@ -730,20 +718,6 @@ jobs:
     with:
       version: ${{ needs.plan.outputs.star_version }}
     secrets: inherit
-
-  mcp:
-    if: inputs.mcp_server
-    needs: plan
-    permissions:
-      contents: write
-      id-token: write
-    uses: ./.github/workflows/publish-mcp.yml
-    with:
-      version: ${{ needs.plan.outputs.mcp_version }}
-      publish: ${{ inputs.publish }}
-    secrets:
-      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
-      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
 
   optional-established-release-workflows:
     if: inputs.publish && (contains(inputs.optional_components, 'oide') || contains(inputs.optional_components, 'hyperdrive_client'))

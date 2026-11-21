@@ -3,7 +3,7 @@
     <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
     <PackageId>NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge</PackageId>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Description>Lightweight Holochain 0.7 domain replication target for OASIS Edge Runtime.</Description>
+    <Description>Lightweight Holochain 0.7 domain replication target for OASIS Edge Runtime, built on HoloNET (NextGenSoftware.Holochain.HoloNET.Client).</Description>
     <Version>1.0.0</Version>
     <Authors>David Ellams (NextGen Software Ltd)</Authors>
     <PackageTags>OASIS;Holochain;Edge;HyperDrive;Unity</PackageTags>

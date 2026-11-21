@@ -2,6 +2,10 @@
 
 Lightweight Holochain 0.7 domain replication target for OASIS Edge Runtime.
 
+## Built on HoloNET
+
+This provider uses HoloNET, the .NET and Unity client for Holochain, through [NextGenSoftware.Holochain.HoloNET.Client](https://www.nuget.org/packages/NextGenSoftware.Holochain.HoloNET.Client) ([HoloNET documentation](https://holonet.oasisomniverse.one/)). It is the optional Holochain 0.7 replication target for OASIS Edge Runtime; it does not bundle a Holochain conductor.
+
 ## Installation
 
 ```sh

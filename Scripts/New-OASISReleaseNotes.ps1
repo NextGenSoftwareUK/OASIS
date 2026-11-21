@@ -7,7 +7,9 @@ param(
     [ValidatePattern('^\d+\.\d+\.\d+$')]
     [string]$Version,
     [Parameter(Mandatory)]
-    [string]$OutputPath
+    [string]$OutputPath,
+    # Releases with nothing changed are refused unless this is set deliberately.
+    [switch]$AllowNoChanges
 )
 
 $ErrorActionPreference = 'Stop'
@@ -42,7 +44,7 @@ $definitions = @{
     EdgeRuntime = @{
         Title = 'OASIS Edge Runtime'; Prefixes = @('OASIS-Edge-Runtime-v')
         Paths = @('OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime', 'OASIS Architecture/NextGenSoftware.OASIS.Edge.ONET.Runtime', 'OASIS Architecture/NextGenSoftware.OASIS.HyperDrive.Synchronization', 'OASIS Architecture/NextGenSoftware.OASIS.ONET', 'Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge', 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS', 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge', 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity', 'OASIS Omniverse/OGEngineClient/Edge')
-        Intro = 'Standalone OASIS Edge Runtime contains compiled runtime, ONET and Edge Native Endpoint libraries with platform-native SQLite dependencies. It requires a compatible .NET host and does not include the Unity integration distribution.'
+        Intro = 'Standalone OASIS Edge Runtime contains compiled runtime, ONET and Edge Native Endpoint libraries with platform-native SQLite dependencies. It requires a compatible .NET host and does not include the Unity integration distribution. Optional Holochain 0.7 replication comes from HoloOASIS.Edge, which is built on HoloNET (NextGenSoftware.Holochain.HoloNET.Client, https://www.nuget.org/packages/NextGenSoftware.Holochain.HoloNET.Client); the runtime itself does not bundle a Holochain conductor.'
     }
     EdgeUnity = @{
         Title = 'OGEngineClient + Edge + Unity'; Prefixes = @('OASIS-Edge-Unity-v')
@@ -160,6 +162,9 @@ if ($commits.Count -eq 0) {
         [void]$builder.AppendLine('- Supports local stdio clients and the WEB6 HTTP/SSE MCP transport, with IDE configuration and a complete command catalog.')
     }
     else {
+        if ($previous.Count -gt 0 -and -not $AllowNoChanges) {
+            throw "$Component has no component changes since $($previous[0].Tag); refusing to publish an empty release. Deselect this component, or pass -AllowNoChanges only if a republication is genuinely intended."
+        }
         [void]$builder.AppendLine('- No component-path commits were found after the previous release tag; this release republishes the validated component from the coordinated source graph.')
     }
     [void]$builder.AppendLine()
