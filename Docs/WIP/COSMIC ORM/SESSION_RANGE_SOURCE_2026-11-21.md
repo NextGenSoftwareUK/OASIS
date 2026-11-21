@@ -7,3 +7,5 @@ One call accepts at most 10,000 roots. Enumeration runs under the session operat
 Source published only. The focused strict-provider contract test, compilation and representative native save qualification remain pending. No full framework parity credit or live acceptance. The frozen snapshot demo image remains pinned to Core13bd050 and excludes this unqualified SDK increment.
 
 Cleanup: no local build, runtime, database, container or downloaded artifact; the scoped temporary Git index is removed by the publisher. Existing active demo handoff journals retained.
+
+Qualification uses the existing session-entry workflow with the new range contract plus the three entry compatibility checks, because both now share the refactored registration owner. Actual WEB4 compilation follows in the same bounded CI build lease. No local build or shared Atlas operation.

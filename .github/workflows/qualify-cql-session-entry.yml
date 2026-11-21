@@ -1,10 +1,11 @@
-name: Qualify single session entry inspection
+name: Qualify session entry and range registration
 
 on:
   push:
     branches: [work/cosmic-cql-ton-public]
     paths:
       - "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicSessionEntryTests.cs"
+      - "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicSessionRegistrationTests.cs"
       - ".github/workflows/qualify-cql-session-entry.yml"
   workflow_dispatch:
 
@@ -44,15 +45,15 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
-      - name: Verify new unfiltered mapping ownership and bounded compiler
+      - name: Verify session registration and entry compatibility
         working-directory: OASIS
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-session-entry-ci -Operation {
-            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicSessionEntryTests' --results-directory TestResults/SessionEntry --logger 'trx;LogFileName=entry.trx'
-            if ($LASTEXITCODE) { throw 'New unfiltered mapping tests failed' }
+            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicSessionEntryTests|FullyQualifiedName~CosmicSessionRegistrationTests' --results-directory TestResults/SessionEntry --logger 'trx;LogFileName=entry.trx'
+            if ($LASTEXITCODE) { throw 'Session registration contract failed' }
             [xml]$report = Get-Content TestResults/SessionEntry/entry.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '3' -or $report.TestRun.ResultSummary.Counters.total -ne '3') { throw 'All three new entry checks must pass' }
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '4' -or $report.TestRun.ResultSummary.Counters.total -ne '4') { throw 'All four session checks must pass' }
             dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI /m:2 /nr:false /p:UseSharedCompilation=false
             if ($LASTEXITCODE) { throw 'Actual WEB4 composition failed to compile' }
           }
