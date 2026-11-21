@@ -94,8 +94,9 @@
   "noCheckoutSwitch": true,
   "excluded": "Unaccepted quest/mission/chapter changes",
   "qualification": {
-    "status": "refreshed-composition-not-dispatched",
-    "scope": "Actual WEB4+WEB5 compile only; accepted native/HTTP/browser cohorts excluded"
+    "status": "source-retained-combined-popup-build-planned",
+    "scope": "One combined current-publishing/catalogue/model/popup API build will verify refreshed source; no separate redundant309eed compile or accepted behavior replay.",
+    "combinedCandidate": "489cee90879f6b3bdafcc7f4a14b3c9dfcb0a7c0"
   },
   "pairedPinCheckRef": "passed",
   "refPublication": "First POST connection ended prematurely; subsequent GET confirmed tag absent, then one create returned exact SHA. Initial dependent fetch missed tag; later exact-source check-ref completed successfully. No tag moved or duplicate run dispatched."

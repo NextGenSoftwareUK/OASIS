@@ -1,22 +1,22 @@
 {
   "scope": "quest",
-  "status": "persisted-collection-root-fix-awaiting-real-qualification",
-  "base": "f8bee8a4c8ca5a5598759aa4aeb409b45292f86a",
-  "candidate": "f069e9976fb7604c2f3ca73f7a30775876023a1d",
-  "tag": "qualification/catalogue-hydration-2026-11-21-f069e997",
+  "status": "combined-popup-source-prepared-awaiting-native-gate",
+  "base": "17f2f1e83577961d21cb0c458dc2412b918d4cad",
+  "candidate": "489cee90879f6b3bdafcc7f4a14b3c9dfcb0a7c0",
+  "tag": "qualification/catalogue-popup-2026-11-21-489cee90",
   "buildProjects": [
     "WEB5"
   ],
   "nativeHost": "HotspotHttpNative",
-  "nativeMode": "catalogue",
+  "nativeMode": "catalogue-browser",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.Core",
     "STAR ODK"
   ],
   "star": {
-    "base": "1de76d2d5b1428ac3c645139823757224a1e2ca3",
-    "candidate": "82d929588fcdf3b6bd02a26874484a942fab3d7e",
+    "base": "ead6c9cab83c0144c64cf3bfa22f94733a0aeaf5",
+    "candidate": "d97be575f4ee7ca3861c67709f6a6b3d4b002ddf",
     "scope": "Exact quest/mission/chapter real-outcome controllers composed with qualified hotspot and new PackagesController; both histories preserved.",
     "previousCandidate": "78eabe52e5e474c21367959cecfcb900709db169"
   },
@@ -39,14 +39,22 @@
   ],
   "previousCandidate": "25c4d178b8ba955d948465a7be7dd92617cdb06c",
   "qualification": {
-    "status": "root-fix-prepared-not-dispatched",
-    "mode": "catalogue",
-    "scope": "Previously failed real cohort plus nonempty typed mission chapter readback and canonical chapter status/display."
+    "status": "prepared-not-dispatched-awaiting-native44949649529",
+    "mode": "catalogue-browser",
+    "scope": "First populated Quests/Missions popup flow; no native catalogue/empty quest/geo acceptance cohort replay."
   },
   "onode": {
-    "base": "1fe579cf5e385b4a6ecce12934a7dd7578c2340c",
-    "candidate": "a1ca35c72470811a73d3e0bd0b5beebffd1e033c",
+    "base": "51e0f880c59584cf9007e8bb89f4a7f6425c1a4f",
+    "candidate": "004b5adc5ddb6875e8e6e12336d2a0f1d23f46cc",
     "scope": "Concrete JSON-backed Mission.Chapters with a live IList<IChapter> view preserving existing IMission mutations; canonical Chapter status and persisted display name."
   },
-  "supersededUnrunCandidate": "81c0a0dabbcaf0b5741e8efaeb93ccb968a2059d"
+  "supersededUnrunCandidate": "81c0a0dabbcaf0b5741e8efaeb93ccb968a2059d",
+  "previousNativeCandidate": {
+    "candidate": "f069e9976fb7604c2f3ca73f7a30775876023a1d",
+    "mode": "catalogue",
+    "run": 44949649529,
+    "control": "55d97420c6d8601e743bd846ba7eb40a1cf27ac5",
+    "status": "in_progress"
+  },
+  "portal": "efe4e9652a18595eae4077893b9475a2d59c8486"
 }

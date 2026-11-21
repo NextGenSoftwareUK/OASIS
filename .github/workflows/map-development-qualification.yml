@@ -48,6 +48,8 @@ jobs:
             Scripts/TestHosts/HotspotHttpNative
             Scripts/TestHosts/Fixtures/geo-assets-browser-host.html
             Scripts/TestHosts/Fixtures/geo-assets-browser-native-http.cjs
+            Scripts/TestHosts/Fixtures/catalogue-browser-host.html
+            Scripts/TestHosts/Fixtures/catalogue-browser-native-http.cjs
             Scripts/TestHosts/Fixtures/profile-browser-runtime.json
             Scripts/verify_web4_hyperdrive_route_manifest.ps1
             Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1
@@ -66,7 +68,7 @@ jobs:
           $file = $files[$env:CANDIDATE_SCOPE]
           $candidate = Get-Content $file -Raw | ConvertFrom-Json
           "file=$file" >> $env:GITHUB_OUTPUT
-          $browser = '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -eq 'browser'
+          $browser = '${{ inputs.native_check }}' -eq 'true' -and ($candidate.nativeMode -in @('browser','catalogue-browser'))
           "browser=$($browser.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
           if ($browser) {
             if ($candidate.portal -notmatch '^[0-9a-f]{40}$') { throw 'Exact Portal revision required.' }
@@ -261,7 +263,11 @@ jobs:
           if ($hostName -notin @('MapDevelopmentNative','HotspotDevelopmentNative','HotspotHttpNative')) { throw 'Unsupported native qualification host.' }
           if ($hostName -eq 'HotspotHttpNative') {
             $env:OASIS_HOTSPOT_HTTP_MODE = if ($candidate.nativeMode) { $candidate.nativeMode } else { 'binding' }
-            if ($env:OASIS_HOTSPOT_HTTP_MODE -notin @('binding','populated','browser','quest-empty','catalogue')) { throw 'Unsupported hotspot HTTP check mode.' }
+            if ($env:OASIS_HOTSPOT_HTTP_MODE -notin @('binding','populated','browser','quest-empty','catalogue','catalogue-browser')) { throw 'Unsupported hotspot HTTP check mode.' }
+            if ($env:OASIS_HOTSPOT_HTTP_MODE -eq 'catalogue-browser') {
+              $env:OASIS_GEO_BROWSER_HOST = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/catalogue-browser-host.html).Path
+              $env:OASIS_GEO_BROWSER_SCRIPT = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/catalogue-browser-native-http.cjs).Path
+            }
           }
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner map-development-native-ci -Operation {
             dotnet build "../qualification-control/Scripts/TestHosts/$hostName/$hostName.csproj" --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false "/p:OASISCandidateRoot=$((Get-Location).Path)"

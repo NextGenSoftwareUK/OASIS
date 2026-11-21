@@ -38,12 +38,13 @@
     ]
   },
   "qualification": {
-    "status": "pending",
+    "status": "in_progress",
     "mode": "catalogue",
     "scope": "Previously failed native/HTTP catalogue cohort; add one real chapter through existing IMission interface, verify native concrete collection/display/status and HTTP detail. No unchanged accepted cohorts.",
     "run": 44949649529,
     "control": "55d97420c6d8601e743bd846ba7eb40a1cf27ac5",
-    "sourceChecks": "Exact two ONODE model files, three unchanged real-outcome controller blobs, preserved package/qualified Map composition, direct parent and exact three root paths; check-ref paired-pin gate passed."
+    "sourceChecks": "Exact two ONODE model files, three unchanged real-outcome controller blobs, preserved package/qualified Map composition, direct parent and exact three root paths; check-ref paired-pin gate passed.",
+    "job": 136984535198
   },
   "failedAttempts": [
     {
@@ -117,10 +118,18 @@
   "supersededUnrunRoot": "81c0a0dabbcaf0b5741e8efaeb93ccb968a2059d",
   "additionalParent": "f1aa884d90123afea87d4daec39afff4e022339b",
   "preparedPopupBrowser": {
-    "status": "source-prepared-syntax-checked-not-executed-not-selected",
+    "status": "host-and-workflow-wired-not-built-not-executed-not-dispatched",
     "host": "Scripts/TestHosts/Fixtures/catalogue-browser-host.html",
     "browser": "Scripts/TestHosts/Fixtures/catalogue-browser-native-http.cjs",
     "scope": "Actual Portal WEB5 SDK, Quests and Missions fragments/scripts; owned native populated my/all/search/refresh/details and logout clear; exactly eight GETs and zero browser mutations; no response replacement.",
-    "remaining": "Connect owned runtime seed/mode after current native catalogue source acceptance, then run only this new popup flow. Full Startup/SSO/hosted/all-site excluded."
+    "remaining": "Wait for native44949649529, then execute first popup flow on combined current source. No separate redundant restoration compile planned for this same combined build.",
+    "candidate": "489cee90879f6b3bdafcc7f4a14b3c9dfcb0a7c0",
+    "base": "17f2f1e83577961d21cb0c458dc2412b918d4cad",
+    "tree": "ac40b7700028ccc968b572cf44a0081890fc164a",
+    "tag": "qualification/catalogue-popup-2026-11-21-489cee90",
+    "onode": "004b5adc5ddb6875e8e6e12336d2a0f1d23f46cc",
+    "star": "d97be575f4ee7ca3861c67709f6a6b3d4b002ddf",
+    "portal": "efe4e9652a18595eae4077893b9475a2d59c8486",
+    "sourceChecks": "Clean object-only merges; exact two model and three controller blobs match pending native source, preserving current publishing and qualified mapping; paired-pin check-ref passed."
   }
 }
