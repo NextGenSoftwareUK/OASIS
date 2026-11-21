@@ -1,5 +1,5 @@
 {
-  "status": "populated-http-browser-in-progress",
+  "status": "geo-browser-host-import-fixed-retry-pending",
   "compileRun": 44939192959,
   "controlSource": "2244959386762043ddaaf87b08ff4b8c25fdfee2",
   "scope": "hotspot",
@@ -140,6 +140,13 @@
     "control": "76df2433922cc6946fe3374cbc2dee971ee47e55",
     "candidate": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
     "portal": "5171fc690c1c234e3e7eebee980937c902f271fd",
-    "status": "in_progress"
+    "status": "completed",
+    "conclusion": "failure",
+    "job": 136955446230,
+    "stage": "host compilation",
+    "error": "CS0103 missing Core namespace import for OASISRequestContext",
+    "elapsed": "00:07:14.17",
+    "browserCases": 0,
+    "cleanup": "Owned container and browser runtime/cache absence verified; host never ran"
   }
 }

@@ -2467,3 +2467,5 @@ Refreshed compile44939192959 success, zero database/browser fixtures/artifacts s
 New browser44940180748 live handle: existing ephemeral CI only; nativeDB/tempDNA/container plus exact owned browser-runtime/npm-cache cleanup wired. No local install/build/download/runtime/browser/database/output/worktree. Outcome pending.
 
 Broader Portal status headers refreshed preserving original bytes/history. Source-only docs; no runtime/build/install/download/env/database/browser/output/worktree added locally. Current CI44940180748 at native/browser step, cleanup pending. C free43,849,097,216bytes; no local owned generated outputs from this work.
+
+Geo browser44940180748 compile failure: host never executed, so no host DB/tempDNA or browser process created. Always cleanup confirmed owned Mongo container and geo-browser-owned runtime/cache absent. Logs inspected RAM only. Missing import source fixed, no local runtime/install/download/build/output/env/worktree.
