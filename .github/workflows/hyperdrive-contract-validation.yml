@@ -221,6 +221,8 @@ jobs:
             /assets/img/loggedin.png
             /assets/js/avatar-modal.js
             /assets/js/portal-components.js
+            /assets/js/karma-ledger-modal.js
+            /assets/js/activity-feed-modal.js
             /assets/js/clan-modal.js
             /assets/js/messaging-modal.js
             /assets/js/files-modal.js
