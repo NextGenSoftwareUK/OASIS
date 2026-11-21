@@ -1,6 +1,6 @@
 {
   "date": "2026-11-20",
-  "status": "source/syntax/actual WEB5 compile accepted; browser/native/full Startup open",
+  "status": "native graph and HTTP outcomes accepted on current composition; browser and legacy release gates open",
   "portalCommit": "5dc95653c4b6e69e8e2a71c29b1cf1d8e55fc825",
   "starCommit": "2222ae783ce085992c03360e383ceea1108a2de4",
   "publishedFilesVerifiedExact": 5,
@@ -31,8 +31,8 @@
     "importedOrDeployed": false
   },
   "remaining": [
-    "Manager metadata and relationship semantics acceptance",
-    "Actual browser/SDK/native list, search, refresh and detail journeys",
+    "Actual browser/SDK catalogue, search, refresh, explicit detail and logout acceptance",
+    "Legacy mission metadata/role-manifest compatibility before deployment",
     "Full Startup/SSO/hosted and whole-site acceptance"
   ],
   "summary": "2026-11-20 MISSIONS BREADTH SOURCE/SYNTAX WIRED: Portal5dc95653c4b6e69e8e2a71c29b1cf1d8e55fc825/STAR2222ae783ce085992c03360e383ceea1108a2de4; five published files byte-exact verified. My/catalogue/search use actual SDK HTTP routes with awaited captured current bearer, latest-request/session ownership, true empty states and real errors/warnings. Canonical missionType/rewardXP/rewardKarma/status/progress fields preserve zeros; Refresh and readonly mission/objective/requirement/reward details are wired. Returned linked quest/chapter records show actual names/IDs without claiming full lazy relation loading. Empty search invalidates late replies; close/logout clear private display state. Mission API removes16generated demo branches, gives27real actions one awaited initialization filter instead of6scattered waits, guards6read actions against null success and preserves warning/error metadata in filtered projections. Existing node syntax passed final12577character script with no popup code executed or generated files. Parent STAR gitlink and dependency manifest paired; Core/ONODE and manager931/766, WEB4route800/690 scopes unchanged. Development04bc1c586fb00cebfebb01f8cd7841d352aa63d9 rechecked unchanged; CQL isolation preserved, no blind pin import or deployment. Actual WEB5 compile, manager metadata/relationship semantics, browser/SDK/native journeys, full Startup/SSO/hosted and whole OPORTAL remain OPEN. Quests accepted syntax/API compile retained without repeat; no business/native/browser case selected. No shared backend/API/DNA/worker/LB/deployment/protected-delivery action or laptop build/download/env/DB/results/artifact/extra worktree. Functional breadth first; goal active/incomplete.",
@@ -60,5 +60,24 @@
     "scope": "Owned native/HTTP catalogue qualification stopped at compound typed readback fields; no popup/browser acceptance.",
     "required": "Canonical chapter graph contract and explicit detail versus shallow list semantics",
     "evidence": "MISSION_CHAPTER_REAL_OUTCOMES_SOURCE_2026-11-21.json"
+  },
+  "currentAcceptance": {
+    "date": "2026-11-21",
+    "run": 44958582750,
+    "job": 137012099399,
+    "candidate": "5d050dd659b35dbfe56eb11fcf6c86bc4d26c830",
+    "portal": "2472bf56b0d104c93626d3bba7fe29b16323712c",
+    "buildErrors": 0,
+    "buildElapsed": "00:04:48.46",
+    "proof": "CATALOGUE_HTTP_PROOF",
+    "scope": [
+      "one acknowledged real Mongo mission/chapter/physical-child graph save",
+      "shallow catalogue and avatar reads",
+      "explicit typed child details",
+      "missing-record errors"
+    ],
+    "cleanup": "owned database, temporary DNA and container absence verified",
+    "browserRun": 44959193440,
+    "browserStatus": "in-progress-not-accepted"
   }
 }
