@@ -21,8 +21,7 @@ foreach ($case in $cases) {
 }
 $declared = @(Get-ModeAwareManagerMembers "private readonly AvatarManager _manager;`nprivate AvatarManager Manager => _manager;`nprivate string Label => value;")
 if ($declared.Count -ne 2 -or 'Manager' -notin $declared -or '_manager' -notin $declared) { throw 'Typed manager declaration extraction failed.' }
-foreach ($body in @('return Manager.CreateProfileRequestContextAsync(id);','return _manager.ApplyAvatarProfileAsync(id, mutation);')) {
-    if ((Get-Disposition $body 'Profile' 'ExampleController' @() $declared) -ne 'DirectModeAwareManagerBoundary') { throw 'Declared manager alias was classified as local.' }
-}
+if ((Get-Disposition 'return Manager.CreateProfileRequestContextAsync(id);' 'Profile' 'ExampleController' @() $declared) -ne 'DirectModeAwareManagerBoundary') { throw 'Declared manager property was classified as local.' }
+if ((Get-Disposition 'return _manager.ApplyAvatarProfileAsync(id, mutation);' 'Profile' 'ExampleController' @() $declared) -ne 'CoveredFeatureManagerDelegation') { throw 'Existing manager-field classification changed.' }
 if ((Get-Disposition 'return Manager.Options();' 'Options' 'ExampleController') -ne 'LocalOrNonStorageEndpoint') { throw 'Undeclared member name acquired a storage classification.' }
 Write-Host 'Shipping route classifier passed existing six cases plus typed manager alias extraction and positive/negative checks; no runtime calls.'

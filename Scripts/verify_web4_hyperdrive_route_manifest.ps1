@@ -29,11 +29,6 @@ function Get-ModeAwareManagerMembers([string]$source) {
 }
 
 function Get-Disposition([string]$body, [string]$methodName, [string]$controllerName, [string[]]$injectedMembers = @(), [string[]]$modeAwareMembers = @()) {
-    foreach ($member in $modeAwareMembers) {
-        if ($body -match ('(?<![A-Za-z0-9_])' + [regex]::Escape($member) + '\s*\.')) {
-            return 'DirectModeAwareManagerBoundary'
-        }
-    }
     # Route actions use the lazily acquired Data manager and the owned batch-write boundary.
     if ($controllerName -eq 'MapRoutesController') { return 'DirectModeAwareManagerBoundary' }
     if ($controllerName -in @('HyperDriveController', 'HyperDriveSyncController', 'ProviderController')) {
@@ -50,6 +45,11 @@ function Get-Disposition([string]$body, [string]$methodName, [string]$controller
     }
     if ($body -match '\b[A-Za-z_][A-Za-z0-9_]*Manager(?:Base)?\b') {
         return 'CoveredFeatureManagerDelegation'
+    }
+    foreach ($member in $modeAwareMembers) {
+        if ($body -match ('(?<![A-Za-z0-9_])' + [regex]::Escape($member) + '\s*\.')) {
+            return 'DirectModeAwareManagerBoundary'
+        }
     }
     if ($body -match '\[FromServices\]' -or $body -match '\b_[a-zA-Z0-9_]*(?:Service|Repository|Client)\b') {
         return 'InjectedServiceRepositoryOrClient'
