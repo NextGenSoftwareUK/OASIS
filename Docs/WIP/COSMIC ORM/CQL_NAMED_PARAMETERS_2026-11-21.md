@@ -17,3 +17,9 @@ Parameters become individual literal tokens during lexing, not interpolated SQL 
 Focused RAM-only Node qualification:3passed/0failed;55existing Ask cases excluded by name filter. Actual compiler request equivalence exercised MongoDB/SQLite/Neo4j selections for quoted adversarial text, exactInt64 and Decimal, plus missing/lossy/accessor refusals and editor JSON preview/malformed-JSON refusal. Production JS syntax parsed. No local test output/files/archive/environment, native database or live API call. This is source/compiler/UI-controller acceptance, not rendered browser, hosted native or production publication acceptance.
 
 No backend deployment change is required for the emitted existing typed requests. Current public production site and reviewed older preview remain unchanged; new source needs the existing authorized preview/publication workflow and changed-flow browser verification. Full SQL/EF/NHibernate/provider parity remains open.
+
+## Review-only ready-provider example
+
+Website7632ab2566ca90cc2f290a10104f10f4d285673d adds Load parameter example. It uses the explicitly selected ready MongoDB/SQLite/Neo4j source, fills a bounded Id/Name/Version query with Version>=@minimum and IsActive=@active, and fills JSON minimum1/activetrue. It does not fetch, compile or execute until the visitor chooses Preview/Run. Other/unavailable providers produce an explicit message and leave the existing editor unchanged.
+
+One new actual-controller/compiler check passed;56existing Ask cases excluded. It verifies selected Neo provider, exact JSON values, review-only load, successful bound preview, unsupported-provider refusal preserving the editor, zero WEB6 calls. Previous three parameter controls retained without replay. Browser/live/publication acceptance remains open.
