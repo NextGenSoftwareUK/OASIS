@@ -37,10 +37,12 @@
     ]
   },
   "qualification": {
-    "status": "diagnostic-retry-prepared",
+    "status": "queued",
     "mode": "catalogue",
     "sourceUnchanged": true,
-    "change": "Include exact owned API status/message at failed read; same assertions and source."
+    "change": "Include exact owned API status/message at failed read; same assertions and source.",
+    "run": 44946592926,
+    "control": "0612c03c4ccd65a26ea515d659ff859a044a70c3"
   },
   "failedAttempts": [
     {
