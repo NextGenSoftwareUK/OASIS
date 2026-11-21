@@ -1,7 +1,7 @@
 {
   "source": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
   "previous": "6b5713f7d02379a6bd1769c13981d22682ee7b0d",
-  "status": "source-integrated-seven-dev-rollouts-pending",
+  "status": "three-dev-services-success-four-pending",
   "push": "Normal hooked fast-forward; remote Development exact source verified",
   "changedPaths": [
     "Docker/oasis-dependency-versions.env",
@@ -24,37 +24,37 @@
     {
       "service": "WEB5 STAR API",
       "id": "93b2094d-efc5-4cf1-8b46-29e126367f4b",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "commit": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4"
     },
     {
       "service": "WEB6 AI API",
       "id": "6d25586c-0d7e-410f-a757-574d32cee3b3",
-      "status": "QUEUED",
+      "status": "BUILDING",
       "commit": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4"
     },
     {
       "service": "WEB7 SYMBIOTIC API",
       "id": "b8ae4c87-b2bb-4584-81fc-059f15a24b87",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "commit": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4"
     },
     {
       "service": "WEB8 IGN API",
       "id": "b8ebb112-514e-4e4e-a6f3-317c8c1bbfad",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "commit": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4"
     },
     {
       "service": "WEB9 SINGULARITIY API",
       "id": "250b4346-6e1f-4646-8ec3-0d92053289b8",
-      "status": "QUEUED",
+      "status": "BUILDING",
       "commit": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4"
     },
     {
       "service": "WEB10 THE SOURCE API",
       "id": "04698af2-32bb-4ea8-8c25-374cfc96d80b",
-      "status": "QUEUED",
+      "status": "BUILDING",
       "commit": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4"
     }
   ],
