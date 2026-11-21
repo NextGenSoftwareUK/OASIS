@@ -22,8 +22,16 @@
     "container": "absence-verified"
   },
   "remaining": [
-    "actual Portal catalogue browser flow",
     "legacy metadata/manifest compatibility before deployment",
     "full hosted/SSO acceptance"
-  ]
+  ],
+  "browserAcceptance": {
+    "run": 44960991377,
+    "job": 137019532730,
+    "conclusion": "success",
+    "portal": "2472bf56b0d104c93626d3bba7fe29b16323712c",
+    "requests": 10,
+    "browserMutations": 0,
+    "cleanup": "all owned scopes absent"
+  }
 }
