@@ -1,3 +1,8 @@
+21 November — COMBINED SNAPSHOT/HOTSPOT CANDIDATE2d114754 / COMPILE-ONLY RUNNING.
+Feature merge86310a09 preserves shared Development606e1a52 ancestry and exact ONODE9c8b8478/STAR6774caf1 while retaining Core13bd/snapshot runtime. Official sync/ref validation passed. Immutable candidate2d114754f7faf4690b16ce1fa8a27077c522845b/tagcosmic-cql-snapshot-2d114754f7fa directly on606e changes only the same7snapshot runtime/pin paths. Whole WEB4 API and all3shipping provider directory trees match composition source86310a09; peer ONODE/STAR match606e exactly. No broader source sweep.
+
+Composition compile44943435624 on86310a09 is in_progress, actualWEB4+WEB5,0behavior tests/DB fixtures. Accepted Core2/native3/old package proof retained, not replayed. No new image until composition acceptance. Old5a/digestffa456/package44942744524 is explicitly superseded and never deployed, preserved in prior-candidate history. Current candidate fields no longer refer to old image/package. No Development/settings/live data/PIPER/staging/production action, local build/env/database/image/download. Full goal incomplete.
+
 21 November — SHARED HOTSPOT DEVELOPMENT ADVANCE PRESERVED / COMPOSITION ONLY GATE.
 Snapshot5a45 image/package passed exactly, but peer Development advanced6b5713f7 to606e1a52 while packaging finished. Its only3paths are ONODE9c8b8478/STAR6774caf1 gitlinks and matching manifest. Do NOT deploy old5a image over that work. Existing feature integrates peer lineage/pins with Core13bd retained and manifest synchronized. Snapshot/Core/native3 runtime bytes remain unchanged; accepted behavior cohorts will NOT rerun.
 

@@ -40,12 +40,12 @@
     "exactEntry": "snapshot.trx",
     "filesWritten": 0
   },
-  "deliveryCandidate": "5a45f00493526a86b5c8bdd2eb68bc07a1c42c4d",
-  "deliveryTag": "cosmic-cql-snapshot-5a45f0049352",
-  "deliveryBaseDevelopment": "6b5713f7d02379a6bd1769c13981d22682ee7b0d",
+  "deliveryCandidate": "2d114754f7faf4690b16ce1fa8a27077c522845b",
+  "deliveryTag": "cosmic-cql-snapshot-2d114754f7fa",
+  "deliveryBaseDevelopment": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
   "deliveryChangedPaths": 7,
   "deliveryApiDirectoryExact": true,
-  "imageDispatched": true,
+  "imageDispatched": false,
   "nativeInitialFailure": {
     "run": 44939785488,
     "job": 136954233377,
@@ -85,19 +85,28 @@
       }
     }
   },
-  "imageRun": 44941886532,
-  "imageObservedStatus": "completed",
-  "imageConclusion": "success",
-  "imageDigest": "sha256:ffa4565b1a54525a1ee5592512961ce35c3d1feaeccc6c28b7fbf6e6cb7a4547",
-  "packageRun": 44942744524,
-  "packageObservedStatus": "completed",
-  "packageAccepted": true,
-  "deliverySuperseded": true,
+  "packageAccepted": false,
+  "deliverySuperseded": false,
   "compositionPeerDevelopment": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
   "compositionCompilePending": true,
-  "packageArtifact": {
-    "id": 14722003029,
-    "bytes": 781,
-    "sha256": "139b948e559acbb84f271d45bba043514b09e4adbfdf9e4aad1f04aa94030f8e"
-  }
+  "priorDeliveryCandidates": [
+    {
+      "source": "5a45f00493526a86b5c8bdd2eb68bc07a1c42c4d",
+      "imageRun": 44941886532,
+      "digest": "sha256:ffa4565b1a54525a1ee5592512961ce35c3d1feaeccc6c28b7fbf6e6cb7a4547",
+      "packageRun": 44942744524,
+      "packageArtifact": {
+        "id": 14722003029,
+        "bytes": 781,
+        "sha256": "139b948e559acbb84f271d45bba043514b09e4adbfdf9e4aad1f04aa94030f8e"
+      },
+      "supersededByDevelopment": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+      "deploymentAllowed": false
+    }
+  ],
+  "compositionSource": "86310a0918dc428f4d557c129cc6dc185f0150bc",
+  "compositionRun": 44943435624,
+  "compositionObservedStatus": "in_progress",
+  "compositionCompiled": false,
+  "compositionBehaviorCasesRun": 0
 }
