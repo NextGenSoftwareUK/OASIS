@@ -35,6 +35,7 @@ public partial class Neo4jOASIS
             }
             await EnsureOutboxTargetOrderingIndexAsync(session).ConfigureAwait(false);
             await EnsureMigrationFenceSchemaAsync(session).ConfigureAwait(false);
+            await EnsureProfileIdentitySchemaAsync(session).ConfigureAwait(false);
         }
         catch (ClientException cause)
         {
