@@ -1,0 +1,24 @@
+{
+  "status": "compile-accepted-not-deployed",
+  "run": 44885520700,
+  "job": 136789850263,
+  "controlSource": "d03d665b7a5ba7e9c4afc6249098d8fd3de04db4",
+  "candidate": "591f14f63227ce62a3c3f855198b3df91c53adf0",
+  "parent": "1bb737b84ab9e103ebfee169d6773845c1ceda85",
+  "verified": [
+    "Exact candidate HEAD and parent",
+    "Exactly five intended root paths changed",
+    "Manifest and gitlinks paired; dependency validator passed",
+    "Actual combined Development WEB4 API build"
+  ],
+  "errors": 0,
+  "elapsed": "00:05:11.32",
+  "behaviorCasesExecuted": 0,
+  "fixturesStarted": 0,
+  "otherJob": { "id": 136789851249, "status": "skipped" },
+  "postJobCleanup": "passed",
+  "excluded": ["Native/HTTP/browser/Unity behavior", "Inventories", "Deployment", "Whole OPORTAL/provider/HyperDrive acceptance"],
+  "localGeneratedOutputs": 0,
+  "sharedBackendOperations": 0,
+  "descriptor": "Scripts/TestHosts/Fixtures/map-development-candidate.json"
+}
