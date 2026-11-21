@@ -60,6 +60,10 @@ def main():
             raise RuntimeError("Original pending outcome or request cap prevents another call.")
         if journal["calls"]:
             time.sleep(1)
+        if path in {"data/save-holon", "data/delete-holon"}:
+            body = {**body, "providerType": "MongoDBOASIS", "setGlobally": False,
+                    "autoReplicationMode": "OFF", "autoFailOverMode": "OFF",
+                    "autoLoadBalanceMode": "OFF", "showDetailedSettings": False}
         key = (body or {}).get("operationId") or str(uuid.uuid4())
         journal["pending"] = {"path": path, "method": method, "operationId": key,
                               "mutation": mutation}
@@ -97,6 +101,21 @@ def main():
         journal["pending"] = None
         write()
         return value, cookies
+
+    sql = ("SELECT Id, CAST(MetaData.name AS STRING) AS CustomerName FROM MongoDBOASIS "
+           "WITH VIRTUAL MAPPING '" + mapping_id + "' ORDER BY Id LIMIT 10")
+    compiler = subprocess.check_output(["git", "show", WEBSITE + ":cql-text.js"],
+                                      cwd=ROOT.parent / "Web4Site")
+    program = ("const vm=require('node:vm');const s={module:{exports:{}}};"
+        "vm.runInNewContext(" + json.dumps(compiler.decode()) + ",s);"
+        "process.stdout.write(JSON.stringify(s.module.exports.compile(" + json.dumps(sql) + ")));")
+    compiled = subprocess.run([r"C:/Program Files/nodejs/node.exe", "-"],
+        input=program, text=True, capture_output=True, check=True)
+    query = json.loads(compiled.stdout)
+    if (query["path"] != "data/query-cql/projection/mixed"
+            or query["body"]["virtualMappingId"] != mapping_id
+            or query["body"].get("filters") != []):
+        raise RuntimeError("The exact SQL compiler did not emit the intended bounded unfiltered mapping.")
 
     issued, cookies = call("sandbox/session", body={}, mutation=True)
     avatar = issued["result"]
@@ -136,20 +155,6 @@ def main():
     journal["mappingRevision"] = revision
     journal["mappingSaved"] = True
     write()
-    sql = ("SELECT Id, CAST(MetaData.name AS STRING) AS CustomerName FROM MongoDBOASIS "
-           "WITH VIRTUAL MAPPING '" + mapping_id + "' ORDER BY Id LIMIT 10")
-    compiler = subprocess.check_output(["git", "show", WEBSITE + ":cql-text.js"],
-                                      cwd=ROOT.parent / "Web4Site")
-    program = ("const vm=require('node:vm');const s={module:{exports:{}}};"
-        "vm.runInNewContext(" + json.dumps(compiler.decode()) + ",s);"
-        "process.stdout.write(JSON.stringify(s.module.exports.compile(" + json.dumps(sql) + ")));")
-    compiled = subprocess.run([r"C:/Program Files/nodejs/node.exe", "-"],
-        input=program, text=True, capture_output=True, check=True)
-    query = json.loads(compiled.stdout)
-    if (query["path"] != "data/query-cql/projection/mixed"
-            or query["body"]["virtualMappingId"] != mapping_id
-            or query["body"].get("filters") != []):
-        raise RuntimeError("The exact SQL compiler did not emit the intended bounded unfiltered mapping.")
     result, _ = call(query["path"], body=query["body"])
     payload = result["result"]
     rows = payload.get("rows")
