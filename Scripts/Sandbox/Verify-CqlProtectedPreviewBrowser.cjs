@@ -262,6 +262,11 @@ async function event(message) {
     const response = await send('Network.getResponseBody', { requestId: p.requestId }, message.sessionId);
     const payload = JSON.parse(response.base64Encoded ? Buffer.from(response.body, 'base64').toString('utf8') : response.body);
     if (!Array.isArray(payload.result)) throw new Error('Unexpected provider catalogue contract.');
+    const holo = payload.result.find(row => row.provider === 'HoloOASIS');
+    if (holo) report.holoDiscovery = { provider: holo.provider, available: holo.available,
+      queryOnly: holo.queryOnly, federationAvailable: holo.federationAvailable,
+      activationGeneration: holo.activationGeneration,
+      diagnosticCodes: Object.values(holo).filter(value => typeof value === 'string' && /^CQL_[A-Z0-9_]{1,100}$/.test(value)) };
     const neo = payload.result.find(row => row.provider === 'Neo4jOASIS');
     if (neo) neoDiscovery = { provider: neo.provider, available: neo.available,
       queryOnly: neo.queryOnly, federationAvailable: neo.federationAvailable,
