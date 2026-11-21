@@ -79,7 +79,10 @@
     "change": "Populate existing tournament counter from validated loaded catalogue; no extra HTTP request",
     "validation": "existing Node syntax check and diff check passed",
     "runtimeAcceptance": "pending actual Competition browser flow",
-    "catalogueBrowserPin": "Unchanged2472; running Quests/Missions test excludes Competition change"
+    "catalogueBrowserPin": "Unchanged2472; running Quests/Missions test excludes Competition change",
+    "status": "reverted redundant change; original renderer already populated count",
+    "restoredCommit": "185f8bed4013b5be7ddc7837a348d1b3a85b0de8",
+    "originalAssumption": "incorrect: original line70 already updated tournament count"
   },
   "reviewedCandidate": {
     "candidate": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
@@ -127,5 +130,16 @@
     "error": "page.waitForFunction timeout; exact stage not emitted by first host",
     "cleanup": "database/temporaryDNA/container/browser runtime/cache absence verified",
     "diagnosticChange": "stage+status+request path/method added; no token/body fields, no shipping change or runtime retry yet"
+  },
+  "browserDiagnosticOutcome": {
+    "run": 44963284578,
+    "job": 137026608944,
+    "conclusion": "failure",
+    "buildErrors": 0,
+    "buildElapsed": "00:06:45.92",
+    "stage": "tournament catalogue",
+    "cause": "entries is not defined in redundant added counter assignment",
+    "cleanup": "DB/DNA/container/browser runtime/cache absent",
+    "resolution": "Restore original exact2472 renderer, keep one original counter owner; syntax passed. Original native acceptance remains retained, browser main flow requires same failed-case retry."
   }
 }
