@@ -1,0 +1,52 @@
+{
+  "status": "Task Core history reconciled; combined dependency check pending",
+  "priorCore": "03087911cd9d2a6c3a421014e52555bff8aeb063",
+  "repairedCqlCore": "cd0849607d8739666a0d7dc7f0f236a623935e01",
+  "qualifiedCqlCore": "01d10ae033608064e7f6b34fa434e4166073de27",
+  "mergedCore": "a88a9926235434e3cd6bc2a607985cca5d7e6637",
+  "qualification": {
+    "mergedTree": "e18a5ab1a7192d6591ac4bf99103d90832e88b41",
+    "qualifiedTree": "983d9f31e394a3679ca6ce8c6cfee7ea2cdd5308",
+    "matchedSdkFiles": 132,
+    "sourceBytes": 211342,
+    "selected": [
+      "Managers/HolonManager/HolonManager-OwnedBatchDelete.cs",
+      "Managers/HolonManager/HolonManager-OwnedBatchSave.cs",
+      "Managers/HolonManager/HolonManager-OwnedDelete.cs",
+      "Managers/HolonManager/HolonManager-Tracking.cs",
+      "Managers/OASIS HyperDrive/OASISHyperDrive.cs"
+    ],
+    "previousMethods": 932,
+    "methods": 933,
+    "providerBacked": 767,
+    "addedSignatures": [
+      "public async Task<OASISResult<IEnumerable<IHolon>>> DeleteOwnedHolonsAsync( IEnumerable<IHolon> holons,Guid actor,CosmicWriteOptions options,bool softDelete=true, ProviderType providerType=ProviderType.Default,int maximumHolons=10000)",
+      "public Task<OASISResult<IEnumerable<IHolon>>> SaveOwnedHolonsAsync( IEnumerable<IHolon> holons, Guid actor, CosmicWriteOptions options, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, ProviderType providerType = ProviderType.Default, int maximumHolons = 10000, IReadOnlyCollection<Guid> explicitlyUpdatedIds = null)"
+    ],
+    "removedSignatures": [
+      "public Task<OASISResult<IEnumerable<IHolon>>> SaveOwnedHolonsAsync( IEnumerable<IHolon> holons, Guid actor, CosmicWriteOptions options, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, ProviderType providerType = ProviderType.Default, int maximumHolons = 10000)"
+    ],
+    "inventoryMethod": "Canonical scanner on five actual changed source copies; replace only those reviewed rows and preserve other reviewed dispositions."
+  },
+  "scoringUnchangedBlob": "c7c03ecae2f2966de6a5a03a9eec933cf276751f",
+  "delivery": "Existing task branch only; shared Development and Railway unchanged. Scope parent shipping batch and preserve current CQL/release dependencies.",
+  "cleanup": {
+    "ownedSourceCopyPath": "C:\\Source\\OASIS2-hyperdrive\\LocalState\\HyperDrive\\map-core-inventory-a88a9926",
+    "sourceBytes": 211342,
+    "removal": "Automatic approval review rejected combined recursive cleanup and checked individual-file cleanup, both with stated reason blocked by policy. No files removed; agent-owned pending cleanup, no permission override attempted.",
+    "pendingFiles": [
+      "C:\\Source\\OASIS2-hyperdrive\\LocalState\\HyperDrive\\map-core-inventory-a88a9926\\Docs\\WIP\\HyperDrive-Providers\\HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
+      "C:\\Source\\OASIS2-hyperdrive\\LocalState\\HyperDrive\\map-core-inventory-a88a9926\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\Managers\\HolonManager\\HolonManager-OwnedBatchDelete.cs",
+      "C:\\Source\\OASIS2-hyperdrive\\LocalState\\HyperDrive\\map-core-inventory-a88a9926\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\Managers\\HolonManager\\HolonManager-OwnedBatchSave.cs",
+      "C:\\Source\\OASIS2-hyperdrive\\LocalState\\HyperDrive\\map-core-inventory-a88a9926\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\Managers\\HolonManager\\HolonManager-OwnedDelete.cs",
+      "C:\\Source\\OASIS2-hyperdrive\\LocalState\\HyperDrive\\map-core-inventory-a88a9926\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\Managers\\HolonManager\\HolonManager-Tracking.cs",
+      "C:\\Source\\OASIS2-hyperdrive\\LocalState\\HyperDrive\\map-core-inventory-a88a9926\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\Managers\\OASIS HyperDrive\\OASISHyperDrive.cs",
+      "C:\\Source\\OASIS2-hyperdrive\\LocalState\\HyperDrive\\map-core-inventory-a88a9926\\qualification.json",
+      "C:\\Source\\OASIS2-hyperdrive\\LocalState\\HyperDrive\\map-core-inventory-a88a9926\\Scripts\\verify_hyperdrive_provider_io_manifest.ps1"
+    ],
+    "pendingBytes": 227131,
+    "fileCount": 8
+  },
+  "routerReview": "Incoming shared-router diff adds DeleteHolons conditional root-only validation/replication/result handling. Existing Map read/single-save and profile dispatch code retained; competition source blob unchanged. Full merged runtime candidate remains unqualified.",
+  "next": "Compile the combined API graph without repeating accepted standalone Map cases; build and verify a scoped Development delivery candidate before publication."
+}
