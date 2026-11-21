@@ -1,0 +1,13 @@
+{
+  "coreSource": "553182248e0dcbc2b5478ea2f552f85b9a0007c5",
+  "qualificationSource": "ec127ea75a999d6e594267bc1a7e12113f2480cc",
+  "run": 44891869607,
+  "selectedCases": 3,
+  "observedStatus": "queued",
+  "qualified": false,
+  "providerIoAllowed": false,
+  "frozenDemoCore": "13fabae5a78c70b961c300657a875f1cfabe238d",
+  "frozenDemoSource": "6b5713f7d02379a6bd1769c13981d22682ee7b0d",
+  "includedInDemoCandidate": false,
+  "fullParityCredit": false
+}
