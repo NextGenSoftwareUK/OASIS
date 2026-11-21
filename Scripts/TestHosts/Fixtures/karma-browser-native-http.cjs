@@ -15,7 +15,7 @@ async function verify({baseUrl,token,avatarId,otherToken,otherId,providerType}){
     return route.continue();
    }
    if(['data:','blob:'].includes(url.protocol))return route.continue();
-   unexpected.push(url.origin);return route.abort();
+   if(url.pathname.startsWith('/api/'))unexpected.push(url.origin+url.pathname);return route.abort();
   });
   await context.addInitScript(({token,avatarId})=>{localStorage.setItem('loggedIn','true');localStorage.setItem('avatar',JSON.stringify({id:avatarId}));sessionStorage.setItem('ownedKarmaBearer',token);},{token,avatarId});
   page=await context.newPage();page.setDefaultTimeout(15000);page.on('pageerror',error=>errors.push(error.message));

@@ -1,5 +1,5 @@
 {
-  "status": "diagnostic single-case CI running",
+  "status": "sparse checkout root cause fixed in source; new qualification pending",
   "portal": "34c264a9845dfb5437de369e22f7f917cd354eef",
   "shippingChanges": "Karma ledger captures current SDK bearer, pages flattened activity and displays real signed values; activity feed captures bearer.",
   "prepared": [
@@ -33,6 +33,7 @@
     "run": 44854668543,
     "job": 136693945702,
     "parent": "6f8d1b865ca9f276e26aebb141f0c6e8270696a3",
-    "result": "pending"
-  }
+    "result": "API compiled; one32s browser case failed at host ready. Karma scripts and fragments404; no API requests. Owned browser/runtime/cache/control and Mongo cleanup passed."
+  },
+  "rootCause": "CI sparse checkout omitted both Karma scripts and HTML fragments. Exact assets added with pre-build existence validation. External resources remain blocked; unexpected API traffic is reported, matching the established browser fixture contract."
 }

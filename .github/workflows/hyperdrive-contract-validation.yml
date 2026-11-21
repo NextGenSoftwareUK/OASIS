@@ -114,6 +114,8 @@ jobs:
             /assets/js/social-graph-modal.js
             /assets/js/eggs-modal.js
             /assets/js/competition-modal.js
+            /assets/js/karma-ledger-modal.js
+            /assets/js/activity-feed-modal.js
             /assets/js/clan-modal.js
             /assets/js/inventory-modal.js
 
@@ -204,6 +206,8 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /assets/components/dashboard.html
+            /assets/components/modals/karma-ledger.html
+            /assets/components/modals/activity-feed.html
             /assets/components/modals/clan.html
             /assets/components/modals/messaging.html
             /assets/components/modals/files.html
@@ -231,6 +235,15 @@ jobs:
             /assets/js/oasis-web4-sdk.js
             /docs/WIP/PROFILE_BROWSER_BUNDLE_EVIDENCE.json
             /portal.html
+
+      - name: Verify exact Karma browser input assets
+        if: ${{ contains(inputs.native_test_filter, 'KarmaPopupsUseActualSdkHttpAndOwnedMongo') }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($asset in @('assets/js/karma-ledger-modal.js','assets/js/activity-feed-modal.js','assets/components/modals/karma-ledger.html','assets/components/modals/activity-feed.html','assets/js/oasis-web4-sdk.js')) {
+            if (!(Test-Path (Join-Path '../portal-profile-browser' $asset) -PathType Leaf)) { throw "Missing pinned Karma browser asset: $asset" }
+          }
 
       - name: Verify actual popup breadth browser inputs
         if: ${{ contains(inputs.native_test_filter, 'ClanPopupUsesActualSdkHttpAndOwnedMongo') || contains(inputs.native_test_filter, 'FilesAndNotificationPopupsUseActualSdkHttpAndOwnedMongo') || contains(inputs.native_test_filter, 'MessagingPopupUsesActualSdkHttpAndOwnedMongo') || contains(inputs.native_test_filter, 'MessagingHistoryAndSessionResumeUseActualSdkHttpAndOwnedMongo') }}
