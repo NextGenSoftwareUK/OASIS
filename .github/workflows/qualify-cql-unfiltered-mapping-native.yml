@@ -1,10 +1,10 @@
-name: Qualify native bounded CQL Boolean WHERE
+name: Qualify native unfiltered snapshot preparation
 
 on:
   push:
     branches: [work/cosmic-cql-ton-public]
     paths:
-      - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.UnfilteredMapping.cs"
+      - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.UnfilteredSnapshot.cs"
       - ".github/workflows/qualify-cql-unfiltered-mapping-native.yml"
   workflow_dispatch:
 

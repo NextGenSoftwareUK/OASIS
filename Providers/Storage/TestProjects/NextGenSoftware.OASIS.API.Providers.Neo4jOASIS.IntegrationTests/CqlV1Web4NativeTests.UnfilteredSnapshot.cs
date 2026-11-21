@@ -32,7 +32,7 @@ public sealed partial class CqlV1Web4NativeTests
         }
         var displayed=await mapping.QueryProjectionAsync(actor,(INativeDataProjectionQueryProvider)provider,null,
             Array.Empty<NativeRecordFilter>(),
-            new[]{new NativeProjectionColumn("textAlias","Text",typeof(string))},200);
+            new[]{new NativeProjectionColumn("textAlias","Text",typeof(string))},100);
         Assert.IsFalse(displayed.IsError,displayed.Message+displayed.Exception);
         Assert.AreEqual(2,displayed.Result.Count);
         var selectedId=displayed.Result[0].Id;

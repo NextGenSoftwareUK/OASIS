@@ -26,7 +26,7 @@
   "nativeQualificationSource": "5c1b20b430fa85479e5255106f5d1ab1fd2271cf",
   "nativeQualificationRun": 44939785488,
   "nativeQualificationJob": 136954233377,
-  "nativeQualificationObservedStatus": "in_progress",
+  "nativeQualificationObservedStatus": "corrected_fixture_prepared",
   "selectedNativeCases": 3,
   "qualificationConclusion": "success",
   "coreCasesPassed": 2,
@@ -45,5 +45,14 @@
   "deliveryBaseDevelopment": "6b5713f7d02379a6bd1769c13981d22682ee7b0d",
   "deliveryChangedPaths": 7,
   "deliveryApiDirectoryExact": true,
-  "imageDispatched": false
+  "imageDispatched": false,
+  "nativeInitialFailure": {
+    "run": 44939785488,
+    "job": 136954233377,
+    "failed": 3,
+    "reason": "Fixture requested 200 rows from projection contract capped at 100; failed before snapshot reads or saves.",
+    "shippingSourceChanged": false,
+    "ownedMongoCleanupPassed": true,
+    "ownedServiceCleanupPassed": true
+  }
 }
