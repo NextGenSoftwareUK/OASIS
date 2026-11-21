@@ -62,12 +62,24 @@ try
     var own = await Seed(owner, false, GeoHotSpotType.Map, 21.1619);
     var hidden = await Seed(reader, false, GeoHotSpotType.AR, 21.1620);
     var published = await Seed(reader, true, GeoHotSpotType.Map, 21.1621);
+    var childId = Guid.NewGuid();
+    var child = await Data().SaveHolonAsync(new Holon { Id = childId, ParentHolonId = own,
+        HolonType = HolonType.Holon, Name = "Owned hotspot descendant", IsActive = true }, owner,
+        saveChildren: false, providerType: ProviderType.MongoDBOASIS);
+    Require(!child.IsError && child.IsSaved, "Owned child seed failed: " + child.Message);
+    var detailWithChildren = await Data().LoadHolonAsync<GeoHotSpot>(own, loadChildren: true,
+        recursive: true, loadChildrenFromProvider: true, providerType: ProviderType.MongoDBOASIS);
+    Require(!detailWithChildren.IsError && detailWithChildren.Result != null &&
+        detailWithChildren.Result.Children != null && detailWithChildren.Result.Children.Any(x => x.Id == childId),
+        "Explicit detail read did not prove the persisted child relationship: " + detailWithChildren.Message);
     var manager = new GeoHotSpotManager(provider, owner, new STARDNA(), dna) { Data = Data() };
     var catalogue = await manager.LoadAllShallowAsync(owner, GeoHotSpotType.Map, providerType: ProviderType.MongoDBOASIS);
     Require(!catalogue.IsError && catalogue.Result != null, "Typed catalogue failed: " + catalogue.Message);
     var rows = catalogue.Result.ToList();
     Require(rows.Select(x => x.Id).ToHashSet().SetEquals(new[] { own, published }), "Owner/published visibility is incorrect.");
     var hydrated = rows.Single(x => x.Id == own);
+    Require(hydrated.Children == null || hydrated.Children.Count == 0,
+        "Shallow catalogue unexpectedly returned a descendant graph.");
     Require(hydrated.Lat == 21.1619 && hydrated.Long == -86.8515 && hydrated.IsVisibleOnMap &&
         hydrated.HotSpotRadiusInMetres == 17 && hydrated.TextContent == "Native typed hydration",
         "Derived hotspot properties were not hydrated from native persisted metadata.");
@@ -79,7 +91,7 @@ try
     Require(!anonymous.IsError && anonymous.Result != null && anonymous.Result.Select(x => x.Id).ToHashSet().SetEquals(new[] { published }),
         "Anonymous catalogue exposed an unpublished hotspot.");
     Require(!rows.Any(x => x.Id == hidden), "Another owner's unpublished hotspot leaked.");
-    Console.WriteLine("HOTSPOT_DEVELOPMENT_NATIVE_PROOF: real Mongo typed metadata hydration, owner/published visibility, subtype selection and explicit Mongo provider passed. Descendant fetch, HTTP binding, browser and deployed acceptance excluded.");
+    Console.WriteLine("HOTSPOT_DEVELOPMENT_NATIVE_PROOF: real Mongo typed metadata hydration, explicit detail child relationship versus shallow catalogue, owner/published visibility, subtype selection and explicit Mongo provider passed. HTTP binding, browser and deployed acceptance excluded.");
 }
 finally
 {
