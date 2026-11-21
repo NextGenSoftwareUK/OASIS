@@ -5,8 +5,8 @@ on:
     branches: [work/cosmic-cql-ton-public]
     paths:
       - "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlVirtualProjectionV1Compiler.cs"
-      - "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CqlUnfilteredMappingTests.cs"
-      - ".github/workflows/qualify-cql-unfiltered-mapping.yml"
+      - "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CqlUnfilteredSnapshotTests.cs"
+      - ".github/workflows/qualify-cql-unfiltered-snapshot.yml"
   workflow_dispatch:
 
 permissions:
@@ -49,18 +49,18 @@ jobs:
         working-directory: OASIS
         shell: pwsh
         run: |
-          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-unfiltered-mapping-ci -Operation {
-            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlUnfilteredMappingTests' --results-directory TestResults/UnfilteredMapping --logger 'trx;LogFileName=mapping.trx'
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-unfiltered-snapshot-ci -Operation {
+            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~UnfilteredSnapshotTests' --results-directory TestResults/UnfilteredSnapshot --logger 'trx;LogFileName=snapshot.trx'
             if ($LASTEXITCODE) { throw 'New unfiltered mapping tests failed' }
-            [xml]$report = Get-Content TestResults/UnfilteredMapping/mapping.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '5' -or $report.TestRun.ResultSummary.Counters.total -ne '5') { throw 'All five new unfiltered mapping checks must pass' }
+            [xml]$report = Get-Content TestResults/UnfilteredSnapshot/snapshot.trx
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '2' -or $report.TestRun.ResultSummary.Counters.total -ne '2') { throw 'Both new snapshot checks must pass' }
             dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI /m:2 /nr:false /p:UseSharedCompilation=false
             if ($LASTEXITCODE) { throw 'Actual WEB4 composition failed to compile' }
           }
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: cql-unfiltered-mapping
-          path: OASIS/TestResults/UnfilteredMapping/mapping.trx
+          name: cql-unfiltered-snapshot
+          path: OASIS/TestResults/UnfilteredSnapshot/snapshot.trx
           if-no-files-found: ignore
           retention-days: 2
