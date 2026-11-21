@@ -2463,3 +2463,5 @@ Geo browser HTML/CJS source preparation only; node --check creates no outputs. N
 Geo browser wiring source only: no local runtime/env/package install/build/database/browser/download/output/worktree. Future CI owns hotspot_http_GUID DB/temp DNA, existing container and exact GITHUB_WORKSPACE/geo-browser-owned runtime/cache; validated-path removal, browser close and bounded process-tree stop wired. Portal checkout exact5171fc6 ephemeral. No cleanup counted before execution.
 
 Refreshed compile44939192959 success, zero database/browser fixtures/artifacts selected, logs RAM only. No local builds/downloads/install/env/runtime/output/worktree. Existing exact browser runtime/cache cleanup will apply only to next browser case.
+
+New browser44940180748 live handle: existing ephemeral CI only; nativeDB/tempDNA/container plus exact owned browser-runtime/npm-cache cleanup wired. No local install/build/download/runtime/browser/database/output/worktree. Outcome pending.

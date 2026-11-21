@@ -1,5 +1,5 @@
 {
-  "status": "refreshed-composition-compile-passed-browser-ready-to-run",
+  "status": "populated-http-browser-in-progress",
   "compileRun": 44939192959,
   "controlSource": "2244959386762043ddaaf87b08ff4b8c25fdfee2",
   "scope": "hotspot",
@@ -134,5 +134,12 @@
     "web5Elapsed": "00:00:31.97",
     "fixtures": 0,
     "behaviorCases": 0
+  },
+  "browserRun": {
+    "run": 44940180748,
+    "control": "76df2433922cc6946fe3374cbc2dee971ee47e55",
+    "candidate": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+    "portal": "5171fc690c1c234e3e7eebee980937c902f271fd",
+    "status": "in_progress"
   }
 }
