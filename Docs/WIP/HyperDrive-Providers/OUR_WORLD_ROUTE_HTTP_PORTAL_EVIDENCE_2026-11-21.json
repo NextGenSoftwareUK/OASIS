@@ -1,0 +1,41 @@
+{
+  "status": "accepted-scoped",
+  "runId": 44883757737,
+  "jobId": 136784479710,
+  "source": "395d559cbf6be3f9c6898f582c35af67e5e9e210",
+  "ourWorldSource": "38caa17657eead3cb80a8fd1378fd72175c047c1",
+  "portalSource": "ac9bf68cf0275e7fb313c4cbdae91270a9905310",
+  "case": "OurWorldPublicationReopensInPortalThroughActualHttpAndMongo",
+  "apiBuild": { "errors": 0, "elapsed": "00:06:44.92" },
+  "results": { "passed": 1, "failed": 0, "skipped": 0, "wholeCaseDurationSeconds": 15 },
+  "verified": [
+    "Pinned shipping WalkingProgress and WalkingRoutePublication sources compiled into the native host",
+    "Actual builder creates private route intent with stable route/operation and geometry IDs, null create-only revisions and no Karma fields",
+    "Real signed HTTP POST through MVC MapRoutesController to owned native Mongo",
+    "Actual game acknowledgement and detail verifier checks owner, IDs, types, privacy, parent, source, segments, coordinates and seven-digit timestamp ticks",
+    "Actual Portal popup and shipped WEB4 SDK reopen the same private route through HTTP",
+    "Zero browser mutation requests and unchanged native owner/reader avatar revisions",
+    "Owned browser/runtime/cache/control cleanup, Mongo fixture absence and post-job cleanup"
+  ],
+  "excluded": [
+    "Unity component compilation, screen/device interaction and UnityWebRequest transport",
+    "Game archive/session/retry runtime behavior",
+    "Production Startup/SSO/admission and deployment",
+    "Distributed privacy across stale replicas",
+    "Other map layers and combined cross-app activity API",
+    "Whole OPORTAL/provider/HyperDrive programme acceptance"
+  ],
+  "artifact": {
+    "id": 14699456025,
+    "zipBytes": 2986,
+    "sha256": "6c3be9630f9c1436efbdfea9c552ad3479571ba09d20e48b69d0df2cc2c5080e",
+    "entry": "profile-sdk-native.trx",
+    "entryBytes": 14909,
+    "verification": "RAM-only digest, ZIP entry structure/size, exact TRX case/outcome, counters and native proof marker",
+    "nativeProofMarker": "OUR_WORLD_ROUTE_HTTP_PORTAL_NATIVE_PROOF:",
+    "localFilesWritten": 0
+  },
+  "sharedBackendOperations": 0,
+  "acceptedCasesRepeated": 0,
+  "developmentIntegration": "Open: Development MapManager retains sample catalogue/global competition calls; scoped integration must preserve current CQL/provider changes."
+}
