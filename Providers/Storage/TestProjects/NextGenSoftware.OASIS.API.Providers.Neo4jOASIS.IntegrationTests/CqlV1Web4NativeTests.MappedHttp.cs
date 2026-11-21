@@ -204,7 +204,7 @@ public sealed partial class CqlV1Web4NativeTests
                     Assert.AreEqual(HttpStatusCode.NotFound,response.StatusCode,await response.Content.ReadAsStringAsync());
                 var preserved=await provider.LoadHolonAsync(snapshot.Id);
                 Assert.IsNotNull(preserved.Result);
-                Assert.AreEqual("zz",preserved.Result.MetaData["textAlias"]);
+                Assert.AreEqual("zz",JsonSerializer.SerializeToElement(preserved.Result.MetaData["textAlias"]).GetString());
                 Assert.IsNull((await provider.LoadHolonAsync(virtualOnlyId.Value)).Result,
                     "An unfiltered read must not materialize a native-only record.");
                 Assert.AreEqual(3,authority.Settlements.Count);

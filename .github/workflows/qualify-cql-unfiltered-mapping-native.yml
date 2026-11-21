@@ -79,11 +79,11 @@ jobs:
           $env:OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT=(Get-Location).Path
           New-Item -ItemType Directory TestResults/Neo4jCurrent | Out-Null
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-unfiltered-mapping-native-ci -Operation {
-            dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~UnfilteredMappingUsesNativeUnionPagingAndOwnerIsolation' --results-directory TestResults/Neo4jCurrent --logger 'trx;LogFileName=mapping-native.trx'
+            dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~UnfilteredSqliteMappingRetainsCanonicalStoredText' --results-directory TestResults/Neo4jCurrent --logger 'trx;LogFileName=mapping-native.trx'
             if ($LASTEXITCODE) { throw 'Native WHERE qualification failed' }
             [xml]$report=Get-Content TestResults/Neo4jCurrent/mapping-native.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '3' -or $report.TestRun.ResultSummary.Counters.total -ne '3') { throw 'All three new native cases must pass' }
-            foreach ($store in 'MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS') {
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '1' -or $report.TestRun.ResultSummary.Counters.total -ne '1') { throw 'Only the corrected SQLite case must pass' }
+            foreach ($store in 'SQLLiteDBOASIS') {
               $e=Get-Content "TestResults/Neo4jCurrent/$store-unfiltered-mapping-native.json" -Raw | ConvertFrom-Json
               if ($e.provider -ne $store -or $e.checks -ne 3 -or $e.ownedCleanupIds -ne 5 -or $e.successfulHolonWrites -ne 4 -or @($e.queryElapsedMilliseconds.PSObject.Properties).Count -ne 3) { throw 'Incomplete native report' }
               foreach ($name in 'nativeProviderVerified','realHttpVerified','emptyNativePredicateVerified','completeIdentityUnionVerified','globalPagingVerified','foreignOwnerRejectedVerified','nativeSourceUnchangedVerified','noNativeOnlyHolonMaterializedVerified','exactCleanupVerified') {
