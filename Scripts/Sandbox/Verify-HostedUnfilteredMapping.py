@@ -13,7 +13,7 @@ import urllib.request
 import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
-STATE = ROOT / "LocalState/COSMIC/HostedUnfilteredMappingCurrent"
+STATE_ROOT = ROOT / "LocalState/COSMIC/HostedUnfilteredMappingCurrent"
 BASE = "https://dev.api.web4.oasisomniverse.one/api/"
 WEBSITE = "3d8f108f6161b8b4a0e6c8e2f80d1358fb6185f8"
 helpers = runpy.run_path(str(ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py"))
@@ -24,10 +24,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--deployment", required=True, type=lambda value: str(uuid.UUID(value)))
     parser.add_argument("--commit", required=True)
+    parser.add_argument("--provider", required=True, choices=["MongoDBOASIS", "SQLLiteDBOASIS", "Neo4jOASIS"])
     args = parser.parse_args()
+    provider = args.provider
+    state = STATE_ROOT / provider
+    for proof_file in (ROOT / "Docs/WIP/COSMIC ORM").glob("CQL_UNFILTERED*HOSTED_ACCEPTANCE*.json"):
+        proof = json.loads(proof_file.read_text(encoding="utf-8-sig"))
+        if proof.get("provider") == provider and proof.get("queryAccepted") is True:
+            raise RuntimeError("This provider case is already accepted; select only remaining cases.")
     if not re.fullmatch("[0-9a-f]{40}", args.commit):
         parser.error("Use the exact verified source SHA.")
-    journal_path = STATE / "fixture.json"
+    journal_path = state / "fixture.json"
     helpers["require_new_fixture"](journal_path)
     # Verify rollout before creating an account or a data fixture.
     cfg = json.loads((Path.home() / ".railway/config.json").read_text())
@@ -46,10 +53,10 @@ def main():
         metadata = json.loads(metadata)
     if deployment["status"] != "SUCCESS" or metadata.get("commitHash") != args.commit:
         raise RuntimeError("Wait for the exact successful rollout; no demo request sent.")
-    STATE.mkdir(parents=True, exist_ok=True)
+    state.mkdir(parents=True, exist_ok=True)
     mapping_id = str(uuid.uuid4())
     journal = {"schema": 1, "deployment": args.deployment, "source": args.commit,
-               "websiteCompiler": WEBSITE, "mappingId": mapping_id, "ownerId": None,
+               "websiteCompiler": WEBSITE, "provider": provider, "mappingId": mapping_id, "ownerId": None,
                "calls": [], "pending": None, "completed": False}
     write = lambda: helpers["write"](journal_path, journal)
     write()
@@ -89,7 +96,7 @@ def main():
             # Preserve the original authentication outcome encrypted before parsing.
             protected = helpers["protected_token"](json.dumps({
                 "status": status, "body": raw.decode(), "cookies": cookies}).encode())
-            with (STATE / "issuance.dpapi").open("xb") as stream:
+            with (state / "issuance.dpapi").open("xb") as stream:
                 stream.write(protected)
         value = helpers["unwrap"](json.loads(raw))
         outcome = {"path": path, "method": method, "status": status,
@@ -105,7 +112,7 @@ def main():
         write()
         return value, cookies
 
-    sql = ("SELECT Id, CAST(MetaData.name AS STRING) AS CustomerName FROM MongoDBOASIS "
+    sql = ("SELECT Id, CAST(MetaData.name AS STRING) AS CustomerName FROM " + provider + " "
            "WITH VIRTUAL MAPPING '" + mapping_id + "' ORDER BY Id LIMIT 10")
     compiler = subprocess.check_output(["git", "show", WEBSITE + ":cql-text.js"],
                                       cwd=ROOT.parent / "Web4Site")
@@ -126,16 +133,22 @@ def main():
     token = avatar["jwtToken"]
     bundle = credentials["bundle"](owner, token, cookies)
     cookie_header = bundle["cookieHeader"]
-    with (STATE / "session.dpapi").open("xb") as stream:
+    with (state / "session.dpapi").open("xb") as stream:
         stream.write(helpers["protected_token"](json.dumps(bundle).encode()))
     journal["ownerId"] = owner
     write()
-    sources, _ = call("native-data/MongoDBOASIS/sources", method="GET")
-    if not any(row["name"] == "customers" and (row.get("estimatedRecordCount") or 0) > 0
-               for row in sources["result"]):
-        raise RuntimeError("The existing native demo collection is unavailable; no mapping save sent.")
-    prepared, _ = call("native-data/MongoDBOASIS/virtual-mappings/prepare", body={
-        "id": mapping_id, "sourceName": "customers",
+    sources, _ = call("native-data/" + provider + "/sources", method="GET")
+    expected = {"MongoDBOASIS": "customers", "SQLLiteDBOASIS": "suppliers"}.get(provider)
+    choices = [row for row in sources["result"]
+               if (expected is None or row["name"] == expected)
+               and (row.get("estimatedRecordCount") or 0) > 0]
+    if len(choices) != 1:
+        raise RuntimeError("One existing approved native demo collection is required; no mapping save sent.")
+    source_name = choices[0]["name"]
+    journal["nativeSource"] = source_name
+    write()
+    prepared, _ = call("native-data/" + provider + "/virtual-mappings/prepare", body={
+        "id": mapping_id, "sourceName": source_name,
         "connectionName": "oasis-sandbox-native-fixture", "fields": {"name": "name"}})
     definition = prepared["result"]
     if (definition["id"].lower() != mapping_id or definition.get("isPublic") is not False
@@ -190,8 +203,8 @@ def main():
     write()
     # Retain compact non-secret evidence; remove owned sealed credentials after revocation.
     for name in ("issuance.dpapi", "session.dpapi"):
-        (STATE / name).unlink()
-    print(json.dumps({"source": args.commit, "mappingId": mapping_id,
+        (state / name).unlink()
+    print(json.dumps({"source": args.commit, "provider": provider, "mappingId": mapping_id,
         "calls": len(journal["calls"]), "mixedRowsReturned": len(rows),
         "exactMappingCleanupVerified": True, "sessionRevoked": True,
         "browserVerified": False, "nativeDataImported": False}))
