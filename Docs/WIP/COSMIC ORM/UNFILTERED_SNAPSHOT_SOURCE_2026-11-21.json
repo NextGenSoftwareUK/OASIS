@@ -39,5 +39,11 @@
     "sha256": "b2bb1c03284e7a559ee4fb7427907281d3735332707fb9ee6388bf8de5a59ad5",
     "exactEntry": "snapshot.trx",
     "filesWritten": 0
-  }
+  },
+  "deliveryCandidate": "5a45f00493526a86b5c8bdd2eb68bc07a1c42c4d",
+  "deliveryTag": "cosmic-cql-snapshot-5a45f0049352",
+  "deliveryBaseDevelopment": "6b5713f7d02379a6bd1769c13981d22682ee7b0d",
+  "deliveryChangedPaths": 7,
+  "deliveryApiDirectoryExact": true,
+  "imageDispatched": false
 }
