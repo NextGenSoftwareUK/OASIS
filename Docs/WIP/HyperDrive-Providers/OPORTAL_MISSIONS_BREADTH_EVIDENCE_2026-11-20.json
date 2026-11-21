@@ -77,7 +77,15 @@
       "missing-record errors"
     ],
     "cleanup": "owned database, temporary DNA and container absence verified",
-    "browserRun": 44959193440,
-    "browserStatus": "in-progress-not-accepted"
+    "browserRun": 44960073442,
+    "browserStatus": "in-progress-not-accepted",
+    "browserPreviousRun": {
+      "run": 44959193440,
+      "job": 137013995842,
+      "conclusion": "failure",
+      "cause": "Fixture omitted production modal styles; detail close button outside viewport",
+      "cleanup": "DB/DNA/container/browser runtime/cache absent"
+    },
+    "browserControl": "5fce5768b0d14cfaab0e1451be13cb7136726fbd"
   }
 }
