@@ -63,7 +63,7 @@ public sealed partial class CqlV1Web4NativeTests
     internal static async Task VerifyMappedNativeHttpAsync(IOASISStorageProvider provider,
         VirtualHolonMapping mapping, VirtualHolonRead original, bool groupedDistinctOnly = false,
         Action<Guid>? createdObserver = null, bool guidDistinct = false,
-        Dictionary<string, long>? queryTimings = null, Guid? virtualOnlyId = null, bool guidRows = false, bool predicateCrossing = false, bool guidFilters = false, bool int32Http = false, bool unfiltered = false)
+        Dictionary<string, long>? queryTimings = null, Guid? virtualOnlyId = null, bool guidRows = false, bool predicateCrossing = false, bool guidFilters = false, bool int32Http = false, bool unfiltered = false, bool dateKeys = false)
     {
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -102,6 +102,11 @@ public sealed partial class CqlV1Web4NativeTests
             snapshot.MetaData["stockAlias"] = -1;
             important.MetaData["stockAlias"] = 7;
             longer.MetaData["stockAlias"] = 5;
+        }
+        if(dateKeys) {
+            snapshot.MetaData["occurredAlias"]=new DateTime(2001,1,1,0,0,0,DateTimeKind.Utc);
+            important.MetaData["occurredAlias"]=MixedDate(MixedDateFirst);
+            longer.MetaData["occurredAlias"]=MixedDate(MixedDateSecond);
         }
         var created = new List<Guid>();
         var authority = new Authority();
@@ -167,6 +172,56 @@ public sealed partial class CqlV1Web4NativeTests
                 var response = await http.SendAsync(request);
                 if (watch != null) queryTimings!.Add("request" + queryTimings.Count, watch.ElapsedMilliseconds);
                 return response;
+            }
+            if(dateKeys)
+            {
+                Assert.IsTrue(virtualOnlyId.HasValue);
+                body.Filters=Array.Empty<CqlV1Filter>();body.Take=10;
+                var at=new CqlProjectionV1Column {MetadataPath=new[]{"occurredAlias"},ValueType="DateTime",Nullable=true,Alias="At"};
+                body.Columns=new[]{new CqlProjectionV1Column{Field="Id",Alias="Id"},at};
+                async Task<JsonElement> ReadDate(string version)
+                {
+                    using var response=await Send(ownerToken);
+                    var content=await response.Content.ReadAsStringAsync();
+                    Assert.AreEqual(HttpStatusCode.OK,response.StatusCode,content);
+                    Assert.AreEqual("settled",response.Headers.GetValues("X-OASIS-Usage-Settlement").Single());
+                    using var parsed=JsonDocument.Parse(content);var result=parsed.RootElement.GetProperty("result");
+                    Assert.AreEqual(version,result.GetProperty("version").GetString());
+                    return result.GetProperty("rows").Clone();
+                }
+                static long Key(JsonElement cell) {
+                    if(cell.ValueKind==JsonValueKind.Null)return -1;
+                    var time=cell.GetDateTime();Assert.AreEqual(DateTimeKind.Utc,time.Kind);return time.Ticks;
+                }
+                var first=MixedDate(MixedDateFirst).Ticks;var second=MixedDate(MixedDateSecond).Ticks;
+                Assert.AreEqual(first+1,second);
+                var expected=new Dictionary<Guid,long>{[definition.Id]=-1,[original.Id]=first,
+                    [virtualOnlyId.Value]=second,[important.Id]=first,[longer.Id]=second};
+                var rows=(await ReadDate("cql-projection-v1")).EnumerateArray().ToArray();
+                CollectionAssert.AreEquivalent(expected.Keys.ToArray(),rows.Select(row=>row[0].GetGuid()).ToArray());
+                foreach(var row in rows)Assert.AreEqual(expected[row[0].GetGuid()],Key(row[1]));
+                body.ResultOperation=CqlProjectionV1ResultOperation.Group;body.Take=1;
+                body.Grouping=new CqlMixedGroupingV1Request{
+                    Keys=new[]{at},Columns=new[]{new CqlGroupedV1Column{Alias="At",KeyAlias="At"},
+                        new CqlGroupedV1Column{Alias="Rows",Operation="LongCount"}},
+                    ResultOrder=new[]{new CqlGroupedV1Ordering{Alias="At"}},ResultTake=5};
+                var grouped=(await ReadDate("cql-grouped-v1")).EnumerateArray().ToArray();
+                CollectionAssert.AreEqual(new[]{-1L,first,second},grouped.Select(row=>Key(row[0])).ToArray());
+                CollectionAssert.AreEqual(new[]{"1","2","2"},grouped.Select(row=>row[1].GetString()).ToArray());
+                body.Grouping.Columns=new[]{new CqlGroupedV1Column{Alias="At",KeyAlias="At"}};
+                var distinct=(await ReadDate("cql-grouped-v1")).EnumerateArray().ToArray();
+                CollectionAssert.AreEqual(new[]{-1L,first,second},distinct.Select(row=>Key(row[0])).ToArray());
+                Assert.IsTrue(distinct.All(row=>row.GetArrayLength()==1));
+                body.Grouping.ResultSkip=1;body.Grouping.ResultTake=1;
+                var page=(await ReadDate("cql-grouped-v1")).EnumerateArray().Single();
+                Assert.AreEqual(first,Key(page[0]));
+                using(var response=await Send(otherToken))
+                    Assert.AreEqual(HttpStatusCode.NotFound,response.StatusCode,await response.Content.ReadAsStringAsync());
+                var cached=await provider.LoadHolonAsync(snapshot.Id);Assert.IsNotNull(cached.Result);
+                Assert.AreEqual(2001,JsonSerializer.SerializeToElement(cached.Result.MetaData["occurredAlias"]).GetDateTime().Year);
+                Assert.IsNull((await provider.LoadHolonAsync(virtualOnlyId.Value)).Result);
+                Assert.AreEqual(5,authority.Settlements.Count);
+                await app.StopAsync();return;
             }
             if (unfiltered)
             {
