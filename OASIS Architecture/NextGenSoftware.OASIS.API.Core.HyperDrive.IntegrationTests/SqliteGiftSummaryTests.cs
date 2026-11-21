@@ -15,6 +15,26 @@ public sealed class SqliteGiftSummaryTests
     {
         var sender = Guid.NewGuid();
         var recipient = Guid.NewGuid();
+        foreach (var id in new[] { sender, recipient })
+        {
+            var account = await provider.SaveAvatarAsync(new Avatar
+            {
+                Id = id, Username = "gift-" + id.ToString("N"), Email = id.ToString("N") + "@example.test",
+                IsActive = true, CreatedDate = DateTime.UtcNow
+            });
+            Assert.False(account.IsError, account.Message);
+            Assert.Equal(id, account.Result.Id);
+        }
+        Assert.True((await gifts.SendGiftAsync(Guid.Empty, recipient, GiftType.Custom)).IsError);
+        Assert.True((await gifts.SendGiftAsync(sender, Guid.Empty, GiftType.Custom)).IsError);
+        Assert.True((await gifts.SendGiftAsync(sender, recipient, (GiftType)int.MaxValue)).IsError);
+        var missingRecipient = Guid.NewGuid();
+        Assert.True((await gifts.SendGiftAsync(sender, missingRecipient, GiftType.Custom)).IsError);
+        var missingInbox = await gifts.GetGiftSummaryAsync(missingRecipient);
+        Assert.False(missingInbox.IsError, missingInbox.Message);
+        Assert.Equal(new GiftSummary(0, 0), missingInbox.Result);
+        Assert.True((await gifts.ReceiveGiftAsync(Guid.Empty, Guid.NewGuid())).IsError);
+        Assert.True((await gifts.OpenGiftAsync(recipient, Guid.Empty)).IsError);
         var sent = await gifts.SendGiftAsync(sender, recipient, GiftType.Custom, "Native gift lifecycle");
         Assert.False(sent.IsError, sent.Message);
         Assert.NotEqual(Guid.Empty, sent.Result.Id);

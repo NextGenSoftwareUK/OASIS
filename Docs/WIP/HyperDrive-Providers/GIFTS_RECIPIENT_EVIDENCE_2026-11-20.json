@@ -1,0 +1,8 @@
+{
+  "status": "source prepared; native CI qualification pending",
+  "core": "96f25cbf53d363ac7621399cb4840cf328bad9bc",
+  "invariant": "No gift is durably saved for an empty/missing/deleted/mismatched recipient or undefined gift type; receive/open require nonempty actor and gift identity.",
+  "qualification": "Extend SendsReceivesAndOpensGiftsAgainstNativeSqlite with real SQLite avatar records, rejected identity/type/missing-recipient sends, empty missing-recipient inbox, and existing persisted lifecycle. Not run locally.",
+  "scope": "Owned CI SQLite only. No shared Atlas, live API, Stripe, worker, DNA settings or protected deliveries. Runtime/whole Portal acceptance remains open.",
+  "cleanup": "No local runtime/install/build/database/result/archive created; retain source and compact evidence only."
+}
