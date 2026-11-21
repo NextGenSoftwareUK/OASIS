@@ -86,5 +86,10 @@
     }
   },
   "imageRun": 44941886532,
-  "imageObservedStatus": "in_progress"
+  "imageObservedStatus": "completed",
+  "imageConclusion": "success",
+  "imageDigest": "sha256:ffa4565b1a54525a1ee5592512961ce35c3d1feaeccc6c28b7fbf6e6cb7a4547",
+  "packageRun": 44942744524,
+  "packageObservedStatus": "queued",
+  "packageAccepted": false
 }

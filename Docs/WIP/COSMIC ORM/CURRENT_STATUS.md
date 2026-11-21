@@ -1,3 +1,6 @@
+21 November — EXACT SNAPSHOT IMAGE ACCEPTED / PACKAGE QUEUED.
+Image44941886532/job136960681404 completed SUCCESS including post-jobs on exact5a45f004/Core13bd. Exact source-teaching and immutable tags published digestsha256:ffa4565b1a54525a1ee5592512961ce35c3d1feaeccc6c28b7fbf6e6cb7a4547. One package44942744524 dispatched through pinned qualifieraa4378189d27 with exact source/digest, teaching_image=true/profilecql-api; queued handle reconciled. No image replay, local image download or Development push. Native3/contract2/actualWEB4 build accepted evidence retained; package/live hybrid/browser still open. No PIPER/data/DNA/staging/production operation. Full goal remains active.
+
 21 November — REAL NATIVE SNAPSHOT3 ACCEPTED / EXACT IMAGE NOW RUNNING.
 Corrected4acff4b1 run44940844848/job136957463175 SUCCESS,3passed0failed0skipped. Strict RAM artifact14721358788/2863B/SHA0da2e5813e8369cedf35cb34e319690bb1e779fe3948d555ab4e95b77642a28b verifies exact TRX+3reports, seven proof flags/store,1private snapshot write/1owned cleanup identity/2unchanged native rows and3timings/store. Original fields and stable ID survived native read/save/readback; foreign actor rejected; exact cleanup verified. Initial failed fixture44939785488 preserved; only its three failed cases rerun. Core2/actualWEB4 build remains accepted without repetition.
 
