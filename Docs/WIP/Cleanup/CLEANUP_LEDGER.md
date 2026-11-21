@@ -5611,3 +5611,5 @@ NEW native-only case uses actual compiled API/real Mongo/real zero-due gateway-s
 2026-11-21 GPX source batch Portal588d181: no local environments, builds, downloaded files, databases or test artifacts created. Computer-use initialization failed before UI action; no install attempted. One isolated build-only CI run44872549334 queued, no backend fixture cohort selected. Prior inventory-copy cleanup remains policy-blocked and not counted removed.
 
 2026-11-21 GPX provenance: only shipping source, reusable focused verification source/project and workflow retained. No local compilation/runtime/download/environment/DB/results. Serializer-only remote run44874074798 queued on Our-World8bead611; does not build Unity or contact backend. Prior227131B inventory cleanup remains blocked by automatic review; no removal claimed.
+
+2026-11-21 Route provenance CI44874074798 completed successfully including post-job steps.0 local downloaded/build/runtime/database/test artifact files created. Only compact repo evidence retained. Previous blocked inventory cleanup remains pending and not counted removed.

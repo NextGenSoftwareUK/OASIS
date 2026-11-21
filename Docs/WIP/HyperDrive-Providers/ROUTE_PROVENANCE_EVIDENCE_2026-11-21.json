@@ -1,0 +1,20 @@
+{
+  "scope": "Our World shipping GPX serializer source provenance only",
+  "sourceCommit": "8bead6116bec6125bc31e84286d8029b90971aa1",
+  "portalSourceCommit": "9bf21f9",
+  "run": 44874074798,
+  "job": 136754783111,
+  "conclusion": "success",
+  "buildErrors": 0,
+  "buildElapsed": "00:00:04.62",
+  "passedChecks": [
+    "Independent local import ID with original source app and route ID",
+    "Re-export retains original reported identity",
+    "No manufactured reward attribution",
+    "GPX extensions precede track segments",
+    "Ordinary GPX has no invented source identity",
+    "Partial source identity rejected"
+  ],
+  "cleanup": "GitHub job and post-checkout/setup steps completed successfully; no local build, runtime, database or artifact written",
+  "notAccepted": ["Unity scene behavior", "OPORTAL browser rendering/import", "Cloud persistence", "Server-authenticated source provenance", "Shared route authorization", "Complete OPORTAL", "Complete providers or HyperDrive"]
+}
