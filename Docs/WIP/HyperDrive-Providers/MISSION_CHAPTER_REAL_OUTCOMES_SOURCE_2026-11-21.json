@@ -37,8 +37,10 @@
     ]
   },
   "qualification": {
-    "status": "prepared-not-dispatched",
+    "status": "queued",
     "mode": "catalogue",
-    "scope": "Real boot/JWT/MVC/native empty and populated mission/chapter catalogues, avatar lists, details and missing-record errors. No accepted quest/geo replay, browser or mutations."
+    "scope": "Real boot/JWT/MVC/native empty and populated mission/chapter catalogues, avatar lists, details and missing-record errors. No accepted quest/geo replay, browser or mutations.",
+    "run": 44945597897,
+    "control": "744cc7e9becd16f3d311bd86e4f28768cacd75a5"
   }
 }
