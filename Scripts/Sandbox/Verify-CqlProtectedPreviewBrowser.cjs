@@ -13,8 +13,8 @@ const work = path.join(parent, 'RecoveryLaptopHostedBrowserCurrent');
 const profile = path.join(work, 'profile');
 const marker = path.join(work, 'owner.json');
 const ledger = path.join(root, 'Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md');
-const previewOrigin = 'https://web4-site-2e42g5e7i-oasis-team.vercel.app';
-const candidateWebsiteSource = 'b4f77a541ad992be68660e45bd094ee637c3ee97';
+const previewOrigin = 'https://web4-site-p6g80bybm-oasis-team.vercel.app';
+const candidateWebsiteSource = 'bd739705c3f231db9d15cbec71fdf48ef00281f0';
 const expectedAssetHashes = {
   "/cql-text.js": "d17b60caf687ddc24da166c4a117d8adb435bf895174811b0c0d62e384f4118f",
   "/cql-playground.js": "331918b92ba02e7cf733b7b6213fd7ee1466af960beaed57c9eb3049b9dbb4e0",
