@@ -2441,3 +2441,5 @@ Planned bounded remote managed-stack diagnostic: Microsoft official Linux-x64 do
 2026-11-21 HTTP44896325455 started on control0005804b33. CI owns only hotspot_http_GUID database, matching temp DNA file and existing loopback container; nested finally cleanup plus outer always container removal. No local download/runtime/build/env/database/browser/output/worktree created. Source/deployed DNA, shared Mongo/API/settings/workers untouched. Cleanup outcome pending real logs.
 
 2026-11-21 pinned Core avatar-context getter inspected in RAM, no local output/install/build/download/env/database/new worktree. Existing HTTP CI handle retained, no duplicate or accepted catalogue replay. Disk last checked46,674,997,248bytes free.
+
+2026-11-21 failed HTTP44896325455: compile only, native host never executed and no host DNA/database created. Always cleanup owned container absence verified; post jobs success. Log inspected in RAM only. Explicit package will restore on ephemeral CI, no local install/download/build/output.
