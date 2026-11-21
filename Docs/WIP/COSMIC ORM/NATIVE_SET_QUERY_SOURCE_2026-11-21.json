@@ -15,7 +15,7 @@
   "source": "5659a94f8ceccc7958b8a2ff52d479e38bd9ef6a",
   "contractCases": 7,
   "automaticWorkflowExpected": true,
-  "status": "queued",
+  "status": "in_progress",
   "conclusion": null,
   "executionCoreSource": "86bfb64d496dce5afd8eaf8c8f50c89de2492570",
   "executionCoreBase": "574f38f680d232ad6cd01b55acc0246b880f0640",
@@ -27,5 +27,22 @@
   "priorContractRun": 44960376182,
   "priorContractStatus": "queued",
   "modelCoreSource": "574f38f680d232ad6cd01b55acc0246b880f0640",
-  "run": 44960728004
+  "run": 44960728004,
+  "sqliteSource": "dc6218756bc798c0f5e563f8e842379cfef63fa5",
+  "sqliteNativeSourceImplemented": true,
+  "sqliteCompiled": false,
+  "sqliteNativeAccepted": false,
+  "nextNativeProviders": [
+    "MongoDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "sqliteQualificationSource": "e65ed5727e750c23ec0f571b3c38cc3109a8b14c",
+  "sqliteNativeWorkflow": "qualify-cql-set-native.yml",
+  "sqliteNativeCases": 1,
+  "sqliteSharedControls": 7,
+  "sqliteQualificationPhase": "automatic_run_expected",
+  "sqliteNativeRun": 44961452038,
+  "sqliteNativeStatus": "in_progress",
+  "sqliteNativeConclusion": null,
+  "sqliteNativeJob": 137020930030
 }
