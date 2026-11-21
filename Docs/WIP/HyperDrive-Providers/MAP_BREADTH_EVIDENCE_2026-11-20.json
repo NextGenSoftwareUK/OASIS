@@ -34,5 +34,6 @@
     "scope": "Build only; behavioral tests, database/browser fixture starts and artifact upload skipped; post-job cleanup passed"
   },
   "diskFreeBytesObserved": 46867963904,
-  "persistedCatalogue": "MAP_CATALOGUE_EVIDENCE_2026-11-20.json: native Mongo/SQLite accepted44860844891; popup/browser still pending."
+  "persistedCatalogue": "MAP_CATALOGUE_EVIDENCE_2026-11-20.json: native Mongo/SQLite accepted44860844891; popup/browser still pending.",
+  "scopedVisitEvidence": "MAP_VISIT_SCORING_EVIDENCE_2026-11-20.json: native44863330302 passed existing five-point flow; real bonus application and primary-save warning propagation remain open."
 }

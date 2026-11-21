@@ -1,5 +1,5 @@
 {
-  "status": "Scoped scoring and explicit saved-visit warnings published; focused native verification pending",
+  "status": "Scoped existing five-point visit flow accepted on real Mongo/SQLite; full bonus/browser/renderer requirements remain open",
   "core": "03087911cd9d2a6c3a421014e52555bff8aeb063",
   "onode": "9968192f00ec95c5561818ef1f9f359c3c424cd5",
   "changes": [
@@ -23,10 +23,30 @@
     "Owned database disposal and CI cleanup"
   ],
   "open": [
-    "Changed compile/native case",
     "Actual browser/HTTP warning journey",
     "Map controller object controls and connected renderer/provider activation",
-    "Full OPORTAL/provider/HyperDrive acceptance"
+    "Full OPORTAL/provider/HyperDrive acceptance",
+    "Primary visit save/provider/replication warnings must also propagate through acknowledgement",
+    "Actual bonus formulas and trusted exploration/discovery/social sources are not implemented by deleting their unused mock helpers"
   ],
-  "cleanup": "No local build/install/download/browser/database/archive/results/new worktree. No shared backend/API/DNA/worker/deployment/protected-delivery action."
+  "cleanup": "No local build/install/download/browser/database/archive/results/new worktree. No shared backend/API/DNA/worker/deployment/protected-delivery action.",
+  "nativeRun": {
+    "run": 44863330302,
+    "parent": "21fef51fc401995d51be7f574cdef5fe35fec6a3",
+    "status": "completed",
+    "scope": "One changed scored-visit case with actual WEB4 compile, owned Mongo/SQLite; no accepted catalogue/browser cohort repeated",
+    "job": 136721392543,
+    "conclusion": "success",
+    "apiErrors": 0,
+    "apiElapsed": "00:06:54.91",
+    "result": "1 passed / 0 failed, reported5s. Actual compiled MapManager/ToHolon/Core competition manager, saved history/stats and three periods; real malformed weekly snapshot yields explicit saved-visit warning and stays intact; other periods update, profiles/location/global provider unchanged.",
+    "cleanup": "Owned native scopes disposed; Mongo fixture absence and all post-jobs passed. Logs inspected RAM-only; no accepted catalogue cohort rerun."
+  },
+  "unimplementedBonusRequirements": {
+    "priorStatus": "Formulas existed but their mock-derived total was discarded. Removing unused mock execution is not implementation or a decision to drop bonuses from the full goal. Real source integration/application remains open.",
+    "exploration": "first visit50; diversity>10 locations25; >5 visits in last7 days15",
+    "discovery": "Rare100/Epic200/Legendary500; hidden150; special properties75",
+    "social": "group30; helped players*10; interactions*5; organized events*25",
+    "gate": "Use trusted persisted/game event sources and an explicit applied score contract, never fabricated default activity."
+  }
 }
