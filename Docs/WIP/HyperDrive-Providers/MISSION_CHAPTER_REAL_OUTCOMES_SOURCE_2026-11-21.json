@@ -37,12 +37,10 @@
     ]
   },
   "qualification": {
-    "status": "queued",
+    "status": "typed-readback-diagnostic-prepared",
     "mode": "catalogue",
     "sourceUnchanged": true,
-    "change": "Include exact owned API status/message at failed read; same assertions and source.",
-    "run": 44946592926,
-    "control": "0612c03c4ccd65a26ea515d659ff859a044a70c3"
+    "change": "Verify acknowledged native mission/chapter saves through real typed point readback; include underlying native exception type/message on failure."
   },
   "failedAttempts": [
     {
@@ -56,6 +54,24 @@
       "hostBuildErrors": 0,
       "hostBuildElapsed": "00:05:31.65",
       "failure": "First populated GET /api/missions failed after both empty catalogues and native mission/chapter saves completed (stack Program.cs:204); original helper omitted API diagnostic",
+      "cleanup": [
+        "Owned Mongo database absence verified",
+        "Exact temporary DNA absence verified",
+        "Owned Mongo container absence verified"
+      ]
+    },
+    {
+      "status": "completed",
+      "mode": "catalogue",
+      "sourceUnchanged": true,
+      "change": "Include exact owned API status/message at failed read; same assertions and source.",
+      "run": 44946592926,
+      "control": "0612c03c4ccd65a26ea515d659ff859a044a70c3",
+      "job": 136975175833,
+      "conclusion": "failure",
+      "hostBuildErrors": 0,
+      "hostBuildElapsed": "00:05:55.35",
+      "failure": "Populated GET /api/missions HTTP200 with IsError: Typed persistent metadata could not be hydrated.",
       "cleanup": [
         "Owned Mongo database absence verified",
         "Exact temporary DNA absence verified",

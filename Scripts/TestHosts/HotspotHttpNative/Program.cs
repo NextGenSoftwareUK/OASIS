@@ -198,6 +198,14 @@ try
         Require(!savedMission.IsError && savedMission.IsSaved, "Owned mission persistence failed: " + savedMission.Message);
         var savedChapter = await data.SaveHolonAsync<Chapter>(chapter, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);
         Require(!savedChapter.IsError && savedChapter.IsSaved, "Owned chapter persistence failed: " + savedChapter.Message);
+        var storedMission = await data.LoadHolonAsync<Mission>(missionId, loadChildren: false, providerType: ProviderType.MongoDBOASIS);
+        Require(!storedMission.IsError && storedMission.Result != null && storedMission.Result.Name == mission.Name,
+            "Owned typed mission readback failed: " + storedMission.Message + "; " +
+            storedMission.Exception?.GetBaseException().GetType().FullName + ": " + storedMission.Exception?.GetBaseException().Message);
+        var storedChapter = await data.LoadHolonAsync<Chapter>(chapterId, loadChildren: false, providerType: ProviderType.MongoDBOASIS);
+        Require(!storedChapter.IsError && storedChapter.Result != null && storedChapter.Result.Name == chapter.Name,
+            "Owned typed chapter readback failed: " + storedChapter.Message + "; " +
+            storedChapter.Exception?.GetBaseException().GetType().FullName + ": " + storedChapter.Exception?.GetBaseException().Message);
         foreach (var item in new[] { (kind: "missions", id: missionId, name: mission.Name), (kind: "chapters", id: chapterId, name: chapter.Name) })
         {
             foreach (var suffix in new[] { "", "/load-all-for-avatar" })
