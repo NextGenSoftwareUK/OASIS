@@ -1,5 +1,5 @@
 {
-  "status": "Required CORS middleware added to isolated controller host; focused runtime verification pending",
+  "status": "Scoped Karma ledger/activity actual browser/SDK/controller/native Mongo acceptance passed",
   "portal": "34c264a9845dfb5437de369e22f7f917cd354eef",
   "shippingChanges": "Karma ledger captures current SDK bearer, pages flattened activity and displays real signed values; activity feed captures bearer.",
   "prepared": [
@@ -16,7 +16,7 @@
     "No provider/API writes during browsing; original native avatar revisions preserved",
     "Owned browser/controller/database cleanup"
   ],
-  "validation": "Browser verifier Node syntax passed only. No browser/native run or completion claimed.",
+  "validation": "Actual read-only Karma popup journey accepted for pinned Portal34c264a; does not prove Karma writes, hosted full Startup, subscriptions or whole OPORTAL.",
   "cleanup": "No install, download, browser process, local build or test database/result created. Compact source fixtures retained.",
   "test": "KarmaPopupsUseActualSdkHttpAndOwnedMongo",
   "nativeHost": "Actual compiled KarmaController, isolated real MongoStore and actual AvatarManager; 51 seeded durable records; authenticated loopback MVC with shipping SDK and popup assets.",
@@ -28,7 +28,7 @@
     "case": "1 failed, reported35s; browser waitForFunction timed out15000ms; page stage not reported",
     "cleanup": "Owned browser/runtime/cache/control and Mongo absence verified; CI post-jobs passed"
   },
-  "next": "Run only KarmaPopupsUseActualSdkHttpAndOwnedMongo against corrected owned host; retain failures and verify cleanup.",
+  "next": "Continue incomplete OPORTAL screens breadth first; do not repeat this accepted unchanged case.",
   "diagnosticRun": {
     "run": 44854668543,
     "job": 136693945702,
@@ -55,7 +55,11 @@
   "corsCorrectionRun": {
     "run": 44857792612,
     "parent": "10df76574921804e5b98c49b986e3e39f4b7f00b",
-    "status": "in_progress",
-    "scope": "Only changed Karma browser/native case; actual API compilation and owned CI Mongo"
+    "status": "completed",
+    "scope": "Only changed Karma browser/native case; actual API compilation and owned CI Mongo",
+    "job": 136703946815,
+    "conclusion": "success",
+    "result": "1 passed / 0 failed, reported12s; actual Chromium, shipping WEB4 SDK and popup assets, compiled KarmaController and isolated Mongo; 4 activity reads; 51 paging, negative/zero, token-free cache, account switch and anonymous denial.",
+    "cleanup": "Owned browser/runtime/cache/control cleanup and Mongo fixture absence verified; all post-jobs passed. Logs inspected in RAM only."
   }
 }
