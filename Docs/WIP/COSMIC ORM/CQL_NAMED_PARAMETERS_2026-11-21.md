@@ -1,3 +1,5 @@
+2026-11-21 SQL parameter preview located and statically verified: websitecdae5413 deploymentdpl_HpzBrTpLQgQVW43Lg4MbTASXgH5X READY, three shipped JS files byte-identical to source. HTML differs only by exact163-byte Vercel preview feedback script. No application API/data calls, public promotion or rendered-browser acceptance. CQL_PARAMETERS_PREVIEW_ACCEPTANCE_2026-11-21.json records scope. Slower owned in-memory comparison process stopped; linear comparison identified exact insertion; no downloads/outputs/runtime install.
+
 # Named SQL parameters — 21 November 2026
 
 Website sourcea90ccc58d4d5f5377e2779880b9e9a4e86a2d872 on existing work/cosmic-cql adds named scalar parameters to CqlText.compile(text, discoveredProfiles, parameters). The editor exposes optional JSON below the SQL textarea; Preview request and Run query both pass those values through the same compiler and existing typed WEB4 request. Existing WEB6 review flows keep their ordinary parameter-free path.
