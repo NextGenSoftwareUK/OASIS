@@ -1,0 +1,16 @@
+{
+  "coreSource": "13bd050e89b7f29ef347a97cf732d7bc1e721376",
+  "providers": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "sourceImplemented": true,
+  "compiled": false,
+  "nativeAccepted": false,
+  "hostedAccepted": false,
+  "ordinaryNativeFilterAdmissionUnchanged": true,
+  "snapshotMaximumCandidates": 200,
+  "representativeCasesPlanned": 3,
+  "fullParityCredit": false
+}
