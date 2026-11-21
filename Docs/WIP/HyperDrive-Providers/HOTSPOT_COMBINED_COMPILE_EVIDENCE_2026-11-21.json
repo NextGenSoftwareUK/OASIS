@@ -1,0 +1,32 @@
+{
+  "candidate": "cf10bbb6eb686491c730737c3f66629c514d0817",
+  "control": "3e6c368b0c0f52a176adddf92a52d6312360c96f",
+  "run": 44893706298,
+  "job": 136814765491,
+  "conclusion": "success",
+  "web4": {
+    "errors": 0,
+    "elapsed": "00:06:12.33"
+  },
+  "web5": {
+    "errors": 0,
+    "elapsed": "00:00:38.22"
+  },
+  "sourcePinInventoryGates": "passed",
+  "fixtures": 0,
+  "behaviorCases": 0,
+  "cleanup": "All post jobs passed; native/inventory/artifact steps skipped; logs RAM only.",
+  "notAccepted": [
+    "native hotspot behavior",
+    "HTTP binding",
+    "browser layers",
+    "deployment",
+    "complete OPORTAL/providers/HyperDrive"
+  ],
+  "nextNative": {
+    "run": 44894925177,
+    "job": 136818427991,
+    "control": "2858ea6a13dba18cc26e1607a2cd8f9cc3b5477d",
+    "status": "queued"
+  }
+}
