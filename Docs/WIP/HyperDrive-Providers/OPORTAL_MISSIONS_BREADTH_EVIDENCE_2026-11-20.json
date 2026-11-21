@@ -77,8 +77,8 @@
       "missing-record errors"
     ],
     "cleanup": "owned database, temporary DNA and container absence verified",
-    "browserRun": 44960073442,
-    "browserStatus": "in-progress-not-accepted",
+    "browserRun": 44960991377,
+    "browserStatus": "queued-not-accepted",
     "browserPreviousRun": {
       "run": 44959193440,
       "job": 137013995842,
@@ -86,6 +86,13 @@
       "cause": "Fixture omitted production modal styles; detail close button outside viewport",
       "cleanup": "DB/DNA/container/browser runtime/cache absent"
     },
-    "browserControl": "5fce5768b0d14cfaab0e1451be13cb7136726fbd"
+    "browserControl": "77bc3f72caffa1a0e91893a64d543c196257dbce",
+    "browserSequenceCorrection": {
+      "previousRun": 44960073442,
+      "job": 137016709553,
+      "conclusion": "failure",
+      "cause": "Fixture tried opening Missions before closing real Quest backdrop",
+      "cleanup": "DB/DNA/container/browser runtime/cache absent"
+    }
   }
 }
