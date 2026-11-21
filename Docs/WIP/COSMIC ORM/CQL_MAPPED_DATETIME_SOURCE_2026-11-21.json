@@ -1,0 +1,18 @@
+{
+  "websiteSource": "eed3ac0a01a5c6fd146083896a3df80b978be8d5",
+  "providers": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "newParserCasesPassed": 3,
+  "utcOffsetNormalization": true,
+  "sevenDigitFractionPreserved": true,
+  "invalidDateRejected": true,
+  "dateTimeLikeRejected": true,
+  "mappedGroupingAdmitted": false,
+  "nativeCasesRerun": false,
+  "hostedAcceptance": false,
+  "publicPublicationVerified": false,
+  "localGeneratedFiles": 0
+}
