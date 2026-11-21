@@ -24,7 +24,8 @@
   "executorCompiled": true,
   "nativeProvidersImplemented": [
     "SQLLiteDBOASIS",
-    "MongoDBOASIS"
+    "MongoDBOASIS",
+    "Neo4jOASIS"
   ],
   "priorContractSource": "1d5029dc99747c9b6bebe05abeb4f6d5d585208b",
   "priorContractRun": 44960376182,
@@ -34,9 +35,7 @@
   "sqliteNativeSourceImplemented": true,
   "sqliteCompiled": true,
   "sqliteNativeAccepted": true,
-  "nextNativeProviders": [
-    "Neo4jOASIS"
-  ],
+  "nextNativeProviders": [],
   "sqliteQualificationSource": "97831121685c7d9df33e2a5e5583ed5b0469e8dc",
   "sqliteNativeWorkflow": "qualify-cql-set-native.yml",
   "sqliteNativeCases": 1,
@@ -60,15 +59,15 @@
   "sqliteNativeRun": 44961797361,
   "mongoSource": "19430e3d862ffae4e11fb0c6c82287b3cf18c8e2",
   "mongoNativeSourceImplemented": true,
-  "mongoCompiled": false,
-  "mongoNativeAccepted": false,
+  "mongoCompiled": true,
+  "mongoNativeAccepted": true,
   "mongoQualificationSource": "b18a9dbddc510e7430d1e6544187a361fe244b9e",
   "mongoNativeWorkflow": "qualify-cql-mongo-set-native.yml",
   "mongoNativeCases": 1,
   "mongoQualificationPhase": "automatic_run_expected",
   "mongoNativeRun": 44962474921,
-  "mongoNativeStatus": "in_progress",
-  "mongoNativeConclusion": null,
+  "mongoNativeStatus": "completed",
+  "mongoNativeConclusion": "success",
   "run": 44961797335,
   "sharedControlsPassed": 7,
   "sharedExecutorCompiled": true,
@@ -114,9 +113,55 @@
     "skipped": 0
   },
   "nativeProvidersAccepted": [
-    "SQLLiteDBOASIS"
+    "SQLLiteDBOASIS",
+    "MongoDBOASIS"
   ],
   "actualWeb4BuildErrors": 0,
   "actualWeb4BuildElapsed": "00:05:44.33",
-  "sqliteCurrentDirectoryMatchesAccepted": true
+  "sqliteCurrentDirectoryMatchesAccepted": true,
+  "neoSource": "719e2d33dfd364ae3556f2c78a35bcda3da77fd4",
+  "neoNativeSourceImplemented": true,
+  "neoCompiled": false,
+  "neoNativeAccepted": false,
+  "neoQualificationSource": "4029c45bebc6f92fef5595c34d2d67a9d4ee706b",
+  "neoNativeWorkflow": "qualify-cql-neo-set-native.yml",
+  "neoNativeCases": 1,
+  "neoQualificationPhase": "automatic_run_expected",
+  "neoNativeRun": 44963517771,
+  "neoNativeStatus": "in_progress",
+  "neoNativeConclusion": null,
+  "mongoNativeJob": 137024093443,
+  "mongoArtifact": {
+    "id": 14730551918,
+    "bytes": 1707,
+    "sha256": "49a6310cf06eeaeab1b1eb547215c9a3aa47765c12882e383f912ac1138ea954",
+    "exactTwoEntriesVerified": true
+  },
+  "mongoReport": {
+    "provider": "MongoDBOASIS",
+    "checks": 7,
+    "ownedCleanupIds": 4,
+    "successfulHolonWrites": 4,
+    "queryElapsedMilliseconds": {
+      "create-owned": 598,
+      "create-foreign": 21,
+      "union": 70,
+      "concat": 17,
+      "intersect": 18,
+      "except": 18,
+      "concat-window": 24,
+      "bound-before-empty-page": 6,
+      "ordinary-get": 33
+    },
+    "nativeProviderVerified": true,
+    "allFourSetOperationsVerified": true,
+    "concatMultiplicityVerified": true,
+    "independentWindowsVerified": true,
+    "foreignRowsHiddenVerified": true,
+    "inputLimitBeforeEmptyOutputVerified": true,
+    "ordinaryReadPreservedVerified": true,
+    "exactCleanupVerified": true
+  },
+  "mongoOwnedContainerCleanupVerified": true,
+  "mongoCurrentDirectoryMatchesAccepted": true
 }
