@@ -93,6 +93,16 @@ function candidateAsset(target) {
   }));
   return assets.get(address.href);
 }
+async function waitForOwnedBrowserExit(timeout = 15000) {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    if (browser.exitCode !== null || browser.signalCode !== null) return true;
+    try { process.kill(browser.pid, 0); }
+    catch (error) { if (error.code === 'ESRCH') return true; throw error; }
+    await new Promise(resolve => setTimeout(resolve, 250));
+  }
+  return browser.exitCode !== null || browser.signalCode !== null;
+}
 async function evaluate(expression) {
   const result = await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true }, pageSession);
   if (result.exceptionDetails) throw new Error('Browser scenario evaluation failed.');
@@ -214,7 +224,11 @@ async function event(message) {
     const value = JSON.parse(body.base64Encoded ? Buffer.from(body.body, 'base64').toString('utf8') : body.body);
     scalarValues.push(value.result?.value);
     scalarResponses.push({ acknowledged: value.isError === false, resultPresent: value.result !== undefined && value.result !== null,
-      nonnegativeIntegerCount: Number.isSafeInteger(value.result?.value) && value.result.value >= 0 });
+      nonnegativeIntegerCount: value.result?.version === 'cql-scalar-v1' &&
+        value.result.provider === selectedProviders[scalarResponses.length] &&
+        value.result.operation === 'LongCount' && value.result.valueType === 'Int64' &&
+        typeof value.result.value === 'string' && /^(0|[1-9][0-9]{0,18})$/.test(value.result.value) &&
+        BigInt(value.result.value) <= 9223372036854775807n });
   } else if ((sqlFlow ? message.method === 'Page.domContentEventFired' : message.method === 'Page.loadEventFired') && loadWaiters.has(message.sessionId)) {
     loadWaiters.get(message.sessionId)(); loadWaiters.delete(message.sessionId);
   }
@@ -325,18 +339,11 @@ async function event(message) {
       try { await send('Browser.close'); } catch (error) { report.closeTransport = error.message; }
       socket.terminate();
     }
-    if (browser.exitCode === null && browser.signalCode === null) {
-      await new Promise(resolve => { const timer = setTimeout(resolve, 5000); browser.once('exit', () => { clearTimeout(timer); resolve(); }); });
-    }
-    if (browser.exitCode === null && browser.signalCode === null) {
-      const exited = new Promise(resolve => {
-        const timer = setTimeout(resolve, 5000);
-        browser.once('exit', () => { clearTimeout(timer); resolve(); });
-      });
+    report.ownedBrowserStopped = await waitForOwnedBrowserExit();
+    if (!report.ownedBrowserStopped) {
       browser.kill(); report.ownedBrowserForcedStop = true;
-      await exited;
+      report.ownedBrowserStopped = await waitForOwnedBrowserExit();
     }
-    report.ownedBrowserStopped = browser.exitCode !== null || browser.signalCode !== null;
     if (report.ownedBrowserStopped) browser.stderr.destroy();
     const ownership = JSON.parse(fs.readFileSync(marker, 'utf8'));
     report.ownedWorkVerified = ownership.owner === owner && path.resolve(ownership.work) === work &&
