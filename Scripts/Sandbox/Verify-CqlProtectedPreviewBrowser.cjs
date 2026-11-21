@@ -12,11 +12,12 @@ const work = path.join(parent, 'RecoveryLaptopHostedBrowserCurrent');
 const profile = path.join(work, 'profile');
 const marker = path.join(work, 'owner.json');
 const ledger = path.join(root, 'Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md');
-const previewOrigin = 'https://web4-site-hzn75ad0v-oasis-team.vercel.app';
-const candidateWebsiteSource = 'bf795c7763a827aafb0380f8b11f559f36f66f8c';
+const previewOrigin = 'https://web4-site-kq2ck00cu-oasis-team.vercel.app';
+const candidateWebsiteSource = '2bbdfc940a159cca597bb95328471971038aa6e3';
 const expectedAssetHashes = {
-  "/cql-text.js": "8051309d023f5ac61ba37fbf8af69a9a315f7fe7d5a56e52093c6ee96a27ff18",
-  "/cql-playground.js": "331918b92ba02e7cf733b7b6213fd7ee1466af960beaed57c9eb3049b9dbb4e0"
+  "/cql-text.js": "d17b60caf687ddc24da166c4a117d8adb435bf895174811b0c0d62e384f4118f",
+  "/cql-playground.js": "331918b92ba02e7cf733b7b6213fd7ee1466af960beaed57c9eb3049b9dbb4e0",
+  "/cql-ask.js": "3ad67a4ed3b6568c7c7e84d4e1955c802729b427e0d6d9f12c128758e13daa84"
 };
 const sqlFlow = process.env.CQL_BROWSER_SQL_FLOW === '1';
 const selectedProviders = (process.env.CQL_BROWSER_PROVIDERS || 'MongoDBOASIS,SQLLiteDBOASIS,Neo4jOASIS').split(',');
@@ -286,6 +287,10 @@ async function event(message) {
       report.publicWebsitePublicationVerified = false;
       await evaluate('(async()=>{await startDemo();return !!session.identity()})()').then(ok => { if (!ok) throw new Error('Demo session not established.'); });
       await waitFor(() => evaluate("!document.getElementById('cql-run').disabled"), 'Provider discovery and query readiness');
+      await evaluate("document.querySelector('button[data-tab=\"cql\"]').click();true");
+      await waitFor(() => evaluate("document.getElementById('cql-text').getClientRects().length > 0 && getComputedStyle(document.getElementById('cql-text')).visibility !== 'hidden'"), 'Visible CQL editor');
+      report.visibleSqlTabVerified = true;
+
       for (const provider of selectedProviders) {
         const available = await evaluate(`window.cqlPlayground.availableTextProviders().includes(${JSON.stringify(provider)})`);
         if (!available) { report.providerUnavailable = provider; throw new Error('Provider unavailable in current catalogue: ' + provider); }
@@ -295,7 +300,7 @@ async function event(message) {
         if (!scalarResponses[before].acknowledged || !scalarResponses[before].resultPresent) throw new Error(provider + ' SQL request was not acknowledged.');
         if (!scalarResponses[before].nonnegativeIntegerCount) throw new Error(provider + ' COUNT response was not a nonnegative integer.');
         const expectedNote = provider + ' · Total: ' + scalarValues[before];
-        await waitFor(() => evaluate(`document.getElementById('cql-note').textContent === ${JSON.stringify(expectedNote)}`), provider + ' rendered SQL alias and scalar');
+        await waitFor(() => evaluate(`document.getElementById('cql-note').textContent === ${JSON.stringify(expectedNote)} && document.getElementById('cql-note').getClientRects().length > 0`), provider + ' rendered SQL alias and scalar');
         scalarResponses[before].renderedAliasAndValueVerified = true;
         completedSqlProviders.push(provider);
         await new Promise(resolve => setTimeout(resolve, 600));
@@ -303,6 +308,8 @@ async function event(message) {
       report.sqlEditorRequestsAcknowledged = scalarResponses;
       report.sqlEditorApiJourneyVerified = true;
       report.scalarResultRenderingVerified = true;
+      report.visibleScalarResultVerified = true;
+      await evaluate("document.getElementById('cql-note').scrollIntoView({block:'center'});true");
       report.populatedSqlResultsVerified = false;
       report.fullBrowserDataFlowVerified = false;
     }
