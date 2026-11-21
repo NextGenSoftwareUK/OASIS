@@ -1,0 +1,18 @@
+{
+  "scope": "Actual compiled WEB4 MapRoutesController invoked with real HttpContext actors and owned native Mongo; not full HTTP/browser/production startup",
+  "source": "7d0494326430ff1430f10e2b35a4eb395d4555f0",
+  "run": 44876963784,
+  "job": 136763683682,
+  "conclusion": "success",
+  "apiBuildErrors": 0,
+  "apiBuildElapsed": "00:03:55.54",
+  "test": "RecordedRoutesUseOwnedMongoConditionalVisibilityAndLazyGeometry",
+  "passed": 1,
+  "failed": 0,
+  "skipped": 0,
+  "checks": ["Two-record private creation", "Owner detail", "Foreign private-read denial", "Public read", "Foreign access-update denial", "Owner rename and public revocation", "Stale revision refusal", "Immutable geometry", "Summary-only listing", "Avatar logical revision preservation", "Provider versus logical revision distinction"],
+  "artifact": {"id":14696811161,"zipBytes":1529,"sha256":"3d3dce1a4612e6851c0db9cef7bdbf21e931669b4d4e5d720b70f3d4eb9a94cd","entry":"seal-routing-native.trx","uncompressedBytes":3606,"nativeCompletionMarker":true,"filesWritten":0},
+  "cleanup": "Owned Mongo fixture absence verified; terminal job/post cleanup success; archive inspected in RAM only",
+  "retainedFailure": {"run":44875811864,"job":136760156440,"stage":"First public update used logical VersionId instead of provider concurrency revision"},
+  "open": ["Actual HTTP/SDK/browser flow", "Production Startup/admission", "Hosted delivery", "Distributed revocation across providers", "Selected-recipient access", "Route deletion", "Our World direct cloud publishing", "Whole OPORTAL/provider/HyperDrive completion"]
+}
