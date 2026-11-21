@@ -223,7 +223,11 @@ try
             holon.MetaData["Active"] = "1";
         }
         var savedMission = await data.SaveHolonAsync<Mission>(mission, actor, saveChildren: true, recursive: true, providerType: ProviderType.MongoDBOASIS);
-        Require(!savedMission.IsError && savedMission.IsSaved, "Owned mission persistence failed: " + savedMission.Message);
+        Require(!savedMission.IsError && savedMission.IsSaved,
+            "Owned mission persistence failed: " + savedMission.Message +
+            "; code=" + savedMission.ErrorCode +
+            "; cause=" + savedMission.Exception?.GetBaseException().GetType().FullName +
+            ": " + savedMission.Exception?.GetBaseException().Message);
         if (mode == "catalogue")
         {
         string MissionReadbackFacts(NextGenSoftware.OASIS.Common.OASISResult<Mission> value)
