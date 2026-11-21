@@ -91,10 +91,15 @@ try
             Require(!saved.IsError && saved.IsSaved, "Owned HTTP hotspot seed failed: " + saved.Message);
             if (!item.active)
             {
-                var retired = await data.DeleteHolonAsync(id, actor, softDelete: true, providerType: ProviderType.MongoDBOASIS);
-                Require(!retired.IsError && retired.Result != null && retired.Result.Id == id &&
-                    retired.Result.DeletedDate != DateTime.MinValue && !retired.Result.IsActive,
-                    "Owned inactive hotspot was not persisted through the real deletion lifecycle: " + retired.Message);
+                saved.Result.IsActive = false;
+                var deactivated = await data.SaveHolonAsync<GeoHotSpot>(saved.Result, actor, saveChildren: false,
+                    providerType: ProviderType.MongoDBOASIS);
+                Require(!deactivated.IsError && deactivated.IsSaved && deactivated.Result != null && !deactivated.Result.IsActive,
+                    "Owned existing hotspot was not deactivated: " + deactivated.Message);
+                var storedInactive = await data.LoadHolonAsync<GeoHotSpot>(id, loadChildren: false, providerType: ProviderType.MongoDBOASIS);
+                Require(!storedInactive.IsError && storedInactive.Result != null && !storedInactive.Result.IsActive &&
+                    storedInactive.Result.DeletedDate == DateTime.MinValue,
+                    "Owned inactive hotspot state was not confirmed by native readback: " + storedInactive.Message);
             }
             if (item.lat < 1 && item.visible && item.active) expected.Add(id);
         }
