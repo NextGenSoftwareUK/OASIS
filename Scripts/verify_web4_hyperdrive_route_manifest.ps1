@@ -22,7 +22,7 @@ function Normalize([string]$value) {
     return ([regex]::Replace($value, '\s+', ' ')).Trim()
 }
 
-function Get-Disposition([string]$body, [string]$methodName, [string]$controllerName) {
+function Get-Disposition([string]$body, [string]$methodName, [string]$controllerName, [string[]]$injectedMembers = @()) {
     # Route actions use the lazily acquired Data manager and the owned batch-write boundary.
     if ($controllerName -eq 'MapRoutesController') { return 'DirectModeAwareManagerBoundary' }
     if ($controllerName -in @('HyperDriveController', 'HyperDriveSyncController', 'ProviderController')) {
@@ -40,8 +40,13 @@ function Get-Disposition([string]$body, [string]$methodName, [string]$controller
     if ($body -match '\b[A-Za-z_][A-Za-z0-9_]*Manager(?:Base)?\b') {
         return 'CoveredFeatureManagerDelegation'
     }
-    if ($body -match '\b_[a-zA-Z][a-zA-Z0-9_]*(?:Service|Repository|Client)\b') {
+    if ($body -match '\[FromServices\]' -or $body -match '\b_[a-zA-Z0-9_]*(?:Service|Repository|Client)\b') {
         return 'InjectedServiceRepositoryOrClient'
+    }
+    foreach ($member in $injectedMembers) {
+        if ($body -match ('(?<![A-Za-z0-9_])' + [regex]::Escape($member) + '\b')) {
+            return 'InjectedServiceRepositoryOrClient'
+        }
     }
     if ($body -match '\bCqlV1Endpoint\.Execute[A-Za-z]*Async\s*\(') {
         return 'InjectedServiceRepositoryOrClient'
@@ -57,6 +62,9 @@ function Get-Disposition([string]$body, [string]$methodName, [string]$controller
 
 $rows = foreach ($file in Get-ChildItem -LiteralPath $controllerRoot -Recurse -Filter '*.cs' | Sort-Object FullName) {
     $lines = @(Get-Content -LiteralPath $file.FullName)
+    $injectedMembers = @([regex]::Matches(($lines -join "`n"),
+        '(?m)^\s*(?:private|protected|internal|public)\s+(?:(?:readonly|static)\s+)*[A-Za-z_][\w.]*(?:Service|Repository|Client)\??\s+(?<name>_[A-Za-z_]\w*)\s*[;=]') |
+        ForEach-Object { $_.Groups['name'].Value } | Sort-Object -Unique)
     $relative = $file.FullName.Substring($repoRoot.Length + 1).Replace('\', '/')
     $className = ''
     for ($classIndex = 0; $classIndex -lt $lines.Count; $classIndex++) {
@@ -90,7 +98,7 @@ $rows = foreach ($file in Get-ChildItem -LiteralPath $controllerRoot -Recurse -F
         $next = $cursor + 1
         while ($next -lt $lines.Count -and $lines[$next] -notmatch '^\s*\[Http(?:Get|Post|Put|Patch|Delete)') { $next++ }
         $body = ($lines[$bodyStart..([Math]::Max($bodyStart, $next - 1))] -join "`n")
-        $disposition = Get-Disposition $body $methodName $className
+        $disposition = Get-Disposition $body $methodName $className $injectedMembers
         [pscustomobject]@{
             SourceFile = $relative
             Line = $attributeLine

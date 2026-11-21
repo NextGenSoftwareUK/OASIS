@@ -36,6 +36,7 @@ jobs:
             Scripts/TestHosts/Fixtures/map-development-candidate.json
             Scripts/TestHosts/MapDevelopmentNative
             Scripts/verify_web4_hyperdrive_route_manifest.ps1
+            Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1
           sparse-checkout-cone-mode: false
           persist-credentials: false
       - name: Read immutable qualification candidate
@@ -118,6 +119,7 @@ jobs:
           $beforeManagers = @(Import-Csv $managerPath)
           $beforeRoutes = @(Import-Csv $routePath)
           Copy-Item -LiteralPath ../qualification-control/Scripts/verify_web4_hyperdrive_route_manifest.ps1 -Destination Scripts/verify_web4_hyperdrive_route_manifest.ps1
+          & ../qualification-control/Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1 -ClassifierPath Scripts/verify_web4_hyperdrive_route_manifest.ps1
           & Scripts/verify_hyperdrive_provider_io_manifest.ps1 -UpdateManifest
           if ($LASTEXITCODE) { throw 'Manager inventory generation failed.' }
           & Scripts/verify_web4_hyperdrive_route_manifest.ps1 -UpdateManifest
