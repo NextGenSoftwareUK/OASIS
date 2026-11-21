@@ -31,6 +31,9 @@ Links: [full handoff](../COSMIC%20ORM/CLOUD_HANDOFF_2026-11-18.md), [official Cl
 
 ### WEB4 COSMIC demo preview access · 13 November
 
+21 November update — preview access resolved through the existing native Vercel connection; no new login needed. The reviewed six-file sandbox-only candidate bd739705c3f231db9d15cbec71fdf48ef00281f0 is READY: https://web4-site-p6g80bybm-oasis-team.vercel.app/web4-sandbox.html. Static browser review passed with zero application-data requests; exact qualified runtime hashes retained and Ask layout visually reviewed. Decision pending: approve publication of these website assets at the existing public WEB4 sandbox URL. Reason: this changes the public website while the standing goal excludes production promotion. It would not deploy any staging/production backend or alter PIPER data. Real WEB6 model verification remains separately gated by the existing free-model configuration action. Preserve earlier history below.
+
+
 21 November: preview static access works via existing scoped OIDC; credentialed preview auth preflight returns wildcard/no credentials. Approved public WEB4 origin permits credentials. Bounded candidate browser test there established and revoked one demo session; later test failed to establish its session. SQL journey and auth diagnostic are agent-owned, not a new request for David to sign in or change protection/CORS. Free-model configuration remains a separate existing owner action.
 
 
