@@ -309,10 +309,8 @@ public partial class HolonRepository
             if (type == typeof(DateTime)) return SqliteCqlDate.Guard(alias);
             if (type == typeof(Guid))
             {
-                // JSON stores Guid as canonical D text. Reject malformed text instead of coercing it.
-                const string hex = "[0-9a-fA-F]";
-                var pattern = string.Join("-", new[] { 8, 4, 4, 4, 12 }.Select(count => string.Concat(Enumerable.Repeat(hex, count))));
-                return alias + ".type = 'text' AND length(CAST(" + alias + ".value AS BLOB)) = 36 AND " + alias + ".value GLOB '" + pattern + "'";
+                // JSON and raw mapped columns share one exact ASCII D-format domain.
+                return alias + ".type = 'text' AND " + SqliteCqlGuid.TextDomain(alias + ".value");
             }
             if (type == typeof(decimal)) return "(" + SqliteCqlDecimal.Column(alias) + ") IS NOT NULL";
             if (type == typeof(double) || type == typeof(float)) return "(" + SqliteCqlFloating.Column(alias, type) + ") IS NOT NULL";
@@ -376,6 +374,13 @@ public partial class HolonRepository
             if (type == typeof(decimal)) return SqliteCqlDecimal.Column(alias);
             if (type == typeof(double) || type == typeof(float)) return SqliteCqlFloating.Column(alias, type);
             return alias + ".value" + (type == typeof(Guid) ? " COLLATE NOCASE" : type == typeof(string) ? " COLLATE BINARY" : "");
+        }
+
+        private string StringLength(string column, CosmicQueryStringLength length)
+        {
+            var units = SqliteCqlReadBudget.StringLengthFunction + "(CAST(" + column + " AS BLOB))";
+            return "(CASE WHEN typeof(" + column + ") = 'text' THEN "
+                + units + ComparisonSymbol(length.Operator) + Bind(length.Value) + " ELSE 0 END)";
         }
 
         private string StringMatch(string column, CosmicQueryStringMatch match)
@@ -469,6 +474,18 @@ public partial class HolonRepository
                 }
                 else if (memberField.ValueType == typeof(string)) memberColumn += " COLLATE BINARY";
                 return Membership(memberColumn, memberField.ValueType, membership.Values);
+            }
+            if (predicate is CosmicQueryStringLength length)
+            {
+                if (length.Path.IsMetadata)
+                    return MetadataPredicate(length.Path.Segments, alias => "("
+                        + MetadataTypeGuard(typeof(string), alias) + " AND "
+                        + StringLength(alias + ".value", length) + ")");
+                if (length.Path.Segments.Count != 1
+                    || !SqliteCqlContract.Fields.TryGetValue(length.Path.Segments[0], out var lengthField)
+                    || lengthField.ValueType != typeof(string))
+                    throw new NotSupportedException("SQLite CQL string length path is unsupported.");
+                return StringLength(CanonicalColumn(lengthField.Name), length);
             }
             if (predicate is CosmicQueryStringMatch match)
             {

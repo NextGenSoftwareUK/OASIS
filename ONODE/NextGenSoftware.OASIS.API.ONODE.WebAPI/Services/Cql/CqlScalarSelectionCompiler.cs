@@ -8,6 +8,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 public static partial class CqlV1Compiler
 {
+    public static CosmicProjectionQuery<Holon, TValue> CompileSelectedCount<TValue>(
+        CosmicQuery<Holon> source, Expression<Func<Holon, TValue>> selector, bool distinct)
+    {
+        if (source == null || selector == null)
+            throw new ArgumentException("Selected count requires a source and one exact selection.");
+
+        var query = RequiredComposition(source.Select(selector));
+        var type = typeof(TValue);
+        if (!type.IsValueType || Nullable.GetUnderlyingType(type) != null)
+        {
+            var value = Expression.Parameter(type, "value");
+            var nonNull = Expression.Lambda<Func<TValue, bool>>(
+                Expression.NotEqual(value, Expression.Constant(null, type)), value);
+            query = RequiredComposition(query.Where(nonNull));
+        }
+        return distinct ? RequiredComposition(query.Distinct()) : query;
+    }
+
+    private static CosmicProjectionQuery<Holon, TValue> RequiredComposition<TValue>(
+        OASISResult<CosmicProjectionQuery<Holon, TValue>> result)
+        => result.IsError ? throw new ArgumentException(result.Message) : result.Result;
+
     internal interface IScalarConsumer<TResult>
     {
         TResult Consume<TValue>(OASISResult<CosmicScalarQuery<Holon, TValue>> intent);

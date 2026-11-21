@@ -51,7 +51,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public string JwtToken { get; set; }
 
-        [HolochainRustFieldName("password_reset")]
         public DateTime? PasswordReset { get; set; }
 
         public string RefreshToken { get; set; }
@@ -60,7 +59,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public string ResetToken { get; set; }
 
-        [HolochainRustFieldName("reset_token_expires")]
         public DateTime? ResetTokenExpires { get; set; }
 
         public string VerificationToken { get; set; }

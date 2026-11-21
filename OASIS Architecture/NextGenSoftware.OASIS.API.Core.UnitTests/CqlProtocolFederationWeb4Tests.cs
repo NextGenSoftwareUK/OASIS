@@ -19,9 +19,9 @@ public partial class CqlV1Web4Tests
     private sealed class ProtocolFederationSources : ICqlV1Providers
     {
         internal readonly Dictionary<ProviderType, Source> Items = new();
-        public IOASISStorageProvider Resolve(ProviderType? requested)
+        public IOASISProvider Resolve(ProviderType? requested)
             => Items[requested ?? ProviderType.MongoDBOASIS].Resolve(requested);
-        public HolonManager CreateManager(IOASISStorageProvider provider)
+        public HolonManager CreateManager(IOASISProvider provider)
             => Items[provider.ProviderType.Value].CreateManager(provider);
         internal void NeverRead()
         {

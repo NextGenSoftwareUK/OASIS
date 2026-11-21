@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
+using RequestTiming = NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware.RequestTimingMiddleware;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
@@ -336,17 +337,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISHttpResponseMessage<IAvatar>> Authenticate(AuthenticateRequest request)
         {
+            RequestTiming.Mark(HttpContext, RequestTiming.Phase.EngineConfiguration);
             OASISConfigResult<IAvatar> configResult = await ConfigureOASISEngineAsync<IAvatar>(request);
 
             if (configResult.IsError && configResult.Response != null)
                 return configResult.Response;
 
+            RequestTiming.Mark(HttpContext, RequestTiming.Phase.Authentication);
             var result = await Program.AvatarManager.AuthenticateAsync(request.Username, request.Password, ipAddress(), configResult.AutoReplicationMode, configResult.AutoFailOverMode, configResult.AutoLoadBalanceMode, request.WaitForAutoReplicationResult);
             ResetOASISSettings(request, configResult);
 
             if (!result.IsError && result.Result != null)
             {
-                setTokenCookie(result.Result.RefreshToken);
+                if (!string.IsNullOrEmpty(result.Result.RefreshToken)) // empty while a second sign-in step (MFA) is pending
+                    setTokenCookie(result.Result.RefreshToken);
                 return HttpResponseHelper.FormatResponse(result, HttpStatusCode.OK, request.ShowDetailedSettings);
             }
             else
@@ -478,6 +482,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             var refreshToken = Request.Cookies["refreshToken"];
             if (string.IsNullOrWhiteSpace(refreshToken))
                 refreshToken = body?.RefreshToken;
+            RequestTiming.Mark(HttpContext, RequestTiming.Phase.RefreshSession);
             var response = AvatarManager.RefreshToken(refreshToken, ipAddress());
 
             if (!response.IsError && response.Result != null)

@@ -1,11 +1,13 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS;
 
-public partial class PolkadotOASIS
+public partial class PolkadotOASIS : IPreparedNativeStorageProvider
 {
     /// <summary>Builds the native conditional-cell adapter using this provider's verified
     /// network and existing SDK/owned-submission runner. OASIS records must additionally
@@ -22,6 +24,9 @@ public partial class PolkadotOASIS
         Func<string,string,PreparedSubmissionServer> factory, CancellationToken token=default)
         => _recordStorage.WithPreparationAsync(operation,factory,token);
 
+    public Task<T> ExecutePreparedStorageAsync<T>(Func<Task<T>> operation, UsageExecutionHandle execution,
+        string clientRequestId, string expectedSender, CancellationToken token = default)
+        => _recordStorage.ExecutePreparedAsync(operation, execution, clientRequestId, expectedSender, token);
     private void EnsureRecordActivation()
     {
         ObjectDisposedException.ThrowIf(_isDisposed,this);

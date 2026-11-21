@@ -43,6 +43,8 @@ public partial class ActivityPubOASIS : ICosmicQueryStorageProvider, ICosmicRead
             if(QueryCapabilities.StringKeySetLookup?.IsKeySetQuery(plan.Query)==true)
                 return await ExecuteCqlStatusKeySetAsync(plan,maximumResults,cancellationToken);
             var key = QueryCapabilities.StringPointLookup.SelectKey(plan.Query).Result;
+            if (string.IsNullOrEmpty(key) || key.Any(c => c < '0' || c > '9'))
+                return CqlError("CQL_INVALID_SOURCE_KEY", "Native Mastodon status keys must be decimal IDs.");
             cancellationToken.ThrowIfCancellationRequested();
             if (!_isActivated)
                 return CqlError("CQL_PROVIDER_INACTIVE","Explicitly activate the configured Mastodon provider before querying.");

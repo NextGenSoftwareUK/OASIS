@@ -62,7 +62,8 @@ public class CosmicProjectionCompositionTests
         Explosive.Calls = 0;
         var query = CosmicQuery<Holon>.Create().Select(h => new Explosive { Label = h.Name }).Result;
         Assert.False(query.Where(row => row.Label == "coffee").OrderBy(row => row.Label).IsError);
-        Assert.True(query.Where(row => row.Label.Length > 1).IsError);
+        Assert.False(query.Where(row => row.Label.Length > 1).IsError);
+        Assert.True(query.Where(row => row.Label.Trim() == "coffee").IsError);
         Assert.True(query.Where(row => Dangerous(row.Label)).IsError);
         Assert.Equal(0, Explosive.Calls);
     }

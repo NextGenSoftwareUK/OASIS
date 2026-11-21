@@ -28,9 +28,20 @@ internal sealed partial class MongoCqlTranslator
         {
             // Dispatch on the original BSON domain: Decimal128 and Int64 must
             // never pass through Double before the binary32 rounding decision.
-            return Choose(Op("$eq", Type(value), Literal("double")), SingleFromNativeDouble(value),
-                Choose(Op("$in", Type(value), Literal(new BsonArray { "int", "long" })), SingleFromNativeInteger(value),
-                    Choose(Op("$eq", Type(value), Literal("decimal")), SingleFromNativeDecimal(value), value)));
+            return new BsonDocument("$switch", new BsonDocument
+            {
+                { "branches", new BsonArray
+                    {
+                        new BsonDocument { { "case", Op("$eq", Type(value), Literal("double")) },
+                            { "then", SingleFromNativeDouble(value) } },
+                        new BsonDocument { { "case", Op("$in", Type(value), Literal(new BsonArray { "int", "long" })) },
+                            { "then", SingleFromNativeInteger(value) } },
+                        new BsonDocument { { "case", Op("$eq", Type(value), Literal("decimal")) },
+                            { "then", NormalizeSingleDecimal(value) } }
+                    }
+                },
+                { "default", value }
+            });
         }
         if (type != typeof(double)) return value;
 

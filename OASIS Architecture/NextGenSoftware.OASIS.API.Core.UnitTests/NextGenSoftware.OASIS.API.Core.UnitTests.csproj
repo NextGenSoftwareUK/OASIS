@@ -52,6 +52,7 @@
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlScalarV1Request.cs" Link="Production/CqlScalarV1Request.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlProjectionV1Request.cs" Link="Production/CqlProjectionV1Request.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectionV1Compiler.cs" Link="Production/CqlProjectionV1Compiler.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlMixedSnapshotAuthority.cs" Link="Production/CqlMixedSnapshotAuthority.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlIndexedV1Request.cs" Link="Production/CqlIndexedV1Request.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlIndexedV1RequestContext.cs" Link="Production/CqlIndexedV1RequestContext.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlIndexedV1Endpoint.cs" Link="Production/CqlIndexedV1Endpoint.cs" />
@@ -63,7 +64,9 @@
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlHostedSources.cs" Link="Production/CqlHostedSources.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlHostedQueryExamples.cs" Link="Production/CqlHostedQueryExamples.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlScalarV1Endpoint.cs" Link="Production/CqlScalarV1Endpoint.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlComputedScalarV1Endpoint.cs" Link="Production/CqlComputedScalarV1Endpoint.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectionV1Endpoint.cs" Link="Production/CqlProjectionV1Endpoint.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlVirtualProjectionV1Compiler.cs" Link="Production/CqlVirtualProjectionV1Compiler.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs" Link="Production/CqlV1Controller.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/AuthorizeAttribute.cs" Link="Production/AuthorizeAttribute.cs" />
   </ItemGroup>
@@ -80,5 +83,11 @@
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/BaseLoadHolonRequest.cs" Link="Production/BaseLoadHolonRequest.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/BaseHolonRequest.cs" Link="Production/BaseHolonRequest.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/OASISRequest.cs" Link="Production/OASISRequest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Providers/Other/NextGenSoftware.OASIS.API.Providers.UrbitOASIS/NextGenSoftware.OASIS.API.Providers.UrbitOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlUrbitReadSourceRegistration.cs" Link="Production/CqlUrbitReadSourceRegistration.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReadSourceProfile.cs" Link="Production/CqlReadSourceProfile.cs" />
   </ItemGroup>
 </Project>

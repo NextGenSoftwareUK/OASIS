@@ -14,6 +14,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS;
 
 public partial class ActivityPubOASIS
 {
+    private static string RequireNativePathId(string key)
+    {
+        var selected = key?.Trim();
+        if (string.IsNullOrEmpty(selected) || selected is "." or "..")
+            throw new ArgumentException("A native ID must be a nonempty path segment.", nameof(key));
+        return selected;
+    }
+
     private static OASISResult<T> RejectProjectionGuid<T>()
     {
         var result=new OASISResult<T>();
@@ -29,9 +37,23 @@ public partial class ActivityPubOASIS
             if(string.IsNullOrWhiteSpace(key))throw new ArgumentException("A native status ID is required.",nameof(key));
             if(depth<0)throw new ArgumentOutOfRangeException(nameof(depth));
             if(version!=0)throw new NotSupportedException("Native status edit history is not an OASIS holon version.");
-            var selected=key.Trim();
+            var selected=RequireNativePathId(key);
             if(!_isActivated){var activated=await ActivateProviderAsync().ConfigureAwait(false);if(activated.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IHolon>(activated);}
-            using var response=await _httpClient.GetAsync("/api/v1/statuses/"+Uri.EscapeDataString(selected)).ConfigureAwait(false);response.EnsureSuccessStatusCode();
+            if (Uri.TryCreate(key, UriKind.Absolute, out var objectUri) && objectUri.Scheme == Uri.UriSchemeHttps)
+            {
+                if (children && providerChildren)
+                    throw new NotSupportedException("Public object URI reads do not include a native reply graph.");
+                return await LoadPublicStatusByObjectUriAsync(key).ConfigureAwait(false);
+            }
+            using var response=await _httpClient.GetAsync("/api/v1/statuses/"+Uri.EscapeDataString(selected)).ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                return new OASISResult<IHolon>
+                {
+                    IsError = true,
+                    ErrorCode = OASISResultErrorCodes.RecordNotFound,
+                    Message = "The configured instance did not find the native status."
+                };
+            response.EnsureSuccessStatusCode();
             using var document=JsonDocument.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));var status=document.RootElement;
             var holon=ProjectMastodonStatus(status,selected);
             result.Result=children&&providerChildren?await ReadMastodonReplyGraphAsync(holon,recursive,depth).ConfigureAwait(false):holon;
@@ -39,7 +61,6 @@ public partial class ActivityPubOASIS
             result.IsLoaded=true;
         }catch(Exception error){
             OASISErrorHandling.HandleError(ref result,"Mastodon native status read failed.",error);
-            if(error is HttpRequestException http&&http.StatusCode==HttpStatusCode.NotFound)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
         }
         return result;
     }

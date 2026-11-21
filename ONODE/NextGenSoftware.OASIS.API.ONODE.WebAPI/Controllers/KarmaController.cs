@@ -43,6 +43,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             };
         }
 
+        /// <summary>Lists the configured karma rewards and penalties for named actions.</summary>
+        [Authorize]
+        [HttpGet("weightings")]
+        public OASISResult<Dictionary<string, int>> GetWeightings()
+        {
+            var weightings = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (var type in Enum.GetValues<KarmaTypePositive>())
+            {
+                int weight = KarmaManager.GetKarmaForType(type);
+                if (type != KarmaTypePositive.Other && weight > 0)
+                    weightings[type.ToString()] = weight;
+            }
+
+            foreach (var type in Enum.GetValues<KarmaTypeNegative>())
+            {
+                int weight = KarmaManager.GetKarmaForType(type);
+                if (type != KarmaTypeNegative.Other && weight > 0)
+                    weightings[type.ToString()] = -weight;
+            }
+
+            return new(weightings);
+        }
+
         /// <summary>
         /// Get karma weighting for a given positive karma category.
         /// </summary>

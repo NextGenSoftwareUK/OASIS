@@ -226,6 +226,8 @@ internal static class HederaSdkClient
             if (isMutation)
                 throw new HederaNativeMutationTimeoutException(message,
                     new HederaNativeMutationEvidence(originalId, originalApprovalId, originalId, "process-timed-out", null), errorException);
+            if (queryServer == null)
+                throw new HederaReadDeadlineException(errorException);
             throw new TimeoutException(message, errorException);
         }
         catch (Exception transportError) when (isMutation && (transportError is IOException || transportError is DecoderFallbackException))
@@ -260,3 +262,6 @@ internal static class HederaSdkClient
         }
     }
 }
+
+internal sealed class HederaReadDeadlineException(Exception cause)
+    : TimeoutException("The Hedera SDK did not complete the read before its transport deadline.", cause);

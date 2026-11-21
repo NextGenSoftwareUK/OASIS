@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         private IMongoCollection<GrantBucket> GrantBuckets => _database.GetCollection<GrantBucket>("subscription_usage_grant_buckets");
 
         private void InitializeGrantIndexes() =>
-            Grants.Indexes.CreateOne(new CreateIndexModel<GrantDocument>(
+            EnsureSubscriptionIndexes(Grants, new CreateIndexModel<GrantDocument>(
                 Builders<GrantDocument>.IndexKeys.Ascending(x => x.UserId).Descending(x => x.CreatedAtUtc), new CreateIndexOptions { Name = "ix_grant_owner" }));
 
         public Task<DelegatedUsageGrant> CreateGrantAsync(string userId, CreateDelegatedUsageGrantRequest request, CancellationToken cancellationToken)

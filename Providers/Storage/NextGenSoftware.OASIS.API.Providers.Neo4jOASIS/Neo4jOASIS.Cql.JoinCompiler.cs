@@ -29,32 +29,140 @@ public partial class Neo4jOASIS
         var left=Source(query.Join.Left,true,limits.MaximumLeftRows,limits.MaximumLeftPayloadBytes);
         var right=Source(query.Join.Right,false,limits.MaximumRightRows,limits.MaximumRightPayloadBytes);
         var binder=new NeoCqlTranslator("h","p",parameters,null);
-        var pairLimit=binder.Bind(Math.Min(limits.MaximumPairs,(long)limits.MaximumResults)+1);
+        var pairLimit=binder.Bind((query.OutputLimit.HasValue
+            ? limits.MaximumPairs
+            : Math.Min(limits.MaximumPairs,(long)limits.MaximumResults))+1);
         var leftCount=binder.Bind(limits.MaximumLeftRows);var rightCount=binder.Bind(limits.MaximumRightRows);
         var leftBytes=binder.Bind(limits.MaximumLeftPayloadBytes);var rightBytes=binder.Bind(limits.MaximumRightPayloadBytes);
-        var outer=binder.Bind(query.Join.Kind==CosmicJoinKind.Left);
-        var equality=string.Join(" AND ",query.Join.Keys.Select((_,index)=>
-            "l.keys["+index+"].s=2 AND r.keys["+index+"].s=2 AND l.keys["+index+"].v=r.keys["+index+"].v"));
+        var outer = binder.Bind(query.Join.Kind is CosmicJoinKind.Left or CosmicJoinKind.Full);
+        var predicates = query.Join.Keys.Select((key,index) =>
+        {
+            var comparison = key.Comparison switch
+            {
+                CosmicJoinComparison.Equal or CosmicJoinComparison.NullSafeEqual => "=",
+                CosmicJoinComparison.NotEqual or CosmicJoinComparison.NullSafeNotEqual => "<>",
+                CosmicJoinComparison.LessThan => "<",
+                CosmicJoinComparison.LessThanOrEqual => "<=",
+                CosmicJoinComparison.GreaterThan => ">",
+                CosmicJoinComparison.GreaterThanOrEqual => ">=",
+                _ => throw new NotSupportedException("Unknown native join comparison.")
+            };
+            var lcell = "l.keys[" + index + "]";
+            var rcell = "r.keys[" + index + "]";
+            var leftPresent = lcell + ".s=2";
+            var rightPresent = rcell + ".s=2";
+            var present = leftPresent + " AND " + rightPresent;
+            var valuesMatch = lcell + ".v" + comparison + rcell + ".v";
+            var predicate = key.Comparison is CosmicJoinComparison.NullSafeEqual or CosmicJoinComparison.NullSafeNotEqual
+                ? "(CASE WHEN " + present + " THEN " + valuesMatch + " ELSE (" + leftPresent + ")"
+                    + comparison + "(" + rightPresent + ") END)"
+                : present + " AND " + valuesMatch;
+            return "(" + predicate + ")";
+        }).ToArray();
+        var equality = query.Join.CombineKeyPredicates(predicates, group => "(" + string.Join(" AND ", group) + ")",
+            groups => "(" + string.Join(" OR ", groups) + ")");
         var valid="size(leftInput)<="+leftCount+" AND size(rightInput)<="+rightCount
             +" AND all(x IN leftInput+rightInput WHERE x.valid AND x.domainValid AND NOT(x.cycle OR x.traversalLimit OR x.payloadLimit))"
             +" AND reduce(total=0,x IN leftInput | total+x.bytes)<="+leftBytes
             +" AND reduce(total=0,x IN rightInput | total+x.bytes)<="+rightBytes;
+        var leftPairs = "WITH leftInput,rightInput UNWIND range(0,size(leftInput)-1) AS li "
+            + "WITH li,leftInput[li] AS l,rightInput CALL { WITH l,rightInput "
+            + "UNWIND range(0,size(rightInput)-1) AS ri WITH ri,rightInput[ri] AS r,l"
+            + (query.Join.Kind == CosmicJoinKind.Cross ? "" : " WHERE " + equality)
+            + " WITH ri ORDER BY ri ASC RETURN collect(ri) AS matches } "
+            + "UNWIND CASE WHEN size(matches)=0 AND " + outer + " THEN [-1] ELSE matches END AS ri "
+            + "RETURN li,ri ORDER BY li ASC,ri ASC LIMIT " + pairLimit;
+        var pairRows = leftPairs;
+        if (query.Join.Kind == CosmicJoinKind.Full)
+        {
+            // A left position just past the captured list separates unmatched right rows from real left rows.
+            pairRows = "WITH leftInput,rightInput CALL { " + leftPairs
+                + " UNION ALL WITH leftInput,rightInput UNWIND range(0,size(rightInput)-1) AS ri "
+                + "WITH leftInput,rightInput[ri] AS r,ri WHERE none(l IN leftInput WHERE " + equality + ") "
+                + "RETURN size(leftInput) AS li,ri ORDER BY ri ASC LIMIT " + pairLimit
+                + " } RETURN li,ri ORDER BY li ASC,ri ASC LIMIT " + pairLimit;
+        }
+        var navigation=query.Join.RestrictsRightToLeftParents;
+        var import=navigation ? "WITH leftInput " : "";
+        var leftProof=navigation
+            ? "WITH leftInput,li,leftInput[li] AS entry RETURN 0 AS kind,li AS lp,-1 AS rp,"
+                +"entry{.id,.visible,.creator,.valid,.domainValid,.cycle,.traversalLimit,.payloadLimit,.bytes,.keys,.values,.ordering}"
+                +" AS proof,size(leftInput) AS nativeCount "
+            : "RETURN 0 AS kind,li AS lp,-1 AS rp,leftInput[li] AS proof,size(leftInput) AS nativeCount ";
+        var output = "RETURN kind,lp,rp,proof,nativeCount ORDER BY kind ASC,lp ASC,rp ASC";
+        var values = new List<string>();
+        var orderTerms = new List<string>();
+        if (query.OutputOrdering.Count != 0)
+        {
+            foreach (var order in query.OutputOrdering)
+            {
+                var column = query.Columns[order.Column];
+                var index = query.Columns.Take(order.Column).Count(item => item.Source == column.Source);
+                var position = column.Source == CosmicJoinColumnSource.Left ? "lp" : "rp";
+                var input = column.Source == CosmicJoinColumnSource.Left ? "leftInput" : "rightInput";
+                var cell = input + "[" + position + "].values[" + index + "]";
+                var direction = order.Descending ? " DESC" : " ASC";
+                var alias = "outputValue" + values.Count;
+                values.Add("CASE WHEN kind=2 AND " + position + ">=0 AND " + position
+                    + "<size(" + input + ") AND " + cell + ".s=2 THEN " + cell + ".v END AS " + alias);
+                orderTerms.Add("CASE WHEN " + alias + " IS NULL THEN 0 ELSE 1 END" + direction);
+                orderTerms.Add(alias + direction);
+            }
+            output = "WITH kind,lp,rp,proof,nativeCount," + string.Join(",", values)
+                + " RETURN kind,lp,rp,proof,nativeCount ORDER BY kind ASC," + string.Join(",", orderTerms) + ",lp ASC,rp ASC";
+        }
+        var rightProof = query.SelectsChildEntity
+            ? "WITH rightInput,ri,rightInput[ri] AS entry RETURN 1 AS kind,-1 AS lp,ri AS rp,"
+                + "entry{.id,.visible,.creator,.valid,.domainValid,.cycle,.traversalLimit,.payloadLimit,.bytes,.keys,.values,.ordering}"
+                + " AS proof,size(rightInput) AS nativeCount "
+            : "RETURN 1 AS kind,-1 AS lp,ri AS rp,rightInput[ri] AS proof,size(rightInput) AS nativeCount ";
+        if (query.SelectsChildEntity)
+        {
+            var entityLimit = binder.Bind(limits.MaximumPayloadBytes);
+            var entityOrder = values.Count == 0 ? "" : "," + string.Join(",", values);
+            output = "WITH kind,lp,rp,proof,nativeCount,CASE WHEN kind=2 THEN rightInput[rp] END AS selected"
+                + entityOrder + " "
+                + "OPTIONAL MATCH (child:Holon) WHERE elementId(child)=selected.entityLocator "
+                + "AND coalesce(child.ProviderRevisionId,'')=selected.entityRevision "
+                + "RETURN kind,lp,rp,proof,nativeCount,CASE WHEN child IS NOT NULL THEN "
+                + "{id:child.Id,revision:child.ProviderRevisionId,snapshot:CASE WHEN size(child.SnapshotJson)<="
+                + entityLimit + " THEN child.SnapshotJson END} END AS entity ORDER BY kind ASC,"
+                + string.Join(",", orderTerms.Concat(new[] { "lp ASC", "rp ASC" }));
+        }
+        var pairProof = "CALL { " + pairRows + " } "
+            + "WITH collect({l:li,r:ri}) AS pairs UNWIND pairs AS pair "
+            + "RETURN 2 AS kind,pair.l AS lp,pair.r AS rp,null AS proof,size(pairs) AS nativeCount ";
+        if (query.OutputLimit is int requestedLimit)
+        {
+            // Count stays available when the requested window is empty.
+            var pagingValues = values.Select(value => value.Replace("kind=2 AND ", "")).ToArray();
+            var offset = binder.Bind(query.OutputOffset);
+            var end = binder.Bind((long)query.OutputOffset + requestedLimit);
+            var page = "pairs[" + offset + ".." + end + "]";
+            if (query.OutputFromEnd > 0)
+            {
+                var windowEnd = query.OutputTailWindowLimit is int window
+                    ? binder.Bind((long)query.OutputOffset + window) : "size(pairs)";
+                var windowRows = "pairs[" + offset + ".." + windowEnd + "]";
+                var fromEnd = binder.Bind(query.OutputFromEnd);
+                page = "CASE WHEN size(" + windowRows + ")>=" + fromEnd
+                    + " THEN [" + windowRows + "[-" + fromEnd + "]] ELSE [] END";
+            }
+            pairProof = "CALL { WITH leftInput,rightInput CALL { " + pairRows + " } "
+                + "WITH leftInput,rightInput,li AS lp,ri AS rp "
+                + (pagingValues.Length == 0 ? "" : "WITH lp,rp," + string.Join(",", pagingValues) + " ")
+                + "ORDER BY " + string.Join(",", orderTerms.Concat(new[] { "lp ASC", "rp ASC" }))
+                + " RETURN collect({kind:2,l:lp,r:rp}) AS pairs } "
+                + "UNWIND (" + page + ")+[{kind:3,l:-1,r:-1}] AS pair "
+                + "RETURN pair.kind AS kind,pair.l AS lp,pair.r AS rp,null AS proof,size(pairs) AS nativeCount ";
+        }
         var text="CALL { CALL { "+left+" } RETURN collect(input) AS leftInput } "
-            +"CALL { CALL { "+right+" } RETURN collect(input) AS rightInput } WITH leftInput,rightInput "
-            +"CALL { WITH leftInput,rightInput UNWIND range(0,size(leftInput)-1) AS li "
-            +"RETURN 0 AS kind,li AS lp,-1 AS rp,leftInput[li] AS proof,size(leftInput) AS nativeCount "
+            +"CALL { "+import+"CALL { "+import+right+" } RETURN collect(input) AS rightInput } WITH leftInput,rightInput "
+            +"CALL { WITH leftInput,rightInput UNWIND range(0,size(leftInput)-1) AS li "+leftProof
             +"UNION ALL WITH leftInput,rightInput UNWIND range(0,size(rightInput)-1) AS ri "
-            +"RETURN 1 AS kind,-1 AS lp,ri AS rp,rightInput[ri] AS proof,size(rightInput) AS nativeCount "
+            +rightProof
             +"UNION ALL WITH leftInput,rightInput WITH leftInput,rightInput WHERE "+valid+" "
-            +"CALL { WITH leftInput,rightInput UNWIND range(0,size(leftInput)-1) AS li "
-            +"WITH li,leftInput[li] AS l,rightInput CALL { WITH l,rightInput "
-            +"UNWIND range(0,size(rightInput)-1) AS ri WITH ri,rightInput[ri] AS r,l WHERE "+equality
-            +" WITH ri ORDER BY ri ASC RETURN collect(ri) AS matches } "
-            +"UNWIND CASE WHEN size(matches)=0 AND "+outer+" THEN [-1] ELSE matches END AS ri "
-            +"RETURN li,ri ORDER BY li ASC,ri ASC LIMIT "+pairLimit+" } "
-            +"WITH collect({l:li,r:ri}) AS pairs UNWIND pairs AS pair "
-            +"RETURN 2 AS kind,pair.l AS lp,pair.r AS rp,null AS proof,size(pairs) AS nativeCount "
-            +"} RETURN kind,lp,rp,proof,nativeCount ORDER BY kind ASC,lp ASC,rp ASC";
+            + pairProof + "} "+output;
         if(text.Length>1024*1024)throw new NeoCqlLimitException("Native join exceeds its statement-size budget.");
         return new NeoCqlJoinCommand(text,parameters);
 
@@ -62,6 +170,9 @@ public partial class Neo4jOASIS
             => CompileCqlDetachedSource(source, parameters,
                 query.Join.Keys.Select(key => isLeft ? key.Left : key.Right).ToArray(),
                 query.Columns.Where(column => column.Source == (isLeft ? CosmicJoinColumnSource.Left : CosmicJoinColumnSource.Right))
-                    .Select(column => column.Path).ToArray(), maximumRows, maximumBytes);
+                    .Select(column => column.Path).ToArray(), maximumRows, maximumBytes,
+                scopeChildren: !isLeft && query.Join.RestrictsRightToLeftParents,
+                includeChildMembership: isLeft && query.Join.RestrictsRightToLeftParents,
+                includeEntityLocator: !isLeft && query.SelectsChildEntity);
     }
 }

@@ -24,6 +24,145 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         return new HolonManager((IOASISStorageProvider)adapter, dna, registry);
     }
 
+    private static async Task VerifyNativeFlattening(ICosmicQueryStorageProvider adapter,
+        Guid rootId, Guid otherId, List<object> checks)
+    {
+        var scope = CosmicQueryScope.Named(adapter.QueryProviderType).Result;
+        var manager = NativeManager(adapter);
+        var root = CosmicLinq.Create(manager, adapter, CosmicQuery<Holon>.Create(scope)
+            .Where(row => row.Id == rootId).Result, maximumResults: 10).Result;
+        var multi = CosmicLinq.Create(manager, adapter, CosmicQuery<Holon>.Create(scope)
+            .Where(row => row.Id == rootId || row.Id == otherId).Result, maximumResults: 10).Result;
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        var rightSource = root.OrderBy(row => row.Id).Take(1);
+        var flattened = root.Take(1).SelectMany(_ => rightSource,
+            (leftRow, rightRow) => new { LeftId = leftRow.Id, RightId = rightRow.Id });
+        var flattenedRows = await flattened.ToCosmicListAsync();
+        Assert.IsFalse(flattenedRows.IsError, flattenedRows.Message + flattenedRows.Exception);
+        Assert.AreEqual(rootId, flattenedRows.Result.Single().LeftId);
+        Assert.AreEqual(rootId, flattenedRows.Result.Single().RightId);
+        Assert.AreEqual(rootId, flattened.ToList().Single().RightId);
+
+        var projectedIds = root.Take(1).SelectMany(_ => rightSource.Select(row => row.Id));
+        var projectedIdsResult = await projectedIds.ToCosmicListAsync();
+        Assert.IsFalse(projectedIdsResult.IsError, projectedIdsResult.Message + projectedIdsResult.Exception);
+        CollectionAssert.AreEqual(new[] { rootId }, projectedIdsResult.Result.ToArray());
+
+        var projectedPairs = root.SelectMany(left => multi.Where(right => right.Id == left.Id).Select(right => right.Id),
+            (left, id) => new { LeftId = left.Id, RightId = id });
+        var projectedPairsResult = await projectedPairs.ToCosmicListAsync();
+        Assert.IsFalse(projectedPairsResult.IsError, projectedPairsResult.Message + projectedPairsResult.Exception);
+        Assert.AreEqual(rootId, projectedPairsResult.Result.Single().LeftId);
+        Assert.AreEqual(rootId, projectedPairsResult.Result.Single().RightId);
+
+        var structured = root.Take(1).SelectMany(_ => rightSource.Select(row => new { row.Id, row.Version }));
+        var structuredResult = await structured.ToCosmicListAsync();
+        Assert.IsFalse(structuredResult.IsError, structuredResult.Message + structuredResult.Exception);
+        var inner = structuredResult.Result.Single();
+        Assert.AreEqual(rootId, inner.Id);
+
+        var structuredPairs = root.SelectMany(left =>
+                multi.Where(right => right.Id == left.Id).Select(right => new { right.Id, right.Version }),
+            (left, item) => new { LeftId = left.Id, RightId = item.Id, item.Version });
+        var structuredPairsResult = await structuredPairs.ToCosmicListAsync();
+        Assert.IsFalse(structuredPairsResult.IsError, structuredPairsResult.Message + structuredPairsResult.Exception);
+        var structuredPair = structuredPairsResult.Result.Single();
+        Assert.AreEqual(rootId, structuredPair.LeftId);
+        Assert.AreEqual(inner.Id, structuredPair.RightId);
+        Assert.AreEqual(inner.Version, structuredPair.Version);
+
+        var composed = flattened.Select(pair => new { pair.RightId }).Select(pair => pair.RightId);
+        var composedResult = await composed.ToCosmicListAsync();
+        Assert.IsFalse(composedResult.IsError, composedResult.Message + composedResult.Exception);
+        CollectionAssert.AreEqual(new[] { rootId }, composedResult.Result.ToArray());
+
+        var scalarComposition = projectedIds.Select(id => new { Identity = id });
+        Assert.AreEqual(rootId, scalarComposition.ToList().Single().Identity);
+        var correlatedComposition = structuredPairs.Select(pair => pair.LeftId);
+        Assert.AreEqual(rootId, correlatedComposition.ToList().Single());
+
+        var filterId = rootId;
+        var composedFilter = structuredPairs
+            .Where(pair => pair.RightId == filterId && pair.LeftId == rootId)
+            .Select(pair => pair.RightId);
+        CollectionAssert.AreEqual(new[] { rootId }, composedFilter.ToArray());
+        filterId = Guid.NewGuid();
+        CollectionAssert.AreEqual(Array.Empty<Guid>(), composedFilter.ToArray());
+
+        var scalarFilter = root.SelectMany(_ => multi.Select(row => row.Id)).Where(id => id == rootId);
+        CollectionAssert.AreEqual(new[] { rootId }, scalarFilter.ToArray());
+        var pagedFilter = projectedIds.Where(id => id == rootId);
+        var rejectedFilter = await pagedFilter.ToCosmicListAsync();
+        Assert.AreEqual("CQL_COMPOSITION_UNSUPPORTED", rejectedFilter.ErrorCode);
+
+        var unsupportedProjection = root.Take(1).SelectMany(_ => rightSource,
+            (left, right) => new { right.Id, Computed = right.Id.ToString() });
+        Assert.ThrowsException<CosmicLinqException>(() => unsupportedProjection.Select(item => item.Id));
+
+
+        Assert.ThrowsException<CosmicLinqException>(() => root.SelectMany(
+            _ => rightSource.Select(right => new { right.Id, Computed = right.Id.ToString() }),
+            (left, item) => item.Id));
+
+
+        Assert.ThrowsException<CosmicLinqException>(() => root.SelectMany(_ => rightSource.Select(row => row.Id.ToString())));
+
+
+        rightSource = root.OrderBy(row => row.Id).Take(0);
+        var flattenedAgain = await flattened.ToCosmicListAsync();
+        Assert.IsFalse(flattenedAgain.IsError, flattenedAgain.Message + flattenedAgain.Exception);
+        Assert.AreEqual(0, flattenedAgain.Result.Count);
+        var cancelledFlatten = await flattened.ToCosmicListAsync(cancellation.Token);
+        Assert.AreEqual("CQL_QUERY_CANCELLED", cancelledFlatten.ErrorCode);
+
+        var attemptedCallbacks = 0;
+        Func<IQueryable<Holon>> callback = () => { attemptedCallbacks++; return root; };
+        Assert.ThrowsException<CosmicLinqException>(() => root.SelectMany(_ => callback(),
+            (leftRow, rightRow) => new { LeftId = leftRow.Id, RightId = rightRow.Id }));
+        Assert.AreEqual(0, attemptedCallbacks);
+        checks.Add(new { provider = adapter.QueryProviderType.ToString(), linq = "independent SelectMany" });
+        var correlated = root.SelectMany(left => multi.Where(right =>
+                right.Id == left.Id && left.CreatedByAvatarId == right.CreatedByAvatarId),
+            (left, right) => new { LeftId = left.Id, RightId = right.Id });
+        var correlatedRows = await correlated.ToCosmicListAsync();
+        Assert.IsFalse(correlatedRows.IsError, correlatedRows.Message + correlatedRows.Exception);
+        Assert.AreEqual(rootId, correlatedRows.Result.Single().LeftId);
+        Assert.AreEqual(rootId, correlatedRows.Result.Single().RightId);
+
+        var selectedId = rootId;
+        var filteredCorrelation = root.SelectMany(left => multi.Where(right =>
+                left.Id == right.Id && right.Id == selectedId), (left, right) => right.Id);
+        CollectionAssert.AreEqual(new[] { rootId }, filteredCorrelation.ToArray());
+        selectedId = Guid.NewGuid();
+        CollectionAssert.AreEqual(Array.Empty<Guid>(), filteredCorrelation.ToArray());
+        var filteredCross = root.SelectMany(left => multi.Where(right => right.Id == rootId),
+            (left, right) => right.Id);
+        CollectionAssert.AreEqual(new[] { rootId }, filteredCross.ToArray());
+
+        var selectedOuterId = rootId;
+        var filteredBoth = root.SelectMany(left => multi.Where(right =>
+                left.Id == right.Id && left.Id == selectedOuterId && right.Id == rootId),
+            (left, right) => right.Id);
+        CollectionAssert.AreEqual(new[] { rootId }, filteredBoth.ToArray());
+        selectedOuterId = Guid.NewGuid();
+        CollectionAssert.AreEqual(Array.Empty<Guid>(), filteredBoth.ToArray());
+        var outerFilterAfterPaging = root.Take(1).SelectMany(left =>
+            multi.Where(right => left.Id == right.Id && left.Id == selectedOuterId),
+            (left, right) => right.Id);
+        var unsupportedOuterFilter = await outerFilterAfterPaging.ToCosmicListAsync();
+        Assert.AreEqual("CQL_COMPOSITION_UNSUPPORTED", unsupportedOuterFilter.ErrorCode);
+
+        var reordered = root.SelectMany(left => multi.Where(right => left.Id == right.Id),
+            (left, right) => right.Id);
+        CollectionAssert.AreEqual(new[] { rootId }, reordered.ToArray());
+        var textCorrelation = root.SelectMany(left =>
+            multi.Where(right => left.Name == right.Name), (left, right) => right.Id);
+        CollectionAssert.AreEqual(new[] { rootId }, textCorrelation.ToArray());
+        checks.Add(new { provider = adapter.QueryProviderType.ToString(), linq = "correlated SelectMany exact keys" });
+    }
+
     private static async Task VerifyLinqRows(ICosmicQueryStorageProvider adapter, Guid rootId, List<object> checks)
     {
         var source = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(adapter.QueryProviderType).Result)
@@ -71,7 +210,23 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(1, root.Count(row => row.Name == name)); Passed("native Count predicate");
         Assert.AreEqual(1, root.Take(1).Count(row => row.Name == name)); Passed("native post-window entity Count predicate");
         Assert.IsTrue(root.All(row => row.Children.Any(child => child.Name == "visible match")));
+        Assert.IsTrue(root.Any(row => row.Children.Any()));
+        Assert.IsFalse(root.Any(row => !row.Children.Any()));
+        var childrenPresent = await root.Where(row => row.Children.Any()).ToCosmicListAsync();
+        Assert.IsFalse(childrenPresent.IsError, childrenPresent.Message);
+        Assert.AreEqual(rootId, childrenPresent.Result.Single().Id);
         Passed("native All child scope");
+
+        var comprehension =
+            from row in root
+            where row.Name == name
+            orderby row.Name descending, row.Version
+            select new { Label = row.Name, row.Version };
+        var comprehensionRows = await comprehension.Take(1).ToCosmicListAsync();
+        Assert.IsFalse(comprehensionRows.IsError, comprehensionRows.Message + comprehensionRows.Exception);
+        Assert.AreEqual(name, comprehensionRows.Result.Single().Label);
+        Assert.AreEqual(read.Result.Single().Version, comprehensionRows.Result.Single().Version);
+        Passed("native query comprehension filtering, ordering and projection");
 
         var names = root.Select(row => row.Name);
         var nativeNames = await names.ToCosmicListAsync();

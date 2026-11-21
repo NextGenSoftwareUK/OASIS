@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
@@ -14,7 +15,9 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
@@ -41,8 +44,18 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
         {
             WriteIndented = false,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Converters = { new EmbeddedHolonConverter() }
         };
+
+        private sealed class EmbeddedHolonConverter : JsonConverter<IHolon>
+        {
+            public override IHolon? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+                => JsonSerializer.Deserialize<Holon>(ref reader, options);
+
+            public override void Write(Utf8JsonWriter writer, IHolon value, JsonSerializerOptions options)
+                => JsonSerializer.Serialize(writer, value, value.GetType(), options);
+        }
 
         private const string IdxAvatars = "oasis_avatars";
         private const string IdxDetails = "oasis_avatar_details";
@@ -89,39 +102,113 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
 
         private async Task<T?> GetDocAsync<T>(string index, string id)
         {
-            var resp = await _http.GetAsync($"{_baseUrl}/{index}/_doc/{id}");
-            if (!resp.IsSuccessStatusCode) return default;
-            var json = await resp.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(json);
-            if (!doc.RootElement.TryGetProperty("_source", out var src)) return default;
-            return JsonSerializer.Deserialize<T>(src.GetRawText(), _jsonOpts);
+            using var response = await _http.GetAsync($"{_baseUrl}/{index}/_doc/{id}", HttpCompletionOption.ResponseHeadersRead);
+            if (response.StatusCode != System.Net.HttpStatusCode.NotFound)
+                response.EnsureSuccessStatusCode();
+
+            using var stream = await response.Content.ReadAsStreamAsync();
+            using var document = await JsonDocument.ParseAsync(stream);
+            var record = document.RootElement;
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound &&
+                record.TryGetProperty("found", out var found) && found.ValueKind == JsonValueKind.False &&
+                MatchesDocument(record, index, id))
+                return default;
+
+            response.EnsureSuccessStatusCode();
+            if (!MatchesDocument(record, index, id) || !record.GetProperty("found").GetBoolean() ||
+                record.GetProperty("_source").ValueKind != JsonValueKind.Object)
+                throw new System.IO.InvalidDataException("Native read did not acknowledge the requested document.");
+
+            return DecodeDocument<T>(record.GetProperty("_source"));
         }
+
+        private static T? DecodeDocument<T>(JsonElement source)
+            => typeof(T) == typeof(AvatarDetail)
+                ? StoredRecordJson.DeserializeStored<T>(source.GetRawText())
+                : source.Deserialize<T>(_jsonOpts);
+
+        private static bool MatchesDocument(JsonElement record, string index, string id)
+            => record.TryGetProperty("_index", out var actualIndex) && actualIndex.GetString() == index &&
+               record.TryGetProperty("_id", out var actualId) && actualId.GetString() == id;
 
         private async Task UpsertDocAsync(string index, string id, object obj)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}/{index}/_doc/{id}") { Content = Json(obj) };
+            using var request = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}/{index}/_doc/{id}?refresh=wait_for") { Content = Json(obj) };
             using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+            await RequireWriteAcknowledgementAsync(response, index, id, "created", "updated");
+        }
+
+        private static async Task RequireWriteAcknowledgementAsync(HttpResponseMessage response, string index, string id,
+            params string[] outcomes)
+        {
             response.EnsureSuccessStatusCode();
             using var acknowledgement = await ReadNativeResponseAsync(response, 64 * 1024, default);
             var ack = acknowledgement.RootElement;
-            if (ack.GetProperty("_index").GetString() != index || ack.GetProperty("_id").GetString() != id ||
+            if (!MatchesDocument(ack, index, id) ||
                 ack.GetProperty("_version").GetInt64() < 1 || ack.GetProperty("_seq_no").GetInt64() < 0 ||
-                ack.GetProperty("_primary_term").GetInt64() < 1 || ack.GetProperty("result").GetString() is not ("created" or "updated") ||
+                ack.GetProperty("_primary_term").GetInt64() < 1 || !System.Linq.Enumerable.Contains(outcomes, ack.GetProperty("result").GetString()) ||
                 ack.GetProperty("_shards").GetProperty("failed").GetInt32() != 0 ||
                 ack.GetProperty("_shards").GetProperty("successful").GetInt32() < 1)
                 throw new System.IO.InvalidDataException("Native write did not acknowledge the staged identity/revision.");
         }
 
-        private async Task DeleteDocAsync(string index, string id)
+        private async Task DeleteDocAsync(string index, string id, bool allowMissing = false)
         {
-            await _http.DeleteAsync($"{_baseUrl}/{index}/_doc/{id}");
+            using var response = await _http.DeleteAsync($"{_baseUrl}/{index}/_doc/{id}?refresh=wait_for");
+            if (allowMissing && response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                using var missing = await ReadNativeResponseAsync(response, 64 * 1024, default);
+                var acknowledgement = missing.RootElement;
+                if (MatchesDocument(acknowledgement, index, id) && acknowledgement.GetProperty("result").GetString() == "not_found")
+                    return;
+            }
+            await RequireWriteAcknowledgementAsync(response, index, id, "deleted");
+        }
+
+        private async Task TombstoneDocAsync(string index, string id)
+        {
+            using var content = Json(new { doc = new { deletedDate = DateTime.UtcNow, isDeleted = true } });
+            using var response = await _http.PostAsync($"{_baseUrl}/{index}/_update/{id}?refresh=wait_for", content);
+            await RequireWriteAcknowledgementAsync(response, index, id, "updated");
+        }
+
+        private async Task SaveDocumentAsync(string index, IHolonBase record, Guid? plannedId = null, Guid? parentId = null)
+        {
+            ArgumentNullException.ThrowIfNull(record);
+            var id = plannedId ?? (record.Id == Guid.Empty ? Guid.NewGuid() : record.Id);
+            var key = id.ToString("D");
+            var keys = record.ProviderUniqueStorageKey == null
+                ? new Dictionary<Core.Enums.ProviderType, string>()
+                : new Dictionary<Core.Enums.ProviderType, string>(record.ProviderUniqueStorageKey);
+            keys[Core.Enums.ProviderType.OpenSearchOASIS] = key;
+            JsonObject payload;
+            if (record is IAvatarDetail detail)
+            {
+                var canonical = JsonNode.Parse(StoredRecordJson.Serialize(detail))!.AsObject();
+                payload = new JsonObject();
+                foreach (var property in canonical)
+                    payload.Add(JsonNamingPolicy.CamelCase.ConvertName(property.Key), property.Value?.DeepClone());
+            }
+            else
+                payload = JsonSerializer.SerializeToNode(record, record.GetType(), _jsonOpts)!.AsObject();
+            payload["id"] = id;
+            payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+            if (parentId.HasValue)
+                payload["parentHolonId"] = parentId.Value;
+            await UpsertDocAsync(index, key, payload);
+            record.Id = id;
+            if (parentId.HasValue && record is IHolon holon)
+                holon.ParentHolonId = parentId.Value;
+            record.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+            record.ProviderUniqueStorageKey[Core.Enums.ProviderType.OpenSearchOASIS] = key;
         }
 
         private async Task<List<T>> SearchByTermAsync<T>(string index, string field, string value)
         {
             var body = new { query = new { term = new Dictionary<string, object> { { field + ".keyword", value } } }, size = 1 };
-            var resp = await _http.PostAsync($"{_baseUrl}/{index}/_search", Json(body));
-            if (!resp.IsSuccessStatusCode) return new List<T>();
+            using var content = Json(body);
+            using var resp = await _http.PostAsync($"{_baseUrl}/{index}/_search", content);
+            resp.EnsureSuccessStatusCode();
             var json = await resp.Content.ReadAsStringAsync();
             return ParseHits<T>(json);
         }
@@ -129,8 +216,9 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
         private async Task<List<T>> GetAllDocsAsync<T>(string index)
         {
             var body = new { query = new { match_all = new { } }, size = 1000 };
-            var resp = await _http.PostAsync($"{_baseUrl}/{index}/_search", Json(body));
-            if (!resp.IsSuccessStatusCode) return new List<T>();
+            using var content = Json(body);
+            using var resp = await _http.PostAsync($"{_baseUrl}/{index}/_search", content);
+            resp.EnsureSuccessStatusCode();
             return ParseHits<T>(await resp.Content.ReadAsStringAsync());
         }
 
@@ -142,7 +230,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             foreach (var hit in hits.EnumerateArray())
             {
                 if (!hit.TryGetProperty("_source", out var src)) continue;
-                var item = JsonSerializer.Deserialize<T>(src.GetRawText(), _jsonOpts);
+                var item = DecodeDocument<T>(src);
                 if (item != null) list.Add(item);
             }
             return list;
@@ -174,10 +262,9 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
-                if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.OpenSearchOASIS] = avatar.Id.ToString();
-                await UpsertDocAsync(IdxAvatars, avatar.Id.ToString(), avatar);
+                await SaveDocumentAsync(IdxAvatars, avatar);
+                result.IsSaved = true;
+                result.SavedCount = 1;
                 result.Result = avatar; result.IsError = false; result.Message = $"OpenSearchOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: Error saving avatar: {ex.Message}"); }
@@ -192,8 +279,8 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             try
             {
                 var a = await GetDocAsync<Avatar>(IdxAvatars, id.ToString());
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: No avatar for ID '{id}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "OpenSearchOASIS: Avatar loaded.";
+                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: No avatar for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "OpenSearchOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: {ex.Message}"); }
             return result;
@@ -209,7 +296,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
                 var hits = await SearchByTermAsync<Avatar>(IdxAvatars, "username", username);
                 var a = hits.Count > 0 ? hits[0] : null;
                 if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: No avatar for username '{username}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "OpenSearchOASIS: Avatar loaded.";
+                result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "OpenSearchOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: {ex.Message}"); }
             return result;
@@ -225,7 +312,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
                 var hits = await SearchByTermAsync<Avatar>(IdxAvatars, "email", avatarEmail);
                 var a = hits.Count > 0 ? hits[0] : null;
                 if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: No avatar for email '{avatarEmail}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "OpenSearchOASIS: Avatar loaded.";
+                result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "OpenSearchOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: {ex.Message}"); }
             return result;
@@ -243,7 +330,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
                 var all = await GetAllDocsAsync<Avatar>(IdxAvatars);
                 var list = new List<IAvatar>();
                 foreach (var a in all) { if (!a.IsDeleted) list.Add(a); }
-                result.Result = list; result.IsError = false; result.Message = $"OpenSearchOASIS: Loaded {list.Count} avatar(s).";
+                result.Result = list; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"OpenSearchOASIS: Loaded {list.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: {ex.Message}"); }
             return result;
@@ -256,9 +343,14 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete) { var load = await LoadAvatarAsync(id); if (!load.IsError && load.Result != null) { var a = (Avatar)load.Result; a.DeletedDate = DateTime.UtcNow; await SaveAvatarAsync(a); } }
-                else { await DeleteDocAsync(IdxAvatars, id.ToString()); }
-                result.Result = true; result.IsError = false; result.Message = $"OpenSearchOASIS: Avatar '{id}' deleted.";
+                if (softDelete) { await TombstoneDocAsync(IdxAvatars, id.ToString()); }
+                else
+                {
+                    var key = id.ToString("D");
+                    await DeleteDocAsync(IdxDetails, key, allowMissing: true);
+                    await DeleteDocAsync(IdxAvatars, key);
+                }
+                result.Result = true; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"OpenSearchOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: {ex.Message}"); }
             return result;
@@ -280,8 +372,9 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
-                await UpsertDocAsync(IdxDetails, d.Id.ToString(), d);
+                await SaveDocumentAsync(IdxDetails, d);
+                result.IsSaved = true;
+                result.SavedCount = 1;
                 result.Result = d; result.IsError = false; result.Message = "OpenSearchOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: {ex.Message}"); }
@@ -296,8 +389,8 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             try
             {
                 var d = await GetDocAsync<AvatarDetail>(IdxDetails, id.ToString());
-                if (d == null) { OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: No detail for ID '{id}'."); return result; }
-                result.Result = d; result.IsError = false; result.Message = "OpenSearchOASIS: AvatarDetail loaded.";
+                if (d == null) { OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: No detail for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "OpenSearchOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: {ex.Message}"); }
             return result;
@@ -313,7 +406,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
                 var hits = await SearchByTermAsync<AvatarDetail>(IdxDetails, "username", u);
                 var d = hits.Count > 0 ? hits[0] : null;
                 if (d == null) { OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: No detail for username '{u}'."); return result; }
-                result.Result = d; result.IsError = false; result.Message = "OpenSearchOASIS: AvatarDetail loaded.";
+                result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "OpenSearchOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: {ex.Message}"); }
             return result;
@@ -329,7 +422,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
                 var hits = await SearchByTermAsync<AvatarDetail>(IdxDetails, "email", e);
                 var d = hits.Count > 0 ? hits[0] : null;
                 if (d == null) { OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: No detail for email '{e}'."); return result; }
-                result.Result = d; result.IsError = false; result.Message = "OpenSearchOASIS: AvatarDetail loaded.";
+                result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "OpenSearchOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: {ex.Message}"); }
             return result;
@@ -353,7 +446,11 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
 
         // ─── Holons ───────────────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveGraphAsync(holon, saveChildren, recursive, maxChildDepth, 0, continueOnError);
+
+        private async Task<OASISResult<IHolon>> SaveGraphAsync(IHolon holon, bool saveChildren, bool recursive,
+            int maxChildDepth, int currentChildDepth, bool continueOnError)
         {
             var result = new OASISResult<IHolon>();
             try
@@ -361,23 +458,33 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
                 if (holon == null) throw new ArgumentNullException(nameof(holon));
                 if (IsVersionControlEnabled)
                     return new OASISResult<IHolon> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_CAPABILITY_UNSUPPORTED", Message = "Version-control writes require a verified native history policy." };
-                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
-                var key = id.ToString("D");
-                var keys = holon.ProviderUniqueStorageKey == null
-                    ? new Dictionary<Core.Enums.ProviderType, string>()
-                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
-                keys[Core.Enums.ProviderType.OpenSearchOASIS] = key;
-                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
-                payload["id"] = id;
-                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
-                await UpsertDocAsync(IdxHolons, key, payload);
-                // Publish storage identity after acknowledgement; manager owns tracking acceptance.
-                holon.Id = id;
-                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.OpenSearchOASIS] = key;
-                result.Result = holon;
-                result.IsSaved = true;
-                result.SavedCount = 1;
+                var plan = HolonGraphWritePlan.CreateForSave(new[] { holon }, saveChildren, recursive, maxChildDepth, currentChildDepth);
+                var failed = new HashSet<Guid>();
+                foreach (var node in plan.Nodes)
+                {
+                    var record = node.Snapshot;
+                    if (failed.Contains(record.ParentHolonId))
+                    {
+                        failed.Add(record.Id);
+                        continue;
+                    }
+
+                    try
+                    {
+                        await SaveDocumentAsync(IdxHolons, node.Source, record.Id, record.ParentHolonId);
+                        if (ReferenceEquals(node.Source, holon))
+                            result.Result = holon;
+                        result.SavedCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        failed.Add(record.Id);
+                        OASISErrorHandling.HandleError(ref result, $"OpenSearch did not save holon '{record.Id}'.", ex);
+                        if (!continueOnError)
+                            break;
+                    }
+                }
+                result.IsSaved = result.SavedCount == plan.Nodes.Count;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: Error saving holon: {ex.Message}"); }
             return result;
@@ -391,7 +498,8 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             var saved = new List<IHolon>(); var errors = new List<string>();
             foreach (var h in holons)
             {
-                var write = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                var write = await SaveGraphAsync(h, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError);
+                result.SavedCount += write.SavedCount;
                 if (write.IsError)
                 {
                     errors.Add(write.Message);
@@ -403,7 +511,6 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             result.IsError = errors.Count > 0;
             result.ErrorCount = errors.Count;
             result.IsSaved = saved.Count > 0;
-            result.SavedCount = saved.Count;
             result.Message = string.Join("; ", errors);
             return result;
         }
@@ -416,8 +523,10 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             try
             {
                 var h = await GetDocAsync<Holon>(IdxHolons, id.ToString());
-                if (h == null || h.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: No holon for ID '{id}'."); return result; }
-                result.Result = h; result.IsError = false; result.Message = "OpenSearchOASIS: Holon loaded.";
+                if (h == null || h.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                if (!loadChildren)
+                    h.Children = new List<IHolon>();
+                result.Result = h; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "OpenSearchOASIS: Holon loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: {ex.Message}"); }
             return result;
@@ -435,7 +544,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
                 var all = await GetAllDocsAsync<Holon>(IdxHolons);
                 var list = new List<IHolon>();
                 foreach (var h in all) { if (h.IsDeleted) continue; if (holonType != HolonType.All && h.HolonType != holonType) continue; list.Add(h); }
-                result.Result = list; result.IsError = false; result.Message = $"OpenSearchOASIS: Loaded {list.Count} holon(s).";
+                result.Result = list; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"OpenSearchOASIS: Loaded {list.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: {ex.Message}"); }
             return result;
@@ -451,7 +560,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
                 var all = await GetAllDocsAsync<Holon>(IdxHolons);
                 var list = new List<IHolon>();
                 foreach (var h in all) { if (h.IsDeleted || h.ParentHolonId != id) continue; if (holonType != HolonType.All && h.HolonType != holonType) continue; list.Add(h); }
-                result.Result = list; result.IsError = false; result.Message = $"OpenSearchOASIS: Loaded {list.Count} child holon(s).";
+                result.Result = list; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"OpenSearchOASIS: Loaded {list.Count} child holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: {ex.Message}"); }
             return result;
@@ -466,9 +575,11 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete) { var load = await LoadHolonAsync(id); if (!load.IsError && load.Result != null) { var h = (Holon)load.Result; h.DeletedDate = DateTime.UtcNow; await SaveHolonAsync(h); } }
+                if (softDelete && IsVersionControlEnabled)
+                    return new OASISResult<bool> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_CAPABILITY_UNSUPPORTED", Message = "Version-control writes require a verified native history policy." };
+                if (softDelete) { await TombstoneDocAsync(IdxHolons, id.ToString()); }
                 else { await DeleteDocAsync(IdxHolons, id.ToString()); }
-                result.Result = true; result.IsError = false; result.Message = $"OpenSearchOASIS: Holon '{id}' deleted.";
+                result.Result = true; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"OpenSearchOASIS: Holon '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: {ex.Message}"); }
             return result;
@@ -536,7 +647,11 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             if (deleted.IsError)
                 OASISErrorHandling.HandleError(ref result, deleted.Message);
             else
+            {
                 result.Result = loaded.Result;
+                result.IsDeleted = deleted.IsDeleted;
+                result.DeletedCount = deleted.DeletedCount;
+            }
 
             return result;
         }
@@ -579,6 +694,8 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             }
 
             result.Result = matches;
+            result.IsLoaded = true;
+            result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -598,6 +715,8 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
             {
                 result.Result = new List<IHolon>(all.Result);
+                result.IsLoaded = true;
+                result.LoadedCount = all.LoadedCount;
                 return result;
             }
 
@@ -621,6 +740,8 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             }
 
             result.Result = matches;
+            result.IsLoaded = true;
+            result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -631,10 +752,11 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
         {
             var result = new OASISResult<bool>();
             var saved = await SaveHolonsAsync(holons);
-            if (saved.IsError)
-                OASISErrorHandling.HandleError(ref result, saved.Message);
+            result.SavedCount = saved.SavedCount;
+            if (saved.IsError || !saved.IsSaved)
+                OASISErrorHandling.HandleError(ref result, saved.Message, saved.Exception);
             else
-                result.Result = true;
+                result.Result = result.IsSaved = true;
             return result;
         }
 
@@ -665,6 +787,8 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             }
 
             result.Result = owned;
+            result.IsLoaded = true;
+            result.LoadedCount = owned.Count;
             return result;
         }
 

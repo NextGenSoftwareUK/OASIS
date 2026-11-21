@@ -1,5 +1,8 @@
+using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.Providers.Shared.CrossChain;
@@ -26,6 +29,48 @@ namespace NextGenSoftware.OASIS.API.Providers.CrossChain.ProtocolTests
                 return FakeApi.Json(FakeApi.Fixture("axelar-gmp.json"));
             });
             _provider = new AxelarOASIS.AxelarOASIS("https://api.axelarscan.io", _api);
+        }
+
+        [TestMethod]
+        public async Task Public_header_activation_reads_at_most_three_heights_concurrently()
+        {
+            var heights = new long[] { 10, 20, 30, 40, 50 };
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            var started = new ConcurrentQueue<long>();
+            var firstBatchStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var releaseFirstBatch = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            int firstBatchCount = 0;
+            async Task<AxelarOASIS.AxelarPublicBlockClient.Header> Read(long height, CancellationToken token)
+            {
+                started.Enqueue(height);
+                if (height <= 30)
+                {
+                    if (Interlocked.Increment(ref firstBatchCount) == 3)
+                        firstBatchStarted.TrySetResult();
+                    await releaseFirstBatch.Task.WaitAsync(token);
+                }
+                return new(height, "2026-01-01T00:00:00Z", new string('a', 64));
+            }
+
+            using var source = new AxelarOASIS.AxelarOASIS(heights, Guid.NewGuid(), Read);
+            NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicReadOnlyQueryActivation querySource = source;
+            Assert.IsFalse(querySource.IsQuerySourceActivated);
+            var activation = querySource.ActivateQuerySourceAsync(timeout.Token);
+            try
+            {
+                await firstBatchStarted.Task.WaitAsync(timeout.Token);
+                CollectionAssert.AreEquivalent(heights.Take(3).ToArray(), started.ToArray());
+            }
+            finally
+            {
+                releaseFirstBatch.TrySetResult();
+            }
+
+            var result = await activation;
+            Assert.IsFalse(result.IsError, result.Message);
+            Assert.IsTrue(source.IsProviderActivated);
+            Assert.IsTrue(querySource.IsQuerySourceActivated);
+            CollectionAssert.AreEquivalent(heights, started.ToArray());
         }
 
         [TestMethod]

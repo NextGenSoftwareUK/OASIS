@@ -37,7 +37,7 @@ public static class OLandCommerceRegistration
                     : new CoinGeckoExchangeRateService(null, settings.CoinGeckoDemoApiKey));
         });
         services.AddSingleton<IOLandNftIssuer, OLandNftIssuer>();
-        services.AddHostedService<OLandFulfilmentWorker>();
+        Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<OLandFulfilmentWorker>(services, configuration);
         services.AddSingleton(s => new OLandCommerceService(s.GetRequiredService<OLandCommerceSettings>(), s.GetRequiredService<IOLandOrderStore>(),
             s.GetRequiredService<IOLandPaymentGateway>(), s.GetRequiredService<IOLandNftIssuer>(), async count =>
             {

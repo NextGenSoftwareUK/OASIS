@@ -17,4 +17,8 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.csproj" />
     <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
   </ItemGroup>
+  <ItemGroup Condition="'$(IncludeNeo4jNativeOutage)' == 'true'">
+    <Compile Include="../NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/Neo4jSqliteOutageTests.cs" Link="Native/Neo4jSqliteOutageTests.cs" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
+  </ItemGroup>
 </Project>

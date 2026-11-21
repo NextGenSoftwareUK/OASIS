@@ -27,7 +27,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.Common;
-using BlockscoutSource = NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS.BlockscoutPublicAddressMetadataSource;
+using BlockscoutSource = NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS.BlockscoutOASIS;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 using IoFile = System.IO.File;
 
@@ -53,11 +53,11 @@ public sealed class CqlBlockscoutMongoNativeTests
     private sealed class Sources(IOASISStorageProvider mongo, IOASISStorageProvider blockscoutSource,
         OASISDNA dna, ProviderManager registry) : ICqlV1Providers
     {
-        public IOASISStorageProvider Resolve(ProviderType? requested) => requested switch {
+        public IOASISProvider Resolve(ProviderType? requested) => requested switch {
             null or ProviderType.MongoDBOASIS => mongo,
             ProviderType.BlockscoutOASIS => blockscoutSource,
             _ => throw new InvalidOperationException("Only the two explicitly enrolled native fixture providers are available.") };
-        public HolonManager CreateManager(IOASISStorageProvider provider) => new(null, dna, registry);
+        public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
     [BlockscoutMongoNativeFact]
@@ -96,7 +96,7 @@ public sealed class CqlBlockscoutMongoNativeTests
             file.Flush(true);
         }
 
-        using var blockscoutSource = BlockscoutSource.FromJson(configJson);
+        using var blockscoutSource = BlockscoutSource.FromPublicQueryConfiguration(configJson);
         Assert.False((await blockscoutSource.ActivateQuerySourceAsync(default)).IsError);
         var nativeQuery = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.BlockscoutOASIS).Result)
             .WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result)

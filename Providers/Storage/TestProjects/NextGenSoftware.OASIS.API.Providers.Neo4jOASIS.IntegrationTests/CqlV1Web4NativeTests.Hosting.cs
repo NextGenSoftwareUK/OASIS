@@ -59,11 +59,15 @@ public sealed partial class CqlV1Web4NativeTests
         }
     }
 
-    private sealed class Sources(Dictionary<ProviderType, IOASISStorageProvider> providers) : ICqlV1Providers
+    private sealed partial class Sources(Dictionary<ProviderType, IOASISStorageProvider> providers,
+        IReadOnlyDictionary<Guid, NativeMappingRegistration>? mappings = null) : ICqlV1Providers, ICqlVirtualMappingReader
     {
-        public IOASISStorageProvider Resolve(ProviderType? requested) => providers[requested ?? ProviderType.SQLLiteDBOASIS];
+        private readonly Dictionary<ProviderType, IOASISStorageProvider> nativeProviders = providers;
+        private readonly IReadOnlyDictionary<Guid, NativeMappingRegistration> nativeMappings =
+            mappings ?? new Dictionary<Guid, NativeMappingRegistration>();
+        public IOASISProvider Resolve(ProviderType? requested) => providers[requested ?? ProviderType.SQLLiteDBOASIS];
 
-        public HolonManager CreateManager(IOASISStorageProvider storage)
+        public HolonManager CreateManager(IOASISProvider storage)
         {
             var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
             {
@@ -74,13 +78,14 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false
             };
-            return new HolonManager(storage, dna, registry);
+            return new HolonManager(null, dna, registry);
         }
     }
 
     private static WebApplication Host(Dictionary<ProviderType, IOASISStorageProvider> providers,
         MongoUsageOutboxStore outbox, Authority authority, string signingSecret,
-        V1DemoSession? demo = null, Func<Guid, string, Task>? journalRequest = null)
+        V1DemoSession? demo = null, Func<Guid, string, Task>? journalRequest = null,
+        IReadOnlyDictionary<Guid, NativeMappingRegistration>? nativeMappings = null)
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
@@ -116,7 +121,7 @@ public sealed partial class CqlV1Web4NativeTests
                 });
             });
         }
-        builder.Services.AddSingleton<ICqlV1Providers>(new Sources(providers));
+        builder.Services.AddSingleton<ICqlV1Providers>(new Sources(providers, nativeMappings));
         builder.Services.AddSingleton<CqlV1ResourceFilter>();
         builder.Services.AddSingleton<IUsageOutboxStore>(outbox);
         builder.Services.AddSingleton<IUsageReservationAuthority>(authority);
@@ -203,7 +208,10 @@ public sealed partial class CqlV1Web4NativeTests
     private static UsageEndpointPolicy? DemoQueryPolicy(HttpContext http)
     {
         if (!IsQueryRoute(http)) return null;
-        var attempts = http.Request.Path.Value?.TrimEnd('/').Equals("/api/data/query-cql/federation", StringComparison.OrdinalIgnoreCase) == true ? 3 : 1;
+        var path = http.Request.Path.Value?.TrimEnd('/');
+        var attempts = path?.Equals("/api/data/query-cql/federation", StringComparison.OrdinalIgnoreCase) == true ? 3
+            : path?.Equals("/api/data/query-cql/projection/mixed", StringComparison.OrdinalIgnoreCase) == true
+                ? NextGenSoftware.OASIS.API.Core.Queries.CosmicQueryHttpRoutes.MixedProjectionAttempts : 1;
         return new UsageEndpointPolicy
         {
             MeterCategory = "cql.query", ReservedUnits = 1, EstimatedCostUsd = 0.002m * attempts,

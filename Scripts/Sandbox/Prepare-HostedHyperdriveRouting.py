@@ -61,9 +61,9 @@ def save_once(state, owner, token):
     return intent, ack
 
 
-def verify_replicas(intent, ack, token):
+def verify_replicas(intent, ack, token, providers=gate.PROVIDERS):
     observations = []
-    for provider in sorted(gate.PROVIDERS):
+    for provider in sorted(providers):
         response = flow.call("data/load-holon", token, {"id": ack["expected"]["id"], "providerType": provider,
             "autoFailOverMode": "OFF", "autoLoadBalanceMode": "OFF", "loadChildren": False})
         row = response.get("result") or {}
@@ -76,8 +76,10 @@ def verify_replicas(intent, ack, token):
     return observations
 
 
-def prepare(state):
-    if (state / "routing-record.acknowledged.json").exists():
+def prepare(state, peer=None):
+    providers = gate.PROVIDERS if peer is None else {"MongoDBOASIS", peer}
+    record_name = "routing-record.acknowledged.json" if peer is None else f"routing-record-{peer}.acknowledged.json"
+    if (state / record_name).exists():
         raise RuntimeError("Completed routing fixture retained; do not repeat setup.")
     state.mkdir(exist_ok=True)
     if (state / "record-save.intent.json").exists() and not (state / "owner.acknowledged.json").is_file():
@@ -86,7 +88,7 @@ def prepare(state):
     if flow.call("sandbox/faults", token, method="GET")["result"]:
         raise RuntimeError("Existing faults must not be changed by fixture setup.")
     intent, ack = save_once(state, owner["id"], token)
-    observations = verify_replicas(intent, ack, token)
+    observations = verify_replicas(intent, ack, token, providers)
     evidence = {"saveAcknowledgementSha256": digest(ack), "replicas": observations}
     # Flush baseline evidence before publishing the input consumed by the read gate.
     proof = state / "replica-baseline.acknowledged.json"
@@ -96,14 +98,18 @@ def prepare(state):
     else:
         flow.write_new(proof, json.dumps(evidence).encode())
     document = {"schema": 1, "sourceEvidenceSha256": hashlib.sha256(proof.read_bytes()).hexdigest(), "expected": ack["expected"]}
-    flow.write_new(state / "routing-record.acknowledged.json", json.dumps(document).encode())
+    flow.write_new(state / record_name, json.dumps(document).encode())
     return {"replicas": len(observations), "record": ack["expected"]["id"], "browserAcceptance": False}
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--cohort", choices=["routing-v1", "routing-v2"], default="routing-v1")
+    parser.add_argument("--cohort", choices=["routing-v1", "routing-v2", "mongo-neo4j"], default="routing-v1")
     options = parser.parse_args()
     # V2 is a separately planned post-correction cohort. V1 is never overwritten.
-    directory = "HostedHyperdriveRoutingCurrent" if options.cohort == "routing-v1" else "HostedHyperdriveRoutingV2Current"
-    print(json.dumps(prepare(ROOT / "LocalState/COSMIC" / directory)))
+    directory, peer = {
+        "routing-v1": ("HostedHyperdriveRoutingCurrent", None),
+        "routing-v2": ("HostedHyperdriveRoutingV2Current", None),
+        "mongo-neo4j": ("HostedHyperdriveMongoNeo4j", "Neo4jOASIS"),
+    }[options.cohort]
+    print(json.dumps(prepare(ROOT / "LocalState/COSMIC" / directory, peer)))

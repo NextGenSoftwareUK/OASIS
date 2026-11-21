@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -62,32 +62,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                // Get Bitcoin balance for the address
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "getreceivedbyaddress",
-                    @params = new object[] { request.WalletAddress, 0 }
-                };
-
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest);
-                var content = await response.Content.ReadAsStringAsync();
-                var jsonDoc = JsonDocument.Parse(content);
-
-                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
-                {
-                    var balance = resultElement.GetDouble();
-                    result.Result = balance;
-                    result.IsError = false;
-                    result.Message = "Bitcoin balance retrieved successfully";
-                }
+                var balance = await GetAccountBalanceAsync(request.WalletAddress);
+                if (balance.IsError)
+                    OASISErrorHandling.HandleError(ref result, balance.Message, balance.Exception);
                 else
-                {
-                    result.Result = 0.0;
-                    result.IsError = false;
-                    result.Message = "Address not found or has zero balance";
-                }
+                    result.Result = (double)balance.Result;
             }
             catch (Exception ex)
             {
@@ -118,55 +97,83 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                // Get Bitcoin transactions for the address
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "listtransactions",
-                    @params = new object[] { request.WalletAddress, 10 } // Default to 10 transactions
-                };
+                if (request.FromBlock > request.ToBlock)
+                    throw new ArgumentException("FromBlock must be at or before ToBlock.");
 
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest);
-                var content = await response.Content.ReadAsStringAsync();
-                var jsonDoc = JsonDocument.Parse(content);
-
+                var address = BitcoinAddress.Create(request.WalletAddress, SigningNetwork).ToString();
                 var transactions = new List<IWalletTransaction>();
-                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement) && resultElement.ValueKind == JsonValueKind.Array)
+                var bounded = request.FromBlock.HasValue || request.ToBlock.HasValue;
+                var endpoint = $"address/{address}/txs";
+                var path = bounded ? $"{endpoint}/chain" : endpoint;
+                var visited = new HashSet<string>(StringComparer.Ordinal);
+                var seenTransactions = new HashSet<string>(StringComparer.Ordinal);
+
+                while (true)
                 {
-                    foreach (var tx in resultElement.EnumerateArray())
+                    var page = await ReadPageAsync(path);
+                    if (page.Length == 0)
+                        break;
+
+                    var belowRange = false;
+                    var confirmedCount = 0;
+                    string lastConfirmed = null;
+                    foreach (var transaction in page)
                     {
-                        // Extract transaction ID for deterministic GUID
-                        var txId = tx.TryGetProperty("txid", out var txidProp) ? txidProp.GetString() : null;
-                        Guid txGuid;
-                        if (!string.IsNullOrWhiteSpace(txId))
+                        var status = transaction.GetProperty("status");
+                        var confirmed = status.GetProperty("confirmed").GetBoolean();
+                        var txid = uint256.Parse(transaction.GetProperty("txid").GetString()).ToString();
+                        if (!seenTransactions.Add(txid))
+                            throw new InvalidOperationException("Esplora repeated a transaction in Bitcoin wallet history.");
+                        if (confirmed)
                         {
-                            using var sha256 = System.Security.Cryptography.SHA256.Create();
-                            var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(txId));
-                            txGuid = new Guid(hashBytes.Take(16).ToArray());
+                            confirmedCount++;
+                            lastConfirmed = txid;
                         }
-                        else
+                        ulong? height = confirmed ? status.GetProperty("block_height").GetUInt64() : null;
+                        if (bounded && (!height.HasValue || height > request.ToBlock))
+                            continue;
+                        if (height < request.FromBlock)
                         {
-                            // Fallback: use deterministic GUID from transaction data
-                            var txData = $"{request.WalletAddress}:{tx.GetRawText()}";
-                            txGuid = CreateDeterministicGuid($"{ProviderType.Value}:tx:{txData}");
+                            belowRange = true;
+                            break;
                         }
-                        
-                        var walletTx = new WalletTransaction
+
+                        var received = transaction.GetProperty("vout").EnumerateArray()
+                            .Where(output => PaysAddress(output, address))
+                            .Sum(output => output.GetProperty("value").GetInt64());
+                        var spent = transaction.GetProperty("vin").EnumerateArray()
+                            .Where(input => input.TryGetProperty("prevout", out var previous) &&
+                                previous.ValueKind == JsonValueKind.Object && PaysAddress(previous, address))
+                            .Sum(input => input.GetProperty("prevout").GetProperty("value").GetInt64());
+                        var net = checked(received - spent);
+
+                        transactions.Add(new WalletTransaction
                         {
-                            TransactionId = txGuid,
-                            FromWalletAddress = tx.TryGetProperty("address", out var addr) ? addr.GetString() : string.Empty,
-                            ToWalletAddress = tx.TryGetProperty("address", out var toAddr) ? toAddr.GetString() : string.Empty,
-                            Amount = tx.TryGetProperty("amount", out var amt) ? amt.GetDouble() : 0.0,
-                            Description = txId != null ? $"Bitcoin transaction: {txId}" : "Bitcoin transaction"
-                        };
-                        transactions.Add(walletTx);
+                            TransactionId = CreateDeterministicGuid($"{ProviderType.Value}:tx:{txid}"),
+                            NativeTransactionId = txid,
+                            ProviderType = ProviderType.Value,
+                            NativeBlockNumber = height,
+                            NativeBlockHash = confirmed ? status.GetProperty("block_hash").GetString() : null,
+                            CreatedDate = confirmed ? DateTimeOffset.FromUnixTimeSeconds(status.GetProperty("block_time").GetInt64()).UtcDateTime : default,
+                            FromWalletAddress = spent > 0 ? address : null,
+                            ToWalletAddress = received > 0 ? address : null,
+                            RawAmount = net.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                            AmountUnit = "satoshi",
+                            AmountEvidence = "Matching output value minus matching previous output value",
+                            Amount = (double)Money.Satoshis(net).ToDecimal(MoneyUnit.BTC),
+                            Description = $"Bitcoin transaction: {txid}"
+                        });
                     }
+
+                    if (belowRange || confirmedCount < 25)
+                        break;
+
+                    if (confirmedCount != 25 || !visited.Add(lastConfirmed))
+                        throw new InvalidOperationException("Esplora returned an invalid Bitcoin history cursor.");
+                    path = $"{endpoint}/chain/{lastConfirmed}";
                 }
 
                 result.Result = transactions;
-                result.IsError = false;
-                result.Message = $"Retrieved {transactions.Count} Bitcoin transactions";
             }
             catch (Exception ex)
             {
@@ -174,6 +181,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             }
             return result;
         }
+
+        private static bool PaysAddress(JsonElement output, string address) =>
+            output.TryGetProperty("scriptpubkey_address", out var recipient) && recipient.GetString() == address;
 
         public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
@@ -191,31 +201,15 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                //// Generate Bitcoin key pair using NBitcoin SDK (chain-specific)
-                //var network = _network == "mainnet" ? Network.Main : Network.TestNet;
-                
-                //// Generate mnemonic seed phrase
-                //var mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
-                //var seedPhrase = mnemonic.ToString();
-                
-                //// Derive Bitcoin key from mnemonic
-                //var extKey = mnemonic.DeriveExtKey();
-                //var key = extKey.PrivateKey;
-                
-                //// Get Bitcoin address (public key)
-                //var privateKey = key.GetWif(network).ToString();
-                //var publicKey = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, network).ToString();
-                
-                // Create KeyPairAndWallet using KeyHelper but override with Bitcoin-specific values from NBitcoin SDK
-                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress(); //KeyHelper generates in Bitcoin format by default
-                //if (keyPair != null)
-                //{
-                //    keyPair.PrivateKey = privateKey;
-                //    keyPair.PublicKey = publicKey;
-                //    keyPair.WalletAddressLegacy = publicKey; // Bitcoin address
-                //}
-
-                result.Result = keyPair;
+                var network = SigningNetwork;
+                using var key = new NBitcoin.Key();
+                result.Result = new KeyHelper.KeyPairAndWallet
+                {
+                    PrivateKey = key.GetWif(network).ToString(),
+                    PublicKey = key.PubKey.ToHex(),
+                    WalletAddressLegacy = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, network).ToString(),
+                    WalletAddressSegwitP2SH = key.PubKey.GetAddress(ScriptPubKeyType.SegwitP2SH, network).ToString()
+                };
                 result.IsError = false;
                 result.Message = "Bitcoin key pair generated successfully";
             }
@@ -245,30 +239,19 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                // Call Bitcoin RPC API to get address balance
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "getreceivedbyaddress",
-                    @params = new object[] { accountAddress, 0 } // 0 = minimum confirmations
-                };
+                var address = BitcoinAddress.Create(accountAddress, SigningNetwork);
+                var stats = await _httpClient.GetFromJsonAsync<JsonElement>($"address/{address}", token);
+                var confirmed = stats.GetProperty("chain_stats");
+                var pending = stats.GetProperty("mempool_stats");
+                var satoshis = checked(confirmed.GetProperty("funded_txo_sum").GetInt64()
+                    - confirmed.GetProperty("spent_txo_sum").GetInt64()
+                    + pending.GetProperty("funded_txo_sum").GetInt64()
+                    - pending.GetProperty("spent_txo_sum").GetInt64());
 
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
-                var content = await response.Content.ReadAsStringAsync(token);
-                var jsonDoc = JsonDocument.Parse(content);
+                if (satoshis < 0)
+                    throw new InvalidOperationException("Esplora returned a negative Bitcoin balance.");
 
-                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
-                {
-                    var balance = resultElement.GetDecimal();
-                    result.Result = balance;
-                    result.IsError = false;
-                }
-                else
-                {
-                    result.Result = 0m;
-                    result.IsError = false;
-                }
+                result.Result = Money.Satoshis(satoshis).ToDecimal(MoneyUnit.BTC);
             }
             catch (Exception ex)
             {
@@ -288,17 +271,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                // Generate Bitcoin key pair using NBitcoin
-                var network = _network == "mainnet" ? Network.Main : Network.TestNet;
-                var key = new NBitcoin.Key();
-                var privateKey = key.GetWif(network).ToString();
-                var publicKey = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, network).ToString();
-
-                // Generate seed phrase
+                token.ThrowIfCancellationRequested();
                 var mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
-                var seedPhrase = mnemonic.ToString();
-
-                result.Result = (publicKey, privateKey, seedPhrase);
+                var key = mnemonic.DeriveExtKey().PrivateKey;
+                var network = SigningNetwork;
+                var address = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, network);
+                result.Result = (address.ToString(), key.GetWif(network).ToString(), mnemonic.ToString());
                 result.IsError = false;
                 result.Message = "Bitcoin account created successfully.";
             }
@@ -320,8 +298,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                // Restore Bitcoin key pair from seed phrase using NBitcoin
-                var network = _network == "mainnet" ? Network.Main : Network.TestNet;
+                token.ThrowIfCancellationRequested();
+                var network = SigningNetwork;
                 var mnemonic = new Mnemonic(seedPhrase);
                 var extKey = mnemonic.DeriveExtKey();
                 var key = extKey.PrivateKey;
@@ -339,153 +317,52 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return result;
         }
 
-        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
+        public Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
+            => SubmitBridgePaymentAsync(amount, senderAccountAddress, null, senderPrivateKey, fromPool: false);
+
+        public Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
+            => SubmitBridgePaymentAsync(amount, null, receiverAccountAddress, _privateKey, fromPool: true);
+
+        private async Task<OASISResult<BridgeTransactionResponse>> SubmitBridgePaymentAsync(
+            decimal amount, string sender, string receiver, string signingKey, bool fromPool)
         {
             var result = new OASISResult<BridgeTransactionResponse>();
+            var configuredPool = Environment.GetEnvironmentVariable("OASIS_BITCOIN_BRIDGE_POOL_ADDRESS");
+            if (string.IsNullOrWhiteSpace(configuredPool))
+            {
+                OASISErrorHandling.HandleError(ref result, "A Bitcoin bridge pool address must be configured.");
+                return result;
+            }
+
+            BitcoinAddress pool;
             try
             {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
-                    return result;
-                }
-
-                if (string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Sender account address and private key are required");
-                    return result;
-                }
-
-                if (amount <= 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
-                    return result;
-                }
-
-                // Convert amount to Satoshis
-                var satoshiAmount = (ulong)(amount * 100_000_000m);
-                var bridgePoolAddress = "1" + new string('0', 33);
-
-                // Create Bitcoin transaction using RPC
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "sendtoaddress",
-                    @params = new object[] { bridgePoolAddress, amount, "Bridge Withdrawal", "", true }
-                };
-
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest);
-                var content = await response.Content.ReadAsStringAsync();
-                var jsonDoc = JsonDocument.Parse(content);
-
-                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
-                {
-                    var txHash = resultElement.GetString();
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = txHash ?? CreateDeterministicGuid($"{ProviderType.Value}:withdraw:{senderAccountAddress}:{amount}:{DateTime.UtcNow.Ticks}").ToString("N"),
-                        IsSuccessful = true,
-                        Status = BridgeTransactionStatus.Pending
-                    };
-                    result.IsError = false;
-                }
-                else
-                {
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = string.Empty,
-                        IsSuccessful = false,
-                        ErrorMessage = "Failed to create transaction",
-                        Status = BridgeTransactionStatus.Canceled
-                    };
-                    OASISErrorHandling.HandleError(ref result, "Failed to create Bitcoin transaction");
-                }
+                pool = BitcoinAddress.Create(configuredPool, SigningNetwork);
             }
-            catch (Exception ex)
+            catch (FormatException)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error withdrawing: {ex.Message}", ex);
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = ex.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
+                OASISErrorHandling.HandleError(ref result, "The Bitcoin bridge pool address is invalid for the configured network.");
+                return result;
             }
-            return result;
-        }
 
-        public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
-        {
-            var result = new OASISResult<BridgeTransactionResponse>();
-            try
+            var payment = await SendSignedTransactionAsync(
+                fromPool ? pool.ToString() : sender,
+                fromPool ? receiver : pool.ToString(),
+                amount, Array.Empty<byte>(), null, signingKey, commitmentOnly: false);
+            result.ErrorCode = payment.ErrorCode;
+            result.MetaData = payment.MetaData;
+            if (payment.IsError)
             {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
-                    return result;
-                }
-
-                if (string.IsNullOrWhiteSpace(receiverAccountAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Receiver account address is required");
-                    return result;
-                }
-
-                if (amount <= 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
-                    return result;
-                }
-
-                // Create Bitcoin transaction from bridge pool to receiver
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "sendtoaddress",
-                    @params = new object[] { receiverAccountAddress, amount, "Bridge Deposit", "", true }
-                };
-
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest);
-                var content = await response.Content.ReadAsStringAsync();
-                var jsonDoc = JsonDocument.Parse(content);
-
-                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
-                {
-                    var txHash = resultElement.GetString();
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = txHash ?? CreateDeterministicGuid($"{ProviderType.Value}:deposit:{receiverAccountAddress}:{amount}:{DateTime.UtcNow.Ticks}").ToString("N"),
-                        IsSuccessful = true,
-                        Status = BridgeTransactionStatus.Pending
-                    };
-                    result.IsError = false;
-                }
-                else
-                {
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = string.Empty,
-                        IsSuccessful = false,
-                        ErrorMessage = "Failed to create transaction",
-                        Status = BridgeTransactionStatus.Canceled
-                    };
-                    OASISErrorHandling.HandleError(ref result, "Failed to create Bitcoin transaction");
-                }
+                OASISErrorHandling.HandleError(ref result, payment.Message, payment.Exception);
+                return result;
             }
-            catch (Exception ex)
+
+            result.Result = new BridgeTransactionResponse
             {
-                OASISErrorHandling.HandleError(ref result, $"Error depositing: {ex.Message}", ex);
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = ex.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-            }
+                TransactionId = payment.Result.TransactionResult,
+                IsSuccessful = true,
+                Status = BridgeTransactionStatus.Pending
+            };
             return result;
         }
 
@@ -500,50 +377,54 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                if (string.IsNullOrWhiteSpace(transactionHash))
+                if (!uint256.TryParse(transactionHash, out var transactionId))
                 {
-                    OASISErrorHandling.HandleError(ref result, "Transaction hash is required");
+                    OASISErrorHandling.HandleError(ref result, "A Bitcoin transaction ID is required.");
                     return result;
                 }
 
-                // Query Bitcoin RPC for transaction status
-                var rpcRequest = new
+                var genesis = (await _httpClient.GetStringAsync("block-height/0", token)).Trim();
+                if (!uint256.TryParse(genesis, out var genesisHash) || genesisHash != SigningNetwork.GetGenesis().GetHash())
                 {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "gettransaction",
-                    @params = new object[] { transactionHash }
-                };
-
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
-                var content = await response.Content.ReadAsStringAsync(token);
-                var jsonDoc = JsonDocument.Parse(content);
-
-                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
-                {
-                    if (resultElement.TryGetProperty("confirmations", out var confirmationsElement))
-                    {
-                        var confirmations = confirmationsElement.GetInt32();
-                        result.Result = confirmations > 0 ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Pending;
-                        result.IsError = false;
-                    }
-                    else
-                    {
-                        result.Result = BridgeTransactionStatus.Pending;
-                        result.IsError = false;
-                    }
+                    OASISErrorHandling.HandleError(ref result, "Esplora is serving a different Bitcoin network.");
+                    return result;
                 }
-                else
+
+                using var response = await _httpClient.GetAsync($"tx/{transactionId}/status", token);
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
                     result.Result = BridgeTransactionStatus.NotFound;
-                    result.IsError = true;
-                    result.Message = "Transaction not found";
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    OASISErrorHandling.HandleError(ref result, "The Bitcoin transaction was not found by Esplora.");
+                    return result;
                 }
+
+                response.EnsureSuccessStatusCode();
+                var status = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: token);
+                result.MetaData[BitcoinTransactionIdMetadataKey] = transactionId.ToString();
+                if (!status.GetProperty("confirmed").GetBoolean())
+                {
+                    result.Result = BridgeTransactionStatus.Pending;
+                    return result;
+                }
+
+                var height = status.GetProperty("block_height").GetUInt64();
+                var heightText = height.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var blockHash = uint256.Parse(status.GetProperty("block_hash").GetString());
+                var canonicalBlock = (await _httpClient.GetStringAsync($"block-height/{heightText}", token)).Trim();
+                if (!uint256.TryParse(canonicalBlock, out var canonicalHash) || canonicalHash != blockHash)
+                {
+                    OASISErrorHandling.HandleError(ref result, "The reported Bitcoin confirmation block is no longer canonical.");
+                    return result;
+                }
+
+                result.MetaData["BitcoinBlockHash"] = blockHash.ToString();
+                result.MetaData["BitcoinBlockHeight"] = heightText;
+                result.Result = BridgeTransactionStatus.Completed;
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error getting Bitcoin transaction status: {ex.Message}", ex);
-                result.Result = BridgeTransactionStatus.NotFound;
             }
             return result;
         }

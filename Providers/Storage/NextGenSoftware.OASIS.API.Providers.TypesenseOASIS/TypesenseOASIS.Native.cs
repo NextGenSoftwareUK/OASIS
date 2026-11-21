@@ -58,6 +58,18 @@ public partial class TypesenseOASIS
             throw new InvalidDataException("Native collection does not match the configured storage schema.");
     }
 
+    private async Task DeleteDocAsync(string collection, string id, bool allowMissing = false)
+    {
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        var query = allowMissing ? "?ignore_not_found=true" : string.Empty;
+        using var request = new HttpRequestMessage(HttpMethod.Delete, $"{_host}/collections/{collection}/documents/{id}{query}");
+        using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+        response.EnsureSuccessStatusCode();
+        using var acknowledged = await ReadNativeResponseAsync(response, 4 * 1024 * 1024, deadline.Token);
+        if (acknowledged.RootElement.GetProperty("id").GetString() != id)
+            throw new InvalidDataException("Native delete acknowledgement differs from the requested document identity.");
+    }
+
     private async Task UpsertDocAsync(string collection, object document)
     {
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));

@@ -1,45 +1,107 @@
 using System;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.TestSupport;
 
 namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
 {
-    /// <summary>
-    /// Exercises the real CRUD surface against a live backend.
-    ///
-    /// Connection details come from POCKETBASEOASIS_&lt;PARAM&gt; environment variables. When the
-    /// backend is not reachable the provider fails to activate and every test is
-    /// inconclusive rather than failed - so an unconfigured machine reports "skipped"
-    /// instead of red.
-    /// </summary>
     [TestClass]
     public class PocketBaseOASISIntegrationTests
     {
         private PocketBaseOASIS _provider = null!;
-        private bool _live;
 
         [TestInitialize]
-        public void Setup()
+        public async Task Setup()
         {
-            _provider = PocketBaseOASISTestFactory.Create();
-            try { _live = !_provider.ActivateProvider().IsError && _provider.IsProviderActivated; }
-            catch { _live = false; }
+            if (Environment.GetEnvironmentVariable("OASIS_POCKETBASE_STORAGE_TEST") != "1")
+                Assert.Inconclusive("Enable only for a disposable PocketBase instance.");
+
+            var url = Environment.GetEnvironmentVariable("POCKETBASEOASIS_BASEURL");
+            var email = Environment.GetEnvironmentVariable("POCKETBASEOASIS_ADMINEMAIL");
+            var password = Environment.GetEnvironmentVariable("POCKETBASEOASIS_ADMINPASSWORD");
+            Assert.IsTrue(Uri.TryCreate(url, UriKind.Absolute, out var endpoint) &&
+                endpoint.IsLoopback && endpoint.Scheme == Uri.UriSchemeHttp &&
+                endpoint.AbsolutePath == "/" && endpoint.UserInfo.Length == 0 &&
+                endpoint.Query.Length == 0 && endpoint.Fragment.Length == 0);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(email));
+            Assert.IsFalse(string.IsNullOrWhiteSpace(password));
+
+            _provider = new PocketBaseOASIS(url!, email!, password!);
+            var activated = await _provider.ActivateProviderAsync();
+            Assert.IsFalse(activated.IsError, activated.Exception?.GetType().Name);
+            Assert.IsTrue(_provider.IsProviderActivated);
         }
 
-        private void RequireLive()
+        [DataTestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        [DoNotParallelize]
+        public async Task CoreStorageSuiteAgainstNativePocketBase(bool synchronous)
         {
-            if (!_live)
-                Assert.Inconclusive(
-                    "No live PocketBaseOASIS backend configured - set the POCKETBASEOASIS_* environment variables to run this.");
+            var url = Environment.GetEnvironmentVariable("POCKETBASEOASIS_BASEURL");
+            Assert.AreEqual("http://127.0.0.1:19692", url);
+            using var client = new HttpClient { BaseAddress = new Uri(url!) };
+            using var login = await client.PostAsJsonAsync("/api/collections/_superusers/auth-with-password", new
+            {
+                identity = Environment.GetEnvironmentVariable("POCKETBASEOASIS_ADMINEMAIL"),
+                password = Environment.GetEnvironmentVariable("POCKETBASEOASIS_ADMINPASSWORD")
+            });
+            login.EnsureSuccessStatusCode();
+            var auth = await login.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.IsTrue(client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", auth.GetProperty("token").GetString()));
+
+            var report = await CoreStorageConformance.RunAsync(
+                _provider, nameof(PocketBaseOASIS), "native", synchronous, _ => Task.CompletedTask,
+                cleanupSoftDeletedFixture: async (id, _) =>
+                {
+                    var row = await FindTombstoneAsync(id);
+                    if (!row.HasValue)
+                        return new OASISResult<bool>();
+                    var recordId = Uri.EscapeDataString(row.Value.GetProperty("id").GetString()!);
+                    using var response = await client.DeleteAsync($"/api/collections/oasis_holons/records/{recordId}");
+                    var deleted = response.StatusCode == HttpStatusCode.NoContent && !((await FindTombstoneAsync(id)).HasValue);
+                    return new OASISResult<bool> { Result = deleted, IsDeleted = deleted, DeletedCount = deleted ? 1 : 0 };
+                },
+                expectedDefaultDeletion: "soft",
+                observeNativeTombstone: async (id, owner, name) =>
+                {
+                    var row = await FindTombstoneAsync(id);
+                    if (!row.HasValue)
+                        return false;
+                    using var payload = JsonDocument.Parse(row.Value.GetProperty("data_json").GetString()!);
+                    Assert.AreEqual(id, payload.RootElement.GetProperty("id").GetGuid());
+                    Assert.AreEqual(owner, payload.RootElement.GetProperty("createdByAvatarId").GetGuid());
+                    Assert.AreEqual(name, payload.RootElement.GetProperty("name").GetString());
+                    return true;
+                });
+            Assert.IsTrue(report.Succeeded,
+                $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}; {report.Passed.Count} checks passed.");
+            Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+            Assert.IsTrue(report.FixtureCleanupComplete);
+
+            async Task<JsonElement?> FindTombstoneAsync(Guid id)
+            {
+                var filter = Uri.EscapeDataString($"oasis_id='{id:D}' && is_deleted=true");
+                var rows = await client.GetFromJsonAsync<JsonElement>($"/api/collections/oasis_holons/records?filter={filter}&perPage=2");
+                var items = rows.GetProperty("items");
+                Assert.IsTrue(items.GetArrayLength() <= 1);
+                return items.GetArrayLength() == 0 ? null : items[0];
+            }
         }
 
         [TestMethod]
         public async Task SaveAndLoadAvatar_RoundTrips()
         {
-            RequireLive();
-
             var avatar = new Avatar
             {
                 Id = Guid.NewGuid(),
@@ -61,8 +123,6 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
         [TestMethod]
         public async Task LoadAvatarByUsername_FindsTheSavedAvatar()
         {
-            RequireLive();
-
             var avatar = new Avatar
             {
                 Id = Guid.NewGuid(),
@@ -81,10 +141,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
         }
 
         [TestMethod]
-        public async Task SaveAndLoadHolon_RoundTrips()
+        public async Task HolonRoundTripsAndSoftDeleteHidesIt()
         {
-            RequireLive();
-
             var holon = new Holon { Id = Guid.NewGuid(), Name = $"OASIS IT Holon {Guid.NewGuid():N}" };
 
             var saved = await _provider.SaveHolonAsync(holon);
@@ -94,14 +152,24 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
             Assert.IsFalse(loaded.IsError, loaded.Message);
             Assert.AreEqual(holon.Name, loaded.Result!.Name);
 
-            await _provider.DeleteHolonAsync(holon.Id);
+            var deleted = await _provider.DeleteHolonAsync(holon.Id);
+            Assert.IsFalse(deleted.IsError, deleted.Message);
+            Assert.IsTrue(deleted.IsDeleted);
+            Assert.AreEqual(1, deleted.DeletedCount);
+
+            var missing = await _provider.LoadHolonAsync(holon.Id);
+            Assert.IsTrue(missing.IsError);
+            Assert.IsNull(missing.Result);
+
+            var repeated = await _provider.DeleteHolonAsync(holon.Id);
+            Assert.IsTrue(repeated.IsError);
+            Assert.IsFalse(repeated.IsDeleted);
+            Assert.AreEqual(0, repeated.DeletedCount);
         }
 
         [TestMethod]
         public async Task DeletedAvatar_IsNotReturnedAsLive()
         {
-            RequireLive();
-
             var avatar = new Avatar
             {
                 Id = Guid.NewGuid(),
@@ -119,11 +187,147 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
         }
 
         [TestMethod]
-        public async Task LoadAllAvatars_ReturnsAResult()
+        public async Task AvatarListingReportsCountAndExcludesSoftDeletedRecords()
         {
-            RequireLive();
-            var all = await _provider.LoadAllAvatarsAsync();
-            Assert.IsNotNull(all);
+            var marker = Guid.NewGuid().ToString("N");
+            var avatar = new Avatar { Id = Guid.NewGuid(), Username = marker, Email = $"{marker}@example.test" };
+            var saved = await _provider.SaveAvatarAsync(avatar);
+            Assert.IsTrue(saved.IsSaved, saved.Message);
+            try
+            {
+                var all = await _provider.LoadAllAvatarsAsync();
+                Assert.IsTrue(all.IsLoaded, all.Message);
+                Assert.AreEqual(all.Result.Count(), all.LoadedCount);
+                Assert.AreEqual(1, all.Result.Count(item => item.Id == avatar.Id));
+
+                var deleted = await _provider.DeleteAvatarAsync(avatar.Id, softDelete: true);
+                Assert.IsTrue(deleted.IsDeleted, deleted.Message);
+
+                var remaining = await _provider.LoadAllAvatarsAsync();
+                Assert.IsTrue(remaining.IsLoaded, remaining.Message);
+                Assert.AreEqual(remaining.Result.Count(), remaining.LoadedCount);
+                Assert.IsFalse(remaining.Result.Any(item => item.Id == avatar.Id));
+            }
+            finally
+            {
+                var removed = await _provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
+                Assert.IsTrue(removed.IsDeleted, removed.Message);
+            }
+        }
+
+        [TestMethod]
+        public async Task AvatarDetailRoundTripsWithGeneratedIdentity()
+        {
+            var marker = $"oasis-detail-{Guid.NewGuid():N}";
+            var detail = new AvatarDetail { Id = Guid.Empty, Username = marker, Email = $"{marker}@example.test" };
+
+            var saved = await _provider.SaveAvatarDetailAsync(detail);
+            Assert.IsFalse(saved.IsError, saved.Message);
+            Assert.IsTrue(saved.IsSaved);
+            Assert.AreEqual(1, saved.SavedCount);
+            Assert.AreNotEqual(Guid.Empty, detail.Id);
+
+            var loaded = await _provider.LoadAvatarDetailAsync(detail.Id);
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.IsTrue(loaded.IsLoaded);
+            Assert.AreEqual(1, loaded.LoadedCount);
+            Assert.AreEqual(detail.Id, loaded.Result.Id);
+            Assert.AreEqual(detail.Username, loaded.Result.Username);
+        }
+
+        [TestMethod]
+        public async Task RetainedAvatarDetailCanBeRead()
+        {
+            var configuredId = Environment.GetEnvironmentVariable("OASIS_POCKETBASE_RETAINED_DETAIL_ID");
+            if (string.IsNullOrWhiteSpace(configuredId))
+                Assert.Inconclusive("Supply the retained PocketBase fixture avatar-detail ID.");
+
+            Assert.IsTrue(Guid.TryParse(configuredId, out var id));
+            var loaded = await _provider.LoadAvatarDetailAsync(id);
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.IsTrue(loaded.IsLoaded);
+            Assert.AreEqual(1, loaded.LoadedCount);
+            Assert.AreEqual(id, loaded.Result.Id);
+            Assert.IsNotNull(loaded.Result.Chakras);
+            Assert.IsNotNull(loaded.Result.Aura);
+            Assert.IsNotNull(loaded.Result.Stats);
+            Assert.IsNotNull(loaded.Result.Skills);
+            Assert.IsNotNull(loaded.Result.Attributes);
+            Assert.IsNotNull(loaded.Result.SuperPowers);
+        }
+
+        [TestMethod]
+        public async Task HardDeleteAcknowledgesAndRemovesAvatar()
+        {
+            var marker = $"oasis-hard-delete-{Guid.NewGuid():N}";
+            var avatar = new Avatar { Id = Guid.NewGuid(), Username = marker, Email = $"{marker}@example.test" };
+
+            var saved = await _provider.SaveAvatarAsync(avatar);
+            Assert.IsFalse(saved.IsError, saved.Message);
+            Assert.IsTrue(saved.IsSaved);
+
+            var deleted = await _provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
+            Assert.IsFalse(deleted.IsError, deleted.Message);
+            Assert.IsTrue(deleted.IsDeleted);
+            Assert.AreEqual(1, deleted.DeletedCount);
+
+            var repeated = await _provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
+            Assert.IsTrue(repeated.IsError);
+            Assert.IsFalse(repeated.IsDeleted);
+            Assert.AreEqual(0, repeated.DeletedCount);
+        }
+
+        [TestMethod]
+        public async Task UsernameLookupPreservesQuotes()
+        {
+            var marker = Guid.NewGuid().ToString("N");
+            var avatar = new Avatar
+            {
+                Id = Guid.NewGuid(),
+                Username = $"O'Brien \"{marker}\"",
+                Email = $"{marker}@example.test"
+            };
+
+            var saved = await _provider.SaveAvatarAsync(avatar);
+            Assert.IsTrue(saved.IsSaved, saved.Message);
+            try
+            {
+                var loaded = await _provider.LoadAvatarByUsernameAsync(avatar.Username);
+                Assert.IsTrue(loaded.IsLoaded, loaded.Message);
+                Assert.AreEqual(avatar.Id, loaded.Result.Id);
+                Assert.AreEqual(avatar.Username, loaded.Result.Username);
+            }
+            finally
+            {
+                var deleted = await _provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
+                Assert.IsTrue(deleted.IsDeleted, deleted.Message);
+            }
+        }
+
+        [TestMethod]
+        public async Task BatchSaveReportsCommittedPrefixWhenStoppedOnError()
+        {
+            var first = new Holon { Id = Guid.NewGuid(), Name = "PocketBase batch prefix" };
+            var last = new Holon { Id = Guid.NewGuid(), Name = "PocketBase batch suffix" };
+            try
+            {
+                var batch = await _provider.SaveHolonsAsync(new IHolon[] { first, null!, last },
+                    saveChildren: false, continueOnError: false);
+                Assert.IsTrue(batch.IsError);
+                Assert.AreEqual(1, batch.ErrorCount);
+                Assert.IsTrue(batch.IsSaved);
+                Assert.AreEqual(1, batch.SavedCount);
+                Assert.AreEqual(first.Id, batch.Result.Single().Id);
+                Assert.IsTrue((await _provider.LoadHolonAsync(first.Id)).IsLoaded);
+                Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,
+                    (await _provider.LoadHolonAsync(last.Id)).ErrorCode);
+            }
+            finally
+            {
+                foreach (var id in new[] { first.Id, last.Id })
+                    if ((await _provider.LoadHolonAsync(id)).IsLoaded)
+                        Assert.IsTrue((await _provider.DeleteHolonAsync(id)).IsDeleted);
+            }
         }
 
         [TestCleanup]

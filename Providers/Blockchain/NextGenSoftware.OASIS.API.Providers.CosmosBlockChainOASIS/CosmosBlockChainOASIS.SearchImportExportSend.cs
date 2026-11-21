@@ -38,6 +38,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
     {
         public void Dispose()
         {
+            ResetPublicQueryActivation();
             IsProviderActivated = false;
             _privateStorage.Dispose();
             _sdkBackend.Dispose();

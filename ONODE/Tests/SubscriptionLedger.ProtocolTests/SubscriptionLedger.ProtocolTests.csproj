@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup><TargetFramework>net10.0</TargetFramework><IsPackable>false</IsPackable><IsTestProject>true</IsTestProject><ImplicitUsings>enable</ImplicitUsings><Nullable>disable</Nullable></PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/AccessLog/AccessLogService.cs" Link="Production/AccessLogService.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/AccessLog/AccessLogOverrides.cs" Link="Production/AccessLogOverrides.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/AccessLog/MongoAccessLogStore.cs" Link="Production/MongoAccessLogStore.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.AppPolicyOverrides.cs" Link="Production/MongoSubscriptionUsageRepository.AppPolicyOverrides.cs" />
     <ProjectReference Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.DNA/NextGenSoftware.OASIS.API.DNA.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -23,8 +27,11 @@
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Overages.cs" Link="Production/MongoSubscriptionUsageRepository.Overages.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PaidOveragePricing.cs" Link="Production/PaidOveragePricing.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionModels.cs" Link="Production/SubscriptionModels.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionAdminModels.cs" Link="Production/SubscriptionAdminModels.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Admin.cs" Link="Production/MongoSubscriptionUsageRepository.Admin.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/ISubscriptionBillingRepository.cs" Link="Production/ISubscriptionBillingRepository.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Billing.cs" Link="Production/MongoSubscriptionUsageRepository.Billing.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Indexes.cs" Link="Production/MongoSubscriptionUsageRepository.Indexes.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionUsagePolicyProvider.cs" Link="Production/SubscriptionUsagePolicyProvider.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionUsageModels.cs" Link="Production/SubscriptionUsageModels.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SandboxSubscriptionRules.cs" Link="Production/SandboxSubscriptionRules.cs" />
@@ -33,6 +40,9 @@
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppAccounts.cs" Link="Production/AppAccounts.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.AppAccounts.cs" Link="Production/MongoSubscriptionUsageRepository.AppAccounts.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Pool.cs" Link="Production/MongoSubscriptionUsageRepository.Pool.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.AppBilling.cs" Link="Production/MongoSubscriptionUsageRepository.AppBilling.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppOverageEstimate.cs" Link="Production/AppOverageEstimate.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppOveragePrices.cs" Link="Production/AppOveragePrices.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Grants.cs" Link="Production/MongoSubscriptionUsageRepository.Grants.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/DelegatedUsageGrants.cs" Link="Production/DelegatedUsageGrants.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionMongoConfiguration.cs" Link="Production/SubscriptionMongoConfiguration.cs" />
@@ -40,6 +50,7 @@
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageLedgerValidation.cs" Link="Production/UsageLedgerValidation.cs" />
     <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/Web4SubscriptionAuthorizationClient.cs" Link="Production/Web4SubscriptionAuthorizationClient.cs" />
     <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/UsageExecutionContracts.cs" Link="Production/UsageExecutionContracts.cs" />
+    <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/VerifiedMongoIndexes.cs" Link="Production/VerifiedMongoIndexes.cs" />
     <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/NativeResourceUsageObservation.cs" Link="Production/NativeResourceUsageObservation.cs" />
     <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/UsageResourceObservationBatch.cs" Link="Production/UsageResourceObservationBatch.cs" />
     <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/NativeOperationFeeAccounting.cs" Link="Production/NativeOperationFeeAccounting.cs" />

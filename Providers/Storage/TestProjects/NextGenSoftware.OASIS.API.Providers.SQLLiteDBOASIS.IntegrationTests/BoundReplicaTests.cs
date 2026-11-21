@@ -41,6 +41,37 @@ public partial class SQLLiteDBOASISIntegrationTests
         command.ExecuteNonQuery();
     }
 
+    [Fact]
+    public async Task BoundInitializationRejectsWrongStoreBeforeWriteAndReceiptRead()
+    {
+        using var receiver = new SQLLiteDBOASIS(TestConnectionString);
+        (await receiver.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var captured = await receiver.CaptureStorageIdentityAsync();
+        captured.IsError.Should().BeFalse(captured.Message);
+        var expected = captured.Result;
+        var wrong = new CosmicStorageIdentity(expected.Authority, expected.EndpointFingerprint, Guid.NewGuid());
+        var request = BoundReplicaFixture();
+
+        (await receiver.InitializeBoundCommittedHolonReplicaAsync(request, wrong)).ErrorCode
+            .Should().Be("COSMIC_REPLICA_STORAGE_BINDING_MISMATCH");
+        BoundCount("CosmicWriteReceipt").Should().Be(0);
+        BoundCount("Holon").Should().Be(0);
+
+        var applied = await receiver.InitializeBoundCommittedHolonReplicaAsync(request, expected);
+        applied.IsError.Should().BeFalse(applied.Message);
+        var observed = await receiver.ReadBoundReplicaInitializationOutcomeAsync(request, expected);
+        observed.IsError.Should().BeFalse(observed.Message);
+        observed.Result.ReceiptState.Should().Be(ConditionalHolonReceiptState.Committed);
+
+        var rejected = await receiver.ReadBoundReplicaInitializationOutcomeAsync(request, wrong);
+        rejected.IsError.Should().BeTrue();
+        rejected.Result.Should().BeNull();
+        (await receiver.InitializeBoundCommittedHolonReplicaAsync(request, wrong)).ErrorCode
+            .Should().Be("COSMIC_REPLICA_STORAGE_BINDING_MISMATCH");
+        BoundCount("CosmicWriteReceipt").Should().Be(1);
+        BoundCount("Holon").Should().Be(1);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

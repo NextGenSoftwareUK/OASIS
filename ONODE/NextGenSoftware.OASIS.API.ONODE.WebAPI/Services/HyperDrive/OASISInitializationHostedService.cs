@@ -3,6 +3,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NextGenSoftware.OASIS.API.Core.Configuration;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
 {
@@ -11,17 +14,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
     {
         private readonly HyperDriveHostedProviderAccessor _providerAccessor;
         private readonly ILogger<OASISInitializationHostedService> _logger;
+        private readonly IHolonReplicationAuthorizationPolicy _authorization;
 
         public OASISInitializationHostedService(
             HyperDriveHostedProviderAccessor providerAccessor,
-            ILogger<OASISInitializationHostedService> logger)
+            ILogger<OASISInitializationHostedService> logger,
+            IHolonReplicationAuthorizationPolicy authorization)
         {
             _providerAccessor = providerAccessor;
             _logger = logger;
+            _authorization = authorization;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
+            // Foreground enrollment retains its policy even if provider boot fails or delivery is paused.
+            HolonReplicationRoutes.UseAuthorizationBinding(ProviderManager.Instance,
+                () => _authorization.BindingIdentity);
             var result = await _providerAccessor.GetAsync().ConfigureAwait(false);
             if (result == null || result.IsError || result.Result == null)
             {

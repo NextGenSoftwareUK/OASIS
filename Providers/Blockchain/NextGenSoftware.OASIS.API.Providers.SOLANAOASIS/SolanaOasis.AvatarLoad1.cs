@@ -82,6 +82,7 @@ public partial class SolanaOASIS
 
     public override async Task<OASISResult<bool>> DeActivateProviderAsync()
     {
+        _publicAccountsVerified = false;
         _solanaRepository = null;
         _solanaService = null;
         IsProviderActivated = false;
@@ -90,6 +91,7 @@ public partial class SolanaOASIS
 
     public override OASISResult<bool> DeActivateProvider()
     {
+        _publicAccountsVerified = false;
         _solanaRepository = null;
         _solanaService = null;
         IsProviderActivated = false;

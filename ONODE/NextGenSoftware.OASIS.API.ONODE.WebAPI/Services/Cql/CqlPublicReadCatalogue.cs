@@ -20,6 +20,7 @@ public sealed class CqlPublicReadCatalogue : ICqlReadAccessPolicy
     private readonly ProviderType provider;
     private readonly Guid[] records;
     public ProviderType Provider => provider;
+    internal Guid[] CopyRecordIds() => (Guid[])records.Clone();
 
     public CqlPublicReadCatalogue(ProviderType provider, Guid[] records)
     {

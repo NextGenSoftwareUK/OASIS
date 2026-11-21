@@ -135,15 +135,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await FilesManager.Instance.GetAllFilesForAvatarAsync(AvatarId);
         }
 
+        /// <summary>Get the number of stored files for the currently logged in avatar.</summary>
+        [Authorize]
+        [HttpGet("get-file-count-for-current-logged-in-avatar")]
+        public Task<OASISResult<int>> GetFileCountForCurrentLoggedInAvatar() =>
+            FilesManager.Instance.GetFileCountForAvatarAsync(AvatarId);
+
         /// <summary>
         /// Upload a file for the current avatar.
         /// </summary>
         [Authorize]
         [HttpPost("upload-file")]
-        public async Task<OASISResult<StoredFile>> UploadFile(string fileName, [FromBody] byte[] fileData, string contentType, [FromForm] Dictionary<string, object> metadata = null)
+        public async Task<OASISResult<StoredFile>> UploadFile(string fileName, [FromBody] byte[] fileData,
+            string contentType, [FromForm] Dictionary<string, object> metadata = null, [FromQuery] string description = null)
         {
             if (fileData == null || fileData.Length == 0)
                 return new OASISResult<StoredFile> { IsError = true, Message = "The request body is required. Please provide the file data (byte array)." };
+            if (!string.IsNullOrWhiteSpace(description))
+            {
+                metadata ??= new Dictionary<string, object>();
+                metadata["description"] = description.Trim();
+            }
             return await FilesManager.Instance.UploadFileAsync(AvatarId, fileName, fileData, contentType, metadata);
         }
 

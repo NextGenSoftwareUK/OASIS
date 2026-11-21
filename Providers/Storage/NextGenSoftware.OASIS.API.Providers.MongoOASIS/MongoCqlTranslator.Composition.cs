@@ -63,8 +63,8 @@ internal sealed partial class MongoCqlTranslator
         var values = new BsonArray(); var ordering = new BsonArray(); var sourceSort = new BsonDocument();
         for (var index = 0; index < query.Columns.Count; index++)
         {
-            values.Add(ProjectionCell(query.Columns[index].Path, "composedValue" + index));
-            proof.Add("k" + index, OrderingKey(query.Columns[index].Path, "composedComparable" + index));
+            values.Add(ProjectionCell(query.Columns[index], "composedValue" + index));
+            proof.Add("k" + index, OrderingKey(query.Columns[index], "composedComparable" + index));
         }
         for (var index = 0; index < query.Source.Orderings.Count; index++)
         {
@@ -137,6 +137,16 @@ internal sealed partial class MongoCqlTranslator
                 current.Add(new("$set", new BsonDocument("rank", "$nextRank")));
                 current.Add(new("$unset", "nextRank"));
             }
+            else if (stage is CosmicSelectedDistinctStage distinct)
+            {
+                current.Add(new("$sort", new BsonDocument("rank", 1)));
+                current.Add(new("$group", new BsonDocument
+                {
+                    { "_id", new BsonDocument("$ifNull", new BsonArray { "$k" + distinct.ColumnIndex + ".value", BsonNull.Value }) },
+                    { "firstRow", new BsonDocument("$first", "$$ROOT") }
+                }));
+                current.Add(new("$replaceRoot", new BsonDocument("newRoot", "$firstRow")));
+            }
             else if (stage is CosmicSelectedWindowStage window)
             {
                 // A window reads the previous stage's deterministic rank.
@@ -184,7 +194,7 @@ internal sealed partial class MongoCqlTranslator
         BsonValue Selected(CosmicQueryPredicate predicate) => SelectedFilterPredicate(predicate, path =>
         {
             var index = !path.IsMetadata && path.Segments.Count == 1
-                ? query.Columns.ToList().FindIndex(column => column.Alias == path.Segments[0] && column.Path.ValueType == path.ValueType) : -1;
+                ? query.Columns.ToList().FindIndex(column => column.Alias == path.Segments[0] && column.ValueType == path.ValueType) : -1;
             if (index < 0) throw new NotSupportedException("Selected predicate must bind an exact selected scalar.");
             return Op("$ifNull", "$k" + index + ".value", Literal(BsonNull.Value));
         });

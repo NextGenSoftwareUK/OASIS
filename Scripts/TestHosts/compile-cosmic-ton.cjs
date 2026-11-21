@@ -8,7 +8,7 @@ const sdk = path.join(root, 'Providers/Blockchain/NextGenSoftware.OASIS.API.Prov
 const load = createRequire(path.join(sdk, 'package.json'));
 const compiler = load('@tact-lang/compiler');
 const ts = load('typescript');
-const output = path.join(root, 'TestResults/TonCqlCurrent/compiled');
+const output = process.argv[2] ? path.resolve(process.argv[2]) : path.join(root, 'TestResults/TonCqlCurrent/compiled');
 
 (async () => {
     const files = {'TonHolonStore.tact': fs.readFileSync(path.join(sdk, '../Contracts/TonHolonStore.tact')).toString('base64')};

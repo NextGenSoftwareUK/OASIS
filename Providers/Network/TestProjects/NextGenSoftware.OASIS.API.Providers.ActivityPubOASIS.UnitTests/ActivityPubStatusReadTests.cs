@@ -71,6 +71,7 @@ public class ActivityPubStatusReadTests
         Assert.False(result.IsLoaded);Assert.Equal(0,result.LoadedCount);
     }
     [Theory][InlineData(" ",0,0,false)][InlineData("123",1,0,false)][InlineData("123",0,-1,false)]
+    [InlineData(".",0,0,false)][InlineData(" .. ",0,0,false)]
     public async Task InvalidOrUnverifiedOptionsCannotSilentlySucceed(string key,int version,int depth,bool children)
     {
         var transport=new Transport();using var provider=new ActivityPubOASIS("https://mastodon.invalid","",transport);
