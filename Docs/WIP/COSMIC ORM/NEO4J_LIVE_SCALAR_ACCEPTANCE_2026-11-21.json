@@ -1,0 +1,59 @@
+{
+  "date": "2026-11-21",
+  "developmentSource": "8a4e0a8ba68b923feafeaeab0a95582506201537",
+  "deployment": "5b247a68-be53-4bcb-976f-0091f9d11ab7",
+  "deploymentStatus": "SUCCESS",
+  "websiteSource": "bf795c7763a827aafb0380f8b11f559f36f66f8c",
+  "preview": "https://web4-site-hzn75ad0v-oasis-team.vercel.app",
+  "approvedBrowserOrigin": "https://web4.oasisomniverse.one",
+  "candidateScriptsExactHashVerified": true,
+  "neoAvailable": true,
+  "neoFederationAvailable": true,
+  "neoActivationGeneration": 1,
+  "query": "SELECT COUNT(*) Total FROM Neo4jOASIS",
+  "canonicalInt64StringVerified": true,
+  "apiAcknowledged": true,
+  "renderedAliasAndValueDomVerified": true,
+  "visibleSqlTabWalkthroughVerified": false,
+  "populatedSqlRowsVerified": false,
+  "fullBrowserDataFlowVerified": false,
+  "publicWebsitePublicationVerified": false,
+  "demoSessionRevoked": true,
+  "acceptedProbeDataReads": 1,
+  "totalDataReadsAcrossAttempts": 2,
+  "totalDemoSessionsAcrossAttempts": 3,
+  "oldMongoSqliteCohortsRepeated": false,
+  "earlierAttempts": [
+    {
+      "result": "source not ready during startup",
+      "dataQueries": 0
+    },
+    {
+      "result": "probe incorrectly expected JS number instead of documented Int64 string",
+      "dataQueries": 1,
+      "providerError": false
+    }
+  ],
+  "startupEvidence": {
+    "readers": 105,
+    "verified": 101,
+    "elapsedMilliseconds": 132099,
+    "holoFailureStage": "network join started",
+    "holoFailureCategory": "timeout",
+    "holoElapsedMilliseconds": 124476,
+    "holoRootCauseAttributed": false
+  },
+  "browserRootStopped": true,
+  "browserProfileAutomaticCleanup": "EPERM",
+  "manualNormalCleanupVerifiedAbsent": true,
+  "removedWork": "C:/Source/OASIS2/LocalState/COSMIC/RecoveryLaptopHostedBrowserCurrent",
+  "lastRemovedBytes": 6831038,
+  "precedingRemovedBytes": 6735079,
+  "screenshotReviewed": true,
+  "screenshotShows": "default HyperDrive tab; separate DOM assertion verifies SQL result",
+  "screenshotRemoved": true,
+  "savedDnaUnchanged": true,
+  "autoLoadBalanceEnabled": false,
+  "piperOperations": 0,
+  "stagingProductionDeployments": 0
+}
