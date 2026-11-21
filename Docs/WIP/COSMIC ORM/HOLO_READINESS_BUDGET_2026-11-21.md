@@ -33,3 +33,9 @@ Combined image/package/live readiness remain pending. Compilation/native behavio
 Read-only Railway preflight: saved Development WEB4 load balancing=true; active peer46ca1820 BUILDING, fcb6e088 QUEUED, last successful606e1a52. Preserve peer rollouts. No new rollout while active ones remain. These are deployment/saved-config observations, not loaded in-memory Holo cell readiness.
 
 Original91423bce image44946308915/job136974290676 terminalSUCCESS, digest sha256:10ffc6fe0487678b25b8f52e43e4151705831244cbaf37ccb9883f3f0ce1438e. Retain remote artifact as superseded-base provenance; no separate package run or deployment. Current combined7c5f0a16 image44946907870/job136977414701 confirmed queued. Native range44947147551/job136976863629 is in progress at its selected test step with isolated Mongo started; not yet accepted.
+
+## Corrected current release candidate
+
+42a13288100085314041e7305bbbdca400f11fed/tagcosmic-holo-readiness-240-42a132881000 is directly on Developmentd40364ed, preserving ONODE689a89bd and STAR72b38266. Exact nine paths: seven accepted snapshot paths, the240-second conductor deadline and MapController constructor call repair. Core stays13bd050; UpdateRange/RemoveRange source7165 is excluded. Official manifest/ref validation passed. Image dispatch acknowledged once; package and live startup pending.
+
+Feature7cd5605f integrates Developmentd403 ancestry and dependency fixes without losing pending COSMIC source. Replacement combined Core5/native3 qualification44948216478/job136980131747 is queued on fixedfb43 source; its older ONODE34 constructor contract equals latest689 contract, while the exact current image independently builds current dependency graph. Failed native44947147551 remains preserved as compile-failure evidence, not a native failure.

@@ -40,9 +40,9 @@
     "exactEntry": "snapshot.trx",
     "filesWritten": 0
   },
-  "deliveryCandidate": "2d114754f7faf4690b16ce1fa8a27077c522845b",
+  "deliveryCandidate": "42a13288100085314041e7305bbbdca400f11fed",
   "deliveryTag": "cosmic-cql-snapshot-2d114754f7fa",
-  "deliveryBaseDevelopment": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+  "deliveryBaseDevelopment": "d40364ed16c567750bc1ea000d7ee9d6196cd0fd",
   "deliveryChangedPaths": 7,
   "deliveryApiDirectoryExact": true,
   "imageDispatched": true,
@@ -86,7 +86,7 @@
     }
   },
   "packageAccepted": false,
-  "deliverySuperseded": false,
+  "deliverySuperseded": true,
   "compositionPeerDevelopment": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
   "compositionCompilePending": false,
   "priorDeliveryCandidates": [
@@ -133,5 +133,6 @@
     "source": "2d114754f7faf4690b16ce1fa8a27077c522845b",
     "digest": "sha256:ce464edd4c60ea4474278650064bcafbfaed8f7126a753138e675428ab3b8f58",
     "runtimeReadinessAccepted": false
-  }
+  },
+  "deliveryGate": "Current nine-path image/package and successful exact Development rollout pending; hosted harness must refuse until those gates are accepted."
 }
