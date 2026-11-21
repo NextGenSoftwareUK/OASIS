@@ -6,6 +6,7 @@ window.user=JSON.parse(localStorage.getItem('avatar'));
 window.oasisClient=new window.OASISClient({baseUrl:location.origin,persistSession:false});
 window.oasisClient.setToken(sessionStorage.getItem('ownedMapBearer'),{avatarId:window.user.id});
 sessionStorage.removeItem('ownedMapBearer');window.jwtReadyPromise=Promise.resolve();
+if(new URLSearchParams(location.search).get('renderer')==='1')window.portalMapStyle={version:8,sources:{},layers:[{id:'background',type:'background',paint:{'background-color':'#101826'}}]};
 </script><script src="/assets/js/map-modal.js"></script><script>
 fetch('/assets/components/modals/map.html').then(async function(response){
 if(!response.ok)throw new Error('Actual Map fragment missing.');

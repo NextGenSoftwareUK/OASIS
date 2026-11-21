@@ -25,6 +25,13 @@ public sealed partial class AvatarProfileCommitStampNativeTests
 {
     [Fact]
     public async Task RecordedRoutePopupUsesActualSdkHttpAndOwnedMongo()
+        => await RunRecordedRouteBrowserHost(false);
+
+    [Fact]
+    public async Task MapRendererDisplaysSegmentedGpxInActualBrowser()
+        => await RunRecordedRouteBrowserHost(true);
+
+    private async Task RunRecordedRouteBrowserHost(bool rendererOnly)
     {
         if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != MongoUri)
             throw new InvalidOperationException("The exact owned loopback Mongo fixture is required.");
@@ -98,6 +105,13 @@ public sealed partial class AvatarProfileCommitStampNativeTests
                 using var result=await ExchangeSdkRequest(new{baseUrl=address,token=Token(owner),avatarId=owner,otherToken=Token(reader),otherId=reader,providerType="MongoDBOASIS"},TimeSpan.FromMinutes(2));
                 Assert.False(result.RootElement.TryGetProperty("isError",out var error)&&error.GetBoolean(),
                     result.RootElement.TryGetProperty("message",out var message)?message.GetString():"Route browser failed.");
+                if(rendererOnly)
+                {
+                    Assert.True(result.RootElement.GetProperty("mapRendererVerified").GetBoolean());
+                    SameRevisions(ownerBefore,await mongo.ReadNative(owner));SameRevisions(readerBefore,await mongo.ReadNative(reader));
+                    Console.WriteLine("MAP_RENDERER_BROWSER_NATIVE_PROOF: actual shipping MapLibre/GPX controls, native WebGL canvas, visible route pixels and navigation, zero mutations and unchanged avatar revisions.");
+                    return;
+                }
                 Assert.True(result.RootElement.GetProperty("recordedRoutePopupVerified").GetBoolean());
                 var routeId=result.RootElement.GetProperty("routeId").GetGuid();var geometryId=result.RootElement.GetProperty("geometryId").GetGuid();
                 var header=await Data().LoadHolonForWriteAsync(routeId,owner);var geometry=await Data().LoadHolonForWriteAsync(geometryId,owner);
