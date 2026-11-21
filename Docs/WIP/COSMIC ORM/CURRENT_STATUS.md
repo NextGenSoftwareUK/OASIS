@@ -1,3 +1,5 @@
+21 November — HOLO READINESS BUDGET DOUBLED IN SOURCE BY OWNER REQUEST. Persisted-cell readiness240 seconds replaces120 in its existing owner; exact-cell readiness/error and retained data preserved. Earlier918da95d change remains; no lost timeout patch. Compilation/Development image/live outcome pending. Code constant only, no DNA setting change. Snapshot2d image remains120 and must not be claimed to include this change.
+
 21 November — COMBINED WEB4/WEB5 COMPILE ACCEPTED / NEW EXACT IMAGE RUNNING.
 Composition86310a09 run44943435624/job136965436369 SUCCESS: actualWEB4 zeroerrors6m45.21s andWEB5 zeroerrors42.81s. Strict RAM artifact14722444671/353B/SHAa3a3fc4c3030d3da890df95d735546f0476d383ca64e5819708f22174aeef8e7 verifies exact compiled.json source/Core13bd/ONODE9c8/STAR677/web4+web5 flags/0behaviorCases/0DBwrites. Accepted Core2/native3 retained without replay.
 
