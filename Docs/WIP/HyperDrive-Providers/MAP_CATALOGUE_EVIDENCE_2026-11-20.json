@@ -1,5 +1,5 @@
 {
-  "status": "Persisted catalogue implementation published; actual changed API/native case pending",
+  "status": "Persisted catalogue accepted against actual compiled manager and owned Mongo/SQLite; controller change compile pending",
   "onodeCore": "21f448a990c4d9843d7747de09bf11d68b2473d1",
   "mapBlob": "31cca8aaeae066588e9a1b6ab4b0911b54f9d75c",
   "baseBlob": "996cf6d38d599760726c412401aa46000b3e3427",
@@ -34,5 +34,18 @@
     "Map controller object binding and connected renderer/provider activation",
     "Actual popup browser/controller journey and full Map acceptance"
   ],
-  "cleanup": "No local build/download/install/database/browser/results/archive or new worktree; only compact source/docs. No shared backend/API/worker/DNA/deployment or protected-delivery action."
+  "cleanup": "No local build/download/install/database/browser/results/archive or new worktree; only compact source/docs. No shared backend/API/worker/DNA/deployment or protected-delivery action.",
+  "nativeRun": {
+    "run": 44860844891,
+    "job": 136713621328,
+    "parent": "ae8fe1748c0b296fc86ea18231251d15ff547fca",
+    "status": "completed",
+    "scope": "One new native Mongo/SQLite catalogue case plus actual WEB4 compile; no accepted cohort rerun or SDK browser installation",
+    "conclusion": "success",
+    "apiErrors": 0,
+    "apiElapsed": "00:05:05.91",
+    "result": "1 passed / 0 failed, reported4s; actual compiled manager/ToHolon, genuine native Mongo and SQLite; stable IDs, zero/near/datelined distances, filtering, invalid inputs/persisted data, unchanged accounts.",
+    "cleanup": "Native scopes disposed; owned Mongo fixture absence and all post-job cleanup passed. No SDK/browser installation or local artifacts."
+  },
+  "controllerFollowup": "MapController V2 acquisition now uses existing AdmittedStorageManagerAcquisition with unbound HolonManager; legacy mode remains explicit. BindRequired enforces both nearby query coordinates instead of missing values defaulting to zero. Not covered by accepted parentae8 native run; changed compile pending."
 }

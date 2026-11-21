@@ -19,7 +19,6 @@
     "Actual changed WEB4 API compiles"
   ],
   "open": [
-    "Real persisted/provider nearby/search: current backend still generates sample locations",
     "Discovery/social/exploration sources and competition error handling",
     "Actual controller object-parameter binding and provider activation",
     "Actual renderer/provider control and browser/native-store journeys"
@@ -34,5 +33,6 @@
     "elapsed": "00:04:34.12",
     "scope": "Build only; behavioral tests, database/browser fixture starts and artifact upload skipped; post-job cleanup passed"
   },
-  "diskFreeBytesObserved": 46867963904
+  "diskFreeBytesObserved": 46867963904,
+  "persistedCatalogue": "MAP_CATALOGUE_EVIDENCE_2026-11-20.json: native Mongo/SQLite accepted44860844891; popup/browser still pending."
 }
