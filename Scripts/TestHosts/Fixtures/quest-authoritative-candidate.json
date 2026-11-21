@@ -1,6 +1,6 @@
 {
   "scope": "quest",
-  "status": "combined-popup-source-prepared-awaiting-native-gate",
+  "status": "popup-held-after-native-graph-failure",
   "base": "17f2f1e83577961d21cb0c458dc2412b918d4cad",
   "candidate": "489cee90879f6b3bdafcc7f4a14b3c9dfcb0a7c0",
   "tag": "qualification/catalogue-popup-2026-11-21-489cee90",
@@ -39,9 +39,9 @@
   ],
   "previousCandidate": "25c4d178b8ba955d948465a7be7dd92617cdb06c",
   "qualification": {
-    "status": "prepared-not-dispatched-awaiting-native44949649529",
+    "status": "held-not-dispatched-native44949649529-failed",
     "mode": "catalogue-browser",
-    "scope": "First populated Quests/Missions popup flow; no native catalogue/empty quest/geo acceptance cohort replay."
+    "scope": "First populated Quests/Missions popup flow with two explicit detail GETs, ten GETs total; no accepted native/empty/geo cohort replay."
   },
   "onode": {
     "base": "51e0f880c59584cf9007e8bb89f4a7f6425c1a4f",
@@ -56,5 +56,5 @@
     "control": "55d97420c6d8601e743bd846ba7eb40a1cf27ac5",
     "status": "in_progress"
   },
-  "portal": "efe4e9652a18595eae4077893b9475a2d59c8486"
+  "portal": "2472bf56b0d104c93626d3bba7fe29b16323712c"
 }

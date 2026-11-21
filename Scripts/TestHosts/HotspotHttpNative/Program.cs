@@ -231,7 +231,11 @@ try
             storedMission.Result.Chapters.Count == 1 && storedMission.Result.Chapters[0].Id == chapterId &&
             storedMission.Result.Chapters[0].ChapterDisplayName == "Act",
             "Owned typed mission readback failed: " + storedMission.Message + "; " +
-            storedMission.Exception?.GetBaseException().GetType().FullName + ": " + storedMission.Exception?.GetBaseException().Message);
+            storedMission.Exception?.GetBaseException().GetType().FullName + ": " + storedMission.Exception?.GetBaseException().Message +
+            "; observed=" + System.Text.Json.JsonSerializer.Serialize(new { storedMission.IsError, storedMission.IsLoaded,
+                id = storedMission.Result?.Id, name = storedMission.Result?.Name,
+                chapters = storedMission.Result?.Chapters?.Select(member => new { id = member?.Id, display = member?.ChapterDisplayName }).ToArray(),
+                manifestPresent = (storedMission.Result as Holon)?.ChildRoleManifestJson != null }));
         var storedChapter = await data.LoadHolonAsync<Chapter>(chapterId, loadChildren: false, providerType: ProviderType.MongoDBOASIS);
         Require(!storedChapter.IsError && storedChapter.Result != null && storedChapter.Result.Name == chapter.Name &&
             storedChapter.Result.ChapterDisplayName == "Act" && storedChapter.Result.Status == QuestStatus.NotStarted &&
@@ -278,7 +282,7 @@ try
             await RunOwnedBrowserAsync(new { baseUrl = address,
                 token = new JwtSecurityTokenHandler().WriteToken(jwt), avatarId = actor, missionId, questId, chapterId },
                 "cataloguePopupsVerified");
-            Console.WriteLine("CATALOGUE_POPUP_BROWSER_PROOF: actual Portal WEB5 SDK and Quests/Missions popups read real native catalogues, details, search/refresh and clear on logout; eight GETs, zero browser mutations. Full Startup/SSO/hosted acceptance excluded.");
+            Console.WriteLine("CATALOGUE_POPUP_BROWSER_PROOF: actual Portal WEB5 SDK and Quests/Missions popups read real native catalogues, explicit details, search/refresh and clear on logout; ten GETs, zero browser mutations. Full Startup/SSO/hosted acceptance excluded.");
         }
     }
     else if (mode == "quest-empty")

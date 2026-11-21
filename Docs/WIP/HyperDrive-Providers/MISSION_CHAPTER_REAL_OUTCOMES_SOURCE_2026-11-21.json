@@ -140,7 +140,7 @@
     "status": "wired-held-after-native-failure-not-dispatched",
     "host": "Scripts/TestHosts/Fixtures/catalogue-browser-host.html",
     "browser": "Scripts/TestHosts/Fixtures/catalogue-browser-native-http.cjs",
-    "scope": "Actual Portal WEB5 SDK, Quests and Missions fragments/scripts; owned native populated my/all/search/refresh/details and logout clear; exactly eight GETs and zero browser mutations; no response replacement.",
+    "scope": "Actual Portal SDK/Quests/Missions fragments/scripts and first explicit by-ID detail actions; ten GETs total/zero browser mutations; awaited detail visibility and canonical identities.",
     "remaining": "Correct canonical chapter child-role capture/materialization and explicit detail reads; shallow reads must not be expected to hydrate chapter roles. Then qualify corrected native flow before popup execution.",
     "candidate": "489cee90879f6b3bdafcc7f4a14b3c9dfcb0a7c0",
     "base": "17f2f1e83577961d21cb0c458dc2412b918d4cad",
@@ -148,7 +148,7 @@
     "tag": "qualification/catalogue-popup-2026-11-21-489cee90",
     "onode": "004b5adc5ddb6875e8e6e12336d2a0f1d23f46cc",
     "star": "d97be575f4ee7ca3861c67709f6a6b3d4b002ddf",
-    "portal": "efe4e9652a18595eae4077893b9475a2d59c8486",
+    "portal": "2472bf56b0d104c93626d3bba7fe29b16323712c",
     "sourceChecks": "Clean object-only merges; exact two model and three controller blobs match pending native source, preserving current publishing and qualified mapping; paired-pin check-ref passed."
   },
   "sourceGraphFinding": {
@@ -156,5 +156,14 @@
     "incorrectFixtureAssumption": "Nonempty chapter list was expected from a shallow point read after saveChildren=false.",
     "requiredInvariant": "Persist chapter relationships through the canonical graph owner, preserve public collection mutation semantics, keep catalogue reads shallow and load child details explicitly. Do not duplicate holons into metadata or add alternate query fallbacks.",
     "runtimeLimit": "This source finding does not establish which field caused the combined assertion; future failed diagnostics must include selected owned IDs/count/display fields."
-  }
+  },
+  "frontendDetailSource": {
+    "commit": "e04af73d28d037db58d9e2cc645862c8a1f8f444",
+    "docsCommit": "2472bf56b0d104c93626d3bba7fe29b16323712c",
+    "branch": "dev",
+    "syntax": "Two changed scripts passed Node syntax checks; cache references updated",
+    "behavior": "Actual by-ID detail read on click with exact ID/client/token/modal/tab/latest guards; duplicate pending suppression; obsolete replies ignored; one authoritative response path.",
+    "runtimeAccepted": false
+  },
+  "readbackDiagnosticImprovement": "Next failed native assertion includes selected owned IDs/name/child IDs+display/IsError/IsLoaded/manifest presence; no full payload or secrets."
 }

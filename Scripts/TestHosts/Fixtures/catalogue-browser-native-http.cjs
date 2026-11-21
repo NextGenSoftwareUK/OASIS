@@ -6,8 +6,8 @@ async function verify({baseUrl,token,avatarId,missionId,questId,chapterId}){
  const {chromium}=require(path.join(process.env.OASIS_PROFILE_BROWSER_RUNTIME,'node_modules/playwright-core'));
  const browser=await chromium.launch({channel:'chrome',headless:true});
  const context=await browser.newContext({serviceWorkers:'block'}),errors=[],unexpected=[],requests=[];
- const allowed=new Set(['/api/quests/all-for-avatar','/api/quests','/api/quests/search',
-  '/api/missions/load-all-for-avatar','/api/missions','/api/missions/search']);
+ const allowed=new Set(['/api/quests/all-for-avatar','/api/quests','/api/quests/search','/api/quests/'+questId,
+  '/api/missions/load-all-for-avatar','/api/missions','/api/missions/search','/api/missions/'+missionId]);
  try{
   await context.route('**/*',async route=>{
    const req=route.request(),url=new URL(req.url());
@@ -33,6 +33,7 @@ async function verify({baseUrl,token,avatarId,missionId,questId,chapterId}){
    await page.waitForFunction(({kind,name})=>document.getElementById(kind+'-my-list').textContent.includes(name),item);
    assert.equal(await page.locator(card).count(),1);
    await page.locator(card+' [data-'+singular+'-index]').click();
+   await page.locator('#'+item.kind+'-detail').waitFor({state:'visible'});
    const detail=await page.locator('#'+item.kind+'-detail-body').textContent();
    assert.ok(detail.includes(item.id));assert.ok(detail.includes(item.name));
    if(item.kind==='missions')assert.ok(detail.includes(chapterId));
@@ -55,7 +56,8 @@ async function verify({baseUrl,token,avatarId,missionId,questId,chapterId}){
   await page.evaluate(()=>{window.starClient.setToken(null);window.dispatchEvent(new Event('oasis-logout'));});
   for(const kind of ['quests','missions'])for(const suffix of ['my-list','all-list','search-results','detail-body'])
    assert.equal(await page.locator('#'+kind+'-'+suffix).textContent(),'');
-  assert.equal(requests.length,8);assert.ok(requests.every(r=>r.method==='GET'));
+  for(const route of ['/api/quests/'+questId,'/api/missions/'+missionId])assert.equal(requests.filter(r=>r.path===route).length,1);
+  assert.equal(requests.length,10);assert.ok(requests.every(r=>r.method==='GET'));
   assert.deepEqual(errors,[]);assert.deepEqual(unexpected,[]);
   return {cataloguePopupsVerified:true,quests:true,missions:true,details:true,searchAndRefresh:true,logoutClears:true,zeroMutations:true};
  }finally{await context.close();await browser.close();}
