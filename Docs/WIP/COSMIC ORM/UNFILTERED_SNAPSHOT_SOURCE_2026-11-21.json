@@ -120,5 +120,18 @@
   "web4CompositionErrors": 0,
   "web5CompositionErrors": 0,
   "imageRun": 44944552781,
-  "imageObservedStatus": "in_progress"
+  "imageObservedStatus": "in_progress",
+  "combinedPackageAcceptance": {
+    "id": 14723207113,
+    "bytes": 781,
+    "sha256": "78483413e001bb917b1aa8d73d83319d4c2c026595ef05b57d80a50103a3265b",
+    "exactSourceDigestAndFiveAssembliesVerified": true,
+    "ownedContainerAbsent": true,
+    "dataWrites": 0,
+    "liveDeployment": false,
+    "run": 44945668173,
+    "source": "2d114754f7faf4690b16ce1fa8a27077c522845b",
+    "digest": "sha256:ce464edd4c60ea4474278650064bcafbfaed8f7126a753138e675428ab3b8f58",
+    "runtimeReadinessAccepted": false
+  }
 }

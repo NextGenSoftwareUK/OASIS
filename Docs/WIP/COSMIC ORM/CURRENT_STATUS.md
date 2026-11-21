@@ -1,3 +1,5 @@
+21 November — COMBINED SNAPSHOT IMAGE/PACKAGE ACCEPTED. Image44944552781 succeeded; digest ce464edd4c60ea4474278650064bcafbfaed8f7126a753138e675428ab3b8f58. Package44945668173 artifact14723207113 exact781bytes/SHA78483413e001bb917b1aa8d73d83319d4c2c026595ef05b57d80a50103a3265b inspected in RAM: exact source2d114754/tag/digest, five assemblies/CQL graph/helper hash, owned container absent/dataWrites0. Not live readiness or deployment acceptance. New owner-requested240-second Holo budget is source029545dc and excluded from that frozen image; separate compile qualification dispatched. Range source3b69eedb qualification44945637242 remains pending.
+
 21 November — HOLO READINESS BUDGET DOUBLED IN SOURCE BY OWNER REQUEST. Persisted-cell readiness240 seconds replaces120 in its existing owner; exact-cell readiness/error and retained data preserved. Earlier918da95d change remains; no lost timeout patch. Compilation/Development image/live outcome pending. Code constant only, no DNA setting change. Snapshot2d image remains120 and must not be claimed to include this change.
 
 21 November — COMBINED WEB4/WEB5 COMPILE ACCEPTED / NEW EXACT IMAGE RUNNING.
