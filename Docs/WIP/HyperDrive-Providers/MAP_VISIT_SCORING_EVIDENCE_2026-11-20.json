@@ -1,0 +1,32 @@
+{
+  "status": "Scoped scoring and explicit saved-visit warnings published; focused native verification pending",
+  "core": "03087911cd9d2a6c3a421014e52555bff8aeb063",
+  "onode": "9968192f00ec95c5561818ef1f9f359c3c424cd5",
+  "changes": [
+    "Core CompetitionManager.ForData composes the existing HolonManager without provider activation/global selection; private constructor preserves existing public null/provider constructor binding",
+    "Map visits update existing daily/weekly/monthly scores through the same Data boundary",
+    "Keep existing actual five-point behavior; delete unused mock bonus calculators and mock exploration/location/social sources",
+    "Return explicit IsSaved/Result acknowledgement for primary visit; scoring/projection failures produce visible warnings without claiming rollback or retry",
+    "Map stats share the same five-point constant; Portal displays saved-visit warnings distinctly"
+  ],
+  "inventory": {
+    "publicManagerMethods": 932,
+    "providerBackedMethods": 766,
+    "review": "ForData is local construction only, with no provider I/O; existing I/O method count unchanged. These are method inventory counts, not provider counts."
+  },
+  "test": "MapVisitsPersistScoresAndExposeActualCompetitionFailuresAcrossOwnedStores",
+  "requiredProof": [
+    "Actual compiled ONODE visit flow and real Core competition manager on isolated Mongo and SQLite",
+    "Persisted visit/history/stats and three real five-point score periods",
+    "Actual malformed weekly snapshot remains intact and yields an explicit saved-visit warning; other periods update once",
+    "Location and avatar snapshots unchanged; no global provider selection change",
+    "Owned database disposal and CI cleanup"
+  ],
+  "open": [
+    "Changed compile/native case",
+    "Actual browser/HTTP warning journey",
+    "Map controller object controls and connected renderer/provider activation",
+    "Full OPORTAL/provider/HyperDrive acceptance"
+  ],
+  "cleanup": "No local build/install/download/browser/database/archive/results/new worktree. No shared backend/API/DNA/worker/deployment/protected-delivery action."
+}
