@@ -113,5 +113,13 @@
     "host": "HotspotHttpNative",
     "mode": "competition-browser",
     "nativeReadback": "fresh manager confirms exactly one actor-bound participant; native avatar unchanged"
+  },
+  "browserQualification": {
+    "run": 44962616349,
+    "control": "c76e6e1f1ab2413940d971d442ceaf2f768dab8f",
+    "candidate": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
+    "portal": "c26436b2f652266da8830acb41c03d2f2910fbb1",
+    "status": "in-progress",
+    "scope": "first actual browser/SDK/MVC/native Mongo main flow only; no previous native cohort replay"
   }
 }
