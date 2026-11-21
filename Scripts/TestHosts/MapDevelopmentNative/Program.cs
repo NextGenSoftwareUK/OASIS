@@ -33,9 +33,9 @@ try
             Email = actor.ToString("N") + "@example.test", IsActive = true, Version = 1, VersionId = Guid.NewGuid(),
             CreatedDate = DateTime.UtcNow, AvatarType = new EnumValue<AvatarType>(AvatarType.User) });
         Require(!account.IsError && account.Result != null, "Owned account seed failed: " + account.Message);
-        var detail = await provider.SaveAvatarDetailAsync(new AvatarDetail { Id = actor, Username = account.Result.Username,
+        var accountDetail = await provider.SaveAvatarDetailAsync(new AvatarDetail { Id = actor, Username = account.Result.Username,
             Email = account.Result.Email, Version = 1, VersionId = Guid.NewGuid(), CreatedDate = DateTime.UtcNow });
-        Require(!account.IsError && !detail.IsError, "Owned actor seed failed.");
+        Require(!account.IsError && !accountDetail.IsError, "Owned actor seed failed.");
     }
     async Task<string> NativeAccount(Guid actor) => (await client.GetDatabase(database)
         .GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar>("Avatar")

@@ -1,5 +1,8 @@
 {
-  "status": "compile-accepted-native-running-not-deployed",
+  "status": "compile-accepted-native-host-failed-retry-preparing-not-deployed",
+  "nativeFirstFailure": { "run": 44886265686, "job": 136792116183, "phase": "new host compilation", "error": "CS0136 local detail name collision", "runtimeChecksExecuted": 0, "apiErrors": 0, "apiElapsed": "00:03:53.25", "hostErrors": 1, "containerCleanup": "passed" },
+  "inventoryRun": 44886740723,
+  "inventoryControlSource": "69c6613367c4db68a8c3c696cda444f23b2c7fb4",
   "nativeRun": 44886265686,
   "nativeJob": 136792116183,
   "nativeControlSource": "8d27b6bc03e856403726f76c3bb4c99138190965",
