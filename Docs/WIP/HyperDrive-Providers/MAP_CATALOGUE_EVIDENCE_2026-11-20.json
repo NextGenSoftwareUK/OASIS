@@ -1,0 +1,38 @@
+{
+  "status": "Persisted catalogue implementation published; actual changed API/native case pending",
+  "onodeCore": "21f448a990c4d9843d7747de09bf11d68b2473d1",
+  "mapBlob": "31cca8aaeae066588e9a1b6ab4b0911b54f9d75c",
+  "baseBlob": "996cf6d38d599760726c412401aa46000b3e3427",
+  "storageContract": {
+    "customHolonType": "OASIS.MapLocation",
+    "parent": "new Guid(SHA256(UTF8(\"oasis:map-locations:v1\")).Take(16).ToArray())",
+    "payloadKey": "mapLocation",
+    "payload": "JSON string containing required Latitude, Longitude, Type, IsActive, optional Metadata",
+    "identity": "Id, Name and Description are authoritative holon fields; payload never generates a new identity",
+    "writePath": "MapLocation.ToHolon() then the existing authorized holon save API; caller chooses visibility, normal actor ownership and validation apply"
+  },
+  "changes": [
+    "Remove generated nearby and text-search locations",
+    "Dedicated parent read, shallow/nonrecursive, public or current-owner records only",
+    "Coordinates/type/radius required validation; no missing-coordinate zero defaults",
+    "Haversine metres and deterministic distance/identity ordering including date line",
+    "Reject invalid persisted payloads and propagate provider failures",
+    "Reject visits to missing/inactive/inaccessible locations before saving",
+    "Inject existing scoped real HolonManager without bootloader/global provider activation"
+  ],
+  "test": "MapCatalogueQueriesUsePersistedLocationsAcrossOwnedMongoAndSqlite",
+  "requiredProof": [
+    "Actual compiled ONODE manager and ToHolon writer with real native Mongo and SQLite",
+    "Empty catalogue has no invented sample locations",
+    "Stable persisted IDs; zero and near distances; date-line crossing",
+    "Active/private/parent scope and text filters",
+    "Invalid coordinates, partial bounds, actor mismatch, missing visits and malformed persisted records fail",
+    "Read-native snapshots and account revisions unchanged; owned DB disposal"
+  ],
+  "remaining": [
+    "Competition bonus sources and failures",
+    "Map controller object binding and connected renderer/provider activation",
+    "Actual popup browser/controller journey and full Map acceptance"
+  ],
+  "cleanup": "No local build/download/install/database/browser/results/archive or new worktree; only compact source/docs. No shared backend/API/worker/DNA/deployment or protected-delivery action."
+}
