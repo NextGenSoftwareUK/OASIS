@@ -1,5 +1,8 @@
 {
-  "status": "qualification-pending-not-deployed",
+  "status": "compile-running-not-deployed",
+  "compileRun": 44885520700,
+  "compileJob": 136789850263,
+  "controlSource": "d03d665b7a5ba7e9c4afc6249098d8fd3de04db4",
   "base": "1bb737b84ab9e103ebfee169d6773845c1ceda85",
   "candidate": "591f14f63227ce62a3c3f855198b3df91c53adf0",
   "tag": "qualification/map-development-2026-11-21-591f14f6",
