@@ -1,23 +1,23 @@
 {
-  "status": "map-package-composition-source-verified-compile-pending",
-  "compileRun": 44939192959,
+  "status": "refreshed-source-identity-verified-compile-pending-not-deployed",
+  "compileRun": 44948349449,
   "controlSource": "2244959386762043ddaaf87b08ff4b8c25fdfee2",
   "scope": "hotspot",
-  "base": "fcb6e08809e7abd6e75294795b617e706f32f343",
-  "candidate": "f8bee8a4c8ca5a5598759aa4aeb409b45292f86a",
-  "tag": "qualification/map-package-2026-11-21-f8bee8a4",
+  "base": "17f2f1e83577961d21cb0c458dc2412b918d4cad",
+  "candidate": "309eedb14cd652ee63e96e689f4aa60bd3253d3f",
+  "tag": "qualification/map-package-2026-11-21-309eedb1",
   "buildProjects": [
     "WEB4",
     "WEB5"
   ],
   "onode": {
-    "base": "34a8685e42250509627ca717fd4fdfc32a9aa198",
-    "candidate": "1fe579cf5e385b4a6ecce12934a7dd7578c2340c",
+    "base": "4f5cf8ed738756a3539a8fb67be90a820e03cf99",
+    "candidate": "51e0f880c59584cf9007e8bb89f4a7f6425c1a4f",
     "scope": "Restore five exact qualified Map/shallow files, preserve all package-download changes; both histories retained."
   },
   "star": {
-    "base": "872f0be88214dcc893561a56cdee611964e28916",
-    "candidate": "1de76d2d5b1428ac3c645139823757224a1e2ca3",
+    "base": "72b3826656e048510fdb0d0c33e541e42a1ca877",
+    "candidate": "ead6c9cab83c0144c64cf3bfa22f94733a0aeaf5",
     "scope": "Restore exact qualified GeoHotSpotsController, preserve PackagesController; both histories retained."
   },
   "allowedPaths": [
@@ -178,5 +178,6 @@
       "cleanup": "Database/DNA/container/browser runtime/cache absence verified"
     }
   ],
-  "previousAcceptedCandidate": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4"
+  "previousAcceptedCandidate": "f8bee8a4c8ca5a5598759aa4aeb409b45292f86a",
+  "compileRunScope": "Previous f8bee composition accepted; current309eed composition pending."
 }

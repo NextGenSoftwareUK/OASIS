@@ -1,33 +1,90 @@
 {
-  "status": "source-identity-verified-composition-compile-pending-not-deployed",
-  "base": "fcb6e08809e7abd6e75294795b617e706f32f343",
-  "candidate": "f8bee8a4c8ca5a5598759aa4aeb409b45292f86a",
-  "tag": "qualification/map-package-2026-11-21-f8bee8a4",
-  "cause": "Development package pins diverged behind qualified Map/shallow/hotspot commits",
+  "status": "refreshed-source-identity-verified-compile-pending-not-deployed",
+  "base": "17f2f1e83577961d21cb0c458dc2412b918d4cad",
+  "candidate": "309eedb14cd652ee63e96e689f4aa60bd3253d3f",
+  "tree": "9165d19f13735a8a5a6ac7f89d7a834a2b115bd3",
+  "tag": "qualification/map-package-2026-11-21-309eedb1",
+  "previousCandidates": [
+    {
+      "status": "source-identity-verified-composition-compile-pending-not-deployed",
+      "base": "fcb6e08809e7abd6e75294795b617e706f32f343",
+      "candidate": "f8bee8a4c8ca5a5598759aa4aeb409b45292f86a",
+      "tag": "qualification/map-package-2026-11-21-f8bee8a4",
+      "cause": "Development package pins diverged behind qualified Map/shallow/hotspot commits",
+      "sourceChecks": [
+        {
+          "repository": "ONODE/NextGenSoftware.OASIS.API.ONODE.Core",
+          "candidate": "1fe579cf5e385b4a6ecce12934a7dd7578c2340c",
+          "preservedPeerParent": "34a8685e42250509627ca717fd4fdfc32a9aa198",
+          "qualifiedParent": "9c8b8478e38bbb06ae334578f0546e3f34b48a4d",
+          "exactRestoredFiles": [
+            "Interfaces/Managers/STARNET/STARNET System/ISTARNETManagerBase.cs",
+            "Managers/MapManager.cs",
+            "Managers/OASIS ONODE Core/OASISManager.cs",
+            "Managers/STARNET/Quest System/GeoHotSpotManager.cs",
+            "Managers/STARNET/STARNET System/STARNETManagerBase.Create.Load.cs"
+          ],
+          "otherPeerFilesUnchanged": true,
+          "mergeParentsVerified": true
+        },
+        {
+          "repository": "STAR ODK",
+          "candidate": "1de76d2d5b1428ac3c645139823757224a1e2ca3",
+          "preservedPeerParent": "872f0be88214dcc893561a56cdee611964e28916",
+          "qualifiedParent": "6774caf10a4d37cba5575e497c0a0499f118b6d0",
+          "exactRestoredFiles": [
+            "NextGenSoftware.OASIS.STAR.WebAPI/Controllers/GeoHotSpotsController.cs"
+          ],
+          "otherPeerFilesUnchanged": true,
+          "mergeParentsVerified": true
+        }
+      ],
+      "rootPaths": 3,
+      "noSettingsChanges": true,
+      "noCheckoutSwitch": true,
+      "excluded": "Unaccepted quest and mission/chapter fixes",
+      "required": "New combined WEB4/WEB5 compilation and fresh Development review before integration; accepted native/HTTP/browser cohorts retained without replay.",
+      "qualification": {
+        "run": 44948349449,
+        "control": "b8f98aa5732490537f18ad17606fc2e670cd1185",
+        "status": "completed",
+        "scope": "New combined WEB4 then WEB5 compile only; no behavior tests/DB/browser fixture selected",
+        "job": 136980553768,
+        "conclusion": "success",
+        "web4Errors": 0,
+        "web4Elapsed": "00:05:12.99",
+        "web5Errors": 0,
+        "web5Elapsed": "00:00:32.66",
+        "nativeFixturesSelected": false
+      }
+    }
+  ],
   "sourceChecks": [
     {
       "repository": "ONODE/NextGenSoftware.OASIS.API.ONODE.Core",
-      "candidate": "1fe579cf5e385b4a6ecce12934a7dd7578c2340c",
-      "preservedPeerParent": "34a8685e42250509627ca717fd4fdfc32a9aa198",
-      "qualifiedParent": "9c8b8478e38bbb06ae334578f0546e3f34b48a4d",
-      "exactRestoredFiles": [
+      "peer": "4f5cf8ed738756a3539a8fb67be90a820e03cf99",
+      "candidate": "51e0f880c59584cf9007e8bb89f4a7f6425c1a4f",
+      "qualifiedParent": "1fe579cf5e385b4a6ecce12934a7dd7578c2340c",
+      "exactQualifiedFiles": [
         "Interfaces/Managers/STARNET/STARNET System/ISTARNETManagerBase.cs",
         "Managers/MapManager.cs",
         "Managers/OASIS ONODE Core/OASISManager.cs",
         "Managers/STARNET/Quest System/GeoHotSpotManager.cs",
         "Managers/STARNET/STARNET System/STARNETManagerBase.Create.Load.cs"
       ],
+      "allBlobsIdentical": true,
       "otherPeerFilesUnchanged": true,
       "mergeParentsVerified": true
     },
     {
       "repository": "STAR ODK",
-      "candidate": "1de76d2d5b1428ac3c645139823757224a1e2ca3",
-      "preservedPeerParent": "872f0be88214dcc893561a56cdee611964e28916",
-      "qualifiedParent": "6774caf10a4d37cba5575e497c0a0499f118b6d0",
-      "exactRestoredFiles": [
+      "peer": "72b3826656e048510fdb0d0c33e541e42a1ca877",
+      "candidate": "ead6c9cab83c0144c64cf3bfa22f94733a0aeaf5",
+      "qualifiedParent": "1de76d2d5b1428ac3c645139823757224a1e2ca3",
+      "exactQualifiedFiles": [
         "NextGenSoftware.OASIS.STAR.WebAPI/Controllers/GeoHotSpotsController.cs"
       ],
+      "allBlobsIdentical": true,
       "otherPeerFilesUnchanged": true,
       "mergeParentsVerified": true
     }
@@ -35,12 +92,11 @@
   "rootPaths": 3,
   "noSettingsChanges": true,
   "noCheckoutSwitch": true,
-  "excluded": "Unaccepted quest and mission/chapter fixes",
-  "required": "New combined WEB4/WEB5 compilation and fresh Development review before integration; accepted native/HTTP/browser cohorts retained without replay.",
+  "excluded": "Unaccepted quest/mission/chapter changes",
   "qualification": {
-    "run": 44948349449,
-    "control": "b8f98aa5732490537f18ad17606fc2e670cd1185",
-    "status": "pending",
-    "scope": "New combined WEB4 then WEB5 compile only; no behavior tests/DB/browser fixture selected"
-  }
+    "status": "refreshed-composition-not-dispatched",
+    "scope": "Actual WEB4+WEB5 compile only; accepted native/HTTP/browser cohorts excluded"
+  },
+  "pairedPinCheckRef": "passed",
+  "refPublication": "First POST connection ended prematurely; subsequent GET confirmed tag absent, then one create returned exact SHA. Initial dependent fetch missed tag; later exact-source check-ref completed successfully. No tag moved or duplicate run dispatched."
 }
