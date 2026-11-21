@@ -3,7 +3,9 @@ using Neo4j.Driver;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.DNA;
 using Provider = NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Neo4jOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests;
@@ -65,6 +67,33 @@ public class Neo4jReadActivationNativeTests
             var read = await ((ICosmicQueryStorageProvider)reader).ExecuteCosmicQueryAsync(plan.Result);
             Assert.IsFalse(read.IsError, read.Message);
             Assert.AreEqual(id, read.Result.Single().Id);
+            // Exercise the shipping SDK/manager path too, and make removal of the
+            // session SDK a compile failure rather than a silently accepted pin.
+            var dna = new OASISDNA();
+            dna.OASIS.HyperDriveMode = HyperDriveModes.V2;
+            dna.OASIS.StorageProviders = new StorageProviderSettings { LogSwitchingProviders = false };
+            var registry = new ProviderManager(null, dna) {
+                IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false
+            };
+            var manager = new HolonManager(null, dna, registry);
+            var created = CosmicSession.Create(manager, (ICosmicQueryStorageProvider)reader, access.Result);
+            Assert.IsFalse(created.IsError, created.Message);
+            using (var managed = created.Result)
+            {
+                Assert.IsFalse(managed.SetDefaultReadOnly(true).IsError);
+                var managedQuery = managed.Query<Holon>();
+                Assert.IsFalse(managedQuery.IsError, managedQuery.Message);
+                var filtered = managedQuery.Result.Where(h => h.Id == id);
+                Assert.IsFalse(filtered.IsError, filtered.Message);
+                var managedRead = await managed.ReadAsync(filtered.Result);
+                Assert.IsFalse(managedRead.IsError, managedRead.Message);
+                Assert.AreEqual(id, managedRead.Result.Single().Id);
+                var entries = managed.GetEntries();
+                Assert.IsFalse(entries.IsError, entries.Message);
+                Assert.IsTrue(entries.Result.Single().IsReadOnly);
+                Assert.IsFalse(managed.HasChanges().Result);
+            }
+            Assert.IsFalse(reader.IsProviderActivated, "SDK reads cannot activate write-capable storage.");
             Assert.AreEqual(before, await Snapshot(), "Read enrollment/query must preserve native values and revisions.");
 
             // This deliberately incomplete record exists only in the fresh owned CI database.

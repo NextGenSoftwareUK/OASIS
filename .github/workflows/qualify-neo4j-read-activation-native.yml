@@ -2,8 +2,10 @@ name: Qualify native Neo4j cold read activation
 
 on:
   push:
-    branches: [work/cosmic-cql-ton-public]
+    branches: [work/cosmic-cql-ton-public, Development]
     paths:
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core'
+      - 'Docker/oasis-dependency-versions.env'
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests/Neo4jReadActivationNativeTests.cs'
       - '.github/workflows/qualify-neo4j-read-activation-native.yml'
   workflow_dispatch:

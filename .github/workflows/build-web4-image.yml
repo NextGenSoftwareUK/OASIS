@@ -99,7 +99,7 @@ jobs:
           cache-from: |
             type=gha
             type=gha,scope=pouch-native
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=min
 
       - name: Summary
         env:
