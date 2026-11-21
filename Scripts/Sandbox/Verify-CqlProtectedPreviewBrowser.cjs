@@ -12,7 +12,12 @@ const work = path.join(parent, 'RecoveryLaptopHostedBrowserCurrent');
 const profile = path.join(work, 'profile');
 const marker = path.join(work, 'owner.json');
 const ledger = path.join(root, 'Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md');
-const previewOrigin = 'https://web4-site-cv1mn9kpj-oasis-team.vercel.app';
+const previewOrigin = 'https://web4-site-hzn75ad0v-oasis-team.vercel.app';
+const candidateWebsiteSource = 'bf795c7763a827aafb0380f8b11f559f36f66f8c';
+const expectedAssetHashes = {
+  "/cql-text.js": "8051309d023f5ac61ba37fbf8af69a9a315f7fe7d5a56e52093c6ee96a27ff18",
+  "/cql-playground.js": "331918b92ba02e7cf733b7b6213fd7ee1466af960beaed57c9eb3049b9dbb4e0"
+};
 const sqlFlow = process.env.CQL_BROWSER_SQL_FLOW === '1';
 const selectedProviders = (process.env.CQL_BROWSER_PROVIDERS || 'MongoDBOASIS,SQLLiteDBOASIS,Neo4jOASIS').split(',');
 if (new Set(selectedProviders).size !== selectedProviders.length || selectedProviders.some(provider =>
@@ -75,7 +80,11 @@ function candidateAsset(target) {
       response.on('error', reject);
       response.on('end', () => {
         const body = Buffer.concat(chunks);
-        assetHashes.set(address.pathname, crypto.createHash('sha256').update(body).digest('hex'));
+        const hash = crypto.createHash('sha256').update(body).digest('hex');
+        if (expectedAssetHashes[address.pathname] && expectedAssetHashes[address.pathname] !== hash) {
+          reject(new Error('Candidate source hash mismatch: ' + address.pathname)); return;
+        }
+        assetHashes.set(address.pathname, hash);
         resolve({ body, type: response.headers['content-type'] || 'application/octet-stream' });
       });
     });
@@ -256,6 +265,10 @@ async function event(message) {
     Object.assign(report, JSON.parse(result.result.value));
     if (sqlFlow) {
       report.candidateAssetsAtApprovedOrigin = true;
+      report.candidateWebsiteSource = candidateWebsiteSource;
+      report.candidateScriptHashesVerified = Object.entries(expectedAssetHashes)
+        .every(([name, hash]) => assetHashes.get(name) === hash);
+      if (!report.candidateScriptHashesVerified) throw new Error('The exact candidate scripts were not loaded.');
       report.publicWebsitePublicationVerified = false;
       await evaluate('(async()=>{await startDemo();return !!session.identity()})()').then(ok => { if (!ok) throw new Error('Demo session not established.'); });
       await waitFor(() => evaluate("!document.getElementById('cql-run').disabled"), 'Provider discovery and query readiness');
