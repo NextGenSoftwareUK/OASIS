@@ -1,0 +1,72 @@
+{
+  "status": "scoped-compile-native-and-inventory-accepted-not-hosted",
+  "runtimeCandidate": "591f14f63227ce62a3c3f855198b3df91c53adf0",
+  "developmentBase": "1bb737b84ab9e103ebfee169d6773845c1ceda85",
+  "reviewedInventoryCommit": "c131d6c64ee986222c2c439914ac45bc414dfa31",
+  "compile": {
+    "run": 44885520700,
+    "job": 136789850263,
+    "errors": 0,
+    "elapsed": "00:05:11.32"
+  },
+  "native": {
+    "run": 44886878662,
+    "job": 136793958347,
+    "controlSource": "a9ddcf5eeac29ed5628cc59420a8a8d2b056fb18",
+    "apiErrors": 0,
+    "apiElapsed": "00:05:50.91",
+    "hostErrors": 0,
+    "hostElapsed": "00:00:36.74",
+    "completedCases": 1,
+    "proofMarker": "MAP_DEVELOPMENT_NATIVE_PROOF:",
+    "scope": [
+      "Owned Mongo persisted map catalogue",
+      "One actual visit and daily/weekly/monthly five-point scores via caller-scoped competition manager",
+      "Real compiled controller/current UTC helper private/public recorded-route batch writes",
+      "Exact geometry unchanged through access update",
+      "Native owner/reader Avatar account documents unchanged"
+    ],
+    "cleanup": [
+      "Owned database absence verified",
+      "Owned container absence verified",
+      "Post-job cleanup passed"
+    ]
+  },
+  "retainedFailure": {
+    "run": 44886265686,
+    "phase": "new host compile",
+    "error": "CS0136 variable scope",
+    "runtimeCases": 0,
+    "containerCleanup": "passed",
+    "correction": "Renamed the seed account-detail local; no production change"
+  },
+  "inventory": {
+    "run": 44887162948,
+    "job": 136794838839,
+    "artifact": 14699693939,
+    "zipBytes": 40000,
+    "sha256": "e73162e668c10ff47a9bb011c95fdafa6fe275500c16b0de23a269ee6d24d3a9",
+    "entries": 4,
+    "inspection": "RAM-only ZIP structure, entry lengths, per-file digests, added signatures/action identities and source injection contracts reviewed",
+    "filesWritten": 0,
+    "managers": 929,
+    "providerBackedMethods": 747,
+    "routes": 830,
+    "providerOrExternalActions": 712,
+    "countsAre": "Source inventory counts, not provider or screen acceptance",
+    "regressions": "Six static shipping-function cases passed",
+    "runtimeChanges": 0,
+    "behaviorCases": 0,
+    "fixtures": 0,
+    "retentionDays": 3,
+    "firstArtifactUnapproved": 14699959095
+  },
+  "excluded": [
+    "HTTP/browser/Unity behavior on the combined candidate",
+    "Game archive/session/retry runtime",
+    "Hosted/production Startup/SSO/admission/deployment acceptance",
+    "All-provider or whole OPORTAL/HyperDrive completion"
+  ],
+  "sharedBackendOperations": 0,
+  "localGeneratedOutputs": 0
+}
