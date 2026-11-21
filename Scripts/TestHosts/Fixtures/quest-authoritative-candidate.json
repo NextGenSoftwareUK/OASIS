@@ -1,9 +1,9 @@
 {
   "scope": "quest",
   "status": "canonical-graph-new-data-qualification-prepared-not-release-ready",
-  "base": "17f2f1e83577961d21cb0c458dc2412b918d4cad",
-  "candidate": "1f780e28ccc1bffc1375b338a6108319bd1c75c1",
-  "tag": "qualification/mission-graph-2026-11-21-1f780e28",
+  "base": "3159c8fb14e00b2f6a7b4f793c2e2fe54b91fddf",
+  "candidate": "4020b5830e8437cabb1f878c63ad45c4b8ac85df",
+  "tag": "qualification/mission-graph-2026-11-21-4020b583",
   "buildProjects": [
     "WEB5"
   ],
@@ -40,14 +40,14 @@
   ],
   "previousCandidate": "25c4d178b8ba955d948465a7be7dd92617cdb06c",
   "qualification": {
-    "status": "prepared-not-dispatched",
+    "status": "source-gates-passed-awaiting-dispatch",
     "mode": "catalogue",
     "scope": "One real new-data graph lifecycle: mission plus chapter and physical child saved once, shallow collections absent, explicit detail preserves both roles/typed metadata, API shallow catalogues/detail/missing errors. No accepted cohort replay."
   },
   "onode": {
-    "base": "004b5adc5ddb6875e8e6e12336d2a0f1d23f46cc",
-    "candidate": "9201946798ccca181c134a122dc68dfe5c3e8e9e",
-    "scope": "Restore original IList<IChapter> public contract; declare chapter graph capture/hydration; real not-found results without overwriting provider errors."
+    "base": "d51bdd8cba5183c9a7597f85f1d6ddd4be20d629",
+    "candidate": "3d4c0e0ed38c0642ccbab2187499650e17095ed2",
+    "scope": "Reuse peer reviewed package/restoration composition and overlay exact three graph/Chapter/not-found files; separate ONET change excluded."
   },
   "supersededUnrunCandidate": "81c0a0dabbcaf0b5741e8efaeb93ccb968a2059d",
   "previousNativeCandidate": {
@@ -55,7 +55,8 @@
     "mode": "catalogue",
     "run": 44949649529,
     "control": "55d97420c6d8601e743bd846ba7eb40a1cf27ac5",
-    "status": "in_progress"
+    "status": "completed",
+    "conclusion": "failure"
   },
   "portal": "2472bf56b0d104c93626d3bba7fe29b16323712c",
   "supersededPopupCandidate": "489cee90879f6b3bdafcc7f4a14b3c9dfcb0a7c0",
@@ -64,5 +65,6 @@
     "candidate": "db28ee5b8b470ceb6cfd50aae0b4da78a5296590",
     "scope": "One role-binding file; explicit stored-record registration uses existing canonical codec and shared identity/revision guards; existing runtime binding contract preserved."
   },
-  "releaseGate": "Legacy Mission metadata/role-manifest compatibility assessment or explicit migration required before Development deployment; new-data qualification alone cannot accept existing records."
+  "releaseGate": "Legacy Mission metadata/role-manifest compatibility assessment or explicit migration required before Development deployment; new-data qualification alone cannot accept existing records.",
+  "supersededUnrunGraphCandidate": "1f780e28ccc1bffc1375b338a6108319bd1c75c1"
 }
