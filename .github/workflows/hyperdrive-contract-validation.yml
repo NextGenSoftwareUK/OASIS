@@ -22,6 +22,10 @@ on:
         description: Run only the new combined-source native Map candidate check
         type: boolean
         default: false
+      map_development_inventory:
+        description: Generate only the scoped candidate source inventories for review
+        type: boolean
+        default: false
       build_api:
         description: Also build the shipping WEB4 API for a native integration check
         type: boolean
@@ -94,6 +98,7 @@ jobs:
     uses: ./.github/workflows/map-development-qualification.yml
     with:
       native_check: ${{ inputs.map_development_native }}
+      inventory_only: ${{ inputs.map_development_inventory }}
     secrets: inherit
   manifests-and-contracts:
     if: ${{ !inputs.map_development_candidate }}

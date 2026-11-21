@@ -5,15 +5,21 @@ on:
       native_check:
         type: boolean
         default: false
+      inventory_only:
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       native_check:
         type: boolean
         default: false
+      inventory_only:
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
-  group: scoped-map-development-qualification
+  group: scoped-map-development-qualification-${{ inputs.inventory_only && 'inventory' || 'native' }}
   cancel-in-progress: false
 jobs:
   compile-candidate:
@@ -29,6 +35,7 @@ jobs:
           sparse-checkout: |
             Scripts/TestHosts/Fixtures/map-development-candidate.json
             Scripts/TestHosts/MapDevelopmentNative
+            Scripts/verify_web4_hyperdrive_route_manifest.ps1
           sparse-checkout-cone-mode: false
           persist-credentials: false
       - name: Read immutable qualification candidate
@@ -37,6 +44,7 @@ jobs:
         working-directory: qualification-control
         run: |
           $candidate = Get-Content Scripts/TestHosts/Fixtures/map-development-candidate.json -Raw | ConvertFrom-Json
+          if ('${{ inputs.inventory_only }}' -eq 'true' -and '${{ inputs.native_check }}' -eq 'true') { throw 'Inventory-only mode must not run native fixtures.' }
           foreach ($key in @('candidate','base')) {
             if ($candidate.$key -notmatch '^[0-9a-f]{40}$') { throw 'An exact candidate/base commit is required.' }
             "$key=$($candidate.$key)" >> $env:GITHUB_OUTPUT
@@ -74,6 +82,7 @@ jobs:
           python Scripts/validate_railway_dependency_manifest.py --require-gitlinks
           if ($LASTEXITCODE) { throw 'Candidate dependency policy failed.' }
       - uses: actions/checkout@v7
+        if: ${{ !inputs.inventory_only }}
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           ref: ${{ steps.dependencies.outputs.LIBRARIES_COMMIT }}
@@ -81,15 +90,18 @@ jobs:
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
           persist-credentials: false
       - uses: actions/checkout@v7
+        if: ${{ !inputs.inventory_only }}
         with:
           repository: holochain-open-dev/holochain-client-csharp
           ref: ${{ steps.dependencies.outputs.HOLOCHAIN_COMMIT }}
           path: holochain-client-csharp
           persist-credentials: false
       - uses: actions/setup-dotnet@v4
+        if: ${{ !inputs.inventory_only }}
         with:
           dotnet-version: '10.0.x'
       - name: Compile actual combined Development WEB4 API only
+        if: ${{ !inputs.inventory_only }}
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner map-development-candidate-ci -Operation {
@@ -97,6 +109,55 @@ jobs:
             if ($LASTEXITCODE) { throw 'Combined Development Map API build failed.' }
           }
           Write-Host 'MAP_DEVELOPMENT_COMPILE: actual scoped candidate compiled; no behavior, Unity, deployed or complete-OPORTAL acceptance inferred.'
+      - name: Generate source inventories for review without runtime changes
+        if: ${{ inputs.inventory_only }}
+        shell: pwsh
+        run: |
+          $managerPath = 'Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv'
+          $routePath = 'Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv'
+          $beforeManagers = @(Import-Csv $managerPath)
+          $beforeRoutes = @(Import-Csv $routePath)
+          Copy-Item -LiteralPath ../qualification-control/Scripts/verify_web4_hyperdrive_route_manifest.ps1 -Destination Scripts/verify_web4_hyperdrive_route_manifest.ps1
+          & Scripts/verify_hyperdrive_provider_io_manifest.ps1 -UpdateManifest
+          if ($LASTEXITCODE) { throw 'Manager inventory generation failed.' }
+          & Scripts/verify_web4_hyperdrive_route_manifest.ps1 -UpdateManifest
+          if ($LASTEXITCODE) { throw 'Route inventory generation failed.' }
+          & Scripts/verify_hyperdrive_provider_io_manifest.ps1
+          if ($LASTEXITCODE) { throw 'Generated manager inventory failed validation.' }
+          & Scripts/verify_web4_hyperdrive_route_manifest.ps1
+          if ($LASTEXITCODE) { throw 'Generated route inventory failed validation.' }
+          $afterManagers = @(Import-Csv $managerPath)
+          $afterRoutes = @(Import-Csv $routePath)
+          $managerKey = { param($row) "$($row.SourceFile)|$($row.Signature)" }
+          $routeKey = { param($row) "$($row.SourceFile)|$($row.Controller)|$($row.Action)|$($row.Verb)|$($row.Template)" }
+          $oldManagerKeys = @($beforeManagers | ForEach-Object { & $managerKey $_ })
+          $newManagerKeys = @($afterManagers | ForEach-Object { & $managerKey $_ })
+          $oldRouteKeys = @($beforeRoutes | ForEach-Object { & $routeKey $_ })
+          $newRouteKeys = @($afterRoutes | ForEach-Object { & $routeKey $_ })
+          $approved = @($managerPath,$routePath,'Scripts/verify_web4_hyperdrive_route_manifest.ps1')
+          $changed = @(git diff --name-only HEAD)
+          if (@($changed | Where-Object { $_ -notin $approved }).Count) { throw 'Inventory generation mutated unrelated candidate source.' }
+          $summary = [ordered]@{
+            candidate = (git rev-parse HEAD); status = 'generated-pending-human-agent-review-not-deployed'
+            managers = $afterManagers.Count; routes = $afterRoutes.Count
+            managerAdded = @($newManagerKeys | Where-Object { $_ -notin $oldManagerKeys })
+            managerRemoved = @($oldManagerKeys | Where-Object { $_ -notin $newManagerKeys })
+            routeAdded = @($newRouteKeys | Where-Object { $_ -notin $oldRouteKeys })
+            routeRemoved = @($oldRouteKeys | Where-Object { $_ -notin $newRouteKeys })
+            generatedFiles = @($approved | ForEach-Object { @{path=$_;sha256=(Get-FileHash -Algorithm SHA256 $_).Hash.ToLowerInvariant();bytes=(Get-Item $_).Length} })
+            runtimeChanges = 0; behaviorCases = 0; fixtures = 0
+          }
+          New-Item -ItemType Directory -Path ../map-inventory-review -Force | Out-Null
+          $summary | ConvertTo-Json -Depth 8 | Set-Content ../map-inventory-review/summary.json -Encoding utf8
+          foreach ($file in $approved) { Copy-Item -LiteralPath $file -Destination ../map-inventory-review/ }
+          Write-Host ($summary | ConvertTo-Json -Depth 8 -Compress)
+      - uses: actions/upload-artifact@v4
+        if: ${{ inputs.inventory_only }}
+        with:
+          name: scoped-map-inventory-review
+          path: map-inventory-review/
+          retention-days: 3
+          if-no-files-found: error
       - name: Start owned Mongo for the new combined-source check
         if: ${{ inputs.native_check }}
         shell: bash
