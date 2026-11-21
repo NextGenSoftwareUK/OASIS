@@ -8335,3 +8335,5 @@ Owned Chrome stopped; marker/path and process absence verified before normal rec
 21 November — Current timeout42a132 image journal retains superseded/cancelled sources and known failure reasons. No local image/archive/download/build/environment/database. Scoped indexes removed and absence verified. Keep compact active journals until durable exact rollout/cleanup evidence.
 
 21 November — Consolidated all-four-range native cohort44948941338 queued; superseded queued narrower cohort cancelled after replacement verification to avoid duplicate CI fixture/build storage. No local build/env/database/image/archive/download created. Active timeout image and compact journals retained.
+
+21 November — Own queued image44948470462 cancelled before build for confirmed lost Map/dependency source; prevents disposable CI image storage, no local artifact. Preserve compact journal/source provenance and successful original remote image until restored combined delivery qualifies. No local build/install/download/env/database/image/worktree. Peer compile and native cohort remain active.
