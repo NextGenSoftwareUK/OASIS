@@ -7,6 +7,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.15" />
     <ProjectReference Include="$(OASISCandidateRoot)/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj" />
+    <ProjectReference Include="$(OASISCandidateRoot)/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" />
   </ItemGroup>
   <Target Name="RequireCandidateRoot" BeforeTargets="PrepareForBuild">
     <Error Condition="'$(OASISCandidateRoot)' == ''" Text="An explicit isolated candidate root is required." />

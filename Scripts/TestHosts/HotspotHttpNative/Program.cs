@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Claims;
@@ -8,12 +9,14 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.FileProviders;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
@@ -32,7 +35,7 @@ Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
 var mode = Environment.GetEnvironmentVariable("OASIS_HOTSPOT_HTTP_MODE") ?? "binding";
-Require(mode is "binding" or "populated", "Unsupported hotspot HTTP check mode.");
+Require(mode is "binding" or "populated" or "browser", "Unsupported hotspot HTTP check mode.");
 var dna = new OASISDNA { OASIS = new() {
     HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
         AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
@@ -70,7 +73,7 @@ try
     var boot = await new OASISAPI().BootOASISAsync(dna, startApolloServer: false);
     Require(!boot.IsError && boot.Result, "Real isolated runtime boot failed: " + boot.Message);
     var expected = new List<Guid>();
-    if (mode == "populated")
+    if (mode is "populated" or "browser")
     {
         var data = new HolonManager(provider, dna, ProviderManager.Instance);
         foreach (var item in new[] { (lat: 0d, visible: true, active: true), (lat: .001d, visible: true, active: true),
@@ -87,6 +90,32 @@ try
             Require(!saved.IsError && saved.IsSaved, "Owned HTTP hotspot seed failed: " + saved.Message);
             if (item.lat < 1 && item.visible && item.active) expected.Add(id);
         }
+        if (mode == "browser")
+        {
+            var original = new Web4NFT { Id = Guid.NewGuid(), MintedByAvatarId = actor, Title = "Owned original NFT" };
+            var savedOriginal = await data.SaveHolonAsync(new Holon { Id = original.Id, HolonType = HolonType.Web4NFT, IsActive = true,
+                MetaData = new Dictionary<string, object> { ["NFT.MintedByAvatarId"] = actor.ToString(),
+                    ["NFT.WEB4NFT"] = System.Text.Json.JsonSerializer.Serialize(original) } }, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);
+            Require(!savedOriginal.IsError && savedOriginal.IsSaved, "Owned original NFT seed failed: " + savedOriginal.Message);
+            var placement = new Web4OASISGeoSpatialNFT { Id = Guid.NewGuid(), Title = "Owned browser GeoNFT",
+                MintedByAvatarId = actor, PlacedByAvatarId = actor, OriginalWeb4OASISNFTId = original.Id,
+                Lat = 0, Long = 0, IsVisibleOnMap = true };
+            var geo = new Holon { Id = placement.Id, HolonType = HolonType.Web4GeoNFT, IsActive = true,
+                MetaData = new Dictionary<string, object> { ["GEONFT.PlacedByAvatarId"] = actor.ToString(),
+                    ["GEONFT.WEB4GEONFT"] = System.Text.Json.JsonSerializer.Serialize(placement) } };
+            var savedGeo = await data.SaveHolonAsync(geo, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);
+            Require(!savedGeo.IsError && savedGeo.IsSaved, "Owned GeoNFT placement seed failed: " + savedGeo.Message);
+            var questId = Guid.NewGuid();
+            var quest = new Quest { Id = questId, Name = "Owned cross-app quest", IsActive = true,
+                LinkedGeoHotSpotId = expected[0],
+                STARNETDNA = new STARNETDNA { Id = questId, CreatedByAvatarId = actor, Version = "1.0.0", VersionSequence = 1 },
+                Objectives = new List<Objective> { new() { Id = Guid.NewGuid(), Title = "Visit both hotspots",
+                    LinkedGeoHotSpotId = expected[0], NeedToGoToGeoHotSpots = new Dictionary<string, IList<string>> {
+                        ["Our World"] = new List<string> { expected[0].ToString(), expected[1].ToString(), "2" } } } } };
+            quest.MetaData["STARNETHolonId"] = questId.ToString(); quest.MetaData["CreatedByAvatarId"] = actor.ToString(); quest.MetaData["Active"] = "1";
+            var savedQuest = await data.SaveHolonAsync<Quest>(quest, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);
+            Require(!savedQuest.IsError && savedQuest.IsSaved, "Owned quest seed failed: " + savedQuest.Message);
+        }
     }
     var builder = WebApplication.CreateBuilder(); builder.Logging.ClearProviders(); builder.WebHost.UseUrls("http://127.0.0.1:0");
     var key = new SymmetricSecurityKey(secret);
@@ -95,14 +124,24 @@ try
         options.TokenValidationParameters = new() { ValidateIssuer = false, ValidateAudience = false,
             ValidateIssuerSigningKey = true, IssuerSigningKey = key, ValidateLifetime = true, ClockSkew = TimeSpan.Zero };
     });
-    builder.Services.AddControllers().AddApplicationPart(typeof(GeoHotSpotsController).Assembly);
+    builder.Services.AddControllers().AddApplicationPart(typeof(GeoHotSpotsController).Assembly)
+        .AddApplicationPart(typeof(NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.NftController).Assembly);
     app = builder.Build(); app.UseAuthentication();
+    if (mode == "browser")
+    {
+        var portal = Environment.GetEnvironmentVariable("OASIS_GEO_PORTAL_ROOT") ?? throw new InvalidOperationException("Pinned Portal root required.");
+        var browserHost = Environment.GetEnvironmentVariable("OASIS_GEO_BROWSER_HOST") ?? throw new InvalidOperationException("Geo browser host required.");
+        Require(File.Exists(Path.Combine(portal, "assets/js/map-modal.js")) && File.Exists(browserHost), "Actual Portal/browser assets missing.");
+        app.UseStaticFiles(new StaticFileOptions { FileProvider = new PhysicalFileProvider(Path.Combine(portal, "assets")), RequestPath = "/assets" });
+        app.MapGet("/__geo_browser", () => Results.File(browserHost, "text/html"));
+    }
     app.Use(async (context, next) => {
         if (context.User.Identity?.IsAuthenticated == true && Guid.TryParse(context.User.FindFirst("sub")?.Value, out var id))
         {
             var loaded = await provider.LoadAvatarAsync(id);
             Require(!loaded.IsError && loaded.Result != null, "Signed fixture actor unavailable.");
             context.Items["Avatar"] = loaded.Result; context.Items["AvatarId"] = id;
+            OASISRequestContext.CurrentAvatar = loaded.Result; OASISRequestContext.CurrentAvatarId = id;
         }
         await next(context);
     });
@@ -118,7 +157,7 @@ try
     Require(initial.IsSuccessStatusCode && !body.RootElement.GetProperty("isError").GetBoolean(),
         "First authenticated nearby HTTP read failed: " + (int)initial.StatusCode + ": " + body.RootElement.GetProperty("message").GetString());
     Require(body.RootElement.GetProperty("result").ValueKind == JsonValueKind.Array, "Nearby HTTP response is not a catalogue.");
-    if (mode == "populated")
+    if (mode is "populated" or "browser")
     {
         var rows = body.RootElement.GetProperty("result").EnumerateArray().ToArray();
         Require(rows.Select(row => row.GetProperty("id").GetGuid()).SequenceEqual(expected),
@@ -127,6 +166,28 @@ try
             rows.All(row => row.GetProperty("long").GetDouble() == 0 && row.GetProperty("hotSpotRadiusInMetres").GetInt32() == 17 &&
                 row.GetProperty("textContent").GetString() == "Native HTTP geometry"), "Derived typed hotspot fields changed across HTTP serialization.");
         Console.WriteLine("HOTSPOT_POPULATED_HTTP_PROOF: five native hotspot roots through real boot/MVC/JWT; two nearby active visible records returned in distance order with exact typed fields; far/hidden/inactive excluded. Browser/production Startup excluded.");
+        if (mode == "browser")
+        {
+            var script = Environment.GetEnvironmentVariable("OASIS_GEO_BROWSER_SCRIPT") ?? throw new InvalidOperationException("Geo browser verification script required.");
+            Require(File.Exists(script), "Geo browser verification script missing.");
+            var start = new ProcessStartInfo("node") { RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
+            start.ArgumentList.Add("-e");
+            start.ArgumentList.Add("const fs=require('node:fs');require(process.argv[1]).verify(JSON.parse(fs.readFileSync(0,'utf8'))).then(x=>console.log(JSON.stringify(x))).catch(e=>{console.error(e.message);process.exitCode=1;});");
+            start.ArgumentList.Add(script);
+            using var process = Process.Start(start) ?? throw new InvalidOperationException("Geo browser process did not start.");
+            var output = process.StandardOutput.ReadToEndAsync(); var errors = process.StandardError.ReadToEndAsync();
+            await process.StandardInput.WriteAsync(System.Text.Json.JsonSerializer.Serialize(new { baseUrl = address,
+                token = new JwtSecurityTokenHandler().WriteToken(jwt), avatarId = actor, expectedGeoNFTs = 1, expectedHotspots = 2, expectedQuestLocations = 3 }));
+            process.StandardInput.Close();
+            try { using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(90)); await process.WaitForExitAsync(timeout.Token); }
+            finally { if (!process.HasExited) { process.Kill(entireProcessTree: true); await process.WaitForExitAsync(); } }
+            var resultText = await output; var errorText = await errors;
+            errorText = System.Text.RegularExpressions.Regex.Replace(errorText, @"[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}", "[redacted fixture bearer]");
+            Require(process.ExitCode == 0, "Actual geo browser failed: " + errorText);
+            using var result = JsonDocument.Parse(resultText);
+            Require(result.RootElement.GetProperty("geoAssetsBrowserVerified").GetBoolean(), "Geo browser completion marker missing.");
+            Console.WriteLine("GEO_ASSETS_BROWSER_PROOF: actual Portal WEB4/WEB5 bundles, three native API catalogues, independent layer completion, quest requirement join and logout clearing passed; zero browser mutations. Renderer/full Startup/SSO/deployment excluded.");
+        }
     }
     else
     {

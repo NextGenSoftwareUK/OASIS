@@ -2459,3 +2459,5 @@ Composition44939192959 compile only; no database/browser fixtures selected, no l
 Populated HTTP source extension only: five future owned native rows in same unique hotspot_http database, no extra environment/worktree. No local build/restore/runtime/download/database/browser/output. Existing cleanup guards retained. Current composition compile44939192959 unchanged/no duplicate run.
 
 Geo browser HTML/CJS source preparation only; node --check creates no outputs. No browser launched, package/runtime installed, data/API invoked, downloads/env/build/artifacts/worktree created. Future helper uses disposable nonpersistent context and closes browser in finally; existing native data/container cleanup must remain.
+
+Geo browser wiring source only: no local runtime/env/package install/build/database/browser/download/output/worktree. Future CI owns hotspot_http_GUID DB/temp DNA, existing container and exact GITHUB_WORKSPACE/geo-browser-owned runtime/cache; validated-path removal, browser close and bounded process-tree stop wired. Portal checkout exact5171fc6 ephemeral. No cleanup counted before execution.

@@ -45,6 +45,9 @@ jobs:
             Scripts/TestHosts/MapDevelopmentNative
             Scripts/TestHosts/HotspotDevelopmentNative
             Scripts/TestHosts/HotspotHttpNative
+            Scripts/TestHosts/Fixtures/geo-assets-browser-host.html
+            Scripts/TestHosts/Fixtures/geo-assets-browser-native-http.cjs
+            Scripts/TestHosts/Fixtures/profile-browser-runtime.json
             Scripts/verify_web4_hyperdrive_route_manifest.ps1
             Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1
           sparse-checkout-cone-mode: false
@@ -61,6 +64,12 @@ jobs:
           $file = if ($env:CANDIDATE_SCOPE -eq 'hotspot') { 'Scripts/TestHosts/Fixtures/hotspot-development-candidate.json' } else { 'Scripts/TestHosts/Fixtures/map-development-candidate.json' }
           $candidate = Get-Content $file -Raw | ConvertFrom-Json
           "file=$file" >> $env:GITHUB_OUTPUT
+          $browser = '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -eq 'browser'
+          "browser=$($browser.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          if ($browser) {
+            if ($candidate.portal -notmatch '^[0-9a-f]{40}$') { throw 'Exact Portal revision required.' }
+            "portal=$($candidate.portal)" >> $env:GITHUB_OUTPUT
+          }
           if ('${{ inputs.inventory_only }}' -eq 'true' -and '${{ inputs.native_check }}' -eq 'true') { throw 'Inventory-only mode must not run native fixtures.' }
           foreach ($key in @('candidate','base')) {
             if ($candidate.$key -notmatch '^[0-9a-f]{40}$') { throw 'An exact candidate/base commit is required.' }
@@ -127,6 +136,29 @@ jobs:
         if: ${{ !inputs.inventory_only }}
         with:
           dotnet-version: '10.0.x'
+      - uses: actions/checkout@v7
+        if: ${{ steps.candidate.outputs.browser == 'true' }}
+        with:
+          repository: NextGenSoftwareUK/OPORTAL-JS
+          ref: ${{ steps.candidate.outputs.portal }}
+          path: geo-portal
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Prepare pinned owned browser runtime
+        if: ${{ steps.candidate.outputs.browser == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v google-chrome >/dev/null
+          owned="$GITHUB_WORKSPACE/geo-browser-owned"
+          test ! -e "$owned"
+          mkdir "$owned"
+          metadata='../qualification-control/Scripts/TestHosts/Fixtures/profile-browser-runtime.json'
+          version="$(node -p "require('$metadata').version")"
+          expected="$(node -p "require('$metadata').integrity")"
+          actual="$(npm view "playwright-core@$version" dist.integrity --registry https://registry.npmjs.org --cache "$owned/npm-cache")"
+          test "$actual" = "$expected"
+          npm install --prefix "$owned/runtime" --cache "$owned/npm-cache" --registry https://registry.npmjs.org --ignore-scripts --no-audit --no-fund "playwright-core@$version"
       - name: Compile selected combined Development APIs
         if: ${{ !inputs.inventory_only && !inputs.native_check }}
         shell: pwsh
@@ -217,13 +249,17 @@ jobs:
           SUBSCRIPTION_TEST_MONGODB_URI: mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000
           CANDIDATE_SCOPE: ${{ inputs.candidate_scope }}
           CANDIDATE_FILE: ${{ steps.candidate.outputs.file }}
+          OASIS_GEO_PORTAL_ROOT: ${{ github.workspace }}/geo-portal
+          OASIS_GEO_BROWSER_HOST: ${{ github.workspace }}/qualification-control/Scripts/TestHosts/Fixtures/geo-assets-browser-host.html
+          OASIS_GEO_BROWSER_SCRIPT: ${{ github.workspace }}/qualification-control/Scripts/TestHosts/Fixtures/geo-assets-browser-native-http.cjs
+          OASIS_PROFILE_BROWSER_RUNTIME: ${{ github.workspace }}/geo-browser-owned/runtime
         run: |
           $candidate = Get-Content (Join-Path ../qualification-control $env:CANDIDATE_FILE) -Raw | ConvertFrom-Json
           $hostName = if ($env:CANDIDATE_SCOPE -eq 'hotspot') { if ($candidate.nativeHost) { $candidate.nativeHost } else { 'HotspotDevelopmentNative' } } else { 'MapDevelopmentNative' }
           if ($hostName -notin @('MapDevelopmentNative','HotspotDevelopmentNative','HotspotHttpNative')) { throw 'Unsupported native qualification host.' }
           if ($hostName -eq 'HotspotHttpNative') {
             $env:OASIS_HOTSPOT_HTTP_MODE = if ($candidate.nativeMode) { $candidate.nativeMode } else { 'binding' }
-            if ($env:OASIS_HOTSPOT_HTTP_MODE -notin @('binding','populated')) { throw 'Unsupported hotspot HTTP check mode.' }
+            if ($env:OASIS_HOTSPOT_HTTP_MODE -notin @('binding','populated','browser')) { throw 'Unsupported hotspot HTTP check mode.' }
           }
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner map-development-native-ci -Operation {
             dotnet build "../qualification-control/Scripts/TestHosts/$hostName/$hostName.csproj" --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false "/p:OASISCandidateRoot=$((Get-Location).Path)"
@@ -239,3 +275,14 @@ jobs:
           if docker container inspect map-development-mongo >/dev/null 2>&1; then docker rm -f map-development-mongo; fi
           if docker container inspect map-development-mongo >/dev/null 2>&1; then exit 1; fi
           echo 'Owned Map Development container absence verified.'
+      - name: Remove only the owned geo browser runtime and cache
+        if: ${{ always() && steps.candidate.outputs.browser == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="$GITHUB_WORKSPACE/geo-browser-owned"
+          actual="$(realpath -m "$expected")"
+          test "$actual" = "$expected"
+          if [ -e "$actual" ]; then rm -rf -- "$actual"; fi
+          test ! -e "$actual"
+          echo 'Owned geo browser runtime/cache absence verified.'
