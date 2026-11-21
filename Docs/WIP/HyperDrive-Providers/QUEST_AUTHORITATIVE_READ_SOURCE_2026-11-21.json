@@ -21,10 +21,23 @@
     "Current populated browser result and safe integration"
   ],
   "currentBrowser": {
-    "run": 44941055967,
-    "job": 136958129072,
+    "run": 44941942658,
+    "job": 136960852121,
     "runtime": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
     "status": "in_progress",
     "sourceUnchanged": true
-  }
+  },
+  "rootCandidate": {
+    "base": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+    "candidate": "25c4d178b8ba955d948465a7be7dd92617cdb06c",
+    "tree": "d54490fd04b004b5846399e0f3b2847520d94b9b",
+    "tag": "qualification/quest-authoritative-2026-11-21-25c4d178",
+    "changedPaths": [
+      "STAR ODK",
+      "Docker/oasis-dependency-versions.env"
+    ],
+    "status": "prepared-not-qualified-not-deployed",
+    "nativeMode": "quest-empty"
+  },
+  "preparedVerification": "Separate real boot/JWT/MVC empty catalogue and four avatar/status endpoint reads; no hotspot/binding/browser cohort replay selected."
 }

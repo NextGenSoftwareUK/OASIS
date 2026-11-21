@@ -36,7 +36,7 @@ Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
 var mode = Environment.GetEnvironmentVariable("OASIS_HOTSPOT_HTTP_MODE") ?? "binding";
-Require(mode is "binding" or "populated" or "browser", "Unsupported hotspot HTTP check mode.");
+Require(mode is "binding" or "populated" or "browser" or "quest-empty", "Unsupported hotspot HTTP check mode.");
 var dna = new OASISDNA { OASIS = new() {
     HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
         AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
@@ -165,6 +165,22 @@ try
     var jwt = new JwtSecurityToken(claims: new[] { new Claim("sub", actor.ToString("D")) }, expires: DateTime.UtcNow.AddMinutes(5),
         signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
     http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", new JwtSecurityTokenHandler().WriteToken(jwt));
+    if (mode == "quest-empty")
+    {
+        foreach (var route in new[] { "/api/quests", "/api/quests/all-for-avatar", "/api/quests/all-for-avatar/game",
+            "/api/quests/by-status/NotStarted", "/api/quests/by-status/NotStarted/game" })
+        {
+            using var reply = await http.GetAsync(route);
+            using var empty = JsonDocument.Parse(await reply.Content.ReadAsStringAsync());
+            Require(reply.IsSuccessStatusCode && !empty.RootElement.GetProperty("isError").GetBoolean() &&
+                empty.RootElement.GetProperty("result").ValueKind == JsonValueKind.Array &&
+                empty.RootElement.GetProperty("result").GetArrayLength() == 0,
+                "Real empty quest catalogue was not preserved: " + route);
+        }
+        Console.WriteLine("QUEST_EMPTY_HTTP_PROOF: real boot/JWT/MVC/native empty quest catalogue and four avatar/status read actions remain empty; no generated records. Browser/nonempty quest/production Startup excluded.");
+    }
+    else
+    {
     using var initial = await http.GetAsync("/api/GeoHotSpots/nearby?latitude=0&longitude=0&radiusKm=1");
     using var body = JsonDocument.Parse(await initial.Content.ReadAsStringAsync());
     Require(initial.IsSuccessStatusCode && !body.RootElement.GetProperty("isError").GetBoolean(),
@@ -216,6 +232,7 @@ try
     using var anonymous = await http.GetAsync("/api/GeoHotSpots/nearby?latitude=0&longitude=0");
     Require(anonymous.StatusCode == HttpStatusCode.Unauthorized, "Anonymous nearby read was not rejected.");
     Console.WriteLine("HOTSPOT_HTTP_NATIVE_PROOF: real isolated boot, MVC nearby action, signed native actor, zero coordinates, required/bounded coordinates, radius and anonymous rejection passed. Full production Startup/SSO/browser excluded.");
+    }
     }
 }
 finally
