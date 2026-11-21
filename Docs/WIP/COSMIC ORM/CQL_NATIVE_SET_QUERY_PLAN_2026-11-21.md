@@ -1,3 +1,5 @@
+Source progress: Core574f38 adds immutable operands/output stages and independent native-operation/result-stage enrollment. Both operands go through ordinary source planning before result-stage admission, including outer Take(0). Root1d5029dc pins the paired Core/manifest and four contract checks; actual WEB4 compile-only qualification44960376182 is queued. No storage fixtures, native set executor, provider enrollment, LINQ/SQL exposure or parity promotion yet. Existing Get native proof remains exactb8b69. All work stays on existing COSMIC branches; Development remains verifiedf549.
+
 # Native set-query family: implementation queue
 
 Status: planned, not implemented or accepted. Q50/Q51/Q53/Q54 remain open.

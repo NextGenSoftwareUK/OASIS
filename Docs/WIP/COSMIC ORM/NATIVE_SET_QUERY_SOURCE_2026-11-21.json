@@ -1,12 +1,21 @@
 {
-  "coreSource": "709dcaa452d1dc8de9c5ed27ecc8583d275ca316",
+  "coreSource": "574f38f680d232ad6cd01b55acc0246b880f0640",
   "coreBase": "b8b69aef680f8c74e449739e8849db53159a510c",
-  "phase": "model_source_published",
+  "phase": "contract_qualification_source_pushed",
   "compiled": false,
   "nativeImplemented": false,
   "nativeAccepted": false,
   "linqImplemented": false,
   "sqlTextImplemented": false,
   "developmentPushed": false,
-  "fullParityCredit": false
+  "fullParityCredit": false,
+  "modelSource": "709dcaa452d1dc8de9c5ed27ecc8583d275ca316",
+  "bothOperandsPreflightImplemented": true,
+  "nativeCapabilityEnrollmentImplemented": true,
+  "source": "1d5029dc99747c9b6bebe05abeb4f6d5d585208b",
+  "contractCases": 4,
+  "automaticWorkflowExpected": true,
+  "run": 44960376182,
+  "status": "queued",
+  "conclusion": null
 }
