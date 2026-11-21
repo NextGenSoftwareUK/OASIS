@@ -202,7 +202,7 @@
   ],
   "rolloutObservedUtc": "2026-11-21T22:39:52.879269+00:00",
   "runtimeVerified": true,
-  "holoReadinessVerified": false,
+  "holoReadinessVerified": true,
   "piperDataTouched": false,
   "stagingProductionDeployment": false,
   "startupDnaChecks": [
@@ -262,5 +262,8 @@
       "exitCode": 0,
       "verified": true
     }
-  ]
+  ],
+  "holoPublicSubsetQueryAccepted": true,
+  "holoAcceptanceDocument": "Docs/WIP/COSMIC ORM/HOLO_READINESS_240_HOSTED_ACCEPTANCE_2026-11-21.json",
+  "intermittentJoinRootCauseResolved": false
 }

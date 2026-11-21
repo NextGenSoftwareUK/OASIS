@@ -1,0 +1,19 @@
+{
+  "provider": "HoloOASIS",
+  "available": true,
+  "errorCode": null,
+  "activationGeneration": 1,
+  "activationHostInstance": "b7e9aeb7-db5c-46ea-b706-c15473a3da2d",
+  "source": "f54923d82ac8bffa7877d9307f18e879d41a8254",
+  "deployment": "88620d5d-7d91-4922-8e43-554ac984f71d",
+  "timeoutSeconds": 240,
+  "queryAccepted": true,
+  "rows": 2,
+  "shippingHoloProvider": true,
+  "sessionRevoked": true,
+  "calls": 4,
+  "piperDataTouched": false,
+  "protectedCredentialsRemoved": true,
+  "intermittentJoinRootCauseResolved": false,
+  "verificationScope": "One exact Development startup and authenticated native public subset query; no recovery/reset or general uptime claim."
+}
