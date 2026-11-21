@@ -1,10 +1,12 @@
 {
-  "status": "browser verifier prepared; actual controller/native host integration pending",
-  "portal": "34c264a",
+  "status": "actual native controller/browser source integrated; CI compile/runtime pending",
+  "portal": "34c264a9845dfb5437de369e22f7f917cd354eef",
   "shippingChanges": "Karma ledger captures current SDK bearer, pages flattened activity and displays real signed values; activity feed captures bearer.",
   "prepared": [
     "Scripts/TestHosts/Fixtures/karma-browser-host.html",
-    "Scripts/TestHosts/Fixtures/karma-browser-native-http.cjs"
+    "Scripts/TestHosts/Fixtures/karma-browser-native-http.cjs",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/PortalKarmaBrowserNativeTests.cs",
+    "Scripts/TestHosts/Fixtures/karma-browser-portal-revision.txt"
   ],
   "requiredProof": [
     "Actual Chromium page and shipping WEB4 SDK/HTML/scripts",
@@ -15,5 +17,7 @@
     "Owned browser/controller/database cleanup"
   ],
   "validation": "Browser verifier Node syntax passed only. No browser/native run or completion claimed.",
-  "cleanup": "No install, download, browser process, local build or test database/result created. Compact source fixtures retained."
+  "cleanup": "No install, download, browser process, local build or test database/result created. Compact source fixtures retained.",
+  "test": "KarmaPopupsUseActualSdkHttpAndOwnedMongo",
+  "nativeHost": "Actual compiled KarmaController, isolated real MongoStore and actual AvatarManager; 51 seeded durable records; authenticated loopback MVC with shipping SDK and popup assets."
 }
