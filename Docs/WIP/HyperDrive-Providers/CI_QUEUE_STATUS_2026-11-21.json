@@ -1,0 +1,48 @@
+{
+  "status": "Combined Core check still queued; obsolete own Firebase run cancellation rejected by GitHub",
+  "current": {
+    "run": 44868003895,
+    "job": 136735938083,
+    "source": "b4e482a2ec62a1802e5ff9fdeb90e15d0138222c",
+    "status": "queued",
+    "runnerLabels": [
+      "ubuntu-latest"
+    ],
+    "conclusion": null
+  },
+  "repositorySnapshot": {
+    "inProgressRunCount": 23,
+    "queuedRunCount": 32,
+    "qualification": "Repository API snapshot only; not proof of organization capacity or a diagnosed queue cause."
+  },
+  "obsoleteOwnedRuns": {
+    "ids": [
+      43098664726,
+      43098369771,
+      43098137834,
+      43097713248,
+      43097231022,
+      43096989263
+    ],
+    "branch": "work/hyperdrive-provider-completion",
+    "workflow": "Firebase Realtime Database storage",
+    "createdDate": "2026-11-11",
+    "before": "queued",
+    "normalCancelHttp": 409,
+    "documentedForceCancelHttp": 409,
+    "message": "Cannot cancel a workflow run that has not been queued yet.",
+    "cancelledCount": 0,
+    "result": "GitHub lists these as queued but rejects both supported cancellation actions; no cancellation or resource release claimed. Preserve history and investigate service state without deleting runs or touching other agents jobs."
+  },
+  "forceCancelDocumentation": "https://docs.github.com/en/rest/actions/workflow-runs#force-cancel-a-workflow-run",
+  "portalProgress": {
+    "branch": "dev",
+    "commits": [
+      "233247f",
+      "6bf4934"
+    ],
+    "changes": "OAPP Map searches full record names, indexes visible edge endpoints, clears filter/pan/zoom on logout, ends dragging and suppresses late hidden-modal responses.",
+    "checks": "Syntax/endpoint drift/whitespace passed; browser/backend graph and hosted speed remain open."
+  },
+  "cleanup": "No local build/install/runtime/database/browser/download/archive or new worktree this turn; prior227131B source inventory copies remain recorded as policy-blocked pending cleanup."
+}
