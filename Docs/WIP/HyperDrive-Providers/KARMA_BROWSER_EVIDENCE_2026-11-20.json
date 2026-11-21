@@ -51,5 +51,11 @@
     "sha256": "f341a6c773085d70a50a4f3eabee4f1e048f097f79ffbed0dbd936026cc05b5d",
     "cleanup": "Browser/runtime/cache/control cleanup and native Mongo database absence passed; archive inspected only in RAM."
   },
-  "hostCorrection": "Register AddCors, explicitly UseRouting then UseCors before UseAuthorization. Shipping Startup already registers and runs CORS; no production policy change or permissive origin policy added."
+  "hostCorrection": "Register AddCors, explicitly UseRouting then UseCors before UseAuthorization. Shipping Startup already registers and runs CORS; no production policy change or permissive origin policy added.",
+  "corsCorrectionRun": {
+    "run": 44857792612,
+    "parent": "10df76574921804e5b98c49b986e3e39f4b7f00b",
+    "status": "in_progress",
+    "scope": "Only changed Karma browser/native case; actual API compilation and owned CI Mongo"
+  }
 }
