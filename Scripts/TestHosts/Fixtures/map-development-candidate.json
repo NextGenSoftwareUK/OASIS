@@ -1,5 +1,5 @@
 {
-  "status": "scoped-source-native-and-refreshed-compile-accepted-ready-for-development-not-deployed",
+  "status": "integrated-to-development-seven-rollouts-and-selected-startup-metadata-verified",
   "nativeFirstFailure": {
     "run": 44886265686,
     "job": 136792116183,
@@ -75,7 +75,7 @@
     "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
   ],
   "preserved": "Current Development CQL/API/provider changes, all other dependency pins, newer HolonWriteEndpoint UTC handling and all DNA/service configurations",
-  "remaining": "Refreshed composition compile, safe Development integration and deployed/hosted verification; whole OPORTAL and Unity acceptance remain open",
+  "remaining": "Authenticated hosted behavior, distributed authorization, all map layers/aggregate activity, Unity/game runtime and whole OPORTAL/provider/HyperDrive acceptance remain open",
   "initialRuntimeCandidate": "591f14f63227ce62a3c3f855198b3df91c53adf0",
   "initialRuntimeCompile": {
     "run": 44885520700,
@@ -116,5 +116,7 @@
     "mapFilesAndCorePinUnchanged": true,
     "previousScopedDelivery": "2cbae2cc3a54cf5b98d04e7eb772dbe78c3b10b3",
     "nativeCasesSelectedForRefresh": 0
-  }
+  },
+  "developmentIntegratedCommit": "98ccee24f6a3eb0a35604b7dad82076908579fd5",
+  "deploymentEvidence": "Docs/WIP/HyperDrive-Providers/MAP_DEVELOPMENT_ROLLOUT_EVIDENCE_2026-11-21.json"
 }

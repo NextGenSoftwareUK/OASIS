@@ -1,0 +1,145 @@
+{
+  "status": "development-deployment-and-selected-startup-metadata-verified",
+  "source": "98ccee24f6a3eb0a35604b7dad82076908579fd5",
+  "previousDevelopment": "ed8de501451daec297ae10b0772531232e8ceccf",
+  "publication": "One normal hooked fast-forward Git push; no force or shared checkout switch; remote ref verified",
+  "candidateCompile": {
+    "run": 44888729281,
+    "job": 136799637621,
+    "controlSource": "7ee26249d7d588abc5226b0d855752715238ac32",
+    "errors": 0,
+    "elapsed": "00:04:36.50",
+    "committedInventories": "verified",
+    "classifierCases": 6,
+    "behaviorCasesRepeated": 0,
+    "fixtures": 0,
+    "postJobCleanup": "passed"
+  },
+  "deployments": [
+    {
+      "service": "WEB4 OASIS API",
+      "id": "a69a5ec6-65a2-4139-8274-dd770eb107c0",
+      "status": "SUCCESS",
+      "deploymentSource": "98ccee24f6a3eb0a35604b7dad82076908579fd5",
+      "selectedRunningEnvironmentCommit": "98ccee24f6a3eb0a35604b7dad82076908579fd5",
+      "startupFile": "/app/OASIS_DNA.json",
+      "selectedSettingPath": "OASIS.StorageProviders.AutoLoadBalanceEnabled",
+      "selectedSettingValue": true,
+      "matchingSettingCount": 1
+    },
+    {
+      "service": "WEB5 STAR API",
+      "id": "553d1448-ebe8-4680-b58d-894ebad4c9a2",
+      "status": "SUCCESS",
+      "deploymentSource": "98ccee24f6a3eb0a35604b7dad82076908579fd5",
+      "selectedRunningEnvironmentCommit": "98ccee24f6a3eb0a35604b7dad82076908579fd5",
+      "startupFile": "/app/OASIS_DNA.json",
+      "selectedSettingPath": "OASIS.StorageProviders.AutoLoadBalanceEnabled",
+      "selectedSettingValue": true,
+      "matchingSettingCount": 1
+    },
+    {
+      "service": "WEB6 AI API",
+      "id": "67705374-c911-4c3e-9d17-d00a09ffa178",
+      "status": "SUCCESS",
+      "deploymentSource": "98ccee24f6a3eb0a35604b7dad82076908579fd5",
+      "selectedRunningEnvironmentCommit": "98ccee24f6a3eb0a35604b7dad82076908579fd5",
+      "startupFile": "/app/OASIS_DNA.json",
+      "selectedSettingPath": "OASIS.StorageProviders.AutoLoadBalanceEnabled",
+      "selectedSettingValue": true,
+      "matchingSettingCount": 1
+    },
+    {
+      "service": "WEB7 SYMBIOTIC API",
+      "id": "515572b0-8984-4a27-b94a-aae107e958d4",
+      "status": "SUCCESS",
+      "deploymentSource": "98ccee24f6a3eb0a35604b7dad82076908579fd5",
+      "selectedRunningEnvironmentCommit": "98ccee24f6a3eb0a35604b7dad82076908579fd5",
+      "startupFile": "/app/OASIS_DNA.json",
+      "selectedSettingPath": "OASIS.StorageProviders.AutoLoadBalanceEnabled",
+      "selectedSettingValue": true,
+      "matchingSettingCount": 1
+    },
+    {
+      "service": "WEB8 IGN API",
+      "id": "bacf4e4b-3d09-4e01-a9b6-f6c4e60058e7",
+      "status": "SUCCESS",
+      "deploymentSource": "98ccee24f6a3eb0a35604b7dad82076908579fd5",
+      "selectedRunningEnvironmentCommit": "98ccee24f6a3eb0a35604b7dad82076908579fd5",
+      "startupFile": "/app/OASIS_DNA.json",
+      "selectedSettingPath": "OASIS.StorageProviders.AutoLoadBalanceEnabled",
+      "selectedSettingValue": true,
+      "matchingSettingCount": 1
+    },
+    {
+      "service": "WEB9 SINGULARITIY API",
+      "id": "bdf3e297-8de9-4f09-9b0e-5f6317e1ed9d",
+      "status": "SUCCESS",
+      "deploymentSource": "98ccee24f6a3eb0a35604b7dad82076908579fd5",
+      "selectedRunningEnvironmentCommit": "98ccee24f6a3eb0a35604b7dad82076908579fd5",
+      "startupFile": "/app/OASIS_DNA.json",
+      "selectedSettingPath": "OASIS.StorageProviders.AutoLoadBalanceEnabled",
+      "selectedSettingValue": true,
+      "matchingSettingCount": 1
+    },
+    {
+      "service": "WEB10 THE SOURCE API",
+      "id": "3cdcdb99-2e2b-4687-beac-d8288bac74a8",
+      "status": "SUCCESS",
+      "deploymentSource": "98ccee24f6a3eb0a35604b7dad82076908579fd5",
+      "selectedRunningEnvironmentCommit": "98ccee24f6a3eb0a35604b7dad82076908579fd5",
+      "startupFile": "/app/OASIS_DNA.json",
+      "selectedSettingPath": "OASIS.StorageProviders.AutoLoadBalanceEnabled",
+      "selectedSettingValue": true,
+      "matchingSettingCount": 1
+    }
+  ],
+  "settingsScope": "Seven selected running startup-file flags and runtime commit markers only. No independent application in-memory setting acknowledgement. No DNA/environment/worker setting writes.",
+  "staticHostedMetadata": {
+    "url": "https://dev.api.web4.oasisomniverse.one/swagger/v1/swagger.json",
+    "httpStatus": 200,
+    "bytes": 2971303,
+    "requests": 1,
+    "documentVersion": "v1 (OpenAPI document label, not HyperDrive generation)",
+    "actions": [
+      {
+        "path": "/api/map/routes",
+        "method": "POST"
+      },
+      {
+        "path": "/api/map/routes",
+        "method": "GET"
+      },
+      {
+        "path": "/api/map/routes/{id}",
+        "method": "GET"
+      },
+      {
+        "path": "/api/map/routes/{id}/access",
+        "method": "PUT"
+      }
+    ],
+    "allPresent": true,
+    "databaseEndpointCalls": 0,
+    "mutations": 0,
+    "filesWritten": 0
+  },
+  "limits": [
+    "Static route availability and deployment/startup metadata do not prove authenticated hosted Map behavior",
+    "Combined native proof and prior real SDK/browser proofs retain their exact scopes",
+    "Distributed authorization, all map layers, aggregate cross-app activity, game/Unity runtime and complete OPORTAL/provider/HyperDrive acceptance remain open"
+  ],
+  "sharedDatabaseTestCalls": 0,
+  "productionOrStagingWrites": 0,
+  "localBuildsOrDownloads": 0,
+  "newWorktrees": 0,
+  "ourWorldClientChange": {
+    "source": "c1b6f9fbe03f77d7be7de0168146a62403f6935a",
+    "compileRun": 44889612744,
+    "compileJob": 136802367551,
+    "errors": 0,
+    "elapsed": "00:00:06.98",
+    "priorTenContractCases": "skipped",
+    "scope": "Shipping publication helper/WalkingProgress and shipped Newtonsoft DLL only; component/Unity and new visibility runtime acceptance open"
+  }
+}
