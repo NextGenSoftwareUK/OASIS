@@ -1,3 +1,5 @@
+SQLite native entity-set source now compiles all4operations to materialized native SQL, per-input ordered windows and post-set stages. Existing EF/SQLite critical section, serializable read owner, traversal guard, source/payload/work budgets, streaming decoder and OASISResult errors are reused. Inputs are resource-validated under the same snapshot; set mathematics remain in SQL, no client combination. Native execution/build pending; no acceptance/parity/deployment claim. Mongo/Neo implementations remain open. No local build/install/runtime/DB/download.
+
 # COSMIC / CQL current checkpoint
 
 Full goal active and incomplete. Breadth first: EF/NHibernate feature families, SQL/Ask flows and full/virtual/hybrid workflows remain in scope. Existing feature branch work/cosmic-cql-ton-public; website work/cosmic-cql. No new worktree/environment.

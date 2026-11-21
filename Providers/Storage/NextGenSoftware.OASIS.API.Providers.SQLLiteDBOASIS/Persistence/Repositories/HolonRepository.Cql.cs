@@ -28,6 +28,10 @@ public partial class HolonRepository
         int maximumResults, CancellationToken cancellationToken) where T : IHolon
         => ProjectCqlRowsAsync(ExecuteCqlReadAsync(plan?.Source, maximumResults, cancellationToken, plan));
 
+    public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicSetQueryAsync<T>(CosmicSetQueryPlan<T> plan,
+        int maximumResults,CancellationToken cancellationToken) where T:IHolon
+        =>ProjectCqlRowsAsync(ExecuteCqlReadAsync(plan?.Left,maximumResults,cancellationToken,set:plan));
+
     private sealed class CqlReadOutcome
     {
         internal IReadOnlyList<IHolon> Rows;
@@ -54,7 +58,7 @@ public partial class HolonRepository
 
     private async Task<OASISResult<CqlReadOutcome>> ExecuteCqlReadAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults, CancellationToken cancellationToken, CosmicEntityCompositionPlan<T> composition = null,
-        bool countOnly=false) where T : IHolon
+        bool countOnly=false,CosmicSetQueryPlan<T> set=null) where T : IHolon
     {
         OASISResult<CqlReadOutcome> Error(string code,string message,Exception cause=null)
             => new() { IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause };
@@ -70,6 +74,13 @@ public partial class HolonRepository
             {
                 var stages = SQLLiteDBOASIS.CqlEntityCompositionCapabilities.Admit(composition.Query);
                 if (stages.IsError) return Error(stages.ErrorCode, stages.Message);
+            }
+            if(set!=null)
+            {
+                var admitted=CosmicSetQueryPlanner.Plan(set.Query,ProviderType.SQLLiteDBOASIS,
+                    new CosmicQueryTarget(ProviderType.SQLLiteDBOASIS,SqliteCqlContract.Capabilities),
+                    SQLLiteDBOASIS.CqlSetCapabilities,set.Options);
+                if(admitted.IsError)return Error(admitted.ErrorCode,admitted.Message);
             }
             // Translate completely before EF can open the connection. Never evaluate a predicate on fetched rows.
             var translator = new CqlSqlTranslator(plan.Query.ReadAccess);
@@ -114,7 +125,8 @@ public partial class HolonRepository
                     terminalValidation = "SELECT COALESCE(sum(" + observed + "),0) AS Value FROM (" + page + ") AS Holon";
                 }
             }
-            var entitySql = composition == null ? null : CompileEntityCompositionSql(composition);
+            var setSql=set==null?null:CompileSetSql(set);
+            var entitySql = setSql?.Result ?? (composition == null ? null : CompileEntityCompositionSql(composition));
             if (entitySql != null)
             {
                 translator = entitySql.SourceTranslator;
@@ -124,7 +136,7 @@ public partial class HolonRepository
             var hasRelationship = translator.HasRelationship || terminalTranslator?.HasRelationship == true
                 || entitySql?.HasRelationship == true;
             cancellationToken.ThrowIfCancellationRequested();
-            if(composition == null && fetch==0 && !translator.HasRelationship)return new OASISResult<CqlReadOutcome>(new CqlReadOutcome(Array.Empty<IHolon>())){IsLoaded=true};
+            if(composition == null && set == null && fetch==0 && !translator.HasRelationship)return new OASISResult<CqlReadOutcome>(new CqlReadOutcome(Array.Empty<IHolon>())){IsLoaded=true};
             // Own the EF concurrency scope before changing any connection-local
             // native hook/limit. Nested EF enumeration uses the same logical scope.
             using var exclusive=_dbContext.GetService<IConcurrencyDetector>().EnterCriticalSection();
@@ -135,12 +147,12 @@ public partial class HolonRepository
             {
                 using var budget=new SqliteCqlReadBudget(connection,cancellationToken);
                 using var traversal=hasRelationship?new SqliteCqlTraversalGuard(connection,budget.Check):null;
-                if ((composition != null || plan.Query.GraphOptions != null || hasRelationship) && _dbContext.Database.CurrentTransaction != null &&
+                if ((composition != null || set != null || plan.Query.GraphOptions != null || hasRelationship) && _dbContext.Database.CurrentTransaction != null &&
                     _dbContext.Database.CurrentTransaction.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)
                     return Error("CQL_CONSISTENCY_UNSUPPORTED", "SQLite graphs/traversals require a serializable native read owner.");
                 // A deferred read transaction supports read-only connections and
                 // holds the same SQLite snapshot for the root page and all children.
-                using var graphTransaction = (composition != null || plan.Query.GraphOptions != null || hasRelationship) && _dbContext.Database.CurrentTransaction == null
+                using var graphTransaction = (composition != null || set != null || plan.Query.GraphOptions != null || hasRelationship) && _dbContext.Database.CurrentTransaction == null
                     ? connection.BeginTransaction(IsolationLevel.Serializable, deferred: true) : null;
                 using var graphOwner = graphTransaction == null ? null : _dbContext.Database.UseTransaction(graphTransaction);
                 var rows=new List<IHolon>();long bytes=0;
@@ -148,8 +160,17 @@ public partial class HolonRepository
                 {
                     budget.Check();
                     await ValidateCqlRelationshipScopeAsync(translator, predicate, budget, traversal, cancellationToken).ConfigureAwait(false);
+                    if(setSql!=null)
+                        await ValidateCqlRelationshipScopeAsync(setSql.RightTranslator,setSql.RightPredicate,
+                            budget,traversal,cancellationToken).ConfigureAwait(false);
                     if (entitySql != null)
-                        await ValidateEntityCompositionAsync(entitySql,composition.Options,budget,traversal,cancellationToken).ConfigureAwait(false);
+                    {
+                        var options=composition?.Options??new CosmicEntityCompositionOptions(
+                            Math.Max(set.Options.MaximumLeftInputRows,set.Options.MaximumRightInputRows),
+                            set.Options.MaximumInputPayloadBytes);
+                        await ValidateEntityCompositionAsync(entitySql,options,budget,traversal,cancellationToken,
+                            setSql?.Sources).ConfigureAwait(false);
+                    }
                     if (terminalValidation != null)
                     {
                         await _dbContext.Database.SqlQueryRaw<long>(terminalValidation, translator.Parameters.Cast<object>().ToArray())
