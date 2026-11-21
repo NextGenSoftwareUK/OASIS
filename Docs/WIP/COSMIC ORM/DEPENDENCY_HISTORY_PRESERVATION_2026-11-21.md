@@ -1,0 +1,9 @@
+# Development dependency-history preservation — 21 November 2026
+
+The recurring Map regression can pass manifest/gitlink equality: both can consistently name a divergent dependency commit which omits accepted history. The new read-only validator compares the old and proposed committed gitlinks and requires every changed existing dependency to descend from its previous pin. It verifies the actual initialized module root (avoiding parent-repository lookup), both commit objects and real Git ancestry. Missing history is an error; it never fetches, checks out, merges, rewrites or silently accepts a failure.
+
+The Development pre-push path and scheduled Development submodule-sync PR creation now invoke this check. Master promotion remains under its existing release procedure. Added/removed module policy and semantic regressions within descendants remain outside this guard; passing ancestry is not functional verification or permission to deploy. Authorized history rewrites require deliberate reconciliation under their explicit instruction, not a silent bypass.
+
+Four real existing-history checks passed without fixtures/files/network:606e to fcb rejects the lost ONODE history;17f to309eed accepts the two restored merged dependencies; unchanged source passes; latest3159 to prepared77e rejects losing newer package history. No accepted native tests rerun and no local Git test repositories, worktrees, environments or downloads.
+
+This protection is published on the existing feature branch; it is not yet integrated into Development or installed in other agents' current working copies. Enabling the existing hook still requires core.hooksPath=.githooks. No claim that it retroactively stopped prior pushes. The current timeout image/native evidence remain unchanged. The exact release must preserve both qualified restored functionality and the latest package history.
