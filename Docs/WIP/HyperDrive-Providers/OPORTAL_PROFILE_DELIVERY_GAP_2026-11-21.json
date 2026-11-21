@@ -62,7 +62,7 @@
   "inventoryQualification": {
     "run": 44963177205,
     "control": "14fbf5cfab7285a616aa5148bab73f73aad47a18",
-    "status": "success-reviewed",
+    "status": "generation-passed-review-rejected-incorrect-route-disposition",
     "scope": "source-only, no build/runtime/data fixtures",
     "job": 137026273422,
     "artifact": 14730188476,
@@ -73,7 +73,8 @@
     "routeAdded": 2,
     "removed": 0,
     "runtimeChanges": 0,
-    "temporaryFilesWritten": 0
+    "temporaryFilesWritten": 0,
+    "reviewFinding": "SelfAvatarProfile GET/PATCH incorrectly LocalOrNonStorageEndpoint because declared AvatarManager property alias was not recognized"
   },
   "reviewedCandidate": {
     "candidate": "308a681ea7675e30cf09114cdf060db8160b358d",
@@ -82,7 +83,14 @@
       "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv": "787b897338362ce7f4f49f5e86c3b42947a35ff1",
       "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv": "3e117fcf1a3898e15abee1a817bb00bfa47f5b90"
     },
-    "status": "uncompiled",
+    "status": "uncompiled-inventory-reclassification-required",
     "scope": "eleven paths onf549, no unrelated source"
+  },
+  "classifierFix": "Extract declared typed manager fields/properties and match member calls; preserve undeclared-name negative check. Existing six cases plus extraction/positive/negative checks passed.",
+  "competitionDiagnostic": {
+    "run": 44963284578,
+    "job": 137026608944,
+    "control": "77b46347c517191810cddd3f41bcc81dda9cd48e",
+    "status": "in-progress"
   }
 }
