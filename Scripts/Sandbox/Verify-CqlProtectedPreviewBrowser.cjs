@@ -34,7 +34,7 @@ if (fs.existsSync(work)) {
   }
 } else fs.mkdirSync(work);
 fs.appendFileSync(ledger, '\nPROTECTED-PREVIEW-BROWSER: owned ' + work +
-  '; existing Chrome/ws, no install. SQL mode=' + sqlFlow + '. Reuse only after prior owned PID is absent; retain existing profile pending the recorded deletion rejection. OIDC header stays in memory; no token in arguments/files/reports.\n');
+  '; existing Chrome/ws, no install. SQL mode=' + sqlFlow + '. Reuse only after prior owned PID is absent; remove only the owned profile after verified browser exit. OIDC header stays in memory; no token in arguments/files/reports.\n');
 fs.writeFileSync(marker, JSON.stringify({ owner, work, profile, createdUtc: new Date().toISOString(), pid: null }, null, 2));
 const osEnvironment = {};
 for (const key of ['SystemRoot', 'SystemDrive', 'WINDIR', 'COMSPEC', 'PATH', 'PATHEXT', 'TEMP', 'TMP', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA', 'PROGRAMFILES', 'PROGRAMFILES(X86)']) {
@@ -53,6 +53,7 @@ const pending = new Map(), ready = new Map(), readyWaiters = new Map(), loadWait
 const blocked = [], exceptions = [], protocolErrors = [];
 const report = { owner, url, applicationDataRequestsSent: 0, filesInstalled: 0, configurationWrites: 0 };
 const assets = new Map(), apiCounts = new Map(), scalarResponses = [];
+const assetHashes = new Map();
 const scalarRequests = new Set();
 const authRequests = new Map(), authResponses = [];
 let pageSession;
@@ -64,9 +65,13 @@ function candidateAsset(target) {
       const chunks = []; let bytes = 0;
       response.on('data', chunk => { bytes += chunk.length; if (bytes > 2097152) request.destroy(new Error('Candidate asset exceeds bound.')); else chunks.push(chunk); });
       response.on('error', reject);
-      response.on('end', () => resolve({ body: Buffer.concat(chunks), type: response.headers['content-type'] || 'application/octet-stream' }));
+      response.on('end', () => {
+        const body = Buffer.concat(chunks);
+        assetHashes.set(address.pathname, crypto.createHash('sha256').update(body).digest('hex'));
+        resolve({ body, type: response.headers['content-type'] || 'application/octet-stream' });
+      });
     });
-    request.setTimeout(15000, () => request.destroy(new Error('Candidate asset deadline.')));
+    request.setTimeout(15000, () => request.destroy(new Error('Candidate asset deadline: ' + address.pathname)));
     request.on('error', reject);
   }));
   return assets.get(address.href);
@@ -157,6 +162,13 @@ async function event(message) {
       observation.errorEnvelope = payload.isError === true;
       const code = payload.errorCode ?? payload.result?.errorCode;
       if (typeof code === 'string' && /^[A-Z0-9_]{1,100}$/.test(code)) observation.errorCode = code;
+      const message = typeof payload.message === 'string' ? payload.message : '';
+      for (const [prefix, stage] of [['Could not create a sandbox avatar:', 'registration'],
+        ['This node cannot host the sandbox:', 'provider-routing'], ['Could not verify the sandbox avatar:', 'verification'],
+        ['Could not sign in the sandbox avatar:', 'authentication']]) {
+        if (message.startsWith(prefix)) observation.failureStage = stage;
+      }
+      if (observation.http === 429) observation.failureStage = 'session-admission';
     } catch { observation.jsonEnvelope = false; }
   } else if (sqlFlow && message.method === 'Network.responseReceived' &&
       p.response.url === 'https://dev.api.web4.oasisomniverse.one/api/data/query-cql/scalar') {
@@ -165,7 +177,7 @@ async function event(message) {
     const body = await send('Network.getResponseBody', { requestId: p.requestId }, message.sessionId);
     const value = JSON.parse(body.base64Encoded ? Buffer.from(body.body, 'base64').toString('utf8') : body.body);
     scalarResponses.push({ acknowledged: value.isError === false, resultPresent: value.result !== undefined });
-  } else if (message.method === 'Page.loadEventFired' && loadWaiters.has(message.sessionId)) {
+  } else if ((sqlFlow ? message.method === 'Page.domContentEventFired' : message.method === 'Page.loadEventFired') && loadWaiters.has(message.sessionId)) {
     loadWaiters.get(message.sessionId)(); loadWaiters.delete(message.sessionId);
   }
 }
@@ -254,6 +266,7 @@ async function event(message) {
       } else report.demoSessionRevocationRequired = false;
       report.apiRequestCounts = Object.fromEntries(apiCounts);
       report.authResponses = authResponses; // Status/error code only: never retain avatar, cookie or token payloads.
+      report.candidateAssetHashes = Object.fromEntries(assetHashes);
     }
     if (socket && socket.readyState === WebSocket.OPEN) {
       try { await send('Browser.close'); } catch (error) { report.closeTransport = error.message; }
@@ -275,7 +288,20 @@ async function event(message) {
     const ownership = JSON.parse(fs.readFileSync(marker, 'utf8'));
     report.ownedWorkVerified = ownership.owner === owner && path.resolve(ownership.work) === work &&
       fs.realpathSync(work).toLowerCase().startsWith(fs.realpathSync(parent).toLowerCase() + path.sep);
-    report.profileCleanupPending = true; // Prior automatic deletion rejection remains unresolved; reuse this one owned environment.
+    if (report.ownedBrowserStopped && report.ownedWorkVerified) {
+      try {
+        if (fs.existsSync(profile)) {
+          if (fs.realpathSync(profile).toLowerCase() !== profile.toLowerCase()) throw new Error('Owned profile resolution changed.');
+          fs.rmSync(profile, { recursive: true });
+        }
+        report.profileAbsent = !fs.existsSync(profile);
+        const remaining = fs.readdirSync(work);
+        if (remaining.length === 1 && remaining[0] === 'owner.json') {
+          fs.unlinkSync(marker); fs.rmdirSync(work);
+        }
+      } catch (error) { report.profileCleanupError = error.code || error.message; process.exitCode = 1; }
+    }
+    report.profileCleanupPending = fs.existsSync(profile);
     fs.appendFileSync(ledger, '\nPROTECTED-PREVIEW-BROWSER-OUTCOME: ' + JSON.stringify({ work, browserStopped: report.ownedBrowserStopped, profileAbsent: report.profileAbsent, cleanupError: report.profileCleanupError, screenshot: report.screenshot, screenshotBytes: report.screenshotBytes, retainedForVisualReview: true }) + '\n');
     console.log('CQL_BROWSER_JSON=' + JSON.stringify(report));
   }

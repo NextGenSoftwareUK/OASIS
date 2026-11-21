@@ -30,6 +30,13 @@
       "applicationDataRequests": 0,
       "ownedBrowserStopped": true,
       "harnessFinding": "Auth response status/error-code observation added; no further auth retry this turn."
+    },
+    {
+      "outcome": "Candidate asset / DOM load deadline",
+      "demoSessionRequested": false,
+      "applicationDataRequests": 0,
+      "reportedOwnedBrowserStopped": false,
+      "reconciledOwnedBrowserAbsent": true
     }
   ],
   "runtimeInstalls": 0,
@@ -38,6 +45,14 @@
   "publicWebsitePublicationVerified": false,
   "sqlEditorApiJourneyVerified": false,
   "fullBrowserDataFlowVerified": false,
-  "profileCleanupPending": "C:/Source/OASIS2/LocalState/COSMIC/RecoveryLaptopHostedBrowserCurrent",
-  "piperDataChanged": false
+  "profileCleanupPending": false,
+  "piperDataChanged": false,
+  "profileCleanupProof": "BROWSER_CLEANUP_2026-11-21.json",
+  "savedSandboxLimits": {
+    "perAddressPerHour": 20,
+    "perDay": 1000,
+    "retentionMinutes": 1440,
+    "changed": false
+  },
+  "selectedHttpLogsAvailable": false
 }
