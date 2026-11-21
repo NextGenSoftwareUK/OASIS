@@ -1,8 +1,8 @@
 {
   "status": "persistence-root-fix-prepared-not-compiled-not-deployed",
   "source": "82d929588fcdf3b6bd02a26874484a942fab3d7e",
-  "base": "a11d88bc09d90c318551df4fc0d90871e92c638b",
-  "tag": "qualification/catalogue-truth-2026-11-21-f1aa884d",
+  "base": "1de76d2d5b1428ac3c645139823757224a1e2ca3",
+  "tag": "qualification/catalogue-hydration-2026-11-21-82d92958",
   "files": [
     "MissionsController.cs",
     "ChaptersController.cs"
@@ -38,10 +38,12 @@
     ]
   },
   "qualification": {
-    "status": "root-fix-prepared-not-dispatched",
+    "status": "pending",
     "mode": "catalogue",
     "scope": "Previously failed native/HTTP catalogue cohort; add one real chapter through existing IMission interface, verify native concrete collection/display/status and HTTP detail. No unchanged accepted cohorts.",
-    "dispatchHeld": "Restoration compile44948349449/job136980553768 still queued. Avoid replacing a pending run in the shared concurrency group; no new diagnostic dispatch yet."
+    "run": 44949649529,
+    "control": "55d97420c6d8601e743bd846ba7eb40a1cf27ac5",
+    "sourceChecks": "Exact two ONODE model files, three unchanged real-outcome controller blobs, preserved package/qualified Map composition, direct parent and exact three root paths; check-ref paired-pin gate passed."
   },
   "failedAttempts": [
     {
@@ -101,7 +103,7 @@
   "previousSource": "f1aa884d90123afea87d4daec39afff4e022339b",
   "onodeModelFix": {
     "source": "a1ca35c72470811a73d3e0bd0b5beebffd1e033c",
-    "parent": "1fe579cf5e385b4a6ecce12934a7dd7578c2340c",
+    "parent": "8aadefa35c927b314a581ecc672f8df13f7216ea",
     "files": [
       "Holons/STARNET/Quest System/Mission.cs",
       "Holons/STARNET/Quest System/Chapter.cs"
@@ -109,7 +111,9 @@
     "invariant": "Declared concrete JSON-backed persisted chapter collection reconstructs actual chapters; one persisted status owner per chapter; display name persists.",
     "scope": "Existing explicit IMission adapter preserved; JSON array/metadata key Chapters retained; no alternate readers or generated success.",
     "previousSource": "8aadefa35c927b314a581ecc672f8df13f7216ea",
-    "interfaceMutation": "Existing IMission.Chapters returns a live IList view over the concrete persisted collection; Add/Insert/index/remove/clear remain attached. Setter materializes validated concrete records before replacement."
+    "interfaceMutation": "Existing IMission.Chapters returns a live IList view over the concrete persisted collection; Add/Insert/index/remove/clear remain attached. Setter materializes validated concrete records before replacement.",
+    "base": "1fe579cf5e385b4a6ecce12934a7dd7578c2340c"
   },
-  "supersededUnrunRoot": "81c0a0dabbcaf0b5741e8efaeb93ccb968a2059d"
+  "supersededUnrunRoot": "81c0a0dabbcaf0b5741e8efaeb93ccb968a2059d",
+  "additionalParent": "f1aa884d90123afea87d4daec39afff4e022339b"
 }
