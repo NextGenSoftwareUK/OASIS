@@ -1,9 +1,9 @@
 {
   "scope": "quest",
-  "status": "dedicated-native-http-qualification-queued",
+  "status": "corrected-shipping-source-retry-pending",
   "base": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
-  "candidate": "25c4d178b8ba955d948465a7be7dd92617cdb06c",
-  "tag": "qualification/quest-authoritative-2026-11-21-25c4d178",
+  "candidate": "ff71e005312c9d6eb965ebdcd18d140a1d127881",
+  "tag": "qualification/quest-authoritative-2026-11-21-ff71e005",
   "buildProjects": [
     "WEB5"
   ],
@@ -15,16 +15,26 @@
   ],
   "star": {
     "base": "6774caf10a4d37cba5575e497c0a0499f118b6d0",
-    "candidate": "78eabe52e5e474c21367959cecfcb900709db169",
-    "scope": "QuestsController.Quest.cs only; remove generated-success substitutions and empty avatar/status alternate queries."
+    "candidate": "a11d88bc09d90c318551df4fc0d90871e92c638b",
+    "scope": "QuestsController.Quest.cs only; remove generated-success substitutions and empty avatar/status alternate queries.",
+    "previousCandidate": "78eabe52e5e474c21367959cecfcb900709db169"
   },
   "preserved": "Qualified hotspot/Map/current CQL/Core13, all other pins and settings",
   "remaining": "Actual compile and real native empty quest HTTP acceptance, then scoped delivery; full OPORTAL/provider/HyperDrive remains incomplete.",
-  "qualification": {
-    "run": 44943023703,
-    "control": "39d1238a87bb12cdaded4f31edf6a2eb16e706da",
-    "status": "in_progress",
-    "mode": "real native quest-empty only",
-    "job": 136964180359
-  }
+  "attempts": [
+    {
+      "run": 44943023703,
+      "control": "39d1238a87bb12cdaded4f31edf6a2eb16e706da",
+      "status": "completed",
+      "mode": "real native quest-empty only",
+      "job": 136964180359,
+      "conclusion": "failure",
+      "stage": "shipping WEB5 compilation",
+      "buildElapsed": "00:03:59.42",
+      "error": "Orphaned else in quest status read after alternate-query removal",
+      "runtimeCases": 0,
+      "containerCleanup": "verified"
+    }
+  ],
+  "previousCandidate": "25c4d178b8ba955d948465a7be7dd92617cdb06c"
 }
