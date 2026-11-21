@@ -106,9 +106,20 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                         if (conditionalPlan == null && node.SelectsChildren)
                         {
                             var manifest = HolonChildRoleManifestJson.Deserialize(((Holon)acknowledgement).ChildRoleManifestJson);
-                            var hydrated = HolonChildRoleHydration.ApplyFullySelected(acknowledgement, manifest, id => actual[id]);
-                            if (hydrated.IsError)
-                                throw new InvalidOperationException(hydrated.Message, hydrated.Exception);
+                            // Manager-staged records flatten domain roles into transport Children.
+                            // Validate the committed graph here; the manager owns typed acknowledgement.
+                            if (HolonChangeTracking.TryGetPreparedChildSelection(node.Source, out var submitted))
+                            {
+                                if (HolonChildRoleManifestJson.Serialize(manifest) != HolonChildRoleManifestJson.Serialize(submitted))
+                                    throw new System.IO.InvalidDataException("Committed child roles differ from the manager's submitted membership.");
+                                _ = HolonChildRoleResolution.Resolve(manifest, id => actual[id]);
+                            }
+                            else
+                            {
+                                var hydrated = HolonChildRoleHydration.ApplyFullySelected(acknowledgement, manifest, id => actual[id]);
+                                if (hydrated.IsError)
+                                    throw new InvalidOperationException(hydrated.Message, hydrated.Exception);
+                            }
                         }
                     }
                     responses.AddRange(roots.Select(root=>actual[snapshots[root].Id]));
