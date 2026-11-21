@@ -36,7 +36,7 @@ Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
 var mode = Environment.GetEnvironmentVariable("OASIS_HOTSPOT_HTTP_MODE") ?? "binding";
-Require(mode is "binding" or "populated" or "browser" or "quest-empty", "Unsupported hotspot HTTP check mode.");
+Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue", "Unsupported hotspot HTTP check mode.");
 var dna = new OASISDNA { OASIS = new() {
     HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
         AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
@@ -165,7 +165,59 @@ try
     var jwt = new JwtSecurityToken(claims: new[] { new Claim("sub", actor.ToString("D")) }, expires: DateTime.UtcNow.AddMinutes(5),
         signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
     http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", new JwtSecurityTokenHandler().WriteToken(jwt));
-    if (mode == "quest-empty")
+    if (mode == "catalogue")
+    {
+        async Task<JsonDocument> ReadCatalogue(string route)
+        {
+            using var reply = await http.GetAsync(route);
+            var document = JsonDocument.Parse(await reply.Content.ReadAsStringAsync());
+            Require(reply.IsSuccessStatusCode && !document.RootElement.GetProperty("isError").GetBoolean(),
+                "Real catalogue read failed: " + route);
+            return document;
+        }
+        foreach (var kind in new[] { "missions", "chapters" })
+        {
+            using var empty = await ReadCatalogue("/api/" + kind);
+            Require(empty.RootElement.GetProperty("result").ValueKind == JsonValueKind.Array &&
+                empty.RootElement.GetProperty("result").GetArrayLength() == 0, "Empty native catalogue was fabricated: " + kind);
+        }
+        var data = new HolonManager(provider, dna, ProviderManager.Instance);
+        var missionId = Guid.NewGuid(); var chapterId = Guid.NewGuid();
+        var mission = new Mission { Id = missionId, Name = "Owned catalogue mission", Description = "Native mission detail",
+            STARNETDNA = new STARNETDNA { Id = missionId, CreatedByAvatarId = actor, Version = "1.0.0", VersionSequence = 1 } };
+        var chapter = new Chapter { Id = chapterId, Name = "Owned catalogue chapter", Description = "Native chapter detail",
+            STARNETDNA = new STARNETDNA { Id = chapterId, CreatedByAvatarId = actor, Version = "1.0.0", VersionSequence = 1 } };
+        foreach (var holon in new NextGenSoftware.OASIS.API.Core.Interfaces.IHolon[] { mission, chapter })
+        {
+            holon.MetaData["STARNETHolonId"] = holon.Id.ToString();
+            holon.MetaData["CreatedByAvatarId"] = actor.ToString();
+            holon.MetaData["Active"] = "1";
+        }
+        var savedMission = await data.SaveHolonAsync<Mission>(mission, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);
+        Require(!savedMission.IsError && savedMission.IsSaved, "Owned mission persistence failed: " + savedMission.Message);
+        var savedChapter = await data.SaveHolonAsync<Chapter>(chapter, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);
+        Require(!savedChapter.IsError && savedChapter.IsSaved, "Owned chapter persistence failed: " + savedChapter.Message);
+        foreach (var item in new[] { (kind: "missions", id: missionId, name: mission.Name), (kind: "chapters", id: chapterId, name: chapter.Name) })
+        {
+            foreach (var suffix in new[] { "", "/load-all-for-avatar" })
+            {
+                using var list = await ReadCatalogue("/api/" + item.kind + suffix);
+                var records = list.RootElement.GetProperty("result");
+                Require(records.ValueKind == JsonValueKind.Array && records.GetArrayLength() == 1 &&
+                    records[0].GetProperty("id").GetGuid() == item.id && records[0].GetProperty("name").GetString() == item.name,
+                    "Native catalogue identity/typed name was not preserved: " + item.kind + suffix);
+            }
+            using var detail = await ReadCatalogue("/api/" + item.kind + "/" + item.id);
+            Require(detail.RootElement.GetProperty("result").GetProperty("id").GetGuid() == item.id &&
+                detail.RootElement.GetProperty("result").GetProperty("name").GetString() == item.name,
+                "Native detail identity/typed name was not preserved: " + item.kind);
+            using var absent = await http.GetAsync("/api/" + item.kind + "/" + Guid.NewGuid());
+            using var missing = JsonDocument.Parse(await absent.Content.ReadAsStringAsync());
+            Require(missing.RootElement.GetProperty("isError").GetBoolean(), "Missing native detail became generated success: " + item.kind);
+        }
+        Console.WriteLine("CATALOGUE_HTTP_PROOF: real boot/JWT/MVC/native Mongo mission/chapter empty and populated catalogue, avatar lists, typed detail identities and missing-record errors verified. Browser/create/update/production Startup excluded.");
+    }
+    else if (mode == "quest-empty")
     {
         foreach (var route in new[] { "/api/quests", "/api/quests/all-for-avatar", "/api/quests/all-for-avatar/game",
             "/api/quests/by-status/NotStarted", "/api/quests/by-status/NotStarted/game" })

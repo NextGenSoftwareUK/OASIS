@@ -1,26 +1,26 @@
 {
   "scope": "quest",
-  "status": "corrected-quest-source-qualification-in-progress",
+  "status": "mission-chapter-source-awaiting-real-outcome-qualification",
   "base": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
-  "candidate": "ff71e005312c9d6eb965ebdcd18d140a1d127881",
-  "tag": "qualification/quest-authoritative-2026-11-21-ff71e005",
+  "candidate": "2fdd74ec79d2f8b5da2c9fe197456a4c06c6c6e7",
+  "tag": "qualification/catalogue-truth-2026-11-21-2fdd74ec",
   "buildProjects": [
     "WEB5"
   ],
   "nativeHost": "HotspotHttpNative",
-  "nativeMode": "quest-empty",
+  "nativeMode": "catalogue",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
     "STAR ODK"
   ],
   "star": {
     "base": "6774caf10a4d37cba5575e497c0a0499f118b6d0",
-    "candidate": "a11d88bc09d90c318551df4fc0d90871e92c638b",
-    "scope": "QuestsController.Quest.cs only; remove generated-success substitutions and empty avatar/status alternate queries.",
+    "candidate": "f1aa884d90123afea87d4daec39afff4e022339b",
+    "scope": "Accepted quest changes plus mission/chapter generated-success removal and awaited boot.",
     "previousCandidate": "78eabe52e5e474c21367959cecfcb900709db169"
   },
   "preserved": "Qualified hotspot/Map/current CQL/Core13, all other pins and settings",
-  "remaining": "Actual compile and real native empty quest HTTP acceptance, then scoped delivery; full OPORTAL/provider/HyperDrive remains incomplete.",
+  "remaining": "Actual mission/chapter compile and representative real outcomes, then scoped delivery; full goal remains incomplete.",
   "attempts": [
     {
       "run": 44943023703,
@@ -38,9 +38,7 @@
   ],
   "previousCandidate": "25c4d178b8ba955d948465a7be7dd92617cdb06c",
   "qualification": {
-    "run": 44944060273,
-    "control": "30ce34df598663de3b1db7a2794a6152895b346a",
-    "status": "in_progress",
-    "mode": "quest-empty only"
+    "status": "prepared-not-dispatched",
+    "mode": "mission/chapter real outcomes only"
   }
 }

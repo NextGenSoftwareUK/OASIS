@@ -261,7 +261,7 @@ jobs:
           if ($hostName -notin @('MapDevelopmentNative','HotspotDevelopmentNative','HotspotHttpNative')) { throw 'Unsupported native qualification host.' }
           if ($hostName -eq 'HotspotHttpNative') {
             $env:OASIS_HOTSPOT_HTTP_MODE = if ($candidate.nativeMode) { $candidate.nativeMode } else { 'binding' }
-            if ($env:OASIS_HOTSPOT_HTTP_MODE -notin @('binding','populated','browser','quest-empty')) { throw 'Unsupported hotspot HTTP check mode.' }
+            if ($env:OASIS_HOTSPOT_HTTP_MODE -notin @('binding','populated','browser','quest-empty','catalogue')) { throw 'Unsupported hotspot HTTP check mode.' }
           }
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner map-development-native-ci -Operation {
             dotnet build "../qualification-control/Scripts/TestHosts/$hostName/$hostName.csproj" --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false "/p:OASISCandidateRoot=$((Get-Location).Path)"

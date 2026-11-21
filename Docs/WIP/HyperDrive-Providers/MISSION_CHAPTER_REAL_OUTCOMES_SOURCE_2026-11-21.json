@@ -25,5 +25,20 @@
     "missionDeletions": 127,
     "chapterAdditions": 17,
     "chapterDeletions": 27
+  },
+  "rootCandidate": {
+    "candidate": "2fdd74ec79d2f8b5da2c9fe197456a4c06c6c6e7",
+    "base": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+    "tree": "cc18a4849f3b6b21a33e2f1f7265f3d12e667d44",
+    "tag": "qualification/catalogue-truth-2026-11-21-2fdd74ec",
+    "allowedPaths": [
+      "Docker/oasis-dependency-versions.env",
+      "STAR ODK"
+    ]
+  },
+  "qualification": {
+    "status": "prepared-not-dispatched",
+    "mode": "catalogue",
+    "scope": "Real boot/JWT/MVC/native empty and populated mission/chapter catalogues, avatar lists, details and missing-record errors. No accepted quest/geo replay, browser or mutations."
   }
 }
