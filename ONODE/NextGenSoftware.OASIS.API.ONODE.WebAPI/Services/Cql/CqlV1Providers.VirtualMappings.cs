@@ -31,10 +31,11 @@ public sealed partial class CqlV1Providers
     internal static Task<OASISResult<IReadOnlyList<VirtualHolonRead>>> QueryOwnedVirtualMappingAsync(
         HolonManager manager, IOASISProvider authority, Guid mappingId, IAvatar avatar, ProviderType? requestedSource,
         IReadOnlyList<NativeRecordFilter> matches,
-        IReadOnlyList<string> selectedFields, int limit, CancellationToken cancellationToken)
+        IReadOnlyList<string> selectedFields, int limit, CancellationToken cancellationToken, bool snapshotRead = false)
         => WithOwnedVirtualMappingAsync(manager, authority, mappingId, avatar, requestedSource,
-            (mapping, binding) => mapping.QueryAsync(avatar.Id, binding.Reader, binding.Connection, matches,
-                selectedFields, limit, cancellationToken), cancellationToken);
+            (mapping, binding) => snapshotRead
+                ? mapping.QuerySnapshotCandidatesAsync(avatar.Id, binding.Reader, binding.Connection, matches, selectedFields, limit, cancellationToken)
+                : mapping.QueryAsync(avatar.Id, binding.Reader, binding.Connection, matches, selectedFields, limit, cancellationToken), cancellationToken);
 
     private static async Task<OASISResult<IReadOnlyList<T>>> WithOwnedVirtualMappingAsync<T>(
         HolonManager manager, IOASISProvider authority, Guid mappingId, IAvatar avatar, ProviderType? requestedSource,
