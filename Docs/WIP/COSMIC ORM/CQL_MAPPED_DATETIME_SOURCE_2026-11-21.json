@@ -14,5 +14,17 @@
   "nativeCasesRerun": false,
   "hostedAcceptance": false,
   "publicPublicationVerified": false,
-  "localGeneratedFiles": 0
+  "localGeneratedFiles": 0,
+  "groupingKeyFollowup": {
+    "websiteSource": "cd8c8d4bf7b9f1a6afcc51d8f236a36c0048eaa8",
+    "newParserCasesPassed": 6,
+    "scopes": [
+      "DateTime GROUP BY key with row count",
+      "SELECT DISTINCT DateTime key"
+    ],
+    "selectedValueAggregatesRefused": true,
+    "nativeDomainAcceptance": false,
+    "backendChanged": false,
+    "publicPublicationVerified": false
+  }
 }
