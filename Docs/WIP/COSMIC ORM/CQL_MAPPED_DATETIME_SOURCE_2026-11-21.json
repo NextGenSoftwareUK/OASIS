@@ -23,8 +23,19 @@
       "SELECT DISTINCT DateTime key"
     ],
     "selectedValueAggregatesRefused": true,
-    "nativeDomainAcceptance": false,
+    "nativeDomainAcceptance": true,
     "backendChanged": false,
-    "publicPublicationVerified": false
+    "publicPublicationVerified": false,
+    "nativeEvidence": {
+      "run": 44890869474,
+      "artifact": 14702812086,
+      "sha256": "2e452d267c07c5195465b5293ce1344c91ecaba99d1f792bed88abdaa0f7d3c8",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "allTwelveFlagsVerified": true,
+      "exactCleanupVerified": true,
+      "archiveWrittenToDisk": false
+    }
   }
 }
