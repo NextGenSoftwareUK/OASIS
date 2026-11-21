@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using NextGenSoftware.OASIS.API.Core;
@@ -44,13 +45,23 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS
         {
             TypeInfoResolver = new DefaultJsonTypeInfoResolver
             {
-                Modifiers = { ConfigureWalletRecordTypes }
+                Modifiers = { ConfigureStoredRecordTypes }
             },
             Converters = { new WalletTransactionJsonConverter() }
         };
 
-        private static void ConfigureWalletRecordTypes(JsonTypeInfo typeInfo)
+        private static void ConfigureStoredRecordTypes(JsonTypeInfo typeInfo)
         {
+            if (typeof(IAuditBase).IsAssignableFrom(typeInfo.Type))
+            {
+                foreach (var property in typeInfo.Properties)
+                {
+                    // The stored audit actor is its ID. The navigation getter performs a provider lookup.
+                    if (property.Name == "deletedByAvatar")
+                        property.Get = null;
+                }
+            }
+
             // Keep the original interface-shaped JSON and materialize known wallet types
             // when reading existing records, which have no runtime type discriminator.
             if (typeInfo.Type == typeof(IProviderWallet))
@@ -568,14 +579,6 @@ WHEN NOT MATCHED THEN INSERT (Id,Username,Email,DataJson) VALUES (@Id,@Username,
             {
                 var graph = HolonGraphWritePlan.CreateForSave(new[] { holon }, saveChildren, recursive, maxChildDepth, 0);
 
-                const string sql = @"
-MERGE OASISHolons AS target
-USING (SELECT @Id AS Id) AS source ON target.Id = source.Id
-WHEN MATCHED AND COALESCE(TRY_CONVERT(int, JSON_VALUE(target.DataJson, '$.version')), 0) <= @Version THEN
-    UPDATE SET ParentHolonId=@ParentHolonId, HolonType=@HolonType, IsDeleted=@IsDeleted, ModifiedDate=SYSUTCDATETIME(), DataJson=@DataJson
-WHEN NOT MATCHED THEN
-    INSERT (Id,ParentHolonId,HolonType,IsDeleted,DataJson) VALUES (@Id,@ParentHolonId,@HolonType,@IsDeleted,@DataJson);";
-
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var transaction = (SqlTransaction)await conn.BeginTransactionAsync();
@@ -584,27 +587,7 @@ WHEN NOT MATCHED THEN
                     var row = node.Snapshot;
                     row.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
                     row.ProviderUniqueStorageKey[Core.Enums.ProviderType.SQLServerDBOASIS] = row.Id.ToString("D");
-                    const string archiveSql = @"
-INSERT INTO OASISHolonHistory (Id, Version, ParentHolonId, HolonType, IsDeleted, DataJson)
-SELECT h.Id, v.Version, h.ParentHolonId, h.HolonType, h.IsDeleted, h.DataJson
-FROM OASISHolons h WITH (UPDLOCK, HOLDLOCK)
-CROSS APPLY (VALUES (TRY_CONVERT(int, JSON_VALUE(h.DataJson, '$.version')))) v(Version)
-WHERE h.Id = @Id AND v.Version > 0 AND v.Version < @Version
-AND NOT EXISTS (SELECT 1 FROM OASISHolonHistory a WHERE a.Id = h.Id AND a.Version = v.Version);";
-                    await using var archive = new SqlCommand(archiveSql, conn, transaction);
-                    archive.Parameters.AddWithValue("@Id", row.Id);
-                    archive.Parameters.AddWithValue("@Version", row.Version);
-                    await archive.ExecuteNonQueryAsync();
-
-                    await using var cmd = new SqlCommand(sql, conn, transaction);
-                    cmd.Parameters.AddWithValue("@Id", row.Id);
-                    cmd.Parameters.AddWithValue("@Version", row.Version);
-                    cmd.Parameters.AddWithValue("@ParentHolonId", row.ParentHolonId == Guid.Empty ? (object)DBNull.Value : row.ParentHolonId);
-                    cmd.Parameters.AddWithValue("@HolonType", (int)row.HolonType);
-                    cmd.Parameters.AddWithValue("@IsDeleted", row.IsDeleted);
-                    cmd.Parameters.AddWithValue("@DataJson", Serialize(row));
-                    if (await cmd.ExecuteNonQueryAsync() != 1)
-                        throw new InvalidOperationException("SQL Server holon upsert did not acknowledge exactly one row. The current version may be newer than the proposed version.");
+                    await WriteHolonSnapshotAsync(conn, transaction, row, CancellationToken.None);
                 }
                 await transaction.CommitAsync();
 
@@ -622,6 +605,40 @@ AND NOT EXISTS (SELECT 1 FROM OASISHolonHistory a WHERE a.Id = h.Id AND a.Versio
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error saving holon '{holon.Name}': {ex.Message}"); }
             return result;
+        }
+
+        private static async Task WriteHolonSnapshotAsync(SqlConnection conn, SqlTransaction transaction,
+            IHolon row, CancellationToken cancellationToken)
+        {
+            const string sql = @"
+MERGE OASISHolons WITH (HOLDLOCK) AS target
+USING (SELECT @Id AS Id) AS source ON target.Id = source.Id
+WHEN MATCHED AND COALESCE(TRY_CONVERT(int, JSON_VALUE(target.DataJson, '$.version')), 0) <= @Version THEN
+    UPDATE SET ParentHolonId=@ParentHolonId, HolonType=@HolonType, IsDeleted=@IsDeleted, ModifiedDate=SYSUTCDATETIME(), DataJson=@DataJson
+WHEN NOT MATCHED THEN
+    INSERT (Id,ParentHolonId,HolonType,IsDeleted,DataJson) VALUES (@Id,@ParentHolonId,@HolonType,@IsDeleted,@DataJson);";
+
+            const string archiveSql = @"
+INSERT INTO OASISHolonHistory (Id, Version, ParentHolonId, HolonType, IsDeleted, DataJson)
+SELECT h.Id, v.Version, h.ParentHolonId, h.HolonType, h.IsDeleted, h.DataJson
+FROM OASISHolons h WITH (UPDLOCK, HOLDLOCK)
+CROSS APPLY (VALUES (TRY_CONVERT(int, JSON_VALUE(h.DataJson, '$.version')))) v(Version)
+WHERE h.Id = @Id AND v.Version > 0 AND v.Version < @Version
+AND NOT EXISTS (SELECT 1 FROM OASISHolonHistory a WHERE a.Id = h.Id AND a.Version = v.Version);";
+            await using var archive = new SqlCommand(archiveSql, conn, transaction);
+            archive.Parameters.AddWithValue("@Id", row.Id);
+            archive.Parameters.AddWithValue("@Version", row.Version);
+            await archive.ExecuteNonQueryAsync(cancellationToken);
+
+            await using var cmd = new SqlCommand(sql, conn, transaction);
+            cmd.Parameters.AddWithValue("@Id", row.Id);
+            cmd.Parameters.AddWithValue("@Version", row.Version);
+            cmd.Parameters.AddWithValue("@ParentHolonId", row.ParentHolonId == Guid.Empty ? (object)DBNull.Value : row.ParentHolonId);
+            cmd.Parameters.AddWithValue("@HolonType", (int)row.HolonType);
+            cmd.Parameters.AddWithValue("@IsDeleted", row.IsDeleted);
+            cmd.Parameters.AddWithValue("@DataJson", Serialize(row));
+            if (await cmd.ExecuteNonQueryAsync(cancellationToken) != 1)
+                throw new InvalidOperationException("SQL Server holon upsert did not acknowledge exactly one row. The current version may be newer than the proposed version.");
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)

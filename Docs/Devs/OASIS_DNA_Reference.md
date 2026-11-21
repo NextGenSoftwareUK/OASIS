@@ -116,7 +116,7 @@ Complete documentation for every setting in `OASIS_DNA.json`. Status column indi
 | `DectivateProviderTimeOutSeconds` | `10` | ✅ | Max seconds to wait when gracefully closing a provider connection. |
 | `AutoReplicationEnabled` | `false` | ✅ | When `true`, writes are replicated to all providers in `AutoReplicationProviders`. Currently off — enabling will increase write latency and cost. |
 | `AutoFailOverEnabled` | `true` | ✅ | When a provider fails, automatically switches to the next available one. |
-| `AutoLoadBalanceEnabled` | `true` | ✅ | Distributes read requests across providers based on performance/availability. |
+| `AutoLoadBalanceEnabled` | `false` | ✅ | Distributes read requests across providers based on performance/availability. **Temporarily `false` in every deployed DNA (16 Nov 2026):** with it on, HyperDrive could accept a partial read from a replica and hide records. Turn it back on only after the HyperDrive parent-read fix. |
 | `AutoLoadBalanceReadPollIntervalMins` | `10` | ✅ | How often (minutes) the load balancer re-evaluates provider health for reads. |
 | `AutoLoadBalanceWritePollIntervalMins` | `10` | ✅ | Same for writes. |
 | `AutoReplicationProviders` | Long list | ✅ | Comma-separated providers that participate in auto-replication (when enabled). |

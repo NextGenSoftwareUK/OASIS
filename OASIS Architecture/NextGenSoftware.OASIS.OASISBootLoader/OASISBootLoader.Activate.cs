@@ -277,7 +277,17 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             return result;
         }
 
-        public static async Task<OASISResult<IOASISStorageProvider>> RegisterProviderAsync(ProviderType providerType, string overrideConnectionString = null, bool forceRegister = false, bool activateProviderIfOASISProviderBootTypeIsHot = true)
+        public static Task<OASISResult<IOASISStorageProvider>> RegisterProviderAsync(ProviderType providerType, string overrideConnectionString = null, bool forceRegister = false, bool activateProviderIfOASISProviderBootTypeIsHot = true)
+            => RegisterProviderAsync(providerType, overrideConnectionString, forceRegister,
+                activateProviderIfOASISProviderBootTypeIsHot, null);
+
+        public static Task<OASISResult<IOASISStorageProvider>> RegisterPolkadotPublicReaderAsync(string catalogue)
+            => RegisterProviderAsync(ProviderType.PolkadotOASIS, null, false, false,
+                catalogue ?? throw new ArgumentNullException(nameof(catalogue)));
+
+        private static async Task<OASISResult<IOASISStorageProvider>> RegisterProviderAsync(
+            ProviderType providerType, string overrideConnectionString, bool forceRegister,
+            bool activateProviderIfOASISProviderBootTypeIsHot, string polkadotPublicHeaderConfiguration)
         {
             OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
 
@@ -293,7 +303,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     }
                 }
 
-                result = RegisterProviderInternal(providerType, overrideConnectionString, forceRegister);
+                result = RegisterProviderInternal(providerType, overrideConnectionString, forceRegister,
+                    polkadotPublicHeaderConfiguration);
 
                 if (ProviderManager.Instance.OASISProviderBootType == OASISProviderBootType.Hot && activateProviderIfOASISProviderBootTypeIsHot)
                     await ProviderManager.Instance.ActivateProviderAsync(result.Result);

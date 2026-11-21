@@ -73,7 +73,7 @@ class ApplicationScopeTests(unittest.TestCase):
                 with self.assertRaises(ValueError):batch.application_keys(before,after)
 class DeploymentGuardTests(unittest.TestCase):
     def configuration(self):
-        return SimpleNamespace(CLI="existing-railway",COMMON=["-e","dev"])
+        return SimpleNamespace(CLI="existing-railway",DEPLOYMENT_SCOPE=["-e","dev"])
     def test_missing_reviewed_sha_never_observes_or_mutates_host(self):
         with patch.dict(batch.os.environ,{},clear=True),patch.object(batch.subprocess,"run") as run:
             with self.assertRaises(RuntimeError):batch.require_matching_release(self.configuration())
@@ -92,8 +92,8 @@ class DeploymentGuardTests(unittest.TestCase):
 
     def test_only_exact_successful_deployment_passes(self):
         for status,commit,accepted in [("SUCCESS","a"*40,True),("BUILDING","a"*40,False),("SUCCESS","b"*40,False)]:
-            with self.subTest(status=status,commit=commit),patch.dict(batch.os.environ,{"COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT":"a"*40}),patch.object(batch.subprocess,"run",side_effect=[SimpleNamespace(returncode=0,stdout="a"*40),SimpleNamespace(returncode=0,stdout=json.dumps([{"status":status,"meta":{"commitHash":commit}}]))]):
-                if accepted:batch.require_matching_release(self.configuration())
+            with self.subTest(status=status,commit=commit),patch.dict(batch.os.environ,{"COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT":"a"*40}),patch.object(batch.subprocess,"run",side_effect=[SimpleNamespace(returncode=0,stdout="a"*40),SimpleNamespace(returncode=0,stdout=json.dumps([{"id":"11111111-1111-4111-8111-111111111111","status":status,"meta":{"commitHash":commit}}]))]):
+                if accepted:self.assertEqual("11111111-1111-4111-8111-111111111111",batch.require_matching_release(self.configuration(),release_ref="reviewed"))
                 else:
                     with self.assertRaises(RuntimeError):batch.require_matching_release(self.configuration())
 

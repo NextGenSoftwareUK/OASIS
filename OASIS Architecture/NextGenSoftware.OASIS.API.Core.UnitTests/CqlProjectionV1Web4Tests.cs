@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public partial class CqlV1Web4Tests
 {
     private static Mock<ICosmicQueryProjectionStorageProvider> ProjectionAdapter(Source source, ProviderType type,
-        IReadOnlyList<CosmicProjectionRow> rows)
+        IReadOnlyList<CosmicProjectionRow> rows, IReadOnlyList<CosmicProjectionRow>? snapshotRows = null)
     {
         var adapter = source.Storage.As<ICosmicQueryProjectionStorageProvider>();
         adapter.SetupGet(value => value.QueryProviderType).Returns(type);
@@ -24,7 +24,10 @@ public partial class CqlV1Web4Tests
             new[] { typeof(long), typeof(long?), typeof(Guid), typeof(DateTime), typeof(HolonType) }));
         adapter.Setup(value => value.ExecuteCosmicProjectionAsync(
             It.IsAny<CosmicProjectionPlan<Holon, CosmicProjectionRecord>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new OASISResult<IReadOnlyList<CosmicProjectionRow>>(rows) { IsLoaded = true });
+            .Returns((CosmicProjectionPlan<Holon, CosmicProjectionRecord> plan, int count, int bytes, CancellationToken token) =>
+                Task.FromResult(new OASISResult<IReadOnlyList<CosmicProjectionRow>>(
+                    plan.Query.Columns.Count == 1 && plan.Query.Columns[0].Alias == "CqlSnapshotIdentity"
+                        ? snapshotRows ?? Array.Empty<CosmicProjectionRow>() : rows) { IsLoaded = true }));
         return adapter;
     }
 

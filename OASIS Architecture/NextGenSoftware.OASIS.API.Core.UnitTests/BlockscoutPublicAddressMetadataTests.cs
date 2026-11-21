@@ -16,7 +16,8 @@ public class BlockscoutPublicAddressMetadataTests
     {
         public string Fault = "";
         public List<string> Calls = new();
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
+        public TaskCompletionSource<bool>? ConcurrentReads;
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
             Assert.Equal(HttpMethod.Get, request.Method); Assert.Null(request.Content);
@@ -58,10 +59,15 @@ public class BlockscoutPublicAddressMetadataTests
             if (Fault == "duplicate") text = "{\"hash\":\"x\",\"hash\":\"y\"}";
             if (Fault == "oversize") text = new string(' ',1048577);
             bool denied = Fault == "http" || Fault == "last" && address == Addresses.Last();
-            return Task.FromResult(new HttpResponseMessage(denied ? HttpStatusCode.NotFound : HttpStatusCode.OK)
+            if (ConcurrentReads is { } gate)
+            {
+                if (Calls.Count == Addresses.Length) gate.TrySetResult(true);
+                await gate.Task.WaitAsync(token);
+            }
+            return new HttpResponseMessage(denied ? HttpStatusCode.NotFound : HttpStatusCode.OK)
             {
                 Content = new StringContent(text, Encoding.UTF8, "application/json")
-            });
+            };
         }
     }
 
@@ -77,17 +83,17 @@ public class BlockscoutPublicAddressMetadataTests
     public async Task CompleteAddressSelectionPreservesPrecisionAbsenceAndPrivacyOrFails(string scenario)
     {
         var native = new Native(); using var client = new HttpClient(native); var owner = Guid.NewGuid();
-        using var source = new BlockscoutPublicAddressMetadataSource(client, new Uri("https://example.invalid/api/v2/"), Addresses, owner);
+        using var source = new BlockscoutOASIS(client, new Uri("https://example.invalid/api/v2/"), Addresses, owner);
         if (scenario != "inactive") Assert.False((await source.ActivateQuerySourceAsync(default)).IsError);
         native.Calls.Clear(); native.Fault = scenario == "empty-window-error" ? "last" : scenario;
         var keys = scenario == "subset" ? Addresses.Take(2).ToArray() : scenario == "unknown" ? new[] { "0x"+new string('9',40) } : Addresses;
         var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.BlockscoutOASIS).Result)
-            .Where(row => keys.Contains(CosmicQueryMetadata.Value<string>(row, BlockscoutPublicAddressMetadataSource.AddressMetadata))).Result;
+            .Where(row => keys.Contains(CosmicQueryMetadata.Value<string>(row, BlockscoutOASIS.AddressMetadata))).Result;
         if (scenario == "point")
         {
             string key = Addresses[0];
             query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.BlockscoutOASIS).Result)
-                .Where(row => CosmicQueryMetadata.Value<string>(row, BlockscoutPublicAddressMetadataSource.AddressMetadata) == key).Result;
+                .Where(row => CosmicQueryMetadata.Value<string>(row, BlockscoutOASIS.AddressMetadata) == key).Result;
         }
         if (scenario == "window") query = query.Skip(1).Result.Take(1).Result;
         if (scenario == "empty-window-error") query = query.Take(0).Result;
@@ -126,14 +132,29 @@ public class BlockscoutPublicAddressMetadataTests
     }
 
     [Fact]
+    public async Task ActivationStartsAllThreeReadsBeforeAwaitingResponses()
+    {
+        var native = new Native { ConcurrentReads = new(TaskCreationOptions.RunContinuationsAsynchronously) };
+        using var client = new HttpClient(native);
+        using var source = new BlockscoutOASIS(
+            client, new Uri("https://example.invalid/api/v2/"), Addresses, Guid.NewGuid());
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+
+        var result = await source.ActivateQuerySourceAsync(deadline.Token);
+
+        Assert.False(result.IsError, result.Exception?.ToString());
+        Assert.Equal(Addresses, native.Calls);
+    }
+
+    [Fact]
     public async Task UnsupportedContentQueriesAndNativeWritesNeverDispatch()
     {
         var native = new Native(); using var client = new HttpClient(native);
-        using var source = new BlockscoutPublicAddressMetadataSource(client, new Uri("https://example.invalid/api/v2/"), Addresses, Guid.NewGuid());
+        using var source = new BlockscoutOASIS(client, new Uri("https://example.invalid/api/v2/"), Addresses, Guid.NewGuid());
         var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.BlockscoutOASIS).Result).Where(h => h.Name == "anything").Result;
         Assert.True(CosmicQueryPlanner.Plan(query, ProviderType.BlockscoutOASIS,
             new[] { new CosmicQueryTarget(ProviderType.BlockscoutOASIS, source.QueryCapabilities) }).IsError);
-        Assert.True((await source.SaveHolonAsync(new Holon { Id = Guid.NewGuid(), IsNewHolon = true }, saveChildren: false)).IsError);
+        Assert.True((await source.SaveHolonAsync(new Holon { Id = Guid.NewGuid(), IsNewHolon = true }, false)).IsError);
         Assert.True((await source.DeleteHolonAsync(Guid.NewGuid())).IsError);
         Assert.Empty(native.Calls);
     }
@@ -154,7 +175,7 @@ public class BlockscoutPublicAddressMetadataTests
             "credential" => "https://inert:inert@example.invalid/api/v2/", "query" => "https://example.invalid/api/v2/?key=inert",
             _ => "https://example.invalid/api/v2/"
         };
-        Assert.Throws<ArgumentException>(() => new BlockscoutPublicAddressMetadataSource(client, new Uri(url), keys, fault == "owner" ? Guid.Empty : Guid.NewGuid()));
+        Assert.Throws<ArgumentException>(() => new BlockscoutOASIS(client, new Uri(url), keys, fault == "owner" ? Guid.Empty : Guid.NewGuid()));
         Assert.Empty(native.Calls);
     }
 
@@ -162,15 +183,15 @@ public class BlockscoutPublicAddressMetadataTests
     public async Task SeparateExplorerInstancesCannotAliasTheSameOwnerAddressIdentity()
     {
         using var client = new HttpClient(new Native()); var owner = Guid.NewGuid();
-        using var first = new BlockscoutPublicAddressMetadataSource(client, new Uri("https://one.invalid/api/v2/"), Addresses, owner);
-        using var second = new BlockscoutPublicAddressMetadataSource(client, new Uri("https://two.invalid/api/v2/"), Addresses, owner);
+        using var first = new BlockscoutOASIS(client, new Uri("https://one.invalid/api/v2/"), Addresses, owner);
+        using var second = new BlockscoutOASIS(client, new Uri("https://two.invalid/api/v2/"), Addresses, owner);
         Assert.False((await first.ActivateQuerySourceAsync(default)).IsError);
         Assert.False((await second.ActivateQuerySourceAsync(default)).IsError);
-        async Task<Guid> Id(BlockscoutPublicAddressMetadataSource source)
+        async Task<Guid> Id(BlockscoutOASIS source)
         {
             string key = Addresses[0];
             var q = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.BlockscoutOASIS).Result)
-                .Where(h => CosmicQueryMetadata.Value<string>(h, BlockscoutPublicAddressMetadataSource.AddressMetadata) == key).Result;
+                .Where(h => CosmicQueryMetadata.Value<string>(h, BlockscoutOASIS.AddressMetadata) == key).Result;
             var plan = CosmicQueryPlanner.Plan(q, ProviderType.BlockscoutOASIS, new[] { new CosmicQueryTarget(ProviderType.BlockscoutOASIS, source.QueryCapabilities) });
             var r = await source.ExecuteCosmicQueryAsync(plan.Result);
             Assert.False(r.IsError, r.Exception?.ToString()); return Assert.Single(r.Result).Id;

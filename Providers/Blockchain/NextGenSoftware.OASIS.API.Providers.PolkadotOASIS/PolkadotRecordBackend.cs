@@ -8,7 +8,9 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS;
@@ -42,6 +44,40 @@ public sealed class PolkadotRecordBackend : IConditionalKeyValueBackend
         Func<string, string, PreparedSubmissionServer> factory, CancellationToken token = default)
         => _owner.RunAsync(action, factory, token);
 
+    internal Task<T> ExecutePreparedAsync<T>(Func<Task<T>> action, UsageExecutionHandle execution,
+        string clientRequestId, string expectedSender, CancellationToken token)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        ArgumentNullException.ThrowIfNull(execution);
+        token.ThrowIfCancellationRequested();
+        if (!string.Equals(expectedSender, _sender, StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("Expected Polkadot signer must equal the configured record owner.", nameof(expectedSender));
+        if (execution.RequiresVerifiedNativeFeeMaximums)
+            throw new UsageProtocolException("POLKADOT_VERIFIED_FEE_MAXIMUM_REQUIRED",
+                "Polkadot partialFee is an estimate. Aggregate sponsored admission requires a verified total fee ceiling.", 400);
+
+        var correlation = new NativeStorageCorrelation(clientRequestId);
+        return WithPreparationAsync(action, (operation, key) =>
+        {
+            var encodedKey = Encode(key, 1024, false);
+            return new PreparedSubmissionServer(execution.NativePreparationPersistence(
+                "PolkadotOASIS", null, correlation.Next(), _genesis, _sender, async (evidence, ct) =>
+                {
+                    var request = Request("verifyRecordPreparation");
+                    request["preparation"] = evidence;
+                    var verified = await _invoke(request, ct, null).ConfigureAwait(false);
+                    if (!verified.GetProperty("verified").GetBoolean()
+                        || verified.GetProperty("transactionHash").GetString() != evidence.GetProperty("transactionHash").GetString()
+                        || verified.GetProperty("chainId").GetString() != _genesis
+                        || verified.GetProperty("sender").GetString() != _sender
+                        || verified.GetProperty("contractAddress").GetString() != _contract
+                        || verified.GetProperty("contractCodeHash").GetString() != _code
+                        || verified.GetProperty("action").GetString() != operation
+                        || verified.GetProperty("keyBase64").GetString() != encodedKey)
+                        throw new InvalidDataException("The signed Polkadot record original differs from the admitted contract mutation.");
+                }));
+        }, token);
+    }
     private Dictionary<string, object> Request(string operation) => new()
     {
         ["operation"] = operation, ["endpoint"] = _endpoint, ["genesisHash"] = _genesis,

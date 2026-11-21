@@ -64,8 +64,19 @@ public partial class Neo4jOASIS : ICosmicQueryGroupedStorageProvider
                 | CosmicQueryFeatures.MixedNumericComparison | CosmicQueryFeatures.FieldComparison,
                 keys.Select(Scalar).ToArray(), aggregates.Select(value =>
                     new CosmicGroupedAggregateFilteringCapability(value.Operation, Scalar(value.ValueType))).ToArray());
+            // Distinct equality is enrolled independently from ordinary participation counts.
+            var distinctTypes = new[] { typeof(Guid), typeof(Guid?), typeof(string), typeof(bool), typeof(bool?),
+                typeof(int), typeof(int?), typeof(long), typeof(long?),
+                typeof(float), typeof(float?), typeof(double), typeof(double?) };
+            var distinct = new CosmicProjectionCapabilities(
+                CqlProjectionCapabilities.CanonicalFields.Where(field => distinctTypes.Contains(field.ValueType)).ToArray(),
+                CqlProjectionCapabilities.MetadataTypes.Where(distinctTypes.Contains).ToArray(),
+                CqlProjectionCapabilities.MaximumColumns);
+            if (CqlProjectionCapabilities.MetadataRootKeys != null)
+                distinct = distinct.WithMetadataRoots(CqlProjectionCapabilities.MetadataRootKeys);
             return new CosmicGroupedCapabilities(CqlProjectionCapabilities, aggregateCapabilities,
-                new CosmicGroupedOrderingCapabilities(keys, aggregates), supportsResultPaging: true, filtering: filters);
+                new CosmicGroupedOrderingCapabilities(keys, aggregates), supportsResultPaging: true, filtering: filters,
+                selectedCountCapabilities: CqlProjectionCapabilities, distinctSelectedCountCapabilities: distinct);
         }
     }
     public static CosmicGroupedCapabilities CqlGroupedCapabilities => GroupContract.Value;

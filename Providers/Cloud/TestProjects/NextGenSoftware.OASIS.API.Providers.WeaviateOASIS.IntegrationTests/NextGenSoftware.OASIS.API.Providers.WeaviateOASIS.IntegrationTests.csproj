@@ -13,6 +13,7 @@
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
     <ProjectReference Include="..\..\..\Storage\NextGenSoftware.OASIS.API.Providers.WeaviateOASIS\NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.csproj" />
   </ItemGroup>
 </Project>

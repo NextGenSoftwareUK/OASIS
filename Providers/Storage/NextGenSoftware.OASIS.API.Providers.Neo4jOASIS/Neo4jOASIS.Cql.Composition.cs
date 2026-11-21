@@ -10,13 +10,14 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
-public partial class Neo4jOASIS : ICosmicQueryProjectedAllStorageProvider, ICosmicQueryEntityProjectionCardinalityStorageProvider, ICosmicQueryEntityProjectedAllStorageProvider
+public partial class Neo4jOASIS : ICosmicQueryProjectedAllStorageProvider, ICosmicQueryEntityProjectionCardinalityStorageProvider, ICosmicQueryEntityProjectionNumericStorageProvider, ICosmicQueryEntityProjectedAllStorageProvider
 {
     public bool SupportsEntityProjectedAll=>true;
     public Task<OASISResult<CosmicProjectedAllPacket>> ExecuteCosmicEntityProjectedAllAsync<T,TResult>(
         CosmicProjectedAllPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,CancellationToken cancellationToken=default) where T:IHolon
         => ExecuteProjectedAllReadAsync(plan,limits,cancellationToken,true);
 
+    public bool SupportsEntityProjectionNumeric => true;
     public bool SupportsEntityProjectionCardinality=>true;
     public bool SupportsEntityProjectionComposition=>true;
     public async Task<OASISResult<CosmicProjectionCompositionPacket>> ExecuteCosmicEntityProjectionCompositionAsync<T,TResult>(
@@ -42,7 +43,7 @@ public partial class Neo4jOASIS : ICosmicQueryProjectedAllStorageProvider, ICosm
     private static class CompositionContract
     {
         internal static readonly CosmicProjectionCompositionCapabilities Value = new(
-            CosmicSelectedStageFeatures.Filter | CosmicSelectedStageFeatures.Ordering | CosmicSelectedStageFeatures.Paging | CosmicSelectedStageFeatures.Reverse,
+            CosmicSelectedStageFeatures.Filter | CosmicSelectedStageFeatures.Ordering | CosmicSelectedStageFeatures.Paging | CosmicSelectedStageFeatures.Reverse | CosmicSelectedStageFeatures.Distinct,
             CqlGroupedCapabilities.FilteringCapabilities.Features, CqlGroupedCapabilities.FilteringCapabilities.Keys,
             CqlGroupedCapabilities.OrderingCapabilities.KeyTypes, 32, supportsAll: true, supportsCardinality: true, numericReductions: SelectedNumericContract.Value, extremaDomains: CqlGroupedCapabilities.OrderingCapabilities.KeyTypes);
     }

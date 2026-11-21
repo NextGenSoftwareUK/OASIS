@@ -21,31 +21,71 @@ internal sealed partial class MongoCqlTranslator
     // This compiler does not enroll joins. A single snapshot owner must validate
     // both complete proof streams before executing the native matching stream.
     internal MongoCqlJoinCommand CompileJoin<TLeft, TRight, TKey, TResult>(
-        CosmicJoinSelection<TLeft, TRight, TKey, TResult> query, CosmicJoinExecutionLimits limits)
+        CosmicJoinSelection<TLeft, TRight, TKey, TResult> query, CosmicJoinExecutionLimits limits,
+        IReadOnlyList<Guid> admittedParents = null)
         where TLeft : IHolon where TRight : IHolon
     {
         if (query == null || limits == null || limits.Admit(query.Join.Options).IsError)
             throw new ArgumentException("Join selection and admitted remaining limits are required.");
         var left = Source(query.Join.Left, true, limits.MaximumLeftRows);
+        if (query.Join.RestrictsRightToLeftParents && admittedParents == null)
+            return new MongoCqlJoinCommand(left, null, Array.Empty<BsonDocument>());
         var right = Source(query.Join.Right, false, limits.MaximumRightRows);
         var pairs = Plain(left);
         var lookup = Plain(right);
         var bindings = new BsonDocument();
         var equality = new List<BsonValue>();
+        var reverse = new List<BsonValue>();
         for (var index = 0; index < query.Join.Keys.Count; index++)
         {
             var key = "k" + index;
             bindings.Add(key, "$" + key);
-            equality.Add(Op("$and", Op("$eq", "$$" + key + ".rank", Literal(2)),
-                Op("$eq", "$" + key + ".rank", Literal(2)),
-                Op("$eq", "$$" + key + ".value", "$" + key + ".value")));
+            var operation = query.Join.Keys[index].Comparison;
+            var comparison = operation switch
+            {
+                CosmicJoinComparison.Equal or CosmicJoinComparison.NullSafeEqual => "$eq",
+                CosmicJoinComparison.NotEqual or CosmicJoinComparison.NullSafeNotEqual => "$ne",
+                CosmicJoinComparison.LessThan => "$lt",
+                CosmicJoinComparison.LessThanOrEqual => "$lte",
+                CosmicJoinComparison.GreaterThan => "$gt",
+                CosmicJoinComparison.GreaterThanOrEqual => "$gte",
+                _ => throw new NotSupportedException("Unknown native join comparison.")
+            };
+            var variable = "$$" + key;
+            var document = "$" + key;
+            equality.Add(PairComparison(variable,document));
+            reverse.Add(PairComparison(document,variable));
+
+            BsonValue PairComparison(string leftCell,string rightCell)
+            {
+                var leftPresent = Op("$eq", leftCell + ".rank", Literal(2));
+                var rightPresent = Op("$eq", rightCell + ".rank", Literal(2));
+                var bothPresent = Op("$and",leftPresent,rightPresent);
+                var matchedValues = Op(comparison,leftCell + ".value",rightCell + ".value");
+                return operation is CosmicJoinComparison.NullSafeEqual or CosmicJoinComparison.NullSafeNotEqual
+                    ? Op("$cond",bothPresent,matchedValues,Op(comparison,leftPresent.DeepClone(),rightPresent.DeepClone()))
+                    : Op("$and",bothPresent,matchedValues);
+            }
         }
+        BsonValue CombineKeys(IReadOnlyList<BsonValue> values) => query.Join.CombineKeyPredicates(
+            values, group => Op("$and", group), groups => Op("$or", groups));
         // Matching follows the right source's window, not its unpaged collection.
-        lookup.Add(new("$match", new BsonDocument("$expr", Op("$and", equality.ToArray()))));
+        if (query.Join.Kind != CosmicJoinKind.Cross)
+            lookup.Add(new("$match", new BsonDocument("$expr", CombineKeys(equality))));
+        var selectedOrders = query.OutputOrdering.Select((term, index) =>
+        {
+            var column = query.Columns[term.Column];
+            return (Key: "outputOrder" + index, OnLeft: column.Source == CosmicJoinColumnSource.Left,
+                Cell: query.Columns.Take(term.Column).Count(item => item.Source == column.Source), term.Descending);
+        }).ToArray();
         var rightProjection = new BsonDocument { { "_id", 0 }, { "id", 1 } };
+        foreach (var order in selectedOrders.Where(term => !term.OnLeft))
+            rightProjection.Add(order.Key, OutputOrderValue("$values", order.Cell));
         for (var index = 0; index < query.Join.Right.Orderings.Count; index++) rightProjection.Add("o" + index, 1);
         lookup.Add(new("$project", rightProjection));
-        var pairLimit = Math.Min(limits.MaximumPairs, (long)limits.MaximumResults) + 1;
+        var pairLimit = (query.OutputLimit.HasValue
+            ? limits.MaximumPairs
+            : Math.Min(limits.MaximumPairs, (long)limits.MaximumResults)) + 1;
         lookup.Add(new("$limit", pairLimit));
         pairs.Add(new("$lookup", new BsonDocument
         {
@@ -53,22 +93,121 @@ internal sealed partial class MongoCqlTranslator
         }));
         pairs.Add(new("$unwind", new BsonDocument
         {
-            { "path", "$matched" }, { "preserveNullAndEmptyArrays", query.Join.Kind == CosmicJoinKind.Left }
+            { "path", "$matched" }, { "preserveNullAndEmptyArrays", query.Join.Kind is CosmicJoinKind.Left or CosmicJoinKind.Full }
         }));
         var projection = new BsonDocument
         {
             { "_id", 0 }, { "left", "$id" }, { "right", Op("$ifNull", "$matched.id", Literal(BsonNull.Value)) }
         };
         var sort = new BsonDocument();
+        foreach (var order in selectedOrders)
+        {
+            projection.Add(order.Key, order.OnLeft
+                ? OutputOrderValue("$values", order.Cell)
+                : Op("$ifNull", "$matched." + order.Key, Literal(BsonNull.Value)));
+            sort.Add(order.Key, order.Descending ? -1 : 1);
+        }
+        if (query.Join.Kind == CosmicJoinKind.Full)
+        {
+            projection.Add("leftPresent", Literal(true));
+            sort.Add("leftPresent", -1);
+        }
         PairOrdering(query.Join.Left, "l", false);
         sort.Add("left", 1);
         PairOrdering(query.Join.Right, "r", true);
         sort.Add("right", 1);
         pairs.Add(new("$project", projection));
-        pairs.Add(new("$sort", sort));
-        pairs.Add(new("$limit", pairLimit));
-        pairs.Add(CountWindow());
-        pairs.Add(new("$sort", (BsonDocument)sort.DeepClone()));
+        if (query.Join.Kind == CosmicJoinKind.Full)
+        {
+            // Match from the right window against the same left window at the session's snapshot time.
+            // Only an existence probe is needed to exclude right rows already emitted by the left join.
+            var antiProbe = Plain(left);
+            antiProbe.Add(new("$match", new BsonDocument("$expr", CombineKeys(reverse))));
+            antiProbe.Add(new("$project", new BsonDocument { { "_id", 0 }, { "id", 1 } }));
+            antiProbe.Add(new("$limit", 1));
+            var unmatchedRight = Plain(right);
+            unmatchedRight.Add(new("$lookup", new BsonDocument
+            {
+                { "from", "Holon" }, { "let", bindings.DeepClone() },
+                { "pipeline", new BsonArray(antiProbe) }, { "as", "matched" }
+            }));
+            unmatchedRight.Add(new("$match", new BsonDocument("matched.0", new BsonDocument("$exists", false))));
+            unmatchedRight.Add(new("$limit", pairLimit));
+            var rightOnly = new BsonDocument
+            {
+                { "_id", 0 }, { "leftPresent", Literal(false) },
+                { "left", Literal(BsonNull.Value) }, { "right", "$id" }
+            };
+            foreach (var order in selectedOrders)
+                rightOnly.Add(order.Key, order.OnLeft ? Literal(BsonNull.Value) : OutputOrderValue("$values", order.Cell));
+            for (var index = 0; index < query.Join.Left.Orderings.Count; index++)
+                rightOnly.Add("l" + index, Literal(BsonNull.Value));
+            for (var index = 0; index < query.Join.Right.Orderings.Count; index++)
+                rightOnly.Add("r" + index, "$o" + index);
+            unmatchedRight.Add(new("$project", rightOnly));
+            pairs.Add(new("$unionWith", new BsonDocument
+                { { "coll", "Holon" }, { "pipeline", new BsonArray(unmatchedRight) } }));
+        }
+        if (query.OutputLimit is int requestedLimit)
+        {
+            var page = new List<BsonDocument>();
+            if (requestedLimit == 0)
+                page.Add(new("$match", new BsonDocument("$expr", Literal(false))));
+            else if (query.OutputFromEnd > 0)
+            {
+                page.Add(new("$setWindowFields", new BsonDocument
+                {
+                    { "sortBy", sort },
+                    { "output", new BsonDocument
+                    {
+                        // The full sort tuple includes deterministic tie breakers.
+                        { "position", new BsonDocument
+                        {
+                            { "$sum", 1 },
+                            { "window", new BsonDocument("documents", new BsonArray { "unbounded", "current" }) }
+                        } },
+                        { "pairCount", new BsonDocument
+                        {
+                            { "$count", new BsonDocument() },
+                            { "window", new BsonDocument("documents", new BsonArray { "unbounded", "unbounded" }) }
+                        } }
+                    } }
+                }));
+                BsonValue end = query.OutputTailWindowLimit is int window
+                    ? new BsonDocument("$min", new BsonArray { "$pairCount", (long)query.OutputOffset + window })
+                    : new BsonString("$pairCount");
+                var position = new BsonDocument("$subtract", new BsonArray { end, query.OutputFromEnd - 1 });
+                page.Add(new("$match", new BsonDocument("$expr", new BsonDocument("$and", new BsonArray
+                {
+                    new BsonDocument("$eq", new BsonArray { "$position", position }),
+                    new BsonDocument("$gt", new BsonArray { "$position", query.OutputOffset })
+                }))));
+            }
+            else
+            {
+                page.Add(new("$sort", sort));
+                if (query.OutputOffset != 0) page.Add(new("$skip", query.OutputOffset));
+                page.Add(new("$limit", requestedLimit));
+            }
+            page.Add(new("$project", new BsonDocument { { "_id", 0 }, { "left", 1 }, { "right", 1 } }));
+            pairs.Add(new("$limit", pairLimit));
+            pairs.Add(new("$facet", new BsonDocument
+            {
+                { "total", new BsonArray { new BsonDocument("$count", "count") } },
+                { "page", new BsonArray(page) }
+            }));
+        }
+        else
+        {
+            pairs.Add(new("$sort", sort));
+            pairs.Add(new("$limit", pairLimit));
+            pairs.Add(CountWindow());
+            pairs.Add(new("$sort", (BsonDocument)sort.DeepClone()));
+            var hidden = new BsonDocument();
+            if (query.Join.Kind == CosmicJoinKind.Full) hidden.Add("leftPresent", 0);
+            foreach (var order in selectedOrders) hidden.Add(order.Key, 0);
+            if (hidden.ElementCount != 0) pairs.Add(new("$project", hidden));
+        }
         ValidatePipeline(pairs);
         return new MongoCqlJoinCommand(left, right, pairs.ToArray());
 
@@ -91,6 +230,8 @@ internal sealed partial class MongoCqlTranslator
         MongoCqlProjectionCommand Source<T>(CosmicQuery<T> source, bool isLeft, int maximumRows) where T : IHolon
         {
             var pipeline = CompileSource(source, out var traverses);
+            if (!isLeft && query.Join.RestrictsRightToLeftParents)
+                pipeline.InsertRange(0, ScopedChildSource(admittedParents));
             var fetch = source.Limit.HasValue ? Math.Min(source.Limit.Value, maximumRows + 1) : maximumRows + 1;
             var page = SelectedWindow(source, fetch);
             var proof = new BsonDocument
@@ -127,6 +268,45 @@ internal sealed partial class MongoCqlTranslator
             var membership = source.Predicates.Any(HasRelationships);
             return new MongoCqlProjectionCommand(pipeline.ToArray(), membership, true, traverses, fetch == 0);
         }
+
+        static BsonDocument[] ScopedChildSource(IReadOnlyList<Guid> parents)
+        {
+            const string admittedParent = "cqlJoinParent";
+            BsonValue Id(string field) => Op("$toLower", Op("$ifNull", "$" + field, Literal("")));
+            var ids = new BsonArray(parents.Select(parent => parent.ToString("D")));
+            var membership = Op("$or",
+                Op("$eq", "$CosmicCqlMembership.declared", Literal(false)),
+                Op("$in", "$$joinChild", Op("$ifNull", "$CosmicCqlMembership.members", Literal(new BsonArray()))));
+            return new BsonDocument[]
+            {
+                new("$match", new BsonDocument("$expr", Op("$and",
+                    Op("$in", Id("ParentHolonId"), Literal(ids)),
+                    Op("$ne", Id("HolonId"), Id("ParentHolonId"))))),
+                new("$lookup", new BsonDocument
+                {
+                    { "from", "Holon" },
+                    { "let", new BsonDocument { { "joinParent", Id("ParentHolonId") }, { "joinChild", Id("HolonId") } } },
+                    { "pipeline", new BsonArray
+                        {
+                            new BsonDocument("$match", new BsonDocument("$expr", Op("$and",
+                                Op("$eq", Id("HolonId"), "$$joinParent"), membership))),
+                            new BsonDocument("$project", new BsonDocument("_id", 1)),
+                            new BsonDocument("$limit", 1)
+                        }
+                    },
+                    { "as", admittedParent }
+                }),
+                new("$match", new BsonDocument(admittedParent + ".0", new BsonDocument("$exists", true))),
+                new("$unset", admittedParent)
+            };
+        }
+
+        static BsonValue OutputOrderValue(string path, int index)
+            => new BsonDocument("$let", new BsonDocument
+            {
+                { "vars", new BsonDocument("cell", Op("$arrayElemAt", path, Literal(index))) },
+                { "in", Op("$cond", Op("$eq", "$$cell.s", Literal(2)), "$$cell.v", Literal(BsonNull.Value)) }
+            });
 
         static BsonDocument CountWindow() => new("$setWindowFields", new BsonDocument("output",
             new BsonDocument("nativeCount", new BsonDocument

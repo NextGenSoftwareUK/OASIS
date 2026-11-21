@@ -6,7 +6,7 @@ using Xunit;
 
 namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.IntegrationTests;
 
-public class TronNativeStorageLifecycleTests
+public partial class TronNativeStorageLifecycleTests
 {
     [NativeLifecycleTheory]
     [InlineData(false)]
@@ -77,6 +77,15 @@ public class TronNativeStorageLifecycleTests
             storageContractAddress: contract,
             storageOwnerAddress: owner,
             contractFeeLimitSun: fresh ? 1000000000 : 100000000);
+#if TRON_ROUTING_TESTS
+        if (Environment.GetEnvironmentVariable("OASIS_TRON_FRESH_ROUTING") == "1")
+        {
+            Assert.True(fresh);
+            await VerifyRoutingAsync(provider, fullNode, solidityNode, network, chainId, genesis,
+                contract!, owner!, synchronous);
+            return;
+        }
+#endif
         var report = await CoreStorageConformance.RunAsync(provider, nameof(TRONOASIS), "native",
             synchronous, result => fresh && result.Succeeded ? Task.CompletedTask : Checkpoint(result),
             expectedDefaultDeletion: "absent");

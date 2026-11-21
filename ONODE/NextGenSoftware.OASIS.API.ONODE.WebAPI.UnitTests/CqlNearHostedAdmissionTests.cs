@@ -33,10 +33,11 @@ public class CqlNearHostedAdmissionTests
     }
 
     [Fact]
-    public async Task PublicAccountPresetsPlanNativeThreeTwoAndMongoPairsWithoutWallets()
+    public async Task ShippingNearProviderPlansPublicThreeTwoAndMongoPairs()
     {
         var keys = new[] { "near", "wrap.near", "aurora" };
-        using var source = NearPublicAccountMetadataSource.FromJson(JsonSerializer.Serialize(new {
+        var source = new NEAROASIS();
+        source.ConfigurePublicAccountQuery(JsonSerializer.Serialize(new {
             schema=1,rpcUrl="https://rpc.example.invalid/",networkId="mainnet",accounts=keys,sourceOwner=Guid.NewGuid()}));
         var rows = new List<object>();
         foreach (var count in new[] { 3, 2 })
@@ -77,7 +78,7 @@ public class CqlNearHostedAdmissionTests
 
     private sealed class ReadyRegistry(NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider source) : ICqlHostedSourceRegistry
     {
-        public NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider Find(ProviderType provider)
+        public NextGenSoftware.OASIS.API.Core.Interfaces.IOASISProvider Find(ProviderType provider)
             => provider == ProviderType.NEAROASIS ? source : null!;
         public Task ActivateReadSourceAsync(ProviderType provider, CancellationToken token)
         {

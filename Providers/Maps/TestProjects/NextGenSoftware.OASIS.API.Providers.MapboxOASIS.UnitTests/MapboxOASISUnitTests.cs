@@ -1,111 +1,30 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NextGenSoftware.OASIS.API.Providers.MapboxOASIS;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Contracts.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.UnitTests
+namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.UnitTests;
+
+[TestClass]
+public sealed class MapboxOASISProviderTests
 {
-    [TestClass]
-    public class MapboxOASISProviderTests
+    [TestMethod]
+    public void ExposesMapboxMapIdentity()
     {
-        private MapboxOASIS _provider;
+        var provider = new MapBoxOASIS();
 
-        [TestInitialize]
-        public void Setup()
-        {
-            _provider = new MapboxOASIS();
-        }
+        Assert.AreEqual(MapProviderType.MapBox, provider.MapProviderType);
+        Assert.AreEqual("MapBox", provider.MapProviderName);
+        Assert.IsFalse(string.IsNullOrWhiteSpace(provider.MapProviderDescription));
+    }
 
-        [TestMethod]
-        public void ProviderType_ShouldBeMapboxOASIS()
-        {
-            // Arrange & Act
-            var providerType = _provider.ProviderType;
+    [TestMethod]
+    public async Task RejectsUnsupportedTravelModeBeforeSendingRequest()
+    {
+        IOASISRoutingProvider provider = new MapBoxOASIS();
 
-            // Assert
-            Assert.AreEqual(ProviderType.MapboxOASIS, providerType);
-        }
-
-        [TestMethod]
-        public void IsProviderActivated_ShouldBeFalseInitially()
-        {
-            // Arrange & Act
-            var isActivated = _provider.IsProviderActivated;
-
-            // Assert
-            Assert.IsFalse(isActivated);
-        }
-
-        [TestMethod]
-        public void ProviderName_ShouldBeMapboxOASIS()
-        {
-            // Arrange & Act
-            var providerName = _provider.ProviderName;
-
-            // Assert
-            Assert.AreEqual("MapboxOASIS", providerName);
-        }
-
-        [TestMethod]
-        public void ProviderDescription_ShouldNotBeEmpty()
-        {
-            // Arrange & Act
-            var description = _provider.ProviderDescription;
-
-            // Assert
-            Assert.IsNotNull(description);
-            Assert.IsFalse(string.IsNullOrEmpty(description));
-        }
-
-        [TestMethod]
-        public void ActivateProvider_ShouldSetIsProviderActivatedToTrue()
-        {
-            // Arrange
-            Assert.IsFalse(_provider.IsProviderActivated);
-
-            // Act
-            var result = _provider.ActivateProvider();
-
-            // Assert
-            Assert.IsTrue(result.IsError == false);
-            Assert.IsTrue(_provider.IsProviderActivated);
-        }
-
-        [TestMethod]
-        public void DeActivateProvider_ShouldSetIsProviderActivatedToFalse()
-        {
-            // Arrange
-            _provider.ActivateProvider();
-            Assert.IsTrue(_provider.IsProviderActivated);
-
-            // Act
-            var result = _provider.DeActivateProvider();
-
-            // Assert
-            Assert.IsTrue(result.IsError == false);
-            Assert.IsFalse(_provider.IsProviderActivated);
-        }
-
-        [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
-        {
-            // Arrange & Act
-            var version = _provider.GetProviderVersion();
-
-            // Assert
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            if (_provider != null && _provider.IsProviderActivated)
-            {
-                _provider.DeActivateProvider();
-            }
-        }
+        await Assert.ThrowsExceptionAsync<ArgumentOutOfRangeException>(() => provider.ComputeRouteAsync(
+            new RoutingCoordinate(52.517037, 13.388860),
+            new RoutingCoordinate(52.529407, 13.397634),
+            (RoutingType)(-1)));
     }
 }

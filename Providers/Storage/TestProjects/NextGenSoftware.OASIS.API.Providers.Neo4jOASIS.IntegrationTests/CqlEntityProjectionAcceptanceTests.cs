@@ -17,19 +17,37 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         public ulong Unsigned {get;set;}
         public decimal Amount {get;set;}
     }
+    private sealed record NativeProjectionRecord(string Name, long Precision)
+    {
+        public int Revision { get; init; }
+    }
+
+    private sealed record NestedProjectionEnvelope(NativeProjectionRecord Detail)
+    {
+        public string Label { get; init; } = "";
+    }
+
     private static Holon CreateEntityProjectionFixture(Guid[] ids,Guid actor,Guid other)
     {
-        var root=new Holon{Id=ids[0],Name="protected source root",CreatedByAvatarId=actor,IsPublic=true,Version=1,
-            MetaData=new(){["i64"]=9007199254740993L,["u64"]=ulong.MaxValue,["decimal"]=1.0000000000000000000000000001m,["text"]="Café 😀"}};
-        root.Children.Add(new Holon{Id=ids[1],ParentHolonId=root.Id,Name="visible match",CreatedByAvatarId=actor,IsPublic=true,Version=1});
-        var branch=new Holon{Id=ids[2],ParentHolonId=root.Id,Name="private branch",CreatedByAvatarId=other,Version=1};
-        branch.Children.Add(new Holon{Id=ids[3],ParentHolonId=branch.Id,Name="grandchild one",CreatedByAvatarId=other,IsPublic=true,Version=1});
-        branch.Children.Add(new Holon{Id=ids[4],ParentHolonId=branch.Id,Name="grandchild two",CreatedByAvatarId=other,IsPublic=true,Version=1});
+        var root=new Holon{Id=ids[0],Name="protected source root",Description="Case",CreatedByAvatarId=actor,IsPublic=true,Version=1,
+            MetaData=new(){["nullableJoinFlag"]=true,["nullableJoinGuid"]=ids[0],["caseJoinGuid"]="01234567-89ab-cdef-abcd-0123456789ab",["i64"]=9007199254740993L,["narrow"]=1,["u32"]=uint.MaxValue,["distinctHolonType"]=(int)HolonType.Avatar,["distinctProviderType"]=(int)ProviderType.MongoDBOASIS,["distinctUtc"]=new DateTime(638700000000000001L,DateTimeKind.Utc),["u64"]=ulong.MaxValue,["decimal"]=1.0000000000000000000000000001m,["float"]=1f+1.1920929e-7f,["double"]=1d+2.220446049250313e-16d,["presentNull"]=null,["text"]="Café 😀"}};
+        root.MetaData["lengthProjectionNul"] = "ab\0😀";
+        root.MetaData["lengthProjectionEmpty"] = "";
+        root.MetaData["catalog.v1"] = "literal";
+        root.MetaData["catalog"] = new Dictionary<string, object> { ["v1"] = "nested" };
+        root.Children.Add(new Holon{Id=ids[1],ParentHolonId=root.Id,Name="visible match",Description="Case",CreatedByAvatarId=actor,IsPublic=true,Version=1,
+            MetaData=new(){["nullableJoinFlag"]=false,["nullableJoinGuid"]=ids[1],["caseJoinGuid"]="01234567-89AB-CDEF-ABCD-0123456789AB",["i64"]=9007199254740992L,["narrow"]=2,["u32"]=uint.MaxValue-1,["float"]=1f,["double"]=1d,["distinctHolonType"]=(int)HolonType.Quest,["distinctProviderType"]=(int)ProviderType.Neo4jOASIS,["u64"]=ulong.MaxValue-1,["decimal"]=1.00m,["distinctUtc"]=new DateTime(638700000000000002L,DateTimeKind.Utc)}});
+        var branch=new Holon{Id=ids[2],ParentHolonId=root.Id,Name="private branch",Description=null,CreatedByAvatarId=other,Version=1};
+        branch.Children.Add(new Holon{Id=ids[3],ParentHolonId=branch.Id,Name="grandchild one",Description="case",CreatedByAvatarId=other,IsPublic=true,Version=1,
+            MetaData=new(){["i64"]=9007199254740993L,["narrow"]=1,["u32"]=uint.MaxValue,["float"]=1f+1.1920929e-7f,["double"]=1d+2.220446049250313e-16d,["distinctHolonType"]=(int)HolonType.Avatar,["distinctProviderType"]=(int)ProviderType.MongoDBOASIS,["u64"]=ulong.MaxValue,["decimal"]=1.0000000000000000000000000001m,["distinctUtc"]=new DateTime(638700000000000001L,DateTimeKind.Utc)}});
+        branch.Children.Add(new Holon{Id=ids[4],ParentHolonId=branch.Id,Name="grandchild two",Description=null,CreatedByAvatarId=other,IsPublic=true,Version=1,
+            MetaData=new(){["decimal"]=1.000m}});
         root.Children.Add(branch);return root;
     }
 
     private static async Task VerifyEntityProjection(ICosmicQueryEntityProjectionStorageProvider adapter,Guid rootId,List<object> checks)
     {
+        await VerifyComputedLengthProjection(adapter,rootId,checks);
         async Task<NextGenSoftware.OASIS.Common.OASISResult<CosmicProjectionExecution<TResult>>> Read<T,TResult>(
             CosmicEntityProjectionQuery<T,TResult> query,CosmicEntityCompositionOptions? options=null,int maximumBytes=1048576) where T:IHolon
         {
@@ -52,6 +70,18 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var dto=native.Result.Providers.Single().Rows.Single();Assert.AreEqual(9007199254740993L,dto.Precision);
         Assert.AreEqual(ulong.MaxValue,dto.Unsigned);Assert.AreEqual(1.0000000000000000000000000001m,dto.Amount);
         Assert.AreEqual(1,NativeProjectionProbe.Constructors);Passed("exact native cells without source entity construction");
+        var nested = rootSource.Select(row => new NestedProjectionEnvelope(
+            new NativeProjectionRecord(row.Name, CosmicQueryMetadata.Value<long>(row, "i64")) { Revision = row.Version })
+            { Label = row.Name });
+        Assert.IsFalse(nested.IsError, nested.Message);
+        var nestedResult = await Read(nested.Result);
+        Assert.IsFalse(nestedResult.IsError, nestedResult.Message + nestedResult.Exception);
+        var envelope = nestedResult.Result.Providers.Single().Rows.Single();
+        Assert.AreEqual("protected source root", envelope.Label);
+        Assert.AreEqual(envelope.Label, envelope.Detail.Name);
+        Assert.AreEqual(9007199254740993L, envelope.Detail.Precision);
+        Assert.AreEqual(1, envelope.Detail.Revision);
+        Passed("nested DTO from exact native scalar cells");
         var firstSource=CosmicQuery<Holon>.Create(scope).Where(row=>row.Id==rootId || row.ParentHolonId==rootId).OrderBy(row=>row.Name).Take(1).Result;
         var excluded=await Read(firstSource.Compose().Result.Where(row=>row.Name=="protected source root").Result.Select(row=>row.Name).Result);
         Assert.IsFalse(excluded.IsError,excluded.Message+excluded.Exception);Assert.AreEqual(0,excluded.Result.Providers.Single().Rows.Count);Passed("selection cannot move filter before source page");
@@ -97,6 +127,67 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(0,NativeProjectionProbe.Constructors);desired="protected source root";
         var selected=await deferred.ToCosmicListAsync();Assert.IsFalse(selected.IsError,selected.Message+selected.Exception);
         Assert.AreEqual(9007199254740993L,selected.Result.Single().Precision);Assert.AreEqual(1,NativeProjectionProbe.Constructors);
+        var recordResult = await rootSource.Take(1)
+            .Select(row => new NativeProjectionRecord(row.Name, CosmicQueryMetadata.Value<long>(row, "i64")))
+            .ToCosmicListAsync();
+        Assert.IsFalse(recordResult.IsError, recordResult.Message + recordResult.Exception);
+        Assert.AreEqual(new NativeProjectionRecord("protected source root", 9007199254740993L),
+            recordResult.Result.Single());
+        Passed("standard Select binds positional record constructor arguments without losing Int64 precision");
+
+        var initializedRecord = await rootSource.Take(1)
+            .Select(row => new NativeProjectionRecord(row.Name, CosmicQueryMetadata.Value<long>(row, "i64"))
+            {
+                Revision = row.Version
+            }).ToCosmicListAsync();
+        Assert.IsFalse(initializedRecord.IsError, initializedRecord.Message + initializedRecord.Exception);
+        Assert.AreEqual(new NativeProjectionRecord("protected source root", 9007199254740993L) { Revision = 1 },
+            initializedRecord.Result.Single());
+        Passed("standard Select materializes constructor arguments before public property assignments");
+
+        var assignedFields = await rootSource.Take(1)
+            .Select(row => new NativeFieldProjection
+            {
+                Name = row.Name,
+                Precision = CosmicQueryMetadata.Value<long>(row, "i64")
+            }).ToCosmicListAsync();
+        Assert.IsFalse(assignedFields.IsError, assignedFields.Message + assignedFields.Exception);
+        var fieldRow = assignedFields.Result.Single();
+        Assert.AreEqual("protected source root", fieldRow.Name);
+        Assert.AreEqual(9007199254740993L, fieldRow.Precision);
+        Passed("standard Select materializes public fields with exact Int64 precision");
+
+        var constructorFields = await rootSource.Take(1)
+            .Select(row => new NativeConstructorFieldProjection(row.Name, CosmicQueryMetadata.Value<long>(row, "i64")))
+            .ToCosmicListAsync();
+        Assert.IsFalse(constructorFields.IsError, constructorFields.Message + constructorFields.Exception);
+        var constructorFieldRow = constructorFields.Result.Single();
+        Assert.AreEqual("protected source root", constructorFieldRow.Name);
+        Assert.AreEqual(9007199254740993L, constructorFieldRow.Precision);
+        Passed("standard Select binds constructor arguments to readonly public fields");
+
+        var opaqueConstructor = await rootSource.Take(1)
+            .Select(row => new NativeOpaqueConstructorProjection(row.Name, CosmicQueryMetadata.Value<long>(row, "i64")))
+            .ToCosmicListAsync();
+        Assert.IsFalse(opaqueConstructor.IsError, opaqueConstructor.Message + opaqueConstructor.Exception);
+        var opaqueRow = opaqueConstructor.Result.Single();
+        Assert.AreEqual("prefix:protected source root", opaqueRow.Label);
+        Assert.AreEqual(9007199254740993L, opaqueRow.Sequence);
+        Passed("standard Select materializes opaque constructor inputs after native validation");
+
+        var transformed = await rootSource.Take(1)
+            .Select(row => new NativeTransformingConstructorProjection(row.Name))
+            .ToCosmicListAsync();
+        Assert.IsFalse(transformed.IsError, transformed.Message + transformed.Exception);
+        Assert.AreEqual("prefix:protected source root", transformed.Result.Single().Name);
+
+        var explicitProjection = CosmicQuery<NativeCountWithoutConstructor>.Create(scope)
+            .Select(row => new NativeTransformingConstructorProjection(row.Name));
+        Assert.IsFalse(explicitProjection.IsError, explicitProjection.Message);
+        var unsafeFilter = explicitProjection.Result.Where(row => row.Name == "protected source root");
+        Assert.IsTrue(unsafeFilter.IsError, "A constructor argument is not proof of the materialized member value.");
+        Passed("selected member composition rejects unsafe constructor argument substitution");
+
         desired="not-matched-on-second-read";Assert.AreEqual(0,deferred.ToArray().Length);Passed("deferred selector rebinds without application source construction or eager DTOs");
         NativeProjectionProbe.Constructors=0;
         var invalid=await rootSource.Take(1).Where(row=>row.Name=="protected source root")
@@ -104,4 +195,29 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual("CQL_DATA_INVALID",invalid.ErrorCode,invalid.Message+invalid.Exception);
         Assert.AreEqual(0,NativeProjectionProbe.Constructors);Passed("standard Select rejects invalid native cells before DTOs");
     }
+    private sealed class NativeConstructorFieldProjection(string name, long precision)
+    {
+        public readonly string Name = name;
+        public readonly long Precision = precision;
+    }
+
+    private sealed class NativeTransformingConstructorProjection(string name)
+    {
+        public string Name { get; } = "prefix:" + name;
+    }
+
+    private sealed class NativeOpaqueConstructorProjection(string sourceName, long sourceValue)
+    {
+        public string Label { get; } = "prefix:" + sourceName;
+        public long Sequence { get; } = sourceValue;
+    }
+
+    private sealed class NativeFieldProjection
+    {
+        public NativeFieldProjection() { }
+
+        public string Name;
+        public long Precision;
+    }
+
 }

@@ -379,6 +379,19 @@ internal static partial class Web3CoreOASISBaseProviderHelper
     ""inputs"": [
       {
         ""internalType"": ""uint256"",
+        ""name"": ""tokenId"",
+        ""type"": ""uint256""
+      }
+    ],
+    ""name"": ""burn"",
+    ""outputs"": [],
+    ""stateMutability"": ""nonpayable"",
+    ""type"": ""function""
+  },
+  {
+    ""inputs"": [
+      {
+        ""internalType"": ""uint256"",
         ""name"": ""entityId"",
         ""type"": ""uint256""
       },

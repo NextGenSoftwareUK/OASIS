@@ -11,10 +11,9 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: Branch, tag or SHA of the parent repository to build
-        required: true
+        description: Override the dispatch revision with a branch, tag or SHA
+        required: false
         type: string
-        default: Development
       tag:
         description: Extra image tag besides the commit SHA (leave empty for a commit-only build)
         required: false
@@ -42,7 +41,7 @@ jobs:
       - name: Check out the parent repository (no submodules; the Dockerfile clones pinned ones)
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ inputs.ref || github.sha }}
           submodules: false
 
       - name: Verify provider SDK source publication contracts

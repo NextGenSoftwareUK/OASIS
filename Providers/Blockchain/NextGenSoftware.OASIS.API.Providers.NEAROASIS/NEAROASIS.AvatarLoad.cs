@@ -40,6 +40,7 @@ public partial class NEAROASIS
 
     public override Task<OASISResult<bool>> DeActivateProviderAsync()
     {
+        ResetPublicQueryActivation();
         _isActivated = false;
         IsProviderActivated = false;
         return Task.FromResult(new OASISResult<bool>(true) { Message = "NEAR provider deactivated successfully." });

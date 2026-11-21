@@ -1,4 +1,5 @@
 using System;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Collections.Generic;
@@ -10,26 +11,39 @@ using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using ArbitrumProvider = NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.ArbitrumOASIS_Web3Core;
+using CosmosProvider = NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.CosmosBlockChainOASIS;
+using EosioProvider = NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOOASIS;
+using EthereumProvider = NextGenSoftware.OASIS.API.Providers.EthereumOASIS.EthereumOASIS_Web3Core;
+using HoloOasisProvider = NextGenSoftware.OASIS.API.Providers.HoloOASIS.HoloOASIS;
+using NearProvider = NextGenSoftware.OASIS.API.Providers.NEAROASIS.NEAROASIS;
+using PolkadotProvider = NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotOASIS;
+using PolygonProvider = NextGenSoftware.OASIS.API.Providers.PolygonOASIS.PolygonOASIS;
+using SolanaProvider = NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaOASIS;
+using TonProvider = NextGenSoftware.OASIS.API.Providers.TONOASIS.TONOASIS;
+using HederaProvider = NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.HashgraphOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 /// <summary>Read the existing host registry. Missing/inactive providers do not trigger activation or failover.</summary>
-public sealed class CqlV1Providers : ICqlV1Providers
+public sealed partial class CqlV1Providers : ICqlV1Providers, ICqlVirtualMappingReader
 {
     private readonly ICqlHostedSourceRegistry sources;
     public CqlV1Providers(ICqlHostedSourceRegistry sources = null) => this.sources = sources;
 
-    public IOASISStorageProvider Resolve(ProviderType? requested)
+    public IOASISProvider Resolve(ProviderType? requested)
     {
         var registry = ProviderManager.Instance;
         var provider = requested.HasValue
             ? sources == null ? registry.GetStorageProvider(requested.Value) : sources.Find(requested.Value)
             : registry.CurrentStorageProvider;
-        if (provider == null || !provider.IsProviderActivated) throw new InvalidOperationException("Provider unavailable.");
+        if (provider == null || !provider.IsProviderActivated
+            && (provider is not ICosmicReadOnlyQueryActivation readSource || !readSource.IsQuerySourceActivated))
+            throw new InvalidOperationException("Provider unavailable.");
         return provider;
     }
 
-    public HolonManager CreateManager(IOASISStorageProvider provider)
+    public HolonManager CreateManager(IOASISProvider provider)
         => CreateQueryManager(OASISBootLoader.OASISBootLoader.OASISDNA, ProviderManager.Instance);
 
     internal static HolonManager CreateQueryManager(NextGenSoftware.OASIS.API.DNA.OASISDNA dna, ProviderManager registry)
@@ -52,35 +66,97 @@ public sealed class CqlV1Providers : ICqlV1Providers
 public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
 {
     private readonly IReadOnlyDictionary<ProviderType, CqlReadSourceProfile> profiles;
+    private readonly CqlPublicReadCatalogue holoOasisCatalogue;
+    private readonly HoloOasisProvisioning provisionManagedHoloOasis;
+    private readonly string solanaPublicAccountConfiguration;
+    private readonly string ethereumPublicAccountConfiguration;
+    private readonly string polygonPublicAccountConfiguration;
+    private readonly string arbitrumPublicAccountConfiguration;
+    private readonly string nearPublicAccountConfiguration;
+    private readonly string eosioPublicAccountConfiguration;
+    private readonly string cosmosPublicValidatorConfiguration;
+    private readonly string polkadotPublicHeaderConfiguration;
+    private readonly string tonPublicHeaderConfiguration;
+    private readonly string hederaPublicAccountConfiguration;
 
     private readonly ILogger<CqlHostedSourceRegistry> logger;
 
     public CqlHostedSourceRegistry(IEnumerable<CqlReadSourceProfile> profiles = null)
         : this(profiles, NullLogger<CqlHostedSourceRegistry>.Instance) { }
 
-    public CqlHostedSourceRegistry(IEnumerable<CqlReadSourceProfile> profiles, ILogger<CqlHostedSourceRegistry> logger)
+    public CqlHostedSourceRegistry(IEnumerable<CqlReadSourceProfile> profiles, ILogger<CqlHostedSourceRegistry> logger,
+        IEnumerable<CqlPublicReadCatalogue> publicCatalogues = null, IConfiguration configuration = null,
+        HoloOasisProvisioning provisionManagedHoloOasis = null)
     {
         this.profiles = (profiles ?? Array.Empty<CqlReadSourceProfile>())
             .ToDictionary(profile => profile.Storage.ProviderType.Value);
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.provisionManagedHoloOasis = provisionManagedHoloOasis;
+        holoOasisCatalogue = publicCatalogues?.SingleOrDefault(catalogue => catalogue.Provider == ProviderType.HoloOASIS);
+        solanaPublicAccountConfiguration = configuration?["CQL_SOLANA_PUBLIC_SOURCE_JSON"];
+        ethereumPublicAccountConfiguration = configuration?["CQL_ETHEREUM_PUBLIC_SOURCE_JSON"];
+        polygonPublicAccountConfiguration = configuration?["CQL_POLYGON_PUBLIC_SOURCE_JSON"];
+        arbitrumPublicAccountConfiguration = configuration?["CQL_ARBITRUM_PUBLIC_SOURCE_JSON"];
+        nearPublicAccountConfiguration = configuration?["CQL_NEAR_PUBLIC_SOURCE_JSON"];
+        eosioPublicAccountConfiguration = configuration?["CQL_EOSIO_PUBLIC_SOURCE_JSON"];
+        cosmosPublicValidatorConfiguration = configuration?["CQL_COSMOS_PUBLIC_SOURCE_JSON"];
+        polkadotPublicHeaderConfiguration = configuration?["CQL_POLKADOT_PUBLIC_SOURCE_JSON"];
+        tonPublicHeaderConfiguration = configuration?["CQL_TON_PUBLIC_SOURCE_JSON"];
+        hederaPublicAccountConfiguration = configuration?["CQL_HEDERA_PUBLIC_SOURCE_JSON"];
     }
 
-    public IOASISStorageProvider Find(ProviderType provider)
+    public bool HasIndependentActivation(ProviderType provider) => profiles.ContainsKey(provider);
+
+    public IOASISProvider Find(ProviderType provider)
         => profiles.TryGetValue(provider, out var profile) ? profile.Storage
             : ProviderManager.Instance.GetStorageProvider(provider);
 
     public async Task ActivateReadSourceAsync(ProviderType provider, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        IOASISStorageProvider storage;
+        IOASISProvider storage;
         if (profiles.TryGetValue(provider, out var profile)) storage = profile.Storage;
         else
         {
-            var registration = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(provider,
-                activateProviderIfOASISProviderBootTypeIsHot: false);
+            // Provision through the serialized HoloOASIS activation path.
+            if (provider == ProviderType.HoloOASIS && provisionManagedHoloOasis != null)
+                await provisionManagedHoloOasis(cancellationToken);
+
+            var registration = provider == ProviderType.PolkadotOASIS && polkadotPublicHeaderConfiguration != null
+                ? await OASISBootLoader.OASISBootLoader.RegisterPolkadotPublicReaderAsync(polkadotPublicHeaderConfiguration)
+                : await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(provider,
+                    activateProviderIfOASISProviderBootTypeIsHot: false);
             if (registration == null || registration.IsError || registration.Result == null)
                 throw new InvalidOperationException("CQL_SOURCE_REGISTRATION_FAILED");
             storage = registration.Result;
+            if (storage is HoloOasisProvider holoOasis && holoOasis.QueryCapabilities == null
+                && holoOasisCatalogue?.CopyRecordIds() is { Length: > 0 } recordIds)
+            {
+                holoOasis.ConfigurePublicQuery(recordIds[0], recordIds.ToHashSet());
+            }
+            if (storage is SolanaProvider solana && solana.QueryCapabilities == null &&
+                solanaPublicAccountConfiguration != null)
+            {
+                solana.ConfigurePublicAccountQuery(solanaPublicAccountConfiguration);
+            }
+            if (storage is EthereumProvider ethereum && ethereumPublicAccountConfiguration != null)
+                ethereum.ConfigurePublicAccountQuery(ethereumPublicAccountConfiguration);
+            if (storage is PolygonProvider polygon && polygonPublicAccountConfiguration != null)
+                polygon.ConfigurePublicAccountQuery(polygonPublicAccountConfiguration);
+            if (storage is ArbitrumProvider arbitrum && arbitrumPublicAccountConfiguration != null)
+                arbitrum.ConfigurePublicAccountQuery(arbitrumPublicAccountConfiguration);
+            if (storage is NearProvider near && nearPublicAccountConfiguration != null)
+                near.ConfigurePublicAccountQuery(nearPublicAccountConfiguration);
+            if (storage is EosioProvider eosio && eosioPublicAccountConfiguration != null)
+                eosio.ConfigurePublicAccountQuery(eosioPublicAccountConfiguration);
+            if (storage is CosmosProvider cosmos && cosmosPublicValidatorConfiguration != null)
+                cosmos.ConfigurePublicValidatorQuery(cosmosPublicValidatorConfiguration);
+            if (storage is PolkadotProvider polkadot && polkadotPublicHeaderConfiguration != null)
+                polkadot.ConfigurePublicHeaderQuery(polkadotPublicHeaderConfiguration);
+            if (storage is TonProvider ton && tonPublicHeaderConfiguration != null)
+                ton.ConfigurePublicHeaderQuery(tonPublicHeaderConfiguration);
+            if (storage is HederaProvider hedera && hederaPublicAccountConfiguration != null)
+                hedera.ConfigurePublicAccountQuery(hederaPublicAccountConfiguration);
         }
         if (storage.ProviderType?.Value != provider || storage is not ICosmicQueryStorageProvider adapter
             || adapter.QueryProviderType != provider || adapter.QueryCapabilities == null
@@ -99,7 +175,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
             deadline.Token.ThrowIfCancellationRequested();
             var activation = await activationProvider.ActivateQuerySourceAsync(deadline.Token);
             cancellationToken.ThrowIfCancellationRequested();
-            if (activation != null && !activation.IsError && activation.Result && storage.IsProviderActivated)
+            if (activation != null && !activation.IsError && activation.Result && activationProvider.IsQuerySourceActivated)
                 return;
             var failure = new InvalidOperationException("CQL_SOURCE_ACTIVATION_FAILED", activation?.Exception);
             int? status = policy.RetryStatus(activation?.Exception, attempt);

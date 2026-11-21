@@ -18,6 +18,75 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(2,selected.Count());Assert.AreEqual(2L,selected.LongCount());Assert.IsTrue(selected.Any());
         Passed("native Count LongCount Any after entity windows without selected stages");
 
+        var expected=selected.ToArray();
+        Assert.AreEqual(2,expected.Length);
+        Assert.AreEqual(expected[0],selected.First());
+        Assert.AreEqual(expected[1],selected.Last());
+        Assert.AreEqual(expected[1],selected.ElementAt(1));
+        Assert.AreEqual(expected[1],selected.ElementAt(^1));
+        Assert.AreEqual(expected[0],selected.Take(1).Single());
+        Assert.AreEqual("missing",selected.Take(0).FirstOrDefault("missing"));
+        Passed("native entity-selected element terminals retain window order and explicit default");
+
+        var versions = root.OrderBy(row => row.Name).Take(3).Reverse().Take(2)
+            .Select(row => new { row.Version, row.Name }).Where(row => row.Version >= 1);
+        var expectedVersions = versions.ToArray();
+        Assert.IsTrue(expectedVersions.Length > 0);
+        Assert.AreEqual(expectedVersions.Min(row => row.Version), versions.Min(row => row.Version));
+        Assert.AreEqual(expectedVersions.Max(row => row.Version), versions.Select(row => row.Version).Max());
+        Assert.AreEqual(expectedVersions.Sum(row => row.Version), versions.Sum(row => row.Version));
+        Assert.AreEqual(expectedVersions.Average(row => row.Version), versions.Select(row => row.Version).Average());
+        var amounts = root.Where(row => row.Id == rootId).OrderBy(row => row.Name).Take(1)
+            .Reverse().Select(row => CosmicQueryMetadata.Value<decimal>(row, "decimal"));
+        const decimal exactAmount = 1.0000000000000000000000000001m;
+        Assert.AreEqual(exactAmount, amounts.Sum());
+        Assert.AreEqual(exactAmount, amounts.Average());
+        Assert.AreEqual(0m, amounts.Take(0).Sum());
+        var longValues = root.Where(row => row.Id == rootId).OrderBy(row => row.Name).Take(1)
+            .Reverse().Select(row => CosmicQueryMetadata.Value<long?>(row, "i64"));
+        const long exactLong = 9007199254740993L;
+        Assert.AreEqual<long?>(exactLong, longValues.Sum());
+        Assert.AreEqual<double?>((double)exactLong, longValues.Average());
+        Assert.AreEqual<long?>(0L, longValues.Take(0).Sum());
+        Assert.IsNull(longValues.Take(0).Average());
+
+        var floatingRoot = root.Where(row => row.Id == rootId).OrderBy(row => row.Name).Take(1).Reverse();
+        var singles = floatingRoot.Select(row => CosmicQueryMetadata.Value<float?>(row, "float"));
+        const float expectedSingle = 1f + 1.1920929e-7f;
+        Assert.AreEqual<float?>(expectedSingle, singles.Sum());
+        Assert.AreEqual<float?>(expectedSingle, singles.Average());
+        Assert.AreEqual<float?>(0f, singles.Take(0).Sum());
+        Assert.IsNull(singles.Take(0).Average());
+
+        var doubles = floatingRoot.Select(row => CosmicQueryMetadata.Value<double>(row, "double"));
+        const double expectedDouble = 1d + 2.220446049250313e-16d;
+        Assert.AreEqual(expectedDouble, doubles.Sum());
+        Assert.AreEqual(expectedDouble, doubles.Average());
+        Assert.AreEqual(0d, doubles.Take(0).Sum());
+        var entityWindow = source.Where(row => row.Id == rootId).Result.Compose().Result.Take(1).Result;
+        var unsigned = entityWindow.Select(row => CosmicQueryMetadata.Value<ulong>(row, "u64")).Result;
+        var target = new CosmicProjectionCompositionTarget(adapter.QueryProviderType, adapter.QueryCapabilities,
+            adapter.ProjectionCapabilities, adapter.CompositionCapabilities);
+        async Task<TValue> ReduceUnsigned<TValue>(CosmicScalarOperation operation)
+        {
+            var plan = CosmicProjectedNumericPlanner.PlanEntity<Holon, ulong, TValue>(unsigned, 0, operation,
+                adapter.QueryProviderType, target, adapter.EntityCompositionCapabilities);
+            Assert.IsFalse(plan.IsError, plan.Message);
+            var result = await NativeManager(adapter).ExecuteProjectedNumericQueryAsync(plan.Result,
+                new ICosmicQueryStorageProvider[] { adapter });
+            Assert.IsFalse(result.IsError, result.Message + result.Exception);
+            Assert.IsTrue(result.IsLoaded);
+            return result.Result.Providers.Single().Value;
+        }
+        Assert.AreEqual(ulong.MaxValue, await ReduceUnsigned<ulong>(CosmicScalarOperation.Sum));
+        Assert.AreEqual((decimal)ulong.MaxValue, await ReduceUnsigned<decimal>(CosmicScalarOperation.Average));
+        Passed("native integer, decimal, floating-point and exact UInt64 reductions preserve entity windows");
+
+        var nullable = root.OrderBy(row => row.Name).Take(3).Reverse().Take(0)
+            .Select(row => CosmicQueryMetadata.Value<int?>(row, "nullableInt"));
+        Assert.IsNull(nullable.Min());
+        Passed("native Min and Max preserve entity windows, selected predicates, reselection and empty nullable output");
+
         var first=root.OrderBy(row=>row.Name).Take(1).Where(row=>row.Version>=1)
             .Select(row=>new NativeProjectionProbe{Name=row.Name}).Select(row=>row.Name).Take(1);
         NativeProjectionProbe.Constructors=0;

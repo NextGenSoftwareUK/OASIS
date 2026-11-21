@@ -10,7 +10,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
-    public partial class MongoDBOASIS
+    public partial class MongoDBOASIS : IHostedHyperDriveDeliveryReader
     {
         private const string SyncOperationsCollection = "HyperDriveSyncOperations";
         private const string SyncEntitiesCollection = "HyperDriveSyncEntities";
@@ -607,6 +607,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 await fanOut.Indexes.CreateOneAsync(new CreateIndexModel<BsonDocument>(
                     Builders<BsonDocument>.IndexKeys.Ascending("completedUtc").Ascending("sequence")),
                     cancellationToken: cancellationToken).ConfigureAwait(false);
+                await fanOut.Indexes.CreateOneAsync(new CreateIndexModel<BsonDocument>(
+                    Builders<BsonDocument>.IndexKeys.Ascending("avatarId").Descending("sequence")),
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
+
                 var snapshots = Database.MongoDB.GetCollection<BsonDocument>(SyncSnapshotsCollection);
                 await snapshots.Indexes.CreateOneAsync(new CreateIndexModel<BsonDocument>(
                     Builders<BsonDocument>.IndexKeys.Ascending("expiresUtc"),
@@ -833,6 +837,51 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             }
             return result;
         }
+
+        public async Task<OASISResult<IReadOnlyList<HostedSyncDelivery>>> ReadRecentDeliveriesAsync(
+            Guid authenticatedAvatarId, int limit, CancellationToken cancellationToken)
+        {
+            var result = new OASISResult<IReadOnlyList<HostedSyncDelivery>>();
+            if (authenticatedAvatarId == Guid.Empty || limit < 1 || limit > 50)
+            {
+                SetSyncError(result, "MONGO_DELIVERY_QUERY_INVALID", "An avatar and limit between 1 and 50 are required.", null);
+                return result;
+            }
+
+            try
+            {
+                await EnsureSyncInitializedAsync(cancellationToken).ConfigureAwait(false);
+                var collection = Database.MongoDB.GetCollection<BsonDocument>(SyncFanOutCollection);
+                var projection = Builders<BsonDocument>.Projection.Include("_id").Include("entityType").Include("kind")
+                    .Include("attemptCount").Include("createdUtc").Include("nextAttemptUtc").Include("completedUtc").Include("leaseUntilUtc");
+                var rows = await collection.Find(Builders<BsonDocument>.Filter.Eq("avatarId", authenticatedAvatarId.ToString("D")))
+                    .Sort(Builders<BsonDocument>.Sort.Descending("sequence")).Limit(limit).Project(projection)
+                    .ToListAsync(cancellationToken).ConfigureAwait(false);
+                var now = DateTime.UtcNow;
+                result.Result = rows.Select(row =>
+                {
+                    var completed = ReadDeliveryDate(row, "completedUtc");
+                    var due = ReadDeliveryDate(row, "nextAttemptUtc");
+                    var leaseUntil = ReadDeliveryDate(row, "leaseUntilUtc");
+                    var state = completed.HasValue ? "Completed" : leaseUntil > now ? "Delivering" :
+                        due > now ? "RetryScheduled" : "Queued";
+                    return new HostedSyncDelivery(Guid.Parse(row["_id"].AsString), row["entityType"].AsString,
+                        ((SyncOperationKind)row["kind"].AsInt32).ToString(), state, row["attemptCount"].AsInt32,
+                        row["createdUtc"].ToUniversalTime(), state == "RetryScheduled" ? due : null, completed);
+                }).ToArray();
+                result.IsLoaded = true;
+                result.LoadedCount = result.Result.Count;
+            }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception exception)
+            {
+                SetSyncError(result, "MONGO_DELIVERY_QUERY_FAILED", "Could not read the avatar delivery records.", exception);
+            }
+            return result;
+        }
+
+        private static DateTime? ReadDeliveryDate(BsonDocument row, string field) =>
+            row.TryGetValue(field, out var value) && !value.IsBsonNull ? value.ToUniversalTime() : null;
 
         public async Task<OASISResult<HostedFanOutClaim>> ClaimFanOutAsync(
             string workerId, int maximumCount, DateTime leaseUntilUtc, CancellationToken cancellationToken)

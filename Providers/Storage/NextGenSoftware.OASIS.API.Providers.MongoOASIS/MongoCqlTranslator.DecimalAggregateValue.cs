@@ -8,8 +8,21 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
 internal sealed partial class MongoCqlTranslator
 {
-    internal static BsonValue DecimalAggregateValue(BsonValue parts, BsonValue count, bool average)
-        => new DecimalAggregateCompiler().Compile(parts, count, average);
+    internal static void AddDecimalAggregate(BsonDocument preparation, BsonDocument rounding, BsonDocument publication,
+        string output, BsonValue parts, BsonValue count, bool average)
+    {
+        var compiler = new DecimalAggregateCompiler();
+        var packet = output + "Packet";
+        var rounded = output + "Rounded";
+        var packetPath = "$" + packet;
+        var roundedPath = "$" + rounded;
+        var empty = Literal(BsonNull.Value);
+        preparation.Add(packet, compiler.Prepare(parts, count, average));
+        rounding.Add(rounded, Choose(Op("$eq", packetPath, empty), empty,
+            compiler.Round(packetPath + ".division.q", packetPath + ".division.r", packetPath + ".denominator")));
+        publication.Add(output, Choose(roundedPath + ".done",
+            compiler.Publish(roundedPath + ".chosen", packetPath + ".negative"), empty));
+    }
 
     // Eight base1e9 words retain the entire scaled numerator. Only a final
     // rounded96-bit coefficient is recombined into one Decimal128 value.
@@ -85,7 +98,7 @@ internal sealed partial class MongoCqlTranslator
                     { "carry", Truncate(Op("$divide", value, D(1000000000m))) }
                 })), result => Field(result, "digits"));
 
-        private BsonValue Round(BsonValue quotient, BsonValue remainder, BsonValue denominator)
+        internal BsonValue Round(BsonValue quotient, BsonValue remainder, BsonValue denominator)
         {
             var maximum = Words((BigInteger.One << 96) - 1);
             var initial = new BsonDocument
@@ -118,7 +131,7 @@ internal sealed partial class MongoCqlTranslator
                             })))));
         }
 
-        private BsonValue Publish(BsonValue chosen, BsonValue negative)
+        internal BsonValue Publish(BsonValue chosen, BsonValue negative)
         {
             var factors = new BsonArray(); var power = 1m;
             for (var scale = 0; scale <= 28; scale++)
@@ -132,7 +145,7 @@ internal sealed partial class MongoCqlTranslator
                         Op("$arrayElemAt", Literal(factors), Field(value, "scale")))));
         }
 
-        internal BsonValue Compile(BsonValue parts, BsonValue count, bool average)
+        internal BsonValue Prepare(BsonValue parts, BsonValue count, bool average)
         {
             var maximumUnits = Words(((BigInteger.One << 96) - 1) * BigInteger.Pow(10, 28));
             return Let(parts, input => Let(count, countValue =>
@@ -145,9 +158,12 @@ internal sealed partial class MongoCqlTranslator
                     Let(Op("$concatArrays", new BsonArray { Field(magnitude, "carry") }, Field(magnitude, "digits")), words =>
                         Choose(average ? Literal(false) : Greater(words, maximumUnits), Literal(BsonNull.Value),
                             Let(average ? (BsonValue)new BsonDocument("$toDecimal", countValue) : D(1), denominator =>
-                            Let(Divide(words, denominator), divided =>
-                            Let(Round(Field(divided, "q"), Field(divided, "r"), denominator), result =>
-                                Choose(Field(result, "done"), Publish(Field(result, "chosen"), negative), Literal(BsonNull.Value)))))))))),
+                            new BsonDocument
+                            {
+                                { "negative", negative },
+                                { "denominator", denominator },
+                                { "division", Divide(words, denominator) }
+                            })))))),
                     Literal(BsonNull.Value))));
         }
     }

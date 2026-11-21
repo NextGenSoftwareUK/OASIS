@@ -74,11 +74,16 @@ jobs:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           path: NextGenSoftware-Libraries
 
+      - name: Read pinned holochain-client-csharp commit
+        id: holochain-pin
+        run: echo "commit=$(sed -n 's/^HOLOCHAIN_COMMIT=//p' "$GITHUB_WORKSPACE/OASIS/Docker/oasis-dependency-versions.env")" >> "$GITHUB_OUTPUT"
+
       - name: Checkout holochain-client-csharp
         uses: actions/checkout@v7
         with:
           repository: holochain-open-dev/holochain-client-csharp
           path: holochain-client-csharp
+          ref: ${{ steps.holochain-pin.outputs.commit }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
@@ -116,11 +121,16 @@ jobs:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           path: NextGenSoftware-Libraries
 
+      - name: Read pinned holochain-client-csharp commit
+        id: holochain-pin
+        run: echo "commit=$(sed -n 's/^HOLOCHAIN_COMMIT=//p' "$GITHUB_WORKSPACE/OASIS/Docker/oasis-dependency-versions.env")" >> "$GITHUB_OUTPUT"
+
       - name: Checkout holochain-client-csharp
         uses: actions/checkout@v7
         with:
           repository: holochain-open-dev/holochain-client-csharp
           path: holochain-client-csharp
+          ref: ${{ steps.holochain-pin.outputs.commit }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
@@ -200,11 +210,16 @@ jobs:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           path: NextGenSoftware-Libraries
 
+      - name: Read pinned holochain-client-csharp commit
+        id: holochain-pin
+        run: echo "commit=$(sed -n 's/^HOLOCHAIN_COMMIT=//p' "$GITHUB_WORKSPACE/OASIS/Docker/oasis-dependency-versions.env")" >> "$GITHUB_OUTPUT"
+
       - name: Checkout holochain-client-csharp
         uses: actions/checkout@v7
         with:
           repository: holochain-open-dev/holochain-client-csharp
           path: holochain-client-csharp
+          ref: ${{ steps.holochain-pin.outputs.commit }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
@@ -305,11 +320,16 @@ jobs:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           path: NextGenSoftware-Libraries
 
+      - name: Read pinned holochain-client-csharp commit
+        id: holochain-pin
+        run: echo "commit=$(sed -n 's/^HOLOCHAIN_COMMIT=//p' "$GITHUB_WORKSPACE/OASIS/Docker/oasis-dependency-versions.env")" >> "$GITHUB_OUTPUT"
+
       - name: Checkout holochain-client-csharp
         uses: actions/checkout@v7
         with:
           repository: holochain-open-dev/holochain-client-csharp
           path: holochain-client-csharp
+          ref: ${{ steps.holochain-pin.outputs.commit }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v6

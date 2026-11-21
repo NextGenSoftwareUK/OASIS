@@ -18,13 +18,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 public interface ICqlHostedSourceRegistry
 {
-    IOASISStorageProvider Find(ProviderType provider);
+    IOASISProvider Find(ProviderType provider);
+    bool HasIndependentActivation(ProviderType provider) => false;
     Task ActivateReadSourceAsync(ProviderType provider, CancellationToken cancellationToken);
 }
 
+public sealed record CqlHostedTextKeyProfile(string MetadataKey, int MaximumKeyCharacters, int MaximumSetKeys);
+
 public sealed record CqlHostedSourceDescription(string Provider, bool QueryOnly, bool Available,
     bool FederationAvailable, string Features, string ErrorCode, IReadOnlyList<CqlHostedQueryExample> Examples = null,
-    long ActivationGeneration = 0, Guid ActivationHostInstance = default);
+    long ActivationGeneration = 0, Guid ActivationHostInstance = default)
+{
+    public CqlHostedTextKeyProfile TextKeyProfile { get; init; }
+}
 
 public sealed record CqlSourceRecoveryResult(string Provider, Guid OperationId,
     long Generation, bool Available, string ErrorCode, Guid HostInstanceId);
@@ -67,19 +73,39 @@ public sealed class CqlHostedSources : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         hostStoppingToken = stoppingToken;
-        foreach (var provider in queryOnly.OrderBy(type => type.ToString(), StringComparer.Ordinal))
+        var started = Stopwatch.GetTimestamp();
+        const int maximumConcurrentReaders = 3;
+        var ordered = queryOnly.OrderBy(type => type.ToString(), StringComparer.Ordinal).ToArray();
+        // Only registered, independently owned profiles may use the parallel
+        // lane. Shared BootLoader registrations still run in a single sequence.
+        var independent = ordered.Where(registry.HasIndependentActivation).ToHashSet();
+        var options = new ParallelOptions
         {
-            if (stoppingToken.IsCancellationRequested) break;
-            var state = activationStates[provider];
-            await state.Gate.WaitAsync(stoppingToken);
-            try
-            {
-                await ActivateOneAsync(provider, state, stoppingToken);
-                if (stoppingToken.IsCancellationRequested) break;
-            }
-            finally { state.Gate.Release(); }
-            // Optional source failure is explicit in discovery; never select another provider.
-        }
+            MaxDegreeOfParallelism = maximumConcurrentReaders,
+            CancellationToken = stoppingToken
+        };
+        await Task.WhenAll(
+            ActivateCanonicalAsync(ordered.Where(provider => !independent.Contains(provider)), stoppingToken),
+            Parallel.ForEachAsync(ordered.Where(independent.Contains), options,
+                (provider, token) => new ValueTask(ActivateInitialAsync(provider, token))));
+
+        logger.LogInformation("CQL startup completed readers={Enrolled} verified={Verified} elapsedMilliseconds={ElapsedMilliseconds}",
+            ordered.Length, verified.Count, (long)Stopwatch.GetElapsedTime(started).TotalMilliseconds);
+    }
+
+    private async Task ActivateCanonicalAsync(IEnumerable<ProviderType> canonicalProviders,
+        CancellationToken stoppingToken)
+    {
+        foreach (var provider in canonicalProviders)
+            await ActivateInitialAsync(provider, stoppingToken);
+    }
+
+    private async Task ActivateInitialAsync(ProviderType provider, CancellationToken stoppingToken)
+    {
+        var state = activationStates[provider];
+        await state.Gate.WaitAsync(stoppingToken);
+        try { await ActivateOneAsync(provider, state, stoppingToken); }
+        finally { state.Gate.Release(); }
     }
 
     private async Task<string> ActivateOneAsync(ProviderType provider, ActivationState state, CancellationToken token)
@@ -180,9 +206,15 @@ public sealed class CqlHostedSources : BackgroundService
                         false, null, "CQL_DEMO_EXAMPLE_UNSUPPORTED");
                 }
             }
+            var capabilities = adapter?.QueryCapabilities;
+            var point = capabilities?.StringPointLookup;
+            var textKeyProfile = queryOnly.Contains(type) && point != null
+                ? new CqlHostedTextKeyProfile(point.MetadataKey, Math.Min(point.MaximumKeyCharacters, 512),
+                    capabilities.StringKeySetLookup?.MaximumKeys ?? 0)
+                : null;
             return new CqlHostedSourceDescription(type.ToString(), queryOnly.Contains(type), available,
-                available && CqlV1Compiler.SupportedReadProfile(type), available ? adapter.QueryCapabilities.Features.ToString() : null,
-                available ? null : "CQL_SOURCE_NOT_READY", selected);
+                available && CqlV1Compiler.SupportedReadProfile(type), capabilities?.Features.ToString(),
+                available ? null : "CQL_SOURCE_NOT_READY", selected) { TextKeyProfile = textKeyProfile };
         }).Select(row => row with { ActivationHostInstance = HostInstanceId, ActivationGeneration =
             Enum.TryParse<ProviderType>(row.Provider, out var type) && activationStates.TryGetValue(type, out var state)
                 ? Interlocked.Read(ref state.Generation) : 0 }).ToArray();
@@ -193,7 +225,9 @@ public sealed class CqlHostedSources : BackgroundService
             || queryOnly.Contains(type) && !verified.ContainsKey(type)) return null;
         var storage = registry.Find(type);
         var adapter = storage as ICosmicQueryStorageProvider;
-        return storage?.IsProviderActivated == true && storage.ProviderType?.Value == type
+        var active = queryOnly.Contains(type) && storage is ICosmicReadOnlyQueryActivation readSource
+            ? readSource.IsQuerySourceActivated : storage?.IsProviderActivated == true;
+        return active && storage.ProviderType?.Value == type
             && adapter?.QueryProviderType == type && adapter.QueryCapabilities != null
             && CqlV1Compiler.SupportedReadProfile(type) ? adapter : null;
     }

@@ -33,10 +33,11 @@ public class CqlHederaHostedAdmissionTests
     }
 
     [Fact]
-    public async Task PublicAccountPresetsPlanNativeThreeTwoAndMongoPairsWithoutWallets()
+    public async Task ShippingHederaProviderPlansPublicThreeTwoAndMongoPairs()
     {
         var keys = new[] { "0.0.2", "0.0.3", "0.0.98" };
-        using var source = HederaPublicAccountMetadataSource.FromJson(JsonSerializer.Serialize(new {
+        var source = new HashgraphOASIS();
+        source.ConfigurePublicAccountQuery(JsonSerializer.Serialize(new {
             schema=1,mirrorUrl=HederaPublicAccountMetadataSource.PublicEndpoint,network="mainnet",
             consistency="LatestIndexed",accounts=keys,sourceOwner=Guid.NewGuid()}));
         var rows = new List<object>();
@@ -78,7 +79,7 @@ public class CqlHederaHostedAdmissionTests
 
     private sealed class ReadyRegistry(NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider source) : ICqlHostedSourceRegistry
     {
-        public NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider Find(ProviderType provider)
+        public NextGenSoftware.OASIS.API.Core.Interfaces.IOASISProvider Find(ProviderType provider)
             => provider == ProviderType.HashgraphOASIS ? source : null!;
         public Task ActivateReadSourceAsync(ProviderType provider, CancellationToken token)
         {

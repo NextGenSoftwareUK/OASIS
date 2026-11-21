@@ -25,6 +25,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         HolonType HolonType { get; set; }
         EnumValue<ProviderType> InstanceSavedOnProviderType { get; set; }
         bool IsActive { get; set; }
+        bool IsPublic { get; set; }
         //bool IsChanged { get; set; }
         //bool IsNewHolon { get; set; }
         //bool IsSaving { get; set; }

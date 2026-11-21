@@ -15,6 +15,7 @@ public sealed class UsageReconciliationWorker : BackgroundService
     private readonly StripeUsageEvidenceReader _stripe;
     private readonly ISubscriptionService _subscriptions;
     private readonly ILogger<UsageReconciliationWorker> _logger;
+    private readonly System.Collections.Generic.HashSet<string> _unsubscribedLogged = new();
     public UsageReconciliationWorker(MongoUsageReconciler reconciler, StripeUsageEvidenceReader stripe,
         ISubscriptionService subscriptions, ILogger<UsageReconciliationWorker> logger)
     { _reconciler = reconciler; _stripe = stripe; _subscriptions = subscriptions; _logger = logger; }
@@ -39,7 +40,15 @@ public sealed class UsageReconciliationWorker : BackgroundService
                     try
                     {
                         var subscription = await _subscriptions.GetSubscriptionAsync(account.UserId);
-                        if (subscription == null) throw new InvalidOperationException("Ledger account has no subscription: " + account.UserId);
+                        if (subscription == null)
+                        {
+                            // A ledger account without a subscription has nothing to reconcile against Stripe. This is a known,
+                            // handled state, not a failed check: no critical log and no failure write every scan.
+                            if (_unsubscribedLogged.Add(account.Id))
+                                _logger.LogWarning("USAGE_ACCOUNT_RECONCILIATION_SKIPPED account={Account}; the ledger account has no subscription", account.Id);
+                            cursor = account.Id;
+                            continue;
+                        }
                         await _stripe.CollectAsync(subscription.StripeCustomerId, account.UserId, account.Month, stoppingToken);
                         var report = await _reconciler.ReconcileAsync(account.UserId, account.Month, stoppingToken);
                         if (report.ActionRequired)

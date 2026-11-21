@@ -31,7 +31,7 @@ public static partial class CqlV1Endpoint
 
     // Stack-owned observation: provider selection and authorization must never
     // be repeated after a mutable default/catalogue changes during compilation.
-    private sealed record ReadPolicyObservation(IOASISStorageProvider Storage,
+    private sealed record ReadPolicyObservation(IOASISProvider Storage,
         ICosmicQueryStorageProvider Adapter, ProviderType Selected, CosmicQueryReadAccess Access);
 
     private static ReadPolicyObservation CaptureReadPolicy(HttpContext http, Guid actor,

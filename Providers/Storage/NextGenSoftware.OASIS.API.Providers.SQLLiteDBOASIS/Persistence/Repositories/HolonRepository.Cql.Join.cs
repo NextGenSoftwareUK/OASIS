@@ -54,22 +54,27 @@ public partial class HolonRepository
                         await ValidateScope(compiled.LeftPredicate).ConfigureAwait(false);
                         await ValidateScope(compiled.RightPredicate).ConfigureAwait(false);
                     }
+                    var childStorageKeys = plan.Query.SelectsChildEntity ? new Dictionary<Guid,string>() : null;
                     var left = await ReadSource(plan.Query.Join.Left, true, compiled.Left,
                         limits.MaximumLeftRows, limits.MaximumLeftPayloadBytes).ConfigureAwait(false);
                     var right = await ReadSource(plan.Query.Join.Right, false, compiled.Right,
                         limits.MaximumRightRows, limits.MaximumRightPayloadBytes).ConfigureAwait(false);
                     var rows = new List<CosmicJoinRow>();
                     long bytes = 0, pairCount = 0;
-                    using (var command = Command("SELECT *,count(*) OVER () AS nativeCount FROM (" + compiled.Pairs + ") ORDER BY 1,2"))
+                    using (var command = Command(compiled.Pairs))
                     await using (var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
                     {
                         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                         {
                             Check();
                             pairCount = reader.GetInt64(2);
-                            if (pairCount > limits.MaximumPairs || pairCount > limits.MaximumResults)
+                            if (pairCount > limits.MaximumPairs ||
+                                (!plan.Query.OutputLimit.HasValue && pairCount > limits.MaximumResults))
                                 throw new SqliteCqlResourceException("Native join exceeds remaining pair or output work.");
-                            var l = left.Rows[reader.GetInt64(0)];
+                            if (reader.IsDBNull(3)) continue;
+                            if (rows.Count == limits.MaximumResults)
+                                throw new SqliteCqlResourceException("Native join exceeds remaining output rows.");
+                            var l = reader.IsDBNull(0) ? null : left.Rows[reader.GetInt64(0)];
                             var r = reader.IsDBNull(1) ? null : right.Rows[reader.GetInt64(1)];
                             var values = new object[plan.Query.Columns.Count];
                             var li = 0; var ri = 0;
@@ -79,22 +84,47 @@ public partial class HolonRepository
                                 var column = plan.Query.Columns[index];
                                 values[index] = column.Source switch
                                 {
-                                    CosmicJoinColumnSource.Left => l.Values[li++],
-                                    CosmicJoinColumnSource.Right => r == null ? MissingRight() : r.Values[ri++],
+                                    CosmicJoinColumnSource.Left => l?.Values[li++],
+                                    CosmicJoinColumnSource.Right => r?.Values[ri++],
                                     _ => column.PresenceWhenMissing ? r == null : r != null
                                 };
                                 Reserve(values[index], ref bytes, limits.MaximumPayloadBytes);
                             }
-                            rows.Add(new CosmicJoinRow(l.Id, r?.Id, values));
-
-                            object MissingRight() { ri++; return null; }
+                            rows.Add(new CosmicJoinRow(l?.Id ?? Guid.Empty, r?.Id, values));
                         }
                     }
                     Check();
+                    var children = plan.Query.SelectsChildEntity
+                        ? await ReadMatchedChildren(rows, bytes).ConfigureAwait(false)
+                        : null;
                     var packet = new CosmicJoinPacket(left.Rows.Values.ToArray(), right.Rows.Values.ToArray(), rows.ToArray(),
-                        left.Count, right.Count, pairCount);
+                        left.Count, right.Count, pairCount, children);
                     transaction?.Commit(); Check();
                     return new OASISResult<CosmicJoinPacket>(packet) { IsLoaded = true };
+
+                    async Task<IHolon[]> ReadMatchedChildren(IReadOnlyList<CosmicJoinRow> pairs, long measured)
+                    {
+                        if (pairs.Count == 0)
+                            return Array.Empty<IHolon>();
+                        var identities = pairs.Select(pair => pair.RightId ?? throw new InvalidDataException(
+                            "A whole-child result must have a native right identity.")).ToArray();
+                        var byId = new Dictionary<Guid, IHolon>(identities.Length);
+                        var storageKeys = identities.Select(id => childStorageKeys[id]).ToArray();
+                        var records = _dbContext.Holons.AsNoTracking().Where(row => storageKeys.Contains(row.Id));
+                        await foreach (var record in records.AsAsyncEnumerable().WithCancellation(cancellationToken).ConfigureAwait(false))
+                        {
+                            Check();
+                            measured = checked(measured + CqlRecordSize(record));
+                            if (measured > limits.MaximumPayloadBytes)
+                                throw new SqliteCqlResourceException("Native joined child entities exceed the output byte budget.");
+                            var child = GetHolonFromEntity(record);
+                            byId.Add(child.Id, child);
+                        }
+                        Check();
+                        if (byId.Count != identities.Length)
+                            throw new InvalidDataException("Native child entities do not match the joined identities.");
+                        return identities.Select(id => byId[id]).ToArray();
+                    }
 
                     void Check() { budget.Check(); traversal?.Check(); }
 
@@ -130,7 +160,10 @@ public partial class HolonRepository
                             count = reader.GetInt64(reader.FieldCount - 1);
                             if (count > maximumRows) throw new SqliteCqlResourceException("Native join source exceeds its remaining row budget.");
                             var position = reader.GetInt64(0);
-                            var id = (Guid)DecodeProjectionCell(reader.GetValue(1), typeof(Guid));
+                            var storageKey = reader.GetString(1);
+                            var id = (Guid)DecodeProjectionCell(storageKey, typeof(Guid));
+                            if (!isLeft && childStorageKeys != null && !childStorageKeys.TryAdd(id,storageKey))
+                                throw new InvalidDataException("Native child source has duplicate logical identities.");
                             var visible = (bool)DecodeProjectionCell(reader.GetValue(2), typeof(bool));
                             var creator = reader.IsDBNull(3) ? Guid.Empty : (Guid)DecodeProjectionCell(reader.GetValue(3), typeof(Guid));
                             measured = checked(measured + 48);

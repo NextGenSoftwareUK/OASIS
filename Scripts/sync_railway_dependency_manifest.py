@@ -47,6 +47,31 @@ def gitlink_commit(path: str, source: str) -> str:
     return commit
 
 
+def candidate_gitlinks(commit_ref: str) -> dict[str, str]:
+    result = subprocess.run(
+        ["git", "ls-tree", "-z", "--full-tree", commit_ref, "--", *GITLINKS.values()],
+        cwd=ROOT,
+        encoding="utf-8",
+        capture_output=True,
+    )
+    if result.returncode:
+        raise RuntimeError(f"Cannot read candidate gitlinks: {result.stderr.strip()}")
+
+    pins = {}
+    for entry in result.stdout.split("\0"):
+        if not entry:
+            continue
+        fields, path = entry.split("\t", 1)
+        mode, object_type, object_id = fields.split()
+        if mode != "160000" or object_type != "commit" or not re.fullmatch(r"[0-9a-f]{40}", object_id):
+            raise RuntimeError(f"Candidate path {path} is not a valid gitlink")
+        pins[path] = object_id
+    missing = set(GITLINKS.values()) - pins.keys()
+    if missing:
+        raise RuntimeError(f"Candidate missing gitlinks: {', '.join(sorted(missing))}")
+    return pins
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -61,15 +86,32 @@ def main() -> int:
         help=("where to resolve gitlinks: committed HEAD, the staged index, or "
               "initialized submodule working trees"),
     )
+    parser.add_argument(
+        "--check-ref",
+        metavar="COMMIT",
+        help="verify the manifest and gitlinks stored in a commit without touching the checkout",
+    )
     args = parser.parse_args()
+    if args.check_ref and not re.fullmatch(r"[0-9a-f]{40}", args.check_ref):
+        parser.error("--check-ref requires a full commit SHA")
+    if args.check_ref and args.source != "head":
+        parser.error("--check-ref cannot be combined with an index or working-tree source")
 
-    original = MANIFEST.read_text(encoding="utf-8")
-    updated = original
     changes: list[str] = []
 
     try:
+        if args.check_ref:
+            entry = f"{args.check_ref}:{MANIFEST.relative_to(ROOT).as_posix()}"
+            result = subprocess.run(["git", "show", entry], cwd=ROOT, encoding="utf-8", capture_output=True)
+            if result.returncode:
+                raise RuntimeError(f"Cannot read the candidate Railway manifest: {result.stderr.strip()}")
+            updated = result.stdout
+        else:
+            updated = MANIFEST.read_text(encoding="utf-8")
+
+        pins = candidate_gitlinks(args.check_ref) if args.check_ref else None
         for key, path in GITLINKS.items():
-            commit = gitlink_commit(path, args.source)
+            commit = pins[path] if pins is not None else gitlink_commit(path, args.source)
             pattern = re.compile(rf"(?m)^{re.escape(key)}=([0-9a-f]{{40}})$")
             match = pattern.search(updated)
             if not match:
@@ -89,7 +131,7 @@ def main() -> int:
     for change in changes:
         print(f"  - {change}")
 
-    if args.check:
+    if args.check or args.check_ref:
         return 1
 
     MANIFEST.write_text(updated, encoding="utf-8")

@@ -20,6 +20,99 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
             => new NativeRecord("people", key, fields.ToDictionary(field => field.Name, field => field.Value));
 
         [Fact]
+        public void VirtualRowsShareImportIdentityAndReturnOnlyMappedMetadata()
+        {
+            const string connection = "mongodb://example.test/retail";
+            var mapping = Guid.NewGuid();
+            var fetched = DateTimeOffset.UtcNow;
+            var row = Record("1", ("label", "fresh"), ("secret", "private"));
+            var fields = new Dictionary<string, string> { ["label"] = "Name" };
+            var first = VirtualHolonRead.FromNative(Owner, ProviderType.MongoDBOASIS, mapping, 1,
+                connection, "people", fetched, row, fields);
+            var next = VirtualHolonRead.FromNative(Owner, ProviderType.MongoDBOASIS, mapping, 2,
+                connection, "people", fetched, row, fields);
+            Assert.Equal(NativeRecordHolonMapper.StableHolonId(Owner, ProviderType.MongoDBOASIS, "people", "1", connection), first.Id);
+            Assert.Equal(first.Id, next.Id);
+            Assert.Equal(2, next.MappingVersion);
+            Assert.Equal(fetched, next.FetchedAt);
+            Assert.Single(first.MetaData);
+            Assert.Equal("fresh", first.MetaData["Name"]);
+            var snapshot = first.PrepareSnapshot(Owner);
+            Assert.Equal(first.Id, snapshot.Id);
+            Assert.Equal(Owner, snapshot.CreatedByAvatarId);
+            Assert.False(snapshot.IsPublic);
+            Assert.Equal("fresh", snapshot.MetaData["Name"]);
+            Assert.False(snapshot.MetaData.ContainsKey("secret"));
+            var provenance = Assert.IsType<Dictionary<string, object>>(snapshot.MetaData["oasis.virtual.snapshot"]);
+            Assert.Equal(mapping.ToString("D"), provenance["mappingId"]);
+            Assert.Equal(1, provenance["mappingVersion"]);
+            Assert.Equal("MongoDBOASIS", provenance["provider"]);
+            Assert.Throws<ArgumentException>(() => first.PrepareSnapshot(Guid.NewGuid()));
+            Assert.NotEqual(first.Id, VirtualHolonRead.FromNative(Guid.NewGuid(), ProviderType.MongoDBOASIS,
+                mapping, 1, connection, "people", fetched, row, fields).Id);
+            Assert.Throws<ArgumentException>(() => VirtualHolonRead.FromNative(Owner, ProviderType.MongoDBOASIS,
+                mapping, 1, connection, "orders", fetched, row, fields));
+            var aliases = new Dictionary<string, string> { ["absent"] = "Name", ["label"] = "Name" };
+            Assert.Throws<ArgumentException>(() => VirtualHolonRead.FromNative(Owner, ProviderType.MongoDBOASIS,
+                mapping, 1, connection, "people", fetched, row, aliases));
+        }
+
+        [Fact]
+        public void OpensOnlyTheNamedConnectionOnTheAuthenticatedAvatar()
+        {
+            var caller = new NextGenSoftware.OASIS.API.Core.Holons.Avatar
+            {
+                Id = Owner,
+                MetaData = new Dictionary<string, object>
+                {
+                    ["preferences"] = new Dictionary<string, object>
+                    {
+                        ["nativeImportConnections"] = new Dictionary<string, object>
+                        {
+                            ["MongoDBOASIS/retail"] = "{\"uri\":\"mongodb://example.test/retail\"}"
+                        }
+                    }
+                }
+            };
+            var anotherAvatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = Guid.NewGuid() };
+
+            var unsealed = SettingsManager.OpenNativeImportConnection(caller, ProviderType.MongoDBOASIS, "retail");
+            Assert.Equal("NATIVE_IMPORT_CONNECTION_UNREADABLE", unsealed.ErrorCode);
+            Assert.Null(unsealed.Result);
+
+            var wrongProvider = SettingsManager.OpenNativeImportConnection(caller, ProviderType.Neo4jOASIS, "retail");
+            Assert.Equal("NATIVE_IMPORT_CONNECTION_NOT_FOUND", wrongProvider.ErrorCode);
+            var wrongAvatar = SettingsManager.OpenNativeImportConnection(anotherAvatar, ProviderType.MongoDBOASIS, "retail");
+            Assert.Equal("NATIVE_IMPORT_CONNECTION_NOT_FOUND", wrongAvatar.ErrorCode);
+        }
+
+        [Fact]
+        public void VirtualMappingDefinitionIsPrivateAndContainsOnlySourceMetadata()
+        {
+            const string authority = "mongodb://example.test/retail";
+            var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, Owner, ProviderType.MongoDBOASIS,
+                "people", "retail", authority, new Dictionary<string, string> { ["Name"] = "label" });
+            var definition = mapping.ToDefinitionHolon();
+            Assert.False(definition.IsPublic);
+            Assert.Equal(Owner, definition.CreatedByAvatarId);
+            Assert.Equal("MongoDBOASIS", definition.MetaData["oasis.virtual.provider"]);
+            Assert.Equal("people", definition.MetaData["oasis.virtual.source"]);
+            Assert.DoesNotContain(authority, definition.MetaData.Values.OfType<string>());
+
+            Assert.Throws<ArgumentException>(() => VirtualHolonMapping.FromDefinitionHolon(Owner, definition, authority));
+            definition.Version = 7; // The authoritative version is assigned by the conditional Holon store.
+            definition.MetaData["oasis.virtual.version"] = "99";
+            var restored = VirtualHolonMapping.FromDefinitionHolon(Owner, definition, authority);
+            Assert.Equal(7, restored.Version);
+            Assert.Equal(mapping.Id, restored.Id);
+            Assert.Equal("label", restored.Fields["Name"]);
+            Assert.Throws<ArgumentException>(() => VirtualHolonMapping.FromDefinitionHolon(Guid.NewGuid(),
+                definition, authority));
+            Assert.Throws<ArgumentException>(() => VirtualHolonMapping.FromDefinitionHolon(Owner, definition,
+                "mongodb://other.test/retail"));
+        }
+
+        [Fact]
         public void StableIdDependsOnlyOnProviderSourceAndKey()
         {
             var id = NativeRecordHolonMapper.StableHolonId(Owner, ProviderType.MongoDBOASIS, "people", "1");

@@ -215,9 +215,9 @@ public partial class NEAROASIS
             if (!await EnsureSdkActiveAsync(result)) return result;
             var holon = await ReadStoredVersionAsync<Holon>(HolonRecordKey(id), id, version);
             if (holon == null)
-                return new OASISResult<IHolon>(null) { Message = $"Holon {id} was not found on NEAR." };
-            if (holon?.IsDeleted == true)
-                return new OASISResult<IHolon>(null) { Message = $"Holon {id} is deleted on NEAR." };
+                return new OASISResult<IHolon>(null) { ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = $"Holon {id} was not found on NEAR." };
+            if (holon.IsDeleted)
+                return new OASISResult<IHolon>(null) { ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = $"Holon {id} is deleted on NEAR." };
             result.Result = holon;
             result.IsLoaded = true;
             result.LoadedCount = 1;

@@ -37,22 +37,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
         internal const string SessionCookieOrigin = "https://web4.oasisomniverse.one";
 
-        internal static void ConfigureSessionCookieCorsPolicy(CorsPolicyBuilder policy)
+        internal static CorsPolicyBuilder ConfigureSessionCookieCorsPolicy(CorsPolicyBuilder policy)
             => policy.WithOrigins(SessionCookieOrigin).AllowCredentials().AllowAnyMethod().AllowAnyHeader()
                 .WithExposedHeaders("X-OASIS-Operation-Id");
 
-        internal static void ConfigureBrowserCors(IApplicationBuilder app)
+        internal const string DevelopmentSessionCookieOrigin = "https://sandbox.web4.oasisomniverse.one";
+
+        internal static void ConfigureBrowserCors(IApplicationBuilder app,
+            NextGenSoftware.OASIS.API.DNA.SandboxSettings sandbox, Func<string, string> environment = null)
         {
-            // Cookie access requires an explicit trusted origin. Other applications
-            // retain the existing public bearer-token policy, with no cookie grant.
-            static bool CookieOrigin(HttpContext context)
-                => context.Request.Headers.Origin.ToString() == SessionCookieOrigin;
+            var allowDevelopmentPreview = sandbox?.EnableDevelopmentWeb4Preview == true
+                && NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.ProgrammaticVerificationPolicy
+                    .IsDevelopmentEnvironment(environment);
+            var cookieOrigins = allowDevelopmentPreview
+                ? new[] { SessionCookieOrigin, DevelopmentSessionCookieOrigin }
+                : new[] { SessionCookieOrigin };
+
+            bool CookieOrigin(HttpContext context)
+                => Array.IndexOf(cookieOrigins, context.Request.Headers.Origin.ToString()) >= 0;
             app.Use(async (context, next) =>
             {
                 context.Response.Headers.AppendCommaSeparatedValues("Vary", "Origin");
                 await next();
             });
-            app.UseWhen(CookieOrigin, branch => branch.UseCors(ConfigureSessionCookieCorsPolicy));
+            app.UseWhen(CookieOrigin, branch => branch.UseCors(policy => ConfigureSessionCookieCorsPolicy(policy).WithOrigins(cookieOrigins)));
             app.UseWhen(context => !CookieOrigin(context), branch => branch.UseCors(ConfigureCorsPolicy));
         }
 
@@ -434,7 +442,28 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddSingleton<Services.HyperDrive.HyperDriveHostedProviderAccessor>();
             services.AddHostedService<Services.HyperDrive.OASISInitializationHostedService>();
             // Registered on every WEB4, but it does nothing unless that node's DNA has OASIS.Sandbox.Enabled (see SandboxCleanupHostedService).
-            services.AddHostedService<Services.Sandbox.SandboxCleanupHostedService>();
+            Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Sandbox.SandboxCleanupHostedService>(services, Configuration);
+
+            // Opt-in features, all configured in OASIS_DNA.json and OFF by default (OASIS.AccessLog, OASIS.Security.Mfa).
+            services.AddHttpContextAccessor();
+            services.AddSingleton<System.Func<NextGenSoftware.OASIS.API.DNA.AccessLogSettings>>(_ => () => OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.AccessLog);
+            services.AddSingleton(_ => new Services.AccessLog.AccessLogService(() => OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.AccessLog,
+                new Services.AccessLog.MongoAccessLogStore(() => OASISBootLoader.OASISBootLoader.OASISDNA)));
+            services.AddHostedService<Services.AccessLog.AccessLogFlushHostedService>();
+            // Opt-in sealed (tamper-evident) holon history: OASIS.HolonSeal in OASIS_DNA.json, off by default; avatars and apps choose.
+            services.AddSingleton(_ => new Services.Seal.HolonSealPolicy(() => OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HolonSeal));
+            services.AddSingleton<Services.Seal.IHolonSealStore>(_ => new Services.Seal.MongoHolonSealStore(() => OASISBootLoader.OASISBootLoader.OASISDNA));
+            services.AddHostedService<Services.Seal.HolonSealRefreshHostedService>();
+            // Opt-in purge of earlier saved versions of deleted holons: OASIS.VersionPurge in OASIS_DNA.json, off by default; avatars and apps choose.
+            services.AddSingleton(_ => new Services.Purge.HolonPurgePolicy(() => OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.VersionPurge));
+            services.AddSingleton<Services.Purge.IHolonPurgeStore>(_ => new Services.Purge.MongoHolonPurgeStore(() => OASISBootLoader.OASISBootLoader.OASISDNA));
+            services.AddSingleton<Services.Purge.IHolonPurgeBackend>(_ => new Services.Purge.HolonManagerPurgeBackend(
+                () => new NextGenSoftware.OASIS.API.Core.Managers.HolonManager(null, OASISBootLoader.OASISBootLoader.OASISDNA, NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance)));
+            services.AddSingleton<Services.Purge.HolonPurgeService>();
+            services.AddHostedService<Services.Purge.HolonPurgeHostedService>();
+            services.AddScoped<Services.AccessLog.AccessLogFilter>();
+            services.AddSingleton(_ => new Services.Mfa.MfaService(() => OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Security?.Mfa,
+                new Services.Mfa.MongoMfaStore(() => OASISBootLoader.OASISBootLoader.OASISDNA), OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Security?.SecretKey));
             NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConfiguredHolonReplicationRegistration.AddConfiguredCosmicHolonReplicationFromServices(
                 services, Configuration["COSMIC_HOLON_REPLICATION_JSON"], provider =>
                     new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationProviderResolver(
@@ -445,20 +474,23 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                             if (initialized == null || initialized.IsError || initialized.IsWarning || initialized.Result == null)
                                 throw new InvalidOperationException("Enabled COSMIC replication requires successful shared OASIS initialization.", initialized?.Exception);
                         }));
-            services.AddHostedService<Services.HyperDrive.HyperDriveCommandHostedService>();
-            services.AddHostedService<Services.HyperDrive.HyperDriveFanOutHostedService>();
-            services.AddHostedService<Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService>();
-            services.AddHostedService<Services.HyperDrive.HyperDriveSyncCompactionHostedService>();
+            Services.Operations.HostedMongoWorkerControl.AddHyperDriveWorker<Services.HyperDrive.HyperDriveCommandHostedService>(services, Configuration);
+            Services.Operations.HostedMongoWorkerControl.AddHyperDriveWorker<Services.HyperDrive.HyperDriveFanOutHostedService>(services, Configuration);
+            Services.Operations.HostedMongoWorkerControl.AddHyperDriveWorker<Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService>(services, Configuration);
+            Services.Operations.HostedMongoWorkerControl.AddHyperDriveWorker<Services.HyperDrive.HyperDriveSyncCompactionHostedService>(services, Configuration);
             services.TryAddSingleton<NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IHolonReplicationAuthorizationPolicy,
                 Services.HyperDrive.CommittedOwnerReplicationPolicy>();
-            services.AddHostedService<Services.HyperDrive.HolonReplicationDeliveryHostedService>();
+            Services.Operations.HostedMongoWorkerControl.AddHyperDriveWorker<Services.HyperDrive.HolonReplicationDeliveryHostedService>(services, Configuration);
             Services.OLand.OLandCommerceRegistration.AddOLandCommerce(services, Configuration);
             services.AddSingleton<Services.Places.WorldscapePlaceCatalogue>();
             services.AddSingleton<Services.Gardens.GardenService>();
-            services.AddHostedService<Services.Gardens.GardenRewardWorker>();
-            services.AddSingleton<Services.Subscription.MongoSubscriptionUsageRepository>();
+            Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Gardens.GardenRewardWorker>(services, Configuration);
+            services.AddSingleton(provider => new Services.Subscription.MongoSubscriptionUsageRepository(
+                provider.GetRequiredService<IConfiguration>(),
+                () => OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.UsageVisibility?.AppPayAsYouGoEnabled ?? true));
             services.AddSingleton<Services.Subscription.ISubscriptionUsageRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISubscriptionBillingRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
+            services.AddSingleton<Services.Subscription.IUsageSeriesSource>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISandboxSubscriptionStore>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton(provider => new Services.Sandbox.SandboxSubscriptionLifecycle(
                 () => provider.GetRequiredService<Services.Subscription.ISandboxSubscriptionStore>(),
@@ -496,15 +528,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             var storageUsagePolicy=NextGenSoftware.OASIS.API.Core.Services.Subscriptions.ConfiguredStorageAdmission.AddConfiguredStorageAdmission(
                 services,Configuration,subscriptionUsageEnabled,_=>null,
                 ()=>NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance.GetAllRegisteredProviders());
-            if (Configuration["CQL_SOLANA_PUBLIC_SOURCE_JSON"] is string solanaPublicSource)
-                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaPublicAccountMetadataSource.FromJson(solanaPublicSource)));
             if (Configuration["CQL_SEI_PUBLIC_SOURCE_JSON"] is string seiPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.SeiOASIS.SeiPublicAccountMetadataSource.FromJson(seiPublicSource)));
-            if (Configuration["CQL_TON_PUBLIC_SOURCE_JSON"] is string tonPublicSource)
-                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.TONOASIS.TonPublicHeaderMetadataSource.FromJson(tonPublicSource)));
             if (Configuration["CQL_ARWEAVE_PUBLIC_SOURCE_JSON"] is string arweavePublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.ArweavePublicHeaderMetadataSource.FromJson(arweavePublicSource)));
@@ -523,9 +549,6 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_SUI_PUBLIC_SOURCE_JSON"] is string suiPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.SuiOASIS.SuiPublicObjectMetadataSource.FromJson(suiPublicSource)));
-            if (Configuration["CQL_HEDERA_PUBLIC_SOURCE_JSON"] is string hederaPublicSource)
-                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.HederaPublicAccountMetadataSource.FromJson(hederaPublicSource)));
             if (Configuration["CQL_APTOS_PUBLIC_SOURCE_JSON"] is string aptosPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.AptosOASIS.AptosPublicAccountMetadataSource.FromJson(aptosPublicSource)));
@@ -579,7 +602,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             // Anonymous Blockscout address observations never enable signed writes.
             if (Configuration["CQL_BLOCKSCOUT_PUBLIC_SOURCE_JSON"] is string blockscoutPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS.BlockscoutPublicAddressMetadataSource.FromJson(blockscoutPublicSource),
+                    NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS.BlockscoutOASIS.FromPublicQueryConfiguration(blockscoutPublicSource),
                     Services.Cql.CqlReadSourceActivationPolicy.TransientServerErrorOnce));
 
             // Pinned Celestia header reads never enable blob submission or node wallets.
@@ -610,7 +633,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             // Signed public Nostr events are a separate read-only relay profile.
             if (Configuration["CQL_NOSTR_PUBLIC_SOURCE_JSON"] is string nostrPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.NostrOASIS.NostrPublicEventMetadataSource.FromJson(nostrPublicSource)));
+                    NextGenSoftware.OASIS.API.Providers.NostrOASIS.NostrOASIS.FromPublicQueryConfiguration(nostrPublicSource)));
             // Anonymous cached AppView profiles stay separate from PDS sessions.
             if (Configuration["CQL_BLUESKY_PUBLIC_SOURCE_JSON"] is string blueSkyPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
@@ -620,9 +643,6 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS.ChainLinkPublicFeedMetadataSource.FromJson(chainLinkPublicSource)));
             // Native EOSIO/Vaulta account reads stay outside signed storage.
-            if (Configuration["CQL_EOSIO_PUBLIC_SOURCE_JSON"] is string eosioPublicSource)
-                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EosioPublicAccountMetadataSource.FromJson(eosioPublicSource)));
             // Explicit public Telos EVM reads, outside Antelope/wallet storage.
             if (Configuration["CQL_TELOS_PUBLIC_SOURCE_JSON"] is string telosPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
@@ -665,24 +685,6 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_BNB_PUBLIC_SOURCE_JSON"] is string bnbPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.BnbPublicAccountMetadataSource.FromJson(bnbPublicSource)));
-            if (Configuration["CQL_NEAR_PUBLIC_SOURCE_JSON"] is string nearPublicSource)
-                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.NEAROASIS.NearPublicAccountMetadataSource.FromJson(nearPublicSource)));
-            if (Configuration["CQL_POLKADOT_PUBLIC_SOURCE_JSON"] is string polkadotPublicSource)
-                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotPublicHeaderMetadataSource.FromJson(polkadotPublicSource)));
-            if (Configuration["CQL_COSMOS_PUBLIC_SOURCE_JSON"] is string cosmosPublicSource)
-                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.CosmosPublicValidatorMetadataSource.FromJson(cosmosPublicSource)));
-            if (Configuration["CQL_ARBITRUM_PUBLIC_SOURCE_JSON"] is string arbitrumPublicSource)
-                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.ArbitrumPublicAccountMetadataSource.FromJson(arbitrumPublicSource)));
-            if (Configuration["CQL_POLYGON_PUBLIC_SOURCE_JSON"] is string polygonPublicSource)
-                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.PolygonOASIS.PolygonPublicAccountMetadataSource.FromJson(polygonPublicSource)));
-            if (Configuration["CQL_ETHEREUM_PUBLIC_SOURCE_JSON"] is string ethereumPublicSource)
-                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.EthereumOASIS.EthereumPublicAccountMetadataSource.FromJson(ethereumPublicSource)));
             if (Configuration["CQL_AZURE_BLOB_PUBLIC_SOURCE_JSON"] is string azureBlobPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.AzureBlobPublicMetadataSource.FromJson(azureBlobPublicSource)));
@@ -707,7 +709,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 
             if (Configuration["CQL_CONNEXT_PUBLIC_SOURCE_JSON"] is string connextPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.ConnextOASIS.ConnextPublicOriginMetadataSource.FromJson(connextPublicSource)));
+                    NextGenSoftware.OASIS.API.Providers.ConnextOASIS.ConnextOASIS.FromPublicQueryConfiguration(connextPublicSource),
+                    Services.Cql.CqlReadSourceActivationPolicy.TransientServerErrorOnce));
 
             if (Configuration["CQL_MIDEN_PUBLIC_SOURCE_JSON"] is string midenPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
@@ -727,13 +730,15 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 
             if (Configuration["CQL_AXELAR_PUBLIC_SOURCE_JSON"] is string axelarPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.AxelarOASIS.AxelarPublicBlockSource.FromJson(axelarPublicSource)));
+                    NextGenSoftware.OASIS.API.Providers.AxelarOASIS.AxelarOASIS.FromPublicQueryConfiguration(axelarPublicSource),
+                    Services.Cql.CqlReadSourceActivationPolicy.TransientServerErrorOnce));
 
             if (Configuration["CQL_RITUAL_PUBLIC_SOURCE_JSON"] is string ritualPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.RitualOASIS.RitualPublicBlockSource.FromJson(ritualPublicSource)));
 
             Services.Cql.CqlDaprReadSourceRegistration.AddDaprReadSource(services, Configuration);
+            Services.Cql.CqlHoloOasisReadSourceRegistration.AddHoloOasisReadSource(services, Configuration);
 
             if (Configuration["CQL_NATS_PUBLIC_SOURCE_JSON"] is string natsPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
@@ -752,6 +757,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             Services.Cql.CqlSupabaseReadSourceRegistration.AddSupabaseReadSource(services, Configuration);
             Services.Cql.CqlPlanetScaleReadSourceRegistration.AddPlanetScaleReadSource(services, Configuration);
             Services.Cql.CqlCouchDbReadSourceRegistration.AddCouchDbReadSource(services, Configuration);
+            Services.Cql.CqlUrbitReadSourceRegistration.AddUrbitReadSource(services, Configuration);
             Services.Cql.CqlCloudinaryReadSourceRegistration.AddCloudinaryReadSource(services, Configuration);
             Services.Cql.CqlLoopbackTeachingSourceRegistration.AddLoopbackTeachingSources(services, Configuration);
             Services.Cql.CqlRegistryAndObjectReadSourceRegistration.AddRegistryAndObjectReadSources(services, Configuration);
@@ -771,11 +777,13 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 NextGenSoftware.OASIS.API.Core.Services.Subscriptions.LocalWeb4UsageLedgerRegistration.AddLocalWeb4UsageLedger(services,Configuration,storageUsagePolicy);
             if (subscriptionUsageEnabled)
             {
-                services.AddHostedService<Services.Subscription.SubscriptionUsageExpiryWorker>();
-                services.AddHostedService<Services.Subscription.PaidOverageBillingWorker>();
+                Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Subscription.SubscriptionUsageExpiryWorker>(services, Configuration);
+                Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Subscription.PaidOverageBillingWorker>(services, Configuration);
+                Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Subscription.AppOverageStatementWorker>(services, Configuration);
                 NextGenSoftware.OASIS.API.Core.Services.Subscriptions.SubscriptionTelemetryRegistration.AddSubscriptionUsageTelemetry(services, Configuration, "WEB4");
             }
-            Services.SubscriptionReconciliation.UsageReconciliationRegistration.AddUsageReconciliation(services, subscriptionUsageEnabled);
+            Services.SubscriptionReconciliation.UsageReconciliationRegistration.AddUsageReconciliation(services,
+                subscriptionUsageEnabled && Services.Operations.HostedMongoWorkerControl.ReconciliationMayStart(Configuration));
             // Use distributed counter for multi-pod safety; falls back to in-process when storage is unavailable
             services.AddSingleton<Services.IHerzCounterService, Services.DistributedHerzCounterService>();
             services.AddSingleton<Services.IQeaSealService, Services.QeaSealService>();
@@ -994,15 +1002,27 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //app.UseSession();
 
             // global cors policy — open to any origin so OASIS APIs are pluggable everywhere
-            ConfigureBrowserCors(app);
+            ConfigureBrowserCors(app, NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA?.OASIS?.Sandbox);
 
             //TODO: Was this, check later...
             //app.UseCors(MyAllowSpecificOrigins);
 
             // Rate limiting: per-IP sliding window, config via OASISDNA.OASIS.Security.RateLimiting
+            // Second sign-in step hook (does nothing unless OASIS.Security.Mfa.Enabled is true).
+            NextGenSoftware.OASIS.API.Core.Managers.AvatarManager.SecondFactorGate = (avatar, ip) =>
+                Services.Mfa.MfaGate.Create(app.ApplicationServices.GetRequiredService<Services.Mfa.MfaService>(),
+                    app.ApplicationServices.GetRequiredService<Microsoft.AspNetCore.Http.IHttpContextAccessor>())(avatar, ip);
+
+            app.UseMiddleware<RequestTimingMiddleware>();
             app.UseRateLimiter();
 
             app.UseMiddleware<OASISRequestContextMiddleware>();
+            // The calling app (verified elsewhere; here it can only ADD sealing) flows to the storage write so an app's sealed-history switch applies.
+            app.Use(async (context, next) =>
+            {
+                if (context.Request.Headers.TryGetValue("X-OASIS-App-Id", out var sealAppId)) NextGenSoftware.OASIS.API.Core.Holons.HolonSealing.CurrentAppId = sealAppId.ToString();
+                await next();
+            });
             app.UseMiddleware<OASISMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
             // API key gate: disabled by default (OASISDNA.OASIS.Security.RequireApiKey = false)

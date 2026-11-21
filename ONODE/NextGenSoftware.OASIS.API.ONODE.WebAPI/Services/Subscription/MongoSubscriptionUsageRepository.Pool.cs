@@ -77,9 +77,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             }
             catch (SubscriptionUsageLimitException ex)
             {
-                SubscriptionLedgerMetrics.PoolThreshold.Add(1, new KeyValuePair<string, object>("app_id", usageEvent.PooledAppId),
-                    new KeyValuePair<string, object>("threshold", "100"), new KeyValuePair<string, object>("limit", "denied"));
-                throw new SubscriptionUsageLimitException("APP_" + ex.Code, "The app's shared quota is used up: " + ex.Message, ex.StatusCode);
+                // Billable overage: when the app agreed to pay above its allowance (consent, cap, price, verified owner) the request is
+                // admitted; it is counted in the pool month bucket and invoiced monthly from it. Anything else is a normal denial.
+                if (!(ex.Code == "MONTHLY_REQUEST_LIMIT_EXCEEDED" && await TryAdmitPoolOverageAsync(session, usageEvent, policy, pool, ct)))
+                {
+                    SubscriptionLedgerMetrics.PoolThreshold.Add(1, new KeyValuePair<string, object>("app_id", usageEvent.PooledAppId),
+                        new KeyValuePair<string, object>("threshold", "100"), new KeyValuePair<string, object>("limit", "denied"));
+                    throw new SubscriptionUsageLimitException("APP_" + ex.Code, "The app's shared quota is used up: " + ex.Message, ex.StatusCode);
+                }
             }
             EmitThresholdCrossings(usageEvent.PooledAppId, "monthly_requests", pool.MonthlyRequests, policy.MonthlyRequestLimit);
             EmitThresholdCrossings(usageEvent.PooledAppId, "daily_calls", pool.DailyCalls, policy.DailyCallLimit);

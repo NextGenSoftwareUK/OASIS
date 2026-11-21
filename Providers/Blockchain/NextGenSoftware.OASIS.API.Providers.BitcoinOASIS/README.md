@@ -28,6 +28,16 @@ Use this package for the responsibility described above, alongside its owning OA
 
 Provider adapters require their respective service configuration and credentials. Runtime libraries require the host application's lifecycle and persistent paths where applicable. Supply only the settings actually required by the owning component; do not copy production DNA into a client or public release.
 
+### Bitcoin wallet configuration
+
+- Set the endpoint to the Esplora API root for the intended chain. Preserve the API path in the URL.
+- Set the signing network to `mainnet`, `testnet`, or `regtest`. The provider compares the endpoint's genesis block with the configured network before a payment.
+- Supply the sending wallet's WIF through protected host configuration. The payment path accepts legacy, native SegWit, and wrapped SegWit addresses controlled by that key.
+- Payments use Esplora's six-block fee estimate by default. On an isolated chain with no estimate, the five-argument constructor accepts an explicit positive fee rate in satoshis per virtual byte.
+- Check the acknowledged transaction ID and query transaction status to observe confirmation. Successful broadcast indicates network acceptance of the submission. A payment memo is public on-chain and limited to 80 UTF-8 bytes.
+
+Public Esplora CI covers provider activation, balance, history, transaction status, account recovery, and network mismatch rejection. Signed holon and avatar storage have separate acceptance requirements. Keep private data and signing material out of transaction memos.
+
 ## Errors and security
 
 For APIs returning `OASISResult<T>`, check `IsError`, `ErrorCode` and `Message`; do not treat a failed result as success. Preserve useful diagnostics without logging access tokens, passwords or private keys. Keep secrets in the host's appropriate protected configuration or platform storage.
@@ -49,3 +59,29 @@ Target-framework compatibility is not proof that every native dependency or exte
 
 Published NuGet versions are immutable. Updated documentation ships with a new unpublished package version after checked promotion and publication. This metadata-backed guide does not replace product-specific API examples or claim unverified platform tests.
 
+
+### Encrypted holon storage
+
+Set `OASIS_BITCOIN_KUBO_API` to the trusted Kubo RPC root and `OASIS_BITCOIN_STORAGE_KEY` to a separately managed, canonical Base64 encoding of 32 random bytes. Keep that encryption key available to every reader of the same store. A Bitcoin wallet key controls spending and serves a different purpose.
+
+Fund the signing key's native SegWit address for storage transaction fees. `SaveHolonAsync` stores the encrypted payload in Kubo and returns the acknowledged Bitcoin transaction ID in the holon's provider storage key. Use that ID for exact transaction-key reads. Retaining access to the encrypted Kubo payload and its encryption key is required for readback.
+
+New encrypted record pins carry the name `oasis-bitcoin-v1:<genesis hash>:<signing address>:<transaction ID>`. The provider assigns the name before submitting the signed transaction. Trusted Kubo operators can use the recursive pin list to recover the transaction ID after a lost acknowledgement or process restart. Call ListRecordPublicationsAsync to discover recorded attempts for that wallet. Call ReconcileRecordPublicationAsync with the transaction ID and the same signing wallet to verify the recorded pin against the configured network and encrypted payload. Reconciliation does not broadcast, delete pins, or establish confirmation depth.
+
+Native regtest verified encrypted holon and avatar storage, wallet-scoped identity lookup, pin reconciliation, signed tombstones, and historical readback through a fresh provider. See the current provider matrix for evidence by operation. [Provider matrix](../../../Docs/WIP/HyperDrive-Providers/PROVIDER_MATRIX.md)
+
+Bitcoin avatar soft deletion publishes an encrypted tombstone signed by the configured storage wallet. Current avatar selectors and lists exclude the tombstoned identity. Explicit historical-version reads and the original transaction key retain access to the earlier committed record. Requests for physical deletion return an error.
+
+### Bitcoin Ordinals
+
+Set `OASIS_BITCOIN_ORD_API` to a trusted HTTPS ord server or a loopback ord server with JSON responses enabled. Pass an inscription ID consisting of the reveal transaction ID, `i`, and the inscription index. The reader verifies the server's Bitcoin network before requesting the inscription.
+
+Minting uses the configured wallet's BIP86 Taproot address and a confirmed funding output free of inscriptions and Runes. Configure Bitcoin Core RPC as described below. The provider signs the commit and reveal for one inscription and submits them as a package. The reveal pays 10,000 satoshis to `SendToAddressAfterMinting` when supplied or to the signing address otherwise. Request confirmation to wait for the exact inscription and its expected owner. The inscription's JSON body is public. Keep private material out of the mint fields. [Native verification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43661359322/job/132651181295)
+
+To send an inscription, use the current owner's Bitcoin address and signing key, the recipient address, and the inscription ID. The ord server must index Runes and agree with Esplora on the chain tip. Fund the source with a separate confirmed output free of inscriptions and Runes to pay fees. The transfer preserves the full inscription output value. Check the transaction ID and use the inscription lookup after confirmation to verify ownership. Native regtest verified both a confirmed transfer and rejection of a mismatched signer. [Native verification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43658729525/job/132643032791)
+
+To burn an inscription, provide the inscription ID and its owner's signing key. Configure `OASIS_BITCOIN_CORE_RPC_URL` with a protected HTTPS endpoint or a loopback Bitcoin Core RPC endpoint. Set `OASIS_BITCOIN_CORE_RPC_AUTH` to a protected `username:password` value or `cookiefile=<path>` for a readable Core authentication cookie. Core, Esplora, and ord must agree on the chain tip. The native transaction burns one satoshi and returns the remaining funds after fees. When you request confirmation, the provider waits for ord to index that exact burn transaction. If confirmation is still pending at the deadline, retain the returned `BitcoinTransactionId` and check the original inscription.
+
+### Bridge payments
+
+Native Bitcoin bridge payments require OASIS_BITCOIN_BRIDGE_POOL_ADDRESS. The address must belong to the configured Bitcoin network. Withdrawals send from the supplied wallet signer to the pool. Deposits spend from the pool using its configured provider signer. A pending response identifies an acknowledged Bitcoin broadcast.

@@ -1,5 +1,34 @@
 {
   "OASIS": {
+    "VersionPurge": {"Enabled": false, "ApplyToAll": false, "PurgeAfterDays": 30, "BatchSize": 25, "CycleSeconds": 300, "BackupRetentionDays": 0}, "HolonSeal": {
+      "Enabled": false,
+      "Key": "",
+      "KeyId": "k1",
+      "RetiredKeys": {},
+      "RefreshIntervalSeconds": 30
+    },
+    "UsageVisibility": {
+      "OwnerViewEnabled": true,
+      "WarningsEnabled": true,
+      "EmailEnabled": true,
+      "DefaultWarningPercents": [
+        80,
+        100
+      ],
+      "AppPayAsYouGoEnabled": true
+    },
+    "AccessLog": {
+      "Enabled": false,
+      "Apps": [],
+      "HolonTypes": [],
+      "Operations": [],
+      "CaptureIp": false,
+      "RetentionDays": 365,
+      "QueueCapacity": 10000,
+      "FlushIntervalSeconds": 5,
+      "BatchSize": 500,
+      "MaxHolonIdsPerEvent": 200
+    },
     "Providers": {
       "AvalancheOASIS": {
         "HostUri": "https://api.avax-test.network/ext/bc/C/rpc",
@@ -9,6 +38,22 @@
       }
     },
     "Security": {
+      "Mfa": {
+        "Enabled": false,
+        "Issuer": "OASIS",
+        "AvatarTypesThatCannotDisable": [],
+        "Apps": [],
+        "CodeDigits": 6,
+        "TimeStepSeconds": 30,
+        "AllowedDriftSteps": 1,
+        "ChallengeTtlSeconds": 300,
+        "MaxChallengeAttempts": 5,
+        "MaxFailedCodes": 5,
+        "CooldownSeconds": 60,
+        "MaxCooldownSeconds": 3600,
+        "RecoveryCodeCount": 10,
+        "EventRetentionDays": 730
+      },
       "SecretKey": "TEST_SECRET_KEY",
       "HideVerificationToken": true,
       "HideRefreshTokens": true,
@@ -126,11 +171,12 @@
     "StorageProviders": {
       "LogSwitchingProviders": true,
       "ProviderMethodCallTimeOutSeconds": 99,
+      "AvatarLoginTimeoutSeconds": 10,
       "ActivateProviderTimeOutSeconds": 10,
       "DectivateProviderTimeOutSeconds": 10,
       "AutoReplicationEnabled": false,
       "AutoFailOverEnabled": true,
-      "AutoLoadBalanceEnabled": true,
+      "AutoLoadBalanceEnabled": false,
       "AutoLoadBalanceReadPollIntervalMins": 10,
       "AutoLoadBalanceWritePollIntervalMins": 10,
       "AutoReplicationProviders": "MongoDBOASIS, ArbitrumOASIS, PolygonOASIS, RootstockOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, PinataOASIS, HoloOASIS, SolanaOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
@@ -754,6 +800,7 @@
       "GroupCacheSeconds": 15
     },
     "Sandbox": {
+      "EnableDevelopmentWeb4Preview": false,
       "Enabled": false,
       "Providers": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS",
       "DemoAvatarUsernamePrefix": "sandbox-",
@@ -770,6 +817,8 @@
       "MaximumSessionsPerDay": 1000
     },
     "Web6": {
+      "OllamaBaseUrl": "",
+      "OllamaFreeModel": "",
       "DefaultProvider": "Auto",
       "DefaultOpenServModel": "gpt-5.4",
       "DefaultRoutingPriority": "cost",
@@ -823,6 +872,8 @@
       "ApiKeys": {
         "OpenAI": "",
         "Anthropic": "",
+        "GeminiFree": "",
+        "OpenRouter": "",
         "Gemini": "",
         "Groq": "",
         "Mistral": "",

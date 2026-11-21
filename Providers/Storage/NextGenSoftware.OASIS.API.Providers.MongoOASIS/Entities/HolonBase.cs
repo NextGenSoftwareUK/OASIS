@@ -91,6 +91,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 
         public int Version { get; set; }
         public Guid PreviousVersionId { get; set; }
+        // Opt-in tamper-evident history (null when sealing was off, so unsealed documents are unchanged on disk).
+        [BsonIgnoreIfNull] public string VersionSeal { get; set; }
+        [BsonIgnoreIfNull] public string PreviousVersionSeal { get; set; }
+        [BsonIgnoreIfNull] public string VersionSealKeyId { get; set; }
 
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]
         public Dictionary<ProviderType, string> PreviousVersionProviderUniqueStorageKey { get; set; } = new Dictionary<ProviderType, string>();

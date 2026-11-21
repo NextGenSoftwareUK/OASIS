@@ -12,14 +12,18 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 
 namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 {
+#if OASIS_INTERNAL_STORED_RECORD_SEARCH
+    internal static class StoredRecordSearch
+#else
     public static class StoredRecordSearch
+#endif
     {
         public static void Validate(ISearchParams searchParams,int version,int maxChildDepth)
             => Validate(searchParams,version,maxChildDepth,supportsHistory:false);
 
         public static void Validate(ISearchParams searchParams,int version,int maxChildDepth,bool supportsHistory)
         {
-                ArgumentNullException.ThrowIfNull(searchParams);
+                if(searchParams == null) throw new ArgumentNullException(nameof(searchParams));
                 if(searchParams.SearchOnlyForCurrentAvatar && searchParams.AvatarId == Guid.Empty)
                     throw new ArgumentException("Current-avatar search requires AvatarId.");
                 if(searchParams.MetaKeyValuePairMatchMode != MetaKeyValuePairMatchMode.All && searchParams.MetaKeyValuePairMatchMode != MetaKeyValuePairMatchMode.Any)
@@ -133,8 +137,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public static bool MatchesSearchFields(IHolonBase record,bool avatar,ISearchGroupBase group)
         {
-            ArgumentNullException.ThrowIfNull(record);
-            ArgumentNullException.ThrowIfNull(group);
+            if(record == null) throw new ArgumentNullException(nameof(record));
+            if(group == null) throw new ArgumentNullException(nameof(group));
             var query=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {group}};
             Validate(query,0,0);
             return Matches(record,avatar,query,Enumerable.Empty<IHolon>());
@@ -144,7 +148,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         // Bind the single-group envelope to this record without changing its searchable values.
         public static bool MatchesSelectedFields(IHolonBase record,bool avatar,ISearchGroupBase group)
         {
-            ArgumentNullException.ThrowIfNull(record);ArgumentNullException.ThrowIfNull(group);
+            if(record == null) throw new ArgumentNullException(nameof(record));
+            if(group == null) throw new ArgumentNullException(nameof(group));
             ISearchGroupBase selection=group switch {
                 ISearchTextGroup text=>new SearchTextGroup {SearchQuery=text.SearchQuery,SearchIds=text.SearchIds,SearchProviderKeys=text.SearchProviderKeys},
                 ISearchNumberGroup number=>new SearchNumberGroup {Number=number.Number,NumberOperator=number.NumberOperator},
@@ -157,8 +162,9 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public static bool MatchesTextIdentifiers(IHolonBase record,string query,bool searchIds,bool searchProviderKeys)
         {
-            ArgumentNullException.ThrowIfNull(record);
-            ArgumentException.ThrowIfNullOrWhiteSpace(query);
+            if(record == null) throw new ArgumentNullException(nameof(record));
+            if(query == null) throw new ArgumentNullException(nameof(query));
+            if(string.IsNullOrWhiteSpace(query)) throw new ArgumentException("A search query is required.",nameof(query));
             var json=SearchDocument(record);
             RemoveSearchCredentials(json);
             return searchIds && MatchesTextIds(json,query)

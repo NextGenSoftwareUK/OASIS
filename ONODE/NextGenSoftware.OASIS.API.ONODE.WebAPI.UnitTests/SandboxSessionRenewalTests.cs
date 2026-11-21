@@ -125,16 +125,29 @@ public sealed class SandboxSessionRenewalTests
     }
 
     [Theory]
-    [InlineData("https://web4.oasisomniverse.one", true)]
-    [InlineData("https://third-party.example", false)]
-    [InlineData("https://web4.oasisomniverse.one.attacker.example", false)]
-    public async Task ActualPreflightAllowsCredentialCookiesOnlyForTheExactFirstParty(string origin, bool credentialed)
+    [InlineData("https://web4.oasisomniverse.one", false, "production", true)]
+    [InlineData("https://web4.oasisomniverse.one", true, "dev", true)]
+    [InlineData("https://sandbox.web4.oasisomniverse.one", false, "dev", false)]
+    [InlineData("https://sandbox.web4.oasisomniverse.one", true, "dev", true)]
+    [InlineData("https://sandbox.web4.oasisomniverse.one", true, "production", false)]
+    [InlineData("https://sandbox.web4.oasisomniverse.one.attacker.example", true, "dev", false)]
+    [InlineData("https://dev.web4.oasisomniverse.one", true, "dev", false)]
+    [InlineData("https://sandbox.web4.oasisomniverse.one", true, "staging", false)]
+    [InlineData("https://third-party.example", true, "dev", false)]
+    [InlineData("https://web4.oasisomniverse.one.attacker.example", false, "production", false)]
+    public async Task ActualPreflightAllowsCredentialCookiesOnlyForTheExactFirstParty(
+        string origin, bool allowDevelopmentPreview, string railwayEnvironment, bool credentialed)
     {
         var services = new ServiceCollection();
         services.AddLogging(); services.AddCors();
         await using var provider = services.BuildServiceProvider();
         var app = new ApplicationBuilder(provider);
-        Startup.ConfigureBrowserCors(app);
+        var sandbox = new NextGenSoftware.OASIS.API.DNA.SandboxSettings
+        {
+            EnableDevelopmentWeb4Preview = allowDevelopmentPreview
+        };
+        Startup.ConfigureBrowserCors(app, sandbox,
+            name => name == "RAILWAY_ENVIRONMENT_NAME" ? railwayEnvironment : null);
         var invoked = false;
         app.Run(context => { invoked = true; return Task.CompletedTask; });
         var context = new DefaultHttpContext { RequestServices = provider };
@@ -154,7 +167,7 @@ public sealed class SandboxSessionRenewalTests
     public void BothBrowserPoliciesExposeTheOriginalOperationIdentity()
     {
         foreach (var configure in new Action<CorsPolicyBuilder>[] {
-            Startup.ConfigureCorsPolicy, Startup.ConfigureSessionCookieCorsPolicy })
+            Startup.ConfigureCorsPolicy, policy => Startup.ConfigureSessionCookieCorsPolicy(policy) })
         {
             var builder = new CorsPolicyBuilder(); configure(builder);
             Assert.Contains("X-OASIS-Operation-Id", builder.Build().ExposedHeaders);

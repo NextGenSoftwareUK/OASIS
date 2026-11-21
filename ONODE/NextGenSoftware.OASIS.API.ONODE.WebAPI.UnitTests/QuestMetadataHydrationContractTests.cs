@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reflection;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
@@ -13,7 +14,8 @@ public class QuestMetadataHydrationContractTests
     public void FloatingCoordinatesPreserveExactJsonDoubleRoundTrip(string json)
     {
         var hotspot = new GeoHotSpot { MetaData = new() { ["Lat"] = new Newtonsoft.Json.Linq.JRaw(json) } };
-        var hydrate = typeof(HolonManager).GetMethod("MapV2MetaData", BindingFlags.Static | BindingFlags.NonPublic)!.MakeGenericMethod(typeof(GeoHotSpot));
+        var hydrate = typeof(HolonManager).GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
+            .Single(m => m.Name == "MapV2MetaData" && m.IsGenericMethodDefinition).MakeGenericMethod(typeof(GeoHotSpot));
         hydrate.Invoke(null, new object[] { hotspot });
         using var document = System.Text.Json.JsonDocument.Parse(json);
         Assert.Equal(BitConverter.DoubleToInt64Bits(document.RootElement.GetDouble()), BitConverter.DoubleToInt64Bits(hotspot.Lat));
@@ -23,7 +25,8 @@ public class QuestMetadataHydrationContractTests
     public void UnrepresentableCoordinateMetadataIsStillRejectedBeforeAssignment()
     {
         var hotspot = new GeoHotSpot { MetaData = new() { ["Lat"] = new Newtonsoft.Json.Linq.JRaw("1.000000000000000000000000001") } };
-        var hydrate = typeof(HolonManager).GetMethod("MapV2MetaData", BindingFlags.Static | BindingFlags.NonPublic)!.MakeGenericMethod(typeof(GeoHotSpot));
+        var hydrate = typeof(HolonManager).GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
+            .Single(m => m.Name == "MapV2MetaData" && m.IsGenericMethodDefinition).MakeGenericMethod(typeof(GeoHotSpot));
         var error = Assert.Throws<TargetInvocationException>(() => hydrate.Invoke(null, new object[] { hotspot }));
         Assert.IsType<System.IO.InvalidDataException>(error.InnerException);
         Assert.Equal(0d, hotspot.Lat);
@@ -33,7 +36,8 @@ public class QuestMetadataHydrationContractTests
     public void PersistedQuestCollectionsDecodeTheirJsonStringContract()
     {
         var quest = new Quest { MetaData = new() { ["Requirements"] = "[\"visit portal\"]", ["Quests"] = "[]" } };
-        var hydrate = typeof(HolonManager).GetMethod("MapV2MetaData", BindingFlags.Static | BindingFlags.NonPublic)!.MakeGenericMethod(typeof(Quest));
+        var hydrate = typeof(HolonManager).GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
+            .Single(m => m.Name == "MapV2MetaData" && m.IsGenericMethodDefinition).MakeGenericMethod(typeof(Quest));
         hydrate.Invoke(null, new object[] { quest });
         Assert.Equal(new[] { "visit portal" }, quest.Requirements);
         Assert.Empty(quest.Quests);
@@ -43,7 +47,8 @@ public class QuestMetadataHydrationContractTests
     public void PersistedHotSpotRewardIdsDecodeTheirJsonStringContract()
     {
         var hotspot = new GeoHotSpot { MetaData = new() { ["RewardIds"] = "[\"reward-one\"]" } };
-        var hydrate = typeof(HolonManager).GetMethod("MapV2MetaData", BindingFlags.Static | BindingFlags.NonPublic)!.MakeGenericMethod(typeof(GeoHotSpot));
+        var hydrate = typeof(HolonManager).GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
+            .Single(m => m.Name == "MapV2MetaData" && m.IsGenericMethodDefinition).MakeGenericMethod(typeof(GeoHotSpot));
         hydrate.Invoke(null, new object[] { hotspot });
         Assert.Equal(new[] { "reward-one" }, hotspot.RewardIds);
     }

@@ -131,6 +131,7 @@ public partial class Web3NativeStorageTests
                 }
             }
             finally {field.SetValue(polygon,healthy);}
+            await VerifySqliteOutageAsync(polygon, dna, providers, holonId, path + ".unavailable");
             manager.IsAutoFailOverEnabled=false;manager.IsAutoReplicationEnabled=true;
             foreach(var primary in providers)
             foreach(var asynchronous in new[] {false,true})

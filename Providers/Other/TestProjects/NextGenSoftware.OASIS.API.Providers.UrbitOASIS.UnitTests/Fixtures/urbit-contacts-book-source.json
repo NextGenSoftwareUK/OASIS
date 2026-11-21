@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "protocol": "contacts-v1-local-book-pages",
+  "applicationCommit": "838744ee462a49d55d98fd4030b3a9cb6c989cd0",
+  "sourceOwner": "d5cc4384-ff72-4e7d-a780-1595d56c3265",
+  "visibility": "Private",
+  "recordContract": "SeparateContactAndOverlay",
+  "pages": [
+    {
+      "id": "0v1",
+      "overlay": {
+        "nickname": "COSMIC synthetic page 1",
+        "bio": "Owned offline CQL teaching record 1",
+        "status": "Synthetic"
+      }
+    },
+    {
+      "id": "0v2",
+      "overlay": {
+        "nickname": "COSMIC synthetic page 2",
+        "bio": "Owned offline CQL teaching record 2",
+        "status": "Synthetic"
+      }
+    },
+    {
+      "id": "0v3",
+      "overlay": {
+        "nickname": "COSMIC synthetic page 3",
+        "bio": "Owned offline CQL teaching record 3",
+        "status": "Synthetic"
+      }
+    }
+  ],
+  "subsetIds": [
+    "0v1",
+    "0v3"
+  ],
+  "acceptance": {
+    "nativeSeedAcknowledged": false,
+    "nativeReadVerified": false,
+    "restartVerified": false,
+    "cqlQualified": false,
+    "liveDeployment": false
+  }
+}
