@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Owned geo assets browser verification</title><link rel="stylesheet" href="/assets/css/style.css"></head><body>
+<button id="fixture-open-map" onclick="window.openMapModal()">Map</button><div class="modal js-modal"></div>
+<script src="/assets/js/oasis-web4-sdk.js"></script><script src="/assets/js/oasis-web5-sdk.js"></script><script>
+window.user=JSON.parse(localStorage.getItem('avatar'));
+window.oasisClient=new window.OASISClient({baseUrl:location.origin,persistSession:false});
+window.starClient=new window.STARClient({baseUrl:location.origin,persistSession:false});
+var bearer=sessionStorage.getItem('ownedGeoBearer');
+window.oasisClient.setToken(bearer,{avatarId:window.user.id});window.starClient.setToken(bearer,{avatarId:window.user.id});
+sessionStorage.removeItem('ownedGeoBearer');bearer=null;window.jwtReadyPromise=Promise.resolve();
+</script><script src="/assets/js/map-modal.js"></script><script>
+fetch('/assets/components/modals/map.html').then(async function(response){
+if(!response.ok)throw new Error('Actual Map fragment missing.');
+var host=document.createElement('div');host.innerHTML=await response.text();document.querySelector('.js-modal').appendChild(host);
+window.dispatchEvent(new CustomEvent('portal-modal-ready',{detail:{route:'map'}}));window.__mapReady=true;
+});</script></body></html>

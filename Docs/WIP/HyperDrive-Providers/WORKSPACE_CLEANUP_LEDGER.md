@@ -2457,3 +2457,5 @@ HTTP44938611564 SUCCESS: exact owned Mongo database, temporary DNA and container
 Composition44939192959 compile only; no database/browser fixtures selected, no local builds/downloads/outputs/env/worktree. Existing native HTTP cleanup accepted. Same immutable606e source preserved.
 
 Populated HTTP source extension only: five future owned native rows in same unique hotspot_http database, no extra environment/worktree. No local build/restore/runtime/download/database/browser/output. Existing cleanup guards retained. Current composition compile44939192959 unchanged/no duplicate run.
+
+Geo browser HTML/CJS source preparation only; node --check creates no outputs. No browser launched, package/runtime installed, data/API invoked, downloads/env/build/artifacts/worktree created. Future helper uses disposable nonpersistent context and closes browser in finally; existing native data/container cleanup must remain.
