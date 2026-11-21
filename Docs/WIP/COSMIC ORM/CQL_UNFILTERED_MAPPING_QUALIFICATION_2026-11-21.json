@@ -13,10 +13,44 @@
   "nativeSource": "4dbd26270c3a24305d68fbca692c334d6bb9bf38",
   "nativeRun": 44887621608,
   "nativeJob": 136796248116,
-  "nativeAccepted": false,
+  "nativeAccepted": true,
   "websiteSource": "3d8f108f6161b8b4a0e6c8e2f80d1358fb6185f8",
   "newParserCasesPassed": 9,
   "hostedAcceptance": false,
   "publicPublicationVerified": false,
-  "archiveWrittenToDisk": false
+  "archiveWrittenToDisk": false,
+  "nativeAcceptedProviders": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "initialNativeArtifact": {
+    "id": 14701135601,
+    "bytes": 3157,
+    "sha256": "cdde52023f9a9f11dcacf774dc2171bfdd7882d6200ea1b8f89ac56b2abcd229",
+    "passedProviders": [
+      "MongoDBOASIS",
+      "Neo4jOASIS"
+    ],
+    "failedProviders": [
+      "SQLLiteDBOASIS"
+    ]
+  },
+  "sqliteRetryArtifact": {
+    "id": 14700896986,
+    "bytes": 1712,
+    "sha256": "5f45117f567e211f66cfa08a2ae832e1156464ac77e4ddd4b16e299e920f4e2d",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0
+  },
+  "sqliteRetryRun": 44888307669,
+  "sqliteRetryJob": 136798344832,
+  "previousMongoNeoCasesRepeated": false,
+  "imageSource": "6fc00e9465d298a84e48f7bfc904e4e29ae3e0ec",
+  "imageRun": 44889042435,
+  "imageObservedStatus": "queued",
+  "imageQualified": false,
+  "packageQualified": false,
+  "developmentPushed": false
 }

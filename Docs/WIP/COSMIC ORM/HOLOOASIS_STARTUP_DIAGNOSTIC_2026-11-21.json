@@ -73,5 +73,13 @@
     "manualRestartForDiagnosis": false,
     "dataQueries": 0,
     "dataWrites": 0
+  },
+  "binaryVersionAttestation": {
+    "version": "0.7.1",
+    "observedOutput": "holochain 0.7.1",
+    "configuredCacheBinary": true,
+    "exitCode": 0,
+    "stateWrites": 0,
+    "rawSshOutputRetained": false
   }
 }
