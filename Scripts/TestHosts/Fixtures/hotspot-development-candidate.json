@@ -1,5 +1,5 @@
 {
-  "status": "geo-browser-lifecycle-corrected-run-in-progress",
+  "status": "scoped-hotspot-source-compile-native-http-browser-accepted-delivery-pending",
   "compileRun": 44939192959,
   "controlSource": "2244959386762043ddaaf87b08ff4b8c25fdfee2",
   "scope": "hotspot",
@@ -140,8 +140,13 @@
     "control": "1c77921c03fa2860e1b489ffe720f26d7a854df9",
     "candidate": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
     "portal": "5171fc690c1c234e3e7eebee980937c902f271fd",
-    "status": "in_progress",
-    "change": "Inactive fixture created normally then deactivated by existing-record save and native readback; expected results unchanged"
+    "status": "completed",
+    "change": "Inactive fixture created normally then deactivated by existing-record save and native readback; expected results unchanged",
+    "job": 136960852121,
+    "conclusion": "success",
+    "hostBuildErrors": 0,
+    "hostBuildElapsed": "00:04:05.01",
+    "cleanupVerified": true
   },
   "browserAttempts": [
     {

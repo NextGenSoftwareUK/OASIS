@@ -1,0 +1,39 @@
+{
+  "run": 44941942658,
+  "job": 136960852121,
+  "control": "1c77921c03fa2860e1b489ffe720f26d7a854df9",
+  "candidate": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+  "portal": "5171fc690c1c234e3e7eebee980937c902f271fd",
+  "conclusion": "success",
+  "hostBuild": {
+    "errors": 0,
+    "elapsed": "00:04:05.01"
+  },
+  "scope": "One new combined real boot/JWT/MVC/native Mongo populated hotspot and actual Portal WEB4/WEB5 SDK browser flow",
+  "checks": [
+    "Five native hotspot roots, existing-record inactive update verified by native readback",
+    "Two nearby active visible records returned in distance order with exact typed fields",
+    "Far/hidden/inactive excluded",
+    "Actual canonical NFT original/placement and quest/objective records read by shipping APIs",
+    "Actual Portal partial counts before held real quest request completes",
+    "Final counts1GeoNFT/2hotspots/3quest-objective locations",
+    "Repeated quest hotspot links deduplicated; numeric count adds no fake position",
+    "One read per geo API; zero browser mutations",
+    "Logout clears geo view; no page errors/unexpected APIs"
+  ],
+  "cleanup": [
+    "Owned Mongo database absent",
+    "Exact temporary DNA absent",
+    "Owned container absent",
+    "Owned browser runtime/npm-cache absent"
+  ],
+  "logsInspectedInRam": true,
+  "artifactFilesWritten": 0,
+  "notAccepted": [
+    "New geo marker pixel rendering/basemap capacity",
+    "Full Portal production Startup/SSO/navigation",
+    "Hosted geo session acceptance",
+    "Separate quest78 source correction",
+    "All OPORTAL/provider/HyperDrive completion"
+  ]
+}
