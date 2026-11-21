@@ -56,5 +56,12 @@
     "status": "source-prepared-uncompiled",
     "excluded": "Mission/Chapter/Quest changes, stored role binding and Mongo graph acknowledgement fix",
     "temporaryIndexes": "all three removed in finally"
+  },
+  "inventoryQualification": {
+    "run": 44960440455,
+    "control": "d51db1cd654f2d566d2ca8aa12e77fa8aad2716a",
+    "status": "queued",
+    "scope": "source-only generation; no runtime/fixtures/build",
+    "reason": "SaveLeaguesAsync addition and JoinTournamentAsync signature change require reviewed manifest before compile"
   }
 }
