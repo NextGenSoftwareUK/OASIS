@@ -35,6 +35,7 @@ async function verify({baseUrl,token,avatarId,providerType}){
     if(url.pathname!=='/api/map/stats'){unexpected.push(url.pathname);return route.abort();}
    }return route.continue();}
    if(url.origin==='https://unpkg.com'&&url.pathname.startsWith('/maplibre-gl@6.19.0/'))return route.continue();
+   if(url.origin==='https://fonts.googleapis.com'&&url.pathname==='/css2'||url.origin==='https://fonts.gstatic.com'&&url.pathname.startsWith('/s/titilliumweb/'))return route.continue();
    if(['data:','blob:'].includes(url.protocol))return route.continue();
    unexpected.push(url.origin+url.pathname);return route.abort();
   });
