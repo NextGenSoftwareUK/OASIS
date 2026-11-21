@@ -106,15 +106,25 @@ try
 }
 finally
 {
-    if (app != null) { await app.StopAsync(); await app.DisposeAsync(); }
-    try { await provider.DeActivateProviderAsync(); }
+    try { if (app != null) { await app.StopAsync(); await app.DisposeAsync(); } }
     finally
     {
-        await client.DropDatabaseAsync(database);
-        Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned HTTP database cleanup failed.");
-        Require(Path.GetFullPath(dnaPath) == Path.Combine(Path.GetFullPath(Path.GetTempPath()), database + ".json"), "Owned DNA cleanup scope invalid.");
-        if (File.Exists(dnaPath)) File.Delete(dnaPath);
-        Require(!File.Exists(dnaPath), "Owned DNA cleanup failed.");
-        Console.WriteLine("Owned hotspot HTTP database and DNA absence verified.");
+        try { await provider.DeActivateProviderAsync(); }
+        finally
+        {
+            try
+            {
+                await client.DropDatabaseAsync(database);
+                Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned HTTP database cleanup failed.");
+                Console.WriteLine("Owned hotspot HTTP database absence verified.");
+            }
+            finally
+            {
+                Require(Path.GetFullPath(dnaPath) == Path.Combine(Path.GetFullPath(Path.GetTempPath()), database + ".json"), "Owned DNA cleanup scope invalid.");
+                if (File.Exists(dnaPath)) File.Delete(dnaPath);
+                Require(!File.Exists(dnaPath), "Owned DNA cleanup failed.");
+                Console.WriteLine("Owned hotspot HTTP DNA absence verified.");
+            }
+        }
     }
 }
