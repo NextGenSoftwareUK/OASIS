@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(OASISCandidateRoot)/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj" />
+  </ItemGroup>
+  <Target Name="RequireCandidateRoot" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(OASISCandidateRoot)' == ''" Text="An explicit isolated candidate root is required." />
+  </Target>
+</Project>

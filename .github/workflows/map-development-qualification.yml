@@ -44,6 +44,7 @@ jobs:
             Scripts/TestHosts/Fixtures/hotspot-development-candidate.json
             Scripts/TestHosts/MapDevelopmentNative
             Scripts/TestHosts/HotspotDevelopmentNative
+            Scripts/TestHosts/HotspotHttpNative
             Scripts/verify_web4_hyperdrive_route_manifest.ps1
             Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1
           sparse-checkout-cone-mode: false
@@ -215,8 +216,11 @@ jobs:
         env:
           SUBSCRIPTION_TEST_MONGODB_URI: mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000
           CANDIDATE_SCOPE: ${{ inputs.candidate_scope }}
+          CANDIDATE_FILE: ${{ steps.candidate.outputs.file }}
         run: |
-          $hostName = if ($env:CANDIDATE_SCOPE -eq 'hotspot') { 'HotspotDevelopmentNative' } else { 'MapDevelopmentNative' }
+          $candidate = Get-Content (Join-Path ../qualification-control $env:CANDIDATE_FILE) -Raw | ConvertFrom-Json
+          $hostName = if ($env:CANDIDATE_SCOPE -eq 'hotspot') { if ($candidate.nativeHost) { $candidate.nativeHost } else { 'HotspotDevelopmentNative' } } else { 'MapDevelopmentNative' }
+          if ($hostName -notin @('MapDevelopmentNative','HotspotDevelopmentNative','HotspotHttpNative')) { throw 'Unsupported native qualification host.' }
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner map-development-native-ci -Operation {
             dotnet build "../qualification-control/Scripts/TestHosts/$hostName/$hostName.csproj" --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false "/p:OASISCandidateRoot=$((Get-Location).Path)"
             if ($LASTEXITCODE) { throw "Combined Development native $hostName host build failed." }
