@@ -52,6 +52,10 @@ async function verify({baseUrl,token,avatarId,missionId,questId,chapterId}){
    const search=requests.filter(r=>r.path==='/api/'+item.kind+'/search');
    assert.equal(search.length,2);assert.ok(search.every(r=>r.query===item.name));
    assert.equal(await page.locator('#'+item.kind+'-search-results > article').count(),1);
+   if(item.kind==='quests'){
+    await page.locator('#quests-modal-close-btn').click();
+    assert.equal(await page.locator('.js-modal').isVisible(),false);
+   }
   }
   await page.evaluate(()=>{window.starClient.setToken(null);window.dispatchEvent(new Event('oasis-logout'));});
   for(const kind of ['quests','missions'])for(const suffix of ['my-list','all-list','search-results','detail-body'])
