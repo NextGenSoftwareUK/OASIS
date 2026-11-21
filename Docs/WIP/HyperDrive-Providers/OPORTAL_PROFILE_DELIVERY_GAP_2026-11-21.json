@@ -77,14 +77,14 @@
     "reviewFinding": "SelfAvatarProfile GET/PATCH incorrectly LocalOrNonStorageEndpoint because declared AvatarManager property alias was not recognized"
   },
   "reviewedCandidate": {
-    "candidate": "308a681ea7675e30cf09114cdf060db8160b358d",
-    "tag": "qualification/profile-inventory-2026-11-21-308a681e",
+    "candidate": "3715fa9f4a026d727cd22456d52f3159124912e9",
+    "tag": "qualification/profile-reviewed-2026-11-21-3715fa9f",
     "manifestBlobs": {
       "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv": "787b897338362ce7f4f49f5e86c3b42947a35ff1",
       "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv": "3e117fcf1a3898e15abee1a817bb00bfa47f5b90"
     },
-    "status": "uncompiled-inventory-reclassification-required",
-    "scope": "eleven paths onf549, no unrelated source"
+    "status": "uncompiled",
+    "scope": "twelve paths onf549; exact two profile route dispositions changed"
   },
   "classifierFix": "Extract declared typed manager fields/properties and match member calls; preserve undeclared-name negative check. Existing six cases plus extraction/positive/negative checks passed.",
   "competitionDiagnostic": {
@@ -92,5 +92,23 @@
     "job": 137026608944,
     "control": "77b46347c517191810cddd3f41bcc81dda9cd48e",
     "status": "in-progress"
+  },
+  "correctedInventoryQualification": {
+    "run": 44963833228,
+    "job": 137028301505,
+    "artifact": 14730239627,
+    "zipBytes": 39394,
+    "status": "success-reviewed-exact-source-rows",
+    "managers": 930,
+    "routes": 832,
+    "classificationChanges": [
+      "SelfAvatarProfileController.GetProfile",
+      "SelfAvatarProfileController.ApplyProfile"
+    ],
+    "comparison": "SourceFile+Line+Action+Verb+Template; overloads kept distinct",
+    "routeSha256": "1180dca107833a1a02d8efad876d9107b8d474f56534b2783ef7c936c816193e",
+    "classifierLfSha256": "08551b5538b3758bc2dcf26e6a0473f7f1f0c7050a09fe16e8db99110f1d1d91",
+    "runtimeChanges": 0,
+    "temporaryFilesWritten": 0
   }
 }

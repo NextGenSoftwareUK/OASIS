@@ -1,9 +1,9 @@
 {
   "scope": "profile",
-  "status": "source-inventory-reviewed-awaiting-compile",
+  "status": "source-and-classification-reviewed-awaiting-compile",
   "base": "f54923d82ac8bffa7877d9307f18e879d41a8254",
-  "candidate": "308a681ea7675e30cf09114cdf060db8160b358d",
-  "tag": "qualification/profile-inventory-2026-11-21-308a681e",
+  "candidate": "3715fa9f4a026d727cd22456d52f3159124912e9",
+  "tag": "qualification/profile-reviewed-2026-11-21-3715fa9f",
   "buildProjects": [
     "WEB4"
   ],
@@ -18,7 +18,8 @@
     "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Schema.cs",
     "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Profile.cs",
     "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv"
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
+    "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
   ],
   "core": {
     "base": "7165ab625f90501047ca10c3b9f193ed0498caf5",
