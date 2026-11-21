@@ -25,10 +25,12 @@ def main():
     parser.add_argument("--deployment", required=True, type=lambda value: str(uuid.UUID(value)))
     parser.add_argument("--commit", required=True)
     parser.add_argument("--provider", required=True, choices=["MongoDBOASIS", "SQLLiteDBOASIS", "Neo4jOASIS"])
+    parser.add_argument("--snapshot", action="store_true",
+        help="Verify unfiltered original-field snapshot preparation and mixed identity reconciliation.")
     args = parser.parse_args()
     provider = args.provider
-    state = STATE_ROOT / provider
-    for proof_file in (ROOT / "Docs/WIP/COSMIC ORM").glob("CQL_UNFILTERED*HOSTED_ACCEPTANCE*.json"):
+    state = (ROOT / "LocalState/COSMIC/HostedUnfilteredSnapshotCurrent" if args.snapshot else STATE_ROOT) / provider
+    for proof_file in (ROOT / "Docs/WIP/COSMIC ORM").glob("CQL_UNFILTERED_SNAPSHOT*HOSTED_ACCEPTANCE*.json" if args.snapshot else "CQL_UNFILTERED*HOSTED_ACCEPTANCE*.json"):
         proof = json.loads(proof_file.read_text(encoding="utf-8-sig"))
         if proof.get("provider") == provider and proof.get("queryAccepted") is True:
             raise RuntimeError("This provider case is already accepted; select only remaining cases.")
@@ -56,7 +58,7 @@ def main():
     state.mkdir(parents=True, exist_ok=True)
     mapping_id = str(uuid.uuid4())
     journal = {"schema": 1, "deployment": args.deployment, "source": args.commit,
-               "websiteCompiler": WEBSITE, "provider": provider, "mappingId": mapping_id, "ownerId": None,
+               "websiteCompiler": WEBSITE, "snapshotCase": args.snapshot, "provider": provider, "mappingId": mapping_id, "ownerId": None,
                "calls": [], "pending": None, "completed": False}
     write = lambda: helpers["write"](journal_path, journal)
     write()
@@ -69,7 +71,7 @@ def main():
         if journal["calls"]:
             time.sleep(1)
         if path in {"data/save-holon", "data/delete-holon"}:
-            body = {**body, "providerType": "MongoDBOASIS", "setGlobally": False,
+            body = {**body, "providerType": body.get("providerType") or "MongoDBOASIS", "setGlobally": False,
                     "autoReplicationMode": "OFF", "autoFailOverMode": "OFF",
                     "autoLoadBalanceMode": "OFF", "showDetailedSettings": False}
         key = (body or {}).get("operationId") or str(uuid.uuid4())
@@ -154,6 +156,21 @@ def main():
     if (definition["id"].lower() != mapping_id or definition.get("isPublic") is not False
             or definition.get("createdByAvatarId", "").lower() != owner):
         raise RuntimeError("Prepared mapping ownership or identity differs; no save sent.")
+    def observed_revision(holon, authority):
+        fields = (holon.get("providerMetaData") or {}).get(authority) or {}
+        revision = next((v for k, v in fields.items()
+                         if k.lower() == "cosmic.providerrevisionid"), None)
+        if not revision:
+            raise RuntimeError("Acknowledged revision missing; preserve exact fixture for reconciliation.")
+        return str(uuid.UUID(revision))
+
+    def verify_absent(identity, authority):
+        absent, _ = call("data/query-cql", body={"provider": authority, "take": 1,
+            "orderBy": "Id", "filters": [{"field": "Id", "scalar": "Guid",
+                                         "operator": "Equal", "value": identity}]})
+        if absent["result"].get("rows") != []:
+            raise RuntimeError("Exact owned identity absence was not verified.")
+
     save_id = str(uuid.uuid4())
     journal["saveOperationId"] = save_id
     write()
@@ -163,12 +180,7 @@ def main():
     holon = saved.get("result") or {}
     if saved.get("isSaved") is not True or holon.get("id", "").lower() != mapping_id:
         raise RuntimeError("Save acknowledgement incomplete; preserve fixture, never repeat.")
-    fields = (holon.get("providerMetaData") or {}).get("MongoDBOASIS") or {}
-    revision = next((v for k, v in fields.items()
-                     if k.lower() == "cosmic.providerrevisionid"), None)
-    if not revision:
-        raise RuntimeError("Save revision observation missing; preserve fixture for reconciliation.")
-    revision = str(uuid.UUID(revision))
+    revision = observed_revision(holon, "MongoDBOASIS")
     journal["mappingRevision"] = revision
     journal["mappingSaved"] = True
     write()
@@ -181,6 +193,67 @@ def main():
     journal["mixedRowsReturned"] = len(rows)
     journal["queryAccepted"] = True
     write()
+    if args.snapshot:
+        provenance = payload.get("provenance")
+        if not isinstance(provenance, list) or len(provenance) != len(rows):
+            raise RuntimeError("Complete row provenance is required before snapshot preparation.")
+        selected = next((i for i, item in enumerate(provenance)
+                         if item.get("representation") == "Virtual"
+                         and item.get("alsoMaterialized") is False), None)
+        if selected is None:
+            raise RuntimeError("An unmaterialized native row is required; no snapshot save sent.")
+        snapshot_id = str(uuid.UUID(rows[selected][0]))
+        original_value = rows[selected][1]
+        journal["snapshotId"] = snapshot_id
+        journal["snapshotOriginalValue"] = original_value
+        write()
+        prepared_snapshot, _ = call(
+            "native-data/" + provider + "/virtual-mappings/" + mapping_id + "/snapshot/prepare",
+            body={"rowId": snapshot_id, "query": {"filters": [], "select": ["name"], "take": 200}})
+        snapshot = prepared_snapshot.get("result") or {}
+        if (snapshot.get("id", "").lower() != snapshot_id or snapshot.get("isPublic") is not False
+                or snapshot.get("createdByAvatarId", "").lower() != owner
+                or (snapshot.get("metaData") or {}).get("name") != original_value):
+            raise RuntimeError("Original private snapshot fields or identity differ; no snapshot save sent.")
+        snapshot_operation = str(uuid.uuid4())
+        journal["snapshotSaveOperationId"] = snapshot_operation
+        write()
+        cached, _ = call("data/save-holon", body={"holon": snapshot,
+            "providerType": provider, "operationId": snapshot_operation,
+            "expectedRevisions": {snapshot_id: None}, "saveChildren": False, "recursive": False},
+            mutation=True)
+        cached_holon = cached.get("result") or {}
+        if cached.get("isSaved") is not True or cached_holon.get("id", "").lower() != snapshot_id:
+            raise RuntimeError("Snapshot save acknowledgement incomplete; never replay.")
+        snapshot_revision = observed_revision(cached_holon, provider)
+        journal["snapshotRevision"] = snapshot_revision
+        journal["snapshotSaved"] = True
+        write()
+        repeated, _ = call(query["path"], body=query["body"])
+        repeated_payload = repeated["result"]
+        repeated_rows = repeated_payload.get("rows")
+        repeated_sources = repeated_payload.get("provenance")
+        if (not isinstance(repeated_rows, list) or not isinstance(repeated_sources, list)
+                or len(repeated_rows) != len(rows) or len(repeated_sources) != len(repeated_rows)):
+            raise RuntimeError("A stored snapshot changed the complete logical result cardinality.")
+        matches = [i for i, row in enumerate(repeated_rows)
+                   if str(row[0]).lower() == snapshot_id]
+        if (len(matches) != 1 or repeated_rows[matches[0]][1] != original_value
+                or repeated_sources[matches[0]].get("representation") != "Virtual"
+                or repeated_sources[matches[0]].get("alsoMaterialized") is not True):
+            raise RuntimeError("The stored snapshot did not retain one native-winning logical identity.")
+        journal["snapshotIdentityReconciliationVerified"] = True
+        write()
+        snapshot_delete = str(uuid.uuid4())
+        journal["snapshotDeleteOperationId"] = snapshot_delete
+        write()
+        call("data/delete-holon", method="DELETE", body={
+            "id": snapshot_id, "providerType": provider, "softDelete": False,
+            "operationId": snapshot_delete, "expectedRevisions": {snapshot_id: snapshot_revision},
+            "recursive": False, "loadChildren": False}, mutation=True)
+        verify_absent(snapshot_id, provider)
+        journal["exactSnapshotCleanupVerified"] = True
+        write()
     delete_id = str(uuid.uuid4())
     journal["deleteOperationId"] = delete_id
     write()
@@ -190,11 +263,7 @@ def main():
         "recursive": False, "loadChildren": False}, mutation=True)
     # Delete has its own endpoint acknowledgement; Save.IsSaved is not its contract.
     # The successful envelope above must still be followed by exact physical absence.
-    absent, _ = call("data/query-cql", body={"provider": "MongoDBOASIS", "take": 1,
-        "orderBy": "Id", "filters": [{"field": "Id", "scalar": "Guid",
-                                     "operator": "Equal", "value": mapping_id}]})
-    if absent["result"].get("rows") != []:
-        raise RuntimeError("Exact mapping absence was not verified.")
+    verify_absent(mapping_id, "MongoDBOASIS")
     journal["exactMappingCleanupVerified"] = True
     write()
     call("avatar/revoke-token", body={}, mutation=True)
@@ -207,7 +276,9 @@ def main():
     print(json.dumps({"source": args.commit, "provider": provider, "mappingId": mapping_id,
         "calls": len(journal["calls"]), "mixedRowsReturned": len(rows),
         "exactMappingCleanupVerified": True, "sessionRevoked": True,
-        "browserVerified": False, "nativeDataImported": False}))
+        "browserVerified": False, "nativeDataImported": False,
+        "snapshotIdentityReconciliationVerified": journal.get("snapshotIdentityReconciliationVerified", False),
+        "exactSnapshotCleanupVerified": journal.get("exactSnapshotCleanupVerified", False)}))
 
 
 if __name__ == "__main__":
