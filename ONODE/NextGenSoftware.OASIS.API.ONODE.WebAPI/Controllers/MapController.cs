@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -34,7 +37,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             get
             {
                 if (_mapManager == null)
-                    _mapManager = new MapManager(AvatarId);
+                {
+                    if (AdmittedStorageManagerAcquisition.TryCreate(
+                        () => OASISBootLoader.OASISBootLoader.OASISDNA,
+                        () => ProviderManager.Instance.CurrentStorageProvider,
+                        (provider, dna) => new MapManager(new HolonManager(null, dna, ProviderManager.Instance), AvatarId),
+                        out MapManager admitted, admissionOnly: false))
+                        _mapManager = admitted;
+                    else
+                        _mapManager = new MapManager(AvatarId);
+                }
 
                 return _mapManager;
             }
@@ -326,7 +338,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns>List of nearby locations</returns>
         [Authorize]
         [HttpGet("nearby")]
-        public async Task<OASISResult<List<MapLocation>>> GetNearbyLocations([FromQuery] double latitude, [FromQuery] double longitude, [FromQuery] double radiusKm = 10.0)
+        public async Task<OASISResult<List<MapLocation>>> GetNearbyLocations([FromQuery, BindRequired] double latitude, [FromQuery, BindRequired] double longitude, [FromQuery] double radiusKm = 10.0)
         {
             return await MapManager.GetNearbyLocationsAsync(Avatar.Id, latitude, longitude, radiusKm);
         }
