@@ -90,6 +90,15 @@ jobs:
           path: NextGenSoftware-Libraries
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
           persist-credentials: false
+      - name: Verify the committed candidate inventory and classifier records
+        if: ${{ !inputs.inventory_only }}
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1
+          & Scripts/verify_hyperdrive_provider_io_manifest.ps1
+          if ($LASTEXITCODE) { throw 'Committed manager inventory failed validation.' }
+          & Scripts/verify_web4_hyperdrive_route_manifest.ps1
+          if ($LASTEXITCODE) { throw 'Committed route inventory failed validation.' }
       - uses: actions/checkout@v7
         if: ${{ !inputs.inventory_only }}
         with:
