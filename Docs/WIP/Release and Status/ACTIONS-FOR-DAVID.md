@@ -1074,6 +1074,8 @@ Open 13 November. Approve the Vercel OASIS team access request when a fresh one-
 
 ## PIPER parent collection routing and load-balancing decision
 
+21 November latest: David explicitly instructed immediate Development re-enablement for testing. Completed: seven Development saved copies true; existing-image redeploys SUCCESS and seven running startup DNA files true. Fourteen staging/production saved copies remain false; no rollout there. Earlier conditional hold is superseded for Development. PIPER SA/SLP/student-service completeness verification remains engineering work, not a new owner approval or login request.
+
 21 November update: David conditionally authorized re-enabling load balancing only once verified safe. Holo catalogue availability alone is insufficient. Separate SA/SLP/student-service completeness acceptance is still not established in current evidence; retain false and continue engineering verification without new login requests. This supersedes the older wording that the owner decision itself is pending. No source/deployed setting changed and no staging/production authorization inferred.
 
 16 November Cancun time. The owner confirmed that disabling automatic load balancing restored PIPER's missing records. Development `4d0d2022170c` includes the authoritative-parent routing and async visibility fixes. Exact image CI 43981891022 passed. Development WEB4 deployment `b41caa36-ffb0-41cd-a956-f9b86aaa2948` is queued. The real SA, SLP and student-service results remain separate verification items, and the owner has retained the decision to turn load balancing back on.
