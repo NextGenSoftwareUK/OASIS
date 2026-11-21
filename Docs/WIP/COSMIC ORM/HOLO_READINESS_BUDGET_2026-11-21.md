@@ -21,3 +21,11 @@ The original snapshot2d package44945668173 remains accepted as packaging evidenc
 Run44945969209/job136973233689 succeeded on029545dc: actual WEB4 build0 errors4m34.95s and WEB5 build0 errors28.14s. Strict RAM verification of artifact14723533241 (351bytes, SHA2566ac639a3ae82c8da61c0af6200dde23b2057e18327f495ad5ea774aa9a4f2daf) confirmed compiled.json exact source/Core3b69/ONODE9c8/STAR677, both compilation flags, zero behavior cases/database writes. This compile source includes range registration; frozen delivery91423bce deliberately retains qualified Core13bd. The image itself must independently compile/package that exact frozen graph. No retained-cell runtime success claimed.
 
 Development advanced fcb6e088 with SmartBrick ONODE34a8685e/STAR872f0be8 pins. Preserve those pins and ancestry in the existing task branch; do not deploy stale91423bce over them. Original image44946308915 continues without replacement/replay. A combined frozen graph must pass its own image/package gate; prior behavior/contract evidence is retained.
+
+## Current integrated candidate
+
+Frozen7c5f0a164cf18f55903d1fa3e009dc5eaec93a1f/tagcosmic-holo-readiness-240-7c5f0a164cf1 is directly on current Developmentfcb6e088. Eight paths: the seven already qualified snapshot changes plus the240-second conductor deadline. It preserves ONODE34a8685e and STAR872f0be8 from Development, Core13bd050 from the accepted snapshot, and all other dependency/settings bytes. Official manifest sync/ref validator passed. Source body for the timeout equals compile-qualified029545dc.
+
+The existing COSMIC feature integrated Development ancestry in2c2298c02b82e61416ef432bbc3a59980bd87202. New exact image dispatch acknowledged once; observe same candidate/source. Prior91423bce image44946308915 remains in progress and is preserved as superseded-base evidence, not authorized for stale Development replacement. Both image handles and original candidates remain in the compact handoff journal. No new branch/worktree/environment or local image/download.
+
+Combined image/package/live readiness remain pending. Compilation/native behavior acceptance from prior source is retained without rerunning unrelated accepted cohorts.
