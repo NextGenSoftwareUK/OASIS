@@ -58,7 +58,7 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
                 : CosmicNumericScalarResults.FromParts(plan.Query, 0, 0, 0);
             if (plainEmpty) return selected ? CosmicSelectedScalarResults.FromValue(plan.Query, null, false)
                 : CosmicScalarResults.FromCount(plan.Query, 0);
-            if (!IsProviderActivated || _driver == null) return ScalarCqlFailure<TResult>("CQL_PROVIDER_INACTIVE", "Neo4j provider is not activated.");
+            if (!IsQuerySourceActivated || _driver == null) return ScalarCqlFailure<TResult>("CQL_PROVIDER_INACTIVE", "Neo4j provider is not activated.");
 
             var parameters = compiled.Translator.Parameters;
             parameters.Add("countOffset", (long)source.Offset);
