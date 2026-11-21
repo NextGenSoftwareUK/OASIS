@@ -1,3 +1,5 @@
+Real SQLite set journey prepared on current source: all4operations over independent source pages; Concat duplicate occurrences/outer paging; foreign-before-window exclusion; input over-budget rejection despite outer Take(0); ordinary fresh Get regression through changed common owner. One owned SQLite database,4records/4writes, exact cleanup and9timings. Seven shared controls+oneSQLite journey CI only; no Mongo/Neo services or local/shared database. No acceptance/parity/Development claim before results.
+
 SQLite native entity-set source now compiles all4operations to materialized native SQL, per-input ordered windows and post-set stages. Existing EF/SQLite critical section, serializable read owner, traversal guard, source/payload/work budgets, streaming decoder and OASISResult errors are reused. Inputs are resource-validated under the same snapshot; set mathematics remain in SQL, no client combination. Native execution/build pending; no acceptance/parity/deployment claim. Mongo/Neo implementations remain open. No local build/install/runtime/DB/download.
 
 # COSMIC / CQL current checkpoint
