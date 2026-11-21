@@ -2471,3 +2471,5 @@ Broader Portal status headers refreshed preserving original bytes/history. Sourc
 Geo browser44940180748 compile failure: host never executed, so no host DB/tempDNA or browser process created. Always cleanup confirmed owned Mongo container and geo-browser-owned runtime/cache absent. Logs inspected RAM only. Missing import source fixed, no local runtime/install/download/build/output/env/worktree.
 
 Corrected browser44941055967 live; same owned CI cleanup scope, no local runtime/env/install/build/download/browser/database/output/worktree. No shared Atlas/PIPER/source-DNA/worker changes; previous runtime/cache/container cleanup verified.
+
+606e source check: retained necessary Git tag/tree/commit objects in existing repositories. On-demand fetch also refreshed ONODE/STAR remote refs and required commits; no source checkout changes, repeated worktree/env, generated build/test/runtime/download outputs or package installs. Pure check-ref script emitted no files. Future fetches explicitly disable recursion. Browser44941055967 CI cleanup pending.

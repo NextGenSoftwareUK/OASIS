@@ -23,5 +23,14 @@
     "candidate": "cf10bbb6eb686491c730737c3f66629c514d0817",
     "status": "in_progress"
   },
-  "remaining": "Finish current HTTP result, actual browser acceptance and current-composition compile before scoped delivery; no old candidate over newer Development."
+  "remaining": "Finish current HTTP result, actual browser acceptance and current-composition compile before scoped delivery; no old candidate over newer Development.",
+  "localSourceCheck": {
+    "candidate": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+    "immutableTagFetched": true,
+    "manifestCheck": "sync_railway_dependency_manifest.py --check-ref passed",
+    "changedPaths": 3,
+    "branch": "work/hyperdrive-provider-completion",
+    "checkoutSwitch": false,
+    "deployed": false
+  }
 }
