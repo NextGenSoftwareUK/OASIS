@@ -22,7 +22,12 @@ public delegate Task HoloOasisProvisioning(CancellationToken cancellationToken);
 
 internal sealed class HoloOasisDevelopmentConductor
 {
-    private static readonly Guid DevelopmentEnvironmentId = new("a31011a2-d047-4057-b5e8-57d52ebcfefe");
+    // Production mirrors Development: the WEB4 service runs the same live conductor in both.
+    private static readonly Guid[] ConductorEnvironmentIds =
+    [
+        new("a31011a2-d047-4057-b5e8-57d52ebcfefe"), // dev
+        new("86de55b2-51e3-4c83-ae6b-806d554349cc"), // production
+    ];
     private static readonly Guid Web4ServiceId = new("5123199a-43c4-4439-9921-e10e2aec7841");
 
     // The retained Development DHT took 73 seconds to initialize before its cell ran.
@@ -60,10 +65,10 @@ internal sealed class HoloOasisDevelopmentConductor
 
         if (!OperatingSystem.IsLinux() ||
             !Guid.TryParse(configuration["RAILWAY_ENVIRONMENT_ID"], out var environmentId) ||
-            environmentId != DevelopmentEnvironmentId ||
+            !ConductorEnvironmentIds.Contains(environmentId) ||
             !Guid.TryParse(configuration["RAILWAY_SERVICE_ID"], out var serviceId) ||
             serviceId != Web4ServiceId)
-            throw new InvalidOperationException("The local HoloOASIS teaching conductor is only enabled on Linux WEB4 Development.");
+            throw new InvalidOperationException("The local HoloOASIS conductor is only enabled on Linux WEB4 (dev or production).");
 
         var useBootLoader = configuration.GetValue<bool>("CQL_HOLOOASIS_LOCAL_DEMO:UseBootLoader");
         if (useBootLoader)
