@@ -1,5 +1,5 @@
 {
-  "status": "http-retry-in-progress-native-catalogue-accepted",
+  "status": "http-isolated-policy-retry-in-progress-native-catalogue-accepted",
   "compileRun": 44893706298,
   "compileJob": 136814765491,
   "controlSource": "3e6c368b0c0f52a176adddf92a52d6312360c96f",
@@ -70,6 +70,12 @@
       "buildElapsed": "00:03:27.61",
       "error": "AutoFailoverProviders empty while V2 automation enabled",
       "databaseDnaContainerCleanup": "verified"
+    },
+    {
+      "run": 44938611564,
+      "control": "dac9f79ecf763204320c0bbee4cc2829ace51a52",
+      "status": "in_progress",
+      "change": "Consistent single-provider isolated V2 automation policy"
     }
   ]
 }
