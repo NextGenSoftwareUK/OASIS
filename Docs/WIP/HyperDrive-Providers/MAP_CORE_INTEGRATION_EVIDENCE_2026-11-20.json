@@ -1,5 +1,5 @@
 {
-  "status": "Combined Core history and source inventory qualified; actual API build queued, scoped dev delivery still pending",
+  "status": "Source/static qualification retained; first combined build failed in checker before compilation; corrected build-only run queued; runtime and scoped dev delivery pending",
   "priorCore": "03087911cd9d2a6c3a421014e52555bff8aeb063",
   "repairedCqlCore": "cd0849607d8739666a0d7dc7f0f236a623935e01",
   "qualifiedCqlCore": "01d10ae033608064e7f6b34fa434e4166073de27",
@@ -57,10 +57,27 @@
   "routerReview": "Incoming shared-router diff adds DeleteHolons conditional root-only validation/replication/result handling. Existing Map read/single-save and profile dispatch code retained; competition source blob unchanged. Full merged runtime candidate remains unqualified.",
   "next": "Compile the combined API graph without repeating accepted standalone Map cases; build and verify a scoped Development delivery candidate before publication.",
   "build": {
+    "run": 44872549334,
+    "job": 136750081798,
+    "head": "faf29edf71a0ce664b4dbc86349a0457bf59a371",
+    "status": "queued",
+    "buildOnly": true,
+    "nativeOrBrowserCasesSelected": 0
+  },
+  "previousBuild": {
     "run": 44868003895,
     "job": 136735938083,
     "parent": "b4e482a2ec62a1802e5ff9fdeb90e15d0138222c",
     "status": "queued",
     "scope": "Actual combined WEB4 graph build only; accepted unchanged standalone Map cases not repeated."
+  },
+  "previousBuildOutcome": {
+    "run": 44868003895,
+    "job": 136735938083,
+    "conclusion": "failure",
+    "stage": "static parity checker before compilation",
+    "cause": "Classifier DeleteHolons case incorrectly included in direct-handler inventory",
+    "correctionCommit": "4fbe4c3b49",
+    "apiCompiled": false
   }
 }
