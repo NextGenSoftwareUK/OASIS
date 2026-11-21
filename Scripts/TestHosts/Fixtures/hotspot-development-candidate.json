@@ -1,5 +1,5 @@
 {
-  "status": "refreshed-composition-compile-in-progress",
+  "status": "refreshed-composition-compile-passed-browser-ready-to-run",
   "compileRun": 44939192959,
   "controlSource": "2244959386762043ddaaf87b08ff4b8c25fdfee2",
   "scope": "hotspot",
@@ -123,5 +123,16 @@
     }
   },
   "nativeMode": "browser",
-  "portal": "5171fc690c1c234e3e7eebee980937c902f271fd"
+  "portal": "5171fc690c1c234e3e7eebee980937c902f271fd",
+  "compileJob": 136952431802,
+  "compileResult": {
+    "candidate": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+    "conclusion": "success",
+    "web4Errors": 0,
+    "web4Elapsed": "00:05:07.14",
+    "web5Errors": 0,
+    "web5Elapsed": "00:00:31.97",
+    "fixtures": 0,
+    "behaviorCases": 0
+  }
 }
