@@ -64,7 +64,7 @@ jobs:
           CANDIDATE_SCOPE: ${{ inputs.candidate_scope }}
         run: |
           if ($env:CANDIDATE_SCOPE -notin @('map','hotspot','quest','competition')) { throw 'Unsupported candidate scope.' }
-          if ($env:CANDIDATE_SCOPE -ne 'map' -and '${{ inputs.inventory_only }}' -eq 'true') { throw 'Only map scope generates WEB4 inventories.' }
+          if ($env:CANDIDATE_SCOPE -notin @('map','competition') -and '${{ inputs.inventory_only }}' -eq 'true') { throw 'Only map and competition scopes generate source inventories.' }
           $files = @{ map='Scripts/TestHosts/Fixtures/map-development-candidate.json'; hotspot='Scripts/TestHosts/Fixtures/hotspot-development-candidate.json'; quest='Scripts/TestHosts/Fixtures/quest-authoritative-candidate.json'; competition='Scripts/TestHosts/Fixtures/competition-development-candidate.json' }
           if ($env:CANDIDATE_SCOPE -eq 'competition' -and '${{ inputs.native_check }}' -eq 'true') { throw 'Competition native/browser host is not selected by this compile-only descriptor.' }
           $file = $files[$env:CANDIDATE_SCOPE]
