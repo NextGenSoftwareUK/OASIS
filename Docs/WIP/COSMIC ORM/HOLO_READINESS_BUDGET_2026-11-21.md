@@ -51,3 +51,11 @@ Own queued image44948470462 cancellation acknowledged before build. This is canc
 Run44948349449/job136980553768 terminalSUCCESS. Logs attest exact rootf8bee8a4c8ca5a5598759aa4aeb409b45292f86a, ONODE1fe579cf5e385b4a6ecce12934a7dd7578c2340c and STAR1de76d2d5b1428ac3c645139823757224a1e2ca3. Actual WEB4 compiled0errors5m12.99s; WEB5 compiled0errors32.66s. This was compile-only: no native/browser fixture or new behavior acceptance.
 
 Fresh shared Development now17f2f1e83577961d21cb0c458dc2412b918d4cad, so inspect peer fresh-head composition before using those qualified pins. Preserve package metadata/reference changes and accepted Map/hotspot source together. No stale overwrite or automatic full branch merge authorized by this compile result. Timeout/snapshot source remains prepared; no duplicate image producer.
+
+## Fresh restoration composed; current immutable candidate77e206b3
+
+Current candidate77e206b3a8240964e57261ef0c6dc76e30e0bfe3/tagcosmic-holo-readiness-240-77e206b3a824 is directly on peer309eedb14cd652ee63e96e689f4aa60bd3253d3f, which is directly on current Development17f2f1e8. It preserves restored ONODE51e0f880/STARead6c9ca and all package-publishing changes. Own delta is exactly eight paths: original seven snapshot paths plus240-second deadline. Core13bd stays pinned; session range7165 remains excluded.
+
+The restored MapManager(HolonManager,Guid) constructor is present. Both current candidate and featureca7b6f54 preserve the original admitted-manager MapController owner; the temporary provider-constructor adaptation is no longer needed. Constructor presence and exact controller tree identity checked; no new parallel/fallback path. Official manifest/ref validator passed, temporary index absent.
+
+Native all-four-range44948941338 has started (owned CI containers initializing). Prior restorationf8bee compiled successfully; fresh309eed compile still pending in peer status. Current image is deliberately NOT dispatched until that fresh qualification is reconciled. The one active Holo handoff journal carries all prior contract/native/package evidence; old duplicate journal remains removed.
