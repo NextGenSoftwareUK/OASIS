@@ -7,6 +7,13 @@ using NextGenSoftware.OASIS.API.Core.Queries;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
+internal sealed class MongoCqlEntityInput
+{
+    internal MongoCqlCommand Command {get;}
+    internal int MaximumRows {get;}
+    internal MongoCqlEntityInput(MongoCqlCommand command,int maximumRows) {Command=command;MaximumRows=maximumRows;}
+}
+
 internal sealed class MongoCqlEntityCompositionCommand
 {
     internal MongoCqlCommand Source { get; }
@@ -14,8 +21,12 @@ internal sealed class MongoCqlEntityCompositionCommand
     internal CosmicEntityCompositionOptions Options { get; }
     internal CosmicQueryOrdering[] EffectiveOrder { get; }
     internal bool Reversed { get; }
-    internal MongoCqlEntityCompositionCommand(MongoCqlCommand source, MongoCqlCommand[] stages, CosmicEntityCompositionOptions options, IReadOnlyList<CosmicQueryOrdering> effectiveOrder, bool reversed)
-    { Source = source; Stages = stages; Options = options; EffectiveOrder=effectiveOrder.ToArray(); Reversed=reversed; }
+    internal MongoCqlEntityInput[] Inputs {get;}
+    internal int MaximumInputRows {get;}
+    internal MongoCqlEntityCompositionCommand(MongoCqlCommand source, MongoCqlCommand[] stages, CosmicEntityCompositionOptions options, IReadOnlyList<CosmicQueryOrdering> effectiveOrder, bool reversed,
+        MongoCqlEntityInput[] inputs=null,int? maximumInputRows=null)
+    { Source = source; Stages = stages; Options = options; EffectiveOrder=effectiveOrder.ToArray(); Reversed=reversed;
+        Inputs=inputs?.ToArray();MaximumInputRows=maximumInputRows??options.MaximumInputRows; }
 }
 
 internal sealed partial class MongoCqlTranslator
@@ -48,7 +59,16 @@ internal sealed partial class MongoCqlTranslator
         ValidatePipeline(sourcePipeline);
         var source = new MongoCqlCommand(sourcePipeline.ToArray(), fetch,
             sourceQuery.Predicates.Any(HasRelationships), sourceEnvelope);
-        var current = source.Pipeline.Select(stage => (BsonDocument)stage.DeepClone()).ToList();
+        return CompileEntityStages(source,sourceQuery,plan.Query.Stages,plan.Options,maximumResults);
+    }
+
+    private MongoCqlCommand CompileEntityStages<T>(MongoCqlCommand source,CosmicQuery<T> sourceQuery,
+        IReadOnlyList<CosmicEntityStage> intent,CosmicEntityCompositionOptions options,int maximumResults,
+        BsonDocument[] initialPipeline=null,string naturalPositionField=null,
+        MongoCqlEntityInput[] inputs=null,int? maximumInputRows=null) where T:IHolon
+    {
+        var inputRows=maximumInputRows??options.MaximumInputRows;
+        var current = (initialPipeline??source.Pipeline).Select(stage => (BsonDocument)stage.DeepClone()).ToList();
         if (source.HasTraversalEnvelope)
         {
             // The snapshot owner validates the complete source command before
@@ -58,16 +78,16 @@ internal sealed partial class MongoCqlTranslator
         }
         var stages = new List<MongoCqlCommand>();
         var membership = source.RequiresMembership;
-        IReadOnlyList<CosmicQueryOrdering> effectiveOrder=sourceQuery.Orderings;
+        IReadOnlyList<CosmicQueryOrdering> effectiveOrder=naturalPositionField==null?sourceQuery.Orderings:Array.Empty<CosmicQueryOrdering>();
         var reversed=false;
-        foreach (var stage in plan.Query.Stages)
+        foreach (var stage in intent)
         {
             var envelope = false;
             if (stage is CosmicEntityFilterStage<T> filter)
             {
                 var relationships = filter.Predicate.Predicates.Any(HasRelationships);
                 var errors = new List<BsonValue>();
-                var matched = AppendAllPredicate(current, filter.Predicate.Predicates, plan.Query.Source.ReadAccess, errors);
+                var matched = AppendAllPredicate(current, filter.Predicate.Predicates, sourceQuery.ReadAccess, errors);
                 current.Add(new("$project", new BsonDocument
                 {
                     { "_id", 0 }, { "row", relationships ? "$row" : "$$ROOT" },
@@ -96,7 +116,13 @@ internal sealed partial class MongoCqlTranslator
                 var wrapper = new BsonDocument { { "_id", 0 }, { "row", "$$ROOT" } };
                 foreach (var key in keys) wrapper.Add(key);
                 current.Add(new("$project", wrapper));
-                sort.Add("row.HolonId", reversed ? -1 : 1);
+                if(effectiveOrder.Count>0 || naturalPositionField==null)
+                    sort.Add("row.HolonId", reversed ? -1 : 1);
+                if(naturalPositionField!=null)
+                {
+                    sort.Add("row."+naturalPositionField+".side",reversed?-1:1);
+                    sort.Add("row."+naturalPositionField+".position",reversed?-1:1);
+                }
                 current.Add(new("$sort", sort));
                 current.Add(new("$replaceRoot", new BsonDocument("newRoot", "$row")));
             }
@@ -108,8 +134,9 @@ internal sealed partial class MongoCqlTranslator
             }
             else throw new NotSupportedException("Unknown native entity stage.");
             ValidatePipeline(current);
-            stages.Add(new MongoCqlCommand(current.Select(step => (BsonDocument)step.DeepClone()).ToArray(),
-                plan.Options.MaximumInputRows + 1, membership, envelope));
+            var proof=current.Select(step=>(BsonDocument)step.DeepClone()).ToList();
+            if(naturalPositionField!=null)proof.Add(new("$unset",(envelope?"row.":"")+naturalPositionField));
+            stages.Add(new MongoCqlCommand(proof.ToArray(),inputRows+1,membership,envelope));
             if (envelope)
             {
                 current.Add(new("$match", new BsonDocument("error", 0)));
@@ -119,8 +146,9 @@ internal sealed partial class MongoCqlTranslator
         // All protected outcomes in the last stage have already been checked
         // by the same snapshot owner before this final output bound is applied.
         current.Add(new("$limit", maximumResults + 1));
+        if(naturalPositionField!=null)current.Add(new("$unset",naturalPositionField));
         ValidatePipeline(current);
         return new MongoCqlCommand(current.ToArray(), maximumResults + 1, membership,
-            entityComposition: new MongoCqlEntityCompositionCommand(source, stages.ToArray(), plan.Options, effectiveOrder, reversed));
+            entityComposition: new MongoCqlEntityCompositionCommand(source, stages.ToArray(), options, effectiveOrder, reversed,inputs,inputRows));
     }
 }

@@ -21,7 +21,7 @@ public partial class MongoDBOASIS:ICosmicQueryStorageProvider
         => ExecuteCqlRowsAsync(plan, maximumResults, cancellationToken);
 
     private async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCqlRowsAsync<T>(CosmicQueryPlan<T> plan,
-        int maximumResults, CancellationToken cancellationToken, CosmicEntityCompositionPlan<T> composition=null) where T:IHolon
+        int maximumResults, CancellationToken cancellationToken, CosmicEntityCompositionPlan<T> composition=null,CosmicSetQueryPlan<T> set=null) where T:IHolon
     {
         try
         {
@@ -37,8 +37,15 @@ public partial class MongoDBOASIS:ICosmicQueryStorageProvider
                 var stages = EntityCompositionCapabilities.Admit(composition.Query);
                 if (stages.IsError) return CqlFailure(stages.ErrorCode, stages.Message);
             }
+            if(set!=null)
+            {
+                var admitted=CosmicSetQueryPlanner.Plan(set.Query,Core.Enums.ProviderType.MongoDBOASIS,
+                    new CosmicQueryTarget(Core.Enums.ProviderType.MongoDBOASIS,CqlCapabilities),SetQueryCapabilities,set.Options);
+                if(admitted.IsError)return CqlFailure(admitted.ErrorCode,admitted.Message);
+            }
             var translator = new MongoCqlTranslator();
-            var command = composition != null ? translator.CompileEntityComposition(composition, maximumResults)
+            var command = set != null ? translator.CompileSet(set,maximumResults)
+                : composition != null ? translator.CompileEntityComposition(composition, maximumResults)
                 : plan.PostWindowPredicate != null ? translator.CompilePostWindowElement(plan, maximumResults)
                 : translator.CompileExecution(plan.Query,maximumResults,plan.TailIndex);
             if(!IsProviderActivated||_holonRepository is not HolonRepository repository)
