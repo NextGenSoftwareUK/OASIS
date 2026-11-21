@@ -1,5 +1,5 @@
 {
-  "status": "Task Core history reconciled; combined dependency check pending",
+  "status": "Combined Core history and source inventory qualified; actual API build queued, scoped dev delivery still pending",
   "priorCore": "03087911cd9d2a6c3a421014e52555bff8aeb063",
   "repairedCqlCore": "cd0849607d8739666a0d7dc7f0f236a623935e01",
   "qualifiedCqlCore": "01d10ae033608064e7f6b34fa434e4166073de27",
@@ -26,7 +26,13 @@
     "removedSignatures": [
       "public Task<OASISResult<IEnumerable<IHolon>>> SaveOwnedHolonsAsync( IEnumerable<IHolon> holons, Guid actor, CosmicWriteOptions options, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, ProviderType providerType = ProviderType.Default, int maximumHolons = 10000)"
     ],
-    "inventoryMethod": "Canonical scanner on five actual changed source copies; replace only those reviewed rows and preserve other reviewed dispositions."
+    "inventoryMethod": "Canonical scanner on five actual changed source copies; replace only those reviewed rows and preserve other reviewed dispositions.",
+    "additionalNativeDtoBlobs": {
+      "Objects/NativeData/NativeRecordFilter.cs": "37fd552a24fe8f1f7befb6e6cc4fcf73d8deba15",
+      "Objects/NativeData/NativeRecordProjection.cs": "227b4973bfa5ad4bbf816b9a49f095e8a1717f75",
+      "Objects/NativeData/VirtualHolonRead.cs": "cc529047b8175b9b042653f7b2104c3515765b55"
+    },
+    "totalExactQualifiedFilesCompared": 135
   },
   "scoringUnchangedBlob": "c7c03ecae2f2966de6a5a03a9eec933cf276751f",
   "delivery": "Existing task branch only; shared Development and Railway unchanged. Scope parent shipping batch and preserve current CQL/release dependencies.",
@@ -45,8 +51,16 @@
       "C:\\Source\\OASIS2-hyperdrive\\LocalState\\HyperDrive\\map-core-inventory-a88a9926\\Scripts\\verify_hyperdrive_provider_io_manifest.ps1"
     ],
     "pendingBytes": 227131,
-    "fileCount": 8
+    "fileCount": 8,
+    "diskFreeBytesObserved": 48641470464
   },
   "routerReview": "Incoming shared-router diff adds DeleteHolons conditional root-only validation/replication/result handling. Existing Map read/single-save and profile dispatch code retained; competition source blob unchanged. Full merged runtime candidate remains unqualified.",
-  "next": "Compile the combined API graph without repeating accepted standalone Map cases; build and verify a scoped Development delivery candidate before publication."
+  "next": "Compile the combined API graph without repeating accepted standalone Map cases; build and verify a scoped Development delivery candidate before publication.",
+  "build": {
+    "run": 44868003895,
+    "job": 136735938083,
+    "parent": "b4e482a2ec62a1802e5ff9fdeb90e15d0138222c",
+    "status": "queued",
+    "scope": "Actual combined WEB4 graph build only; accepted unchanged standalone Map cases not repeated."
+  }
 }
