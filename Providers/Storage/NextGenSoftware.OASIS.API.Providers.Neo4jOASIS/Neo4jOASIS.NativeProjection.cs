@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             string where;
             try
             {
-                var matches = NativeRecordFilter.Capture(filters);
+                var matches = NativeRecordFilter.CaptureForProjection(filters);
                 selected = NativeProjectionColumn.Capture(columns);
                 if (matches.Any(match => !LabelPattern.IsMatch(match.Field))
                     || selected.Any(column => !LabelPattern.IsMatch(column.Field)))
@@ -247,7 +247,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 parameters.Add(parameter, match.Value);
             }
 
-            return string.Join(" AND ", predicates);
+            return predicates.Count == 0 ? "true" : string.Join(" AND ", predicates);
         }
 
     }
