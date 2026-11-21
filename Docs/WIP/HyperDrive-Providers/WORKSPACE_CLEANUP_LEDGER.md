@@ -2439,3 +2439,5 @@ Planned bounded remote managed-stack diagnostic: Microsoft official Linux-x64 do
 2026-11-21 HTTP host source prepared only: no local build/restore/download/runtime/env/database/browser/output/worktree. Future owned CI scope hotspot_http_GUID database plus matching temp JSON; no source/deployed DNA or shared endpoint loaded. Random fixture key remains in ephemeral owned DNA only; never printed. Runtime/database/DNA cleanup not counted before execution.
 
 2026-11-21 HTTP44896325455 started on control0005804b33. CI owns only hotspot_http_GUID database, matching temp DNA file and existing loopback container; nested finally cleanup plus outer always container removal. No local download/runtime/build/env/database/browser/output/worktree created. Source/deployed DNA, shared Mongo/API/settings/workers untouched. Cleanup outcome pending real logs.
+
+2026-11-21 pinned Core avatar-context getter inspected in RAM, no local output/install/build/download/env/database/new worktree. Existing HTTP CI handle retained, no duplicate or accepted catalogue replay. Disk last checked46,674,997,248bytes free.
