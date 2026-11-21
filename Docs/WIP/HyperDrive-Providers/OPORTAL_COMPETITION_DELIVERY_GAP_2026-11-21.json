@@ -1,0 +1,32 @@
+{
+  "date": "2026-11-21",
+  "status": "verified source delivery gap; no implementation or test replay",
+  "acceptedRun": 44777915227,
+  "acceptedScope": "three-provider native main flow; browser/HTTP/full Startup not accepted",
+  "core": {
+    "accepted": "26b9e8f1d323991443310f94b9edcba24c8740e4",
+    "current": "bcee0c264cfdedb70edf4631f08613b26f6cae18",
+    "path": "Managers/CompetitionManager.cs",
+    "acceptedBlob": "9d008b4f86ae3960fd6d2f7cfda9a386e340ffad",
+    "currentBlob": "bafee6165513f042e7222bf9c8c9c2b61bfd4363",
+    "same": false
+  },
+  "star": {
+    "accepted": "1e09e7195ca336d31f0629da5ffad24bbf605d3a",
+    "current": "6edca43dce1cb1b2079b1df68ae085131970d69e",
+    "path": "NextGenSoftware.OASIS.STAR.WebAPI/Controllers/CompetitionController.cs",
+    "acceptedBlob": "0b39c83e9230d8df19f13251012ff6cf681d6867",
+    "currentBlob": "3cb1cb86febf36518cc80826feec39fd2c904065",
+    "same": false
+  },
+  "portal": {
+    "accepted": "af82fe78836522571cfea2d5e58d4bb97a3a850e",
+    "current": "2472bf56b0d104c93626d3bba7fe29b16323712c",
+    "path": "assets/js/competition-modal.js",
+    "acceptedBlob": "f70729b57fdeaf29eb2b6f59b7ffe14d795107f8",
+    "currentBlob": "f70729b57fdeaf29eb2b6f59b7ffe14d795107f8",
+    "same": true
+  },
+  "next": "Reconcile existing accepted Core/STAR changes into current dependency history, compile only changed composition, then new actual browser/HTTP breadth. Preserve native acceptance; do not replay unchanged three-provider case.",
+  "runningCatalogueCheck": "44959193440 remains frozen; no modification or restart"
+}
