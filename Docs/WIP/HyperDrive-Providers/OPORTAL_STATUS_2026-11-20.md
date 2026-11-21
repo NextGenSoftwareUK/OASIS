@@ -6,7 +6,7 @@ OPORTAL is not yet accepted as 100% functional end to end. The inventory is 44 p
 
 ## Branch instruction
 
-David clarified that direct work on the existing `dev` branch applies to OPORTAL. OASIS remains on `work/hyperdrive-provider-completion` in the existing HyperDrive worktree. No OASIS branch switch or merge was performed. Portal consolidation is in progress; its existing dev is `bd47e5bf222a2766864c18c08fc9f770d3b4e068`. A three-way merge review found substantial conflicts, which must be resolved while preserving dev features and the accepted task changes. No blanket ours/theirs resolution, force push or overwrite of the dirty Portal/CQL checkouts has occurred. Future Portal implementation belongs on dev, with no new Portal feature branches.
+Direct work on dev applies to OPORTAL. Existing dev now contains merge028298d, SDK delivery16196df, Settings7f27d70, Holon Diff0b2adf0 and Giftsac423b8. Newer billing, retention and Silver-plan badge changes were preserved. OASIS stays on work/hyperdrive-provider-completion in its existing worktree; no new worktree, force push or shared CQL checkout change.
 
 ## Functional evidence and remaining gaps
 
@@ -37,10 +37,13 @@ All three npm SDKs are used to generate the browser scripts. The update is not c
 - WEB4 target: 2.0.18 source fixes at f03f11cce4304f879f880118161a523777fa7474 combined with the existing atomic self-profile client, on owned SDK commit3d292c0c90f1abdffb027ce565002c7858038850. One declaration conflict was resolved by retaining the accurate typed request contract; existing messaging checkout was unchanged.
 - WEB5 target: 1.0.8 at1001eb4b1f1f5bdbf29d3e51c8eaa9bbd13c0951, including the partial-controller extraction/types/docs fixes.
 - WEB6 target: published2.1.2 at126e90c4eb73d307cc605cdc9c70721a01e5ce9c.
-- Portal package declaration checkpoint7ef294111f2b2a0297a95531252f7f5ec49a40a0 contains exact Git pins for the unpublished WEB4/WEB5 source and exact WEB6 version. Lockfile regeneration, three browser bundle rebuilds, cache stamps, compatibility checks and consolidation onto dev remain pending. Existing bundles are not claimed upgraded. No SDK package release was triggered by this agent.
+- Portal package declaration checkpoint7ef294111f2b2a0297a95531252f7f5ec49a40a0 contains exact Git pins for the unpublished WEB4/WEB5 source and exact WEB6 version. Delivery completed on dev16196df: exact package/lock, three bundles and cache stamps generated together. CI44840731309/job136648162171 verified installed versions, constructors/modules and profile-source identity; owned install/cache removal passed. WEB4 emitted bytes stayed unchanged because merged fixes were declarations/docs. Real browser/backend compatibility remains open. No SDK package release was triggered by this agent.
 
 ## Operational limits
 
-No shared Atlas/PIPER/API/Stripe calls, worker restart, DNA/load-balancing setting, protected delivery535/543 action or deployment was performed. Accepted unchanged business tests were not repeated. No laptop runtime install, package environment, build output, test database or artifact archive was created. Existing Git source objects were fetched/merged for the necessary SDK and Portal source review; checked-out messaging/CQL source was preserved. Cleanup and source evidence remain in the cleanup ledger and per-popup JSON files.
+No shared Atlas/PIPER/API/Stripe calls, worker restart, DNA/load-balancing setting or protected delivery535/543 action was performed. Portal dev source pushes may trigger its configured hosting; running hosted revision and whole-site acceptance are unverified. Accepted unchanged business tests were not repeated. No laptop runtime install, package environment, build output, test database or artifact archive was created. Existing Git source objects were fetched/merged for the necessary SDK and Portal source review; checked-out messaging/CQL source was preserved. Cleanup and source evidence remain in the cleanup ledger and per-popup JSON files.
 
 Priority remains functional breadth: finish every screen's main flow, then deepen hardening and optimization. Subscriptions remain essential. Full provider and HyperDrive goals remain active after the Portal work.
+
+
+Gifts backend: Core96f25cbf adds participant/type checks and real recipient lookup before saving. Parent6d1a08f7 pairs gitlink/manifest and extends SQLite lifecycle with real avatars and rejected sends. Exact-source CI44844612306/job136661141142 passed the one changed native case (reported2s): real avatar validation, rejected sends, missing-recipient empty inbox and persisted receive/open/stats/history. Mongo startup and unrelated suites excluded; test folder and CI cleanup passed. Browser and hosted Gifts verification remains open.
