@@ -1,0 +1,33 @@
+{
+  "candidate": "cf10bbb6eb686491c730737c3f66629c514d0817",
+  "control": "2858ea6a13dba18cc26e1607a2cd8f9cc3b5477d",
+  "run": 44894925177,
+  "job": 136818427991,
+  "conclusion": "success",
+  "host": "HotspotDevelopmentNative",
+  "buildErrors": 0,
+  "buildElapsed": "00:06:47.74",
+  "backend": "Owned loopback MongoDB 8.0.15 replica set; shipping MongoDBOASIS/HolonManager/GeoHotSpotManager",
+  "checks": [
+    "Typed latitude/longitude/radius/text metadata hydration",
+    "Explicit detail returns separately persisted child",
+    "Shallow catalogue excludes descendants",
+    "Owner sees own unpublished and other published records",
+    "Another owner unpublished record excluded",
+    "Anonymous sees only published record",
+    "Explicit Mongo provider subtype query returns expected IDs"
+  ],
+  "cleanup": [
+    "Owned hotspot database absence verified",
+    "Owned container absence verified",
+    "All post jobs succeeded"
+  ],
+  "localFilesWrittenFromLogs": 0,
+  "notAccepted": [
+    "HTTP binding/boot",
+    "Browser geo layers and progressive rendering",
+    "Hosted rollout",
+    "Spatial index/projection performance",
+    "Complete OPORTAL/provider/HyperDrive"
+  ]
+}
