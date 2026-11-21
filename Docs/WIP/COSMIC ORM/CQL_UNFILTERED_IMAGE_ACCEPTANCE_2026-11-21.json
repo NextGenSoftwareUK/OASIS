@@ -1,0 +1,14 @@
+{
+  "source": "6b5713f7d02379a6bd1769c13981d22682ee7b0d",
+  "core": "13fabae5a78c70b961c300657a875f1cfabe238d",
+  "imageRun": 44891296213,
+  "imageJob": 136807464445,
+  "imageConclusion": "success",
+  "digest": "sha256:bbd69aa3d0ee5512206cbe18016634f9682d26a4131108da6683ce0b2a87638a",
+  "packageRun": 44894688335,
+  "packageObservedStatus": "queued",
+  "packageAccepted": false,
+  "developmentPushed": false,
+  "hostedAccepted": false,
+  "localImageDownloaded": false
+}

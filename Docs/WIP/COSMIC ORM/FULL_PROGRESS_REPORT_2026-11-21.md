@@ -1,3 +1,6 @@
+21 November — COMBINED MAP+CQL IMAGE SUCCEEDED / EXACT PACKAGE QUEUED.
+Image44891296213/job136807464445 completed SUCCESS including post-jobs for immutable6b5713f7d02379a6bd1769c13981d22682ee7b0d/Core13fabae5. Both exact source-teaching and immutable candidate tags published digestsha256:bbd69aa3d0ee5512206cbe18016634f9682d26a4131108da6683ce0b2a87638a. Exactly one package qualification dispatched and reconciled as44894688335, queued, profilecql-api/teaching_image=true through pinned qualification refcosmic-holon-capture-aa4378189d27. No deployment or new image producer. Development still98ccee24, preserved Map/ONODE composition; package/source revalidation and hosted acceptance must pass before live claims. EntryCore553 remains separately qualified/excluded from this frozen image. Website decision pending; goal incomplete.
+
 21 November — CURRENT VERIFIED CHECKPOINT (supersedes queued notes below).
 
 - Development WEB4-WEB10 load balancing is enabled. Seven rollout/startup-file checks passed; later peer Map delivery98ccee24 also records true flags on all seven. This is startup-file proof, not independently exposed in-memory acknowledgement. Staging/production saved settings remain false and were not deployed by this task.
