@@ -19,3 +19,5 @@ The original snapshot2d package44945668173 remains accepted as packaging evidenc
 ## Compilation accepted
 
 Run44945969209/job136973233689 succeeded on029545dc: actual WEB4 build0 errors4m34.95s and WEB5 build0 errors28.14s. Strict RAM verification of artifact14723533241 (351bytes, SHA2566ac639a3ae82c8da61c0af6200dde23b2057e18327f495ad5ea774aa9a4f2daf) confirmed compiled.json exact source/Core3b69/ONODE9c8/STAR677, both compilation flags, zero behavior cases/database writes. This compile source includes range registration; frozen delivery91423bce deliberately retains qualified Core13bd. The image itself must independently compile/package that exact frozen graph. No retained-cell runtime success claimed.
+
+Development advanced fcb6e088 with SmartBrick ONODE34a8685e/STAR872f0be8 pins. Preserve those pins and ancestry in the existing task branch; do not deploy stale91423bce over them. Original image44946308915 continues without replacement/replay. A combined frozen graph must pass its own image/package gate; prior behavior/contract evidence is retained.
