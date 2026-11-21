@@ -824,3 +824,5 @@ Native semantics are described in
 [Neo4j size](https://neo4j.com/docs/cypher-manual/current/functions/scalar/#functions-size).
 
 [S05E]: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44561911974
+
+21November2026: stateless Get/GetAsync fresh authorized key lookup native accepted on MongoDB/SQLite/Neo4j in44959006866 (2Core+3native; STATELESS_GET_NATIVE_ACCEPTANCE_2026-11-21.json). S19 parent remains open. New set-query model709dcaa is source-only; no native executor/LINQ/SQL acceptance and no Q50/Q51/Q53/Q54 promotion. Denominators and full parity scope unchanged.

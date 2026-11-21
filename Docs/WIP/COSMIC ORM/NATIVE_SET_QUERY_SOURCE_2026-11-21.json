@@ -1,0 +1,12 @@
+{
+  "coreSource": "709dcaa452d1dc8de9c5ed27ecc8583d275ca316",
+  "coreBase": "b8b69aef680f8c74e449739e8849db53159a510c",
+  "phase": "model_source_published",
+  "compiled": false,
+  "nativeImplemented": false,
+  "nativeAccepted": false,
+  "linqImplemented": false,
+  "sqlTextImplemented": false,
+  "developmentPushed": false,
+  "fullParityCredit": false
+}

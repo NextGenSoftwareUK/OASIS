@@ -158,3 +158,5 @@ Incomplete native reads and duplicate or mismatched identities are errors.
 This does not grant update/delete permission. Explicit persistence still requires the existing
 owned operation and revision contract. The new two-control/three-store CI journey is pending at
 run44959006866; source presence does not certify native support, full parity or live delivery.
+
+Native stateless Get acceptance:44959006866 passed2Core+3real stores at Coreb8b69, with exact cleanup and no skipped cases. Earlier pending notes are historical. Delivery is still separate; see STATELESS_GET_NATIVE_ACCEPTANCE_2026-11-21.json. Full stateless/framework parity remains open.

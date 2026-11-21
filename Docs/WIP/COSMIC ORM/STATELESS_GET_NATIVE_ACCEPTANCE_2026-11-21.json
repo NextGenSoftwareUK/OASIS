@@ -1,0 +1,110 @@
+{
+  "coreSource": "b8b69aef680f8c74e449739e8849db53159a510c",
+  "coreBase": "7165ab625f90501047ca10c3b9f193ed0498caf5",
+  "phase": "native_accepted",
+  "nativeAccepted": true,
+  "developmentPushed": false,
+  "source": "a7b1df5f73ab8d906c8cedac093cc32dd571fdb5",
+  "coreControls": 2,
+  "nativeJourneys": 3,
+  "automaticWorkflowExpected": true,
+  "run": 44959006866,
+  "status": "completed",
+  "conclusion": "success",
+  "redundantQueuedSuiteCancellations": [
+    {
+      "run": 44959006809,
+      "workflow": ".github/workflows/qualify-gomap-web4.yml",
+      "onlyMatchedChanges": [
+        "Docker/oasis-dependency-versions.env",
+        "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
+      ],
+      "coreDelta": "A\tQueries/CosmicStatelessSession.Get.cs",
+      "queuedOnly": true,
+      "requestStartedUtc": "2026-11-21T22:53:34.845229+00:00",
+      "requestAccepted": true
+    }
+  ],
+  "job": 137013407491,
+  "corePassed": 2,
+  "nativePassed": 3,
+  "failed": 0,
+  "skipped": 0,
+  "artifact": {
+    "id": 14728848167,
+    "bytes": 4462,
+    "sha256": "bf18f4de63194a37a8633256a5bbb1a919888ca05c3427c8cee46128cf262bdb",
+    "exactFiveEntriesVerified": true
+  },
+  "nativeReports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create": 652,
+        "get-initial": 89,
+        "get-fresh": 18,
+        "update": 120,
+        "get-updated": 6,
+        "get-sync": 3,
+        "get-absent": 2,
+        "get-foreign": 1
+      },
+      "nativeProviderVerified": true,
+      "freshInstancesVerified": true,
+      "persistedUpdateVisibleVerified": true,
+      "syncAsyncAgreementVerified": true,
+      "absentAndForeignHiddenVerified": true,
+      "cancellationAndLifetimeVerified": true,
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create": 540,
+        "get-initial": 38,
+        "get-fresh": 3,
+        "update": 23,
+        "get-updated": 3,
+        "get-sync": 2,
+        "get-absent": 1,
+        "get-foreign": 1
+      },
+      "nativeProviderVerified": true,
+      "freshInstancesVerified": true,
+      "persistedUpdateVisibleVerified": true,
+      "syncAsyncAgreementVerified": true,
+      "absentAndForeignHiddenVerified": true,
+      "cancellationAndLifetimeVerified": true,
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create": 833,
+        "get-initial": 591,
+        "get-fresh": 27,
+        "update": 102,
+        "get-updated": 15,
+        "get-sync": 15,
+        "get-absent": 28,
+        "get-foreign": 34
+      },
+      "nativeProviderVerified": true,
+      "freshInstancesVerified": true,
+      "persistedUpdateVisibleVerified": true,
+      "syncAsyncAgreementVerified": true,
+      "absentAndForeignHiddenVerified": true,
+      "cancellationAndLifetimeVerified": true,
+      "exactCleanupVerified": true
+    }
+  }
+}
