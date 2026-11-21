@@ -54,6 +54,9 @@ public sealed partial class CqlV1Web4NativeTests
         var noop=await session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
         Assert.IsFalse(noop.IsError,noop.Message);Assert.IsFalse(noop.IsSaved);
         loadedFirst.Result.Name="range updated";
+        var explicitUpdates=session.UpdateRange(new[]{loadedFirst.Result,loadedSecond.Result});
+        Assert.IsFalse(explicitUpdates.IsError,explicitUpdates.Message);
+        Assert.AreEqual(2,explicitUpdates.Result.Count);
         clock.Restart();
         var updated=await session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
         timings["range-attached-update"]=clock.ElapsedMilliseconds;
@@ -69,6 +72,19 @@ public sealed partial class CqlV1Web4NativeTests
         var hidden=await foreign.ReadAsync(query);
         timings["range-foreign-read"]=clock.ElapsedMilliseconds;
         Assert.IsFalse(hidden.IsError,hidden.Message+hidden.Exception);Assert.AreEqual(0,hidden.Result.Count);
-        return 3;
+        var removals=session.RemoveRange(new[]{loadedFirst.Result,loadedSecond.Result},softDelete:false);
+        Assert.IsFalse(removals.IsError,removals.Message);
+        Assert.AreEqual(2,removals.Result.Count);
+        clock.Restart();
+        var removed=await session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+        timings["range-hard-delete"]=clock.ElapsedMilliseconds;
+        Assert.IsFalse(removed.IsError,removed.Message+removed.Exception);Assert.IsTrue(removed.IsSaved);
+        foreach(var root in removals.Result)
+        {
+            Assert.AreEqual(CosmicEntityState.Detached,session.State(root).Result);
+            var absent=await provider.LoadHolonAsync(root.Id,loadChildren:false,recursive:false);
+            Assert.IsNull(absent.Result,"Acknowledged range deletion must remove the owned root.");
+        }
+        return 4;
     }
 }

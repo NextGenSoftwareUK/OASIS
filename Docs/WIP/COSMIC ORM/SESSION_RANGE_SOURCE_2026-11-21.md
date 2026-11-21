@@ -27,3 +27,9 @@ One strict no-I/O contract covers update/deletion intent, added-root detach and 
 Run44947147551 failed before native execution/no artifact: two CS1503 at MapController44. ONODE34a8685e MapManager supports (IOASISStorageProvider,Guid,OASISDNA), while the root caller still passed (HolonManager,Guid) from the earlier dependency contract. Corrected the caller to pass the already admitted provider, actor and DNA. No overload shim, dependency rollback, new fallback or permission bypass.
 
 Queued own image44946907870 and five-check44947664565 cancellation acknowledged because they contain the same proven compile mismatch; not an observation timeout and no accepted result discarded. New native qualification runs the five shared Core controls followed by only the three new native range cases under one build lease, retaining both TRX files and exact cleanup evidence. No accepted old native cohort replay.
+
+## One representative native journey for all four range methods
+
+The same three provider cases now exercise AddRange/AttachRange/UpdateRange/RemoveRange: two private creates, attach baseline/no-op, explicit existing-root update intent for both roots, foreign-private read exclusion, then one homogeneous hard-delete batch and detached/physical-absence checks. Six acknowledged logical root writes per store (2create+2explicit update+2delete), two exact owned IDs, four timed operations; no benchmark matrix. Five strict Core controls run first in the same lease. Native pass remains unproven until artifact/cleanup inspection.
+
+This cohesive qualification source carries current Developmentd403 dependency pins and the real Map caller fix; frozen timeout42a132/Core13bd is unchanged. Earlier queued narrower native cohort will be reconciled and cancelled only if still queued after replacement dispatch is visible; no accepted result is discarded.
