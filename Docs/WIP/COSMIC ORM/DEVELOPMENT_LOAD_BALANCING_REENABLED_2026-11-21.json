@@ -239,13 +239,34 @@
     }
   ],
   "sourceDevelopmentOverride": "OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.Development.json",
-  "sharedDefaultsAndFullTemplatesRemainFalse": true,
+  "sharedDefaultsAndFullTemplatesRemainFalse": false,
   "isolatedHarnessSettingsPreserved": true,
   "submoduleInventory": {
     "Core": "no DNA JSON found at33a21b61",
     "ONODECore": "no DNA JSON found at ac12ee38 after exact filtered fetch",
     "WEB6": "no DNA JSON found at f042a533",
-    "STAR": "pinned tree unavailable locally, follow-up remains",
-    "ONODEManager": "pinned revision unavailable from remote; follow-up remains"
-  }
+    "STAR": {
+      "revision": "d687095c4db7611575002db361b972052d17e28f",
+      "appGenerationTemplates": [
+        {
+          "path": "NextGenSoftware.OASIS.STAR.STARDNA/DNA/Default/OASIS_DNA.json",
+          "autoLoadBalanceEnabled": true
+        },
+        {
+          "path": "STAR OAPP DNA Templates/NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.NuGet/OASIS_DNA.json",
+          "autoLoadBalanceEnabled": true
+        }
+      ],
+      "changed": false,
+      "intentionalDifference": "Pre-existing app-creation profiles preserved; Development rollout uses service DNA override."
+    },
+    "ONODEManager": {
+      "revision": "7d55828d3a7905d6938dff508bb30d423ddecc48",
+      "dnaJsonFiles": 0,
+      "inspectedExistingInitializedPeerRepositoryReadOnly": true,
+      "correction": "The local submodule is uninitialized; its earlier lookup used the parent repository, so remote-ref unavailability was not established."
+    }
+  },
+  "rootSharedDefaultsAndFullTemplatesRemainFalse": true,
+  "submoduleInventoryCompleteForPreviouslyPendingCopies": true
 }
