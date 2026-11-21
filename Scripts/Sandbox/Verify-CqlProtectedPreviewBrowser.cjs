@@ -12,8 +12,11 @@ const work = path.join(parent, 'RecoveryLaptopHostedBrowserCurrent');
 const profile = path.join(work, 'profile');
 const marker = path.join(work, 'owner.json');
 const ledger = path.join(root, 'Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md');
-const previewOrigin = 'https://web4-site-kpgpby09s-oasis-team.vercel.app';
+const previewOrigin = 'https://web4-site-cv1mn9kpj-oasis-team.vercel.app';
 const sqlFlow = process.env.CQL_BROWSER_SQL_FLOW === '1';
+const selectedProviders = (process.env.CQL_BROWSER_PROVIDERS || 'MongoDBOASIS,SQLLiteDBOASIS,Neo4jOASIS').split(',');
+if (new Set(selectedProviders).size !== selectedProviders.length || selectedProviders.some(provider =>
+    !['MongoDBOASIS', 'SQLLiteDBOASIS', 'Neo4jOASIS'].includes(provider))) throw new Error('Select one to three distinct admitted SQL providers.');
 const origin = sqlFlow ? 'https://web4.oasisomniverse.one' : previewOrigin;
 const url = origin + '/web4-sandbox.html';
 const owner = 'cosmic-cql-protected-preview-readonly';
@@ -55,7 +58,11 @@ const report = { owner, url, applicationDataRequestsSent: 0, filesInstalled: 0, 
 const assets = new Map(), apiCounts = new Map(), scalarResponses = [];
 const assetHashes = new Map();
 const scalarRequests = new Set();
+const completedSqlProviders = [];
 const authRequests = new Map(), authResponses = [];
+const authTransportRequests = new Map();
+const catalogueRequests = new Set();
+let neoDiscovery;
 let pageSession;
 function candidateAsset(target) {
   const address = new URL(target.pathname + target.search, previewOrigin);
@@ -123,7 +130,7 @@ async function event(message) {
     const ownStatic = target.origin === origin && staticPath && !/^\/(?:api|v1)\//.test(target.pathname);
     const font = ['fonts.googleapis.com', 'fonts.gstatic.com'].includes(target.hostname);
     const apiLimits = { 'POST /api/sandbox/session': 1, 'POST /api/avatar/revoke-token': 1,
-      'GET /api/data/query-cql/providers': 2, 'POST /api/data/query-cql/scalar': 3 };
+      'GET /api/data/query-cql/providers': 2, 'POST /api/data/query-cql/scalar': selectedProviders.length };
     const apiKey = request.method + ' ' + target.pathname;
     if (sqlFlow && target.origin === 'https://dev.api.web4.oasisomniverse.one' &&
         (apiLimits[apiKey] || request.method === 'OPTIONS' && Object.keys(apiLimits).some(key => key.endsWith(' ' + target.pathname)))) {
@@ -150,6 +157,25 @@ async function event(message) {
     }
   } else if (message.method === 'Runtime.exceptionThrown') {
     exceptions.push({ line: p.exceptionDetails?.lineNumber, type: p.exceptionDetails?.exception?.className || 'ScriptException' });
+  } else if (sqlFlow && message.method === 'Network.requestWillBeSent' &&
+      ['https://dev.api.web4.oasisomniverse.one/api/sandbox/session', 'https://dev.api.web4.oasisomniverse.one/api/avatar/revoke-token'].includes(p.request.url)) {
+    authTransportRequests.set(p.requestId, new URL(p.request.url).pathname);
+  } else if (sqlFlow && message.method === 'Network.loadingFailed' && authTransportRequests.has(p.requestId)) {
+    authResponses.push({ path: authTransportRequests.get(p.requestId), transportFailed: true,
+      transportError: /^net::ERR_[A-Z0-9_]+$/.test(p.errorText || '') ? p.errorText : 'browser-request-failed' });
+    authTransportRequests.delete(p.requestId);
+  } else if (sqlFlow && message.method === 'Network.responseReceived' &&
+      p.response.url.startsWith('https://dev.api.web4.oasisomniverse.one/api/data/query-cql/providers?')) {
+    catalogueRequests.add(p.requestId);
+  } else if (sqlFlow && message.method === 'Network.loadingFinished' && catalogueRequests.delete(p.requestId)) {
+    const response = await send('Network.getResponseBody', { requestId: p.requestId }, message.sessionId);
+    const payload = JSON.parse(response.base64Encoded ? Buffer.from(response.body, 'base64').toString('utf8') : response.body);
+    if (!Array.isArray(payload.result)) throw new Error('Unexpected provider catalogue contract.');
+    const neo = payload.result.find(row => row.provider === 'Neo4jOASIS');
+    if (neo) neoDiscovery = { provider: neo.provider, available: neo.available,
+      queryOnly: neo.queryOnly, federationAvailable: neo.federationAvailable,
+      activationGeneration: neo.activationGeneration,
+      diagnosticCodes: Object.values(neo).filter(value => typeof value === 'string' && /^CQL_[A-Z0-9_]{1,100}$/.test(value)) };
   } else if (sqlFlow && message.method === 'Network.responseReceived' &&
       ['https://dev.api.web4.oasisomniverse.one/api/sandbox/session', 'https://dev.api.web4.oasisomniverse.one/api/avatar/revoke-token'].includes(p.response.url)) {
     const observation = { path: new URL(p.response.url).pathname, http: p.response.status };
@@ -176,7 +202,7 @@ async function event(message) {
   } else if (sqlFlow && message.method === 'Network.loadingFinished' && scalarRequests.delete(p.requestId)) {
     const body = await send('Network.getResponseBody', { requestId: p.requestId }, message.sessionId);
     const value = JSON.parse(body.base64Encoded ? Buffer.from(body.body, 'base64').toString('utf8') : body.body);
-    scalarResponses.push({ acknowledged: value.isError === false, resultPresent: value.result !== undefined });
+    scalarResponses.push({ acknowledged: value.isError === false, resultPresent: value.result !== undefined && value.result !== null });
   } else if ((sqlFlow ? message.method === 'Page.domContentEventFired' : message.method === 'Page.loadEventFired') && loadWaiters.has(message.sessionId)) {
     loadWaiters.get(message.sessionId)(); loadWaiters.delete(message.sessionId);
   }
@@ -230,11 +256,14 @@ async function event(message) {
       report.publicWebsitePublicationVerified = false;
       await evaluate('(async()=>{await startDemo();return !!session.identity()})()').then(ok => { if (!ok) throw new Error('Demo session not established.'); });
       await waitFor(() => evaluate("!document.getElementById('cql-run').disabled"), 'Provider discovery and query readiness');
-      for (const provider of ['MongoDBOASIS', 'SQLLiteDBOASIS', 'Neo4jOASIS']) {
+      for (const provider of selectedProviders) {
+        const available = await evaluate(`window.cqlPlayground.availableTextProviders().includes(${JSON.stringify(provider)})`);
+        if (!available) { report.providerUnavailable = provider; throw new Error('Provider unavailable in current catalogue: ' + provider); }
         const before = scalarResponses.length;
-        await evaluate(`document.getElementById('cql-text').value=${JSON.stringify('SELECT COUNT(*) FROM ')}+${JSON.stringify(provider)};document.getElementById('cql-run-text').click();true`);
+        await evaluate(`document.getElementById('cql-text').value=${JSON.stringify('SELECT COUNT(*) Total FROM ')}+${JSON.stringify(provider)};document.getElementById('cql-run-text').click();true`);
         await waitFor(() => scalarResponses.length > before, provider + ' SQL response');
         if (!scalarResponses[before].acknowledged || !scalarResponses[before].resultPresent) throw new Error(provider + ' SQL request was not acknowledged.');
+        completedSqlProviders.push(provider);
         await new Promise(resolve => setTimeout(resolve, 600));
       }
       report.sqlEditorRequestsAcknowledged = scalarResponses;
@@ -258,6 +287,9 @@ async function event(message) {
       catch (inspectionError) { report.editorInspectionError = inspectionError.message; }
     }
   } finally {
+    report.completedSqlProviders = completedSqlProviders;
+    report.sqlResponses = scalarResponses;
+    if (neoDiscovery) report.neoDiscovery = neoDiscovery;
     if (sqlFlow && pageSession && socket?.readyState === WebSocket.OPEN) {
       report.demoSessionRequested = apiCounts.has('POST /api/sandbox/session');
       if (report.demoSessionRequested) {

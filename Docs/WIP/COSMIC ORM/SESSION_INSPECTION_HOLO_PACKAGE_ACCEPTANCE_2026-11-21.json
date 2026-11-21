@@ -1,0 +1,13 @@
+{
+  "run": 44857060403,
+  "job": 136701628704,
+  "artifact": 14687568096,
+  "bytes": 782,
+  "sha256": "7cb4fba6de9370c0cd183680203e9902de043f8b3261a366ad81f16c8880b596",
+  "source": "3bba5467e82169f0eeaa80b449b2ba000a15f89b",
+  "digest": "sha256:aeedb51158445d5706b48b6619f10e948a239ab9410a09ac0edaf83855899336",
+  "strictVerified": true,
+  "localArtifactFiles": 0,
+  "apiQualified": false,
+  "liveDeployment": false
+}
