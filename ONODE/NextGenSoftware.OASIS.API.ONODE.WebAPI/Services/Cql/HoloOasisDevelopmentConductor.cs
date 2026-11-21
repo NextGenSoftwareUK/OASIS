@@ -32,7 +32,7 @@ internal sealed class HoloOasisDevelopmentConductor
 
     // The retained Development DHT took 73 seconds to initialize before its cell ran.
     // Keep this readiness budget separate from the HoloNET admin bind timeout.
-    private static readonly TimeSpan PersistedCellReadinessBudget = TimeSpan.FromSeconds(120);
+    private static readonly TimeSpan PersistedCellReadinessBudget = TimeSpan.FromSeconds(240);
 
     private const string StateDirectory = "/data/COSMIC/HoloOasisCql";
     private const string AdminEndpoint = "ws://127.0.0.1:65464";

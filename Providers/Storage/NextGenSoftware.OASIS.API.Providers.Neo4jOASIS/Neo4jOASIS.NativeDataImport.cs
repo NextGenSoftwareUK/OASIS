@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
     /// applications. Each label is a source, each node a record keyed by its element id, in element-id order, through a
     /// read-only session.
     /// </summary>
-    public partial class Neo4jOASIS : INativeDataQueryProvider
+    public partial class Neo4jOASIS : INativeDataQueryProvider, INativeDataSnapshotQueryProvider
     {
         private static readonly Regex LabelPattern = new Regex("^[A-Za-z_][A-Za-z0-9_]{0,99}$", RegexOptions.CultureInvariant);
         private static readonly string[] ConnectionSettings = { "uri", "username", "password", "database", "labels" };
@@ -135,23 +135,33 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             }
         }
 
-        public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativePredicateRecordsAsync(
+        public Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativePredicateRecordsAsync(
             string sourceName, IReadOnlyList<NativeRecordFilter> matches, IReadOnlyList<string> fields, int limit,
             NativeConnection connection = null, CancellationToken cancellationToken = default)
+            => QueryNativeRecordsCoreAsync(sourceName, matches, fields, limit, connection, cancellationToken, false);
+
+        public Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeSnapshotRecordsAsync(
+            string sourceName, IReadOnlyList<NativeRecordFilter> matches, IReadOnlyList<string> fields, int limit,
+            NativeConnection connection = null, CancellationToken cancellationToken = default)
+            => QueryNativeRecordsCoreAsync(sourceName, matches, fields, limit, connection, cancellationToken, true);
+
+        private async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsCoreAsync(
+            string sourceName, IReadOnlyList<NativeRecordFilter> matches, IReadOnlyList<string> fields, int limit,
+            NativeConnection connection, CancellationToken cancellationToken, bool snapshotRead)
         {
             var result = new OASISResult<IReadOnlyList<NativeRecord>>();
-            if (sourceName == null || !LabelPattern.IsMatch(sourceName) || matches == null || matches.Count is < 1 or > 8 ||
+            if (sourceName == null || !LabelPattern.IsMatch(sourceName) || matches == null || (matches.Count < (snapshotRead ? 0 : 1) || matches.Count > 8) ||
                 matches.Any(match => match == null || match.Field == null || !LabelPattern.IsMatch(match.Field)) ||
                 fields == null || fields.Count is < 1 or > 32 ||
                 fields.Any(field => field == null || !LabelPattern.IsMatch(field)) ||
-                fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || limit is < 1 or > 100)
+                fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || (limit < 1 || limit > (snapshotRead ? 200 : 100)))
                 return Error("NATIVE_QUERY_INVALID", "Select a native label, exact scalar equality, fields and a row limit.");
 
-            matches = NativeRecordFilter.Capture(matches);
+            matches = snapshotRead ? NativeRecordFilter.CaptureForProjection(matches) : NativeRecordFilter.Capture(matches);
             fields = fields.ToArray();
             var parameters = new Dictionary<string, object> { ["take"] = limit };
             string predicateWhere;
-            try { predicateWhere = CompileNativePredicateWhere(matches, parameters); }
+            try { predicateWhere = matches.Count == 0 ? "true" : CompileNativePredicateWhere(matches, parameters); }
             catch (ArgumentException)
             { return Error("NATIVE_QUERY_INVALID", "The exact native predicate is unsupported."); }
 

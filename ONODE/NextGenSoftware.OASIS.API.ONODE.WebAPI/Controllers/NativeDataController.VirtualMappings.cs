@@ -121,7 +121,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (avatar == null)
                 return Unauthorized();
             if (id == Guid.Empty || request == null || request.RowId == Guid.Empty || request.Query == null ||
-                ParseVirtualMatches(request.Query) is not { } matches)
+                ParseVirtualMatches(request.Query, allowUnfiltered: true) is not { } matches)
                 return BadRequest(SnapshotError("VIRTUAL_SNAPSHOT_INVALID", "Provide a mapping, selected row and typed query."));
 
             var query = request.Query;
@@ -130,7 +130,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return BadRequest(SnapshotError("VIRTUAL_SNAPSHOT_INVALID", "Select up to 32 unique mapped fields including the match field."));
             var rows = await CqlV1Providers.QueryOwnedVirtualMappingAsync(HolonManager,
                 ProviderManager.Instance.CurrentStorageProvider, id, avatar, providerType, matches,
-                fields, query.Take, cancellationToken);
+                fields, query.Take, cancellationToken, snapshotRead: true);
             if (rows.IsError)
             {
                 var error = SnapshotError(rows.ErrorCode, rows.Message);
@@ -163,7 +163,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return null;
 
             var matches = matchFields.ToArray();
-            if (matches.Length == 0 || matches.Any(string.IsNullOrWhiteSpace))
+            if (matches.Any(string.IsNullOrWhiteSpace))
                 return null;
             // Keep the same CQL filter meaningful after the row is saved.
             var fields = selected.Union(matches, StringComparer.Ordinal).ToArray();
@@ -173,7 +173,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         private static OASISResult<Holon> SnapshotError(string code, string message) =>
             new OASISResult<Holon> { IsError = true, ErrorCode = code, Message = message };
 
-        private static NativeRecordFilter[] ParseVirtualMatches(VirtualMappingQueryRequest request)
+        private static NativeRecordFilter[] ParseVirtualMatches(VirtualMappingQueryRequest request, bool allowUnfiltered = false)
         {
             if (request.Filters == null)
             {
@@ -188,6 +188,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
             if (request.MatchField != null || request.MatchType != null || request.MatchValue.ValueKind != JsonValueKind.Undefined)
                 return null;
+            if (allowUnfiltered && request.Filters.Length == 0) return Array.Empty<NativeRecordFilter>();
             try { return CqlV1Compiler.CompileVirtualMatches(request.Filters); }
             catch (ArgumentException) { return null; }
         }
