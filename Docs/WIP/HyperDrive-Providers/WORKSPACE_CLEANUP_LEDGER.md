@@ -2445,3 +2445,5 @@ Planned bounded remote managed-stack diagnostic: Microsoft official Linux-x64 do
 2026-11-21 failed HTTP44896325455: compile only, native host never executed and no host DNA/database created. Always cleanup owned container absence verified; post jobs success. Log inspected in RAM only. Explicit package will restore on ephemeral CI, no local install/download/build/output.
 
 2026-11-21 HTTP retry44896756330 tracked, prior container cleanup verified; setup-dotnet post skipped and checkout post jobs successful. No local package restore/install/runtime/build/output/env/database or new worktree. Current owned CI cleanup pending.
+
+2026-11-21 scoped606e composition uses GitHub Git objects/immutable tag and current existing checkout fetch only. No branch switch/new worktree/build/env/runtime/download/database/browser/artifact/output. Compact composition record retained. Same HTTP CI handle, cleanup pending.

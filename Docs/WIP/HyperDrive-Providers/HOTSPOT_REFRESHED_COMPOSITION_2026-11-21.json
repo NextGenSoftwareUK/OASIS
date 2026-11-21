@@ -1,0 +1,27 @@
+{
+  "status": "prepared-not-built-not-deployed",
+  "base": "6b5713f7d02379a6bd1769c13981d22682ee7b0d",
+  "candidate": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+  "tree": "4daad8691c8f3e9f1cecc73fbfe0a27af1c0eeaa",
+  "tag": "qualification/hotspot-shallow-2026-11-21-606e1a52",
+  "corePreserved": "13fabae5a78c70b961c300657a875f1cfabe238d",
+  "onode": "9c8b8478e38bbb06ae334578f0546e3f34b48a4d",
+  "star": "6774caf10a4d37cba5575e497c0a0499f118b6d0",
+  "changedPaths": [
+    "Docker/oasis-dependency-versions.env",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.Core",
+    "STAR ODK"
+  ],
+  "compare": {
+    "ahead": 1,
+    "behind": 0
+  },
+  "preserved": "All newer shared Map/CQL/provider projection source, Core contract, Development DNA and every other pin",
+  "existingHttpRun": {
+    "run": 44896756330,
+    "job": 136823965644,
+    "candidate": "cf10bbb6eb686491c730737c3f66629c514d0817",
+    "status": "in_progress"
+  },
+  "remaining": "Finish current HTTP result, actual browser acceptance and current-composition compile before scoped delivery; no old candidate over newer Development."
+}
