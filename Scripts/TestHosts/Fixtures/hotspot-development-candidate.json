@@ -1,5 +1,5 @@
 {
-  "status": "native-catalogue-passed-http-host-prepared-not-run",
+  "status": "http-retry-in-progress-native-catalogue-accepted",
   "compileRun": 44893706298,
   "compileJob": 136814765491,
   "controlSource": "3e6c368b0c0f52a176adddf92a52d6312360c96f",
@@ -46,5 +46,23 @@
     "buildElapsed": "00:06:47.74",
     "cleanupVerified": true
   },
-  "nativeHost": "HotspotHttpNative"
+  "nativeHost": "HotspotHttpNative",
+  "httpAttempts": [
+    {
+      "run": 44896325455,
+      "job": 136822657601,
+      "control": "0005804b33ac339951099c4bb88df4603a35ba1a",
+      "conclusion": "failure",
+      "stage": "host compilation",
+      "error": "CS0234 JwtBearer dependency missing",
+      "runtimeCases": 0,
+      "containerCleanup": "verified"
+    },
+    {
+      "run": 44896756330,
+      "control": "66c3bea0ff93debe59445c8bf7ec513d2a947ef1",
+      "status": "in_progress",
+      "change": "Explicit test-host JWT bearer package; shipping source unchanged"
+    }
+  ]
 }
