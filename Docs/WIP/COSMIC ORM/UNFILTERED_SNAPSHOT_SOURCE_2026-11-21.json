@@ -22,5 +22,10 @@
   "newBrowserHelperCasesPassed": 1,
   "browserSnapshotMaximumCandidates": 200,
   "browserVerified": false,
-  "deployed": false
+  "deployed": false,
+  "nativeQualificationSource": "5c1b20b430fa85479e5255106f5d1ab1fd2271cf",
+  "nativeQualificationRun": 44939785488,
+  "nativeQualificationJob": 136954233377,
+  "nativeQualificationObservedStatus": "in_progress",
+  "selectedNativeCases": 3
 }
