@@ -21,7 +21,7 @@ public sealed partial class CqlV1Web4NativeTests
 
     private static async Task<int> VerifyGroupedDistinctMixedNativeHttpProvider(
         IOASISStorageProvider provider, string work, string database, MongoClient? mongo, List<Guid> created,
-        bool guidCounts = false, Dictionary<string, long>? queryTimings = null, bool guidRows = false, bool predicateCrossing = false, bool guidFilters = false, bool int32Http = false, bool unfiltered = false, bool dateKeys = false)
+        bool guidCounts = false, Dictionary<string, long>? queryTimings = null, bool guidRows = false, bool predicateCrossing = false, bool guidFilters = false, bool int32Http = false, bool unfiltered = false, bool dateKeys = false, bool snapshotPreparation = false)
     {
         var reader = (INativeDataProjectionQueryProvider)provider;
         var actor = Guid.NewGuid();
@@ -170,6 +170,15 @@ public sealed partial class CqlV1Web4NativeTests
             if(dateKeys) mappedFields.Add("occurredAlias","occurredAt");
             var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, actor, reader.NativeDataProviderType,
                 sourceName, VirtualHolonMapping.SandboxConnectionName, reader.DescribeVirtualQueryConnection(null), mappedFields);
+            if (snapshotPreparation)
+            {
+                var snapshotChecks=await VerifyUnfilteredSnapshotNative(provider,mapping,created,
+                    queryTimings ?? new Dictionary<string,long>());
+                var snapshotAfter=await fingerprint();
+                Assert.AreEqual(before.Length,snapshotAfter.Length);
+                for(var index=0;index<before.Length;index++)CollectionAssert.AreEqual(before[index],snapshotAfter[index]);
+                return snapshotChecks;
+            }
             var original = await mapping.QueryAsync(actor, reader, null,
                 new[] { new NativeRecordFilter("textAlias", CosmicQueryComparisonOperator.Equal, 2L, NativeRecordFunction.Utf16Length) },
                 guidCounts ? new[] { "textAlias", "guidAlias" } : new[] { "textAlias" }, 1);
