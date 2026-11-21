@@ -1,3 +1,5 @@
+21 November — Batch API status: AddRange/AttachRange passed the focused shared-owner checks and WEB4 compile (44945637242); real three-provider explicit-save verification44947147551 is still running. UpdateRange/RemoveRange are source Core7165ab62 with five selected checks44947664565 queued. None of these results establishes full EF/NHibernate parity. Frozen timeout demo candidate7c5f0a16 intentionally excludes these session increments.
+
 Single-root inspection source addition (qualification pending):
 Use session.Entry(entity) to obtain the same immutable state/read-only snapshot as GetEntries for one object. Detached objects remain detached, including an untracked duplicate identity. Entity is the supplied live reference; inspect again after edits. This does not return database values or grant access. Handle OASISResult errors, including a disposed/busy session or null argument.
 
@@ -129,3 +131,16 @@ This is pending native qualification44837204603; it is excluded from the frozen 
 ## Session inspection native acceptance
 
 Run44837204603 passed the new inspection/default read-only journey on all three native stores. Exact proof is SESSION_INSPECTION_NATIVE_ACCEPTANCE_2026-11-20.json. Earlier source-only notes are historical; runtime delivery remains separate. No accepted session cohort was repeated.
+
+
+## Register and apply batches explicitly
+
+Use AddRange(roots) for new roots and AttachRange(roots) for existing detached roots whose submitted values should become the local baseline. UpdateRange(roots) queues existing-root update intent without inventing an original database image or revision. RemoveRange(roots, softDelete:true/false) uses the same tracked-root rule as Remove; an uncommitted Add is detached without a delete.
+
+All four range methods use one guarded traversal, accept at most10,000 roots per call and perform no database I/O. Enumerating the input cannot reenter the session to clear, query, save or dispose it. Range results expose an immutable list container of the actual accepted entity references.
+
+Inspect IsError before using the result or calling SaveChanges. On a later item/enumeration failure, earlier accepted local operations remain applied and Result lists those roots. For Add/Attach/Update they remain tracked; Remove may already have detached added roots or queued persisted-root deletion. An error is not local rollback and does not authorize a retry or flush. Inspect State/Entry and explicitly reconcile local intent before a new call.
+
+After successful registration, call SaveChangesAsync with an explicit CosmicWriteOptions operation identity. The existing native owned writer enforces permissions, original revisions and definite acknowledgement; no range method bypasses that owner. Keep SaveChanges operation identity when reconciling an uncertain write. Combining updates with deletions or mixing soft/hard deletion still requires unsupported mixed atomic semantics and is refused before writing. Calling several SaveChanges operations does not create one database transaction.
+
+For import workers, read a bounded native page, select AddRange for new full holons or the existing virtual mapping workflow for pointer-only data, and explicitly save only the intended full roots. Range registration does not import native tables, resolve virtual records, replicate data or choose full/virtual/hybrid policy by itself.
