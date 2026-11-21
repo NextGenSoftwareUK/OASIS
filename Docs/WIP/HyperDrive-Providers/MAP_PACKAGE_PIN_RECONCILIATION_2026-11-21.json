@@ -36,5 +36,11 @@
   "noSettingsChanges": true,
   "noCheckoutSwitch": true,
   "excluded": "Unaccepted quest and mission/chapter fixes",
-  "required": "New combined WEB4/WEB5 compilation and fresh Development review before integration; accepted native/HTTP/browser cohorts retained without replay."
+  "required": "New combined WEB4/WEB5 compilation and fresh Development review before integration; accepted native/HTTP/browser cohorts retained without replay.",
+  "qualification": {
+    "run": 44948349449,
+    "control": "b8f98aa5732490537f18ad17606fc2e670cd1185",
+    "status": "pending",
+    "scope": "New combined WEB4 then WEB5 compile only; no behavior tests/DB/browser fixture selected"
+  }
 }
