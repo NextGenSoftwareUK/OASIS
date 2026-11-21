@@ -5,10 +5,25 @@
   "onode": "3d4c0e0ed38c0642ccbab2187499650e17095ed2",
   "star": "6edca43dce1cb1b2079b1df68ae085131970d69e",
   "tree": "278601265e001f801a45f579988c5007cda9d98f",
-  "status": "qualification-in-progress",
+  "status": "native-http-new-data-accepted-not-release-ready",
   "coreTag": "qualification/mission-ack-2026-11-21-bcee0c26",
   "starTag": "qualification/mission-ack-2026-11-21-6edca43d",
   "candidateTag": "qualification/mission-ack-2026-11-21-5d050dd6",
   "run": 44958582750,
-  "control": "1a3a56b77ea70bc17e803d6e1870174638d10985"
+  "control": "1a3a56b77ea70bc17e803d6e1870174638d10985",
+  "job": 137012099399,
+  "conclusion": "success",
+  "buildErrors": 0,
+  "buildElapsed": "00:04:48.46",
+  "proof": "CATALOGUE_HTTP_PROOF",
+  "cleanup": {
+    "database": "absence-verified",
+    "temporaryDNA": "absence-verified",
+    "container": "absence-verified"
+  },
+  "remaining": [
+    "actual Portal catalogue browser flow",
+    "legacy metadata/manifest compatibility before deployment",
+    "full hosted/SSO acceptance"
+  ]
 }
