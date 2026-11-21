@@ -45,7 +45,7 @@
   "deliveryBaseDevelopment": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
   "deliveryChangedPaths": 7,
   "deliveryApiDirectoryExact": true,
-  "imageDispatched": false,
+  "imageDispatched": true,
   "nativeInitialFailure": {
     "run": 44939785488,
     "job": 136954233377,
@@ -88,7 +88,7 @@
   "packageAccepted": false,
   "deliverySuperseded": false,
   "compositionPeerDevelopment": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
-  "compositionCompilePending": true,
+  "compositionCompilePending": false,
   "priorDeliveryCandidates": [
     {
       "source": "5a45f00493526a86b5c8bdd2eb68bc07a1c42c4d",
@@ -106,7 +106,19 @@
   ],
   "compositionSource": "86310a0918dc428f4d557c129cc6dc185f0150bc",
   "compositionRun": 44943435624,
-  "compositionObservedStatus": "in_progress",
-  "compositionCompiled": false,
-  "compositionBehaviorCasesRun": 0
+  "compositionObservedStatus": "completed",
+  "compositionCompiled": true,
+  "compositionBehaviorCasesRun": 0,
+  "compositionConclusion": "success",
+  "compositionArtifact": {
+    "id": 14722444671,
+    "bytes": 353,
+    "sha256": "a3a3fc4c3030d3da890df95d735546f0476d383ca64e5819708f22174aeef8e7",
+    "filesWritten": 0
+  },
+  "compositionJob": 136965436369,
+  "web4CompositionErrors": 0,
+  "web5CompositionErrors": 0,
+  "imageRun": 44944552781,
+  "imageObservedStatus": "in_progress"
 }

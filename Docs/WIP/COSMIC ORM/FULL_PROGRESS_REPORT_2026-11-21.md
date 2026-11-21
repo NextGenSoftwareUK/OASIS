@@ -1,3 +1,8 @@
+21 November — COMBINED WEB4/WEB5 COMPILE ACCEPTED / NEW EXACT IMAGE RUNNING.
+Composition86310a09 run44943435624/job136965436369 SUCCESS: actualWEB4 zeroerrors6m45.21s andWEB5 zeroerrors42.81s. Strict RAM artifact14722444671/353B/SHAa3a3fc4c3030d3da890df95d735546f0476d383ca64e5819708f22174aeef8e7 verifies exact compiled.json source/Core13bd/ONODE9c8/STAR677/web4+web5 flags/0behaviorCases/0DBwrites. Accepted Core2/native3 retained without replay.
+
+Only combined immutable2d114754 image44944552781 was dispatched after compile acceptance and fresh Development606e check; in_progress. Old5a image/package stays superseded and undeployed. No new Development/runtime setting/data/PIPER/staging/production action or local build/install/image/archive. Live snapshot and browser remain open. Separate read-only WEB6 saved-DNA presence recheck still reports all4Free-route fields unset; existing owner action updated, no new sign-in/Bronze request or inference call. Full goal active/incomplete.
+
 21 November — COMBINED SNAPSHOT/HOTSPOT CANDIDATE2d114754 / COMPILE-ONLY RUNNING.
 Feature merge86310a09 preserves shared Development606e1a52 ancestry and exact ONODE9c8b8478/STAR6774caf1 while retaining Core13bd/snapshot runtime. Official sync/ref validation passed. Immutable candidate2d114754f7faf4690b16ce1fa8a27077c522845b/tagcosmic-cql-snapshot-2d114754f7fa directly on606e changes only the same7snapshot runtime/pin paths. Whole WEB4 API and all3shipping provider directory trees match composition source86310a09; peer ONODE/STAR match606e exactly. No broader source sweep.
 
