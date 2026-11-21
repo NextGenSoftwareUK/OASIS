@@ -12,5 +12,15 @@
   "ordinaryNativeFilterAdmissionUnchanged": true,
   "snapshotMaximumCandidates": 200,
   "representativeCasesPlanned": 3,
-  "fullParityCredit": false
+  "fullParityCredit": false,
+  "qualificationSource": "5ee28ea7860c166da978c117b48ee7cf01a2020a",
+  "qualificationRun": 44939282442,
+  "qualificationJob": 136952699865,
+  "qualificationObservedStatus": "in_progress",
+  "selectedCoreCases": 2,
+  "websiteSource": "c76faf0613cc94c9a7b2720267adf666ac4fe708",
+  "newBrowserHelperCasesPassed": 1,
+  "browserSnapshotMaximumCandidates": 200,
+  "browserVerified": false,
+  "deployed": false
 }
