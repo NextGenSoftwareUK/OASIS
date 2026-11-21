@@ -1,5 +1,5 @@
 {
-  "status": "Actual browser/controller/native fixture prepared; no acceptance yet",
+  "status": "Scoped actual Map component browser/SDK/controller/native Mongo journey accepted; whole hosted Portal and remaining Map features open",
   "portal": "bc77e75f98f49aa05d8d9d4c1f6d0baa25215ff8",
   "onode": "0e23111d89cc56fad120a7a9522a9b1b39f7b260",
   "sourceChange": "Copy primary saved-visit warning/delivery metadata into the boolean acknowledgement; preserve the primary warning when scoring also warns. No extra storage calls.",
@@ -10,7 +10,7 @@
     "One saved visit with real malformed-weekly scoring warning rendered distinctly; native history/stats/score verification",
     "Missing coordinate HTTP400 and anonymous401",
     "Token-free cached avatar, real SDK bearer, account-switch private history isolation and cleared coordinates/results",
-    "Native avatar/location/corrupt-weekly snapshots unchanged; owned browser/server/database cleanup"
+    "Native avatar revision identities and full location/corrupt-weekly documents unchanged; owned browser/server/database cleanup"
   ],
   "hostBoundary": "Real MapController is composed with the actual request-actor MapManager and scoped HolonManager through a fixture controller activator; production BootLoader acquisition and full Startup/billing middleware are not acceptance claims. JWT signatures validate and avatars load from native Mongo. No response/provider/GPS mocks.",
   "excluded": [
@@ -18,8 +18,26 @@
     "Connected renderer/object-control provider behavior",
     "Real bonus source/application",
     "Full production Startup/acquisition/admission, hosted speed and whole portal",
-    "Primary replication/provider warning runtime trigger (source mapping only in this case)"
+    "Primary replication/provider warning runtime trigger (source mapping only in this case)",
+    "Main Portal navigation/lazy loader and all-screen shell journey; this is an isolated shipping component host"
   ],
   "checks": "New Node verifier/handoff syntax and whitespace passed; exact Map asset preflight added before any build.",
-  "cleanup": "No local build/install/download/browser/database/results/archive or extra worktree. No shared Mongo/API, worker/DNA/deployment/protected-delivery action."
+  "cleanup": "No local build/install/download/browser/database/results/archive or extra worktree. No shared Mongo/API, worker/DNA/deployment/protected-delivery action.",
+  "nativeRun": {
+    "run": 44865341140,
+    "parent": "a569c380d09a851b80320bef58646b9e8795f0d4",
+    "status": "completed",
+    "scope": "One new actual Map browser/SDK/controller/owned Mongo journey; accepted standalone catalogue/scoring cases not rerun",
+    "job": 136727634330,
+    "conclusion": "success",
+    "apiErrors": 0,
+    "apiElapsed": "00:07:04.69",
+    "result": "1 passed / 0 failed, reported40s total case duration, not a page-speed benchmark. Actual Map popup/SDK/controller/owned Mongo: zero coordinates, real search, one native saved visit with visible scoring warning, history/stats, coordinate400, anonymous401 and account isolation.",
+    "cleanup": "Owned browser/runtime/cache/control cleanup and Mongo fixture absence verified; all post-jobs passed. No accepted standalone catalogue/scoring cohort repeated."
+  },
+  "coordination": {
+    "developmentReviewed": "f871bac61195d591d875c92d47e3c0fffac50b72",
+    "result": "Fetched/reviewed recent release/master integration and MapController history; no concurrent new MapController changes, other agent work preserved. No unverified blanket deployment."
+  },
+  "next": "Integrate the verified basic Map batch through a scoped Development candidate preserving current CQL/release dependency changes; continue real bonuses and connected controls, full hosted Portal/browser acceptance. Primary warning mapping needs an actual provider/replication-warning trigger before claiming that branch runtime-qualified."
 }
