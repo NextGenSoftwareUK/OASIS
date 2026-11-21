@@ -1,3 +1,5 @@
+2026-11-21 canonical chapter graph preparation: immutable source commits/tags and exact Git objects only; no checkout switch/worktree/runtime/local build/install/database/browser/archive/result created. Paired manifest check-ref passed. New graph fixture not dispatched; legacy data untouched. Current restoration44952260483 is compile-only/no database/browser fixture.
+
 2026-11-21 Portal explicit details: existing Node syntax checks only (two changed UI scripts and changed CJS fixture), no local build/runtime/install/browser download/env/database/result output. Source/cache/report commits pushed to Portal dev. A documentation writer parse error created no outputs; corrected writer and canonical Docs casing staging completed, Portal working tree clean. No policy-blocked deletion bypass.
 
 2026-11-21 catalogue44949649529 terminal failure: owned Mongo DB, exact temporary DNA and container absence verified; browser setup skipped. Independent restoration44952260483 selects compilation only/no DB/browser fixture. No laptop runtime/build/install/env/database/browser/archive/result created; compact source/failure records retained.

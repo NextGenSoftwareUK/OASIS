@@ -137,7 +137,7 @@
   "supersededUnrunRoot": "81c0a0dabbcaf0b5741e8efaeb93ccb968a2059d",
   "additionalParent": "f1aa884d90123afea87d4daec39afff4e022339b",
   "preparedPopupBrowser": {
-    "status": "wired-held-after-native-failure-not-dispatched",
+    "status": "held-until-canonical-graph-and-legacy-gates",
     "host": "Scripts/TestHosts/Fixtures/catalogue-browser-host.html",
     "browser": "Scripts/TestHosts/Fixtures/catalogue-browser-native-http.cjs",
     "scope": "Actual Portal SDK/Quests/Missions fragments/scripts and first explicit by-ID detail actions; ten GETs total/zero browser mutations; awaited detail visibility and canonical identities.",
@@ -165,5 +165,37 @@
     "behavior": "Actual by-ID detail read on click with exact ID/client/token/modal/tab/latest guards; duplicate pending suppression; obsolete replies ignored; one authoritative response path.",
     "runtimeAccepted": false
   },
-  "readbackDiagnosticImprovement": "Next failed native assertion includes selected owned IDs/name/child IDs+display/IsError/IsLoaded/manifest presence; no full payload or secrets."
+  "readbackDiagnosticImprovement": "Next failed native assertion includes selected owned IDs/name/child IDs+display/IsError/IsLoaded/manifest presence; no full payload or secrets.",
+  "canonicalGraphFollowup": {
+    "status": "source-prepared-not-compiled-not-run-not-deployed",
+    "root": "1f780e28ccc1bffc1375b338a6108319bd1c75c1",
+    "base": "17f2f1e83577961d21cb0c458dc2412b918d4cad",
+    "tree": "cc5765bf79dd66393d1aff24b83159c675abc8c2",
+    "tag": "qualification/mission-graph-2026-11-21-1f780e28",
+    "core": {
+      "base": "13fabae5a78c70b961c300657a875f1cfabe238d",
+      "candidate": "db28ee5b8b470ceb6cfd50aae0b4da78a5296590",
+      "scope": "One role-binding file; explicit stored-record registration uses existing canonical codec and shared identity/revision guards; existing runtime binding contract preserved."
+    },
+    "onode": {
+      "base": "004b5adc5ddb6875e8e6e12336d2a0f1d23f46cc",
+      "candidate": "9201946798ccca181c134a122dc68dfe5c3e8e9e",
+      "scope": "Restore original IList<IChapter> public contract; declare chapter graph capture/hydration; real not-found results without overwriting provider errors."
+    },
+    "star": {
+      "base": "d97be575f4ee7ca3861c67709f6a6b3d4b002ddf",
+      "candidate": "277a4b515646abf5b84d89ac5d1dfa7f12ed3af4",
+      "scope": "Nine catalogue calls use explicit shallow loader; detail manager reads stay explicit/deep.",
+      "previousCandidate": "78eabe52e5e474c21367959cecfcb900709db169"
+    },
+    "peerReview": {
+      "corePeer": "7165ab625f90501047ca10c3b9f193ed0498caf5",
+      "bindingBlob": "aa71a10825cebb1859d07bdbc56b0daafb10019e",
+      "sharedAndPeerBindingFileIdenticalBeforeChange": true,
+      "peerCheckoutOrBranchChanged": false
+    },
+    "sourceGate": "Paired-pin check-ref passed; graph/public contracts reviewed; no compilation/runtime acceptance yet.",
+    "fixture": "One real new-data graph lifecycle: mission plus chapter and physical child saved once, shallow collections absent, explicit detail preserves both roles/typed metadata, API shallow catalogues/detail/missing errors. No accepted cohort replay.",
+    "releaseGate": "Legacy Mission metadata/role-manifest compatibility assessment or explicit migration required before Development deployment; new-data qualification alone cannot accept existing records."
+  }
 }

@@ -211,6 +211,8 @@ try
             STARNETDNA = new STARNETDNA { Id = chapterId, CreatedByAvatarId = actor, Version = "1.0.0", VersionSequence = 1 } };
         var mission = new Mission { Id = missionId, Name = "Owned catalogue mission", Description = "Native mission detail",
             STARNETDNA = new STARNETDNA { Id = missionId, CreatedByAvatarId = actor, Version = "1.0.0", VersionSequence = 1 } };
+        var physicalChildId = Guid.NewGuid();
+        mission.Children.Add(new Holon { Id = physicalChildId, Name = "Owned physical mission child", HolonType = HolonType.Holon });
         ((NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons.IMission)mission).Chapters.Add(chapter);
         Require(mission.Chapters.Count == 1 && mission.Chapters[0].Id == chapterId,
             "Existing IMission chapter mutation did not reach the persisted collection.");
@@ -220,25 +222,31 @@ try
             holon.MetaData["CreatedByAvatarId"] = actor.ToString();
             holon.MetaData["Active"] = "1";
         }
-        var savedMission = await data.SaveHolonAsync<Mission>(mission, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);
+        var savedMission = await data.SaveHolonAsync<Mission>(mission, actor, saveChildren: true, recursive: true, providerType: ProviderType.MongoDBOASIS);
         Require(!savedMission.IsError && savedMission.IsSaved, "Owned mission persistence failed: " + savedMission.Message);
-        var savedChapter = await data.SaveHolonAsync<Chapter>(chapter, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);
-        Require(!savedChapter.IsError && savedChapter.IsSaved, "Owned chapter persistence failed: " + savedChapter.Message);
         if (mode == "catalogue")
         {
+        string MissionReadbackFacts(NextGenSoftware.OASIS.Common.OASISResult<Mission> value)
+            => System.Text.Json.JsonSerializer.Serialize(new { value.IsError, value.IsLoaded,
+                id = value.Result?.Id, name = value.Result?.Name,
+                physicalChildren = value.Result?.Children?.Select(member => member?.Id).ToArray(),
+                chapters = value.Result?.Chapters?.Select(member => new { id = member?.Id, display = member?.ChapterDisplayName }).ToArray(),
+                manifestPresent = (value.Result as Holon)?.ChildRoleManifestJson != null });
         var storedMission = await data.LoadHolonAsync<Mission>(missionId, loadChildren: false, providerType: ProviderType.MongoDBOASIS);
         Require(!storedMission.IsError && storedMission.Result != null && storedMission.Result.Name == mission.Name &&
-            storedMission.Result.Chapters.Count == 1 && storedMission.Result.Chapters[0].Id == chapterId &&
-            storedMission.Result.Chapters[0].ChapterDisplayName == "Act",
-            "Owned typed mission readback failed: " + storedMission.Message + "; " +
-            storedMission.Exception?.GetBaseException().GetType().FullName + ": " + storedMission.Exception?.GetBaseException().Message +
-            "; observed=" + System.Text.Json.JsonSerializer.Serialize(new { storedMission.IsError, storedMission.IsLoaded,
-                id = storedMission.Result?.Id, name = storedMission.Result?.Name,
-                chapters = storedMission.Result?.Chapters?.Select(member => new { id = member?.Id, display = member?.ChapterDisplayName }).ToArray(),
-                manifestPresent = (storedMission.Result as Holon)?.ChildRoleManifestJson != null }));
+            storedMission.Result.Chapters.Count == 0 && storedMission.Result.Children.Count == 0 &&
+            (storedMission.Result as Holon)?.ChildRoleManifestJson != null,
+            "Owned shallow mission read failed: " + storedMission.Message + "; " + storedMission.Exception?.GetBaseException().Message +
+            "; observed=" + MissionReadbackFacts(storedMission));
+        var detailedMission = await data.LoadHolonAsync<Mission>(missionId, loadChildren: true, recursive: true, providerType: ProviderType.MongoDBOASIS);
+        Require(!detailedMission.IsError && detailedMission.Result != null && detailedMission.Result.Chapters.Count == 1 &&
+            detailedMission.Result.Chapters[0].Id == chapterId && detailedMission.Result.Chapters[0].ChapterDisplayName == "Act" &&
+            detailedMission.Result.Children.Count == 1 && detailedMission.Result.Children[0].Id == physicalChildId,
+            "Owned explicit mission graph read failed: " + detailedMission.Message + "; " + detailedMission.Exception?.GetBaseException().Message +
+            "; observed=" + MissionReadbackFacts(detailedMission));
         var storedChapter = await data.LoadHolonAsync<Chapter>(chapterId, loadChildren: false, providerType: ProviderType.MongoDBOASIS);
         Require(!storedChapter.IsError && storedChapter.Result != null && storedChapter.Result.Name == chapter.Name &&
-            storedChapter.Result.ChapterDisplayName == "Act" && storedChapter.Result.Status == QuestStatus.NotStarted &&
+            storedChapter.Result.ParentHolonId == missionId && storedChapter.Result.ChapterDisplayName == "Act" && storedChapter.Result.Status == QuestStatus.NotStarted &&
             storedChapter.Result.StatusDisplay == "Act 0/0",
             "Owned typed chapter readback failed: " + storedChapter.Message + "; " +
             storedChapter.Exception?.GetBaseException().GetType().FullName + ": " + storedChapter.Exception?.GetBaseException().Message);
@@ -251,6 +259,9 @@ try
                 Require(records.ValueKind == JsonValueKind.Array && records.GetArrayLength() == 1 &&
                     records[0].GetProperty("id").GetGuid() == item.id && records[0].GetProperty("name").GetString() == item.name,
                     "Native catalogue identity/typed name was not preserved: " + item.kind + suffix);
+                if (item.kind == "missions")
+                    Require(records[0].GetProperty("chapters").GetArrayLength() == 0,
+                        "A mission catalogue unexpectedly loaded chapter roles.");
             }
             using var detail = await ReadCatalogue("/api/" + item.kind + "/" + item.id);
             Require(detail.RootElement.GetProperty("result").GetProperty("id").GetGuid() == item.id &&
@@ -267,7 +278,7 @@ try
             using var missing = JsonDocument.Parse(await absent.Content.ReadAsStringAsync());
             Require(missing.RootElement.GetProperty("isError").GetBoolean(), "Missing native detail became generated success: " + item.kind);
         }
-        Console.WriteLine("CATALOGUE_HTTP_PROOF: real boot/JWT/MVC/native Mongo mission/chapter empty and populated catalogue, avatar lists, typed detail identities and missing-record errors verified. Browser/create/update/production Startup excluded.");
+        Console.WriteLine("CATALOGUE_HTTP_PROOF: real boot/JWT/MVC/native Mongo mission/chapter graph save, shallow catalogue/avatar reads, explicit typed child detail identities and missing-record errors verified. Browser/create/update/production Startup excluded.");
         }
         else
         {

@@ -1,23 +1,24 @@
 {
   "scope": "quest",
-  "status": "popup-held-after-native-graph-failure",
+  "status": "canonical-graph-new-data-qualification-prepared-not-release-ready",
   "base": "17f2f1e83577961d21cb0c458dc2412b918d4cad",
-  "candidate": "489cee90879f6b3bdafcc7f4a14b3c9dfcb0a7c0",
-  "tag": "qualification/catalogue-popup-2026-11-21-489cee90",
+  "candidate": "1f780e28ccc1bffc1375b338a6108319bd1c75c1",
+  "tag": "qualification/mission-graph-2026-11-21-1f780e28",
   "buildProjects": [
     "WEB5"
   ],
   "nativeHost": "HotspotHttpNative",
-  "nativeMode": "catalogue-browser",
+  "nativeMode": "catalogue",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.Core",
     "STAR ODK"
   ],
   "star": {
-    "base": "ead6c9cab83c0144c64cf3bfa22f94733a0aeaf5",
-    "candidate": "d97be575f4ee7ca3861c67709f6a6b3d4b002ddf",
-    "scope": "Exact quest/mission/chapter real-outcome controllers composed with qualified hotspot and new PackagesController; both histories preserved.",
+    "base": "d97be575f4ee7ca3861c67709f6a6b3d4b002ddf",
+    "candidate": "277a4b515646abf5b84d89ac5d1dfa7f12ed3af4",
+    "scope": "Nine catalogue calls use explicit shallow loader; detail manager reads stay explicit/deep.",
     "previousCandidate": "78eabe52e5e474c21367959cecfcb900709db169"
   },
   "preserved": "Qualified hotspot/Map/current CQL/Core13, all other pins and settings",
@@ -39,14 +40,14 @@
   ],
   "previousCandidate": "25c4d178b8ba955d948465a7be7dd92617cdb06c",
   "qualification": {
-    "status": "held-not-dispatched-native44949649529-failed",
-    "mode": "catalogue-browser",
-    "scope": "First populated Quests/Missions popup flow with two explicit detail GETs, ten GETs total; no accepted native/empty/geo cohort replay."
+    "status": "prepared-not-dispatched",
+    "mode": "catalogue",
+    "scope": "One real new-data graph lifecycle: mission plus chapter and physical child saved once, shallow collections absent, explicit detail preserves both roles/typed metadata, API shallow catalogues/detail/missing errors. No accepted cohort replay."
   },
   "onode": {
-    "base": "51e0f880c59584cf9007e8bb89f4a7f6425c1a4f",
-    "candidate": "004b5adc5ddb6875e8e6e12336d2a0f1d23f46cc",
-    "scope": "Concrete JSON-backed Mission.Chapters with a live IList<IChapter> view preserving existing IMission mutations; canonical Chapter status and persisted display name."
+    "base": "004b5adc5ddb6875e8e6e12336d2a0f1d23f46cc",
+    "candidate": "9201946798ccca181c134a122dc68dfe5c3e8e9e",
+    "scope": "Restore original IList<IChapter> public contract; declare chapter graph capture/hydration; real not-found results without overwriting provider errors."
   },
   "supersededUnrunCandidate": "81c0a0dabbcaf0b5741e8efaeb93ccb968a2059d",
   "previousNativeCandidate": {
@@ -56,5 +57,12 @@
     "control": "55d97420c6d8601e743bd846ba7eb40a1cf27ac5",
     "status": "in_progress"
   },
-  "portal": "2472bf56b0d104c93626d3bba7fe29b16323712c"
+  "portal": "2472bf56b0d104c93626d3bba7fe29b16323712c",
+  "supersededPopupCandidate": "489cee90879f6b3bdafcc7f4a14b3c9dfcb0a7c0",
+  "core": {
+    "base": "13fabae5a78c70b961c300657a875f1cfabe238d",
+    "candidate": "db28ee5b8b470ceb6cfd50aae0b4da78a5296590",
+    "scope": "One role-binding file; explicit stored-record registration uses existing canonical codec and shared identity/revision guards; existing runtime binding contract preserved."
+  },
+  "releaseGate": "Legacy Mission metadata/role-manifest compatibility assessment or explicit migration required before Development deployment; new-data qualification alone cannot accept existing records."
 }
