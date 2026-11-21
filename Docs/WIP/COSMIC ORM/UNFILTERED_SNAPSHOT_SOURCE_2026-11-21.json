@@ -7,7 +7,7 @@
   ],
   "sourceImplemented": true,
   "compiled": true,
-  "nativeAccepted": false,
+  "nativeAccepted": true,
   "hostedAccepted": false,
   "ordinaryNativeFilterAdmissionUnchanged": true,
   "snapshotMaximumCandidates": 200,
@@ -26,7 +26,7 @@
   "nativeQualificationSource": "4acff4b102b0a5424b0906074d5d943b8ec32c56",
   "nativeQualificationRun": 44940844848,
   "nativeQualificationJob": 136957463175,
-  "nativeQualificationObservedStatus": "in_progress",
+  "nativeQualificationObservedStatus": "completed",
   "selectedNativeCases": 3,
   "qualificationConclusion": "success",
   "coreCasesPassed": 2,
@@ -45,7 +45,7 @@
   "deliveryBaseDevelopment": "6b5713f7d02379a6bd1769c13981d22682ee7b0d",
   "deliveryChangedPaths": 7,
   "deliveryApiDirectoryExact": true,
-  "imageDispatched": false,
+  "imageDispatched": true,
   "nativeInitialFailure": {
     "run": 44939785488,
     "job": 136954233377,
@@ -55,5 +55,36 @@
     "ownedMongoCleanupPassed": true,
     "ownedServiceCleanupPassed": true
   },
-  "hostedVerifierSource": "4acff4b102b0a5424b0906074d5d943b8ec32c56"
+  "hostedVerifierSource": "4acff4b102b0a5424b0906074d5d943b8ec32c56",
+  "nativeQualificationConclusion": "success",
+  "nativeArtifact": {
+    "id": 14721358788,
+    "bytes": 2863,
+    "sha256": "0da2e5813e8369cedf35cb34e319690bb1e779fe3948d555ab4e95b77642a28b",
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "allSevenFlagsVerified": true,
+    "exactCleanupVerified": true,
+    "filesWritten": 0,
+    "queryElapsedMilliseconds": {
+      "MongoDBOASIS": {
+        "snapshot-original-fields": 7,
+        "snapshot-owned-save": 280,
+        "snapshot-native-readback": 5
+      },
+      "SQLLiteDBOASIS": {
+        "snapshot-original-fields": 2,
+        "snapshot-owned-save": 235,
+        "snapshot-native-readback": 4
+      },
+      "Neo4jOASIS": {
+        "snapshot-original-fields": 46,
+        "snapshot-owned-save": 1112,
+        "snapshot-native-readback": 11
+      }
+    }
+  },
+  "imageRun": 44941886532,
+  "imageObservedStatus": "in_progress"
 }
