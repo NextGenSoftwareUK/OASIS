@@ -1,3 +1,8 @@
+21 November — SNAPSHOT CONTRACT2 AND ACTUAL WEB4 BUILD ACCEPTED.
+Exact5ee28ea7/Core13bd050e run44939282442/job136952699865 SUCCESS. Both new shared Core checks passed0fail0skip: original-field snapshot capability/owner refusal and unchanged ordinary-read filter requirement. Actual WEB4 build succeeded0errors. Strict RAM-only artifact14720683359/1533B/SHAb2bb1c03284e7a559ee4fb7427907281d3735332707fb9ee6388bf8de5a59ad5 verifies exact snapshot.trx and both named cases. No archive saved.
+
+Native3 run44939785488/job136954233377 remains in_progress at its selected snapshot journey; no native/HTTP/browser/deployment or full-parity acceptance claimed. Existing accepted cohorts not rerun. Shared Development still6b5713f7; peer606e composition compile passed separately and remains undeployed. No unverified peer bundle imported. No live/PIPER/Atlas/DNA/staging/production operation or local build/environment/download. Full goal active.
+
 21 November — THREE NEW NATIVE SNAPSHOT CASES RUNNING IN ISOLATED CI.
 Exact5c1b20b430fa85479e5255106f5d1ab1fd2271cf run44939785488/job136954233377 selects only UnfilteredSnapshotReReadsOriginalFieldsAndPersistsOnePrivateStableIdentity for MongoDB/SQLite/Neo4j. Existing reusable native fixture seeds2source rows, requests200bounded original-field candidates with no filter, binds selected stable ID, refuses foreign actor, saves1private snapshot through real HolonManager owned writer, and reads native stored values back. Shared fixture checks unchanged source fingerprint and exact one-ID cleanup. All previously accepted query/date/session/cohort methods excluded. This is native representative qualification, not full HTTP/browser or exhaustive scalar coverage.
 

@@ -6,7 +6,7 @@
     "Neo4jOASIS"
   ],
   "sourceImplemented": true,
-  "compiled": false,
+  "compiled": true,
   "nativeAccepted": false,
   "hostedAccepted": false,
   "ordinaryNativeFilterAdmissionUnchanged": true,
@@ -16,7 +16,7 @@
   "qualificationSource": "5ee28ea7860c166da978c117b48ee7cf01a2020a",
   "qualificationRun": 44939282442,
   "qualificationJob": 136952699865,
-  "qualificationObservedStatus": "in_progress",
+  "qualificationObservedStatus": "completed",
   "selectedCoreCases": 2,
   "websiteSource": "c76faf0613cc94c9a7b2720267adf666ac4fe708",
   "newBrowserHelperCasesPassed": 1,
@@ -27,5 +27,17 @@
   "nativeQualificationRun": 44939785488,
   "nativeQualificationJob": 136954233377,
   "nativeQualificationObservedStatus": "in_progress",
-  "selectedNativeCases": 3
+  "selectedNativeCases": 3,
+  "qualificationConclusion": "success",
+  "coreCasesPassed": 2,
+  "coreCasesFailed": 0,
+  "coreCasesSkipped": 0,
+  "actualWeb4BuildErrors": 0,
+  "artifact": {
+    "id": 14720683359,
+    "bytes": 1533,
+    "sha256": "b2bb1c03284e7a559ee4fb7427907281d3735332707fb9ee6388bf8de5a59ad5",
+    "exactEntry": "snapshot.trx",
+    "filesWritten": 0
+  }
 }
