@@ -15,3 +15,7 @@ Candidate91423bce2e32fd664074784522020b85d2282e14 (tag cosmic-holo-readiness-240
 Image run44946308915 is confirmed in progress. Composition compile44945969209/source029545dc is confirmed in progress; range compatibility44945637242/sourcee2161fb6 also remains in progress. Observe these same handles; no duplicate producer. Image/package acceptance and exact Development startup observation remain open.
 
 The original snapshot2d package44945668173 remains accepted as packaging evidence, not as evidence for the new timeout. Its immutable source is preserved; no stale image is deployed merely to synchronize branches.
+
+## Compilation accepted
+
+Run44945969209/job136973233689 succeeded on029545dc: actual WEB4 build0 errors4m34.95s and WEB5 build0 errors28.14s. Strict RAM verification of artifact14723533241 (351bytes, SHA2566ac639a3ae82c8da61c0af6200dde23b2057e18327f495ad5ea774aa9a4f2daf) confirmed compiled.json exact source/Core3b69/ONODE9c8/STAR677, both compilation flags, zero behavior cases/database writes. This compile source includes range registration; frozen delivery91423bce deliberately retains qualified Core13bd. The image itself must independently compile/package that exact frozen graph. No retained-cell runtime success claimed.
