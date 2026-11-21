@@ -31,5 +31,32 @@
     "Managers/OASIS HyperDrive/OASISHyperDrive.Profile.cs"
   ],
   "next": "Trace full accepted controller/service/Core/provider contract graph and reconcile scoped changes with current CQL source. Preserve accepted native/browser cases; run only required new composition checks and changed behavior. No shared-cluster request is authorized by this audit.",
-  "subscriptionReview": "Controller/three Core subscription source differences located but not yet assessed; no subscription regression conclusion."
+  "subscriptionReview": "Controller/three Core subscription source differences located but not yet assessed; no subscription regression conclusion.",
+  "preparedRestoration": {
+    "candidate": "8bd1165f7f297a0c37be35b6e65c7ecd8dee6fe9",
+    "tag": "qualification/profile-restoration-2026-11-21-8bd1165f",
+    "base": "f54923d82ac8bffa7877d9307f18e879d41a8254",
+    "core": "be6849c724bea7e75ffa57eff300493c2d6e924f",
+    "coreTag": "qualification/profile-restoration-2026-11-21-be6849c7",
+    "coreFiles": [
+      "Interfaces/Providers/IAvatarProfileStorageProvider.cs",
+      "Managers/AvatarManager/AvatarManager-ApplyProfile.cs",
+      "Managers/OASIS HyperDrive/OASISHyperDrive.Profile.cs",
+      "Managers/OASIS HyperDrive/OASISHyperDrive.cs",
+      "Managers/OASIS HyperDrive/StorageOperationRequest.cs"
+    ],
+    "rootFiles": [
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SelfAvatarProfileController.cs",
+      "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Profile.cs",
+      "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/AvatarRepository.Profile.cs",
+      "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Profile.cs",
+      "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.ProfileSchema.cs",
+      "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Schema.cs",
+      "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Profile.cs"
+    ],
+    "status": "source-prepared-uncompiled-unaccepted",
+    "excluded": "unrelated subscription changes from donor; newer CQL source preserved",
+    "temporaryIndexes": "both removed in finally",
+    "remaining": "source inventory review, combined API/provider compilation, changed contract qualification and delivery"
+  }
 }
