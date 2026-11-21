@@ -1,12 +1,12 @@
-name: Qualify bounded unfiltered mapped projections
+name: Qualify bounded unfiltered snapshot preparation
 
 on:
   push:
     branches: [work/cosmic-cql-ton-public]
     paths:
       - "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlVirtualProjectionV1Compiler.cs"
-      - "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CqlUnfilteredSnapshotTests.cs"
-      - ".github/workflows/qualify-cql-unfiltered-snapshot.yml"
+      - "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/UnfilteredSnapshotTests.cs"
+      - ".github/workflows/qualify-cql-unfiltered-mapping.yml"
   workflow_dispatch:
 
 permissions:
