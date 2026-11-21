@@ -6,6 +6,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { spawn } = require('node:child_process');
 const https = require('node:https');
+const { isDeepStrictEqual } = require('node:util');
 const root = path.resolve(__dirname, '../..');
 const parent = path.join(root, 'LocalState/COSMIC');
 const work = path.join(parent, 'RecoveryLaptopHostedBrowserCurrent');
@@ -62,6 +63,66 @@ const pending = new Map(), ready = new Map(), readyWaiters = new Map(), loadWait
 const blocked = [], exceptions = [], protocolErrors = [];
 const report = { owner, url, applicationDataRequestsSent: 0, filesInstalled: 0, configurationWrites: 0 };
 const assets = new Map(), apiCounts = new Map(), scalarResponses = [];
+const nestedWhereRequests = new Set();
+const expectedNestedWhere = {
+  "kind": "Or",
+  "terms": [
+    {
+      "kind": "And",
+      "terms": [
+        {
+          "kind": "Filter",
+          "filter": {
+            "field": "Name",
+            "scalar": "String",
+            "operator": "Equal",
+            "value": "Coffee"
+          }
+        },
+        {
+          "kind": "Filter",
+          "filter": {
+            "field": "Version",
+            "scalar": "Integer",
+            "operator": "GreaterThanOrEqual",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "kind": "And",
+      "terms": [
+        {
+          "kind": "Filter",
+          "filter": {
+            "field": "Name",
+            "scalar": "String",
+            "operator": "Equal",
+            "value": "Tea"
+          }
+        },
+        {
+          "kind": "Not",
+          "terms": [
+            {
+              "kind": "Child",
+              "match": {
+                "kind": "Filter",
+                "filter": {
+                  "field": "IsActive",
+                  "scalar": "Boolean",
+                  "operator": "Equal",
+                  "value": false
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+};
 const scalarValues = []; // Compare rendered output in memory; do not include raw values in reports.
 const assetHashes = new Map();
 const scalarRequests = new Set();
@@ -159,7 +220,16 @@ async function event(message) {
         const count = (apiCounts.get(apiKey) || 0) + 1;
         if (count > apiLimits[apiKey]) throw new Error('Live browser request cap exceeded.');
         apiCounts.set(apiKey, count);
-        if (target.pathname === '/api/data/query-cql/scalar') report.applicationDataRequestsSent++;
+        if (target.pathname === '/api/data/query-cql/scalar') {
+          report.applicationDataRequestsSent++;
+          let description;
+          try { description = JSON.parse(request.postData || 'null'); }
+          catch { report.nestedWhereRequestParseFailed = true; }
+          if (description && selectedProviders.includes(description.provider) &&
+              description.operation === 'LongCount' && description.filters?.length === 0 &&
+              isDeepStrictEqual(description.where, expectedNestedWhere))
+            nestedWhereRequests.add(description.provider);
+        }
       }
       await send('Fetch.continueRequest', { requestId: p.requestId }, message.sessionId);
     } else if (sqlFlow && read && ownStatic) {
@@ -295,8 +365,9 @@ async function event(message) {
         const available = await evaluate(`window.cqlPlayground.availableTextProviders().includes(${JSON.stringify(provider)})`);
         if (!available) { report.providerUnavailable = provider; throw new Error('Provider unavailable in current catalogue: ' + provider); }
         const before = scalarResponses.length;
-        await evaluate(`document.getElementById('cql-text').value=${JSON.stringify('SELECT COUNT(*) Total FROM ')}+${JSON.stringify(provider)};document.getElementById('cql-run-text').click();true`);
+        await evaluate("document.getElementById('cql-text').value=" + JSON.stringify("SELECT COUNT(*) Total FROM " + provider + " WHERE (Name = 'Coffee' AND Version >= 1) OR (Name = 'Tea' AND NOT EXISTS CHILD (IsActive = FALSE))") + ";document.getElementById('cql-run-text').click();true");
         await waitFor(() => scalarResponses.length > before, provider + ' SQL response');
+        if (!nestedWhereRequests.has(provider)) throw new Error(provider + ' exact nested WHERE request was not observed.');
         if (!scalarResponses[before].acknowledged || !scalarResponses[before].resultPresent) throw new Error(provider + ' SQL request was not acknowledged.');
         if (!scalarResponses[before].nonnegativeIntegerCount) throw new Error(provider + ' COUNT response was not a nonnegative integer.');
         const expectedNote = provider + ' · Total: ' + scalarValues[before];
@@ -308,6 +379,7 @@ async function event(message) {
       report.sqlEditorRequestsAcknowledged = scalarResponses;
       report.sqlEditorApiJourneyVerified = true;
       report.scalarResultRenderingVerified = true;
+      report.exactNestedWhereRequestVerified = true;
       report.visibleScalarResultVerified = true;
       await evaluate("document.getElementById('cql-note').scrollIntoView({block:'center'});true");
       report.populatedSqlResultsVerified = false;
