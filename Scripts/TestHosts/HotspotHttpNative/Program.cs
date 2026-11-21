@@ -82,13 +82,20 @@ try
         {
             var id = Guid.NewGuid();
             var hotspot = new GeoHotSpot { Id = id, Name = "Owned HTTP hotspot " + id.ToString("N"),
-                Lat = item.lat, Long = 0, IsActive = item.active, IsVisibleOnMap = item.visible,
+                Lat = item.lat, Long = 0, IsActive = true, IsVisibleOnMap = item.visible,
                 HotSpotRadiusInMetres = 17, TextContent = "Native HTTP geometry",
                 STARNETDNA = new STARNETDNA { Id = id, CreatedByAvatarId = actor, Version = "1.0.0", VersionSequence = 1 } };
             hotspot.MetaData["STARNETHolonId"] = id.ToString("D");
             hotspot.MetaData["GeoHotSpotType"] = GeoHotSpotType.Map.ToString();
             var saved = await data.SaveHolonAsync<GeoHotSpot>(hotspot, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);
             Require(!saved.IsError && saved.IsSaved, "Owned HTTP hotspot seed failed: " + saved.Message);
+            if (!item.active)
+            {
+                var retired = await data.DeleteHolonAsync(id, actor, softDelete: true, providerType: ProviderType.MongoDBOASIS);
+                Require(!retired.IsError && retired.Result != null && retired.Result.Id == id &&
+                    retired.Result.DeletedDate != DateTime.MinValue && !retired.Result.IsActive,
+                    "Owned inactive hotspot was not persisted through the real deletion lifecycle: " + retired.Message);
+            }
             if (item.lat < 1 && item.visible && item.active) expected.Add(id);
         }
         if (mode == "browser")
@@ -162,7 +169,10 @@ try
     {
         var rows = body.RootElement.GetProperty("result").EnumerateArray().ToArray();
         Require(rows.Select(row => row.GetProperty("id").GetGuid()).SequenceEqual(expected),
-            "Populated HTTP radius/visibility/activity/distance ordering returned unexpected canonical IDs.");
+            "Populated HTTP radius/visibility/activity/distance ordering returned unexpected canonical IDs: " +
+            System.Text.Json.JsonSerializer.Serialize(new { expected, actual = rows.Select(row => new {
+                id = row.GetProperty("id").GetGuid(), lat = row.GetProperty("lat").GetDouble(),
+                active = row.GetProperty("isActive").GetBoolean(), visible = row.GetProperty("isVisibleOnMap").GetBoolean() }) }));
         Require(rows[0].GetProperty("lat").GetDouble() == 0 && rows[1].GetProperty("lat").GetDouble() == .001 &&
             rows.All(row => row.GetProperty("long").GetDouble() == 0 && row.GetProperty("hotSpotRadiusInMetres").GetInt32() == 17 &&
                 row.GetProperty("textContent").GetString() == "Native HTTP geometry"), "Derived typed hotspot fields changed across HTTP serialization.");

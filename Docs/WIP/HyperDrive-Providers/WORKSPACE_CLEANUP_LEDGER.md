@@ -2475,3 +2475,5 @@ Corrected browser44941055967 live; same owned CI cleanup scope, no local runtime
 606e source check: retained necessary Git tag/tree/commit objects in existing repositories. On-demand fetch also refreshed ONODE/STAR remote refs and required commits; no source checkout changes, repeated worktree/env, generated build/test/runtime/download outputs or package installs. Pure check-ref script emitted no files. Future fetches explicitly disable recursion. Browser44941055967 CI cleanup pending.
 
 Quest78e source correction uses exact GitHub blobs/commit/immutable tag only; no physical dirty submodule edit or checkout switch, local runtime/env/build/database/browser/download/output/worktree. Compact source record retained; no new test dispatch while existing browser44941055967 live.
+
+Browser44941055967 runtime failure before browser: actual owned DB/tempDNA/container/browser runtime/cache absence markers verified. Host build0errors; no browser launched because populated assertion preceded it. All logs RAM-only, no local runtime/build/env/download/database/output/worktree. Fixture lifecycle correction uses one owned acknowledged soft-delete, assertions unchanged.

@@ -1,5 +1,5 @@
 {
-  "status": "geo-browser-import-corrected-run-in-progress",
+  "status": "geo-browser-fixture-lifecycle-corrected-retry-pending",
   "compileRun": 44939192959,
   "controlSource": "2244959386762043ddaaf87b08ff4b8c25fdfee2",
   "scope": "hotspot",
@@ -140,7 +140,14 @@
     "control": "b4471e1f653970873f255718ad3706b80efd3ca6",
     "candidate": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
     "portal": "5171fc690c1c234e3e7eebee980937c902f271fd",
-    "status": "in_progress"
+    "status": "completed",
+    "job": 136958129072,
+    "conclusion": "failure",
+    "stage": "populated HTTP assertion before browser",
+    "buildErrors": 0,
+    "buildElapsed": "00:05:22.21",
+    "error": "Returned canonical IDs differ; inactive create seed conflicted with activation lifecycle",
+    "cleanup": "Database/DNA/container/browser runtime/cache absence verified"
   },
   "browserAttempts": [
     {
