@@ -1,0 +1,1 @@
+Exact candidate on Development8a4e0a8b with ONLY13new WHERE API runtime paths. Complete API source equals qualified26b5bea9; all dependency pins and provider runtimes unchanged. API5/SQL4 passed; new native execution and hosted acceptance remain open. No Development deployment, PIPER or DNA operation.
