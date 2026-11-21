@@ -1,0 +1,27 @@
+{
+  "status": "UI source checks passed; backend dispatch compilation and real-map journeys pending",
+  "portal": "8c23f04",
+  "onodeCore": "c49616b29ff92954ffa346b7c861121a00342711",
+  "onodeBlob": "49721475c571ebc5ac8ffeca740119777dd01a25",
+  "changes": [
+    "Visit true acknowledgement and pending-click suppression",
+    "Canonical locationId/visitedAt history with50-row older paging; history deferred until selected",
+    "Statistics totalVisits/uniqueLocations with zero preserved; API errors visible",
+    "Current modal/session/request ownership for search/history/stats/visits; logout clears map data",
+    "Twelve backend no-op selectors/highlighters now delegate to actual provider; GUID selection uses existing documented zoom/select semantics"
+  ],
+  "verified": [
+    "Changed script Node syntax",
+    "Endpoint drift check",
+    "Whitespace",
+    "Published ONODE source exact byte match and pinned Core map-interface members inspected"
+  ],
+  "open": [
+    "Real persisted/provider nearby/search: current backend still generates sample locations",
+    "Discovery/social/exploration sources and competition error handling",
+    "Actual controller object-parameter binding and provider activation",
+    "Actual renderer/provider control and browser/native-store journeys",
+    "Changed actual API compile"
+  ],
+  "cleanup": "No local build, install, download, browser, database, results, archive or new worktree. Compact source/docs retained. No shared Mongo/API or worker/DNA/deployment action."
+}
