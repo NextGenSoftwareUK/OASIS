@@ -13,8 +13,8 @@ const work = path.join(parent, 'RecoveryLaptopHostedBrowserCurrent');
 const profile = path.join(work, 'profile');
 const marker = path.join(work, 'owner.json');
 const ledger = path.join(root, 'Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md');
-const previewOrigin = 'https://web4-site-kq2ck00cu-oasis-team.vercel.app';
-const candidateWebsiteSource = '2bbdfc940a159cca597bb95328471971038aa6e3';
+const previewOrigin = 'https://web4-site-2e42g5e7i-oasis-team.vercel.app';
+const candidateWebsiteSource = 'b4f77a541ad992be68660e45bd094ee637c3ee97';
 const expectedAssetHashes = {
   "/cql-text.js": "d17b60caf687ddc24da166c4a117d8adb435bf895174811b0c0d62e384f4118f",
   "/cql-playground.js": "331918b92ba02e7cf733b7b6213fd7ee1466af960beaed57c9eb3049b9dbb4e0",
@@ -232,7 +232,7 @@ async function event(message) {
         }
       }
       await send('Fetch.continueRequest', { requestId: p.requestId }, message.sessionId);
-    } else if (sqlFlow && read && ownStatic) {
+    } else if (read && ownStatic) {
       const asset = await candidateAsset(target);
       await send('Fetch.fulfillRequest', { requestId: p.requestId, responseCode: 200,
         responseHeaders: [{ name: 'Content-Type', value: asset.type }, { name: 'Cache-Control', value: 'no-store' }],
@@ -353,6 +353,23 @@ async function event(message) {
     const result = await send('Runtime.evaluate', { expression: `JSON.stringify({title:document.title,ready:document.readyState,ask:document.body.innerText.toLowerCase().includes('ask your data'),virtual:document.body.innerText.toLowerCase().includes('virtual'),editorControls:[...document.querySelectorAll('textarea,select,input')].map(e=>({tag:e.tagName,id:e.id,type:e.type})).filter(e=>/cql|sql|ask|mapping|virtual/i.test(e.id)).slice(0,40)})`, returnByValue: true }, session);
     if (result.exceptionDetails) throw new Error('DOM inspection failed.');
     Object.assign(report, JSON.parse(result.result.value));
+    if (!sqlFlow) {
+      report.candidateWebsiteSource = candidateWebsiteSource;
+      report.candidateScriptHashesVerified = Object.entries(expectedAssetHashes)
+        .every(([name,hash]) => assetHashes.get(name) === hash);
+      if (!report.candidateScriptHashesVerified) throw new Error('Static review did not load the exact qualified scripts.');
+      report.runtimeInterfaces = await evaluate("({compiler:typeof window.CqlText?.compile==='function',playground:typeof window.cqlPlayground?.loadText==='function',ask:typeof window.cqlAsk?.refreshExampleProviders==='function'})");
+      if (Object.values(report.runtimeInterfaces).some(value => !value)) throw new Error('A demo module did not initialize.');
+      await evaluate("document.querySelector('button[data-tab=\\\"cql\\\"]').click();true");
+      report.visibleStaticSqlEditorVerified = await evaluate("document.getElementById('cql-text').getClientRects().length>0");
+      await evaluate("document.querySelector('button[data-tab=\\\"ask\\\"]').click();true");
+      report.visibleStaticAskTabVerified = await evaluate("document.getElementById('ask-question').getClientRects().length>0");
+      if (!report.visibleStaticSqlEditorVerified || !report.visibleStaticAskTabVerified)
+        throw new Error('SQL or Ask controls are not visible in their selected tab.');
+      report.staticReviewOnly = true;
+      report.publicWebsitePublicationVerified = false;
+    }
+
     if (sqlFlow) {
       report.candidateAssetsAtApprovedOrigin = true;
       report.candidateWebsiteSource = candidateWebsiteSource;
