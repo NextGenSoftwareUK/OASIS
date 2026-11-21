@@ -36,7 +36,7 @@ Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
 var mode = Environment.GetEnvironmentVariable("OASIS_HOTSPOT_HTTP_MODE") ?? "binding";
-Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser", "Unsupported hotspot HTTP check mode.");
+Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser", "Unsupported hotspot HTTP check mode.");
 var dna = new OASISDNA { OASIS = new() {
     HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
         AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
@@ -140,13 +140,13 @@ try
     builder.Services.AddControllers().AddApplicationPart(typeof(GeoHotSpotsController).Assembly)
         .AddApplicationPart(typeof(NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.NftController).Assembly);
     app = builder.Build(); app.UseAuthentication();
-    if (mode is "browser" or "catalogue-browser")
+    if (mode is "browser" or "catalogue-browser" or "competition-browser")
     {
         var portal = Environment.GetEnvironmentVariable("OASIS_GEO_PORTAL_ROOT") ?? throw new InvalidOperationException("Pinned Portal root required.");
         var browserHost = Environment.GetEnvironmentVariable("OASIS_GEO_BROWSER_HOST") ?? throw new InvalidOperationException("Geo browser host required.");
-        Require(File.Exists(Path.Combine(portal, mode == "catalogue-browser" ? "assets/js/missions-modal.js" : "assets/js/map-modal.js")) && File.Exists(browserHost), "Actual Portal/browser assets missing.");
+        Require(File.Exists(Path.Combine(portal, mode switch { "catalogue-browser" => "assets/js/missions-modal.js", "competition-browser" => "assets/js/competition-modal.js", _ => "assets/js/map-modal.js" })) && File.Exists(browserHost), "Actual Portal/browser assets missing.");
         app.UseStaticFiles(new StaticFileOptions { FileProvider = new PhysicalFileProvider(Path.Combine(portal, "assets")), RequestPath = "/assets" });
-        app.MapGet(mode == "catalogue-browser" ? "/__catalogue_browser" : "/__geo_browser", () => Results.File(browserHost, "text/html"));
+        app.MapGet(mode switch { "catalogue-browser" => "/__catalogue_browser", "competition-browser" => "/__competition_browser", _ => "/__geo_browser" }, () => Results.File(browserHost, "text/html"));
     }
     app.Use(async (context, next) => {
         if (context.User.Identity?.IsAuthenticated == true && Guid.TryParse(context.User.FindFirst("sub")?.Value, out var id))
@@ -185,7 +185,44 @@ try
         using var result = JsonDocument.Parse(resultText);
         Require(result.RootElement.GetProperty(resultProperty).GetBoolean(), "Owned browser completion marker missing.");
     }
-    if (mode is "catalogue" or "catalogue-browser")
+    if (mode == "competition-browser")
+    {
+        var data = new HolonManager(provider, dna, ProviderManager.Instance);
+        var competition = CompetitionManager.ForData(data);
+        const string leagueName = "Owned Competition league";
+        const string tournamentName = "Owned Competition tournament";
+        var leagues = await competition.SaveLeaguesAsync(CompetitionType.Karma, SeasonType.Yearly,
+            new List<NextGenSoftware.OASIS.API.Core.Objects.League> {
+                new() { Name = leagueName, MinScore = 0, MaxScore = 100, IsActive = true } });
+        Require(!leagues.IsError && leagues.IsSaved, "Owned Competition league seed failed: " + leagues.Message);
+        var score = await competition.UpdateAvatarScoreAsync(actor, CompetitionType.Karma, SeasonType.Yearly, 0);
+        Require(!score.IsError && score.Result, "Owned Competition score seed failed: " + score.Message);
+        var now = DateTime.UtcNow;
+        var tournamentId = Guid.NewGuid();
+        var tournament = await competition.SaveTournamentAsync(new NextGenSoftware.OASIS.API.Core.Objects.Tournament {
+            Id = tournamentId, Name = tournamentName, CompetitionType = CompetitionType.Karma,
+            Status = NextGenSoftware.OASIS.API.Core.Objects.TournamentStatus.Registration,
+            StartDate = now.AddHours(2), EndDate = now.AddHours(3),
+            RegistrationStart = now.AddHours(-1), RegistrationEnd = now.AddHours(1),
+            MaxParticipants = 2, CreatedBy = actor });
+        Require(!tournament.IsError && tournament.IsSaved, "Owned Competition tournament seed failed: " + tournament.Message);
+        var before = await provider.LoadAvatarAsync(actor);
+        Require(!before.IsError && before.Result != null, "Owned Competition actor read failed.");
+        var actorBefore = JsonConvert.SerializeObject(before.Result);
+        await RunOwnedBrowserAsync(new { baseUrl = address,
+            token = new JwtSecurityTokenHandler().WriteToken(jwt), avatarId = actor,
+            tournamentId, leagueName, tournamentName }, "competitionPopupVerified");
+        var stored = await CompetitionManager.ForData(data).GetActiveTournamentsAsync(CompetitionType.Karma);
+        Require(!stored.IsError && stored.Result != null, "Owned Competition native readback failed: " + stored.Message);
+        var joined = stored.Result.Single(row => row.Id == tournamentId);
+        Require(joined.CurrentParticipants == 1 && joined.Participants.Count == 1 && joined.Participants[0].AvatarId == actor,
+            "Browser registration was not persisted exactly once for the signed actor.");
+        var after = await provider.LoadAvatarAsync(actor);
+        Require(!after.IsError && after.Result != null && JsonConvert.SerializeObject(after.Result) == actorBefore,
+            "Competition browser changed the native avatar account.");
+        Console.WriteLine("COMPETITION_POPUP_BROWSER_PROOF: actual Portal SDK/component and MVC/native Mongo leaderboard, rank/league, tournament counter, one persisted actor-bound join, refresh/reopen/logout verified; native avatar unchanged. Full Startup/SSO/hosted/publisher authorization excluded.");
+    }
+    else if (mode is "catalogue" or "catalogue-browser")
     {
         async Task<JsonDocument> ReadCatalogue(string route)
         {

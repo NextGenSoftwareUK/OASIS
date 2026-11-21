@@ -21,5 +21,8 @@
     "base": "ead6c9cab83c0144c64cf3bfa22f94733a0aeaf5",
     "candidate": "cf763aecfff7cc33d6aeacc9121db01c767a50f6"
   },
-  "remaining": "Fresh composition compilation, then actual Competition browser/HTTP; retained native evidence is not current hosted acceptance."
+  "remaining": "Fresh composition compilation, then actual Competition browser/HTTP; retained native evidence is not current hosted acceptance.",
+  "nativeHost": "HotspotHttpNative",
+  "nativeMode": "competition-browser",
+  "portal": "c26436b2f652266da8830acb41c03d2f2910fbb1"
 }
