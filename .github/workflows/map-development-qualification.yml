@@ -4,7 +4,7 @@ on:
     inputs:
       candidate_scope:
         type: choice
-        options: [map, hotspot]
+        options: [map, hotspot, quest]
         default: map
       native_check:
         type: boolean
@@ -42,6 +42,7 @@ jobs:
           sparse-checkout: |
             Scripts/TestHosts/Fixtures/map-development-candidate.json
             Scripts/TestHosts/Fixtures/hotspot-development-candidate.json
+            Scripts/TestHosts/Fixtures/quest-authoritative-candidate.json
             Scripts/TestHosts/MapDevelopmentNative
             Scripts/TestHosts/HotspotDevelopmentNative
             Scripts/TestHosts/HotspotHttpNative
@@ -59,9 +60,10 @@ jobs:
         env:
           CANDIDATE_SCOPE: ${{ inputs.candidate_scope }}
         run: |
-          if ($env:CANDIDATE_SCOPE -notin @('map','hotspot')) { throw 'Unsupported candidate scope.' }
-          if ($env:CANDIDATE_SCOPE -eq 'hotspot' -and '${{ inputs.inventory_only }}' -eq 'true') { throw 'Hotspot scope does not generate WEB4 inventories.' }
-          $file = if ($env:CANDIDATE_SCOPE -eq 'hotspot') { 'Scripts/TestHosts/Fixtures/hotspot-development-candidate.json' } else { 'Scripts/TestHosts/Fixtures/map-development-candidate.json' }
+          if ($env:CANDIDATE_SCOPE -notin @('map','hotspot','quest')) { throw 'Unsupported candidate scope.' }
+          if ($env:CANDIDATE_SCOPE -ne 'map' -and '${{ inputs.inventory_only }}' -eq 'true') { throw 'Only map scope generates WEB4 inventories.' }
+          $files = @{ map='Scripts/TestHosts/Fixtures/map-development-candidate.json'; hotspot='Scripts/TestHosts/Fixtures/hotspot-development-candidate.json'; quest='Scripts/TestHosts/Fixtures/quest-authoritative-candidate.json' }
+          $file = $files[$env:CANDIDATE_SCOPE]
           $candidate = Get-Content $file -Raw | ConvertFrom-Json
           "file=$file" >> $env:GITHUB_OUTPUT
           $browser = '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -eq 'browser'
@@ -255,7 +257,7 @@ jobs:
           OASIS_PROFILE_BROWSER_RUNTIME: ${{ github.workspace }}/geo-browser-owned/runtime
         run: |
           $candidate = Get-Content (Join-Path ../qualification-control $env:CANDIDATE_FILE) -Raw | ConvertFrom-Json
-          $hostName = if ($env:CANDIDATE_SCOPE -eq 'hotspot') { if ($candidate.nativeHost) { $candidate.nativeHost } else { 'HotspotDevelopmentNative' } } else { 'MapDevelopmentNative' }
+          $hostName = if ($env:CANDIDATE_SCOPE -eq 'map') { 'MapDevelopmentNative' } else { if ($candidate.nativeHost) { $candidate.nativeHost } else { 'HotspotDevelopmentNative' } }
           if ($hostName -notin @('MapDevelopmentNative','HotspotDevelopmentNative','HotspotHttpNative')) { throw 'Unsupported native qualification host.' }
           if ($hostName -eq 'HotspotHttpNative') {
             $env:OASIS_HOTSPOT_HTTP_MODE = if ($candidate.nativeMode) { $candidate.nativeMode } else { 'binding' }

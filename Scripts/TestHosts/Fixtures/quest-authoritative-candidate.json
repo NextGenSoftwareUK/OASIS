@@ -1,0 +1,18 @@
+{
+  "scope": "quest",
+  "status": "source-prepared-native-qualification-pending",
+  "base": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+  "candidate": "25c4d178b8ba955d948465a7be7dd92617cdb06c",
+  "tag": "qualification/quest-authoritative-2026-11-21-25c4d178",
+  "buildProjects": ["WEB5"],
+  "nativeHost": "HotspotHttpNative",
+  "nativeMode": "quest-empty",
+  "allowedPaths": ["Docker/oasis-dependency-versions.env", "STAR ODK"],
+  "star": {
+    "base": "6774caf10a4d37cba5575e497c0a0499f118b6d0",
+    "candidate": "78eabe52e5e474c21367959cecfcb900709db169",
+    "scope": "QuestsController.Quest.cs only; remove generated-success substitutions and empty avatar/status alternate queries."
+  },
+  "preserved": "Qualified hotspot/Map/current CQL/Core13, all other pins and settings",
+  "remaining": "Actual compile and real native empty quest HTTP acceptance, then scoped delivery; full OPORTAL/provider/HyperDrive remains incomplete."
+}
