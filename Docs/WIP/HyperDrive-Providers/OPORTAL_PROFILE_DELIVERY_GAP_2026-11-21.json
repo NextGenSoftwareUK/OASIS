@@ -58,5 +58,11 @@
     "excluded": "unrelated subscription changes from donor; newer CQL source preserved",
     "temporaryIndexes": "both removed in finally",
     "remaining": "source inventory review, combined API/provider compilation, changed contract qualification and delivery"
+  },
+  "inventoryQualification": {
+    "run": 44963177205,
+    "control": "14fbf5cfab7285a616aa5148bab73f73aad47a18",
+    "status": "in-progress",
+    "scope": "source-only, no build/runtime/data fixtures"
   }
 }

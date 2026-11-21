@@ -119,7 +119,13 @@
     "control": "c76e6e1f1ab2413940d971d442ceaf2f768dab8f",
     "candidate": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
     "portal": "c26436b2f652266da8830acb41c03d2f2910fbb1",
-    "status": "in-progress",
-    "scope": "first actual browser/SDK/MVC/native Mongo main flow only; no previous native cohort replay"
+    "status": "failure",
+    "scope": "first actual browser/SDK/MVC/native Mongo main flow only; no previous native cohort replay",
+    "job": 137024526497,
+    "buildErrors": 0,
+    "buildElapsed": "00:05:28.58",
+    "error": "page.waitForFunction timeout; exact stage not emitted by first host",
+    "cleanup": "database/temporaryDNA/container/browser runtime/cache absence verified",
+    "diagnosticChange": "stage+status+request path/method added; no token/body fields, no shipping change or runtime retry yet"
   }
 }
