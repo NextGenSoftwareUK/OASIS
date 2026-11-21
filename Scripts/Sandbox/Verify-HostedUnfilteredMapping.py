@@ -54,6 +54,7 @@ def main():
     write = lambda: helpers["write"](journal_path, journal)
     write()
     token = None
+    cookie_header = None
 
     def call(path, method="POST", body=None, mutation=False):
         if journal["pending"] is not None or len(journal["calls"]) >= 16:
@@ -72,6 +73,8 @@ def main():
                    "Idempotency-Key": key}
         if token:
             headers["Authorization"] = "Bearer " + token
+        if cookie_header:
+            headers["Cookie"] = cookie_header
         request = urllib.request.Request(BASE + path, method=method, headers=headers,
             data=json.dumps(body).encode() if body is not None else None)
         try:
@@ -122,6 +125,7 @@ def main():
     owner = str(uuid.UUID(avatar["id"]))
     token = avatar["jwtToken"]
     bundle = credentials["bundle"](owner, token, cookies)
+    cookie_header = bundle["cookieHeader"]
     with (STATE / "session.dpapi").open("xb") as stream:
         stream.write(helpers["protected_token"](json.dumps(bundle).encode()))
     journal["ownerId"] = owner
@@ -171,8 +175,8 @@ def main():
         "id": mapping_id, "providerType": "MongoDBOASIS", "softDelete": False,
         "operationId": delete_id, "expectedRevisions": {mapping_id: revision},
         "recursive": False, "loadChildren": False}, mutation=True)
-    if deleted.get("isSaved") is not True:
-        raise RuntimeError("Deletion was not acknowledged; preserve exact intent.")
+    # Delete has its own endpoint acknowledgement; Save.IsSaved is not its contract.
+    # The successful envelope above must still be followed by exact physical absence.
     absent, _ = call("data/query-cql", body={"provider": "MongoDBOASIS", "take": 1,
         "orderBy": "Id", "filters": [{"field": "Id", "scalar": "Guid",
                                      "operator": "Equal", "value": mapping_id}]})
@@ -180,7 +184,7 @@ def main():
         raise RuntimeError("Exact mapping absence was not verified.")
     journal["exactMappingCleanupVerified"] = True
     write()
-    call("avatar/revoke-token", body={"token": token}, mutation=True)
+    call("avatar/revoke-token", body={}, mutation=True)
     journal["sessionRevoked"] = True
     journal["completed"] = True
     write()

@@ -1,0 +1,89 @@
+{
+  "source": "6b5713f7d02379a6bd1769c13981d22682ee7b0d",
+  "deployment": "1fa92e09-c55b-4a34-8913-0c5d6b0d4f54",
+  "provider": "MongoDBOASIS",
+  "nativeSource": "customers",
+  "websiteCompiler": "3d8f108f6161b8b4a0e6c8e2f80d1358fb6185f8",
+  "mappingId": "37aaff91-79a6-4d3a-a92c-632b23799b4b",
+  "queryAccepted": true,
+  "unfilteredSqlCompiled": true,
+  "mixedRowsReturned": 6,
+  "exactMappingCleanupVerified": true,
+  "sessionRevoked": true,
+  "totalCalls": 9,
+  "ownedMappingCreates": 1,
+  "ownedMappingDeletes": 1,
+  "deleteResent": false,
+  "nativeDataImported": false,
+  "browserVerified": false,
+  "otherProviderHostedAcceptance": false,
+  "initialHarnessIssues": [
+    "Incorrectly required save flag on delete response; original successful delete reconciled by exact absence, not replayed.",
+    "Signout used access token body instead of existing refresh cookie; definitive refusal retained, corrected cookie contract succeeded."
+  ],
+  "sealedCredentialsRemovedBytes": 6696,
+  "calls": [
+    {
+      "path": "sandbox/session",
+      "method": "POST",
+      "status": 200,
+      "isError": false,
+      "operationId": "04a9ce36-4eed-423c-9a99-bea1298a516d"
+    },
+    {
+      "path": "native-data/MongoDBOASIS/sources",
+      "method": "GET",
+      "status": 200,
+      "isError": false,
+      "operationId": "c1ed22a0-8623-4558-b157-33dc3c25860c"
+    },
+    {
+      "path": "native-data/MongoDBOASIS/virtual-mappings/prepare",
+      "method": "POST",
+      "status": 200,
+      "isError": false,
+      "operationId": "a5e39011-bafa-4442-9c48-e18bfdc00706"
+    },
+    {
+      "path": "data/save-holon",
+      "method": "POST",
+      "status": 200,
+      "isError": false,
+      "operationId": "05a70860-bb3a-4a51-be5d-ff0e89da5498"
+    },
+    {
+      "path": "data/query-cql/projection/mixed",
+      "method": "POST",
+      "status": 200,
+      "isError": false,
+      "operationId": "1cdcff22-6e67-4376-b697-5172a355ba0a"
+    },
+    {
+      "path": "data/delete-holon",
+      "method": "DELETE",
+      "status": 200,
+      "isError": false,
+      "operationId": "fe6ef835-5e9c-493a-a94b-8356b9132d19"
+    },
+    {
+      "path": "data/query-cql",
+      "method": "POST",
+      "status": 200,
+      "isError": false,
+      "reconciliation": true
+    },
+    {
+      "path": "avatar/revoke-token",
+      "method": "POST",
+      "status": 200,
+      "isError": true,
+      "reconciliation": true
+    },
+    {
+      "path": "avatar/revoke-token",
+      "status": 200,
+      "isError": false,
+      "correctedCookieContract": true
+    }
+  ]
+}
