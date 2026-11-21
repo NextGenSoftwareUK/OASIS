@@ -115,5 +115,12 @@
     "base": "1fe579cf5e385b4a6ecce12934a7dd7578c2340c"
   },
   "supersededUnrunRoot": "81c0a0dabbcaf0b5741e8efaeb93ccb968a2059d",
-  "additionalParent": "f1aa884d90123afea87d4daec39afff4e022339b"
+  "additionalParent": "f1aa884d90123afea87d4daec39afff4e022339b",
+  "preparedPopupBrowser": {
+    "status": "source-prepared-syntax-checked-not-executed-not-selected",
+    "host": "Scripts/TestHosts/Fixtures/catalogue-browser-host.html",
+    "browser": "Scripts/TestHosts/Fixtures/catalogue-browser-native-http.cjs",
+    "scope": "Actual Portal WEB5 SDK, Quests and Missions fragments/scripts; owned native populated my/all/search/refresh/details and logout clear; exactly eight GETs and zero browser mutations; no response replacement.",
+    "remaining": "Connect owned runtime seed/mode after current native catalogue source acceptance, then run only this new popup flow. Full Startup/SSO/hosted/all-site excluded."
+  }
 }
