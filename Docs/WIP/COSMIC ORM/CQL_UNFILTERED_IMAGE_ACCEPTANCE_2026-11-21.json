@@ -26,6 +26,8 @@
   "ownedContainerAbsent": true,
   "dataWrites": 0,
   "developmentDeployment": "1fa92e09-c55b-4a34-8913-0c5d6b0d4f54",
-  "developmentObservedStatus": "QUEUED",
-  "developmentLoadBalancingSaved": true
+  "developmentObservedStatus": "SUCCESS",
+  "developmentLoadBalancingSaved": true,
+  "hostedMongoAccepted": true,
+  "hostedAllThreeAccepted": false
 }
