@@ -30,7 +30,7 @@ public sealed partial class CqlV1Web4NativeTests
         => RunGroupedDistinctNativeFixture(providerName, false, requiredDomains: true);
 
     private async Task RunGroupedDistinctNativeFixture(string providerName, bool primitiveDomains, bool mixedHttp = false,
-        bool requiredDomains = false, bool singlePerformance = false, bool sharedInputs = false, bool guidDomains = false, bool mixedGuidHttp = false, bool guidRowsHttp = false, bool predicateCrossingHttp = false, bool guidFilterHttp = false, bool int32FilterNative = false, bool int32FilterHttp = false, bool utcDateFilterNative = false, bool sessionJourney = false, bool statelessJourney = false, bool statelessInsertJourney = false, bool parentReferenceJourney = false, bool childrenReferenceJourney = false, bool readOnlyJourney = false, bool findJourney = false, bool syncJourney = false, bool statelessLifetimeJourney = false, bool statelessLinqJourney = false, bool updateJourney = false, bool lifecycleJourney = false, bool inspectionJourney = false, bool whereJourney = false)
+        bool requiredDomains = false, bool singlePerformance = false, bool sharedInputs = false, bool guidDomains = false, bool mixedGuidHttp = false, bool guidRowsHttp = false, bool predicateCrossingHttp = false, bool guidFilterHttp = false, bool int32FilterNative = false, bool int32FilterHttp = false, bool utcDateFilterNative = false, bool sessionJourney = false, bool statelessJourney = false, bool statelessInsertJourney = false, bool parentReferenceJourney = false, bool childrenReferenceJourney = false, bool readOnlyJourney = false, bool findJourney = false, bool syncJourney = false, bool statelessLifetimeJourney = false, bool statelessLinqJourney = false, bool updateJourney = false, bool lifecycleJourney = false, bool inspectionJourney = false, bool whereJourney = false, bool unfilteredMappingHttp = false)
     {
         Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -144,10 +144,10 @@ public sealed partial class CqlV1Web4NativeTests
                     queryTimings: queryElapsed, predicateCrossing: true);
                 Assert.AreEqual(4, ids.Count);
             }
-            else if (mixedGuidHttp || guidRowsHttp || guidFilterHttp || int32FilterHttp)
+            else if (mixedGuidHttp || guidRowsHttp || guidFilterHttp || int32FilterHttp || unfilteredMappingHttp)
             {
                 checks = await VerifyGroupedDistinctMixedNativeHttpProvider(provider, work, database, mongo, ids,
-                    guidCounts: true, queryTimings: queryElapsed, guidRows: guidRowsHttp || guidFilterHttp, guidFilters: guidFilterHttp, int32Http: int32FilterHttp);
+                    guidCounts: true, queryTimings: queryElapsed, guidRows: guidRowsHttp || guidFilterHttp, guidFilters: guidFilterHttp, int32Http: int32FilterHttp, unfiltered: unfilteredMappingHttp);
                 Assert.AreEqual(5, ids.Count, "Four stored writes and one virtual-only cleanup identity.");
             }
             else if (guidDomains)
@@ -337,8 +337,16 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 var root = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT")!);
                 var report = Path.Combine(root, "TestResults/Neo4jCurrent/" + providerName
-                    + (whereJourney ? "-boolean-where-native.json" : inspectionJourney ? "-inspection-native-journey.json" : lifecycleJourney ? "-lifecycle-native-journey.json" : updateJourney ? "-update-native-journey.json" : statelessLinqJourney ? "-stateless-linq-native-journey.json" : statelessLifetimeJourney ? "-stateless-lifetime-native-journey.json" : syncJourney ? "-sync-native-journey.json" : findJourney ? "-find-native-journey.json" : readOnlyJourney ? "-read-only-native-journey.json" : childrenReferenceJourney ? "-children-reference-native-journey.json" : parentReferenceJourney ? "-parent-reference-native-journey.json" : statelessInsertJourney ? "-stateless-insert-native-journey.json" : statelessJourney ? "-stateless-native-journey.json" : sessionJourney ? "-session-native-journey.json" : utcDateFilterNative ? "-utc-date-filter-native.json" : int32FilterHttp ? "-int32-filter-http-native.json" : int32FilterNative ? "-int32-filter-native.json" : guidFilterHttp ? "-guid-filter-http-native.json" : predicateCrossingHttp ? "-predicate-crossing-http-native.json" : guidRowsHttp ? "-guid-rows-http-native.json" : mixedGuidHttp ? "-grouped-guid-http-native.json" : guidDomains ? "-grouped-guid-native.json" : sharedInputs ? "-grouped-shared-inputs.json" : singlePerformance ? "-grouped-distinct-single-profile.json" : requiredDomains ? "-grouped-distinct-required-native.json" : mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
-                if (whereJourney)
+                    + (unfilteredMappingHttp ? "-unfiltered-mapping-native.json" : whereJourney ? "-boolean-where-native.json" : inspectionJourney ? "-inspection-native-journey.json" : lifecycleJourney ? "-lifecycle-native-journey.json" : updateJourney ? "-update-native-journey.json" : statelessLinqJourney ? "-stateless-linq-native-journey.json" : statelessLifetimeJourney ? "-stateless-lifetime-native-journey.json" : syncJourney ? "-sync-native-journey.json" : findJourney ? "-find-native-journey.json" : readOnlyJourney ? "-read-only-native-journey.json" : childrenReferenceJourney ? "-children-reference-native-journey.json" : parentReferenceJourney ? "-parent-reference-native-journey.json" : statelessInsertJourney ? "-stateless-insert-native-journey.json" : statelessJourney ? "-stateless-native-journey.json" : sessionJourney ? "-session-native-journey.json" : utcDateFilterNative ? "-utc-date-filter-native.json" : int32FilterHttp ? "-int32-filter-http-native.json" : int32FilterNative ? "-int32-filter-native.json" : guidFilterHttp ? "-guid-filter-http-native.json" : predicateCrossingHttp ? "-predicate-crossing-http-native.json" : guidRowsHttp ? "-guid-rows-http-native.json" : mixedGuidHttp ? "-grouped-guid-http-native.json" : guidDomains ? "-grouped-guid-native.json" : sharedInputs ? "-grouped-shared-inputs.json" : singlePerformance ? "-grouped-distinct-single-profile.json" : requiredDomains ? "-grouped-distinct-required-native.json" : mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
+                if (unfilteredMappingHttp)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        successfulHolonWrites = 4, ownedCleanupIds = ids.Count, rawNativeRecords = 2,
+                        successfulHttpQueries = 2, foreignOwnerRequests = 1, queryElapsedMilliseconds = queryElapsed,
+                        nativeProviderVerified = true, realHttpVerified = true, emptyNativePredicateVerified = true,
+                        completeIdentityUnionVerified = true, globalPagingVerified = true,
+                        foreignOwnerRejectedVerified = true, nativeSourceUnchangedVerified = true,
+                        noNativeOnlyHolonMaterializedVerified = true, exactCleanupVerified = true }));
+                else if (whereJourney)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
                         ownedCleanupIds = ids.Count, successfulHolonWrites = 5, queryElapsedMilliseconds = queryElapsed,
                         nativeProviderVerified = true, typedWhereCompiledVerified = true,

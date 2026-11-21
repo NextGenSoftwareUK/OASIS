@@ -21,7 +21,7 @@ public sealed partial class CqlV1Web4NativeTests
 
     private static async Task<int> VerifyGroupedDistinctMixedNativeHttpProvider(
         IOASISStorageProvider provider, string work, string database, MongoClient? mongo, List<Guid> created,
-        bool guidCounts = false, Dictionary<string, long>? queryTimings = null, bool guidRows = false, bool predicateCrossing = false, bool guidFilters = false, bool int32Http = false)
+        bool guidCounts = false, Dictionary<string, long>? queryTimings = null, bool guidRows = false, bool predicateCrossing = false, bool guidFilters = false, bool int32Http = false, bool unfiltered = false)
     {
         var reader = (INativeDataProjectionQueryProvider)provider;
         var actor = Guid.NewGuid();
@@ -171,8 +171,8 @@ public sealed partial class CqlV1Web4NativeTests
             }
             await VerifyMappedNativeHttpAsync(provider, mapping, original.Result.Single(),
                 groupedDistinctOnly: true, createdObserver: created.Add,
-                guidDistinct: guidCounts, queryTimings: queryTimings, virtualOnlyId: virtualOnlyId, guidRows: guidRows, predicateCrossing: predicateCrossing, guidFilters: guidFilters, int32Http: int32Http);
-            if (guidCounts && mongoProvider != null && !guidFilters && !int32Http)
+                guidDistinct: guidCounts, queryTimings: queryTimings, virtualOnlyId: virtualOnlyId, guidRows: guidRows, predicateCrossing: predicateCrossing, guidFilters: guidFilters, int32Http: int32Http, unfiltered: unfiltered);
+            if (guidCounts && mongoProvider != null && !guidFilters && !int32Http && !unfiltered)
             {
                 // UUID legacy subtype does not encode a unique byte-order convention.
                 // Native import admits Standard UUIDs; do not guess an external legacy representation.
@@ -198,7 +198,7 @@ public sealed partial class CqlV1Web4NativeTests
             var after = await fingerprint();
             Assert.AreEqual(before.Length, after.Length);
             for (var index = 0; index < before.Length; index++) CollectionAssert.AreEqual(before[index], after[index]);
-            return int32Http ? 5 : guidFilters ? 5 : guidRows ? 4 : 3;
+            return unfiltered ? 3 : int32Http ? 5 : guidFilters ? 5 : guidRows ? 4 : 3;
         }
         finally
         {

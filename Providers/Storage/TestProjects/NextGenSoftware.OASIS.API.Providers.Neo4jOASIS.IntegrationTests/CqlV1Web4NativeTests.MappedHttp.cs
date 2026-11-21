@@ -63,7 +63,7 @@ public sealed partial class CqlV1Web4NativeTests
     internal static async Task VerifyMappedNativeHttpAsync(IOASISStorageProvider provider,
         VirtualHolonMapping mapping, VirtualHolonRead original, bool groupedDistinctOnly = false,
         Action<Guid>? createdObserver = null, bool guidDistinct = false,
-        Dictionary<string, long>? queryTimings = null, Guid? virtualOnlyId = null, bool guidRows = false, bool predicateCrossing = false, bool guidFilters = false, bool int32Http = false)
+        Dictionary<string, long>? queryTimings = null, Guid? virtualOnlyId = null, bool guidRows = false, bool predicateCrossing = false, bool guidFilters = false, bool int32Http = false, bool unfiltered = false)
     {
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -167,6 +167,49 @@ public sealed partial class CqlV1Web4NativeTests
                 var response = await http.SendAsync(request);
                 if (watch != null) queryTimings!.Add("request" + queryTimings.Count, watch.ElapsedMilliseconds);
                 return response;
+            }
+            if (unfiltered)
+            {
+                Assert.IsTrue(virtualOnlyId.HasValue);
+                body.Filters = Array.Empty<CqlV1Filter>();
+                body.Columns = new[] {
+                    new CqlProjectionV1Column { Field = "Id", Alias = "Id" },
+                    new CqlProjectionV1Column { MetadataPath = new[] { "textAlias" }, ValueType = "String", Alias = "Text" }
+                };
+                body.Take = 10;
+                var expected = new Dictionary<Guid,string?> { [definition.Id]=null, [original.Id]="😀",
+                    [virtualOnlyId.Value]="abc\0def", [important.Id]="xy", [longer.Id]="😀" };
+                async Task<Guid[]> ReadUnfiltered()
+                {
+                    using var response = await Send(ownerToken);
+                    var content = await response.Content.ReadAsStringAsync();
+                    Assert.AreEqual(HttpStatusCode.OK,response.StatusCode,content);
+                    Assert.AreEqual("settled",response.Headers.GetValues("X-OASIS-Usage-Settlement").Single());
+                    using var parsed = JsonDocument.Parse(content);
+                    var result = parsed.RootElement.GetProperty("result");
+                    Assert.AreEqual("cql-projection-v1",result.GetProperty("version").GetString());
+                    var rows = result.GetProperty("rows").EnumerateArray().ToArray();
+                    Assert.AreEqual(rows.Length,result.GetProperty("provenance").GetArrayLength());
+                    foreach (var row in rows) {
+                        Assert.AreEqual(2,row.GetArrayLength());
+                        var id=row[0].GetGuid(); Assert.IsTrue(expected.ContainsKey(id));
+                        Assert.AreEqual(expected[id],row[1].ValueKind == JsonValueKind.Null ? null : row[1].GetString());
+                    }
+                    return rows.Select(row=>row[0].GetGuid()).ToArray();
+                }
+                CollectionAssert.AreEquivalent(expected.Keys.ToArray(),await ReadUnfiltered());
+                body.Skip=1;body.Take=2;
+                CollectionAssert.AreEqual(expected.Keys.OrderBy(id=>id).Skip(1).Take(2).ToArray(),await ReadUnfiltered());
+                using (var response=await Send(otherToken))
+                    Assert.AreEqual(HttpStatusCode.NotFound,response.StatusCode,await response.Content.ReadAsStringAsync());
+                var preserved=await provider.LoadHolonAsync(snapshot.Id);
+                Assert.IsNotNull(preserved.Result);
+                Assert.AreEqual("zz",preserved.Result.MetaData["textAlias"]);
+                Assert.IsNull((await provider.LoadHolonAsync(virtualOnlyId.Value)).Result,
+                    "An unfiltered read must not materialize a native-only record.");
+                Assert.AreEqual(3,authority.Settlements.Count);
+                await app.StopAsync();
+                return;
             }
             if (int32Http)
             {
