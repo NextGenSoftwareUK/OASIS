@@ -1,3 +1,5 @@
+2026-11-21 quest44944060273: actual logs verify owned remote Mongo DB, exact temporary DNA and Mongo container absent. Browser setup skipped. No local build/runtime/download/database/archive created; C free44496404480B observed. Compact source/evidence retained; historical policy-blocked cleanup untouched.
+
 # Current resource and cleanup ledger
 
 2026-11-18 UTC — Emergency cleanup removed3,809,107,627 logical bytes (3.55GiB): obsolete Squirrel extraction, GitHub Desktop3.6.5, Postman12.26.0, Compass1.50.0, 1,077 OneDrive diagnostic logs older than7 days, idle C++ IntelliSense caches and one untracked old test binary. Current/active application versions, source, credentials, sync state, databases, required SDK dependencies and all33 tracked provider evidence files were retained. Exact paths/counts: ../Cleanup/CLEANUP_LEDGER.md. Main/CQL and HyperDrive worktrees remain active; the purge checkout was growing during another build and was preserved. No managed worktree is attached to this chat; unrelated chat workspaces were not removed.
