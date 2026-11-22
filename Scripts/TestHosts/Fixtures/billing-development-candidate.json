@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "owner-authorized-temporary-secret-provider-verification",
-  "base": "c4a65629d4136218be05b04a887490216c050e7a",
-  "candidate": "e5aa77161465fa6c683746bac49ea647dd7adeb0",
-  "tag": "qualification/session-reviewed-2026-11-21-e5aa7716",
+  "status": "warning-sdk-lifecycle-fixed-awaiting-real-provider",
+  "base": "5633710e7c4b983053351ad3e88438558352cbef",
+  "candidate": "fbe6c7248f064e44766260e78e00a24b98555e0d",
+  "tag": "qualification/warning-sdk-2026-11-21-fbe6c724",
   "buildProjects": [
     "WEB4"
   ],
