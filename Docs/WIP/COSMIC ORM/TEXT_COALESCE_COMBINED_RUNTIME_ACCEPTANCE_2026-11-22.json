@@ -1,0 +1,64 @@
+{
+  "source": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+  "checks": [
+    {
+      "service": "WEB7 SYMBIOTIC API",
+      "deployment": "3dbe8116-3253-488d-abf7-5125f57baac7",
+      "source": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB9 SINGULARITIY API",
+      "deployment": "070e2d7a-c480-4571-be17-ebd8ccff10d4",
+      "source": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB10 THE SOURCE API",
+      "deployment": "9520d2fe-3bbd-4458-bde5-fc8235b8ef6f",
+      "source": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB8 IGN API",
+      "deployment": "d85cc2c0-86e9-437f-9a14-80db5f8228ae",
+      "source": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB5 STAR API",
+      "deployment": "6d303ec1-2ad2-4bc6-ae82-3882a1cce4c6",
+      "source": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB4 OASIS API",
+      "deployment": "10255aee-f198-4f67-b936-b3b9e4ae234d",
+      "source": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB6 AI API",
+      "deployment": "65d4bfcc-a9f9-49ba-9df3-d51b56710b65",
+      "source": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    }
+  ],
+  "allSevenVerified": true,
+  "settingsWrites": 0,
+  "dataQueries": 0
+}
