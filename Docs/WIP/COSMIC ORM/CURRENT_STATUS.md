@@ -89,3 +89,12 @@ Open examples:
 - Current coalescing fixture is fully closed; no credential files remain. Stop on an ambiguous write outcome and reconcile the original operation, never recreate it.
 - Owner-only actions belong solely in [ACTIONS-FOR-DAVID](../Release%20and%20Status/ACTIONS-FOR-DAVID.md); keep secrets out of chat/source.
 - Detailed accepted/failed evidence and prior chronology remain in [Full progress report](FULL_PROGRESS_REPORT_2026-11-21.md), linked JSON reports and Git history. This handoff replaces repetitive historical status paragraphs without discarding those evidence sources.
+
+
+### 22 November — mapped computed execution and SQL enrollment
+
+API/wire qualification45002198772 remains accepted. New representative raw native journey sourcebc7873be691bcec4aed7d9cbc7184495ff3606f5 is queued as45004084607, covering all three real providers with three isolated native rows/provider, four combined computed columns, distinct same-field literals, null/empty/zero, wrong-domain refusal at the public mapping boundary, owner refusal, no Holon materialization and unchanged-source fingerprints. Not accepted until exact CI execution and cleanup succeed. Earlier45003939030 used the superseded invalid-cell assertion; cancellation acknowledged and terminal cancellation still needs observation.
+
+Website b1764d41720d1effbd3cd0797647cd6bdb3154f3 adds mapped row SQL enrollment for the same functions, canonical Id first and selected-alias ordering. Three focused Node parser controls passed in RAM. One initial fixture omitted required ORDER BY Id; corrected fixture then passed, without changing the ordering contract. Grouped computed functions remain refused. No rendered preview, native mixed merge or hosted mapped acceptance claimed.
+
+No Development push, shared database calls, local build/install/database, new branch or worktree. CI uses owned isolated Mongo/SQLite/Neo4j sources and existing bounded build lease. Only compact journals retained. Full parity stays61/168 plus4/13 separate extensions.

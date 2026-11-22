@@ -355,3 +355,12 @@ The exact website2973da77 compiler's combined Boolean metadata CASE and Int32 CO
 Mapped computed row API qualification45002198772 passed three focused controls and actual WEB4 compilation on81bce49c/Core5240d3bd. [Wire evidence](MAPPED_COMPUTED_WIRE_ACCEPTANCE_2026-11-22.json). Representative mixed native execution and mapped SQL enrollment remain open; this successor is not deployed. Full parity remains61/168 plus4/13 extensions, with real WEB6 inference and rendered browser acceptance still open.
 
 Evidence reconciliation used len(calls), because the private journal stores call descriptors rather than a numeric count. No live operation was replayed. Seventy-five compact checkpoints retained for audit; zero credential files or downloaded archives. No local build, runtime install, database or new worktree.
+
+
+### 22 November — mapped computed execution and SQL enrollment
+
+API/wire qualification45002198772 remains accepted. New representative raw native journey sourcebc7873be691bcec4aed7d9cbc7184495ff3606f5 is queued as45004084607, covering all three real providers with three isolated native rows/provider, four combined computed columns, distinct same-field literals, null/empty/zero, wrong-domain refusal at the public mapping boundary, owner refusal, no Holon materialization and unchanged-source fingerprints. Not accepted until exact CI execution and cleanup succeed. Earlier45003939030 used the superseded invalid-cell assertion; cancellation acknowledged and terminal cancellation still needs observation.
+
+Website b1764d41720d1effbd3cd0797647cd6bdb3154f3 adds mapped row SQL enrollment for the same functions, canonical Id first and selected-alias ordering. Three focused Node parser controls passed in RAM. One initial fixture omitted required ORDER BY Id; corrected fixture then passed, without changing the ordering contract. Grouped computed functions remain refused. No rendered preview, native mixed merge or hosted mapped acceptance claimed.
+
+No Development push, shared database calls, local build/install/database, new branch or worktree. CI uses owned isolated Mongo/SQLite/Neo4j sources and existing bounded build lease. Only compact journals retained. Full parity stays61/168 plus4/13 separate extensions.
