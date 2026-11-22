@@ -1,0 +1,25 @@
+{
+  "source": "475a4ff37426c066ba4dea10a45e317276083bb1",
+  "deployment": "dpl_ARg3SjK7aoFJhmHgFGpmq7nFmahr",
+  "url": "https://web4-site-1frtudcmg-oasis-team.vercel.app",
+  "state": "READY",
+  "servedSourceAccepted": true,
+  "browserRenderedAccepted": false,
+  "liveQueriesExecuted": 0,
+  "publicPromoted": false,
+  "localAssetsSaved": false,
+  "assets": [
+    {
+      "path": "cql-text.js",
+      "bytes": 88001,
+      "sha256": "41ff86bee055ac9fd8d095d472913cb8482d63223bc3682c401362c2b9b56f3a",
+      "exactSourceMatched": true
+    },
+    {
+      "path": "cql-ask.js",
+      "bytes": 39803,
+      "sha256": "aea1ec695c749f2e1ada8ff4b5f2880ee5ca8c63de5822049855cc6be09f4f10",
+      "exactSourceMatched": true
+    }
+  ]
+}
