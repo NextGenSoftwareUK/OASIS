@@ -27,6 +27,7 @@ def main():
     parser.add_argument("--text-coalesce", action="store_true")
     parser.add_argument("--boolean-text-case", action="store_true")
     parser.add_argument("--boolean-metadata-case", action="store_true")
+    parser.add_argument("--combined-metadata-case", action="store_true")
     parser.add_argument("--combined-coalescing", action="store_true")
     parser.add_argument("--providers", nargs="+", choices=["MongoDBOASIS","SQLLiteDBOASIS","Neo4jOASIS"],
         default=["MongoDBOASIS","SQLLiteDBOASIS","Neo4jOASIS"])
@@ -34,6 +35,8 @@ def main():
     args = parser.parse_args()
     if any(not re.fullmatch("[0-9a-f]{40}", value) for value in (args.commit, args.website)):
         parser.error("Exact backend and website source commits are required.")
+    if args.combined_metadata_case and not args.boolean_metadata_case:
+        parser.error("Combined metadata release selection requires the Boolean metadata mode.")
     if args.boolean_metadata_case and not args.boolean_text_case:
         parser.error("Boolean metadata qualification uses the conditional text mode.")
     if args.boolean_text_case and (args.text_coalesce or not args.selected_columns):
@@ -50,7 +53,8 @@ def main():
         parser.error("Selected-column checks use immutable checkpoints; reconcile an interrupted fixture explicitly.")
     if args.combined_coalescing and not args.text_coalesce:
         parser.error("Combined coalescing selects only the qualified coalescing release journal.")
-    delivery_name = ("boolean-metadata-case-image-handoff.json" if args.boolean_metadata_case else
+    delivery_name = ("boolean-metadata-case-combined-image-handoff.json" if args.combined_metadata_case else
+        "boolean-metadata-case-image-handoff.json" if args.boolean_metadata_case else
         "boolean-text-case-image-handoff.json" if args.boolean_text_case else
         "text-coalesce-combined-image-handoff.json" if args.combined_coalescing else
         "text-coalesce-image-handoff.json" if args.text_coalesce else

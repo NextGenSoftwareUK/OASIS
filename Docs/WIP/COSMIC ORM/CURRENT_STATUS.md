@@ -13,7 +13,7 @@ The physical checkout contains unrelated concurrent changes: use the established
 - Last full startup diagnostic reported105 readers/102 verified, with CosmosBlockChainOASIS, HashgraphOASIS and ArweaveOASIS unavailable. This is an earlier startup snapshot, not proof of their current availability or of a current Holo failure.
 - No staging/production promotion, PIPER data mutation or DNA-setting change in these query slices.
 
-Shared Development advanced to **546dfb451cb11a8ec9355d2d25db853bab16617a** with the peer verified portal batch. Its rollout is separate from the last accepted demo evidence below. A preserved combined metadata candidate **d147fd8995430adf085a116e7c6a412a545e3634** / Core **3f5156e6e2cb7f6f9fd29ca6fa417dfe75808ce1** is prepared; manual exact-source combined WEB4/WEB5 build and three metadata transport controls prepared; qualification, new exact image/package and runtime acceptance remain open. Earlier01de image/package cannot certify this changed runtime.
+Shared Development advanced to **546dfb451cb11a8ec9355d2d25db853bab16617a** with the peer verified portal batch. Its rollout is separate from the last accepted demo evidence below. A preserved combined metadata candidate **d147fd8995430adf085a116e7c6a412a545e3634** / Core **3f5156e6e2cb7f6f9fd29ca6fa417dfe75808ce1** is prepared; manual exact-source combined WEB4/WEB5 build and three metadata transport controls44998378698 running; qualification, new exact image/package and runtime acceptance remain open. Earlier01de image/package cannot certify this changed runtime.
 
 ## Next release: conditional text
 
@@ -26,14 +26,15 @@ Shared Development advanced to **546dfb451cb11a8ec9355d2d25db853bab16617a** with
 - Exact image **44996549738/job137128701744** passed, digestc56c0536d1428809f0fdb4843e31ec5c7c59244f8a4f4676c1930e9e1839463a. [Package44997300304/job137130997577 accepted](BOOLEAN_METADATA_CASE_PACKAGE_ACCEPTANCE_2026-11-22.json), exact source/tag/digest/profile/five assemblies/CQL graph, owned container absent and zero writes. Development rollout and live conditional SQL remain pending.
 - Earlier canonical-only candidate565aab06 has accepted image44994753282 and package44995695068; [package evidence](BOOLEAN_TEXT_CASE_PACKAGE_ACCEPTANCE_2026-11-22.json). It is not deployed. Prefer one qualified batch containing both canonical and metadata conditions when ready, rather than two unnecessary rollouts.
 - Last own Development push completed **06:35:52.487838UTC**. Next ordinary push **not before07:35:52.487838UTC**, and only after image/package acceptance plus fresh shared-branch/peer review. Never force-push or sweep unqualified peer changes into deployment.
-- Prepared hosted verifier: `Scripts/Sandbox/Verify-HostedOwnedNativeSets.py`, explicit `--selected-columns --boolean-text-case --boolean-metadata-case`, fresh bounded fixture name and exact source/website/deployment. Requires its own accepted release journal, unique ready source descriptions before writes, immutable checkpoints and exact cleanup. Not executed for conditional metadata yet.
+- Prepared hosted verifier: `Scripts/Sandbox/Verify-HostedOwnedNativeSets.py`, explicit `--selected-columns --boolean-text-case --boolean-metadata-case`, fresh bounded fixture name and exact source/website/deployment. The current combined release additionally requires explicit --combined-metadata-case, selecting its own source/package journal; the original01de image is not substituted. Requires its own accepted release journal, unique ready source descriptions before writes, immutable checkpoints and exact cleanup. Not executed for conditional metadata yet.
 - Durable private journals under `LocalState/COSMIC`: `boolean-metadata-case-*.json`, `boolean-text-case-image-handoff.json`, `text-coalesce-combined-image-handoff.json`. Preserve unknown-outcome journals; never replay a dispatch, create, delete or session issuance blindly.
 
 ## Next query breadth slice — not deployed
 
 Nullable Int32 coalescing passed representative native qualification44997253843 on all three shipping providers (four checks/store, five isolated records, exact cleanup) and API44997487846 (three controls plus actual WEB4 build). [Native proof](INT32_COALESCE_NATIVE_ACCEPTANCE_2026-11-22.json), [API proof](INT32_COALESCE_WIRE_ACCEPTANCE_2026-11-22.json).
 SQL website aaf83abafe72bf6816304adf1e0244729d5a2fd2 adds COALESCE(CAST(metadata.stock AS INT32),0); three new parser controls and three changed-parser text regressions passed in RAM.
-These proofs use Core703310f2 before portal composition. Current feature Core3696bd32 preserves that Queries tree and the peer portal files; combined-graph release qualification/image, Ask guidance, hosted integer acceptance and broader numeric domains remain open. Keep this successor out of the frozen metadata-only candidate d147fd89.
+Ask integer guidance and one focused review UI journey also passed on website2973da776e44caedf3cef650abdd862ace4865d8; no model inference claim.
+These proofs use Core703310f2 before portal composition. Current feature Core3696bd32 preserves that Queries tree and the peer portal files; combined-graph release qualification/image, real WEB6 inference, hosted integer acceptance and broader numeric domains remain open. Keep this successor out of the frozen metadata-only candidate d147fd89.
 
 ## Full scope and remaining gaps
 
