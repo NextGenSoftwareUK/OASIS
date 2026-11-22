@@ -177,7 +177,7 @@ async function run(){
     await evaluate("document.querySelector('button[data-tab=\"cql\"]').click();true");
     report.renderedExamples=[];
     for(const name of ['derived','staged-set','tuple-distinct']){
-      const loaded=await evaluate("(()=>{const b=document.getElementById('cql-load-"+name+"-example');b.click();const t=document.getElementById('cql-text');return t.value.trim()===document.getElementById('cql-"+name+"-example').textContent.trim()&&t.getClientRects().length>0;})()");
+      const loaded=await evaluate("(()=>{const b=document.getElementById('cql-load-"+name+"-example');b.closest('details').open=true;if(!b.getClientRects().length)return false;b.click();const t=document.getElementById('cql-text');return t.value.trim()===document.getElementById('cql-"+name+"-example').textContent.trim()&&t.getClientRects().length>0;})()");
       if(!loaded)throw Error('Displayed advanced example did not populate the visible real editor');
       report.renderedExamples.push(name);
       if(name==='tuple-distinct'){
