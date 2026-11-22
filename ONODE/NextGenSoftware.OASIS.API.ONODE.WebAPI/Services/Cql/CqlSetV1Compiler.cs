@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -23,10 +25,30 @@ public static partial class CqlV1Compiler
         CosmicQuery<Holon> Source(CqlSetV1Source source)=>CompileSource(actor,provider,source.Filters,source.AnyOf,
             source.AnyChildren,source.AnyDescendants,source.Graph,source.OrderBy,source.Descending,source.Skip,source.Take,access,where:source.Where);
         var query=RequiredSet(CosmicSetQuery<Holon>.Create(Source(request.Left),Source(request.Right),kind));
+        if(request.Ordering!=null)
+        {
+            if(request.Ordering.Length is <1 or >4)throw new ArgumentException("Set ordering requires one to four terms.");
+            var fields=new HashSet<string>(StringComparer.Ordinal);
+            foreach(var term in request.Ordering)
+            {
+                if(term?.Field is not ("Name" or "Description" or "Version" or "Id") || !fields.Add(term.Field))
+                    throw new ArgumentException("Set ordering requires unique declared entity fields.");
+                query=CompileSelection(new CqlProjectionV1Column {Alias=term.Field,Field=term.Field},
+                    new SetOrderingConsumer(query,term.Descending,fields.Count>1));
+            }
+            if(!fields.Contains("Id"))query=RequiredSet(query.ThenBy(row=>row.Id));
+        }
         if(request.Reverse)query=RequiredSet(query.Reverse());
         if(request.Skip!=0)query=RequiredSet(query.Skip(request.Skip));
         if(request.Take.HasValue)query=RequiredSet(query.Take(request.Take.Value));
         return query;
+    }
+    private sealed class SetOrderingConsumer(CosmicSetQuery<Holon> source,bool descending,bool append)
+        :ISelectionConsumer<CosmicSetQuery<Holon>>
+    {
+        public CosmicSetQuery<Holon> Bind<TValue>(string alias,Expression<Func<Holon,TValue>> selector)
+            =>RequiredSet(append?(descending?source.ThenByDescending(selector):source.ThenBy(selector))
+                :(descending?source.OrderByDescending(selector):source.OrderBy(selector)));
     }
     private static T RequiredSet<T>(OASISResult<T> result)
         =>result.IsError?throw new ArgumentException(result.Message):result.Result;

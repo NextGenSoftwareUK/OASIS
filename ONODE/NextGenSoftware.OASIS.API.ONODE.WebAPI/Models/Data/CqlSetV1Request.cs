@@ -15,6 +15,7 @@ public sealed class CqlSetV1Request
     public int MaximumResults { get; set; } = 25;
     public int Skip { get; set; }
     public int? Take { get; set; }
+    public CqlV1Ordering[]? Ordering { get; set; }
     public bool Reverse { get; set; }
     public bool IncludeMetadata { get; set; }
 }

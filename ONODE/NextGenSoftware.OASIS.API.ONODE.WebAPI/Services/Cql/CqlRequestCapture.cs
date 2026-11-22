@@ -30,6 +30,9 @@ internal static class CqlRequestCapture
             Provider=value.Provider,Kind=value.Kind,Left=Source(value.Left),Right=Source(value.Right),
             MaximumLeftRows=value.MaximumLeftRows,MaximumRightRows=value.MaximumRightRows,
             MaximumResults=value.MaximumResults,Skip=value.Skip,Take=value.Take,
+            Ordering=value.Ordering==null?null:Array(value.Ordering,4,term=>term==null
+                ?throw new ArgumentException("Missing set ordering.")
+                :new CqlV1Ordering {Field=term.Field,Descending=term.Descending}),
             Reverse=value.Reverse,IncludeMetadata=value.IncludeMetadata
         };
     }
