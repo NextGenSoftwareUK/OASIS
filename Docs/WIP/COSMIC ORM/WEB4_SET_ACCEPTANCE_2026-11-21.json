@@ -1,0 +1,28 @@
+{
+  "run": 44966359788,
+  "job": 137036169353,
+  "source": "b3ea94c01cd75e7ec93105abec7d08cb909fcf61",
+  "artifact": 14731624017,
+  "bytes": 2202,
+  "sha256": "3332355aa47d23b8eda3bfce0c865021014d4870b037e57d7baeddcd6b5ab8a3",
+  "trx": {
+    "total": "7",
+    "executed": "7",
+    "passed": "7",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "actualWeb4BuildGatePassed": true,
+  "scope": "Seven compiler/capture/public occurrence controls; not live or native HTTP acceptance"
+}
