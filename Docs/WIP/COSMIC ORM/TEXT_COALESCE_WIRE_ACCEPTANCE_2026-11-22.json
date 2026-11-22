@@ -1,0 +1,17 @@
+{
+  "source": "d32635b343956a44c548b6846b0c3fdbfc033f0a",
+  "core": "eef9f1a1d6bca1041c0971fadf764c2664f64d26",
+  "run": 44990504920,
+  "job": 137110301029,
+  "artifact": {
+    "id": 14741542441,
+    "bytes": 1680,
+    "sha256": "b67ae2aced6e3dd1a225daf8d28307b8ee713ed45749d4ee7aacb5e078a15691"
+  },
+  "checks": 3,
+  "actualWeb4Build": true,
+  "buildErrors": 0,
+  "wireAccepted": true,
+  "nativeHttpAccepted": false,
+  "developmentPushed": false
+}

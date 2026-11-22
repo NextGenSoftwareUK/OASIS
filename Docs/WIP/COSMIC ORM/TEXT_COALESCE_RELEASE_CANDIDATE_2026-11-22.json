@@ -1,0 +1,14 @@
+{
+  "source": "d32635b343956a44c548b6846b0c3fdbfc033f0a",
+  "coreSource": "eef9f1a1d6bca1041c0971fadf764c2664f64d26",
+  "compositionRun": 44990504920,
+  "compositionAccepted": true,
+  "nativeRun": 44989377193,
+  "nativeAccepted": true,
+  "nativeRuntimeSourceEquivalent": true,
+  "run": 44991192060,
+  "status": "queued",
+  "conclusion": null,
+  "developmentPushed": false,
+  "notBeforeDevelopmentPushUtc": "2026-11-22T06:13:28.364508+00:00"
+}
