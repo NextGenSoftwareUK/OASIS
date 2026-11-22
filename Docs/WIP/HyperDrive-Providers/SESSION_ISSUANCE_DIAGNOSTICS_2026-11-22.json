@@ -6,5 +6,7 @@
   "run": 45069521383,
   "control": "36280350639e99320762ad26af6cd58c38b7fe38",
   "candidate": "e2d8642070bc3b395ef4b80b10d75d6019009929",
-  "observedStatus": "queued at dispatch; one run only"
+  "observedStatus": "terminal failure before build: candidate parent mismatch, no provider or application checks executed",
+  "correction": "New candidate has exact reviewed Development base as direct parent; same source checks retained",
+  "nextCandidate": "e2477d836b662eec2b979a50c6ea6794e2150260"
 }

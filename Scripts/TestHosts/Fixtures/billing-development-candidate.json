@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "Focused failed global-session flow: identify exact rejected issuance invariant; prior middleware acceptance retained.",
+  "status": "Real selected/global session flow with exact invariant diagnostics and confirmed SQLite absence contract; pending native acceptance",
   "base": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
-  "candidate": "e2d8642070bc3b395ef4b80b10d75d6019009929",
-  "tag": "qualification/session-issuance-diagnostics-20261122",
+  "candidate": "e2477d836b662eec2b979a50c6ea6794e2150260",
+  "tag": "qualification/selected-global-session-20261122",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
     "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
@@ -16,6 +16,8 @@
     "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Migrations/20261122000000_AddSessionAuthority.Designer.cs",
     "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Migrations/20261122000000_AddSessionAuthority.cs",
     "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Migrations/DataContextModelSnapshot.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/AvtarRepository.Load.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/AvtarRepository.Save.cs",
     "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.VisibilitySchema.cs",
     "STAR ODK",
     "WEB10/NextGenSoftware.OASIS.Web10.WebAPI/Middleware/JwtMiddleware.cs",
