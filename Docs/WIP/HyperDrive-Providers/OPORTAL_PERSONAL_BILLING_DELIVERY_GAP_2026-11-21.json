@@ -848,7 +848,7 @@
     },
     "nativeHost": {
       "mode": "billing-warning-store",
-      "status": "candidate-prepared-uncompiled",
+      "status": "accepted-native-persistence-on-b0fa58eb-only",
       "scope": "Real Mongo repeated event preparation preserves original payload/time/ID, native reload, empty provider acknowledgement refused and remains pending. Disabled actual gateway refuses before transport; no artificial successful provider ID or email call.",
       "pending": "Compose three warning source files and verified-email dispatcher change into exact current candidate, compile and execute once.",
       "priorAdminRun": 44970338582,
@@ -894,7 +894,7 @@
       "source": "6d492a0255dd34cfb7a845292901749853e9ad78",
       "tag": "qualification/warning-action-2026-11-21-6d492a02",
       "base": "f26edeef1152961a2b46f2149a6c28c08188a09a",
-      "status": "source-only-inventory-required",
+      "status": "compiled-on-b0fa58eb-with-native-persistence-only",
       "startup": "Exactly seven new registration lines inserted into previous candidate, no wholesale task Startup copy. Existing guarded billing worker/DNA callback preserved.",
       "temporaryIndex": "removed",
       "remaining": "New route inventory/compile/native check, Portal integration, actual provider/retention/hosted acceptance.",
@@ -961,8 +961,14 @@
       "run": {
         "id": 44971805468,
         "control": "d75d3b5b8687c57be2ed3029dbc0da8a988fded5",
-        "status": "queued",
-        "mode": "billing-warning-store"
+        "status": "completed",
+        "mode": "billing-warning-store",
+        "conclusion": "success",
+        "job": 137053026680,
+        "buildErrors": 0,
+        "buildElapsed": "00:05:46.82",
+        "proof": "WARNING_EVENT_NATIVE_PROOF",
+        "cleanup": "Owned database/tempDNA/container absence verified."
       }
     },
     "portalIntegration": {
