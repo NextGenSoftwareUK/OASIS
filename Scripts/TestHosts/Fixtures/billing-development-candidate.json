@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "Global session native check with actual SQLite authority persistence/upgrade and missing-password no-write regression pending",
+  "status": "Focused failed global-session flow: identify exact rejected issuance invariant; prior middleware acceptance retained.",
   "base": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
-  "candidate": "e497204b6d652d7b54bd2f9bab3cd31948b253b2",
-  "tag": "qualification/global-session-sqlite-2026-11-22-e497204b",
+  "candidate": "e2d8642070bc3b395ef4b80b10d75d6019009929",
+  "tag": "qualification/session-issuance-diagnostics-20261122",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
     "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",

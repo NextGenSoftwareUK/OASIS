@@ -2865,3 +2865,7 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 22 November — Prepared one real Mongo/SQLite login-failover case; NOT RUN, so no paused container/fixture DB/SQLite directory created. Two exact composition indexes/locks removed in finally; preserved shared33a source. No local .NET build/runtime/install/output or shared data call. Compact test/source retained and current35case handle unchanged; future native cleanup and acceptance still required.
 
 22 November — One further exact temporary index/lock removed after final regression constructor-cleanup review; immutablefbaeaf90 retains the same providers/source. No test executed or local .NET environment/build/output created. Source/test files and compact proof retained; current enforcement handle observed queued without additional dispatch.
+
+### 2026-11-22 — focused session failure diagnosis
+- No local builds, runtime installs, databases or downloaded logs. Two temporary Git index files removed in finally; credentials and selected CI logs held only in memory.
+- Failed run 45068055435 confirmed owned Mongo unpaused and owned SQLite directory absent. Immutable Git objects retained as reviewable source, not disposable outputs.
