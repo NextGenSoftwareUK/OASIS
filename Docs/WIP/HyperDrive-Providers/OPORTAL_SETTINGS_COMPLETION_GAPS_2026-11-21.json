@@ -72,7 +72,13 @@
       "tag": "qualification/session-current-2026-11-21-1c97234e",
       "status": "uncompiled-source-inventory-required",
       "preservation": "Current c4 release-script and sibling manifest pins retained, no unqualified CQL691 source imported. Existing billing2outbox+session2files only relative current Core.",
-      "temporaryIndex": "removed"
+      "temporaryIndex": "removed",
+      "inventoryRun": {
+        "id": 44974123723,
+        "control": "606ff48559cb06306acce37cef26705a487ab6f7",
+        "status": "queued",
+        "native": false
+      }
     }
   }
 }
