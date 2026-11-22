@@ -31,6 +31,8 @@ Links: [full handoff](../COSMIC%20ORM/CLOUD_HANDOFF_2026-11-18.md), [official Cl
 
 ### WEB4 COSMIC demo preview access · 13 November
 
+22 November update — latest reviewed Development preview is [7f65737 SQL selected-query demo](https://web4-site-cphrnd47m-oasis-team.vercel.app/web4-sandbox.html), READY with exact HTML/three-JS delivery proof. Adds bounded WITH steps, positional aliases and derived tables. The existing public website promotion decision remains pending; no production website/domain/protection setting changed. Typed API reselection deployment and real model/browser acceptance remain separate engineering gates. Existing access works; no further login requested.
+
 21 November update — preview access resolved through the existing native Vercel connection; no new login needed. The reviewed six-file sandbox-only candidate bd739705c3f231db9d15cbec71fdf48ef00281f0 is READY: https://web4-site-p6g80bybm-oasis-team.vercel.app/web4-sandbox.html. Static browser review passed with zero application-data requests; exact qualified runtime hashes retained and Ask layout visually reviewed. Decision pending: approve publication of these website assets at the existing public WEB4 sandbox URL. Reason: this changes the public website while the standing goal excludes production promotion. It would not deploy any staging/production backend or alter PIPER data. Real WEB6 model verification remains separately gated by the existing free-model configuration action. Preserve earlier history below.
 
 
@@ -1016,6 +1018,8 @@ Power recovery verified on 11 November UTC: battery 21% and charging (Win32_Batt
 - Engineering next step: qualify only the reviewed pages and owner, stage the six scoped Development settings, and verify native and MongoDB paired presets and cross-owner denial. [Urbit scope and qualification](../COSMIC%20ORM/URBIT_CQL_MVP.md).
 
 ### WEB6 Ask your data Development demo entitlement · 13 November
+
+22 November update — same existing permanent-Free-route action remains pending. Scoped saved Development WEB6 configuration inspection found no DNA/environment OpenRouter key, no dedicated Gemini Free key, and no Ollama URL/model. Presence booleans only; no values printed, configuration writes, model inference, sign-in or Bronze grant. [Current presence proof](../COSMIC%20ORM/WEB6_FREE_ROUTE_PRESENCE_2026-11-22.json). Keep provider credentials in private OASIS DNA/secret storage; the prior owner decision is preserved and is not being re-asked. Engineering is separately recovering the crashed WEB6 AWS SDK dependency graph; scoped source is pushed and exact seven-API/real-assembly run45031220175 is executing. Runtime recovery alone will not supply a free inference route.
 
 21 November UTC update: a new scoped read of saved Development WEB6 OASIS DNA still found GeminiFree/OpenRouter API keys and Ollama URL/model unset (four presence booleans only). No secret values printed, inference/data calls, setting changes, new sign-in request or Bronze grant. Existing permanent-Free-route action remains pending; saved settings do not prove loaded runtime configuration. Evidence: [presence-only verification](../COSMIC%20ORM/WEB6_FREE_ROUTE_PRESENCE_2026-11-21.json). Earlier owner decisions and history below are preserved.
 
