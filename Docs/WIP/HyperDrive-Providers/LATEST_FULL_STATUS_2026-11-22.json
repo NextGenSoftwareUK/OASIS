@@ -82,8 +82,8 @@
       "acceptance": "Complete sign-in/global signout/native/browser/hosted journey remains pending; older35 middleware cases retained."
     },
     "currentFocusedRun": {
-      "run": 45085506508,
-      "control": "3f3ec4d8a82e120938f19a84800caf58848bbfdd",
+      "run": 45086300342,
+      "control": "8a6ac75aa03b6e650a6dba35935c5663096ece32",
       "candidate": "820b06223e639c4b5757329015563a5a3f242f11",
       "status": "in_progress observed",
       "scope": "Changed password sign-in: explicit enabled failover, keep primary active before connected outage, long99s provider setting bounded by request-local login budget, save to observed read authority. Unchanged accepted billing assertions skipped."
@@ -143,6 +143,14 @@
       "rootCause": "Composed candidate omitted existing task-source IsActiveAt use in AuthorizeAsync and retained inline status/expiry check.",
       "fix": "Scoped canonical predicate replacement preserving shared constructor/index/app billing changes.",
       "cleanup": "Owned native fixture removal succeeded; SQLite absence/Mongo unpause marker observed."
+    },
+    "hostCompileFailure": {
+      "run": 45085506508,
+      "job": 137403081738,
+      "error": "Native host trace missing namespace; corrected fully qualified reference.",
+      "productCandidate": "820b06223e639c4b5757329015563a5a3f242f11 unchanged",
+      "runtime": "No native scenario ran; prior billing/middleware evidence unchanged.",
+      "cleanup": "Owned native fixture removal succeeded."
     }
   },
   "providers": {
@@ -163,7 +171,7 @@
   },
   "cleanup": {
     "freeDiskGB": 28.97,
-    "thisTurn": "No local builds/downloads/installs/environments/databases/results. All private Core/root indexes and locks, including unsuccessful preparation, removed in finally.45084348607 remote native fixture removal succeeded;45085506508 remote finalizers pending. Source and compact evidence retained.",
+    "thisTurn": "Read-only selected CI metadata/logs in memory and one host source reference correction. No local build, download, environment, database or generated results.45085506508 remote native fixture removal succeeded;45086300342 finalizers pending.",
     "temporaryEmailSecrets": "Previously deleted and absence verified; not restaged."
   },
   "deliveryPolicy": "Finish remaining OPORTAL user flows breadth first; one representative end-to-end verification for changed behavior, reuse accepted evidence. A blocked backend flow must not stop independent screen work.",
