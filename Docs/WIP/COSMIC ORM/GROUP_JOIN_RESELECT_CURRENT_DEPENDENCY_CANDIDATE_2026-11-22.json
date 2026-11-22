@@ -35,7 +35,22 @@
   ],
   "compositionAccepted": false,
   "deployed": false,
-  "qualificationPhase": "prepared_not_dispatched",
+  "qualificationPhase": "dispatch_acknowledged",
   "activeMappedImageRun": 45027230988,
-  "websiteSource": "d63fd52be46be83543c99249b4251b17bf3e4a7b"
+  "websiteSource": "d63fd52be46be83543c99249b4251b17bf3e4a7b",
+  "control": "5ee6ca2d5068bddf52c417e04f115151518ed4b5",
+  "priorRunIds": [
+    45026522187,
+    45014425835,
+    45009513105,
+    45005838375,
+    44999417026,
+    44998378698,
+    44995661351,
+    44993122409
+  ],
+  "requestedAt": "2026-11-22T13:27:04.747726+00:00",
+  "run": 45027751578,
+  "status": "in_progress",
+  "conclusion": null
 }
