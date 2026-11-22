@@ -21,9 +21,9 @@
   "rootTag": "qualification/global-session-http-2026-11-22-3d787db8",
   "qualification": "New focused session-global-http mode prepared; unrun.",
   "managerInventory": "934 methods retained; one SaveAvatarAsync signature removes async keyword for shared private implementation; no added/removed public declarations.",
-  "qualificationRun": 45064963793,
-  "qualificationControl": "ef10e3af229116525ffaf38ac413b091ef10ccd5",
-  "qualificationStatus": "Runner lifecycle correction prepared; same backend source unchanged, retry pending.",
+  "qualificationRun": 45066176416,
+  "qualificationControl": "bb6af7bf0e8c134af6f654c1363a7abd863541d4",
+  "qualificationStatus": "queued; single corrected fixture retry, same backend source",
   "qualificationHistory": [
     {
       "run": 45064963793,
