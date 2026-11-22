@@ -80,7 +80,7 @@
       "control": "e8f47dcd0a8eb3a49bdde542488b3df71686a2c3",
       "candidate": "e2477d836b662eec2b979a50c6ea6794e2150260",
       "core": "05c4ba09a45aaf3232dfbcd5d0f6a25d0144c06b",
-      "status": "queued at dispatch",
+      "status": "in_progress; actual job137355471005 observed",
       "scope": "Failed real global flow plus new selected-session/isolation and SQLite absent-account checks; accepted35 middleware cases not replayed"
     },
     "preparationFailure": {
@@ -115,5 +115,18 @@
     "thisTurn": "Read-only metadata and bounded selected CI logs in RAM; no runtime/download/build/database/test archive created.",
     "temporaryEmailSecrets": "Previously deleted and absence verified; not restaged."
   },
-  "deliveryPolicy": "Finish remaining OPORTAL user flows breadth first; one representative end-to-end verification for changed behavior, reuse accepted evidence. A blocked backend flow must not stop independent screen work."
+  "deliveryPolicy": "Finish remaining OPORTAL user flows breadth first; one representative end-to-end verification for changed behavior, reuse accepted evidence. A blocked backend flow must not stop independent screen work.",
+  "accountDeletion": {
+    "status": "Incomplete; authenticated dependency-review API implemented, uncompiled/unrun/undeployed; permanent removal not enabled",
+    "source": "75c07dbc3b6",
+    "preparedRealCheck": "Actor-owned application/empty ledger/unchanged avatar through actual controller and owned Mongo; no Stripe call",
+    "nextCandidate": "58d7316d2394c99cc46813a4af83dc5268529b56",
+    "currentSharedBase": "9452340f0c6",
+    "limits": [
+      "Closure admission and durable checkout intents",
+      "Subscription cancellation/ownership handling",
+      "Identity/profile/private data and replica deletion orchestration",
+      "Portal wiring and full browser acceptance"
+    ]
+  }
 }

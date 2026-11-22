@@ -11,5 +11,6 @@
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AccountClosurePrerequisites.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.AccountClosure.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarAccountClosureController.cs"
-  ]
+  ],
+  "currentRunStatus": "45070278761/job137355471005 in_progress at final observation; existing handle retained"
 }
