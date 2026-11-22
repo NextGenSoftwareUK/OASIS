@@ -20,8 +20,16 @@ public sealed class CqlSetV1Request
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed class CqlV1JoinOrder
+public sealed class CqlSetV1Source
 {
-    public string? Alias { get; set; }
+    public CqlWhereV1Predicate? Where { get; set; }
+    public CqlV1Filter[] Filters { get; set; } = Array.Empty<CqlV1Filter>();
+    public CqlV1Filter[] AnyOf { get; set; } = Array.Empty<CqlV1Filter>();
+    public CqlV1ChildExists[] AnyChildren { get; set; } = Array.Empty<CqlV1ChildExists>();
+    public CqlV1DescendantExists[] AnyDescendants { get; set; } = Array.Empty<CqlV1DescendantExists>();
+    public string OrderBy { get; set; } = "Name";
     public bool Descending { get; set; }
+    public int Skip { get; set; }
+    public int? Take { get; set; }
+    public CqlV1Graph? Graph { get; set; }
 }
