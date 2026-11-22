@@ -807,6 +807,23 @@
         "Compile and real SDK verification",
         "Retention policy and hosted acceptance"
       ]
+    },
+    "dispatcherSource": {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailDispatcher.cs",
+      "status": "implemented-source-only-uncompiled-unregistered",
+      "behavior": [
+        "One explicit stored event, no polling/scan.",
+        "Requires canonical authenticated subscriber and matching personal/app-owner subject.",
+        "Revalidates current app ownership, owner view, warning opt-in/email opt-in and node gate.",
+        "Requires stored recipient to match actual current native-loaded avatar email.",
+        "Acknowledges only after real gateway accepted provider ID; existing acknowledged event never resubmitted."
+      ],
+      "remaining": [
+        "Compile/native invariant verification",
+        "Authorized preparation/dispatch endpoint and DI registration",
+        "Email recipient verification policy review",
+        "Retention and real provider/hosted acceptance"
+      ]
     }
   },
   "sharedDevelopmentReview": {
