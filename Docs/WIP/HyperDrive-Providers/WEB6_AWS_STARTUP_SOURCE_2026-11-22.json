@@ -2,15 +2,13 @@
   "base": "0348ded2819e3cb1566e09c49150e41c4ea4d435",
   "candidate": "50f8e7ff8f5e231804cd5917b4139c3fb78c61dc",
   "tag": "qualification/web6-aws-compat-2026-11-22-50f8e7ff",
-  "status": "source fix only; not compiled, startup-tested or deployed",
+  "status": "Own compile/real ABI qualification passed; newer shared Development independently carries compatible SDK and latest WEB6 deployment SUCCESS.",
   "rootCause": "WEB6 Bedrock v4 selects AWSSDK.Core v4 while DynamoDB/S3 providers remain SDK v3; live WEB6 TypeLoadException CreateDefaultClientConfig on AmazonDynamoDBClient.",
   "fix": "Restore existing Bedrock3.7.415 dependency; preserve all current model catalogue and manager changes. Bedrock manager source unchanged from earlier v3 source.",
   "liveDeployment": "2c7ea11f-c580-4011-9dc8-14b7fca05aa3",
   "liveRoot": "ca4f83361423e1f7219be5d4d6798e64c26cae67",
   "remaining": [
-    "Actual compile and full startup type-loading qualification",
-    "Paired root gitlink/manifest source composition",
-    "Verified dev rollout"
+    "Full feature/Startup acceptance separate; preserve newer shared source, no duplicate old-candidate rollout."
   ],
   "cleanup": "RAM-only bounded selected logs; temporary index/lock removed; no environment/build/download/backend operations.",
   "rootCandidate": "a4e0512ed125cb5efbf8caa065c3299351d80089",
@@ -19,5 +17,8 @@
   "qualification": "Actual WEB6 build followed by four real SDK assembly GetTypes checks; not run yet.",
   "qualificationControl": "b576a76391a194083c48172a53fa61da989763d0",
   "dispatchStatus": "Single dispatch acknowledged and exact control run reconciled queued; native/database mode false.",
-  "qualificationRun": 45018741401
+  "qualificationRun": 45018741401,
+  "currentDeployment": "c50654a6-5d5b-4a69-be04-3f1135713ddc",
+  "currentDevelopment": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
+  "currentWeb6": "d9e60ceaecef5513d1bcd6285cd668076bc77edf"
 }
