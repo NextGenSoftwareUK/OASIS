@@ -40,7 +40,7 @@ Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
 var mode = Environment.GetEnvironmentVariable("OASIS_HOTSPOT_HTTP_MODE") ?? "binding";
-Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "session-list-http" or "mfa-native" or "mfa-http", "Unsupported hotspot HTTP check mode.");
+Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "session-list-http" or "mfa-native" or "mfa-http" or "mfa-browser", "Unsupported hotspot HTTP check mode.");
 var dna = new OASISDNA { OASIS = new() {
     HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
         AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
@@ -71,7 +71,7 @@ try
     foreach (var account in accounts)
     {
         account.IsActive = true; account.Version = 1; account.VersionId = Guid.NewGuid(); account.CreatedDate = DateTime.UtcNow;
-        if (mode == "mfa-http" && account.Id == actor)
+        if ((mode is "mfa-http" or "mfa-browser") && account.Id == actor)
         {
             account.Verified = DateTime.UtcNow;
             account.Password = BCrypt.Net.BCrypt.HashPassword(mfaPassword);
@@ -162,16 +162,16 @@ try
     var builder = WebApplication.CreateBuilder(); builder.Logging.ClearProviders(); builder.WebHost.UseUrls("http://127.0.0.1:0");
     NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa.MfaService? httpMfa = null;
     var mfaNow = DateTime.UtcNow;
-    if (mode == "mfa-http")
+    if (mode is "mfa-http" or "mfa-browser")
     {
         var settings = new MfaSettings { Enabled = true, CodeDigits = 6, TimeStepSeconds = 30, AllowedDriftSteps = 0 };
         var store = new NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa.MongoMfaStore(() => dna);
         httpMfa = new NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa.MfaService(() => settings, store,
-            dna.OASIS.Security.SecretKey, () => mfaNow);
+            dna.OASIS.Security.SecretKey, () => mode == "mfa-browser" ? DateTime.UtcNow : mfaNow);
         builder.Services.AddSingleton(httpMfa);
         builder.Services.AddHttpContextAccessor();
     }
-    if (mode == "mfa-http") builder.Logging.AddProvider(new SanitizedHttpExceptionLogger());
+    if (mode is "mfa-http" or "mfa-browser") builder.Logging.AddProvider(new SanitizedHttpExceptionLogger());
     MongoSubscriptionUsageRepository? billingRepository = null;
     if (mode is "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider")
     {
@@ -199,14 +199,14 @@ try
             builder.Services.AddTransient<UsageWarningEmailService>();
         }
     }
-    var key = new SymmetricSecurityKey(mode == "mfa-http" ? System.Text.Encoding.ASCII.GetBytes(dna.OASIS.Security.SecretKey) : secret);
+    var key = new SymmetricSecurityKey((mode is "mfa-http" or "mfa-browser") ? System.Text.Encoding.ASCII.GetBytes(dna.OASIS.Security.SecretKey) : secret);
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {
         options.MapInboundClaims = false;
         options.TokenValidationParameters = new() { ValidateIssuer = false, ValidateAudience = false,
             ValidateIssuerSigningKey = true, IssuerSigningKey = key, ValidateLifetime = true, ClockSkew = TimeSpan.Zero };
     });
     var mvc = builder.Services.AddControllers();
-    if (mode == "mfa-http")
+    if (mode is "mfa-http" or "mfa-browser")
     {
         // WEB4 hosts authentication; WEB5's proxy has its own deployment and the same public URL.
         // This multi-API fixture must use WEB4's application surface for the auth journey.
@@ -217,16 +217,16 @@ try
         mvc.AddApplicationPart(typeof(GeoHotSpotsController).Assembly)
             .AddApplicationPart(typeof(NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.NftController).Assembly);
     app = builder.Build(); app.UseAuthentication();
-    if (mode == "mfa-http")
+    if (mode is "mfa-http" or "mfa-browser")
         AvatarManager.SecondFactorGate = NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa.MfaGate.Create(httpMfa!,
             app.Services.GetRequiredService<IHttpContextAccessor>());
-    if (mode is "browser" or "catalogue-browser" or "competition-browser")
+    if (mode is "browser" or "catalogue-browser" or "competition-browser" or "mfa-browser")
     {
         var portal = Environment.GetEnvironmentVariable("OASIS_GEO_PORTAL_ROOT") ?? throw new InvalidOperationException("Pinned Portal root required.");
         var browserHost = Environment.GetEnvironmentVariable("OASIS_GEO_BROWSER_HOST") ?? throw new InvalidOperationException("Geo browser host required.");
-        Require(File.Exists(Path.Combine(portal, mode switch { "catalogue-browser" => "assets/js/missions-modal.js", "competition-browser" => "assets/js/competition-modal.js", _ => "assets/js/map-modal.js" })) && File.Exists(browserHost), "Actual Portal/browser assets missing.");
+        Require(File.Exists(Path.Combine(portal, mode switch { "catalogue-browser" => "assets/js/missions-modal.js", "competition-browser" => "assets/js/competition-modal.js", "mfa-browser" => "assets/js/settings-modal.js", _ => "assets/js/map-modal.js" })) && File.Exists(browserHost), "Actual Portal/browser assets missing.");
         app.UseStaticFiles(new StaticFileOptions { FileProvider = new PhysicalFileProvider(Path.Combine(portal, "assets")), RequestPath = "/assets" });
-        app.MapGet(mode switch { "catalogue-browser" => "/__catalogue_browser", "competition-browser" => "/__competition_browser", _ => "/__geo_browser" }, () => Results.File(browserHost, "text/html"));
+        app.MapGet(mode switch { "catalogue-browser" => "/__catalogue_browser", "competition-browser" => "/__competition_browser", "mfa-browser" => "/__mfa_settings_browser", _ => "/__geo_browser" }, () => Results.File(browserHost, "text/html"));
     }
     app.Use(async (context, next) => {
         if (context.User.Identity?.IsAuthenticated == true && Guid.TryParse(context.User.FindFirst("sub")?.Value, out var id))
@@ -242,7 +242,7 @@ try
             Console.WriteLine("SESSION_HTTP_SERVER_FAILURE: type=" + error.GetType().FullName +
                 " base=" + error.GetBaseException().GetType().FullName +
                 " avatarType=" + context.Items["Avatar"]?.GetType().FullName);
-            if (mode == "mfa-http")
+            if (mode is "mfa-http" or "mfa-browser")
                 Console.WriteLine("MFA_HTTP_FAILURE_METHODS: " + string.Join(" | ",
                     new StackTrace(error.GetBaseException(), false).GetFrames()?.Take(8).Select(frame =>
                         frame.GetMethod()?.DeclaringType?.FullName + "." + frame.GetMethod()?.Name) ?? Array.Empty<string>()));
@@ -276,7 +276,23 @@ try
         using var result = JsonDocument.Parse(resultText);
         Require(result.RootElement.GetProperty(resultProperty).GetBoolean(), "Owned browser completion marker missing.");
     }
-    if (mode == "mfa-http")
+    if (mode == "mfa-browser")
+    {
+        var before = await provider.LoadAvatarAsync(actor);
+        Require(!before.IsError && before.Result != null, "Owned browser actor unavailable.");
+        await RunOwnedBrowserAsync(new { baseUrl = address, token = new JwtSecurityTokenHandler().WriteToken(jwt),
+            avatarId = actor.ToString("D") }, "mfaSettingsBrowserVerified");
+        var state = await httpMfa!.StatusAsync(actor);
+        var events = await httpMfa.EventsAsync(actor, 50);
+        Require(!state.Enabled && events.Any(item => item.Kind == "enrol-confirmed") &&
+            events.Any(item => item.Kind == "recovery-regenerated") && events.Any(item => item.Kind == "disabled"),
+            "Actual browser management did not persist its native MFA lifecycle.");
+        var after = await provider.LoadAvatarAsync(actor);
+        Require(!after.IsError && after.Result!.VersionId == before.Result.VersionId,
+            "MFA Settings management changed the native avatar.");
+        Console.WriteLine("MFA_SETTINGS_BROWSER_NATIVE_PROOF: actual SDK/fragment/controls enrollment, confirmation, recovery replacement, disable, clear/reopen and native audit; unchanged avatar. Not full site/full Startup/hosted acceptance.");
+    }
+    else if (mode == "mfa-http")
     {
         var authEndpoints = app.Services.GetRequiredService<Microsoft.AspNetCore.Routing.EndpointDataSource>().Endpoints
             .OfType<Microsoft.AspNetCore.Routing.RouteEndpoint>()

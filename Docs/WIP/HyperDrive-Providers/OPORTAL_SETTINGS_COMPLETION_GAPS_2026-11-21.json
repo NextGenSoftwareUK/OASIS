@@ -302,8 +302,9 @@
       "host": "Scripts/TestHosts/Fixtures/mfa-settings-browser-host.html",
       "status": "host-and-journey-prepared-syntax-checked-unselected",
       "scope": "Actual SDK/Settings fragment/script/stylesheet against native API: status, enrollment/manual key, confirmation, recovery replacement after real next TOTP step, recovery disable, secret clearing and reopen. Network requests constrained to own loopback endpoints; no response stubs, setup/recovery/body logging or local environment.",
-      "remaining": "Corrected HTTP acceptance; activate management, wire fresh real-clock browser/native fixture and exact workflow selector; actual browser/native cleanup acceptance.",
-      "runner": "Scripts/TestHosts/Fixtures/mfa-settings-browser-native-http.cjs"
+      "remaining": "Corrected HTTP result; activate management and pin exact Portal revision, select and run browser journey, verify cleanup. Prepared host wiring not compiled/accepted yet.",
+      "runner": "Scripts/TestHosts/Fixtures/mfa-settings-browser-native-http.cjs",
+      "selector": "Explicit mfa-browser host/workflow prepared: WEB4-only surface, fresh verified actor, real-time MfaService, actual assets/SDK/browser, native lifecycle audit and unchanged avatar; existing remote browser runtime/cleanup. Descriptor remains mfa-http; no browser run selected."
     }
   },
   "portalExpiryFix": {
