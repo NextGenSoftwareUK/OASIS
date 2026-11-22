@@ -1,0 +1,109 @@
+{
+  "source": "1bab313d6e1c74410e5deaf0731b77f59a8cb106",
+  "imageSource": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
+  "core": "dcf11fe46181438b46eba57a88310f7172c89a61",
+  "run": 44987280584,
+  "job": 137100510901,
+  "artifact": {
+    "id": 14740118747,
+    "bytes": 2901,
+    "sha256": "a037ebddf5c38bf897f0c0edb8696c2561a654a01382d8ed452f4ddc86e2746e"
+  },
+  "cases": 3,
+  "artifactAccepted": true,
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 5,
+      "ownedCleanupIds": 4,
+      "successfulHolonWrites": 4,
+      "queryElapsedMilliseconds": {
+        "create-owned": 530,
+        "create-foreign": 14,
+        "union": 145,
+        "concat": 23,
+        "intersect": 31,
+        "except": 37,
+        "global-window": 50
+      },
+      "nativeProviderVerified": true,
+      "nativeLinqVerified": true,
+      "allFourSetOperationsVerified": true,
+      "concatMultiplicityVerified": true,
+      "independentWindowsVerified": true,
+      "foreignRowsHiddenVerified": true,
+      "hiddenInputColumnsExcludedVerified": true,
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 5,
+      "ownedCleanupIds": 4,
+      "successfulHolonWrites": 4,
+      "queryElapsedMilliseconds": {
+        "create-owned": 538,
+        "create-foreign": 14,
+        "union": 43,
+        "concat": 4,
+        "intersect": 6,
+        "except": 6,
+        "global-window": 7
+      },
+      "nativeProviderVerified": true,
+      "nativeLinqVerified": true,
+      "allFourSetOperationsVerified": true,
+      "concatMultiplicityVerified": true,
+      "independentWindowsVerified": true,
+      "foreignRowsHiddenVerified": true,
+      "hiddenInputColumnsExcludedVerified": true,
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 5,
+      "ownedCleanupIds": 4,
+      "successfulHolonWrites": 4,
+      "queryElapsedMilliseconds": {
+        "create-owned": 924,
+        "create-foreign": 355,
+        "union": 1634,
+        "concat": 1624,
+        "intersect": 1291,
+        "except": 259,
+        "global-window": 1267
+      },
+      "nativeProviderVerified": true,
+      "nativeLinqVerified": true,
+      "allFourSetOperationsVerified": true,
+      "concatMultiplicityVerified": true,
+      "independentWindowsVerified": true,
+      "foreignRowsHiddenVerified": true,
+      "hiddenInputColumnsExcludedVerified": true,
+      "exactCleanupVerified": true
+    }
+  },
+  "runtimeEquivalence": {
+    "imageSource": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
+    "nativeLinqSource": "1bab313d6e1c74410e5deaf0731b77f59a8cb106",
+    "developmentBase": "b8561b84a7b2298ff7b305dd8a352748b98b2980",
+    "nativeLinqShippingTreesIdentical": true,
+    "trees": {
+      "ONODE": "6d7ea16ff632e4ec92b4b7f2ebefc78ba4d5f1cc",
+      "Docker": "7f0023d09ef8be0773bab3c420a76fcaf91cebef",
+      "OASIS Architecture/NextGenSoftware.OASIS.API.Core": "dcf11fe46181438b46eba57a88310f7172c89a61",
+      "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS": "09ce6d6a3879b76ef4210e9dfa26ad3be8f3dc39",
+      "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS": "03ed439803f4920499c906ea6dfd473ebe929f16",
+      "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS": "465df8be5c1e59330cee99669515d6a0665dec36"
+    },
+    "developmentAncestorOfCandidate": true,
+    "nativeLinqRun": 44987280584,
+    "nativeLinqAccepted": false,
+    "promotionPerformed": false
+  },
+  "sharedAtlasOperations": 0,
+  "developmentPushed": false,
+  "nativeLinqAccepted": true,
+  "ownedMongoStopped": true,
+  "ownedNeoStopped": true,
+  "workflowCompletedSuccessfully": true
+}
