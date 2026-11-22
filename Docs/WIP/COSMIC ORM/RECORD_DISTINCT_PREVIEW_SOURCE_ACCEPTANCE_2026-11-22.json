@@ -1,0 +1,47 @@
+{
+  "websiteSource": "7c002846b2e95654b5c2261f6c13a703acc6c9d2",
+  "deployment": "dpl_7WiUaetFS98QPfJuFp2buEScy9vf",
+  "url": "https://web4-site-pjwe2l8sd-oasis-team.vercel.app/web4-sandbox.html",
+  "observedUtc": "2026-11-22T18:02:02.899159+00:00",
+  "state": "READY",
+  "assets": [
+    {
+      "path": "web4-sandbox.html",
+      "sourceBytes": 312001,
+      "sourceSha256": "4c53031cd7d32feb81ba87396e2098f7978de21242bdb88710a1d92ff838d576",
+      "servedBytes": 312164,
+      "servedSha256": "72aa9918ca4792cfae3bb4097936ba42ef49d0d555501543037dc55709452d38",
+      "exact": false,
+      "exactAfterRemovingPreviewFeedbackScript": true,
+      "previewFeedbackScriptBytes": 163
+    },
+    {
+      "path": "cql-text.js",
+      "sourceBytes": 108370,
+      "sourceSha256": "5460a2ef0e717698789820e73767cd767c23c3dca70a7f7ebd0fe2b907e6834d",
+      "servedBytes": 108370,
+      "servedSha256": "5460a2ef0e717698789820e73767cd767c23c3dca70a7f7ebd0fe2b907e6834d",
+      "exact": true
+    },
+    {
+      "path": "cql-playground.js",
+      "sourceBytes": 33248,
+      "sourceSha256": "d92468dadf3a3040fd02f0d53da86e772ea118b8502a74d8c0900108e77e436a",
+      "servedBytes": 33248,
+      "servedSha256": "d92468dadf3a3040fd02f0d53da86e772ea118b8502a74d8c0900108e77e436a",
+      "exact": true
+    },
+    {
+      "path": "cql-ask.js",
+      "sourceBytes": 41456,
+      "sourceSha256": "034a72f27ccdb07213c67ad9a4544a44d24ddae8dbcc9c59d3177aaf9ceaa728",
+      "servedBytes": 41456,
+      "servedSha256": "034a72f27ccdb07213c67ad9a4544a44d24ddae8dbcc9c59d3177aaf9ceaa728",
+      "exact": true
+    }
+  ],
+  "backendNewFeatureDeployed": false,
+  "browserOrModelFlowAccepted": false,
+  "applicationDataCalls": 0,
+  "localDownloadWritten": false
+}
