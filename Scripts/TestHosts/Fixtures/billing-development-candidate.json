@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "Real global revoke native HTTP check pending; current configured SSO authority policy enforced",
+  "status": "Global session native check with actual SQLite authority persistence/upgrade and missing-password no-write regression pending",
   "base": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
-  "candidate": "3d787db8626160c8a79ac9cd4dd156802c70a98c",
-  "tag": "qualification/global-session-http-2026-11-22-3d787db8",
+  "candidate": "e497204b6d652d7b54bd2f9bab3cd31948b253b2",
+  "tag": "qualification/global-session-sqlite-2026-11-22-e497204b",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
     "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
@@ -12,6 +12,11 @@
     "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/AvatarLoginTests.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarProfileController.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/JwtMiddleware.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Entities/RefreshTokenModel.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Migrations/20261122000000_AddSessionAuthority.Designer.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Migrations/20261122000000_AddSessionAuthority.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Migrations/DataContextModelSnapshot.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.VisibilitySchema.cs",
     "STAR ODK",
     "WEB10/NextGenSoftware.OASIS.Web10.WebAPI/Middleware/JwtMiddleware.cs",
     "WEB10/NextGenSoftware.OASIS.Web10.WebAPI/Program.cs",
@@ -29,5 +34,5 @@
   ],
   "nativeHost": "HotspotHttpNative",
   "nativeMode": "session-global-http",
-  "remaining": "One bounded real Mongo/SQLite HTTP global-revocation flow including actual native paused-authority incomplete outcome; no accepted35case replay, no browser/hosted acceptance."
+  "remaining": "Focused real Mongo/SQLite native HTTP journey only; no accepted35case replay or shared backend."
 }

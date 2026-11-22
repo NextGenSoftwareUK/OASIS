@@ -1,0 +1,13 @@
+{
+  "status": "SQLite session authority mapping/schema source implementation; uncompiled/unrun/undeployed",
+  "files": [
+    "Entities/RefreshTokenModel.cs",
+    "SQLLiteDBOASIS.VisibilitySchema.cs",
+    "Migrations/20261122000000_AddSessionAuthority.cs",
+    "Migrations/20261122000000_AddSessionAuthority.Designer.cs",
+    "Migrations/DataContextModelSnapshot.cs"
+  ],
+  "invariant": "New credential issuing authority survives both SQLite entity conversion directions. Existing schemas gain nullable AuthorityProvider without inventing historical values. Downgrade refuses loss of populated authority evidence.",
+  "verificationPlanned": "Existing-schema column upgrade preserves native account/version/password, followed by actual two-provider authentication/global revoke; one missing-password HTTP no-write case.",
+  "cleanup": "Necessary tracked source only; no local build/env/download/database/artifact. Test-created database/schema changes run only in isolated CI."
+}

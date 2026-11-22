@@ -1,6 +1,6 @@
 {
   "base": "7a766082d54d09c4742f572a9e0ba29a7bd198a3",
-  "candidate": "9d49840a1e32f72a68fb09a141739069ea60e8d2",
+  "candidate": "10ba635e3d19110c40b30eae65c743eeb8b04df7",
   "tag": "qualification/global-session-backend-2026-11-22-9d49840a",
   "status": "Backend and Settings flow implemented in source; not compiled/native/browser/hosted accepted; backend not deployed",
   "behavior": "Global endpoint manager now uses real per-authority writes and acknowledged cutoff; all currently admitted SSO issuers are covered, policy changes report incomplete. New issuances, access validation and refresh envelopes enforce the same configured SSO authority set. Explicit RecordNotFound counts as absent; operational errors do not.",
@@ -16,14 +16,14 @@
   "refresh": "Global cutoff enforced by refresh credential lookup as well as access validation and list status.",
   "cutoff": "Global writes acknowledge monotonic UTC cutoff even with no active credentials on an existing account; protects against in-flight stale-version login and refresh.",
   "portal": "57422d7",
-  "rootCandidate": "3d787db8626160c8a79ac9cd4dd156802c70a98c",
+  "rootCandidate": "e497204b6d652d7b54bd2f9bab3cd31948b253b2",
   "rootBase": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
-  "rootTag": "qualification/global-session-http-2026-11-22-3d787db8",
+  "rootTag": "qualification/global-session-sqlite-2026-11-22-e497204b",
   "qualification": "New focused session-global-http mode prepared; unrun.",
   "managerInventory": "934 methods retained; one SaveAvatarAsync signature removes async keyword for shared private implementation; no added/removed public declarations.",
   "qualificationRun": 45066176416,
   "qualificationControl": "bb6af7bf0e8c134af6f654c1363a7abd863541d4",
-  "qualificationStatus": "queued; single corrected fixture retry, same backend source",
+  "qualificationStatus": "SQLite model/schema correction and no-default-password regression prepared; unrun.",
   "qualificationHistory": [
     {
       "run": 45064963793,
@@ -32,6 +32,14 @@
       "build": "0errors7m05.58",
       "runtime": "Second SQLite login fixture actor middleware directly called Mongo after provider selection deactivated Mongo; NullReference before auth endpoint. Corrected global-mode fixture to shipping AvatarManager router. No global acceptance.",
       "cleanup": "Owned SQLite directory/MongoDB/tempDNA/container absence verified; container not left paused."
+    },
+    {
+      "run": 45066176416,
+      "job": 137342702809,
+      "conclusion": "failure",
+      "build": "0errors5m40.54",
+      "runtime": "Second SQLite native login returned API error after fixture actor routing corrected. Source mapping review proves SQLite RefreshTokenModel drops new AuthorityProvider; schema/entity fix prepared. Exact further API diagnostics retained in next runner.",
+      "cleanup": "Owned SQLite directory/MongoDB/tempDNA/container absence verified."
     }
   ]
 }

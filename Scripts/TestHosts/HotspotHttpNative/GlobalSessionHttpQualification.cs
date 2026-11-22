@@ -38,6 +38,18 @@ internal static class GlobalSessionHttpQualification
                 CreatedDate = DateTime.UtcNow, RefreshTokens = new List<RefreshToken>() };
             var seeded = await sqlite.SaveAvatarAsync(copy);
             Check(!seeded.IsError && seeded.IsSaved && seeded.Result != null, "Native SQLite actor seed was not acknowledged.");
+            await sqlite.DeActivateProviderAsync();
+            await using (var legacy = new Microsoft.Data.Sqlite.SqliteConnection("Data Source=" + Path.Combine(directory.FullName, "sessions.db") + ";Pooling=False"))
+            {
+                await legacy.OpenAsync();
+                await using var command = legacy.CreateCommand();
+                command.CommandText = "ALTER TABLE RefreshTokens DROP COLUMN AuthorityProvider";
+                await command.ExecuteNonQueryAsync();
+            }
+            Check(!(await sqlite.ActivateProviderAsync()).IsError, "Existing SQLite session schema upgrade failed.");
+            var upgraded = await sqlite.LoadAvatarAsync(actor);
+            Check(!upgraded.IsError && upgraded.Result.VersionId == seeded.Result.VersionId &&
+                upgraded.Result.Password == original.Result.Password, "SQLite session schema upgrade changed the existing account.");
             dna.OASIS.StorageProviders.AutoFailOverProvidersForAvatarLogin = "MongoDBOASIS,SQLLiteDBOASIS";
             dna.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds = 2;
             Check(!ProviderManager.Instance.SetAndReplaceAutoFailOverListForProvidersForAvatarLogin("MongoDBOASIS,SQLLiteDBOASIS").IsError,
@@ -57,8 +69,23 @@ internal static class GlobalSessionHttpQualification
             async Task<JToken> Login(ProviderType provider)
             {
                 Check(!(await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(provider)).IsError, "Owned provider selection failed.");
+                if (provider == ProviderType.SQLLiteDBOASIS)
+                {
+                    var prepared = await sqlite.LoadAvatarAsync(actor);
+                    Check(!prepared.IsError && prepared.Result != null && prepared.Result.IsActive && prepared.Result.IsVerified &&
+                        prepared.Result.Password == original.Result.Password,
+                        "Native SQLite login seed did not preserve active/verified/password state.");
+                }
+                http.DefaultRequestHeaders.Authorization = null;
                 var envelope = await Read(await http.PostAsJsonAsync("/api/avatar/authenticate", new { username, password }));
-                Check(envelope.Value<bool>("isError") == false, "Real password authentication failed.");
+                if (envelope.Value<bool>("isError"))
+                {
+                    var diagnostic = (envelope.Value<string>("errorCode") ?? "unspecified") + ": " + envelope.Value<string>("message");
+                    diagnostic = System.Text.RegularExpressions.Regex.Replace(diagnostic, @"mongodb(?:\+srv)?://\S+", "[connection]");
+                    diagnostic = System.Text.RegularExpressions.Regex.Replace(diagnostic, @"[A-Za-z0-9+/=_-]{40,}", "[opaque-value]");
+                    diagnostic = System.Text.RegularExpressions.Regex.Replace(diagnostic, @"(?i)(password|secret|token|api[-_ ]?key)\s*[:=]\s*[^ ;]+", "$1=[redacted]");
+                    throw new InvalidOperationException("Real password authentication failed at " + provider + ": " + diagnostic[..Math.Min(400, diagnostic.Length)]);
+                }
                 var credentials = envelope["result"]!;
                 var parts = credentials.Value<string>("refreshToken")!.Split('.');
                 Check(parts.Length == 4 && parts[1] == provider.ToString(), "Issuer did not use the selected real provider.");
@@ -75,6 +102,19 @@ internal static class GlobalSessionHttpQualification
                 Check(active ? !result.IsError && result.Result?.Id == actor : result.IsError && result.Result == null,
                     "Access-session state did not match native revocation.");
             }
+            Check(!(await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(ProviderType.MongoDBOASIS)).IsError,
+                "Owned Mongo selection failed.");
+            var missingBefore = await mongo.LoadAvatarByUsernameAsync("root");
+            Check(!missingBefore.IsError && missingBefore.Result != null && missingBefore.Result.Password == null,
+                "Owned missing-password fixture must have no password.");
+            http.DefaultRequestHeaders.Authorization = null;
+            var refused = await Read(await http.PostAsJsonAsync("/api/avatar/authenticate", new { username = "root", password }));
+            Check(refused.Value<bool>("isError") && refused.Value<string>("errorCode") == "AVATAR_PASSWORD_UNAVAILABLE" &&
+                (refused["result"] == null || refused["result"]!.Type == JTokenType.Null), "Missing-password login did not refuse credentials without an avatar payload.");
+            var missingAfter = await mongo.LoadAvatarByUsernameAsync("root");
+            Check(!missingAfter.IsError && missingAfter.Result.Password == null &&
+                missingAfter.Result.VersionId == missingBefore.Result.VersionId && missingAfter.Result.ModifiedDate == missingBefore.Result.ModifiedDate,
+                "Missing-password authentication mutated the native account.");
             var first = await Login(ProviderType.MongoDBOASIS);
             var second = await Login(ProviderType.SQLLiteDBOASIS);
             http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", second.Value<string>("jwtToken"));

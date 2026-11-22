@@ -15,6 +15,8 @@ public partial class SQLLiteDBOASIS
     {
         using var transaction=await _appDataContext.Database.BeginTransactionAsync().ConfigureAwait(false);
         var connection=_appDataContext.Database.GetDbConnection();
+        await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"RefreshTokens",
+            new Dictionary<string,string> {{"AuthorityProvider","TEXT NULL"}}).ConfigureAwait(false);
         using (var receiptSchema = connection.CreateCommand())
         {
             receiptSchema.Transaction = transaction.GetDbTransaction();
