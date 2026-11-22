@@ -171,6 +171,7 @@ try
         builder.Services.AddSingleton(httpMfa);
         builder.Services.AddHttpContextAccessor();
     }
+    if (mode == "mfa-http") builder.Logging.AddProvider(new SanitizedHttpExceptionLogger());
     MongoSubscriptionUsageRepository? billingRepository = null;
     if (mode is "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider")
     {

@@ -2699,3 +2699,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 2026-11-21 MFA HTTP44978452408 terminal failure after0error build5m41.14; selected log RAM-only confirms owned DB/tempDNA/container absence. Status/enrol/confirm passed, password endpoint500; no shared request or speculative backend fix. OPORTAL95f8069 source controls remain disabled; no local outputs/env/download created.
 
 2026-11-21 MFA DIAGNOSTIC: one dispatch44979088900 verified active; remote fixture cleanup pending. OPORTAL7aa464e source/cache/docs and syntax-only checks, no local build/env/download/database/archive/worktree or shared backend request.
+
+2026-11-21 MFA diagnostic44979088900 failure;0error7m07.04 build, password500, no middleware exception marker. RAM selected log confirms owned DB/tempDNA/container absence. No local build/env/archive/download/database/worktree created. New server type-only logger prepared, no dispatch yet.
