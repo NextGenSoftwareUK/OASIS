@@ -96,35 +96,79 @@
       {
         "service": "WEB5",
         "id": "b223fd5a-4c98-49fc-ab69-724e3c3cd544",
-        "status": "QUEUED"
+        "status": "REMOVED"
       },
       {
         "service": "WEB6",
         "id": "6e4fd774-de84-4929-9412-8bf1fac04347",
-        "status": "BUILDING"
+        "status": "REMOVED"
       },
       {
         "service": "WEB7",
         "id": "c68da126-55fc-4267-8f8c-179c1dc9e500",
-        "status": "QUEUED"
+        "status": "REMOVED"
       },
       {
         "service": "WEB8",
         "id": "8368ec22-78bc-4c16-acb9-c2e47ca7be8d",
-        "status": "BUILDING"
+        "status": "REMOVED"
       },
       {
         "service": "WEB9",
         "id": "f318187e-1a08-4fca-a719-66b30bab3899",
-        "status": "QUEUED"
+        "status": "REMOVED"
       },
       {
         "service": "WEB10",
         "id": "94243428-ec61-41e8-9f03-94c2ffff6e49",
-        "status": "BUILDING"
+        "status": "REMOVED"
       }
     ],
     "scope": "Original automatic handles only; saved source and deployment metadata, not loaded DNA/live auth or complete portal acceptance.",
-    "web4ObservedUtc": "2026-11-22T10:10:09.828870+00:00"
+    "web4ObservedUtc": "2026-11-22T10:10:09.828870+00:00",
+    "supersededObservationUtc": "2026-11-22T10:16:03.630409+00:00"
+  },
+  "replacementRollouts": {
+    "source": "6608498b164673e2258b3201be2aa8ef31db3d89",
+    "core": "33a28387bc35a4113e260b94bd981bbd1ba36728",
+    "lineage": "Corec486c152 is an ancestor; only additional Core diff is one line in Queries/CosmicSelectedStageProofEvaluator.cs. Current shared source preserves issuer foundation.",
+    "services": [
+      {
+        "service": "WEB4",
+        "id": "0a18da16-e799-4e8d-8c85-8f166809c059",
+        "status": "QUEUED"
+      },
+      {
+        "service": "WEB5",
+        "id": "e4b8d86f-3bcc-4675-b17c-2eb70cbb3c3e",
+        "status": "BUILDING"
+      },
+      {
+        "service": "WEB6",
+        "id": "856538bc-c226-4b98-b950-51b4b2f8a3f7",
+        "status": "QUEUED"
+      },
+      {
+        "service": "WEB7",
+        "id": "af594be5-e5a9-4ab6-a97e-b2e663cfc566",
+        "status": "BUILDING"
+      },
+      {
+        "service": "WEB8",
+        "id": "b4408b6d-91ca-4b0c-8c25-2811d18a0437",
+        "status": "SUCCESS"
+      },
+      {
+        "service": "WEB9",
+        "id": "f3183fa4-ee57-4c3e-aabc-b1e7696f513c",
+        "status": "BUILDING"
+      },
+      {
+        "service": "WEB10",
+        "id": "f13d0ac2-c6f4-4489-9be8-efe47f4ad989",
+        "status": "QUEUED"
+      }
+    ],
+    "scope": "Selected metadata and Git ancestry only; not loaded settings, live auth or all-runtime acceptance."
   }
 }
