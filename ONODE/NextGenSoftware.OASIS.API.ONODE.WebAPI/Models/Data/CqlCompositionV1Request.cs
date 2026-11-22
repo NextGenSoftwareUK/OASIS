@@ -16,7 +16,7 @@ public sealed class CqlCompositionV1Request
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class CqlCompositionV1Stage
 {
-    /// <summary>Exactly Where, OrderBy, Skip, Take or Select. Array order is execution order.</summary>
+    /// <summary>Exactly Where, OrderBy, Skip, Take, Select or Distinct. Array order is execution order.</summary>
     public string? Operation { get; set; }
     /// <summary>AND comparisons over exact selected aliases. Used only by Where.</summary>
     public CqlGroupedV1Filter[]? Filters { get; set; }
