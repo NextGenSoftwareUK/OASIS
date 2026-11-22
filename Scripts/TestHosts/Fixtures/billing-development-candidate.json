@@ -47,5 +47,7 @@
   "core": {
     "candidate": "ab4adf66366f0b3f5e4e352a436a3dcd4878da8e"
   },
-  "remaining": "Review regenerated inventory, compile and verify actual changed HTTP flow. Reliable warning email delivery and hosted acceptance remain open."
+  "remaining": "Review regenerated inventory, compile and verify actual changed HTTP flow. Reliable warning email delivery and hosted acceptance remain open.",
+  "nativeHost": "HotspotHttpNative",
+  "nativeMode": "billing-http"
 }

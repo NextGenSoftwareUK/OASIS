@@ -573,6 +573,22 @@
         "status": "in_progress",
         "native": false
       }
+    },
+    "httpHost": {
+      "mode": "billing-http",
+      "host": "HotspotHttpNative",
+      "status": "source-prepared-uncompiled-unrun",
+      "scope": "One actual owner preference GET-POST-GET + foreign403, acknowledged save and native field/actor readback; exact owned loopback only.",
+      "excluded": [
+        "Stripe",
+        "email delivery",
+        "alert flow",
+        "admin ownership HTTP",
+        "full Startup",
+        "SSO",
+        "hosted acceptance"
+      ],
+      "compileRun": 44968824364
     }
   }
 }
