@@ -33,6 +33,12 @@
     ],
     "status": "source-selected-for-independent-inventory-billing-native-still-running",
     "preservation": "Only exact previously tested AvatarAdmin duplicate-route removal plus accepted session reader/DTO and paired Core pin; all current CQL/billing/warning source retained. No DNA/worker/settings changes.",
-    "remaining": "Source-only inventory may run independently of billing native44994656993; after inventory review and billing result, build combined graph. No prior accepted session behavior replay."
+    "remaining": "Source-only inventory may run independently of billing native44994656993; after inventory review and billing result, build combined graph. No prior accepted session behavior replay.",
+    "inventoryRun": {
+      "id": 44995307959,
+      "control": "d4d8628bc2b1573eb92108b1f4a83ed7e5922706",
+      "status": "queued",
+      "mode": "source-only-no-build-no-runtime-no-secrets"
+    }
   }
 }
