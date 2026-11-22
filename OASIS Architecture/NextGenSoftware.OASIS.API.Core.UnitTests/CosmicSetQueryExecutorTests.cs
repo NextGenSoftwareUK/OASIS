@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.Common;
 namespace NextGenSoftware.OASIS.API.Core.UnitTests;
-public sealed class CosmicSetQueryExecutorTests
+public sealed partial class CosmicSetQueryExecutorTests
 {
     private class Flat:ICosmicQueryStorageProvider
     {
