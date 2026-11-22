@@ -300,9 +300,10 @@
     },
     "browserQualification": {
       "host": "Scripts/TestHosts/Fixtures/mfa-settings-browser-host.html",
-      "status": "prepared-unselected",
-      "scope": "Actual shipped SDK/settings script/fragment/styles; authenticated owned actor, only real native API requests. No stub transport or invented result.",
-      "remaining": "Corrected HTTP acceptance, management activation and browser runner/host selector, actual browser/native readback and cleanup. No local browser environment created."
+      "status": "host-and-journey-prepared-syntax-checked-unselected",
+      "scope": "Actual SDK/Settings fragment/script/stylesheet against native API: status, enrollment/manual key, confirmation, recovery replacement after real next TOTP step, recovery disable, secret clearing and reopen. Network requests constrained to own loopback endpoints; no response stubs, setup/recovery/body logging or local environment.",
+      "remaining": "Corrected HTTP acceptance; activate management, wire fresh real-clock browser/native fixture and exact workflow selector; actual browser/native cleanup acceptance.",
+      "runner": "Scripts/TestHosts/Fixtures/mfa-settings-browser-native-http.cjs"
     }
   },
   "portalExpiryFix": {
