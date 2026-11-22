@@ -1,5 +1,10 @@
 name: Qualify reviewed WEB4 source in a real hosted browser
 on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - ".github/workflows/qualify-cql-hosted-browser.yml"
+      - "Scripts/Sandbox/Verify-CqlProtectedPreviewBrowser.cjs"
   workflow_dispatch:
     inputs:
       website_source:
@@ -36,7 +41,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: NextGenSoftwareUK/Web4Site
-          ref: ${{ inputs.website_source }}
+          ref: ${{ inputs.website_source || '89cb1473db6a7c5a246df1b43ea10fcb1274ee6b' }}
           path: Web4Site
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
           persist-credentials: false
@@ -44,8 +49,8 @@ jobs:
         shell: bash
         working-directory: OASIS
         env:
-          WEBSITE_SOURCE: ${{ inputs.website_source }}
-          API_SOURCE: ${{ inputs.api_source }}
+          WEBSITE_SOURCE: ${{ inputs.website_source || '89cb1473db6a7c5a246df1b43ea10fcb1274ee6b' }}
+          API_SOURCE: ${{ inputs.api_source || 'f29262d8b6df380e0d267228d92508e4da393561' }}
         run: |
           set -euo pipefail
           [[ "$WEBSITE_SOURCE" =~ ^[0-9a-f]{40}$ ]]
@@ -60,8 +65,8 @@ jobs:
         working-directory: OASIS
         env:
           CQL_BROWSER_SITE_ROOT: ${{ github.workspace }}/Web4Site
-          CQL_BROWSER_WEBSITE_SOURCE: ${{ inputs.website_source }}
-          CQL_BROWSER_API_SOURCE: ${{ inputs.api_source }}
+          CQL_BROWSER_WEBSITE_SOURCE: ${{ inputs.website_source || '89cb1473db6a7c5a246df1b43ea10fcb1274ee6b' }}
+          CQL_BROWSER_API_SOURCE: ${{ inputs.api_source || 'f29262d8b6df380e0d267228d92508e4da393561' }}
           CQL_BROWSER_LIVE_FLOW: ${{ inputs.live_read && '1' || '0' }}
           CQL_BROWSER_REPORT_DIRECTORY: ${{ github.workspace }}/OASIS/TestResults/CqlHostedBrowser
         run: node Scripts/Sandbox/Verify-CqlProtectedPreviewBrowser.cjs
