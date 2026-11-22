@@ -198,7 +198,7 @@
     }
   },
   "mfaSourceDiscovery": {
-    "status": "native-and-http-mfa-accepted-settings-browser-next",
+    "status": "native-http-and-settings-browser-accepted-hosted-and-login-browser-open",
     "source": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarMfaController.cs",
     "behavior": "Existing real status/enrol/confirm/disable/recovery/events and authenticate-mfa routes plus Core SecondFactorGate. Reuse existing contract rather than implement another MFA backend.",
     "missing": "Resolve actual password HTTP500; accept second-factor JWT/refresh issuance, actual browser and hosted paths; activate prepared management only after verification. Native enrollment/lifecycle accepted, login/status/management UI source exists.",
@@ -334,9 +334,9 @@
     },
     "browserQualification": {
       "host": "Scripts/TestHosts/Fixtures/mfa-settings-browser-host.html",
-      "status": "sparse-checkout-fixed-awaiting-same-browser-cohort",
+      "status": "accepted-settings-component-native-scope",
       "scope": "Actual SDK/Settings fragment/script/stylesheet against native API: status, enrollment/manual key, confirmation, recovery replacement after real next TOTP step, recovery disable, secret clearing and reopen. Network requests constrained to own loopback endpoints; no response stubs, setup/recovery/body logging or local environment.",
-      "remaining": "Actual browser/native lifecycle and cleanup acceptance; full Startup/hosted and other Settings gaps remain open.",
+      "remaining": "Actual login-popup sign-in browser, additional account/modal/SDK-DID paths, full Startup and hosted acceptance. No full site/revocation/account deletion acceptance.",
       "runner": "Scripts/TestHosts/Fixtures/mfa-settings-browser-native-http.cjs",
       "selector": "Explicit mfa-browser host/workflow prepared: WEB4-only surface, fresh verified actor, real-time MfaService, actual assets/SDK/browser, native lifecycle audit and unchanged avatar; existing remote browser runtime/cleanup. Descriptor remains mfa-http; no browser run selected.",
       "portal": "e895bf621c01fe7f38025ce0d8bc9fab20b1ab70",
@@ -355,11 +355,18 @@
         "id": 44987479159,
         "control": "78aa01b16482ba64dd2ddb55a0ff2b69c2c05dbc",
         "candidate": "fbe6c7248f064e44766260e78e00a24b98555e0d",
-        "status": "queued",
+        "status": "completed",
         "mode": "mfa-browser",
-        "portal": "e895bf6"
+        "portal": "e895bf6",
+        "conclusion": "success",
+        "job": 137101127437,
+        "buildErrors": 0,
+        "buildElapsed": "00:07:13.04",
+        "proof": "Actual SDK/script/fragment controls enrollment, confirmation, recovery replacement after real TOTP step, disable, secret clearing/reopen and native lifecycle audit; unchanged avatar.",
+        "cleanup": "Owned DB/tempDNA/container/browser runtime/cache absence verified."
       }
-    }
+    },
+    "backendSourceComparison": "Core Auth/SaveUtils/RefreshAuthority byte-identical c268e500->current66151891; root MFA controller/services byte-identical fbe6c724->Developmentb8561b84. No extra backend deployment inferred/triggered; runtime settings/full Startup/hosted still unverified."
   },
   "portalExpiryFix": {
     "source": "OPORTAL assets/js/scripts.js isJwtValid",
