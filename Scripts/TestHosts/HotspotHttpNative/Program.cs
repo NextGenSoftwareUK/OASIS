@@ -254,7 +254,9 @@ try
     app.Use(async (context, next) => {
         if (context.User.Identity?.IsAuthenticated == true && Guid.TryParse(context.User.FindFirst("sub")?.Value, out var id))
         {
-            var loaded = await provider.LoadAvatarAsync(id);
+            var loaded = mode == "session-global-http"
+                ? await AvatarManager.Instance.LoadAvatarAsync(id, loadPrivateKeys: false, hideAuthDetails: false)
+                : await provider.LoadAvatarAsync(id);
             Require(!loaded.IsError && loaded.Result != null, "Signed fixture actor unavailable.");
             context.Items["Avatar"] = loaded.Result; context.Items["AvatarId"] = id;
             OASISRequestContext.CurrentAvatar = loaded.Result; OASISRequestContext.CurrentAvatarId = id;

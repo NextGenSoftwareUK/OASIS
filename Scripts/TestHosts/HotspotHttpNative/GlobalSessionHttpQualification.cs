@@ -47,7 +47,9 @@ internal static class GlobalSessionHttpQualification
             {
                 using (response)
                 {
-                    Check(response.Content.Headers.ContentType?.MediaType == "application/json", "Expected real JSON API response.");
+                    Check(response.Content.Headers.ContentType?.MediaType == "application/json",
+                        "Expected real JSON API response at " + response.RequestMessage?.RequestUri?.AbsolutePath +
+                        " (HTTP " + (int)response.StatusCode + ", media " + response.Content.Headers.ContentType?.MediaType + ").");
                     var envelope = JObject.Parse(await response.Content.ReadAsStringAsync());
                     return envelope["result"] is JObject wrapped && wrapped["isError"] != null ? wrapped : envelope;
                 }

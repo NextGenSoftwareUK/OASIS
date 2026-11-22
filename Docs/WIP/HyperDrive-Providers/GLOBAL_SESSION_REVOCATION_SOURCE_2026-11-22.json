@@ -23,5 +23,15 @@
   "managerInventory": "934 methods retained; one SaveAvatarAsync signature removes async keyword for shared private implementation; no added/removed public declarations.",
   "qualificationRun": 45064963793,
   "qualificationControl": "ef10e3af229116525ffaf38ac413b091ef10ccd5",
-  "qualificationStatus": "queued; single dispatch acknowledged and exact head reconciled"
+  "qualificationStatus": "Runner lifecycle correction prepared; same backend source unchanged, retry pending.",
+  "qualificationHistory": [
+    {
+      "run": 45064963793,
+      "job": 137339129617,
+      "conclusion": "failure",
+      "build": "0errors7m05.58",
+      "runtime": "Second SQLite login fixture actor middleware directly called Mongo after provider selection deactivated Mongo; NullReference before auth endpoint. Corrected global-mode fixture to shipping AvatarManager router. No global acceptance.",
+      "cleanup": "Owned SQLite directory/MongoDB/tempDNA/container absence verified; container not left paused."
+    }
+  ]
 }
