@@ -143,7 +143,7 @@ try
     if (mode == "billing-http")
     {
         billingRepository = new MongoSubscriptionUsageRepository(client, database, TimeProvider.System);
-        await billingRepository.CreateAppAccountAsync("owned-billing", "Owned billing route fixture", "free",
+        await billingRepository.CreateAppAccountAsync("owned-billing", "Owned billing route fixture", "enterprise",
             actor.ToString("D"), "Owned isolated fixture", false, null, CancellationToken.None);
         await billingRepository.SetAppOwnersAsync("owned-billing", new[] { actor.ToString("D") },
             actor.ToString("D"), "Owned isolated fixture", CancellationToken.None);

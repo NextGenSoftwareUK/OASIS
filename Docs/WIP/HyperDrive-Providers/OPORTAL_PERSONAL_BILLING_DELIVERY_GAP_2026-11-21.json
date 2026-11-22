@@ -588,7 +588,8 @@
         "SSO",
         "hosted acceptance"
       ],
-      "compileRun": 44968824364
+      "compileRun": 44968824364,
+      "fixtureReview": "Before execution, fixed invalid non-pooled free app seed to canonical enterprise non-pooled plan required by AppAccountRules.ValidateAppPlan. Notification ownership/persistence scope unchanged; no quota flags changed, no bypass."
     }
   }
 }
