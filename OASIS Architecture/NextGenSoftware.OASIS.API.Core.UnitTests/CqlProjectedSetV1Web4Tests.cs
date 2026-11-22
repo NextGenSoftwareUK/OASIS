@@ -25,7 +25,7 @@ public partial class CqlV1Web4Tests
             CosmicSetQueryFeatures.Concat,new[]{typeof(string)},new[]{typeof(string)},stages));
         var identity=Guid.NewGuid();
         CosmicProjectionCompositionPacket Input()=>new(
-            new[]{new CosmicProjectionInputRow(identity,false,Actor,new object[]{"chosen"},Array.Empty<object>())},
+            new[]{new CosmicProjectionInputRow(identity,false,Actor,new object[]{"chosen"},new object[]{"chosen",identity})},
             Array.Empty<CosmicProjectionStageProof>(),new[]{new CosmicProjectionCompositionRow(identity,"chosen")},1,0);
         adapter.Setup(value=>value.ExecuteCosmicProjectedSetAsync(
             It.IsAny<CosmicProjectedSetPlan<Holon,CosmicProjectionRecord>>(),
@@ -40,8 +40,9 @@ public partial class CqlV1Web4Tests
         var admitted=Admission(provider);
         var response=await admitted.Policy.RunAsync(()=>CqlV1Endpoint.ExecuteSetAsync(admitted.Http,new CqlSetV1Request{
             Provider=provider.ToString(),Kind="Concat",
-            Left=new(){OrderBy="None",Columns=new[]{new CqlProjectionV1Column{Field="Name",Alias="label"}}},
-            Right=new(){OrderBy="None",Columns=new[]{new CqlProjectionV1Column{Field="Name",Alias="other"}}}},source));
+            Left=new(){OrderBy="Name",Columns=new[]{new CqlProjectionV1Column{Field="Name",Alias="label"}}},
+            Right=new(){OrderBy="Name",Columns=new[]{new CqlProjectionV1Column{Field="Name",Alias="other"}}}},source));
+        Assert.True(response is FileContentResult, "Selected-set endpoint returned "+(response is ObjectResult error?JsonSerializer.Serialize(error.Value):response.GetType().Name));
         using var json=JsonDocument.Parse(Assert.IsType<FileContentResult>(response).FileContents);
         var result=json.RootElement.GetProperty("result");
         Assert.Equal("cql-projected-set-v1",result.GetProperty("version").GetString());
