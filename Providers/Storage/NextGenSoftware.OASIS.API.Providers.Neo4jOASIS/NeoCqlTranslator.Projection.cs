@@ -19,6 +19,14 @@ internal sealed partial class NeoCqlTranslator
     {
         if (column == null) throw new System.ArgumentNullException(nameof(column));
         if (column.Function == CosmicProjectionFunction.None) return TranslateProjectionPath(column.Path);
+        if (column.Function == CosmicProjectionFunction.TextCoalesce)
+        {
+            if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(string) || column.NullReplacement == null)
+                throw new System.NotSupportedException("Native text coalescing requires an exact string input and captured replacement.");
+            var input=TranslateProjectionPath(column.Path);var replacement=Bind(column.NullReplacement);
+            return ("CASE WHEN ("+input.State+") IN [0,1] THEN 2 ELSE ("+input.State+") END",
+                "CASE WHEN ("+input.State+") IN [0,1] THEN "+replacement+" ELSE ("+input.Value+") END");
+        }
         if (column.Function != CosmicProjectionFunction.Utf16Length ||
             column.Path.ValueType != typeof(string) ||
             (System.Nullable.GetUnderlyingType(column.ValueType) ?? column.ValueType) != typeof(int))
