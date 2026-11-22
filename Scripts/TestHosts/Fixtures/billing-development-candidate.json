@@ -1,6 +1,6 @@
 {
   "scope": "billing",
-  "status": "latest-warning-source-awaiting-changed-composition-acceptance",
+  "status": "latest-warning-http-source-prepared",
   "base": "f26edeef1152961a2b46f2149a6c28c08188a09a",
   "candidate": "cbbcad57f460f31cba56c576e3fab3e5888822c1",
   "tag": "qualification/warning-capability-2026-11-21-cbbcad57",
@@ -59,5 +59,5 @@
   },
   "remaining": "Review regenerated inventory, compile and verify actual changed HTTP flow. Reliable warning email delivery and hosted acceptance remain open.",
   "nativeHost": "HotspotHttpNative",
-  "nativeMode": "billing-warning-store"
+  "nativeMode": "billing-warning-http"
 }

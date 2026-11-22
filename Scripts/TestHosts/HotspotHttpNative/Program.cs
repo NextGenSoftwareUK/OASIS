@@ -39,7 +39,7 @@ Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
 var mode = Environment.GetEnvironmentVariable("OASIS_HOTSPOT_HTTP_MODE") ?? "binding";
-Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store", "Unsupported hotspot HTTP check mode.");
+Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http", "Unsupported hotspot HTTP check mode.");
 var dna = new OASISDNA { OASIS = new() {
     HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
         AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
@@ -140,10 +140,10 @@ try
     }
     var builder = WebApplication.CreateBuilder(); builder.Logging.ClearProviders(); builder.WebHost.UseUrls("http://127.0.0.1:0");
     MongoSubscriptionUsageRepository? billingRepository = null;
-    if (mode is "billing-http" or "billing-admin-http" or "billing-warning-store")
+    if (mode is "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http")
     {
         billingRepository = new MongoSubscriptionUsageRepository(client, database, TimeProvider.System);
-        if (mode != "billing-warning-store")
+        if (mode is not ("billing-warning-store" or "billing-warning-http"))
         {
             await billingRepository.CreateAppAccountAsync("owned-billing", "Owned billing route fixture", "enterprise",
                 actor.ToString("D"), "Owned isolated fixture", false, null, CancellationToken.None);
@@ -152,6 +152,19 @@ try
         }
         builder.Services.AddSingleton(billingRepository);
         builder.Services.AddSingleton<IUsageSeriesSource>(billingRepository);
+        if (mode == "billing-warning-http")
+        {
+            dna.OASIS.UsageVisibility = new UsageVisibilitySettings { EmailEnabled = false };
+            builder.Services.AddSingleton<ISubscriptionUsageRepository>(billingRepository);
+            builder.Services.AddSingleton<ISubscriptionBillingRepository>(billingRepository);
+            builder.Services.AddSingleton<ISubscriptionService, SubscriptionService>();
+            builder.Services.AddSingleton<UsageWarningReader>();
+            builder.Services.AddSingleton(new HttpClient { Timeout = TimeSpan.FromSeconds(15) });
+            builder.Services.AddTransient<UsageWarningEmailGateway>(services =>
+                new UsageWarningEmailGateway(services.GetRequiredService<HttpClient>(), TimeProvider.System));
+            builder.Services.AddTransient<UsageWarningEmailDispatcher>();
+            builder.Services.AddTransient<UsageWarningEmailService>();
+        }
     }
     var key = new SymmetricSecurityKey(secret);
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {
@@ -207,7 +220,28 @@ try
         using var result = JsonDocument.Parse(resultText);
         Require(result.RootElement.GetProperty(resultProperty).GetBoolean(), "Owned browser completion marker missing.");
     }
-    if (mode == "billing-warning-store")
+    if (mode == "billing-warning-http")
+    {
+        var notifications = client.GetDatabase(database).GetCollection<MongoDB.Bson.BsonDocument>("usage_notification_settings");
+        Require(await notifications.CountDocumentsAsync(FilterDefinition<MongoDB.Bson.BsonDocument>.Empty) == 0,
+            "Warning HTTP fixture started with notification records.");
+        using var preferences = await http.GetAsync("/api/subscription/usage/notifications");
+        Require(preferences.IsSuccessStatusCode, "Warning capability GET failed.");
+        var view = JObject.Parse(await preferences.Content.ReadAsStringAsync())["result"]!;
+        Require(view.Value<bool>("emailSubmissionAvailable") && !view.Value<bool>("emailEnabled"),
+            "Warning capability did not distinguish implemented action from disabled delivery.");
+        using var refused = await http.PostAsJsonAsync("/api/subscription/usage/alerts/email", new { });
+        var error = JObject.Parse(await refused.Content.ReadAsStringAsync());
+        Require(refused.StatusCode == HttpStatusCode.ServiceUnavailable && error.Value<bool>("isError") &&
+            !error.Value<bool>("isSaved"), "Disabled warning action claimed acceptance.");
+        using var anonymous = new HttpClient { BaseAddress = http.BaseAddress, Timeout = TimeSpan.FromSeconds(15) };
+        using var unsigned = await anonymous.PostAsJsonAsync("/api/subscription/usage/alerts/email", new { });
+        Require(unsigned.StatusCode == HttpStatusCode.Unauthorized, "Anonymous warning action was not refused.");
+        Require(await notifications.CountDocumentsAsync(FilterDefinition<MongoDB.Bson.BsonDocument>.Empty) == 0,
+            "Disabled or anonymous warning action created delivery/preferences records.");
+        Console.WriteLine("WARNING_ACTION_HTTP_PROOF: actual MVC/repository/native Mongo capability GET, disabled503 and anonymous401 passed with zero notification/event writes. No real email/provider acceptance, persistence/admin/notification replay, shared cluster or hosted acceptance.");
+    }
+    else if (mode == "billing-warning-store")
     {
         var month = DateTime.UtcNow.ToString("yyyy-MM", System.Globalization.CultureInfo.InvariantCulture);
         var subject = "user:" + actor.ToString("D");

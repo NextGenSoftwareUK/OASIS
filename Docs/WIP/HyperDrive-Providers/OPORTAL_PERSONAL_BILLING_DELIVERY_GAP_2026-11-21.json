@@ -1002,6 +1002,18 @@
       "nativeRunUnchanged": 44971805468,
       "temporaryIndex": "removed",
       "status": "uncompiled"
+    },
+    "latestHttpHost": {
+      "mode": "billing-warning-http",
+      "candidate": "cbbcad57f460f31cba56c576e3fab3e5888822c1",
+      "status": "prepared-uncompiled-unrun",
+      "scope": "Actual signed MVC GET notification capability, disabled email POST503 and anonymous401; native collection stays empty. Actual repository/services/SDK gateway registered; no fake response/provider or external send.",
+      "excluded": [
+        "accepted notification/admin/event persistence replay",
+        "real email",
+        "full Startup",
+        "hosted"
+      ]
     }
   },
   "sharedDevelopmentReview": {
