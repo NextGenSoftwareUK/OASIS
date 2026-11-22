@@ -34,12 +34,38 @@
   "correctedInventoryRun": {
     "id": 44989036969,
     "control": "0506d8206d5df7935075cf9ef1c33eab9b7e4e6c",
-    "status": "queued",
-    "mode": "inventory-only-no-runtime-no-secrets"
+    "status": "completed",
+    "mode": "inventory-only-no-runtime-no-secrets",
+    "conclusion": "success",
+    "artifact": 14741536646
   },
   "core": {
     "base": "66151891ab7d1cdd0f8bdcf97cc14449de131651",
     "candidate": "66151891ab7d1cdd0f8bdcf97cc14449de131651",
     "changed": false
+  },
+  "inventoryReview": {
+    "status": "route-identities-reviewed-classifier-delta-review-open",
+    "managers": 932,
+    "routes": 832,
+    "managerBlob": "8e1c31e0281a3dbe2dc60555985745e13acdcb99",
+    "routeBlob": "f30c65f2fab180532bf3bd61d51bb6913a1ad750",
+    "routeIdentityAdded": [
+      "CqlV1Controller Set POST set",
+      "SubscriptionOwnerController SendWarningEmails POST usage/alerts/email"
+    ],
+    "routeIdentityRemoved": 0,
+    "managerIdentityAdded": [
+      "ExecuteSetQueryAsync",
+      "ExecuteTypedSetQueryAsync"
+    ],
+    "managerIdentityRemoved": 0,
+    "classificationChanges": [
+      "Alerts: InjectedServiceRepositoryOrClient -> CoveredFeatureManagerDelegation",
+      "SetAppSettings: DirectModeAwareManagerBoundary -> InjectedServiceRepositoryOrClient",
+      "SetPayg: InjectedServiceRepositoryOrClient -> CoveredFeatureManagerDelegation"
+    ],
+    "next": "Artifact classifier differs from frozen source: control includes mode-aware member discovery and primary-constructor injected member discovery. Review/import exact classifier plus inventories into successor; do not dispatch native with stale classifier.",
+    "cleanup": "ZIP read in memory only; temporary tracked CSV byte changes restored in finally; only Git blobs retained. No credentials/runtime/backend activity."
   }
 }
