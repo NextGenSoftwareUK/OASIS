@@ -205,7 +205,14 @@ try
             context.Items["Avatar"] = loaded.Result; context.Items["AvatarId"] = id;
             OASISRequestContext.CurrentAvatar = loaded.Result; OASISRequestContext.CurrentAvatarId = id;
         }
-        await next(context);
+        try { await next(context); }
+        catch (Exception error) when (mode == "session-list-http")
+        {
+            Console.WriteLine("SESSION_HTTP_SERVER_FAILURE: type=" + error.GetType().FullName +
+                " base=" + error.GetBaseException().GetType().FullName +
+                " avatarType=" + context.Items["Avatar"]?.GetType().FullName);
+            throw;
+        }
     });
     app.MapControllers(); await app.StartAsync();
     var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
@@ -240,8 +247,17 @@ try
         Require(!initial.IsError && initial.Result?.RefreshTokens?.Count == 3, "Native session credential seed did not persist.");
         var initialVersion = initial.Result!.VersionId;
         string path = "/api/avatar/" + actor.ToString("D") + "/sessions";
+        async Task<string> ReadSessionJson(HttpResponseMessage response, string stage)
+        {
+            var text = await response.Content.ReadAsStringAsync();
+            Console.WriteLine("SESSION_HTTP_STAGE: " + stage + " status=" + (int)response.StatusCode +
+                " contentType=" + response.Content.Headers.ContentType?.MediaType + " bodyCharacters=" + text.Length);
+            Require(response.Content.Headers.ContentType?.MediaType == "application/json" && !string.IsNullOrWhiteSpace(text),
+                "Session " + stage + " did not return its JSON contract (HTTP " + (int)response.StatusCode + ").");
+            return text;
+        }
         using var response = await http.GetAsync(path);
-        var body = await response.Content.ReadAsStringAsync();
+        var body = await ReadSessionJson(response, "initial-list");
         var envelope = JObject.Parse(body);
         Require(response.IsSuccessStatusCode && !envelope.Value<bool>("isError"), "Actual session-list HTTP failed.");
         var view = envelope["result"]!;
@@ -263,11 +279,11 @@ try
         Require(view.Value<int?>("failedLoginAttempts") == null && view.Value<int?>("sessionTimeoutMinutes") == null &&
             view.Value<string>("securityStatus") == "Not assessed", "Session-list invented security assessment or counters.");
         using var reload = await http.GetAsync(path);
-        var repeated = JObject.Parse(await reload.Content.ReadAsStringAsync())["result"]!["sessions"]!;
+        var repeated = JObject.Parse(await ReadSessionJson(reload, "repeat-list"))["result"]!["sessions"]!;
         Require(reload.IsSuccessStatusCode && repeated.Children<JObject>().Select(item => item.Value<string>("id"))
             .SequenceEqual(sessions.Select(item => item.Id)), "Persisted session public IDs changed across reads.");
         using var foreignRead = await http.GetAsync("/api/avatar/" + accounts[1].Id.ToString("D") + "/sessions");
-        var foreignEnvelope = JObject.Parse(await foreignRead.Content.ReadAsStringAsync());
+        var foreignEnvelope = JObject.Parse(await ReadSessionJson(foreignRead, "foreign-refusal"));
         Require(foreignEnvelope.Value<bool>("isError") && foreignEnvelope["result"]?.Type is null or JTokenType.Null,
             "A non-Wizard read another avatar's session records.");
         var stored = await provider.LoadAvatarAsync(actor);

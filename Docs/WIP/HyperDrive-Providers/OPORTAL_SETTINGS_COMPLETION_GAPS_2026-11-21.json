@@ -164,7 +164,8 @@
       "scope": "Actual signed MVC/manager/native Mongo with3persisted cryptographically random owned credentials (active/revoked/expired), correct counts/native fields, stable one-way IDs, no raw credentials/invented device/location/security values, foreign read refusal and unchanged native avatar.",
       "requests": "3GETs; no session/auth mutations",
       "remaining": "Review source inventory, enable exact host selector, compile/run; not full session tracking or revocation.",
-      "selector": "Exact HotspotHttpNative/session-list-http allowlisted, source review/compile/native dispatch still pending; no runtime selected before inventory acceptance."
+      "selector": "Exact HotspotHttpNative/session-list-http allowlisted, source review/compile/native dispatch still pending; no runtime selected before inventory acceptance.",
+      "diagnostics": "Named initial/repeat/foreign stage, selected HTTP status/content type/body length only; middleware logs exception/base/runtime avatar types then rethrows, never body/credentials or fabricated response. Source unchanged; retry same failed cohort after diagnostic commit."
     },
     "httpCandidate": {
       "source": "e359c71b9c7ba1b1c1eb3d54d0522dcaf953dbb4",
@@ -175,8 +176,14 @@
       "run": {
         "id": 44974712075,
         "control": "d303b778c50e692e4fd62d5b34224dd7bab6cc10",
-        "status": "queued",
-        "mode": "session-list-http"
+        "status": "completed",
+        "mode": "session-list-http",
+        "conclusion": "failure",
+        "job": 137061903113,
+        "buildErrors": 0,
+        "buildElapsed": "00:06:22.94",
+        "failure": "JObject parse on empty HTTP body; exact request/status/server cause unknown because diagnostics insufficient.",
+        "cleanup": "Owned database/tempDNA/container absence verified."
       }
     }
   },
