@@ -1,3 +1,5 @@
+2026-11-22: Record reselection CI45023290705 failed before execution with CS0029: fixture string GreaterThan corrected to existing CqlV1Operator.GreaterThan enum. Shipping API unchanged; acceptance pending. Website384a808776acf3dfd632ad33a0e3c61d6cbceb8a publishes bounded SQL WITH demo, four parser and two interface/controlled-reply checks passed; no real model/browser acceptance. Exact mapped image package45021700914 succeeded; artifact verification pending. No local build/runtime/database/download; temporary publication index removed.
+
 # COSMIC ORM / CQL — current handoff
 
 Updated22November2026. Implementation branch: **work/cosmic-cql-ton-public**; website: **work/cosmic-cql**. Keep the full roadmap active. The physical checkout contains concurrent changes: use scoped Git-object publication; never reset, switch or stage unrelated files.

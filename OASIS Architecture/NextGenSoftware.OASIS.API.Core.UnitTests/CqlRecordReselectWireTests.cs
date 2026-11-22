@@ -48,7 +48,7 @@ public sealed class CqlRecordReselectWireTests
                     new CqlCompositionV1Column{Alias="label",SourceAlias="name"},
                     new CqlCompositionV1Column{Alias="revision",SourceAlias="version"}}},
                 new CqlCompositionV1Stage{Operation="Where",Filters=new[]{
-                    new CqlGroupedV1Filter{Alias="revision",Operator="GreaterThan",Value=JsonSerializer.SerializeToElement(1)}}},
+                    new CqlGroupedV1Filter{Alias="revision",Operator=CqlV1Operator.GreaterThan,Value=JsonSerializer.SerializeToElement(1)}}},
                 new CqlCompositionV1Stage{Operation="OrderBy",Order=new[]{new CqlGroupedV1Ordering{Alias="label",Descending=true}}},
                 new CqlCompositionV1Stage{Operation="Select",Columns=new[]{new CqlCompositionV1Column{Alias="Display",SourceAlias="label"}}}}};
         var query=CqlV1Compiler.CompileComposition(request,actor,ProviderType.SQLLiteDBOASIS);
