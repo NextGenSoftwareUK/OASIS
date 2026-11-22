@@ -1,0 +1,14 @@
+{
+  "base": "42239f939e6cb37d669eda7c5f0890cb0c18aa2e",
+  "candidate": "7a766082d54d09c4742f572a9e0ba29a7bd198a3",
+  "tag": "qualification/session-provenance-2026-11-22-7a766082",
+  "status": "Source implementation only; uncompiled/unrun/undeployed",
+  "invariant": "New V2 credentials acquire persisted issuer at actual resolved native save. Issuance verifies saved credential issuer matches acknowledged provider. Existing credentials are never assigned a guessed issuer.",
+  "scope": "Both sync/async shipping StorageOperationRequest SaveAvatar paths; pending assignment marker excluded from Newtonsoft/System.Text.Json persistence and input.",
+  "remaining": [
+    "Native provider persistence/refresh acceptance",
+    "Complete history discovery and explicit legacy-session migration",
+    "Global endpoint and OPORTAL wiring"
+  ],
+  "cleanup": "Temporary index/lock removed; no local build/runtime/env/download/database or physical shared checkout changes."
+}
