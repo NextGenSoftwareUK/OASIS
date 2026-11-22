@@ -779,7 +779,19 @@
       "Reuse existing repository/secret configuration; avoid periodic shared-cluster scanning and sending email as an unbounded dashboard GET side effect."
     ],
     "externalEmailCalls": 0,
-    "changesToSdkOrSecrets": false
+    "changesToSdkOrSecrets": false,
+    "gatewaySource": {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailGateway.cs",
+      "status": "implemented-source-only-uncompiled-unwired",
+      "behavior": "Pinned actual Resend SDK with persisted event UUID key, immutable payload input, node email enablement/secret resolver,24h reconciliation boundary and nonempty provider acknowledgement. Explicit OASISResult errors for provider/transport failure; cancellation propagates. Acceptance means provider submission only, not inbox delivery.",
+      "remaining": [
+        "Persistent immutable event preparation/acknowledgement store",
+        "Subscriber/app-owner consent revalidation and bounded dispatch integration",
+        "Compile/real delivery verification",
+        "Hosted acceptance"
+      ],
+      "externalEmailCalls": 0
+    }
   },
   "sharedDevelopmentReview": {
     "source": "f26edeef1152961a2b46f2149a6c28c08188a09a",
