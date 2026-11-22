@@ -1,3 +1,6 @@
+using MongoDB.Bson;
+using MongoDB.Driver;
+using NativeMongoAvatar = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
@@ -18,10 +21,14 @@ internal static class GlobalSessionHttpQualification
 
     public static async Task RunAsync(HttpClient http, MongoDBOASIS mongo, OASISDNA dna,
         Guid actor, string username, string password,
-        NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionCheckoutJournal checkoutJournal)
+        NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionCheckoutJournal checkoutJournal, IMongoDatabase ownedDatabase)
     {
         const string ownedUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Check(Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") == ownedUri, "Exact owned Mongo fixture required.");
+        Check(ownedDatabase.DatabaseNamespace.DatabaseName.StartsWith("hotspot_http_", StringComparison.Ordinal) &&
+            ownedDatabase.DatabaseNamespace.DatabaseName == dna.OASIS.StorageProviders.MongoDBOASIS.DBName,
+            "The raw session assertion requires the existing owned native fixture database.");
+        var mongoSerializationChecked = false;
         var directory = Directory.CreateTempSubdirectory("oasis-global-session-");
         SQLLiteDBOASIS? sqlite = null;
         bool pauseAttempted = false;
@@ -114,6 +121,21 @@ internal static class GlobalSessionHttpQualification
                 var native = provider == ProviderType.MongoDBOASIS ? await mongo.LoadAvatarAsync(actor) : await sqlite.LoadAvatarAsync(actor);
                 Check(!native.IsError && native.Result.RefreshTokens.Any(token => token.Token == parts[2] &&
                     token.IsActive && token.AuthorityProvider == provider.ToString()), "Native credential lost its issuing authority.");
+                if (provider == ProviderType.MongoDBOASIS && !mongoSerializationChecked)
+                {
+                    var typed = ownedDatabase.GetCollection<NativeMongoAvatar>("Avatar");
+                    var selector = Builders<NativeMongoAvatar>.Filter.Eq(row => row.HolonId, actor)
+                        .Render(new RenderArgs<NativeMongoAvatar>(typed.DocumentSerializer, typed.Settings.SerializerRegistry));
+                    var document = await ownedDatabase.GetCollection<BsonDocument>("Avatar").Find(selector)
+                        .Project(Builders<BsonDocument>.Projection.Include("RefreshTokens")).SingleAsync();
+                    var storedTokens = document["RefreshTokens"].AsBsonArray;
+                    Check(storedTokens.Count != 0 && storedTokens.All(value => value.IsBsonDocument &&
+                        !value.AsBsonDocument.Contains(nameof(RefreshToken.PendingAuthorityAssignment)) &&
+                        !value.AsBsonDocument.Contains(nameof(RefreshToken.PendingAuthorityProviders)) &&
+                        value.AsBsonDocument.GetValue(nameof(RefreshToken.AuthorityProvider), BsonNull.Value) == provider.ToString()),
+                        "Native BSON persisted temporary issuance state or lost the durable issuing provider.");
+                    mongoSerializationChecked = true;
+                }
                 return credentials;
             }
             async Task CheckAccess(JToken credentials, ProviderType provider, bool active)

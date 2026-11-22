@@ -10,5 +10,11 @@
     "Neo4j GUID lookup already has explicit native RecordNotFound marker; no source change or retest requested"
   ],
   "preparedRealCheck": "Existing sync/async SQLite assertion plus zero-session revocation across actual admitted Mongo/SQLite authorities; native re-reads activate each provider explicitly and prove no account was created. No Core null-envelope guessing.",
-  "cleanup": "Selected terminal logs verified owned SQLite directory, Mongo database, temporary DNA and container absent; Mongo not left paused. No local build, database, environment or downloaded logs/results."
+  "cleanup": "Selected terminal logs verified owned SQLite directory, Mongo database, temporary DNA and container absent; Mongo not left paused. No local build, database, environment or downloaded logs/results.",
+  "mongoRuntimeSerialization": {
+    "status": "Source contract corrected; raw BSON/native qualification pending",
+    "finding": "Core runtime-only BSON member convention was limited to IAuditBase Core records; RefreshToken is a Core value object outside that filter, despite its declared JsonIgnore issuance flags",
+    "fix": "Apply the existing Core navigation/runtime-member convention to RefreshToken as well; persistent AuthorityProvider remains mapped. No relaxed session invariant or guessed authority.",
+    "preparedCheck": "First actual Mongo password issuance reads only RefreshTokens BSON from existing owned DB, verifies temporary flags absent and durable issuer present. Database identity prefix/equality checked; no values printed."
+  }
 }

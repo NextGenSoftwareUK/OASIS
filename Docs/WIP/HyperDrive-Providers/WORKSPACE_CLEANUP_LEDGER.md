@@ -2916,3 +2916,6 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 ### 2026-11-22 — native absent-account result correction
 - Current host45074820751 built0errors5m39.55; first native absence check failed before sign-in. Selected logs confirm SQLite directory/Mongo DB/temp DNA/container absent and Mongo not paused. No local logs/archive/build/database/environment/download retained.
 - Fixed two remaining SQLite branches and four Mongo avatar query boundaries; source-checked all14SQLite account/detail absence branches. New zero-session core/native no-account check reactivates each provider before direct native verification, respecting Mongo lifecycle. No accepted native preference/middleware cohort replayed.
+
+### 2026-11-22 — runtime-only Mongo credential mapping
+- Extended existing Core runtime/navigation BSON convention to refresh-token value objects. Prepared one raw BSON field-contract assertion in the already owned Mongo fixture; only token fields projected and no values printed. Reuses existing client/database, no new environment/database/client runtime or local artifacts. Source only; no Mongo/Stripe/shared service invocation in this turn.
