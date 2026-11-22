@@ -1,5 +1,5 @@
 {
-  "phase": "development_rollout_pending",
+  "phase": "live_transport_accepted",
   "baseCore": "32fbf1bfd1e990b3119423bc024e149162d76d3e",
   "core": "1f649cd707df50f6ef8f999583e1117054a43133",
   "compiled": true,
@@ -140,7 +140,7 @@
   "imageAccepted": true,
   "packageAccepted": true,
   "developmentPushed": true,
-  "liveAccepted": false,
+  "liveAccepted": true,
   "producerSource": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
   "qualifiedSource": "f94fab22804adac182b7fbdcccbe023afd7ef07d",
   "reviewedNonRuntimeDelta": [
@@ -216,61 +216,65 @@
   "developmentPushedAt": "2026-11-22T18:26:20.518885+00:00",
   "observedDevelopmentAfterPush": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
   "web6Deployment": "9181eb61-2467-4f1e-932f-97c899c8e12d",
-  "web6DeploymentStatus": "QUEUED",
+  "web6DeploymentStatus": "SUCCESS",
   "web7Deployment": "6f5c7573-3282-4d44-b116-bfe9b4114cc9",
-  "web7DeploymentStatus": "BUILDING",
+  "web7DeploymentStatus": "SUCCESS",
   "web9Deployment": "7717c60b-80b9-4fe9-a24e-3ae4bf8755ff",
-  "web9DeploymentStatus": "BUILDING",
+  "web9DeploymentStatus": "SUCCESS",
   "web4Deployment": "0bdcd21c-9ba4-4cd4-a9f9-4483791a46b5",
-  "web4DeploymentStatus": "QUEUED",
+  "web4DeploymentStatus": "SUCCESS",
   "web10Deployment": "595130d4-dc01-4c78-8686-b6e92e41fcc9",
-  "web10DeploymentStatus": "BUILDING",
+  "web10DeploymentStatus": "SUCCESS",
   "web8Deployment": "7157b8dc-511f-4f72-9938-ff1d4e3c2008",
-  "web8DeploymentStatus": "QUEUED",
+  "web8DeploymentStatus": "SUCCESS",
   "web5Deployment": "0c8ae9a0-322e-48ce-a912-e1a6764c7a06",
-  "web5DeploymentStatus": "QUEUED",
+  "web5DeploymentStatus": "SUCCESS",
   "latestRolloutObservation": {
     "web6": {
       "deployment": "9181eb61-2467-4f1e-932f-97c899c8e12d",
-      "status": "QUEUED",
+      "status": "SUCCESS",
       "source": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
-      "imageDigest": null
+      "imageDigest": "sha256:92a67dcc333b5fabc244fc023903e5fe2ffc3c400bd7a166ca013637d0025463"
     },
     "web7": {
       "deployment": "6f5c7573-3282-4d44-b116-bfe9b4114cc9",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "source": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
-      "imageDigest": null
+      "imageDigest": "sha256:238e75d5186858cf36162fed9f237e7ee9881411839d65ed218287fffbedd0b0"
     },
     "web9": {
       "deployment": "7717c60b-80b9-4fe9-a24e-3ae4bf8755ff",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "source": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
-      "imageDigest": null
+      "imageDigest": "sha256:27d65a2ccbdbeeb4a30175e10e55780bf58ed0b025d7bfdd88abd49f1ded4093"
     },
     "web4": {
       "deployment": "0bdcd21c-9ba4-4cd4-a9f9-4483791a46b5",
-      "status": "QUEUED",
+      "status": "SUCCESS",
       "source": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
-      "imageDigest": null
+      "imageDigest": "sha256:f2c4d9ef5f1d38a88b34b10df684d7b3e97587a8b7c3090a593c81e1ca4f9c91"
     },
     "web10": {
       "deployment": "595130d4-dc01-4c78-8686-b6e92e41fcc9",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "source": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
-      "imageDigest": null
+      "imageDigest": "sha256:3b3777a2938b6b0495361e3fb3dfaf44c7c231a21b2ba59370990a4dbb99b09c"
     },
     "web8": {
       "deployment": "7157b8dc-511f-4f72-9938-ff1d4e3c2008",
-      "status": "QUEUED",
+      "status": "SUCCESS",
       "source": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
-      "imageDigest": null
+      "imageDigest": "sha256:9e32c74b6c1b89f015eaa03dbcdd1c37f8878954aae03fb5de9e4956a4ae9d88"
     },
     "web5": {
       "deployment": "0c8ae9a0-322e-48ce-a912-e1a6764c7a06",
-      "status": "QUEUED",
+      "status": "SUCCESS",
       "source": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
-      "imageDigest": null
+      "imageDigest": "sha256:38d14dc71f5c5bcfaa18e5d6e69e4299225d536495cffbaa5710dcd58a1e1df8"
     }
-  }
+  },
+  "liveProof": "RECORD_DISTINCT_HOSTED_ACCEPTANCE_2026-11-22.json",
+  "allSevenDevelopmentDeploymentsSucceeded": true,
+  "complexStorageBrowserDataFlowAccepted": false,
+  "realModelInferenceAccepted": false
 }
