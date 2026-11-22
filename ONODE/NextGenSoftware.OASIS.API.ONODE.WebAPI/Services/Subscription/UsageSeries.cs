@@ -91,10 +91,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             return monthRequests * 100 >= monthlyLimit * Math.Clamp(warningPercent, 1, 100) ? "warning" : "ok";
         }
 
-        public static UsageSeriesResult Build(string subject, IEnumerable<UsageDay> buckets, DateTime from, DateTime to, long dailyLimit, long monthlyLimit, long monthRequests, DateTime nowUtc, int warningPercent = 80)
+        public static UsageSeriesResult Build(string subject, IEnumerable<UsageDay> buckets, DateTime from, DateTime to, long dailyLimit, long monthlyLimit, long monthRequests, long todayRequests, int warningPercent = 80)
         {
             var days = Fill(buckets, from, to);
-            var today = nowUtc.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
             return new UsageSeriesResult
             {
                 Subject = subject,
@@ -106,7 +105,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 DailyLimit = Math.Max(0, dailyLimit),
                 MonthlyLimit = Math.Max(0, monthlyLimit),
                 MonthRequests = monthRequests,
-                TodayRequests = days.FirstOrDefault(d => d.Date == today)?.Requests ?? 0,
+                // A historical chart window must not replace the current-day aggregate with zero.
+                TodayRequests = todayRequests,
                 Status = Status(monthRequests, Math.Max(0, monthlyLimit), warningPercent)
             };
         }
