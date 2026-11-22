@@ -14,7 +14,8 @@ using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 internal static class MfaHttpQualification
 {
     public static async Task RunAsync(HttpClient http, MongoDBOASIS provider, MfaService service,
-        Func<DateTime> clock, Action advanceStep, OASISDNA dna, Guid actor, string username, string password)
+        Func<DateTime> clock, Action advanceStep, OASISDNA dna, Guid actor, string username, string password,
+        Func<string, JToken, bool, Task>? middlewareProbe = null)
     {
         async Task<JObject> Read(HttpResponseMessage response, string stage, bool errorExpected = false)
         {
@@ -61,13 +62,14 @@ internal static class MfaHttpQualification
             var verified = (await Post("/api/avatar/authenticate-mfa", new {
                 challengeToken = token, code = Totp.Code(secret, Totp.Step(clock(), 30)) }, "authenticator"))["result"]!;
             var verifiedPrincipal = VerifyCredentials(verified, dna, actor);
-            await VerifyAccessAsync(verifiedPrincipal, actor, true);
+            if (middlewareProbe == null) await VerifyAccessAsync(verifiedPrincipal, actor, true);
+            else await middlewareProbe("independent-issued", verified, true);
             await Post("/api/avatar/authenticate-mfa", new { challengeToken = token, recoveryCode = recovery[0] }, "consumed-challenge", true);
             var second = (await Post("/api/avatar/authenticate", new { username, password }, "recovery-challenge"))["result"]!;
             var recovered = (await Post("/api/avatar/authenticate-mfa", new {
                 challengeToken = second["metaData"]!.Value<string>(MfaService.ChallengeKey), recoveryCode = recovery[0] }, "recovery"))["result"]!;
             var recoveredPrincipal = VerifyCredentials(recovered, dna, actor);
-            await VerifyAccessAsync(recoveredPrincipal, actor, true);
+            if (middlewareProbe == null) await VerifyAccessAsync(recoveredPrincipal, actor, true);
             Check((await service.StatusAsync(actor)).RecoveryCodesLeft == recovery.Count - 1, "HTTP recovery use was not persisted.");
             var native = await provider.LoadAvatarAsync(actor);
             Check(!native.IsError && native.Result.RefreshTokens.Count == priorCount + 2,
@@ -80,16 +82,19 @@ internal static class MfaHttpQualification
             var rotated = (await Post("/api/avatar/refresh-token", new {
                 refreshToken = recovered.Value<string>("refreshToken") }, "refresh-envelope"))["result"]!;
             var rotatedPrincipal = VerifyCredentials(rotated, dna, actor);
-            await VerifyAccessAsync(rotatedPrincipal, actor, true);
-            await VerifyAccessAsync(recoveredPrincipal, actor, false);
+            if (middlewareProbe == null) await VerifyAccessAsync(rotatedPrincipal, actor, true);
+            if (middlewareProbe == null) await VerifyAccessAsync(recoveredPrincipal, actor, false);
+            else await middlewareProbe("rotated-credential", recovered, false);
             var afterRefresh = await provider.LoadAvatarAsync(actor);
             Check(!afterRefresh.IsError && afterRefresh.Result.RefreshTokens.Count == priorCount + 3 &&
                 afterRefresh.Result.RefreshTokens.Count(item => item.Revoked.HasValue) == 1,
                 "Actual refresh envelope did not rotate and persist its native credential.");
             http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", rotated.Value<string>("jwtToken"));
             await Post("/api/avatar/revoke-token", new { token = rotated.Value<string>("refreshToken") }, "revoke-bound-session");
-            await VerifyAccessAsync(rotatedPrincipal, actor, false);
-            await VerifyAccessAsync(verifiedPrincipal, actor, true);
+            if (middlewareProbe == null) await VerifyAccessAsync(rotatedPrincipal, actor, false);
+            else await middlewareProbe("revoked-credential", rotated, false);
+            if (middlewareProbe == null) await VerifyAccessAsync(verifiedPrincipal, actor, true);
+            else await middlewareProbe("independent-remains-active", verified, true);
             http.DefaultRequestHeaders.Authorization = null;
             await Post("/api/avatar/refresh-token", new { refreshToken = rotated.Value<string>("refreshToken") }, "revoked-refresh", true);
             var afterRevoke = await provider.LoadAvatarAsync(actor);
@@ -119,6 +124,9 @@ internal static class MfaHttpQualification
                 ValidateIssuer = true, ValidIssuer = "OASIS", ValidateAudience = true, ValidAudience = "OASIS",
                 ValidateLifetime = true, RequireExpirationTime = true, ClockSkew = TimeSpan.Zero }, out _);
         Check(principal.FindFirst("sub")?.Value == actor.ToString(), "MFA HTTP JWT subject mismatch.");
+        Check(string.IsNullOrEmpty(avatar.Value<string>("password")) && string.IsNullOrEmpty(avatar.Value<string>("verificationToken")) &&
+            (avatar["refreshTokens"] == null || avatar["refreshTokens"]!.Type == JTokenType.Null),
+            "Issuer response exposed native password, verification or unrelated refresh credentials.");
         var envelope = avatar.Value<string>("refreshToken")!.Split('.');
         Check(envelope.Length == 4 && envelope[0] == "oasis-r1" && envelope[1] == "MongoDBOASIS",
             "Owned HTTP credential has no expected authoritative provider.");

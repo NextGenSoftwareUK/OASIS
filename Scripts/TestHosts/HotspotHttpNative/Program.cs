@@ -40,7 +40,7 @@ Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
 var mode = Environment.GetEnvironmentVariable("OASIS_HOTSPOT_HTTP_MODE") ?? "binding";
-Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "session-list-http" or "mfa-native" or "mfa-http" or "mfa-browser" or "billing-warning-browser" or "billing-restoration-http", "Unsupported hotspot HTTP check mode.");
+Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "session-list-http" or "mfa-native" or "mfa-http" or "mfa-middleware-http" or "mfa-browser" or "billing-warning-browser" or "billing-restoration-http", "Unsupported hotspot HTTP check mode.");
 var dna = new OASISDNA { OASIS = new() {
     HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
         AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
@@ -55,6 +55,9 @@ var dna = new OASISDNA { OASIS = new() {
         MongoDBOASIS = new() { ConnectionString = ownedUri, DBName = database, NativeImportDBName = database } } } };
 var provider = new MongoDBOASIS(ownedUri, database, dna);
 WebApplication? app = null;
+#if !OASIS_SESSION_MIDDLEWARE_CHECK
+Require(mode != "mfa-middleware-http", "Middleware qualification requires actual WEB4-WEB10 API project references.");
+#endif
 var previousMfaGate = AvatarManager.SecondFactorGate;
 var mfaPassword = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
 try
@@ -76,7 +79,7 @@ try
             account.Email = "delivered@resend.dev";
             account.Verified = DateTime.UtcNow;
         }
-        if ((mode is "mfa-http" or "mfa-browser") && account.Id == actor)
+        if ((mode is "mfa-http" or "mfa-middleware-http" or "mfa-browser") && account.Id == actor)
         {
             account.Verified = DateTime.UtcNow;
             account.Password = BCrypt.Net.BCrypt.HashPassword(mfaPassword);
@@ -167,7 +170,7 @@ try
     var builder = WebApplication.CreateBuilder(); builder.Logging.ClearProviders(); builder.WebHost.UseUrls("http://127.0.0.1:0");
     NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa.MfaService? httpMfa = null;
     var mfaNow = DateTime.UtcNow;
-    if (mode is "mfa-http" or "mfa-browser")
+    if (mode is "mfa-http" or "mfa-middleware-http" or "mfa-browser")
     {
         var settings = new MfaSettings { Enabled = true, CodeDigits = 6, TimeStepSeconds = 30, AllowedDriftSteps = 0 };
         var store = new NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa.MongoMfaStore(() => dna);
@@ -176,7 +179,7 @@ try
         builder.Services.AddSingleton(httpMfa);
         builder.Services.AddHttpContextAccessor();
     }
-    if (mode is "mfa-http" or "mfa-browser") builder.Logging.AddProvider(new SanitizedHttpExceptionLogger());
+    if (mode is "mfa-http" or "mfa-middleware-http" or "mfa-browser") builder.Logging.AddProvider(new SanitizedHttpExceptionLogger());
     MongoSubscriptionUsageRepository? billingRepository = null;
     if (mode is "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "billing-warning-browser" or "billing-restoration-http")
     {
@@ -215,14 +218,14 @@ try
         builder.Services.AddSingleton<IPaidOverageGateway, StripePaidOverageGateway>();
         builder.Services.AddTransient<PaidOverageBillingService>();
     }
-    var key = new SymmetricSecurityKey((mode is "mfa-http" or "mfa-browser") ? System.Text.Encoding.ASCII.GetBytes(dna.OASIS.Security.SecretKey) : secret);
+    var key = new SymmetricSecurityKey((mode is "mfa-http" or "mfa-middleware-http" or "mfa-browser") ? System.Text.Encoding.ASCII.GetBytes(dna.OASIS.Security.SecretKey) : secret);
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {
         options.MapInboundClaims = false;
         options.TokenValidationParameters = new() { ValidateIssuer = false, ValidateAudience = false,
             ValidateIssuerSigningKey = true, IssuerSigningKey = key, ValidateLifetime = true, ClockSkew = TimeSpan.Zero };
     });
     var mvc = builder.Services.AddControllers();
-    if (mode is "mfa-http" or "mfa-browser" or "billing-warning-browser" or "billing-restoration-http")
+    if (mode is "mfa-http" or "mfa-middleware-http" or "mfa-browser" or "billing-warning-browser" or "billing-restoration-http")
     {
         // WEB4 hosts authentication; WEB5's proxy has its own deployment and the same public URL.
         // This multi-API fixture must use WEB4's application surface for the auth journey.
@@ -232,8 +235,12 @@ try
     else
         mvc.AddApplicationPart(typeof(GeoHotSpotsController).Assembly)
             .AddApplicationPart(typeof(NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.NftController).Assembly);
+    if (mode == "mfa-middleware-http") builder.Services.AddAuthorization();
     app = builder.Build(); app.UseAuthentication();
-    if (mode is "mfa-http" or "mfa-browser")
+#if OASIS_SESSION_MIDDLEWARE_CHECK
+    if (mode == "mfa-middleware-http") SessionMiddlewareHttpQualification.MapBranches(app, actor);
+#endif
+    if (mode is "mfa-http" or "mfa-middleware-http" or "mfa-browser")
         AvatarManager.SecondFactorGate = NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa.MfaGate.Create(httpMfa!,
             app.Services.GetRequiredService<IHttpContextAccessor>());
     if (mode is "browser" or "catalogue-browser" or "competition-browser" or "mfa-browser" or "billing-warning-browser")
@@ -253,12 +260,12 @@ try
             OASISRequestContext.CurrentAvatar = loaded.Result; OASISRequestContext.CurrentAvatarId = id;
         }
         try { await next(context); }
-        catch (Exception error) when (mode is "session-list-http" or "mfa-http")
+        catch (Exception error) when (mode is "session-list-http" or "mfa-http" or "mfa-middleware-http")
         {
             Console.WriteLine("SESSION_HTTP_SERVER_FAILURE: type=" + error.GetType().FullName +
                 " base=" + error.GetBaseException().GetType().FullName +
                 " avatarType=" + context.Items["Avatar"]?.GetType().FullName);
-            if (mode is "mfa-http" or "mfa-browser")
+            if (mode is "mfa-http" or "mfa-middleware-http" or "mfa-browser")
                 Console.WriteLine("MFA_HTTP_FAILURE_METHODS: " + string.Join(" | ",
                     new StackTrace(error.GetBaseException(), false).GetFrames()?.Take(8).Select(frame =>
                         frame.GetMethod()?.DeclaringType?.FullName + "." + frame.GetMethod()?.Name) ?? Array.Empty<string>()));
@@ -356,7 +363,7 @@ try
             "MFA Settings management changed the native avatar.");
         Console.WriteLine("MFA_SETTINGS_BROWSER_NATIVE_PROOF: actual SDK/fragment/controls enrollment, confirmation, recovery replacement, disable, clear/reopen and native audit; unchanged avatar. Not full site/full Startup/hosted acceptance.");
     }
-    else if (mode == "mfa-http")
+    else if (mode is "mfa-http" or "mfa-middleware-http")
     {
         var authEndpoints = app.Services.GetRequiredService<Microsoft.AspNetCore.Routing.EndpointDataSource>().Endpoints
             .OfType<Microsoft.AspNetCore.Routing.RouteEndpoint>()
@@ -364,8 +371,16 @@ try
                 endpoint.Metadata.GetMetadata<Microsoft.AspNetCore.Routing.HttpMethodMetadata>()?.HttpMethods.Contains("POST") == true).ToList();
         Require(authEndpoints.Count == 1 && authEndpoints[0].Metadata.GetMetadata<Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor>()?.ControllerName == "AvatarAuth",
             "MFA fixture must expose exactly the shipping WEB4 authentication endpoint, without the WEB5 proxy.");
+        Func<string, Newtonsoft.Json.Linq.JToken, bool, Task>? middlewareProbe = null;
+#if OASIS_SESSION_MIDDLEWARE_CHECK
+        if (mode == "mfa-middleware-http")
+            middlewareProbe = (stage, credentials, active) => SessionMiddlewareHttpQualification.ProbeAsync(http, stage, credentials, active, actor, dna);
+#endif
         await MfaHttpQualification.RunAsync(http, provider, httpMfa!, () => mfaNow,
-            () => mfaNow = mfaNow.AddSeconds(30), dna, actor, accounts[0].Username, mfaPassword);
+            () => mfaNow = mfaNow.AddSeconds(30), dna, actor, accounts[0].Username, mfaPassword, middlewareProbe);
+#if OASIS_SESSION_MIDDLEWARE_CHECK
+        if (mode == "mfa-middleware-http") SessionMiddlewareHttpQualification.VerifyComplete();
+#endif
     }
     else if (mode == "mfa-native")
     {

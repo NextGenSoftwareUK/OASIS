@@ -76,7 +76,7 @@ jobs:
           $files = @{ map='Scripts/TestHosts/Fixtures/map-development-candidate.json'; hotspot='Scripts/TestHosts/Fixtures/hotspot-development-candidate.json'; quest='Scripts/TestHosts/Fixtures/quest-authoritative-candidate.json'; competition='Scripts/TestHosts/Fixtures/competition-development-candidate.json'; profile='Scripts/TestHosts/Fixtures/profile-development-candidate.json'; billing='Scripts/TestHosts/Fixtures/billing-development-candidate.json' }
           $file = $files[$env:CANDIDATE_SCOPE]
           $candidate = Get-Content $file -Raw | ConvertFrom-Json
-          if ($env:CANDIDATE_SCOPE -eq 'billing' -and '${{ inputs.native_check }}' -eq 'true' -and ($candidate.nativeHost -ne 'HotspotHttpNative' -or $candidate.nativeMode -notin @('billing-http','billing-admin-http','billing-warning-store','billing-warning-http','billing-warning-provider','session-list-http','mfa-native','mfa-http','mfa-browser','billing-warning-browser','billing-restoration-http'))) { throw 'Billing requires an explicitly reviewed HTTP host mode.' }
+          if ($env:CANDIDATE_SCOPE -eq 'billing' -and '${{ inputs.native_check }}' -eq 'true' -and ($candidate.nativeHost -ne 'HotspotHttpNative' -or $candidate.nativeMode -notin @('billing-http','billing-admin-http','billing-warning-store','billing-warning-http','billing-warning-provider','session-list-http','mfa-native','mfa-http','mfa-middleware-http','mfa-browser','billing-warning-browser','billing-restoration-http'))) { throw 'Billing requires an explicitly reviewed HTTP host mode.' }
           if ($env:CANDIDATE_SCOPE -eq 'competition' -and '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -notin @('competition-browser','competition-publisher')) { throw 'Competition requires an explicit browser or publisher host.' }
           if ($env:CANDIDATE_SCOPE -eq 'profile' -and '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -ne 'profile-http') { throw 'Profile restoration requires its explicit HTTP host.' }
           "file=$file" >> $env:GITHUB_OUTPUT
@@ -185,12 +185,17 @@ jobs:
         run: |
           $candidate = Get-Content (Join-Path ../qualification-control $env:CANDIDATE_FILE) -Raw | ConvertFrom-Json
           $projects = if ($candidate.buildProjects) { @($candidate.buildProjects) } else { @('WEB4') }
-          if (@($projects | Where-Object { $_ -notin @('WEB4','WEB5','OUTBOXADMINTESTS') }).Count) { throw 'Unsupported qualification build target.' }
+          if (@($projects | Where-Object { $_ -notin @('WEB4','WEB5','WEB6','WEB7','WEB8','WEB9','WEB10','OUTBOXADMINTESTS') }).Count) { throw 'Unsupported qualification build target.' }
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner map-development-candidate-ci -Operation {
             foreach ($target in $projects) {
               $project = switch ($target) {
                 'WEB4' { 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj' }
                 'WEB5' { 'STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj' }
+                'WEB6' { 'WEB6/NextGenSoftware.OASIS.Web6.WebAPI/NextGenSoftware.OASIS.Web6.WebAPI.csproj' }
+                'WEB7' { 'WEB7/NextGenSoftware.OASIS.Web7.WebAPI/NextGenSoftware.OASIS.Web7.WebAPI.csproj' }
+                'WEB8' { 'WEB8/NextGenSoftware.OASIS.Web8.WebAPI/NextGenSoftware.OASIS.Web8.WebAPI.csproj' }
+                'WEB9' { 'WEB9/NextGenSoftware.OASIS.Web9.WebAPI/NextGenSoftware.OASIS.Web9.WebAPI.csproj' }
+                'WEB10' { 'WEB10/NextGenSoftware.OASIS.Web10.WebAPI/NextGenSoftware.OASIS.Web10.WebAPI.csproj' }
                 'OUTBOXADMINTESTS' { 'Scripts/SubscriptionLedger.OutboxAdmin.Tests/SubscriptionLedger.OutboxAdmin.Tests.csproj' }
               }
               dotnet build $project --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
@@ -284,7 +289,7 @@ jobs:
           if ($hostName -notin @('MapDevelopmentNative','HotspotDevelopmentNative','HotspotHttpNative')) { throw 'Unsupported native qualification host.' }
           if ($hostName -eq 'HotspotHttpNative') {
             $env:OASIS_HOTSPOT_HTTP_MODE = if ($candidate.nativeMode) { $candidate.nativeMode } else { 'binding' }
-            if ($env:OASIS_HOTSPOT_HTTP_MODE -notin @('binding','populated','browser','quest-empty','catalogue','catalogue-browser','competition-browser','competition-publisher','profile-http','billing-http','billing-admin-http','billing-warning-store','billing-warning-http','billing-warning-provider','session-list-http','mfa-native','mfa-http','mfa-browser','billing-warning-browser','billing-restoration-http')) { throw 'Unsupported hotspot HTTP check mode.' }
+            if ($env:OASIS_HOTSPOT_HTTP_MODE -notin @('binding','populated','browser','quest-empty','catalogue','catalogue-browser','competition-browser','competition-publisher','profile-http','billing-http','billing-admin-http','billing-warning-store','billing-warning-http','billing-warning-provider','session-list-http','mfa-native','mfa-http','mfa-middleware-http','mfa-browser','billing-warning-browser','billing-restoration-http')) { throw 'Unsupported hotspot HTTP check mode.' }
             if ($env:OASIS_HOTSPOT_HTTP_MODE -eq 'catalogue-browser') {
               $env:OASIS_GEO_BROWSER_HOST = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/catalogue-browser-host.html).Path
               $env:OASIS_GEO_BROWSER_SCRIPT = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/catalogue-browser-native-http.cjs).Path
@@ -300,7 +305,11 @@ jobs:
             }
           }
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner map-development-native-ci -Operation {
-            dotnet build "../qualification-control/Scripts/TestHosts/$hostName/$hostName.csproj" --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false "/p:OASISCandidateRoot=$((Get-Location).Path)"
+            if ($env:OASIS_HOTSPOT_HTTP_MODE -eq 'mfa-middleware-http') {
+              & ../qualification-control/Scripts/TestHosts/Test-SessionMiddlewareOrdering.ps1 -CandidateRoot (Get-Location).Path
+            }
+            $qualificationArguments = if ($env:OASIS_HOTSPOT_HTTP_MODE -eq 'mfa-middleware-http') { @('/p:OASISSessionMiddlewareCheck=true') } else { @() }
+            dotnet build "../qualification-control/Scripts/TestHosts/$hostName/$hostName.csproj" --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false "/p:OASISCandidateRoot=$((Get-Location).Path)" @qualificationArguments
             if ($LASTEXITCODE) { throw "Combined Development native $hostName host build failed." }
             dotnet "../qualification-control/Scripts/TestHosts/$hostName/bin/Release/net10.0/$hostName.dll"
             if ($LASTEXITCODE) { throw "Combined Development native $hostName check failed." }

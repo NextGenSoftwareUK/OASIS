@@ -2,11 +2,15 @@
   "status": "draft source only; not compiled/native-tested/deployed; strict validation requires prior issuer rollout and retirement of unbound tokens",
   "core": {
     "base": "c486c152b05d1d5d4a9afc312dd2121c9299e1c1",
-    "candidate": "494c0e2d4de160403b9136c769cbf70079f64db4",
-    "tag": "qualification/session-enforcement-2026-11-22-494c0e2d",
+    "candidate": "618c3c73102ef270d68f127d55cf1848cdda155a",
+    "tag": "qualification/session-enforcement-2026-11-22-618c3c73",
     "paths": [
-      "Helpers/AvatarSessionIdentity.cs"
-    ]
+      "Helpers/AvatarSessionIdentity.cs",
+      "Managers/AvatarManager/AvatarManager-AccessSession.cs",
+      "Managers/AvatarManager/AvatarManager-DeleteForProvider.cs",
+      "Managers/AvatarManager/AvatarManager-RefreshAuthority.cs"
+    ],
+    "previousCandidate": "c514b355d00c7f2de440c2dbc4377c57037b3af1"
   },
   "web5": {
     "base": "cf763aecfff7cc33d6aeacc9121db01c767a50f6",
@@ -35,9 +39,9 @@
     "WEB10/NextGenSoftware.OASIS.Web10.WebAPI/Middleware/JwtMiddleware.cs": "8600c55671a7cd6bd17bb2c74b306b367067aecc"
   },
   "root": {
-    "base": "09d61416ea4ed2926bf044e211fc73502ab4adbe",
-    "candidate": "1f26794f5ff070b14d0d3bcdfe7c4382a444b8bd",
-    "tag": "qualification/session-enforcement-2026-11-22-1f26794f",
+    "base": "94dcc89a9bf750cc6a687f6137594284ffcf749a",
+    "candidate": "f552d7706bbd5dbfadbd366a425f6348a9eb30a7",
+    "tag": "qualification/session-enforcement-current-2026-11-22-f552d770",
     "paths": [
       "Docker/oasis-dependency-versions.env",
       "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
@@ -54,7 +58,7 @@
       "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Middleware/JwtMiddleware.cs",
       "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Program.cs"
     ],
-    "previousCandidate": "3f3aa9afa40641bd9b3b54c262450650068022a1"
+    "previousCandidate": "b4102768a68e7aaaa0ae1bd2713fd0df33f4ae4a"
   },
   "protocol": "Each API validates signature/issuer/audience/lifetime and exact bound session before publishing request identity. WEB4 retains independent offline-grant endpoint policy without authenticating an invalid bearer. WEB6 now requires its first authoritative avatar/session lookup.",
   "rolloutRequirement": "Do not deploy strict validators until acknowledged issuer source is deployed on all issuers and the maximum old configured access lifetime has elapsed; no permanent unbound-token bypass.",
@@ -67,5 +71,70 @@
     "Verify WEB4 independent signed offline-grant authorization remains separate from failed bearer identity; preserve canonical WEB6 audit attribution.",
     "Check current dev rollout queue and exact running issuer source before any staged deployment; retire old configured token lifetimes before strict enforcement.",
     "Global/selected logout and cross-provider session freshness/failover are still unfinished; keep OPORTAL controls disabled until real acceptance."
-  ]
+  ],
+  "redaction": "Shared refresh redaction clears list and standalone fields on detached responses. Validated request context additionally clears access JWT. Issuer always strips native password/verification/unrelated refresh credentials, then restores only its acknowledged intended V1/V2 JWT and refresh response. Provider persistence contracts are unchanged.",
+  "testHarness": {
+    "status": "prepared, not compiled/run; not selected by queued foundation build",
+    "mode": "mfa-middleware-http",
+    "property": "OASISSessionMiddlewareCheck=true",
+    "services": [
+      "WEB4",
+      "WEB5",
+      "WEB6",
+      "WEB7",
+      "WEB8",
+      "WEB9",
+      "WEB10"
+    ],
+    "httpCases": 35,
+    "scope": "Actual middleware/Core/native Mongo/framework policy: issued, rotated, revoked, independent and signed inconsistent subject. Source startup ordering check; not full Startup/global logout/browser/hosted or cross-provider acceptance."
+  },
+  "staticChecks": {
+    "pipelines": 7,
+    "ordering": "passed exact immutable source; runtime check not run",
+    "projectXml": "parsed",
+    "orderingGuard": "PowerShell AST parsed; no syntax errors",
+    "csharp": "not compiled",
+    "nativeHttp": "not run"
+  },
+  "composition": "Current Development94dcc89a fixes the worker gate and ONODEManager manifest pair; all current dependency pins preserved except the three paired, explicit enforcement submodule advances. No concurrent owned C# path overlap.",
+  "qualificationCandidate": {
+    "scope": "billing",
+    "status": "seven-service enforcement/native mode prepared; not compiled/run",
+    "base": "94dcc89a9bf750cc6a687f6137594284ffcf749a",
+    "candidate": "f552d7706bbd5dbfadbd366a425f6348a9eb30a7",
+    "tag": "qualification/session-enforcement-current-2026-11-22-f552d770",
+    "buildProjects": [
+      "WEB4",
+      "WEB5",
+      "WEB6",
+      "WEB7",
+      "WEB8",
+      "WEB9",
+      "WEB10"
+    ],
+    "allowedPaths": [
+      "Docker/oasis-dependency-versions.env",
+      "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
+      "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/JwtMiddleware.cs",
+      "STAR ODK",
+      "WEB10/NextGenSoftware.OASIS.Web10.WebAPI/Middleware/JwtMiddleware.cs",
+      "WEB10/NextGenSoftware.OASIS.Web10.WebAPI/Program.cs",
+      "WEB6",
+      "WEB7/NextGenSoftware.OASIS.Web7.WebAPI/Middleware/JwtMiddleware.cs",
+      "WEB7/NextGenSoftware.OASIS.Web7.WebAPI/Program.cs",
+      "WEB8/NextGenSoftware.OASIS.Web8.WebAPI/Middleware/JwtMiddleware.cs",
+      "WEB8/NextGenSoftware.OASIS.Web8.WebAPI/Program.cs",
+      "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Middleware/JwtMiddleware.cs",
+      "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Program.cs"
+    ],
+    "core": {
+      "base": "3696bd32ff84ee49db4b189dfcea946da7172dbd",
+      "candidate": "618c3c73102ef270d68f127d55cf1848cdda155a"
+    },
+    "nativeHost": "HotspotHttpNative",
+    "nativeMode": "mfa-middleware-http",
+    "remaining": "One leased actual seven-API build and 35 native HTTP middleware cases. Existing foundation45005901782 continues unchanged; no replacement, no dev deployment. Strict rollout/global logout/OPORTAL acceptance open."
+  }
 }

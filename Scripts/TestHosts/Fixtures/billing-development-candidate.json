@@ -1,23 +1,39 @@
 {
   "scope": "billing",
-  "status": "current composition pin drift corrected; compile only pending",
-  "base": "24ec05bb5f57cf15b3b18fdd2ed2d987911aba64",
-  "candidate": "06c79aeaa7143b39034684345a371313ca8b6631",
-  "tag": "qualification/session-foundation-current-2026-11-22-06c79aea",
+  "status": "seven-service enforcement/native mode prepared; not compiled/run",
+  "base": "94dcc89a9bf750cc6a687f6137594284ffcf749a",
+  "candidate": "f552d7706bbd5dbfadbd366a425f6348a9eb30a7",
+  "tag": "qualification/session-enforcement-current-2026-11-22-f552d770",
   "buildProjects": [
     "WEB4",
-    "WEB5"
+    "WEB5",
+    "WEB6",
+    "WEB7",
+    "WEB8",
+    "WEB9",
+    "WEB10"
   ],
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
     "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
-    "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/JwtMiddleware.cs",
+    "STAR ODK",
+    "WEB10/NextGenSoftware.OASIS.Web10.WebAPI/Middleware/JwtMiddleware.cs",
+    "WEB10/NextGenSoftware.OASIS.Web10.WebAPI/Program.cs",
+    "WEB6",
+    "WEB7/NextGenSoftware.OASIS.Web7.WebAPI/Middleware/JwtMiddleware.cs",
+    "WEB7/NextGenSoftware.OASIS.Web7.WebAPI/Program.cs",
+    "WEB8/NextGenSoftware.OASIS.Web8.WebAPI/Middleware/JwtMiddleware.cs",
+    "WEB8/NextGenSoftware.OASIS.Web8.WebAPI/Program.cs",
+    "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Middleware/JwtMiddleware.cs",
+    "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Program.cs"
   ],
   "core": {
     "base": "3696bd32ff84ee49db4b189dfcea946da7172dbd",
-    "candidate": "c486c152b05d1d5d4a9afc312dd2121c9299e1c1"
+    "candidate": "618c3c73102ef270d68f127d55cf1848cdda155a"
   },
   "nativeHost": "HotspotHttpNative",
-  "nativeMode": "mfa-http",
-  "remaining": "Compile only current ONODEManager/dependency graph before phase-one integration; retain45003726813 runtime proof. Do not deploy strict enforcement drafts or add to live dev build queue."
+  "nativeMode": "mfa-middleware-http",
+  "remaining": "One leased actual seven-API build and 35 native HTTP middleware cases. Existing foundation45005901782 continues unchanged; no replacement, no dev deployment. Strict rollout/global logout/OPORTAL acceptance open."
 }

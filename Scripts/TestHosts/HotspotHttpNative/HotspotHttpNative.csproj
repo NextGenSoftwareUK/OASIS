@@ -9,6 +9,16 @@
     <ProjectReference Include="$(OASISCandidateRoot)/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj" />
     <ProjectReference Include="$(OASISCandidateRoot)/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" />
   </ItemGroup>
+  <PropertyGroup Condition="'$(OASISSessionMiddlewareCheck)' == 'true'">
+    <DefineConstants>$(DefineConstants);OASIS_SESSION_MIDDLEWARE_CHECK</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(OASISSessionMiddlewareCheck)' == 'true'">
+    <ProjectReference Include="$(OASISCandidateRoot)/WEB6/NextGenSoftware.OASIS.Web6.WebAPI/NextGenSoftware.OASIS.Web6.WebAPI.csproj" />
+    <ProjectReference Include="$(OASISCandidateRoot)/WEB7/NextGenSoftware.OASIS.Web7.WebAPI/NextGenSoftware.OASIS.Web7.WebAPI.csproj" />
+    <ProjectReference Include="$(OASISCandidateRoot)/WEB8/NextGenSoftware.OASIS.Web8.WebAPI/NextGenSoftware.OASIS.Web8.WebAPI.csproj" />
+    <ProjectReference Include="$(OASISCandidateRoot)/WEB9/NextGenSoftware.OASIS.Web9.WebAPI/NextGenSoftware.OASIS.Web9.WebAPI.csproj" />
+    <ProjectReference Include="$(OASISCandidateRoot)/WEB10/NextGenSoftware.OASIS.Web10.WebAPI/NextGenSoftware.OASIS.Web10.WebAPI.csproj" />
+  </ItemGroup>
   <Target Name="RequireCandidateRoot" BeforeTargets="PrepareForBuild">
     <Error Condition="'$(OASISCandidateRoot)' == ''" Text="An explicit isolated candidate root is required." />
   </Target>
