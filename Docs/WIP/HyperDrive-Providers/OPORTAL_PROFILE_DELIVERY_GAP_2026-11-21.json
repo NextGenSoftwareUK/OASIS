@@ -116,7 +116,26 @@
     "job": 137029807264,
     "control": "c9fa2feb91548b59de9c44b83fb06ca8994667a2",
     "candidate": "3715fa9f4a026d727cd22456d52f3159124912e9",
-    "status": "pending",
-    "scope": "WEB4 combined current API/provider compilation only; no accepted native/browser replay"
+    "status": "failure",
+    "scope": "WEB4 combined current API/provider compilation only; no accepted native/browser replay",
+    "buildErrors": 3,
+    "buildElapsed": "00:04:52.21",
+    "cause": [
+      "Mongo PatchAccountLifecycleAsync lacks advanceVersion/cancellation/nextVersionId parameters",
+      "Neo ArchiveRecordVersionAsync lacks original native snapshot parameter"
+    ],
+    "runtimeCases": 0
+  },
+  "helperRestoration": {
+    "candidate": "04a9705d2ffc1abcf29bf84c79aa0488cbafb237",
+    "tag": "qualification/profile-helpers-2026-11-21-04a9705d",
+    "files": [
+      "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/AvatarRepository.HistoryPatch.cs",
+      "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.AvatarHistory.cs"
+    ],
+    "donor": "a4412568e922a09ef5dd8101d049ec5e651f3b7e",
+    "status": "source-restored-uncompiled",
+    "semantics": "Mongo advances profile revision independently of history retention with immutable command stamp; Neo archives exact locked original snapshot. Existing callers retain optional defaults.",
+    "noShimsOrArgumentRemoval": true
   }
 }

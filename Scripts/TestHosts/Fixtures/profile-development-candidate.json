@@ -1,9 +1,9 @@
 {
   "scope": "profile",
-  "status": "source-and-classification-reviewed-awaiting-compile",
+  "status": "missing-native-helper-contracts-restored-awaiting-compile-and-http",
   "base": "f54923d82ac8bffa7877d9307f18e879d41a8254",
-  "candidate": "3715fa9f4a026d727cd22456d52f3159124912e9",
-  "tag": "qualification/profile-reviewed-2026-11-21-3715fa9f",
+  "candidate": "04a9705d2ffc1abcf29bf84c79aa0488cbafb237",
+  "tag": "qualification/profile-helpers-2026-11-21-04a9705d",
   "buildProjects": [
     "WEB4"
   ],
@@ -19,7 +19,9 @@
     "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Profile.cs",
     "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
     "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
-    "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
+    "Scripts/verify_web4_hyperdrive_route_manifest.ps1",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/AvatarRepository.HistoryPatch.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.AvatarHistory.cs"
   ],
   "core": {
     "base": "7165ab625f90501047ca10c3b9f193ed0498caf5",
