@@ -1,0 +1,10 @@
+{
+  "core": "93cd70c0a439499f768910751228a0341aea866d",
+  "base": "21a5966a12aa9c57109131cf7a519394d30e9a27",
+  "sourcePrepared": true,
+  "compiled": false,
+  "nativeProviderAdmitted": false,
+  "runtimeHooked": false,
+  "deployed": false,
+  "next": "Implement native Neo4j keyed source and representative Core/provider checks before admission; MongoDB/SQLite follow on the same source contract."
+}
