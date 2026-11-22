@@ -1,0 +1,84 @@
+{
+  "source": "f7eb7579e6b0d01d8cce52fcab4ca7de67bb2a89",
+  "core": "34848a57c2b165696bdeda91d26e0a7cddd273c8",
+  "run": 45038000464,
+  "job": 137255906998,
+  "artifact": 14760886933,
+  "artifactBytes": 2829,
+  "artifactSha256": "a28b9d3d3843d964a747ca8c1ea5cd8dbfe09a28921cf566889790bb01896fdd",
+  "files": [
+    "MongoDBOASIS-staged-set-http-native.json",
+    "Neo4jOASIS-staged-set-http-native.json",
+    "SQLLiteDBOASIS-staged-set-http-native.json",
+    "mapping-native.trx"
+  ],
+  "passed": 3,
+  "reports": [
+    {
+      "provider": "MongoDBOASIS",
+      "checks": 3,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "owner-http": 595,
+        "foreign-http": 80,
+        "anonymous-http": 8
+      },
+      "nativeProviderVerified": true,
+      "realHttpVerified": true,
+      "selectedInputStagesVerified": true,
+      "visibleReselectionVerified": true,
+      "rightInputFilteredBeforeSetVerified": true,
+      "foreignRowsHiddenVerified": true,
+      "anonymousRefusedVerified": true,
+      "usageSettledVerified": true,
+      "oneNativeAttemptPerReadVerified": true,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 3,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "owner-http": 77,
+        "foreign-http": 23,
+        "anonymous-http": 1
+      },
+      "nativeProviderVerified": true,
+      "realHttpVerified": true,
+      "selectedInputStagesVerified": true,
+      "visibleReselectionVerified": true,
+      "rightInputFilteredBeforeSetVerified": true,
+      "foreignRowsHiddenVerified": true,
+      "anonymousRefusedVerified": true,
+      "usageSettledVerified": true,
+      "oneNativeAttemptPerReadVerified": true,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "checks": 3,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "owner-http": 2986,
+        "foreign-http": 30,
+        "anonymous-http": 1
+      },
+      "nativeProviderVerified": true,
+      "realHttpVerified": true,
+      "selectedInputStagesVerified": true,
+      "visibleReselectionVerified": true,
+      "rightInputFilteredBeforeSetVerified": true,
+      "foreignRowsHiddenVerified": true,
+      "anonymousRefusedVerified": true,
+      "usageSettledVerified": true,
+      "oneNativeAttemptPerReadVerified": true,
+      "exactCleanupVerified": true
+    }
+  ],
+  "archiveSavedToDisk": false,
+  "sharedAtlasCalls": 0,
+  "liveAccepted": false
+}

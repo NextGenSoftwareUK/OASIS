@@ -11,11 +11,15 @@
   ],
   "contractRun": 45037860576,
   "nativeRun": 45038000464,
-  "qualificationPending": true,
+  "qualificationPending": false,
   "liveAccepted": false,
   "developmentUnchanged": "3cc752dfc4dad196db2053049602a095d3e9cb1f",
   "sharedClusterCalls": 0,
   "localEnvironmentsCreated": 0,
   "localBuildOutputsCreated": 0,
-  "cancelledRedundantRun": 45038000419
+  "cancelledRedundantRun": 45038000419,
+  "contractAccepted": true,
+  "nativeRepresentativeAccepted": true,
+  "combinedSource": "319f0f762fa76d48ec7f8ff828313a8ad72e9a94",
+  "combinedImageRun": 45038846333
 }
