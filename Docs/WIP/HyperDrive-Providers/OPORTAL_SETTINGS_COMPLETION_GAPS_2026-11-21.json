@@ -276,7 +276,13 @@
         "failure": "Same password500, no request middleware exception marker; exact cause still unconfirmed.",
         "cleanup": "Owned database/tempDNA/container absence verified."
       },
-      "nextDiagnostic": "MFA-only server ILoggerProvider emits exception/base types and8method identities, never formatter/state/message/response/credentials; captures earlier pipeline failures outside request middleware."
+      "nextDiagnostic": "MFA-only server ILoggerProvider emits exception/base types and8method identities, never formatter/state/message/response/credentials; captures earlier pipeline failures outside request middleware.",
+      "serverDiagnosticRun": {
+        "id": 44979849197,
+        "control": "564ce564cc24e17ee210276c26de18d39045dc9d",
+        "candidate": "e5aa77161465fa6c683746bac49ea647dd7adeb0",
+        "status": "in_progress"
+      }
     }
   },
   "portalExpiryFix": {
