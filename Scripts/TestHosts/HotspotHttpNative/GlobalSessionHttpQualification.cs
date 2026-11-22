@@ -70,6 +70,9 @@ internal static class GlobalSessionHttpQualification
                 upgraded.Result.Password == original.Result.Password, "SQLite session schema upgrade changed the existing account.");
             dna.OASIS.StorageProviders.AutoFailOverProvidersForAvatarLogin = "MongoDBOASIS,SQLLiteDBOASIS";
             dna.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds = 2;
+            dna.OASIS.OASISHyperDriveConfig.AutoFailoverEnabled = true;
+            ProviderManager.Instance.IsAutoFailOverEnabled = true;
+            Check(ProviderManager.Instance.IsAutoFailOverEnabled, "Owned SSO failover policy must be enabled.");
             Check(!ProviderManager.Instance.SetAndReplaceAutoFailOverListForProvidersForAvatarLogin("MongoDBOASIS,SQLLiteDBOASIS").IsError,
                 "Owned SSO authority policy failed.");
 

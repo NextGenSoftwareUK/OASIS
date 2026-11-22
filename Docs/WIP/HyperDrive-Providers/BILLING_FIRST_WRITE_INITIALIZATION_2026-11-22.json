@@ -5,5 +5,7 @@
   "fix": "Invoke existing initialization guard inside checkout transaction and ownership fence before writes. No bypass, fake migration marker, retry or new storage.",
   "qualification": "Remove fixture-only early free-plan seeding so existing first real app creation exercises production initialization. Exact owned environment guard retained. Current running45082762807 is unchanged; next candidate must include source correction.",
   "cost": "One existing migration-state guard on explicit checkout/ownership mutations, no extra per-request operation.",
-  "cleanup": "No local build/download/runtime/environment/database or generated output."
+  "cleanup": "No local build/download/runtime/environment/database or generated output.",
+  "preparedCandidate": "7b71ce32d569a8fcfe02b8583e18df4d36c2bd42",
+  "preparedTag": "qualification/billing-first-write-20261122"
 }

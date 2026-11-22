@@ -190,7 +190,7 @@ try
     if (mode is "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "billing-warning-browser" or "billing-restoration-http" or "session-global-http")
     {
         billingRepository = new MongoSubscriptionUsageRepository(client, database, TimeProvider.System,
-            initializeEmptyLedger: mode == "session-global-http");
+            initializeEmptyLedger: mode is "billing-http" or "billing-admin-http" or "session-global-http");
         if (mode is not ("billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "billing-warning-browser" or "billing-restoration-http"))
         {
             await billingRepository.CreateAppAccountAsync("owned-billing", "Owned billing route fixture", "enterprise",
