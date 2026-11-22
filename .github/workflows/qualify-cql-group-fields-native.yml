@@ -1,4 +1,4 @@
-name: Qualify declared parent fields in native GroupJoin results
+name: Qualify native GroupJoin summaries and composition
 
 on:
   push:
@@ -74,7 +74,7 @@ jobs:
             sleep 1
           done
           exit 1
-      - name: Verify declared parent fields, complete groups and changed-materializer regression
+      - name: Verify grouped summaries, reselection, complete groups and changed-materializer regression
         working-directory: OASIS
         shell: pwsh
         run: |
@@ -116,7 +116,7 @@ jobs:
           $source=(git rev-parse HEAD).Trim()
           if($source -ne $env:GITHUB_SHA){throw 'Source checkout differs from exact workflow revision'}
           $core=(git -C "OASIS Architecture/NextGenSoftware.OASIS.API.Core" rev-parse HEAD).Trim()
-          @{source=$source;core=$core;newNativePassed=3;changedMaterializerRegressionPassed=1;declaredLeftFieldsVerified=$true;completeOrderedMatchesVerified=$true;independentGroupsAndPagesVerified=$true;unsupportedExecutableSelectorsRefused=$true;providers=@('MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS');ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content (Join-Path $reportRoot 'source.json') -Encoding utf8
+          @{source=$source;core=$core;newNativePassed=3;changedMaterializerRegressionPassed=1;declaredLeftFieldsVerified=$true;completeOrderedMatchesVerified=$true;independentGroupsAndPagesVerified=$true;unsupportedExecutableSelectorsRefused=$true;groupCountLongCountAnyVerified=$true;anonymousReselectionAndPagingVerified=$true;providers=@('MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS');ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content (Join-Path $reportRoot 'source.json') -Encoding utf8
       - name: Stop owned Mongo
         if: always()
         run: docker rm -f -v cql-where-mongo

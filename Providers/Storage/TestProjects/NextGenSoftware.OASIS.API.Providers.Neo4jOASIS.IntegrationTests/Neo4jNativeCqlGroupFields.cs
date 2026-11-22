@@ -30,6 +30,23 @@ public partial class Neo4jNativeCqlTests
             Assert.IsFalse(page.IsError,page.Message+page.Exception);
             Assert.AreEqual("L-B",page.Result.Single().Label);
             CollectionAssert.AreEqual(new[]{"R-B","R-A"},page.Result.Single().Matches.Select(match=>match.Name).ToArray());
+
+            // Summaries and reselection remain on the native GroupJoin owner; no compiled application delegate.
+            var summaries=left.GroupJoin(right,l=>l.Description,r=>r.Description,
+                (parent,matches)=>new{Label=parent.Name,Count=matches.Count(),Total=matches.LongCount(),HasMatches=matches.Any()});
+            var summaryRead=await summaries.ToCosmicListAsync();
+            if(summaryRead.IsError || !summaryRead.Result.Select(row=>row.Count).SequenceEqual(new[]{2,2,0})
+                || !summaryRead.Result.Select(row=>row.Total).SequenceEqual(new long[]{2,2,0})
+                || !summaryRead.Result.Select(row=>row.HasMatches).SequenceEqual(new[]{true,true,false}))
+                throw new System.InvalidOperationException("Native group summaries differ from complete matches: "+summaryRead.Message);
+            var selected=await query.Select(row=>new{row.Label,Count=row.Matches.Count(),HasMatches=row.Matches.Any()})
+                .Skip(1).Take(2).ToCosmicListAsync();
+            if(selected.IsError || selected.Result.Count!=2 || selected.Result[0].Label!="L-B"
+                || selected.Result[0].Count!=2 || !selected.Result[0].HasMatches
+                || selected.Result[1].Label!="L-C" || selected.Result[1].Count!=0 || selected.Result[1].HasMatches)
+                throw new System.InvalidOperationException("Group reselection/page lost complete or empty groups: "+selected.Message);
+            if(summaries.Count()!=3 || summaries.Skip(1).Take(1).LongCount()!=1 || !summaries.Any())
+                throw new System.InvalidOperationException("Group terminal cardinality differs from parent groups.");
             var flattened=await query.SelectMany(group=>group.Matches,(group,match)=>new{Parent=group.Label,Match=match.Name}).ToCosmicListAsync();
             Assert.IsFalse(flattened.IsError,flattened.Message+flattened.Exception);
             Assert.AreEqual(4,flattened.Result.Count);
