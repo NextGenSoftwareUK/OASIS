@@ -72,7 +72,7 @@ internal static class MfaHttpQualification
     }
     private static void VerifyCredentials(JToken avatar, OASISDNA dna, Guid actor)
     {
-        Check(avatar.Value<Guid>("id") == actor && !string.IsNullOrWhiteSpace(avatar.Value<string>("refreshToken")), "MFA HTTP returned incomplete credentials.");
+        Check(Guid.TryParse(avatar.Value<string>("id"), out var returnedId) && returnedId == actor && !string.IsNullOrWhiteSpace(avatar.Value<string>("refreshToken")), "MFA HTTP returned incomplete credentials.");
         var principal = new JwtSecurityTokenHandler { MapInboundClaims = false }.ValidateToken(avatar.Value<string>("jwtToken"),
             new TokenValidationParameters { ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(dna.OASIS.Security.SecretKey)),
