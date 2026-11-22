@@ -76,12 +76,12 @@
       "acceptance": "Not accepted; preserve previous 35 middleware passes without replay."
     },
     "currentFocusedRun": {
-      "run": 45070278761,
-      "control": "e8f47dcd0a8eb3a49bdde542488b3df71686a2c3",
-      "candidate": "e2477d836b662eec2b979a50c6ea6794e2150260",
-      "core": "05c4ba09a45aaf3232dfbcd5d0f6a25d0144c06b",
-      "status": "in_progress; actual job137355471005 observed",
-      "scope": "Failed real global flow plus new selected-session/isolation and SQLite absent-account checks; accepted35 middleware cases not replayed"
+      "run": 45071695894,
+      "control": "7cf0a2d1b569b0197c71d24659ab3e56350ce1a0",
+      "candidate": "6786b9d624cde7a885fb84c6092cbcb60783e68f",
+      "core": "35c4baba7a4e7d07ee279c2446b7a17d93cf73b5",
+      "status": "queued at dispatch; prior run terminal, dispatched once",
+      "scope": "Real selected/global logout, complete admitted session listing, SQLite absence and actor-scoped account assessment. Existing accepted35 middleware cases not replayed."
     },
     "preparationFailure": {
       "run": 45069521383,
@@ -92,6 +92,12 @@
       "core": "d89c1dccc64c3a5f9539e2121bd27b1ed517a066",
       "status": "source implemented; native/browser/deployed acceptance pending",
       "scope": "Complete V2 admitted issuer list; existing queued candidate unchanged"
+    },
+    "compileFailure": {
+      "run": 45070278761,
+      "reason": "New selected-session StorageOperationRequest incorrectly qualified under Managers.OASISHyperDrive; actual type lives directly under Core",
+      "correction": "Both new occurrences fixed in Core35c4; source candidate preserves accepted CQL grouping and WEB6 current docs",
+      "acceptance": "Failed before native runtime; no new session/provider acceptance"
     }
   },
   "providers": {
