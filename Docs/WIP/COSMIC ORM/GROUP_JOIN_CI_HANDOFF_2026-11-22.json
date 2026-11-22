@@ -3,7 +3,7 @@
   "core": "f8fc9bb795fc4d1f966b63c2b724741dce7bc62f",
   "run": 45019120717,
   "job": 137197874230,
-  "status": "queued",
+  "status": "completed",
   "compiled": false,
   "nativeAccepted": false,
   "deployed": false,
@@ -37,5 +37,11 @@
     45014425835,
     45014821002
   ],
-  "otherAgentsTouched": false
+  "otherAgentsTouched": false,
+  "conclusion": "failure",
+  "retainedCoreControls": 5,
+  "retainedMongoWholeLeft": true,
+  "groupJoinNativeAccepted": false,
+  "replacementNativeCases": 5,
+  "failure": "Fixture omitted explicit StringComparison.Ordinal; source guard retained."
 }

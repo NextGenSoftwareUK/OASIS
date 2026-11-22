@@ -74,8 +74,8 @@ public partial class SQLLiteDBOASISIntegrationTests
         (await provider.SaveHolonsAsync(seed,saveChildren:false)).IsError.Should().BeFalse();
         var source=CosmicQuery<Holon>.Create(CosmicQueryScope.Named(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS).Result);
         var root=CosmicLinq.Create(CosmicManager(provider,true),provider,source).Result;
-        var left=root.Where(h=>h.Name.StartsWith("L-")).OrderBy(h=>h.Name);
-        var right=root.Where(h=>h.Name.StartsWith("R-")).OrderByDescending(h=>h.Name);
+        var left=root.Where(h=>h.Name.StartsWith("L-",System.StringComparison.Ordinal)).OrderBy(h=>h.Name);
+        var right=root.Where(h=>h.Name.StartsWith("R-",System.StringComparison.Ordinal)).OrderByDescending(h=>h.Name);
         var query=left.GroupJoin(right,l=>l.Description,r=>r.Description,(parent,matches)=>new{Parent=parent,Matches=matches});
         var read=await query.ToCosmicListAsync();
         read.IsError.Should().BeFalse(read.Message+read.Exception);

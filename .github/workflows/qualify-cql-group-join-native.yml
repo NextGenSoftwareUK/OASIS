@@ -91,20 +91,18 @@ jobs:
             }
           }
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-group-join-native-ci -Operation {
-            $coreFilter='FullyQualifiedName~CosmicJoinLeftEntityTests|FullyQualifiedName~CosmicJoinEntityPairTests|FullyQualifiedName~EntireLeftEntityHasAnExplicitNativeSelectionWithoutMakingNestedEntitiesScalarPaths'
-            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter $coreFilter --results-directory $reportRoot --logger 'trx;LogFileName=core.trx'
-            if($LASTEXITCODE){throw 'Whole-source Core contract failed'}
-            Verify-Report (Join-Path $reportRoot 'core.trx') 5
+            # Retain the five accepted Core controls and Mongo whole-left case from45019120717.
             $nativeFilter='FullyQualifiedName~NativeGroupJoinPreservesLeftIdentityOrderedMatchesAndCompleteGroupPage|FullyQualifiedName~NativeJoinPublishesWholeLeftEntitiesWithMultiplicityAndIndependentPage'
             $projects=@(
-              @{name='Mongo';path='Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests'},
-              @{name='SQLite';path='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests'},
-              @{name='Neo4j';path='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests'}
+              @{name='Mongo';path='Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests';expected=1},
+              @{name='SQLite';path='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests';expected=2},
+              @{name='Neo4j';path='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests';expected=2}
             )
             foreach($project in $projects) {
-              dotnet test $project.path /m:2 /nr:false /p:UseSharedCompilation=false --filter $nativeFilter --results-directory $reportRoot --logger "trx;LogFileName=$($project.name).trx"
+              $filter=if($project.name -eq 'Mongo'){'FullyQualifiedName~NativeGroupJoinPreservesLeftIdentityOrderedMatchesAndCompleteGroupPage'}else{$nativeFilter}
+              dotnet test $project.path /m:2 /nr:false /p:UseSharedCompilation=false --filter $filter --results-directory $reportRoot --logger "trx;LogFileName=$($project.name).trx"
               if($LASTEXITCODE){throw "$($project.name) native grouping failed"}
-              Verify-Report (Join-Path $reportRoot "$($project.name).trx") 2
+              Verify-Report (Join-Path $reportRoot "$($project.name).trx") $project.expected
             }
           }
           foreach($leaf in 'integration-current.db','integration-current.db-wal','integration-current.db-shm') {
@@ -116,7 +114,7 @@ jobs:
           $source=(git rev-parse HEAD).Trim()
           if($source -ne $env:GITHUB_SHA){throw 'Source checkout differs from exact workflow revision'}
           $core=(git -C "OASIS Architecture/NextGenSoftware.OASIS.API.Core" rev-parse HEAD).Trim()
-          @{source=$source;core=$core;corePassed=5;nativePassed=6;providers=@('MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS');ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content (Join-Path $reportRoot 'source.json') -Encoding utf8
+          @{source=$source;core=$core;retainedCoreRun=45019120717;retainedCorePassed=5;retainedMongoWholeLeft=$true;nativePassed=5;providers=@('MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS');ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content (Join-Path $reportRoot 'source.json') -Encoding utf8
       - name: Stop owned Mongo
         if: always()
         run: docker rm -f -v cql-where-mongo

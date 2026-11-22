@@ -67,8 +67,8 @@ public sealed partial class CosmicCqlNativeTests
             var manager=Manager(fixture.Provider);
             var source=CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.MongoDBOASIS).Result);
             var root=CosmicLinq.Create(manager,fixture.Provider,source).Result;
-            var left=root.Where(h=>h.Name.StartsWith("L-")).OrderBy(h=>h.Name);
-            var right=root.Where(h=>h.Name.StartsWith("R-")).OrderByDescending(h=>h.Name);
+            var left=root.Where(h=>h.Name.StartsWith("L-",System.StringComparison.Ordinal)).OrderBy(h=>h.Name);
+            var right=root.Where(h=>h.Name.StartsWith("R-",System.StringComparison.Ordinal)).OrderByDescending(h=>h.Name);
             var query=left.GroupJoin(right,l=>l.Description,r=>r.Description,(parent,matches)=>new{Parent=parent,Matches=matches});
             var read=await query.ToCosmicListAsync();
             Assert.False(read.IsError,read.Message+read.Exception);
