@@ -51,6 +51,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             }, cancellationToken);
         }
 
+        public async Task<AppAccountRecord> GetAppForOwnerAsync(string appId, string actor, bool administrator, CancellationToken cancellationToken = default)
+        {
+            AppAccountRules.ValidateAppId(appId);
+            var account = await AppAccounts.Find(x => x.AppId == appId).FirstOrDefaultAsync(cancellationToken);
+            if (!administrator && !(account?.OwnerAvatarIds?.Contains(actor, StringComparer.OrdinalIgnoreCase) ?? false))
+                throw new UnauthorizedAccessException("Only an app owner or approved administrator may read these settings.");
+            return account?.Redacted() ?? throw new KeyNotFoundException("The app account was not found.");
+        }
+
+        /// <summary>Records that a warning for this key (month and threshold) was emailed. True only for the first caller, so one warning is sent once.</summary>
+
         public async Task<IReadOnlyList<AppAccountRecord>> GetOwnedAppsAsync(string avatarId, CancellationToken cancellationToken = default)
         {
             if (!Guid.TryParse(avatarId, out var id)) return new List<AppAccountRecord>();
