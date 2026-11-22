@@ -302,6 +302,13 @@
         "buildElapsed": "00:07:25.23",
         "failure": "Fixture VerifyCredentials used JObject.Value<Guid> on JSON string; InvalidCastException. Reached second-factor credential verification after route ownership passed.",
         "cleanup": "Owned database/tempDNA/container absence verified."
+      },
+      "identityCorrectedRun": {
+        "id": 44981427644,
+        "control": "92ade656b4ef3762bb5b92a0944973c756c08654",
+        "candidate": "e5aa77161465fa6c683746bac49ea647dd7adeb0",
+        "status": "in_progress",
+        "mode": "mfa-http"
       }
     },
     "browserQualification": {

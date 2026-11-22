@@ -2705,3 +2705,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 2026-11-21 MFA fixture root cause:44979849197 failed after0error5m37.66 build; RAM logs identify route ambiguity, owned DB/tempDNA/container absence verified. Corrected fixture-only WEB4 surface;44980535540 one dispatch verified active, cleanup pending. No local build/download/env/archive/database/worktree or shared backend activity.
 
 2026-11-21 corrected MFA44980535540 failed in fixture JSON string-to-Guid cast after0error7m25.23 build. Original log retrieval timed out terminally; same completed-job log read succeeded on bounded retry, no test restart due to timeout. RAM logs confirm owned DB/tempDNA/container absence; no local output/env/archive/download/database created.
+
+2026-11-21 MFA identity-corrected44981427644/control92ade656b4 one dispatch verified active on frozen e5aa7716. Previous owned cleanup accepted; new remote cleanup pending. Accepted native lifecycle/session suites excluded. Source/fixture/docs only; no local build/runtime/download/env/database/archive/worktree or shared backend activity.
