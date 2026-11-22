@@ -20,6 +20,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
     {
         private MongoDbContext _dbContext;
         private readonly Func<bool> _retainAccountHistory;
+        private readonly Func<TimeSpan> _accountReadTimeout;
 
         public void EnsurePublicIdentityIndexes()
         {
@@ -39,13 +40,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             await _dbContext.Avatar.Indexes.CreateManyAsync(ProfileIdentityIndexes());
         }
 
-        public AvatarRepository(MongoDbContext dbContext,Func<bool> retainAccountHistory=null)
+        public AvatarRepository(MongoDbContext dbContext,Func<bool> retainAccountHistory=null,Func<TimeSpan> accountReadTimeout=null)
         {
             SerializerRegister.GetInstance().RegisterGuidBsonSerializer();
             SerializerRegister.GetInstance().RegisterMetaDataDictionarySerializer();
             SerializerRegister.GetInstance().RegisterSTARNETDNADiscriminator();
             _dbContext = dbContext;
             _retainAccountHistory=retainAccountHistory ?? (()=>false);
+            _accountReadTimeout=accountReadTimeout ?? (()=>TimeSpan.FromSeconds(10));
         }
 
         public Task<OASISResult<Avatar>> AddAsync(Avatar avatar)
@@ -67,7 +69,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
-                result.Result = await _dbContext.Avatar.Find(filter).FirstOrDefaultAsync();
+                result.Result = await MongoAccountReadDeadline.RunAsync(_accountReadTimeout(), token => _dbContext.Avatar.Find(filter).FirstOrDefaultAsync(token));
                 result.IsLoaded = result.Result != null;
                 result.LoadedCount = result.IsLoaded ? 1 : 0;
                 if (!result.IsLoaded) result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
@@ -130,7 +132,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 var filter = Builders<Avatar>.Filter.Where(expression);
-                var matches = await _dbContext.Avatar.Find(filter).Limit(2).ToListAsync();
+                var matches = await MongoAccountReadDeadline.RunAsync(_accountReadTimeout(), token => _dbContext.Avatar.Find(filter).Limit(2).ToListAsync(token));
                 if (matches.Count > 1) throw new StorageIdentityAmbiguousException();
                 result.Result = matches.SingleOrDefault();
                 result.IsLoaded = result.Result != null;

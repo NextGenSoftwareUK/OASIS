@@ -1,0 +1,12 @@
+{
+  "status": "Source prepared; compile/native/deployed acceptance pending",
+  "core": "a0dc92a25231a6d1fa010be9f6be48e33c7b2d1d",
+  "tag": "qualification/session-read-affinity-20261122",
+  "observedRun": 45082762807,
+  "job": 137394400180,
+  "billingAdmission": "BILLING_CLOSURE_ADMISSION_NATIVE_PROOF passed at isolated scope; full account deletion not accepted.",
+  "failure": "Real password login after pausing owned Mongo timed out. Fixture also retained disabled failover; policy now explicitly enabled before outage.",
+  "nativeFix": "GUID/expression async Mongo account reads await SDK cancellation under configured provider deadline; own typed timeout classification permits failover without treating caller cancellation as availability. No detached read or added retry.",
+  "sessionFix": "Password sign-in saves on the provider from the successful account-read observation; same canonical route parser validates acknowledged session write.",
+  "next": "Compose with first-write candidate and preserve shared source; one representative native journey. No current run or live deployment."
+}
