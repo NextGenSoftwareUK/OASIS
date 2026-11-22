@@ -84,7 +84,16 @@ def main():
                 stream.write(helpers["protected_token"](json.dumps(
                     {"status":status,"body":raw.decode(),"cookies":cookies}).encode()))
         value = helpers["unwrap"](json.loads(raw))
-        outcome = {"path":path,"status":status,"isError":value.get("isError",False),"operationId":operation}
+        outcome = {"path":path,"status":status,"isError":value.get("isError",False),"operationId":operation,
+            "provider":body.get("provider")}
+        code = value.get("errorCode")
+        if isinstance(code,str) and re.fullmatch("(?:CQL|COSMIC)_[A-Z_]{2,80}",code):
+            outcome["errorCode"] = code
+        if status != 200 or value.get("isError"):
+            # Preserve the original failed response before interpretation, without
+            # leaking provider values or losing the one outcome needed to diagnose.
+            with (state / ("failure-"+operation+".dpapi")).open("xb") as stream:
+                stream.write(helpers["protected_token"](raw))
         journal["calls"].append(outcome)
         journal["pending"]["outcome"] = outcome
         write()
