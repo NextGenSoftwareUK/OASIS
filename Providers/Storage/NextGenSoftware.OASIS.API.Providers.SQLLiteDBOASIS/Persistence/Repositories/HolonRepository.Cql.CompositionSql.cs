@@ -112,8 +112,8 @@ public partial class HolonRepository
             else if (stage is CosmicSelectedDistinctStage distinct)
             {
                 var duplicateRank = "distinctRank" + index;
-                var column = string.Join(",",distinct.ColumnIndices.Select(index =>
-                    "v" + index + "v" + CqlSqlTranslator.SelectedCollation(query.Columns[index].ValueType)));
+                var column = string.Join(",",distinct.ColumnIndices.Select(columnIndex =>
+                    "v" + columnIndex + "v" + CqlSqlTranslator.SelectedCollation(query.Columns[columnIndex].ValueType)));
                 from = "(SELECT *,row_number() OVER (PARTITION BY " + column + " ORDER BY " + previousRank
                     + ") AS " + duplicateRank + " FROM " + from + ")";
                 tail = " WHERE " + duplicateRank + " = 1";
