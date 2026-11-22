@@ -370,6 +370,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         IsLoaded = false,
                         IsError = false,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
                         Message = "No Avatar found"
                     };
 
