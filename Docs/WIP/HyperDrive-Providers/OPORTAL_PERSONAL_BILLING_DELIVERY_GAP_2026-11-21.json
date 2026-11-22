@@ -752,7 +752,13 @@
         "status": "uncompiled-awaiting-admin-http",
         "review": "932 managers/832 routes; preserves all prior routes and adds CQL Set only, with three existing CQL action line shifts. Manager adds two set methods plus existing method line shifts. First exact-line count assertion refused shifted rows; semantic multiset review preserves overload multiplicity.",
         "nativeMode": "billing-admin-http",
-        "temporaryIndex": "removed"
+        "temporaryIndex": "removed",
+        "run": {
+          "id": 44970338582,
+          "control": "9cd496e27ba72e966e758d25275e391e7ca02021",
+          "status": "in_progress",
+          "mode": "billing-admin-http"
+        }
       }
     }
   },
