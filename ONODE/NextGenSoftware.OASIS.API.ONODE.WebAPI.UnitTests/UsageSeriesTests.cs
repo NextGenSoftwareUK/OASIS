@@ -74,7 +74,7 @@ public sealed class UsageSeriesTests
     [Fact]
     public void BuildReportsTotalsPeakTodayAndLimits()
     {
-        var r = UsageSeries.Build("u1", new[] { D("2026-11-12", 40), D("2026-11-13", 90) }, new DateTime(2026, 11, 11), new DateTime(2026, 11, 13), 100, 1000, 850, Now);
+        var r = UsageSeries.Build("u1", new[] { D("2026-11-12", 40), D("2026-11-13", 90) }, new DateTime(2026, 11, 11), new DateTime(2026, 11, 13), 100, 1000, 850, 90);
         Assert.Equal(130, r.TotalRequests); Assert.Equal(90, r.PeakDayRequests); Assert.Equal(90, r.TodayRequests);
         Assert.Equal(3, r.Days.Count); Assert.Equal(100, r.DailyLimit); Assert.Equal(1000, r.MonthlyLimit); Assert.Equal("warning", r.Status);
     }
@@ -82,7 +82,7 @@ public sealed class UsageSeriesTests
     [Fact]
     public void UnlimitedPlansReportNoLimitAndNoStatus()
     {
-        var r = UsageSeries.Build("u1", new UsageDay[0], new DateTime(2026, 11, 13), new DateTime(2026, 11, 13), -1, -1, 999999, Now);
+        var r = UsageSeries.Build("u1", new UsageDay[0], new DateTime(2026, 11, 13), new DateTime(2026, 11, 13), -1, -1, 999999, 0);
         Assert.Equal(0, r.MonthlyLimit); Assert.Equal(0, r.DailyLimit); Assert.Equal("", r.Status);
     }
 }
