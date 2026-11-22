@@ -1,0 +1,35 @@
+{
+  "status": "confirmed-source-gap-not-runtime-tested",
+  "development": "f26edeef1152961a2b46f2149a6c28c08188a09a",
+  "core": "a166813b01476a2fce34e5908d74dac1da845ba6",
+  "corePath": "Managers/AvatarManager/AvatarManager-Session.cs",
+  "coreBlob": "15186fd469b93e1f65b4b2de786cafcb59c63347",
+  "findings": [
+    {
+      "surface": "Settings Sign Out All Sessions",
+      "portal": "assets/components/modals/settings.html",
+      "source": "showComingSoonMessage",
+      "backend": "AvatarSessionController POST api/avatar/{avatarId}/sessions/logout-all",
+      "rootCause": "LogoutAllAvatarSessionsAsync returns true without persisting revocation. Selected-session logout also simulates success. Do not wire UI to false success."
+    },
+    {
+      "surface": "Settings Enable 2FA",
+      "portal": "assets/components/modals/settings.html",
+      "source": "Coming Soon control; requires real enrollment/challenge/recovery flow"
+    },
+    {
+      "surface": "Settings Delete Account",
+      "portal": "assets/components/modals/settings.html",
+      "source": "Coming Soon control and permanent all-data promise; existing delete-by-id routes do not by themselves prove associated-data erasure."
+    }
+  ],
+  "next": [
+    "Trace durable refresh-token/session storage and JWT validation across nodes before implementing logout-all.",
+    "Fix canonical backend revocation and invalidation, preserve acknowledgement/data/permission invariants; verify only new owned-session flow.",
+    "Then connect Settings control with explicit all-device signout confirmation and current-session teardown.",
+    "Keep 2FA and erasure requirements in breadth backlog; no unsupported completion claims."
+  ],
+  "sharedClusterCalls": 0,
+  "sessionsRevoked": 0,
+  "localBuilds": 0
+}
