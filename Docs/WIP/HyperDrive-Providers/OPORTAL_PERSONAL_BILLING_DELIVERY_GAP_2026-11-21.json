@@ -581,7 +581,7 @@
     "httpHost": {
       "mode": "billing-http",
       "host": "HotspotHttpNative",
-      "status": "source-prepared-uncompiled-unrun",
+      "status": "accepted-on-12045e8d-only",
       "scope": "One actual owner preference GET-POST-GET + foreign403, acknowledged save and native field/actor readback; exact owned loopback only.",
       "excluded": [
         "Stripe",
@@ -608,8 +608,14 @@
       "run": {
         "id": 44969526963,
         "control": "4c98c65c3440fce59ee39f5514e305b3bbeedc1d",
-        "status": "in_progress",
-        "mode": "billing-http"
+        "status": "completed",
+        "mode": "billing-http",
+        "conclusion": "success",
+        "job": 137046018207,
+        "buildErrors": 0,
+        "buildElapsed": "00:05:27.62",
+        "proof": "BILLING_RESTORATION_HTTP_PROOF",
+        "cleanup": "Owned database/tempDNA/container absence verified."
       }
     },
     "adminHttpHost": {
@@ -634,7 +640,17 @@
       "status": "source-only-awaiting-regenerated-inventory",
       "priorRunUnchanged": 44969526963,
       "temporaryIndexes": "Both removed in finally; first attempt refused incorrect manifest-key assumption before root publication, reused same Core tag.",
-      "preservation": "Reviewed billing delta excluding old inventories/Core/pins; current CQL+shared CSV preserved. Core clean merge changes only two reviewed outbox files relative a166."
+      "preservation": "Reviewed billing delta excluding old inventories/Core/pins; current CQL+shared CSV preserved. Core clean merge changes only two reviewed outbox files relative a166.",
+      "inventoryRun": {
+        "id": 44970039622,
+        "control": "020dc7c0f986fb83f172f4eee2cf9f6a3ab6ac57",
+        "job": 137047608048,
+        "status": "completed",
+        "conclusion": "success",
+        "artifact": 14733291810,
+        "artifactBytes": 40578,
+        "review": "pending"
+      }
     }
   },
   "warningEmailRootCause": {
