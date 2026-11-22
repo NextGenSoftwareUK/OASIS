@@ -1,5 +1,5 @@
 {
-  "status": "current composition compile only pending; no integration push while dev deployments building",
+  "status": "verified phase-one source pushed Development; automatic rollout in progress, runtime acceptance open",
   "candidate": {
     "scope": "billing",
     "status": "current composition pin drift corrected; compile only pending",
@@ -63,8 +63,67 @@
   "compileOnly": {
     "run": 45005901782,
     "control": "b7901dfffae5732bd30a28d0d951f969b6b8a671",
-    "status": "in_progress",
+    "status": "success",
     "observedUtc": "2026-11-22T09:40:26.098733+00:00",
-    "scope": "WEB4/WEB5 compile on exact06c79aea dependency graph; no native accepted-behavior replay or credentials."
+    "scope": "WEB4/WEB5 compile on exact06c79aea dependency graph; no native accepted-behavior replay or credentials.",
+    "job": 137157312204,
+    "WEB4": "00:05:20.60",
+    "WEB5": "00:00:32.75",
+    "errors": 0
+  },
+  "integration": {
+    "commit": "ae34125670eb547296396432efd10a857a50d048",
+    "parent": "94dcc89a9bf750cc6a687f6137594284ffcf749a",
+    "tag": "qualification/session-foundation-delivery-2026-11-22-ae341256",
+    "status": "normal fast-forward push completed",
+    "paths": [
+      "Docker/oasis-dependency-versions.env",
+      "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
+      "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+      "Docs/WIP/HyperDrive-Providers/SESSION_FOUNDATION_DEVELOPMENT_2026-11-22.json"
+    ],
+    "remoteBranch": "Development"
+  },
+  "rollouts": {
+    "source": "ae34125670eb547296396432efd10a857a50d048",
+    "observedUtc": "2026-11-22T09:48:31.897901+00:00",
+    "services": [
+      {
+        "service": "WEB4",
+        "id": "5dac9fab-201a-4270-8a9a-629dadcc90d4",
+        "status": "QUEUED"
+      },
+      {
+        "service": "WEB5",
+        "id": "b223fd5a-4c98-49fc-ab69-724e3c3cd544",
+        "status": "QUEUED"
+      },
+      {
+        "service": "WEB6",
+        "id": "6e4fd774-de84-4929-9412-8bf1fac04347",
+        "status": "BUILDING"
+      },
+      {
+        "service": "WEB7",
+        "id": "c68da126-55fc-4267-8f8c-179c1dc9e500",
+        "status": "QUEUED"
+      },
+      {
+        "service": "WEB8",
+        "id": "8368ec22-78bc-4c16-acb9-c2e47ca7be8d",
+        "status": "BUILDING"
+      },
+      {
+        "service": "WEB9",
+        "id": "f318187e-1a08-4fca-a719-66b30bab3899",
+        "status": "QUEUED"
+      },
+      {
+        "service": "WEB10",
+        "id": "94243428-ec61-41e8-9f03-94c2ffff6e49",
+        "status": "BUILDING"
+      }
+    ],
+    "scope": "Original automatic handles only; saved source and deployment metadata, not loaded DNA/live auth or complete portal acceptance."
   }
 }
