@@ -36,7 +36,7 @@ Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
 var mode = Environment.GetEnvironmentVariable("OASIS_HOTSPOT_HTTP_MODE") ?? "binding";
-Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher", "Unsupported hotspot HTTP check mode.");
+Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http", "Unsupported hotspot HTTP check mode.");
 var dna = new OASISDNA { OASIS = new() {
     HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
         AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
@@ -190,7 +190,49 @@ try
         using var result = JsonDocument.Parse(resultText);
         Require(result.RootElement.GetProperty(resultProperty).GetBoolean(), "Owned browser completion marker missing.");
     }
-    if (mode == "competition-publisher")
+    if (mode == "profile-http")
+    {
+        async Task<JsonDocument> ReadSelfProfile()
+        {
+            using var response = await http.GetAsync("/api/avatar/profile?providerType=MongoDBOASIS");
+            var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Require(response.IsSuccessStatusCode && !document.RootElement.GetProperty("isError").GetBoolean(),
+                "Restored profile GET failed: " + response.StatusCode);
+            return document;
+        }
+        using var opened = await ReadSelfProfile();
+        var initial = opened.RootElement.GetProperty("result").GetProperty("profile");
+        Require(initial.GetProperty("avatarId").GetGuid() == actor, "Profile GET returned a different actor.");
+        var originalUsername = initial.GetProperty("username").GetString();
+        var originalEmail = initial.GetProperty("email").GetString();
+        var body = System.Text.Json.JsonSerializer.Serialize(new {
+            avatarRevision = initial.GetProperty("avatarRevision"), detailRevision = initial.GetProperty("detailRevision"),
+            changes = new { firstName = "Owned profile updated", address = "Owned profile address" }, providerType = "MongoDBOASIS" });
+        using var request = new HttpRequestMessage(HttpMethod.Patch, "/api/avatar/profile") {
+            Content = new StringContent(body, System.Text.Encoding.UTF8, "application/json") };
+        using var response = await http.SendAsync(request);
+        using var saved = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Require(response.IsSuccessStatusCode && !saved.RootElement.GetProperty("isError").GetBoolean() &&
+            saved.RootElement.GetProperty("isSaved").GetBoolean(), "Restored atomic profile PATCH failed: " + response.StatusCode);
+        var committed = saved.RootElement.GetProperty("result").GetProperty("profile");
+        using var reloaded = await ReadSelfProfile();
+        var observed = reloaded.RootElement.GetProperty("result").GetProperty("profile");
+        Require(observed.GetProperty("avatarId").GetGuid() == actor &&
+            observed.GetProperty("firstName").GetString() == "Owned profile updated" &&
+            observed.GetProperty("address").GetString() == "Owned profile address" &&
+            observed.GetProperty("username").GetString() == originalUsername && observed.GetProperty("email").GetString() == originalEmail,
+            "Restored profile reload lost edited or unselected values.");
+        var nativeAvatar = await provider.LoadAvatarAsync(actor);
+        var nativeDetail = await provider.LoadAvatarDetailAsync(actor);
+        Require(!nativeAvatar.IsError && !nativeDetail.IsError && nativeAvatar.Result != null && nativeDetail.Result != null &&
+            nativeAvatar.Result.FirstName == "Owned profile updated" && nativeDetail.Result.Address == "Owned profile address" &&
+            nativeAvatar.Result.Username == originalUsername && nativeAvatar.Result.Email == originalEmail &&
+            nativeAvatar.Result.VersionId == committed.GetProperty("avatarRevision").GetProperty("versionId").GetGuid() &&
+            nativeDetail.Result.VersionId == committed.GetProperty("detailRevision").GetProperty("versionId").GetGuid(),
+            "Atomic profile acknowledgement differs from native account/detail persistence.");
+        Console.WriteLine("PROFILE_RESTORATION_HTTP_PROOF: current restored controller/manager/router/native Mongo GET-PATCH-GET saved both selected fields, retained username/email and acknowledged exact native account/detail revisions. Prior provider matrix/browser cases not replayed; full Startup/paid admission/SSO/hosted excluded.");
+    }
+    else if (mode == "competition-publisher")
     {
         var leagueId = Guid.NewGuid(); var tournamentId = Guid.NewGuid(); var now = DateTime.UtcNow;
         var leaguePayload = new[] { new NextGenSoftware.OASIS.API.Core.Objects.League {

@@ -69,10 +69,10 @@ jobs:
           if ($env:CANDIDATE_SCOPE -notin @('map','hotspot','quest','competition','profile')) { throw 'Unsupported candidate scope.' }
           if ($env:CANDIDATE_SCOPE -notin @('map','competition','profile') -and '${{ inputs.inventory_only }}' -eq 'true') { throw 'Only map, competition and profile scopes generate source inventories.' }
           $files = @{ map='Scripts/TestHosts/Fixtures/map-development-candidate.json'; hotspot='Scripts/TestHosts/Fixtures/hotspot-development-candidate.json'; quest='Scripts/TestHosts/Fixtures/quest-authoritative-candidate.json'; competition='Scripts/TestHosts/Fixtures/competition-development-candidate.json'; profile='Scripts/TestHosts/Fixtures/profile-development-candidate.json' }
-          if ($env:CANDIDATE_SCOPE -eq 'profile' -and '${{ inputs.native_check }}' -eq 'true') { throw 'Profile restoration descriptor selects source review/compilation only.' }
           $file = $files[$env:CANDIDATE_SCOPE]
           $candidate = Get-Content $file -Raw | ConvertFrom-Json
           if ($env:CANDIDATE_SCOPE -eq 'competition' -and '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -notin @('competition-browser','competition-publisher')) { throw 'Competition requires an explicit browser or publisher host.' }
+          if ($env:CANDIDATE_SCOPE -eq 'profile' -and '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -ne 'profile-http') { throw 'Profile restoration requires its explicit HTTP host.' }
           "file=$file" >> $env:GITHUB_OUTPUT
           $browser = '${{ inputs.native_check }}' -eq 'true' -and ($candidate.nativeMode -in @('browser','catalogue-browser','competition-browser'))
           "browser=$($browser.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
@@ -269,7 +269,7 @@ jobs:
           if ($hostName -notin @('MapDevelopmentNative','HotspotDevelopmentNative','HotspotHttpNative')) { throw 'Unsupported native qualification host.' }
           if ($hostName -eq 'HotspotHttpNative') {
             $env:OASIS_HOTSPOT_HTTP_MODE = if ($candidate.nativeMode) { $candidate.nativeMode } else { 'binding' }
-            if ($env:OASIS_HOTSPOT_HTTP_MODE -notin @('binding','populated','browser','quest-empty','catalogue','catalogue-browser','competition-browser','competition-publisher')) { throw 'Unsupported hotspot HTTP check mode.' }
+            if ($env:OASIS_HOTSPOT_HTTP_MODE -notin @('binding','populated','browser','quest-empty','catalogue','catalogue-browser','competition-browser','competition-publisher','profile-http')) { throw 'Unsupported hotspot HTTP check mode.' }
             if ($env:OASIS_HOTSPOT_HTTP_MODE -eq 'catalogue-browser') {
               $env:OASIS_GEO_BROWSER_HOST = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/catalogue-browser-host.html).Path
               $env:OASIS_GEO_BROWSER_SCRIPT = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/catalogue-browser-native-http.cjs).Path

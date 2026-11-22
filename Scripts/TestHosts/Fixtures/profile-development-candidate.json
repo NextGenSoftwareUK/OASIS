@@ -25,5 +25,7 @@
     "base": "7165ab625f90501047ca10c3b9f193ed0498caf5",
     "candidate": "be6849c724bea7e75ffa57eff300493c2d6e924f"
   },
-  "remaining": "Review generated source inventories, compile current API/provider graph, qualify changed composition and deliver; original accepted native/browser evidence retained."
+  "remaining": "Review generated source inventories, compile current API/provider graph, qualify changed composition and deliver; original accepted native/browser evidence retained.",
+  "nativeHost": "HotspotHttpNative",
+  "nativeMode": "profile-http"
 }
