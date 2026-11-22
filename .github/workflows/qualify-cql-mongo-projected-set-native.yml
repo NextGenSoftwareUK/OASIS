@@ -63,7 +63,7 @@ jobs:
             sleep 1
           done
           exit 1
-      - name: Verify real Mongo set operations under one snapshot owner
+      - name: Verify real Mongo selected tuples under one snapshot owner
         working-directory: OASIS
         shell: pwsh
         run: |

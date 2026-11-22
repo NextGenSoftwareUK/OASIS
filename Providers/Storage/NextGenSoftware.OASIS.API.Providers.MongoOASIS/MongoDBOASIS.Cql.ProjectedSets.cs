@@ -22,8 +22,8 @@ public partial class MongoDBOASIS : ICosmicQueryProjectedSetStorageProvider
             cancellationToken.ThrowIfCancellationRequested();
             if(plan==null || limits==null || !ReferenceEquals(plan.Options,limits.Options))
                 return SelectedCqlFailure<CosmicProjectedSetPacket>("CQL_PLAN_INVALID","A selected-set plan must retain its admitted limits.");
-            var actual=CosmicProjectedSetPlanner.Plan(plan.Query,ProviderType.MongoDBOASIS,
-                new CosmicProjectionCompositionTarget(ProviderType.MongoDBOASIS,CqlCapabilities,
+            var actual=CosmicProjectedSetPlanner.Plan(plan.Query,Core.Enums.ProviderType.MongoDBOASIS,
+                new CosmicProjectionCompositionTarget(Core.Enums.ProviderType.MongoDBOASIS,CqlCapabilities,
                     CqlProjectionCapabilities,CqlCompositionCapabilities),ProjectedSetCapabilities,plan.Options);
             if(actual.IsError)return SelectedCqlFailure<CosmicProjectedSetPacket>(actual.ErrorCode,actual.Message,actual.Exception);
             if(!IsProviderActivated || _holonRepository is not HolonRepository repository)
