@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "session-route-dedup-awaiting-inventory-review",
+  "status": "session-route-inventory-reviewed-awaiting-http",
   "base": "c4a65629d4136218be05b04a887490216c050e7a",
-  "candidate": "9081f1c959433ec396d8c5cd1ef1a533a4e242c0",
-  "tag": "qualification/session-routes-2026-11-21-9081f1c9",
+  "candidate": "e5aa77161465fa6c683746bac49ea647dd7adeb0",
+  "tag": "qualification/session-reviewed-2026-11-21-e5aa7716",
   "buildProjects": [
     "WEB4"
   ],
