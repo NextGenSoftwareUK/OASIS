@@ -43,17 +43,29 @@
     "review": "Terminal logs verified 933 manager methods/751 provider-delegating; 827 routes/712 provider-external. Final correction changes no public manager declaration or route/classifier; retain existing manifests, no repeat inventory."
   },
   "qualification": {
-    "run": 45001337029,
-    "control": "f06c71287141a8250e94ef86258992e7a0b32a69",
-    "observedUtc": "2026-11-22T08:05:58.531071+00:00",
-    "status": "failure",
+    "run": 45002183207,
+    "job": 137145927610,
+    "control": "436a3b3340d8dde91b1175623ef4423ff0886846",
+    "status": "in_progress",
+    "observedUtc": "2026-11-22T08:19:38.678735+00:00",
+    "activeStep": "Verify only the new combined candidate native invariant",
     "mode": "mfa-http",
-    "scope": "Changed signed session/provider claims match actual native persisted generations; no validator/global revocation/full portal claim.",
-    "credentials": "none staged; isolated loopback Mongo only",
-    "job": 137143332835,
-    "cause": "CS0103 HyperDriveModes missing DNA namespace import in RefreshAuthority; no native case executed",
-    "buildElapsed": "00:01:11.93",
-    "cleanup": "Always-run owned-container cleanup step completed successfully; host did not start so no host temp DNA or test database created."
+    "scope": "Corrected import and changed acknowledged session/provider claims; actual native persistence. No validator/global logout/UI/deployment acceptance."
   },
-  "previousCandidate": "f17285289ae0ac046570a856367433173a60847c"
+  "previousCandidate": "f17285289ae0ac046570a856367433173a60847c",
+  "previousQualifications": [
+    {
+      "run": 45001337029,
+      "control": "f06c71287141a8250e94ef86258992e7a0b32a69",
+      "observedUtc": "2026-11-22T08:05:58.531071+00:00",
+      "status": "failure",
+      "mode": "mfa-http",
+      "scope": "Changed signed session/provider claims match actual native persisted generations; no validator/global revocation/full portal claim.",
+      "credentials": "none staged; isolated loopback Mongo only",
+      "job": 137143332835,
+      "cause": "CS0103 HyperDriveModes missing DNA namespace import in RefreshAuthority; no native case executed",
+      "buildElapsed": "00:01:11.93",
+      "cleanup": "Always-run owned-container cleanup step completed successfully; host did not start so no host temp DNA or test database created."
+    }
+  ]
 }
