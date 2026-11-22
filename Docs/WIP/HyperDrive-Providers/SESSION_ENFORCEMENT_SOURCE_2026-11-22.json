@@ -138,16 +138,12 @@
     "remaining": "One leased actual seven-API build and 35 native HTTP middleware cases. Existing foundation45005901782 continues unchanged; no replacement, no dev deployment. Strict rollout/global logout/OPORTAL acceptance open."
   },
   "qualification": {
-    "run": 45011186951,
-    "control": "9da91def3c6706473c855d819a6bc1e17cf2de9e",
-    "status": "failure",
-    "observedUtc": "2026-11-22T10:10:09.751270+00:00",
+    "run": 45012925333,
+    "control": "e7f06b96f662a7823493e425cd13da7646fd1b4f",
+    "status": "queued",
+    "observedUtc": "2026-11-22T10:31:02.238231+00:00",
     "mode": "mfa-middleware-http",
-    "scope": "Corrected sparse checkout; unchangedf552d770/Core618c3c73 and35middleware cases. Separate timeout-failover draft750d excluded. No new source/runtime acceptance yet.",
-    "job": 137173660650,
-    "cause": "MSB1008 before C# compilation: PowerShell unrolled a single optional build argument into a scalar, and native splatting expanded its characters.",
-    "cleanup": "Owned container absence verified; host never started, no host DB/tempDNA or HTTP cases.",
-    "ordering": "All seven immutable startup-order checks passed."
+    "scope": "Corrected typed argument forwarding; samef552d770/Core618c3c73, 35cases, no source/API acceptance yet."
   },
   "runnerCorrection": "Added exact ordering guard to existing sparse checkout; shipping candidate f552d770/Core618c3c73 and35case input unchanged.",
   "previousQualifications": [
@@ -162,6 +158,18 @@
       "job": 137165812176,
       "cause": "Control sparse checkout omitted Test-SessionMiddlewareOrdering.ps1; failed before dotnet build or native cases.",
       "cleanup": "Owned container absence verified; test host never started, no host DB/tempDNA created."
+    },
+    {
+      "run": 45011186951,
+      "control": "9da91def3c6706473c855d819a6bc1e17cf2de9e",
+      "status": "failure",
+      "observedUtc": "2026-11-22T10:10:09.751270+00:00",
+      "mode": "mfa-middleware-http",
+      "scope": "Corrected sparse checkout; unchangedf552d770/Core618c3c73 and35middleware cases. Separate timeout-failover draft750d excluded. No new source/runtime acceptance yet.",
+      "job": 137173660650,
+      "cause": "MSB1008 before C# compilation: PowerShell unrolled a single optional build argument into a scalar, and native splatting expanded its characters.",
+      "cleanup": "Owned container absence verified; host never started, no host DB/tempDNA or HTTP cases.",
+      "ordering": "All seven immutable startup-order checks passed."
     }
   ],
   "runnerArgumentCorrection": "Declare optional arguments as string[]; local argument shape check passed without invoking a compiler. Same f552d770/Core618c3c73 source and35cases."
