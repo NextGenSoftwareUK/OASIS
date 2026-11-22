@@ -171,7 +171,13 @@
       "tag": "qualification/session-http-2026-11-21-e359c71b",
       "base": "c4a65629d4136218be05b04a887490216c050e7a",
       "status": "uncompiled-awaiting-http",
-      "temporaryIndex": "removed"
+      "temporaryIndex": "removed",
+      "run": {
+        "id": 44974712075,
+        "control": "d303b778c50e692e4fd62d5b34224dd7bab6cc10",
+        "status": "queued",
+        "mode": "session-list-http"
+      }
     }
   }
 }
