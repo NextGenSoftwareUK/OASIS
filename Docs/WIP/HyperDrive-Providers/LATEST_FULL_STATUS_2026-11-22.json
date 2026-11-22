@@ -5,8 +5,8 @@
     "taskBranch": "work/hyperdrive-provider-completion",
     "taskWorktree": "C:/Source/OASIS2-hyperdrive",
     "portalBranch": "dev",
-    "portalHead": "7b1f1ce",
-    "reviewedDevelopment": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
+    "portalHead": "4baca47",
+    "reviewedDevelopment": "aa6f1cb26d8",
     "currentCore": "9dcc856add106fa26b27ea5d26ef50b590bf92fd",
     "currentWeb6": "d9e60ceaecef5513d1bcd6285cd668076bc77edf"
   },
@@ -44,7 +44,8 @@
       "Current subscription selection instead of historical first row",
       "Readiness errors display Retry",
       "Password reset control cleared across sessions; stale responses rejected",
-      "Selected sign-out buttons wired in dev source4d4f81e; enabled only by new real-revocation capability, not accepted as live/browser-tested"
+      "Selected sign-out buttons wired in dev source4d4f81e; enabled only by new real-revocation capability, not accepted as live/browser-tested",
+      "Checkout recovery review/resume/cancel UI source4baca47, activated only by API-advertised links; no extra startup reads; runtime/Stripe/browser delivery pending"
     ],
     "remaining": [
       "Global sign-out wired and capability gated; real SQLite session write fails qualification, not accepted or deployed",
@@ -76,12 +77,11 @@
       "acceptance": "Not accepted; preserve previous 35 middleware passes without replay."
     },
     "currentFocusedRun": {
-      "run": 45073038989,
-      "job": 137364066136,
-      "control": "8b0563c7e05beadade9016cd0c19729b377d58d9",
-      "candidate": "53f40d86573cb94b1ecc30e38f880e0596b603af",
-      "status": "queued at latest job observation",
-      "scope": "New session/list/assessment and native checkout journal flow; recovery additions not in frozen run; no accepted middleware replay"
+      "run": 45074820751,
+      "control": "93daf739323f415647581266522d3c4ae9b9494e",
+      "candidate": "0903b86778f1cf17b29fe0388a16888b7c2428ce",
+      "status": "queued at dispatch; previous own run terminal, one dispatch",
+      "scope": "Changed session/list/account-assessment/checkout journal/recovery/guard flow; accepted preference and35middleware cohorts retained without replay"
     },
     "preparationFailure": {
       "run": 45069521383,
@@ -103,6 +103,12 @@
       "run": 45071695894,
       "reason": "Assessment HTTP action missing from route manifest; corrected and manually reviewed as repository-backed read",
       "runtime": "No build/native scenario executed; owned container absence verified"
+    },
+    "providerDependencyFailure": {
+      "run": 45073038989,
+      "buildElapsed": "5m59.08",
+      "cause": "Composed SQLite source referenced existing declared-successor helper omitted from candidate; no native scenario executed",
+      "correction": "Include accepted helper/Mongo/Neo source dependency closure, exact blob match to babfd2b5; preserve newer shared base"
     }
   },
   "providers": {
@@ -145,7 +151,8 @@
       "storage": "Existing billing audit collection; no new DB/collection/index/worker",
       "behavior": "Persist request before Stripe; provider acknowledgement before redirect; close after confirmed activation or signed expiry; customerless unresolved requests visible to assessment",
       "remaining": "Ambiguous creation reconciliation and full closure admission/erasure",
-      "recoverySource": "0f2efc4330e: pending list and canonical no-create recovery; uncompiled/unrun/undeployed and UI wiring pending"
+      "recoverySource": "0f2efc4330e: pending list and canonical no-create recovery; uncompiled/unrun/undeployed and UI wiring pending",
+      "portalSource": "4baca47 on dev; on-demand review/resume/cancel source wired; not browser/Stripe/deployed accepted"
     }
   }
 }
