@@ -36,6 +36,8 @@ Metadata-only baseline d147fd89/Core3f5156e6 passed44998378698: three transport 
 - Prepared hosted verifier: `Scripts/Sandbox/Verify-HostedOwnedNativeSets.py`, explicit `--selected-columns --boolean-text-case --boolean-metadata-case`, fresh bounded fixture name and exact source/website/deployment. The current combined release additionally requires explicit --combined-metadata-case, selecting its own source/package journal; the original01de image is not substituted. Requires its own accepted release journal, unique ready source descriptions before writes, immutable checkpoints and exact cleanup. Not executed for conditional metadata yet.
 - Durable private journals under `LocalState/COSMIC`: `boolean-metadata-case-*.json`, `boolean-text-case-image-handoff.json`, `text-coalesce-combined-image-handoff.json`. Preserve unknown-outcome journals; never replay a dispatch, create, delete or session issuance blindly.
 
+Full computed-scalar website2973da77 preview served-source accepted: exact HTML plus expected163-byte platform script, compiler/playground/Ask bytes. [Evidence](COMPUTED_SCALARS_PREVIEW_SOURCE_ACCEPTANCE_2026-11-22.json). No rendered-browser, live query, public promotion or real WEB6 inference acceptance.
+
 ## Next query breadth slice — not deployed
 
 Nullable Int32 coalescing passed representative native qualification44997253843 on all three shipping providers (four checks/store, five isolated records, exact cleanup) and API44997487846 (three controls plus actual WEB4 build). [Native proof](INT32_COALESCE_NATIVE_ACCEPTANCE_2026-11-22.json), [API proof](INT32_COALESCE_WIRE_ACCEPTANCE_2026-11-22.json).
