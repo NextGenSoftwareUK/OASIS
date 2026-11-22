@@ -9,9 +9,10 @@ const provider='HoloOASIS';
 const assetNames=['web4-sandbox.html','web4-session.js','web4-tabs.js','cql-demo-preparation.js','cql-text.js','lossless-metadata.js','cql-playground.js','cql-ask.js'];
 const guid=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 function validateRead(query){
-  const body=query?.body,allowed=new Set(['provider','filters','orderBy','skip','take','includeMetadata']);
+  const body=query?.body,allowed=new Set(['provider','filters','orderBy','skip','take','includeMetadata','maximumDurationMilliseconds']);
   if(query?.path!=='data/query-cql'||body?.provider!==provider||Object.keys(body).some(k=>!allowed.has(k))||
-      body.orderBy!=='None'||body.skip!==0||body.includeMetadata!==true||!Number.isInteger(body.take)||body.take<1||body.take>10||
+      body.orderBy!=='None'||body.skip!==0||body.includeMetadata!==true||
+      body.maximumDurationMilliseconds!==undefined&&(!Number.isInteger(body.maximumDurationMilliseconds)||body.maximumDurationMilliseconds<1||body.maximumDurationMilliseconds>30000)||!Number.isInteger(body.take)||body.take<1||body.take>10||
       !Array.isArray(body.filters)||body.filters.length!==1)throw Error('Public reader scope changed');
   const filter=body.filters[0];
   const ids=filter.operator==='Equal'?[filter.value]:filter.operator==='In'?filter.value:null;
@@ -185,6 +186,8 @@ async function run(){
       if(!available)throw Error('Shipping HoloOASIS unavailable; no replacement provider');
       await evaluate("(()=>{const s=document.getElementById('cql-provider');s.value='HoloOASIS';s.dispatchEvent(new Event('change'));document.getElementById('cql-load-text-example').click();return true;})()");
       reviewed=await evaluate("window.cqlPlayground.compileAvailableText(document.getElementById('cql-text').value)");
+      report.reviewedScope={path:reviewed?.path,provider:reviewed?.body?.provider,keys:Object.keys(reviewed?.body||{}),
+        take:reviewed?.body?.take,maximumDurationMilliseconds:reviewed?.body?.maximumDurationMilliseconds};
       expectedIds=validateRead(reviewed);
       await evaluate("document.getElementById('cql-run-text').click();true");
       await waitFor(()=>Boolean(readResult),'Real native public query response');
