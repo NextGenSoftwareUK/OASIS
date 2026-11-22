@@ -240,9 +240,17 @@
     },
     "httpQualification": {
       "source": "Scripts/TestHosts/HotspotHttpNative/MfaHttpQualification.cs",
-      "status": "prepared-uncompiled-unselected",
+      "status": "dispatched-awaiting-build-runtime",
       "scope": "Actual status/enrol/confirm, password authenticate token-free challenge and no persisted credential, actual authenticate-mfa authenticator/recovery, consumed challenge refusal, signed issuer/audience/lifetime/JWT subject and native refresh persistence. No mock HTTP/provider or response body/credential logging.",
-      "remaining": "Wire isolated host service/gate/verified-password seed and selector, compile/run; browser/management/hosted remain open."
+      "remaining": "Compile/runtime result and owned cleanup; then Settings management UI/browser/hosted.",
+      "run": {
+        "id": 44978452408,
+        "control": "ec52231b38fadd8cabb66ce3546998df028c468c",
+        "candidate": "e5aa77161465fa6c683746bac49ea647dd7adeb0",
+        "status": "in_progress",
+        "mode": "mfa-http"
+      },
+      "host": "Actual BCrypt-hashed verified fixture actor, actual MfaService/MongoMfaStore injected supported clock, shipped MfaGate installed/restored finally, actual controller POSTs; fixture signing key matches Core issuance encoding. No deployment/source DNA flags changed."
     }
   },
   "portalExpiryFix": {
