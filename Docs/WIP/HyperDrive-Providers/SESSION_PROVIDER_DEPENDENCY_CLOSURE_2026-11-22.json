@@ -1,0 +1,19 @@
+{
+  "candidate": "0903b86778f1cf17b29fe0388a16888b7c2428ce",
+  "base": "aa6f1cb26d8b8a9393d8ca440bdd140c4162a239",
+  "priorFailedRun": 45073038989,
+  "priorFailure": "SQLite declared-successor helper omitted from composed provider dependency graph; build failed before native checks",
+  "acceptedGuardSource": "babfd2b55da0af507346d767036877054c14daf1",
+  "guardSourceBlobsMatch": [
+    "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/AccountSaveRevision.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoNativeRecordWriter.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.IdentitySave.cs"
+  ],
+  "retainedNativeEvidence": {
+    "MongoAndNeo": 44659888087,
+    "SQLite": 44661680570
+  },
+  "replayPolicy": "Retain accepted preference tests; select only changed current session/checkout flow and required gates",
+  "sourcePreservation": "Current shared personal-overage cap fix and dependency pins retained; no Development deployment or shared checkout mutation",
+  "status": "Prepared; not compiled/native/browser/Stripe/deployment accepted"
+}
