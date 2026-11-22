@@ -27,5 +27,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public IReadOnlyList<T> Items { get; set; }
         public int Limit { get; set; }
         public string NextCursor { get; set; }
+        public string NextId { get; set; }
     }
 }

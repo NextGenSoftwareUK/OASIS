@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
@@ -20,34 +21,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             return Page(items, take, x => x.UserId);
         }
 
-        public async Task<SubscriptionAdminPage<OrderRecord>> GetAdminInvoicesAsync(DateTime? before, int limit, CancellationToken ct)
+        public async Task<SubscriptionAdminPage<OrderRecord>> GetAdminInvoicesAsync(DateTime? before, int limit, CancellationToken ct, string beforeId = null)
         {
             int take = Math.Clamp(limit, 1, 200);
-            var filter = before.HasValue
-                ? Builders<OrderRecord>.Filter.Lt(x => x.CreatedAt, before.Value)
-                : Builders<OrderRecord>.Filter.Empty;
+            var filter = AdministrativeContinuation<OrderRecord>(before, beforeId, x => x.CreatedAt, x => x.Id);
             var items = await Orders.Find(filter).SortByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id).Limit(take + 1).ToListAsync(ct);
-            return Page(items, take, x => x.CreatedAt.ToUniversalTime().ToString("O"));
+            return Page(items, take, x => x.CreatedAt.ToUniversalTime().ToString("O"), x => x.Id);
         }
 
-        public async Task<SubscriptionAdminPage<SubscriptionUsageEvent>> GetAdminEventsAsync(DateTime? before, int limit, CancellationToken ct)
+        public async Task<SubscriptionAdminPage<SubscriptionUsageEvent>> GetAdminEventsAsync(DateTime? before, int limit, CancellationToken ct, string beforeId = null)
         {
             int take = Math.Clamp(limit, 1, 200);
-            var filter = before.HasValue
-                ? Builders<UsageEventDocument>.Filter.Lt(x => x.AuthorizedAtUtc, before.Value)
-                : Builders<UsageEventDocument>.Filter.Empty;
+            var filter = AdministrativeContinuation<UsageEventDocument>(before, beforeId, x => x.AuthorizedAtUtc, x => x.OperationId);
             var items = await _events.Find(filter).SortByDescending(x => x.AuthorizedAtUtc).ThenByDescending(x => x.OperationId).Limit(take + 1).ToListAsync(ct);
-            return Page(items.Cast<SubscriptionUsageEvent>().ToList(), take, x => x.AuthorizedAtUtc.ToUniversalTime().ToString("O"));
+            return Page(items.Cast<SubscriptionUsageEvent>().ToList(), take, x => x.AuthorizedAtUtc.ToUniversalTime().ToString("O"), x => x.OperationId);
         }
 
-        public async Task<SubscriptionAdminPage<SubscriptionUsageAuditEntry>> GetAdminAuditAsync(DateTime? before, int limit, CancellationToken ct)
+        public async Task<SubscriptionAdminPage<SubscriptionUsageAuditEntry>> GetAdminAuditAsync(DateTime? before, int limit, CancellationToken ct, string beforeId = null)
         {
             int take = Math.Clamp(limit, 1, 200);
-            var filter = before.HasValue
-                ? Builders<SubscriptionUsageAuditEntry>.Filter.Lt(x => x.OccurredAtUtc, before.Value)
-                : Builders<SubscriptionUsageAuditEntry>.Filter.Empty;
+            var filter = AdministrativeContinuation<SubscriptionUsageAuditEntry>(before, beforeId, x => x.OccurredAtUtc, x => x.Id);
             var items = await _audit.Find(filter).SortByDescending(x => x.OccurredAtUtc).ThenByDescending(x => x.Id).Limit(take + 1).ToListAsync(ct);
-            return Page(items, take, x => x.OccurredAtUtc.ToUniversalTime().ToString("O"));
+            return Page(items, take, x => x.OccurredAtUtc.ToUniversalTime().ToString("O"), x => x.Id);
         }
 
         public async Task<SubscriptionAdminSnapshot> GetAdminAnalyticsAsync(DateTime fromUtc, DateTime toUtc, CancellationToken ct)
@@ -118,11 +113,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             rows.GroupBy(row => row["_id"][field].AsString)
                 .ToDictionary(group => group.Key, group => group.Sum(row => row["count"].ToInt64()));
 
-        private static SubscriptionAdminPage<T> Page<T>(List<T> items, int take, Func<T, string> cursor)
+        private static FilterDefinition<T> AdministrativeContinuation<T>(DateTime? before, string beforeId,
+            Expression<Func<T, DateTime>> timestamp, Expression<Func<T, string>> id)
+        {
+            if (beforeId != null && (!before.HasValue || string.IsNullOrWhiteSpace(beforeId)))
+                throw new ArgumentException("A continuation ID requires a timestamp and a nonempty ID.");
+            var filter = Builders<T>.Filter;
+            if (!before.HasValue) return filter.Empty;
+            var older = filter.Lt(timestamp, before.Value);
+            return beforeId == null ? older : filter.Or(older,
+                filter.And(filter.Eq(timestamp, before.Value), filter.Lt(id, beforeId)));
+        }
+
+        private static SubscriptionAdminPage<T> Page<T>(List<T> items, int take, Func<T, string> cursor, Func<T, string> id = null)
         {
             bool more = items.Count > take;
             if (more) items.RemoveAt(items.Count - 1);
-            return new SubscriptionAdminPage<T> { Items = items, Limit = take, NextCursor = more ? cursor(items[^1]) : null };
+            return new SubscriptionAdminPage<T> { Items = items, Limit = take, NextCursor = more ? cursor(items[^1]) : null, NextId = more && id != null ? id(items[^1]) : null };
         }
     }
 }
