@@ -223,5 +223,9 @@
   "allSevenServiceRolloutsSuccessful": true,
   "liveProof": "staged-set-hosted-acceptance.json",
   "groupFieldsNativeQualified": true,
-  "groupFieldsLiveHttpVerified": false
+  "groupFieldsLiveHttpVerified": false,
+  "publicHoloBrowserFlowAccepted": true,
+  "publicHoloBrowserProof": "HOSTED_BROWSER_LIVE_ACCEPTANCE_2026-11-22.json",
+  "complexStorageSqlBrowserFlowAccepted": false,
+  "realModelInferenceAccepted": false
 }
