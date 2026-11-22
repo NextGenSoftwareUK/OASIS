@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -11,7 +12,9 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.FileProviders;
 using MongoDB.Driver;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -36,7 +39,7 @@ Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
 var mode = Environment.GetEnvironmentVariable("OASIS_HOTSPOT_HTTP_MODE") ?? "binding";
-Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http", "Unsupported hotspot HTTP check mode.");
+Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http", "Unsupported hotspot HTTP check mode.");
 var dna = new OASISDNA { OASIS = new() {
     HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
         AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
@@ -59,9 +62,9 @@ try
     var accounts = new List<Avatar> {
         new Avatar { Id = actor, Username = "http-" + actor.ToString("N"), Email = actor.ToString("N") + "@example.test", AvatarType = new EnumValue<AvatarType>(AvatarType.User) },
         new Avatar { Id = Guid.NewGuid(), FirstName = "OASIS", LastName = "SYSTEM", Username = "root", Email = "anorak@oasisomniverse.one", AvatarType = new EnumValue<AvatarType>(AvatarType.System) } };
-    if (mode == "competition-publisher") accounts.Add(new Avatar { Id = wizardActor,
+    if (mode is "competition-publisher" or "billing-http") accounts.Add(new Avatar { Id = wizardActor,
         Username = "wizard-" + wizardActor.ToString("N"), Email = wizardActor.ToString("N") + "@example.test",
-        AvatarType = new EnumValue<AvatarType>(AvatarType.Wizard) });
+        AvatarType = new EnumValue<AvatarType>(mode == "billing-http" ? AvatarType.User : AvatarType.Wizard) });
     foreach (var account in accounts)
     {
         account.IsActive = true; account.Version = 1; account.VersionId = Guid.NewGuid(); account.CreatedDate = DateTime.UtcNow;
@@ -136,6 +139,17 @@ try
         }
     }
     var builder = WebApplication.CreateBuilder(); builder.Logging.ClearProviders(); builder.WebHost.UseUrls("http://127.0.0.1:0");
+    MongoSubscriptionUsageRepository? billingRepository = null;
+    if (mode == "billing-http")
+    {
+        billingRepository = new MongoSubscriptionUsageRepository(client, database, TimeProvider.System);
+        await billingRepository.CreateAppAccountAsync("owned-billing", "Owned billing route fixture", "free",
+            actor.ToString("D"), "Owned isolated fixture", false, null, CancellationToken.None);
+        await billingRepository.SetAppOwnersAsync("owned-billing", new[] { actor.ToString("D") },
+            actor.ToString("D"), "Owned isolated fixture", CancellationToken.None);
+        builder.Services.AddSingleton(billingRepository);
+        builder.Services.AddSingleton<IUsageSeriesSource>(billingRepository);
+    }
     var key = new SymmetricSecurityKey(secret);
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {
         options.MapInboundClaims = false;
@@ -190,7 +204,41 @@ try
         using var result = JsonDocument.Parse(resultText);
         Require(result.RootElement.GetProperty(resultProperty).GetBoolean(), "Owned browser completion marker missing.");
     }
-    if (mode == "profile-http")
+    if (mode == "billing-http")
+    {
+        const string path = "/api/subscription/app-owner/owned-billing/notifications";
+        using var initial = await http.GetAsync(path);
+        Require(initial.IsSuccessStatusCode, "Owned notification initial GET failed.");
+        using var save = await http.PostAsJsonAsync(path, new { thresholds = new[] { 75, 95 },
+            emailRequested = false, warningsEnabled = true });
+        Require(save.IsSuccessStatusCode, "Owned notification POST failed.");
+        var acknowledgement = Newtonsoft.Json.Linq.JObject.Parse(await save.Content.ReadAsStringAsync());
+        Require(acknowledgement.Value<bool>("isSaved") && acknowledgement.Value<int>("savedCount") == 1,
+            "Notification save did not acknowledge the persisted command.");
+        using var reload = await http.GetAsync(path);
+        Require(reload.IsSuccessStatusCode, "Owned notification reload failed.");
+        var view = Newtonsoft.Json.Linq.JObject.Parse(await reload.Content.ReadAsStringAsync())["result"]!;
+        Require(view["thresholds"]!.Values<int>().SequenceEqual(new[] { 75, 95 }) &&
+            view.Value<bool>("warningsEnabled") && !view.Value<bool>("emailRequested"), "Notification HTTP readback differs.");
+        var subject = "app:owned-billing:owner:" + actor.ToString("D");
+        var stored = await billingRepository!.GetNotificationSettingsAsync(subject);
+        Require(stored != null && stored.Thresholds.SequenceEqual(new[] { 75, 95 }) && stored.WarningsOverride == true &&
+            !stored.EmailRequested && stored.UpdatedBy == actor.ToString("D"), "Native notification writer/readback differs.");
+        var foreignJwt = new JwtSecurityToken(claims: new[] { new Claim("sub", wizardActor.ToString("D")) },
+            expires: DateTime.UtcNow.AddMinutes(5), signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
+        using var foreign = new HttpRequestMessage(HttpMethod.Post, path) {
+            Content = JsonContent.Create(new { thresholds = new[] { 10 }, emailRequested = true, warningsEnabled = false }) };
+        foreign.Headers.Authorization = new AuthenticationHeaderValue("Bearer", new JwtSecurityTokenHandler().WriteToken(foreignJwt));
+        using var refused = await http.SendAsync(foreign);
+        Require(refused.StatusCode == HttpStatusCode.Forbidden, "Foreign app notification command was not refused.");
+        Require(await billingRepository.GetNotificationSettingsAsync("app:owned-billing:owner:" + wizardActor.ToString("D")) == null,
+            "Refused actor created notification preferences.");
+        stored = await billingRepository.GetNotificationSettingsAsync(subject);
+        Require(stored!.Thresholds.SequenceEqual(new[] { 75, 95 }) && stored.UpdatedBy == actor.ToString("D"),
+            "Refused actor mutated owner notification preferences.");
+        Console.WriteLine("BILLING_RESTORATION_HTTP_PROOF: actual signed MVC/repository/native Mongo notification GET-POST-GET acknowledged owner-bound preferences; foreign write403 left both subjects unchanged. No Stripe/email/shared cluster/full Startup/hosted acceptance.");
+    }
+    else if (mode == "profile-http")
     {
         async Task<JsonDocument> ReadSelfProfile()
         {
