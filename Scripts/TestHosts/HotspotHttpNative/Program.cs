@@ -241,8 +241,12 @@ try
     else
         mvc.AddApplicationPart(typeof(GeoHotSpotsController).Assembly)
             .AddApplicationPart(typeof(NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.NftController).Assembly);
-    if (mode == "mfa-middleware-http") builder.Services.AddAuthorization();
-    app = builder.Build(); app.UseAuthentication();
+    builder.Services.AddAuthorization();
+    app = builder.Build();
+    // Keep framework authorization after bearer authentication. With only an explicit
+    // UseAuthentication call, WebApplication can insert automatic authorization first.
+    app.UseAuthentication();
+    app.UseAuthorization();
 #if OASIS_SESSION_MIDDLEWARE_CHECK
     if (mode == "mfa-middleware-http") SessionMiddlewareHttpQualification.MapBranches(app, actor);
 #endif
