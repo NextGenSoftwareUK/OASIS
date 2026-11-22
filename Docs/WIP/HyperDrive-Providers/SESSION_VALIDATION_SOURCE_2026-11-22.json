@@ -1,0 +1,15 @@
+{
+  "base": "2d0efca957cddf28cc32b4da1f52d4baa0e08bfd",
+  "candidate": "76a51228b29f6af7b822717b79bdd3321b0c52bd",
+  "tag": "qualification/session-validation-2026-11-22-76a51228",
+  "paths": [
+    "Helpers/AvatarSessionIdentity.cs",
+    "Managers/AvatarManager/AvatarManager-AccessSession.cs",
+    "Managers/AvatarManager/AvatarManager-RefreshAuthority.cs",
+    "Managers/AvatarManager/AvatarManager-SaveUtils.cs"
+  ],
+  "status": "source only; not compiled/native-tested/wired/deployed",
+  "invariant": "One authority-specific lookup replaces existing avatar read; inactive, missing, malformed or unavailable credentials never authenticate.",
+  "remaining": "Wire strict binding validation at every actual middleware after issuer rollout; native test active/revoked/rotation/authority behavior; implement acknowledged selected/global logout; enable OPORTAL only after acceptance.",
+  "supersededSource": "10609958ee2262cfe9dd4cfafba9cf03bfac7b19"
+}

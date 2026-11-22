@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "final issuer review; real HTTP/native check next",
+  "status": "corrected compile import; native rerun next",
   "base": "546dfb451cb11a8ec9355d2d25db853bab16617a",
-  "candidate": "dc2f044cc5733f2bbc9fe893d744e000fd579ad2",
-  "tag": "qualification/session-issuer-2026-11-22-dc2f044c",
+  "candidate": "e6245ae5a7c92543a12579651288c5b258c40fb9",
+  "tag": "qualification/session-issuer-2026-11-22-e6245ae5",
   "buildProjects": [
     "WEB4",
     "WEB5"
@@ -14,7 +14,7 @@
   ],
   "core": {
     "base": "a7d15b4ffc3fbcedd3c7164f06ba8fafb262a563",
-    "candidate": "f17285289ae0ac046570a856367433173a60847c"
+    "candidate": "2d0efca957cddf28cc32b4da1f52d4baa0e08bfd"
   },
   "nativeHost": "HotspotHttpNative",
   "nativeMode": "mfa-http",
