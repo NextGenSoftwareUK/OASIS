@@ -21,6 +21,7 @@ def main():
     parser.add_argument("--deployment", required=True, type=lambda value: str(uuid.UUID(value)))
     parser.add_argument("--commit", required=True)
     parser.add_argument("--website", required=True)
+    parser.add_argument("--resume-before-first-save", action="store_true")
     args = parser.parse_args()
     if any(not re.fullmatch("[0-9a-f]{40}", value) for value in (args.commit, args.website)):
         parser.error("Exact backend and website source commits are required.")
@@ -31,7 +32,8 @@ def main():
     credentials = runpy.run_path(str(ROOT / "Scripts/Sandbox/HostedSessionCredentials.py"))
     state = ROOT / "LocalState/COSMIC/HostedOwnedNativeSetCurrent"
     journal_path = state / "fixture.json"
-    helpers["require_new_fixture"](journal_path)
+    if not args.resume_before_first_save:
+        helpers["require_new_fixture"](journal_path)
     cfg = json.loads((Path.home() / ".railway/config.json").read_text())
     request = urllib.request.Request("https://backboard.railway.com/graphql/v2",
         data=json.dumps({"query":"query($id:String!){deployment(id:$id){id status meta}}",
@@ -52,8 +54,27 @@ def main():
     state.mkdir(parents=True, exist_ok=True)
     journal = {"source":args.commit,"deployment":args.deployment,"website":args.website,
         "calls":[],"pending":None,"providers":[],"holonWrites":0,"owned":{},"completed":False}
+    if args.resume_before_first_save:
+        if journal_path.with_suffix(".json.new").exists():
+            raise RuntimeError("Reconcile the original interrupted checkpoint before resume.")
+        journal=json.loads(journal_path.read_text())
+        own=journal.get("owned",{}).get("MongoDBOASIS",{})
+        if (journal.get("source")!=args.commit or journal.get("deployment")!=args.deployment
+                or journal.get("website")!=args.website or journal.get("pending") is not None
+                or journal.get("completed") or journal.get("holonWrites")!=0
+                or list(journal.get("owned",{}))!=["MongoDBOASIS"] or journal.get("providers")!=[]
+                or len(journal.get("calls",[]))!=2
+                or journal["calls"][0].get("path")!="sandbox/session"
+                or journal["calls"][1].get("path")!="data/query-cql"
+                or journal["calls"][1].get("provider")!="MongoDBOASIS"
+                or any(c.get("status")!=200 or c.get("isError") for c in journal["calls"])
+                or own.get("saveAcknowledged") or own.get("deleteAcknowledged")
+                or not own.get("saveOperationId")):
+            raise RuntimeError("Only the proven before-first-save checkpoint can resume.")
+        uuid.UUID(own["id"]);uuid.UUID(own["saveOperationId"])
     write = lambda: helpers["write"](journal_path, journal)
-    write()
+    if not args.resume_before_first_save:
+        write()
     token = None
     cookie = None
 
@@ -106,22 +127,34 @@ def main():
         write()
         return value, cookies
 
-    issued, cookies = call("sandbox/session", {})
-    avatar = issued["result"]
-    bundle = credentials["bundle"](str(uuid.UUID(avatar["id"])), avatar["jwtToken"], cookies)
-    token, cookie = bundle["jwtToken"], bundle["cookieHeader"]
-    with (state / "session.dpapi").open("xb") as stream:
-        stream.write(helpers["protected_token"](json.dumps(bundle).encode()))
+    if args.resume_before_first_save:
+        bundle=json.loads(helpers["protected_token"]((state/"session.dpapi").read_bytes(),decrypt=True))
+        credentials["validate"](bundle,bundle["ownerId"])
+        if credentials["needs_renewal"](bundle):
+            raise RuntimeError("Original session needs explicit rotation; do not issue another avatar.")
+        token,cookie=bundle["jwtToken"],bundle["cookieHeader"]
+    else:
+        issued, cookies = call("sandbox/session", {})
+        avatar = issued["result"]
+        bundle = credentials["bundle"](str(uuid.UUID(avatar["id"])), avatar["jwtToken"], cookies)
+        token, cookie = bundle["jwtToken"], bundle["cookieHeader"]
+        with (state / "session.dpapi").open("xb") as stream:
+            stream.write(helpers["protected_token"](json.dumps(bundle).encode()))
     for provider in ("MongoDBOASIS","SQLLiteDBOASIS","Neo4jOASIS"):
-        identity=str(uuid.uuid4())
-        journal["owned"][provider]={"id":identity,"saveAcknowledged":False,"deleteAcknowledged":False}
-        write()
+        resuming=bool(args.resume_before_first_save and provider=="MongoDBOASIS")
+        if resuming:
+            identity=journal["owned"][provider]["id"]
+        else:
+            identity=str(uuid.uuid4())
+            journal["owned"][provider]={"id":identity,"saveAcknowledged":False,"deleteAcknowledged":False}
+            write()
         lookup={"provider":provider,"filters":[{"field":"Id","scalar":"Guid","operator":"Equal","value":identity}],
             "orderBy":"Id","take":1}
-        absent,_=call("data/query-cql",lookup)
-        if absent["result"].get("rows")!=[]:
-            raise RuntimeError("New identity already exists; no save sent.")
-        save_operation=str(uuid.uuid4())
+        if not resuming:
+            absent,_=call("data/query-cql",lookup)
+            if absent["result"].get("rows")!=[]:
+                raise RuntimeError("New identity already exists; no save sent.")
+        save_operation=journal["owned"][provider].get("saveOperationId") or str(uuid.uuid4())
         journal["owned"][provider]["saveOperationId"]=save_operation
         write()
         saved,_=call("data/save-holon",{"providerType":provider,"operationId":save_operation,
