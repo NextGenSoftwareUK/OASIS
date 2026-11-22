@@ -5,8 +5,6 @@ on:
     branches: [work/cosmic-cql-ton-public, work/cosmic-teaching-release-candidate]
     paths:
       - '.github/workflows/qualify-polygon-id-schema.yml'
-      - 'Docker/oasis-dependency-versions.env'
-      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core'
       - 'Providers/Identity/NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS/**'
       - 'Providers/Identity/TestProjects/NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS.UnitTests/**'
   workflow_dispatch:

@@ -8,8 +8,6 @@ on:
       - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS/**'
       - 'Scripts/TestHosts/Qualify-OpenVinoModelServer.py'
       - 'Scripts/TestHosts/openvino-model-server-pins.json'
-      - 'Docker/oasis-dependency-versions.env'
-      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlOpenVinoModelHostedConfigurationTests.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlOpenVinoModelHttpTests.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/ReviewedPublicMongoHttpFixture.cs'

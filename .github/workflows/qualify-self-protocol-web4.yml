@@ -5,8 +5,6 @@ on:
     branches: [work/cosmic-cql-ton-public]
     paths:
       - '.github/workflows/qualify-self-protocol-web4.yml'
-      - 'Docker/oasis-dependency-versions.env'
-      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlSelfProtocolHostedConfigurationTests.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlSelfProtocolRegistryHttpTests.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/ReviewedPublicMongoHttpFixture.cs'
