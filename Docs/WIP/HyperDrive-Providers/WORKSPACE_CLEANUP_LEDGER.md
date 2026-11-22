@@ -2769,3 +2769,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 2026-11-22 WARNING INVENTORY GUARD:44988505939 stopped before inventory/build/runtime; no fixtures/outputs created. Exact8path descriptor repaired;44989036969 queued inventory-only, no email secrets or local environment. No accepted browser/native/provider suite replay.
 
 22 November — Session revocation audit: source-only inspection and compact JSON evidence. Fetched the already pinned WEB6 commit into the existing Git object store to inspect actual deployed middleware; no checkout switch, worktree, environment, build, runtime, database, archive or generated test outputs. No temporary files/secrets created; Git source objects retained as required source. No shared Atlas/PIPER operations.
+
+22 November — Session issuer implementation: two exact temporary Git indexes and potential locks removed in finally after creating immutable Core/root candidates; no checkout/index mutation, local compilation, runtime, archive or fixture DB. Compact source evidence retained; no credential staging or deployment changes.

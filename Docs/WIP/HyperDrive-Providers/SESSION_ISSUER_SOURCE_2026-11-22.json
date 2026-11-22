@@ -1,0 +1,36 @@
+{
+  "base": "a7d15b4ffc3fbcedd3c7164f06ba8fafb262a563",
+  "candidate": "90b77dbbb7e8cc68fb7467a2f702dfe2dea2f8a2",
+  "tag": "qualification/session-binding-issuer-2026-11-22-90b77dbb",
+  "paths": [
+    "Helpers/AvatarSessionIdentity.cs",
+    "Managers/AvatarManager/AvatarManager-Auth.cs",
+    "Managers/AvatarManager/AvatarManager-RefreshAuthority.cs",
+    "Managers/AvatarManager/AvatarManager-SaveUtils.cs",
+    "Managers/AvatarManager/AvatarManager-Session.cs"
+  ],
+  "status": "source only; no compile/native/deployment acceptance; validators and logout unchanged",
+  "rootCandidate": {
+    "scope": "billing",
+    "status": "session-bound issuer source only; awaiting exact source inventory",
+    "base": "546dfb451cb11a8ec9355d2d25db853bab16617a",
+    "candidate": "062821baa8b790bb16fc77ba5d8549ef9ac492f4",
+    "tag": "qualification/session-issuer-2026-11-22-062821ba",
+    "buildProjects": [
+      "WEB4",
+      "WEB5"
+    ],
+    "allowedPaths": [
+      "Docker/oasis-dependency-versions.env",
+      "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
+    ],
+    "core": {
+      "base": "a7d15b4ffc3fbcedd3c7164f06ba8fafb262a563",
+      "candidate": "90b77dbbb7e8cc68fb7467a2f702dfe2dea2f8a2"
+    },
+    "nativeHost": "HotspotHttpNative",
+    "nativeMode": "mfa-http",
+    "remaining": "Inventory then changed-graph build and actual HTTP/native session-claim assertions. No validator/global revocation/UI/deployment acceptance."
+  },
+  "checks": "Static exact-source checks passed: five Core paths, two root dependency paths, ack guard before mint; native checks added but not run."
+}

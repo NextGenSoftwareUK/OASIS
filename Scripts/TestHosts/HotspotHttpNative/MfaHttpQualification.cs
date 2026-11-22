@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
@@ -66,6 +67,9 @@ internal static class MfaHttpQualification
             var native = await provider.LoadAvatarAsync(actor);
             Check(!native.IsError && native.Result.RefreshTokens.Count == priorCount + 2,
                 "Second-factor credential generations were not persisted.");
+            Check(native.Result.RefreshTokens.Any(item => item.Token == verified.Value<string>("refreshToken")!.Split('.')[2] && item.IsActive) &&
+                native.Result.RefreshTokens.Any(item => item.Token == recovered.Value<string>("refreshToken")!.Split('.')[2] && item.IsActive),
+                "Issued access sessions do not match acknowledged native credentials.");
             // HyperDrive returns a signed provider-bound envelope, not the raw persisted token.
             // Let the shipped refresh endpoint validate that envelope and rotate its native credential.
             var rotated = (await Post("/api/avatar/refresh-token", new {
@@ -88,6 +92,16 @@ internal static class MfaHttpQualification
                 ValidateIssuer = true, ValidIssuer = "OASIS", ValidateAudience = true, ValidAudience = "OASIS",
                 ValidateLifetime = true, RequireExpirationTime = true, ClockSkew = TimeSpan.Zero }, out _);
         Check(principal.FindFirst("sub")?.Value == actor.ToString(), "MFA HTTP JWT subject mismatch.");
+        var envelope = avatar.Value<string>("refreshToken")!.Split('.');
+        Check(envelope.Length == 4 && envelope[0] == "oasis-r1" && envelope[1] == "MongoDBOASIS",
+            "Owned HTTP credential has no expected authoritative provider.");
+        Check(principal.FindAll(AvatarSessionIdentity.SessionClaim).Count() == 1 &&
+            principal.FindFirst(AvatarSessionIdentity.SessionClaim)!.Value == AvatarSessionIdentity.Create(actor, envelope[2]) &&
+            principal.FindAll(AvatarSessionIdentity.ProviderClaim).Count() == 1 &&
+            principal.FindFirst(AvatarSessionIdentity.ProviderClaim)!.Value == envelope[1],
+            "Access JWT is not bound to the same acknowledged refresh generation and provider.");
+        Check(!principal.Claims.Any(claim => claim.Value == envelope[2] || claim.Value == avatar.Value<string>("refreshToken")),
+            "Access JWT exposes a refresh credential.");
     }
     private static void Check(bool condition, string message)
     {

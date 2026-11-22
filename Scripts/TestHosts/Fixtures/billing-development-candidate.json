@@ -1,63 +1,22 @@
 {
   "scope": "billing",
-  "status": "current-coalescing-composition-awaiting-compile-only",
-  "base": "a96652767c3b382cdbd9e4ccaa80516358abff53",
-  "candidate": "f688e6fe3f08230ad9006e1ae615cec423b090db",
-  "tag": "qualification/portal-current-2026-11-22-f688e6fe",
+  "status": "session-bound issuer source only; awaiting exact source inventory",
+  "base": "546dfb451cb11a8ec9355d2d25db853bab16617a",
+  "candidate": "062821baa8b790bb16fc77ba5d8549ef9ac492f4",
+  "tag": "qualification/session-issuer-2026-11-22-062821ba",
   "buildProjects": [
     "WEB4",
-    "WEB5",
-    "OUTBOXADMINTESTS"
+    "WEB5"
   ],
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
-    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarAdminController.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAdminController.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionNotificationController.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionUsageSeriesController.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppAccounts.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppBillingConsent.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppOveragePrices.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppRequestCharges.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppStatementPreparation.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppUsageSettingsPatch.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/ISubscriptionBillingRepository.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Admin.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.AppAccounts.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.AppBilling.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Billing.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Overages.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Owners.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Pool.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PaidOverageBillingService.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PaidOverageStatements.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalChargeConsent.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalChargeCorrections.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalOverageRequestJsonConverters.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalStatementPreparation.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/StripePaidOverageGateway.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionAdminModels.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionModels.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionUsageModels.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageSeries.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
-    "Scripts/SubscriptionLedger.OutboxAdmin.Tests/OutboxAdminTests.cs",
-    "Scripts/SubscriptionLedger.OutboxAdmin/OutboxAdminCommand.cs",
-    "Scripts/SubscriptionLedger.OutboxAdmin/README.md"
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
   ],
   "core": {
-    "base": "eef9f1a1d6bca1041c0971fadf764c2664f64d26",
-    "candidate": "a7d15b4ffc3fbcedd3c7164f06ba8fafb262a563"
+    "base": "a7d15b4ffc3fbcedd3c7164f06ba8fafb262a563",
+    "candidate": "90b77dbbb7e8cc68fb7467a2f702dfe2dea2f8a2"
   },
   "nativeHost": "HotspotHttpNative",
-  "nativeMode": "billing-restoration-http",
-  "portal": "e895bf621c01fe7f38025ce0d8bc9fab20b1ab70",
-  "remaining": "Independent source-only session inventory now; no native dispatch. Billing44994656993 continues pinned to64a04f7b/control3b172d8e."
+  "nativeMode": "mfa-http",
+  "remaining": "Inventory then changed-graph build and actual HTTP/native session-claim assertions. No validator/global revocation/UI/deployment acceptance."
 }
