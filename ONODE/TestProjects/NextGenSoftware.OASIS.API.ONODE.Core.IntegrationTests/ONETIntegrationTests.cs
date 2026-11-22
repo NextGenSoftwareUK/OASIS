@@ -336,6 +336,34 @@ public class ONETIntegrationTests : IDisposable
         }
     }
 
+    [Fact]
+    public async Task InternalP2PProvider_Topology_ComesFromTheProtocolPeerTable()
+    {
+        var nodeA = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        var nodeB = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        var provider = new InternalP2PNetworkProvider(nodeA, new ONETConsensus(storageProvider: null),
+            new ONETRouting(storageProvider: null), new ONETSecurity(storageProvider: null),
+            new ONETDiscovery(storageProvider: null), new ONETAPIGateway(storageProvider: null));
+
+        (await nodeA.StartNetworkAsync()).IsError.Should().BeFalse();
+        (await nodeB.StartNetworkAsync()).IsError.Should().BeFalse();
+        try
+        {
+            // Connected through the protocol (as reconnect and peer exchange do), not through the provider.
+            (await nodeA.ConnectToNodeAsync("peer-b", $"127.0.0.1:{nodeB.ListenPort}")).IsError.Should().BeFalse();
+
+            var topology = (await provider.GetNetworkTopologyAsync()).Result;
+
+            topology.Nodes.Should().ContainSingle(n => n.Id == "peer-b");
+            topology.Connections.Should().ContainSingle(c => c.ToNodeId == "peer-b" && c.IsActive);
+        }
+        finally
+        {
+            await nodeA.StopNetworkAsync();
+            await nodeB.StopNetworkAsync();
+        }
+    }
+
     private static (string Id, string Public, string Private) NewNodeIdentity()
     {
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
