@@ -22,7 +22,7 @@ public sealed partial class CqlV1Web4NativeTests
     public Task NativeSetHttpPreservesOccurrencesPermissionsAndMetering(string providerName)
         =>RunGroupedDistinctNativeFixture(providerName,false,setHttpJourney:true);
     private static async Task<int> VerifyNativeSetHttpJourney(IOASISStorageProvider provider,
-        List<Guid> owned,Dictionary<string,long> timings)
+        List<Guid> owned,Dictionary<string,long> timings,bool selectedColumns=false)
     {
         var type=provider.ProviderType.Value;var actor=Guid.NewGuid();var outsider=Guid.NewGuid();
         var row=new Holon {Id=Guid.NewGuid(),Name="native-set-http",CreatedByAvatarId=actor,IsPublic=false,IsActive=true,IsNewHolon=true};
@@ -50,6 +50,11 @@ public sealed partial class CqlV1Web4NativeTests
                 var filter=new CqlV1Filter {Field="Id",Scalar=CqlV1Scalar.Guid,Value=JsonSerializer.SerializeToElement(row.Id.ToString("D"))};
                 var body=new CqlSetV1Request {Provider=type.ToString(),Kind="Concat",
                     Left=new(){Filters=new[]{filter},Take=1},Right=new(){Filters=new[]{filter},Take=1}};
+                if(selectedColumns)
+                {
+                    body.Left.Columns=new[]{new CqlProjectionV1Column{Field="Name",Alias="label"}};
+                    body.Right.Columns=new[]{new CqlProjectionV1Column{Field="Name",Alias="other"}};
+                }
                 async Task Send(string? bearer,int expected)
                 {
                     using var request=new HttpRequestMessage(HttpMethod.Post,"/api/data/query-cql/set"){
@@ -64,7 +69,17 @@ public sealed partial class CqlV1Web4NativeTests
                     Assert.AreEqual(HttpStatusCode.OK,response.StatusCode,text);
                     using var json=JsonDocument.Parse(text);var result=json.RootElement.GetProperty("result");
                     var rows=result.GetProperty("rows");Assert.AreEqual(expected,rows.GetArrayLength());
-                    foreach(var item in rows.EnumerateArray())Assert.AreEqual(row.Id,item.GetProperty("id").GetGuid());
+                    if(selectedColumns)
+                    {
+                        Assert.AreEqual("cql-projected-set-v1",result.GetProperty("version").GetString());
+                        var columns=result.GetProperty("columns");Assert.AreEqual(1,columns.GetArrayLength());
+                        Assert.AreEqual("label",columns[0].GetProperty("alias").GetString());
+                        foreach(var item in rows.EnumerateArray())
+                        {
+                            Assert.AreEqual(1,item.GetArrayLength());Assert.AreEqual(row.Name,item[0].GetString());
+                        }
+                    }
+                    else foreach(var item in rows.EnumerateArray())Assert.AreEqual(row.Id,item.GetProperty("id").GetGuid());
                     var operation=await outbox.GetAsync(response.Headers.GetValues("X-OASIS-Operation-Id").Single(),CancellationToken.None);
                     Assert.AreEqual("settled",operation.State);
                     Assert.AreEqual(1,operation.ProviderAttempts.Count);Assert.AreEqual(1,operation.Receipts.Count);
