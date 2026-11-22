@@ -232,10 +232,24 @@
       "candidate": "9081f1c959433ec396d8c5cd1ef1a533a4e242c0",
       "control": "360ee7a6309151d41764834d95f51887896fa779",
       "run": 44977000859,
-      "status": "in_progress",
+      "status": "completed",
       "mode": "inventory-only",
       "pins": "verified",
-      "temporaryIndex": "removed"
+      "temporaryIndex": "removed",
+      "conclusion": "success",
+      "artifact": 14735988672,
+      "artifactBytes": 39652,
+      "managers": 932,
+      "routes": 827,
+      "review": "Semantic multiset comparison: exactly6Admin registrations removed; canonical Session routes retained; no additions or manager changes. Artifact4entries/hash/length/candidate verified in RAM."
+    },
+    "httpRun": {
+      "candidate": "e5aa77161465fa6c683746bac49ea647dd7adeb0",
+      "control": "433a85885e8a9ac852fec4fdaadee53f1721dba9",
+      "run": 44977175851,
+      "status": "in_progress",
+      "mode": "session-list-http",
+      "pins": "verified"
     }
   }
 }
