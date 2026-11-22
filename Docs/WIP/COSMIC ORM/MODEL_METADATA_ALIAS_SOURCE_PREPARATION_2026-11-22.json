@@ -10,5 +10,16 @@
   "defaultMetadataNamesPreserved": true,
   "owner": "Helpers/HolonCustomPropertyNames.cs",
   "next": "Representative real MongoDB SQLite Neo4j new-model save/read/query/selected-save checks and mapping collision refusal; no existing/PIPER records touched.",
-  "intrinsicAnnotationCache": "weak type keys; immutable names only; no actor/app/connection state"
+  "intrinsicAnnotationCache": "weak type keys; immutable names only; no actor/app/connection state",
+  "qualificationPhase": "PendingAutoRun",
+  "expectedNativeTests": 3,
+  "nativeJourneyScope": [
+    "selected create",
+    "fresh typed read",
+    "native predicate and projection",
+    "selected update",
+    "schema refusal before getters"
+  ],
+  "frozenGroupingCoreExcludedFromModelChange": "2051db6641cb60d654489a1af8841a58899dd667",
+  "temporarySourcePayloadRemovedAfterPublication": true
 }
