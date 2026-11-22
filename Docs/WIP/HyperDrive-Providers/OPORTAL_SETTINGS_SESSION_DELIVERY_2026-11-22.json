@@ -76,5 +76,40 @@
       "status": "queued",
       "mode": "compile-only-WEB4-WEB5-operator-tests-no-runtime-no-secrets"
     }
+  },
+  "rolloutServices": [
+    {
+      "name": "WEB4 OASIS API",
+      "id": "5123199a-43c4-4439-9921-e10e2aec7841"
+    },
+    {
+      "name": "WEB5 STAR API",
+      "id": "bb2c3e9a-ec96-44a5-9916-05e06d54b1f4"
+    },
+    {
+      "name": "WEB6 AI API",
+      "id": "1e6ee65f-df5d-42b1-972e-97f3a560f5d3"
+    },
+    {
+      "name": "WEB7 SYMBIOTIC API",
+      "id": "31bd0ff6-2d3d-4793-8197-eabcd3afcb75"
+    },
+    {
+      "name": "WEB8 IGN API",
+      "id": "95c937b9-b4e8-4fd3-866f-bd98d5420b2f"
+    },
+    {
+      "name": "WEB9 SINGULARITIY API",
+      "id": "36eda15e-fd28-4fc6-a0c9-7fe454829554"
+    },
+    {
+      "name": "WEB10 THE SOURCE API",
+      "id": "6f9e4f24-29be-49d7-914b-f1f9b42790d6"
+    }
+  ],
+  "callerReview": {
+    "parentSource": "No selected session model/field references in tracked WEB7-WEB10 source.",
+    "web6": "Pinned Git object f042a533548f4ac8a9649f98b259a9024d802bf7 missing locally; recursive read refused. No checkout switch/fetch/source mutation or absence claim. Actual WEB6 build/rollout remains required before its acceptance.",
+    "scope": "Source search only; not a build or hosted proof. Metadata service identities selected without variables/DNA output."
   }
 }
