@@ -14,7 +14,7 @@ public partial class HolonRepository
     // validate the entire source before any selected filter/window can hide it.
     private sealed class CompositionSql
     {
-        internal string Source, Proof, Predicate, Reduction, Cardinality, Numeric;
+        internal string Source, Proof, Predicate, Reduction, Cardinality, Numeric, Rows, Rank;
         internal bool HasRelationship;
         internal EntityCompositionSql Entity;
         internal List<SqliteParameter> Parameters;
@@ -31,14 +31,14 @@ public partial class HolonRepository
     // One compiler owns both the selected pipeline and its terminal reduction.
     private static CompositionSql CompileSelectedSql<T, TResult>(CosmicProjectionQuery<T, TResult> query,
         CosmicProjectionCompositionOptions options, CosmicProjectionCompositionExecutionLimits limits,
-        CosmicQueryPredicate terminal = null, bool cardinality = false, CosmicProjectedNumericIntent numeric = null, CosmicEntityCompositionPlan<T> entity = null) where T : IHolon
+        CosmicQueryPredicate terminal = null, bool cardinality = false, CosmicProjectedNumericIntent numeric = null, CosmicEntityCompositionPlan<T> entity = null, bool selectedSetInput = false, List<SqliteParameter> sharedParameters = null) where T : IHolon
     {
         var bounded = limits.Admit(options);
         if (bounded.IsError) throw new ArgumentException(bounded.Message);
-        if (query.ResultStages.Count == 0 && terminal == null && !cardinality && numeric == null) throw new ArgumentException("A selected-result pipeline is required.");
+        if (query.ResultStages.Count == 0 && terminal == null && !cardinality && numeric == null && !selectedSetInput) throw new ArgumentException("A selected-result pipeline is required.");
         if (query.Source.GraphOptions != null) throw new NotSupportedException("Composed graph sources require separate native enrollment.");
         var entitySql=entity==null ? null : CompileEntityCompositionSql(entity);
-        var parameters = entitySql?.Parameters ?? new List<SqliteParameter>();
+        var parameters = entitySql?.Parameters ?? sharedParameters ?? new List<SqliteParameter>();
         var translator = entitySql?.SourceTranslator ?? new CqlSqlTranslator("Holon", parameters, query.Source.ReadAccess);
         var predicate = entitySql?.SourcePredicate ?? translator.TranslateSource(query.Source.Predicates);
         var sourceOrder = entitySql==null ? translator.TranslateOrdering(query.Source.Orderings) : "Holon."+entitySql.Position;
@@ -59,6 +59,36 @@ public partial class HolonRepository
             source="SELECT "+string.Join(",",cells)+" FROM ("+entitySql.Rows+") AS Holon ORDER BY "+sourceOrder
                 +" LIMIT "+translator.Bind((long)limits.MaximumInputRows+1);
         var stages = new List<string> { "c0 AS MATERIALIZED (" + source + ")" };
+        var selectedStages=CompileSelectedStages(query,translator,stages);
+        var proof=selectedStages.Proof;var work=selectedStages.Work;var previousRank=selectedStages.Rank;
+        var header = "SELECT -1 AS phase,0 AS position,0 AS ordinal,(SELECT count(*) FROM c0) AS sourceCount,"
+            + (work.Count == 0 ? "0" : string.Join("+", work)) + " AS stageRows";
+        var common = "WITH " + string.Join(",", stages) + " ";
+        var reduction = terminal == null ? null : common + "SELECT count(*) FROM c" + query.ResultStages.Count
+            + " WHERE NOT (" + translator.TranslateCompositionPredicate(query, terminal) + ")";
+        return new CompositionSql
+        {
+            Rows=common+"SELECT * FROM c"+query.ResultStages.Count+" ORDER BY "+previousRank, Rank=previousRank,
+            Source = source, Predicate = predicate, HasRelationship = translator.HasRelationship || entitySql?.HasRelationship == true, Parameters = parameters, Entity=entitySql,
+            Proof = common + header + (proof.Count == 0 ? "" : " UNION ALL " + string.Join(" UNION ALL ", proof))
+                + " ORDER BY phase,ordinal,position", Reduction = reduction,
+            Cardinality = common + "SELECT count(*) FROM c" + query.ResultStages.Count,
+            Numeric = numeric == null ? null : common + CqlSqlTranslator.SelectedNumericReduction(numeric, "c" + query.ResultStages.Count, previousRank)
+        };
+
+        void Cell(CosmicQueryPath path, string alias)
+        {
+            EncodedCell(translator.ProjectionOperand(path, "composed" + alias, comparable: true), alias);
+        }
+        void EncodedCell((string State, string Value) operand, string alias)
+        {
+            cells.Add(operand.State + " AS " + alias + "s"); cells.Add(operand.Value + " AS " + alias + "v");
+        }
+    }
+
+    private static (List<string> Proof,List<string> Work,string Rank) CompileSelectedStages<T,TResult>(
+        CosmicProjectionQuery<T,TResult> query,CqlSqlTranslator translator,List<string> stages) where T:IHolon
+    {
         var proof = new List<string>();
         var work = new List<string>();
         var previousRank = "position";
@@ -97,28 +127,7 @@ public partial class HolonRepository
             work.Add("(SELECT count(*) FROM " + from + ")");
             previousRank = rank;
         }
-        var header = "SELECT -1 AS phase,0 AS position,0 AS ordinal,(SELECT count(*) FROM c0) AS sourceCount,"
-            + (work.Count == 0 ? "0" : string.Join("+", work)) + " AS stageRows";
-        var common = "WITH " + string.Join(",", stages) + " ";
-        var reduction = terminal == null ? null : common + "SELECT count(*) FROM c" + query.ResultStages.Count
-            + " WHERE NOT (" + translator.TranslateCompositionPredicate(query, terminal) + ")";
-        return new CompositionSql
-        {
-            Source = source, Predicate = predicate, HasRelationship = translator.HasRelationship || entitySql?.HasRelationship == true, Parameters = parameters, Entity=entitySql,
-            Proof = common + header + (proof.Count == 0 ? "" : " UNION ALL " + string.Join(" UNION ALL ", proof))
-                + " ORDER BY phase,ordinal,position", Reduction = reduction,
-            Cardinality = common + "SELECT count(*) FROM c" + query.ResultStages.Count,
-            Numeric = numeric == null ? null : common + CqlSqlTranslator.SelectedNumericReduction(numeric, "c" + query.ResultStages.Count, previousRank)
-        };
-
-        void Cell(CosmicQueryPath path, string alias)
-        {
-            EncodedCell(translator.ProjectionOperand(path, "composed" + alias, comparable: true), alias);
-        }
-        void EncodedCell((string State, string Value) operand, string alias)
-        {
-            cells.Add(operand.State + " AS " + alias + "s"); cells.Add(operand.Value + " AS " + alias + "v");
-        }
+        return (proof,work,previousRank);
     }
 
     private sealed partial class CqlSqlTranslator

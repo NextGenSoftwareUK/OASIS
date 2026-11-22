@@ -90,6 +90,31 @@ public partial class HolonRepository
                 try
                 {
                     void Check() { budget.Check(); traversal?.Check(); checkedAverage?.Check(); floating?.Check(); }
+                    var packet=await ReadSelectedPacketAsync(query,compiled,limits,connection,budget,traversal,
+                        Check,cancellationToken,plan,all,reduction).ConfigureAwait(false);
+                    transaction?.Commit(); Check();
+                    return new OASISResult<CosmicProjectionCompositionPacket>(packet) {IsLoaded=true};
+                }
+                catch (SqliteException cause) when (cause.SqliteErrorCode == 9) { budget.Check(); throw; }
+            }
+            finally { if (opened) await _dbContext.Database.CloseConnectionAsync().ConfigureAwait(false); }
+        }
+        catch (InvalidDataException cause) { return CompositionError("CQL_DATA_INVALID", cause.Message, cause); }
+        catch (OverflowException cause) { return CompositionError("CQL_DATA_INVALID", cause.Message, cause); }
+        catch (SqliteCqlDeadlineException cause) { return CompositionError("CQL_QUERY_TIMEOUT", cause.Message, cause); }
+        catch (SqliteCqlResourceException cause) { return CompositionError("CQL_QUERY_LIMIT", cause.Message, cause); }
+        catch (CqlTranslationLimitException cause) { return CompositionError("CQL_QUERY_LIMIT", cause.Message, cause); }
+        catch (SqliteCqlNumericException cause) { return CompositionError(cause.Code, cause.Message, cause); }
+        catch (NotSupportedException cause) { return CompositionError("CQL_CAPABILITY_UNSUPPORTED", cause.Message, cause); }
+        catch (OperationCanceledException cause) { return CompositionError("CQL_QUERY_CANCELLED", cause.Message, cause); }
+        catch (Exception cause) { return CompositionError("CQL_QUERY_FAILED", "SQLite native composition did not complete.", cause); }
+    }
+    private async Task<CosmicProjectionCompositionPacket> ReadSelectedPacketAsync<T,TResult>(
+        CosmicProjectionQuery<T,TResult> query,CompositionSql compiled,CosmicProjectionCompositionExecutionLimits limits,
+        SqliteConnection connection,SqliteCqlReadBudget budget,SqliteCqlTraversalGuard traversal,
+        Action Check,CancellationToken cancellationToken,CosmicProjectionCompositionPlan<T,TResult> plan,
+        CosmicProjectedAllPlan<T,TResult> all=null,AllReduction reduction=null,bool selectedSetInput=false) where T:IHolon
+    {
                     SqliteCommand Command(string sql)
                     {
                         var command = connection.CreateCommand();
@@ -179,7 +204,7 @@ public partial class HolonRepository
                     }
                     if (!header || work != (stageIds.Length == 0 ? 0 : sourceCount + stageIds.Take(stageIds.Length - 1).Sum(stage => (long)stage.Count)))
                         throw new InvalidDataException("Composition proof work/header is incomplete.");
-                    if (stageIds.Length == 0 && (all != null || plan?.IsScalarTerminal == true))
+                    if (stageIds.Length == 0 && (all != null || plan?.IsScalarTerminal == true || selectedSetInput))
                     {
                             foreach (var row in input.Values)
                             {
@@ -259,23 +284,9 @@ public partial class HolonRepository
                     Check();
                     var packet = new CosmicProjectionCompositionPacket(input.Values.ToArray(),
                         stageIds.Select(ids => new CosmicProjectionStageProof(ids)).ToArray(), output, sourceCount, work, nativeSelectedCount, nativeNumeric);
-                    transaction?.Commit(); Check();
-                    return new OASISResult<CosmicProjectionCompositionPacket>(packet) { IsLoaded = true };
-                }
-                catch (SqliteException cause) when (cause.SqliteErrorCode == 9) { budget.Check(); throw; }
-            }
-            finally { if (opened) await _dbContext.Database.CloseConnectionAsync().ConfigureAwait(false); }
-        }
-        catch (InvalidDataException cause) { return CompositionError("CQL_DATA_INVALID", cause.Message, cause); }
-        catch (OverflowException cause) { return CompositionError("CQL_DATA_INVALID", cause.Message, cause); }
-        catch (SqliteCqlDeadlineException cause) { return CompositionError("CQL_QUERY_TIMEOUT", cause.Message, cause); }
-        catch (SqliteCqlResourceException cause) { return CompositionError("CQL_QUERY_LIMIT", cause.Message, cause); }
-        catch (CqlTranslationLimitException cause) { return CompositionError("CQL_QUERY_LIMIT", cause.Message, cause); }
-        catch (SqliteCqlNumericException cause) { return CompositionError(cause.Code, cause.Message, cause); }
-        catch (NotSupportedException cause) { return CompositionError("CQL_CAPABILITY_UNSUPPORTED", cause.Message, cause); }
-        catch (OperationCanceledException cause) { return CompositionError("CQL_QUERY_CANCELLED", cause.Message, cause); }
-        catch (Exception cause) { return CompositionError("CQL_QUERY_FAILED", "SQLite native composition did not complete.", cause); }
+                    return packet;
     }
+
     private static OASISResult<bool> AdmitEntitySelected<T,TResult>(CosmicProjectionCompositionPlan<T,TResult> plan,
         CosmicProjectionCompositionExecutionLimits limits) where T:IHolon
         => CosmicProjectionCompositionPlanner.AdmitEntityExecution(plan,ProviderType.SQLLiteDBOASIS,
