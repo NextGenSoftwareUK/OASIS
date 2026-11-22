@@ -28,6 +28,18 @@ function Get-ModeAwareManagerMembers([string]$source) {
         ForEach-Object { $_.Groups['name'].Value } | Sort-Object -Unique)
 }
 
+function Get-InjectedStorageMembers([string]$source) {
+    $names = @([regex]::Matches($source,
+        '(?m)^\s*(?:private|protected|internal|public)\s+(?:(?:readonly|static)\s+)*[A-Za-z_][\w.]*(?:Service|Repository|Client)\??\s+(?<name>_[A-Za-z_]\w*)\s*[;=]') |
+        ForEach-Object { $_.Groups['name'].Value })
+    foreach ($constructor in [regex]::Matches($source, '\bclass\s+[A-Za-z_]\w*(?:\s*<[^>]+>)?\s*\((?<parameters>[^()]*)\)\s*(?::|\{)')) {
+        $names += @([regex]::Matches($constructor.Groups['parameters'].Value,
+            '(?:^|,)\s*[A-Za-z_][\w.]*(?:Service|Repository|Client)\??\s+(?<name>[A-Za-z_]\w*)\s*(?:=[^,]*)?(?=,|$)') |
+            ForEach-Object { $_.Groups['name'].Value })
+    }
+    @($names | Sort-Object -Unique)
+}
+
 function Get-Disposition([string]$body, [string]$methodName, [string]$controllerName, [string[]]$injectedMembers = @(), [string[]]$modeAwareMembers = @()) {
     # Route actions use the lazily acquired Data manager and the owned batch-write boundary.
     if ($controllerName -eq 'MapRoutesController') { return 'DirectModeAwareManagerBoundary' }
@@ -73,9 +85,7 @@ function Get-Disposition([string]$body, [string]$methodName, [string]$controller
 
 $rows = foreach ($file in Get-ChildItem -LiteralPath $controllerRoot -Recurse -Filter '*.cs' | Sort-Object FullName) {
     $lines = @(Get-Content -LiteralPath $file.FullName)
-    $injectedMembers = @([regex]::Matches(($lines -join "`n"),
-        '(?m)^\s*(?:private|protected|internal|public)\s+(?:(?:readonly|static)\s+)*[A-Za-z_][\w.]*(?:Service|Repository|Client)\??\s+(?<name>_[A-Za-z_]\w*)\s*[;=]') |
-        ForEach-Object { $_.Groups['name'].Value } | Sort-Object -Unique)
+    $injectedMembers = @(Get-InjectedStorageMembers ($lines -join "`n"))
     $modeAwareMembers = @(Get-ModeAwareManagerMembers ($lines -join "`n"))
     $relative = $file.FullName.Substring($repoRoot.Length + 1).Replace('\', '/')
     $className = ''

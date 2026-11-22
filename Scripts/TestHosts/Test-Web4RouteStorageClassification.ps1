@@ -4,8 +4,8 @@ $ErrorActionPreference = 'Stop'
 $tokens = $null; $errors = $null
 $ast = [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $ClassifierPath), [ref]$tokens, [ref]$errors)
 if ($errors.Count) { throw 'Route classifier source has syntax errors.' }
-$functions = @($ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -in @('Get-Disposition','Get-ModeAwareManagerMembers') }, $true))
-if ($functions.Count -ne 2) { throw 'Expected shipping route disposition and manager-member functions.' }
+$functions = @($ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -in @('Get-Disposition','Get-ModeAwareManagerMembers','Get-InjectedStorageMembers') }, $true))
+if ($functions.Count -ne 3) { throw 'Expected shipping route disposition and manager-member functions.' }
 foreach ($function in $functions) { . ([scriptblock]::Create($function.Extent.Text)) }
 $cases = @(
     @{Body='return _repository.SaveNotificationSettingsAsync();'; Method='SetMyNotifications'; Controller='SubscriptionOwnerController'; Members=@(); Expected='InjectedServiceRepositoryOrClient'},
@@ -25,3 +25,8 @@ if ((Get-Disposition 'return Manager.CreateProfileRequestContextAsync(id);' 'Pro
 if ((Get-Disposition 'return _manager.ApplyAvatarProfileAsync(id, mutation);' 'Profile' 'ExampleController' @() $declared) -ne 'CoveredFeatureManagerDelegation') { throw 'Existing manager-field classification changed.' }
 if ((Get-Disposition 'return Manager.Options();' 'Options' 'ExampleController') -ne 'LocalOrNonStorageEndpoint') { throw 'Undeclared member name acquired a storage classification.' }
 Write-Host 'Shipping route classifier passed existing six cases plus typed manager alias extraction and positive/negative checks; no runtime calls.'
+
+$primary = @(Get-InjectedStorageMembers 'public sealed class ExampleController(MongoSubscriptionUsageRepository repository, IConfiguration configuration, IPaidOverageGateway gateway = null) : ControllerBase { }')
+if ($primary.Count -ne 1 -or $primary[0] -ne 'repository') { throw 'Primary constructor repository extraction failed.' }
+if ((Get-Disposition 'return repository.GetOwnedAppsAsync(actor);' 'Apps' 'ExampleController' $primary) -ne 'InjectedServiceRepositoryOrClient') { throw 'Primary constructor repository was classified as local.' }
+if ((Get-Disposition 'return repository.GetOwnedAppsAsync(actor);' 'Apps' 'ExampleController') -ne 'LocalOrNonStorageEndpoint') { throw 'Undeclared repository acquired storage classification.' }

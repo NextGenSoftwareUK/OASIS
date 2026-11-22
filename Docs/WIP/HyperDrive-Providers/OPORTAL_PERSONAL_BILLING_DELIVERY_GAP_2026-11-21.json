@@ -341,9 +341,24 @@
       "inventoryRun": {
         "id": 44968371312,
         "control": "e61110b9f429d4cd710171d4ee43814ff6f8db09",
-        "status": "in_progress",
-        "native": false
+        "status": "completed",
+        "native": false,
+        "conclusion": "success",
+        "job": 137042435801,
+        "artifact": 14732427620,
+        "artifactBytes": 40043
       }
+    },
+    "inventoryReview": {
+      "managers": 930,
+      "routes": 831,
+      "restoredEndpoints": "All four missing actions now present",
+      "status": "classification-rejected-awaiting-regeneration",
+      "finding": "Primary constructor MongoSubscriptionUsageRepository repository was not recognized by field-only dependency scanner; owner/personal reads falsely local. Generic primary-constructor service/repository/client extraction added, preserving prior precedence. Focused positive/negative extraction/disposition checks pass.",
+      "artifact": "Four RAM entries, exact candidate and all file lengths/SHA256 verified; no ZIP retained; original CSV bytes restored.",
+      "managerBlob": "919543e08a5e7ef1cf641820f14de8c8d3bfbb2d",
+      "routeBlob": "46fc553f751c03dfc142ee5613617c86abb15120",
+      "next": "Regenerate/review with corrected classifier before compile; email and hosted acceptance remain open."
     }
   }
 }
