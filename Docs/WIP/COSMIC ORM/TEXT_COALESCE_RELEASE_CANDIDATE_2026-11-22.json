@@ -7,8 +7,15 @@
   "nativeAccepted": true,
   "nativeRuntimeSourceEquivalent": true,
   "run": 44991192060,
-  "status": "queued",
-  "conclusion": null,
+  "status": "completed",
+  "conclusion": "success",
+  "sourceCheckoutVerified": true,
+  "digest": "sha256:773f4f6aadfa065ea0aaf0b3bb010bc3845821cd2e0e32ab945192d0c466347f",
+  "imageJob": 137112398443,
+  "packagePhase": "dispatch_acknowledged",
+  "packageRun": 44991967776,
+  "packageStatus": "in_progress",
+  "packageConclusion": null,
   "developmentPushed": false,
   "notBeforeDevelopmentPushUtc": "2026-11-22T06:13:28.364508+00:00"
 }
