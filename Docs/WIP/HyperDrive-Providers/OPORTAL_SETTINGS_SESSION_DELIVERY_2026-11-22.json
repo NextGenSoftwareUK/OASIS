@@ -176,6 +176,12 @@
       "Scripts/SubscriptionLedger.OutboxAdmin/OutboxAdminCommand.cs",
       "Scripts/SubscriptionLedger.OutboxAdmin/README.md"
     ],
-    "inventoryReuse": "Controllers and CSVs byte-identical to reviewed812e1aaa; combined Core Managers input also identical. Zero portal-source overlap with coalescing; no inventory regeneration needed."
+    "inventoryReuse": "Controllers and CSVs byte-identical to reviewed812e1aaa; combined Core Managers input also identical. Zero portal-source overlap with coalescing; no inventory regeneration needed.",
+    "buildRun": {
+      "id": 44996842514,
+      "control": "ddbf174c5af798825e856d2fcb9e07042388f0c8",
+      "status": "in_progress",
+      "mode": "compile-only-WEB4-WEB5-operator-tests-no-runtime-no-secrets"
+    }
   }
 }
