@@ -1076,8 +1076,14 @@
     ],
     "staging": "Both metadata verified; values memory/stdin only, no files or logs; initial sender failure reconciled then succeeded.",
     "access": "Workflow passes secrets only when explicit native warning-provider selector is true.",
-    "dispatch": "One POST timed out20s; first run list showed no new run, subsequent exact-head read timed out30s. Outcome unconfirmed; do not duplicate POST until reconciled.",
+    "dispatch": "Initial POST timed out; later successful branch lists confirmed no original run. After push retry succeeded, one resubmission returned success and exact-head run list confirmed exactly1new run.",
     "externalCalls": "No provider acceptance confirmed; fixed delivered@resend.dev, max2bounded submissions with same idempotency key.",
-    "cleanup": "Both temporary secrets must be deleted after terminal verification and absence confirmed. Deployment credentials/settings unchanged."
+    "cleanup": "Both temporary secrets must be deleted after terminal verification and absence confirmed. Deployment credentials/settings unchanged.",
+    "run": {
+      "id": 44984161552,
+      "control": "a939693d62d91f16b4005cffde12b82c97e8a650",
+      "candidate": "e5aa77161465fa6c683746bac49ea647dd7adeb0",
+      "status": "in_progress"
+    }
   }
 }
