@@ -271,7 +271,7 @@ try
     }
     app.Use(async (context, next) => {
         using var authenticationTrace = mode == "session-global-http" && context.Request.Path == "/api/avatar/authenticate"
-            ? AuthenticationOperationTrace.Begin() : null;
+            ? NextGenSoftware.OASIS.API.Core.Helpers.AuthenticationOperationTrace.Begin() : null;
         context.Response.OnCompleted(() => {
             if (authenticationTrace != null)
             {
