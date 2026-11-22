@@ -137,5 +137,13 @@
     "status": "source-restored-uncompiled",
     "semantics": "Mongo advances profile revision independently of history retention with immutable command stamp; Neo archives exact locked original snapshot. Existing callers retain optional defaults.",
     "noShimsOrArgumentRemoval": true
+  },
+  "combinedHttpQualification": {
+    "run": 44965497145,
+    "job": 137033460418,
+    "control": "3b346e76b614c9a3a5d9b5a226996663941670ad",
+    "candidate": "04a9705d2ffc1abcf29bf84c79aa0488cbafb237",
+    "status": "pending",
+    "scope": "combined host compile and one current-graph real GET-PATCH-GET/native revision readback"
   }
 }

@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-21",
+  "status": "source/client delivery mismatch confirmed; not live payment behavior tested",
+  "development": "f54923d82ac8bffa7877d9307f18e879d41a8254",
+  "controller": {
+    "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs",
+    "currentBlob": "cabe2ad5ea590c7c142ec3fbd9b0920eac4ec1db",
+    "comparisonSource": "371f0570ef9aef1a6ab6d5b0ce91626a840fe797",
+    "comparisonBlob": "c0f93b99c0bd0a62c64e94ffca409e7913a84033"
+  },
+  "portalContracts": [
+    "overage retry POST sends statementId",
+    "consent reader requires hasBoundPersonalConsent and matching paidOverageTermsSha256"
+  ],
+  "currentSourceGaps": [
+    "PayOveragesRequest has billingRequestId/month but no statementId",
+    "usage view omits hasBoundPersonalConsent and paidOverageTermsSha256",
+    "subscriber statement endpoint returns raw statement rather than curated PersonalOverageStatementView",
+    "consent write uses Stripe subscription string rather than verified payer snapshot"
+  ],
+  "retainedEvidence": [
+    {
+      "file": "OPORTAL_PERSONAL_BILLING_EVIDENCE_2026-11-19.json",
+      "run": 44512720530,
+      "job": 135520787304,
+      "revision": "27f9b31c7f7f00131d684b55fadcd37565c4f3c6",
+      "scope": "accepted scoped native HTTP/browser controls, not genuine Stripe/full hosted acceptance"
+    },
+    {
+      "file": "OPORTAL_PERSONAL_CONSENT_EVIDENCE_2026-11-19.json",
+      "run": 44519812576,
+      "job": 135545268197,
+      "source": "26296ee8056af4136ac813f236cad7bae83bea91",
+      "scope": "accepted scoped original consent and reservation"
+    }
+  ],
+  "next": "Reconcile full matching personal billing controller/service/repository contracts on current shared source; preserve app billing/CQL changes. Do not copy controller alone or replay unchanged accepted cases. Genuine Stripe/rollout gates remain separate.",
+  "externalPaymentCalls": 0,
+  "sharedClusterCalls": 0,
+  "newBillingData": 0
+}
