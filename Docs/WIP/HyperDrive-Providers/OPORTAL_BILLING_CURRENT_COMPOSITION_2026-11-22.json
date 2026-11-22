@@ -1,0 +1,64 @@
+{
+  "core": {
+    "status": "source-frozen-not-compiled-or-native-accepted",
+    "base": "dcf11fe46181438b46eba57a88310f7172c89a61",
+    "candidate": "fb6133609f45ec3ccb9d3a3a1ee01ffa9b6f01eb",
+    "tag": "qualification/billing-current-2026-11-22-fb613360",
+    "paths": [
+      "Services/Subscriptions/MongoUsageOutboxStore.cs",
+      "Services/Subscriptions/UsageExecutionContracts.cs"
+    ],
+    "scope": "Preserve current CQL graph; restore only service-scoped administrative snapshot/requeue contracts from prior reviewed billing source. No checkout change or outbox replay."
+  },
+  "root": {
+    "base": "d68b635b0a56fa96de1075c627b2261213870f56",
+    "candidate": "52a10f981fa892b1685cc125aee47736afaf19a0",
+    "tag": "qualification/billing-current-2026-11-22-52a10f98",
+    "paths": [
+      "Docker/oasis-dependency-versions.env",
+      "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAdminController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionNotificationController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionUsageSeriesController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppAccounts.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppBillingConsent.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppOveragePrices.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppRequestCharges.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppStatementPreparation.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppUsageSettingsPatch.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/ISubscriptionBillingRepository.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Admin.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.AppAccounts.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.AppBilling.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Billing.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Overages.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Owners.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Pool.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PaidOverageBillingService.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PaidOverageStatements.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalChargeConsent.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalChargeCorrections.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalOverageRequestJsonConverters.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalStatementPreparation.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/StripePaidOverageGateway.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionAdminModels.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionModels.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionUsageModels.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageSeries.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs"
+    ],
+    "status": "source-frozen-not-compiled-or-native-accepted",
+    "protections": [
+      "Current CQL graph retained; Core changes exactly two administrative contracts, paired manifest pin.",
+      "VerifiedMongoIndexes and live app paid-admission callback retained.",
+      "Matching canonical notification/app-owner controllers replace old owner without duplicate routes.",
+      "Legacy app-billing worker type removed with its implementation; exactly its obsolete Startup registration removed. Other workers/settings/DNA unchanged."
+    ],
+    "remaining": "Review source/inventories, compile current graph and verify changed consent/retry/app-owner flows; no genuine Stripe/payment/hosted acceptance.",
+    "cleanup": "Initial encoding/newline preparation failures stopped before root commit. Binary stdin plus exact Git blob readback now preserves bytes. Exact owned failed process stopped and index removed; reusable temp index/lock removed in finally."
+  }
+}
