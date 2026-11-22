@@ -12,7 +12,7 @@
   "change": "Remove the primary-only override and obsolete breaker state/class. Keep existing configured SSO list, bounded login deadline and existing authentication semaphore unchanged. No retries or DNA settings added.",
   "requiredFollowUp": [
     "Obsolete clock-only unit case removed; unchanged identifier and10second deadline tests retained. New real fallback check still required.",
-    "Verify actual primary failure/timeout with an eligible real fallback under existing owned CI test hosts; no shared Atlas tests.",
+    "Compile and run only the new real login deadline/fallback case after current enforcement45012925333 terminal. No shared Atlas or existing-cohort replay.",
     "Qualify changed source separately; do not replace45008649921 or claim failover reliability from current35middleware cases."
   ],
   "scopeLimit": "Does not implement global/selected session revocation or prove cross-provider session failover.",
@@ -27,5 +27,39 @@
       "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
     ],
     "status": "separate unqualified successor; not selected by current enforcement run"
+  },
+  "currentComposition": {
+    "baseCore": "33a28387bc35a4113e260b94bd981bbd1ba36728",
+    "candidateCore": "370bd534ebb0924455baa30e95c614c8bd1a53d5",
+    "coreTag": "qualification/login-failover-current-2026-11-22-370bd534",
+    "base": "6608498b164673e2258b3201be2aa8ef31db3d89",
+    "candidate": "1820d0745c259c193db4b09ec2aeba24782b1414",
+    "tag": "qualification/login-failover-current-2026-11-22-1820d074",
+    "paths": [
+      "Docker/oasis-dependency-versions.env",
+      "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+      "OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/MongoSqliteRealProviderRoutingTests.LoginFailover.cs",
+      "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/AvatarLoginTests.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/JwtMiddleware.cs",
+      "STAR ODK",
+      "WEB10/NextGenSoftware.OASIS.Web10.WebAPI/Middleware/JwtMiddleware.cs",
+      "WEB10/NextGenSoftware.OASIS.Web10.WebAPI/Program.cs",
+      "WEB6",
+      "WEB7/NextGenSoftware.OASIS.Web7.WebAPI/Middleware/JwtMiddleware.cs",
+      "WEB7/NextGenSoftware.OASIS.Web7.WebAPI/Program.cs",
+      "WEB8/NextGenSoftware.OASIS.Web8.WebAPI/Middleware/JwtMiddleware.cs",
+      "WEB8/NextGenSoftware.OASIS.Web8.WebAPI/Program.cs",
+      "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Middleware/JwtMiddleware.cs",
+      "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Program.cs"
+    ],
+    "status": "prepared, not compiled/native-tested/deployed; not selected by current35case run"
+  },
+  "nativeRegression": {
+    "file": "OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/MongoSqliteRealProviderRoutingTests.LoginFailover.cs",
+    "case": "ALoginDeadlineDoesNotSuppressTheRealSqliteFallback",
+    "blob": "0148e63ccdcb203d1e6580d55164568f5acf0fad",
+    "status": "written, not compiled/run",
+    "guard": "Exact owned127.0.0.1:27029 URI, inspected expected Mongo image/name/host binding, unique native MongoDB+SQLite, one deadline then real second sign-in/acknowledged persisted SQLite session.",
+    "cleanup": "Unpause inspection, provider disposal, owned Mongo drop/absence, validated exact SQLite directory removal; failures retained/aggregated, outer runner always-container cleanup remains required."
   }
 }
