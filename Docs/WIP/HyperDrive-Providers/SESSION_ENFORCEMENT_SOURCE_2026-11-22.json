@@ -140,10 +140,14 @@
   "qualification": {
     "run": 45011186951,
     "control": "9da91def3c6706473c855d819a6bc1e17cf2de9e",
-    "status": "queued",
+    "status": "failure",
     "observedUtc": "2026-11-22T10:10:09.751270+00:00",
     "mode": "mfa-middleware-http",
-    "scope": "Corrected sparse checkout; unchangedf552d770/Core618c3c73 and35middleware cases. Separate timeout-failover draft750d excluded. No new source/runtime acceptance yet."
+    "scope": "Corrected sparse checkout; unchangedf552d770/Core618c3c73 and35middleware cases. Separate timeout-failover draft750d excluded. No new source/runtime acceptance yet.",
+    "job": 137173660650,
+    "cause": "MSB1008 before C# compilation: PowerShell unrolled a single optional build argument into a scalar, and native splatting expanded its characters.",
+    "cleanup": "Owned container absence verified; host never started, no host DB/tempDNA or HTTP cases.",
+    "ordering": "All seven immutable startup-order checks passed."
   },
   "runnerCorrection": "Added exact ordering guard to existing sparse checkout; shipping candidate f552d770/Core618c3c73 and35case input unchanged.",
   "previousQualifications": [
@@ -159,5 +163,6 @@
       "cause": "Control sparse checkout omitted Test-SessionMiddlewareOrdering.ps1; failed before dotnet build or native cases.",
       "cleanup": "Owned container absence verified; test host never started, no host DB/tempDNA created."
     }
-  ]
+  ],
+  "runnerArgumentCorrection": "Declare optional arguments as string[]; local argument shape check passed without invoking a compiler. Same f552d770/Core618c3c73 source and35cases."
 }
