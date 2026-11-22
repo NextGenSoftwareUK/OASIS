@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
@@ -15,8 +16,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
 
         /// <summary>
         /// Number of documents a pooled app's usage is spread across (env OASIS_POOL_SHARDS, 1 to 16, default 1).
-        /// 1 serializes every request on one document: exact limits, one hot document. Higher values remove that write
-        /// contention but the limit can be overshot by at most the requests in flight at the same instant.
+        /// Bucket writes are distributed across shards. Admission still writes the app authorization version
+        /// in its transaction, so the aggregate limit remains exact across every shard layout.
         /// </summary>
         public static int PoolShardCount
         {
@@ -39,6 +40,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             return PoolShardSubject(appId, (int)(h % (uint)shardCount));
         }
 
+        /// <summary>The only destination for a persisted pooled operation's accounting movements.</summary>
+        private static string BoundPoolSubject(SubscriptionUsageEvent operation)
+        {
+            if (operation.PoolShardCountAtAuthorization is not (>= 1 and <= MaxPoolShards))
+                throw new SubscriptionUsageConflictException("POOL_SHARD_BINDING_REQUIRED: The original pool shard setting was not recorded. Reconcile this operation from its original authorization evidence before execution or financial mutation; the current node setting cannot establish its original destination.");
+            if (operation.AppId != operation.PooledAppId || !AppAccountRules.IsValidAppId(operation.PooledAppId))
+                throw new SubscriptionUsageConflictException("POOL_SHARD_BINDING_INVALID: The recorded pool identity does not match the original app.");
+            return PoolWriteSubject(operation.PooledAppId, operation.OperationId, operation.PoolShardCountAtAuthorization.Value);
+        }
+
         /// <summary>Sums every shard's month and day buckets in one read.</summary>
         private async Task<SubscriptionUsageAggregate> LoadPoolAggregateAsync(IClientSessionHandle session, string appId, DateTime time, CancellationToken ct)
         {
@@ -55,6 +66,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 MonthlyRequests = month.Sum(b => b.Requests), DailyCalls = day.Sum(b => b.Requests), DailyTokens = day.Sum(b => b.SettledUnits),
                 ReservedUnits = day.Sum(b => b.ReservedUnits), ReservedCostUsd = month.Sum(b => b.ReservedCostUsd), SettledCostUsd = month.Sum(b => b.SettledCostUsd),
                 ReservedOverageUsd = month.Sum(b => b.ReservedOverageUsd), SettledOverageUsd = month.Sum(b => b.SettledOverageUsd),
+                ReservedAppRequestOverageUsd = month.Sum(b => b.ReservedAppRequestOverageUsd), SettledAppRequestOverageUsd = month.Sum(b => b.SettledAppRequestOverageUsd),
                 UpdatedAtUtc = all.Count == 0 ? time : all.Max(b => b.UpdatedAtUtc)
             };
         }
@@ -65,26 +77,48 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         /// Emits an 80% and a 100% threshold metric when this request is the one that crosses it.
         /// No-op for requests without a pooled app, so every other flow is unchanged.
         /// </summary>
-        private async Task EnsurePoolAdmissionAsync(IClientSessionHandle session, SubscriptionUsageEvent usageEvent, int karma, CancellationToken ct)
+        private async Task EnsurePoolAdmissionAsync(IClientSessionHandle session, SubscriptionUsageEvent usageEvent, SubscriptionRecord consumingSubscriber, CancellationToken ct)
         {
             if (usageEvent.PooledAppId == null) return;
+            // Every pooled admission must share a write with other admissions and app mutations.
+            // Snapshot reads across distinct buckets alone permit write skew and quota overshoot.
+            // The transaction driver retries a conflicting writer against a fresh app/pool snapshot.
+            var account = await AppAccounts.Find(session, x => x.AppId == usageEvent.PooledAppId).FirstOrDefaultAsync(ct)
+                ?? throw new SubscriptionUsageLimitException("APP_ACCOUNT_NOT_FOUND", "The app account no longer exists.", 404);
+            if (account.Status != "active")
+                throw new SubscriptionUsageLimitException("APP_ACCOUNT_INACTIVE", "The app account is not active.", 403);
+            if (!AppAccountRules.UsesPool(account))
+                throw new SubscriptionUsageLimitException("APP_POOL_NOT_ACTIVE", "The app no longer uses an enabled shared quota.", 409);
+            if (usageEvent.AppId != account.AppId || usageEvent.PooledAppPlanId != account.PlanId ||
+                usageEvent.AppPlanId != AppAccountRules.PerUserPlan(account))
+                throw new SubscriptionUsageLimitException("APP_ACCOUNT_CHANGED", "The app quota configuration changed; refresh the app authorization before reserving usage.", 409);
+            await AppAccounts.UpdateOneAsync(session, x => x.AppId == account.AppId,
+                Builders<AppAccountRecord>.Update.Set(x => x.AuthorizationVersion, checked(account.AuthorizationVersion + 1)),
+                cancellationToken: ct);
             var pool = await LoadPoolAggregateAsync(session, usageEvent.PooledAppId, usageEvent.AuthorizedAtUtc, ct);
             var policy = _policyProvider.GetPolicy(usageEvent.PooledAppPlanId, 0);
+            bool appPaidRequest = policy.MonthlyRequestLimit >= 0 && pool.MonthlyRequests >= policy.MonthlyRequestLimit &&
+                account.Payg?.Enabled == true && _appPayAsYouGoEnabled();
+            var admissionPolicy = appPaidRequest ? new SubscriptionUsagePolicy { MonthlyRequestLimit = -1,
+                DailyCallLimit = policy.DailyCallLimit, DailyTokenLimit = policy.DailyTokenLimit, MonthlyBudgetUsd = policy.MonthlyBudgetUsd } : policy;
             try
             {
-                SubscriptionUsagePolicyEvaluator.EnsureAuthorized(policy, pool,
+                SubscriptionUsagePolicyEvaluator.EnsureAuthorized(admissionPolicy, pool,
                     usageEvent.MeterCategory == "ai.tokens" ? usageEvent.RequestedUnits : 0, usageEvent.ReservedCostUsd);
             }
             catch (SubscriptionUsageLimitException ex)
             {
-                // Billable overage: when the app agreed to pay above its allowance (consent, cap, price, verified owner) the request is
-                // admitted; it is counted in the pool month bucket and invoiced monthly from it. Anything else is a normal denial.
-                if (!(ex.Code == "MONTHLY_REQUEST_LIMIT_EXCEEDED" && await TryAdmitPoolOverageAsync(session, usageEvent, policy, pool, ct)))
-                {
-                    SubscriptionLedgerMetrics.PoolThreshold.Add(1, new KeyValuePair<string, object>("app_id", usageEvent.PooledAppId),
-                        new KeyValuePair<string, object>("threshold", "100"), new KeyValuePair<string, object>("limit", "denied"));
-                    throw new SubscriptionUsageLimitException("APP_" + ex.Code, "The app's shared quota is used up: " + ex.Message, ex.StatusCode);
-                }
+                SubscriptionLedgerMetrics.PoolThreshold.Add(1, new KeyValuePair<string, object>("app_id", usageEvent.PooledAppId),
+                    new KeyValuePair<string, object>("threshold", "100"), new KeyValuePair<string, object>("limit", "denied"));
+                throw new SubscriptionUsageLimitException("APP_" + ex.Code, "The app's shared quota is used up: " + ex.Message, ex.StatusCode);
+            }
+            if (appPaidRequest)
+            {
+                var terms = await BindAppChargeAsync(session, account, consumingSubscriber, ct);
+                if (checked(pool.ReservedAppRequestOverageUsd + pool.SettledAppRequestOverageUsd + terms.RatePerRequestUsd) > terms.MonthlyCapUsd)
+                    throw new SubscriptionUsageLimitException("APP_OVERAGE_SPENDING_CAP_EXCEEDED", "This reservation would exceed the app's agreed USD monthly cap.", 402);
+                usageEvent.AppRequestChargeTerms = terms;
+                usageEvent.ReservedAppRequestOverageUsd = terms.RatePerRequestUsd;
             }
             EmitThresholdCrossings(usageEvent.PooledAppId, "monthly_requests", pool.MonthlyRequests, policy.MonthlyRequestLimit);
             EmitThresholdCrossings(usageEvent.PooledAppId, "daily_calls", pool.DailyCalls, policy.DailyCallLimit);
@@ -131,13 +165,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             var now = _time.GetUtcNow().UtcDateTime;
             var start = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
             var end = start.AddMonths(1);
-            var rows = await _events.Aggregate()
-                .Match(x => x.PooledAppId == appId && x.AuthorizedAtUtc >= start && x.AuthorizedAtUtc < end)
-                .Group(x => x.UserId, g => new { UserId = g.Key, Requests = g.Count(), Units = g.Sum(x => x.Units), CostUsd = g.Sum(x => x.SettledCostUsd) })
-                .SortByDescending(x => x.Requests)
-                .Limit(limit)
+            // Audit deltas are the same net values applied to the pool buckets. Counting event projections
+            // includes expired reservations and ignores corrections to settled units/cost.
+            var pipeline = new[]
+            {
+                new BsonDocument("$match", new BsonDocument { { "PooledAppId", appId },
+                    { "AuthorizedAtUtc", new BsonDocument { { "$gte", start }, { "$lt", end } } } }),
+                new BsonDocument("$lookup", new BsonDocument { { "from", _audit.CollectionNamespace.CollectionName },
+                    { "localField", "OperationId" }, { "foreignField", "OperationId" }, { "as", "deltas" } }),
+                new BsonDocument("$unwind", "$deltas"),
+                new BsonDocument("$group", new BsonDocument { { "_id", "$UserId" },
+                    { "Requests", new BsonDocument("$sum", "$deltas.RequestsDelta") },
+                    { "Units", new BsonDocument("$sum", "$deltas.SettledUnitsDelta") },
+                    { "CostUsd", new BsonDocument("$sum", "$deltas.SettledCostDeltaUsd") } }),
+                new BsonDocument("$match", new BsonDocument("$or", new BsonArray {
+                    new BsonDocument("Requests", new BsonDocument("$ne", 0)),
+                    new BsonDocument("Units", new BsonDocument("$ne", 0)),
+                    new BsonDocument("CostUsd", new BsonDocument("$ne", 0)) })),
+                new BsonDocument("$sort", new BsonDocument { { "Requests", -1 }, { "_id", 1 } }),
+                new BsonDocument("$limit", limit)
+            };
+            var rows = await _events.Aggregate<BsonDocument>(pipeline, cancellationToken: cancellationToken)
                 .ToListAsync(cancellationToken);
-            return rows.Select(r => new AppPoolTopUser { UserId = r.UserId, Requests = r.Requests, Units = r.Units, SettledCostUsd = r.CostUsd }).ToList();
+            return rows.Select(row => new AppPoolTopUser { UserId = row["_id"].AsString,
+                Requests = row["Requests"].ToInt64(), Units = row["Units"].ToInt64(), SettledCostUsd = row["CostUsd"].ToDecimal() }).ToList();
         }
     }
 
