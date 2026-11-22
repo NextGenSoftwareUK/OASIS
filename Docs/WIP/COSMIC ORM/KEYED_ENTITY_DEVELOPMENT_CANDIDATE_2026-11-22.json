@@ -110,7 +110,120 @@
     "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/HyperDrive/HyperDriveProviderExecutionTests.cs"
   ],
   "newerUnqualifiedModelAliasCoreExcluded": "45892646b637f574d53188b315a92e0ef7fa87a3",
-  "developmentPushed": false,
+  "developmentPushed": true,
   "liveAccepted": false,
-  "deliveryScopeAccepted": false
+  "deliveryScopeAccepted": true,
+  "runtimeRootPaths": [
+    "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.Join.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.KeyedSource.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Cql.KeyedEntities.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/HolonRepository.Cql.Join.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/HolonRepository.Cql.KeyedEntities.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/HolonRepository.Cql.KeyedSource.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.KeyedEntities.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.Join.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.JoinSql.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.KeyedEntities.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.KeyedSource.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.KeyedSourceSql.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.KeyedEntities.cs"
+  ],
+  "latestRolloutObservation": {
+    "web6": {
+      "deployment": "a30cf66d-472d-44d0-baf7-84cac07d6f8a",
+      "status": "SUCCESS",
+      "source": "873f4c4b4904362b8b955c8c7e9f8826928501d8",
+      "imageDigest": "sha256:20e51a6cccff6b4b9bf60fcda09cb73cfc116c269a9e127a73ae00d29d3efc08"
+    },
+    "web7": {
+      "deployment": "6ab1cd4d-2a3f-4284-9941-e4d9ee480eb9",
+      "status": "SUCCESS",
+      "source": "873f4c4b4904362b8b955c8c7e9f8826928501d8",
+      "imageDigest": "sha256:a6d0ea187cde39c50eab1ae22bb0f2b8c43f930a5f4e818d641fd9098cabf067"
+    },
+    "web9": {
+      "deployment": "76ccdbe9-ff60-4ad4-b51c-c8800466696e",
+      "status": "SUCCESS",
+      "source": "873f4c4b4904362b8b955c8c7e9f8826928501d8",
+      "imageDigest": "sha256:09825162bab36cbfea35067eac817d2d7e7f5ee32e61726d9e40efd7b4e78fee"
+    },
+    "web4": {
+      "deployment": "512faf83-d0c7-422f-a4c1-5d088ae1f97c",
+      "status": "SUCCESS",
+      "source": "873f4c4b4904362b8b955c8c7e9f8826928501d8",
+      "imageDigest": "sha256:22995532807771bcc0a8a65124ff2f975a8a293af675cb6b4740780a18f809d3"
+    },
+    "web10": {
+      "deployment": "5a6aeb82-2347-4376-a738-c1092373f975",
+      "status": "SUCCESS",
+      "source": "873f4c4b4904362b8b955c8c7e9f8826928501d8",
+      "imageDigest": "sha256:889b202b9e9c935180c1fc9edd6ecc4f0f6b9d6b049314f2cd9bf0d563183510"
+    },
+    "web8": {
+      "deployment": "fd1e3af1-7717-4ba7-9532-75009b36083d",
+      "status": "SUCCESS",
+      "source": "873f4c4b4904362b8b955c8c7e9f8826928501d8",
+      "imageDigest": "sha256:f485d2801efbd24ebe9c85a6a566f99893e10f96b9e8b6339e5796100b295a1b"
+    },
+    "web5": {
+      "deployment": "4157a0a1-a6f4-49b0-8feb-6a04044eef86",
+      "status": "SUCCESS",
+      "source": "873f4c4b4904362b8b955c8c7e9f8826928501d8",
+      "imageDigest": "sha256:0b15ae17ab85eca74e7f49a20aa78cb98f70e6fd81add20031c1669a741e8035"
+    }
+  },
+  "developmentPushPhase": "acknowledged",
+  "developmentPushRequestedAt": "2026-11-22T23:37:21.800245+00:00",
+  "peerSource": "b7b51c747244eb05a9a32964096259de86821a63",
+  "priorOwnPushElapsedMinutes": 61.0,
+  "priorRolloutObservation": {
+    "web6": {
+      "deployment": "a30cf66d-472d-44d0-baf7-84cac07d6f8a",
+      "status": "SUCCESS",
+      "source": "873f4c4b4904362b8b955c8c7e9f8826928501d8",
+      "imageDigest": "sha256:20e51a6cccff6b4b9bf60fcda09cb73cfc116c269a9e127a73ae00d29d3efc08"
+    },
+    "web7": {
+      "deployment": "6ab1cd4d-2a3f-4284-9941-e4d9ee480eb9",
+      "status": "SUCCESS",
+      "source": "873f4c4b4904362b8b955c8c7e9f8826928501d8",
+      "imageDigest": "sha256:a6d0ea187cde39c50eab1ae22bb0f2b8c43f930a5f4e818d641fd9098cabf067"
+    },
+    "web9": {
+      "deployment": "76ccdbe9-ff60-4ad4-b51c-c8800466696e",
+      "status": "SUCCESS",
+      "source": "873f4c4b4904362b8b955c8c7e9f8826928501d8",
+      "imageDigest": "sha256:09825162bab36cbfea35067eac817d2d7e7f5ee32e61726d9e40efd7b4e78fee"
+    },
+    "web4": {
+      "deployment": "512faf83-d0c7-422f-a4c1-5d088ae1f97c",
+      "status": "SUCCESS",
+      "source": "873f4c4b4904362b8b955c8c7e9f8826928501d8",
+      "imageDigest": "sha256:22995532807771bcc0a8a65124ff2f975a8a293af675cb6b4740780a18f809d3"
+    },
+    "web10": {
+      "deployment": "5a6aeb82-2347-4376-a738-c1092373f975",
+      "status": "SUCCESS",
+      "source": "873f4c4b4904362b8b955c8c7e9f8826928501d8",
+      "imageDigest": "sha256:889b202b9e9c935180c1fc9edd6ecc4f0f6b9d6b049314f2cd9bf0d563183510"
+    },
+    "web8": {
+      "deployment": "fd1e3af1-7717-4ba7-9532-75009b36083d",
+      "status": "SUCCESS",
+      "source": "873f4c4b4904362b8b955c8c7e9f8826928501d8",
+      "imageDigest": "sha256:f485d2801efbd24ebe9c85a6a566f99893e10f96b9e8b6339e5796100b295a1b"
+    },
+    "web5": {
+      "deployment": "4157a0a1-a6f4-49b0-8feb-6a04044eef86",
+      "status": "SUCCESS",
+      "source": "873f4c4b4904362b8b955c8c7e9f8826928501d8",
+      "imageDigest": "sha256:0b15ae17ab85eca74e7f49a20aa78cb98f70e6fd81add20031c1669a741e8035"
+    }
+  },
+  "cadenceException": null,
+  "developmentPushedAt": "2026-11-22T23:37:30.356458+00:00",
+  "observedDevelopmentAfterPush": "5fd4d4df91934d0ac9bfd3f890ccf780cc01787f",
+  "phase": "DevelopmentRolloutPending"
 }

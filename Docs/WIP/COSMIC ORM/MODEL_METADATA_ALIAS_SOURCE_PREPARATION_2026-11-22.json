@@ -3,15 +3,15 @@
   "base": "2051db6641cb60d654489a1af8841a58899dd667",
   "feature": "Explicit CustomOASISProperty.MetadataKey mapping",
   "sourceImplemented": true,
-  "compiled": false,
-  "nativeAccepted": false,
+  "compiled": true,
+  "nativeAccepted": true,
   "deployed": false,
   "nativeGroupingReleaseCoreExcludedFromThisChange": "2051db6641cb60d654489a1af8841a58899dd667",
   "defaultMetadataNamesPreserved": true,
   "owner": "Helpers/HolonCustomPropertyNames.cs",
   "next": "Representative real MongoDB SQLite Neo4j new-model save/read/query/selected-save checks and mapping collision refusal; no existing/PIPER records touched.",
   "intrinsicAnnotationCache": "weak type keys; immutable names only; no actor/app/connection state",
-  "qualificationPhase": "InProgress",
+  "qualificationPhase": "NativeAccepted",
   "expectedNativeTests": 3,
   "nativeJourneyScope": [
     "selected create",
@@ -26,5 +26,6 @@
   "qualificationRun": 45083185178,
   "qualificationJob": 137395730392,
   "exactPinRun": 45083185259,
-  "exactPinsAccepted": true
+  "exactPinsAccepted": true,
+  "nativeProof": "model-metadata-alias-native-acceptance.json"
 }
