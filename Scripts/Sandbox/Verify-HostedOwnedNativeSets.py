@@ -26,6 +26,7 @@ def main():
     parser.add_argument("--selected-columns", action="store_true")
     parser.add_argument("--text-coalesce", action="store_true")
     parser.add_argument("--boolean-text-case", action="store_true")
+    parser.add_argument("--boolean-metadata-case", action="store_true")
     parser.add_argument("--combined-coalescing", action="store_true")
     parser.add_argument("--providers", nargs="+", choices=["MongoDBOASIS","SQLLiteDBOASIS","Neo4jOASIS"],
         default=["MongoDBOASIS","SQLLiteDBOASIS","Neo4jOASIS"])
@@ -33,6 +34,8 @@ def main():
     args = parser.parse_args()
     if any(not re.fullmatch("[0-9a-f]{40}", value) for value in (args.commit, args.website)):
         parser.error("Exact backend and website source commits are required.")
+    if args.boolean_metadata_case and not args.boolean_text_case:
+        parser.error("Boolean metadata qualification uses the conditional text mode.")
     if args.boolean_text_case and (args.text_coalesce or not args.selected_columns):
         parser.error("Conditional text requires selected columns and cannot combine with coalescing.")
     if args.text_coalesce and not args.selected_columns:
@@ -47,7 +50,8 @@ def main():
         parser.error("Selected-column checks use immutable checkpoints; reconcile an interrupted fixture explicitly.")
     if args.combined_coalescing and not args.text_coalesce:
         parser.error("Combined coalescing selects only the qualified coalescing release journal.")
-    delivery_name = ("boolean-text-case-image-handoff.json" if args.boolean_text_case else
+    delivery_name = ("boolean-metadata-case-image-handoff.json" if args.boolean_metadata_case else
+        "boolean-text-case-image-handoff.json" if args.boolean_text_case else
         "text-coalesce-combined-image-handoff.json" if args.combined_coalescing else
         "text-coalesce-image-handoff.json" if args.text_coalesce else
         "projected-set-image-handoff.json" if args.selected_columns else "native-set-image-handoff.json")
@@ -225,7 +229,8 @@ def main():
             "holon":{"id":identity,"name":"COSMIC owned set acceptance "+identity,
                 "isNewHolon":True,"isPublic":False,"isActive":True,
                 "metaData":{"COSMIC.Demo.Dataset":"COSMIC.CQL.BooleanTextCase.v1" if args.boolean_text_case else "COSMIC.CQL.TextCoalesce.v1" if args.text_coalesce else "COSMIC.CQL.NativeSet.v1",
-                    **({"coalescedText":None} if args.text_coalesce else {})}}})
+                    **({"coalescedText":None} if args.text_coalesce else {}),
+                    **({"flag":True} if args.boolean_metadata_case else {})}}})
         holon=saved.get("result") or {}
         if (saved.get("isSaved") is not True or str(holon.get("id","")).lower()!=identity
                 or str(holon.get("createdByAvatarId","")).lower()!=bundle["ownerId"].lower()
@@ -249,13 +254,18 @@ def main():
             parameters["whenTrue"]="COSMIC active "+identity
             parameters["whenFalse"]="COSMIC inactive "+identity
             sql="SELECT CASE WHEN IsActive THEN @whenTrue ELSE @whenFalse END AS Label FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1"
+            if args.boolean_metadata_case:
+                sql="SELECT CASE WHEN CAST(metadata.flag AS BOOLEAN) THEN @whenTrue ELSE @whenFalse END AS Label FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1"
         program = "const vm=require('node:vm');const s={module:{exports:{}}};vm.runInNewContext("+json.dumps(compiler)+",s);process.stdout.write(JSON.stringify(s.module.exports.compile("+json.dumps(sql)+",{},"+json.dumps(parameters)+")));"
         result = subprocess.run(["node","-"], input=program, capture_output=True, text=True, check=True)
         compiled = json.loads(result.stdout)
         if args.boolean_text_case:
             columns=compiled["body"].get("columns",[])
             if (compiled["path"]!="data/query-cql/projection" or len(columns)!=1
-                    or columns[0].get("function")!="BooleanTextCase" or columns[0].get("field")!="IsActive"
+                    or columns[0].get("function")!="BooleanTextCase"
+                    or (not args.boolean_metadata_case and columns[0].get("field")!="IsActive")
+                    or (args.boolean_metadata_case and (columns[0].get("metadataPath")!=["flag"]
+                        or columns[0].get("valueType")!="Boolean" or columns[0].get("nullable") is not False))
                     or columns[0].get("whenTrue")!=parameters["whenTrue"]
                     or columns[0].get("whenFalse")!=parameters["whenFalse"]):
                 raise RuntimeError("Require the exact typed conditional text contract before dispatch.")
@@ -304,13 +314,13 @@ def main():
         journal["providers"].append({"provider":provider,"accepted":True,"rows":1 if args.text_coalesce or args.boolean_text_case else 2,"exactCleanupVerified":True})
         write()
     call("avatar/revoke-token", {})
-    journal.update(sessionRevoked=True,selectedColumns=args.selected_columns,textCoalesce=args.text_coalesce,booleanTextCase=args.boolean_text_case,completed=True,
+    journal.update(sessionRevoked=True,selectedColumns=args.selected_columns,textCoalesce=args.text_coalesce,booleanTextCase=args.boolean_text_case,booleanMetadataCase=args.boolean_metadata_case,completed=True,
         accepted=all(row["accepted"] for row in journal["providers"]))
     write()
     for name in ("issuance.dpapi","session.dpapi"):
         (state / name).unlink()
     print(json.dumps({"source":args.commit,"providers":journal["providers"],"calls":len(journal["calls"]),
-        "holonWrites":journal["holonWrites"],"selectedColumns":args.selected_columns,"textCoalesce":args.text_coalesce,"booleanTextCase":args.boolean_text_case,"sessionRevoked":True,"credentialsRemoved":True}))
+        "holonWrites":journal["holonWrites"],"selectedColumns":args.selected_columns,"textCoalesce":args.text_coalesce,"booleanTextCase":args.boolean_text_case,"booleanMetadataCase":args.boolean_metadata_case,"sessionRevoked":True,"credentialsRemoved":True}))
 
 if __name__ == "__main__":
     main()
