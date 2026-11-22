@@ -121,31 +121,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public Task<IActionResult> SetOwnerNotifications(string appId, [FromBody] ThresholdsRequest request) =>
             Gate(true, "", async me => { await RequireOwnerAsync(appId, me); return await _repository.SaveNotificationSettingsAsync(NotifySubject(appId, me), request?.Thresholds, request?.EmailRequested ?? true, me, request?.WarningsEnabled, HttpContext.RequestAborted); });
 
-        /// <summary>The in-portal banner source: the signed-in person's own alert and one alert per app they own. Also sends the once-a-month warning email when email is on and configured.</summary>
+        /// <summary>Read current warnings without sending email or marking them delivered.</summary>
         [Authorize]
         [HttpGet("usage/alerts")]
-        public Task<IActionResult> Alerts() => Gate(true, "", async me =>
+        public Task<IActionResult> Alerts([FromServices] UsageWarningReader warnings) => Gate(true, "", async me =>
         {
-            var alerts = new List<UsageAlert>();
-            var karma = await SubscriptionController.GetCurrentKarmaAsync(me, HttpContext.RequestAborted);
-            var summary = await _subscriptions.GetUsageSummaryAsync(me, karma, HttpContext.RequestAborted);
-            var policy = SubscriptionService.GetUsagePolicy(summary.PlanId ?? "free", karma);
-            var mine = await _repository.GetNotificationSettingsAsync("user:" + me, HttpContext.RequestAborted);
-            if (Effective(mine?.WarningsOverride, Settings.WarningsEnabled))
-            {
-                var own = UsageAlerts.Evaluate("user", null, summary.MonthlyRequests, policy.MonthlyRequestLimit, mine?.Thresholds is { Count: > 0 } ? mine.Thresholds : Settings.DefaultWarningPercents);
-                if (own != null) { alerts.Add(own); await MaybeEmailAsync("user:" + me, me, own, mine?.EmailRequested ?? true); }
-            }
-            foreach (var app in await _repository.GetOwnedAppsAsync(me, HttpContext.RequestAborted))
-            {
-                var s = await _repository.GetNotificationSettingsAsync(NotifySubject(app.AppId, me), HttpContext.RequestAborted);
-                if (!Effective(app.Overrides?.OwnerViewEnabled, Settings.OwnerViewEnabled) || !Effective(s?.WarningsOverride ?? app.Overrides?.WarningsEnabled, Settings.WarningsEnabled)) continue;
-                var pool = await _repository.GetAppPoolUsageAsync(app.AppId, HttpContext.RequestAborted);
-                var a = UsageAlerts.Evaluate("app", app.AppId, pool.Usage?.MonthlyRequests ?? 0, pool.Limits?.MonthlyRequestLimit ?? 0, s?.Thresholds is { Count: > 0 } ? s.Thresholds : Settings.DefaultWarningPercents);
-                if (a != null) { alerts.Add(a); await MaybeEmailAsync(NotifySubject(app.AppId, me), me, a, s?.EmailRequested ?? true); }
-            }
-            return new { emailEnabled = Settings.EmailEnabled, alerts };
+            var entries = await warnings.ReadAsync(me, HttpContext.RequestAborted);
+            return new { emailEnabled = Settings.EmailEnabled && EmailManager.IsEmailConfigured(OASISBootLoader.OASISBootLoader.OASISDNA),
+                alerts = entries.Select(entry => entry.Alert).ToList() };
         });
+
+        /// <summary>Explicitly submit the authenticated subscriber's current consented warnings.</summary>
+        [Authorize]
+        [HttpPost("usage/alerts/email")]
+        public async Task<IActionResult> SendWarningEmails([FromServices] UsageWarningEmailService delivery)
+        {
+            string actor;
+            try { actor = SubscriptionServiceIdentity.RequireSubscriber(HttpContext); }
+            catch (UnauthorizedAccessException error)
+            { return Unauthorized(new OASISResult<bool> { IsError = true, Message = error.Message }); }
+            var result = await delivery.SendCurrentAsync(actor, HttpContext.RequestAborted);
+            return result.IsError ? StatusCode(503, result) : Ok(result);
+        }
 
         /// <summary>App owner (or administrator): see and change this app's own on/off choices, which override the node default. Audited.</summary>
         [Authorize]
@@ -170,23 +167,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (daysError != null) throw new ArgumentException(daysError);
             return await _repository.SetAppOverridesAsync(appId, request?.OwnerViewEnabled, request?.WarningsEnabled, request?.AccessLogEnabled, me, HttpContext.RequestAborted, request?.SealedHistoryEnabled, request?.VersionPurgeEnabled, request?.VersionPurgeDays);
         });
-
-        // One warning email per subject, threshold and UTC month, only when email is configured and the person has not opted out.
-        private async Task MaybeEmailAsync(string subject, string me, UsageAlert alert, bool emailRequested)
-        {
-            try
-            {
-                var dna = OASISBootLoader.OASISBootLoader.OASISDNA;
-                if (!Settings.EmailEnabled || !emailRequested || dna == null || !EmailManager.IsEmailConfigured(dna)) return;
-                var key = DateTime.UtcNow.ToString("yyyy-MM") + ":" + alert.ThresholdPercent;
-                if (!await _repository.TryMarkNotifiedAsync(subject, key, HttpContext.RequestAborted)) return;
-                var avatar = (await AvatarManager.Instance.LoadAvatarAsync(Guid.Parse(me), false, true))?.Result;
-                if (string.IsNullOrWhiteSpace(avatar?.Email)) return;
-                if (!EmailManager.IsInitialized) EmailManager.Initialize(dna);
-                EmailManager.Send(avatar.Email, "OASIS - usage warning", "<h4>Usage warning</h4><p>" + System.Net.WebUtility.HtmlEncode(alert.Message) + "</p><p>You can change or turn off these warnings in the OASIS portal under Usage and billing.</p>");
-            }
-            catch (Exception) { /* a failed email never affects the page */ }
-        }
 
         /// <summary>App pool pay-as-you-go: the price, consent and cap, this month's estimate and the statements. Owners only.</summary>
         [Authorize]
@@ -230,7 +210,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             var subject = subjectOrMe.StartsWith("app:", StringComparison.Ordinal) ? subjectOrMe : "user:" + subjectOrMe;
             var s = await _repository.GetNotificationSettingsAsync(subject, HttpContext.RequestAborted);
-            return new { thresholds = s?.Thresholds ?? Settings.DefaultWarningPercents, isDefault = s?.Thresholds == null || s.Thresholds.Count == 0, warningsEnabled = Effective(s?.WarningsOverride, Settings.WarningsEnabled), warningsOverride = s?.WarningsOverride, nodeDefault = Settings.WarningsEnabled, emailEnabled = Settings.EmailEnabled, emailRequested = s?.EmailRequested ?? true };
+            return new { thresholds = s?.Thresholds ?? Settings.DefaultWarningPercents, isDefault = s?.Thresholds == null || s.Thresholds.Count == 0, warningsEnabled = Effective(s?.WarningsOverride, Settings.WarningsEnabled), warningsOverride = s?.WarningsOverride, nodeDefault = Settings.WarningsEnabled, emailEnabled = Settings.EmailEnabled && EmailManager.IsEmailConfigured(OASISBootLoader.OASISBootLoader.OASISDNA), emailSubmissionAvailable = true, emailRequested = s?.EmailRequested ?? true };
         }
 
         private bool IsAdministrator()
