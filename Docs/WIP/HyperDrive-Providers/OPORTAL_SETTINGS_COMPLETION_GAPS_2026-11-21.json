@@ -237,6 +237,12 @@
       "commit": "OPORTAL dev c8059aa",
       "status": "source-implemented-syntax-checked-not-browser-accepted",
       "scope": "On-demand real status GET, explicit retry, strict contract, current modal/client/token guards and logout clearing; management disabled."
+    },
+    "httpQualification": {
+      "source": "Scripts/TestHosts/HotspotHttpNative/MfaHttpQualification.cs",
+      "status": "prepared-uncompiled-unselected",
+      "scope": "Actual status/enrol/confirm, password authenticate token-free challenge and no persisted credential, actual authenticate-mfa authenticator/recovery, consumed challenge refusal, signed issuer/audience/lifetime/JWT subject and native refresh persistence. No mock HTTP/provider or response body/credential logging.",
+      "remaining": "Wire isolated host service/gate/verified-password seed and selector, compile/run; browser/management/hosted remain open."
     }
   },
   "portalExpiryFix": {
