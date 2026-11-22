@@ -1,0 +1,13 @@
+{
+  "base": "828b75c50b0e9f5f5b78fec67b6d60af5336da19",
+  "candidate": "eaebc1182df6aa84b8f2f75b62f718198564b09b",
+  "tag": "qualification/session-authority-revoke-2026-11-22-eaebc118",
+  "status": "Implementation only; uncompiled/unrun/unwired/undeployed",
+  "scope": "Internal asynchronous authoritative read/write, detached credential mutation, canonical selection, operation cutoff, acknowledged response verification. Existing public async save delegates to shared implementation.",
+  "remaining": [
+    "Complete cross-provider authority coverage/coordinator",
+    "Endpoint/UI wiring",
+    "Real-provider compile/runtime verification"
+  ],
+  "cleanup": "Temporary index/lock removed; no local build/env/download/database or shared checkout changes."
+}
