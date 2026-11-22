@@ -21,6 +21,7 @@ public static partial class CqlV1Endpoint
         try
         {
             http.RequestAborted.ThrowIfCancellationRequested();
+            request=CqlRequestCapture.Capture(request);
             var requested=CqlV1Compiler.RequestedProvider(request?.Provider);
             var policy=CaptureReadPolicy(http,actor,requested,providers,admission);
             var intent=CqlV1Compiler.CompileSet(request,actor,policy?.Selected??requested,policy?.Access);

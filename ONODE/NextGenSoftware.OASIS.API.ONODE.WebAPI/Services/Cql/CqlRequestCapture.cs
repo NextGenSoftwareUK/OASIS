@@ -9,6 +9,31 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 /// owns semantic admission; these larger capture ceilings only bound snapshot allocation.</summary>
 internal static class CqlRequestCapture
 {
+    internal static CqlSetV1Request Capture(CqlSetV1Request value)
+    {
+        if(value==null)throw new ArgumentException("A set request is required.");
+        CqlJoinV1Source Source(CqlJoinV1Source source)
+        {
+            if(source==null || source.Graph!=null)throw new ArgumentException("A set source without graph expansion is required.");
+            var copy=Capture(new CqlV1Request {
+                Filters=source.Filters,AnyOf=source.AnyOf,AnyChildren=source.AnyChildren,
+                AnyDescendants=source.AnyDescendants,OrderBy=source.OrderBy,Descending=source.Descending,
+                Skip=source.Skip,Take=source.Take??0
+            });
+            return new CqlJoinV1Source {
+                Filters=copy.Filters,AnyOf=copy.AnyOf,AnyChildren=copy.AnyChildren,
+                AnyDescendants=copy.AnyDescendants,OrderBy=copy.OrderBy,Descending=copy.Descending,
+                Skip=copy.Skip,Take=source.Take.HasValue?copy.Take:null
+            };
+        }
+        return new CqlSetV1Request {
+            Provider=value.Provider,Kind=value.Kind,Left=Source(value.Left),Right=Source(value.Right),
+            MaximumLeftRows=value.MaximumLeftRows,MaximumRightRows=value.MaximumRightRows,
+            MaximumResults=value.MaximumResults,Skip=value.Skip,Take=value.Take,
+            Reverse=value.Reverse,IncludeMetadata=value.IncludeMetadata
+        };
+    }
+
     internal static CqlFederationV1Request CaptureAndValidateFederation(CqlFederationV1Request value)
     {
         var request = Capture(value);
