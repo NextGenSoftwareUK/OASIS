@@ -1,0 +1,39 @@
+{
+  "source": "9377df3eca7b01ef129458b22c10874d8e8cba6b",
+  "core": "6b227830bfb0e81f352207a02aa255379ed881c3",
+  "run": 45063783244,
+  "job": 137335321932,
+  "artifact": 14770454190,
+  "archiveBytes": 4423,
+  "archiveSha256": "6014be27228070b6eb0f53c6f41574b0e7211f1e0adcc9da55f963f3e6c481f3",
+  "reports": {
+    "Mongo.trx": {
+      "passed": 1,
+      "failed": 0
+    },
+    "SQLite.trx": {
+      "passed": 1,
+      "failed": 0
+    },
+    "Neo4j.trx": {
+      "passed": 1,
+      "failed": 0
+    }
+  },
+  "nativeAccepted": true,
+  "scope": [
+    "native LINQ GroupBy.Select keys/Count/LongCount/Sum/Min/Max",
+    "native HAVING ordering and paging",
+    "pre-window group cardinality",
+    "preceding source window",
+    "anonymous reselection",
+    "HAVING-preservation refusal",
+    "cancellation"
+  ],
+  "ownedFixturesAbsent": true,
+  "ownedMongoStopped": true,
+  "sharedDatabaseCalls": 0,
+  "deployed": false,
+  "fullIGroupingParity": false,
+  "artifactSavedToDisk": false
+}
