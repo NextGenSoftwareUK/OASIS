@@ -4,6 +4,7 @@ One conditional private record per provider; exact acknowledged-revision cleanup
 from pathlib import Path
 import argparse
 import json
+import os
 import re
 import runpy
 import subprocess
@@ -22,15 +23,22 @@ def main():
     parser.add_argument("--commit", required=True)
     parser.add_argument("--website", required=True)
     parser.add_argument("--resume-before-first-save", action="store_true")
+    parser.add_argument("--selected-columns", action="store_true")
     args = parser.parse_args()
     if any(not re.fullmatch("[0-9a-f]{40}", value) for value in (args.commit, args.website)):
         parser.error("Exact backend and website source commits are required.")
-    delivery = json.loads((ROOT / "LocalState/COSMIC/native-set-image-handoff.json").read_text())
+    if args.selected_columns and args.resume_before_first_save:
+        parser.error("Selected-column checks use immutable checkpoints; reconcile an interrupted fixture explicitly.")
+    delivery_name = "projected-set-image-handoff.json" if args.selected_columns else "native-set-image-handoff.json"
+    delivery = json.loads((ROOT / "LocalState/COSMIC" / delivery_name).read_text())
     if delivery["source"] != args.commit or delivery.get("packageAccepted") is not True:
         raise RuntimeError("Wait for exact immutable package acceptance before hosted requests.")
     helpers = runpy.run_path(str(ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py"))
     credentials = runpy.run_path(str(ROOT / "Scripts/Sandbox/HostedSessionCredentials.py"))
-    state = ROOT / "LocalState/COSMIC/HostedOwnedNativeSetCurrent"
+    state = ROOT / "LocalState/COSMIC" / (
+        "HostedOwnedProjectedSetCurrent" if args.selected_columns else "HostedOwnedNativeSetCurrent")
+    if args.selected_columns and state.exists():
+        raise RuntimeError("Preserve existing selected-column fixture checkpoints; do not issue another session.")
     journal_path = state / "fixture.json"
     if not args.resume_before_first_save:
         helpers["require_new_fixture"](journal_path)
@@ -72,7 +80,25 @@ def main():
                 or not own.get("saveOperationId")):
             raise RuntimeError("Only the proven before-first-save checkpoint can resume.")
         uuid.UUID(own["id"]);uuid.UUID(own["saveOperationId"])
-    write = lambda: helpers["write"](journal_path, journal)
+    checkpoint = 0
+    def write():
+        nonlocal checkpoint
+        if not args.selected_columns:
+            helpers["write"](journal_path, journal)
+            return
+        checkpoint += 1
+        target = state / ("checkpoint-" + str(checkpoint).zfill(4) + ".json")
+        with target.open("x", encoding="utf-8") as stream:
+            json.dump(journal, stream, indent=2)
+            stream.write("\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        if journal.get("completed"):
+            with journal_path.open("x", encoding="utf-8") as stream:
+                json.dump(journal, stream, indent=2)
+                stream.write("\n")
+                stream.flush()
+                os.fsync(stream.fileno())
     if not args.resume_before_first_save:
         write()
     token = None
@@ -175,7 +201,8 @@ def main():
         journal["owned"][provider].update(saveAcknowledged=True,revision=revision)
         journal["holonWrites"]+=1
         write()
-        sql = "(SELECT * FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1) UNION ALL (SELECT * FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1)"
+        selection = "Name AS Label" if args.selected_columns else "*"
+        sql = "(SELECT "+selection+" FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1) UNION ALL (SELECT "+selection+" FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1)"
         program = "const vm=require('node:vm');const s={module:{exports:{}}};vm.runInNewContext("+json.dumps(compiler)+",s);process.stdout.write(JSON.stringify(s.module.exports.compile("+json.dumps(sql)+",{},"+json.dumps({"id":identity})+")));"
         result = subprocess.run(["node","-"], input=program, capture_output=True, text=True, check=True)
         compiled = json.loads(result.stdout)
@@ -183,9 +210,16 @@ def main():
             raise RuntimeError("Website compiler did not produce the expected native set contract.")
         actual, _ = call(compiled["path"], compiled["body"])
         result = actual["result"]
-        if (result.get("provider") != provider or result.get("kind") != "Concat"
-                or [str(uuid.UUID(row["id"])) for row in result["rows"]] != [identity,identity]):
-            raise RuntimeError("Native set result lacks exact provenance or occurrence multiplicity.")
+        if result.get("provider") != provider or result.get("kind") != "Concat":
+            raise RuntimeError("Native set result lacks exact provenance.")
+        if args.selected_columns:
+            expected = "COSMIC owned set acceptance " + identity
+            columns = result.get("columns") or []
+            if (result.get("version") != "cql-projected-set-v1" or len(columns) != 1
+                    or columns[0].get("alias") != "Label" or result.get("rows") != [[expected],[expected]]):
+                raise RuntimeError("Selected-value set must return exactly the two explicit cells, without hidden fields.")
+        elif [str(uuid.UUID(row["id"])) for row in result["rows"]] != [identity,identity]:
+            raise RuntimeError("Native entity set occurrence multiplicity differs.")
         journal["owned"][provider]["sqlSetAccepted"]=True
         delete_operation=str(uuid.uuid4())
         journal["owned"][provider]["deleteOperationId"]=delete_operation
@@ -202,13 +236,13 @@ def main():
         journal["providers"].append({"provider":provider,"accepted":True,"rows":2,"exactCleanupVerified":True})
         write()
     call("avatar/revoke-token", {})
-    journal.update(sessionRevoked=True,completed=True,
+    journal.update(sessionRevoked=True,selectedColumns=args.selected_columns,completed=True,
         accepted=all(row["accepted"] for row in journal["providers"]))
     write()
     for name in ("issuance.dpapi","session.dpapi"):
         (state / name).unlink()
     print(json.dumps({"source":args.commit,"providers":journal["providers"],"calls":len(journal["calls"]),
-        "holonWrites":journal["holonWrites"],"sessionRevoked":True,"credentialsRemoved":True}))
+        "holonWrites":journal["holonWrites"],"selectedColumns":args.selected_columns,"sessionRevoked":True,"credentialsRemoved":True}))
 
 if __name__ == "__main__":
     main()
