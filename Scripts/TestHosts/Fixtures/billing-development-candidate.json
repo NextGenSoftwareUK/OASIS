@@ -1,15 +1,18 @@
 {
   "scope": "billing",
-  "status": "session-source-inventory-only-billing-native-preserved",
+  "status": "accepted-billing-plus-session-source-awaiting-combined-build",
   "base": "64a04f7b2a1e8a7640ca199d62ffc9638538cac1",
-  "candidate": "08fbfda9d3bad02d8196b8dedb56695bce8a7448",
-  "tag": "qualification/session-delivery-2026-11-22-08fbfda9",
+  "candidate": "812e1aaad6e60bdbab39f490f1a3e9586d714884",
+  "tag": "qualification/portal-billing-session-2026-11-22-812e1aaa",
   "buildProjects": [
     "WEB4",
+    "WEB5",
     "OUTBOXADMINTESTS"
   ],
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
     "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarAdminController.cs"
   ],

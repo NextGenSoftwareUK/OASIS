@@ -37,8 +37,38 @@
     "inventoryRun": {
       "id": 44995307959,
       "control": "d4d8628bc2b1573eb92108b1f4a83ed7e5922706",
-      "status": "queued",
-      "mode": "source-only-no-build-no-runtime-no-secrets"
+      "status": "completed",
+      "mode": "source-only-no-build-no-runtime-no-secrets",
+      "conclusion": "success",
+      "artifact": 14743052898
     }
+  },
+  "reviewedCandidate": {
+    "candidate": "812e1aaad6e60bdbab39f490f1a3e9586d714884",
+    "base": "64a04f7b2a1e8a7640ca199d62ffc9638538cac1",
+    "tag": "qualification/portal-billing-session-2026-11-22-812e1aaa",
+    "paths": [
+      "Docker/oasis-dependency-versions.env",
+      "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
+      "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
+      "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarAdminController.cs"
+    ],
+    "status": "reviewed-source-awaiting-combined-build",
+    "inventory": {
+      "managers": 933,
+      "routes": 827,
+      "managerBlob": "696aca2bd3306e8dedc2a1cbfe7f13e872aa575f",
+      "routeBlob": "eab91eef45d1b94df8f1dc4f49768093b0ddbe41",
+      "managerSha256": "3239416b97d442712dc67150d714248f24cfab28aa2572cc8687ed0bf0675fdd",
+      "routeSha256": "8e5fcab0384ded3cdbbd81742d13bf70fbf75ea183684e9a1772fd46909006f8",
+      "review": "All4entries lengths/hashes verified in RAM; manager semantic multiset unchanged; only6Admin duplicate rows removed,6canonical session routes plus separate validate-account-token retained under identical prefix. Route blob equals prior accepted session source."
+    },
+    "buildProjects": [
+      "WEB4",
+      "WEB5",
+      "OUTBOXADMINTESTS"
+    ],
+    "remaining": "Combined build only; accepted session and billing behavior retained, no unchanged provider/MFA/payment replay. Full sessions/revocation/hosted/financial acceptance open."
   }
 }
