@@ -1,0 +1,31 @@
+{
+  "status": "source fix only; not compiled/native-tested/deployed",
+  "base": "618c3c73102ef270d68f127d55cf1848cdda155a",
+  "candidate": "750d0f89f1ff318aa83e859109082e7eef64a813",
+  "tag": "qualification/login-failover-2026-11-22-750d0f89",
+  "paths": [
+    "Managers/AvatarManager/AvatarManager-Auth.cs",
+    "Managers/AvatarManager/AvatarManager.cs",
+    "Managers/AvatarManager/AvatarLoginBreaker.cs"
+  ],
+  "cause": "Global login timeout breaker truncated all subsequent asynchronous SSO login candidates to primary-only for45seconds, suppressing configured healthy alternatives. Router obtains its failover list from ProviderManager.",
+  "change": "Remove the primary-only override and obsolete breaker state/class. Keep existing configured SSO list, bounded login deadline and existing authentication semaphore unchanged. No retries or DNA settings added.",
+  "requiredFollowUp": [
+    "Obsolete clock-only unit case removed; unchanged identifier and10second deadline tests retained. New real fallback check still required.",
+    "Verify actual primary failure/timeout with an eligible real fallback under existing owned CI test hosts; no shared Atlas tests.",
+    "Qualify changed source separately; do not replace45008649921 or claim failover reliability from current35middleware cases."
+  ],
+  "scopeLimit": "Does not implement global/selected session revocation or prove cross-provider session failover.",
+  "root": {
+    "base": "94dcc89a9bf750cc6a687f6137594284ffcf749a",
+    "candidate": "90afc82426e4282df1b4089dd5d1ab1d54cbef7a",
+    "tag": "qualification/login-failover-2026-11-22-90afc824",
+    "parentDraft": "f552d7706bbd5dbfadbd366a425f6348a9eb30a7",
+    "additionalPaths": [
+      "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/AvatarLoginTests.cs",
+      "Docker/oasis-dependency-versions.env",
+      "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
+    ],
+    "status": "separate unqualified successor; not selected by current enforcement run"
+  }
+}
