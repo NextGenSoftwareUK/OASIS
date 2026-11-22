@@ -2,7 +2,7 @@
   "source": "5633710e7c4b983053351ad3e88438558352cbef",
   "baseDevelopment": "8931995b55b182dfcedc936d72c231936ae4c052",
   "timeoutSeconds": 480,
-  "phase": "dispatch_acknowledged",
+  "phase": "development_pushed",
   "compositionAcceptedBySourceEquivalence": true,
   "compositionSource": "ced904ff0ff4710cc8c6749516867c38e9fb59d2",
   "compositionRun": 44975041727,
@@ -16,8 +16,8 @@
     "Docker/entrypoint.onode.sh"
   ],
   "entrypointSyntaxVerified": true,
-  "packageAccepted": false,
-  "developmentPushed": false,
+  "packageAccepted": true,
+  "developmentPushed": true,
   "liveVerified": false,
   "featureIntegration": "4357c509b8f10cf4e412fc90cb2ede87594916f6",
   "priorRunIds": [
@@ -62,5 +62,191 @@
     44828462049
   ],
   "packageRequestedAt": "2026-11-22T02:54:10.874572+00:00",
-  "packagePhase": "dispatch_acknowledged"
+  "packagePhase": "dispatch_acknowledged",
+  "packageRun": 44978356294,
+  "packageStatus": "completed",
+  "packageConclusion": "success",
+  "packageArtifact": {
+    "id": 14737076044,
+    "bytes": 776,
+    "sha256": "aca3a4c99fea85226909afa561a78eecee87551cd7c72c023bd45fedca57de90"
+  },
+  "packageAcknowledgment": {
+    "source": "5633710e7c4b983053351ad3e88438558352cbef",
+    "image": "ghcr.io/nextgensoftwareuk/oasis-web4@sha256:515b920c52d25b46e5ad5fcebfe984da621a101c12977070c44f2923ff772022",
+    "profile": "cql-api",
+    "tag": "ghcr.io/nextgensoftwareuk/oasis-web4:5633710e7c4b983053351ad3e88438558352cbef",
+    "imageId": "sha256:515b920c52d25b46e5ad5fcebfe984da621a101c12977070c44f2923ff772022",
+    "expectedHashes": {
+      "/app/host-sandbox-ipfs.cjs": "5f34b462e6d1197e3fc53add782ee14f73d70a351bc45cfa1d6e8ca20e8064c2"
+    },
+    "checks": {
+      "packagedSourceHashes": true,
+      "assemblies": 5,
+      "tronReaderPackaged": false,
+      "urbitReaderPackaged": false,
+      "infuraReaderPackaged": false,
+      "modelVersions": [],
+      "modelHashes": false,
+      "cqlRuntimeGraphVerified": true,
+      "apiQualified": false
+    },
+    "liveDeployment": false
+  },
+  "packageCleanup": {
+    "ownedContainerAbsent": true,
+    "dataWrites": 0
+  },
+  "developmentPushStartedUtc": "2026-11-22T02:57:18.551191+00:00",
+  "developmentPushCompletedUtc": "2026-11-22T02:57:27.104987+00:00",
+  "developmentRollouts": [
+    {
+      "service": "WEB4 OASIS API",
+      "id": "5123199a-43c4-4439-9921-e10e2aec7841",
+      "deployments": [
+        {
+          "id": "483be539-a4ed-4f47-8b18-d37eca5ccf72",
+          "status": "QUEUED",
+          "source": "5633710e7c4b983053351ad3e88438558352cbef"
+        },
+        {
+          "id": "f3e4d3a2-0257-4065-8dc1-a3b243e7b48d",
+          "status": "SUCCESS",
+          "source": "8931995b55b182dfcedc936d72c231936ae4c052"
+        },
+        {
+          "id": "4dc4bc42-9660-4bbe-b2c8-f35609bfeb25",
+          "status": "REMOVED",
+          "source": "c4a65629d4136218be05b04a887490216c050e7a"
+        }
+      ]
+    },
+    {
+      "service": "WEB6 AI API",
+      "id": "1e6ee65f-df5d-42b1-972e-97f3a560f5d3",
+      "deployments": [
+        {
+          "id": "5a5bcd67-d92a-45bb-888c-d05914411075",
+          "status": "QUEUED",
+          "source": "5633710e7c4b983053351ad3e88438558352cbef"
+        },
+        {
+          "id": "a89fcc1e-0fd9-47b6-adf1-eb66bba84eda",
+          "status": "SUCCESS",
+          "source": "8931995b55b182dfcedc936d72c231936ae4c052"
+        },
+        {
+          "id": "1ff8cbdb-ded8-4132-a8b9-6227fb6a2953",
+          "status": "REMOVED",
+          "source": "c4a65629d4136218be05b04a887490216c050e7a"
+        }
+      ]
+    },
+    {
+      "service": "WEB7 SYMBIOTIC API",
+      "id": "31bd0ff6-2d3d-4793-8197-eabcd3afcb75",
+      "deployments": [
+        {
+          "id": "1c4cbf51-ca08-4ec2-8285-822daeb74024",
+          "status": "BUILDING",
+          "source": "5633710e7c4b983053351ad3e88438558352cbef"
+        },
+        {
+          "id": "bd1ce2d7-a13f-4201-9471-d04a8678064e",
+          "status": "SUCCESS",
+          "source": "8931995b55b182dfcedc936d72c231936ae4c052"
+        },
+        {
+          "id": "d7c33a33-f202-4d0c-b769-a85d48c13846",
+          "status": "REMOVED",
+          "source": "c4a65629d4136218be05b04a887490216c050e7a"
+        }
+      ]
+    },
+    {
+      "service": "WEB9 SINGULARITIY API",
+      "id": "36eda15e-fd28-4fc6-a0c9-7fe454829554",
+      "deployments": [
+        {
+          "id": "260c1057-37d7-4a17-b8bc-fe68a60fd16d",
+          "status": "QUEUED",
+          "source": "5633710e7c4b983053351ad3e88438558352cbef"
+        },
+        {
+          "id": "61596eca-dba1-44a0-9885-46ccda472351",
+          "status": "SUCCESS",
+          "source": "8931995b55b182dfcedc936d72c231936ae4c052"
+        },
+        {
+          "id": "97ef9abb-3de0-4118-8af7-c358a9602de8",
+          "status": "REMOVED",
+          "source": "c4a65629d4136218be05b04a887490216c050e7a"
+        }
+      ]
+    },
+    {
+      "service": "WEB10 THE SOURCE API",
+      "id": "6f9e4f24-29be-49d7-914b-f1f9b42790d6",
+      "deployments": [
+        {
+          "id": "ca01590d-0faf-4336-9b0d-65838b22317f",
+          "status": "QUEUED",
+          "source": "5633710e7c4b983053351ad3e88438558352cbef"
+        },
+        {
+          "id": "8a6e4b86-c49f-4944-8c4d-35825df658eb",
+          "status": "SUCCESS",
+          "source": "8931995b55b182dfcedc936d72c231936ae4c052"
+        },
+        {
+          "id": "095fb88b-9959-4c2d-934a-31ad5c0a1152",
+          "status": "REMOVED",
+          "source": "c4a65629d4136218be05b04a887490216c050e7a"
+        }
+      ]
+    },
+    {
+      "service": "WEB8 IGN API",
+      "id": "95c937b9-b4e8-4fd3-866f-bd98d5420b2f",
+      "deployments": [
+        {
+          "id": "0a603ed5-ca31-4db2-bf0c-455803002115",
+          "status": "BUILDING",
+          "source": "5633710e7c4b983053351ad3e88438558352cbef"
+        },
+        {
+          "id": "ba99169a-f98d-410c-a5d9-533bd6ff2560",
+          "status": "SUCCESS",
+          "source": "8931995b55b182dfcedc936d72c231936ae4c052"
+        },
+        {
+          "id": "00f29604-191f-45e0-a8a4-6356dded035f",
+          "status": "REMOVED",
+          "source": "c4a65629d4136218be05b04a887490216c050e7a"
+        }
+      ]
+    },
+    {
+      "service": "WEB5 STAR API",
+      "id": "bb2c3e9a-ec96-44a5-9916-05e06d54b1f4",
+      "deployments": [
+        {
+          "id": "db72763b-15e5-495d-9b4b-5d4c370162cb",
+          "status": "BUILDING",
+          "source": "5633710e7c4b983053351ad3e88438558352cbef"
+        },
+        {
+          "id": "c09a8978-5c98-44f9-a1ec-62588fb19e76",
+          "status": "SUCCESS",
+          "source": "8931995b55b182dfcedc936d72c231936ae4c052"
+        },
+        {
+          "id": "d4adae34-b4d8-4a91-a48a-3ec1fb6f563d",
+          "status": "REMOVED",
+          "source": "c4a65629d4136218be05b04a887490216c050e7a"
+        }
+      ]
+    }
+  ],
+  "rolloutObservedUtc": "2026-11-22T02:59:15.859135+00:00"
 }
