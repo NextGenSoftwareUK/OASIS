@@ -21,6 +21,7 @@ Last updated 18 November 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (me
 | 7 | Older items: phone tests, WSL disk, Vercel branch check, oasisweb4 site decision, iOS runtime script, Git LFS budget, upstream Holochain PRs | D |
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 | 11 | Choose a Windows maintenance window for high AppX/Windows AI memory use | G |
+| H1 | Choose isolated Resend test credential source (no secrets in chat) | H |
 
 ---
 
@@ -835,3 +836,12 @@ HD-CLOUD-READINESS: Cloud readiness requirements: the newer CQL chat titled Clou
 
 
 2026-11-18: HD-CLOUD-READINESS closed/deferred by owner. David abandoned cloud after web and Codex attempts. Reviewed Hyperdrive & Providers Cloud (6afe0e96-4420-83e8-a389-b4ec09a55317): GitHub worked, but cloud execution and a durable cloud goal were never verified; documentation-only commit 70211d0, no implementation changes reported. No further owner setup action requested. Continue existing active desktop goal on work/hyperdrive-provider-completion. OPORTAL, subscriptions and performance remain first. Preserve shared Atlas stand-down, paused workers and deliveries 535/543. SDK packet 55c9f622 / Core 2ae9c233 is pushed, pending scoped qualification. No build, download, environment or database created for this review.
+
+
+## Part H — Isolated warning-email provider verification (21 November 2026)
+
+- **H1 — Pending credential-source decision (21 November 2026).** The new OPORTAL warning action is implemented and compiled; real Mongo event persistence, current HTTP capability/disabled/anonymous checks and cleanup have passed. Real Resend acceptance and the enabled button flow are still unverified. Read-only selected configuration confirms dev WEB4 has a Resend key, warning emails enabled and email not globally disabled. The OASIS GitHub repository has no Resend/email-test secret; no credential value was printed or copied.
+- **Decision/steps:** either add a dedicated scoped Resend test credential as GitHub Actions secret `OASIS_WARNING_TEST_RESEND_KEY` in [OASIS repository secrets](https://github.com/NextGenSoftwareUK/OASIS/settings/secrets/actions), or authorize the agent to stage the existing dev Resend credential in that isolated test secret. Do not paste the key in chat. The test must use the provider's controlled test recipient, never a real user, one bounded new submission and an identical idempotent replay, owned loopback Mongo only, no shared Atlas/auth/payment operations. Remove the temporary CI secret after accepted verification if it is not retained for a designated reusable test environment.
+- **Reason:** the native runner currently cannot access an approved provider credential. Moving the existing deployment credential into CI changes its access scope and requires this owner decision. No live-node email/DNA setting change is needed.
+- **Agent-owned follow-up:** prepare exact credential-safe runner/recipient/source, verify actual provider ID and durable acknowledgement, exercise the enabled OPORTAL control, keep provider acceptance distinct from inbox delivery, and clean up. Engineering and runner work is not David's task.
+- Evidence: [billing delivery record](../HyperDrive-Providers/OPORTAL_PERSONAL_BILLING_DELIVERY_GAP_2026-11-21.json), [current status](../HyperDrive-Providers/CURRENT_STATUS.md). Other OPORTAL/security/provider work continues while this decision is pending.

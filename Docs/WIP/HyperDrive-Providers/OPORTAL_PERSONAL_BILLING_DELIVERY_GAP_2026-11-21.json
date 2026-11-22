@@ -1025,6 +1025,18 @@
         "proof": "WARNING_ACTION_HTTP_PROOF",
         "cleanup": "Owned database/tempDNA/container absence verified."
       }
+    },
+    "realProviderGate": {
+      "status": "awaiting-credential-source-decision-H1",
+      "selectedDevConfig": {
+        "emailKeyConfigured": true,
+        "warningEmailEnabled": true,
+        "allEmailDisabled": false
+      },
+      "dedicatedGitHubEmailSecrets": 0,
+      "credentialValuesPrintedOrCopied": false,
+      "ownerAction": "Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md#part-h--isolated-warning-email-provider-verification-21-november-2026",
+      "independentWork": "Continue Settings/native session implementation and portal breadth; not whole-goal blocked."
     }
   },
   "sharedDevelopmentReview": {
