@@ -30,7 +30,7 @@ public sealed class CqlMappedComputedWireTests
         Assert.Equal(NativeRecordFunction.Int32Coalesce,mixed.Columns[3].Function);
         Assert.Equal(0,mixed.Columns[3].Int32Replacement);Assert.Equal(typeof(int),mixed.Columns[3].ValueType);
         Assert.All(mixed.Columns,column=>Assert.False(column.Nullable));
-        var stored=CqlV1Compiler.CompileProjection(captured,Guid.NewGuid(),ProviderType.MongoDBOASIS);
+        var stored=CqlV1Compiler.CompileProjection(captured,Guid.NewGuid(),ProviderType.MongoDBOASIS,null,CqlVirtualProjection.MaximumRows,captured.VirtualMappingId);
         Assert.Equal(CosmicProjectionFunction.Int32Coalesce,stored.Columns[4].Function);
         Assert.Equal(0,stored.Columns[4].Int32Replacement);
     }
@@ -51,10 +51,10 @@ public sealed class CqlMappedComputedWireTests
             new CqlProjectionV1Column{Alias="Bad",MetadataPath=new[]{"flag"},ValueType="Boolean",Function=CqlV1Function.BooleanTextCase,Nullable=true,WhenTrue="yes",WhenFalse="no"},
             new CqlProjectionV1Column{Alias="Bad",MetadataPath=new[]{"label"},ValueType="String",NullReplacement="unused"}})
             Assert.Throws<ArgumentException>(()=>CqlV1Compiler.CompileVirtualProjection(Request(column)));
-        var identity=Request(new(){Alias="Text",MetadataPath=new[]{"label"},ValueType="String"});
+        var identity=Request(new CqlProjectionV1Column{Alias="Text",MetadataPath=new[]{"label"},ValueType="String"});
         identity.Columns[0].WhenTrue="unused";
         Assert.Throws<ArgumentException>(()=>CqlV1Compiler.CompileVirtualProjection(identity));
-        var aggregate=Request(new(){Alias="Stock",MetadataPath=new[]{"stock"},ValueType="Int32",Nullable=true,Function=CqlV1Function.Int32Coalesce,Int32Replacement=0});
+        var aggregate=Request(new CqlProjectionV1Column{Alias="Stock",MetadataPath=new[]{"stock"},ValueType="Int32",Nullable=true,Function=CqlV1Function.Int32Coalesce,Int32Replacement=0});
         aggregate.ResultOperation=CqlProjectionV1ResultOperation.LongCount;
         Assert.Throws<ArgumentException>(()=>CqlV1Compiler.CompileVirtualProjection(aggregate));
     }
