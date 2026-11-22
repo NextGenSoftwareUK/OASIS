@@ -1116,9 +1116,10 @@
   },
   "enabledWarningBrowserPreparation": {
     "seed": "Scripts/TestHosts/HotspotHttpNative/WarningBrowserFixture.cs",
-    "status": "prepared-uncompiled-unselected",
-    "scope": "Fresh owned ledger inventory, fixture-only detached approval checked by shipping validator, acknowledged opening-balance import of one historical native quota row/free plan and native readback. No direct bucket edits or hundreds of synthetic operations.",
+    "status": "owned-seed-and-actual-ui-journey-prepared-uncompiled-unselected",
+    "scope": "Actual subscription SDK/fragment/usage settings button: explicit submit accepted1 then same warning previouslyAccepted1. No stubs, response/body/credential logs, synthetic request loop or direct quota-counter edits. Native readback and cleanup still to wire.",
     "boundaries": "Not payment/provider execution/original shared-writer authorization. No existing shared migration/delivery535/543 touched. Approval key only in memory, owned database cleanup required.",
-    "remaining": "Wire native verified sink actor and fixture administrator, actual enabled service/controller/SDK/button journey and cleanup. No email secrets staged for this preparation."
+    "remaining": "Wire native verified sink actor and fixture administrator, actual enabled service/controller/SDK/button journey and cleanup. No email secrets staged for this preparation.",
+    "runner": "Scripts/TestHosts/Fixtures/warning-email-browser-native-http.cjs"
   }
 }
