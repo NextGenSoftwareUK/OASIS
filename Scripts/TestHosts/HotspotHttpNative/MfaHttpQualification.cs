@@ -64,11 +64,20 @@ internal static class MfaHttpQualification
             VerifyCredentials(recovered, dna, actor);
             Check((await service.StatusAsync(actor)).RecoveryCodesLeft == recovery.Count - 1, "HTTP recovery use was not persisted.");
             var native = await provider.LoadAvatarAsync(actor);
-            Check(!native.IsError && native.Result.RefreshTokens.Any(item => item.Token == recovered.Value<string>("refreshToken")),
-                "Issued HTTP refresh credential was not persisted.");
+            Check(!native.IsError && native.Result.RefreshTokens.Count == priorCount + 2,
+                "Second-factor credential generations were not persisted.");
+            // HyperDrive returns a signed provider-bound envelope, not the raw persisted token.
+            // Let the shipped refresh endpoint validate that envelope and rotate its native credential.
+            var rotated = (await Post("/api/avatar/refresh-token", new {
+                refreshToken = recovered.Value<string>("refreshToken") }, "refresh-envelope"))["result"]!;
+            VerifyCredentials(rotated, dna, actor);
+            var afterRefresh = await provider.LoadAvatarAsync(actor);
+            Check(!afterRefresh.IsError && afterRefresh.Result.RefreshTokens.Count == priorCount + 3 &&
+                afterRefresh.Result.RefreshTokens.Count(item => item.Revoked.HasValue) == 1,
+                "Actual refresh envelope did not rotate and persist its native credential.");
         }
         finally { System.Security.Cryptography.CryptographicOperations.ZeroMemory(secret); }
-        Console.WriteLine("MFA_HTTP_NATIVE_PROOF: actual password challenge returned no credentials; authenticator/recovery HTTP issued signed JWT and persisted refresh credential; consumed challenge refused. Not browser/full Startup/hosted acceptance.");
+        Console.WriteLine("MFA_HTTP_NATIVE_PROOF: actual password challenge returned no credentials; authenticator/recovery HTTP issued signed JWT and persisted refresh generations; consumed challenge refused and actual provider-bound refresh rotated. Not browser/full Startup/hosted acceptance.");
     }
     private static void VerifyCredentials(JToken avatar, OASISDNA dna, Guid actor)
     {

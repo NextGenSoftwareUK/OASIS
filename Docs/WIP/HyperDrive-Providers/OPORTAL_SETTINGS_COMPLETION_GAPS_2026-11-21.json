@@ -240,7 +240,7 @@
     },
     "httpQualification": {
       "source": "Scripts/TestHosts/HotspotHttpNative/MfaHttpQualification.cs",
-      "status": "fixture-guid-cast-corrected-awaiting-http-rerun",
+      "status": "fixture-refresh-envelope-assertion-corrected-awaiting-run",
       "scope": "Actual status/enrol/confirm, password authenticate token-free challenge and no persisted credential, actual authenticate-mfa authenticator/recovery, consumed challenge refusal, signed issuer/audience/lifetime/JWT subject and native refresh persistence. No mock HTTP/provider or response body/credential logging.",
       "remaining": "Compile/runtime result and owned cleanup; then Settings management UI/browser/hosted.",
       "run": {
@@ -307,9 +307,16 @@
         "id": 44981427644,
         "control": "92ade656b4ef3762bb5b92a0944973c756c08654",
         "candidate": "e5aa77161465fa6c683746bac49ea647dd7adeb0",
-        "status": "in_progress",
-        "mode": "mfa-http"
-      }
+        "status": "completed",
+        "mode": "mfa-http",
+        "conclusion": "failure",
+        "job": 137082551880,
+        "buildErrors": 0,
+        "buildElapsed": "00:06:57.99",
+        "failure": "Fixture directly compared public refresh envelope to raw stored token. Actual HyperDrive BuildSessionResponse signs provider-bound envelope; fixture invariant was wrong.",
+        "cleanup": "Owned database/tempDNA/container absence verified."
+      },
+      "refreshVerificationCorrection": "Native generation count plus actual shipping refresh-token HTTP validation/rotation and signed JWT checks; no private grammar clone or raw token equality. Source prepared, not dispatched while warning-provider run active."
     },
     "browserQualification": {
       "host": "Scripts/TestHosts/Fixtures/mfa-settings-browser-host.html",
