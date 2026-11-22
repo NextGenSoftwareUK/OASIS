@@ -19,6 +19,16 @@ internal sealed partial class NeoCqlTranslator
     {
         if (column == null) throw new System.ArgumentNullException(nameof(column));
         if (column.Function == CosmicProjectionFunction.None) return TranslateProjectionPath(column.Path);
+        if (column.Function == CosmicProjectionFunction.BooleanTextCase)
+        {
+            if(column.Path.IsMetadata || column.Path.ValueType != typeof(bool) || column.ValueType != typeof(string)
+                || column.WhenTrue == null || column.WhenFalse == null)
+                throw new System.NotSupportedException("Native conditional text requires a canonical Boolean path and captured literal branches.");
+            var conditional=TranslateProjectionPath(column.Path);
+            var whenTrue=Bind(column.WhenTrue);var whenFalse=Bind(column.WhenFalse);
+            return ("CASE WHEN ("+conditional.State+")=2 THEN 2 ELSE 3 END",
+                "CASE WHEN ("+conditional.State+")=2 THEN CASE WHEN ("+conditional.Value+")=true THEN "+whenTrue+" ELSE "+whenFalse+" END ELSE NULL END");
+        }
         if (column.Function == CosmicProjectionFunction.TextCoalesce)
         {
             if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(string) || column.NullReplacement == null)
