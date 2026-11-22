@@ -1,0 +1,15 @@
+{
+  "status": "source fix only; not compiled, runtime-tested or deployed",
+  "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarProfileController.cs",
+  "invariant": "The provider-specific email route delegates to the email route, preserving its ownership check and email manager operation.",
+  "currentDevelopment": "ca4f8336142",
+  "verification": [
+    "Exact changed overload delegates by email",
+    "Existing email ownership guard and manager target preserved"
+  ],
+  "remaining": [
+    "Isolated actual MVC/provider deletion verification",
+    "Account deletion completeness and replica lifecycle",
+    "Settings Delete Account wiring"
+  ]
+}
