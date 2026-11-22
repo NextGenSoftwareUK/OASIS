@@ -146,8 +146,8 @@ app.Use(async (context, next) =>
 });
 
 app.UseRouting();
-app.UseAuthorization();
 app.UseMiddleware<NextGenSoftware.OASIS.Web7.WebAPI.Middleware.JwtMiddleware>();
+app.UseAuthorization();
 app.UseMiddleware<NextGenSoftware.OASIS.Web7.WebAPI.Middleware.ApiKeyMiddleware>();
 if (subscriptionUsageEnabled)
 {
