@@ -39,6 +39,28 @@
   ],
   "requestedAt": "2026-11-22T02:40:02.628936+00:00",
   "run": 44977327473,
-  "status": "in_progress",
-  "conclusion": null
+  "status": "completed",
+  "conclusion": "success",
+  "imageJob": 137070029294,
+  "sourceCheckoutVerified": true,
+  "digest": "sha256:515b920c52d25b46e5ad5fcebfe984da621a101c12977070c44f2923ff772022",
+  "packagePriorRunIds": [
+    44976532042,
+    44974125204,
+    44968677902,
+    44956782867,
+    44945668173,
+    44942744524,
+    44894688335,
+    44890945656,
+    44881253419,
+    44875035703,
+    44868433793,
+    44857060403,
+    44849651286,
+    44838406816,
+    44828462049
+  ],
+  "packageRequestedAt": "2026-11-22T02:54:10.874572+00:00",
+  "packagePhase": "dispatch_acknowledged"
 }
