@@ -146,15 +146,23 @@
     "resolution": "Restore original exact2472 renderer, keep one original counter owner; syntax passed. Original native acceptance remains retained, browser main flow requires same failed-case retry."
   },
   "remaining": [
-    "actual publisher HTTP Wizard authorization and acknowledgement",
-    "scoped Development integration and hosted/full Startup acceptance"
+    "dev running revision/startup verification",
+    "full Startup/SSO/hosted acceptance"
   ],
   "publisherQualification": {
     "run": 44964958065,
     "job": 137031774001,
     "control": "1ee205ca5fada1ef2eac8162a3d668e0bf0f859f",
     "candidate": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
-    "status": "in-progress",
-    "scope": "six new real publisher permission/write requests only; accepted browser/native main flow excluded"
+    "status": "success",
+    "buildErrors": 0,
+    "buildElapsed": "00:07:08.08",
+    "scope": "2anonymous401+2ordinary403+2Wizard acknowledged PUTs with native writer/empty-refusal verification",
+    "cleanup": "owned database/temporaryDNA/container absent"
+  },
+  "developmentIntegration": {
+    "source": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
+    "status": "normal-fast-forward-pushed-remote-exact",
+    "rolloutEvidence": "COMPETITION_DEVELOPMENT_ROLLOUT_2026-11-21.json"
   }
 }
