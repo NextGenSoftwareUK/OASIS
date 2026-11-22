@@ -48,16 +48,15 @@
     "remaining": [
       "Global and selected sign-out backend coordination and Settings wiring",
       "Account deletion complete lifecycle and Settings wiring",
-      "Corrected seven-service session runtime qualification",
       "Hosted Stripe paid lifecycle and full browser/site acceptance",
       "Current deployed performance measurement"
     ]
   },
   "sessions": {
-    "run": 45012925333,
-    "build": "Seven actual APIs compiled0errors6m02.78",
-    "runtime": "Failed at test JSON string-to-Guid conversion; assertion corrected but full35case cohort not rerun.",
-    "cleanup": "Owned database, temporary DNA and container absence verified.",
+    "run": 45061982715,
+    "build": "Actual seven-API host0errors6m21.20",
+    "runtime": "35real loopback HTTP cases across actual WEB4-WEB10 middleware and framework user policy; active/rotation/revoke/independent access and inconsistent-subject refusal.",
+    "cleanup": "Owned Mongo database, temporary DNA and container absence verified from selected RAM-only logs.",
     "sourceOnly": [
       "Strict middleware enforcement",
       "Login timeout failover suppression fix and single-case regression",

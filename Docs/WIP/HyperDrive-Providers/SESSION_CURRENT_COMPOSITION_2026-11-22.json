@@ -51,5 +51,6 @@
   },
   "qualificationRun": 45061982715,
   "qualificationControl": "767dd9b8959afc704b4d504b35593d4b558c70bf",
-  "qualificationStatus": "in_progress; single dispatch reconciled; no acceptance yet"
+  "qualificationStatus": "SUCCESS;35actual middleware cases and owned cleanup verified",
+  "qualificationJob": 137329723961
 }
