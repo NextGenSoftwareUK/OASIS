@@ -48,6 +48,19 @@
       "UsageExecutionContracts.cs"
     ],
     "profileTariffDependency": "StorageAttemptTariff SupportedOperations ApplyAvatarProfile is required by profile; restored separately instead of sweeping all subscription changes",
-    "status": "graph traced; billing source not yet restored or qualified"
+    "status": "source dependencies/protections identified; complete billing source restoration still unfinished",
+    "currentSharedBase": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
+    "preserveCurrentProtections": [
+      "MongoSubscriptionUsageRepository.Indexes.cs VerifiedMongoIndexes owner and all existing EnsureSubscriptionIndexes calls",
+      "Startup repository Func<bool> callback reading OASISDNA UsageVisibility.AppPayAsYouGoEnabled",
+      "Current callback enforcement must move with the canonical app-charge owner; retaining an unused field is insufficient",
+      "Current CQL/Competition source and worker settings"
+    ],
+    "conflictingDonorChanges": [
+      "Donor removes verified-index helper and calls CreateMany/CreateOne directly",
+      "Donor removes live app-pay-as-you-go callback constructor/field",
+      "Donor replaces old owner/controller and app-billing paths with complete consent/request/statement owners"
+    ],
+    "historyObservation": "Local root merge-tree refuses unrelated histories; no force/unrelated-history merge used. Scoped source reconciliation is required; any cross-history comparison remains evidence only."
   }
 }
