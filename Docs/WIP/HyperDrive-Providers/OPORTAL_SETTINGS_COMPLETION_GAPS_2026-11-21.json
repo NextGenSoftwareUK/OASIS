@@ -212,6 +212,12 @@
       "behavior": "Intercept actual mfaRequired response before sign-in persistence; memory-only challenge, password clearing, authenticator/recovery submission, restart/logout invalidation, duplicate submit prevention, current account/modal guards and visible network errors. No token-free/incomplete/error false login.",
       "checks": "2Node syntax, cache refs,3local no-persistence state controls; no backend calls",
       "remaining": "Real owned MFA/HTTP/browser, Settings enrollment/recovery/disable and SDK/DID entry-point review."
+    },
+    "nativeQualification": {
+      "source": "Scripts/TestHosts/HotspotHttpNative/MfaNativeQualification.cs",
+      "status": "prepared-uncompiled-unselected",
+      "scope": "Existing MfaService/MongoMfaStore on exact owned loopback DB: encrypted pending enrollment, confirm, authenticator challenge/consumption, recovery consumption/refusal, disable and actual lifecycle audit. Uses supported injected clock to advance30s without sleeping; no mock store/provider or secret output.",
+      "remaining": "Compile and select after current session failure resolved; then actual HTTP/login/browser and Settings UI. No source/deployed MFA setting changed."
     }
   },
   "portalExpiryFix": {
