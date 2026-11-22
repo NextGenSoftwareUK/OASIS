@@ -1,0 +1,15 @@
+{
+  "source": "94d9966baaf80a72188040d80058f7104a94e87a",
+  "core": "34848a57c2b165696bdeda91d26e0a7cddd273c8",
+  "web6": "d9e60ceaecef5513d1bcd6285cd668076bc77edf",
+  "run": 45032877587,
+  "job": 137240129586,
+  "digest": "sha256:5be9794de88cc18eae2f84aa978b6df9cc3a8702686e9cac2583c9f39b79ed1b",
+  "sourceCheckoutVerified": true,
+  "privateDependencyPinsVerified": true,
+  "teachingSidecars": false,
+  "imageAccepted": true,
+  "packageAccepted": false,
+  "liveAccepted": false,
+  "localImageDownloaded": false
+}

@@ -93,6 +93,31 @@
   ],
   "imageRequestedAt": "2026-11-22T14:24:35.389644+00:00",
   "imageRun": 45032877587,
-  "imageStatus": "in_progress",
-  "imageConclusion": null
+  "imageStatus": "completed",
+  "imageConclusion": "success",
+  "imageAccepted": true,
+  "imageJob": 137240129586,
+  "digest": "sha256:5be9794de88cc18eae2f84aa978b6df9cc3a8702686e9cac2583c9f39b79ed1b",
+  "packagePhase": "dispatch_acknowledged",
+  "packagePriorRuns": [
+    45028463476,
+    45021700914,
+    45000952408,
+    44997300304,
+    44995695068,
+    44994400291,
+    44991967776,
+    44987890064,
+    44978356294,
+    44976532042,
+    44974125204,
+    44968677902,
+    44956782867,
+    44945668173,
+    44942744524
+  ],
+  "packageRequestedAt": "2026-11-22T14:37:49.841008+00:00",
+  "packageRun": 45034075797,
+  "packageStatus": "in_progress",
+  "packageConclusion": null
 }
