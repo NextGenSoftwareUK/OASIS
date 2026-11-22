@@ -7,13 +7,17 @@ async function verify({baseUrl,token,avatarId}){
  const browser=await chromium.launch({channel:'chrome',headless:true}),context=await browser.newContext({serviceWorkers:'block'});
  const writes=[],unexpected=[],errors=[];let stage='setup';
  const endpoint='/api/subscription/usage/alerts/email';
+ // Opening the shipping Usage tab also reads these sibling sections; none may write or use a shared origin.
+ const reads=new Set(['/api/subscription/usage','/api/subscription/usage/notifications',
+  '/api/subscription/usage/alerts','/api/subscription/app-owner/apps',
+  '/api/subscription/overages/prices','/api/subscription/overages/statements']);
  try{
   await context.route('**/*',route=>{
    const request=route.request(),url=new URL(request.url());
    if(url.origin===base.origin){
     if(url.pathname.startsWith('/api/')){
      if(request.method()==='POST'&&url.pathname===endpoint)writes.push(url.pathname);
-     else if(!(request.method()==='GET'&&url.pathname.startsWith('/api/subscription/usage'))){unexpected.push(request.method()+' '+url.pathname);return route.abort();}
+     else if(!(request.method()==='GET'&&reads.has(url.pathname))){unexpected.push(request.method()+' '+url.pathname);return route.abort();}
     }
     return route.continue();
    }
