@@ -10,5 +10,34 @@
   "nativeProviderSourceImplemented": [
     "Neo4jOASIS"
   ],
-  "qualification": "Pending exact native workflow"
+  "qualification": "Pending exact native workflow",
+  "source": "10983ac1b51f62362094cabd13f1631ff27990aa",
+  "qualificationRun": 45076199105,
+  "qualificationPhase": "InProgress",
+  "unrelatedOwnedCancelRequested": [
+    45076199516,
+    45076199140,
+    45076199132,
+    45076199054,
+    45076199410,
+    45076199100,
+    45076199477,
+    45076199407,
+    45076199102,
+    45076199401,
+    45076199408,
+    45076199423,
+    45076199383,
+    45076199076,
+    45076199065,
+    45076199411,
+    45076199421,
+    45076199405,
+    45076199413
+  ],
+  "qualificationJob": 137373849847,
+  "requiredPinRun": 45076199054,
+  "requiredPinAttempt": 2,
+  "requiredPinJob": 137374205856,
+  "unrelatedCancelFollowup": 45076199398
 }
