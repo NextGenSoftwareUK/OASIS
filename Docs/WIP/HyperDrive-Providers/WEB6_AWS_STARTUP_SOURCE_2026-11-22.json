@@ -1,0 +1,16 @@
+{
+  "base": "0348ded2819e3cb1566e09c49150e41c4ea4d435",
+  "candidate": "50f8e7ff8f5e231804cd5917b4139c3fb78c61dc",
+  "tag": "qualification/web6-aws-compat-2026-11-22-50f8e7ff",
+  "status": "source fix only; not compiled, startup-tested or deployed",
+  "rootCause": "WEB6 Bedrock v4 selects AWSSDK.Core v4 while DynamoDB/S3 providers remain SDK v3; live WEB6 TypeLoadException CreateDefaultClientConfig on AmazonDynamoDBClient.",
+  "fix": "Restore existing Bedrock3.7.415 dependency; preserve all current model catalogue and manager changes. Bedrock manager source unchanged from earlier v3 source.",
+  "liveDeployment": "2c7ea11f-c580-4011-9dc8-14b7fca05aa3",
+  "liveRoot": "ca4f83361423e1f7219be5d4d6798e64c26cae67",
+  "remaining": [
+    "Actual compile and full startup type-loading qualification",
+    "Paired root gitlink/manifest source composition",
+    "Verified dev rollout"
+  ],
+  "cleanup": "RAM-only bounded selected logs; temporary index/lock removed; no environment/build/download/backend operations."
+}
