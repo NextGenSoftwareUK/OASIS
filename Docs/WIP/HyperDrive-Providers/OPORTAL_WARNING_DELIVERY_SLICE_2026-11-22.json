@@ -2,7 +2,7 @@
   "candidate": "385fdffe7ca33dbcf602a831f88a04f50230c96c",
   "base": "b8561b84a7b2298ff7b305dd8a352748b98b2980",
   "tag": "qualification/warning-slice-2026-11-22-385fdffe",
-  "status": "source-frozen-not-inventory-compiled-or-native-accepted",
+  "status": "isolated-enabled-warning-component-accepted-current-development-delivery-open",
   "paths": [
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Owners.cs",
@@ -85,7 +85,7 @@
       "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
       "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
     ],
-    "status": "source-reviewed-not-compiled-or-native-accepted",
+    "status": "compiled-and-enabled-component-browser-native-accepted-not-hosted",
     "classifierSha256": "3671b61339b020d11a55c6a06d9dcaf115d39a7fe987b053c6e3378dfbbae5cd",
     "classifierReview": "Exact control classifier hash verified; adds typed manager alias and primary-constructor repository discovery. Three label changes follow source bodies/helper changes; no route removals. Inventories retain overload multiplicity.",
     "cleanup": "Temporary index and lock removed in finally; physical submodules unchanged."
@@ -94,12 +94,20 @@
     "id": 44990168013,
     "control": "d601bfb7afc9e41bbf17e3291950a24d3d007cbe",
     "candidate": "6de38f50ddef025703b0fb2c618905570e553106",
-    "status": "in_progress",
+    "status": "completed",
     "scope": "Actual shipping SDK/subscription fragment/current warning POST and native provider acknowledgement, fixed delivered@resend.dev recipient, isolated CI Mongo only.",
-    "secrets": "H1 authorization reused; two temporary CI secrets staged via existing authenticated CLI. Failed initial credential override left both absent; no credential printed. Delete exact two names after terminal and verify404.",
-    "remaining": "Compile/browser/native cleanup and temporary secret absence not yet accepted.",
+    "secrets": "Both exact temporary CI secrets deleted after terminal; GET404 absence verified for each.",
+    "remaining": "Current Development integration/build and full Startup/hosted acceptance open; not inbox delivery/payment/all subscription or full OPORTAL acceptance.",
     "job": 137109268095,
-    "lastObservedStep": "Verify only the new combined candidate native invariant"
+    "lastObservedStep": "Verify only the new combined candidate native invariant",
+    "conclusion": "success",
+    "buildElapsed": "00:04:55.21",
+    "proof": [
+      "Actual SDK/subscription fragment/button submitted one warning to fixed delivered@resend.dev.",
+      "Second explicit click returned previously accepted; exactly one durable native event with real nonempty provider acknowledgement.",
+      "Avatar version and historical quota24000 unchanged.",
+      "Owned DB/tempDNA/container/browser runtime/cache absence verified."
+    ]
   },
   "developmentReview": {
     "revision": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
