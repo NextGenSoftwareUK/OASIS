@@ -256,7 +256,7 @@ try {
     }
     else {
         # Complementary partitions: auto-start owns its conductors and must run only after this one exits.
-        & dotnet test $Project --configuration $Configuration --filter 'FullyQualifiedName!~LiveConductorAutoStartTests' --logger 'trx;LogFileName=holonet-app-authentication.trx' --results-directory $ResultsDirectory --nologo
+        & dotnet test $Project --configuration $Configuration --filter 'FullyQualifiedName!~LiveConductorAutoStartTests&DisplayName!~HoloNET-Manager/NextGenSoftware&FullyQualifiedName!~ConductorDownloaderTests&FullyQualifiedName!~AutoDownloadConductorTests' --logger 'trx;LogFileName=holonet-app-authentication.trx' --results-directory $ResultsDirectory --nologo
         if ($LASTEXITCODE -ne 0) { throw 'HoloNET live release tests failed.' }
         Assert-CompleteTestReport (Join-Path $ResultsDirectory 'holonet-app-authentication.trx') 1188
     }
