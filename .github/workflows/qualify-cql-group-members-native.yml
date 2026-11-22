@@ -9,10 +9,14 @@ on:
       - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/Neo4jNativeCqlGroupMembers.cs"
       - ".github/workflows/qualify-cql-group-members-native.yml"
       - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.KeyedEntities.cs"
-      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/**Cql.Keyed*.cs"
-      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/**Cql.Join*.cs"
-      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/**Cql.Keyed*.cs"
-      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/**Cql.Join*.cs"
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/*Keyed*.cs"
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/*Join*.cs"
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/**/*Keyed*.cs"
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/**/*Join*.cs"
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/*Keyed*.cs"
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/*Join*.cs"
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/**/*Keyed*.cs"
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/**/*Join*.cs"
   workflow_dispatch:
 
 permissions:
