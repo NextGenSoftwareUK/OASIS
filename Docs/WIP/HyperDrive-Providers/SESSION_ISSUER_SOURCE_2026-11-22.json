@@ -1,7 +1,7 @@
 {
   "base": "a7d15b4ffc3fbcedd3c7164f06ba8fafb262a563",
-  "candidate": "90b77dbbb7e8cc68fb7467a2f702dfe2dea2f8a2",
-  "tag": "qualification/session-binding-issuer-2026-11-22-90b77dbb",
+  "candidate": "f17285289ae0ac046570a856367433173a60847c",
+  "tag": "qualification/session-binding-issuer-2026-11-22-f1728528",
   "paths": [
     "Helpers/AvatarSessionIdentity.cs",
     "Managers/AvatarManager/AvatarManager-Auth.cs",
@@ -9,13 +9,13 @@
     "Managers/AvatarManager/AvatarManager-SaveUtils.cs",
     "Managers/AvatarManager/AvatarManager-Session.cs"
   ],
-  "status": "source only; no compile/native/deployment acceptance; validators and logout unchanged",
+  "status": "final source published for changed issuer native qualification; no compiled/runtime/deployment claim",
   "rootCandidate": {
     "scope": "billing",
-    "status": "session-bound issuer source only; awaiting exact source inventory",
+    "status": "final issuer review; real HTTP/native check next",
     "base": "546dfb451cb11a8ec9355d2d25db853bab16617a",
-    "candidate": "062821baa8b790bb16fc77ba5d8549ef9ac492f4",
-    "tag": "qualification/session-issuer-2026-11-22-062821ba",
+    "candidate": "dc2f044cc5733f2bbc9fe893d744e000fd579ad2",
+    "tag": "qualification/session-issuer-2026-11-22-dc2f044c",
     "buildProjects": [
       "WEB4",
       "WEB5"
@@ -26,11 +26,20 @@
     ],
     "core": {
       "base": "a7d15b4ffc3fbcedd3c7164f06ba8fafb262a563",
-      "candidate": "90b77dbbb7e8cc68fb7467a2f702dfe2dea2f8a2"
+      "candidate": "f17285289ae0ac046570a856367433173a60847c"
     },
     "nativeHost": "HotspotHttpNative",
     "nativeMode": "mfa-http",
-    "remaining": "Inventory then changed-graph build and actual HTTP/native session-claim assertions. No validator/global revocation/UI/deployment acceptance."
+    "remaining": "Native changed issuer claims/persistence check only; all revocation/validator/UI/deployment acceptance still open."
   },
-  "checks": "Static exact-source checks passed: five Core paths, two root dependency paths, ack guard before mint; native checks added but not run."
+  "checks": "Static exact-source checks passed: five Core paths, two root dependency paths, ack guard before mint; native checks added but not run.",
+  "supersededSource": "90b77dbbb7e8cc68fb7467a2f702dfe2dea2f8a2",
+  "reviewCorrection": "Preserve non-API LoggedInAvatar JWT/private-key behavior using original object, but publish its login state only after acknowledged response; retain internal token helper visibility.",
+  "supersededRoot": "062821baa8b790bb16fc77ba5d8549ef9ac492f4",
+  "inventory": {
+    "run": 45001071413,
+    "status": "success on previous issuer source; public method signatures unchanged by final acknowledgement publication correction; exact log review pending",
+    "job": 137142496276,
+    "review": "Terminal logs verified 933 manager methods/751 provider-delegating; 827 routes/712 provider-external. Final correction changes no public manager declaration or route/classifier; retain existing manifests, no repeat inventory."
+  }
 }

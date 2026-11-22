@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "session-bound issuer source only; awaiting exact source inventory",
+  "status": "final issuer review; real HTTP/native check next",
   "base": "546dfb451cb11a8ec9355d2d25db853bab16617a",
-  "candidate": "062821baa8b790bb16fc77ba5d8549ef9ac492f4",
-  "tag": "qualification/session-issuer-2026-11-22-062821ba",
+  "candidate": "dc2f044cc5733f2bbc9fe893d744e000fd579ad2",
+  "tag": "qualification/session-issuer-2026-11-22-dc2f044c",
   "buildProjects": [
     "WEB4",
     "WEB5"
@@ -14,9 +14,9 @@
   ],
   "core": {
     "base": "a7d15b4ffc3fbcedd3c7164f06ba8fafb262a563",
-    "candidate": "90b77dbbb7e8cc68fb7467a2f702dfe2dea2f8a2"
+    "candidate": "f17285289ae0ac046570a856367433173a60847c"
   },
   "nativeHost": "HotspotHttpNative",
   "nativeMode": "mfa-http",
-  "remaining": "Inventory then changed-graph build and actual HTTP/native session-claim assertions. No validator/global revocation/UI/deployment acceptance."
+  "remaining": "Native changed issuer claims/persistence check only; all revocation/validator/UI/deployment acceptance still open."
 }
