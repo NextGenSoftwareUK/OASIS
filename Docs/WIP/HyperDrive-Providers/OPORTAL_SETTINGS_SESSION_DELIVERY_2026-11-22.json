@@ -69,6 +69,12 @@
       "WEB5",
       "OUTBOXADMINTESTS"
     ],
-    "remaining": "Combined build only; accepted session and billing behavior retained, no unchanged provider/MFA/payment replay. Full sessions/revocation/hosted/financial acceptance open."
+    "remaining": "Combined build only; accepted session and billing behavior retained, no unchanged provider/MFA/payment replay. Full sessions/revocation/hosted/financial acceptance open.",
+    "buildRun": {
+      "id": 44995824952,
+      "control": "23076a5fd694aceda2abc9893ea553d71a53d402",
+      "status": "queued",
+      "mode": "compile-only-WEB4-WEB5-operator-tests-no-runtime-no-secrets"
+    }
   }
 }
