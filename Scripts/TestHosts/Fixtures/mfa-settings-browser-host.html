@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><title>Owned authenticator Settings verification</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/dashboard.css">
+  <link rel="stylesheet" href="/assets/css/modals-new.css">
+  <link rel="stylesheet" href="/assets/css/oasis-advanced-modals.css">
+  <link rel="stylesheet" href="/assets/css/oasis-portal-extra.css">
+  <link rel="stylesheet" href="/assets/css/oasis-portal-extra2.css">
+</head>
+<body>
+  <button id="fixture-open-settings" type="button" disabled onclick="window.openSettingsModal('security')">Open Security settings</button>
+  <div class="modal js-modal"></div>
+  <script src="/assets/js/oasis-web4-sdk.js"></script>
+  <script>
+    window.apiUrl=location.origin;
+    window.oasisClient=new window.OASISClient({baseUrl:location.origin,persistSession:false});
+    var owner=JSON.parse(localStorage.getItem('avatar')||'null');
+    if(!owner||!owner.jwtToken)throw new Error('Owned authenticated browser actor required.');
+    window.oasisClient.setToken(owner.jwtToken,{avatarId:owner.id});
+  </script>
+  <script src="/assets/js/settings-modal.js"></script>
+  <script>
+    fetch('/assets/components/modals/settings.html').then(function(response){
+      if(!response.ok)throw new Error('Actual Settings fragment could not be loaded.');
+      return response.text();
+    }).then(function(html){
+      document.querySelector('.js-modal').innerHTML=html;
+      window.dispatchEvent(new CustomEvent('portal-modal-ready',{detail:{route:'settings'}}));
+      document.getElementById('fixture-open-settings').disabled=false;
+    });
+  </script>
+</body>
+</html>

@@ -297,6 +297,12 @@
         "candidate": "e5aa77161465fa6c683746bac49ea647dd7adeb0",
         "status": "in_progress"
       }
+    },
+    "browserQualification": {
+      "host": "Scripts/TestHosts/Fixtures/mfa-settings-browser-host.html",
+      "status": "prepared-unselected",
+      "scope": "Actual shipped SDK/settings script/fragment/styles; authenticated owned actor, only real native API requests. No stub transport or invented result.",
+      "remaining": "Corrected HTTP acceptance, management activation and browser runner/host selector, actual browser/native readback and cleanup. No local browser environment created."
     }
   },
   "portalExpiryFix": {
