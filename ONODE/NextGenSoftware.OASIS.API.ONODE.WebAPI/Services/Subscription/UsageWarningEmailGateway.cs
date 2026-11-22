@@ -15,6 +15,13 @@ public sealed record UsageWarningEmail(Guid EventId, DateTime PreparedAtUtc, str
 /// <summary>Submits the exact persisted warning using Resend's provider-side deduplication contract.</summary>
 public sealed class UsageWarningEmailGateway(HttpClient http, TimeProvider clock)
 {
+    // The SDK configures BaseAddress in its constructor; one transport must have one client owner.
+    // Defer construction so a disabled request never resolves a credential or touches the SDK.
+    private readonly Lazy<ResendClient> _client = new(() => new ResendClient(
+        new OptionsSnapshot<ResendClientOptions>(new ResendClientOptions {
+            ApiToken = EmailManager.ResolveResendKey(OASISBootLoader.OASISBootLoader.OASISDNA)
+        }), http), LazyThreadSafetyMode.ExecutionAndPublication);
+
     public async Task<OASISResult<Guid>> SendAsync(UsageWarningEmail warning, CancellationToken cancellationToken)
     {
         if (warning == null || warning.EventId == Guid.Empty || warning.PreparedAtUtc.Kind != DateTimeKind.Utc ||
@@ -28,9 +35,7 @@ public sealed class UsageWarningEmailGateway(HttpClient http, TimeProvider clock
         var dna = OASISBootLoader.OASISBootLoader.OASISDNA;
         if (dna?.OASIS?.UsageVisibility?.EmailEnabled != true || !EmailManager.IsEmailConfigured(dna))
             return Error("Usage warning email delivery is disabled or not configured.");
-        var client = new ResendClient(new OptionsSnapshot<ResendClientOptions>(new ResendClientOptions {
-            ApiToken = EmailManager.ResolveResendKey(dna)
-        }), http);
+        var client = _client.Value;
         var message = new EmailMessage { From = warning.From, Subject = warning.Subject, HtmlBody = warning.HtmlBody };
         message.To.Add(warning.To);
         using var submissionTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);

@@ -1078,12 +1078,19 @@
     "access": "Workflow passes secrets only when explicit native warning-provider selector is true.",
     "dispatch": "Initial POST timed out; later successful branch lists confirmed no original run. After push retry succeeded, one resubmission returned success and exact-head run list confirmed exactly1new run.",
     "externalCalls": "No provider acceptance confirmed; fixed delivered@resend.dev, max2bounded submissions with same idempotency key.",
-    "cleanup": "Both temporary secrets must be deleted after terminal verification and absence confirmed. Deployment credentials/settings unchanged.",
+    "cleanup": "Both temporary GitHub secrets deleted after terminal run; each GET returned404 and absence verified. No deployment credential changed.",
     "run": {
       "id": 44984161552,
       "control": "a939693d62d91f16b4005cffde12b82c97e8a650",
       "candidate": "e5aa77161465fa6c683746bac49ea647dd7adeb0",
-      "status": "in_progress"
-    }
+      "status": "completed",
+      "conclusion": "failure",
+      "job": 137090971079,
+      "buildErrors": 0,
+      "buildElapsed": "00:07:04.47",
+      "failure": "HttpClient.set_BaseAddress from ResendClient constructor invoked by UsageWarningEmailGateway.SendAsync after transport started.",
+      "cleanup": "Owned database/tempDNA/container absence verified."
+    },
+    "fix": "Source: one lazy thread-safe ResendClient per gateway/HttpClient; disabled validation still precedes credential/SDK initialization. Not compiled/provider replay accepted yet."
   }
 }

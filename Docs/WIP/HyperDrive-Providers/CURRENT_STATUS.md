@@ -1,3 +1,5 @@
+Latest warning-provider status:44984161552 failed after0error7m04.47 build in ResendClient constructor resetting an already-used HttpClient.BaseAddress. Real gateway lifecycle fix prepared: one lazy SDK client per transport. Full replay acceptance remains open. Owned DB/tempDNA/container cleanup verified; both temporary CI secrets deleted and404absence verified. H1 owner decision complete, engineering remains agent-owned. Shared Development5633710e conductor-only delta reviewed; unqualified peer Core not imported.
+
 Current H1 update: David authorized existing dev credential in temporary CI secrets. Both test credential/sender metadata verified; bounded warning-provider control0bbb009a44 pushed. Initial dispatch timed out; later successful lists confirmed no original run. Push retry succeeded, one resubmission confirmed exactly1run44984161552/control a939693d62 now active. Provider acceptance/cleanup pending. Temporary secrets remain agent-owned cleanup obligations; no provider acceptance claim.
 
 Current Settings status — 21 November 2026 (supersedes historical entries below)

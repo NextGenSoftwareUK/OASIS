@@ -1,3 +1,5 @@
+Latest warning-provider status:44984161552 failed after0error7m04.47 build in ResendClient constructor resetting an already-used HttpClient.BaseAddress. Real gateway lifecycle fix prepared: one lazy SDK client per transport. Full replay acceptance remains open. Owned DB/tempDNA/container cleanup verified; both temporary CI secrets deleted and404absence verified. H1 owner decision complete, engineering remains agent-owned. Shared Development5633710e conductor-only delta reviewed; unqualified peer Core not imported.
+
 Current Settings status — 21 November 2026 (supersedes historical entries below)
 
 OPORTAL is not 100% complete. Session-list HTTP/native Mongo acceptance passed44977175851 on reviewed e5aa7716: zero build errors, actual active/revoked/expired records, foreign refusal, no credential disclosure and unchanged avatar. Duplicate route ownership fixed. This does not prove device tracking, create/update, logout or JWT revocation.
