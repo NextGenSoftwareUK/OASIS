@@ -129,7 +129,7 @@
       "Services/Subscriptions/UsageExecutionContracts.cs"
     ],
     "inventoryProof": "Core Managers tree unchanged by coalescing; combined Managers input byte-identical to e990. No portal Core path overlap; preserve all coalescing changes.",
-    "status": "source-reviewed-pins-verified-awaiting-current-graph-build-only",
+    "status": "pushed-fast-forward-Development-rollouts-not-accepted",
     "candidate": "f688e6fe3f08230ad9006e1ae615cec423b090db",
     "base": "a96652767c3b382cdbd9e4ccaa80516358abff53",
     "tag": "qualification/portal-current-2026-11-22-f688e6fe",
@@ -180,8 +180,58 @@
     "buildRun": {
       "id": 44996842514,
       "control": "ddbf174c5af798825e856d2fcb9e07042388f0c8",
-      "status": "in_progress",
-      "mode": "compile-only-WEB4-WEB5-operator-tests-no-runtime-no-secrets"
+      "status": "completed",
+      "mode": "compile-only-WEB4-WEB5-operator-tests-no-runtime-no-secrets",
+      "conclusion": "success",
+      "job": 137129596073,
+      "web4BuildElapsed": "00:03:38.23",
+      "web5BuildElapsed": "00:00:22.21",
+      "operatorTestsBuildElapsed": "00:00:05.75"
     }
+  },
+  "developmentDelivery": {
+    "revision": "546dfb451cb11a8ec9355d2d25db853bab16617a",
+    "previous": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+    "core": "a7d15b4ffc3fbcedd3c7164f06ba8fafb262a563",
+    "status": "pushed-normal-fast-forward-no-checkout-switch-no-force",
+    "rollouts": [
+      {
+        "service": "WEB4",
+        "id": "0791b5a8-e482-4052-a6bf-a4a496b7a1d1",
+        "status": "QUEUED"
+      },
+      {
+        "service": "WEB5",
+        "id": "3f5054a9-d047-4e61-bc1b-77c1ab257a1f",
+        "status": "BUILDING"
+      },
+      {
+        "service": "WEB6",
+        "id": "6bbc2dad-0d45-45ee-8c6e-539d1968bbba",
+        "status": "BUILDING"
+      },
+      {
+        "service": "WEB7",
+        "id": "219c4015-af6b-424f-8c2d-5f90c039b482",
+        "status": "QUEUED"
+      },
+      {
+        "service": "WEB8",
+        "id": "e11a278b-6b27-4e7c-8ad7-1d69d6470df8",
+        "status": "BUILDING"
+      },
+      {
+        "service": "WEB9",
+        "id": "1e43bdaf-75f6-48f9-b628-86cc117b7eb4",
+        "status": "QUEUED"
+      },
+      {
+        "service": "WEB10",
+        "id": "3746796b-3179-4ca4-afb2-202bbfa68057",
+        "status": "QUEUED"
+      }
+    ],
+    "source": "All seven selected rollout metadata records match exact546dfb45; running revision/startup/hosted acceptance still open.",
+    "remaining": "Follow original seven rollout IDs; no duplicate deploy/manual restart/shared data tests. Full financial/Settings/OPORTAL/provider reliability gates remain open."
   }
 }
