@@ -62,6 +62,7 @@ jobs:
             Scripts/TestHosts/Fixtures/profile-browser-runtime.json
             Scripts/verify_web4_hyperdrive_route_manifest.ps1
             Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1
+            Scripts/TestHosts/Test-SessionMiddlewareOrdering.ps1
           sparse-checkout-cone-mode: false
           persist-credentials: false
       - name: Read immutable qualification candidate
