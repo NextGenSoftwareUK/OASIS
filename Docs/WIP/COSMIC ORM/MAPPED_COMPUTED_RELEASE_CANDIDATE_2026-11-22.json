@@ -1,0 +1,21 @@
+{
+  "source": "84242bd06aee5b8593ec193f8c7518977e651320",
+  "core": "5240d3bd34d003407fe8b08070203e8d4efb5e1a",
+  "baseDevelopment": "24ec05bb5f57cf15b3b18fdd2ed2d987911aba64",
+  "featureSource": "a2ba7b5ab31980c202540a30b5d9fb7161adcda0",
+  "nativeQualificationSource": "5d39eeddbc29f168d81e6a26af355f6531251605",
+  "nativeQualificationRun": 45004657247,
+  "nativeQualificationAccepted": false,
+  "productionPaths": [
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlVirtualProjectionV1Compiler.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.NativeProjection.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.NativeProjection.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.NativeProjection.cs"
+  ],
+  "peerDependencyUpdatesPreserved": true,
+  "manifestValidated": true,
+  "imageAccepted": false,
+  "packageAccepted": false,
+  "developmentPushed": false,
+  "liveAccepted": false
+}

@@ -94,3 +94,5 @@ Open examples:
 - Current coalescing fixture is fully closed; no credential files remain. Stop on an ambiguous write outcome and reconcile the original operation, never recreate it.
 - Owner-only actions belong solely in [ACTIONS-FOR-DAVID](../Release%20and%20Status/ACTIONS-FOR-DAVID.md); keep secrets out of chat/source.
 - Detailed accepted/failed evidence and prior chronology remain in [Full progress report](FULL_PROGRESS_REPORT_2026-11-21.md), linked JSON reports and Git history. This handoff replaces repetitive historical status paragraphs without discarding those evidence sources.
+
+Prepared mapped release candidate 84242bd06aee5b8593ec193f8c7518977e651320 over current Development24ec05bb; four production root paths plus Core5240d3bd only, manifest validated, current HoloNET/ONODEManager preserved. Feature branch integrates this reviewed peer ancestry. Native45004657247 is still queued; current-composition build, image/package and live acceptance remain required. No Development push.
