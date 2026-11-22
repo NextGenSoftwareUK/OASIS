@@ -1,4 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Net.Http.Headers;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using System.Net.Http.Json;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
@@ -57,12 +60,14 @@ internal static class MfaHttpQualification
             advanceStep();
             var verified = (await Post("/api/avatar/authenticate-mfa", new {
                 challengeToken = token, code = Totp.Code(secret, Totp.Step(clock(), 30)) }, "authenticator"))["result"]!;
-            VerifyCredentials(verified, dna, actor);
+            var verifiedPrincipal = VerifyCredentials(verified, dna, actor);
+            await VerifyAccessAsync(verifiedPrincipal, actor, true);
             await Post("/api/avatar/authenticate-mfa", new { challengeToken = token, recoveryCode = recovery[0] }, "consumed-challenge", true);
             var second = (await Post("/api/avatar/authenticate", new { username, password }, "recovery-challenge"))["result"]!;
             var recovered = (await Post("/api/avatar/authenticate-mfa", new {
                 challengeToken = second["metaData"]!.Value<string>(MfaService.ChallengeKey), recoveryCode = recovery[0] }, "recovery"))["result"]!;
-            VerifyCredentials(recovered, dna, actor);
+            var recoveredPrincipal = VerifyCredentials(recovered, dna, actor);
+            await VerifyAccessAsync(recoveredPrincipal, actor, true);
             Check((await service.StatusAsync(actor)).RecoveryCodesLeft == recovery.Count - 1, "HTTP recovery use was not persisted.");
             var native = await provider.LoadAvatarAsync(actor);
             Check(!native.IsError && native.Result.RefreshTokens.Count == priorCount + 2,
@@ -74,16 +79,38 @@ internal static class MfaHttpQualification
             // Let the shipped refresh endpoint validate that envelope and rotate its native credential.
             var rotated = (await Post("/api/avatar/refresh-token", new {
                 refreshToken = recovered.Value<string>("refreshToken") }, "refresh-envelope"))["result"]!;
-            VerifyCredentials(rotated, dna, actor);
+            var rotatedPrincipal = VerifyCredentials(rotated, dna, actor);
+            await VerifyAccessAsync(rotatedPrincipal, actor, true);
+            await VerifyAccessAsync(recoveredPrincipal, actor, false);
             var afterRefresh = await provider.LoadAvatarAsync(actor);
             Check(!afterRefresh.IsError && afterRefresh.Result.RefreshTokens.Count == priorCount + 3 &&
                 afterRefresh.Result.RefreshTokens.Count(item => item.Revoked.HasValue) == 1,
                 "Actual refresh envelope did not rotate and persist its native credential.");
+            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", rotated.Value<string>("jwtToken"));
+            await Post("/api/avatar/revoke-token", new { token = rotated.Value<string>("refreshToken") }, "revoke-bound-session");
+            await VerifyAccessAsync(rotatedPrincipal, actor, false);
+            await VerifyAccessAsync(verifiedPrincipal, actor, true);
+            http.DefaultRequestHeaders.Authorization = null;
+            await Post("/api/avatar/refresh-token", new { refreshToken = rotated.Value<string>("refreshToken") }, "revoked-refresh", true);
+            var afterRevoke = await provider.LoadAvatarAsync(actor);
+            Check(!afterRevoke.IsError && afterRevoke.Result.RefreshTokens.Count == priorCount + 3 &&
+                afterRevoke.Result.RefreshTokens.Count(item => item.Revoked.HasValue) == 2 &&
+                afterRevoke.Result.Version == afterRefresh.Result.Version + 1 &&
+                afterRevoke.Result.PreviousVersionId == afterRefresh.Result.VersionId &&
+                afterRevoke.Result.Username == afterRefresh.Result.Username && afterRevoke.Result.Email == afterRefresh.Result.Email &&
+                afterRevoke.Result.Password == afterRefresh.Result.Password,
+                "Acknowledged session revocation changed unrelated account state or lost its native revision chain.");
+            var missingBinding = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim("sub", actor.ToString("D")) }, "Bearer"));
+            Check(!AvatarSessionIdentity.TryReadBinding(missingBinding, out _, out _), "Unbound access token accepted.");
+            var duplicateBinding = new ClaimsPrincipal(new ClaimsIdentity(rotatedPrincipal.Claims.Concat(new[] {
+                new Claim(AvatarSessionIdentity.SessionClaim, rotatedPrincipal.FindFirst(AvatarSessionIdentity.SessionClaim)!.Value) }), "Bearer"));
+            Check(!AvatarSessionIdentity.TryReadBinding(duplicateBinding, out _, out _), "Duplicate session binding accepted.");
         }
         finally { System.Security.Cryptography.CryptographicOperations.ZeroMemory(secret); }
         Console.WriteLine("MFA_HTTP_NATIVE_PROOF: actual password challenge returned no credentials; authenticator/recovery HTTP issued signed JWT and persisted refresh generations; consumed challenge refused and actual provider-bound refresh rotated. Not browser/full Startup/hosted acceptance.");
+        Console.WriteLine("ACCESS_SESSION_NATIVE_PROOF: authority-specific active access, rotation and explicit revoke invalidate matching access/refresh; independent credential remains active, revision/profile preserved, malformed bindings refused. Not seven-middleware/global logout acceptance.");
     }
-    private static void VerifyCredentials(JToken avatar, OASISDNA dna, Guid actor)
+    private static ClaimsPrincipal VerifyCredentials(JToken avatar, OASISDNA dna, Guid actor)
     {
         Check(Guid.TryParse(avatar.Value<string>("id"), out var returnedId) && returnedId == actor && !string.IsNullOrWhiteSpace(avatar.Value<string>("refreshToken")), "MFA HTTP returned incomplete credentials.");
         var principal = new JwtSecurityTokenHandler { MapInboundClaims = false }.ValidateToken(avatar.Value<string>("jwtToken"),
@@ -102,7 +129,21 @@ internal static class MfaHttpQualification
             "Access JWT is not bound to the same acknowledged refresh generation and provider.");
         Check(!principal.Claims.Any(claim => claim.Value == envelope[2] || claim.Value == avatar.Value<string>("refreshToken")),
             "Access JWT exposes a refresh credential.");
+        return principal;
     }
+    private static async Task VerifyAccessAsync(ClaimsPrincipal principal, Guid actor, bool expectedActive)
+    {
+        Check(AvatarSessionIdentity.TryReadBinding(principal, out var session, out var provider), "Signed session binding unreadable.");
+        var loaded = await AvatarManager.Instance.LoadAvatarForAccessSessionAsync(actor, session, provider);
+        if (expectedActive)
+            Check(!loaded.IsError && loaded.IsLoaded && loaded.Result?.Id == actor &&
+                loaded.Result.RefreshTokens == null && loaded.Result.Password == null,
+                "Authoritative active session was refused or leaked its persisted credentials.");
+        else
+            Check(loaded.IsError && loaded.ErrorCode == "ACCESS_SESSION_REVOKED" && loaded.Result == null,
+                "Revoked access session remained usable.");
+    }
+
     private static void Check(bool condition, string message)
     {
         if (!condition) throw new InvalidOperationException(message);

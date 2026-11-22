@@ -9,7 +9,7 @@
     "Managers/AvatarManager/AvatarManager-SaveUtils.cs",
     "Managers/AvatarManager/AvatarManager-Session.cs"
   ],
-  "status": "compile import corrected; original failed run retained; awaiting changed issuer native rerun",
+  "status": "acknowledged session-bound issuer accepted at isolated HTTP/native scope; current CQL composition and deployment remain open",
   "rootCandidate": {
     "scope": "billing",
     "status": "corrected compile import; native rerun next",
@@ -46,11 +46,15 @@
     "run": 45002183207,
     "job": 137145927610,
     "control": "436a3b3340d8dde91b1175623ef4423ff0886846",
-    "status": "in_progress",
+    "status": "success",
     "observedUtc": "2026-11-22T08:19:38.678735+00:00",
     "activeStep": "Verify only the new combined candidate native invariant",
     "mode": "mfa-http",
-    "scope": "Corrected import and changed acknowledged session/provider claims; actual native persistence. No validator/global logout/UI/deployment acceptance."
+    "scope": "Actual password challenge/MFA/recovery/refresh with signed session-provider claims matching actual persisted generations; independent pure JWT validation and no raw refresh credential in claims.",
+    "buildElapsed": "00:04:09.76",
+    "buildErrors": 0,
+    "cleanup": "Owned database/temp DNA/container absence verified.",
+    "hostSourceBlob": "b98c09ecfc5659cfb54622c7e7f9feee1f626dcc"
   },
   "previousCandidate": "f17285289ae0ac046570a856367433173a60847c",
   "previousQualifications": [

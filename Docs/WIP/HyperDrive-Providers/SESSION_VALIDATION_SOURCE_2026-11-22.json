@@ -1,15 +1,41 @@
 {
-  "base": "2d0efca957cddf28cc32b4da1f52d4baa0e08bfd",
-  "candidate": "76a51228b29f6af7b822717b79bdd3321b0c52bd",
-  "tag": "qualification/session-validation-2026-11-22-76a51228",
+  "base": "3696bd32ff84ee49db4b189dfcea946da7172dbd",
+  "candidate": "c486c152b05d1d5d4a9afc312dd2121c9299e1c1",
+  "tag": "qualification/session-validation-current-2026-11-22-c486c152",
   "paths": [
     "Helpers/AvatarSessionIdentity.cs",
     "Managers/AvatarManager/AvatarManager-AccessSession.cs",
+    "Managers/AvatarManager/AvatarManager-Auth.cs",
     "Managers/AvatarManager/AvatarManager-RefreshAuthority.cs",
-    "Managers/AvatarManager/AvatarManager-SaveUtils.cs"
+    "Managers/AvatarManager/AvatarManager-SaveUtils.cs",
+    "Managers/AvatarManager/AvatarManager-Session.cs"
   ],
   "status": "source only; not compiled/native-tested/wired/deployed",
   "invariant": "One authority-specific lookup replaces existing avatar read; inactive, missing, malformed or unavailable credentials never authenticate.",
   "remaining": "Wire strict binding validation at every actual middleware after issuer rollout; native test active/revoked/rotation/authority behavior; implement acknowledged selected/global logout; enable OPORTAL only after acceptance.",
-  "supersededSource": "10609958ee2262cfe9dd4cfafba9cf03bfac7b19"
+  "supersededSource": "10609958ee2262cfe9dd4cfafba9cf03bfac7b19",
+  "previousCandidate": "76a51228b29f6af7b822717b79bdd3321b0c52bd",
+  "rootCandidate": {
+    "scope": "billing",
+    "status": "current CQL composition source only; source inventory next",
+    "base": "09d61416ea4ed2926bf044e211fc73502ab4adbe",
+    "candidate": "3c51c3a259d3a1235c4a2c196b390f618295544b",
+    "tag": "qualification/session-validation-current-2026-11-22-3c51c3a2",
+    "buildProjects": [
+      "WEB4",
+      "WEB5"
+    ],
+    "allowedPaths": [
+      "Docker/oasis-dependency-versions.env",
+      "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
+    ],
+    "core": {
+      "base": "3696bd32ff84ee49db4b189dfcea946da7172dbd",
+      "candidate": "c486c152b05d1d5d4a9afc312dd2121c9299e1c1"
+    },
+    "nativeHost": "HotspotHttpNative",
+    "nativeMode": "mfa-http",
+    "remaining": "Inventory and actual changed session-validation/native checks; not wired into middleware, no selected/global logout or OPORTAL enablement. Retain issuer run45002183207; no email/browser/payment replay."
+  },
+  "composition": "Preserved current Development09d61416/CQL Core3696bd32; no AvatarManager overlap against a7d15b4f; six exact issuer/validator files copied from immutable source76a51228."
 }
