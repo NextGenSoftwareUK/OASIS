@@ -823,7 +823,15 @@
         "Authorized preparation/dispatch endpoint and DI registration",
         "Email recipient verification policy review",
         "Retention and real provider/hosted acceptance"
-      ]
+      ],
+      "recipientRequirement": "Current verified avatar email; IsVerified checked."
+    },
+    "nativeHost": {
+      "mode": "billing-warning-store",
+      "status": "source-prepared-uncompiled-unselected",
+      "scope": "Real Mongo repeated event preparation preserves original payload/time/ID, native reload, empty provider acknowledgement refused and remains pending. Disabled actual gateway refuses before transport; no artificial successful provider ID or email call.",
+      "pending": "Compose three warning source files and verified-email dispatcher change into exact current candidate, compile and execute once.",
+      "priorAdminRun": 44970338582
     }
   },
   "sharedDevelopmentReview": {

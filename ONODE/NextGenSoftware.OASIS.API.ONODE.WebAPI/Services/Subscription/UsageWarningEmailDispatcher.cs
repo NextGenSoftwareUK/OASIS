@@ -42,9 +42,9 @@ public sealed class UsageWarningEmailDispatcher(MongoSubscriptionUsageRepository
                 Message = "The email provider previously accepted this warning." };
         cancellationToken.ThrowIfCancellationRequested();
         var avatar = await AvatarManager.Instance.LoadAvatarAsync(actor, false, true);
-        if (avatar.IsError || avatar.Result == null ||
+        if (avatar.IsError || avatar.Result == null || !avatar.Result.IsVerified ||
             !string.Equals(avatar.Result.Email, delivery.Email.To, StringComparison.OrdinalIgnoreCase))
-            return Error("The warning recipient must match the subscriber's current email address.");
+            return Error("The warning recipient must match the subscriber's current verified email address.");
         var submitted = await gateway.SendAsync(delivery.Email, cancellationToken);
         if (submitted.IsError) return submitted;
         if (!submitted.IsSaved || submitted.Result == Guid.Empty)

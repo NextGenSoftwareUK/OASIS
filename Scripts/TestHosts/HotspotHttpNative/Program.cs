@@ -39,7 +39,7 @@ Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
 var mode = Environment.GetEnvironmentVariable("OASIS_HOTSPOT_HTTP_MODE") ?? "binding";
-Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http", "Unsupported hotspot HTTP check mode.");
+Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store", "Unsupported hotspot HTTP check mode.");
 var dna = new OASISDNA { OASIS = new() {
     HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
         AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
@@ -140,13 +140,16 @@ try
     }
     var builder = WebApplication.CreateBuilder(); builder.Logging.ClearProviders(); builder.WebHost.UseUrls("http://127.0.0.1:0");
     MongoSubscriptionUsageRepository? billingRepository = null;
-    if (mode is "billing-http" or "billing-admin-http")
+    if (mode is "billing-http" or "billing-admin-http" or "billing-warning-store")
     {
         billingRepository = new MongoSubscriptionUsageRepository(client, database, TimeProvider.System);
-        await billingRepository.CreateAppAccountAsync("owned-billing", "Owned billing route fixture", "enterprise",
-            actor.ToString("D"), "Owned isolated fixture", false, null, CancellationToken.None);
-        await billingRepository.SetAppOwnersAsync("owned-billing", new[] { actor.ToString("D") },
-            actor.ToString("D"), "Owned isolated fixture", CancellationToken.None);
+        if (mode != "billing-warning-store")
+        {
+            await billingRepository.CreateAppAccountAsync("owned-billing", "Owned billing route fixture", "enterprise",
+                actor.ToString("D"), "Owned isolated fixture", false, null, CancellationToken.None);
+            await billingRepository.SetAppOwnersAsync("owned-billing", new[] { actor.ToString("D") },
+                actor.ToString("D"), "Owned isolated fixture", CancellationToken.None);
+        }
         builder.Services.AddSingleton(billingRepository);
         builder.Services.AddSingleton<IUsageSeriesSource>(billingRepository);
     }
@@ -204,7 +207,32 @@ try
         using var result = JsonDocument.Parse(resultText);
         Require(result.RootElement.GetProperty(resultProperty).GetBoolean(), "Owned browser completion marker missing.");
     }
-    if (mode == "billing-admin-http")
+    if (mode == "billing-warning-store")
+    {
+        var month = DateTime.UtcNow.ToString("yyyy-MM", System.Globalization.CultureInfo.InvariantCulture);
+        var subject = "user:" + actor.ToString("D");
+        var first = await billingRepository!.PrepareWarningEmailAsync(subject, month, 80,
+            "warnings@example.test", accounts[0].Email, "Owned usage warning", "<p>Owned warning</p>");
+        var repeated = await billingRepository.PrepareWarningEmailAsync(subject, month, 80,
+            "changed@example.test", "changed@example.test", "Changed payload", "<p>Changed</p>");
+        Require(first.Email == repeated.Email && first.Email.EventId != Guid.Empty &&
+            first.ProviderAcknowledgement == null && repeated.ProviderAcknowledgement == null,
+            "Repeated warning preparation replaced its immutable payload or claimed acceptance.");
+        var reloaded = await billingRepository.GetWarningEmailAsync(first.Email.EventId);
+        Require(reloaded == first, "Native warning event reload differs from its acknowledged persistence.");
+        bool invalidAckRefused = false;
+        try { await billingRepository.AcknowledgeWarningEmailAsync(first.Email.EventId, Guid.Empty); }
+        catch (ArgumentException) { invalidAckRefused = true; }
+        Require(invalidAckRefused && (await billingRepository.GetWarningEmailAsync(first.Email.EventId))!.ProviderAcknowledgement == null,
+            "Empty provider acknowledgement marked the warning as accepted.");
+        dna.OASIS.UsageVisibility = new UsageVisibilitySettings { EmailEnabled = false };
+        using var emailHttp = new HttpClient();
+        var disabled = await new UsageWarningEmailGateway(emailHttp, TimeProvider.System).SendAsync(first.Email, CancellationToken.None);
+        Require(disabled.IsError && !disabled.IsSaved && disabled.Result == Guid.Empty,
+            "Disabled email submission claimed provider acceptance.");
+        Console.WriteLine("WARNING_EVENT_NATIVE_PROOF: real Mongo immutable repeated prepare/reload and empty-ack refusal passed; disabled real gateway refused before transport. No email provider acknowledgement/delivery acceptance, fake provider, shared backend, or prior HTTP replay.");
+    }
+    else if (mode == "billing-admin-http")
     {
         const string path = "/api/subscription/admin/app-accounts/owned-billing/owners";
         var request = new { ownerAvatarIds = new[] { wizardActor.ToString("D") }, reason = "Owned HTTP ownership replacement" };
