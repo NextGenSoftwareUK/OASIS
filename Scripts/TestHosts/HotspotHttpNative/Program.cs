@@ -270,6 +270,16 @@ try
         app.MapGet(mode switch { "catalogue-browser" => "/__catalogue_browser", "competition-browser" => "/__competition_browser", "mfa-browser" => "/__mfa_settings_browser", "billing-warning-browser" => "/__warning_email_browser", _ => "/__geo_browser" }, () => Results.File(browserHost, "text/html"));
     }
     app.Use(async (context, next) => {
+        using var authenticationTrace = mode == "session-global-http" && context.Request.Path == "/api/avatar/authenticate"
+            ? AuthenticationOperationTrace.Begin() : null;
+        context.Response.OnCompleted(() => {
+            if (authenticationTrace != null)
+            {
+                var observed = authenticationTrace.Snapshot;
+                Console.WriteLine($"SESSION_HTTP_AUTH_TRACE: auth={observed.Authentication} routing={observed.Routing} provider={observed.Provider} operation={observed.Operation}");
+            }
+            return Task.CompletedTask;
+        });
         if (context.User.Identity?.IsAuthenticated == true && Guid.TryParse(context.User.FindFirst("sub")?.Value, out var id))
         {
             var loaded = mode == "session-global-http"

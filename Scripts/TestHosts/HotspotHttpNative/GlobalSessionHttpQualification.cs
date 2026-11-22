@@ -114,7 +114,8 @@ internal static class GlobalSessionHttpQualification
 
             async Task<JToken> Login(ProviderType provider)
             {
-                Check(!(await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(provider)).IsError, "Owned provider selection failed.");
+                Check(mongo.IsProviderActivated,
+                    "The owned Mongo primary must stay active before the connected-transport outage check.");
                 if (provider == ProviderType.SQLLiteDBOASIS)
                 {
                     var prepared = await sqlite.LoadAvatarAsync(actor);

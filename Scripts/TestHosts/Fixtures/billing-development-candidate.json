@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "Bounded Mongo account read and actual issuing-store session save; native qualification pending",
+  "status": "Request-local sign-in deadline with long ordinary provider timeout; connected-outage fixture correction",
   "base": "aa6f1cb26d8b8a9393d8ca440bdd140c4162a239",
-  "candidate": "5d68ce8fb58a7cacd0e9110bc176eff15f74fef7",
-  "tag": "qualification/session-native-deadline-20261122",
+  "candidate": "820b06223e639c4b5757329015563a5a3f242f11",
+  "tag": "qualification/session-login-budget-root-20261122",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
     "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
