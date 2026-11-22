@@ -1,14 +1,15 @@
 {
   "scope": "billing",
-  "status": "restored-route-source-inventory-required",
+  "status": "reviewed-source-awaiting-compile",
   "base": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
-  "candidate": "744583b1ef6f1932a22054c4772fb6d0979b6fcf",
-  "tag": "qualification/billing-routes-2026-11-21-744583b1",
+  "candidate": "0b819b4082f3c976d80cfa721113fd7de019c2e0",
+  "tag": "qualification/billing-inventory-2026-11-21-0b819b40",
   "buildProjects": [
     "WEB4"
   ],
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
     "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAdminController.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs",
@@ -40,6 +41,7 @@
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionAdminModels.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionModels.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionUsageModels.cs",
+    "Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1",
     "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
   ],
   "core": {
