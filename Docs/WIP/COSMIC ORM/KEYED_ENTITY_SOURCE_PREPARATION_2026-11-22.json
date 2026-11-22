@@ -2,7 +2,7 @@
   "core": "1e9c9b52fee83fee0e1e3055dc48b0143bcbe8a9",
   "base": "21a5966a12aa9c57109131cf7a519394d30e9a27",
   "sourcePrepared": true,
-  "compiled": false,
+  "compiled": true,
   "nativeProviderAdmitted": false,
   "runtimeHooked": true,
   "deployed": false,
@@ -15,7 +15,7 @@
   "qualification": "Pending exact native workflow",
   "source": "2bb54171442af5316c062e474fb6e987e7173f9f",
   "qualificationRun": 45078689312,
-  "qualificationPhase": "InProgress",
+  "qualificationPhase": "NativeAccepted",
   "unrelatedOwnedCancelRequested": [
     45076199516,
     45076199140,
@@ -146,7 +146,7 @@
     }
   ],
   "expandedEntityGraphsAdmitted": false,
-  "nativeAccepted": false,
+  "nativeAccepted": true,
   "olderNeoQualificationRun": 45076941597,
   "expectedNativeTests": 5,
   "sharedSourceAndHydrationOwners": true,
@@ -157,5 +157,11 @@
   "neoNativeAcceptedProof": "neo-keyed-entity-native-acceptance.json",
   "runtimeSourceUnchangedByTriggerFix": true,
   "failedCombinedRun": 45078210575,
-  "freeGiBObserved": 23.6
+  "freeGiBObserved": 23.6,
+  "sourceQualified": "2bb54171442af5316c062e474fb6e987e7173f9f",
+  "wholeEntityAcceptedProviders": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ]
 }
