@@ -37,6 +37,8 @@ Shared Core now captures an anonymous outer-and-matches LINQ GroupJoin and assem
 
 Five focused Core controls and six real-native journeys are selected in one new CI workflow (two changed journeys/provider). C# syntax for17changed files, workflow YAML and PowerShell AST pass using existing tools in memory; these checks do not prove compilation or native behavior. Grouped-result projections/filtering/ordering beyond the direct carrier and further representative key/visibility checks remain open. Q44 and61/168+4/13 stay unchanged. [Source record](GROUP_JOIN_COLLECTIONS_SOURCE_2026-11-22.json).
 
+Exact GroupJoin qualification **45019120717/job137197874230** is confirmed **queued** on source3a972d83/Coref8fc9bb7. Five Core and six native checks, no manual duplicate dispatch. Twenty queued automatic qualifications for only this agent's superseded intermediatee6b22d6b were cancelled and all20terminal cancellations verified; latest-source qualifications, the two frozen release jobs and other agents' work remain intact. [CI handoff](GROUP_JOIN_CI_HANDOFF_2026-11-22.json).
+
 This successor remains **unqualified** and must not be swept into the active mapped-computed release: candidatec25ce0b7/Corebabf7b82 and its existing45014425835/45014821002 handles are unchanged. Publish only a qualified scoped batch, never the feature tip merely for synchronization.
 
 ## SQL and Ask delivery

@@ -1,0 +1,41 @@
+{
+  "source": "3a972d83a91ad3191a2614e5b02d57d088e8ea41",
+  "core": "f8fc9bb795fc4d1f966b63c2b724741dce7bc62f",
+  "run": 45019120717,
+  "job": 137197874230,
+  "status": "queued",
+  "compiled": false,
+  "nativeAccepted": false,
+  "deployed": false,
+  "expectedCoreTests": 5,
+  "expectedNativeTests": 6,
+  "supersededSource": "e6b22d6babdb4839c8fa82d552151d01b1a13fb3",
+  "supersededOwnQueuedRunsCancelled": [
+    45017305420,
+    45017305452,
+    45017305294,
+    45017305209,
+    45017305374,
+    45017305360,
+    45017305184,
+    45017305275,
+    45017305316,
+    45017305361,
+    45017305277,
+    45017305332,
+    45017305200,
+    45017305229,
+    45017305230,
+    45017305216,
+    45017305397,
+    45017305192,
+    45017305206,
+    45017305375
+  ],
+  "cancellationVerified": true,
+  "keptReleaseRuns": [
+    45014425835,
+    45014821002
+  ],
+  "otherAgentsTouched": false
+}
