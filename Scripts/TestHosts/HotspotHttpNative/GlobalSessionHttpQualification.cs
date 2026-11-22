@@ -126,6 +126,21 @@ internal static class GlobalSessionHttpQualification
             var first = await Login(ProviderType.MongoDBOASIS);
             var second = await Login(ProviderType.SQLLiteDBOASIS);
             http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", second.Value<string>("jwtToken"));
+            var unknownSelection = await Read(await http.PostAsJsonAsync("/api/avatar/" + actor + "/sessions/logout",
+                new[] { new string('a', 64) }));
+            Check(unknownSelection.Value<bool>("isError") && !unknownSelection.Value<bool>("result"),
+                "An unknown selected session produced simulated success.");
+            await CheckAccess(first, ProviderType.MongoDBOASIS, true);
+            await CheckAccess(second, ProviderType.SQLLiteDBOASIS, true);
+            var firstSid = new JwtSecurityTokenHandler().ReadJwtToken(first.Value<string>("jwtToken"))
+                .Claims.Single(claim => claim.Type == AvatarSessionIdentity.SessionClaim).Value;
+            var selected = await Read(await http.PostAsJsonAsync("/api/avatar/" + actor + "/sessions/logout", new[] { firstSid }));
+            Check(!selected.Value<bool>("isError") && selected.Value<bool>("isSaved") && selected.Value<bool>("result"),
+                "Selected-session logout was not acknowledged by the native authority.");
+            await CheckAccess(first, ProviderType.MongoDBOASIS, false);
+            await CheckAccess(second, ProviderType.SQLLiteDBOASIS, true);
+            first = await Login(ProviderType.MongoDBOASIS);
+            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", second.Value<string>("jwtToken"));
             var sessions = await Read(await http.GetAsync("/api/avatar/" + actor + "/sessions"));
             Check(sessions.Value<bool>("isError") == false &&
                 sessions["result"]?.Value<string>("globalRevocationProtocol") == "admitted-authorities-v1", "Real global capability was not advertised.");

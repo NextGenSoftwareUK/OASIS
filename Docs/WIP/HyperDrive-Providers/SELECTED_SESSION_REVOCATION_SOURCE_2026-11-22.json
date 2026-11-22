@@ -1,0 +1,7 @@
+{
+  "core": "f8970497dbdd8b469ec0a6cd0e33a223e51df0cc",
+  "parent": "7f148e003cce0a16a1df5b7b853d121faa0b5525",
+  "status": "Implemented source; native HTTP qualification pending. Not deployed.",
+  "behavior": "Validate distinct canonical session IDs, preflight admitted provider reads, refuse unknown identities before writes, revoke matching credentials at each exact authority, report partial writes and policy changes. No simulated success.",
+  "verification": "Public manager signature unchanged. Representative HTTP selection/isolation check to be added to existing owned provider runner; no previous cohort replay."
+}

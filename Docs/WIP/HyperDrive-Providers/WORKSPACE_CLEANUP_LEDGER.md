@@ -2869,3 +2869,7 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 ### 2026-11-22 — focused session failure diagnosis
 - No local builds, runtime installs, databases or downloaded logs. Two temporary Git index files removed in finally; credentials and selected CI logs held only in memory.
 - Failed run 45068055435 confirmed owned Mongo unpaused and owned SQLite directory absent. Immutable Git objects retained as reviewable source, not disposable outputs.
+
+### 2026-11-22 — selected session logout implementation
+- Replaced simulated selected-session success in immutable Core source f8970497dbdd8b469ec0a6cd0e33a223e51df0cc; retained as reviewable source tag. Temporary source index removed in finally.
+- Added representative HTTP unknown-selection/no-write and selected-vs-independent credential checks to the existing runner; not dispatched while run45069521383 remains queued. No local runtime, environment, build, database or downloaded result created.
