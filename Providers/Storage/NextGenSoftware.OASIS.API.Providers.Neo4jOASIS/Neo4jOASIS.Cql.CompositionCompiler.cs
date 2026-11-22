@@ -40,10 +40,10 @@ public partial class Neo4jOASIS
     }
 
     private static NeoCqlCompositionCommand CompileCqlSelected<T, TResult>(CosmicProjectionQuery<T, TResult> query,
-        CosmicProjectionCompositionExecutionLimits limits, CosmicQueryPredicate terminal = null, CosmicProjectedNumericIntent numeric = null, CosmicEntityCompositionPlan<T> entity=null) where T : IHolon
+        CosmicProjectionCompositionExecutionLimits limits, CosmicQueryPredicate terminal = null, CosmicProjectedNumericIntent numeric = null, CosmicEntityCompositionPlan<T> entity=null, Dictionary<string,object> sharedParameters=null) where T : IHolon
     {
         if (query.Source.GraphOptions != null) throw new NotSupportedException("Graph-source composition requires separate enrollment.");
-        var parameters = new Dictionary<string, object>(StringComparer.Ordinal);
+        var parameters = sharedParameters ?? new Dictionary<string, object>(StringComparer.Ordinal);
         var source = CompileCqlDetachedSource(query.Source, parameters, Array.Empty<CosmicQueryPath>(),
             query.Columns.Select(column => column.Path).ToArray(), limits.MaximumInputRows, limits.MaximumInputPayloadBytes,entity,valueColumns:query.Columns);
         var binder = new NeoCqlTranslator("h", "p", parameters, null);
@@ -57,6 +57,48 @@ public partial class Neo4jOASIS
         var sourceScope=entity==null ? "CALL { CALL { "+source+" } RETURN collect(input) AS input } WITH input,"
             : "CALL { "+source+" } WITH input,entityProofs,";
         var text = new StringBuilder(sourceScope+"CASE WHEN " + valid + " THEN range(0,size(input)-1) ELSE [] END AS s0,0 AS work,0 AS proofBytes ");
+        var filters=SelectedCompositionFilters(query,binder);
+        var carried = "input,s0"+(entity==null ? "" : ",entityProofs");
+        carried=AppendSelectedStages(text,query,binder,carried,maximumWork,maximumProof);
+
+        // Explicit headers make empty stages observable, rather than inferred
+        // from absent rows. Source proofs precede all stage identities.
+        var import = carried + ",work,proofBytes";
+        text.Append("CALL { WITH ").Append(import);
+        if(entity!=null)
+            text.Append(" UNWIND range(0,size(entityProofs)-1) AS pos RETURN -3 AS phase,pos AS position,-1 AS sourcePosition,entityProofs[pos] AS proof,size(entityProofs) AS nativeCount,0 AS stageWork UNION ALL WITH ").Append(import);
+        text.Append(" RETURN -2 AS phase,-1 AS position,-1 AS sourcePosition,null AS proof,size(input) AS nativeCount,work AS stageWork ")
+            .Append("UNION ALL WITH ").Append(import)
+            .Append(" UNWIND range(0,size(input)-1) AS pos RETURN -1 AS phase,pos AS position,pos AS sourcePosition,input[pos] AS proof,size(input) AS nativeCount,work AS stageWork ");
+        for (var index = 0; index < query.ResultStages.Count; index++)
+        {
+            var list = "s" + (index + 1);
+            text.Append("UNION ALL WITH ").Append(import).Append(" RETURN ").Append(index)
+                .Append(" AS phase,-1 AS position,-1 AS sourcePosition,null AS proof,size(").Append(list).Append(") AS nativeCount,work AS stageWork ")
+                .Append("UNION ALL WITH ").Append(import).Append(" UNWIND range(0,size(").Append(list).Append(")-1) AS pos RETURN ").Append(index)
+                .Append(" AS phase,pos AS position,").Append(list).Append("[pos] AS sourcePosition,null AS proof,size(").Append(list).Append(") AS nativeCount,work AS stageWork ");
+        }
+        if (terminal != null)
+        {
+            var final = "s" + query.ResultStages.Count;
+            // Reduction consumes captured scalar cells, never a second MATCH.
+            // A negative count is an explicit exhausted-work marker, not true.
+            text.Append("UNION ALL WITH ").Append(import).Append(" RETURN ").Append(query.ResultStages.Count)
+                .Append(" AS phase,-1 AS position,-1 AS sourcePosition,null AS proof,CASE WHEN work+size(")
+                .Append(final).Append(")<=").Append(maximumWork).Append(" AND proofBytes<=").Append(maximumProof)
+                .Append(" THEN size([position IN ").Append(final).Append(" WHERE NOT coalesce((")
+                .Append(filters.Translate(terminal)).Append("),false)]) ELSE -1 END AS nativeCount,work AS stageWork ");
+        }
+        if (numeric != null)
+            AppendSelectedIntegerReduction(text, import, "s" + query.ResultStages.Count, query.ResultStages.Count,
+                maximumWork, maximumProof, numeric, binder.Bind);
+        text.Append("} RETURN phase,position,sourcePosition,proof,nativeCount,stageWork ORDER BY phase ASC,position ASC");
+        if (text.Length > 1024 * 1024) throw new NeoCqlLimitException("Native composition exceeds its statement-size budget.");
+        return new NeoCqlCompositionCommand(text.ToString(), parameters);
+    }
+    private static GroupFilterCompiler<T,object,object> SelectedCompositionFilters<T,TResult>(
+        CosmicProjectionQuery<T,TResult> query,NeoCqlTranslator binder) where T:IHolon
+    {
         var aliases = query.Columns.Select((column, index) => new { column.Alias, Index = index })
             .ToDictionary(item => item.Alias, item => item.Index, StringComparer.Ordinal);
         var filters = new GroupFilterCompiler<T, object, object>(binder, path =>
@@ -66,7 +108,12 @@ public partial class Neo4jOASIS
                 throw new NotSupportedException("Composition filters require exact selected scalar bindings.");
             return "input[position].values[" + index + "].v";
         });
-        var carried = "input,s0"+(entity==null ? "" : ",entityProofs");
+        return filters;
+    }
+    private static string AppendSelectedStages<T,TResult>(StringBuilder text,CosmicProjectionQuery<T,TResult> query,
+        NeoCqlTranslator binder,string carried,string maximumWork,string maximumProof,int referenceBytes=16) where T:IHolon
+    {
+        var filters=SelectedCompositionFilters(query,binder);
         for (var index = 0; index < query.ResultStages.Count; index++)
         {
             var previous = "s" + index; var next = "s" + (index + 1);
@@ -111,42 +158,10 @@ public partial class Neo4jOASIS
             else throw new NotSupportedException("Unknown selected-result stage.");
             text.Append("RETURN collect(position) AS ").Append(next).Append(" } ");
             carried += "," + next;
-            text.Append("WITH ").Append(carried).Append(",work,proofBytes+16*size(").Append(next).Append(") AS proofBytes ");
+            text.Append("WITH ").Append(carried).Append(",work,proofBytes+").Append(referenceBytes).Append("*size(").Append(next).Append(") AS proofBytes ");
         }
 
-        // Explicit headers make empty stages observable, rather than inferred
-        // from absent rows. Source proofs precede all stage identities.
-        var import = carried + ",work,proofBytes";
-        text.Append("CALL { WITH ").Append(import);
-        if(entity!=null)
-            text.Append(" UNWIND range(0,size(entityProofs)-1) AS pos RETURN -3 AS phase,pos AS position,-1 AS sourcePosition,entityProofs[pos] AS proof,size(entityProofs) AS nativeCount,0 AS stageWork UNION ALL WITH ").Append(import);
-        text.Append(" RETURN -2 AS phase,-1 AS position,-1 AS sourcePosition,null AS proof,size(input) AS nativeCount,work AS stageWork ")
-            .Append("UNION ALL WITH ").Append(import)
-            .Append(" UNWIND range(0,size(input)-1) AS pos RETURN -1 AS phase,pos AS position,pos AS sourcePosition,input[pos] AS proof,size(input) AS nativeCount,work AS stageWork ");
-        for (var index = 0; index < query.ResultStages.Count; index++)
-        {
-            var list = "s" + (index + 1);
-            text.Append("UNION ALL WITH ").Append(import).Append(" RETURN ").Append(index)
-                .Append(" AS phase,-1 AS position,-1 AS sourcePosition,null AS proof,size(").Append(list).Append(") AS nativeCount,work AS stageWork ")
-                .Append("UNION ALL WITH ").Append(import).Append(" UNWIND range(0,size(").Append(list).Append(")-1) AS pos RETURN ").Append(index)
-                .Append(" AS phase,pos AS position,").Append(list).Append("[pos] AS sourcePosition,null AS proof,size(").Append(list).Append(") AS nativeCount,work AS stageWork ");
-        }
-        if (terminal != null)
-        {
-            var final = "s" + query.ResultStages.Count;
-            // Reduction consumes captured scalar cells, never a second MATCH.
-            // A negative count is an explicit exhausted-work marker, not true.
-            text.Append("UNION ALL WITH ").Append(import).Append(" RETURN ").Append(query.ResultStages.Count)
-                .Append(" AS phase,-1 AS position,-1 AS sourcePosition,null AS proof,CASE WHEN work+size(")
-                .Append(final).Append(")<=").Append(maximumWork).Append(" AND proofBytes<=").Append(maximumProof)
-                .Append(" THEN size([position IN ").Append(final).Append(" WHERE NOT coalesce((")
-                .Append(filters.Translate(terminal)).Append("),false)]) ELSE -1 END AS nativeCount,work AS stageWork ");
-        }
-        if (numeric != null)
-            AppendSelectedIntegerReduction(text, import, "s" + query.ResultStages.Count, query.ResultStages.Count,
-                maximumWork, maximumProof, numeric, binder.Bind);
-        text.Append("} RETURN phase,position,sourcePosition,proof,nativeCount,stageWork ORDER BY phase ASC,position ASC");
-        if (text.Length > 1024 * 1024) throw new NeoCqlLimitException("Native composition exceeds its statement-size budget.");
-        return new NeoCqlCompositionCommand(text.ToString(), parameters);
+        return carried;
     }
+
 }
