@@ -30,5 +30,11 @@
     "failure": "Exact-scope guard: descriptor included2future CSV paths while actual frozen source changes8paths. Descriptor corrected to exact8; source/gates unchanged. No inventory/build/runtime executed."
   },
   "pins": "verified",
-  "temporaryIndex": "removed"
+  "temporaryIndex": "removed",
+  "correctedInventoryRun": {
+    "id": 44989036969,
+    "control": "0506d8206d5df7935075cf9ef1c33eab9b7e4e6c",
+    "status": "queued",
+    "mode": "inventory-only-no-runtime-no-secrets"
+  }
 }
