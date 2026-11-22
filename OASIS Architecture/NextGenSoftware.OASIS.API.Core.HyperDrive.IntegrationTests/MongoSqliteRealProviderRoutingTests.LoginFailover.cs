@@ -35,12 +35,14 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 AutoFailOverProviders = "MongoDBOASIS,SQLLiteDBOASIS", AutoFailOverProvidersForAvatarLogin = "MongoDBOASIS,SQLLiteDBOASIS",
                 AutoLoadBalanceProviders = "MongoDBOASIS", AutoReplicationProviders = "MongoDBOASIS",
                 MongoDBOASIS = new() { ConnectionString = uri, DBName = database, NativeImportDBName = database } } } };
-        var mongo = new MongoDBOASIS(uri, database, dna);
-        var sqlite = new SQLLiteDBOASIS($"Data Source={path};Pooling=False");
+        MongoDBOASIS? mongo = null;
+        SQLLiteDBOASIS? sqlite = null;
         var pauseAttempted = false;
         Exception? testFailure = null;
         try
         {
+            mongo = new MongoDBOASIS(uri, database, dna);
+            sqlite = new SQLLiteDBOASIS($"Data Source={path};Pooling=False");
             Assert.DoesNotContain(database, await (await client.ListDatabaseNamesAsync()).ToListAsync());
             var manager = new ProviderManager(null, dna) {
                 IsAutoFailOverEnabled = true, IsAutoLoadBalanceEnabled = false, IsAutoReplicationEnabled = false };
@@ -103,8 +105,8 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 primaryAvailable = true;
             }
             catch (Exception error) { cleanup.Add(error); }
-            try { sqlite.Dispose(); } catch (Exception error) { cleanup.Add(error); }
-            try { await mongo.DeActivateProviderAsync(); } catch (Exception error) { cleanup.Add(error); }
+            try { sqlite?.Dispose(); } catch (Exception error) { cleanup.Add(error); }
+            try { if (mongo != null) await mongo.DeActivateProviderAsync(); } catch (Exception error) { cleanup.Add(error); }
             if (primaryAvailable)
             {
                 try

@@ -33,8 +33,8 @@
     "candidateCore": "370bd534ebb0924455baa30e95c614c8bd1a53d5",
     "coreTag": "qualification/login-failover-current-2026-11-22-370bd534",
     "base": "6608498b164673e2258b3201be2aa8ef31db3d89",
-    "candidate": "1820d0745c259c193db4b09ec2aeba24782b1414",
-    "tag": "qualification/login-failover-current-2026-11-22-1820d074",
+    "candidate": "fbaeaf90ba116712d46384705527cbd836b9f002",
+    "tag": "qualification/login-failover-current-2026-11-22-fbaeaf90",
     "paths": [
       "Docker/oasis-dependency-versions.env",
       "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
@@ -52,14 +52,16 @@
       "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Middleware/JwtMiddleware.cs",
       "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Program.cs"
     ],
-    "status": "prepared, not compiled/native-tested/deployed; not selected by current35case run"
+    "status": "prepared, not compiled/native-tested/deployed; not selected by current35case run",
+    "previousCandidate": "1820d0745c259c193db4b09ec2aeba24782b1414"
   },
   "nativeRegression": {
     "file": "OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/MongoSqliteRealProviderRoutingTests.LoginFailover.cs",
     "case": "ALoginDeadlineDoesNotSuppressTheRealSqliteFallback",
-    "blob": "0148e63ccdcb203d1e6580d55164568f5acf0fad",
+    "blob": "a291e74b1a5bdc73ad4c85b9282a9fdd668918ed",
     "status": "written, not compiled/run",
     "guard": "Exact owned127.0.0.1:27029 URI, inspected expected Mongo image/name/host binding, unique native MongoDB+SQLite, one deadline then real second sign-in/acknowledged persisted SQLite session.",
-    "cleanup": "Unpause inspection, provider disposal, owned Mongo drop/absence, validated exact SQLite directory removal; failures retained/aggregated, outer runner always-container cleanup remains required."
+    "cleanup": "Unpause inspection, provider disposal, owned Mongo drop/absence, validated exact SQLite directory removal; failures retained/aggregated, outer runner always-container cleanup remains required.",
+    "constructionGuard": "Provider constructors are inside the cleanup guard; partial construction still disposes created providers and removes owned SQLite directory."
   }
 }
