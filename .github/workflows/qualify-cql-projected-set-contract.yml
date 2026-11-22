@@ -45,7 +45,7 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
-      - name: Verify selected-set capture, compilation and one-attempt endpoint
+      - name: Verify selected-set capture and endpoint with the authoritative DNA mode gate
         working-directory: OASIS
         shell: pwsh
         run: |
