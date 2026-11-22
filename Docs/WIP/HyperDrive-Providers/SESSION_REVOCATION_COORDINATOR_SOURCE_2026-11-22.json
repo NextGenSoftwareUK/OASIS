@@ -1,7 +1,7 @@
 {
   "base": "eaebc1182df6aa84b8f2f75b62f718198564b09b",
-  "candidate": "a1bbae4f1386b57d2639854ad3a9e5747259d184",
-  "tag": "qualification/session-revocation-coordinator-2026-11-22-a1bbae4f",
+  "candidate": "42239f939e6cb37d669eda7c5f0890cb0c18aa2e",
+  "tag": "qualification/session-revocation-owned-2026-11-22-42239f93",
   "status": "Internal source implementation only; uncompiled/unrun/unwired/undeployed",
   "behavior": "One shared cutoff; each supplied authority attempted once; acknowledged count and completed/failed authorities retained; any incomplete authority returns error rather than global success.",
   "remaining": [
@@ -9,5 +9,7 @@
     "Wire existing selected/global endpoints and OPORTAL",
     "Real-provider native verification"
   ],
-  "cleanup": "Temporary index/lock removed; no local runtime/build/download/env/database or changed physical checkout."
+  "cleanup": "Temporary index/lock removed; no local runtime/build/download/env/database or changed physical checkout.",
+  "previousCandidate": "a1bbae4f1386b57d2639854ad3a9e5747259d184",
+  "cloneCorrection": "Use existing DetachForProfile to own credential objects and version/provider dictionaries; shallow Detach shared credentials. Source review only, not runtime acceptance."
 }
