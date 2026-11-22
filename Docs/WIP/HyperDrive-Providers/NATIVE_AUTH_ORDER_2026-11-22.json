@@ -7,5 +7,7 @@
   "correction": "Explicitly register and order native-host authorization after bearer authentication; retain framework checkout authorization.",
   "next": "Requalify same candidate using corrected control host; no accepted provider or middleware cohorts replayed separately.",
   "cleanup": "No download, build, database, environment or new worktree created; temporary Git index removed in finally.",
-  "remainingSource": "Existing account billing-admission work remains unstaged and excluded from this host-only correction."
+  "remainingSource": "Existing account billing-admission work remains unstaged and excluded from this host-only correction.",
+  "verificationRun": 45079998287,
+  "verificationState": "in_progress observed via GitHub API; no acceptance claimed"
 }
