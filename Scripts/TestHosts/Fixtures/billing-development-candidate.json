@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "Billing admission source and real owned-primary failover qualification pending",
+  "status": "Billing admission and invoice document source; corrected owned empty ledger initialization",
   "base": "aa6f1cb26d8b8a9393d8ca440bdd140c4162a239",
-  "candidate": "97031a02b65d0e65ecf60db5e631afa1905ac4e9",
-  "tag": "qualification/account-billing-admission-20261122",
+  "candidate": "2faa1118c13c4a9b00d4dfb5578e1b9868ba511f",
+  "tag": "qualification/billing-invoice-documents-20261122",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
     "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
