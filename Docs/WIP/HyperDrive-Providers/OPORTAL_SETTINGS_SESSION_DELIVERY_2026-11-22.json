@@ -54,7 +54,7 @@
       "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
       "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarAdminController.cs"
     ],
-    "status": "reviewed-source-awaiting-combined-build",
+    "status": "combined-source-compiled-not-current-Development-graph",
     "inventory": {
       "managers": 933,
       "routes": 827,
@@ -73,8 +73,13 @@
     "buildRun": {
       "id": 44995824952,
       "control": "23076a5fd694aceda2abc9893ea553d71a53d402",
-      "status": "queued",
-      "mode": "compile-only-WEB4-WEB5-operator-tests-no-runtime-no-secrets"
+      "status": "completed",
+      "mode": "compile-only-WEB4-WEB5-operator-tests-no-runtime-no-secrets",
+      "conclusion": "success",
+      "job": 137126520937,
+      "web4BuildElapsed": "00:05:05.21",
+      "web5BuildElapsed": "00:00:31.07",
+      "operatorTestsBuildElapsed": "00:00:07.75"
     }
   },
   "rolloutServices": [
@@ -111,5 +116,66 @@
     "parentSource": "No selected session model/field references in tracked WEB7-WEB10 source.",
     "web6": "Pinned Git object f042a533548f4ac8a9649f98b259a9024d802bf7 missing locally; recursive read refused. No checkout switch/fetch/source mutation or absence claim. Actual WEB6 build/rollout remains required before its acceptance.",
     "scope": "Source search only; not a build or hosted proof. Metadata service identities selected without variables/DNA output."
+  },
+  "currentDevelopmentComposition": {
+    "development": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+    "coreBase": "eef9f1a1d6bca1041c0971fadf764c2664f64d26",
+    "core": "a7d15b4ffc3fbcedd3c7164f06ba8fafb262a563",
+    "coreTag": "qualification/portal-current-2026-11-22-a7d15b4f",
+    "corePaths": [
+      "Managers/AvatarManager/AvatarManager-Session.cs",
+      "Objects/Avatar/AvatarSessionManagement.cs",
+      "Services/Subscriptions/MongoUsageOutboxStore.cs",
+      "Services/Subscriptions/UsageExecutionContracts.cs"
+    ],
+    "inventoryProof": "Core Managers tree unchanged by coalescing; combined Managers input byte-identical to e990. No portal Core path overlap; preserve all coalescing changes.",
+    "status": "source-reviewed-pins-verified-awaiting-current-graph-build-only",
+    "candidate": "f688e6fe3f08230ad9006e1ae615cec423b090db",
+    "base": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+    "tag": "qualification/portal-current-2026-11-22-f688e6fe",
+    "paths": [
+      "Docker/oasis-dependency-versions.env",
+      "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
+      "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
+      "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarAdminController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAdminController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionNotificationController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionUsageSeriesController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppAccounts.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppBillingConsent.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppOveragePrices.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppRequestCharges.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppStatementPreparation.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppUsageSettingsPatch.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/ISubscriptionBillingRepository.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Admin.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.AppAccounts.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.AppBilling.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Billing.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Overages.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Owners.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Pool.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PaidOverageBillingService.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PaidOverageStatements.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalChargeConsent.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalChargeCorrections.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalOverageRequestJsonConverters.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalStatementPreparation.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/StripePaidOverageGateway.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionAdminModels.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionModels.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionUsageModels.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageSeries.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
+      "Scripts/SubscriptionLedger.OutboxAdmin.Tests/OutboxAdminTests.cs",
+      "Scripts/SubscriptionLedger.OutboxAdmin/OutboxAdminCommand.cs",
+      "Scripts/SubscriptionLedger.OutboxAdmin/README.md"
+    ],
+    "inventoryReuse": "Controllers and CSVs byte-identical to reviewed812e1aaa; combined Core Managers input also identical. Zero portal-source overlap with coalescing; no inventory regeneration needed."
   }
 }
