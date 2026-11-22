@@ -58,10 +58,10 @@ jobs:
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-current-composition-ci -Operation {
-            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlBooleanTextCaseWireTests' --results-directory TestResults/SetContract --logger 'trx;LogFileName=entry.trx'
+            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlBooleanTextCaseWireTests|FullyQualifiedName~CqlInt32CoalesceWireTests' --results-directory TestResults/SetContract --logger 'trx;LogFileName=entry.trx'
             if ($LASTEXITCODE) { throw 'Selected-set contract failed' }
             [xml]$report = Get-Content TestResults/SetContract/entry.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '3' -or $report.TestRun.ResultSummary.Counters.total -ne '3') { throw 'All three conditional-text transport controls must pass' }
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '6' -or $report.TestRun.ResultSummary.Counters.total -ne '6') { throw 'All six computed-scalar transport controls must pass' }
             dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI /m:2 /nr:false /p:UseSharedCompilation=false
             if ($LASTEXITCODE) { throw 'Actual WEB4 composition failed to compile' }
             dotnet build "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI" /m:2 /nr:false /p:UseSharedCompilation=false
@@ -69,7 +69,7 @@ jobs:
             $source=(git rev-parse HEAD).Trim()
             if ($source -ne $env:EXPECTED_SOURCE) { throw 'Exact checked-out source differs' }
             $core=(git -C "OASIS Architecture/NextGenSoftware.OASIS.API.Core" rev-parse HEAD).Trim()
-            @{source=$source;core=$core;testsPassed=3;web4Compiled=$true;web5Compiled=$true;dataWrites=0} | ConvertTo-Json | Set-Content TestResults/SetContract/source.json -Encoding utf8
+            @{source=$source;core=$core;testsPassed=6;web4Compiled=$true;web5Compiled=$true;dataWrites=0} | ConvertTo-Json | Set-Content TestResults/SetContract/source.json -Encoding utf8
 
           }
       - uses: actions/upload-artifact@v7

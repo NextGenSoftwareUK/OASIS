@@ -15,7 +15,13 @@ The physical checkout contains unrelated concurrent changes: use the established
 
 Shared Development advanced to **546dfb451cb11a8ec9355d2d25db853bab16617a** with the peer verified portal batch. Its rollout is separate from the last accepted demo evidence below. A preserved combined metadata candidate **d147fd8995430adf085a116e7c6a412a545e3634** / Core **3f5156e6e2cb7f6f9fd29ca6fa417dfe75808ce1** is prepared; manual exact-source combined WEB4/WEB5 build and three metadata transport controls44998378698 running; qualification, new exact image/package and runtime acceptance remain open. Earlier01de image/package cannot certify this changed runtime.
 
-## Next release: conditional text
+## Next release: combined computed scalars
+
+Selected full candidate **09d61416ea4ed2926bf044e211fc73502ab4adbe** / Core **3696bd32ff84ee49db4b189dfcea946da7172dbd** preserves current portal Development546dfb45 and includes both Boolean metadata CASE and nullable Int32 COALESCE. Native provider/Query/API trees match their accepted cohorts; six combined transport controls plus actual WEB4/WEB5 compilation are required before a new exact image/package and live acceptance. No deployment acceptance yet.
+
+Metadata-only baseline d147fd89/Core3f5156e6 passed44998378698: three transport controls, actualWEB4/WEB5, exact source-stamped artifact14744173953/1922bytes/SHA4c030f20b8dae0c66f69c8f9ccc970fc99181892d2fcc37c89eafd1c3c8c53e2. [Baseline proof](BOOLEAN_METADATA_CURRENT_COMPOSITION_ACCEPTANCE_2026-11-22.json).
+
+### Original metadata cohort
 
 **Typed Boolean metadata candidate:** root **01de83ad1705423bd7f60e9a8fdb35e2dbf033ed**, Core **74d4f046b2f49893a19c40e161e73999772ab412**.
 
@@ -34,7 +40,7 @@ Shared Development advanced to **546dfb451cb11a8ec9355d2d25db853bab16617a** with
 Nullable Int32 coalescing passed representative native qualification44997253843 on all three shipping providers (four checks/store, five isolated records, exact cleanup) and API44997487846 (three controls plus actual WEB4 build). [Native proof](INT32_COALESCE_NATIVE_ACCEPTANCE_2026-11-22.json), [API proof](INT32_COALESCE_WIRE_ACCEPTANCE_2026-11-22.json).
 SQL website aaf83abafe72bf6816304adf1e0244729d5a2fd2 adds COALESCE(CAST(metadata.stock AS INT32),0); three new parser controls and three changed-parser text regressions passed in RAM.
 Ask integer guidance and one focused review UI journey also passed on website2973da776e44caedf3cef650abdd862ace4865d8; no model inference claim.
-These proofs use Core703310f2 before portal composition. Current feature Core3696bd32 preserves that Queries tree and the peer portal files; combined-graph release qualification/image, real WEB6 inference, hosted integer acceptance and broader numeric domains remain open. Keep this successor out of the frozen metadata-only candidate d147fd89.
+These proofs use Core703310f2 before portal composition. Current feature Core3696bd32 preserves that Queries tree and the peer portal files; combined-graph release qualification/image, real WEB6 inference, hosted integer acceptance and broader numeric domains remain open. Metadata-only d147fd89 stays frozen; the selected full candidate above qualifies both features together.
 
 ## Full scope and remaining gaps
 
