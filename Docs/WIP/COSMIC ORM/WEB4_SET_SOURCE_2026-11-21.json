@@ -11,11 +11,24 @@
   "requestDetached": true,
   "sourceAdmissionProfileUpdated": true,
   "deployedAdmissionUpdated": false,
-  "qualificationSource": "4236d459f2089ce45f5b4415cb682479f7c06d59",
+  "qualificationSource": "f0928cdbe3488b7e3324ef1685af9a1345ae2953",
   "workflow": "qualify-cql-set-web4.yml",
   "cases": 6,
   "automaticRunExpected": true,
-  "run": 44965618495,
   "status": "in_progress",
-  "conclusion": null
+  "conclusion": null,
+  "booleanSource": "ed07e4cbd49fd531b33f997b82b6a5059473f6c5",
+  "sourceType": "CqlSetV1Source",
+  "booleanWhereImplemented": true,
+  "failedQualifications": [
+    {
+      "run": 44965618495,
+      "job": 137033851719,
+      "source": "4236d459f2089ce45f5b4415cb682479f7c06d59",
+      "reason": "CS0117: linked test host included controller but omitted new CqlSetV1Endpoint.cs",
+      "testsExecuted": 0
+    }
+  ],
+  "priorRun": 44965618495,
+  "run": 44966062642
 }
