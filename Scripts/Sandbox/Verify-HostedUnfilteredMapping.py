@@ -31,13 +31,20 @@ def main():
     parser.add_argument("--computed-rows", action="store_true",
         help="Verify computed columns across one owned full Holon and approved native virtual rows.")
     parser.add_argument("--website", help="Exact website compiler SHA for computed rows.")
+    parser.add_argument("--release-proof", type=Path, help="Explicit local qualification journal for the exact computed-row release.")
     args = parser.parse_args()
     if args.computed_rows:
         if args.snapshot or not re.fullmatch("[0-9a-f]{40}", args.website or ""):
             parser.error("Computed rows use their own exact compiler and cannot replay snapshot qualification.")
-        release=json.loads((ROOT/"LocalState/COSMIC/mapped-computed-image-handoff.json").read_text())
+        if args.release_proof is None:
+            parser.error("Computed rows require an explicit --release-proof for the exact qualified revision.")
+        proof_path = args.release_proof.resolve()
+        if not proof_path.is_relative_to((ROOT/"LocalState/COSMIC").resolve()) or not proof_path.is_file():
+            parser.error("Use an existing qualification proof inside LocalState/COSMIC.")
+        release=json.loads(proof_path.read_text())
         if (release.get("source")!=args.commit or release.get("packageAccepted") is not True
-                or release.get("nativeAccepted") is not True or release.get("compositionAccepted") is not True):
+                or release.get("nativeAccepted") is not True or release.get("compositionAccepted") is not True\
+                or release.get("imageAccepted") is not True):
             parser.error("Wait for the exact mapped native/composition/image package qualification.")
         WEBSITE=args.website
     provider = args.provider

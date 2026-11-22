@@ -57,7 +57,7 @@ public sealed partial class CqlV1Web4NativeTests
             timings.Add(kind.ToString(),clock.ElapsedMilliseconds);
             Assert.IsFalse(result.IsError,result.Message+result.Exception);Assert.IsTrue(result.IsLoaded);
             return result.Result.Providers.Single().Rows.Select(row=>
-                row.Get<string>("Key")+"|"+(row.Get<string>("Variant")??"<null>")).ToArray();
+                (string)row["Key"]+"|"+((string?)row["Variant"]??"<null>")).ToArray();
         }
         CollectionAssert.AreEquivalent(new[]{"same|<null>","same|different"},await Read(CosmicSetQueryKind.Union));
         CollectionAssert.AreEqual(new[]{"same|<null>","same|different","same|<null>"},await Read(CosmicSetQueryKind.Concat));
