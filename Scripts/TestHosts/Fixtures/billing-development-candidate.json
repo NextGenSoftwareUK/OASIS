@@ -1,6 +1,6 @@
 {
   "scope": "billing",
-  "status": "native-mfa-accepted-awaiting-http-sign-in",
+  "status": "owner-authorized-temporary-secret-provider-verification",
   "base": "c4a65629d4136218be05b04a887490216c050e7a",
   "candidate": "e5aa77161465fa6c683746bac49ea647dd7adeb0",
   "tag": "qualification/session-reviewed-2026-11-21-e5aa7716",
@@ -60,5 +60,5 @@
   },
   "remaining": "Review regenerated inventory, compile and verify actual changed HTTP flow. Reliable warning email delivery and hosted acceptance remain open.",
   "nativeHost": "HotspotHttpNative",
-  "nativeMode": "mfa-http"
+  "nativeMode": "billing-warning-provider"
 }

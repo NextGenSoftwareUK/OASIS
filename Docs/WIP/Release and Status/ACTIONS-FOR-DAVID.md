@@ -21,7 +21,7 @@ Last updated 18 November 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (me
 | 7 | Older items: phone tests, WSL disk, Vercel branch check, oasisweb4 site decision, iOS runtime script, Git LFS budget, upstream Holochain PRs | D |
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 | 11 | Choose a Windows maintenance window for high AppX/Windows AI memory use | G |
-| H1 | Choose isolated Resend test credential source (no secrets in chat) | H |
+| H1 | Authorized existing dev credential in temporary CI secret; agent execution/cleanup pending | H |
 
 ---
 
@@ -840,8 +840,10 @@ HD-CLOUD-READINESS: Cloud readiness requirements: the newer CQL chat titled Clou
 
 ## Part H — Isolated warning-email provider verification (21 November 2026)
 
-- **H1 — Pending credential-source decision (21 November 2026).** The new OPORTAL warning action is implemented and compiled; real Mongo event persistence, current HTTP capability/disabled/anonymous checks and cleanup have passed. Real Resend acceptance and the enabled button flow are still unverified. Read-only selected configuration confirms dev WEB4 has a Resend key, warning emails enabled and email not globally disabled. The OASIS GitHub repository has no Resend/email-test secret; no credential value was printed or copied.
+- **H1 — Authorized; temporary CI secrets staged, verification/cleanup pending (21 November 2026).** The new OPORTAL warning action is implemented and compiled; real Mongo event persistence, current HTTP capability/disabled/anonymous checks and cleanup have passed. Real Resend acceptance and the enabled button flow are still unverified. Read-only selected configuration confirms dev WEB4 has a Resend key, warning emails enabled and email not globally disabled. The OASIS GitHub repository has no Resend/email-test secret; no credential value was printed or copied.
 - **Decision/steps:** either add a dedicated scoped Resend test credential as GitHub Actions secret `OASIS_WARNING_TEST_RESEND_KEY` in [OASIS repository secrets](https://github.com/NextGenSoftwareUK/OASIS/settings/secrets/actions), or authorize the agent to stage the existing dev Resend credential in that isolated test secret. Do not paste the key in chat. The test must use the provider's controlled test recipient, never a real user, one bounded new submission and an identical idempotent replay, owned loopback Mongo only, no shared Atlas/auth/payment operations. Remove the temporary CI secret after accepted verification if it is not retained for a designated reusable test environment.
 - **Reason:** the native runner currently cannot access an approved provider credential. Moving the existing deployment credential into CI changes its access scope and requires this owner decision. No live-node email/DNA setting change is needed.
 - **Agent-owned follow-up:** prepare exact credential-safe runner/recipient/source, verify actual provider ID and durable acknowledgement, exercise the enabled OPORTAL control, keep provider acceptance distinct from inbox delivery, and clean up. Engineering and runner work is not David's task.
-- Evidence: [billing delivery record](../HyperDrive-Providers/OPORTAL_PERSONAL_BILLING_DELIVERY_GAP_2026-11-21.json), [current status](../HyperDrive-Providers/CURRENT_STATUS.md). Other OPORTAL/security/provider work continues while this decision is pending.
+- Evidence: [billing delivery record](../HyperDrive-Providers/OPORTAL_PERSONAL_BILLING_DELIVERY_GAP_2026-11-21.json), [current status](../HyperDrive-Providers/CURRENT_STATUS.md). David authorized using the existing dev credential in a temporary CI secret in this chat. Agent must stage it without printing/file persistence, run the bounded test and remove the temporary secret afterward. No further owner decision is pending.
+
+H1 execution update: existing dev credential and configured sender staged in OASIS_WARNING_TEST_RESEND_KEY and OASIS_WARNING_TEST_EMAIL_FROM; selected metadata verified22November03:41/03:49UTC. Values stayed in process memory/stdin only, no files/log output. Initial sender upload failed; metadata reconciled then one bounded retry succeeded. Agent must remove both temporary secrets after terminal provider verification and verify absence. Deployment settings unchanged.
