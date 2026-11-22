@@ -27,8 +27,8 @@ public partial class Neo4jOASIS
         {
             check();
             object entity = null;
-            if(record.Count!=(query.SelectsChildEntity ? 6 : 5) || !record.TryGetValue("proof",out var proof)
-                || query.SelectsChildEntity && !record.TryGetValue("entity",out entity))
+            if(record.Count!=((query.SelectsChildEntity || query.SelectsLeftEntity) ? 6 : 5) || !record.TryGetValue("proof",out var proof)
+                || (query.SelectsChildEntity || query.SelectsLeftEntity) && !record.TryGetValue("entity",out entity))
                 throw Invalid("Native join envelope is invalid.");
             var kind=Number(record,"kind");var lp=Number(record,"lp");var rp=Number(record,"rp");var count=Number(record,"nativeCount");
             if(kind<previousKind || kind is <0 or >3 || count<0 || kind!=3 && count==0)
@@ -81,16 +81,16 @@ public partial class Neo4jOASIS
                     else values[index]=column.PresenceWhenMissing?r==null:r!=null;
                     Reserve(values[index],ref outputBytes,limits.MaximumPayloadBytes);
                 }
-                if (query.SelectsChildEntity)
+                if (query.SelectsChildEntity || query.SelectsLeftEntity)
                 {
                     if (entity is not IReadOnlyDictionary<string,object> child || child.Count != 3
                         || !child.TryGetValue("snapshot",out var snapshot) || !child.ContainsKey("id") || !child.ContainsKey("revision"))
-                        throw Invalid("Native joined child identity or revision changed within the read.");
+                        throw Invalid("Native selected entity identity or revision changed within the read.");
                     if (snapshot is not string json)
-                        throw new NeoCqlLimitException("Native joined child exceeds the entity payload budget.");
+                        throw new NeoCqlLimitException("Native selected entity exceeds the entity payload budget.");
                     outputBytes = checked(outputBytes + Encoding.UTF8.GetByteCount(json));
                     if (outputBytes > limits.MaximumPayloadBytes)
-                        throw new NeoCqlLimitException("Native joined child entities exceed the output byte budget.");
+                        throw new NeoCqlLimitException("Native selected entities exceed the output byte budget.");
                     children.Add(ReadCqlCanonicalSnapshot(child,json));
                 }
                 pairs.Add(new CosmicJoinRow(l?.Id ?? Guid.Empty, r?.Id, values));
@@ -104,7 +104,7 @@ public partial class Neo4jOASIS
                 (query.OutputLimit.HasValue ? previousKind != 3 : pairs.Count!=pairCount))
                 throw Invalid("Native join stream is incomplete.");
             return new CosmicJoinPacket(left.ToArray(),right.ToArray(),pairs.ToArray(),leftCount,rightCount,pairCount,
-                query.SelectsChildEntity ? children.ToArray() : null);
+                query.SelectsChildEntity ? children.ToArray() : null, query.SelectsLeftEntity ? children.ToArray() : null);
         }
 
         private CosmicJoinInputRow Source<T>(object raw,CosmicQuery<T> intent,bool isLeft,ref long bytes,int maximumBytes) where T:IHolon

@@ -84,7 +84,7 @@ public partial class Neo4jOASIS
         }
         var navigation=query.Join.RestrictsRightToLeftParents;
         var import=navigation ? "WITH leftInput " : "";
-        var leftProof=navigation
+        var leftProof=navigation || query.SelectsLeftEntity
             ? "WITH leftInput,li,leftInput[li] AS entry RETURN 0 AS kind,li AS lp,-1 AS rp,"
                 +"entry{.id,.visible,.creator,.valid,.domainValid,.cycle,.traversalLimit,.payloadLimit,.bytes,.keys,.values,.ordering}"
                 +" AS proof,size(leftInput) AS nativeCount "
@@ -116,11 +116,12 @@ public partial class Neo4jOASIS
                 + "entry{.id,.visible,.creator,.valid,.domainValid,.cycle,.traversalLimit,.payloadLimit,.bytes,.keys,.values,.ordering}"
                 + " AS proof,size(rightInput) AS nativeCount "
             : "RETURN 1 AS kind,-1 AS lp,ri AS rp,rightInput[ri] AS proof,size(rightInput) AS nativeCount ";
-        if (query.SelectsChildEntity)
+        if (query.SelectsChildEntity || query.SelectsLeftEntity)
         {
             var entityLimit = binder.Bind(limits.MaximumPayloadBytes);
             var entityOrder = values.Count == 0 ? "" : "," + string.Join(",", values);
-            output = "WITH kind,lp,rp,proof,nativeCount,CASE WHEN kind=2 THEN rightInput[rp] END AS selected"
+            var entityInput = query.SelectsLeftEntity ? "leftInput[lp]" : "rightInput[rp]";
+            output = "WITH kind,lp,rp,proof,nativeCount,CASE WHEN kind=2 THEN " + entityInput + " END AS selected"
                 + entityOrder + " "
                 + "OPTIONAL MATCH (child:Holon) WHERE elementId(child)=selected.entityLocator "
                 + "AND coalesce(child.ProviderRevisionId,'')=selected.entityRevision "
@@ -173,6 +174,6 @@ public partial class Neo4jOASIS
                     .Select(column => column.Path).ToArray(), maximumRows, maximumBytes,
                 scopeChildren: !isLeft && query.Join.RestrictsRightToLeftParents,
                 includeChildMembership: isLeft && query.Join.RestrictsRightToLeftParents,
-                includeEntityLocator: !isLeft && query.SelectsChildEntity);
+                includeEntityLocator: isLeft ? query.SelectsLeftEntity : query.SelectsChildEntity);
     }
 }

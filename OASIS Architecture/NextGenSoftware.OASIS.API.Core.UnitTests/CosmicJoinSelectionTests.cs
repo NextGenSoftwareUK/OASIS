@@ -137,9 +137,13 @@ public sealed class CosmicJoinSelectionTests
     }
 
     [Fact]
-    public void ReturningAnEntityAsTheEntireSelectionIsRejected()
+    public void EntireLeftEntityHasAnExplicitNativeSelectionWithoutMakingNestedEntitiesScalarPaths()
     {
-        Query().Select((left, right) => left).ErrorCode.Should().Be("CQL_JOIN_SELECTION_UNSUPPORTED");
+        var selected=Query().Select((left,right)=>left);
+        selected.IsError.Should().BeFalse(selected.Message);
+        selected.Result.SelectsLeftEntity.Should().BeTrue();
+        selected.Result.Columns.Should().BeEmpty();
+        Query().Select((left,right)=>new {Entity=left}).IsError.Should().BeTrue();
     }
 
     [Fact]

@@ -17,6 +17,32 @@ public partial class Neo4jNativeCqlTests
         Assert.IsFalse(plan.IsError,plan.Message);return plan.Result;
     }
 
+    [TestMethod]
+    public Task NativeJoinPublishesWholeLeftEntitiesWithMultiplicityAndIndependentPage()
+        =>WithNativeGraph(async fixture=>
+        {
+            var left=CosmicQuery<Holon>.Create().Where(h=>h.Description=="L").OrderBy(h=>h.Name);
+            var right=CosmicQuery<Holon>.Create().Where(h=>h.Description=="R");
+            var selected=left.LeftJoin(right,h=>h.Name,h=>h.Name).Select((l,r)=>l).Result;
+            var read=await GraphManager(fixture.Provider).ExecuteJoinQueryAsync(JoinPlan(selected),new[]{fixture.Provider});
+            Assert.IsFalse(read.IsError,read.Message+read.Exception);
+            var rows=read.Result.Providers.Single().Rows;
+            Assert.AreEqual(3,rows.Count);
+            CollectionAssert.AreEqual(new[]{"coffee","coffee","tea"},rows.Select(row=>row.Value.Name).ToArray());
+            Assert.AreEqual(2,rows.Count(row=>row.HasRight));
+            Assert.AreNotSame(rows[0].Value,rows[1].Value);Assert.AreNotSame(fixture.Root,rows[0].Value);
+            var page=selected.PageOutput(1,1).Result;
+            var paged=await GraphManager(fixture.Provider).ExecuteJoinQueryAsync(JoinPlan(page),new[]{fixture.Provider});
+            Assert.IsFalse(paged.IsError,paged.Message+paged.Exception);
+            Assert.AreEqual(1,paged.Result.Providers.Single().Rows.Count);
+            Assert.AreEqual(rows[1].Value.Id,paged.Result.Providers.Single().Rows.Single().Value.Id);
+        },configure:root=>
+        {
+            root.Name="coffee";root.Description="L";
+            foreach(var child in root.Children){child.Name="coffee";child.Description="R";}
+            var other=root.Children.First().Children.Single();other.Name="tea";other.Description="L";
+        });
+
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public Task NativeJoinPublishesDetachedFanoutAndUnmatchedPresence(bool outer)=>WithNativeGraph(async fixture=>

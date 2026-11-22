@@ -21,6 +21,32 @@ public sealed partial class CosmicCqlNativeTests
         Assert.False(plan.IsError,plan.Message);return plan.Result;
     }
 
+    [Fact]
+    public Task NativeJoinPublishesWholeLeftEntitiesWithMultiplicityAndIndependentPage()
+        =>WithMongoGraph(async fixture=>
+        {
+            var left=CosmicQuery<Holon>.Create().Where(h=>h.Description=="L").OrderBy(h=>h.Name);
+            var right=CosmicQuery<Holon>.Create().Where(h=>h.Description=="R");
+            var selected=left.LeftJoin(right,h=>h.Name,h=>h.Name).Select((l,r)=>l).Result;
+            var read=await Manager(fixture.Provider).ExecuteJoinQueryAsync(JoinPlan(selected),new[]{fixture.Provider});
+            Assert.False(read.IsError,read.Message+read.Exception);
+            var rows=read.Result.Providers.Single().Rows;
+            Assert.Equal(3,rows.Count);
+            Assert.Equal(new[]{"coffee","coffee","tea"},rows.Select(row=>row.Value.Name));
+            Assert.Equal(2,rows.Count(row=>row.HasRight));
+            Assert.NotSame(rows[0].Value,rows[1].Value);Assert.NotSame(fixture.Root,rows[0].Value);
+            var page=selected.PageOutput(1,1).Result;
+            var paged=await Manager(fixture.Provider).ExecuteJoinQueryAsync(JoinPlan(page),new[]{fixture.Provider});
+            Assert.False(paged.IsError,paged.Message+paged.Exception);
+            Assert.Single(paged.Result.Providers.Single().Rows);
+            Assert.Equal(rows[1].Value.Id,paged.Result.Providers.Single().Rows.Single().Value.Id);
+        },configure:root=>
+        {
+            root.Name="coffee";root.Description="L";
+            foreach(var child in root.Children){child.Name="coffee";child.Description="R";}
+            var other=root.Children.First().Children.Single();other.Name="tea";other.Description="L";
+        });
+
     [Theory]
     [InlineData(false)] [InlineData(true)]
     public Task NativeJoinPublishesFanoutAndUnmatchedPresence(bool outer)

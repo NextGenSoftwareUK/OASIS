@@ -31,6 +31,12 @@ Release gates:
 3. Freshly review shared Development/peer source and integrate a scoped verified batch.
 4. Observe required rollouts/running source, then execute the bounded owned full/virtual live check.
 
+## Next parity family — source-only successor
+
+Whole-left native join transport is implemented in shared Core and the actual MongoDB, SQLite and Neo4j readers. It preserves source identity, match multiplicity, unmatched preserved rows, independent native output paging, detached entity copies and permission proof. Two focused Core journeys and one native journey/provider are written, not compiled or executed. Provider reads remain under their existing shared snapshot/transaction; there is no managed source-query fallback.
+
+This successor is **unqualified** and must not be swept into the active mapped-computed release: that immutable candidate stays c25ce0b7/Corebabf7b82 with its existing45014425835 and45014821002 handles. Publish only the qualified candidate, never the latest feature tip merely for synchronization. Standalone GroupJoin collections, whole-both-source grouping and group-level paging remain open; parity counts are unchanged. [Source record](GROUP_JOIN_WHOLE_LEFT_SOURCE_2026-11-22.json).
+
 ## SQL and Ask delivery
 
 Website **83852a7556c03f507e5f252af5246114c3c85f18** inherits the parser/Ask changes from475a4ff3 and enrolls mapped row CASE/text-COALESCE/Int32-COALESCE, Id first and selected-alias ordering. Three parser controls and two changed Ask UI controls passed in RAM. Ask preserves the selected source, refuses mapping substitution, remains free-visitor scoped and requires review before execution.

@@ -87,21 +87,24 @@ public partial class HolonRepository
             deadline.Token.ThrowIfCancellationRequested();
             if (query.OutputLimit.HasValue ? !receivedFacet : pairCount != rows.Count)
                 throw new InvalidDataException("Native join pair count disagrees with its complete stream.");
-            var children = query.SelectsChildEntity ? await ReadMatchedChildren().ConfigureAwait(false) : null;
+            var entities = query.SelectsChildEntity || query.SelectsLeftEntity ? await ReadSelectedEntities().ConfigureAwait(false) : null;
             return new CosmicJoinPacket(left.Rows.Values.ToArray(), right.Rows.Values.ToArray(), rows.ToArray(),
-                left.Count, right.Count, pairCount, children);
+                left.Count, right.Count, pairCount, query.SelectsChildEntity ? entities : null, query.SelectsLeftEntity ? entities : null);
 
-            async Task<IHolon[]> ReadMatchedChildren()
+            async Task<IHolon[]> ReadSelectedEntities()
             {
-                var identities = rows.Select(row => row.RightId ?? throw new InvalidDataException(
-                    "A whole-child result must have a native right identity.")).ToArray();
+                var identities = rows.Select(row => query.SelectsLeftEntity ? row.LeftId : row.RightId
+                    ?? throw new InvalidDataException("A selected entity must have its native source identity.")).ToArray();
+                var uniqueIdentities = identities.Distinct().ToArray();
+                var scope = query.SelectsLeftEntity ? query.Join.Left.Scope : query.Join.Right.Scope;
+                var access = query.SelectsLeftEntity ? query.Join.Left.ReadAccess : query.Join.Right.ReadAccess;
                 var byId = new Dictionary<Guid, IHolon>(identities.Length);
-                foreach (var batch in identities.Chunk(CosmicQueryExpression.MaximumMembershipValues))
+                foreach (var batch in uniqueIdentities.Chunk(CosmicQueryExpression.MaximumMembershipValues))
                 {
-                    var selection = CosmicQuery<Core.Holons.Holon>.Create(query.Join.Right.Scope)
+                    var selection = CosmicQuery<Core.Holons.Holon>.Create(scope)
                         .Where(child => batch.Contains(child.Id));
-                    if (query.Join.Right.ReadAccess != null)
-                        selection = selection.WithReadAccess(query.Join.Right.ReadAccess);
+                    if (access != null)
+                        selection = selection.WithReadAccess(access);
                     if (selection.IsError) throw new InvalidDataException(selection.Message);
                     var read = new MongoCqlTranslator().CompileExecution(selection.Result, batch.Length);
                     var matched = await ReadNativeCqlRowsAsync(read, batch.Length,
@@ -110,8 +113,8 @@ public partial class HolonRepository
                     foreach (var child in matched)
                         byId.Add(child.Id, child);
                 }
-                if (byId.Count != identities.Length)
-                    throw new InvalidDataException("Native child entities do not match the joined identities.");
+                if (byId.Count != uniqueIdentities.Length)
+                    throw new InvalidDataException("Native selected entities do not match the joined identities.");
                 return identities.Select(id => byId[id]).ToArray();
             }
 

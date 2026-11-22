@@ -1,0 +1,24 @@
+{
+  "core": "43c709fcd61c0b580ec79c05da647c3c38b20e7b",
+  "parentBase": "7e0c590732bdcc8ceac088c4c4d492d60d3f8fff",
+  "stage": "source-only native whole-left transport groundwork",
+  "compiled": false,
+  "nativeExecuted": false,
+  "groupJoinImplemented": false,
+  "deployed": false,
+  "existingReleaseSource": "c25ce0b7ac7d6b1de734e31d7bbc2c706de7c384",
+  "representativeChecksPrepared": {
+    "core": 2,
+    "nativeProviders": [
+      "MongoDBOASIS",
+      "SQLLiteDBOASIS",
+      "Neo4jOASIS"
+    ]
+  },
+  "remaining": [
+    "Compile changed Core and three providers",
+    "Run focused whole-left native journeys",
+    "Carry both whole sources for grouped output",
+    "Bind and materialize standalone LINQ GroupJoin collections with group-level paging"
+  ]
+}

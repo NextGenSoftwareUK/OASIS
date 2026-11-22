@@ -22,6 +22,33 @@ public partial class SQLLiteDBOASISIntegrationTests
         return plan.Result;
     }
 
+    [Fact]
+    public async Task NativeJoinPublishesWholeLeftEntitiesWithMultiplicityAndIndependentPage()
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var seed=new[]{
+            new Holon{Name="coffee",Description="left",IsPublic=true},
+            new Holon{Name="tea",Description="left",IsPublic=true},
+            new Holon{Name="coffee",Description="right",IsPublic=true},
+            new Holon{Name="coffee",Description="right",IsPublic=true}};
+        (await provider.SaveHolonsAsync(seed,saveChildren:false)).IsError.Should().BeFalse();
+        var left=CosmicQuery<Holon>.Create().Where(h=>h.Description=="left").OrderBy(h=>h.Name);
+        var right=CosmicQuery<Holon>.Create().Where(h=>h.Description=="right");
+        var query=left.LeftJoin(right,h=>h.Name,h=>h.Name).Select((l,r)=>l).Result;
+        var read=await CosmicManager(provider,true).ExecuteJoinQueryAsync(JoinPlan(provider,query),new[]{provider});
+        read.IsError.Should().BeFalse(read.Message+read.Exception);
+        var rows=read.Result.Providers.Single().Rows;
+        rows.Select(row=>row.Value.Name).Should().Equal("coffee","coffee","tea");
+        rows.Count(row=>row.HasRight).Should().Be(2);
+        rows[0].Value.Should().NotBeSameAs(rows[1].Value);
+        rows[0].Value.Should().NotBeSameAs(seed[0]);
+        var page=query.PageOutput(1,1).Result;
+        var paged=await CosmicManager(provider,true).ExecuteJoinQueryAsync(JoinPlan(provider,page),new[]{provider});
+        paged.IsError.Should().BeFalse(paged.Message+paged.Exception);
+        paged.Result.Providers.Single().Rows.Should().ContainSingle().Which.Value.Id.Should().Be(rows[1].Value.Id);
+    }
+
     [Theory]
     [InlineData(false)] [InlineData(true)]
     public async Task NativeJoinPublishesDetachedFanoutAndUnmatchedPresence(bool outer)
