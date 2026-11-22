@@ -20,5 +20,8 @@
   "rootBase": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
   "rootTag": "qualification/global-session-http-2026-11-22-3d787db8",
   "qualification": "New focused session-global-http mode prepared; unrun.",
-  "managerInventory": "934 methods retained; one SaveAvatarAsync signature removes async keyword for shared private implementation; no added/removed public declarations."
+  "managerInventory": "934 methods retained; one SaveAvatarAsync signature removes async keyword for shared private implementation; no added/removed public declarations.",
+  "qualificationRun": 45064963793,
+  "qualificationControl": "ef10e3af229116525ffaf38ac413b091ef10ccd5",
+  "qualificationStatus": "queued; single dispatch acknowledged and exact head reconciled"
 }
