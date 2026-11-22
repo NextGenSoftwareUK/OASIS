@@ -53,10 +53,15 @@ SQL website aaf83abafe72bf6816304adf1e0244729d5a2fd2 adds COALESCE(CAST(metadata
 Ask integer guidance and one focused review UI journey also passed on website2973da776e44caedf3cef650abdd862ace4865d8; no model inference claim.
 These proofs use Core703310f2 before portal composition. Current feature Core3696bd32 preserves that Queries tree and the peer portal files; combined-graph release qualification/image, real WEB6 inference, hosted integer acceptance and broader numeric domains remain open. Metadata-only d147fd89 stays frozen; the selected full candidate above qualifies both features together.
 
-## Mapped computed scalars — contract work only
+## Mapped computed scalars — native/API integration pending
 
-Core **5240d3bd34d003407fe8b08070203e8d4efb5e1a** extends the native mapping projection descriptor with bounded text/Boolean/Int32 literals and complete computation identity. Projected functions are explicitly refused in source-predicate descriptors; mixed-schema validation compares all literal arguments and rejects null required computed cells.
-This Core successor is unqualified; it is pinned only on the feature branch together with these raw implementations and is excluded from the frozen09d release. Three raw native implementations now use real Mongo aggregation, SQLite SQL and Neo4j Cypher, with bound literal arguments, argument-aware value deduplication and native state/byte accounting. Mapped row API enrollment now captures all three functions and literal identity; corrected three-control descriptor/predicate/aggregate qualification45002198772 plus actual WEB4 build is running. Prior45002037866 is terminal/cancelled after fixture-only CS8752 target-typed params constructors; explicit constructors and the mixed-route compiler overload were corrected in81bce49c before trusting the replacement. SQL and representative mixed real/virtual native checks remain pending. Do not advertise mapped function support or deploy this successor yet.
+Core5240d3bd captures literal identity and exact output/nullability. All three real providers have native CASE/text-COALESCE/Int32-COALESCE implementations. [API qualification45002198772](MAPPED_COMPUTED_WIRE_ACCEPTANCE_2026-11-22.json) passed three controls and actual WEB4 compilation.
+
+Source **5d39eeddbc29f168d81e6a26af355f6531251605**, run **45004657247**, job **137153438592**, is queued. It checks raw mapped computations and real JWT mixed HTTP over full Holons, a stale snapshot and virtual rows: fresh identity wins, distinct literals, null/empty/zero, domain refusal, computed ordering/paging, permissions, settled usage, unchanged records and exact owned cleanup. These assertions have not executed. Both superseded45003939030/45004084607 are terminal/cancelled.
+
+Website **b1764d41720d1effbd3cd0797647cd6bdb3154f3** enrolls mapped SQL row expressions with Id first and selected-alias ordering; three parser controls passed in RAM. Grouped computed expressions remain refused. Native mixed, exact preview and hosted mapping acceptance remain open. No mapped deployment.
+
+Development **24ec05bb5f57cf15b3b18fdd2ed2d987911aba64** differs from accepted09d only in HoloNET manifest pin and ONODEManager gitlink. Preserve peer updates in the next qualified composition. The peer HoloNET commit describes a900-second hApp-install ceiling, separate from480-second conductor readiness; source inspection is not running acceptance.
 
 ## Full scope and remaining gaps
 
@@ -89,12 +94,3 @@ Open examples:
 - Current coalescing fixture is fully closed; no credential files remain. Stop on an ambiguous write outcome and reconcile the original operation, never recreate it.
 - Owner-only actions belong solely in [ACTIONS-FOR-DAVID](../Release%20and%20Status/ACTIONS-FOR-DAVID.md); keep secrets out of chat/source.
 - Detailed accepted/failed evidence and prior chronology remain in [Full progress report](FULL_PROGRESS_REPORT_2026-11-21.md), linked JSON reports and Git history. This handoff replaces repetitive historical status paragraphs without discarding those evidence sources.
-
-
-### 22 November — mapped computed execution and SQL enrollment
-
-API/wire qualification45002198772 remains accepted. New representative raw native journey sourcebc7873be691bcec4aed7d9cbc7184495ff3606f5 is queued as45004084607, covering all three real providers with three isolated native rows/provider, four combined computed columns, distinct same-field literals, null/empty/zero, wrong-domain refusal at the public mapping boundary, owner refusal, no Holon materialization and unchanged-source fingerprints. Not accepted until exact CI execution and cleanup succeed. Earlier45003939030 used the superseded invalid-cell assertion; cancellation acknowledged and terminal cancellation still needs observation.
-
-Website b1764d41720d1effbd3cd0797647cd6bdb3154f3 adds mapped row SQL enrollment for the same functions, canonical Id first and selected-alias ordering. Three focused Node parser controls passed in RAM. One initial fixture omitted required ORDER BY Id; corrected fixture then passed, without changing the ordering contract. Grouped computed functions remain refused. No rendered preview, native mixed merge or hosted mapped acceptance claimed.
-
-No Development push, shared database calls, local build/install/database, new branch or worktree. CI uses owned isolated Mongo/SQLite/Neo4j sources and existing bounded build lease. Only compact journals retained. Full parity stays61/168 plus4/13 separate extensions.

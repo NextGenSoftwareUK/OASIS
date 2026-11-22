@@ -364,3 +364,15 @@ API/wire qualification45002198772 remains accepted. New representative raw nativ
 Website b1764d41720d1effbd3cd0797647cd6bdb3154f3 adds mapped row SQL enrollment for the same functions, canonical Id first and selected-alias ordering. Three focused Node parser controls passed in RAM. One initial fixture omitted required ORDER BY Id; corrected fixture then passed, without changing the ordering contract. Grouped computed functions remain refused. No rendered preview, native mixed merge or hosted mapped acceptance claimed.
 
 No Development push, shared database calls, local build/install/database, new branch or worktree. CI uses owned isolated Mongo/SQLite/Neo4j sources and existing bounded build lease. Only compact journals retained. Full parity stays61/168 plus4/13 separate extensions.
+
+### 22 November — mixed computed qualification
+
+Core5240d3bd captures literal identity and exact output/nullability. All three real providers have native CASE/text-COALESCE/Int32-COALESCE implementations. [API qualification45002198772](MAPPED_COMPUTED_WIRE_ACCEPTANCE_2026-11-22.json) passed three controls and actual WEB4 compilation.
+
+Source **5d39eeddbc29f168d81e6a26af355f6531251605**, run **45004657247**, job **137153438592**, is queued. It checks raw mapped computations and real JWT mixed HTTP over full Holons, a stale snapshot and virtual rows: fresh identity wins, distinct literals, null/empty/zero, domain refusal, computed ordering/paging, permissions, settled usage, unchanged records and exact owned cleanup. These assertions have not executed. Both superseded45003939030/45004084607 are terminal/cancelled.
+
+Website **b1764d41720d1effbd3cd0797647cd6bdb3154f3** enrolls mapped SQL row expressions with Id first and selected-alias ordering; three parser controls passed in RAM. Grouped computed expressions remain refused. Native mixed, exact preview and hosted mapping acceptance remain open. No mapped deployment.
+
+Development **24ec05bb5f57cf15b3b18fdd2ed2d987911aba64** differs from accepted09d only in HoloNET manifest pin and ONODEManager gitlink. Preserve peer updates in the next qualified composition. The peer HoloNET commit describes a900-second hApp-install ceiling, separate from480-second conductor readiness; source inspection is not running acceptance.
+
+No local build/install/database/output/archive created. Superseded CI cancellations verified; only45004657247 remains queued. Git-object peer inspection made no checkout/reset or deployment/configuration/data changes.
