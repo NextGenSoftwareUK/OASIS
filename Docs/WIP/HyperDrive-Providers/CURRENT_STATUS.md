@@ -1,3 +1,5 @@
+2026-11-21 BILLING WEB4 COMPILE44968824364 confirmed in_progress on34b06098/root0b819b40; single dispatch, compile only, no native fixture/accepted replay. Email and native/hosted gates remain open.
+
 2026-11-21 BILLING CORRECTED INVENTORY ACCEPTED SOURCE ONLY:44968594037 artifact14732458054/40180bytes4entries exact hashes,930managers831routes. Exact source-line identities match prior; only9expected local-to-injected dispositions corrected, all12restored-controller actions nonlocal. Newroot0b819b40 onDev0cfb carries reviewed CSV/classifier/tests; paired pins pass. Compile next; no runtime/payment/email/hosted acceptance. RAM ZIP disposed/original CSV restored/temp index removed; no local build/env/DB/download.
 
 2026-11-21 CORRECTED BILLING INVENTORY44968594037 confirmed in_progress on16f0cbacef, one dispatch, no runtime. Existing Competition exact0cfb seven dev deployment handles all now SUCCESS; selected metadata only, running settings/full Startup/hosted acceptance remain open. No redeploy/shared API/DB/local build/download/env.
