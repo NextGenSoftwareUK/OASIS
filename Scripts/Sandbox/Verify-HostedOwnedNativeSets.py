@@ -24,6 +24,7 @@ def main():
     parser.add_argument("--website", required=True)
     parser.add_argument("--resume-before-first-save", action="store_true")
     parser.add_argument("--selected-columns", action="store_true")
+    parser.add_argument("--computed-scalars", action="store_true")
     parser.add_argument("--text-coalesce", action="store_true")
     parser.add_argument("--boolean-text-case", action="store_true")
     parser.add_argument("--boolean-metadata-case", action="store_true")
@@ -35,6 +36,10 @@ def main():
     args = parser.parse_args()
     if any(not re.fullmatch("[0-9a-f]{40}", value) for value in (args.commit, args.website)):
         parser.error("Exact backend and website source commits are required.")
+    if args.computed_scalars and (not args.selected_columns or any((
+            args.text_coalesce,args.boolean_text_case,args.boolean_metadata_case,
+            args.combined_metadata_case,args.combined_coalescing))):
+        parser.error("Computed scalar qualification uses selected columns and its own release mode.")
     if args.combined_metadata_case and not args.boolean_metadata_case:
         parser.error("Combined metadata release selection requires the Boolean metadata mode.")
     if args.boolean_metadata_case and not args.boolean_text_case:
@@ -53,7 +58,8 @@ def main():
         parser.error("Selected-column checks use immutable checkpoints; reconcile an interrupted fixture explicitly.")
     if args.combined_coalescing and not args.text_coalesce:
         parser.error("Combined coalescing selects only the qualified coalescing release journal.")
-    delivery_name = ("boolean-metadata-case-combined-image-handoff.json" if args.combined_metadata_case else
+    delivery_name = ("computed-scalars-image-handoff.json" if args.computed_scalars else
+        "boolean-metadata-case-combined-image-handoff.json" if args.combined_metadata_case else
         "boolean-metadata-case-image-handoff.json" if args.boolean_metadata_case else
         "boolean-text-case-image-handoff.json" if args.boolean_text_case else
         "text-coalesce-combined-image-handoff.json" if args.combined_coalescing else
@@ -232,9 +238,10 @@ def main():
             "expectedRevisions":{identity:None},"saveChildren":False,"recursive":False,
             "holon":{"id":identity,"name":"COSMIC owned set acceptance "+identity,
                 "isNewHolon":True,"isPublic":False,"isActive":True,
-                "metaData":{"COSMIC.Demo.Dataset":"COSMIC.CQL.BooleanTextCase.v1" if args.boolean_text_case else "COSMIC.CQL.TextCoalesce.v1" if args.text_coalesce else "COSMIC.CQL.NativeSet.v1",
+                "metaData":{"COSMIC.Demo.Dataset":"COSMIC.CQL.ComputedScalars.v1" if args.computed_scalars else "COSMIC.CQL.BooleanTextCase.v1" if args.boolean_text_case else "COSMIC.CQL.TextCoalesce.v1" if args.text_coalesce else "COSMIC.CQL.NativeSet.v1",
                     **({"coalescedText":None} if args.text_coalesce else {}),
-                    **({"flag":True} if args.boolean_metadata_case else {})}}})
+                    **({"flag":True} if args.boolean_metadata_case else {}),
+                    **({"flag":True,"stock":None} if args.computed_scalars else {})}}})
         holon=saved.get("result") or {}
         if (saved.get("isSaved") is not True or str(holon.get("id","")).lower()!=identity
                 or str(holon.get("createdByAvatarId","")).lower()!=bundle["ownerId"].lower()
@@ -260,10 +267,21 @@ def main():
             sql="SELECT CASE WHEN IsActive THEN @whenTrue ELSE @whenFalse END AS Label FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1"
             if args.boolean_metadata_case:
                 sql="SELECT CASE WHEN CAST(metadata.flag AS BOOLEAN) THEN @whenTrue ELSE @whenFalse END AS Label FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1"
+        if args.computed_scalars:
+            parameters.update(whenTrue="COSMIC active "+identity,whenFalse="COSMIC inactive "+identity,replacement=0)
+            sql="SELECT CASE WHEN CAST(metadata.flag AS BOOLEAN) THEN @whenTrue ELSE @whenFalse END AS Label, COALESCE(CAST(metadata.stock AS INT32), @replacement) AS Stock FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1"
         program = "const vm=require('node:vm');const s={module:{exports:{}}};vm.runInNewContext("+json.dumps(compiler)+",s);process.stdout.write(JSON.stringify(s.module.exports.compile("+json.dumps(sql)+",{},"+json.dumps(parameters)+")));"
         result = subprocess.run(["node","-"], input=program, capture_output=True, text=True, check=True)
         compiled = json.loads(result.stdout)
-        if args.boolean_text_case:
+        if args.computed_scalars:
+            expected_columns=[
+                {"metadataPath":["flag"],"valueType":"Boolean","nullable":False,"function":"BooleanTextCase",
+                    "whenTrue":parameters["whenTrue"],"whenFalse":parameters["whenFalse"],"alias":"Label"},
+                {"metadataPath":["stock"],"valueType":"Int32","nullable":True,"function":"Int32Coalesce",
+                    "int32Replacement":parameters["replacement"],"alias":"Stock"}]
+            if compiled["path"]!="data/query-cql/projection" or compiled["body"].get("columns")!=expected_columns:
+                raise RuntimeError("Require both exact typed native computed columns before dispatch.")
+        elif args.boolean_text_case:
             columns=compiled["body"].get("columns",[])
             if (compiled["path"]!="data/query-cql/projection" or len(columns)!=1
                     or columns[0].get("function")!="BooleanTextCase"
@@ -282,9 +300,17 @@ def main():
             raise RuntimeError("Website compiler did not produce the expected native set contract.")
         actual, _ = call(compiled["path"], compiled["body"])
         result = actual["result"]
-        if result.get("provider") != provider or not (args.text_coalesce or args.boolean_text_case) and result.get("kind") != "Concat":
+        if result.get("provider") != provider or not (args.text_coalesce or args.boolean_text_case or args.computed_scalars) and result.get("kind") != "Concat":
             raise RuntimeError("Native result lacks exact provenance.")
-        if args.boolean_text_case:
+        if args.computed_scalars:
+            columns=result.get("columns") or []
+            rows=result.get("rows")
+            if (result.get("version")!="cql-projection-v1" or len(columns)!=2
+                    or [column.get("alias") for column in columns]!=["Label","Stock"]
+                    or rows!=[[parameters["whenTrue"],parameters["replacement"]]]
+                    or type(rows[0][1]) is not int):
+                raise RuntimeError("Native computed projection did not return both exact typed cells.")
+        elif args.boolean_text_case:
             columns=result.get("columns") or []
             if (result.get("version")!="cql-projection-v1" or len(columns)!=1
                     or columns[0].get("alias")!="Label" or result.get("rows")!=[[parameters["whenTrue"]]]):
@@ -302,7 +328,7 @@ def main():
                 raise RuntimeError("Selected-value set must return exactly the two explicit cells, without hidden fields.")
         elif [str(uuid.UUID(row["id"])) for row in result["rows"]] != [identity,identity]:
             raise RuntimeError("Native entity set occurrence multiplicity differs.")
-        journal["owned"][provider]["sqlBooleanTextCaseAccepted" if args.boolean_text_case else "sqlCoalesceAccepted" if args.text_coalesce else "sqlSetAccepted"]=True
+        journal["owned"][provider]["sqlComputedScalarsAccepted" if args.computed_scalars else "sqlBooleanTextCaseAccepted" if args.boolean_text_case else "sqlCoalesceAccepted" if args.text_coalesce else "sqlSetAccepted"]=True
         delete_operation=str(uuid.uuid4())
         journal["owned"][provider]["deleteOperationId"]=delete_operation
         write()
@@ -315,16 +341,16 @@ def main():
         if absent["result"].get("rows")!=[]:
             raise RuntimeError("Exact owned identity absence not verified.")
         journal["owned"][provider]["absenceVerified"]=True
-        journal["providers"].append({"provider":provider,"accepted":True,"rows":1 if args.text_coalesce or args.boolean_text_case else 2,"exactCleanupVerified":True})
+        journal["providers"].append({"provider":provider,"accepted":True,"rows":1 if args.text_coalesce or args.boolean_text_case or args.computed_scalars else 2,"exactCleanupVerified":True})
         write()
     call("avatar/revoke-token", {})
-    journal.update(sessionRevoked=True,selectedColumns=args.selected_columns,textCoalesce=args.text_coalesce,booleanTextCase=args.boolean_text_case,booleanMetadataCase=args.boolean_metadata_case,completed=True,
+    journal.update(sessionRevoked=True,selectedColumns=args.selected_columns,textCoalesce=args.text_coalesce,booleanTextCase=args.boolean_text_case,booleanMetadataCase=args.boolean_metadata_case,computedScalars=args.computed_scalars,completed=True,
         accepted=all(row["accepted"] for row in journal["providers"]))
     write()
     for name in ("issuance.dpapi","session.dpapi"):
         (state / name).unlink()
     print(json.dumps({"source":args.commit,"providers":journal["providers"],"calls":len(journal["calls"]),
-        "holonWrites":journal["holonWrites"],"selectedColumns":args.selected_columns,"textCoalesce":args.text_coalesce,"booleanTextCase":args.boolean_text_case,"booleanMetadataCase":args.boolean_metadata_case,"sessionRevoked":True,"credentialsRemoved":True}))
+        "holonWrites":journal["holonWrites"],"selectedColumns":args.selected_columns,"textCoalesce":args.text_coalesce,"booleanTextCase":args.boolean_text_case,"booleanMetadataCase":args.boolean_metadata_case,"computedScalars":args.computed_scalars,"sessionRevoked":True,"credentialsRemoved":True}))
 
 if __name__ == "__main__":
     main()
