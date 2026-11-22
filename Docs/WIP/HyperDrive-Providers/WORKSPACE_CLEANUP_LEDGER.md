@@ -1,3 +1,5 @@
+OPORTAL auth lifecycle controls ran with Node only and retained the small source test; no output/runtime install/download/build/DB/archive. Disk44,445,315,072B observed, no cleanup reclamation claimed. Warning-browser44990168013 now running on isolated CI; exact two temporary warning secrets remain active under H1 and require terminal deletion/404 verification. No shared Atlas/PIPER activity.
+
 Active temporary CI resources for warning-browser44990168013: OASIS_WARNING_TEST_RESEND_KEY and OASIS_WARNING_TEST_EMAIL_FROM staged under H1 authorization, metadata verified. Agent must delete both exact names after terminal and verify404. CI owns unique Mongo/browser runtime cleanup; no local runtime/build/archive/DB. Inventory ZIP reviewed in RAM; tracked CSVs restored in finally; temporary Git index/lock removed. No reclamation claimed.
 
 Warning browser preflight: Node syntax only; no local runtime install, download, build, database, archive or generated output. CI email secrets remain absent; inventory44989036969 queued without runtime/secrets. No deletion/reclamation claimed. Documentation prepend preserves existing mixed-encoding historical bytes.
