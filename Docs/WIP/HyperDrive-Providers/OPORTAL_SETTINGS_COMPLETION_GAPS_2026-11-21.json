@@ -179,5 +179,19 @@
         "mode": "session-list-http"
       }
     }
+  },
+  "mfaSourceDiscovery": {
+    "status": "existing-published-backend-found-UI-unwired",
+    "source": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarMfaController.cs",
+    "behavior": "Existing real status/enrol/confirm/disable/recovery/events and authenticate-mfa routes plus Core SecondFactorGate. Reuse existing contract rather than implement another MFA backend.",
+    "missing": "OPORTAL Settings enrolment/recovery/disable and login challenge handling; inspect real service/native evidence before acceptance.",
+    "nodeSettings": "unchanged"
+  },
+  "portalExpiryFix": {
+    "source": "OPORTAL assets/js/scripts.js isJwtValid",
+    "rootCause": "6hour local skew/opaque/missing-expiry acceptance disagreed with API zero-skew required-expiry validator.",
+    "fix": "Strict finite numeric unexpired exp and three nonempty base64url segments; routes expired/malformed credentials into existing refresh before screen reads.",
+    "verification": "9pure local controls+Node syntax/cache reference passed, no backend/auth calls",
+    "remaining": "Browser lifecycle/hosted load timings; not a signature/authentication acceptance claim."
   }
 }
