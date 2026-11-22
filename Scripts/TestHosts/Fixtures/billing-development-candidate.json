@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "warning-action-inventory-required",
+  "status": "warning-native-inventory-reviewed-awaiting-build",
   "base": "f26edeef1152961a2b46f2149a6c28c08188a09a",
-  "candidate": "6d492a0255dd34cfb7a845292901749853e9ad78",
-  "tag": "qualification/warning-action-2026-11-21-6d492a02",
+  "candidate": "b0fa58ebfcb949819eded7810aa7adddf9382567",
+  "tag": "qualification/warning-native-2026-11-21-b0fa58eb",
   "buildProjects": [
     "WEB4"
   ],

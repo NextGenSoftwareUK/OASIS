@@ -635,8 +635,14 @@
         "id": 44971160162,
         "control": "16d8bb5553c649241cad03bee16a5b89ceb1ce8a",
         "candidate": "bcab1ce944485f78c352b764efc9214caafc69d0",
-        "status": "in_progress",
-        "mode": "billing-admin-http"
+        "status": "completed",
+        "mode": "billing-admin-http",
+        "conclusion": "success",
+        "job": 137051023316,
+        "buildErrors": 0,
+        "buildElapsed": "00:04:25.16",
+        "proof": "BILLING_ADMIN_RESTORATION_HTTP_PROOF",
+        "cleanup": "Owned database/tempDNA/container absence verified."
       }
     },
     "currentDevelopmentComposition": {
@@ -896,7 +902,61 @@
         "control": "0fa65c413e34ab2a371bf0889e1e2b6a8306fd27",
         "status": "in_progress",
         "native": false
+      },
+      "inventoryReview": {
+        "blobs": {
+          "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv": "ed6fee158dcfa2fe560f4595548c66b9bca1edbb",
+          "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv": "93728ea88564ecf21f98d13c739e1bdbc02fb5d1"
+        },
+        "status": "reviewed",
+        "summary": {
+          "candidate": "6d492a0255dd34cfb7a845292901749853e9ad78",
+          "status": "generated-pending-human-agent-review-not-deployed",
+          "managers": 932,
+          "routes": 833,
+          "managerAdded": [],
+          "managerRemoved": [],
+          "routeAdded": [
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionNotificationController.cs|19|SubscriptionNotificationController|Get|GET|",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionNotificationController.cs|26|SubscriptionNotificationController|Save|POST|",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionNotificationController.cs|58|SubscriptionNotificationController|Alerts|GET|/api/subscription/usage/alerts",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionNotificationController.cs|72|SubscriptionNotificationController|SendWarningEmails|POST|/api/subscription/usage/alerts/email"
+          ],
+          "routeRemoved": [
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionNotificationController.cs|18|SubscriptionNotificationController|Get|GET|",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionNotificationController.cs|25|SubscriptionNotificationController|Save|POST|",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionNotificationController.cs|57|SubscriptionNotificationController|Alerts|GET|/api/subscription/usage/alerts"
+          ],
+          "generatedFiles": [
+            {
+              "path": "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
+              "sha256": "d5aeba0801cbf1a860a218917864b51d06ce2d763b264c687f8a03fae308f5a8",
+              "bytes": 278059
+            },
+            {
+              "path": "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
+              "sha256": "c3de3b2e1966e67b685e37d3c68e504659b07774271d929948b0238c243270ee",
+              "bytes": 167936
+            },
+            {
+              "path": "Scripts/verify_web4_hyperdrive_route_manifest.ps1",
+              "sha256": "3671b61339b020d11a55c6a06d9dcaf115d39a7fe987b053c6e3378dfbbae5cd",
+              "bytes": 8209
+            }
+          ],
+          "runtimeChanges": 0,
+          "behaviorCases": 0,
+          "fixtures": 0
+        },
+        "review": "Semantic multiset preserves overload multiplicity and all832 prior routes/dispositions, adds only SendWarningEmails injected-storage route. First map/count assumptions refused duplicate/unchanged-disposition rows; no source dropped. RAM ZIP disposed; original CSV restored."
       }
+    },
+    "nativeCandidate": {
+      "source": "b0fa58ebfcb949819eded7810aa7adddf9382567",
+      "tag": "qualification/warning-native-2026-11-21-b0fa58eb",
+      "status": "uncompiled-awaiting-native",
+      "mode": "billing-warning-store",
+      "temporaryIndex": "removed"
     }
   },
   "sharedDevelopmentReview": {
