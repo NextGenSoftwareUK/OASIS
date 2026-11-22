@@ -207,7 +207,7 @@
       "Scripts/SubscriptionLedger.OutboxAdmin/OutboxAdminCommand.cs",
       "Scripts/SubscriptionLedger.OutboxAdmin/README.md"
     ],
-    "status": "source-reviewed-awaiting-build",
+    "status": "API-and-operator-test-project-compiled-native-unaccepted",
     "inventory": {
       "artifact": 14741414903,
       "managers": 933,
@@ -224,12 +224,17 @@
     "buildRun": {
       "id": 44993120942,
       "control": "e1f740c2a1633b869603181e0beb7fbdce21e492",
-      "status": "queued",
-      "mode": "compile-only-WEB4-and-OUTBOXADMINTESTS-no-native-no-secrets"
+      "status": "completed",
+      "mode": "compile-only-WEB4-and-OUTBOXADMINTESTS-no-native-no-secrets",
+      "conclusion": "success",
+      "job": 137118325680,
+      "web4BuildElapsed": "00:05:36.64",
+      "operatorTestsBuildElapsed": "00:00:08.20",
+      "behaviorCases": 0
     }
   },
   "representativeNativePreparation": {
-    "status": "prepared-not-compiled-selected-or-run",
+    "status": "selected-awaiting-dispatch-not-runtime-accepted",
     "mode": "billing-restoration-http",
     "helper": "Scripts/TestHosts/HotspotHttpNative/BillingRestorationHttpQualification.cs",
     "scope": [

@@ -1,6 +1,6 @@
 {
   "scope": "billing",
-  "status": "reviewed-billing-restoration-awaiting-build",
+  "status": "compiled-source-selecting-representative-native-http-and-cli",
   "base": "c3f703531b05a0be2ee0cda51b5780d30ce53036",
   "candidate": "64a04f7b2a1e8a7640ca199d62ffc9638538cac1",
   "tag": "qualification/billing-reviewed-2026-11-22-64a04f7b",
@@ -54,7 +54,7 @@
     "candidate": "fb6133609f45ec3ccb9d3a3a1ee01ffa9b6f01eb"
   },
   "nativeHost": "HotspotHttpNative",
-  "nativeMode": "billing-http",
+  "nativeMode": "billing-restoration-http",
   "portal": "e895bf621c01fe7f38025ce0d8bc9fab20b1ab70",
   "remaining": "Inventory-only now; review changed canonical route ownership and service contracts, then compile and choose representative affected billing flow. No email/Stripe credentials or native runs selected."
 }
