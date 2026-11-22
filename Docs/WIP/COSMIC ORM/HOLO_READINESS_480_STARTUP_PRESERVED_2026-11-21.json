@@ -18,7 +18,7 @@
   "entrypointSyntaxVerified": true,
   "packageAccepted": true,
   "developmentPushed": true,
-  "liveVerified": false,
+  "liveVerified": true,
   "featureIntegration": "4357c509b8f10cf4e412fc90cb2ede87594916f6",
   "priorRunIds": [
     44975049171,
@@ -106,12 +106,12 @@
       "deployments": [
         {
           "id": "483be539-a4ed-4f47-8b18-d37eca5ccf72",
-          "status": "BUILDING",
+          "status": "SUCCESS",
           "source": "5633710e7c4b983053351ad3e88438558352cbef"
         },
         {
           "id": "f3e4d3a2-0257-4065-8dc1-a3b243e7b48d",
-          "status": "SUCCESS",
+          "status": "REMOVED",
           "source": "8931995b55b182dfcedc936d72c231936ae4c052"
         },
         {
@@ -127,12 +127,12 @@
       "deployments": [
         {
           "id": "5a5bcd67-d92a-45bb-888c-d05914411075",
-          "status": "BUILDING",
+          "status": "SUCCESS",
           "source": "5633710e7c4b983053351ad3e88438558352cbef"
         },
         {
           "id": "a89fcc1e-0fd9-47b6-adf1-eb66bba84eda",
-          "status": "SUCCESS",
+          "status": "REMOVED",
           "source": "8931995b55b182dfcedc936d72c231936ae4c052"
         },
         {
@@ -248,7 +248,7 @@
       ]
     }
   ],
-  "rolloutObservedUtc": "2026-11-22T03:06:33.025090+00:00",
+  "rolloutObservedUtc": "2026-11-22T03:10:56.303498+00:00",
   "startupDnaChecks": [
     {
       "service": "WEB7 SYMBIOTIC API",
@@ -289,6 +289,27 @@
       "loadedAutoLoadBalanceEnabled": true,
       "exitCode": 0,
       "verified": true
+    },
+    {
+      "service": "WEB4 OASIS API",
+      "deployment": "483be539-a4ed-4f47-8b18-d37eca5ccf72",
+      "source": "5633710e7c4b983053351ad3e88438558352cbef",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB6 AI API",
+      "deployment": "5a5bcd67-d92a-45bb-888c-d05914411075",
+      "source": "5633710e7c4b983053351ad3e88438558352cbef",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
     }
-  ]
+  ],
+  "runtimeVerified": true,
+  "allSevenRuntimeVerified": true,
+  "holoNativeReadAccepted": true,
+  "holoNativeReadProof": "HOLO_READINESS_480_HOSTED_ACCEPTANCE_2026-11-21.json",
+  "verificationScope": "Exact Development revision/startup DNA on all seven services and one native Holo public-subset query; no general uptime/root-cause claim."
 }
