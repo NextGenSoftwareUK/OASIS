@@ -26,10 +26,11 @@
     "status": "Implemented API/repository source; uncompiled/unrun/undeployed and not yet Portal-wired",
     "routes": [
       "GET checkout/pending",
-      "POST checkout/operations/{operationId}/reconcile"
+      "POST checkout/operations/{operationId}/reconcile",
+      "POST checkout/operations/{operationId}/cancel"
     ],
     "behavior": "Lists only authenticated account unresolved operations; reads known Stripe session or bounded canonical metadata search for a lost ID; persists provider acknowledgement and uses same canonical status/activation/expiry handler. No Stripe Create in reconciliation; missing/duplicate/conflicting outcomes stay unresolved.",
-    "preflight": "Local route gate805actions/695storage-external classifications and diff check passed; API/native/Stripe acceptance pending",
+    "preflight": "Local route gate806actions/696storage-external classifications and diff check passed; actual API/native/Stripe acceptance pending",
     "preparedCheck": "Actual owned Mongo pending list before/after native journal closure plus unknown-operation refusal before any Stripe client/network call; fixture data not a Stripe-issued-session claim"
   },
   "currentRun": {
@@ -37,5 +38,13 @@
     "control": "8b0563c7e05beadade9016cd0c19729b377d58d9",
     "candidate": "53f40d86573cb94b1ecc30e38f880e0596b603af",
     "observed": "queued at dispatch; existing frozen run preserved; recovery additions excluded"
+  },
+  "portalContract": {
+    "protocol": "checkout-journal-v1",
+    "advertisement": "Existing subscription read returns PendingUrl; pending rows return ReconcileUrl; canonical open-session status returns CancelUrl",
+    "behavior": "No extra startup read or endpoint-map download; older servers do not expose recovery controls. Known unresolved journal attempts block another checkout/plan change before Stripe.",
+    "cancellation": "Actor/ledger/operation-bound real Stripe47 SessionService.ExpireAsync; exact expiry verified and majority journal closure acknowledged before success. Completed checkout is not cancelled.",
+    "status": "Source wired; API/native/Stripe/browser/deployment acceptance pending",
+    "remainingConcurrency": "Known-pending precheck is not yet an atomic per-account creation reservation; simultaneous new requests require serialization before full payment reliability acceptance."
   }
 }

@@ -279,6 +279,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (existing?.PlanId!="free" && !string.IsNullOrEmpty(existing?.StripeSubscriptionId) && existing.Status is not ("canceled" or "incomplete_expired"))
                 return await BillingPortalResult(existing, request.SuccessUrl);
 
+            if (_checkoutJournal != null &&
+                (await _checkoutJournal.GetPendingCheckoutsAsync(subscriberId, HttpContext.RequestAborted)).Count != 0)
+                return Conflict(new { IsError = true, ErrorCode = "CHECKOUT_ALREADY_PENDING",
+                    Message = "Review your unfinished checkout before starting another payment or changing plan." });
+
             // Free/trial plan: provision immediately without Stripe
             if (plan.Id == "free")
             {
@@ -407,7 +412,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!Guid.TryParseExact(actor, "D", out var id) || id == Guid.Empty) return Unauthorized();
             if (_checkoutJournal == null) return StatusCode(503, new { IsError = true, Message = "Checkout accounting is unavailable." });
             var pending = await _checkoutJournal.GetPendingCheckoutsAsync(actor, HttpContext.RequestAborted);
-            return Ok(new { IsError = false, Result = pending });
+            return Ok(new { IsError = false, Result = pending.Select(row => new {
+                row.OperationId, row.PlanId, row.RequestedAtUtc, HasProviderSession = row.StripeSessionId != null,
+                ReconcileUrl = Url.Action(nameof(ReconcileCheckout), new { operationId = row.OperationId }) }) });
         }
 
         [Authorize]
@@ -448,6 +455,41 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await ReadCheckoutSessionStatusAsync(actor, sessionId, operationId);
         }
 
+        [Authorize]
+        [HttpPost("checkout/operations/{operationId}/cancel")]
+        public async Task<IActionResult> CancelPendingCheckout(string operationId)
+        {
+            var actor = GetCurrentUserId();
+            if (!Guid.TryParseExact(actor, "D", out var actorId) || actorId == Guid.Empty) return Unauthorized();
+            if (!Guid.TryParseExact(operationId, "D", out var operation) || operation == Guid.Empty)
+                return BadRequest(new { IsError = true, Message = "A checkout operation identity is required." });
+            if (_checkoutJournal == null) return StatusCode(503, new { IsError = true, Message = "Checkout accounting is unavailable." });
+            var pending = (await _checkoutJournal.GetPendingCheckoutsAsync(actor, HttpContext.RequestAborted))
+                .SingleOrDefault(row => row.OperationId == operationId);
+            if (pending == null) return NotFound(new { IsError = true, Message = "No unresolved checkout belongs to this account and operation." });
+            if (pending.StripeSessionId == null)
+                return Conflict(new { IsError = true, Message = "Reconcile the original checkout before cancelling it." });
+            var service = new Stripe.Checkout.SessionService(StripeClient());
+            var canonical = await service.GetAsync(pending.StripeSessionId, cancellationToken: HttpContext.RequestAborted);
+            if (!CheckoutBelongsToOperation(canonical, actor, operationId)) return Forbid();
+            if (canonical.Status == "open")
+            {
+                var expired = await service.ExpireAsync(canonical.Id, cancellationToken: HttpContext.RequestAborted);
+                if (expired.Id != canonical.Id || expired.Status != "expired" || !CheckoutBelongsToOperation(expired, actor, operationId))
+                    throw new InvalidOperationException("Stripe did not acknowledge expiry of the selected checkout.");
+                canonical = expired;
+            }
+            if (canonical.Status != "expired")
+                return Conflict(new { IsError = true, Message = "This checkout is no longer open. Check its payment and subscription status before changing plan." });
+            await CloseJournalledCheckoutAsync(actor, canonical);
+            return Ok(new { IsError = false, IsSaved = true, Status = "expired", Message = "The original checkout is expired and its closure is recorded." });
+        }
+
+        private bool CheckoutBelongsToOperation(Stripe.Checkout.Session session, string actor, string operation) =>
+            session.Metadata?.GetValueOrDefault("avatar_id") == actor &&
+            session.Metadata?.GetValueOrDefault("oasis_checkout_operation") == operation &&
+            session.Metadata?.GetValueOrDefault("oasis_ledger_scope") == OASISSub.SubscriptionMongoConfiguration.DatabaseName(_configuration);
+
         private async Task<IActionResult> ReadCheckoutSessionStatusAsync(string userId, string sessionId, string operationId = null)
         {
             Stripe.Checkout.Session session;
@@ -460,8 +502,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return NotFound(new { IsError = true, Message = "The Stripe checkout session could not be found." });
             }
             if (IsOtherLedger(session.Metadata) || session.Metadata?.GetValueOrDefault("avatar_id") != userId) return Forbid();
-            if (operationId != null && (session.Metadata?.GetValueOrDefault("oasis_checkout_operation") != operationId ||
-                session.Metadata?.GetValueOrDefault("oasis_ledger_scope") != OASISSub.SubscriptionMongoConfiguration.DatabaseName(_configuration)))
+            if (operationId != null && !CheckoutBelongsToOperation(session, userId, operationId))
                 return Conflict(new { IsError = true, Message = "The canonical session does not match the checkout operation." });
             var record = await _subscriptionService.GetSubscriptionAsync(userId);
             bool activated = IsCheckoutActivated(session, record);
@@ -469,7 +510,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 await CloseJournalledCheckoutAsync(userId, session);
             return Ok(new { IsError=false, session.Status, session.PaymentStatus, SubscriptionStatus=record?.Status,
                 Activated=activated, SessionId=session.Id, SessionUrl=session.Status == "open" ? session.Url : null,
-                PlanId=session.Metadata?.GetValueOrDefault("plan_id") });
+                PlanId=session.Metadata?.GetValueOrDefault("plan_id"),
+                CancelUrl=session.Status == "open" && session.Metadata?.GetValueOrDefault("oasis_checkout_operation") is string pendingOperation
+                    ? Url.Action(nameof(CancelPendingCheckout), new { operationId = pendingOperation }) : null });
         }
 
         // ── Stripe Webhooks ──────────────────────────────────────────────────
@@ -642,7 +685,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             var record = await _subscriptionService.GetSubscriptionAsync(userId);
             if (record == null)
-                return Ok(new { Result = Array.Empty<object>(), IsError = false, Message = "No active subscription." });
+                return Ok(new { Result = Array.Empty<object>(), IsError = false, Message = "No active subscription.", CheckoutRecovery = CheckoutRecoveryLinks() });
 
             var plan = Plans.FirstOrDefault(p => p.Id == record.PlanId);
             var result = new[]
@@ -665,8 +708,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 }
             };
 
-            return Ok(new { Result = result, IsError = false, Message = "Subscription loaded." });
+            return Ok(new { Result = result, IsError = false, Message = "Subscription loaded.", CheckoutRecovery = CheckoutRecoveryLinks() });
         }
+
+        private object CheckoutRecoveryLinks() => _checkoutJournal == null ? null : new {
+            Protocol = "checkout-journal-v1", PendingUrl = Url.Action(nameof(GetPendingCheckouts)) };
 
         // ── Orders ───────────────────────────────────────────────────────────
 

@@ -2900,3 +2900,7 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 
 ### 2026-11-22 — checkout reconciliation source
 - Added account-scoped pending read and bounded actual Stripe metadata reconciliation. No new Stripe checkout in recovery; no SDK/network execution performed in this source turn. Local source route check805/695 passed; no builds, database, environment, runtime/download or saved log/results. Existing run45073038989 preserved, not duplicated for these changes.
+
+### 2026-11-22 — Portal recovery and cancellation wiring
+- Added API-advertised relative links and actual Stripe expiry path with acknowledged journal closure. No Stripe/network execution for this source work. Native guard/link checks prepared in existing runner; not replayed during current run45073038989.
+- Portal uses existing subscription response to enable on-demand review/resume/cancel; no extra startup data/spec request or new runtime. Node syntax, endpoint drift and content hashes checked without npm installs/builds. No local database, environment/download or test-result artifacts.

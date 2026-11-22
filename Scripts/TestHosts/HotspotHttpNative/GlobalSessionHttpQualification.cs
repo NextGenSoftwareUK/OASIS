@@ -134,13 +134,26 @@ internal static class GlobalSessionHttpQualification
                 !facts.Value<bool>("hasPendingStripeCheckouts") && !facts.Value<bool>("hasUnsettledUsage") &&
                 !facts.Value<bool>("hasUnbilledCharges") && !facts.Value<bool>("hasUnresolvedStatements"),
                 "The real actor-scoped dependency assessment did not reflect its owned application and empty billing ledger.");
+            var subscriptionView = await Read(await http.GetAsync("/api/subscription/subscriptions/me"));
+            var recoveryLinks = subscriptionView["checkoutRecovery"];
+            var pendingPath = recoveryLinks?.Value<string>("pendingUrl");
+            Check(!subscriptionView.Value<bool>("isError") && recoveryLinks?.Value<string>("protocol") == "checkout-journal-v1" &&
+                pendingPath != null && pendingPath.StartsWith("/", StringComparison.Ordinal) && !pendingPath.StartsWith("//", StringComparison.Ordinal),
+                "The real subscription API did not advertise its usable recovery link.");
             var checkoutOperation = await checkoutJournal.BeginCheckoutAsync(actor.ToString("D"), "bronze", CancellationToken.None);
-            var pendingList = await Read(await http.GetAsync("/api/subscription/checkout/pending"));
+            var pendingList = await Read(await http.GetAsync(pendingPath));
             Check(!pendingList.Value<bool>("isError") && pendingList["result"] is JArray attempts && attempts.Count == 1 &&
-                attempts[0].Value<string>("operationId") == checkoutOperation && attempts[0]["stripeSessionId"]?.Type == JTokenType.Null,
+                attempts[0].Value<string>("operationId") == checkoutOperation && !attempts[0].Value<bool>("hasProviderSession") && !string.IsNullOrEmpty(attempts[0].Value<string>("reconcileUrl")),
                 "The actual pending-checkout API did not return the owned unresolved operation.");
             var unknownRecovery = await Read(await http.PostAsync("/api/subscription/checkout/operations/" + Guid.NewGuid().ToString("D") + "/reconcile", null));
             Check(unknownRecovery.Value<bool>("isError"), "An unknown operation bypassed actor-scoped checkout reconciliation.");
+            var blockedCheckout = await Read(await http.PostAsJsonAsync("/api/subscription/checkout/session", new {
+                planId = "bronze", successUrl = "https://owned.invalid/subscription", cancelUrl = "https://owned.invalid/subscription" }));
+            Check(blockedCheckout.Value<bool>("isError") && blockedCheckout.Value<string>("errorCode") == "CHECKOUT_ALREADY_PENDING" &&
+                (await checkoutJournal.GetPendingCheckoutsAsync(actor.ToString("D"), CancellationToken.None)).Count == 1,
+                "An existing unresolved checkout did not block a replacement payment before Stripe.");
+            var unknownCancel = await Read(await http.PostAsync("/api/subscription/checkout/operations/" + Guid.NewGuid().ToString("D") + "/cancel", null));
+            Check(unknownCancel.Value<bool>("isError"), "An unknown operation bypassed actor-scoped checkout cancellation.");
             var pendingAssessment = await Read(await http.GetAsync("/api/avatar/account-closure/assessment"));
             Check(!pendingAssessment.Value<bool>("isError") && pendingAssessment["result"]!.Value<bool>("hasPendingStripeCheckouts"),
                 "A durable customerless checkout request was omitted from dependency assessment.");
@@ -148,7 +161,7 @@ internal static class GlobalSessionHttpQualification
             const string storedSessionFixture = "cs_owned_native_journal_fixture";
             await checkoutJournal.RecordCheckoutSessionAsync(actor.ToString("D"), checkoutOperation, storedSessionFixture, CancellationToken.None);
             await checkoutJournal.CloseCheckoutAsync(actor.ToString("D"), checkoutOperation, storedSessionFixture, CancellationToken.None);
-            var closedPendingList = await Read(await http.GetAsync("/api/subscription/checkout/pending"));
+            var closedPendingList = await Read(await http.GetAsync(pendingPath));
             Check(!closedPendingList.Value<bool>("isError") && closedPendingList["result"] is JArray remainingAttempts && remainingAttempts.Count == 0,
                 "The real pending-checkout API retained an acknowledged closed operation.");
             var closedAssessment = await Read(await http.GetAsync("/api/avatar/account-closure/assessment"));

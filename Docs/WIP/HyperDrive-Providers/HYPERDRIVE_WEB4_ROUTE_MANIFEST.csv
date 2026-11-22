@@ -804,3 +804,4 @@
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarAccountClosureController.cs","32","AvatarAccountClosureController","Assess","GET","assessment","InjectedServiceRepositoryOrClient"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs","404","SubscriptionController","GetPendingCheckouts","GET","checkout/pending","InjectedServiceRepositoryOrClient"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs","415","SubscriptionController","ReconcileCheckout","POST","checkout/operations/{operationId}/reconcile","InjectedServiceRepositoryOrClient"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs","460","SubscriptionController","CancelPendingCheckout","POST","checkout/operations/{operationId}/cancel","InjectedServiceRepositoryOrClient"
