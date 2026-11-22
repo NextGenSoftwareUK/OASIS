@@ -1,4 +1,4 @@
-name: Qualify combined snapshot and hotspot compilation
+name: Qualify current Development with native CQL set composition
 
 on:
   push:
@@ -43,7 +43,7 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
-      - name: Verify new unfiltered mapping ownership and bounded compiler
+      - name: Compile preserved Development WEB4 and WEB5 with native set source
         working-directory: OASIS
         shell: pwsh
         run: |
