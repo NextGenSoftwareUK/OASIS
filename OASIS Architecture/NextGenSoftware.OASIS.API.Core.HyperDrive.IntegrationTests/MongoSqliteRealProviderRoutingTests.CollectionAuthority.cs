@@ -19,7 +19,8 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
         const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         if(Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI")!=uri)
             throw new InvalidOperationException("Only the owned loopback MongoDB fixture is admitted.");
-        var database="hyperdrive_collection_authority_"+Guid.NewGuid().ToString("N");
+        var database="hd_collection_authority_"+Guid.NewGuid().ToString("N");
+        Assert.InRange(System.Text.Encoding.UTF8.GetByteCount(database),1,63);
         var client=new MongoClient(uri);
         Assert.DoesNotContain(database,await(await client.ListDatabaseNamesAsync()).ToListAsync());
         var directory=Directory.CreateTempSubdirectory("oasis-collection-authority-");
