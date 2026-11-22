@@ -12,16 +12,16 @@ internal static class CqlRequestCapture
     internal static CqlSetV1Request Capture(CqlSetV1Request value)
     {
         if(value==null)throw new ArgumentException("A set request is required.");
-        CqlJoinV1Source Source(CqlJoinV1Source source)
+        CqlSetV1Source Source(CqlSetV1Source source)
         {
             if(source==null || source.Graph!=null)throw new ArgumentException("A set source without graph expansion is required.");
             var copy=Capture(new CqlV1Request {
-                Filters=source.Filters,AnyOf=source.AnyOf,AnyChildren=source.AnyChildren,
+                Where=source.Where,Filters=source.Filters,AnyOf=source.AnyOf,AnyChildren=source.AnyChildren,
                 AnyDescendants=source.AnyDescendants,OrderBy=source.OrderBy,Descending=source.Descending,
                 Skip=source.Skip,Take=source.Take??0
             });
-            return new CqlJoinV1Source {
-                Filters=copy.Filters,AnyOf=copy.AnyOf,AnyChildren=copy.AnyChildren,
+            return new CqlSetV1Source {
+                Where=copy.Where,Filters=copy.Filters,AnyOf=copy.AnyOf,AnyChildren=copy.AnyChildren,
                 AnyDescendants=copy.AnyDescendants,OrderBy=copy.OrderBy,Descending=copy.Descending,
                 Skip=copy.Skip,Take=source.Take.HasValue?copy.Take:null
             };

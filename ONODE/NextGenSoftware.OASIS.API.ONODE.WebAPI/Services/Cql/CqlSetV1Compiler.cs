@@ -20,8 +20,8 @@ public static partial class CqlV1Compiler
             "Intersect"=>CosmicSetQueryKind.Intersect,"Except"=>CosmicSetQueryKind.Except,
             _=>throw new ArgumentException("Unknown native set operation.")
         };
-        CosmicQuery<Holon> Source(CqlJoinV1Source source)=>CompileSource(actor,provider,source.Filters,source.AnyOf,
-            source.AnyChildren,source.AnyDescendants,source.Graph,source.OrderBy,source.Descending,source.Skip,source.Take,access);
+        CosmicQuery<Holon> Source(CqlSetV1Source source)=>CompileSource(actor,provider,source.Filters,source.AnyOf,
+            source.AnyChildren,source.AnyDescendants,source.Graph,source.OrderBy,source.Descending,source.Skip,source.Take,access,where:source.Where);
         var query=RequiredSet(CosmicSetQuery<Holon>.Create(Source(request.Left),Source(request.Right),kind));
         if(request.Reverse)query=RequiredSet(query.Reverse());
         if(request.Skip!=0)query=RequiredSet(query.Skip(request.Skip));
