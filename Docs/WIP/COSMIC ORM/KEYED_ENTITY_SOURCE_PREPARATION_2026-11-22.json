@@ -13,9 +13,9 @@
     "Neo4jOASIS"
   ],
   "qualification": "Pending exact native workflow",
-  "source": "338c5c5d151ef6382eb37930b3f9d1fffbf6a1a1",
-  "qualificationRun": 45076941597,
-  "qualificationPhase": "PendingNewThreeProviderBatch",
+  "source": "1f50d89f4a239554cc430e30ea99e663b7ff4e6a",
+  "qualificationRun": 45078210575,
+  "qualificationPhase": "PendingCorrectedThreeStoreBatch",
   "unrelatedOwnedCancelRequested": [
     45076199516,
     45076199140,
@@ -43,8 +43,8 @@
   "requiredPinJob": 137374205856,
   "unrelatedCancelFollowup": 45076199398,
   "failedRun": 45076199105,
-  "rootCause": "Missing DNA namespace import for HyperDriveModes in new manager file",
-  "correction": "Use canonical DNA HyperDriveModes; no runtime workaround",
+  "rootCause": "CountWindow remained local to CompileJoin during shared source extraction",
+  "correction": "Move canonical count-window builder to class scope for both callers",
   "dispatchAt": "2026-11-22T22:14:10.911948+00:00",
   "dispatchResolution": "Initial filename/SHA request rejected; no matching run exists. Numeric registered workflow ID and verified existing branch used.",
   "requiredPinAccepted": true,
@@ -151,5 +151,10 @@
   "expectedNativeTests": 5,
   "sharedSourceAndHydrationOwners": true,
   "temporarySourcePayload": "C:\\Source\\OASIS2\\LocalState\\COSMIC\\KeyedEntitySourceProposals.json",
-  "temporarySourcePayloadRemovedAfterPublication": true
+  "temporarySourcePayloadRemovedAfterPublication": true,
+  "controlSource": "402d61ddc9b5621bb81809ef8c6801d290e2784c",
+  "qualificationSource": "1f50d89f4a239554cc430e30ea99e663b7ff4e6a",
+  "neoNativeAcceptedProof": "neo-keyed-entity-native-acceptance.json",
+  "runtimeSourceUnchangedByTriggerFix": true,
+  "failedCombinedRun": 45078210575
 }

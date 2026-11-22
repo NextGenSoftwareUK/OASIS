@@ -51,4 +51,11 @@ internal sealed partial class MongoCqlTranslator
         }
 
 
+    private static BsonDocument CountWindow() => new("$setWindowFields", new BsonDocument("output",
+            new BsonDocument("nativeCount", new BsonDocument
+            {
+                { "$count", new BsonDocument() },
+                { "window", new BsonDocument("documents", new BsonArray { "unbounded", "unbounded" }) }
+            })));
+
 }

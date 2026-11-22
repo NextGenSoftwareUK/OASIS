@@ -272,13 +272,6 @@ internal sealed partial class MongoCqlTranslator
                 { "in", Op("$cond", Op("$eq", "$$cell.s", Literal(2)), "$$cell.v", Literal(BsonNull.Value)) }
             });
 
-        static BsonDocument CountWindow() => new("$setWindowFields", new BsonDocument("output",
-            new BsonDocument("nativeCount", new BsonDocument
-            {
-                { "$count", new BsonDocument() },
-                { "window", new BsonDocument("documents", new BsonArray { "unbounded", "unbounded" }) }
-            })));
-
         static List<BsonDocument> Plain(MongoCqlProjectionCommand command)
         {
             var pipeline = command.Pipeline.Select(stage => (BsonDocument)stage.DeepClone()).ToList();

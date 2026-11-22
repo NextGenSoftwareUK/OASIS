@@ -1,0 +1,23 @@
+{
+  "source": "f6530263dc3ae7bb7f6b638519bff9226ea625c3",
+  "producerSource": "724ac7e5e4b67ef6d4117dd054825e40085cb77e",
+  "core": "21a5966a12aa9c57109131cf7a519394d30e9a27",
+  "baseDevelopment": "abbe207b17c8f6b6e727ab2b1ce00be16a920844",
+  "digest": "sha256:ab5d4a6eec767a2f47782d749afb0aeb5e3a475a48113ac2b6ece8f4b6eae860",
+  "preservedDevelopmentUnitTestPaths": [
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/Subscription/PaidOverageStripeSandboxTests.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/Subscription/SubscriptionControllerTests.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/Subscription/UsageVisibilityMongoTests.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/UsageSeriesTests.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/UsageVisibilityTests.cs"
+  ],
+  "producerTreeDeltaOnlySeparateUnitTests": true,
+  "runtimeTreeEquivalentToQualifiedProducer": true,
+  "imageAccepted": true,
+  "packageAccepted": true,
+  "manifestGatePassed": true,
+  "allIncomingUnitTestBlobsPreserved": true,
+  "newerUnqualifiedEntityGroupingExcluded": true,
+  "developmentPushed": false,
+  "liveAccepted": false
+}
