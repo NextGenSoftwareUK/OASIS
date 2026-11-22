@@ -480,6 +480,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddSingleton<Services.Subscription.IDelegatedUsageGrantRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.IAppAccountRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISubscriptionService, Services.Subscription.SubscriptionService>();
+            services.AddSingleton<Services.Subscription.UsageWarningReader>();
             services.AddSingleton<NextGenSoftware.OASIS.API.Core.Interfaces.ISubscriptionSettingsAuthority,
                 Services.Subscription.SubscriptionSettingsAuthority>();
             services.AddSingleton<Services.Subscription.ISubscriptionPlanPriceReader, Services.Subscription.StripeSubscriptionPlanPriceReader>();

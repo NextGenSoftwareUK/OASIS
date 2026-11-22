@@ -853,6 +853,17 @@
         "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailDispatcher.cs"
       ],
       "remaining": "One native event-store/disabled-gateway check plus API build; no actual email/acknowledgement claim. Authorized preparation/registration/retention/hosted remain open."
+    },
+    "sharedWarningReader": {
+      "status": "source-refactored-uncompiled",
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningReader.cs",
+      "behavior": "Extracted existing actual usage/preferences/threshold calculation into one reader. Portal alert GET maps only public alerts; internal subject+email opt-in is retained for preparation, not exposed. Startup registers reader using existing repository/service. No email dispatch or worker enabled.",
+      "remaining": [
+        "Compose latest reader/controller/Startup with warning candidate",
+        "Compile and verify read/preparation integration",
+        "Authorized bounded delivery entry point",
+        "Real email/retention/hosted acceptance"
+      ]
     }
   },
   "sharedDevelopmentReview": {

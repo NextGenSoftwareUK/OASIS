@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -55,37 +56,16 @@ public sealed class SubscriptionNotificationController(MongoSubscriptionUsageRep
 
     /// <summary>Read the authenticated subscriber's plan and owned-app usage warnings.</summary>
     [HttpGet("/api/subscription/usage/alerts")]
-    public Task<IActionResult> Alerts([FromServices] ISubscriptionService subscriptions)
+    public Task<IActionResult> Alerts([FromServices] UsageWarningReader warnings)
     {
         return ForSubscriber(async actor =>
         {
             var dna = OASISBootLoader.OASISBootLoader.OASISDNA;
             var defaults = dna?.OASIS?.UsageVisibility ?? new UsageVisibilitySettings();
-            var alerts = new List<UsageAlert>();
-            var mine = await repository.GetNotificationSettingsAsync("user:" + actor, HttpContext.RequestAborted);
-            if (mine?.WarningsOverride ?? defaults.WarningsEnabled)
-            {
-                var karma = await SubscriptionController.GetCurrentKarmaAsync(actor, HttpContext.RequestAborted);
-                var summary = await subscriptions.GetUsageSummaryAsync(actor, karma, HttpContext.RequestAborted);
-                var policy = SubscriptionService.GetUsagePolicy(summary.PlanId ?? "free", karma);
-                var alert = UsageAlerts.Evaluate("user", null, summary.MonthlyRequests, policy.MonthlyRequestLimit,
-                    mine?.Thresholds is { Count: > 0 } ? mine.Thresholds : defaults.DefaultWarningPercents);
-                if (alert != null) alerts.Add(alert);
-            }
-            foreach (var app in await repository.GetOwnedAppsAsync(actor, HttpContext.RequestAborted))
-            {
-                if (!(app.Overrides?.OwnerViewEnabled ?? defaults.OwnerViewEnabled)) continue;
-                var preferences = await repository.GetNotificationSettingsAsync("app:" + app.AppId + ":owner:" + actor,
-                    HttpContext.RequestAborted);
-                if (!(preferences?.WarningsOverride ?? app.Overrides?.WarningsEnabled ?? defaults.WarningsEnabled)) continue;
-                var pool = await repository.GetAppPoolUsageAsync(app.AppId, HttpContext.RequestAborted);
-                var alert = UsageAlerts.Evaluate("app", app.AppId, pool.Usage?.MonthlyRequests ?? 0,
-                    pool.Limits?.MonthlyRequestLimit ?? 0,
-                    preferences?.Thresholds is { Count: > 0 } ? preferences.Thresholds : defaults.DefaultWarningPercents);
-                if (alert != null) alerts.Add(alert);
-            }
+            var entries = await warnings.ReadAsync(actor, HttpContext.RequestAborted);
             return new { emailEnabled = defaults.EmailEnabled &&
-                NextGenSoftware.OASIS.API.Core.Managers.EmailManager.IsEmailConfigured(dna), alerts };
+                NextGenSoftware.OASIS.API.Core.Managers.EmailManager.IsEmailConfigured(dna),
+                alerts = entries.Select(entry => entry.Alert).ToList() };
         });
     }
 
