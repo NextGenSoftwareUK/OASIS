@@ -1,0 +1,15 @@
+{
+  "source": "08b085ba74296c73426bd83e13de93b1bbc23469",
+  "coreSource": "36609e3a6b6b8e1ba32ed22fb65d267b2a2e81b9",
+  "run": 44973513118,
+  "job": 137058198892,
+  "passed": 1,
+  "skipped": 0,
+  "web4Compiled": true,
+  "artifact": {
+    "id": 14734679121,
+    "bytes": 1377,
+    "sha256": "89fd715fd4a9ce8c77a61e25c35bafe774bf9a0a700faa388da33e9599b8bd98"
+  },
+  "nativeProviderAccepted": false
+}

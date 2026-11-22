@@ -1,0 +1,50 @@
+{
+  "source": "ced904ff0ff4710cc8c6749516867c38e9fb59d2",
+  "tag": "cosmic-holo-readiness-480-dev-c4a65629",
+  "baseDevelopment": "c4a65629d4136218be05b04a887490216c050e7a",
+  "timeoutSeconds": 480,
+  "scope": [
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisDevelopmentConductor.cs"
+  ],
+  "phase": "tag_published",
+  "compositionAccepted": false,
+  "packageAccepted": false,
+  "developmentPushed": false,
+  "liveVerified": false,
+  "holochainSource": "ff2d25190a64416e9cfd0faf142a6bd2f191e420",
+  "featureIntegration": "e3957a4ea5aa4d885f354de886b15218eaec1d24",
+  "compositionPriorRunIds": [
+    44972506394,
+    44967343151,
+    44955232840,
+    44945969209,
+    44943435624
+  ],
+  "compositionRequestedAt": "2026-11-22T02:10:37.433206+00:00",
+  "compositionPhase": "dispatch_acknowledged",
+  "imagePriorRunIds": [
+    44972994559,
+    44967634285,
+    44955207943,
+    44951130403,
+    44948470462,
+    44946907870,
+    44946308915,
+    44944552781,
+    44941886532,
+    44891296213,
+    44889042435,
+    44880188523,
+    44872485267,
+    44866523001,
+    44865002886
+  ],
+  "imageRequestedAt": "2026-11-22T02:10:44.228638+00:00",
+  "imagePhase": "dispatch_acknowledged",
+  "compositionRun": 44975041727,
+  "compositionStatus": "queued",
+  "compositionConclusion": null,
+  "imageRun": 44975049171,
+  "imageStatus": "queued",
+  "imageConclusion": null
+}
