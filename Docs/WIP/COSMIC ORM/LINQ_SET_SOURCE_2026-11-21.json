@@ -1,0 +1,14 @@
+{
+  "coreSource": "8b543e538df91a6ab257292327041dc30bccca5f",
+  "base": "79fb3fc71cace5bd7da760a6e08a18da54a19488",
+  "compiled": false,
+  "nativeAccepted": false,
+  "standardOperators": [
+    "Union",
+    "Concat",
+    "Intersect",
+    "Except"
+  ],
+  "resultStagesShared": true,
+  "developmentPushed": false
+}
