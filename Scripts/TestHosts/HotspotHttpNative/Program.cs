@@ -205,8 +205,17 @@ try
         options.TokenValidationParameters = new() { ValidateIssuer = false, ValidateAudience = false,
             ValidateIssuerSigningKey = true, IssuerSigningKey = key, ValidateLifetime = true, ClockSkew = TimeSpan.Zero };
     });
-    builder.Services.AddControllers().AddApplicationPart(typeof(GeoHotSpotsController).Assembly)
-        .AddApplicationPart(typeof(NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.NftController).Assembly);
+    var mvc = builder.Services.AddControllers();
+    if (mode == "mfa-http")
+    {
+        // WEB4 hosts authentication; WEB5's proxy has its own deployment and the same public URL.
+        // This multi-API fixture must use WEB4's application surface for the auth journey.
+        mvc.PartManager.ApplicationParts.Clear();
+        mvc.AddApplicationPart(typeof(NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.NftController).Assembly);
+    }
+    else
+        mvc.AddApplicationPart(typeof(GeoHotSpotsController).Assembly)
+            .AddApplicationPart(typeof(NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.NftController).Assembly);
     app = builder.Build(); app.UseAuthentication();
     if (mode == "mfa-http")
         AvatarManager.SecondFactorGate = NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa.MfaGate.Create(httpMfa!,
@@ -269,6 +278,12 @@ try
     }
     if (mode == "mfa-http")
     {
+        var authEndpoints = app.Services.GetRequiredService<Microsoft.AspNetCore.Routing.EndpointDataSource>().Endpoints
+            .OfType<Microsoft.AspNetCore.Routing.RouteEndpoint>()
+            .Where(endpoint => string.Equals(endpoint.RoutePattern.RawText?.Trim('/'), "api/avatar/authenticate", StringComparison.OrdinalIgnoreCase) &&
+                endpoint.Metadata.GetMetadata<Microsoft.AspNetCore.Routing.HttpMethodMetadata>()?.HttpMethods.Contains("POST") == true).ToList();
+        Require(authEndpoints.Count == 1 && authEndpoints[0].Metadata.GetMetadata<Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor>()?.ControllerName == "AvatarAuth",
+            "MFA fixture must expose exactly the shipping WEB4 authentication endpoint, without the WEB5 proxy.");
         await MfaHttpQualification.RunAsync(http, provider, httpMfa!, () => mfaNow,
             () => mfaNow = mfaNow.AddSeconds(30), dna, actor, accounts[0].Username, mfaPassword);
     }
