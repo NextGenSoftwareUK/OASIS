@@ -240,17 +240,28 @@
     },
     "httpQualification": {
       "source": "Scripts/TestHosts/HotspotHttpNative/MfaHttpQualification.cs",
-      "status": "dispatched-awaiting-build-runtime",
+      "status": "failed-password-http-awaiting-sanitized-server-diagnosis",
       "scope": "Actual status/enrol/confirm, password authenticate token-free challenge and no persisted credential, actual authenticate-mfa authenticator/recovery, consumed challenge refusal, signed issuer/audience/lifetime/JWT subject and native refresh persistence. No mock HTTP/provider or response body/credential logging.",
       "remaining": "Compile/runtime result and owned cleanup; then Settings management UI/browser/hosted.",
       "run": {
         "id": 44978452408,
         "control": "ec52231b38fadd8cabb66ce3546998df028c468c",
         "candidate": "e5aa77161465fa6c683746bac49ea647dd7adeb0",
-        "status": "in_progress",
-        "mode": "mfa-http"
+        "status": "completed",
+        "mode": "mfa-http",
+        "conclusion": "failure",
+        "job": 137073486672,
+        "buildErrors": 0,
+        "buildElapsed": "00:05:41.14",
+        "failure": "Status/enrol/confirm passed; password-challenge HTTP500 empty body. Exact cause unconfirmed; source has only1authenticate and1authenticate-mfa route.",
+        "cleanup": "Owned database/tempDNA/container absence verified."
       },
-      "host": "Actual BCrypt-hashed verified fixture actor, actual MfaService/MongoMfaStore injected supported clock, shipped MfaGate installed/restored finally, actual controller POSTs; fixture signing key matches Core issuance encoding. No deployment/source DNA flags changed."
+      "host": "Actual BCrypt-hashed verified fixture actor, actual MfaService/MongoMfaStore injected supported clock, shipped MfaGate installed/restored finally, actual controller POSTs; fixture signing key matches Core issuance encoding. No deployment/source DNA flags changed.",
+      "managementUi": {
+        "commit": "OPORTAL dev95f8069",
+        "status": "prepared-entry-disabled",
+        "scope": "Actual enrol/confirm/recovery replacement/disable request handlers, manual key and one-time recovery rendering, pending/version/token guards and tab/logout clearing. Syntax/cache checked; generic-close secret clearing and browser acceptance still required."
+      }
     }
   },
   "portalExpiryFix": {

@@ -2695,3 +2695,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 2026-11-21 MFA HTTP PREPARATION: source/host/workflow/docs only; no local build/runtime/download/env/database/archive/worktree. One dispatch44978452408 verified active. Gate restored in fixture finally; unique owned native DB/tempDNA/container cleanup remains pending runtime. No shared backend request or deployment config update.
 
 2026-11-21 SHARED/DISK REVIEW: C free40,836,235,264bytes measured. No owned local build/runtime/download/env/database/archive outputs created in this batch; no removal/reclamation claimed. Existing4unrelated dirty gitlinks preserved. MFA HTTP44978452408/job137073486672 verified active; original run retained, cleanup pending.
+
+2026-11-21 MFA HTTP44978452408 terminal failure after0error build5m41.14; selected log RAM-only confirms owned DB/tempDNA/container absence. Status/enrol/confirm passed, password endpoint500; no shared request or speculative backend fix. OPORTAL95f8069 source controls remain disabled; no local outputs/env/download created.

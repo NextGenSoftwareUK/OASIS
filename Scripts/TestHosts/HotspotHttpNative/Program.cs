@@ -227,11 +227,15 @@ try
             OASISRequestContext.CurrentAvatar = loaded.Result; OASISRequestContext.CurrentAvatarId = id;
         }
         try { await next(context); }
-        catch (Exception error) when (mode == "session-list-http")
+        catch (Exception error) when (mode is "session-list-http" or "mfa-http")
         {
             Console.WriteLine("SESSION_HTTP_SERVER_FAILURE: type=" + error.GetType().FullName +
                 " base=" + error.GetBaseException().GetType().FullName +
                 " avatarType=" + context.Items["Avatar"]?.GetType().FullName);
+            if (mode == "mfa-http")
+                Console.WriteLine("MFA_HTTP_FAILURE_METHODS: " + string.Join(" | ",
+                    new StackTrace(error.GetBaseException(), false).GetFrames()?.Take(8).Select(frame =>
+                        frame.GetMethod()?.DeclaringType?.FullName + "." + frame.GetMethod()?.Name) ?? Array.Empty<string>()));
             throw;
         }
     });
