@@ -13,7 +13,7 @@ The physical checkout contains unrelated concurrent changes: use the established
 - Last full startup diagnostic reported105 readers/102 verified, with CosmosBlockChainOASIS, HashgraphOASIS and ArweaveOASIS unavailable. This is an earlier startup snapshot, not proof of their current availability or of a current Holo failure.
 - No staging/production promotion, PIPER data mutation or DNA-setting change in these query slices.
 
-Shared Development advanced to **546dfb451cb11a8ec9355d2d25db853bab16617a** with the peer verified portal batch. Its rollout is separate from the last accepted demo evidence below. A preserved combined metadata candidate **d147fd8995430adf085a116e7c6a412a545e3634** / Core **3f5156e6e2cb7f6f9fd29ca6fa417dfe75808ce1** is prepared; combined graph build, new exact image/package and runtime acceptance remain open. Earlier01de image/package cannot certify this changed runtime.
+Shared Development advanced to **546dfb451cb11a8ec9355d2d25db853bab16617a** with the peer verified portal batch. Its rollout is separate from the last accepted demo evidence below. A preserved combined metadata candidate **d147fd8995430adf085a116e7c6a412a545e3634** / Core **3f5156e6e2cb7f6f9fd29ca6fa417dfe75808ce1** is prepared; manual exact-source combined WEB4/WEB5 build and three metadata transport controls prepared; qualification, new exact image/package and runtime acceptance remain open. Earlier01de image/package cannot certify this changed runtime.
 
 ## Next release: conditional text
 
