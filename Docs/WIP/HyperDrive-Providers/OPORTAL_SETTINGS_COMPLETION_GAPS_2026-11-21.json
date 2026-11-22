@@ -220,5 +220,13 @@
     "fix": "Strict finite numeric unexpired exp and three nonempty base64url segments; routes expired/malformed credentials into existing refresh before screen reads.",
     "verification": "9pure local controls+Node syntax/cache reference passed, no backend/auth calls",
     "remaining": "Browser lifecycle/hosted load timings; not a signature/authentication acceptance claim."
+  },
+  "sessionRouteConflict": {
+    "candidate": "e359c71b9c7ba1b1c1eb3d54d0522dcaf953dbb4",
+    "evidence": "Diagnostic44975845712 built0errors in5m44.85; initial-list HTTP500 empty body before custom middleware diagnostic. Exact candidate registers6identical session routes in AvatarAdminController and AvatarSessionController.",
+    "sourceFix": "Removed duplicate six-action session region from AvatarAdminController; AvatarSessionController remains sole endpoint owner. No alias or fallback route added.",
+    "status": "source-prepared-not-compiled-or-http-accepted",
+    "cleanup": "Owned database/tempDNA/container absence verified in diagnostic log.",
+    "remaining": "Refresh source inventories and frozen candidate, then rerun only failed session HTTP cohort. Confirm actual route selection and session contract."
   }
 }
