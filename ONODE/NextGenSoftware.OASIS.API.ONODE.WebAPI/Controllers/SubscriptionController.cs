@@ -622,7 +622,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     throw new InvalidOperationException("A paid invoice with its actual Stripe amount and currency is required.");
                 var invoicedPlans = Plans.Where(plan => invoice.Lines?.Data?.Any(line => line.Amount > 0 && line.Price?.Id == GetStripePriceId(plan.Id) && !string.IsNullOrEmpty(line.Price?.Id)) == true).ToList();
                 order = new OASISSub.OrderRecord { UserId = userId, PlanId = invoicedPlans.Count == 1 ? invoicedPlans[0].Id : null, StripeInvoiceId = invoice.Id, Amount = OASISSub.StripeAmount.FromMinorUnits(invoice.AmountPaid, invoice.Currency),
-                    Currency = invoice.Currency.ToUpperInvariant(), Status = "paid", Description = "Stripe subscription invoice", CreatedAt = invoice.Created };
+                    Currency = invoice.Currency.ToUpperInvariant(), Status = "paid", Description = "Stripe subscription invoice", CreatedAt = invoice.Created,
+                    HostedInvoiceUrl = invoice.HostedInvoiceUrl, InvoicePdfUrl = invoice.InvoicePdf };
             }
             string fingerprint = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(rawBody)));
             bool applied = await _billingRepository.ApplyStripeEventAsync(stripeEvent.Id, fingerprint, userId, stripeEvent.Created, async ct =>

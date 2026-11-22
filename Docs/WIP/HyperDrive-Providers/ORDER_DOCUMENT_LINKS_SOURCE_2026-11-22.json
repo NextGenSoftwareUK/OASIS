@@ -1,0 +1,7 @@
+{
+  "status": "Source implemented; compilation/native/real Stripe acceptance pending",
+  "change": "Persist actual HostedInvoiceUrl/InvoicePdf from verified paid Stripe invoice event into existing order record, exposed by existing actor-bound orders read. Portaldev5adca39 renders secure links only when supplied; no guessed links for older orders.",
+  "runtimeCost": "No new API request, collection, index, background worker or ledger.",
+  "qualificationFailure": "45080960598/job137388797973 compiled zero errors5m39.70 and passed dependency/checkout marker, then fixture opening-balance guard refused ledger writes. Fixture now initializes its newly owned empty ledger through existing production SaveSubscriptionAsync before any audit writes; no production guard changed.",
+  "cleanup": "Previous run emitted SQLite absence/Mongo unpause marker; no local builds, environments, downloads or databases."
+}

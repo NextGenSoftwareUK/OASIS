@@ -63,6 +63,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public string UserId { get; set; }
         public string PlanId { get; set; }
         public string StripeInvoiceId { get; set; }
+        [BsonIgnoreIfNull] public string HostedInvoiceUrl { get; set; }
+        [BsonIgnoreIfNull] public string InvoicePdfUrl { get; set; }
         public string Description { get; set; }
         [BsonRepresentation(BsonType.Decimal128)] public decimal Amount { get; set; }
         public string Currency { get; set; } = "USD";
