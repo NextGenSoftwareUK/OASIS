@@ -624,6 +624,17 @@
         "hosted"
       ],
       "runningNotificationRunUnchanged": 44969526963
+    },
+    "currentDevelopmentComposition": {
+      "source": "0a2cf8b41d553eb0029dadf576f06d4b2a33dfc3",
+      "base": "f26edeef1152961a2b46f2149a6c28c08188a09a",
+      "core": "f17bbbe293c3dec2386c207dbdf56b20b0f41a32",
+      "coreBase": "a166813b01476a2fce34e5908d74dac1da845ba6",
+      "tag": "qualification/billing-current-2026-11-21-0a2cf8b4",
+      "status": "source-only-awaiting-regenerated-inventory",
+      "priorRunUnchanged": 44969526963,
+      "temporaryIndexes": "Both removed in finally; first attempt refused incorrect manifest-key assumption before root publication, reused same Core tag.",
+      "preservation": "Reviewed billing delta excluding old inventories/Core/pins; current CQL+shared CSV preserved. Core clean merge changes only two reviewed outbox files relative a166."
     }
   },
   "warningEmailRootCause": {

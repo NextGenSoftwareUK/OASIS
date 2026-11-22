@@ -1,15 +1,14 @@
 {
   "scope": "billing",
-  "status": "compile-errors-corrected-awaiting-http-build",
-  "base": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
-  "candidate": "12045e8dd6116a589a9c1d39108f9134c14fa77d",
-  "tag": "qualification/billing-composition-2026-11-21-12045e8d",
+  "status": "current-development-source-inventory-required",
+  "base": "f26edeef1152961a2b46f2149a6c28c08188a09a",
+  "candidate": "0a2cf8b41d553eb0029dadf576f06d4b2a33dfc3",
+  "tag": "qualification/billing-current-2026-11-21-0a2cf8b4",
   "buildProjects": [
     "WEB4"
   ],
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
     "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAdminController.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs",
@@ -48,7 +47,8 @@
     "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
   ],
   "core": {
-    "candidate": "ab4adf66366f0b3f5e4e352a436a3dcd4878da8e"
+    "base": "a166813b01476a2fce34e5908d74dac1da845ba6",
+    "candidate": "f17bbbe293c3dec2386c207dbdf56b20b0f41a32"
   },
   "remaining": "Review regenerated inventory, compile and verify actual changed HTTP flow. Reliable warning email delivery and hosted acceptance remain open.",
   "nativeHost": "HotspotHttpNative",
