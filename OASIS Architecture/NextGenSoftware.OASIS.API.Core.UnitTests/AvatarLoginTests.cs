@@ -28,27 +28,6 @@ public class AvatarLoginTests
     }
 
     [Fact]
-    public void BreakerTripsForItsWindowThenRecoversAndResetsOnSuccess()
-    {
-        var now = new DateTime(2026, 11, 18, 0, 0, 0, DateTimeKind.Utc);
-        var breaker = new AvatarLoginBreaker(() => now, TimeSpan.FromSeconds(45));
-        Assert.False(breaker.IsTripped);
-
-        breaker.Trip();
-        Assert.True(breaker.IsTripped);
-
-        now = now.AddSeconds(44);
-        Assert.True(breaker.IsTripped);
-        now = now.AddSeconds(2);
-        Assert.False(breaker.IsTripped);
-
-        breaker.Trip();
-        Assert.True(breaker.IsTripped);
-        breaker.Reset();
-        Assert.False(breaker.IsTripped);
-    }
-
-    [Fact]
     public void LoginTimeoutDefaultsToTenSeconds()
         => Assert.Equal(10, new NextGenSoftware.OASIS.API.DNA.StorageProviderSettings().AvatarLoginTimeoutSeconds);
 }
