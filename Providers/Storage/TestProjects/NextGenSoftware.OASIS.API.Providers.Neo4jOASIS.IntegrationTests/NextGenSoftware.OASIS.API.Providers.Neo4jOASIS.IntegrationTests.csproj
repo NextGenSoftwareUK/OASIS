@@ -109,4 +109,4 @@
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlWhereV1Predicate.cs" Link="Web4/CqlWhereV1Predicate.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlWhereV1Compiler.cs" Link="Web4/CqlWhereV1Compiler.cs" />
   </ItemGroup>
-</Project>
+  <ItemGroup>\n    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlSetV1Request.cs" Link="Web4/CqlSetV1Request.cs" />\n    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetV1Compiler.cs" Link="Web4/CqlSetV1Compiler.cs" />\n    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetV1Endpoint.cs" Link="Web4/CqlSetV1Endpoint.cs" />\n  </ItemGroup>\n</Project>
