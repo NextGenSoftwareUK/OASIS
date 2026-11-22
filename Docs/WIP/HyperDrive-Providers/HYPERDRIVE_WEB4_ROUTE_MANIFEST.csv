@@ -802,3 +802,5 @@
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionNotificationController.cs","59","SubscriptionNotificationController","Alerts","GET","/api/subscription/usage/alerts","CoveredFeatureManagerDelegation"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionNotificationController.cs","73","SubscriptionNotificationController","SendWarningEmails","POST","/api/subscription/usage/alerts/email","InjectedServiceRepositoryOrClient"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarAccountClosureController.cs","32","AvatarAccountClosureController","Assess","GET","assessment","InjectedServiceRepositoryOrClient"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs","404","SubscriptionController","GetPendingCheckouts","GET","checkout/pending","InjectedServiceRepositoryOrClient"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs","415","SubscriptionController","ReconcileCheckout","POST","checkout/operations/{operationId}/reconcile","InjectedServiceRepositoryOrClient"

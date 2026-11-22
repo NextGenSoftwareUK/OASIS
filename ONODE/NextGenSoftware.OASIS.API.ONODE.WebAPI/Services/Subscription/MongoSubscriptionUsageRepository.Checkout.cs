@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
@@ -25,9 +27,30 @@ public sealed partial class MongoSubscriptionUsageRepository : ISubscriptionChec
         await BillingAudit.WithWriteConcern(WriteConcern.WMajority).InsertOneAsync(new BsonDocument {
             { "_id", CheckoutEventId(operation, "requested") }, { "Kind", "checkout-requested" },
             { "UserId", avatarId }, { "CheckoutOperationId", operation }, { "PlanId", planId },
+            { "CreatedEventId", CheckoutEventId(operation, "created") },
             { "ClosedEventId", CheckoutEventId(operation, "closed") }, { "OccurredAtUtc", _time.GetUtcNow().UtcDateTime }
         }, cancellationToken: token);
         return operation;
+    }
+
+    public async Task<IReadOnlyList<PendingSubscriptionCheckout>> GetPendingCheckoutsAsync(string avatarId, CancellationToken token)
+    {
+        if (!Guid.TryParseExact(avatarId, "D", out var actor) || actor == Guid.Empty)
+            throw new ArgumentException("An authenticated account is required.", nameof(avatarId));
+        var rows = await BillingAudit.Aggregate()
+            .Match(new BsonDocument { { "UserId", avatarId }, { "Kind", "checkout-requested" } })
+            .AppendStage<BsonDocument>(new BsonDocument("$lookup", new BsonDocument {
+                { "from", BillingAudit.CollectionNamespace.CollectionName }, { "localField", "ClosedEventId" },
+                { "foreignField", "_id" }, { "as", "terminal" } }))
+            .Match(new BsonDocument("terminal.0", new BsonDocument("$exists", false)))
+            .AppendStage<BsonDocument>(new BsonDocument("$lookup", new BsonDocument {
+                { "from", BillingAudit.CollectionNamespace.CollectionName }, { "localField", "CreatedEventId" },
+                { "foreignField", "_id" }, { "as", "acknowledgement" } }))
+            .Project(new BsonDocument { { "CheckoutOperationId", 1 }, { "PlanId", 1 }, { "OccurredAtUtc", 1 },
+                { "acknowledgement.StripeSessionId", 1 } }).ToListAsync(token);
+        return rows.Select(row => new PendingSubscriptionCheckout(row["CheckoutOperationId"].AsString,
+            row["PlanId"].AsString, row["OccurredAtUtc"].ToUniversalTime(),
+            row["acknowledgement"].AsBsonArray.Count == 0 ? null : row["acknowledgement"][0]["StripeSessionId"].AsString)).ToArray();
     }
 
     public Task RecordCheckoutSessionAsync(string avatarId, string operationId, string stripeSessionId, CancellationToken token)

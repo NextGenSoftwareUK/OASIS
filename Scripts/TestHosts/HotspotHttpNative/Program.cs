@@ -207,6 +207,12 @@ try
             builder.Services.AddTransient<UsageWarningEmailService>();
         }
     }
+    if (mode == "session-global-http")
+    {
+        builder.Services.AddSingleton<ISubscriptionUsageRepository>(billingRepository!);
+        builder.Services.AddSingleton<ISubscriptionBillingRepository>(billingRepository!);
+        builder.Services.AddSingleton<ISubscriptionService, SubscriptionService>();
+    }
     if (mode == "billing-restoration-http")
     {
         Require(string.IsNullOrWhiteSpace(SubscriptionStripeConfiguration.SecretKey(builder.Configuration)),

@@ -21,5 +21,21 @@
     "newRoute": "Actor-scoped account assessment explicitly reviewed as injected repository-backed read",
     "candidateManifest": "Existing frozen candidate manifest plus only the new account-assessment row; no unrelated task routes imported",
     "priorFailure": "45071695894 stopped at route review before compile; native provider scenario did not run; owned container absence verified"
+  },
+  "recoverySource": {
+    "status": "Implemented API/repository source; uncompiled/unrun/undeployed and not yet Portal-wired",
+    "routes": [
+      "GET checkout/pending",
+      "POST checkout/operations/{operationId}/reconcile"
+    ],
+    "behavior": "Lists only authenticated account unresolved operations; reads known Stripe session or bounded canonical metadata search for a lost ID; persists provider acknowledgement and uses same canonical status/activation/expiry handler. No Stripe Create in reconciliation; missing/duplicate/conflicting outcomes stay unresolved.",
+    "preflight": "Local route gate805actions/695storage-external classifications and diff check passed; API/native/Stripe acceptance pending",
+    "preparedCheck": "Actual owned Mongo pending list before/after native journal closure plus unknown-operation refusal before any Stripe client/network call; fixture data not a Stripe-issued-session claim"
+  },
+  "currentRun": {
+    "run": 45073038989,
+    "control": "8b0563c7e05beadade9016cd0c19729b377d58d9",
+    "candidate": "53f40d86573cb94b1ecc30e38f880e0596b603af",
+    "observed": "queued at dispatch; existing frozen run preserved; recovery additions excluded"
   }
 }

@@ -2897,3 +2897,6 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 ### 2026-11-22 — reviewed route preflight
 - Run45071695894 failed source route review before compile/runtime; CI owned container absence verified. Corrected route classification; local task source manifest passed803actions/693storage-external actions after preserving four existing notification records and removing six stale empty-controller entries. No runtime installs, builds, databases, downloads or retained test outputs.
 - Next immutable candidate53f40d86 includes only its new assessment route record on existing reviewed manifest; exact pins verified. Owned temporary source index removed in finally. No new worktree/environment, schema/index or shared-service call.
+
+### 2026-11-22 — checkout reconciliation source
+- Added account-scoped pending read and bounded actual Stripe metadata reconciliation. No new Stripe checkout in recovery; no SDK/network execution performed in this source turn. Local source route check805/695 passed; no builds, database, environment, runtime/download or saved log/results. Existing run45073038989 preserved, not duplicated for these changes.

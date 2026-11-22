@@ -396,6 +396,60 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!Guid.TryParseExact(userId, "D", out _)) return Unauthorized();
             if (string.IsNullOrWhiteSpace(sessionId) || !sessionId.StartsWith("cs_", StringComparison.Ordinal))
                 return BadRequest(new { IsError=true, Message="A Stripe checkout session ID is required." });
+            return await ReadCheckoutSessionStatusAsync(userId, sessionId);
+        }
+
+        [Authorize]
+        [HttpGet("checkout/pending")]
+        public async Task<IActionResult> GetPendingCheckouts()
+        {
+            var actor = GetCurrentUserId();
+            if (!Guid.TryParseExact(actor, "D", out var id) || id == Guid.Empty) return Unauthorized();
+            if (_checkoutJournal == null) return StatusCode(503, new { IsError = true, Message = "Checkout accounting is unavailable." });
+            var pending = await _checkoutJournal.GetPendingCheckoutsAsync(actor, HttpContext.RequestAborted);
+            return Ok(new { IsError = false, Result = pending });
+        }
+
+        [Authorize]
+        [HttpPost("checkout/operations/{operationId}/reconcile")]
+        public async Task<IActionResult> ReconcileCheckout(string operationId)
+        {
+            var actor = GetCurrentUserId();
+            if (!Guid.TryParseExact(actor, "D", out var actorId) || actorId == Guid.Empty) return Unauthorized();
+            if (!Guid.TryParseExact(operationId, "D", out var operation) || operation == Guid.Empty)
+                return BadRequest(new { IsError = true, Message = "A checkout operation identity is required." });
+            if (_checkoutJournal == null) return StatusCode(503, new { IsError = true, Message = "Checkout accounting is unavailable." });
+            var pending = (await _checkoutJournal.GetPendingCheckoutsAsync(actor, HttpContext.RequestAborted))
+                .SingleOrDefault(row => row.OperationId == operationId);
+            if (pending == null) return NotFound(new { IsError = true, Message = "No unresolved checkout belongs to this account and operation." });
+            var service = new Stripe.Checkout.SessionService(StripeClient());
+            var sessionId = pending.StripeSessionId;
+            if (sessionId == null)
+            {
+                Stripe.Checkout.Session match = null;
+                var inspected = 0;
+                await foreach (var candidate in service.ListAutoPagingAsync(new Stripe.Checkout.SessionListOptions {
+                    Created = new DateRangeOptions { GreaterThanOrEqual = pending.RequestedAtUtc.AddMinutes(-1) }, Limit = 100
+                }, cancellationToken: HttpContext.RequestAborted))
+                {
+                    if (++inspected > 1000)
+                        return Conflict(new { IsError = true, Message = "Checkout reconciliation exceeded its bounded search. No new checkout was created." });
+                    if (candidate.Metadata?.GetValueOrDefault("oasis_checkout_operation") != operationId) continue;
+                    if (candidate.Metadata.GetValueOrDefault("avatar_id") != actor ||
+                        candidate.Metadata.GetValueOrDefault("oasis_ledger_scope") != OASISSub.SubscriptionMongoConfiguration.DatabaseName(_configuration))
+                        return Conflict(new { IsError = true, Message = "The checkout operation has conflicting account or ledger identity." });
+                    if (match != null) return Conflict(new { IsError = true, Message = "Multiple Stripe sessions refer to this checkout operation. Reconciliation is required." });
+                    match = candidate;
+                }
+                if (match == null) return Conflict(new { IsError = true, Message = "The checkout outcome is still unconfirmed. No replacement checkout was created." });
+                sessionId = match.Id;
+                await _checkoutJournal.RecordCheckoutSessionAsync(actor, operationId, sessionId, HttpContext.RequestAborted);
+            }
+            return await ReadCheckoutSessionStatusAsync(actor, sessionId, operationId);
+        }
+
+        private async Task<IActionResult> ReadCheckoutSessionStatusAsync(string userId, string sessionId, string operationId = null)
+        {
             Stripe.Checkout.Session session;
             try
             {
@@ -406,11 +460,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return NotFound(new { IsError = true, Message = "The Stripe checkout session could not be found." });
             }
             if (IsOtherLedger(session.Metadata) || session.Metadata?.GetValueOrDefault("avatar_id") != userId) return Forbid();
+            if (operationId != null && (session.Metadata?.GetValueOrDefault("oasis_checkout_operation") != operationId ||
+                session.Metadata?.GetValueOrDefault("oasis_ledger_scope") != OASISSub.SubscriptionMongoConfiguration.DatabaseName(_configuration)))
+                return Conflict(new { IsError = true, Message = "The canonical session does not match the checkout operation." });
             var record = await _subscriptionService.GetSubscriptionAsync(userId);
             bool activated = IsCheckoutActivated(session, record);
             if (activated || session.Status == "expired")
                 await CloseJournalledCheckoutAsync(userId, session);
-            return Ok(new { IsError=false, session.Status, session.PaymentStatus, SubscriptionStatus=record?.Status, Activated=activated });
+            return Ok(new { IsError=false, session.Status, session.PaymentStatus, SubscriptionStatus=record?.Status,
+                Activated=activated, SessionId=session.Id, SessionUrl=session.Status == "open" ? session.Url : null,
+                PlanId=session.Metadata?.GetValueOrDefault("plan_id") });
         }
 
         // ── Stripe Webhooks ──────────────────────────────────────────────────
