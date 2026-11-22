@@ -5,7 +5,7 @@
     "taskBranch": "work/hyperdrive-provider-completion",
     "taskWorktree": "C:/Source/OASIS2-hyperdrive",
     "portalBranch": "dev",
-    "portalHead": "4baca47",
+    "portalHead": "38a77a3",
     "reviewedDevelopment": "aa6f1cb26d8",
     "currentCore": "9dcc856add106fa26b27ea5d26ef50b590bf92fd",
     "currentWeb6": "d9e60ceaecef5513d1bcd6285cd668076bc77edf"
@@ -80,8 +80,9 @@
       "run": 45074820751,
       "control": "93daf739323f415647581266522d3c4ae9b9494e",
       "candidate": "0903b86778f1cf17b29fe0388a16888b7c2428ce",
-      "status": "queued at dispatch; previous own run terminal, one dispatch",
-      "scope": "Changed session/list/account-assessment/checkout journal/recovery/guard flow; accepted preference and35middleware cohorts retained without replay"
+      "status": "in_progress at actual checkout step; frozen candidate unchanged",
+      "scope": "Changed session/list/account-assessment/checkout journal/recovery/guard flow; accepted preference and35middleware cohorts retained without replay",
+      "job": 137369608518
     },
     "preparationFailure": {
       "run": 45069521383,
@@ -152,7 +153,8 @@
       "behavior": "Persist request before Stripe; provider acknowledgement before redirect; close after confirmed activation or signed expiry; customerless unresolved requests visible to assessment",
       "remaining": "Ambiguous creation reconciliation and full closure admission/erasure",
       "recoverySource": "0f2efc4330e: pending list and canonical no-create recovery; uncompiled/unrun/undeployed and UI wiring pending",
-      "portalSource": "4baca47 on dev; on-demand review/resume/cancel source wired; not browser/Stripe/deployed accepted"
+      "portalSource": "4baca47 on dev; on-demand review/resume/cancel source wired; not browser/Stripe/deployed accepted",
+      "reservationSource": "18b4ce801eb: transactional per-account reservation and terminal release, older-closure replay isolation; uncompiled/unrun/undeployed"
     }
   }
 }
