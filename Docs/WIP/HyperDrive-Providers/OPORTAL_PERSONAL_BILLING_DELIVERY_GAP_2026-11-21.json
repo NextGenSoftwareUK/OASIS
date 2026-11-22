@@ -604,7 +604,13 @@
         "Remove exactly obsolete AppOverageStatementWorker registration. Canonical PaidOverageBillingWorker remains guarded by existing maintenance control; GetClosedAccountsAsync includes app settled charges. No worker/config enablement."
       ],
       "next": "Combined HTTP host build plus selected actual notification flow; no duplicate standalone compile.",
-      "temporaryIndex": "removed"
+      "temporaryIndex": "removed",
+      "run": {
+        "id": 44969526963,
+        "control": "4c98c65c3440fce59ee39f5514e305b3bbeedc1d",
+        "status": "in_progress",
+        "mode": "billing-http"
+      }
     }
   },
   "warningEmailRootCause": {
