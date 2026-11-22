@@ -1,5 +1,5 @@
 {
-  "phase": "image_qualification_running",
+  "phase": "native_fixture_qualification_running",
   "baseCore": "1f649cd707df50f6ef8f999583e1117054a43133",
   "core": "9dcc856add106fa26b27ea5d26ef50b590bf92fd",
   "changedOperations": [
@@ -27,7 +27,7 @@
   "contractAccepted": true,
   "imagePhase": "accepted",
   "imageAccepted": true,
-  "packageAccepted": false,
+  "packageAccepted": true,
   "producerSource": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
   "qualifiedSource": "a6d7482446544c234f00de1227ea6af96a1ec290",
   "reviewedNonRuntimeDelta": [
@@ -65,13 +65,13 @@
   "imageRequestedUtc": "2026-11-22T18:51:35.621559+00:00",
   "imageRun": 45057667019,
   "imageJob": 137316398646,
-  "nativeFixtureControlSource": "b4b94a02bfca3483a2de0a889bcc510550bfd89c",
+  "nativeFixtureControlSource": "d2c0547f64aef8013b4ce91be5585622a8fbd963",
   "nativeFixturePhase": "in_progress",
   "nativeFixtureAccepted": false,
   "nativeFixtureDispatchPhase": "acknowledged",
-  "nativeFixtureRequestedUtc": "2026-11-22T18:59:43.960279+00:00",
+  "nativeFixtureRequestedUtc": "2026-11-22T19:06:47.047646+00:00",
   "digest": "sha256:deaad68bc6a73bbf3415a10c6e617e0d9831a5d2a7412626f327575708ae2c62",
-  "packagePhase": "dispatch_acknowledged",
+  "packagePhase": "accepted",
   "packagePriorRuns": [
     45054911320,
     45042421108,
@@ -95,8 +95,33 @@
     44894688335
   ],
   "packageRequestedUtc": "2026-11-22T19:00:10.378058+00:00",
-  "nativeFixtureRun": 45058425820,
-  "nativeFixtureJob": 137318735889,
+  "nativeFixtureRun": 45059118248,
+  "nativeFixtureJob": 137320845937,
   "packageRun": 45058466879,
-  "packageJob": 137318863660
+  "packageJob": 137318863660,
+  "nativeFixtureReviewedTestAndDocsOnlyDelta": [
+    "Docs/WIP/COSMIC ORM/COLLECTION_AUTHORITY_CURRENT_RUNTIME_MODE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/COLLECTION_AUTHORITY_NATIVE_FAILURE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/COLLECTION_READ_AUTHORITY_IMAGE_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/COLLECTION_READ_AUTHORITY_IMAGE_CANDIDATE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/CURRENT_STATUS.md",
+    "Docs/WIP/COSMIC ORM/FULL_PROGRESS_REPORT_2026-11-21.md",
+    "Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/MongoSqliteRealProviderRoutingTests.CollectionAuthority.cs"
+  ],
+  "nativeFixturePriorRun": 45058425820,
+  "nativeFixturePriorFailure": {
+    "run": 45058425820,
+    "job": 137318735889,
+    "conclusion": "failure",
+    "artifact": 14768477639,
+    "archiveBytes": 2017,
+    "archiveSha256": "4be0e321f98bd023e47951998d91a2ccec4f6e1c8e77ff8fc8e81771a5015204",
+    "cause": "fixture database name has64 ASCII bytes; MongoDB command rejects length above63",
+    "nativeAcceptance": false,
+    "ownedMongoContainerStopped": true,
+    "shippingSourceChangeNeeded": false,
+    "sharedAtlasOrPiperAccess": false,
+    "archiveSavedLocally": false
+  }
 }
