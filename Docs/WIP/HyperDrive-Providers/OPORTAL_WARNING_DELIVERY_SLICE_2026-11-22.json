@@ -151,6 +151,13 @@
       "reviewedCandidate": "d68b635b0a56fa96de1075c627b2261213870f56",
       "tag": "qualification/warning-composed-2026-11-22-d68b635b",
       "scope": "Compile changed combined graph only; no accepted email/MFA replay or credentials."
+    },
+    "compileRun": {
+      "id": 44991621000,
+      "control": "eee7a7adb3997b169240715ec72e6cdae256f8cd",
+      "candidate": "d68b635b0a56fa96de1075c627b2261213870f56",
+      "status": "queued",
+      "mode": "compile-only-no-native-no-secrets"
     }
   }
 }
