@@ -59,5 +59,12 @@
     "selectedGitlink": "29217030f057bc9090417c70b592be7e5850f466",
     "previousManifest": "7d55828d3a7905d6938dff508bb30d423ddecc48",
     "cause": "Development24ec05bb moved gitlink without paired manifest. Pre-push correctly rejected prior immutable candidate; no guard bypass or deployment occurred."
+  },
+  "compileOnly": {
+    "run": 45005901782,
+    "control": "b7901dfffae5732bd30a28d0d951f969b6b8a671",
+    "status": "queued",
+    "observedUtc": "2026-11-22T09:04:36.735116+00:00",
+    "scope": "WEB4/WEB5 compile on exact06c79aea dependency graph; no native accepted-behavior replay or credentials."
   }
 }
