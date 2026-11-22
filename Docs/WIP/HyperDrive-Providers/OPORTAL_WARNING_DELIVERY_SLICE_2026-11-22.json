@@ -67,5 +67,27 @@
     ],
     "next": "Artifact classifier differs from frozen source: control includes mode-aware member discovery and primary-constructor injected member discovery. Review/import exact classifier plus inventories into successor; do not dispatch native with stale classifier.",
     "cleanup": "ZIP read in memory only; temporary tracked CSV byte changes restored in finally; only Git blobs retained. No credentials/runtime/backend activity."
+  },
+  "reviewedSuccessor": {
+    "candidate": "6de38f50ddef025703b0fb2c618905570e553106",
+    "base": "b8561b84a7b2298ff7b305dd8a352748b98b2980",
+    "tag": "qualification/warning-reviewed-2026-11-22-6de38f50",
+    "paths": [
+      "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
+      "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Owners.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.WarningEmails.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailDispatcher.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailGateway.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailService.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningReader.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
+      "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
+    ],
+    "status": "source-reviewed-not-compiled-or-native-accepted",
+    "classifierSha256": "3671b61339b020d11a55c6a06d9dcaf115d39a7fe987b053c6e3378dfbbae5cd",
+    "classifierReview": "Exact control classifier hash verified; adds typed manager alias and primary-constructor repository discovery. Three label changes follow source bodies/helper changes; no route removals. Inventories retain overload multiplicity.",
+    "cleanup": "Temporary index and lock removed in finally; physical submodules unchanged."
   }
 }

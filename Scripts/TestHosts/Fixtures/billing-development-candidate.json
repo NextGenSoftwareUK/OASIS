@@ -1,21 +1,24 @@
 {
   "scope": "billing",
-  "status": "scoped-warning-delivery-awaiting-inventory-review",
+  "status": "reviewed-source-awaiting-compile-and-enabled-browser",
   "base": "b8561b84a7b2298ff7b305dd8a352748b98b2980",
-  "candidate": "385fdffe7ca33dbcf602a831f88a04f50230c96c",
-  "tag": "qualification/warning-slice-2026-11-22-385fdffe",
+  "candidate": "6de38f50ddef025703b0fb2c618905570e553106",
+  "tag": "qualification/warning-reviewed-2026-11-22-6de38f50",
   "buildProjects": [
     "WEB4"
   ],
   "allowedPaths": [
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Owners.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailGateway.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.WarningEmails.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailDispatcher.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailGateway.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailService.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningReader.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.WarningEmails.cs"
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
+    "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
   ],
   "core": {
     "base": "66151891ab7d1cdd0f8bdcf97cc14449de131651",
