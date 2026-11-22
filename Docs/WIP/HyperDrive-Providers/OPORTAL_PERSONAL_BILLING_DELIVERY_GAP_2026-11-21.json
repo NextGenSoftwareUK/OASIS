@@ -359,6 +359,13 @@
       "managerBlob": "919543e08a5e7ef1cf641820f14de8c8d3bfbb2d",
       "routeBlob": "46fc553f751c03dfc142ee5613617c86abb15120",
       "next": "Regenerate/review with corrected classifier before compile; email and hosted acceptance remain open."
+    },
+    "correctedInventoryRun": {
+      "id": 44968594037,
+      "control": "16f0cbacef2a043e7dc9792a018695286e3cc8d3",
+      "candidate": "744583b1ef6f1932a22054c4772fb6d0979b6fcf",
+      "status": "in_progress",
+      "native": false
     }
   }
 }
