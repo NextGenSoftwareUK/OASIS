@@ -193,45 +193,55 @@
     "revision": "546dfb451cb11a8ec9355d2d25db853bab16617a",
     "previous": "a96652767c3b382cdbd9e4ccaa80516358abff53",
     "core": "a7d15b4ffc3fbcedd3c7164f06ba8fafb262a563",
-    "status": "pushed-normal-fast-forward-no-checkout-switch-no-force",
+    "status": "all-seven-exact-source-deployment-metadata-success-functional-hosted-open",
     "rollouts": [
       {
         "service": "WEB4",
         "id": "0791b5a8-e482-4052-a6bf-a4a496b7a1d1",
-        "status": "QUEUED"
+        "status": "SUCCESS"
       },
       {
         "service": "WEB5",
         "id": "3f5054a9-d047-4e61-bc1b-77c1ab257a1f",
-        "status": "BUILDING"
+        "status": "SUCCESS"
       },
       {
         "service": "WEB6",
         "id": "6bbc2dad-0d45-45ee-8c6e-539d1968bbba",
-        "status": "BUILDING"
+        "status": "SUCCESS"
       },
       {
         "service": "WEB7",
         "id": "219c4015-af6b-424f-8c2d-5f90c039b482",
-        "status": "QUEUED"
+        "status": "SUCCESS"
       },
       {
         "service": "WEB8",
         "id": "e11a278b-6b27-4e7c-8ad7-1d69d6470df8",
-        "status": "BUILDING"
+        "status": "SUCCESS"
       },
       {
         "service": "WEB9",
         "id": "1e43bdaf-75f6-48f9-b628-86cc117b7eb4",
-        "status": "QUEUED"
+        "status": "SUCCESS"
       },
       {
         "service": "WEB10",
         "id": "3746796b-3179-4ca4-afb2-202bbfa68057",
-        "status": "QUEUED"
+        "status": "SUCCESS"
       }
     ],
     "source": "All seven selected rollout metadata records match exact546dfb45; running revision/startup/hosted acceptance still open.",
-    "remaining": "Follow original seven rollout IDs; no duplicate deploy/manual restart/shared data tests. Full financial/Settings/OPORTAL/provider reliability gates remain open."
+    "remaining": "All seven original rollout handles report SUCCESS/exact546dfb45. Actual DNA-loaded settings and complete hosted functional/financial/OPORTAL/provider acceptance remain separate; no shared auth/payment/data probe."
+  },
+  "frontendDelivery": {
+    "commit": "51fe9bba846b4c7a81a62e8d3c352665ffc0342f",
+    "deployment": "dpl_9LK5StELe2ZPVpzvaQxpxAmzE4iv",
+    "status": "READY-normal-build-static-source-accepted",
+    "staticMatches": 10,
+    "staticChecked": 10,
+    "rootCause": "Stale generated endpoint map omitted warning POST, blocking normal frontend builds and leaving newer login/Settings/banner unserved. Regenerated real live WEB4/WEB5 specs829/640 with bounded request; drift gate unchanged/pass, no exceptions.",
+    "scope": "Public HTML/script/fragment/SDK byte hashes only; no JS execution, auth/payment/data flow or hosted speed claim.",
+    "record": "C:/Source/OPORTAL-JS/Docs/WIP/FRONTEND_DELIVERY_2026-11-22.json"
   }
 }
