@@ -5,7 +5,7 @@
     "taskBranch": "work/hyperdrive-provider-completion",
     "taskWorktree": "C:/Source/OASIS2-hyperdrive",
     "portalBranch": "dev",
-    "portalHead": "4d1a627",
+    "portalHead": "57422d7",
     "reviewedDevelopment": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
     "currentCore": "9dcc856add106fa26b27ea5d26ef50b590bf92fd",
     "currentWeb6": "d9e60ceaecef5513d1bcd6285cd668076bc77edf"
@@ -46,8 +46,9 @@
       "Password reset control cleared across sessions; stale responses rejected"
     ],
     "remaining": [
-      "Global and selected sign-out backend coordination and Settings wiring",
-      "Account deletion complete lifecycle and Settings wiring",
+      "Global sign-out wired and capability gated; real SQLite session write fails qualification, not accepted or deployed",
+      "Selected sign-out backend coordination",
+      "Account deletion lifecycle and Settings wiring",
       "Hosted Stripe paid lifecycle and full browser/site acceptance",
       "Current deployed performance measurement"
     ]
@@ -64,7 +65,15 @@
       "Single revoke acknowledgement requirement",
       "Email-delete endpoint delegation correction"
     ],
-    "currentCompositionReview": "Older source candidates must preserve newer Core9dcc and WEB6d9 changes before integration."
+    "currentCompositionReview": "Older source candidates must preserve newer Core9dcc and WEB6d9 changes before integration.",
+    "globalSignout": {
+      "run": 45068055435,
+      "job": 137348566147,
+      "conclusion": "failure",
+      "observedBlocker": "Real SQLite password sign-in session save rejected: session write requires one active pending credential and explicit authority.",
+      "cleanup": "Owned Mongo unpaused; owned SQLite directory absent verified in selected logs.",
+      "acceptance": "Not accepted; preserve previous 35 middleware passes without replay."
+    }
   },
   "providers": {
     "recordedShippingProjects": 234,
@@ -86,5 +95,6 @@
     "freeDiskGB": 28.97,
     "thisTurn": "Read-only metadata and bounded selected CI logs in RAM; no runtime/download/build/database/test archive created.",
     "temporaryEmailSecrets": "Previously deleted and absence verified; not restaged."
-  }
+  },
+  "deliveryPolicy": "Finish remaining OPORTAL user flows breadth first; one representative end-to-end verification for changed behavior, reuse accepted evidence. A blocked backend flow must not stop independent screen work."
 }
