@@ -45,7 +45,7 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
-      - name: Verify both selected set input plans
+      - name: Verify both permission-admitted selected set input plans
         working-directory: OASIS
         shell: pwsh
         run: |

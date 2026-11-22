@@ -10,7 +10,8 @@ public sealed class CosmicProjectedSetPlannerTests
     private static CosmicProjectionCompositionCapabilities Stages(CosmicSelectedStageFeatures stages)
         =>new(stages,CosmicQueryFeatures.None,Array.Empty<CosmicQueryMetadataCapability>(),Array.Empty<Type>());
     private static CosmicProjectionCompositionTarget Target(CosmicSelectedStageFeatures stages)
-        =>new(ProviderType.MongoDBOASIS,new CosmicQueryCapabilities(CosmicQueryFeatures.None,Array.Empty<CosmicQueryFieldCapability>()),
+        =>new(ProviderType.MongoDBOASIS,new CosmicQueryCapabilities(CosmicQueryFeatures.And|CosmicQueryFeatures.Or|CosmicQueryFeatures.BooleanConstant,
+            new[]{typeof(bool),typeof(Guid)},new[]{CosmicQueryComparisonOperator.Equal}),
             new CosmicProjectionCapabilities(new[]{new CosmicProjectionFieldCapability("Name",typeof(string))},Array.Empty<Type>()),
             Stages(stages));
     private static CosmicProjectedSetCapabilities Sets()=>new(CosmicSetQueryFeatures.Union,
