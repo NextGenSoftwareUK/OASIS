@@ -1,0 +1,12 @@
+{
+  "source": "08a796c537069fc4d79580247c1fb23b0e73441a",
+  "website": "7c002846b2e95654b5c2261f6c13a703acc6c9d2",
+  "apiSource": "f29262d8b6df380e0d267228d92508e4da393561",
+  "phase": "completed",
+  "liveRead": false,
+  "staticAccepted": false,
+  "requestedUtc": "2026-11-22T18:20:06.606780+00:00",
+  "run": 45054717428,
+  "job": 137307283907,
+  "conclusion": "success"
+}
