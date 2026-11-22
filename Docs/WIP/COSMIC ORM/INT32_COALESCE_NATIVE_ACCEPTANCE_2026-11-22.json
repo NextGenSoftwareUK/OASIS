@@ -1,0 +1,72 @@
+{
+  "source": "97b4f5d27f1681fb05e7f9b5e597df8b1a1d8613",
+  "core": "703310f2a72c04015e1bc498ba504ff919279fbc",
+  "run": 44997253843,
+  "job": 137130845269,
+  "artifact": 14744512940,
+  "bytes": 2784,
+  "sha256": "e27875364fa5596aa88987077652a3b0964f733b4be8517cab31cbbeb9185695",
+  "nativeAccepted": true,
+  "testsPassed": 3,
+  "reports": [
+    {
+      "provider": "MongoDBOASIS",
+      "checks": 4,
+      "ownedCleanupIds": 5,
+      "successfulHolonWrites": 5,
+      "queryElapsedMilliseconds": {
+        "create-owned": 545,
+        "coalesced-values": 121,
+        "different-replacements": 46,
+        "invalid-domain": 19
+      },
+      "nativeProviderVerified": true,
+      "int32CoalesceVerified": true,
+      "nullMissingZeroVerified": true,
+      "differentReplacementsVerified": true,
+      "invalidStoredDomainRefused": true,
+      "executableReplacementRefused": true,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 4,
+      "ownedCleanupIds": 5,
+      "successfulHolonWrites": 5,
+      "queryElapsedMilliseconds": {
+        "create-owned": 555,
+        "coalesced-values": 36,
+        "different-replacements": 17,
+        "invalid-domain": 6
+      },
+      "nativeProviderVerified": true,
+      "int32CoalesceVerified": true,
+      "nullMissingZeroVerified": true,
+      "differentReplacementsVerified": true,
+      "invalidStoredDomainRefused": true,
+      "executableReplacementRefused": true,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "checks": 4,
+      "ownedCleanupIds": 5,
+      "successfulHolonWrites": 5,
+      "queryElapsedMilliseconds": {
+        "create-owned": 1651,
+        "coalesced-values": 998,
+        "different-replacements": 793,
+        "invalid-domain": 364
+      },
+      "nativeProviderVerified": true,
+      "int32CoalesceVerified": true,
+      "nullMissingZeroVerified": true,
+      "differentReplacementsVerified": true,
+      "invalidStoredDomainRefused": true,
+      "executableReplacementRefused": true,
+      "exactCleanupVerified": true
+    }
+  ],
+  "localArchiveRetained": false,
+  "liveAccepted": false
+}

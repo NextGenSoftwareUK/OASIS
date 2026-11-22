@@ -29,9 +29,11 @@ Shared Development advanced to **546dfb451cb11a8ec9355d2d25db853bab16617a** with
 - Prepared hosted verifier: `Scripts/Sandbox/Verify-HostedOwnedNativeSets.py`, explicit `--selected-columns --boolean-text-case --boolean-metadata-case`, fresh bounded fixture name and exact source/website/deployment. Requires its own accepted release journal, unique ready source descriptions before writes, immutable checkpoints and exact cleanup. Not executed for conditional metadata yet.
 - Durable private journals under `LocalState/COSMIC`: `boolean-metadata-case-*.json`, `boolean-text-case-image-handoff.json`, `text-coalesce-combined-image-handoff.json`. Preserve unknown-outcome journals; never replay a dispatch, create, delete or session issuance blindly.
 
-## Next source-only breadth work
+## Next query breadth slice — not deployed
 
-Nullable Int32 coalescing captured in Core703310f2 and implemented in the three native translators through the existing coalesced-cell owner. Representative native qualification prepared for null/missing/zero/value results, distinct literal formulas, selected filtering and invalid-domain/executable-code refusal (five owned records/provider with exact cleanup); transport implemented with three focused capture/domain controls plus actual WEB4 build44997487846 queued; native44997253843 running, SQL and qualification acceptance remain open; do not include this successor in the frozen01de release.
+Nullable Int32 coalescing passed representative native qualification44997253843 on all three shipping providers (four checks/store, five isolated records, exact cleanup) and API44997487846 (three controls plus actual WEB4 build). [Native proof](INT32_COALESCE_NATIVE_ACCEPTANCE_2026-11-22.json), [API proof](INT32_COALESCE_WIRE_ACCEPTANCE_2026-11-22.json).
+SQL website aaf83abafe72bf6816304adf1e0244729d5a2fd2 adds COALESCE(CAST(metadata.stock AS INT32),0); three new parser controls and three changed-parser text regressions passed in RAM.
+These proofs use Core703310f2 before portal composition. Current feature Core3696bd32 preserves that Queries tree and the peer portal files; combined-graph release qualification/image, Ask guidance, hosted integer acceptance and broader numeric domains remain open. Keep this successor out of the frozen metadata-only candidate d147fd89.
 
 ## Full scope and remaining gaps
 
