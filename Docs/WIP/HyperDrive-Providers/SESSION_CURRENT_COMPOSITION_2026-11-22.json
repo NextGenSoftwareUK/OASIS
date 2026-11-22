@@ -1,0 +1,52 @@
+{
+  "core": {
+    "base": "9dcc856add106fa26b27ea5d26ef50b590bf92fd",
+    "candidate": "828b75c50b0e9f5f5b78fec67b6d60af5336da19",
+    "tag": "qualification/session-core-current-2026-11-22-828b75c5",
+    "paths": [
+      "Helpers/AvatarSessionIdentity.cs",
+      "Managers/AvatarManager/AvatarLoginBreaker.cs",
+      "Managers/AvatarManager/AvatarManager-AccessSession.cs",
+      "Managers/AvatarManager/AvatarManager-Auth.cs",
+      "Managers/AvatarManager/AvatarManager-DeleteForProvider.cs",
+      "Managers/AvatarManager/AvatarManager-RefreshAuthority.cs",
+      "Managers/AvatarManager/AvatarManager-Session.cs",
+      "Managers/AvatarManager/AvatarManager.cs"
+    ],
+    "peerPathsPreserved": 17
+  },
+  "web6": {
+    "base": "d9e60ceaecef5513d1bcd6285cd668076bc77edf",
+    "candidate": "7aa761c4540262cd267c64d56d04a16c1cc80c57",
+    "tag": "qualification/session-web6-current-2026-11-22-7aa761c4",
+    "paths": [
+      "NextGenSoftware.OASIS.Web6.WebAPI/Controllers/AdminController.cs",
+      "NextGenSoftware.OASIS.Web6.WebAPI/Middleware/JwtMiddleware.cs"
+    ],
+    "peerPathsPreserved": 1
+  },
+  "status": "source only; no current-composition build/runtime acceptance",
+  "root": {
+    "base": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
+    "candidate": "1516c74e50e3d26a22ea9cab1684af4049b2ad36",
+    "tag": "qualification/session-current-2026-11-22-1516c74e",
+    "paths": [
+      "Docker/oasis-dependency-versions.env",
+      "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+      "OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/MongoSqliteRealProviderRoutingTests.LoginFailover.cs",
+      "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/AvatarLoginTests.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarProfileController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/JwtMiddleware.cs",
+      "STAR ODK",
+      "WEB10/NextGenSoftware.OASIS.Web10.WebAPI/Middleware/JwtMiddleware.cs",
+      "WEB10/NextGenSoftware.OASIS.Web10.WebAPI/Program.cs",
+      "WEB6",
+      "WEB7/NextGenSoftware.OASIS.Web7.WebAPI/Middleware/JwtMiddleware.cs",
+      "WEB7/NextGenSoftware.OASIS.Web7.WebAPI/Program.cs",
+      "WEB8/NextGenSoftware.OASIS.Web8.WebAPI/Middleware/JwtMiddleware.cs",
+      "WEB8/NextGenSoftware.OASIS.Web8.WebAPI/Program.cs",
+      "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Middleware/JwtMiddleware.cs",
+      "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Program.cs"
+    ]
+  }
+}
