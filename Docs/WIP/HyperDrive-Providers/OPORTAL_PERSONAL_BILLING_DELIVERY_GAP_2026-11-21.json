@@ -274,6 +274,12 @@
     ],
     "unchangedSelections": [
       "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Grants.cs"
-    ]
+    ],
+    "inventoryRun": {
+      "id": 44967825713,
+      "control": "b3a3939c4713e2c296109e95e56334de397a0271",
+      "status": "in_progress",
+      "native": false
+    }
   }
 }
