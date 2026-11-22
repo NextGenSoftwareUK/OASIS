@@ -1,0 +1,12 @@
+{
+  "candidate": "f26edeef1152961a2b46f2149a6c28c08188a09a",
+  "preservedDevelopment": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
+  "core": "a166813b01476a2fce34e5908d74dac1da845ba6",
+  "bothCoreParentsPreserved": true,
+  "coreQueryOrHydrationChangedPaths": [],
+  "acceptedNativeAndHttpShippingPathChanges": [],
+  "noChangedQueryOrProviderOwner": true,
+  "deploymentAccepted": false,
+  "ONODE/NextGenSoftware.OASIS.API.ONODE.Core": "d51bdd8cba5183c9a7597f85f1d6ddd4be20d629",
+  "STAR ODK": "cf763aecfff7cc33d6aeacc9121db01c767a50f6"
+}
