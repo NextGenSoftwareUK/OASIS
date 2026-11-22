@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "warning-native-inventory-reviewed-awaiting-build",
+  "status": "latest-warning-source-awaiting-changed-composition-acceptance",
   "base": "f26edeef1152961a2b46f2149a6c28c08188a09a",
-  "candidate": "b0fa58ebfcb949819eded7810aa7adddf9382567",
-  "tag": "qualification/warning-native-2026-11-21-b0fa58eb",
+  "candidate": "cbbcad57f460f31cba56c576e3fab3e5888822c1",
+  "tag": "qualification/warning-capability-2026-11-21-cbbcad57",
   "buildProjects": [
     "WEB4"
   ],

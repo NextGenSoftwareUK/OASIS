@@ -971,6 +971,31 @@
       "backendChange": "Personal/owner notification view advertises capability in new source; must include in next candidate.",
       "checkLimitation": "Broader profile bundle verifier requires absent local node_modules SDK; no installation. UTF8 and syntax/cache passed; temporary encoding mismatch corrected before commit.",
       "remaining": "Backend/native/real provider and actual Portal browser/hosted acceptance."
+    },
+    "latestCandidate": {
+      "source": "cbbcad57f460f31cba56c576e3fab3e5888822c1",
+      "tag": "qualification/warning-capability-2026-11-21-cbbcad57",
+      "base": "f26edeef1152961a2b46f2149a6c28c08188a09a",
+      "differencesFromFrozenRun": [
+        "Capability field",
+        "Bounded timeout/idempotency margin",
+        "Exact notification action line annotations; all route identities/dispositions retained"
+      ],
+      "lineChanges": [
+        [
+          "Alerts",
+          "58",
+          "59"
+        ],
+        [
+          "SendWarningEmails",
+          "72",
+          "73"
+        ]
+      ],
+      "nativeRunUnchanged": 44971805468,
+      "temporaryIndex": "removed",
+      "status": "uncompiled"
     }
   },
   "sharedDevelopmentReview": {
