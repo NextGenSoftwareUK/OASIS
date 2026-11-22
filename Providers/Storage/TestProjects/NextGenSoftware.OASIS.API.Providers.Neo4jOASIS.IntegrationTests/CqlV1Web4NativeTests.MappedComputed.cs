@@ -155,9 +155,8 @@ public sealed partial class CqlV1Web4NativeTests
             }
             var invalid = await mapping.QueryProjectionAsync(actor, reader, null,
                 new[] {new NativeRecordFilter("keyAlias", CosmicQueryComparisonOperator.Equal, "bad")}, compiled.Columns, 10);
-            Assert.IsFalse(invalid.IsError, invalid.Message + invalid.Exception);
-            Assert.AreEqual(1, invalid.Result.Count);
-            Assert.AreEqual((NativeProjectionValueState)3, invalid.Result.Single().Cells[3].State);
+            Assert.IsTrue(invalid.IsError, "An invalid stored domain must not become the replacement literal.");
+            Assert.IsNull(invalid.Result, "A refused projection must not publish partial rows.");
             var denied = await mapping.QueryProjectionAsync(Guid.NewGuid(), reader, null, filters, compiled.Columns, 10);
             Assert.AreEqual("VIRTUAL_HOLON_FORBIDDEN", denied.ErrorCode);
             var after = await fingerprint();
