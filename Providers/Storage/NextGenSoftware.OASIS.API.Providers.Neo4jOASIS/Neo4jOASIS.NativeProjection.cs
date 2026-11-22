@@ -39,11 +39,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             if (selected.Any(column => column.InputType == typeof(Guid)))
                 parameters.Add("nativeGuidPattern", NeoCqlProjection.GuidTextPattern);
             var unique = new List<NativeProjectionColumn>();
-            var indexes = new Dictionary<(string, Type, NativeRecordFunction), int>();
+            var indexes = new Dictionary<(string, Type, NativeRecordFunction, string, string, string, int?), int>();
             var positions = new int[selected.Count];
             for (var index = 0; index < selected.Count; index++)
             {
-                var column = selected[index]; var key = (column.Field, column.InputType, column.Function);
+                var column = selected[index]; var key = column.ValueKey;
                 if (!indexes.TryGetValue(key, out var position))
                 { position = unique.Count; unique.Add(column); indexes.Add(key, position); }
                 positions[index] = position;
@@ -85,7 +85,31 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 var value = column.Function == NativeRecordFunction.Utf16Length
                     ? NeoCqlTranslator.Utf16LengthUnits(property, "$projectionSupplementary")
                     : column.InputType == typeof(Guid) ? "toLower(" + property + ")" : property;
-                cells.Add($"{{s:{state}, b:{bytes}, v:CASE WHEN {domain} AND ib{fieldIndex} <= 1048576 THEN {value} ELSE null END}} AS c{index}");
+                var output=$"CASE WHEN {domain} AND ib{fieldIndex} <= 1048576 THEN {value} ELSE null END";
+                string LiteralParameter(object argument)
+                {
+                    var key="nativeProjectionArg"+parameters.Count;
+                    parameters.Add(key,argument);return "$"+key;
+                }
+                if(column.Function==NativeRecordFunction.BooleanTextCase)
+                {
+                    var yes=LiteralParameter(column.WhenTrue);var no=LiteralParameter(column.WhenFalse);
+                    var yesBytes=System.Text.Encoding.UTF8.GetByteCount(column.WhenTrue);
+                    var noBytes=System.Text.Encoding.UTF8.GetByteCount(column.WhenFalse);
+                    output=$"CASE WHEN {domain} THEN CASE WHEN {property}=true THEN {yes} ELSE {no} END ELSE null END";
+                    bytes=$"CASE WHEN {domain} THEN CASE WHEN {property}=true THEN {yesBytes} ELSE {noBytes} END ELSE 8 END";
+                }
+                else if(column.Function is NativeRecordFunction.TextCoalesce or NativeRecordFunction.Int32Coalesce)
+                {
+                    var replacement=column.Function==NativeRecordFunction.TextCoalesce
+                        ? LiteralParameter(column.NullReplacement):LiteralParameter(column.Int32Replacement.Value);
+                    var replacementBytes=column.Function==NativeRecordFunction.TextCoalesce
+                        ? System.Text.Encoding.UTF8.GetByteCount(column.NullReplacement):8;
+                    state=$"CASE WHEN {property} IS NULL THEN 2 ELSE ({state}) END";
+                    bytes=$"CASE WHEN {property} IS NULL THEN {replacementBytes} ELSE ({bytes}) END";
+                    output=$"CASE WHEN {property} IS NULL THEN {replacement} ELSE ({output}) END";
+                }
+                cells.Add($"{{s:{state}, b:{bytes}, v:{output}}} AS c{index}");
             }
             var total = positions.Length == 0 ? "0" : string.Join(" + ", positions.Select(index => $"c{index}.b"));
             var returned = new List<string> { "key", total + " AS outputBytes" };

@@ -37,11 +37,11 @@ public partial class MongoDBOASIS : INativeDataProjectionQueryProvider
         { return NativeProjectionError("NATIVE_PROJECTION_QUERY_INVALID", "A bounded typed predicate and projection are required."); }
 
         var unique = new List<NativeProjectionColumn>();
-        var cells = new Dictionary<(string, Type, NativeRecordFunction), int>();
+        var cells = new Dictionary<(string, Type, NativeRecordFunction, string, string, string, int?), int>();
         var positions = new int[selected.Count];
         for (var index = 0; index < selected.Count; index++)
         {
-            var column = selected[index]; var key = (column.Field, column.InputType, column.Function);
+            var column = selected[index]; var key = column.ValueKey;
             if (!cells.TryGetValue(key, out var position))
             { position = unique.Count; unique.Add(column); cells.Add(key, position); }
             positions[index] = position;
@@ -169,10 +169,33 @@ public partial class MongoDBOASIS : INativeDataProjectionQueryProvider
         var value = column.Function == NativeRecordFunction.Utf16Length
             ? (BsonValue)new BsonDocument("$toInt", MongoCqlTranslator.Utf16LengthUnits("$$input"))
             : column.InputType == typeof(Guid) ? MongoCqlTranslator.ComparableGuid("$$input") : (BsonValue)"$$input";
+        var output = ProjectionCondition(admissible,value,BsonNull.Value);
+        if(column.Function==NativeRecordFunction.BooleanTextCase)
+        {
+            var isTrue=ProjectionOperation("$eq","$$input",true);
+            var yes=new BsonDocument("$literal",column.WhenTrue);
+            var no=new BsonDocument("$literal",column.WhenFalse);
+            output=ProjectionCondition(domain,ProjectionCondition(isTrue,yes,no),BsonNull.Value);
+            bytes=ProjectionCondition(domain,ProjectionCondition(isTrue,
+                System.Text.Encoding.UTF8.GetByteCount(column.WhenTrue),
+                System.Text.Encoding.UTF8.GetByteCount(column.WhenFalse)),8);
+        }
+        else if(column.Function is NativeRecordFunction.TextCoalesce or NativeRecordFunction.Int32Coalesce)
+        {
+            var absent=ProjectionOperation("$or",ProjectionOperation("$eq","$$kind","missing"),ProjectionOperation("$eq","$$kind","null"));
+            BsonValue replacement=column.Function==NativeRecordFunction.TextCoalesce
+                ? new BsonDocument("$literal",column.NullReplacement)
+                : new BsonDocument("$literal",column.Int32Replacement.Value);
+            var replacementBytes=column.Function==NativeRecordFunction.TextCoalesce
+                ? System.Text.Encoding.UTF8.GetByteCount(column.NullReplacement):8;
+            state=ProjectionCondition(absent,2,state);
+            bytes=ProjectionCondition(absent,replacementBytes,bytes);
+            output=ProjectionCondition(absent,replacement,output);
+        }
         return new BsonDocument("$let", new BsonDocument
         {
             { "vars", new BsonDocument { { "input", "$" + column.Field }, { "kind", new BsonDocument("$type", "$" + column.Field) } } },
-            { "in", new BsonDocument { { "s", state }, { "b", bytes }, { "v", ProjectionCondition(admissible, value, BsonNull.Value) } } }
+            { "in", new BsonDocument { { "s", state }, { "b", bytes }, { "v", output } } }
         });
     }
 
