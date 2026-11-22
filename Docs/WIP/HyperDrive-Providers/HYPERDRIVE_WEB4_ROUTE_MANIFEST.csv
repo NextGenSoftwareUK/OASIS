@@ -186,6 +186,7 @@
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs","63","CqlV1Controller","Projection","POST","projection","InjectedServiceRepositoryOrClient"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs","66","CqlV1Controller","MixedProjection","POST","projection/mixed","InjectedServiceRepositoryOrClient"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs","71","CqlV1Controller","Grouped","POST","grouped","InjectedServiceRepositoryOrClient"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs","75","CqlV1Controller","Set","POST","set","InjectedServiceRepositoryOrClient"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs","75","CqlV1Controller","Join","POST","join","InjectedServiceRepositoryOrClient"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs","79","CqlV1Controller","Composition","POST","composition","InjectedServiceRepositoryOrClient"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs","83","CqlV1Controller","Federation","POST","federation","InjectedServiceRepositoryOrClient"
