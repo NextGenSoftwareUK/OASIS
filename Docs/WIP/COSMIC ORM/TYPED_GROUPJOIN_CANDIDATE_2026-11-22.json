@@ -3,9 +3,9 @@
   "core": "80fe68caa2193134ff16947e4b67cd43035b2771",
   "run": 45065501150,
   "job": 137340613066,
-  "nativeAccepted": false,
+  "nativeAccepted": true,
   "deployed": false,
-  "phase": "qualification_or_artifact_acceptance_pending",
+  "phase": "native_accepted",
   "dependencyRun": 45065501180,
   "unrelatedOwnedRunsTerminalCancelled": [
     45065501164,

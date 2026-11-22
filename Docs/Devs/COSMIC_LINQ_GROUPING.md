@@ -63,10 +63,41 @@ remain subject to the actual provider's admission contract.
 Both inputs must be registered on the same native provider and manager.
 Independent parents with identical keys remain separate. Empty matching
 collections produce zero counts and false existence flags. Input ordering is
-preserved within each complete matching collection. GroupJoin may select an
-anonymous summary without publishing the matching collection; selection from
-an anonymous carrier may also retain parent fields and matching summaries.
+preserved within each complete matching collection. GroupJoin may select a
+summary without publishing the matching collection; selection from an
+anonymous carrier may also retain parent fields and matching summaries.
 No predicate delegate is executed by Count, LongCount or Any.
+
+## Typed results and direct selections
+
+The same validated native pair stream can construct a public DTO or record,
+apply public member initializers, or return a parent, matching collection or
+scalar summary directly. Constructors and setters run only after the native
+pair result has passed validation.
+
+    public sealed record ParentSummary(Guid Id, string Name, int Matches);
+
+    var typed = parents.GroupJoin(
+        children,
+        parent => parent.Id,
+        child => child.ParentHolonId,
+        (parent, matches) => new ParentSummary(
+            parent.Id, parent.Name, matches.Count()));
+
+    var counts = parents.GroupJoin(
+        children,
+        parent => parent.Id,
+        child => child.ParentHolonId,
+        (parent, matches) => matches.Count());
+
+    var result = await typed.ToCosmicListAsync(cancellationToken);
+
+Public member-initializer assignments may bind the same admitted parent fields,
+matching collections and summaries. Further reselection or flattening through an
+opaque DTO getter is refused: a constructor or setter does not prove that the
+getter returns its original input. Use a transparent anonymous carrier when
+composing another selection. Indexed or arbitrary executable selectors are not
+invoked during query translation.
 
 ## Explicit remaining limits
 
@@ -74,7 +105,7 @@ This is scoped grouped-query support, not complete EF/NHibernate parity.
 
 - Materializing raw entity IGrouping collections is not implemented.
 - GroupBy element/result-selector and custom-comparer overloads are not admitted.
-- GroupJoin result shapes remain bounded anonymous carriers.
+- GroupJoin binds at most 32 admitted parent fields, collections or summaries. Nested executable expressions require further admission.
 - Predicate aggregates and arbitrary computed aggregate expressions need native admission.
 - LINQ integer Average returns double; the existing grouped integer Average contract
   returns decimal. The bridge refuses this mismatch. Already matching floating
@@ -88,4 +119,5 @@ This is scoped grouped-query support, not complete EF/NHibernate parity.
 Representative native evidence and deployment status are recorded separately:
 [GroupJoin acceptance](../WIP/COSMIC%20ORM/GROUPED_SUMMARY_NATIVE_ACCEPTANCE_2026-11-22.json),
 [LINQ grouping acceptance](../WIP/COSMIC%20ORM/LINQ_GROUPBY_NATIVE_ACCEPTANCE_2026-11-22.json),
+[typed GroupJoin acceptance](../WIP/COSMIC%20ORM/TYPED_GROUPJOIN_NATIVE_ACCEPTANCE_2026-11-22.json),
 and [current delivery status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md).
