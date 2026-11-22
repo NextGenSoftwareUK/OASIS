@@ -1,6 +1,6 @@
 {
   "scope": "billing",
-  "status": "warning-event-source-awaiting-native-compile",
+  "status": "retry-admin-fixture-contract-with-warning-source-build",
   "base": "f26edeef1152961a2b46f2149a6c28c08188a09a",
   "candidate": "bcab1ce944485f78c352b764efc9214caafc69d0",
   "tag": "qualification/warning-events-2026-11-21-bcab1ce9",
@@ -57,5 +57,5 @@
   },
   "remaining": "Review regenerated inventory, compile and verify actual changed HTTP flow. Reliable warning email delivery and hosted acceptance remain open.",
   "nativeHost": "HotspotHttpNative",
-  "nativeMode": "billing-warning-store"
+  "nativeMode": "billing-admin-http"
 }

@@ -620,7 +620,7 @@
     },
     "adminHttpHost": {
       "mode": "billing-admin-http",
-      "status": "prepared-uncompiled-unrun-not-selected",
+      "status": "fixture-contract-corrected-awaiting-retry",
       "scope": "Exactly ordinary403/no native owner mutation then real native Wizard POST/acknowledged owners/native administrator+reason readback. Reuses owned enterprise app/repository/JWT/MVC/lease/cleanup.",
       "exclusions": [
         "notification replay",
@@ -629,7 +629,8 @@
         "full Startup",
         "hosted"
       ],
-      "runningNotificationRunUnchanged": 44969526963
+      "runningNotificationRunUnchanged": 44969526963,
+      "correction": "Uses actual GetAppForOwnerAsync with original owner before command and persisted new owner after command, no reflection/shim. Next sourcebcab also compiles new warning code; only unfinished admin flow selected."
     },
     "currentDevelopmentComposition": {
       "source": "0a2cf8b41d553eb0029dadf576f06d4b2a33dfc3",
@@ -756,8 +757,13 @@
         "run": {
           "id": 44970338582,
           "control": "9cd496e27ba72e966e758d25275e391e7ca02021",
-          "status": "in_progress",
-          "mode": "billing-admin-http"
+          "status": "completed",
+          "mode": "billing-admin-http",
+          "conclusion": "failure",
+          "job": 137048521004,
+          "buildErrors": 2,
+          "buildElapsed": "00:06:51.34",
+          "cause": "Fixture used absent GetAppAccountAsync; actual API dependencies compiled, host failed before HTTP. Owned container absent; executable did not create DB/tempDNA."
         }
       }
     }

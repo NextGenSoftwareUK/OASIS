@@ -238,7 +238,7 @@ try
         var request = new { ownerAvatarIds = new[] { wizardActor.ToString("D") }, reason = "Owned HTTP ownership replacement" };
         using var refused = await http.PostAsJsonAsync(path, request);
         Require(refused.StatusCode == HttpStatusCode.Forbidden, "Ordinary actor changed app ownership.");
-        var unchanged = await billingRepository!.GetAppAccountAsync("owned-billing");
+        var unchanged = await billingRepository!.GetAppForOwnerAsync("owned-billing", actor.ToString("D"), false);
         Require(unchanged.OwnerAvatarIds.SequenceEqual(new[] { actor.ToString("D") }), "Refused owner command mutated app ownership.");
         var adminJwt = new JwtSecurityToken(claims: new[] { new Claim("sub", wizardActor.ToString("D")) },
             expires: DateTime.UtcNow.AddMinutes(5), signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
@@ -249,7 +249,7 @@ try
         var reply = JObject.Parse(await saved.Content.ReadAsStringAsync());
         Require(!reply.Value<bool>("isError") && reply["result"]!["ownerAvatarIds"]!.Values<string>()
             .SequenceEqual(new[] { wizardActor.ToString("D") }), "Owner acknowledgement differs from the requested canonical IDs.");
-        var stored = await billingRepository.GetAppAccountAsync("owned-billing");
+        var stored = await billingRepository.GetAppForOwnerAsync("owned-billing", wizardActor.ToString("D"), false);
         Require(stored.OwnerAvatarIds.SequenceEqual(new[] { wizardActor.ToString("D") }) &&
             stored.UpdatedBy == wizardActor.ToString("D") && stored.Reason == request.reason,
             "Native owner mutation did not persist the authenticated administrator/reason.");
