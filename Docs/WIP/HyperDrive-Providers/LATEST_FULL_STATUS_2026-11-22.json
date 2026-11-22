@@ -80,8 +80,9 @@
       "control": "7cf0a2d1b569b0197c71d24659ab3e56350ce1a0",
       "candidate": "6786b9d624cde7a885fb84c6092cbcb60783e68f",
       "core": "35c4baba7a4e7d07ee279c2446b7a17d93cf73b5",
-      "status": "queued at dispatch; prior run terminal, dispatched once",
-      "scope": "Real selected/global logout, complete admitted session listing, SQLite absence and actor-scoped account assessment. Existing accepted35 middleware cases not replayed."
+      "status": "queued at latest job observation; frozen candidate unchanged",
+      "scope": "Real selected/global logout, complete admitted session listing, SQLite absence and actor-scoped account assessment. Existing accepted35 middleware cases not replayed.",
+      "job": 137359858093
     },
     "preparationFailure": {
       "run": 45069521383,
@@ -133,6 +134,13 @@
       "Subscription cancellation/ownership handling",
       "Identity/profile/private data and replica deletion orchestration",
       "Portal wiring and full browser acceptance"
-    ]
+    ],
+    "checkoutJournal": {
+      "source": "aefabe4ad31",
+      "status": "Wired source; not compiled/native/Stripe/browser/deployed accepted",
+      "storage": "Existing billing audit collection; no new DB/collection/index/worker",
+      "behavior": "Persist request before Stripe; provider acknowledgement before redirect; close after confirmed activation or signed expiry; customerless unresolved requests visible to assessment",
+      "remaining": "Ambiguous creation reconciliation and full closure admission/erasure"
+    }
   }
 }
