@@ -63,8 +63,8 @@
   "compileOnly": {
     "run": 45005901782,
     "control": "b7901dfffae5732bd30a28d0d951f969b6b8a671",
-    "status": "queued",
-    "observedUtc": "2026-11-22T09:04:36.735116+00:00",
+    "status": "in_progress",
+    "observedUtc": "2026-11-22T09:40:26.098733+00:00",
     "scope": "WEB4/WEB5 compile on exact06c79aea dependency graph; no native accepted-behavior replay or credentials."
   }
 }

@@ -136,5 +136,14 @@
     "nativeHost": "HotspotHttpNative",
     "nativeMode": "mfa-middleware-http",
     "remaining": "One leased actual seven-API build and 35 native HTTP middleware cases. Existing foundation45005901782 continues unchanged; no replacement, no dev deployment. Strict rollout/global logout/OPORTAL acceptance open."
+  },
+  "qualification": {
+    "run": 45008649921,
+    "control": "2f2902887de1775cf9f4f0418d791e4413f8566a",
+    "status": "pending",
+    "observedUtc": "2026-11-22T09:40:26.071241+00:00",
+    "mode": "mfa-middleware-http",
+    "queue": "Shared serialized native/compile qualification group, cancel-in-progress=false; one pending new-feature run behind original foundation45005901782. No replacement or parallel group claim.",
+    "scope": "One leased actual seven-API build, source ordering guard and35native HTTP middleware cases; no browser/global logout/cross-provider/hosted acceptance."
   }
 }
