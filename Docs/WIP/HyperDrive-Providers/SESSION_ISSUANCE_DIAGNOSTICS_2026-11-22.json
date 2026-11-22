@@ -2,5 +2,9 @@
   "core": "7f148e003cce0a16a1df5b7b853d121faa0b5525",
   "parent": "10ba635e3d19110c40b30eae65c743eeb8b04df7",
   "reason": "Native SQLite login rejected a combined invariant; report the exact failed invariant without credentials before selecting a root fix.",
-  "acceptance": "Diagnostic source only; no relaxed validation, retry, network call or runtime acceptance."
+  "acceptance": "Diagnostic source only; no relaxed validation, retry, network call or runtime acceptance.",
+  "run": 45069521383,
+  "control": "36280350639e99320762ad26af6cd58c38b7fe38",
+  "candidate": "e2d8642070bc3b395ef4b80b10d75d6019009929",
+  "observedStatus": "queued at dispatch; one run only"
 }

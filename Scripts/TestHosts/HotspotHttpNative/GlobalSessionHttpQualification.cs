@@ -30,6 +30,14 @@ internal static class GlobalSessionHttpQualification
             sqlite = new SQLLiteDBOASIS("Data Source=" + Path.Combine(directory.FullName, "sessions.db") + ";Pooling=False");
             Check(ProviderManager.Instance.RegisterProvider(sqlite), "Owned SQLite registration failed.");
             Check(!(await sqlite.ActivateProviderAsync()).IsError, "Owned SQLite activation failed.");
+            var absentId = Guid.NewGuid();
+            var absentSync = sqlite.LoadAvatar(absentId);
+            var absentAsync = await sqlite.LoadAvatarAsync(absentId);
+            Check(!absentSync.IsError && absentSync.Result == null && absentSync.Exception == null &&
+                absentSync.ErrorCode == NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound &&
+                !absentAsync.IsError && absentAsync.Result == null && absentAsync.Exception == null &&
+                absentAsync.ErrorCode == NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,
+                "Real SQLite absent-account reads must explicitly distinguish absence from provider failure.");
             var original = await mongo.LoadAvatarAsync(actor);
             Check(!original.IsError && original.Result != null, "Owned actor missing.");
             var copy = new Avatar { Id = actor, Username = original.Result.Username, Email = original.Result.Email,
