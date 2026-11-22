@@ -1,0 +1,11 @@
+{
+  "previousRun": 45081933164,
+  "job": 137391813475,
+  "build": "0errors6m00.75",
+  "failure": "Closed billing admission did not block a new metered operation in composed candidate. Assertion retained.",
+  "rootCause": "Candidate retained inline active/expiry check in MongoSubscriptionUsageRepository.AuthorizeAsync, omitting existing task-source IsActiveAt call. New closure model predicate was therefore bypassed.",
+  "fix": "Only replace inline check with canonical subscription.IsActiveAt. Preserve shared constructor, app pay-as-you-go provider and verified index owner; no full old-file overwrite.",
+  "candidate": "bc1ad3ac48826193eca7b93979b9d2b97e5bc0d5",
+  "status": "Prepared, not native accepted. Existing account dependency/checkout marker passed before failure.",
+  "cleanup": "Temporary private index and lock removed in finally; no local builds/downloads/environments/databases."
+}

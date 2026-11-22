@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "Billing admission and invoice document source; corrected owned empty ledger initialization",
+  "status": "Include canonical active subscription predicate at metered admission; qualifying",
   "base": "aa6f1cb26d8b8a9393d8ca440bdd140c4162a239",
-  "candidate": "2faa1118c13c4a9b00d4dfb5578e1b9868ba511f",
-  "tag": "qualification/billing-invoice-documents-20261122",
+  "candidate": "bc1ad3ac48826193eca7b93979b9d2b97e5bc0d5",
+  "tag": "qualification/billing-admission-meter-20261122",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
     "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
@@ -27,6 +27,7 @@
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Owners.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.PlanGrant.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Sandbox.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionModels.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
     "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/AccountSaveRevision.cs",
