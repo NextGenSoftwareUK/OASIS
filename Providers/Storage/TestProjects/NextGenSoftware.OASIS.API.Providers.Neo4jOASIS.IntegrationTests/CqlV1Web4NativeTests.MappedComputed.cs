@@ -19,6 +19,10 @@ public sealed partial class CqlV1Web4NativeTests
     public Task MappedComputedColumnsUseRealNativeFunctionsAndLiteralIdentity(string providerName)
         => RunGroupedDistinctNativeFixture(providerName, false, mappedComputedJourney: true);
 
+    [TestMethod]
+    public Task MongoMappedComputedColumnsUseAdmittedNativeDatabaseName()
+        => RunGroupedDistinctNativeFixture("MongoDBOASIS", false, mappedComputedJourney: true);
+
     private static async Task<int> VerifyMappedComputedNative(IOASISStorageProvider provider,
         string work, string database, MongoClient? mongo, Dictionary<string, long> timings, List<Guid> created)
     {
@@ -29,7 +33,8 @@ public sealed partial class CqlV1Web4NativeTests
         var priorMongo = mp?.NativeImportDatabaseName;
         var priorSqlite = sp?.NativeImportConnectionString;
         var priorLabels = np?.NativeImportLabels;
-        var nativeDb = database + "_computed_native";
+        var nativeDb = database + "_cmp";
+        Assert.IsTrue(nativeDb.Length <= 63, "Owned Mongo database names must fit the native contract.");
         var sqlitePath = Path.GetFullPath(Path.Combine(work, "computed-native.sqlite"));
         var label = "ComputedNative_" + Guid.NewGuid().ToString("N");
         var sourceName = np == null ? "items" : label;

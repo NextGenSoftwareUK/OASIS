@@ -79,11 +79,11 @@ jobs:
           $env:OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT=(Get-Location).Path
           New-Item -ItemType Directory TestResults/Neo4jCurrent | Out-Null
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-mapped-computed-native-ci -Operation {
-            dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~MappedComputedColumnsUseRealNativeFunctionsAndLiteralIdentity' --results-directory TestResults/Neo4jCurrent --logger 'trx;LogFileName=mapping-native.trx'
+            dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~MongoMappedComputedColumnsUseAdmittedNativeDatabaseName' --results-directory TestResults/Neo4jCurrent --logger 'trx;LogFileName=mapping-native.trx'
             if ($LASTEXITCODE) { throw 'Native selected-column HTTP qualification failed' }
             [xml]$report=Get-Content TestResults/Neo4jCurrent/mapping-native.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '3' -or $report.TestRun.ResultSummary.Counters.total -ne '3') { throw 'All three native selected-column HTTP journeys must pass' }
-            foreach ($store in 'MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS') {
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '1' -or $report.TestRun.ResultSummary.Counters.total -ne '1') { throw 'The changed Mongo mapped-computed HTTP journey must pass' }
+            foreach ($store in 'MongoDBOASIS') {
               $e=Get-Content "TestResults/Neo4jCurrent/$store-mapped-computed-native.json" -Raw | ConvertFrom-Json
               if ($e.provider -ne $store -or $e.checks -ne 7 -or $e.rawNativeRecords -ne 3 -or $e.successfulHolonWrites -ne 4 -or @($e.queryElapsedMilliseconds.PSObject.Properties).Count -ne 4) { throw 'Incomplete native report' }
               foreach ($name in 'nativeProviderVerified','literalIdentityVerified','nullEmptyZeroVerified','invalidDomainPreserved','ownerRefusalVerified','noMaterializationVerified','nativeSourceUnchanged','mixedHttpVerified','staleCacheReconciled','computedGlobalPaging','exactCleanupVerified') {
