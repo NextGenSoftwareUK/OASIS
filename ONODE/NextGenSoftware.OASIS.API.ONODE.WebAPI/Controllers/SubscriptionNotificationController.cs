@@ -69,6 +69,17 @@ public sealed class SubscriptionNotificationController(MongoSubscriptionUsageRep
         });
     }
 
+    [HttpPost("/api/subscription/usage/alerts/email")]
+    public async Task<IActionResult> SendWarningEmails([FromServices] UsageWarningEmailService delivery)
+    {
+        string actor;
+        try { actor = SubscriptionServiceIdentity.RequireSubscriber(HttpContext); }
+        catch (UnauthorizedAccessException error)
+        { return Unauthorized(new OASISResult<bool> { IsError = true, Message = error.Message }); }
+        var result = await delivery.SendCurrentAsync(actor, HttpContext.RequestAborted);
+        return result.IsError ? StatusCode(503, result) : Ok(result);
+    }
+
     private async Task<IActionResult> ForSubscriber(Func<string, Task<object>> call, bool isSave = false)
     {
         try

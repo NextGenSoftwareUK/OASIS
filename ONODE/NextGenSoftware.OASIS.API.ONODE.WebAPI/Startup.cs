@@ -481,6 +481,12 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddSingleton<Services.Subscription.IAppAccountRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISubscriptionService, Services.Subscription.SubscriptionService>();
             services.AddSingleton<Services.Subscription.UsageWarningReader>();
+            services.AddHttpClient("UsageWarningEmail", client => client.Timeout = TimeSpan.FromSeconds(15));
+            services.AddTransient<Services.Subscription.UsageWarningEmailGateway>(sp =>
+                new Services.Subscription.UsageWarningEmailGateway(
+                    sp.GetRequiredService<System.Net.Http.IHttpClientFactory>().CreateClient("UsageWarningEmail"), TimeProvider.System));
+            services.AddTransient<Services.Subscription.UsageWarningEmailDispatcher>();
+            services.AddTransient<Services.Subscription.UsageWarningEmailService>();
             services.AddSingleton<NextGenSoftware.OASIS.API.Core.Interfaces.ISubscriptionSettingsAuthority,
                 Services.Subscription.SubscriptionSettingsAuthority>();
             services.AddSingleton<Services.Subscription.ISubscriptionPlanPriceReader, Services.Subscription.StripeSubscriptionPlanPriceReader>();

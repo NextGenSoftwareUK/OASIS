@@ -864,6 +864,24 @@
         "Authorized bounded delivery entry point",
         "Real email/retention/hosted acceptance"
       ]
+    },
+    "deliveryEntryPoint": {
+      "status": "implemented-source-only-uncompiled-unverified",
+      "route": "POST /api/subscription/usage/alerts/email",
+      "behavior": [
+        "Authenticated actor only; no client-supplied recipient/message/event.",
+        "Shared reader derives current opted-in warnings; actual verified avatar email and configured sender used.",
+        "At most8new provider submissions per action; reports accepted/previous/deferred and explicit partial failure.",
+        "Persist exact payload, revalidate through dispatcher, acknowledge after provider acceptance.",
+        "Named15second HttpClient/SDK gateway/dispatcher/service registered; no background scan or flag change."
+      ],
+      "remaining": [
+        "Compose scoped source/Startup additions; do not copy unrelated task Startup wholesale",
+        "Regenerate route inventory and compile",
+        "Real native/HTTP and provider verification",
+        "OPORTAL trigger/error/deferred display",
+        "Retention/hosted acceptance"
+      ]
     }
   },
   "sharedDevelopmentReview": {
