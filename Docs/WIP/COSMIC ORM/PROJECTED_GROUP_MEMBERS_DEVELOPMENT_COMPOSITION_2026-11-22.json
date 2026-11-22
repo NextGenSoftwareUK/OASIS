@@ -1,0 +1,17 @@
+{
+  "development": "aa6f1cb26d8b8a9393d8ca440bdd140c4162a239",
+  "featureBase": "09886a2b56fdc9b37976819c3546b5e276c7cd40",
+  "commonBase": "9452340f0c69335e63f4ce73b5c2200dbb60adce",
+  "incomingPaths": [
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalChargeCorrections.cs",
+    "ONODE/Tests/SubscriptionLedger.ProtocolTests/PaidOverageLedgerTests.cs"
+  ],
+  "overlappingPaths": [],
+  "privateCore": "21a5966a12aa9c57109131cf7a519394d30e9a27",
+  "preservedWeb6": "285884e6741c5a26055df90e9f5932317ba3b219",
+  "billingCorrectionPreserved": true,
+  "projectedGroupNativeAccepted": false,
+  "frozenOlderImageSupersededForDeployment": true,
+  "newImageRequiredBeforeDevelopment": true,
+  "deployed": false
+}

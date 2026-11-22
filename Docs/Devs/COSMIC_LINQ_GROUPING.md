@@ -41,6 +41,72 @@ rather than source entities. Anonymous reselection is supported before HAVING,
 ordering or paging. Scalar key domains, aggregate domains and resource limits
 remain subject to the actual provider's admission contract.
 
+## Element and result-selector overloads
+
+Standard key-plus-element, key-plus-result and key-plus-element-plus-result
+overloads use the same native grouped planner. An element may be an admitted
+scalar path, the source entity identity, or a projection whose scalar fields
+can be bound without invoking DTO getters. Aggregate selectors over transparent
+anonymous elements are substituted back to their original source columns.
+
+    var summary = source.GroupBy(
+        entity => entity.Description,
+        entity => entity.Version,
+        (category, versions) => new
+        {
+            Category = category,
+            Records = versions.LongCount(),
+            VersionTotal = versions.Sum()
+        })
+        .Where(row => row.Records > 1)
+        .OrderBy(row => row.Category)
+        .Take(10);
+
+    var result = await summary.ToCosmicListAsync(cancellationToken);
+
+C# grouping comprehensions use this same path:
+
+    var summary =
+        from entity in source
+        group entity.Version by entity.Description into versions
+        select new { Category = versions.Key, Total = versions.Sum() };
+
+The source window remains before grouping; HAVING, ordering and paging remain
+after reduction. Element functions without native grouping admission and custom
+comparers return explicit errors. Projected-element grouping collections are described below; whole-entity
+snapshot collections remain unfinished.
+
+## Complete projected-element collections
+
+A grouping over scalar, anonymous or DTO elements can be materialized directly:
+
+    var groups = await source
+        .OrderBy(entity => entity.Name)
+        .GroupBy(
+            entity => entity.Description,
+            entity => new { entity.Name, entity.Version })
+        .ToCosmicListAsync(cancellationToken);
+
+    // Handle groups.IsError before iterating groups.Result.
+    // Each returned item is an IGrouping with its key and complete element list.
+
+Storage executes source filtering, ordering/windows and the typed key/element
+projection in one native query. Core constructs read-only grouping collections
+from the validated cells without invoking key or element delegates. Groups
+follow their first source occurrence; members retain native source order.
+
+Group and member/input limits are separate. The native projection rejects an
+input beyond 10,000 members; the combined key and element shape is bounded to
+32 scalar columns and the grouping payload budget. Exceeding a bound returns
+an error rather than a partial group. All cells and group-count limits pass
+before an application key/element constructor or setter runs. Warning packets
+cannot acknowledge complete native projection results.
+
+Whole-entity grouping collections need a native keyed snapshot path and remain
+unimplemented. This collection path currently materializes the captured root;
+additional operators on the raw grouped sequence need explicit group-member
+composition support.
+
 ## Parent records and matching collections
 
     var parentsWithMatches = parents.GroupJoin(
@@ -63,18 +129,49 @@ remain subject to the actual provider's admission contract.
 Both inputs must be registered on the same native provider and manager.
 Independent parents with identical keys remain separate. Empty matching
 collections produce zero counts and false existence flags. Input ordering is
-preserved within each complete matching collection. GroupJoin may select an
-anonymous summary without publishing the matching collection; selection from
-an anonymous carrier may also retain parent fields and matching summaries.
+preserved within each complete matching collection. GroupJoin may select a
+summary without publishing the matching collection; selection from an
+anonymous carrier may also retain parent fields and matching summaries.
 No predicate delegate is executed by Count, LongCount or Any.
+
+## Typed results and direct selections
+
+The same validated native pair stream can construct a public DTO or record,
+apply public member initializers, or return a parent, matching collection or
+scalar summary directly. Constructors and setters run only after the native
+pair result has passed validation.
+
+    public sealed record ParentSummary(Guid Id, string Name, int Matches);
+
+    var typed = parents.GroupJoin(
+        children,
+        parent => parent.Id,
+        child => child.ParentHolonId,
+        (parent, matches) => new ParentSummary(
+            parent.Id, parent.Name, matches.Count()));
+
+    var counts = parents.GroupJoin(
+        children,
+        parent => parent.Id,
+        child => child.ParentHolonId,
+        (parent, matches) => matches.Count());
+
+    var result = await typed.ToCosmicListAsync(cancellationToken);
+
+Public member-initializer assignments may bind the same admitted parent fields,
+matching collections and summaries. Further reselection or flattening through an
+opaque DTO getter is refused: a constructor or setter does not prove that the
+getter returns its original input. Use a transparent anonymous carrier when
+composing another selection. Indexed or arbitrary executable selectors are not
+invoked during query translation.
 
 ## Explicit remaining limits
 
 This is scoped grouped-query support, not complete EF/NHibernate parity.
 
 - Materializing raw entity IGrouping collections is not implemented.
-- GroupBy element/result-selector and custom-comparer overloads are not admitted.
-- GroupJoin result shapes remain bounded anonymous carriers.
+- Custom grouping comparers and computed element functions need independent native admission.
+- GroupJoin binds at most 32 admitted parent fields, collections or summaries. Nested executable expressions require further admission.
 - Predicate aggregates and arbitrary computed aggregate expressions need native admission.
 - LINQ integer Average returns double; the existing grouped integer Average contract
   returns decimal. The bridge refuses this mismatch. Already matching floating
@@ -88,4 +185,7 @@ This is scoped grouped-query support, not complete EF/NHibernate parity.
 Representative native evidence and deployment status are recorded separately:
 [GroupJoin acceptance](../WIP/COSMIC%20ORM/GROUPED_SUMMARY_NATIVE_ACCEPTANCE_2026-11-22.json),
 [LINQ grouping acceptance](../WIP/COSMIC%20ORM/LINQ_GROUPBY_NATIVE_ACCEPTANCE_2026-11-22.json),
+[typed GroupJoin acceptance](../WIP/COSMIC%20ORM/TYPED_GROUPJOIN_NATIVE_ACCEPTANCE_2026-11-22.json),
+[grouping overload acceptance](../WIP/COSMIC%20ORM/GROUPBY_OVERLOADS_NATIVE_ACCEPTANCE_2026-11-22.json),
+[projected collection acceptance](../WIP/COSMIC%20ORM/PROJECTED_GROUP_MEMBERS_NATIVE_ACCEPTANCE_2026-11-22.json),
 and [current delivery status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md).
