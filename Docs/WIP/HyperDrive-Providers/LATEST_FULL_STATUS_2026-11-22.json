@@ -6,8 +6,8 @@
     "taskWorktree": "C:/Source/OASIS2-hyperdrive",
     "portalBranch": "dev",
     "portalHead": "5adca39",
-    "reviewedDevelopment": "b82e1fa55a521c22f5110cb7cbd1fd4599040ebb",
-    "currentCore": "35c4baba7a4e7d07ee279c2446b7a17d93cf73b5",
+    "reviewedDevelopment": "873f4c4b4904362b8b955c8c7e9f8826928501d8",
+    "currentCore": "a0dc92a25231a6d1fa010be9f6be48e33c7b2d1d",
     "currentWeb6": "f9aa81c6dc3e27ac02677c985d41929b768c5969",
     "scope": "Core/WEB6 identify current isolated qualification candidate, not live or newest shared Development. Shared b82 peer status reviewed; no unverified rollout."
   },
@@ -72,19 +72,19 @@
     ],
     "currentCompositionReview": "Current isolated candidate97031a02 on aa6 preserves Core35c4 and WEB6f9. Newer shared Developmentb82 grouping/test changes reviewed; must preserve on integration, no broad overwrite.",
     "globalSignout": {
-      "run": 45068055435,
-      "job": 137348566147,
+      "run": 45082762807,
+      "job": 137394400180,
       "conclusion": "failure",
-      "observedBlocker": "Real SQLite password sign-in session save rejected: session write requires one active pending credential and explicit authority.",
-      "cleanup": "Owned Mongo unpaused; owned SQLite directory absent verified in selected logs.",
-      "acceptance": "Not accepted; preserve previous 35 middleware passes without replay."
+      "observedBlocker": "Mongo-paused password sign-in timed out. Fixture failover flag also disabled; fixed policy plus native awaited SDK cancellation and actual read-store session affinity prepared.",
+      "cleanup": "Native fixture removal succeeded; owned SQLite absence/Mongo unpause marker observed.",
+      "acceptance": "Complete global logout/session/failover journey not accepted. Earlier35 middleware cases retained."
     },
     "currentFocusedRun": {
-      "run": 45082762807,
-      "control": "a1c790eb7a06d0989f50b3157b164970ca2ec3fb",
-      "candidate": "bc1ad3ac48826193eca7b93979b9d2b97e5bc0d5",
-      "status": "queued observed",
-      "scope": "Canonical active subscription predicate in metered admission; actual billing closure and multi-authority session journey, not all portal/provider acceptance."
+      "run": 45084348607,
+      "control": "b7b51c747244eb05a9a32964096259de86821a63",
+      "candidate": "5d68ce8fb58a7cacd0e9110bc176eff15f74fef7",
+      "status": "in_progress observed",
+      "scope": "Native Mongo GUID/expression SDK read deadline, session save on actual read authority, explicit enabled owned failover, first-write ledger initialization, existing admission/global-session journey."
     },
     "preparationFailure": {
       "run": 45069521383,
@@ -161,12 +161,12 @@
   },
   "cleanup": {
     "freeDiskGB": 28.97,
-    "thisTurn": "No local builds, downloads, environments or databases. Candidate private index/lock removed. Prior45081933164 owned native fixture removal succeeded; new45082762807 finalizers pending.",
+    "thisTurn": "No local build/download/install/environment/database/test outputs. Core/root private indexes and locks removed; physical submodules preserved.45082762807 owned native fixture removal succeeded;45084348607 cleanup pending.",
     "temporaryEmailSecrets": "Previously deleted and absence verified; not restaged."
   },
   "deliveryPolicy": "Finish remaining OPORTAL user flows breadth first; one representative end-to-end verification for changed behavior, reuse accepted evidence. A blocked backend flow must not stop independent screen work.",
   "accountDeletion": {
-    "status": "Incomplete. Real dependency review passed at scoped isolated HTTP/native level; billing admission source committed and currently qualifying. No avatar/private-data/replica deletion or portal deletion control enabled.",
+    "status": "Incomplete. Dependency and billing-admission representative native markers passed at exact prior sources; first-write ordering and changed timeout/session composition qualifying. Permanent erasure and Settings deletion remain unfinished.",
     "source": "21e9d634962",
     "preparedRealCheck": "Admission closure, idempotent repeat and new billing/checkout/ownership refusal in existing native journey",
     "nextCandidate": "97031a02b65d0e65ecf60db5e631afa1905ac4e9",
@@ -187,6 +187,14 @@
       "portalSource": "4baca47 on dev; on-demand review/resume/cancel source wired; not browser/Stripe/deployed accepted",
       "reservationSource": "18b4ce801eb: transactional per-account reservation and terminal release, older-closure replay isolation; uncompiled/unrun/undeployed"
     },
-    "admissionNext": "Source trace found existing per-subscription authorization version fence can be reused; admission-freeze implementation still pending. No new hot-path DB round trip proposed."
+    "admissionNext": "Source trace found existing per-subscription authorization version fence can be reused; admission-freeze implementation still pending. No new hot-path DB round trip proposed.",
+    "billingAdmissionProof": {
+      "run": 45082762807,
+      "job": 137394400180,
+      "candidate": "bc1ad3ac48826193eca7b93979b9d2b97e5bc0d5",
+      "build": "0errors7m19.59",
+      "marker": "BILLING_CLOSURE_ADMISSION_NATIVE_PROOF",
+      "scope": "Real service/Mongo read+write, owned-app refusal, free-account closure/idempotent repeat, checkout/free-plan/admin-grant/ownership/new-usage refusal. No avatar deletion, Stripe, browser or deployment acceptance."
+    }
   }
 }

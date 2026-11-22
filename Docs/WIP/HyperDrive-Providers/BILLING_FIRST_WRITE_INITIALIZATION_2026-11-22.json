@@ -7,5 +7,7 @@
   "cost": "One existing migration-state guard on explicit checkout/ownership mutations, no extra per-request operation.",
   "cleanup": "No local build/download/runtime/environment/database or generated output.",
   "preparedCandidate": "7b71ce32d569a8fcfe02b8583e18df4d36c2bd42",
-  "preparedTag": "qualification/billing-first-write-20261122"
+  "preparedTag": "qualification/billing-first-write-20261122",
+  "currentQualificationCandidate": "5d68ce8fb58a7cacd0e9110bc176eff15f74fef7",
+  "currentQualificationRun": 45084348607
 }

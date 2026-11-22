@@ -1,4 +1,7 @@
 
+## 2026-11-22 native account deadline and session affinity
+No local build, download, install, environment, database or generated test output. Core session-affinity and root native-deadline/first-write candidate indexes and locks removed in finally; physical module checkouts preserved.45082762807 owned native fixture removal succeeded with SQLite absent/Mongo unpaused marker;45084348607 remote finalizers pending. Source, Git objects/tags and compact proof retained. Shared Atlas untouched.
+
 ## 2026-11-22 metered admission dependency correction
 Run45081933164 terminal failure; owned native fixture removal succeeded, SQLite absent/Mongo unpaused marker observed. Private candidate index and lock removed in finally. No local builds, downloads, runtime installs, databases, test artifacts or new worktrees. Run45082762807 queued; remote cleanup pending. Source/Git objects and compact evidence retained; shared Atlas untouched.
 
