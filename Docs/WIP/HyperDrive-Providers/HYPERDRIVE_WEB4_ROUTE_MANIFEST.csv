@@ -826,3 +826,4 @@
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/WalletTokenController.cs","145","WalletTokenController","ImportWalletUsingSecretPhraseById","POST","avatar/{avatarId}/import/secret-phrase","DirectModeAwareManagerBoundary"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/WalletTokenController.cs","160","WalletTokenController","ImportWalletUsingSecretPhraseByUsername","POST","avatar/username/{username}/import/secret-phrase","DirectModeAwareManagerBoundary"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/WalletTokenController.cs","175","WalletTokenController","ImportWalletUsingSecretPhraseByEmail","POST","avatar/email/{email}/import/secret-phrase","DirectModeAwareManagerBoundary"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarAccountClosureController.cs","32","AvatarAccountClosureController","Assess","GET","assessment","InjectedServiceRepositoryOrClient"
