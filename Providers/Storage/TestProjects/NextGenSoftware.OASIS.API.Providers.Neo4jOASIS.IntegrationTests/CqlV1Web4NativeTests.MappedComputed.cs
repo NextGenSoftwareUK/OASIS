@@ -20,7 +20,7 @@ public sealed partial class CqlV1Web4NativeTests
         => RunGroupedDistinctNativeFixture(providerName, false, mappedComputedJourney: true);
 
     private static async Task<int> VerifyMappedComputedNative(IOASISStorageProvider provider,
-        string work, string database, MongoClient? mongo, Dictionary<string, long> timings)
+        string work, string database, MongoClient? mongo, Dictionary<string, long> timings, List<Guid> created)
     {
         var reader = (INativeDataProjectionQueryProvider)provider;
         var mp = provider as MongoProvider;
@@ -159,11 +159,18 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsNull(invalid.Result, "A refused projection must not publish partial rows.");
             var denied = await mapping.QueryProjectionAsync(Guid.NewGuid(), reader, null, filters, compiled.Columns, 10);
             Assert.AreEqual("VIRTUAL_HOLON_FORBIDDEN", denied.ErrorCode);
+            var original=await mapping.QueryAsync(actor,reader,null,
+                new[] {new NativeRecordFilter("keyAlias",CosmicQueryComparisonOperator.Equal,"null")},
+                new[] {"keyAlias","stockAlias","textAlias","flagAlias"},1);
+            Assert.IsFalse(original.IsError,original.Message+original.Exception);
+            var virtualOnly=result.Result.Single(row=>row.Id!=original.Result.Single().Id).Id;
+            await VerifyMappedNativeHttpAsync(provider,mapping,original.Result.Single(),createdObserver:created.Add,
+                queryTimings:timings,virtualOnlyId:virtualOnly,computedColumns:request.Columns);
             var after = await fingerprint();
             Assert.AreEqual(before.Length, after.Length);
             for (var index = 0; index < before.Length; index++)
                 CollectionAssert.AreEqual(before[index], after[index]);
-            return 4;
+            return 7;
         }
         finally
         {

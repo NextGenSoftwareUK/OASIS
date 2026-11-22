@@ -85,8 +85,8 @@ jobs:
             if ($report.TestRun.ResultSummary.Counters.passed -ne '3' -or $report.TestRun.ResultSummary.Counters.total -ne '3') { throw 'All three native selected-column HTTP journeys must pass' }
             foreach ($store in 'MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS') {
               $e=Get-Content "TestResults/Neo4jCurrent/$store-mapped-computed-native.json" -Raw | ConvertFrom-Json
-              if ($e.provider -ne $store -or $e.checks -ne 4 -or $e.rawNativeRecords -ne 3 -or $e.successfulHolonWrites -ne 0 -or @($e.queryElapsedMilliseconds.PSObject.Properties).Count -ne 1) { throw 'Incomplete native report' }
-              foreach ($name in 'nativeProviderVerified','literalIdentityVerified','nullEmptyZeroVerified','invalidDomainPreserved','ownerRefusalVerified','noMaterializationVerified','nativeSourceUnchanged','exactCleanupVerified') {
+              if ($e.provider -ne $store -or $e.checks -ne 7 -or $e.rawNativeRecords -ne 3 -or $e.successfulHolonWrites -ne 4 -or @($e.queryElapsedMilliseconds.PSObject.Properties).Count -ne 4) { throw 'Incomplete native report' }
+              foreach ($name in 'nativeProviderVerified','literalIdentityVerified','nullEmptyZeroVerified','invalidDomainPreserved','ownerRefusalVerified','noMaterializationVerified','nativeSourceUnchanged','mixedHttpVerified','staleCacheReconciled','computedGlobalPaging','exactCleanupVerified') {
                 if ($e.$name -ne $true) { throw "Missing native proof $name" }
               }
             }
