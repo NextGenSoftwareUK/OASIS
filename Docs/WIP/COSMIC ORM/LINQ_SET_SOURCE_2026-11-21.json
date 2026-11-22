@@ -10,5 +10,13 @@
     "Except"
   ],
   "resultStagesShared": true,
-  "developmentPushed": false
+  "developmentPushed": false,
+  "parentSource": "3c1bee00623f6f19f6b193c27341a1134cc104bd",
+  "qualificationSource": "0f1e999fe86a8da28cf20fd499ad726c64a9755b",
+  "workflow": "qualify-cql-set-linq.yml",
+  "cases": 6,
+  "automaticRunExpected": true,
+  "run": 44965175654,
+  "status": "queued",
+  "conclusion": null
 }
