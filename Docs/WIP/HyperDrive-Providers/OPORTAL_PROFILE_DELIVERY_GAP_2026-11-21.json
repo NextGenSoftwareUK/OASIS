@@ -143,8 +143,13 @@
     "job": 137033460418,
     "control": "3b346e76b614c9a3a5d9b5a226996663941670ad",
     "candidate": "04a9705d2ffc1abcf29bf84c79aa0488cbafb237",
-    "status": "pending",
-    "scope": "combined host compile and one current-graph real GET-PATCH-GET/native revision readback"
+    "status": "failure",
+    "scope": "combined host compile and one current-graph real GET-PATCH-GET/native revision readback",
+    "buildErrors": 1,
+    "buildElapsed": "00:05:26.33",
+    "runtimeCases": 0,
+    "cause": "Old profile Core lacks SaveLeaguesAsync referenced by shared host; shipping dependencies built, host failed before HTTP",
+    "cleanup": "owned container absent; executable never created DB or temporary DNA"
   },
   "tariffDependencyRestoration": {
     "core": "97945862d2dbb427d238135c07dd4823236d0db4",
@@ -156,5 +161,17 @@
     "status": "source-prepared-not-priced-admission-accepted",
     "currentHttpQualification": "44965497145 stays frozen on04a/Corebe; unmetered HTTP scope only",
     "remaining": "compile this final source and verify configured priced admission; do not infer paid acceptance from unmetered check"
+  },
+  "currentComposition": {
+    "base": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
+    "candidate": "bc159110315d0e7a442ebd6b55ab4eac16b39b8b",
+    "tag": "qualification/profile-current-2026-11-21-bc159110",
+    "core": "5a998cee52fa0616ba70ce69a9af8b181ada170c",
+    "coreTag": "qualification/profile-current-2026-11-21-5a998cee",
+    "managerRows": 931,
+    "inventory": "reviewed profile rows plus exact current Competition rows; preserve duplicate signatures at distinct source lines",
+    "status": "uncompiled",
+    "scope": "fourteen profile paths, current STAR/Competition preserved and tariff included",
+    "temporaryIndexes": "removed"
   }
 }

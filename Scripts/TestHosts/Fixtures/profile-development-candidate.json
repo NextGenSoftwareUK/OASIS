@@ -1,9 +1,9 @@
 {
   "scope": "profile",
-  "status": "missing-native-helper-contracts-restored-awaiting-compile-and-http",
-  "base": "f54923d82ac8bffa7877d9307f18e879d41a8254",
-  "candidate": "04a9705d2ffc1abcf29bf84c79aa0488cbafb237",
-  "tag": "qualification/profile-helpers-2026-11-21-04a9705d",
+  "status": "current-development-composed-awaiting-http",
+  "base": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
+  "candidate": "bc159110315d0e7a442ebd6b55ab4eac16b39b8b",
+  "tag": "qualification/profile-current-2026-11-21-bc159110",
   "buildProjects": [
     "WEB4"
   ],
@@ -24,8 +24,8 @@
     "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.AvatarHistory.cs"
   ],
   "core": {
-    "base": "7165ab625f90501047ca10c3b9f193ed0498caf5",
-    "candidate": "be6849c724bea7e75ffa57eff300493c2d6e924f"
+    "base": "048f79dbe9b3589a09ab90657511fe760c7a18ea",
+    "candidate": "5a998cee52fa0616ba70ce69a9af8b181ada170c"
   },
   "remaining": "Review generated source inventories, compile current API/provider graph, qualify changed composition and deliver; original accepted native/browser evidence retained.",
   "nativeHost": "HotspotHttpNative",
