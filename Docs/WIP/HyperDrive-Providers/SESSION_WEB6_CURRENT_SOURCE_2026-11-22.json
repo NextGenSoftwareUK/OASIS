@@ -1,0 +1,10 @@
+{
+  "base": "0348ded2819e3cb1566e09c49150e41c4ea4d435",
+  "candidate": "572b7f1c56d7ca1e11f7b9b1740cd3a74a673625",
+  "tag": "qualification/session-web6-current-2026-11-22-572b7f1c",
+  "paths": [
+    "NextGenSoftware.OASIS.Web6.WebAPI/Controllers/AdminController.cs",
+    "NextGenSoftware.OASIS.Web6.WebAPI/Middleware/JwtMiddleware.cs"
+  ],
+  "status": "source composition only; uncompiled and unrun"
+}
