@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "source-inventory-required",
+  "status": "restored-route-source-inventory-required",
   "base": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
-  "candidate": "e46d986cb97c346e82379d92e5b666233f2920d3",
-  "tag": "qualification/billing-restoration-2026-11-21-e46d986c",
+  "candidate": "744583b1ef6f1932a22054c4772fb6d0979b6fcf",
+  "tag": "qualification/billing-routes-2026-11-21-744583b1",
   "buildProjects": [
     "WEB4"
   ],
@@ -39,10 +39,11 @@
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/StripePaidOverageGateway.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionAdminModels.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionModels.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionUsageModels.cs"
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionUsageModels.cs",
+    "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
   ],
   "core": {
     "candidate": "ab4adf66366f0b3f5e4e352a436a3dcd4878da8e"
   },
-  "remaining": "Source inventory, current graph compilation and changed-composition qualification; no payment or hosted acceptance."
+  "remaining": "Review regenerated inventory, compile and verify actual changed HTTP flow. Reliable warning email delivery and hosted acceptance remain open."
 }

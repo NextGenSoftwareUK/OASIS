@@ -329,6 +329,15 @@
       "Verify changed HTTP behavior against owned native backend"
     ],
     "alertReadRestoration": "Authenticated GET usage/alerts restored using actual personal subscription/karma and owned-app pool/preferences. Query does not claim/mark/send email. No swallowed errors.",
-    "ownerNotificationInheritance": "Own override, then app warnings override, then node default; shared view reports inheritedWarningDefault."
+    "ownerNotificationInheritance": "Own override, then app warnings override, then node default; shared view reports inheritedWarningDefault.",
+    "candidate": {
+      "source": "744583b1ef6f1932a22054c4772fb6d0979b6fcf",
+      "tag": "qualification/billing-routes-2026-11-21-744583b1",
+      "base": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
+      "paths": 33,
+      "sourceOnly": true,
+      "emailDelivery": "incomplete; not accepted for rollout",
+      "temporaryIndex": "removed in finally"
+    }
   }
 }
