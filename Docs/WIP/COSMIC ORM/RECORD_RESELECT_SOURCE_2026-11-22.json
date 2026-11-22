@@ -5,7 +5,7 @@
   "nativeAccepted": false,
   "deployed": false,
   "scope": "CQL composition Select stage and visible record bindings",
-  "controlsPrepared": 3,
+  "controlsPrepared": 4,
   "nativeJourneysPrepared": 3,
   "web4BuildRequired": true,
   "workflow": ".github/workflows/qualify-cql-record-reselect-native.yml",
@@ -27,5 +27,7 @@
     "Three actual SDK native journeys",
     "SQL nested query/CTE front-end capture",
     "Qualified image/package/current dependency integration and hosted acceptance"
-  ]
+  ],
+  "shapeOnlyRoutingImplemented": true,
+  "routing": "Select-only intent uses native projection; row-result stages use native composition, chosen before dispatch with no execution fallback"
 }

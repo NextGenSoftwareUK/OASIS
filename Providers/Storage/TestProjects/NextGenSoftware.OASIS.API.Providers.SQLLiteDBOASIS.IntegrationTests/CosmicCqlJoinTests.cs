@@ -34,6 +34,16 @@ public partial class SQLLiteDBOASISIntegrationTests
         var query=source.SelectColumns(new[]{
             CosmicProjectionSelection<Holon>.Create("name",h=>h.Name).Result,
             CosmicProjectionSelection<Holon>.Create("version",h=>h.Version).Result}).Result;
+        var shapeOnly=query.SelectOutputColumns(new[]{new CosmicProjectionOutputBinding("Display","name")}).Result;
+        var projection=(ICosmicQueryProjectionStorageProvider)provider;
+        var shapePlan=CosmicProjectionPlanner.Plan(shapeOnly,projection.QueryProviderType,new[]{
+            new CosmicProjectionTarget(projection.QueryProviderType,projection.QueryCapabilities,projection.ProjectionCapabilities)});
+        shapePlan.IsError.Should().BeFalse(shapePlan.Message);
+        var shapeRead=await CosmicManager(provider,true).ExecuteProjectionQueryAsync(shapePlan.Result,new[]{provider},maximumResults:10);
+        shapeRead.IsError.Should().BeFalse(shapeRead.Message+shapeRead.Exception);
+        var shapeRows=shapeRead.Result.Providers.Single().Rows;
+        shapeRows.Select(row=>(string)row["Display"]).Should().Equal("coffee","tea");
+        foreach(var shapeRow in shapeRows)shapeRow.Aliases.Should().Equal("Display");
         query=query.OrderByDescending(row=>(string)row["name"]).Result.Take(1).Result;
         query=query.SelectOutputColumns(new[]{new CosmicProjectionOutputBinding("Display","name")}).Result;
         query=query.Where(row=>(string)row["Display"]=="tea").Result;
@@ -45,9 +55,9 @@ public partial class SQLLiteDBOASISIntegrationTests
         var read=await CosmicManager(provider,true).ExecuteProjectionCompositionQueryAsync(
             planned.Result,new[]{provider},maximumResults:10);
         read.IsError.Should().BeFalse(read.Message+read.Exception);
-        var row=read.Result.Providers.Single().Rows.Single();
-        row.Aliases.Should().Equal("Display");
-        row["Display"].Should().Be("tea");
+        var selectedRow=read.Result.Providers.Single().Rows.Single();
+        selectedRow.Aliases.Should().Equal("Display");
+        selectedRow["Display"].Should().Be("tea");
     }
 
     [Fact]

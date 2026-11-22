@@ -91,10 +91,10 @@ jobs:
             }
           }
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-record-reselect-native-ci -Operation {
-            $coreFilter='FullyQualifiedName~CqlRecordReselectWireTests|FullyQualifiedName~CompositionRecordReselectionKeepsExactOutputAndOneReceipt'
+            $coreFilter='FullyQualifiedName~CqlRecordReselectWireTests|FullyQualifiedName~CompositionRecordReselectionKeepsExactOutputAndOneReceipt|FullyQualifiedName~CompositionShapeOnlyReselectionUsesProjectionWithoutPipelineFallback'
             dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter $coreFilter --results-directory $reportRoot --logger 'trx;LogFileName=core.trx'
             if($LASTEXITCODE){throw 'Record output contract failed'}
-            Verify-Report (Join-Path $reportRoot 'core.trx') 3
+            Verify-Report (Join-Path $reportRoot 'core.trx') 4
             $nativeFilter='FullyQualifiedName~NativeRecordReselectionKeepsHiddenInputsAndPublishesOnlyVisibleAliases'
             $projects=@(
               @{name='Mongo';path='Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests'},
@@ -118,7 +118,7 @@ jobs:
           $source=(git rev-parse HEAD).Trim()
           if($source -ne $env:GITHUB_SHA){throw 'Source checkout differs from exact workflow revision'}
           $core=(git -C "OASIS Architecture/NextGenSoftware.OASIS.API.Core" rev-parse HEAD).Trim()
-          @{source=$source;core=$core;corePassed=3;nativePassed=3;web4Compiled=$true;providers=@('MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS');ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content (Join-Path $reportRoot 'source.json') -Encoding utf8
+          @{source=$source;core=$core;corePassed=4;nativePassed=3;web4Compiled=$true;providers=@('MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS');ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content (Join-Path $reportRoot 'source.json') -Encoding utf8
       - name: Stop owned Mongo
         if: always()
         run: docker rm -f -v cql-where-mongo

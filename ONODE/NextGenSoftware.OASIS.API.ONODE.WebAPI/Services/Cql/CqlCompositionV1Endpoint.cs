@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.Common;
@@ -29,19 +30,37 @@ public static partial class CqlV1Endpoint
             var intent = CqlV1Compiler.CompileComposition(request, actor, policy?.Selected??requested,policy?.Access);
             if (!TryResolveEligible(providers, requested, admission, out var storage, out var rowAdapter, out var selected,policy))
                 return Failure(403, "CQL_PROVIDER_NOT_ELIGIBLE", "The provider is not eligible for this admitted composition.");
-            if (rowAdapter is not ICosmicQueryProjectionCompositionStorageProvider adapter)
-                return Failure(400, "CQL_CAPABILITY_UNSUPPORTED", "The provider does not implement native selected-result composition.");
-            var planned = CosmicProjectionCompositionPlanner.Plan(intent, selected,
-                new[] { new CosmicProjectionCompositionTarget(selected, adapter.QueryCapabilities, adapter.ProjectionCapabilities, adapter.CompositionCapabilities) },
-                new CosmicProjectionCompositionOptions(100, MaximumResponseBytes, 1600, 25600));
-            if (planned.IsError) return Failure(400, planned.ErrorCode, "The provider does not support the requested composition.");
+            Func<HolonManager,CancellationToken,Task<OASISResult<CosmicProjectionExecution<CosmicProjectionRecord>>>> execute;
+            if(intent.ResultStages.Count==0)
+            {
+                // Select changes the visible shape, not row membership/order. Choose its native contract before dispatch.
+                if(rowAdapter is not ICosmicQueryProjectionStorageProvider projectionAdapter)
+                    return Failure(400,"CQL_CAPABILITY_UNSUPPORTED","The provider does not implement native selected columns.");
+                var planned=CosmicProjectionPlanner.Plan(intent,selected,new[]{
+                    new CosmicProjectionTarget(selected,projectionAdapter.QueryCapabilities,projectionAdapter.ProjectionCapabilities)});
+                if(planned.IsError)return Failure(400,planned.ErrorCode,"The provider does not support the selected shape.");
+                execute=(executionManager,token)=>executionManager.ExecuteProjectionQueryAsync(planned.Result,
+                    new ICosmicQueryStorageProvider[]{projectionAdapter},maximumResults:100,
+                    maximumPayloadBytes:MaximumResponseBytes,cancellationToken:token);
+            }
+            else
+            {
+                if(rowAdapter is not ICosmicQueryProjectionCompositionStorageProvider compositionAdapter)
+                    return Failure(400,"CQL_CAPABILITY_UNSUPPORTED","The provider does not implement native selected-result composition.");
+                var planned=CosmicProjectionCompositionPlanner.Plan(intent,selected,new[]{
+                    new CosmicProjectionCompositionTarget(selected,compositionAdapter.QueryCapabilities,
+                        compositionAdapter.ProjectionCapabilities,compositionAdapter.CompositionCapabilities)},
+                    new CosmicProjectionCompositionOptions(100,MaximumResponseBytes,1600,25600));
+                if(planned.IsError)return Failure(400,planned.ErrorCode,"The provider does not support the requested composition.");
+                execute=(executionManager,token)=>executionManager.ExecuteProjectionCompositionQueryAsync(planned.Result,
+                    new ICosmicQueryStorageProvider[]{compositionAdapter},maximumResults:100,
+                    maximumPayloadBytes:MaximumResponseBytes,cancellationToken:token);
+            }
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(http.RequestAborted);
             deadline.CancelAfter(TimeSpan.FromSeconds(5));
             var manager = providers.CreateManager(storage);
             http.Items[CqlV1ResourceFilter.DispatchedKey] = true;
-            var result = await manager.ExecuteProjectionCompositionQueryAsync(planned.Result,
-                new ICosmicQueryStorageProvider[] { adapter }, maximumResults: 100,
-                maximumPayloadBytes: MaximumResponseBytes, cancellationToken: deadline.Token);
+            var result = await execute(manager,deadline.Token);
             if (result.IsError) return QueryFailure(http, result.ErrorCode);
             var output = result.Result.Providers.Single();
             if (output.Provider != selected) return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "Projection provenance differs from its admitted provider.");

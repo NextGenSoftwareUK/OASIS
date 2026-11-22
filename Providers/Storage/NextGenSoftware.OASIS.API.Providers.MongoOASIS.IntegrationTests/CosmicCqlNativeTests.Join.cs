@@ -29,6 +29,16 @@ public sealed partial class CosmicCqlNativeTests
             var query=source.SelectColumns(new[]{
                 CosmicProjectionSelection<Holon>.Create("name",h=>h.Name).Result,
                 CosmicProjectionSelection<Holon>.Create("version",h=>h.Version).Result}).Result;
+            var shapeOnly=query.SelectOutputColumns(new[]{new CosmicProjectionOutputBinding("Display","name")}).Result;
+            var projection=(ICosmicQueryProjectionStorageProvider)fixture.Provider;
+            var shapePlan=CosmicProjectionPlanner.Plan(shapeOnly,projection.QueryProviderType,new[]{
+                new CosmicProjectionTarget(projection.QueryProviderType,projection.QueryCapabilities,projection.ProjectionCapabilities)});
+            Assert.False(shapePlan.IsError,shapePlan.Message);
+            var shapeRead=await Manager(fixture.Provider).ExecuteProjectionQueryAsync(shapePlan.Result,new[]{fixture.Provider},maximumResults:10);
+            Assert.False(shapeRead.IsError,shapeRead.Message+shapeRead.Exception);
+            var shapeRows=shapeRead.Result.Providers.Single().Rows;
+            Assert.Equal(new[]{"coffee","tea"},shapeRows.Select(row=>(string)row["Display"]));
+            Assert.All(shapeRows,row=>Assert.Equal(new[]{"Display"},row.Aliases));
             query=query.OrderByDescending(row=>(string)row["name"]).Result.Take(1).Result;
             query=query.SelectOutputColumns(new[]{new CosmicProjectionOutputBinding("Display","name")}).Result;
             query=query.Where(row=>(string)row["Display"]=="tea").Result;
@@ -40,9 +50,9 @@ public sealed partial class CosmicCqlNativeTests
             var read=await Manager(fixture.Provider).ExecuteProjectionCompositionQueryAsync(
                 planned.Result,new[]{fixture.Provider},maximumResults:10);
             Assert.False(read.IsError,read.Message+read.Exception);
-            var row=read.Result.Providers.Single().Rows.Single();
-            Assert.Equal(new[]{"Display"},row.Aliases);
-            Assert.Equal("tea",row["Display"]);
+            var selectedRow=read.Result.Providers.Single().Rows.Single();
+            Assert.Equal(new[]{"Display"},selectedRow.Aliases);
+            Assert.Equal("tea",selectedRow["Display"]);
         },configure:root=>
         {
             root.Name="coffee";root.Description="L";
