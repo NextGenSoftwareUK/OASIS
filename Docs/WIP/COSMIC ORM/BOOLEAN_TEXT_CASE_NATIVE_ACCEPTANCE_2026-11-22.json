@@ -1,0 +1,75 @@
+{
+  "source": "9eb6155237b2225bd8daf67ea34e85733dbd952e",
+  "core": "3d01e1bc4dc72b17f123dbd696b19c1f5ccf2c8f",
+  "run": 44992949554,
+  "job": 137117796126,
+  "artifact": 14743306271,
+  "bytes": 2818,
+  "sha256": "e5f0deb43d36ea6bbdbc769c1886b61f6ceaa44aabc98fbaa63f889d2b74ccb1",
+  "nativeAccepted": true,
+  "testsPassed": 3,
+  "reports": [
+    {
+      "provider": "MongoDBOASIS",
+      "checks": 4,
+      "ownedCleanupIds": 3,
+      "successfulHolonWrites": 3,
+      "queryElapsedMilliseconds": {
+        "create-owned": 470,
+        "create-foreign": 15,
+        "conditional-values": 125,
+        "different-branches": 19
+      },
+      "nativeProviderVerified": true,
+      "booleanTextCaseVerified": true,
+      "trueFalseBranchesVerified": true,
+      "differentBranchesVerified": true,
+      "foreignRowsHiddenVerified": true,
+      "executableBranchRefused": true,
+      "metadataConditionRefused": true,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 4,
+      "ownedCleanupIds": 3,
+      "successfulHolonWrites": 3,
+      "queryElapsedMilliseconds": {
+        "create-owned": 472,
+        "create-foreign": 14,
+        "conditional-values": 30,
+        "different-branches": 5
+      },
+      "nativeProviderVerified": true,
+      "booleanTextCaseVerified": true,
+      "trueFalseBranchesVerified": true,
+      "differentBranchesVerified": true,
+      "foreignRowsHiddenVerified": true,
+      "executableBranchRefused": true,
+      "metadataConditionRefused": true,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "checks": 4,
+      "ownedCleanupIds": 3,
+      "successfulHolonWrites": 3,
+      "queryElapsedMilliseconds": {
+        "create-owned": 1165,
+        "create-foreign": 393,
+        "conditional-values": 950,
+        "different-branches": 634
+      },
+      "nativeProviderVerified": true,
+      "booleanTextCaseVerified": true,
+      "trueFalseBranchesVerified": true,
+      "differentBranchesVerified": true,
+      "foreignRowsHiddenVerified": true,
+      "executableBranchRefused": true,
+      "metadataConditionRefused": true,
+      "exactCleanupVerified": true
+    }
+  ],
+  "localArchiveRetained": false,
+  "liveAccepted": false
+}
