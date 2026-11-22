@@ -33,15 +33,20 @@ public sealed partial class MongoSubscriptionUsageRepository : ISubscriptionChec
             var slot = await BillingAudit.Find(session, new BsonDocument("_id", slotId)).SingleOrDefaultAsync(token);
             if (slot != null && slot["UserId"].AsString != avatarId)
                 throw new InvalidOperationException("The checkout reservation has conflicting account identity.");
+            if (slot != null && (!slot.GetValue("AccountClosureOperationId", BsonNull.Value).IsBsonNull ||
+                !slot.GetValue("AccountClosureStartedAtUtc", BsonNull.Value).IsBsonNull))
+                throw new CheckoutReservationException("ACCOUNT_CLOSING", "Billing admission is closed for this account.");
             if (slot != null && !slot.GetValue("ActiveOperationId", BsonNull.Value).IsBsonNull)
                 throw new CheckoutReservationException("CHECKOUT_ALREADY_PENDING",
                     "Review your unfinished checkout before starting another payment.");
             // One mutable reservation projection per account serializes creation.
             // Requested/created/closed event rows remain immutable audit evidence.
-            var reservation = await BillingAudit.ReplaceOneAsync(session, new BsonDocument("_id", slotId), new BsonDocument {
-                { "_id", slotId }, { "Kind", "checkout-reservation" }, { "UserId", avatarId },
-                { "ActiveOperationId", operation }, { "OccurredAtUtc", _time.GetUtcNow().UtcDateTime }
-            }, new ReplaceOptions { IsUpsert = true }, token);
+            var reservationDocument = slot ?? new BsonDocument {
+                { "_id", slotId }, { "Kind", "checkout-reservation" }, { "UserId", avatarId } };
+            reservationDocument["ActiveOperationId"] = operation;
+            reservationDocument["OccurredAtUtc"] = _time.GetUtcNow().UtcDateTime;
+            var reservation = await BillingAudit.ReplaceOneAsync(session, new BsonDocument("_id", slotId), reservationDocument,
+                new ReplaceOptions { IsUpsert = true }, token);
             if (!reservation.IsAcknowledged || reservation.MatchedCount != 1 && reservation.UpsertedId == null)
                 throw new InvalidOperationException("The checkout reservation was not acknowledged.");
             await BillingAudit.InsertOneAsync(session, new BsonDocument {

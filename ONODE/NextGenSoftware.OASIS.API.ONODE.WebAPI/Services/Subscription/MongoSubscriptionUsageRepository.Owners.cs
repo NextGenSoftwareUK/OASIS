@@ -40,6 +40,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 var now = _time.GetUtcNow().UtcDateTime;
                 var account = await AppAccounts.Find(session, x => x.AppId == appId).FirstOrDefaultAsync(ct) ?? throw new KeyNotFoundException("The app account was not found.");
                 var previous = string.Join(",", account.OwnerAvatarIds ?? new List<string>());
+                foreach (var owner in owners.Except(account.OwnerAvatarIds ?? new List<string>(), StringComparer.Ordinal))
+                    await FenceOpenAccountOwnershipAsync(session, owner, ct);
                 account.OwnerAvatarIds = owners; account.UpdatedAtUtc = now; account.UpdatedBy = actor; account.Reason = reason.Trim();
                 await AppAccounts.ReplaceOneAsync(session, x => x.AppId == appId, account, cancellationToken: ct);
                 await BillingAudit.InsertOneAsync(session, new BsonDocument

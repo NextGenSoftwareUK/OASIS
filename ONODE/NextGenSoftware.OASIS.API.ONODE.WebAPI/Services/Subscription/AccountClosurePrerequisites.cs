@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 
 internal sealed record AccountClosurePrerequisites(bool SubscriptionRequiresCancellation,
     bool HasOpenStripeInvoices, bool HasPendingStripeCheckouts, bool HasOwnedApplications, bool HasUnsettledUsage,
-    bool HasUnbilledCharges, bool HasUnresolvedStatements);
+    bool HasUnbilledCharges, bool HasUnresolvedStatements, AccountClosureLedgerSnapshot LedgerSnapshot);
 
 internal sealed class AccountClosurePrerequisiteReader(MongoSubscriptionUsageRepository repository, IConfiguration configuration)
 {
@@ -58,6 +58,6 @@ internal sealed class AccountClosurePrerequisiteReader(MongoSubscriptionUsageRep
             openInvoices = invoices.Data.Count != 0;
         }
         return new AccountClosurePrerequisites(cancel, openInvoices, pendingCheckouts, snapshot.HasOwnedApplications,
-            snapshot.HasUnsettledUsage, snapshot.HasUnbilledCharges, snapshot.HasUnresolvedStatements);
+            snapshot.HasUnsettledUsage, snapshot.HasUnbilledCharges, snapshot.HasUnresolvedStatements, snapshot);
     }
 }

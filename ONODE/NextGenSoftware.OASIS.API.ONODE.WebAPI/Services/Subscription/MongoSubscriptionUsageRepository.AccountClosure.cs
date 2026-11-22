@@ -20,6 +20,14 @@ public sealed partial class MongoSubscriptionUsageRepository
         var actor = avatarId.ToString("D");
         using var session = await _client.StartSessionAsync(cancellationToken: token);
         session.StartTransaction(new TransactionOptions(readConcern: ReadConcern.Snapshot, readPreference: ReadPreference.Primary));
+        var snapshot = await ReadAccountClosureLedgerInSessionAsync(session, actor, token);
+        await session.CommitTransactionAsync(token);
+        return snapshot;
+    }
+
+    private async Task<AccountClosureLedgerSnapshot> ReadAccountClosureLedgerInSessionAsync(
+        IClientSessionHandle session, string actor, CancellationToken token)
+    {
         var subscription = await Subscriptions.Find(session, row => row.UserId == actor).SingleOrDefaultAsync(token);
         var ownedApps = await AppAccounts.Find(session, row => row.OwnerAvatarIds.Contains(actor)).AnyAsync(token);
         var unsettled = await _events.Find(session, row => row.UserId == actor && row.Status != "settled" && row.Status != "expired").AnyAsync(token);
@@ -35,7 +43,6 @@ public sealed partial class MongoSubscriptionUsageRepository
                 { "foreignField", "_id" }, { "as", "closureAcknowledgement" } }))
             .Match(new BsonDocument("closureAcknowledgement.0", new BsonDocument("$exists", false)))
             .Limit(1).FirstOrDefaultAsync(token);
-        await session.CommitTransactionAsync(token);
         return new AccountClosureLedgerSnapshot(subscription, ownedApps, unsettled, unbilled, statements, unresolvedCheckout != null);
     }
 }

@@ -7,8 +7,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
     [BsonIgnoreExtraElements]
     public class SubscriptionRecord
     {
-        public bool IsActiveAt(DateTime utcNow) => (Status is "active" or "trialing" or "free") &&
+        [BsonIgnore] public bool IsBillingAdmissionOpen => AccountClosureOperationId == null && !AccountClosureStartedAtUtc.HasValue;
+        public bool IsActiveAt(DateTime utcNow) => IsBillingAdmissionOpen && (Status is "active" or "trialing" or "free") &&
             (!CurrentPeriodEnd.HasValue || CurrentPeriodEnd.Value > utcNow);
+        [BsonIgnoreIfNull] public string AccountClosureOperationId { get; set; }
+        [BsonIgnoreIfNull] public DateTime? AccountClosureStartedAtUtc { get; set; }
 
         [BsonId] public string UserId { get; set; }
         public DateTime? StripeSubscriptionCreatedAtUtc { get; set; }

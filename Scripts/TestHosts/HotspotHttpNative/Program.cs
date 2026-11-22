@@ -71,6 +71,12 @@ try
     if (mode is "competition-publisher" or "billing-http" or "billing-admin-http" or "billing-warning-browser" or "billing-restoration-http") accounts.Add(new Avatar { Id = wizardActor,
         Username = "wizard-" + wizardActor.ToString("N"), Email = wizardActor.ToString("N") + "@example.test",
         AvatarType = new EnumValue<AvatarType>(mode == "billing-http" ? AvatarType.User : AvatarType.Wizard) });
+    if (mode == "session-global-http")
+    {
+        var closureActorId = Guid.NewGuid();
+        accounts.Add(new Avatar { Id = closureActorId, Username = "closure-" + closureActorId.ToString("N"),
+            Email = closureActorId.ToString("N") + "@example.test", AvatarType = new EnumValue<AvatarType>(AvatarType.User) });
+    }
     foreach (var account in accounts)
     {
         account.IsActive = true; account.Version = 1; account.VersionId = Guid.NewGuid(); account.CreatedDate = DateTime.UtcNow;
@@ -209,6 +215,7 @@ try
     }
     if (mode == "session-global-http")
     {
+        builder.Services.AddSingleton<AccountClosureAdmissionService>();
         builder.Services.AddSingleton<ISubscriptionUsageRepository>(billingRepository!);
         builder.Services.AddSingleton<ISubscriptionBillingRepository>(billingRepository!);
         builder.Services.AddSingleton<ISubscriptionService, SubscriptionService>();
@@ -377,7 +384,8 @@ try
     }
     else if (mode == "session-global-http")
     {
-        await GlobalSessionHttpQualification.RunAsync(http, provider, dna, actor, accounts[0].Username, mfaPassword, billingRepository!, client.GetDatabase(database));
+        await GlobalSessionHttpQualification.RunAsync(http, provider, dna, actor, accounts[0].Username, mfaPassword, billingRepository!, client.GetDatabase(database),
+            app.Services.GetRequiredService<AccountClosureAdmissionService>(), accounts[2].Id);
     }
     else if (mode is "mfa-http" or "mfa-middleware-http" or "session-global-http")
     {

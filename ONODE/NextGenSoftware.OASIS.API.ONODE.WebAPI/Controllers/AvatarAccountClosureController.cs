@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers;
 
 public sealed record AccountClosureAssessment(bool SubscriptionRequiresCancellation,
     bool HasOpenStripeInvoices, bool HasPendingStripeCheckouts, bool HasOwnedApplications, bool HasUnsettledUsage,
-    bool HasUnbilledCharges, bool HasUnresolvedStatements, DateTime AssessedAtUtc);
+    bool HasUnbilledCharges, bool HasUnresolvedStatements, bool BillingAdmissionClosed, DateTime AssessedAtUtc);
 
 [ApiController]
 [Route("api/avatar/account-closure")]
@@ -40,7 +40,8 @@ public sealed class AvatarAccountClosureController : OASISControllerBase
             return new OASISResult<AccountClosureAssessment> { IsLoaded = true,
                 Result = new AccountClosureAssessment(assessment.SubscriptionRequiresCancellation,
                     assessment.HasOpenStripeInvoices, assessment.HasPendingStripeCheckouts, assessment.HasOwnedApplications, assessment.HasUnsettledUsage,
-                    assessment.HasUnbilledCharges, assessment.HasUnresolvedStatements, DateTime.UtcNow),
+                    assessment.HasUnbilledCharges, assessment.HasUnresolvedStatements,
+                    assessment.LedgerSnapshot.Subscription?.IsBillingAdmissionOpen == false, DateTime.UtcNow),
                 Message = "Current billing and ownership dependencies loaded. No account or billing data were changed." };
         }
         catch (Exception cause) when (cause is not OperationCanceledException)

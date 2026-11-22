@@ -696,10 +696,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 new
                 {
-                    Id = record.StripeSubscriptionId ?? $"sub_{record.UserId[..Math.Min(8, record.UserId.Length)]}",
+                    Id = record.StripeSubscriptionId ?? record.UserId,
                     record.PlanId,
                     PlanName = plan?.Name ?? record.PlanId,
-                    record.Status,
+                    Status = record.IsBillingAdmissionOpen ? record.Status : "closing",
                     RenewsOn = record.CancelAtPeriodEnd ? (DateTime?)null : record.CurrentPeriodEnd,
                     EndsOn = record.CancelAtPeriodEnd ? record.CurrentPeriodEnd : (DateTime?)null,
                     record.CancelAtPeriodEnd,

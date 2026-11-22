@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using NativeMongoAvatar = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar;
@@ -21,7 +22,8 @@ internal static class GlobalSessionHttpQualification
 
     public static async Task RunAsync(HttpClient http, MongoDBOASIS mongo, OASISDNA dna,
         Guid actor, string username, string password,
-        NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionCheckoutJournal checkoutJournal, IMongoDatabase ownedDatabase)
+        NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionCheckoutJournal checkoutJournal, IMongoDatabase ownedDatabase,
+        AccountClosureAdmissionService closureService, Guid closureActor)
     {
         const string ownedUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Check(Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") == ownedUri, "Exact owned Mongo fixture required.");
@@ -217,6 +219,55 @@ internal static class GlobalSessionHttpQualification
             Check(!closedAssessment.Value<bool>("isError") && !closedAssessment["result"]!.Value<bool>("hasPendingStripeCheckouts"),
                 "Acknowledged native checkout closure remained unresolved in dependency assessment.");
             Console.WriteLine("ACCOUNT_DEPENDENCY_NATIVE_PROOF: actual actor-bound controller/Mongo snapshot and owned app, customerless checkout journal request/acknowledgement/closure, one concurrent reservation winner, closed-slot reuse and old-closure replay isolation; no Stripe calls or paid lifecycle acceptance.");
+            var ownerClosure = await closureService.CloseBillingAdmissionAsync(actor, Guid.NewGuid(), CancellationToken.None);
+            Check(ownerClosure.IsError && ownerClosure.ErrorCode == "ACCOUNT_CLOSURE_BLOCKED",
+                "An account owning an app closed billing admission.");
+            var billingStore = (ISubscriptionBillingRepository)checkoutJournal;
+            var usageStore = (ISubscriptionUsageRepository)checkoutJournal;
+            var nativeBilling = (MongoSubscriptionUsageRepository)checkoutJournal;
+            var freeAccount = new SubscriptionRecord { UserId = closureActor.ToString("D"), PlanId = "free", Status = "active",
+                CurrentPeriodStart = DateTime.UtcNow, CurrentPeriodEnd = DateTime.UtcNow.AddDays(1) };
+            await billingStore.SaveSubscriptionAsync(freeAccount);
+            var closureOperation = Guid.NewGuid();
+            var admissionClosed = await closureService.CloseBillingAdmissionAsync(closureActor, closureOperation, CancellationToken.None);
+            Check(!admissionClosed.IsError && admissionClosed.IsSaved && admissionClosed.Result,
+                "Real free-account billing admission closure was not acknowledged.");
+            var closedAccount = await billingStore.GetSubscriptionAsync(closureActor.ToString("D"));
+            Check(closedAccount.AccountClosureOperationId == closureOperation.ToString("D") && !closedAccount.IsActiveAt(DateTime.UtcNow),
+                "The real ledger did not retain closed billing admission.");
+            var repeatedClosure = await closureService.CloseBillingAdmissionAsync(closureActor, closureOperation, CancellationToken.None);
+            Check(!repeatedClosure.IsError && repeatedClosure.Result &&
+                (await billingStore.GetSubscriptionAsync(closureActor.ToString("D"))).AuthorizationVersion == closedAccount.AuthorizationVersion,
+                "Repeating billing closure changed its admitted state or version.");
+            var checkoutBlocked = false;
+            try { await checkoutJournal.BeginCheckoutAsync(closureActor.ToString("D"), "bronze", CancellationToken.None); }
+            catch (CheckoutReservationException error) when (error.Code == "ACCOUNT_CLOSING") { checkoutBlocked = true; }
+            Check(checkoutBlocked, "Closed billing admission accepted a new checkout reservation.");
+            var freeReopenBlocked = false;
+            try { await billingStore.SaveSubscriptionAsync(freeAccount); }
+            catch (SubscriptionUsageConflictException) { freeReopenBlocked = true; }
+            Check(freeReopenBlocked, "Free-plan activation reopened billing admission.");
+            var grantReopenBlocked = false;
+            try { await nativeBilling.GrantPlanAsync(closureActor.ToString("D"), "silver", actor.ToString("D"),
+                "Owned closure qualification", DateTime.UtcNow.AddDays(1), CancellationToken.None); }
+            catch (SubscriptionUsageConflictException) { grantReopenBlocked = true; }
+            Check(grantReopenBlocked, "An administrator plan grant reopened billing admission.");
+            var ownershipBlocked = false;
+            try { await nativeBilling.SetAppOwnersAsync("owned-billing", new[] { actor.ToString("D"), closureActor.ToString("D") },
+                actor.ToString("D"), "Owned closure qualification", CancellationToken.None); }
+            catch (SubscriptionUsageConflictException) { ownershipBlocked = true; }
+            Check(ownershipBlocked, "App ownership was added to an account with closed billing admission.");
+            var usageBlocked = false;
+            var authorizationTime = DateTime.UtcNow;
+            try { await usageStore.AuthorizeAsync(new SubscriptionUsageEvent {
+                OperationId = Guid.NewGuid().ToString("D"), UserId = closureActor.ToString("D"), ConsumingService = "WEB5",
+                RequestFingerprint = new string('c', 64), Endpoint = "/owned/closure-proof", MeterCategory = "api.request",
+                RequestedUnits = 1, Status = "authorized", AuthorizedAtUtc = authorizationTime, ExpiresAtUtc = authorizationTime.AddMinutes(5)
+            }, 0, CancellationToken.None); }
+            catch (SubscriptionUsageLimitException error) when (error.Code == "INACTIVE_SUBSCRIPTION") { usageBlocked = true; }
+            Check(usageBlocked && (await usageStore.GetEventsAsync(closureActor.ToString("D"), 10, CancellationToken.None)).Count == 0,
+                "Closed billing admission accepted or persisted a new metered operation.");
+            Console.WriteLine("BILLING_CLOSURE_ADMISSION_NATIVE_PROOF: real service/Mongo snapshot and version fence, owned-app refusal, free-account closure/repeat, checkout/free-plan/ownership/new-usage refusal; no avatar deletion, Stripe calls or full account closure acceptance.");
             var afterAssessment = await mongo.LoadAvatarAsync(actor);
             Check(!afterAssessment.IsError && afterAssessment.Result.VersionId == beforeAssessment.Result.VersionId,
                 "Dependency assessment mutated the native avatar.");
