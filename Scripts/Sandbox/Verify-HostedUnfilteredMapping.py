@@ -21,23 +21,38 @@ credentials = runpy.run_path(str(ROOT / "Scripts/Sandbox/HostedSessionCredential
 
 
 def main():
+    global WEBSITE
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--deployment", required=True, type=lambda value: str(uuid.UUID(value)))
     parser.add_argument("--commit", required=True)
     parser.add_argument("--provider", required=True, choices=["MongoDBOASIS", "SQLLiteDBOASIS", "Neo4jOASIS"])
     parser.add_argument("--snapshot", action="store_true",
         help="Verify unfiltered original-field snapshot preparation and mixed identity reconciliation.")
+    parser.add_argument("--computed-rows", action="store_true",
+        help="Verify computed columns across one owned full Holon and approved native virtual rows.")
+    parser.add_argument("--website", help="Exact website compiler SHA for computed rows.")
     args = parser.parse_args()
+    if args.computed_rows:
+        if args.snapshot or not re.fullmatch("[0-9a-f]{40}", args.website or ""):
+            parser.error("Computed rows use their own exact compiler and cannot replay snapshot qualification.")
+        release=json.loads((ROOT/"LocalState/COSMIC/mapped-computed-image-handoff.json").read_text())
+        if (release.get("source")!=args.commit or release.get("packageAccepted") is not True
+                or release.get("nativeAccepted") is not True or release.get("compositionAccepted") is not True):
+            parser.error("Wait for the exact mapped native/composition/image package qualification.")
+        WEBSITE=args.website
     provider = args.provider
     if args.snapshot:
         snapshot_proof = json.loads((ROOT / "Docs/WIP/COSMIC ORM/UNFILTERED_SNAPSHOT_SOURCE_2026-11-21.json").read_text(encoding="utf-8-sig"))
         if (not snapshot_proof.get("nativeAccepted") or snapshot_proof.get("deliverySuperseded")
                 or args.commit != snapshot_proof.get("deliveryCandidate")):
             parser.error("Wait for the qualified exact snapshot delivery candidate before any hosted requests.")
-    state = (ROOT / "LocalState/COSMIC/HostedUnfilteredSnapshotCurrent" if args.snapshot else STATE_ROOT) / provider
+    state = (ROOT/"LocalState/COSMIC/HostedMappedComputedRowsCurrent" if args.computed_rows else
+        ROOT/"LocalState/COSMIC/HostedUnfilteredSnapshotCurrent" if args.snapshot else STATE_ROOT)/provider
+    if args.computed_rows and state.exists():
+        raise RuntimeError("Preserve the existing computed fixture checkpoints; never issue another session.")
     for proof_file in (ROOT / "Docs/WIP/COSMIC ORM").glob("CQL_UNFILTERED_SNAPSHOT*HOSTED_ACCEPTANCE*.json" if args.snapshot else "CQL_UNFILTERED*HOSTED_ACCEPTANCE*.json"):
         proof = json.loads(proof_file.read_text(encoding="utf-8-sig"))
-        if proof.get("provider") == provider and proof.get("queryAccepted") is True:
+        if not args.computed_rows and proof.get("provider") == provider and proof.get("queryAccepted") is True:
             raise RuntimeError("This provider case is already accepted; select only remaining cases.")
     if not re.fullmatch("[0-9a-f]{40}", args.commit):
         parser.error("Use the exact verified source SHA.")
@@ -65,7 +80,20 @@ def main():
     journal = {"schema": 1, "deployment": args.deployment, "source": args.commit,
                "websiteCompiler": WEBSITE, "snapshotCase": args.snapshot, "provider": provider, "mappingId": mapping_id, "ownerId": None,
                "calls": [], "pending": None, "completed": False}
-    write = lambda: helpers["write"](journal_path, journal)
+    checkpoint=0
+    def write():
+        nonlocal checkpoint
+        if not args.computed_rows:
+            helpers["write"](journal_path,journal)
+            return
+        checkpoint+=1
+        target=state/("checkpoint-"+str(checkpoint).zfill(4)+".json")
+        with target.open("x",encoding="utf-8") as stream:
+            json.dump(journal,stream,indent=2);stream.write("\n");stream.flush();os.fsync(stream.fileno())
+        if journal.get("completed"):
+            with journal_path.open("x",encoding="utf-8") as stream:
+                json.dump(journal,stream,indent=2);stream.write("\n");stream.flush();os.fsync(stream.fileno())
+
     write()
     token = None
     cookie_header = None
@@ -121,6 +149,39 @@ def main():
 
     sql = ("SELECT Id, CAST(MetaData.name AS STRING) AS CustomerName FROM " + provider + " "
            "WITH VIRTUAL MAPPING '" + mapping_id + "' ORDER BY Id LIMIT 10")
+    mapping_fields={"name":"name"}
+    full_metadata={}
+    full_id=str(uuid.uuid4())
+    expected_cells=[]
+    if args.computed_rows:
+        suffix=mapping_id.replace("-","")
+        text_alias="demoText_"+suffix
+        scope_alias="demoScope_"+suffix
+        value_alias="demoValue_"+suffix
+        marker="excluded-"+suffix
+        if provider=="MongoDBOASIS":
+            mapping_fields={text_alias:"name",scope_alias:"marketingOptIn"}
+            full_metadata={text_alias:None,scope_alias:True}
+            expression=("COALESCE(CAST(metadata."+text_alias+" AS STRING), 'Missing') AS Text, "
+                +"CASE WHEN CAST(metadata."+scope_alias+" AS BOOLEAN) THEN 'Yes' ELSE 'No' END AS Label")
+            predicate="CAST(metadata."+scope_alias+" AS BOOLEAN) = TRUE"
+            expected_cells=["Missing","Yes"]
+        elif provider=="SQLLiteDBOASIS":
+            mapping_fields={text_alias:"description",scope_alias:"name"}
+            full_metadata={text_alias:None,scope_alias:"owned-"+suffix}
+            expression="COALESCE(CAST(metadata."+text_alias+" AS STRING), 'Missing') AS Text"
+            predicate="metadata."+scope_alias+" <> '"+marker+"'"
+            expected_cells=["Missing"]
+        else:
+            mapping_fields={value_alias:"points",scope_alias:"handle"}
+            full_metadata={value_alias:None,scope_alias:"owned-"+suffix}
+            expression="COALESCE(CAST(metadata."+value_alias+" AS INT32), 0) AS Stock"
+            predicate="metadata."+scope_alias+" <> '"+marker+"'"
+            expected_cells=[0]
+        sql=("SELECT Id, "+expression+" FROM "+provider+" WITH VIRTUAL MAPPING '"+mapping_id+
+            "' WHERE "+predicate+" ORDER BY Id LIMIT 100")
+        journal.update(computedRows=True,fullHolonId=full_id,originalNativeDataWritten=False)
+        write()
     compiler = subprocess.check_output(["git", "show", WEBSITE + ":cql-text.js"],
                                       cwd=ROOT.parent / "Web4Site")
     program = ("const vm=require('node:vm');const s={module:{exports:{}}};"
@@ -131,7 +192,7 @@ def main():
     query = json.loads(compiled.stdout)
     if (query["path"] != "data/query-cql/projection/mixed"
             or query["body"]["virtualMappingId"] != mapping_id
-            or query["body"].get("filters") != []):
+            or (not args.computed_rows and query["body"].get("filters") != [])):
         raise RuntimeError("The exact SQL compiler did not emit the intended bounded unfiltered mapping.")
 
     issued, cookies = call("sandbox/session", body={}, mutation=True)
@@ -156,7 +217,7 @@ def main():
     write()
     prepared, _ = call("native-data/" + provider + "/virtual-mappings/prepare", body={
         "id": mapping_id, "sourceName": source_name,
-        "connectionName": "oasis-sandbox-native-fixture", "fields": {"name": "name"}})
+        "connectionName": "oasis-sandbox-native-fixture", "fields": mapping_fields})
     definition = prepared["result"]
     if (definition["id"].lower() != mapping_id or definition.get("isPublic") is not False
             or definition.get("createdByAvatarId", "").lower() != owner):
@@ -198,6 +259,58 @@ def main():
     journal["mixedRowsReturned"] = len(rows)
     journal["queryAccepted"] = True
     write()
+    if args.computed_rows:
+        sources=payload.get("provenance")
+        if (not isinstance(sources,list) or len(sources)!=len(rows) or len(rows)>=100
+                or any(item.get("representation")!="Virtual" for item in sources)
+                or len({str(row[0]).lower() for row in rows})!=len(rows)):
+            raise RuntimeError("A complete native-only baseline is required; preserve this original fixture.")
+        full={"id":full_id,"name":"owned computed mapping fixture","isActive":True,
+              "isPublic":False,"createdByAvatarId":owner,"metaData":full_metadata}
+        operation=str(uuid.uuid4())
+        journal["fullSaveOperationId"]=operation
+        write()
+        full_saved,_=call("data/save-holon",body={"holon":full,"providerType":provider,
+            "operationId":operation,"expectedRevisions":{full_id:None},"saveChildren":False,"recursive":False},mutation=True)
+        acknowledged=full_saved.get("result") or {}
+        if full_saved.get("isSaved") is not True or acknowledged.get("id","").lower()!=full_id:
+            raise RuntimeError("Original full-Holon acknowledgement is incomplete; never replay.")
+        full_revision=observed_revision(acknowledged,provider)
+        journal.update(fullSaved=True,fullRevision=full_revision)
+        write()
+        combined,_=call(query["path"],body=query["body"])
+        combined_payload=combined["result"]
+        merged=combined_payload.get("rows")
+        provenance=combined_payload.get("provenance")
+        expected={str(row[0]).lower():row[1:] for row in rows}
+        expected[full_id]=expected_cells
+        if (not isinstance(merged,list) or len(merged)!=len(expected)
+                or not isinstance(provenance,list) or len(provenance)!=len(merged)):
+            raise RuntimeError("Complete real/virtual result shape differs; preserve original fixture.")
+        seen=set()
+        for row,item in zip(merged,provenance):
+            identity=str(row[0]).lower()
+            if identity in seen or identity not in expected or row[1:]!=expected[identity]:
+                raise RuntimeError("Mixed computed values or logical identity differ.")
+            seen.add(identity)
+            if identity==full_id:
+                if item.get("representation")!="Materialized":
+                    raise RuntimeError("The explicit full Holon lost its representation.")
+                if provider=="Neo4jOASIS" and type(row[1]) is not int:
+                    raise RuntimeError("Int32 replacement must be an integer cell.")
+            elif item.get("representation")!="Virtual":
+                raise RuntimeError("A mapped row was unexpectedly materialized.")
+        journal["computedFullVirtualQueryAccepted"]=True
+        write()
+        removal=str(uuid.uuid4())
+        journal["fullDeleteOperationId"]=removal
+        write()
+        call("data/delete-holon",method="DELETE",body={"id":full_id,"providerType":provider,
+            "softDelete":False,"operationId":removal,"expectedRevisions":{full_id:full_revision},
+            "recursive":False,"loadChildren":False},mutation=True)
+        verify_absent(full_id,provider)
+        journal["exactFullCleanupVerified"]=True
+        write()
     if args.snapshot:
         provenance = payload.get("provenance")
         if not isinstance(provenance, list) or len(provenance) != len(rows):
@@ -280,6 +393,8 @@ def main():
         (state / name).unlink()
     print(json.dumps({"source": args.commit, "provider": provider, "mappingId": mapping_id,
         "calls": len(journal["calls"]), "mixedRowsReturned": len(rows),
+        "computedFullVirtualQueryAccepted":journal.get("computedFullVirtualQueryAccepted",False),
+        "exactFullCleanupVerified":journal.get("exactFullCleanupVerified",False),
         "exactMappingCleanupVerified": True, "sessionRevoked": True,
         "browserVerified": False, "nativeDataImported": False,
         "snapshotIdentityReconciliationVerified": journal.get("snapshotIdentityReconciliationVerified", False),
