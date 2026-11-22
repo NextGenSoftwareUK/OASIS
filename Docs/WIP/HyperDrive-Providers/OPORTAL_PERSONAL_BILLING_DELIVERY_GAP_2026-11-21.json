@@ -963,6 +963,13 @@
         "status": "queued",
         "mode": "billing-warning-store"
       }
+    },
+    "portalIntegration": {
+      "status": "source-only-syntax-and-cache-verified-not-browser-accepted",
+      "behavior": "Explicit Email current warnings action only when emailSubmissionAvailable=true and emailEnabled. Shared pending lock/session guard; accepts validated counts and shows errors/deferred without loop.",
+      "backendChange": "Personal/owner notification view advertises capability in new source; must include in next candidate.",
+      "checkLimitation": "Broader profile bundle verifier requires absent local node_modules SDK; no installation. UTF8 and syntax/cache passed; temporary encoding mismatch corrected before commit.",
+      "remaining": "Backend/native/real provider and actual Portal browser/hosted acceptance."
     }
   },
   "sharedDevelopmentReview": {

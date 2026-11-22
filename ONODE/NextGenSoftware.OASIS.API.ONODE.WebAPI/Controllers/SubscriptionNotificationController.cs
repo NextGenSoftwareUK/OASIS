@@ -50,6 +50,7 @@ public sealed class SubscriptionNotificationController(MongoSubscriptionUsageRep
             nodeDefault = defaults.WarningsEnabled,
             inheritedWarningDefault = warningDefault ?? defaults.WarningsEnabled,
             emailEnabled = defaults.EmailEnabled && NextGenSoftware.OASIS.API.Core.Managers.EmailManager.IsEmailConfigured(dna),
+            emailSubmissionAvailable = true,
             emailRequested = settings?.EmailRequested ?? true
         };
     }
