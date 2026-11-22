@@ -1,0 +1,14 @@
+{
+  "source": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
+  "coreSource": "dcf11fe46181438b46eba57a88310f7172c89a61",
+  "compositionRun": 44986459609,
+  "compositionAccepted": false,
+  "nativeHttpRun": 44985236025,
+  "nativeHttpAccepted": true,
+  "requestedAt": "2026-11-22T04:46:36.884224+00:00",
+  "phase": "dispatch_acknowledged",
+  "run": 44986701215,
+  "status": "queued",
+  "conclusion": null,
+  "developmentPushed": false
+}
