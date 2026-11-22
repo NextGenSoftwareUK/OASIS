@@ -786,7 +786,6 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             {
                 Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Subscription.SubscriptionUsageExpiryWorker>(services, Configuration);
                 Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Subscription.PaidOverageBillingWorker>(services, Configuration);
-                Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Subscription.AppOverageStatementWorker>(services, Configuration);
                 NextGenSoftware.OASIS.API.Core.Services.Subscriptions.SubscriptionTelemetryRegistration.AddSubscriptionUsageTelemetry(services, Configuration, "WEB4");
             }
             Services.SubscriptionReconciliation.UsageReconciliationRegistration.AddUsageReconciliation(services,

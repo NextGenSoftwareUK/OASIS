@@ -21,6 +21,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public string AdminGrantReason { get; set; }
         public string Status { get; set; } // active, cancelled, past_due, trialing, free
         public bool PayAsYouGoEnabled { get; set; }
+        public string PaidOverageConsentId { get; set; }
+        public int PaidOverageConsentSchemaVersion { get; set; }
+        public string PaidOverageConsentPlanId { get; set; }
+        public long PaidOveragePreferenceVersion { get; set; }
+        public long PaidOverageConsentPreferenceVersion { get; set; }
         public string PaidOverageTermsVersion { get; set; }
         public string PaidOverageTermsSha256 { get; set; }
         public DateTime? PaidOverageTermsAcceptedAtUtc { get; set; }

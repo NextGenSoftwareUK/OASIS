@@ -80,38 +80,43 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             SubscriptionUsageEvent usageEvent, int karma, CancellationToken cancellationToken)
         {
             ValidateAuthorization(usageEvent);
+            var shardCount = PoolShardCount;
+            var request = FreshAuthorizationRequest(usageEvent, shardCount);
             return TransactAsync(async (session, ct) =>
             {
+                // MongoDB may rerun this callback after a conflicting consent/subscription change.
+                // Never carry a previous attempt's generated fee/policy/consent state into it.
+                var candidate = FreshAuthorizationRequest(request, shardCount);
                 await EnsureOpeningBalanceAsync(session, ct);
-                var existing = await _events.Find(session, x => x.OperationId == usageEvent.OperationId).FirstOrDefaultAsync(ct);
+                var existing = await _events.Find(session, x => x.OperationId == candidate.OperationId).FirstOrDefaultAsync(ct);
                 if (existing != null)
                 {
-                    EnsureOwner(existing, usageEvent.UserId, usageEvent.ConsumingService);
+                    EnsureOwner(existing, candidate.UserId, candidate.ConsumingService);
                     if (existing.AuthorizationPolicy == null) throw new SubscriptionUsageConflictException("Imported legacy operations cannot be re-authorized; use their audited recovery or correction workflow.");
-                    if (!SameAuthorization(existing, usageEvent))
+                    if (!SameAuthorization(existing, candidate))
                         throw new SubscriptionUsageConflictException("The operation id was already used for a different authorization payload.");
                     if ((existing.Status is "authorized" or "executing") && existing.ExpiresAtUtc <= _time.GetUtcNow().UtcDateTime)
                         await ExpireOperationAsync(session, existing, _time.GetUtcNow().UtcDateTime, ct);
-                    SubscriptionLedgerMetrics.Duplicates.Add(1, new KeyValuePair<string, object>("operation", "authorize"), new KeyValuePair<string, object>("service", usageEvent.ConsumingService));
+                    SubscriptionLedgerMetrics.Duplicates.Add(1, new KeyValuePair<string, object>("operation", "authorize"), new KeyValuePair<string, object>("service", candidate.ConsumingService));
                     existing.AlreadyAuthorized = true;
-                    return ((SubscriptionUsageEvent)existing, await LoadAggregateAsync(session, usageEvent.UserId, existing.AuthorizedAtUtc, ct));
+                    return ((SubscriptionUsageEvent)existing, await LoadAggregateAsync(session, candidate.UserId, existing.AuthorizedAtUtc, ct));
                 }
 
-                var subscription = await Subscriptions.Find(session, x => x.UserId == usageEvent.UserId).FirstOrDefaultAsync(ct)
+                var subscription = await Subscriptions.Find(session, x => x.UserId == candidate.UserId).FirstOrDefaultAsync(ct)
                     ?? throw new SubscriptionUsageLimitException("SUBSCRIPTION_REQUIRED", "A valid OASIS subscription is required.", 402);
                 var authorizationTime = _time.GetUtcNow().UtcDateTime;
                 if (subscription.Status is not ("active" or "trialing" or "free") ||
                     subscription.CurrentPeriodEnd.HasValue && subscription.CurrentPeriodEnd.Value <= authorizationTime)
                     throw new SubscriptionUsageLimitException("INACTIVE_SUBSCRIPTION", "The OASIS subscription is inactive or expired.", 402);
                 var policy = SandboxSubscriptionRules.EffectivePolicy(_policyProvider.GetPolicy(
-                    usageEvent.AppPlanId == null ? subscription.PlanId : AppAccountRules.EffectivePlanId(subscription.PlanId, usageEvent.AppPlanId), karma),
+                    candidate.AppPlanId == null ? subscription.PlanId : AppAccountRules.EffectivePlanId(subscription.PlanId, candidate.AppPlanId), karma),
                     subscription, authorizationTime);
-                usageEvent.PlanId = subscription.PlanId; usageEvent.Karma = karma; usageEvent.AuthorizationPolicy = policy;
+                candidate.PlanId = subscription.PlanId; candidate.Karma = karma; candidate.AuthorizationPolicy = policy;
                 // This explicit version fence linearizes reservation authorization with concurrent
                 // Stripe/administrator subscription mutations, which also write this document.
                 subscription.AuthorizationVersion = checked(subscription.AuthorizationVersion + 1);
-                await Subscriptions.ReplaceOneAsync(session, x => x.UserId == usageEvent.UserId, subscription, cancellationToken: ct);
-                var aggregate = await LoadAggregateAsync(session, usageEvent.UserId, usageEvent.AuthorizedAtUtc, ct);
+                await Subscriptions.ReplaceOneAsync(session, x => x.UserId == candidate.UserId, subscription, cancellationToken: ct);
+                var aggregate = await LoadAggregateAsync(session, candidate.UserId, candidate.AuthorizedAtUtc, ct);
                 if (PaidOveragePricing.HasConsent(subscription) && !subscription.OveragePaymentBlocked)
                 {
                     var pricing = _overagePricing ?? PaidOveragePricing.Load();
@@ -119,28 +124,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                         subscription.MonthlyOverageLimitUsd <= 0 || string.IsNullOrWhiteSpace(subscription.StripeCustomerId) ||
                         string.IsNullOrWhiteSpace(subscription.StripeSubscriptionId))
                         throw new SubscriptionUsageLimitException("OVERAGE_TERMS_REQUIRED", "Accept the published overage terms and a USD spending cap before additional usage.", 402);
-                    usageEvent.PaidOveragePricingVersion=pricing.Version;
-                    usageEvent.ReservedRequestOverageUsd=PaidOveragePricing.RequestReservation(policy,aggregate,pricing.Rate(subscription.PlanId));
+                    candidate.PaidOveragePricingVersion=pricing.Version;
+                    candidate.ReservedRequestOverageUsd=PaidOveragePricing.RequestReservation(policy,aggregate,pricing.Rate(subscription.PlanId));
                     // Full provider exposure covers settlement order and plan changes. Only actual excess is billed.
-                    usageEvent.ReservedOverageUsd=checked(usageEvent.ReservedRequestOverageUsd+usageEvent.ReservedCostUsd);
-                    if(checked(aggregate.SettledOverageUsd+aggregate.ReservedOverageUsd+usageEvent.ReservedOverageUsd)>subscription.MonthlyOverageLimitUsd)
-                        throw new SubscriptionUsageLimitException("OVERAGE_SPENDING_CAP_EXCEEDED", "This reservation would exceed the agreed USD monthly overage spending cap.", 402);
+                    candidate.ReservedOverageUsd=checked(candidate.ReservedRequestOverageUsd+candidate.ReservedCostUsd);
                 }
                 else
-                    SubscriptionUsagePolicyEvaluator.EnsureAuthorized(policy, aggregate, usageEvent.MeterCategory == "ai.tokens" ? usageEvent.RequestedUnits : 0, usageEvent.ReservedCostUsd);
-                await EnsurePoolAdmissionAsync(session, usageEvent, karma, ct);
-                if (usageEvent.GrantId != null)
-                    await ReserveAgainstGrantAsync(session, usageEvent, ct);
-                var entry = Audit(usageEvent, "authorized", usageEvent.AuthorizedAtUtc, usageEvent.ConsumingService);
+                    SubscriptionUsagePolicyEvaluator.EnsureAuthorized(policy, aggregate, candidate.MeterCategory == "ai.tokens" ? candidate.RequestedUnits : 0, candidate.ReservedCostUsd);
+                await EnsurePoolAdmissionAsync(session, candidate, subscription, ct);
+                // A paid extra request has one request-fee payer. Personal AI exposure remains separate.
+                if (candidate.AppRequestChargeTerms != null && candidate.ReservedRequestOverageUsd > 0)
+                {
+                    candidate.ReservedOverageUsd = checked(candidate.ReservedOverageUsd - candidate.ReservedRequestOverageUsd);
+                    candidate.ReservedRequestOverageUsd = 0;
+                }
+                if (candidate.PaidOveragePricingVersion != null &&
+                    checked(aggregate.SettledOverageUsd + aggregate.ReservedOverageUsd + candidate.ReservedOverageUsd) > subscription.MonthlyOverageLimitUsd)
+                    throw new SubscriptionUsageLimitException("OVERAGE_SPENDING_CAP_EXCEEDED", "This reservation would exceed the agreed USD monthly overage spending cap.", 402);
+                if(candidate.PaidOveragePricingVersion!=null && candidate.ReservedOverageUsd>0)
+                    candidate.PersonalOverageChargeTerms=await BindPersonalChargeAsync(session,subscription,candidate,ct);
+                if (candidate.GrantId != null)
+                    await ReserveAgainstGrantAsync(session, candidate, ct);
+                var entry = Audit(candidate, "authorized", candidate.AuthorizedAtUtc, candidate.ConsumingService);
                 entry.RequestsDelta = 1;
-                entry.ReservedUnitsDelta = usageEvent.MeterCategory == "ai.tokens" ? usageEvent.RequestedUnits : 0;
-                entry.ReservedCostDeltaUsd = usageEvent.ReservedCostUsd;
-                entry.ReservedOverageDeltaUsd = usageEvent.ReservedOverageUsd;
-                entry.PayloadJson = JsonSerializer.Serialize(usageEvent);
-                await _events.InsertOneAsync(session, UsageEventDocument.From(usageEvent), cancellationToken: ct);
-                await ApplyDeltaAsync(session, usageEvent, entry, ct);
+                entry.ReservedUnitsDelta = candidate.MeterCategory == "ai.tokens" ? candidate.RequestedUnits : 0;
+                entry.ReservedCostDeltaUsd = candidate.ReservedCostUsd;
+                entry.ReservedOverageDeltaUsd = candidate.ReservedOverageUsd;
+                entry.ReservedAppRequestOverageDeltaUsd = candidate.ReservedAppRequestOverageUsd;
+                entry.PayloadJson = JsonSerializer.Serialize(candidate);
+                await _events.InsertOneAsync(session, UsageEventDocument.From(candidate), cancellationToken: ct);
+                await ApplyDeltaAsync(session, candidate, entry, ct);
                 await _audit.InsertOneAsync(session, entry, cancellationToken: ct);
-                return (usageEvent, await LoadAggregateAsync(session, usageEvent.UserId, usageEvent.AuthorizedAtUtc, ct));
+                return (candidate, await LoadAggregateAsync(session, candidate.UserId, candidate.AuthorizedAtUtc, ct));
             }, cancellationToken);
         }
 
@@ -173,6 +188,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 entry.SettledUnitsDelta = checked(request.PromptTokens + request.CompletionTokens);
                 entry.SettledCostDeltaUsd = request.ActualCostUsd.Value;
                 entry.ReservedOverageDeltaUsd = -operation.ReservedOverageUsd;
+                SettleAppRequestCharge(operation, entry, request.Outcome);
                 if(operation.PaidOveragePricingVersion != null)
                 {
                     var before=await LoadAggregateAsync(session,userId,operation.AuthorizedAtUtc,ct);
@@ -231,6 +247,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 var operation = await _events.Find(session, x => x.OperationId == request.OperationId).FirstOrDefaultAsync(ct)
                     ?? throw new KeyNotFoundException("The usage operation was not found.");
                 EnsureOwner(operation, request.UserId, request.ConsumingService);
+                if (operation.PooledAppId != null) BoundPoolSubject(operation);
                 if (operation.Status == "executing" && operation.ExpiresAtUtc > _time.GetUtcNow().UtcDateTime)
                     return new UsageStartResult { Started = true, AlreadyStarted = true, OperationId = operation.OperationId, Status = operation.Status };
                 if (operation.Status != "authorized" || operation.ExpiresAtUtc <= _time.GetUtcNow().UtcDateTime)
@@ -281,9 +298,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 throw new ArgumentException("A provider-measurement correction requires both provider and provider receipt id.");
             if (correction.CorrectionKind == "billing-adjustment" && (correction.Provider != null || correction.ProviderRequestId != null))
                 throw new ArgumentException("A billing-adjustment cannot alter provider receipt evidence.");
-            string payload = JsonSerializer.Serialize(new { correction.CorrectionId, correction.OperationId, correction.CorrectionKind,
-                correction.Provider, correction.ProviderRequestId, correction.Reason, correction.EvidenceReference, correction.UnitsDelta,
-                CostDeltaUsd = correction.CostDeltaUsd.ToString("G29", CultureInfo.InvariantCulture) });
+            string payload = JsonSerializer.Serialize(new UsageCorrectionIdentity { CorrectionId = correction.CorrectionId, OperationId = correction.OperationId, CorrectionKind = correction.CorrectionKind,
+                Provider = correction.Provider, ProviderRequestId = correction.ProviderRequestId, Reason = correction.Reason, EvidenceReference = correction.EvidenceReference, UnitsDelta = correction.UnitsDelta,
+                CostDeltaUsd = correction.CostDeltaUsd.ToString("G29", CultureInfo.InvariantCulture),
+                AppRequestChargeDeltaUsd = correction.AppRequestChargeDeltaUsd == 0 ? null : correction.AppRequestChargeDeltaUsd.ToString("G29", CultureInfo.InvariantCulture) });
             return TransactAsync(async (session, ct) =>
             {
                 await EnsureOpeningBalanceAsync(session, ct);
@@ -324,8 +342,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 entry.ExternalReference = correction.EvidenceReference;
                 entry.SettledUnitsDelta = correction.UnitsDelta;
                 entry.SettledCostDeltaUsd = correction.CostDeltaUsd;
+                entry.SettledAppRequestOverageDeltaUsd = correction.AppRequestChargeDeltaUsd;
                 entry.PayloadJson = payload;
                 await ApplyOverageCorrectionAsync(session,operation,entry,ct);
+                await ApplyAppRequestChargeCorrectionAsync(session, operation, entry, previous, ct);
                 // Write-conflicts on shared buckets also serialize concurrent corrections to the same operation.
                 await ApplyDeltaAsync(session, operation, entry, ct);
                 await _audit.InsertOneAsync(session, entry, cancellationToken: ct);
@@ -358,10 +378,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 : "Unstarted reservation expired. All reserved exposure and the unexecuted request count are released.";
             if (!executed)
             {
+                ValidateAppRequestChargeBinding(operation);
                 entry.RequestsDelta = -1;
                 entry.ReservedUnitsDelta = operation.MeterCategory == "ai.tokens" ? -operation.RequestedUnits : 0;
                 entry.ReservedCostDeltaUsd = -operation.ReservedCostUsd;
                 entry.ReservedOverageDeltaUsd = -operation.ReservedOverageUsd;
+                entry.ReservedAppRequestOverageDeltaUsd = -operation.ReservedAppRequestOverageUsd;
                 if (operation.GrantId != null)
                     await ApplyGrantDeltaAsync(session, operation, -operation.ReservedCostUsd, 0m, now, ct);
                 await ApplyDeltaAsync(session, operation, entry, ct);
@@ -372,11 +394,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
 
         private async Task ApplyDeltaAsync(IClientSessionHandle session, SubscriptionUsageEvent operation, SubscriptionUsageAuditEntry delta, CancellationToken ct)
         {
+            var poolSubject = operation.PooledAppId == null ? null : BoundPoolSubject(operation);
             await ApplyDeltaToSubjectAsync(session, operation, delta, operation.UserId, true, ct);
-            // Pooled apps: the identical delta commits to the app pool in the same transaction, so the pool
-            // can never drift from the sum of its users.
-            if (operation.PooledAppId != null)
-                await ApplyDeltaToSubjectAsync(session, operation, delta, PoolWriteSubject(operation.PooledAppId, operation.OperationId, PoolShardCount), false, ct);
+            // Every movement targets the original reservation's shard, including after a restart,
+            // changed node settings, opt-out or app ownership/configuration changes.
+            if (poolSubject != null)
+                await ApplyDeltaToSubjectAsync(session, operation, delta, poolSubject, false, ct);
         }
 
         public static string PoolSubject(string appId) => "app:" + appId;
@@ -394,7 +417,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 bucket.SettledCostUsd = checked(bucket.SettledCostUsd + delta.SettledCostDeltaUsd);
                 bucket.ReservedOverageUsd = checked(bucket.ReservedOverageUsd + delta.ReservedOverageDeltaUsd);
                 bucket.SettledOverageUsd = checked(bucket.SettledOverageUsd + delta.SettledOverageDeltaUsd);
-                if (bucket.Requests < 0 || bucket.ReservedUnits < 0 || bucket.SettledUnits < 0 || bucket.ReservedCostUsd < 0 || bucket.SettledCostUsd < 0 || bucket.ReservedOverageUsd < 0 || bucket.SettledOverageUsd < 0)
+                if (!avatar)
+                {
+                    bucket.ReservedAppRequestOverageUsd = checked(bucket.ReservedAppRequestOverageUsd + delta.ReservedAppRequestOverageDeltaUsd);
+                    bucket.SettledAppRequestOverageUsd = checked(bucket.SettledAppRequestOverageUsd + delta.SettledAppRequestOverageDeltaUsd);
+                }
+                if (bucket.Requests < 0 || bucket.ReservedUnits < 0 || bucket.SettledUnits < 0 || bucket.ReservedCostUsd < 0 || bucket.SettledCostUsd < 0 || bucket.ReservedOverageUsd < 0 || bucket.SettledOverageUsd < 0 || bucket.ReservedAppRequestOverageUsd < 0 || bucket.SettledAppRequestOverageUsd < 0)
                     throw new InvalidOperationException("Usage bucket invariant violated. Reconcile ledger before accepting further writes.");
                 bucket.UpdatedAtUtc = delta.OccurredAtUtc;
                 await _buckets.ReplaceOneAsync(session, x => x.Id == bucket.Id, bucket, new ReplaceOptions { IsUpsert = true }, ct);
@@ -462,10 +490,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 throw new SubscriptionUsageConflictException("The operation id belongs to another avatar or consuming service.");
         }
 
+        private sealed class UsageCorrectionIdentity
+        {
+            public string CorrectionId { get; set; }
+            public string OperationId { get; set; }
+            public string CorrectionKind { get; set; }
+            public string Provider { get; set; }
+            public string ProviderRequestId { get; set; }
+            public string Reason { get; set; }
+            public string EvidenceReference { get; set; }
+            public long UnitsDelta { get; set; }
+            public string CostDeltaUsd { get; set; }
+            [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+            public string AppRequestChargeDeltaUsd { get; set; }
+        }
+
+        private static SubscriptionUsageEvent FreshAuthorizationRequest(SubscriptionUsageEvent input, int shardCount) => new()
+        {
+            OperationId = input.OperationId, UserId = input.UserId, ConsumingService = input.ConsumingService,
+            AppId = input.AppId, AppPlanId = input.AppPlanId, PooledAppId = input.PooledAppId, PooledAppPlanId = input.PooledAppPlanId,
+            PoolShardCountAtAuthorization = input.PooledAppId == null ? null : shardCount,
+            Endpoint = input.Endpoint, MeterCategory = input.MeterCategory, RequestFingerprint = input.RequestFingerprint,
+            RequestedUnits = input.RequestedUnits, ReservedCostUsd = input.ReservedCostUsd, Status = "authorized",
+            AuthorizedAtUtc = input.AuthorizedAtUtc, ExpiresAtUtc = input.ExpiresAtUtc, GrantId = input.GrantId
+        };
+
         public static bool SameAuthorization(SubscriptionUsageEvent x, SubscriptionUsageEvent y) =>
             x.ConsumingService == y.ConsumingService && x.Endpoint == y.Endpoint && x.MeterCategory == y.MeterCategory &&
             x.RequestedUnits == y.RequestedUnits && x.ReservedCostUsd == y.ReservedCostUsd && x.RequestFingerprint == y.RequestFingerprint &&
-            x.GrantId == y.GrantId;
+            x.GrantId == y.GrantId && x.AppId == y.AppId;
 
         public static void ValidateAuthorization(SubscriptionUsageEvent value)
         {
