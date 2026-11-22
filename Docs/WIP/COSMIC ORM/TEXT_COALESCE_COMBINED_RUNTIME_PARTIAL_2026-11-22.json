@@ -24,6 +24,22 @@
       "loadedAutoLoadBalanceEnabled": true,
       "exitCode": 0,
       "verified": true
+    },
+    {
+      "service": "WEB8 IGN API",
+      "deployment": "d85cc2c0-86e9-437f-9a14-80db5f8228ae",
+      "source": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB5 STAR API",
+      "deployment": "6d303ec1-2ad2-4bc6-ae82-3882a1cce4c6",
+      "source": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
     }
   ],
   "allSevenVerified": false,

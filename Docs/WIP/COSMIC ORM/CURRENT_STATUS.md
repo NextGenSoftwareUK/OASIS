@@ -1,3 +1,5 @@
+Coalescing runtime5/7 accepted: WEB5/7/8/9/10 exacta966 and startup AutoLoadBalanceEnabled=true; WEB4/6 BUILDING. No hosted data calls until exactWEB4/provider readiness. Q55 row now links accepted canonical Boolean conditional/native/API/SQL/Ask scope while keeping general CASE/numeric/mapped/full parent row open; totals unchanged. No local build/runtime/database/archive or settings/data writes.
+
 Coalescing rollout runtime3/7 accepted: WEB7/9/10 exacta966 source and startup AutoLoadBalanceEnabled=true verified via selected non-secret fields. WEB4/5/8 building and WEB6 queued at metadata observation; no data calls before exact WEB4/provider readiness. Hosted helper files match frozen91ddb02a source without reading credentials. Conditional image44994753282 still live. No new local environment/build/output or data writes.
 
 Conditional-text preview52144c29 served-source ACCEPTED: HTML exact source plus expected163-byte platform script; compiler/playground/Ask exact bytes. RAM-only responses, compact hashes retained. Rendered browser/real WEB6/hosted conditional flow remain OPEN; no public promotion. Image44994753282 queued, current coalescing rollout pending.
