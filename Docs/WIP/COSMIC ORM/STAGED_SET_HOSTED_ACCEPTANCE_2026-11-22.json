@@ -1,0 +1,116 @@
+{
+  "source": "f29262d8b6df380e0d267228d92508e4da393561",
+  "core": "32fbf1bfd1e990b3119423bc024e149162d76d3e",
+  "web6": "d9e60ceaecef5513d1bcd6285cd668076bc77edf",
+  "onodeCore": "1b28ed0436173b827e58b75a3bb5a99c1bb661ec",
+  "deployment": "c69553a2-6dd4-43c9-935d-8fd36e65cdf0",
+  "runningRailwayImageDigest": "sha256:23086f6ae04b188e717bc6488ede6a83926d82ee78b255e600b6d3f72295c5ff",
+  "qualifiedCiImageDigest": "sha256:7c0ae0fde2fb569d224f19edd7041d03be5a680021d0c2f1d3627040c73fecfe",
+  "sameSourceDifferentBuilds": true,
+  "websiteCompiler": "89cb1473db6a7c5a246df1b43ea10fcb1274ee6b",
+  "verifierSource": "f29262d8b6df380e0d267228d92508e4da393561",
+  "reports": [
+    {
+      "provider": "MongoDBOASIS",
+      "ownedHolonId": "dbe327e9-9bbd-41a8-bf02-f8f901280362",
+      "cases": [
+        {
+          "case": "staged-cte-set",
+          "rows": 1,
+          "path": "data/query-cql/set"
+        }
+      ],
+      "queryElapsedMilliseconds": 1005.54,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "ownedHolonId": "6098210d-f0cf-41bf-aa17-21a47f8df4cd",
+      "cases": [
+        {
+          "case": "staged-cte-set",
+          "rows": 1,
+          "path": "data/query-cql/set"
+        }
+      ],
+      "queryElapsedMilliseconds": 478.58,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "ownedHolonId": "d70fa8db-539d-4792-aad6-e50c0785df23",
+      "cases": [
+        {
+          "case": "staged-cte-set",
+          "rows": 1,
+          "path": "data/query-cql/set"
+        }
+      ],
+      "queryElapsedMilliseconds": 1123.56,
+      "exactCleanupVerified": true
+    }
+  ],
+  "populatedQueries": 3,
+  "pacedCalls": 18,
+  "temporaryHolonWrites": 3,
+  "exactCleanupVerified": true,
+  "sessionRevoked": true,
+  "credentialsRemoved": true,
+  "finalJournalSha256": "f0202ccce121014f27a9c0b3d39f89048aa0fd485002209569dfefe14a1aa26e",
+  "removedCheckpointFiles": 82,
+  "removedCheckpointBytes": 351357,
+  "retainedFinalJournal": "C:\\Source\\OASIS2\\LocalState\\COSMIC\\HostedOwnedProjectedSetStaged20261122\\fixture.json",
+  "caseRowsUsedInsteadOfLegacyHardcodedProviderRows": true,
+  "legacyProviderSummaryCorrectedForFutureRunsOnly": false,
+  "piperAccess": false,
+  "realModelVerified": false,
+  "renderedBrowserVerified": false,
+  "stagedSetLiveAccepted": true,
+  "groupFieldsNativeQualified": true,
+  "groupFieldsLiveHttpVerified": false,
+  "fullSqlParity": false,
+  "allSevenServiceRollouts": {
+    "web6": {
+      "deployment": "67c2d9b4-ca2a-4bc2-b4fa-b3f2094b0f75",
+      "status": "SUCCESS",
+      "source": "f29262d8b6df380e0d267228d92508e4da393561",
+      "imageDigest": "sha256:f6610cd1a32bdd952b5d9d0746650de24df4df9138a87bba56d389e4943264df"
+    },
+    "web7": {
+      "deployment": "5ca96239-ca5b-4ac9-b75a-3b490cdddd89",
+      "status": "SUCCESS",
+      "source": "f29262d8b6df380e0d267228d92508e4da393561",
+      "imageDigest": "sha256:7a656c3893becc0e33f0bb41381607268d8396d49c5249c1fa0206b2c370bf65"
+    },
+    "web9": {
+      "deployment": "e2e28434-4fbb-4eb5-b493-1ea13518dc59",
+      "status": "SUCCESS",
+      "source": "f29262d8b6df380e0d267228d92508e4da393561",
+      "imageDigest": "sha256:2cb9518bee6954638eb814ac640a6bae58f1d7bd7c7ee1386da77add7ad6968b"
+    },
+    "web4": {
+      "deployment": "c69553a2-6dd4-43c9-935d-8fd36e65cdf0",
+      "status": "SUCCESS",
+      "source": "f29262d8b6df380e0d267228d92508e4da393561",
+      "imageDigest": "sha256:23086f6ae04b188e717bc6488ede6a83926d82ee78b255e600b6d3f72295c5ff"
+    },
+    "web10": {
+      "deployment": "e8687283-d69a-4221-bfe4-ff37b59921f2",
+      "status": "SUCCESS",
+      "source": "f29262d8b6df380e0d267228d92508e4da393561",
+      "imageDigest": "sha256:97b474a6ab40ab1d1795dc7b255cf581f171a2166c41f8dc2021d2b85367c41a"
+    },
+    "web8": {
+      "deployment": "6c333a9d-f196-42bf-878d-9c31142fb2e3",
+      "status": "SUCCESS",
+      "source": "f29262d8b6df380e0d267228d92508e4da393561",
+      "imageDigest": "sha256:8fbe904c7c732589e58e13755ee741d5a3a033fceb99e44b822e38b56e4190d7"
+    },
+    "web5": {
+      "deployment": "b1ea19b8-8d3e-4adf-b834-24c5ff04e923",
+      "status": "SUCCESS",
+      "source": "f29262d8b6df380e0d267228d92508e4da393561",
+      "imageDigest": "sha256:6ab65fbe22e8e53c0da197830154deafd1121f0a0de79358659b3c1df6b260d2"
+    }
+  }
+}

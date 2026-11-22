@@ -478,7 +478,13 @@ def main():
         if absent["result"].get("rows")!=[]:
             raise RuntimeError("Exact owned identity absence not verified.")
         journal["owned"][provider]["absenceVerified"]=True
-        journal["providers"].append({"provider":provider,"accepted":True,"rows":1 if args.text_coalesce or args.boolean_text_case or args.computed_scalars else 2,"exactCleanupVerified":True})
+        summary={"provider":provider,"accepted":True,"exactCleanupVerified":True}
+        if args.selected_composition:
+            summary["cases"]=[dict(case) for case in accepted_cases]
+            summary["returnedRows"]=sum(case["rows"] for case in accepted_cases)
+        else:
+            summary["rows"]=1 if args.text_coalesce or args.boolean_text_case or args.computed_scalars else 2
+        journal["providers"].append(summary)
         write()
     call("avatar/revoke-token", {})
     journal.update(sessionRevoked=True,stagedSetComposition=args.staged_set_composition,selectedComposition=args.selected_composition,selectedColumns=args.selected_columns,textCoalesce=args.text_coalesce,booleanTextCase=args.boolean_text_case,booleanMetadataCase=args.boolean_metadata_case,computedScalars=args.computed_scalars,completed=False,
