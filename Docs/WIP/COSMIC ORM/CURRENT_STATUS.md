@@ -32,9 +32,9 @@ No mapped image/package acceptance, Development push or hosted acceptance yet. K
 
 ## SQL and Ask delivery
 
-Website **475a4ff37426c066ba4dea10a45e317276083bb1** enrolls mapped row CASE/text-COALESCE/Int32-COALESCE, Id first and selected-alias ordering. Three parser controls and two changed Ask UI controls passed in RAM. Ask preserves the selected source, refuses mapping substitution, remains free-visitor scoped and requires review before execution.
+Website **83852a7556c03f507e5f252af5246114c3c85f18** inherits the parser/Ask changes from475a4ff3 and enrolls mapped row CASE/text-COALESCE/Int32-COALESCE, Id first and selected-alias ordering. Three parser controls and two changed Ask UI controls passed in RAM. Ask preserves the selected source, refuses mapping substitution, remains free-visitor scoped and requires review before execution.
 
-[Exact preview source proof](MAPPED_COMPUTED_PREVIEW_SOURCE_ACCEPTANCE_2026-11-22.json): dpl_ARg3SjK7aoFJhmHgFGpmq7nFmahr serves matching compiler/Ask bytes. This is not rendered-browser, real WEB6 inference, public website promotion or live mapped-backend acceptance. Grouped computed expressions remain refused.
+[Latest exact preview source proof](COMPUTED_DEMO_PREVIEW_SOURCE_ACCEPTANCE_2026-11-22.json): dpl_4QjSbVPWeCHp5UgB7KUigbboBFvq serves matching HTML plus Playground/compiler/Ask bytes. A visible canonical CASE/COALESCE example now fills the editor, clears unrelated mapping selection and never auto-runs; its changed UI journey passed and its SQL compiled for all three databases. Browser cache versions advanced. This is not rendered-browser, real WEB6 inference, public website promotion or live mapped-backend acceptance. Grouped computed expressions remain refused.
 
 Prepared hosted verifier: Scripts/Sandbox/Verify-HostedUnfilteredMapping.py --computed-rows --website 475a4ff37426c066ba4dea10a45e317276083bb1, with exact deployment/source arguments. It requires native/composition/package acceptance before issuing any visitor. It uses randomized logical aliases over approved read-only sample fields, one private mapping and full Holon/provider, immutable checkpoints, paced capped calls and conditional cleanup. Three exact SQL captures and Python AST passed offline. It has **not run**. Reconcile original outcomes rather than recreating fixtures.
 
