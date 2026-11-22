@@ -882,6 +882,15 @@
         "OPORTAL trigger/error/deferred display",
         "Retention/hosted acceptance"
       ]
+    },
+    "actionCandidate": {
+      "source": "6d492a0255dd34cfb7a845292901749853e9ad78",
+      "tag": "qualification/warning-action-2026-11-21-6d492a02",
+      "base": "f26edeef1152961a2b46f2149a6c28c08188a09a",
+      "status": "source-only-inventory-required",
+      "startup": "Exactly seven new registration lines inserted into previous candidate, no wholesale task Startup copy. Existing guarded billing worker/DNA callback preserved.",
+      "temporaryIndex": "removed",
+      "remaining": "New route inventory/compile/native check, Portal integration, actual provider/retention/hosted acceptance."
     }
   },
   "sharedDevelopmentReview": {
