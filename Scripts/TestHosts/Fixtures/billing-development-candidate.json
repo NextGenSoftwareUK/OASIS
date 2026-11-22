@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "latest-warning-http-source-prepared",
-  "base": "f26edeef1152961a2b46f2149a6c28c08188a09a",
-  "candidate": "cbbcad57f460f31cba56c576e3fab3e5888822c1",
-  "tag": "qualification/warning-capability-2026-11-21-cbbcad57",
+  "status": "session-source-inventory-required",
+  "base": "c4a65629d4136218be05b04a887490216c050e7a",
+  "candidate": "1c97234ec6b814c8e1945f8fc441871ff2c863fb",
+  "tag": "qualification/session-current-2026-11-21-1c97234e",
   "buildProjects": [
     "WEB4"
   ],
@@ -55,9 +55,9 @@
   ],
   "core": {
     "base": "a166813b01476a2fce34e5908d74dac1da845ba6",
-    "candidate": "f17bbbe293c3dec2386c207dbdf56b20b0f41a32"
+    "candidate": "c268e5002f3fe0a86180bd329111596cf199ab25"
   },
   "remaining": "Review regenerated inventory, compile and verify actual changed HTTP flow. Reliable warning email delivery and hosted acceptance remain open.",
   "nativeHost": "HotspotHttpNative",
-  "nativeMode": "billing-warning-http"
+  "nativeMode": "session-list-http"
 }

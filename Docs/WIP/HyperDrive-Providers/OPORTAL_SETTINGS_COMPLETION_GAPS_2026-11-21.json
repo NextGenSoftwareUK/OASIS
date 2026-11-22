@@ -65,6 +65,14 @@
     "behavior": "Reads persisted refresh credentials, rejects corrupt duplicate identities, exposes stable one-way IDs and stored IP/time/active/expiry, never raw tokens; unrecorded device/location omitted. Failed attempts/timeout unknown are null, security explicitly unassessed.",
     "scopeLimit": "Credential generations remain separate records; not complete device/session tracking. Create/update/stats/selected+all revocation and JWT enforcement remain unfinished.",
     "temporaryIndex": "removed",
-    "physicalCoreCheckout": "unchanged"
+    "physicalCoreCheckout": "unchanged",
+    "rootCandidate": {
+      "source": "1c97234ec6b814c8e1945f8fc441871ff2c863fb",
+      "base": "c4a65629d4136218be05b04a887490216c050e7a",
+      "tag": "qualification/session-current-2026-11-21-1c97234e",
+      "status": "uncompiled-source-inventory-required",
+      "preservation": "Current c4 release-script and sibling manifest pins retained, no unqualified CQL691 source imported. Existing billing2outbox+session2files only relative current Core.",
+      "temporaryIndex": "removed"
+    }
   }
 }
