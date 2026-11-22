@@ -17,6 +17,7 @@
   "rootBase": "ca4f83361423e1f7219be5d4d6798e64c26cae67",
   "rootTag": "qualification/web6-aws-hotfix-2026-11-22-a4e0512e",
   "qualification": "Actual WEB6 build followed by four real SDK assembly GetTypes checks; not run yet.",
-  "qualificationControl": "b08f1ce8678",
-  "dispatchStatus": "Not dispatched: original session run45012925333 started before reprioritization; no cancellation requested."
+  "qualificationControl": "b576a76391a194083c48172a53fa61da989763d0",
+  "dispatchStatus": "Single dispatch acknowledged and exact control run reconciled queued; native/database mode false.",
+  "qualificationRun": 45018741401
 }
