@@ -23,7 +23,8 @@ internal static class CqlRequestCapture
             return new CqlSetV1Source {
                 Where=copy.Where,Filters=copy.Filters,AnyOf=copy.AnyOf,AnyChildren=copy.AnyChildren,
                 AnyDescendants=copy.AnyDescendants,OrderBy=copy.OrderBy,Descending=copy.Descending,
-                Skip=copy.Skip,Take=source.Take.HasValue?copy.Take:null
+                Skip=copy.Skip,Take=source.Take.HasValue?copy.Take:null,
+                Columns=source.Columns==null?null:CaptureColumns(source.Columns)
             };
         }
         return new CqlSetV1Request {

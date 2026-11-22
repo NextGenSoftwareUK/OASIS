@@ -32,5 +32,6 @@ public sealed class CqlSetV1Source
     public bool Descending { get; set; }
     public int Skip { get; set; }
     public int? Take { get; set; }
+    public CqlProjectionV1Column[]? Columns {get;set;}
     public CqlV1Graph? Graph { get; set; }
 }
