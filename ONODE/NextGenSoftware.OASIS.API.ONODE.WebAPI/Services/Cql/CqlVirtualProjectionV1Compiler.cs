@@ -24,8 +24,9 @@ public static partial class CqlV1Compiler
             request.Columns is not { Length: >= 1 and <= 32 })
             throw new ArgumentException("Mixed projection requires supported native predicates, selected ordering and a bounded result.");
 
-        if(request.Columns.Any(column=>column?.NullReplacement!=null || column?.Int32Replacement!=null || column?.WhenTrue!=null || column?.WhenFalse!=null))
-            throw new ArgumentException("Mapped sources have no enrolled native literal computed-scalar contract.");
+        if(request.ResultOperation!=CqlProjectionV1ResultOperation.Rows && request.Columns.Any(column=>
+            column?.Function is CqlV1Function.TextCoalesce or CqlV1Function.BooleanTextCase or CqlV1Function.Int32Coalesce))
+            throw new ArgumentException("Mapped literal computed scalars currently support selected rows, not aggregates.");
 
         if ((request.ResultOperation == CqlProjectionV1ResultOperation.Group) != (request.Grouping != null))
             throw new ArgumentException("Only mixed grouping accepts a grouping description.");
@@ -42,7 +43,9 @@ public static partial class CqlV1Compiler
         if (request.Columns[0] is not { Field: "Id", MetadataPath: null })
             throw new ArgumentException("Select Id first so both representations can share one logical identity.");
 
-        if (request.Columns[0].Function != null || request.Columns[0].ValueType != null || request.Columns[0].Nullable.HasValue)
+        if (request.Columns[0].Function != null || request.Columns[0].ValueType != null || request.Columns[0].Nullable.HasValue
+            || request.Columns[0].NullReplacement!=null || request.Columns[0].Int32Replacement.HasValue
+            || request.Columns[0].WhenTrue!=null || request.Columns[0].WhenFalse!=null)
             throw new ArgumentException("Logical identity retains its canonical Guid domain.");
         ValidateSelectionAlias(request.Columns[0].Alias);
         var columns = request.Columns.Skip(1).Select(column =>
@@ -66,13 +69,21 @@ public static partial class CqlV1Compiler
             {
                 null => NativeRecordFunction.None,
                 CqlV1Function.Utf16Length when type == typeof(string) => NativeRecordFunction.Utf16Length,
-                _ => throw new ArgumentException("Mapped LENGTH requires a declared String input.")
+                CqlV1Function.TextCoalesce when type == typeof(string) => NativeRecordFunction.TextCoalesce,
+                CqlV1Function.BooleanTextCase when type == typeof(bool) => NativeRecordFunction.BooleanTextCase,
+                CqlV1Function.Int32Coalesce when type == typeof(int) => NativeRecordFunction.Int32Coalesce,
+                _ => throw new ArgumentException("The mapped projection function requires its exact declared input domain.")
             };
-            // The DTO declares its input domain; function output is independently Int32.
-            var nullable = function == NativeRecordFunction.None && type == typeof(string) || column.Nullable == true;
+            if(function==NativeRecordFunction.BooleanTextCase && column.Nullable==true
+                || function==NativeRecordFunction.Int32Coalesce && column.Nullable!=true)
+                throw new ArgumentException("Conditional Boolean input is required; integer coalescing requires nullable Int32 input.");
+            // The DTO declares its input domain; computed output has an independent domain and null contract.
+            var nullable = function is NativeRecordFunction.TextCoalesce or NativeRecordFunction.BooleanTextCase or NativeRecordFunction.Int32Coalesce
+                ? false : function == NativeRecordFunction.None && type == typeof(string) || column.Nullable == true;
             if (function == NativeRecordFunction.None && type == typeof(string) && column.Nullable == false)
                 throw new ArgumentException("String projection retains its nullable source contract.");
-            return new NativeProjectionColumn(column.MetadataPath[0], column.Alias, type, nullable, function);
+            return new NativeProjectionColumn(column.MetadataPath[0], column.Alias, type, nullable, function,
+                column.NullReplacement,column.WhenTrue,column.WhenFalse,column.Int32Replacement);
         }).ToArray();
         NativeProjectionColumn.Capture(columns);
         if (request.ResultOperation is CqlProjectionV1ResultOperation.Min or CqlProjectionV1ResultOperation.Max
