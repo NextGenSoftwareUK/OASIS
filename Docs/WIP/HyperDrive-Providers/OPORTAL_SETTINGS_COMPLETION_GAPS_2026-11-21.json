@@ -52,5 +52,19 @@
     ],
     "currentWorktreePreserved": true,
     "noAuthenticationTraffic": true
+  },
+  "sessionListSource": {
+    "core": "c268e5002f3fe0a86180bd329111596cf199ab25",
+    "base": "f17bbbe293c3dec2386c207dbdf56b20b0f41a32",
+    "tag": "qualification/session-evidence-2026-11-21-c268e500",
+    "files": [
+      "Managers/AvatarManager/AvatarManager-Session.cs",
+      "Objects/Avatar/AvatarSessionManagement.cs"
+    ],
+    "status": "source-only-uncompiled-not-integrated",
+    "behavior": "Reads persisted refresh credentials, rejects corrupt duplicate identities, exposes stable one-way IDs and stored IP/time/active/expiry, never raw tokens; unrecorded device/location omitted. Failed attempts/timeout unknown are null, security explicitly unassessed.",
+    "scopeLimit": "Credential generations remain separate records; not complete device/session tracking. Create/update/stats/selected+all revocation and JWT enforcement remain unfinished.",
+    "temporaryIndex": "removed",
+    "physicalCoreCheckout": "unchanged"
   }
 }
