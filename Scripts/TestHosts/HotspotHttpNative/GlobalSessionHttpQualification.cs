@@ -127,10 +127,20 @@ internal static class GlobalSessionHttpQualification
                 // ProviderManager.CurrentStorageProvider does not select a different issuer.
                 // Exercise real SSO failover by making only the owned primary unavailable.
                 JObject envelope;
-                if (provider == ProviderType.SQLLiteDBOASIS) await PauseOwnedMongoAsync();
-                try { envelope = await Read(await http.PostAsJsonAsync("/api/avatar/authenticate", new { username, password })); }
+                var previousProviderTimeout = dna.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds;
+                try
+                {
+                    if (provider == ProviderType.SQLLiteDBOASIS)
+                    {
+                        // A long ordinary provider budget must not consume the whole sign-in deadline.
+                        dna.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds = 99;
+                        await PauseOwnedMongoAsync();
+                    }
+                    envelope = await Read(await http.PostAsJsonAsync("/api/avatar/authenticate", new { username, password }));
+                }
                 finally
                 {
+                    dna.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds = previousProviderTimeout;
                     if (pauseAttempted)
                     {
                         await DockerAsync("unpause", "map-development-mongo");

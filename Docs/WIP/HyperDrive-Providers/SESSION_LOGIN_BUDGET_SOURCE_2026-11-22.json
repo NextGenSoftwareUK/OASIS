@@ -1,0 +1,10 @@
+{
+  "core": "904775d7ba575ddf3c5ad3dc51a08316c9ab3a99",
+  "tag": "qualification/session-login-budget-20261122",
+  "status": "Source prepared; compile/native acceptance pending",
+  "cause": "Checked-in STAR default permits99s provider calls; password login defaults10s. Provider-only deadline does not reserve failover time.",
+  "fix": "Request-local read budget divides login interval over admitted authorities plus one share for password/session acknowledgement. Native Mongo uses smaller configured deadline and linked overall cancellation; total expiration is terminal. Profile reads retain provider budget.",
+  "scope": "Password sign-in async GUID/expression Mongo reads; not all providers/refresh/MFA/hosted acceptance.",
+  "configuration": "No tracked/deployed DNA changes. Owned fixture temporarily sets99s provider deadline during SQLite failover login, restores2s afterward.",
+  "cleanup": "All private indexes/locks, including unsuccessful preparation, removed in finally; no local builds/downloads/environments/databases."
+}
