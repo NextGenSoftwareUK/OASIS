@@ -1,12 +1,23 @@
 {
+  "phase": "replacement_qualification_pending_prior_cleanup",
+  "baseCore": "32fbf1bfd1e990b3119423bc024e149162d76d3e",
   "core": "1f649cd707df50f6ef8f999583e1117054a43133",
-  "phase": "source_only",
-  "providers": [
-    "MongoDBOASIS",
-    "SQLLiteDBOASIS",
-    "Neo4jOASIS"
-  ],
+  "compiled": false,
   "nativeAccepted": false,
   "deployed": false,
-  "fullParity": false
+  "source": "64c674c4e116e08aaae8897885390b76d54037c5",
+  "website": "7c002846b2e95654b5c2261f6c13a703acc6c9d2",
+  "sqlCaptureAccepted": true,
+  "demoControlAccepted": true,
+  "websitePublishedLive": false,
+  "priorRun": 45051729488,
+  "qualificationNeedsDispatch": true,
+  "sqlCaptureTestsPassed": 14,
+  "demoControlTestsPassed": 1,
+  "requiredPinRun": 45051729233,
+  "requiredPinConclusion": "success",
+  "supersededNativeRun": 45051729488,
+  "supersededNativeCancellationAcknowledged": true,
+  "supersededNativeCleanupVerified": false,
+  "localRuntimeOrDatabaseInstalled": false
 }
