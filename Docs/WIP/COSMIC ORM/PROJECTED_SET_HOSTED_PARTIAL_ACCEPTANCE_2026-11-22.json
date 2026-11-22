@@ -1,0 +1,69 @@
+{
+  "source": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
+  "deployment": "5379fa31-02e0-4b54-b1c9-62399d5c03a5",
+  "website": "251e316de349cc1a177cfcb91733937a1e3bf2f8",
+  "providers": [
+    {
+      "provider": "MongoDBOASIS",
+      "accepted": true,
+      "rows": 2,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "accepted": true,
+      "rows": 2,
+      "exactCleanupVerified": true
+    }
+  ],
+  "calls": 13,
+  "ownedWrites": 2,
+  "neoWrites": 0,
+  "sessionRevoked": true,
+  "credentialsRemoved": true,
+  "allThreeAccepted": false,
+  "neoPreDispatchError": "CQL_PROVIDER_UNAVAILABLE",
+  "startupDiagnostic": {
+    "exitCode": 0,
+    "deployment": "5379fa31-02e0-4b54-b1c9-62399d5c03a5",
+    "events": [
+      {
+        "timestamp": "2026-11-22T05:28:26.212139384Z",
+        "event": "nativeFailure",
+        "provider": "CosmosBlockChainOASIS",
+        "phase": "activation",
+        "category": "other",
+        "websocket": "none",
+        "elapsedMilliseconds": "10"
+      },
+      {
+        "timestamp": "2026-11-22T05:28:27.173184049Z",
+        "event": "nativeFailure",
+        "provider": "HashgraphOASIS",
+        "phase": "activation",
+        "category": "other",
+        "websocket": "none",
+        "elapsedMilliseconds": "2"
+      },
+      {
+        "timestamp": "2026-11-22T05:28:27.525513194Z",
+        "event": "nativeFailure",
+        "provider": "ArweaveOASIS",
+        "phase": "activation",
+        "category": "other/http",
+        "websocket": "none",
+        "elapsedMilliseconds": "1187"
+      },
+      {
+        "timestamp": "2026-11-22T05:29:52.188106255Z",
+        "event": "startupCompleted",
+        "readers": 105,
+        "verified": 102,
+        "elapsedMilliseconds": 86498
+      }
+    ],
+    "rawLogsSaved": false
+  },
+  "diagnosis": "Neo initial lookup occurred before serialized reader startup completed; follow-up must require its unique available source description before any fixture writes.",
+  "protectedFailureRemoved": "LocalState\\COSMIC\\HostedOwnedProjectedSetCurrent\\failure-a247897a-b20d-4b96-be81-f75af3f2ea8d.dpapi"
+}

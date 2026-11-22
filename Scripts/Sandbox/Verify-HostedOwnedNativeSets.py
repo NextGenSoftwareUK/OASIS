@@ -24,9 +24,18 @@ def main():
     parser.add_argument("--website", required=True)
     parser.add_argument("--resume-before-first-save", action="store_true")
     parser.add_argument("--selected-columns", action="store_true")
+    parser.add_argument("--providers", nargs="+", choices=["MongoDBOASIS","SQLLiteDBOASIS","Neo4jOASIS"],
+        default=["MongoDBOASIS","SQLLiteDBOASIS","Neo4jOASIS"])
+    parser.add_argument("--fixture-name", default="HostedOwnedProjectedSetCurrent")
     args = parser.parse_args()
     if any(not re.fullmatch("[0-9a-f]{40}", value) for value in (args.commit, args.website)):
         parser.error("Exact backend and website source commits are required.")
+    if len(set(args.providers)) != len(args.providers):
+        parser.error("Choose each provider once.")
+    if not args.selected_columns and args.providers != ["MongoDBOASIS","SQLLiteDBOASIS","Neo4jOASIS"]:
+        parser.error("Subset qualification requires selected-column mode.")
+    if not re.fullmatch(r"HostedOwnedProjectedSet[A-Za-z0-9]{1,48}", args.fixture_name):
+        parser.error("Use a bounded selected-column fixture name without path separators.")
     if args.selected_columns and args.resume_before_first_save:
         parser.error("Selected-column checks use immutable checkpoints; reconcile an interrupted fixture explicitly.")
     delivery_name = "projected-set-image-handoff.json" if args.selected_columns else "native-set-image-handoff.json"
@@ -36,7 +45,7 @@ def main():
     helpers = runpy.run_path(str(ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py"))
     credentials = runpy.run_path(str(ROOT / "Scripts/Sandbox/HostedSessionCredentials.py"))
     state = ROOT / "LocalState/COSMIC" / (
-        "HostedOwnedProjectedSetCurrent" if args.selected_columns else "HostedOwnedNativeSetCurrent")
+        args.fixture_name if args.selected_columns else "HostedOwnedNativeSetCurrent")
     if args.selected_columns and state.exists():
         raise RuntimeError("Preserve existing selected-column fixture checkpoints; do not issue another session.")
     journal_path = state / "fixture.json"
@@ -120,7 +129,7 @@ def main():
             headers["Authorization"] = "Bearer "+token
         if cookie:
             headers["Cookie"] = cookie
-        request = urllib.request.Request(BASE+path, data=json.dumps(body).encode(), headers=headers, method=method)
+        request = urllib.request.Request(BASE+path, data=None if method == "GET" else json.dumps(body).encode(), headers=headers, method=method)
         try:
             response = urllib.request.urlopen(request, timeout=40)
         except urllib.error.HTTPError as error:
@@ -166,7 +175,23 @@ def main():
         token, cookie = bundle["jwtToken"], bundle["cookieHeader"]
         with (state / "session.dpapi").open("xb") as stream:
             stream.write(helpers["protected_token"](json.dumps(bundle).encode()))
-    for provider in ("MongoDBOASIS","SQLLiteDBOASIS","Neo4jOASIS"):
+    if args.selected_columns:
+        catalogue,_=call("data/query-cql/providers?examplesVersion=2",{},method="GET")
+        descriptions=catalogue.get("result")
+        if not isinstance(descriptions,list):
+            raise RuntimeError("Provider discovery did not publish an explicit source list; no fixture save sent.")
+        readiness=[]
+        for provider in args.providers:
+            matches=[row for row in descriptions if isinstance(row,dict) and row.get("provider")==provider]
+            if len(matches)!=1:
+                raise RuntimeError("Require one unambiguous source description per requested provider.")
+            source=matches[0]
+            readiness.append({key:source.get(key) for key in ("provider","available","errorCode","activationGeneration","activationHostInstance")})
+        journal["readiness"]=readiness
+        write()
+        if any(row["available"] is not True or row["errorCode"] is not None for row in readiness):
+            raise RuntimeError("Requested CQL source startup is incomplete; no fixture save sent.")
+    for provider in args.providers:
         resuming=bool(args.resume_before_first_save and provider=="MongoDBOASIS")
         if resuming:
             identity=journal["owned"][provider]["id"]
