@@ -1,0 +1,33 @@
+{
+  "source": "09d61416ea4ed2926bf044e211fc73502ab4adbe",
+  "checks": [
+    {
+      "service": "WEB6 AI API",
+      "deployment": "71b73123-4a8d-4f31-b79a-86340079be3e",
+      "source": "09d61416ea4ed2926bf044e211fc73502ab4adbe",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB9 SINGULARITIY API",
+      "deployment": "b12784be-920f-4571-bcab-2458e543212a",
+      "source": "09d61416ea4ed2926bf044e211fc73502ab4adbe",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB8 IGN API",
+      "deployment": "4865317d-7796-4882-8948-a66ae726dfa7",
+      "source": "09d61416ea4ed2926bf044e211fc73502ab4adbe",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    }
+  ],
+  "allSevenVerified": false,
+  "settingsWrites": 0,
+  "dataQueries": 0,
+  "liveQueriesAccepted": false
+}
