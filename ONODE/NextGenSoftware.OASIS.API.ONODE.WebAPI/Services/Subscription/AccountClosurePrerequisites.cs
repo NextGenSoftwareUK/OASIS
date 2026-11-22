@@ -21,7 +21,7 @@ internal sealed class AccountClosurePrerequisiteReader(MongoSubscriptionUsageRep
         var subscription = snapshot.Subscription;
         var cancel = false;
         var openInvoices = false;
-        var pendingCheckouts = false;
+        var pendingCheckouts = snapshot.HasUnresolvedCheckouts;
         if (!string.IsNullOrWhiteSpace(subscription?.StripeSubscriptionId) && string.IsNullOrWhiteSpace(subscription.StripeCustomerId))
             throw new InvalidOperationException("The stored billing identity is incomplete; account closure cannot be assessed.");
         if (!string.IsNullOrWhiteSpace(subscription?.StripeCustomerId))
@@ -52,7 +52,7 @@ internal sealed class AccountClosurePrerequisiteReader(MongoSubscriptionUsageRep
             var checkouts = await new Stripe.Checkout.SessionService(client).ListAsync(
                 new Stripe.Checkout.SessionListOptions { Customer = subscription.StripeCustomerId, Status = "open", Limit = 1 },
                 cancellationToken: token);
-            pendingCheckouts = checkouts.Data.Count != 0;
+            pendingCheckouts |= checkouts.Data.Count != 0;
             var invoices = await new Stripe.InvoiceService(client).ListAsync(new InvoiceListOptions
                 { Customer = subscription.StripeCustomerId, Status = "open", Limit = 1 }, cancellationToken: token);
             openInvoices = invoices.Data.Count != 0;

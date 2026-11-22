@@ -17,7 +17,8 @@ internal static class GlobalSessionHttpQualification
     private static void Check(bool value, string message) { if (!value) throw new InvalidOperationException(message); }
 
     public static async Task RunAsync(HttpClient http, MongoDBOASIS mongo, OASISDNA dna,
-        Guid actor, string username, string password)
+        Guid actor, string username, string password,
+        NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionCheckoutJournal checkoutJournal)
     {
         const string ownedUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Check(Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") == ownedUri, "Exact owned Mongo fixture required.");
@@ -133,6 +134,18 @@ internal static class GlobalSessionHttpQualification
                 !facts.Value<bool>("hasPendingStripeCheckouts") && !facts.Value<bool>("hasUnsettledUsage") &&
                 !facts.Value<bool>("hasUnbilledCharges") && !facts.Value<bool>("hasUnresolvedStatements"),
                 "The real actor-scoped dependency assessment did not reflect its owned application and empty billing ledger.");
+            var checkoutOperation = await checkoutJournal.BeginCheckoutAsync(actor.ToString("D"), "bronze", CancellationToken.None);
+            var pendingAssessment = await Read(await http.GetAsync("/api/avatar/account-closure/assessment"));
+            Check(!pendingAssessment.Value<bool>("isError") && pendingAssessment["result"]!.Value<bool>("hasPendingStripeCheckouts"),
+                "A durable customerless checkout request was omitted from dependency assessment.");
+            // Native journal fixture data only, not a claim of a real Stripe-issued session.
+            const string storedSessionFixture = "cs_owned_native_journal_fixture";
+            await checkoutJournal.RecordCheckoutSessionAsync(actor.ToString("D"), checkoutOperation, storedSessionFixture, CancellationToken.None);
+            await checkoutJournal.CloseCheckoutAsync(actor.ToString("D"), checkoutOperation, storedSessionFixture, CancellationToken.None);
+            var closedAssessment = await Read(await http.GetAsync("/api/avatar/account-closure/assessment"));
+            Check(!closedAssessment.Value<bool>("isError") && !closedAssessment["result"]!.Value<bool>("hasPendingStripeCheckouts"),
+                "Acknowledged native checkout closure remained unresolved in dependency assessment.");
+            Console.WriteLine("ACCOUNT_DEPENDENCY_NATIVE_PROOF: actual actor-bound controller/Mongo snapshot and owned app, customerless checkout journal request/acknowledgement/closure; no Stripe calls or paid lifecycle acceptance.");
             var afterAssessment = await mongo.LoadAvatarAsync(actor);
             Check(!afterAssessment.IsError && afterAssessment.Result.VersionId == beforeAssessment.Result.VersionId,
                 "Dependency assessment mutated the native avatar.");

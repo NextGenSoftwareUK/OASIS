@@ -3,11 +3,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Driver;
+using MongoDB.Bson;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 
 internal sealed record AccountClosureLedgerSnapshot(SubscriptionRecord Subscription,
-    bool HasOwnedApplications, bool HasUnsettledUsage, bool HasUnbilledCharges, bool HasUnresolvedStatements);
+    bool HasOwnedApplications, bool HasUnsettledUsage, bool HasUnbilledCharges, bool HasUnresolvedStatements, bool HasUnresolvedCheckouts);
 
 public sealed partial class MongoSubscriptionUsageRepository
 {
@@ -27,7 +28,14 @@ public sealed partial class MongoSubscriptionUsageRepository
             (row.SettledRequestOverageUsd > 0 || row.SettledAiOverageUsd > 0 || row.PersonalAiCorrectionUsd > 0)).AnyAsync(token);
         var statements = await OverageStatements.Find(session, row => row.UserId == actor && row.Scope == OverageScope &&
             row.State != "paid" && row.State != "void" && row.State != "uncollectible").AnyAsync(token);
+        var unresolvedCheckout = await BillingAudit.Aggregate(session)
+            .Match(new BsonDocument { { "UserId", actor }, { "Kind", "checkout-requested" } })
+            .AppendStage<BsonDocument>(new BsonDocument("$lookup", new BsonDocument {
+                { "from", BillingAudit.CollectionNamespace.CollectionName }, { "localField", "ClosedEventId" },
+                { "foreignField", "_id" }, { "as", "closureAcknowledgement" } }))
+            .Match(new BsonDocument("closureAcknowledgement.0", new BsonDocument("$exists", false)))
+            .Limit(1).FirstOrDefaultAsync(token);
         await session.CommitTransactionAsync(token);
-        return new AccountClosureLedgerSnapshot(subscription, ownedApps, unsettled, unbilled, statements);
+        return new AccountClosureLedgerSnapshot(subscription, ownedApps, unsettled, unbilled, statements, unresolvedCheckout != null);
     }
 }

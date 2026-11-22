@@ -367,7 +367,7 @@ try
     }
     else if (mode == "session-global-http")
     {
-        await GlobalSessionHttpQualification.RunAsync(http, provider, dna, actor, accounts[0].Username, mfaPassword);
+        await GlobalSessionHttpQualification.RunAsync(http, provider, dna, actor, accounts[0].Username, mfaPassword, billingRepository!);
     }
     else if (mode is "mfa-http" or "mfa-middleware-http" or "session-global-http")
     {

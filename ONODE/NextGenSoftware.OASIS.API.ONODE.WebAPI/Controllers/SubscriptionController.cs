@@ -29,6 +29,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         private readonly OASISSub.SubscriptionPlanCatalogue _planCatalogue;
         private readonly OASISSub.ISubscriptionBillingPortal _billingPortal;
+        private readonly OASISSub.ISubscriptionCheckoutJournal _checkoutJournal;
         private readonly OASISSub.IPaidOverageStatementStore _overages;
         private readonly OASISSub.IPaidOverageGateway _overageGateway;
         private readonly OASISSub.PaidOverageBillingService _overageBilling;
@@ -40,6 +41,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             _subscriptionService = subscriptionService;
             _usageRepository = usageRepository;
             _billingRepository = billingRepository;
+            _checkoutJournal = billingRepository as OASISSub.ISubscriptionCheckoutJournal;
             _planCatalogue = planCatalogue ?? new OASISSub.SubscriptionPlanCatalogue(new OASISSub.StripeSubscriptionPlanPriceReader(configuration));
             _billingPortal = billingPortal ?? new OASISSub.StripeSubscriptionBillingPortal(configuration);
             _overages=overages;_overageGateway=overageGateway;_overageBilling=overageBilling;
@@ -331,8 +333,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     Metadata = metadata
                 };
 
+                if (_checkoutJournal == null)
+                    return StatusCode(503, new { IsError = true, Message = "Durable checkout accounting is unavailable. No checkout was created." });
+                var operation = await _checkoutJournal.BeginCheckoutAsync(avatarId, plan.Id, HttpContext.RequestAborted);
+                metadata["oasis_checkout_operation"] = operation;
                 var service = new Stripe.Checkout.SessionService(StripeClient());
-                var session = await service.CreateAsync(options, cancellationToken: HttpContext.RequestAborted);
+                var session = await service.CreateAsync(options,
+                    new RequestOptions { IdempotencyKey = "oasis-checkout-" + operation }, HttpContext.RequestAborted);
+                await _checkoutJournal.RecordCheckoutSessionAsync(avatarId, operation, session.Id, HttpContext.RequestAborted);
 
                 return Ok(new CreateCheckoutSessionResponse
                 {
@@ -344,7 +352,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { IsError = true, Message = $"Error creating checkout session: {ex.Message}" });
+                return StatusCode(500, new { IsError = true, Message = "Checkout could not be confirmed. Check My subscriptions before starting another checkout." });
             }
         }
 
@@ -399,8 +407,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
             if (IsOtherLedger(session.Metadata) || session.Metadata?.GetValueOrDefault("avatar_id") != userId) return Forbid();
             var record = await _subscriptionService.GetSubscriptionAsync(userId);
-            bool activated = session.Status == "complete" && (session.PaymentStatus is "paid" or "no_payment_required") &&
-                record != null && record.StripeSubscriptionId == session.SubscriptionId && (record.Status is "active" or "trialing");
+            bool activated = IsCheckoutActivated(session, record);
+            if (activated || session.Status == "expired")
+                await CloseJournalledCheckoutAsync(userId, session);
             return Ok(new { IsError=false, session.Status, session.PaymentStatus, SubscriptionStatus=record?.Status, Activated=activated });
         }
 
@@ -445,6 +454,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             Invoice invoice = null;
             switch (stripeEvent.Type)
             {
+                case "checkout.session.expired":
+                    var expiredCheckout = RequireStripeObject<Stripe.Checkout.Session>(stripeEvent);
+                    if (IsOtherLedger(expiredCheckout.Metadata)) return "other_ledger_checkout";
+                    if (expiredCheckout.Metadata?.ContainsKey("oasis_checkout_operation") != true) return "historical_checkout_expiry";
+                    if (expiredCheckout.Status != "expired" ||
+                        expiredCheckout.Metadata.GetValueOrDefault("oasis_ledger_scope") != OASISSub.SubscriptionMongoConfiguration.DatabaseName(_configuration) ||
+                        !Guid.TryParseExact(expiredCheckout.Metadata.GetValueOrDefault("avatar_id"), "D", out var expiredActor) || expiredActor == Guid.Empty)
+                        throw new InvalidOperationException("Signed checkout expiry has invalid account or ledger identity.");
+                    await CloseJournalledCheckoutAsync(expiredActor.ToString("D"), expiredCheckout);
+                    return "checkout_expiry_recorded";
                 case "checkout.session.completed":
                     var checkout = RequireStripeObject<Stripe.Checkout.Session>(stripeEvent);
                     if (IsOtherLedger(checkout.Metadata)) return "other_ledger_checkout";
@@ -515,7 +534,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     StripeCustomerId = canonical.CustomerId, StripeSubscriptionId = canonical.Id, StripeSubscriptionCreatedAtUtc = canonical.Created,
                     CurrentPeriodStart = canonical.CurrentPeriodStart, CurrentPeriodEnd = canonical.CurrentPeriodEnd, CancelAtPeriodEnd=canonical.CancelAtPeriodEnd, CreatedAt = canonical.Created };
             }, order, HttpContext.RequestAborted);
+            if (stripeEvent.Type == "checkout.session.completed" && stripeEvent.Data.Object is Stripe.Checkout.Session completed &&
+                completed.Metadata?.ContainsKey("oasis_checkout_operation") == true)
+            {
+                var persisted = await _subscriptionService.GetSubscriptionAsync(userId);
+                if (IsCheckoutActivated(completed, persisted)) await CloseJournalledCheckoutAsync(userId, completed);
+            }
             return applied ? "applied" : "already_applied";
+        }
+
+        private static bool IsCheckoutActivated(Stripe.Checkout.Session session, OASISSub.SubscriptionRecord record) =>
+            session.Status == "complete" && (session.PaymentStatus is "paid" or "no_payment_required") &&
+            record != null && record.StripeSubscriptionId == session.SubscriptionId && (record.Status is "active" or "trialing");
+
+        private async Task CloseJournalledCheckoutAsync(string avatarId, Stripe.Checkout.Session session)
+        {
+            var operation = session.Metadata?.GetValueOrDefault("oasis_checkout_operation");
+            // Sessions created before the journal protocol have no operation identity.
+            if (operation == null) return;
+            if (_checkoutJournal == null) throw new InvalidOperationException("Durable checkout accounting is unavailable.");
+            await _checkoutJournal.CloseCheckoutAsync(avatarId, operation, session.Id, HttpContext.RequestAborted);
         }
 
         private bool IsOtherLedger(Dictionary<string, string> metadata)

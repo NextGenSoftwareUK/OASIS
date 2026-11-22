@@ -2890,3 +2890,6 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 
 ### 2026-11-22 — session request namespace correction
 - Run45070278761 failed compiling new selected-session request namespace; no native session acceptance or provider scenario executed. Corrected both occurrences in actual Core namespace. Next current-base candidate6786b9d paired pins verified. Two owned temporary indexes removed in finally; no local build, runtime, database, downloads or result archives. Failed tag-form manifest check was corrected to exact SHA; no repository bypass.
+
+### 2026-11-22 — durable checkout journal source
+- Reused existing billing audit collection; no new database, collection, index or background worker. No local environment/build/runtime/download/test output or Stripe/shared-cluster call. Source and one compact evidence doc retained. Existing run45071695894 unchanged; not restarted for source changes.
