@@ -263,6 +263,7 @@ def main():
         if cookie:
             headers["Cookie"] = cookie
         request = urllib.request.Request(BASE+path, data=None if method == "GET" else json.dumps(body).encode(), headers=headers, method=method)
+        request_started = time.perf_counter()
         try:
             response = urllib.request.urlopen(request, timeout=40)
         except urllib.error.HTTPError as error:
@@ -271,13 +272,14 @@ def main():
             raw = response.read()
             status = response.status
             cookies = response.headers.get_all("Set-Cookie") or []
+        elapsed_milliseconds = round((time.perf_counter() - request_started) * 1000, 2)
         if path == "sandbox/session":
             with (state / "issuance.dpapi").open("xb") as stream:
                 stream.write(helpers["protected_token"](json.dumps(
                     {"status":status,"body":raw.decode(),"cookies":cookies}).encode()))
         value = helpers["unwrap"](json.loads(raw))
         outcome = {"path":path,"status":status,"isError":value.get("isError",False),"operationId":operation,
-            "provider":body.get("provider")}
+            "provider":body.get("provider"),"elapsedMilliseconds":elapsed_milliseconds}
         code = value.get("errorCode")
         if isinstance(code,str) and re.fullmatch("(?:CQL|COSMIC)_[A-Z_]{2,80}",code):
             outcome["errorCode"] = code

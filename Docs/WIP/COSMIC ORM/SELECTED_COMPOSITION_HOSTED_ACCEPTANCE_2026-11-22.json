@@ -1,0 +1,102 @@
+{
+  "qualifiedProducerSource": "94d9966baaf80a72188040d80058f7104a94e87a",
+  "servingSource": "3cc752dfc4dad196db2053049602a095d3e9cb1f",
+  "core": "34848a57c2b165696bdeda91d26e0a7cddd273c8",
+  "web6": "d9e60ceaecef5513d1bcd6285cd668076bc77edf",
+  "servingOnodeCore": "46f397004492bb1991658e849639fdf6d49fe345",
+  "deployment": "9969b215-1e1c-4002-ae31-2647dfcf19c7",
+  "runningRailwayImageDigest": "sha256:3436cb7c719993b349d8bf6592b16340e9695b22f7d4e42b16235035e821838e",
+  "qualifiedCiImageDigest": "sha256:5be9794de88cc18eae2f84aa978b6df9cc3a8702686e9cac2583c9f39b79ed1b",
+  "sourceReview": {
+    "qualifiedSource": "94d9966baaf80a72188040d80058f7104a94e87a",
+    "servingSource": "3cc752dfc4dad196db2053049602a095d3e9cb1f",
+    "cqlTreesUnchanged": true,
+    "onodeChangesReviewed": true
+  },
+  "sourceReviewDocument": "CQL_SERVING_SOURCE_REVIEW_2026-11-22.json",
+  "websiteCompiler": "8771e41c71433eb3a3bb11bd0c732100fbbcb5fb",
+  "verifierSource": "c07cbf224f83c2449787cc7d2c304638268f8caf",
+  "reports": [
+    {
+      "provider": "MongoDBOASIS",
+      "ownedHolonId": "8cf494cd-34d7-49ae-a2b3-0db4495c7e92",
+      "cases": [
+        {
+          "case": "cte",
+          "rows": 1,
+          "path": "data/query-cql/composition"
+        },
+        {
+          "case": "derived",
+          "rows": 1,
+          "path": "data/query-cql/composition"
+        },
+        {
+          "case": "cte-set",
+          "rows": 2,
+          "path": "data/query-cql/set"
+        }
+      ],
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "ownedHolonId": "5af9872a-c986-48af-8b1c-f01b9b971ec3",
+      "cases": [
+        {
+          "case": "cte",
+          "rows": 1,
+          "path": "data/query-cql/composition"
+        },
+        {
+          "case": "derived",
+          "rows": 1,
+          "path": "data/query-cql/composition"
+        },
+        {
+          "case": "cte-set",
+          "rows": 2,
+          "path": "data/query-cql/set"
+        }
+      ],
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "ownedHolonId": "2bf01f29-a7d8-488b-a7c5-6e055241be06",
+      "cases": [
+        {
+          "case": "cte",
+          "rows": 1,
+          "path": "data/query-cql/composition"
+        },
+        {
+          "case": "derived",
+          "rows": 1,
+          "path": "data/query-cql/composition"
+        },
+        {
+          "case": "cte-set",
+          "rows": 2,
+          "path": "data/query-cql/set"
+        }
+      ],
+      "exactCleanupVerified": true
+    }
+  ],
+  "populatedQueries": 9,
+  "pacedCalls": 24,
+  "temporaryHolonWrites": 3,
+  "exactCleanupVerified": true,
+  "sessionRevoked": true,
+  "credentialsRemoved": true,
+  "finalJournalSha256": "7463eaf2fe87cebc269d0f94de9e766709a1085c646f2e6c9a5015e83f701084",
+  "removedCheckpointFiles": 106,
+  "removedCheckpointBytes": 541432,
+  "retainedFinalJournal": "C:\\Source\\OASIS2\\LocalState\\COSMIC\\HostedOwnedProjectedSetComposition20261122\\fixture.json",
+  "piperAccess": false,
+  "realModelVerified": false,
+  "renderedBrowserVerified": false,
+  "selectedCompositionLiveAccepted": true,
+  "fullSqlParity": false
+}
