@@ -9,9 +9,9 @@
   "contractAccepted": true,
   "compositionAccepted": true,
   "projectionWarningAccepted": true,
-  "actualWeb4Compiled": false,
-  "imagePhase": "queued",
-  "imageAccepted": false,
+  "actualWeb4Compiled": true,
+  "imagePhase": "accepted",
+  "imageAccepted": true,
   "packageAccepted": false,
   "deployed": false,
   "nativeRun": 45072884018,
@@ -60,5 +60,79 @@
   "imageRequestedUtc": "2026-11-22T21:52:45.377340+00:00",
   "imageRun": 45074754112,
   "imageJob": 137369403714,
-  "imageConclusion": ""
+  "imageConclusion": "",
+  "digest": "sha256:ab5d4a6eec767a2f47782d749afb0aeb5e3a475a48113ac2b6ece8f4b6eae860",
+  "packagePhase": "queued",
+  "packagePriorRuns": [
+    45073411220,
+    45068961755,
+    45065656253,
+    45058466879,
+    45054911320,
+    45042421108,
+    45040787492,
+    45034075797,
+    45028463476,
+    45021700914,
+    45000952408,
+    44997300304,
+    44995695068,
+    44994400291,
+    44991967776,
+    44987890064,
+    44978356294,
+    44976532042,
+    44974125204,
+    44968677902
+  ],
+  "packageRequestedUtc": "2026-11-22T22:18:26.680309+00:00",
+  "latestRolloutObservation": {
+    "web6": {
+      "deployment": "01b84fbe-0623-4fc3-9194-92c97850f8df",
+      "status": "BUILDING",
+      "source": "abbe207b17c8f6b6e727ab2b1ce00be16a920844",
+      "imageDigest": null
+    },
+    "web7": {
+      "deployment": "e26d169d-59ed-466f-b0d1-e99d62bed6c7",
+      "status": "BUILDING",
+      "source": "abbe207b17c8f6b6e727ab2b1ce00be16a920844",
+      "imageDigest": null
+    },
+    "web9": {
+      "deployment": "9a8e0e7e-32e7-4d8c-a4d3-004058abb5ea",
+      "status": "BUILDING",
+      "source": "abbe207b17c8f6b6e727ab2b1ce00be16a920844",
+      "imageDigest": null
+    },
+    "web4": {
+      "deployment": "ef32b4f5-f978-4ce7-bffc-d321335e54ce",
+      "status": "QUEUED",
+      "source": "abbe207b17c8f6b6e727ab2b1ce00be16a920844",
+      "imageDigest": null
+    },
+    "web10": {
+      "deployment": "f9f64286-02f9-437c-82b2-488f98f8fc8a",
+      "status": "QUEUED",
+      "source": "abbe207b17c8f6b6e727ab2b1ce00be16a920844",
+      "imageDigest": null
+    },
+    "web8": {
+      "deployment": "6e8457d0-0d12-4bb6-8458-d550523ebec6",
+      "status": "QUEUED",
+      "source": "abbe207b17c8f6b6e727ab2b1ce00be16a920844",
+      "imageDigest": null
+    },
+    "web5": {
+      "deployment": "0afd13ca-1961-44fa-9599-b1685950d052",
+      "status": "QUEUED",
+      "source": "abbe207b17c8f6b6e727ab2b1ce00be16a920844",
+      "imageDigest": null
+    }
+  },
+  "packageRun": 45077211754,
+  "packageJob": 137377006710,
+  "packageControlSource": "338c5c5d151ef6382eb37930b3f9d1fffbf6a1a1",
+  "newDevelopmentObserved": "abbe207b17c8f6b6e727ab2b1ce00be16a920844",
+  "newDevelopmentChangedOnlySeparateUnitTests": true
 }

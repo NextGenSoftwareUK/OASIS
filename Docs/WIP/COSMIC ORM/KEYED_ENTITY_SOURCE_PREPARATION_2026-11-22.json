@@ -11,9 +11,9 @@
     "Neo4jOASIS"
   ],
   "qualification": "Pending exact native workflow",
-  "source": "10983ac1b51f62362094cabd13f1631ff27990aa",
-  "qualificationRun": 45076199105,
-  "qualificationPhase": "FailedCompilation",
+  "source": "338c5c5d151ef6382eb37930b3f9d1fffbf6a1a1",
+  "qualificationRun": 45076941597,
+  "qualificationPhase": "Queued",
   "unrelatedOwnedCancelRequested": [
     45076199516,
     45076199140,
@@ -36,11 +36,111 @@
     45076199413
   ],
   "qualificationJob": 137373849847,
-  "requiredPinRun": 45076199054,
+  "requiredPinRun": 45076771319,
   "requiredPinAttempt": 2,
   "requiredPinJob": 137374205856,
   "unrelatedCancelFollowup": 45076199398,
   "failedRun": 45076199105,
   "rootCause": "Missing DNA namespace import for HyperDriveModes in new manager file",
-  "correction": "Use canonical DNA HyperDriveModes; no runtime workaround"
+  "correction": "Use canonical DNA HyperDriveModes; no runtime workaround",
+  "dispatchAt": "2026-11-22T22:14:10.911948+00:00",
+  "dispatchResolution": "Initial filename/SHA request rejected; no matching run exists. Numeric registered workflow ID and verified existing branch used.",
+  "requiredPinAccepted": true,
+  "unrelatedRunObservations": [
+    {
+      "run": 45076771321,
+      "status": "CancellationRequested",
+      "conclusion": ""
+    },
+    {
+      "run": 45076771258,
+      "status": "CancellationRequested",
+      "conclusion": ""
+    },
+    {
+      "run": 45076771199,
+      "status": "CancellationRequested",
+      "conclusion": ""
+    },
+    {
+      "run": 45076771269,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771145,
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "run": 45076771342,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771406,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771303,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771368,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771150,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771348,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771385,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771314,
+      "status": "CancellationRequested",
+      "conclusion": ""
+    },
+    {
+      "run": 45076771350,
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "run": 45076771163,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771156,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771173,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771200,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771280,
+      "conclusion": "success",
+      "status": "completed"
+    }
+  ]
 }
