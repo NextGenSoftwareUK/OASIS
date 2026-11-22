@@ -1,12 +1,13 @@
 name: Qualify native distinct visible tuples on three providers
 
 on:
-  push:
-    branches: [work/cosmic-cql-ton-public]
-    paths:
-      - ".github/workflows/qualify-cql-record-distinct-native.yml"
-      - "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CqlRecordDistinctWireTests.cs"
   workflow_dispatch:
+    inputs:
+      scope:
+        description: Qualification scope; remaining mode requires the recorded precursor proof
+        type: choice
+        options: [all, remaining-neo-and-web4]
+        default: all
 
 permissions:
   contents: read
@@ -57,6 +58,7 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - name: Start one owned loopback Mongo replica
+        if: inputs.scope != 'remaining-neo-and-web4'
         working-directory: OASIS
         shell: bash
         run: |
@@ -90,17 +92,30 @@ jobs:
               throw "Exact changed-feature checks did not all pass: $path"
             }
           }
+          $remainingOnly = '${{ inputs.scope }}' -eq 'remaining-neo-and-web4'
+          if($remainingOnly) {
+            $proof=Get-Content -LiteralPath 'Docs/WIP/COSMIC ORM/RECORD_DISTINCT_PARTIAL_ACCEPTANCE_2026-11-22.json' | ConvertFrom-Json
+            $core=(git -C "OASIS Architecture/NextGenSoftware.OASIS.API.Core" rev-parse HEAD).Trim()
+            if($core -ne $proof.core -or $proof.run -ne 45051729488 -or $proof.fullRunAccepted){throw 'Prior partial proof does not match current Core'}
+            foreach($file in $proof.unchangedAcceptedFiles) {
+              $actual=(Get-FileHash -LiteralPath $file.path -Algorithm SHA256).Hash.ToLowerInvariant()
+              if($actual -ne $file.sha256){throw "Accepted prerequisite source changed: $($file.path)"}
+            }
+          }
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-record-distinct-native-ci -Operation {
+            if(-not $remainingOnly) {
             $coreFilter='FullyQualifiedName~CqlRecordDistinctWireTests'
             dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter $coreFilter --results-directory $reportRoot --logger 'trx;LogFileName=core.trx'
             if($LASTEXITCODE){throw 'Record output contract failed'}
             Verify-Report (Join-Path $reportRoot 'core.trx') 2
+            }
             $nativeFilter='FullyQualifiedName~NativeRecordDistinctUsesVisibleTuplesAndOrderedStages'
             $projects=@(
               @{name='Mongo';path='Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests'},
               @{name='SQLite';path='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests'},
               @{name='Neo4j';path='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests'}
             )
+            if($remainingOnly){$projects=@($projects | Where-Object {$_.name -eq 'Neo4j'})}
             foreach($project in $projects) {
               dotnet test $project.path /m:2 /nr:false /p:UseSharedCompilation=false --filter $nativeFilter --results-directory $reportRoot --logger "trx;LogFileName=$($project.name).trx"
               if($LASTEXITCODE){throw "$($project.name) native record output failed"}
@@ -113,17 +128,19 @@ jobs:
             if(Test-Path -LiteralPath (Join-Path $env:OASIS_SQLITE_TEST_FIXTURE_DIRECTORY $leaf)){throw 'Owned SQLite fixture remains'}
           }
           if(Test-Path -LiteralPath (Join-Path $env:OASIS_OWNED_NEO4J_WORK 'cql-graph-fixture.json')){throw 'Owned graph intent remains'}
-          docker exec cql-where-mongo mongosh --port 27029 --quiet --eval 'if(db.getSiblingDB("cosmic_cql_fixture").getCollectionNames().length!==0) quit(1)'
-          if($LASTEXITCODE){throw 'Owned Mongo fixture remains'}
+          if(-not $remainingOnly) {
+            docker exec cql-where-mongo mongosh --port 27029 --quiet --eval 'if(db.getSiblingDB("cosmic_cql_fixture").getCollectionNames().length!==0) quit(1)'
+            if($LASTEXITCODE){throw 'Owned Mongo fixture remains'}
+          }
           $source=(git rev-parse HEAD).Trim()
           if($source -ne $env:GITHUB_SHA){throw 'Source checkout differs from exact workflow revision'}
           $core=(git -C "OASIS Architecture/NextGenSoftware.OASIS.API.Core" rev-parse HEAD).Trim()
-          @{source=$source;core=$core;corePassed=2;nativePassed=3;web4Compiled=$true;providers=@('MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS');ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content (Join-Path $reportRoot 'source.json') -Encoding utf8
+          @{source=$source;core=$core;scope='${{ inputs.scope }}';corePassed=$(if($remainingOnly){0}else{2});nativePassed=$(if($remainingOnly){1}else{3});web4Compiled=$true;providers=@($projects.name);priorPartialProof=$(if($remainingOnly){'RECORD_DISTINCT_PARTIAL_ACCEPTANCE_2026-11-22.json'}else{$null});ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content (Join-Path $reportRoot 'source.json') -Encoding utf8
       - name: Stop owned Mongo
-        if: always()
+        if: always() && inputs.scope != 'remaining-neo-and-web4'
         run: docker rm -f -v cql-where-mongo
       - name: Verify owned Mongo stopped
-        if: always()
+        if: always() && inputs.scope != 'remaining-neo-and-web4'
         shell: bash
         run: |
           if docker inspect cql-where-mongo >/dev/null 2>&1; then echo 'Owned Mongo container remains'; exit 1; fi
