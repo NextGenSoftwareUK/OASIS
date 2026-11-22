@@ -5,7 +5,7 @@
     "Queries/CosmicLinq.SelectMany.cs",
     "Queries/CosmicLinq.GroupJoin.cs"
   ],
-  "nativeAccepted": false,
+  "nativeAccepted": true,
   "parentPinned": true,
   "existingWholeParentGroupsPreserved": true,
   "applicationDelegatesCompiled": false,
@@ -14,5 +14,9 @@
   "nativeRun": 45040193368,
   "nativeJob": 137262684307,
   "dependencyRun": 45040193341,
-  "redundantRunsCancelled": 19
+  "redundantRunsCancelled": 19,
+  "dependencyAccepted": true,
+  "nativeProof": "GROUP_JOIN_FIELDS_NATIVE_ACCEPTANCE_2026-11-22.json",
+  "combinedImageSource": "f29262d8b6df380e0d267228d92508e4da393561",
+  "combinedImageRun": 45041530132
 }
