@@ -1,3 +1,15 @@
+Current Settings status — 21 November 2026 (supersedes historical entries below)
+
+OPORTAL is not 100% complete. Session-list HTTP/native Mongo acceptance passed44977175851 on reviewed e5aa7716: zero build errors, actual active/revoked/expired records, foreign refusal, no credential disclosure and unchanged avatar. Duplicate route ownership fixed. This does not prove device tracking, create/update, logout or JWT revocation.
+
+Native MFA lifecycle passed44977748392: encrypted enrollment, confirmation, authenticator challenge, recovery consumption/refusal, disable and lifecycle audit; zero build errors and owned cleanup verified. HTTP44978452408 built0errors and passed status/enrol/confirm, then password authenticate returned500. Diagnostic44979088900/job137075409094 is active on unchanged source; exact failure cause and HTTP sign-in/JWT acceptance remain open. No duplicate run or speculative production fix.
+
+OPORTAL dev2271d00 includes actual status/session reads, token-free MFA login handling, login-popup state clearing and prepared enrollment/recovery/disable controls. Management entry remains disabled. Syntax/cache checks pass; actual Settings/login browser and hosted acceptance remain open. Session sign-out and account deletion are unfinished. Subscriptions, remaining whole-site acceptance and all-provider HyperDrive reliability remain open; preserve earlier accepted evidence without replay.
+
+Shared Development8931995b changes only the sandbox entrypoint since c4a; peer selected-value Core69100164 remains unqualified and is not imported. No shared Atlas/auth/data/Stripe call, deployment/DNA/worker update or local build/runtime/download/environment/database/archive in this batch. Details and cleanup evidence: OPORTAL_SETTINGS_COMPLETION_GAPS_2026-11-21.json and WORKSPACE_CLEANUP_LEDGER.md.
+
+--- Historical progress entries ---
+
 2026-11-21 MFA PASSWORD LOGIN UI SOURCE WIRED: published TOTP/recovery API reused, challenge intercepted before sign-in persistence; no challenge secret in storage, clearspassword, handlescode/recovery/startover/logout, duplicate submissions blocked, late account/modal guards/network recovery. Token-free/incomplete/HTTPerror cannot persistlogin;3focusedlocal state controls+2script syntax/cache pass. Real MFA/native/browser/Settings enrollment/SDK-DID/hosted still OPEN, no node flag/auth/shared backend changed. Session44974712075/job137061903113 remains tracked active; H1 independent/pending. No localbuild/env/download/DB/artifact.
 
 2026-11-21 PORTAL EXPIRY PERFORMANCE BUG FIXED IN SOURCE: local6hour JWT grace/opaque/no-exp acceptance disagreed with API zero skew/required expiry, allowing stale dashboard calls. Strict finite unexpiredexp/three segments now selects existing refresh before screen reads;9pure controls+Node syntax/cache pass, no hosted timing/auth claim. Also discovered existing published MFA enrollment/challenge APIs+Core gate: reuse, do not build duplicate backend; Settings/login UI remains unwired. Session44974712075/job137061903113 confirmed active earlier, not restarted. No shared auth/data/localbuild/env/download/artifact; H1 pending.

@@ -160,11 +160,11 @@
     },
     "httpHost": {
       "mode": "session-list-http",
-      "status": "prepared-uncompiled-unselected",
+      "status": "accepted-read-scope-44977175851",
       "scope": "Actual signed MVC/manager/native Mongo with3persisted cryptographically random owned credentials (active/revoked/expired), correct counts/native fields, stable one-way IDs, no raw credentials/invented device/location/security values, foreign read refusal and unchanged native avatar.",
       "requests": "3GETs; no session/auth mutations",
-      "remaining": "Review source inventory, enable exact host selector, compile/run; not full session tracking or revocation.",
-      "selector": "Exact HotspotHttpNative/session-list-http allowlisted, source review/compile/native dispatch still pending; no runtime selected before inventory acceptance.",
+      "remaining": "Device tracking/create/update/revocation/JWT/browser/full Startup/hosted remain open.",
+      "selector": "Reviewed single-owner session HTTP candidate e5aa7716 passed; retain accepted evidence.",
       "diagnostics": "Named initial/repeat/foreign stage, selected HTTP status/content type/body length only; middleware logs exception/base/runtime avatar types then rethrows, never body/credentials or fabricated response. Source unchanged; retry same failed cohort after diagnostic commit.",
       "diagnosticRun": {
         "id": 44975845712,
@@ -198,10 +198,10 @@
     }
   },
   "mfaSourceDiscovery": {
-    "status": "existing-published-backend-found-UI-unwired",
+    "status": "native-lifecycle-accepted-password-http-failed-ui-prepared-disabled",
     "source": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarMfaController.cs",
     "behavior": "Existing real status/enrol/confirm/disable/recovery/events and authenticate-mfa routes plus Core SecondFactorGate. Reuse existing contract rather than implement another MFA backend.",
-    "missing": "OPORTAL Settings enrolment/recovery/disable and login challenge handling; inspect real service/native evidence before acceptance.",
+    "missing": "Resolve actual password HTTP500; accept second-factor JWT/refresh issuance, actual browser and hosted paths; activate prepared management only after verification. Native enrollment/lifecycle accepted, login/status/management UI source exists.",
     "nodeSettings": "unchanged",
     "loginUiWork": {
       "status": "source-implemented-not-native-or-browser-accepted",
@@ -258,7 +258,7 @@
       },
       "host": "Actual BCrypt-hashed verified fixture actor, actual MfaService/MongoMfaStore injected supported clock, shipped MfaGate installed/restored finally, actual controller POSTs; fixture signing key matches Core issuance encoding. No deployment/source DNA flags changed.",
       "managementUi": {
-        "commit": "OPORTAL dev7aa464e",
+        "commit": "OPORTAL dev2271d00",
         "status": "prepared-entry-disabled",
         "scope": "Actual enrol/confirm/recovery replacement/disable request handlers, manual key and one-time recovery rendering, pending/version/token guards and tab/logout clearing. Syntax/cache checked; generic-close secret clearing and browser acceptance still required.",
         "lifecycle": "Setup/recovery/code DOM clears on explicit/tab/logout and generic modal close; pending Security work invalidated. Entry disabled; no browser acceptance."

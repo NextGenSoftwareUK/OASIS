@@ -1,3 +1,15 @@
+Current Settings status — 21 November 2026 (supersedes historical entries below)
+
+OPORTAL is not 100% complete. Session-list HTTP/native Mongo acceptance passed44977175851 on reviewed e5aa7716: zero build errors, actual active/revoked/expired records, foreign refusal, no credential disclosure and unchanged avatar. Duplicate route ownership fixed. This does not prove device tracking, create/update, logout or JWT revocation.
+
+Native MFA lifecycle passed44977748392: encrypted enrollment, confirmation, authenticator challenge, recovery consumption/refusal, disable and lifecycle audit; zero build errors and owned cleanup verified. HTTP44978452408 built0errors and passed status/enrol/confirm, then password authenticate returned500. Diagnostic44979088900/job137075409094 is active on unchanged source; exact failure cause and HTTP sign-in/JWT acceptance remain open. No duplicate run or speculative production fix.
+
+OPORTAL dev2271d00 includes actual status/session reads, token-free MFA login handling, login-popup state clearing and prepared enrollment/recovery/disable controls. Management entry remains disabled. Syntax/cache checks pass; actual Settings/login browser and hosted acceptance remain open. Session sign-out and account deletion are unfinished. Subscriptions, remaining whole-site acceptance and all-provider HyperDrive reliability remain open; preserve earlier accepted evidence without replay.
+
+Shared Development8931995b changes only the sandbox entrypoint since c4a; peer selected-value Core69100164 remains unqualified and is not imported. No shared Atlas/auth/data/Stripe call, deployment/DNA/worker update or local build/runtime/download/environment/database/archive in this batch. Details and cleanup evidence: OPORTAL_SETTINGS_COMPLETION_GAPS_2026-11-21.json and WORKSPACE_CLEANUP_LEDGER.md.
+
+--- Historical progress entries ---
+
 2026-11-21 SESSION DIAGNOSTIC44975845712 confirmed queued on exact30014d97/root e359. Dispatch observation timed out20s; reconciled exacthead exactly1run, no repeated POST/restart. Source assertions unchanged, only private-data-free diagnostics. Failure cause/native acceptance still open; owned cleanup from original failedrun verified. H1 pending separately, no shared backend/localbuild/env/download.
 
 2026-11-21 SESSION HTTP44974712075/job137061903113 FAILED after0error6m22.94s build: empty-body JObject parse, request/status/cause not diagnosed. DB/tempDNA/container absent. Added named request stage/status/contenttype/length and exception/base/runtime avatar TYPE-only diagnostics with rethrow, no raw body/secrets or changed assertions/source. Same unfinished cohort retry required, not accepted billing replay. MFA real-flow prep waits for failure diagnosis; no shared auth/data/localbuild/env/download/artifact.
