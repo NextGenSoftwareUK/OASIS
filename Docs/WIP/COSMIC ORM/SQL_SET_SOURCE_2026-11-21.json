@@ -1,0 +1,8 @@
+{
+  "websiteSource": "fdcba74a6d13a6006de724835d34cf376be4a104",
+  "testsPassed": 3,
+  "nativeAccepted": false,
+  "developmentPushed": false,
+  "grammar": "Two explicitly parenthesized SELECT-star operands; independent windows; same native authority",
+  "sourceCheckoutPreserved": true
+}
