@@ -86,7 +86,9 @@ internal static class SessionMiddlewareHttpQualification
             if (active)
             {
                 var body = JObject.Parse(await response.Content.ReadAsStringAsync());
-                if (body.Value<bool>("authenticated") != true || body.Value<Guid>("avatarId") != actor || body.Value<string>("service") != service)
+                if (body.Value<bool>("authenticated") != true ||
+                    !Guid.TryParseExact(body.Value<string>("avatarId"), "D", out var observedActor) ||
+                    observedActor != actor || body.Value<string>("service") != service)
                     throw new InvalidOperationException("Actual middleware did not establish the expected native identity.");
             }
             if (!Accepted.Add(service + "/" + stage))

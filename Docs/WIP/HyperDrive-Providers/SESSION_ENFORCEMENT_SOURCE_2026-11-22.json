@@ -172,5 +172,14 @@
       "ordering": "All seven immutable startup-order checks passed."
     }
   ],
-  "runnerArgumentCorrection": "Declare optional arguments as string[]; local argument shape check passed without invoking a compiler. Same f552d770/Core618c3c73 source and35cases."
+  "runnerArgumentCorrection": "Declare optional arguments as string[]; local argument shape check passed without invoking a compiler. Same f552d770/Core618c3c73 source and35cases.",
+  "latestResult": {
+    "run": 45012925333,
+    "job": 137178985081,
+    "conclusion": "failure",
+    "build": "0 errors; 6m02.78",
+    "runtime": "Probe line89 InvalidCastException converting JSON string via Value<Guid>; changed to canonical TryParseExactD, not rerun.",
+    "cleanup": "Owned DB/tempDNA/container absence verified",
+    "acceptance": "Seven-service runtime cohort incomplete"
+  }
 }
