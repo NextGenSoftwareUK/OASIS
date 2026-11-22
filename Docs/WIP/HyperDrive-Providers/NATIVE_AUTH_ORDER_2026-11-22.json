@@ -9,5 +9,7 @@
   "cleanup": "No download, build, database, environment or new worktree created; temporary Git index removed in finally.",
   "remainingSource": "Existing account billing-admission work remains unstaged and excluded from this host-only correction.",
   "verificationRun": 45079998287,
-  "verificationState": "in_progress observed via GitHub API; no acceptance claimed"
+  "verificationState": "Terminal failure after successful checkout/dependency native proof",
+  "checkoutEvidence": "Run45079998287/job137385766897: zero-error API/host build; ACCOUNT_DEPENDENCY_NATIVE_PROOF includes real actor-bound routes, customerless pending checkout, concurrent single reservation winner, slot reuse and old closure replay isolation. No Stripe/paid/hosted acceptance.",
+  "remainingFailure": "SQLite issuance assertion: fixture changed CurrentStorageProvider, while shipping Program.AvatarManager retains configured Mongo primary. Corrected fixture now pauses validated owned CI Mongo around SQLite login and unpauses in finally, preserving exact issuer/native persistence assertions."
 }

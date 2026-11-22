@@ -97,6 +97,18 @@ internal static class GlobalSessionHttpQualification
                     return envelope["result"] is JObject wrapped && wrapped["isError"] != null ? wrapped : envelope;
                 }
             }
+            async Task PauseOwnedMongoAsync()
+            {
+                var inspect = JArray.Parse(await DockerAsync("inspect", "map-development-mongo"));
+                Check(inspect.Count == 1 && inspect[0].Value<string>("Name") == "/map-development-mongo" &&
+                    inspect[0]["Config"]?.Value<string>("Image") == "mongo:8.0.15" &&
+                    inspect[0]["HostConfig"]?["PortBindings"]?["27029/tcp"]?[0]?.Value<string>("HostIp") == "127.0.0.1" &&
+                    inspect[0]["HostConfig"]?["PortBindings"]?["27029/tcp"]?[0]?.Value<string>("HostPort") == "27029",
+                    "Refusing to pause an unowned native Mongo container.");
+                pauseAttempted = true;
+                await DockerAsync("pause", "map-development-mongo");
+            }
+
             async Task<JToken> Login(ProviderType provider)
             {
                 Check(!(await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(provider)).IsError, "Owned provider selection failed.");
@@ -108,7 +120,20 @@ internal static class GlobalSessionHttpQualification
                         "Native SQLite login seed did not preserve active/verified/password state.");
                 }
                 http.DefaultRequestHeaders.Authorization = null;
-                var envelope = await Read(await http.PostAsJsonAsync("/api/avatar/authenticate", new { username, password }));
+                // The shipping singleton retains its configured primary affinity. Changing
+                // ProviderManager.CurrentStorageProvider does not select a different issuer.
+                // Exercise real SSO failover by making only the owned primary unavailable.
+                JObject envelope;
+                if (provider == ProviderType.SQLLiteDBOASIS) await PauseOwnedMongoAsync();
+                try { envelope = await Read(await http.PostAsJsonAsync("/api/avatar/authenticate", new { username, password })); }
+                finally
+                {
+                    if (pauseAttempted)
+                    {
+                        await DockerAsync("unpause", "map-development-mongo");
+                        pauseAttempted = false;
+                    }
+                }
                 if (envelope.Value<bool>("isError"))
                 {
                     var diagnostic = (envelope.Value<string>("errorCode") ?? "unspecified") + ": " + envelope.Value<string>("message");
@@ -313,14 +338,7 @@ internal static class GlobalSessionHttpQualification
             await CheckAccess(freshMongo, ProviderType.MongoDBOASIS, true);
             await CheckAccess(freshSqlite, ProviderType.SQLLiteDBOASIS, true);
 
-            var inspect = JArray.Parse(await DockerAsync("inspect", "map-development-mongo"));
-            Check(inspect.Count == 1 && inspect[0].Value<string>("Name") == "/map-development-mongo" &&
-                inspect[0]["Config"]?.Value<string>("Image") == "mongo:8.0.15" &&
-                inspect[0]["HostConfig"]?["PortBindings"]?["27029/tcp"]?[0]?.Value<string>("HostIp") == "127.0.0.1" &&
-                inspect[0]["HostConfig"]?["PortBindings"]?["27029/tcp"]?[0]?.Value<string>("HostPort") == "27029",
-                "Refusing to pause an unowned native Mongo container.");
-            pauseAttempted = true;
-            await DockerAsync("pause", "map-development-mongo");
+            await PauseOwnedMongoAsync();
             var incomplete = await AvatarManager.Instance.LogoutAllAvatarSessionsAsync(actor);
             Check(incomplete.IsError && !incomplete.Result && incomplete.ErrorCode == "SESSION_REVOCATION_INCOMPLETE",
                 "Unavailable authority incorrectly produced global success.");
