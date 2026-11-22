@@ -13,9 +13,9 @@
     "Neo4jOASIS"
   ],
   "qualification": "Pending exact native workflow",
-  "source": "1f50d89f4a239554cc430e30ea99e663b7ff4e6a",
-  "qualificationRun": 45078210575,
-  "qualificationPhase": "PendingCorrectedThreeStoreBatch",
+  "source": "2bb54171442af5316c062e474fb6e987e7173f9f",
+  "qualificationRun": 45078689312,
+  "qualificationPhase": "InProgress",
   "unrelatedOwnedCancelRequested": [
     45076199516,
     45076199140,
@@ -37,7 +37,7 @@
     45076199405,
     45076199413
   ],
-  "qualificationJob": 137373849847,
+  "qualificationJob": 137381608782,
   "requiredPinRun": 45076771319,
   "requiredPinAttempt": 2,
   "requiredPinJob": 137374205856,
@@ -153,8 +153,9 @@
   "temporarySourcePayload": "C:\\Source\\OASIS2\\LocalState\\COSMIC\\KeyedEntitySourceProposals.json",
   "temporarySourcePayloadRemovedAfterPublication": true,
   "controlSource": "402d61ddc9b5621bb81809ef8c6801d290e2784c",
-  "qualificationSource": "1f50d89f4a239554cc430e30ea99e663b7ff4e6a",
+  "qualificationSource": "2bb54171442af5316c062e474fb6e987e7173f9f",
   "neoNativeAcceptedProof": "neo-keyed-entity-native-acceptance.json",
   "runtimeSourceUnchangedByTriggerFix": true,
-  "failedCombinedRun": 45078210575
+  "failedCombinedRun": 45078210575,
+  "freeGiBObserved": 23.6
 }
