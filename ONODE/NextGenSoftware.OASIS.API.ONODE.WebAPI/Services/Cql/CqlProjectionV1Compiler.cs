@@ -176,10 +176,10 @@ public static partial class CqlV1Compiler
         if(column.Function==CqlV1Function.BooleanTextCase)
         {
             if(column.WhenTrue==null || column.WhenFalse==null || column.WhenTrue.Length>512 || column.WhenFalse.Length>512
-                || column.MetadataPath!=null || column.NullReplacement!=null)
-                throw new ArgumentException("Conditional text requires a canonical Boolean field and two bounded literal strings.");
+                || column.Nullable==true || column.NullReplacement!=null)
+                throw new ArgumentException("Conditional text requires an exact nonnullable Boolean field and two bounded literal strings.");
             var input=new CqlProjectionV1Column {
-                Alias=column.Alias,Field=column.Field,ValueType=column.ValueType,Nullable=column.Nullable
+                Alias=column.Alias,Field=column.Field,MetadataPath=column.MetadataPath,ValueType=column.ValueType,Nullable=column.Nullable
             };
             return CompileSelection(input,new BooleanTextCaseSelectionConsumer<TResult>(consumer,column.WhenTrue,column.WhenFalse));
         }

@@ -30,9 +30,11 @@ public sealed partial class CqlV1Web4NativeTests
             IsPublic=isPublic,IsActive=true,IsNewHolon=true,MetaData=new()};
         var yes=New(true);var no=New(false);var foreign=New(false);
         foreign.CreatedByAvatarId=Guid.NewGuid();
-        var all=new[]{yes,no,foreign};owned.AddRange(all.Select(row=>row.Id));
+        var invalid=New(false);invalid.MetaData["flag"]=12;
+        yes.MetaData["flag"]=true;no.MetaData["flag"]=false;foreign.MetaData["flag"]=false;
+        var all=new[]{yes,no,foreign,invalid};owned.AddRange(all.Select(row=>row.Id));
         // The write session does not grant read access to a foreign private row.
-        Assert.IsFalse(session.AddRange(new[]{yes,no}).IsError);
+        Assert.IsFalse(session.AddRange(new[]{yes,no,invalid}).IsError);
         var saved=await Timed("create-owned",()=>session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid())));
         Assert.IsFalse(saved.IsError,saved.Message+saved.Exception);Assert.IsTrue(saved.IsSaved);
         using var foreignSession=CosmicSession.Create(manager,adapter,CosmicQueryReadAccess.OwnerOrPublic(foreign.CreatedByAvatarId).Result).Result;
@@ -41,7 +43,7 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(foreignSaved.IsError,foreignSaved.Message+foreignSaved.Exception);Assert.IsTrue(foreignSaved.IsSaved);
         var scope=CosmicQuery<Holon>.Create(CosmicQueryScope.Named(adapter.QueryProviderType).Result)
             .WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result).Result;
-        var ids=all.Select(row=>row.Id).ToArray();
+        var ids=new[]{yes.Id,no.Id,foreign.Id};
         var root=CosmicLinq.Create(manager,adapter,scope.Where(row=>ids.Contains(row.Id)).Result).Result;
         var rows=await Timed("conditional-values",()=>root.Select(row=>row.IsPublic?"public":"private")
             .OrderBy(text=>text).ToCosmicListAsync());
@@ -53,7 +55,15 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(pairs.IsError,pairs.Message+pairs.Exception);Assert.IsTrue(pairs.IsLoaded);
         Assert.AreEqual(1,pairs.Result.Count);Assert.AreEqual("no",pairs.Result[0].First);Assert.AreEqual("N",pairs.Result[0].Second);
         Assert.ThrowsException<CosmicLinqException>(()=>root.Select(row=>row.IsPublic?"yes":ForbiddenConditionalBranch()));
-        Assert.ThrowsException<CosmicLinqException>(()=>root.Select(row=>CosmicQueryMetadata.Value<bool>(row,"flag")?"yes":"no"));
-        return 4;
+        var metadata=await Timed("metadata-branches",()=>root.Select(row=>CosmicQueryMetadata.Value<bool>(row,"flag")?"yes":"no")
+            .OrderBy(text=>text).ToCosmicListAsync());
+        Assert.IsFalse(metadata.IsError,metadata.Message+metadata.Exception);Assert.IsTrue(metadata.IsLoaded);
+        CollectionAssert.AreEqual(new[]{"no","yes"},metadata.Result.ToArray());
+        var bad=CosmicLinq.Create(manager,adapter,scope.Where(row=>row.Id==invalid.Id).Result).Result
+            .Select(row=>CosmicQueryMetadata.Value<bool>(row,"flag")?"yes":"no");
+        var refused=await Timed("invalid-metadata-domain",()=>bad.ToCosmicListAsync());
+        Assert.IsTrue(refused.IsError,"Invalid metadata must not choose the false branch.");Assert.IsNull(refused.Result);
+        Assert.ThrowsException<CosmicLinqException>(()=>root.Select(row=>CosmicQueryMetadata.Value<bool?>(row,"flag")==true?"yes":"no"));
+        return 6;
     }
 }

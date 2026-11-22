@@ -91,9 +91,9 @@ internal sealed partial class MongoCqlTranslator
         if (column.Function == CosmicProjectionFunction.None) return ProjectionCell(column.Path, prefix);
         if (column.Function == CosmicProjectionFunction.BooleanTextCase)
         {
-            if(column.Path.IsMetadata || column.Path.ValueType != typeof(bool) || column.ValueType != typeof(string)
+            if(column.Path.ValueType != typeof(bool) || column.ValueType != typeof(string)
                 || column.WhenTrue == null || column.WhenFalse == null)
-                throw new NotSupportedException("Native conditional text requires a canonical Boolean path and captured literal branches.");
+                throw new NotSupportedException("Native conditional text requires an exact Boolean path and captured literal branches.");
             var conditionalName = prefix + "conditionalBoolean";
             var valid = Op("$eq", "$$"+conditionalName+".s", Literal(2));
             return SingleLet(conditionalName,ProjectionCell(column.Path,prefix+"source"),new BsonDocument {

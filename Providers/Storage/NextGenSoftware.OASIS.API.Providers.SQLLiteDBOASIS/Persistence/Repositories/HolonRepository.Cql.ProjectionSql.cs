@@ -17,9 +17,9 @@ public partial class HolonRepository
             if (column.Function == CosmicProjectionFunction.None) return ProjectionOperand(column.Path, prefix, comparable);
             if (column.Function == CosmicProjectionFunction.BooleanTextCase)
             {
-                if(column.Path.IsMetadata || column.Path.ValueType != typeof(bool) || column.ValueType != typeof(string)
+                if(column.Path.ValueType != typeof(bool) || column.ValueType != typeof(string)
                     || column.WhenTrue == null || column.WhenFalse == null)
-                    throw new NotSupportedException("Native conditional text requires a canonical Boolean path and captured literal branches.");
+                    throw new NotSupportedException("Native conditional text requires an exact Boolean path and captured literal branches.");
                 var conditional=ProjectionOperand(column.Path,prefix,comparable);
                 var whenTrue=Bind(column.WhenTrue);var whenFalse=Bind(column.WhenFalse);
                 return ("CASE WHEN ("+conditional.State+")=2 THEN 2 ELSE 3 END",
