@@ -1,6 +1,6 @@
 {
   "scope": "competition",
-  "status": "source-inventory-reviewed-awaiting-compile",
+  "status": "browser-main-flow-accepted-publisher-http-prepared",
   "base": "f54923d82ac8bffa7877d9307f18e879d41a8254",
   "candidate": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
   "tag": "qualification/competition-inventory-2026-11-21-0cfb0953",
@@ -23,6 +23,6 @@
   },
   "remaining": "Fresh composition compilation, then actual Competition browser/HTTP; retained native evidence is not current hosted acceptance.",
   "nativeHost": "HotspotHttpNative",
-  "nativeMode": "competition-browser",
+  "nativeMode": "competition-publisher",
   "portal": "185f8bed4013b5be7ddc7837a348d1b3a85b0de8"
 }

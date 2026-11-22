@@ -36,7 +36,7 @@ Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
 var mode = Environment.GetEnvironmentVariable("OASIS_HOTSPOT_HTTP_MODE") ?? "binding";
-Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser", "Unsupported hotspot HTTP check mode.");
+Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher", "Unsupported hotspot HTTP check mode.");
 var dna = new OASISDNA { OASIS = new() {
     HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
         AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
@@ -55,9 +55,14 @@ try
 {
     var active = await provider.ActivateProviderAsync(); Require(!active.IsError, active.Message);
     var actor = Guid.NewGuid();
-    foreach (var account in new[] {
+    var wizardActor = Guid.NewGuid();
+    var accounts = new List<Avatar> {
         new Avatar { Id = actor, Username = "http-" + actor.ToString("N"), Email = actor.ToString("N") + "@example.test", AvatarType = new EnumValue<AvatarType>(AvatarType.User) },
-        new Avatar { Id = Guid.NewGuid(), FirstName = "OASIS", LastName = "SYSTEM", Username = "root", Email = "anorak@oasisomniverse.one", AvatarType = new EnumValue<AvatarType>(AvatarType.System) } })
+        new Avatar { Id = Guid.NewGuid(), FirstName = "OASIS", LastName = "SYSTEM", Username = "root", Email = "anorak@oasisomniverse.one", AvatarType = new EnumValue<AvatarType>(AvatarType.System) } };
+    if (mode == "competition-publisher") accounts.Add(new Avatar { Id = wizardActor,
+        Username = "wizard-" + wizardActor.ToString("N"), Email = wizardActor.ToString("N") + "@example.test",
+        AvatarType = new EnumValue<AvatarType>(AvatarType.Wizard) });
+    foreach (var account in accounts)
     {
         account.IsActive = true; account.Version = 1; account.VersionId = Guid.NewGuid(); account.CreatedDate = DateTime.UtcNow;
         var saved = await provider.SaveAvatarAsync(account); Require(!saved.IsError, "Owned actor seed failed: " + saved.Message);
@@ -185,7 +190,54 @@ try
         using var result = JsonDocument.Parse(resultText);
         Require(result.RootElement.GetProperty(resultProperty).GetBoolean(), "Owned browser completion marker missing.");
     }
-    if (mode == "competition-browser")
+    if (mode == "competition-publisher")
+    {
+        var leagueId = Guid.NewGuid(); var tournamentId = Guid.NewGuid(); var now = DateTime.UtcNow;
+        var leaguePayload = new[] { new NextGenSoftware.OASIS.API.Core.Objects.League {
+            Id = leagueId, Name = "Owned HTTP published league", MinScore = 0, MaxScore = 100, IsActive = true } };
+        var tournamentPayload = new NextGenSoftware.OASIS.API.Core.Objects.Tournament {
+            Id = tournamentId, Name = "Owned HTTP published tournament", CompetitionType = CompetitionType.Karma,
+            Status = NextGenSoftware.OASIS.API.Core.Objects.TournamentStatus.Registration,
+            StartDate = now.AddHours(2), EndDate = now.AddHours(3),
+            RegistrationStart = now.AddHours(-1), RegistrationEnd = now.AddHours(1), MaxParticipants = 2,
+            CreatedBy = actor };
+        async Task PutPublication(string path, object payload, HttpStatusCode expectedStatus)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Put, path) {
+                Content = new StringContent(JsonConvert.SerializeObject(payload), System.Text.Encoding.UTF8, "application/json") };
+            using var response = await http.SendAsync(request);
+            Require(response.StatusCode == expectedStatus, "Publisher permission outcome differed: " + path + ": " + response.StatusCode);
+            using var result = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Require(result.RootElement.GetProperty("isError").GetBoolean() == (expectedStatus != HttpStatusCode.OK),
+                "Publisher response did not preserve its actual permission outcome.");
+            if (expectedStatus == HttpStatusCode.OK)
+                Require(result.RootElement.GetProperty("isSaved").GetBoolean(), "Publisher save was not acknowledged.");
+        }
+        foreach (var status in new[] { HttpStatusCode.Forbidden, HttpStatusCode.Unauthorized })
+        {
+            if (status == HttpStatusCode.Unauthorized) http.DefaultRequestHeaders.Authorization = null;
+            await PutPublication("/api/competition/leagues/Karma/Yearly", leaguePayload, status);
+            await PutPublication("/api/competition/tournaments", tournamentPayload, status);
+        }
+        var data = new HolonManager(provider, dna, ProviderManager.Instance);
+        var deniedLeagues = await CompetitionManager.ForData(data).GetAvailableLeaguesAsync(CompetitionType.Karma, SeasonType.Yearly);
+        var deniedTournaments = await CompetitionManager.ForData(data).GetActiveTournamentsAsync(CompetitionType.Karma);
+        Require(!deniedLeagues.IsError && deniedLeagues.Result.Count == 0 && !deniedTournaments.IsError && deniedTournaments.Result.Count == 0,
+            "Rejected publisher calls changed the stored catalogues.");
+        var wizardJwt = new JwtSecurityToken(claims: new[] { new Claim("sub", wizardActor.ToString("D")) },
+            expires: DateTime.UtcNow.AddMinutes(5), signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
+        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", new JwtSecurityTokenHandler().WriteToken(wizardJwt));
+        await PutPublication("/api/competition/leagues/Karma/Yearly", leaguePayload, HttpStatusCode.OK);
+        await PutPublication("/api/competition/tournaments", tournamentPayload, HttpStatusCode.OK);
+        var leagues = await CompetitionManager.ForData(data).GetAvailableLeaguesAsync(CompetitionType.Karma, SeasonType.Yearly);
+        var tournaments = await CompetitionManager.ForData(data).GetActiveTournamentsAsync(CompetitionType.Karma);
+        Require(!leagues.IsError && leagues.Result.Count == 1 && leagues.Result[0].Id == leagueId,
+            "Wizard league acknowledgement did not reach native storage.");
+        Require(!tournaments.IsError && tournaments.Result.Count == 1 && tournaments.Result[0].Id == tournamentId &&
+            tournaments.Result[0].CreatedBy == wizardActor, "Wizard tournament writer was not bound to the authenticated actor.");
+        Console.WriteLine("COMPETITION_PUBLISHER_HTTP_PROOF: real MVC/native Mongo two anonymous401, two non-Wizard403, two Wizard acknowledged publications; denied calls left native catalogues empty and actual Wizard writer persisted. Browser/full Startup/SSO/hosted excluded.");
+    }
+    else if (mode == "competition-browser")
     {
         var data = new HolonManager(provider, dna, ProviderManager.Instance);
         var competition = CompetitionManager.ForData(data);
