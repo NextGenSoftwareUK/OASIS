@@ -1,0 +1,38 @@
+{
+  "source": "70b592e7e39cfe4d8439db74998ce59660333862",
+  "core": "04e34151e0b0581f9c60d1508413c628e2f30846",
+  "run": 45062660975,
+  "job": 137331810913,
+  "artifact": 14770442483,
+  "archiveBytes": 4581,
+  "archiveSha256": "0a33b098081379d7187c92fa089a0093b0230d9034fa98ba007c2d23efa8ff6b",
+  "reports": {
+    "Mongo.trx": {
+      "passed": 2,
+      "failed": 0
+    },
+    "SQLite.trx": {
+      "passed": 1,
+      "failed": 0
+    },
+    "Neo4j.trx": {
+      "passed": 1,
+      "failed": 0
+    }
+  },
+  "nativeAccepted": true,
+  "scope": [
+    "GroupJoin Count/LongCount/Any",
+    "anonymous reselection",
+    "independent parent identities",
+    "complete and empty matching collections",
+    "native group pages",
+    "existing whole-parent regression"
+  ],
+  "ownedFixturesAbsent": true,
+  "ownedMongoStopped": true,
+  "sharedDatabaseCalls": 0,
+  "deployed": false,
+  "fullGroupJoinParity": false,
+  "artifactSavedToDisk": false
+}
