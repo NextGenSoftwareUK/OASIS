@@ -1,0 +1,18 @@
+{
+  "core": "32fbf1bfd1e990b3119423bc024e149162d76d3e",
+  "priorCore": "34848a57c2b165696bdeda91d26e0a7cddd273c8",
+  "changedFiles": [
+    "Queries/CosmicLinq.SelectMany.cs",
+    "Queries/CosmicLinq.GroupJoin.cs"
+  ],
+  "nativeAccepted": false,
+  "parentPinned": true,
+  "existingWholeParentGroupsPreserved": true,
+  "applicationDelegatesCompiled": false,
+  "deployed": false,
+  "parentSource": "f29262d8b6df380e0d267228d92508e4da393561",
+  "nativeRun": 45040193368,
+  "nativeJob": 137262684307,
+  "dependencyRun": 45040193341,
+  "redundantRunsCancelled": 19
+}
