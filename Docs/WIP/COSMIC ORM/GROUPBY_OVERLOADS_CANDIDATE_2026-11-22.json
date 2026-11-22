@@ -6,8 +6,8 @@
   "basicGroupingRegressionRun": 45069293947,
   "basicGroupingRegressionJob": 137352426771,
   "dependencyRun": 45068570872,
-  "phase": "native_and_changed_basic_regression_running",
-  "nativeAccepted": false,
+  "phase": "native_and_changed_basic_regression_accepted",
+  "nativeAccepted": true,
   "deployed": false,
   "unrelatedOwnedRunsTerminalCancelled": [
     45068570850,
@@ -31,5 +31,6 @@
     45068570771
   ],
   "sharedBackendCalls": 0,
-  "localBuildOrEnvironment": false
+  "localBuildOrEnvironment": false,
+  "basicGroupingRegressionAccepted": true
 }

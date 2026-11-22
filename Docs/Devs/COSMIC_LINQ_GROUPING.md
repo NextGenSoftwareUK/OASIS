@@ -41,6 +41,41 @@ rather than source entities. Anonymous reselection is supported before HAVING,
 ordering or paging. Scalar key domains, aggregate domains and resource limits
 remain subject to the actual provider's admission contract.
 
+## Element and result-selector overloads
+
+Standard key-plus-element, key-plus-result and key-plus-element-plus-result
+overloads use the same native grouped planner. An element may be an admitted
+scalar path, the source entity identity, or a projection whose scalar fields
+can be bound without invoking DTO getters. Aggregate selectors over transparent
+anonymous elements are substituted back to their original source columns.
+
+    var summary = source.GroupBy(
+        entity => entity.Description,
+        entity => entity.Version,
+        (category, versions) => new
+        {
+            Category = category,
+            Records = versions.LongCount(),
+            VersionTotal = versions.Sum()
+        })
+        .Where(row => row.Records > 1)
+        .OrderBy(row => row.Category)
+        .Take(10);
+
+    var result = await summary.ToCosmicListAsync(cancellationToken);
+
+C# grouping comprehensions use this same path:
+
+    var summary =
+        from entity in source
+        group entity.Version by entity.Description into versions
+        select new { Category = versions.Key, Total = versions.Sum() };
+
+The source window remains before grouping; HAVING, ordering and paging remain
+after reduction. Element functions without native grouping admission and custom
+comparers return explicit errors. Raw IGrouping member materialization is a
+separate unfinished feature.
+
 ## Parent records and matching collections
 
     var parentsWithMatches = parents.GroupJoin(
@@ -104,7 +139,7 @@ invoked during query translation.
 This is scoped grouped-query support, not complete EF/NHibernate parity.
 
 - Materializing raw entity IGrouping collections is not implemented.
-- GroupBy element/result-selector and custom-comparer overloads are not admitted.
+- Custom grouping comparers and computed element functions need independent native admission.
 - GroupJoin binds at most 32 admitted parent fields, collections or summaries. Nested executable expressions require further admission.
 - Predicate aggregates and arbitrary computed aggregate expressions need native admission.
 - LINQ integer Average returns double; the existing grouped integer Average contract
@@ -120,4 +155,5 @@ Representative native evidence and deployment status are recorded separately:
 [GroupJoin acceptance](../WIP/COSMIC%20ORM/GROUPED_SUMMARY_NATIVE_ACCEPTANCE_2026-11-22.json),
 [LINQ grouping acceptance](../WIP/COSMIC%20ORM/LINQ_GROUPBY_NATIVE_ACCEPTANCE_2026-11-22.json),
 [typed GroupJoin acceptance](../WIP/COSMIC%20ORM/TYPED_GROUPJOIN_NATIVE_ACCEPTANCE_2026-11-22.json),
+[grouping overload acceptance](../WIP/COSMIC%20ORM/GROUPBY_OVERLOADS_NATIVE_ACCEPTANCE_2026-11-22.json),
 and [current delivery status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md).
