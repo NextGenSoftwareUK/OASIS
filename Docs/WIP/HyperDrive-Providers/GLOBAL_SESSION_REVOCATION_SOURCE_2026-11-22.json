@@ -15,5 +15,10 @@
   "capability": "Get sessions advertises admitted-authorities-v1 only with valid configured policy; historical fake server responses do not carry this marker.",
   "refresh": "Global cutoff enforced by refresh credential lookup as well as access validation and list status.",
   "cutoff": "Global writes acknowledge monotonic UTC cutoff even with no active credentials on an existing account; protects against in-flight stale-version login and refresh.",
-  "portal": "57422d7"
+  "portal": "57422d7",
+  "rootCandidate": "3d787db8626160c8a79ac9cd4dd156802c70a98c",
+  "rootBase": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
+  "rootTag": "qualification/global-session-http-2026-11-22-3d787db8",
+  "qualification": "New focused session-global-http mode prepared; unrun.",
+  "managerInventory": "934 methods retained; one SaveAvatarAsync signature removes async keyword for shared private implementation; no added/removed public declarations."
 }

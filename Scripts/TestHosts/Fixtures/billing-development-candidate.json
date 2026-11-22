@@ -1,20 +1,12 @@
 {
   "scope": "billing",
-  "status": "Corrected session identity assertion on current shared dependencies; build/runtime pending",
+  "status": "Real global revoke native HTTP check pending; current configured SSO authority policy enforced",
   "base": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
-  "candidate": "1516c74e50e3d26a22ea9cab1684af4049b2ad36",
-  "tag": "qualification/session-current-2026-11-22-1516c74e",
-  "buildProjects": [
-    "WEB4",
-    "WEB5",
-    "WEB6",
-    "WEB7",
-    "WEB8",
-    "WEB9",
-    "WEB10"
-  ],
+  "candidate": "3d787db8626160c8a79ac9cd4dd156802c70a98c",
+  "tag": "qualification/global-session-http-2026-11-22-3d787db8",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
     "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
     "OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/MongoSqliteRealProviderRoutingTests.LoginFailover.cs",
     "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/AvatarLoginTests.cs",
@@ -31,7 +23,11 @@
     "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Middleware/JwtMiddleware.cs",
     "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Program.cs"
   ],
+  "buildProjects": [
+    "WEB4",
+    "WEB5"
+  ],
   "nativeHost": "HotspotHttpNative",
-  "nativeMode": "mfa-middleware-http",
-  "remaining": "One leased actual seven-API compile and35bounded HTTP middleware cases; no email, Stripe, shared Atlas or accepted provider cohorts."
+  "nativeMode": "session-global-http",
+  "remaining": "One bounded real Mongo/SQLite HTTP global-revocation flow including actual native paused-authority incomplete outcome; no accepted35case replay, no browser/hosted acceptance."
 }
