@@ -1102,9 +1102,16 @@
     "correctedRun": {
       "id": 44985151774,
       "control": "4dd759d98212b527dc231d9b1d3530d7bfe5b9c7",
-      "status": "in_progress",
-      "mode": "billing-warning-provider"
+      "status": "completed",
+      "mode": "billing-warning-provider",
+      "conclusion": "success",
+      "job": 137093990560,
+      "buildErrors": 0,
+      "buildElapsed": "00:04:17.55",
+      "proof": "Real pinned Resend SDK one controlled sink submission plus identical replay, same nonempty actual provider ID, immutable payload and durable native acknowledgement readback passed.",
+      "cleanup": "Owned database/tempDNA/container absence verified."
     },
-    "currentSecretState": "Prior run secrets deleted/absence verified; restaged from dev for corrected bounded run under existing H1 authorization. Both metadata verified22November04:27UTC; remove both after terminal corrected run and verify absence."
+    "currentSecretState": "Both temporary CI secrets deleted after successful corrected run; exact-name GET404absence verified. No deployment secret changed.",
+    "scope": "Provider acceptance and idempotent replay accepted; not real inbox delivery, enabled Portal browser, full Startup or hosted acceptance."
   }
 }

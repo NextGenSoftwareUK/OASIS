@@ -21,7 +21,7 @@ Last updated 18 November 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (me
 | 7 | Older items: phone tests, WSL disk, Vercel branch check, oasisweb4 site decision, iOS runtime script, Git LFS budget, upstream Holochain PRs | D |
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 | 11 | Choose a Windows maintenance window for high AppX/Windows AI memory use | G |
-| H1 | Owner authorization complete; temporary secrets removed; provider fix is agent-owned | H |
+| H1 | Complete: real-provider replay accepted; temporary secrets removed/absence verified | H |
 
 ---
 
@@ -840,7 +840,7 @@ HD-CLOUD-READINESS: Cloud readiness requirements: the newer CQL chat titled Clou
 
 ## Part H — Isolated warning-email provider verification (21 November 2026)
 
-- **H1 — Owner decision complete; test executed and temporary secrets removed; agent fix pending (21 November 2026).** The new OPORTAL warning action is implemented and compiled; real Mongo event persistence, current HTTP capability/disabled/anonymous checks and cleanup have passed. Real Resend acceptance and the enabled button flow are still unverified. Read-only selected configuration confirms dev WEB4 has a Resend key, warning emails enabled and email not globally disabled. The OASIS GitHub repository has no Resend/email-test secret; no credential value was printed or copied.
+- **H1 — Complete: corrected real-provider verification accepted and temporary secrets removed (21 November 2026).** The new OPORTAL warning action is implemented and compiled; real Mongo event persistence, current HTTP capability/disabled/anonymous checks and cleanup have passed. Real Resend acceptance and the enabled button flow are still unverified. Read-only selected configuration confirms dev WEB4 has a Resend key, warning emails enabled and email not globally disabled. The OASIS GitHub repository has no Resend/email-test secret; no credential value was printed or copied.
 - **Decision/steps:** either add a dedicated scoped Resend test credential as GitHub Actions secret `OASIS_WARNING_TEST_RESEND_KEY` in [OASIS repository secrets](https://github.com/NextGenSoftwareUK/OASIS/settings/secrets/actions), or authorize the agent to stage the existing dev Resend credential in that isolated test secret. Do not paste the key in chat. The test must use the provider's controlled test recipient, never a real user, one bounded new submission and an identical idempotent replay, owned loopback Mongo only, no shared Atlas/auth/payment operations. Remove the temporary CI secret after accepted verification if it is not retained for a designated reusable test environment.
 - **Reason:** the native runner currently cannot access an approved provider credential. Moving the existing deployment credential into CI changes its access scope and requires this owner decision. No live-node email/DNA setting change is needed.
 - **Agent-owned follow-up:** prepare exact credential-safe runner/recipient/source, verify actual provider ID and durable acknowledgement, exercise the enabled OPORTAL control, keep provider acceptance distinct from inbox delivery, and clean up. Engineering and runner work is not David's task.
@@ -851,3 +851,5 @@ H1 execution update: existing dev credential and configured sender staged in OAS
 H1 terminal/cleanup:44984161552/job137090971079 built0errors then exposed a real SDK/HttpClient lifecycle fault; full provider replay not accepted. Both temporary CI secrets were deleted immediately afterward and exact-name404absence verified. Shipping gateway fix is agent-owned; David has no new action. Existing authorization covers the same bounded controlled-recipient verification after correction; restage only for that run and remove afterward.
 
 H1 corrected verification: root SDK lifecycle fix frozen fbe6c724;44985151774/control4dd759d982 active. Existing owner authorization reused for the same bounded controlled-recipient test. Both temporary secrets restaged04:27UTC after prior absence verification; agent must delete/verify absence again after terminal run. No new David action.
+
+H1 completed: corrected44985151774/job137093990560 SUCCESS,0error4m17.55 build; real controlled-sink SDK submission+identical provider-ID replay/native acknowledgement passed. Both temporary CI secrets deleted and exact-name404absence verified after run. No deployment credential changed. Inbox delivery, enabled OPORTAL browser and hosted acceptance remain separate engineering work. No David action remains for H1.
