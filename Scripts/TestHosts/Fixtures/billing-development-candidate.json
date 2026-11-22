@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "reviewed-source-awaiting-compile",
+  "status": "compile-errors-corrected-awaiting-http-build",
   "base": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
-  "candidate": "0b819b4082f3c976d80cfa721113fd7de019c2e0",
-  "tag": "qualification/billing-inventory-2026-11-21-0b819b40",
+  "candidate": "12045e8dd6116a589a9c1d39108f9134c14fa77d",
+  "tag": "qualification/billing-composition-2026-11-21-12045e8d",
   "buildProjects": [
     "WEB4"
   ],
@@ -16,6 +16,7 @@
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionNotificationController.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionUsageSeriesController.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppAccounts.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppBillingConsent.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppOveragePrices.cs",
@@ -41,6 +42,8 @@
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionAdminModels.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionModels.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionUsageModels.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageSeries.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
     "Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1",
     "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
   ],
