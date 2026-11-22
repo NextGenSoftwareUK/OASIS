@@ -16,6 +16,20 @@
   "compiled": false,
   "deployed": false,
   "nativeEvidenceRetained": true,
-  "compositionPhase": "prepared_not_dispatched",
-  "goalComplete": false
+  "compositionPhase": "dispatch_acknowledged",
+  "goalComplete": false,
+  "control": "43685080cd9a46f5a37cf61c0a4080c70b49c570",
+  "priorRunIds": [
+    45014425835,
+    45009513105,
+    45005838375,
+    44999417026,
+    44998378698,
+    44995661351,
+    44993122409
+  ],
+  "requestedAt": "2026-11-22T13:13:02.965636+00:00",
+  "run": 45026522187,
+  "status": "in_progress",
+  "conclusion": null
 }
