@@ -89,7 +89,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 Assert.Equal(temp,Directory.GetParent(Path.GetFullPath(directory.FullName))!.FullName);
                 Assert.StartsWith("oasis-collection-authority-",directory.Name);
                 directory.Delete(recursive:true);
-                Assert.False(directory.Exists);
+                Assert.False(Directory.Exists(directory.FullName));
             }
         }
     }
