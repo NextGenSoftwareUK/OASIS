@@ -36,7 +36,7 @@ Website **475a4ff37426c066ba4dea10a45e317276083bb1** enrolls mapped row CASE/tex
 
 [Exact preview source proof](MAPPED_COMPUTED_PREVIEW_SOURCE_ACCEPTANCE_2026-11-22.json): dpl_ARg3SjK7aoFJhmHgFGpmq7nFmahr serves matching compiler/Ask bytes. This is not rendered-browser, real WEB6 inference, public website promotion or live mapped-backend acceptance. Grouped computed expressions remain refused.
 
-Prepared hosted verifier: Scripts/Sandbox/Verify-HostedUnfilteredMapping.py --computed-rows --website475a4ff3, with exact deployment/source arguments. It requires native/composition/package acceptance before issuing any visitor. It uses randomized logical aliases over approved read-only sample fields, one private mapping and full Holon/provider, immutable checkpoints, paced capped calls and conditional cleanup. Three exact SQL captures and Python AST passed offline. It has **not run**. Reconcile original outcomes rather than recreating fixtures.
+Prepared hosted verifier: Scripts/Sandbox/Verify-HostedUnfilteredMapping.py --computed-rows --website 475a4ff37426c066ba4dea10a45e317276083bb1, with exact deployment/source arguments. It requires native/composition/package acceptance before issuing any visitor. It uses randomized logical aliases over approved read-only sample fields, one private mapping and full Holon/provider, immutable checkpoints, paced capped calls and conditional cleanup. Three exact SQL captures and Python AST passed offline. It has **not run**. Reconcile original outcomes rather than recreating fixtures.
 
 ## Coordination and deployment
 
