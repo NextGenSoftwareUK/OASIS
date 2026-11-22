@@ -791,6 +791,22 @@
         "Hosted acceptance"
       ],
       "externalEmailCalls": 0
+    },
+    "eventStoreSource": {
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.WarningEmails.cs",
+      "status": "implemented-source-only-uncompiled-unwired",
+      "invariants": [
+        "Same existing notification collection; bounded separate warning namespace, no new database/collection/index.",
+        "Database/subject/month/threshold derives stable event UUID; atomic insert-only payload preserves exact original recipient/content/time across attempts.",
+        "Preparation leaves provider acknowledgement null; only nonempty provider ID can acknowledge, same acknowledgement idempotent, mismatch refused.",
+        "Get by event ID supports explicit reconciliation without blind resend."
+      ],
+      "remaining": [
+        "Native persistence/immutability/acknowledgement verification",
+        "Consent revalidation and bounded dispatch integration",
+        "Compile and real SDK verification",
+        "Retention policy and hosted acceptance"
+      ]
     }
   },
   "sharedDevelopmentReview": {
