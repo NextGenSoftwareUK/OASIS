@@ -11,7 +11,7 @@
   "requestDetached": true,
   "sourceAdmissionProfileUpdated": true,
   "deployedAdmissionUpdated": false,
-  "qualificationSource": "4e02211d1725ce47b2bfaf759be4467a2b4c23c6",
+  "qualificationSource": "b3ea94c01cd75e7ec93105abec7d08cb909fcf61",
   "workflow": "qualify-cql-set-web4.yml",
   "cases": 7,
   "automaticRunExpected": true,
@@ -27,10 +27,17 @@
       "source": "4236d459f2089ce45f5b4415cb682479f7c06d59",
       "reason": "CS0117: linked test host included controller but omitted new CqlSetV1Endpoint.cs",
       "testsExecuted": 0
+    },
+    {
+      "run": 44966062642,
+      "job": 137035250119,
+      "reason": "DTO extraction selected adjacent CqlV1JoinOrder instead of intended source; duplicate declaration/missing set source; before tests",
+      "testsExecuted": 0
     }
   ],
-  "priorRun": 44966062642,
-  "priorQualificationSource": "f0928cdbe3488b7e3324ef1685af9a1345ae2953",
+  "priorRun": 44966225846,
+  "priorQualificationSource": "4e02211d1725ce47b2bfaf759be4467a2b4c23c6",
   "concatWireOwnerFixed": true,
-  "run": 44966225846
+  "sourceDtoCorrected": true,
+  "run": 44966359788
 }
