@@ -15,5 +15,13 @@
   },
   "replayPolicy": "Retain accepted preference tests; select only changed current session/checkout flow and required gates",
   "sourcePreservation": "Current shared personal-overage cap fix and dependency pins retained; no Development deployment or shared checkout mutation",
-  "status": "Prepared; not compiled/native/browser/Stripe/deployment accepted"
+  "status": "Prepared; not compiled/native/browser/Stripe/deployment accepted",
+  "qualification": {
+    "run": 45074820751,
+    "job": 137369608518,
+    "build": "0errors5m39.55",
+    "runtime": "First native SQLite absence assertion failed; no session/logout acceptance",
+    "cleanup": "Owned SQLite directory, Mongo DB, temporary DNA and container absent verified"
+  },
+  "sourceIdentityClarification": "Earlier matching compared canonical task Git blobs with accepted source, while imported physical files could differ in CRLF encoding. New ee45a8ce candidate references exact accepted guard Git objects and verifies candidate blob equality; no changed guard semantics or preference rerun."
 }

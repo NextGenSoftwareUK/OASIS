@@ -2919,3 +2919,7 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 
 ### 2026-11-22 — runtime-only Mongo credential mapping
 - Extended existing Core runtime/navigation BSON convention to refresh-token value objects. Prepared one raw BSON field-contract assertion in the already owned Mongo fixture; only token fields projected and no values printed. Reuses existing client/database, no new environment/database/client runtime or local artifacts. Source only; no Mongo/Stripe/shared service invocation in this turn.
+
+### 2026-11-22 — canonical native contract candidate
+- Composed ee45a8ce using only three scoped provider patches, committed checkout code and exact previously accepted guard Git objects. Canonical source guard equality checked on the candidate itself; no physical checkout replacement. Owned temporary index removed in finally. Paired pins verified.
+- No local build, runtime, database, new worktree/environment, download/log archive or test results created. Prior45074820751 terminal cleanup verified; next dispatch only after publishing current control source.

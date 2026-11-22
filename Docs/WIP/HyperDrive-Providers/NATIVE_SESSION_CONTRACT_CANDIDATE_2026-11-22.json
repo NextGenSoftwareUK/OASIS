@@ -1,0 +1,17 @@
+{
+  "candidate": "ee45a8ce74a1916fce4ce25db4b4e63b374c569e",
+  "base": "aa6f1cb26d8b8a9393d8ca440bdd140c4162a239",
+  "sourceReview": "Applied only three scoped provider patches through a private index; latest committed checkout source imported; accepted guard blobs are exact Git objects, not physical CRLF copies.",
+  "acceptedGuardBlobs": {
+    "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/AccountSaveRevision.cs": "d57c3a3328c83aa90e3ffb443d287dd6d49284bd",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoNativeRecordWriter.cs": "efc8314497ed57be778b367d21722ae313f9702b",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.IdentitySave.cs": "fec5f294dcb9b3f92e41cbadb8d4c0cdf1fe0797"
+  },
+  "retainedEvidence": [
+    44659888087,
+    44661680570,
+    45061982715
+  ],
+  "status": "Prepared; native/billing/browser/Stripe/deployment acceptance not claimed",
+  "cleanup": "Private index removed in finally; no worktree, environment, build, database or download."
+}

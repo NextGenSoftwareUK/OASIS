@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "Complete session/list/assessment/checkout recovery with reviewed account-save dependency closure on current Development; pending verification",
+  "status": "Corrected real native absence and BSON runtime contract, plus atomic checkout reservation on existing current-base source; pending qualification",
   "base": "aa6f1cb26d8b8a9393d8ca440bdd140c4162a239",
-  "candidate": "0903b86778f1cf17b29fe0388a16888b7c2428ce",
-  "tag": "qualification/session-checkout-provider-closure-20261122",
+  "candidate": "ee45a8ce74a1916fce4ce25db4b4e63b374c569e",
+  "tag": "qualification/native-session-contracts-20261122",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
     "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
@@ -20,7 +20,9 @@
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.AccountClosure.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Checkout.cs",
     "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/AccountSaveRevision.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Infrastructure/Singleton/MongoProviderConventions.cs",
     "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoNativeRecordWriter.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/AvatarRepository.cs",
     "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.IdentitySave.cs",
     "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Entities/RefreshTokenModel.cs",
     "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Migrations/20261122000000_AddSessionAuthority.Designer.cs",
