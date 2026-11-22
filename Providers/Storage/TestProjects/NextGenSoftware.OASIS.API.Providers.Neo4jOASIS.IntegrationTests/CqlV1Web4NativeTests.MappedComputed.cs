@@ -59,7 +59,7 @@ public sealed partial class CqlV1Web4NativeTests
                 mp.NativeImportDatabaseName = nativeDb;
                 var collection = mongo.GetDatabase(nativeDb).GetCollection<BsonDocument>("items");
                 await collection.InsertManyAsync(rows.Select(row => {
-                    var doc = new BsonDocument("_id", (string)row["key"]!);
+                    var doc = new BsonDocument { { "_id", (string)row["key"]! }, { "key", (string)row["key"]! } };
                     foreach (var field in new[] { "stock", "text", "flag" })
                         doc.Add(field, row[field] == null ? BsonNull.Value : BsonValue.Create(row[field]));
                     return doc;
@@ -125,7 +125,7 @@ public sealed partial class CqlV1Web4NativeTests
             var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, actor, reader.NativeDataProviderType,
                 sourceName, VirtualHolonMapping.SandboxConnectionName, reader.DescribeVirtualQueryConnection(null),
                 new Dictionary<string, string> { ["stockAlias"]="stock", ["textAlias"]="text",
-                    ["flagAlias"]="flag", ["keyAlias"]=mp != null ? "_id" : sp != null ? "id" : "key" });
+                    ["flagAlias"]="flag", ["keyAlias"]=sp != null ? "id" : "key" });
             var request = new CqlProjectionV1Request {
                 VirtualMappingId=mapping.Id, OrderBy="Id", Take=10,
                 Columns=new[] {
