@@ -109,5 +109,109 @@
   "liveAccepted": false,
   "deployment": "e5d72385-ddfc-4cdb-a3fe-836c1540e0aa",
   "deploymentStatus": "QUEUED",
-  "deploymentCommit": "863bdc7de586be91c1ef2f053c3b30de43b2fd72"
+  "deploymentCommit": "863bdc7de586be91c1ef2f053c3b30de43b2fd72",
+  "nativeAccepted": true,
+  "nativeEvidence": [
+    {
+      "provider": "SQLLiteDBOASIS",
+      "source": "5d39eeddbc29f168d81e6a26af355f6531251605",
+      "core": "5240d3bd34d003407fe8b08070203e8d4efb5e1a",
+      "run": 45004657247,
+      "artifact": 14747698752,
+      "accepted": true,
+      "exactCleanupVerified": true,
+      "checks": 7,
+      "report": {
+        "provider": "SQLLiteDBOASIS",
+        "checks": 7,
+        "successfulHolonWrites": 4,
+        "rawNativeRecords": 3,
+        "queryElapsedMilliseconds": {
+          "computed": 21,
+          "request1": 520,
+          "request2": 34,
+          "request3": 22
+        },
+        "nativeProviderVerified": true,
+        "literalIdentityVerified": true,
+        "nullEmptyZeroVerified": true,
+        "invalidDomainPreserved": true,
+        "ownerRefusalVerified": true,
+        "noMaterializationVerified": true,
+        "nativeSourceUnchanged": true,
+        "mixedHttpVerified": true,
+        "staleCacheReconciled": true,
+        "computedGlobalPaging": true,
+        "exactCleanupVerified": true
+      }
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "source": "5d39eeddbc29f168d81e6a26af355f6531251605",
+      "core": "5240d3bd34d003407fe8b08070203e8d4efb5e1a",
+      "run": 45004657247,
+      "artifact": 14747698752,
+      "accepted": true,
+      "exactCleanupVerified": true,
+      "checks": 7,
+      "report": {
+        "provider": "Neo4jOASIS",
+        "checks": 7,
+        "successfulHolonWrites": 4,
+        "rawNativeRecords": 3,
+        "queryElapsedMilliseconds": {
+          "computed": 444,
+          "request1": 1603,
+          "request2": 78,
+          "request3": 41
+        },
+        "nativeProviderVerified": true,
+        "literalIdentityVerified": true,
+        "nullEmptyZeroVerified": true,
+        "invalidDomainPreserved": true,
+        "ownerRefusalVerified": true,
+        "noMaterializationVerified": true,
+        "nativeSourceUnchanged": true,
+        "mixedHttpVerified": true,
+        "staleCacheReconciled": true,
+        "computedGlobalPaging": true,
+        "exactCleanupVerified": true
+      }
+    },
+    {
+      "provider": "MongoDBOASIS",
+      "source": "c2c158a0bfaf446fe15e66d864a586bf897c167d",
+      "core": "1d627b36d81e53284a51455baca3e4c733a2b13a",
+      "run": 45010074469,
+      "artifact": 14750456409,
+      "accepted": true,
+      "exactCleanupVerified": true,
+      "checks": 7,
+      "report": {
+        "provider": "MongoDBOASIS",
+        "checks": 7,
+        "successfulHolonWrites": 4,
+        "rawNativeRecords": 3,
+        "queryElapsedMilliseconds": {
+          "computed": 57,
+          "request1": 491,
+          "request2": 56,
+          "request3": 37
+        },
+        "nativeProviderVerified": true,
+        "literalIdentityVerified": true,
+        "nullEmptyZeroVerified": true,
+        "invalidDomainPreserved": true,
+        "ownerRefusalVerified": true,
+        "noMaterializationVerified": true,
+        "nativeSourceUnchanged": true,
+        "mixedHttpVerified": true,
+        "staleCacheReconciled": true,
+        "computedGlobalPaging": true,
+        "exactCleanupVerified": true
+      }
+    }
+  ],
+  "nativeSourceEquivalentTo": "c25ce0b7ac7d6b1de734e31d7bbc2c706de7c384",
+  "nativeCoreUnchanged": true
 }
