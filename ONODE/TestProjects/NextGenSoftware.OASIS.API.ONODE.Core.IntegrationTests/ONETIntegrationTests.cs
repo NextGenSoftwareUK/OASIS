@@ -474,6 +474,14 @@ public class ONETIntegrationTests : IDisposable
 
             await mgr.StopNetworkAsync();
 
+            // The manager's known-peer file must not overwrite discovery's discovered-node cache (different schema).
+            System.IO.File.Exists(System.IO.Path.Combine(dataDir, "onet-known-peers.json")).Should().BeTrue();
+            var discovery = new ONETDiscovery(storageProvider: null, dna);
+            var loadPeerCache = (Task)typeof(ONETDiscovery)
+                .GetMethod("LoadPeerCacheAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+                .Invoke(discovery, null)!;
+            await loadPeerCache;
+
             // Fresh manager on same DataDirectory — file cache should survive.
             var dna2 = new OASISDNA();
             dna2.OASIS.DataDirectory = dataDir;
