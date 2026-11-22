@@ -48,5 +48,8 @@
       "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Middleware/JwtMiddleware.cs",
       "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Program.cs"
     ]
-  }
+  },
+  "qualificationRun": 45061982715,
+  "qualificationControl": "767dd9b8959afc704b4d504b35593d4b558c70bf",
+  "qualificationStatus": "in_progress; single dispatch reconciled; no acceptance yet"
 }
