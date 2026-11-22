@@ -4,9 +4,9 @@
   "run": 45072884018,
   "job": 137363581996,
   "dependencyRun": 45072884043,
-  "nativeAccepted": false,
+  "nativeAccepted": true,
   "deployed": false,
-  "phase": "qualification_queued",
+  "phase": "native_and_projection_warning_contract_accepted",
   "unrelatedOwnedRunsTerminalCancelled": [
     45072883938,
     45072884015,

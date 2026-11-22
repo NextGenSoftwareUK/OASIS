@@ -73,8 +73,39 @@ C# grouping comprehensions use this same path:
 
 The source window remains before grouping; HAVING, ordering and paging remain
 after reduction. Element functions without native grouping admission and custom
-comparers return explicit errors. Raw IGrouping member materialization is a
-separate unfinished feature.
+comparers return explicit errors. Projected-element grouping collections are described below; whole-entity
+snapshot collections remain unfinished.
+
+## Complete projected-element collections
+
+A grouping over scalar, anonymous or DTO elements can be materialized directly:
+
+    var groups = await source
+        .OrderBy(entity => entity.Name)
+        .GroupBy(
+            entity => entity.Description,
+            entity => new { entity.Name, entity.Version })
+        .ToCosmicListAsync(cancellationToken);
+
+    // Handle groups.IsError before iterating groups.Result.
+    // Each returned item is an IGrouping with its key and complete element list.
+
+Storage executes source filtering, ordering/windows and the typed key/element
+projection in one native query. Core constructs read-only grouping collections
+from the validated cells without invoking key or element delegates. Groups
+follow their first source occurrence; members retain native source order.
+
+Group and member/input limits are separate. The native projection rejects an
+input beyond 10,000 members; the combined key and element shape is bounded to
+32 scalar columns and the grouping payload budget. Exceeding a bound returns
+an error rather than a partial group. All cells and group-count limits pass
+before an application key/element constructor or setter runs. Warning packets
+cannot acknowledge complete native projection results.
+
+Whole-entity grouping collections need a native keyed snapshot path and remain
+unimplemented. This collection path currently materializes the captured root;
+additional operators on the raw grouped sequence need explicit group-member
+composition support.
 
 ## Parent records and matching collections
 
@@ -156,4 +187,5 @@ Representative native evidence and deployment status are recorded separately:
 [LINQ grouping acceptance](../WIP/COSMIC%20ORM/LINQ_GROUPBY_NATIVE_ACCEPTANCE_2026-11-22.json),
 [typed GroupJoin acceptance](../WIP/COSMIC%20ORM/TYPED_GROUPJOIN_NATIVE_ACCEPTANCE_2026-11-22.json),
 [grouping overload acceptance](../WIP/COSMIC%20ORM/GROUPBY_OVERLOADS_NATIVE_ACCEPTANCE_2026-11-22.json),
+[projected collection acceptance](../WIP/COSMIC%20ORM/PROJECTED_GROUP_MEMBERS_NATIVE_ACCEPTANCE_2026-11-22.json),
 and [current delivery status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md).
