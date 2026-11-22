@@ -591,5 +591,24 @@
       "compileRun": 44968824364,
       "fixtureReview": "Before execution, fixed invalid non-pooled free app seed to canonical enterprise non-pooled plan required by AppAccountRules.ValidateAppPlan. Notification ownership/persistence scope unchanged; no quota flags changed, no bypass."
     }
+  },
+  "warningEmailRootCause": {
+    "status": "implementation-open",
+    "existingFailure": "Legacy TryMarkNotifiedAsync marks before send; MaybeEmailAsync swallows failures. New read endpoint intentionally does not import this behavior.",
+    "pinnedSdk": "Resend 0.5.1 in Core project",
+    "verifiedSdkContract": "Task<ResendResponse<Guid>> EmailSendAsync(string idempotencyKey, EmailMessage email, CancellationToken cancellationToken = default)",
+    "sources": [
+      "https://raw.githubusercontent.com/resend/resend-dotnet/v0.5.1/src/Resend/IResend.cs",
+      "https://resend.com/docs/dashboard/emails/idempotency-keys"
+    ],
+    "requirements": [
+      "Persist one immutable warning event/payload and stable provider key before dispatch; pending is not sent.",
+      "Record provider acknowledgement ID only after acknowledged acceptance; surface explicit dispatch failure.",
+      "Respect subscriber/app-owner opt-outs and current ownership before dispatch.",
+      "Provider deduplication lasts 24 hours: ambiguous events outside that window must require reconciliation, never blind resend.",
+      "Reuse existing repository/secret configuration; avoid periodic shared-cluster scanning and sending email as an unbounded dashboard GET side effect."
+    ],
+    "externalEmailCalls": 0,
+    "changesToSdkOrSecrets": false
   }
 }
