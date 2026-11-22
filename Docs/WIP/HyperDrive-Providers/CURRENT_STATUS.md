@@ -1,3 +1,7 @@
+## 22 November: checkout native flow progressed; real failover next
+
+Run45079998287/job137385766897 compiled with zero errors and passed ACCOUNT_DEPENDENCY_NATIVE_PROOF, including actor-bound checkout recovery and atomic reservation. It then failed a fixture issuer-selection assumption: changing global CurrentStorageProvider does not change the configured login manager primary. The fixture now pauses only the validated owned CI Mongo for SQLite issuance, with unpause in finally. Run45080960598 is queued on control660a680bbc7, candidate97031a02 (billing admission source included). No paid Stripe, browser, hosted, full-account-deletion or complete-portal acceptance claimed. Prepared billing admission work is now committed; four unrelated dirty gitlinks remain unstaged. Previous run owned fixture removal succeeded.
+
 ## 22 November: checkout verification continues
 
 Native host authorization is now explicitly ordered after bearer authentication (control e1812c2c926). Run 45079998287 is in progress; prior run 45077616005 compiled successfully but stopped at checkout HTTP 401. No live deployment or full subscription acceptance claimed. Account billing-admission source remains uncommitted and excluded from this run. No shared Atlas calls, local builds, downloads or environments were created.

@@ -8,5 +8,7 @@
   "cleanup": "No local build/download/environment/test database or generated output.",
   "preparedCandidate": "97031a02b65d0e65ecf60db5e631afa1905ac4e9",
   "preparedTag": "qualification/account-billing-admission-20261122",
-  "composition": "Scoped source patches on ee45; preserved shared Startup registrations/CORS and existing shared subscription-model fields. Added only closure registration and model predicate/markers. Exact dependency manifest and diff whitespace checks passed. Not dispatched while prior job is running."
+  "composition": "Scoped source patches on ee45; preserved shared Startup registrations/CORS and existing shared subscription-model fields. Added only closure registration and model predicate/markers. Exact dependency manifest and diff whitespace checks passed. Not dispatched while prior job is running.",
+  "qualificationRun": 45080960598,
+  "qualificationState": "queued observed; acceptance not claimed"
 }
