@@ -630,7 +630,14 @@
         "hosted"
       ],
       "runningNotificationRunUnchanged": 44969526963,
-      "correction": "Uses actual GetAppForOwnerAsync with original owner before command and persisted new owner after command, no reflection/shim. Next sourcebcab also compiles new warning code; only unfinished admin flow selected."
+      "correction": "Uses actual GetAppForOwnerAsync with original owner before command and persisted new owner after command, no reflection/shim. Next sourcebcab also compiles new warning code; only unfinished admin flow selected.",
+      "retry": {
+        "id": 44971160162,
+        "control": "16d8bb5553c649241cad03bee16a5b89ceb1ce8a",
+        "candidate": "bcab1ce944485f78c352b764efc9214caafc69d0",
+        "status": "in_progress",
+        "mode": "billing-admin-http"
+      }
     },
     "currentDevelopmentComposition": {
       "source": "0a2cf8b41d553eb0029dadf576f06d4b2a33dfc3",
