@@ -106,7 +106,7 @@
       "deployments": [
         {
           "id": "483be539-a4ed-4f47-8b18-d37eca5ccf72",
-          "status": "QUEUED",
+          "status": "BUILDING",
           "source": "5633710e7c4b983053351ad3e88438558352cbef"
         },
         {
@@ -127,7 +127,7 @@
       "deployments": [
         {
           "id": "5a5bcd67-d92a-45bb-888c-d05914411075",
-          "status": "QUEUED",
+          "status": "BUILDING",
           "source": "5633710e7c4b983053351ad3e88438558352cbef"
         },
         {
@@ -148,12 +148,12 @@
       "deployments": [
         {
           "id": "1c4cbf51-ca08-4ec2-8285-822daeb74024",
-          "status": "BUILDING",
+          "status": "SUCCESS",
           "source": "5633710e7c4b983053351ad3e88438558352cbef"
         },
         {
           "id": "bd1ce2d7-a13f-4201-9471-d04a8678064e",
-          "status": "SUCCESS",
+          "status": "REMOVED",
           "source": "8931995b55b182dfcedc936d72c231936ae4c052"
         },
         {
@@ -169,12 +169,12 @@
       "deployments": [
         {
           "id": "260c1057-37d7-4a17-b8bc-fe68a60fd16d",
-          "status": "QUEUED",
+          "status": "SUCCESS",
           "source": "5633710e7c4b983053351ad3e88438558352cbef"
         },
         {
           "id": "61596eca-dba1-44a0-9885-46ccda472351",
-          "status": "SUCCESS",
+          "status": "REMOVED",
           "source": "8931995b55b182dfcedc936d72c231936ae4c052"
         },
         {
@@ -190,12 +190,12 @@
       "deployments": [
         {
           "id": "ca01590d-0faf-4336-9b0d-65838b22317f",
-          "status": "QUEUED",
+          "status": "SUCCESS",
           "source": "5633710e7c4b983053351ad3e88438558352cbef"
         },
         {
           "id": "8a6e4b86-c49f-4944-8c4d-35825df658eb",
-          "status": "SUCCESS",
+          "status": "REMOVED",
           "source": "8931995b55b182dfcedc936d72c231936ae4c052"
         },
         {
@@ -211,12 +211,12 @@
       "deployments": [
         {
           "id": "0a603ed5-ca31-4db2-bf0c-455803002115",
-          "status": "BUILDING",
+          "status": "SUCCESS",
           "source": "5633710e7c4b983053351ad3e88438558352cbef"
         },
         {
           "id": "ba99169a-f98d-410c-a5d9-533bd6ff2560",
-          "status": "SUCCESS",
+          "status": "REMOVED",
           "source": "8931995b55b182dfcedc936d72c231936ae4c052"
         },
         {
@@ -232,12 +232,12 @@
       "deployments": [
         {
           "id": "db72763b-15e5-495d-9b4b-5d4c370162cb",
-          "status": "BUILDING",
+          "status": "SUCCESS",
           "source": "5633710e7c4b983053351ad3e88438558352cbef"
         },
         {
           "id": "c09a8978-5c98-44f9-a1ec-62588fb19e76",
-          "status": "SUCCESS",
+          "status": "REMOVED",
           "source": "8931995b55b182dfcedc936d72c231936ae4c052"
         },
         {
@@ -248,5 +248,47 @@
       ]
     }
   ],
-  "rolloutObservedUtc": "2026-11-22T02:59:15.859135+00:00"
+  "rolloutObservedUtc": "2026-11-22T03:06:33.025090+00:00",
+  "startupDnaChecks": [
+    {
+      "service": "WEB7 SYMBIOTIC API",
+      "deployment": "1c4cbf51-ca08-4ec2-8285-822daeb74024",
+      "source": "5633710e7c4b983053351ad3e88438558352cbef",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB9 SINGULARITIY API",
+      "deployment": "260c1057-37d7-4a17-b8bc-fe68a60fd16d",
+      "source": "5633710e7c4b983053351ad3e88438558352cbef",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB10 THE SOURCE API",
+      "deployment": "ca01590d-0faf-4336-9b0d-65838b22317f",
+      "source": "5633710e7c4b983053351ad3e88438558352cbef",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB8 IGN API",
+      "deployment": "0a603ed5-ca31-4db2-bf0c-455803002115",
+      "source": "5633710e7c4b983053351ad3e88438558352cbef",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB5 STAR API",
+      "deployment": "db72763b-15e5-495d-9b4b-5d4c370162cb",
+      "source": "5633710e7c4b983053351ad3e88438558352cbef",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    }
+  ]
 }
