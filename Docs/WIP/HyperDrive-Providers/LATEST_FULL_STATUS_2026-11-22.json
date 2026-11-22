@@ -77,12 +77,11 @@
       "acceptance": "Not accepted; preserve previous 35 middleware passes without replay."
     },
     "currentFocusedRun": {
-      "run": 45074820751,
-      "control": "93daf739323f415647581266522d3c4ae9b9494e",
-      "candidate": "0903b86778f1cf17b29fe0388a16888b7c2428ce",
-      "status": "in_progress at actual checkout step; frozen candidate unchanged",
-      "scope": "Changed session/list/account-assessment/checkout journal/recovery/guard flow; accepted preference and35middleware cohorts retained without replay",
-      "job": 137369608518
+      "run": 45077616005,
+      "control": "e73dc8cac36fa64098851e229167f753d6acb087",
+      "candidate": "ee45a8ce74a1916fce4ce25db4b4e63b374c569e",
+      "status": "queued at dispatch; prior run terminal, one dispatch",
+      "scope": "Corrected missing-account/native BSON contracts and current session/checkout journey; retained35 middleware and accepted preference rows not replayed"
     },
     "preparationFailure": {
       "run": 45069521383,
@@ -110,6 +109,18 @@
       "buildElapsed": "5m59.08",
       "cause": "Composed SQLite source referenced existing declared-successor helper omitted from candidate; no native scenario executed",
       "correction": "Include accepted helper/Mongo/Neo source dependency closure, exact blob match to babfd2b5; preserve newer shared base"
+    },
+    "nativeAbsenceFailure": {
+      "run": 45074820751,
+      "job": 137369608518,
+      "build": "0errors5m39.55",
+      "failure": "Missing RecordNotFound at async SQLite GUID path; initial absence assertion, before sign-in",
+      "sourceFixes": [
+        "Two remaining SQLite absence branches",
+        "Mongo successful empty single-avatar queries",
+        "Core refresh-token runtime-only BSON member filter"
+      ],
+      "cleanup": "Owned SQLite directory/Mongo DB/temp DNA/container absence verified; Mongo not paused"
     }
   },
   "providers": {
@@ -155,6 +166,7 @@
       "recoverySource": "0f2efc4330e: pending list and canonical no-create recovery; uncompiled/unrun/undeployed and UI wiring pending",
       "portalSource": "4baca47 on dev; on-demand review/resume/cancel source wired; not browser/Stripe/deployed accepted",
       "reservationSource": "18b4ce801eb: transactional per-account reservation and terminal release, older-closure replay isolation; uncompiled/unrun/undeployed"
-    }
+    },
+    "admissionNext": "Source trace found existing per-subscription authorization version fence can be reused; admission-freeze implementation still pending. No new hot-path DB round trip proposed."
   }
 }
