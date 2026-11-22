@@ -13,11 +13,12 @@ internal sealed class MongoCqlCompositionCommand
     internal MongoCqlProjectionCommand Source { get; }
     internal BsonDocument[][] Stages { get; }
     internal BsonDocument[] Reduction { get; }
+    internal BsonDocument[] Rows { get; }
     internal BsonDocument[] Cardinality { get; }
     internal BsonDocument[] Numeric { get; }
     internal CosmicProjectedNumericIntent NumericIntent { get; }
-    internal MongoCqlCompositionCommand(MongoCqlProjectionCommand source, BsonDocument[][] stages, BsonDocument[] reduction = null, BsonDocument[] cardinality = null, BsonDocument[] numeric = null, CosmicProjectedNumericIntent numericIntent = null)
-    { Source = source; Stages = stages; Reduction = reduction; Cardinality = cardinality; Numeric = numeric; NumericIntent = numericIntent; }
+    internal MongoCqlCompositionCommand(MongoCqlProjectionCommand source, BsonDocument[][] stages, BsonDocument[] reduction = null, BsonDocument[] cardinality = null, BsonDocument[] numeric = null, CosmicProjectedNumericIntent numericIntent = null, BsonDocument[] rows = null)
+    { Source = source; Stages = stages; Reduction = reduction; Cardinality = cardinality; Numeric = numeric; NumericIntent = numericIntent; Rows = rows; }
 }
 
 internal sealed partial class MongoCqlTranslator
@@ -106,11 +107,43 @@ internal sealed partial class MongoCqlTranslator
             current.Add(new("$match", new BsonDocument("error", 0)));
             current.Add(new("$replaceRoot", new BsonDocument("newRoot", "$row")));
         }
+        var stages=CompileSelectedStages(query,current);
+        BsonDocument[] reduction = null;
+        if (terminal != null)
+        {
+            var pipeline = current.Select(step => (BsonDocument)step.DeepClone()).ToList();
+            pipeline.Add(new("$group", new BsonDocument
+            {
+                { "_id", BsonNull.Value }, { "selectedCount", new BsonDocument("$sum", 1) },
+                { "counterexamples", new BsonDocument("$sum", new BsonDocument("$cond", new BsonArray { SelectedPredicate(query,terminal), 0, 1 })) }
+            }));
+            ValidatePipeline(pipeline); reduction = pipeline.ToArray();
+        }
+        BsonDocument[] countPipeline = null;
+        if (cardinality)
+        {
+            var count = current.Select(step => (BsonDocument)step.DeepClone()).ToList();
+            count.Add(new("$facet", new BsonDocument("counts", new BsonArray { new BsonDocument("$count", "value") })));
+            count.Add(new("$project", new BsonDocument
+            {
+                { "_id", 0 }, { "selectedCount", new BsonDocument("$ifNull", new BsonArray
+                    { new BsonDocument("$arrayElemAt", new BsonArray { "$counts.value", 0 }), 0L }) }
+            }));
+            ValidatePipeline(count); countPipeline = count.ToArray();
+        }
+        return new MongoCqlCompositionCommand(command, stages, reduction, countPipeline,
+            numeric == null ? null : SelectedIntegerReduction(current, numeric), numeric,
+            current.Select(step=>(BsonDocument)step.DeepClone()).ToArray());
+
+    }
+    private BsonDocument[][] CompileSelectedStages<T,TResult>(CosmicProjectionQuery<T,TResult> query,
+        List<BsonDocument> current,bool occurrences=false) where T:IHolon
+    {
         var stages = new List<BsonDocument[]>();
         foreach (var stage in query.ResultStages)
         {
             if (stage is CosmicSelectedFilterStage filter)
-                current.Add(new("$match", new BsonDocument("$expr", Selected(filter.Predicate))));
+                current.Add(new("$match", new BsonDocument("$expr", SelectedPredicate(query,filter.Predicate))));
             else if (stage is CosmicSelectedOrderStage sorted)
             {
                 // Stable least-significant-first ordering avoids duplicate BSON
@@ -162,43 +195,21 @@ internal sealed partial class MongoCqlTranslator
             }));
             current.Add(new("$sort", new BsonDocument("rank", 1)));
             var output = current.Select(step => (BsonDocument)step.DeepClone()).ToList();
-            output.Add(new("$project", new BsonDocument { { "_id", 0 }, { "id", 1 }, { "rank", 1 }, { "stageCount", 1 } }));
+            output.Add(new("$project", occurrences
+                ? new BsonDocument{{"_id",0},{"side",1},{"index",1},{"rank",1},{"stageCount",1}}
+                : new BsonDocument{{"_id",0},{"id",1},{"rank",1},{"stageCount",1}}));
             ValidatePipeline(output); stages.Add(output.ToArray());
         }
-        BsonDocument[] reduction = null;
-        if (terminal != null)
-        {
-            var pipeline = current.Select(step => (BsonDocument)step.DeepClone()).ToList();
-            pipeline.Add(new("$group", new BsonDocument
-            {
-                { "_id", BsonNull.Value }, { "selectedCount", new BsonDocument("$sum", 1) },
-                { "counterexamples", new BsonDocument("$sum", new BsonDocument("$cond", new BsonArray { Selected(terminal), 0, 1 })) }
-            }));
-            ValidatePipeline(pipeline); reduction = pipeline.ToArray();
-        }
-        BsonDocument[] countPipeline = null;
-        if (cardinality)
-        {
-            var count = current.Select(step => (BsonDocument)step.DeepClone()).ToList();
-            count.Add(new("$facet", new BsonDocument("counts", new BsonArray { new BsonDocument("$count", "value") })));
-            count.Add(new("$project", new BsonDocument
-            {
-                { "_id", 0 }, { "selectedCount", new BsonDocument("$ifNull", new BsonArray
-                    { new BsonDocument("$arrayElemAt", new BsonArray { "$counts.value", 0 }), 0L }) }
-            }));
-            ValidatePipeline(count); countPipeline = count.ToArray();
-        }
-        return new MongoCqlCompositionCommand(command, stages.ToArray(), reduction, countPipeline,
-            numeric == null ? null : SelectedIntegerReduction(current, numeric), numeric);
-
-        BsonValue Selected(CosmicQueryPredicate predicate) => SelectedFilterPredicate(predicate, path =>
+        return stages.ToArray();
+    }
+    private BsonValue SelectedPredicate<T,TResult>(CosmicProjectionQuery<T,TResult> query,CosmicQueryPredicate predicate) where T:IHolon => SelectedFilterPredicate(predicate, path =>
         {
             var index = !path.IsMetadata && path.Segments.Count == 1
                 ? query.Columns.ToList().FindIndex(column => column.Alias == path.Segments[0] && column.ValueType == path.ValueType) : -1;
             if (index < 0) throw new NotSupportedException("Selected predicate must bind an exact selected scalar.");
             return Op("$ifNull", "$k" + index + ".value", Literal(BsonNull.Value));
         });
-    }
+
     // $documentNumber accepts only one sort field. A cumulative documents
     // window counts exact positions while retaining native compound tie keys.
     private static BsonDocument CompositionRank() => new()
