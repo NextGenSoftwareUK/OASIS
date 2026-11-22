@@ -20,6 +20,22 @@ helpers = runpy.run_path(str(ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py"))
 credentials = runpy.run_path(str(ROOT / "Scripts/Sandbox/HostedSessionCredentials.py"))
 
 
+def require_current_rollout(envelope, expected_id, expected_commit):
+    if envelope.get("errors"):
+        raise RuntimeError("Rollout observation failed; no acceptance recorded.")
+    data = envelope.get("data") or {}
+    deployment = data.get("deployment") or {}
+    serving = (data.get("serving") or {}).get("latestDeployment") or {}
+    for observed in (deployment, serving):
+        metadata = observed.get("meta") or {}
+        if isinstance(metadata, str):
+            metadata = json.loads(metadata)
+        if (observed.get("id") != expected_id or observed.get("status") != "SUCCESS"
+                or metadata.get("commitHash") != expected_commit):
+            raise RuntimeError("The expected successful revision is not the current deployment; no acceptance recorded.")
+    return {"deployment": expected_id, "source": expected_commit, "status": "SUCCESS"}
+
+
 def main():
     global WEBSITE
     parser = argparse.ArgumentParser(description=__doc__)
@@ -67,21 +83,19 @@ def main():
     helpers["require_new_fixture"](journal_path)
     # Verify rollout before creating an account or a data fixture.
     cfg = json.loads((Path.home() / ".railway/config.json").read_text())
-    query = {"query": "query($id:String!){deployment(id:$id){id status meta}}",
-             "variables": {"id": args.deployment}}
-    request = urllib.request.Request("https://backboard.railway.com/graphql/v2",
-        data=json.dumps(query).encode(), headers={"Content-Type": "application/json",
-        "Authorization": "Bearer " + cfg["user"]["token"], "User-Agent": "railway-cli/5.6.21"})
-    with urllib.request.urlopen(request, timeout=30) as response:
-        envelope = json.load(response)
-    if envelope.get("errors"):
-        raise RuntimeError("Rollout preflight failed; no demo request sent.")
-    deployment = envelope["data"]["deployment"]
-    metadata = deployment["meta"]
-    if isinstance(metadata, str):
-        metadata = json.loads(metadata)
-    if deployment["status"] != "SUCCESS" or metadata.get("commitHash") != args.commit:
-        raise RuntimeError("Wait for the exact successful rollout; no demo request sent.")
+    def verify_current_rollout():
+        query = {
+            "query": "query($id:String!,$serviceId:String!,$environmentId:String!){deployment(id:$id){id status meta} serving:serviceInstance(serviceId:$serviceId,environmentId:$environmentId){latestDeployment{id status meta}}}",
+            "variables": {"id": args.deployment,
+                "serviceId": "5123199a-43c4-4439-9921-e10e2aec7841",
+                "environmentId": "a31011a2-d047-4057-b5e8-57d52ebcfefe"}}
+        request = urllib.request.Request("https://backboard.railway.com/graphql/v2",
+            data=json.dumps(query).encode(), headers={"Content-Type": "application/json",
+            "Authorization": "Bearer " + cfg["user"]["token"], "User-Agent": "railway-cli/5.6.21"})
+        with urllib.request.urlopen(request, timeout=30) as response:
+            envelope = json.load(response)
+        return require_current_rollout(envelope, args.deployment, args.commit)
+    verify_current_rollout()
     state.mkdir(parents=True, exist_ok=True)
     mapping_id = str(uuid.uuid4())
     journal = {"schema": 1, "deployment": args.deployment, "source": args.commit,
@@ -393,11 +407,13 @@ def main():
     write()
     call("avatar/revoke-token", body={}, mutation=True)
     journal["sessionRevoked"] = True
-    journal["completed"] = True
     write()
-    # Retain compact non-secret evidence; remove owned sealed credentials after revocation.
+    # Remove owned sealed credentials even if the final serving-revision check refuses acceptance.
     for name in ("issuance.dpapi", "session.dpapi"):
         (state / name).unlink()
+    journal["finalRollout"] = verify_current_rollout()
+    journal["completed"] = True
+    write()
     print(json.dumps({"source": args.commit, "provider": provider, "mappingId": mapping_id,
         "calls": len(journal["calls"]), "mixedRowsReturned": len(rows),
         "computedFullVirtualQueryAccepted":journal.get("computedFullVirtualQueryAccepted",False),
