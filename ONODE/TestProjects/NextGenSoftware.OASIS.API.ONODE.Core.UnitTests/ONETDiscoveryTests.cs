@@ -116,6 +116,81 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests
             }
         }
 
+        private static async Task<string> WritePeerCacheAsync()
+        {
+            string dataDirectory = Path.Combine(Path.GetTempPath(), $"onet-kademlia-seed-{Guid.NewGuid():N}");
+            Directory.CreateDirectory(dataDirectory);
+            var cached = new System.Collections.Generic.Dictionary<string, DiscoveredNode>
+            {
+                ["peer-a"] = new DiscoveredNode { Id = "peer-a", Address = "10.0.0.1:9000" },
+                ["peer-b"] = new DiscoveredNode { Id = "peer-b", Address = "10.0.0.2:9000" },
+                ["local-node"] = new DiscoveredNode { Id = "local-node", Address = "10.0.0.9:9000" },
+            };
+            var save = await NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISPersistence
+                .SaveAsync(dataDirectory, "onet-peers.json", cached);
+            save.IsError.Should().BeFalse();
+            return dataDirectory;
+        }
+
+        private static KademliaRoutingTable GetKademliaTable(ONETDiscovery discovery)
+            => (KademliaRoutingTable)typeof(ONETDiscovery)
+                .GetField("_kademliaTable", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(discovery)!;
+
+        [Fact]
+        public async Task LoadPeerCacheAsync_AfterLocalIdentityFromDna_AddsCachedPeersToKademliaTable()
+        {
+            string dataDirectory = await WritePeerCacheAsync();
+            try
+            {
+                var dna = new OASISDNA { OASIS = { DataDirectory = dataDirectory } };
+                dna.OASIS.ONET = new ONETConfig { NodeId = "local-node", BootstrapServers = new() };
+                var discovery = new ONETDiscovery(storageProvider: null, dna);
+
+                await (Task)InvokePrivate(discovery, "LoadPeerCacheAsync");
+
+                var table = GetKademliaTable(discovery);
+                table.Count.Should().Be(2, "the local node is never its own Kademlia contact");
+                table.GetClosestNodes("peer-a", 1).Single().Address.Should().Be("10.0.0.1:9000");
+            }
+            finally
+            {
+                Directory.Delete(dataDirectory, recursive: true);
+            }
+        }
+
+        [Fact]
+        public async Task SetLocalNodeId_AfterPeerCacheLoaded_SeedsKademliaTable()
+        {
+            string dataDirectory = await WritePeerCacheAsync();
+            try
+            {
+                var dna = new OASISDNA { OASIS = { DataDirectory = dataDirectory } };
+                var discovery = new ONETDiscovery(storageProvider: null, dna);
+                await (Task)InvokePrivate(discovery, "LoadPeerCacheAsync");
+
+                discovery.SetLocalNodeId("local-node");
+
+                GetKademliaTable(discovery).Count.Should().Be(2);
+            }
+            finally
+            {
+                Directory.Delete(dataDirectory, recursive: true);
+            }
+        }
+
+        [Fact]
+        public async Task RegisterNodeAsync_OtherNode_DoesNotReplaceLocalIdentity()
+        {
+            var dna = new OASISDNA();
+            dna.OASIS.ONET = new ONETConfig { NodeId = "local-node", BootstrapServers = new() };
+            var discovery = new ONETDiscovery(storageProvider: null, dna);
+
+            await discovery.RegisterNodeAsync("some-other-node", "10.0.0.5:9000", new());
+
+            typeof(ONETDiscovery).GetField("_localNodeId", BindingFlags.NonPublic | BindingFlags.Instance)!
+                .GetValue(discovery).Should().Be("local-node");
+        }
+
         [Fact]
         public async Task RegisterNodeAsync_PeerCacheWriteFailure_ReturnsSuccessfulRegistrationWithWarning()
         {
