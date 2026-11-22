@@ -253,7 +253,7 @@ def main():
     result, _ = call(query["path"], body=query["body"])
     payload = result["result"]
     rows = payload.get("rows")
-    if not isinstance(rows, list) or len(rows) < 2:
+    if not isinstance(rows, list) or len(rows) < (1 if args.computed_rows else 2):
         raise RuntimeError("Expected populated mixed native/stored rows; preserve fixture for diagnosis.")
     journal["unfilteredSqlCompiled"] = True
     journal["mixedRowsReturned"] = len(rows)
