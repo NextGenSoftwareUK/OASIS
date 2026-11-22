@@ -1,4 +1,7 @@
 
+## 2026-11-22 metered admission dependency correction
+Run45081933164 terminal failure; owned native fixture removal succeeded, SQLite absent/Mongo unpaused marker observed. Private candidate index and lock removed in finally. No local builds, downloads, runtime installs, databases, test artifacts or new worktrees. Run45082762807 queued; remote cleanup pending. Source/Git objects and compact evidence retained; shared Atlas untouched.
+
 ## 2026-11-22 order documents and ledger qualification
 No local build, downloads, installs, environments, database or generated results. Source checks execute in memory; retained source and compact reports only. Private invoice candidate index and lock removed in finally. Run45080960598 owned native fixture removal succeeded and SQLite absence/Mongo unpause observed;45081933164 remote finalizers pending. Two public static requests memory-only; no shared Mongo, Stripe or customer API calls.
 

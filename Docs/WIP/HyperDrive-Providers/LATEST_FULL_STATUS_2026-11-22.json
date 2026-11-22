@@ -80,11 +80,11 @@
       "acceptance": "Not accepted; preserve previous 35 middleware passes without replay."
     },
     "currentFocusedRun": {
-      "run": 45081933164,
-      "control": "78d9cc44d9b9f04123b8c711a2eb86f8516d8845",
-      "candidate": "2faa1118c13c4a9b00d4dfb5578e1b9868ba511f",
-      "status": "in_progress observed",
-      "scope": "Corrected owned-empty-ledger initialization; billing admission, real primary-unavailability session journey and invoice document source."
+      "run": 45082762807,
+      "control": "a1c790eb7a06d0989f50b3157b164970ca2ec3fb",
+      "candidate": "bc1ad3ac48826193eca7b93979b9d2b97e5bc0d5",
+      "status": "queued observed",
+      "scope": "Canonical active subscription predicate in metered admission; actual billing closure and multi-authority session journey, not all portal/provider acceptance."
     },
     "preparationFailure": {
       "run": 45069521383,
@@ -134,12 +134,13 @@
       "limits": "No Stripe calls, paid lifecycle, browser or hosted acceptance. Whole journey failed; retained marker is scoped evidence only."
     },
     "priorQualificationFailure": {
-      "run": 45080960598,
-      "job": 137388797973,
-      "build": "0errors5m39.70",
-      "runtime": "Checkout/dependency marker passed, then LEGACY_OPENING_BALANCE_REQUIRED at newly exercised billing write.",
-      "fix": "New owned fixture initializes empty ledger using existing production SaveSubscriptionAsync before app/checkout audit writes. No production guard disabled.",
-      "cleanup": "Native fixture removal succeeded; SQLite absence/Mongo unpause marker observed."
+      "run": 45081933164,
+      "job": 137391813475,
+      "build": "0errors6m00.75",
+      "runtime": "Checkout/dependency marker passed; closed-account usage refusal assertion failed.",
+      "rootCause": "Composed candidate omitted existing task-source IsActiveAt use in AuthorizeAsync and retained inline status/expiry check.",
+      "fix": "Scoped canonical predicate replacement preserving shared constructor/index/app billing changes.",
+      "cleanup": "Owned native fixture removal succeeded; SQLite absence/Mongo unpause marker observed."
     }
   },
   "providers": {
@@ -160,7 +161,7 @@
   },
   "cleanup": {
     "freeDiskGB": 28.97,
-    "thisTurn": "No local build/download/environment/database/test outputs. Focused source invoice-link check initially exposed empty whitespace, corrected and passed; endpoint/syntax passed. Two static requests RAM-only; temporary index/lock removed. Previous45080960598 native fixture removal succeeded;45081933164 remote cleanup pending.",
+    "thisTurn": "No local builds, downloads, environments or databases. Candidate private index/lock removed. Prior45081933164 owned native fixture removal succeeded; new45082762807 finalizers pending.",
     "temporaryEmailSecrets": "Previously deleted and absence verified; not restaged."
   },
   "deliveryPolicy": "Finish remaining OPORTAL user flows breadth first; one representative end-to-end verification for changed behavior, reuse accepted evidence. A blocked backend flow must not stop independent screen work.",

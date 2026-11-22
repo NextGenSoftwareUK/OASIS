@@ -1,3 +1,7 @@
+## 22 November: canonical metered admission dependency restored
+
+Run45081933164/job137391813475 built0errors6m00.75, then failed closed-account usage refusal after checkout/dependency proof. Combined candidate had omitted the task source canonical IsActiveAt call in AuthorizeAsync; inline status/expiry therefore ignored the closure state. Corrected only that check while preserving shared constructor/index/app billing changes. New candidatebc1ad3ac/controla1c790eb7a0, run45082762807 queued. Existing refusal assertion retained; no native admission/full session/Stripe/hosted/portal acceptance claimed. Previous owned native fixture removal succeeded. No local builds/downloads/environments/shared backend calls.
+
 ## 22 November: Orders invoice links wired; owned ledger fixture corrected
 
 Portal dev5adca39 adds invoice/PDF links from actual order data, no extra request. Focused actual-source link checks and syntax/endpoint drift passed; dev script HTTP200/hash7d2d9675d827244cc31d18fa79ae0c121d77b37deed5b371fd732cae9706c778 matches. API actual signed Stripe invoice URL persistence committed f831741773d, not backend accepted yet. Run45080960598 built0errors and passed checkout/dependency marker, then fixture opening-balance guard refused new ledger write. Corrected fixture initializes its owned empty ledger through production SaveSubscriptionAsync before audit writes; guard unchanged. Run45081933164 is in progress on control78d9cc44/candidate2faa1118. Prior native fixture removal succeeded. No hosted/paid/full portal acceptance; shared Atlas untouched.
