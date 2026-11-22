@@ -1,0 +1,38 @@
+{
+  "schema": "cql-reviewed-serving-source-v1",
+  "qualifiedSource": "94d9966baaf80a72188040d80058f7104a94e87a",
+  "servingSource": "3cc752dfc4dad196db2053049602a095d3e9cb1f",
+  "rootChangedPaths": [
+    "Docker/oasis-dependency-versions.env",
+    "Docs/WIP/ONET/ONET_STORAGE_AND_HOLONET_PLAN_2026-11.md",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.Core",
+    "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests/ONETIntegrationTests.cs",
+    "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/ONETDiscoveryTests.cs"
+  ],
+  "unchangedTrees": {
+    "Providers": "e705c01ec399fd6a594137170251a5955dbd4232",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core": "34848a57c2b165696bdeda91d26e0a7cddd273c8",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI": "65037d47800251a188f2654f38ba25b4d300eaad",
+    "WEB6": "d9e60ceaecef5513d1bcd6285cd668076bc77edf",
+    "ONODE/ONODEManager": "0cf009958d9bf29664799d70a76f0fb6e596c7ae",
+    "STAR ODK": "cf763aecfff7cc33d6aeacc9121db01c767a50f6",
+    "OASIS Architecture": "12526255e8101499192c7f79bbce81fe6988a497"
+  },
+  "onodeDependency": {
+    "before": "d51bdd8cba5183c9a7597f85f1d6ddd4be20d629",
+    "after": "46f397004492bb1991658e849639fdf6d49fe345",
+    "changedPaths": [
+      "Managers/ONETManager.cs",
+      "ONET/ONETDiscovery.Core.cs",
+      "ONET/ONETDiscovery.cs",
+      "ONET/ONETProtocol.Messaging.cs",
+      "ONET/ONETProtocol.Network.cs",
+      "ONET/ONETProviderIntegration.cs"
+    ],
+    "diffSha256": "c87227f7f935b50b26175b92665a7ea194a7d9cbdede5e3a7d73a5c79e4d0669"
+  },
+  "reviewScope": "Only ONET peer-store, discovery routing-table and local-node identity changes; complete six-file diff reviewed. CQL trees and all other pins retained.",
+  "fullOnetAcceptance": false,
+  "producerImageAndPackageRemainAttributedTo": "94d9966baaf80a72188040d80058f7104a94e87a",
+  "dataCalls": 0
+}

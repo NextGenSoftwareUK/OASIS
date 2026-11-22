@@ -54,6 +54,51 @@ def compile_owned_composition(compiler, sql, parameters, expected_path, provider
     return compiled
 
 
+
+def validate_serving_source_review(review, qualified_source, serving_source):
+    if (review.get("schema") != "cql-reviewed-serving-source-v1"
+            or review.get("qualifiedSource") != qualified_source
+            or review.get("servingSource") != serving_source):
+        raise RuntimeError("The explicit source review does not bind this qualified producer and serving revision.")
+    def git(repo, *arguments):
+        return subprocess.run(["git", *arguments], cwd=repo, capture_output=True, text=True, check=True).stdout.strip()
+    paths = git(ROOT, "diff", "--name-only", qualified_source, serving_source).splitlines()
+    if paths != review.get("rootChangedPaths"):
+        raise RuntimeError("The serving root delta differs from its reviewed scope.")
+    allowed = {
+        "Docker/oasis-dependency-versions.env", "ONODE/NextGenSoftware.OASIS.API.ONODE.Core",
+        "Docs/WIP/ONET/ONET_STORAGE_AND_HOLONET_PLAN_2026-11.md",
+        "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests/ONETIntegrationTests.cs",
+        "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/ONETDiscoveryTests.cs"}
+    if not set(paths).issubset(allowed):
+        raise RuntimeError("The serving root delta includes unreviewed runtime changes.")
+    for path, expected in review.get("unchangedTrees", {}).items():
+        if (git(ROOT, "rev-parse", qualified_source + ":" + path) != expected
+                or git(ROOT, "rev-parse", serving_source + ":" + path) != expected):
+            raise RuntimeError("A qualified CQL implementation tree or dependency changed.")
+    required = {"Providers", "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+        "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI", "WEB6", "ONODE/ONODEManager",
+        "STAR ODK", "OASIS Architecture"}
+    if set(review.get("unchangedTrees", {})) != required:
+        raise RuntimeError("The source review lacks a required CQL implementation tree.")
+    dependency = review.get("onodeDependency") or {}
+    path = "ONODE/NextGenSoftware.OASIS.API.ONODE.Core"
+    before = git(ROOT, "rev-parse", qualified_source + ":" + path)
+    after = git(ROOT, "rev-parse", serving_source + ":" + path)
+    if before != dependency.get("before") or after != dependency.get("after"):
+        raise RuntimeError("The reviewed ONODE dependency pins differ.")
+    changed = git(ROOT / path, "diff", "--name-only", before, after).splitlines()
+    if changed != dependency.get("changedPaths") or any(
+            not item.startswith("ONET/") and item != "Managers/ONETManager.cs" for item in changed):
+        raise RuntimeError("The ONODE dependency includes changes outside the reviewed ONET scope.")
+    import hashlib
+    diff = subprocess.run(["git", "diff", before, after], cwd=ROOT / path, capture_output=True, check=True).stdout
+    if hashlib.sha256(diff).hexdigest() != dependency.get("diffSha256"):
+        raise RuntimeError("The exact ONET implementation delta differs from its review.")
+    return {"qualifiedSource": qualified_source, "servingSource": serving_source,
+        "cqlTreesUnchanged": True, "onodeChangesReviewed": True}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--deployment", required=True, type=lambda value: str(uuid.UUID(value)))
@@ -63,6 +108,7 @@ def main():
     parser.add_argument("--selected-columns", action="store_true")
     parser.add_argument("--selected-composition", action="store_true")
     parser.add_argument("--release-proof", type=Path)
+    parser.add_argument("--serving-source-review", type=Path)
 
     parser.add_argument("--computed-scalars", action="store_true")
     parser.add_argument("--text-coalesce", action="store_true")
@@ -76,6 +122,8 @@ def main():
     args = parser.parse_args()
     if any(not re.fullmatch("[0-9a-f]{40}", value) for value in (args.commit, args.website)):
         parser.error("Exact backend and website source commits are required.")
+    if args.serving_source_review is not None and not args.selected_composition:
+        parser.error("Serving-source reviews are scoped to the selected-composition case.")
     if args.selected_composition:
         if (not args.selected_columns or args.release_proof is None or args.fixture_name == "HostedOwnedProjectedSetCurrent"
                 or any((args.computed_scalars,args.text_coalesce,args.boolean_text_case,
@@ -119,8 +167,16 @@ def main():
     if args.selected_composition and not all(delivery.get(key) is True for key in ("compositionAccepted","imageAccepted","packageAccepted")):
         parser.error("Wait for the exact combined-source builds, image and package qualification.")
 
-    if delivery["source"] != args.commit or delivery.get("packageAccepted") is not True:
-        raise RuntimeError("Wait for exact immutable package acceptance before hosted requests.")
+    if delivery.get("packageAccepted") is not True:
+        raise RuntimeError("Wait for immutable producer package acceptance before hosted requests.")
+    source_review = None
+    if args.serving_source_review is not None:
+        review_path = args.serving_source_review.resolve()
+        if not review_path.is_relative_to((ROOT / "LocalState/COSMIC").resolve()) or not review_path.is_file():
+            parser.error("Use an existing explicit serving-source review inside LocalState/COSMIC.")
+        source_review = validate_serving_source_review(json.loads(review_path.read_text()),delivery["source"],args.commit)
+    elif delivery["source"] != args.commit:
+        raise RuntimeError("Serving revision differs from the qualified producer; an explicit validated scope review is required.")
     helpers = runpy.run_path(str(ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py"))
     credentials = runpy.run_path(str(ROOT / "Scripts/Sandbox/HostedSessionCredentials.py"))
     state = ROOT / "LocalState/COSMIC" / (
@@ -146,7 +202,8 @@ def main():
     compiler = subprocess.check_output(["git","show",args.website+":cql-text.js"], cwd=SITE).decode()
     state.mkdir(parents=True, exist_ok=True)
     journal = {"source":args.commit,"deployment":args.deployment,"website":args.website,
-        "calls":[],"pending":None,"providers":[],"holonWrites":0,"owned":{},"completed":False}
+        "calls":[],"pending":None,"providers":[],"holonWrites":0,"owned":{},"completed":False,\
+        "qualifiedProducerSource":delivery["source"],"servingSourceReview":source_review}
     if args.resume_before_first_save:
         if journal_path.with_suffix(".json.new").exists():
             raise RuntimeError("Reconcile the original interrupted checkpoint before resume.")
