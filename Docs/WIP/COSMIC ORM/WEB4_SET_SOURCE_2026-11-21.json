@@ -6,5 +6,16 @@
   "route": "api/data/query-cql/set",
   "serverReadPolicy": true,
   "developmentPushed": false,
-  "sqlTextImplemented": false
+  "sqlTextImplemented": false,
+  "captureAndAdmissionSource": "3c9077e2bf00058630cd2f08aba38107d93164dc",
+  "requestDetached": true,
+  "sourceAdmissionProfileUpdated": true,
+  "deployedAdmissionUpdated": false,
+  "qualificationSource": "4236d459f2089ce45f5b4415cb682479f7c06d59",
+  "workflow": "qualify-cql-set-web4.yml",
+  "cases": 6,
+  "automaticRunExpected": true,
+  "run": 44965618495,
+  "status": "in_progress",
+  "conclusion": null
 }
