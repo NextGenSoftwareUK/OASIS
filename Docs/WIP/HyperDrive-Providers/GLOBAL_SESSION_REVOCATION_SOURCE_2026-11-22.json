@@ -1,0 +1,19 @@
+{
+  "base": "7a766082d54d09c4742f572a9e0ba29a7bd198a3",
+  "candidate": "9d49840a1e32f72a68fb09a141739069ea60e8d2",
+  "tag": "qualification/global-session-backend-2026-11-22-9d49840a",
+  "status": "Backend and Settings flow implemented in source; not compiled/native/browser/hosted accepted; backend not deployed",
+  "behavior": "Global endpoint manager now uses real per-authority writes and acknowledged cutoff; all currently admitted SSO issuers are covered, policy changes report incomplete. New issuances, access validation and refresh envelopes enforce the same configured SSO authority set. Explicit RecordNotFound counts as absent; operational errors do not.",
+  "remaining": [
+    "Compile plus real native global revoke/refresh/concurrency acceptance",
+    "Verify configured SSO admission compatibility and source/deployed policy before rollout",
+    "Current shared-source composition and exact-source integration",
+    "End-to-end actual Settings browser flow"
+  ],
+  "cleanup": "Temporary index/lock removed; no local build/env/download/database or physical checkout change.",
+  "previousCandidate": "5d59231fbf68c483585315b4d5efcfcf7be24daa",
+  "capability": "Get sessions advertises admitted-authorities-v1 only with valid configured policy; historical fake server responses do not carry this marker.",
+  "refresh": "Global cutoff enforced by refresh credential lookup as well as access validation and list status.",
+  "cutoff": "Global writes acknowledge monotonic UTC cutoff even with no active credentials on an existing account; protects against in-flight stale-version login and refresh.",
+  "portal": "57422d7"
+}
