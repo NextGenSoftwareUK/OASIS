@@ -68,14 +68,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         internal async Task<UsageSeriesResult> UserSeries(string userId, string from, string to)
         {
-            if (!Guid.TryParse(userId, out _)) throw new ArgumentException("A valid avatar id is required.");
+            if (!Guid.TryParse(userId, out var avatarId)) throw new ArgumentException("A valid avatar id is required.");
+            userId = avatarId.ToString("D");
             var now = DateTime.UtcNow;
             var (start, end) = UsageSeries.NormaliseRange(from, to, now);
             var karma = await SubscriptionController.GetCurrentKarmaAsync(userId, HttpContext.RequestAborted);
             var summary = await _subscriptions.GetUsageSummaryAsync(userId, karma, HttpContext.RequestAborted);
             var policy = SubscriptionService.GetUsagePolicy(summary.PlanId ?? "free", karma);
             var buckets = await _series.GetDailySeriesAsync(new[] { userId }, start, end, HttpContext.RequestAborted);
-            return UsageSeries.Build(userId, buckets, start, end, summary.DailyCallLimit, policy.MonthlyRequestLimit, summary.MonthlyRequests, now);
+            return UsageSeries.Build(userId, buckets, start, end, summary.DailyCallLimit, policy.MonthlyRequestLimit, summary.MonthlyRequests, summary.DailyCalls);
         }
 
         internal async Task<object> AppSeries(string appId, string from, string to)
@@ -86,7 +87,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             var pool = await _repository.GetAppPoolUsageAsync(appId, HttpContext.RequestAborted);
             var subjects = Enumerable.Range(0, MongoSubscriptionUsageRepository.MaxPoolShards).Select(s => MongoSubscriptionUsageRepository.PoolShardSubject(appId, s)).ToList();
             var buckets = await _series.GetDailySeriesAsync(subjects, start, end, HttpContext.RequestAborted);
-            var series = UsageSeries.Build("app:" + appId, buckets, start, end, pool.Limits?.DailyCallLimit ?? 0, pool.Limits?.MonthlyRequestLimit ?? 0, pool.Usage?.MonthlyRequests ?? 0, now);
+            var series = UsageSeries.Build("app:" + appId, buckets, start, end, pool.Limits?.DailyCallLimit ?? 0, pool.Limits?.MonthlyRequestLimit ?? 0, pool.Usage?.MonthlyRequests ?? 0, pool.Usage?.DailyCalls ?? 0);
             return new { series, pool };
         }
 

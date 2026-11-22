@@ -89,12 +89,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             return account.Redacted();
         }
 
-        internal async Task<AppAccountRecord> GetAppAccountAsync(string appId, CancellationToken cancellationToken)
-        {
-            var account = await AppAccounts.Find(x => x.AppId == appId).FirstOrDefaultAsync(cancellationToken);
-            return account?.Redacted();
-        }
-
         public async Task<IReadOnlyList<AppAccountRecord>> ListAppAccountsAsync(CancellationToken cancellationToken = default)
         {
             var all = await AppAccounts.Find(_ => true).SortBy(x => x.AppId).Limit(500).ToListAsync(cancellationToken);
