@@ -1,5 +1,5 @@
 {
-  "core": "ee221ea374a93857bf7fd918cfa8ccac2117414a",
+  "core": "1e9c9b52fee83fee0e1e3055dc48b0143bcbe8a9",
   "base": "21a5966a12aa9c57109131cf7a519394d30e9a27",
   "sourcePrepared": true,
   "compiled": false,
@@ -8,12 +8,14 @@
   "deployed": false,
   "next": "Implement native Neo4j keyed source and representative Core/provider checks before admission; MongoDB/SQLite follow on the same source contract.",
   "nativeProviderSourceImplemented": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
     "Neo4jOASIS"
   ],
   "qualification": "Pending exact native workflow",
   "source": "338c5c5d151ef6382eb37930b3f9d1fffbf6a1a1",
   "qualificationRun": 45076941597,
-  "qualificationPhase": "Queued",
+  "qualificationPhase": "PendingNewThreeProviderBatch",
   "unrelatedOwnedCancelRequested": [
     45076199516,
     45076199140,
@@ -142,5 +144,12 @@
       "conclusion": "success",
       "status": "completed"
     }
-  ]
+  ],
+  "expandedEntityGraphsAdmitted": false,
+  "nativeAccepted": false,
+  "olderNeoQualificationRun": 45076941597,
+  "expectedNativeTests": 5,
+  "sharedSourceAndHydrationOwners": true,
+  "temporarySourcePayload": "C:\\Source\\OASIS2\\LocalState\\COSMIC\\KeyedEntitySourceProposals.json",
+  "temporarySourcePayloadRemovedAfterPublication": true
 }

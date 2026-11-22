@@ -131,33 +131,11 @@ public partial class HolonRepository
         static string Predicate<T>(CqlSqlTranslator translator, CosmicQuery<T> query) where T : IHolon
             => translator.TranslateSource(query.Predicates);
 
-        string Source<T>(CqlSqlTranslator translator, CosmicQuery<T> query, bool isLeft, int maximumRows, string predicate)
-            where T : IHolon
-        {
-            var ordering = translator.TranslateOrdering(query.Orderings);
-            var cells = new List<string>
-            {
-                "row_number() OVER (ORDER BY " + ordering + ") AS position",
-                "\"Holon\".\"Id\" AS id", "\"Holon\".\"IsPublic\" AS public",
-                "\"Holon\".\"CreatedByAvatarId\" AS creator"
-            };
-            for (var index = 0; index < selection.Join.Keys.Count; index++)
-                Cell(isLeft ? selection.Join.Keys[index].Left : selection.Join.Keys[index].Right, "k" + index);
-            var selected = selection.Columns.Where(column => column.Source ==
-                (isLeft ? CosmicJoinColumnSource.Left : CosmicJoinColumnSource.Right)).ToArray();
-            for (var index = 0; index < selected.Length; index++) Cell(selected[index].Path, "v" + index);
-            for (var index = 0; index < query.Orderings.Count; index++) Cell(query.Orderings[index].Path, "o" + index);
-            var take = translator.Bind(Math.Min(query.Limit.HasValue ? (long)query.Limit.Value : long.MaxValue, (long)maximumRows + 1));
-            var offset = translator.Bind((long)query.Offset);
-            return "SELECT " + string.Join(",", cells) + " FROM Holon WHERE " + predicate
-                + " ORDER BY " + ordering + " LIMIT " + take + " OFFSET " + offset;
-
-            void Cell(CosmicQueryPath path, string alias)
-            {
-                var operand = translator.ProjectionOperand(path, "join" + (isLeft ? "L" : "R") + alias, comparable: true);
-                cells.Add(operand.State + " AS " + alias + "s");
-                cells.Add(operand.Value + " AS " + alias + "v");
-            }
-        }
+        string Source<T>(CqlSqlTranslator translator,CosmicQuery<T> query,bool isLeft,int maximumRows,string predicate)
+            where T:IHolon
+            =>CompileKeyedSourceSql(translator,query,
+                selection.Join.Keys.Select(key=>isLeft?key.Left:key.Right).ToArray(),
+                selection.Columns.Where(column=>column.Source==(isLeft?CosmicJoinColumnSource.Left:CosmicJoinColumnSource.Right))
+                    .Select(column=>column.Path).ToArray(),maximumRows,predicate,isLeft?"joinL":"joinR");
     }
 }

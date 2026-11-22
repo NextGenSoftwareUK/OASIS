@@ -112,22 +112,9 @@ public partial class HolonRepository
                             throw new InvalidDataException("A selected left entity requires its preserved native identity.");
                         var uniqueIdentities = identities.Where(id=>id.HasValue).Select(id=>id.Value).Distinct().ToArray();
                         if(uniqueIdentities.Length==0)return new IHolon[identities.Length];
-                        var byId = new Dictionary<Guid, IHolon>(uniqueIdentities.Length);
-                        var sourceKeys=isLeft ? leftStorageKeys : rightStorageKeys;
-                        var storageKeys = uniqueIdentities.Select(id => sourceKeys[id]).ToArray();
-                        var records = _dbContext.Holons.AsNoTracking().Where(row => storageKeys.Contains(row.Id));
-                        await foreach (var record in records.AsAsyncEnumerable().WithCancellation(cancellationToken).ConfigureAwait(false))
-                        {
-                            Check();
-                            entityBytes = checked(entityBytes + CqlRecordSize(record));
-                            if (entityBytes > limits.MaximumPayloadBytes)
-                                throw new SqliteCqlResourceException("Native selected entities exceed the output byte budget.");
-                            var child = GetHolonFromEntity(record);
-                            byId.Add(child.Id, child);
-                        }
-                        Check();
-                        if (byId.Count != uniqueIdentities.Length)
-                            throw new InvalidDataException("Native selected entities do not match the joined identities.");
+                        var byId=await ReadNativeCqlIdentitySnapshotsAsync(uniqueIdentities,
+                            isLeft?leftStorageKeys:rightStorageKeys,limits.MaximumPayloadBytes-entityBytes,Check,cancellationToken,
+                            payloadBytes=>entityBytes=checked(entityBytes+payloadBytes)).ConfigureAwait(false);
                         return identities.Select(id => id.HasValue ? byId[id.Value] : null).ToArray();
                     }
 
@@ -149,57 +136,15 @@ public partial class HolonRepository
                         await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false); Check();
                     }
 
-                    async Task<(Dictionary<long, CosmicJoinInputRow> Rows, long Count)> ReadSource<T>(
-                        CosmicQuery<T> query, bool isLeft, string sql, int maximumRows, int maximumBytes) where T : IHolon
+                    async Task<(Dictionary<long,CosmicJoinInputRow> Rows,long Count)> ReadSource<T>(
+                        CosmicQuery<T> query,bool isLeft,string sql,int maximumRows,int maximumBytes) where T:IHolon
                     {
-                        var result = new Dictionary<long, CosmicJoinInputRow>();
-                        long measured = 0, count = 0;
-                        var paths = plan.Query.Join.Keys.Select(key => isLeft ? key.Left : key.Right).ToArray();
-                        var selected = plan.Query.Columns.Where(column => column.Source ==
-                            (isLeft ? CosmicJoinColumnSource.Left : CosmicJoinColumnSource.Right)).ToArray();
-                        using var command = Command("SELECT *,count(*) OVER () AS nativeCount FROM (" + sql + ") ORDER BY position");
-                        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-                        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-                        {
-                            Check();
-                            count = reader.GetInt64(reader.FieldCount - 1);
-                            if (count > maximumRows) throw new SqliteCqlResourceException("Native join source exceeds its remaining row budget.");
-                            var position = reader.GetInt64(0);
-                            var storageKey = reader.GetString(1);
-                            var id = (Guid)DecodeProjectionCell(storageKey, typeof(Guid));
-                            var entityStorageKeys=isLeft ? leftStorageKeys : rightStorageKeys;
-                            if (entityStorageKeys != null && !entityStorageKeys.TryAdd(id,storageKey))
-                                throw new InvalidDataException("Native selected source has duplicate logical identities.");
-                            var visible = (bool)DecodeProjectionCell(reader.GetValue(2), typeof(bool));
-                            var creator = reader.IsDBNull(3) ? Guid.Empty : (Guid)DecodeProjectionCell(reader.GetValue(3), typeof(Guid));
-                            measured = checked(measured + 48);
-                            var offset = 4;
-                            var keys = paths.Select(path => Cell(path.ValueType)).ToArray();
-                            var values = selected.Select(column => Cell(column.Path.ValueType)).ToArray();
-                            var states = new int[query.Orderings.Count];
-                            var order = new object[states.Length];
-                            for (var index = 0; index < states.Length; index++)
-                            {
-                                states[index] = checked((int)reader.GetInt64(offset));
-                                order[index] = Cell(query.Orderings[index].Path.ValueType, allowAbsent: true);
-                            }
-                            if (measured > maximumBytes) throw new SqliteCqlResourceException("Native join source exceeds its remaining byte budget.");
-                            result.Add(position, new CosmicJoinInputRow(id, visible, creator, keys, values, order, states));
-
-                            object Cell(Type declared, bool allowAbsent = false)
-                            {
-                                Check();
-                                var state = reader.GetInt64(offset++);
-                                var raw = reader.GetValue(offset++);
-                                if (state is < 0 or > 2) throw new InvalidDataException("Join source scalar path is ambiguous or invalid.");
-                                var value = state == 2 ? DecodeProjectionCell(raw, declared) : null;
-                                if (value == null && !allowAbsent && declared.IsValueType && Nullable.GetUnderlyingType(declared) == null)
-                                    throw new InvalidDataException("A required join source scalar is null or missing.");
-                                Reserve(value, ref measured, maximumBytes);
-                                return value;
-                            }
-                        }
-                        Check(); return (result, count);
+                        var observed=await ReadNativeCqlKeyedSourceAsync(query,sql,
+                            plan.Query.Join.Keys.Select(key=>isLeft?key.Left:key.Right).ToArray(),
+                            plan.Query.Columns.Where(column=>column.Source==(isLeft?CosmicJoinColumnSource.Left:CosmicJoinColumnSource.Right))
+                                .Select(column=>column.Path).ToArray(),maximumRows,maximumBytes,
+                            isLeft?leftStorageKeys:rightStorageKeys,Command,Check,cancellationToken).ConfigureAwait(false);
+                        return (observed.Rows,observed.Count);
                     }
                 }
                 catch (SqliteException cause) when (cause.SqliteErrorCode == 9) { budget.Check(); throw; }

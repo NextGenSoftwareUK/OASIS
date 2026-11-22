@@ -9,6 +9,10 @@ on:
       - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/Neo4jNativeCqlGroupMembers.cs"
       - ".github/workflows/qualify-cql-group-members-native.yml"
       - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.KeyedEntities.cs"
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/**Cql.Keyed*.cs"
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/**Cql.Join*.cs"
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/**Cql.Keyed*.cs"
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/**Cql.Join*.cs"
   workflow_dispatch:
 
 permissions:
@@ -97,12 +101,15 @@ jobs:
             # One newly changed native grouped journey per store; retain prior GroupJoin proof without replay.
             $nativeFilter='FullyQualifiedName~NativeProjectedGroupingCollectionsAreCompleteOrderedAndBounded'
             $projects=@(
-              @{name='Mongo';path='Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests';expected=1},
-              @{name='SQLite';path='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests';expected=1},
+              @{name='Mongo';path='Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests';expected=2},
+              @{name='SQLite';path='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests';expected=2},
               @{name='Neo4j';path='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests';expected=1}
             )
             foreach($project in $projects) {
               $filter=$nativeFilter
+              if($project.name -in @('Mongo','SQLite')) {
+                $filter+='|FullyQualifiedName~NativeGroupJoinMaterializesTypedScalarAndCollectionResults'
+              }
               dotnet test $project.path /m:2 /nr:false /p:UseSharedCompilation=false --filter $filter --results-directory $reportRoot --logger "trx;LogFileName=$($project.name).trx"
               if($LASTEXITCODE){throw "$($project.name) native grouping failed"}
               Verify-Report (Join-Path $reportRoot "$($project.name).trx") $project.expected
@@ -117,7 +124,7 @@ jobs:
           $source=(git rev-parse HEAD).Trim()
           if($source -ne $env:GITHUB_SHA){throw 'Source checkout differs from exact workflow revision'}
           $core=(git -C "OASIS Architecture/NextGenSoftware.OASIS.API.Core" rev-parse HEAD).Trim()
-          @{source=$source;core=$core;newNativePassed=3;completeProjectedGroupsVerified=$true;sourceAndMemberOrderVerified=$true;sourceWindowAndEmptyVerified=$true;dtoConstructionVerified=$true;groupBoundBeforeConstructionVerified=$true;wholeEntityGroupsVerifiedProviders=@("Neo4jOASIS");wholeEntityGroupsUnadmittedProviders=@("MongoDBOASIS","SQLLiteDBOASIS");cancellationVerified=$true;projectionWarningContractRetainedCore="21a5966a12aa9c57109131cf7a519394d30e9a27";providers=@('MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS');ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content (Join-Path $reportRoot 'source.json') -Encoding utf8
+          @{source=$source;core=$core;newNativePassed=3;completeProjectedGroupsVerified=$true;sourceAndMemberOrderVerified=$true;sourceWindowAndEmptyVerified=$true;dtoConstructionVerified=$true;groupBoundBeforeConstructionVerified=$true;wholeEntityGroupsVerifiedProviders=@("MongoDBOASIS","SQLLiteDBOASIS","Neo4jOASIS");wholeEntityGroupsUnadmittedProviders=@();changedJoinRegressionPassed=2;totalNativePassed=5;graphExpansionAdmitted=$false;cancellationVerified=$true;projectionWarningContractRetainedCore="21a5966a12aa9c57109131cf7a519394d30e9a27";providers=@('MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS');ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content (Join-Path $reportRoot 'source.json') -Encoding utf8
       - name: Stop owned Mongo
         if: always()
         run: docker rm -f -v cql-where-mongo

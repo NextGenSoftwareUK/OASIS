@@ -227,47 +227,11 @@ internal sealed partial class MongoCqlTranslator
             }
         }
 
-        MongoCqlProjectionCommand Source<T>(CosmicQuery<T> source, bool isLeft, int maximumRows) where T : IHolon
-        {
-            var pipeline = CompileSource(source, out var traverses);
-            if (!isLeft && query.Join.RestrictsRightToLeftParents)
-                pipeline.InsertRange(0, ScopedChildSource(admittedParents));
-            var fetch = source.Limit.HasValue ? Math.Min(source.Limit.Value, maximumRows + 1) : maximumRows + 1;
-            var page = SelectedWindow(source, fetch);
-            var proof = new BsonDocument
-            {
-                { "_id", 0 }, { "id", "$HolonId" },
-                { "visible", Op("$ifNull", "$IsPublic", Literal(false)) },
-                { "creator", Op("$ifNull", "$CreatedByAvatarId", Literal(Guid.Empty.ToString("D"))) }
-            };
-            var keys = new BsonArray(); var values = new BsonArray(); var ordering = new BsonArray();
-            for (var index = 0; index < query.Join.Keys.Count; index++)
-            {
-                var path = isLeft ? query.Join.Keys[index].Left : query.Join.Keys[index].Right;
-                keys.Add(ProjectionCell(path, "joinKey" + index));
-                proof.Add("k" + index, OrderingKey(path, "joinComparable" + index));
-            }
-            var selected = query.Columns.Where(column => column.Source ==
-                (isLeft ? CosmicJoinColumnSource.Left : CosmicJoinColumnSource.Right)).ToArray();
-            for (var index = 0; index < selected.Length; index++)
-                values.Add(ProjectionCell(selected[index].Path, "joinValue" + index));
-            var sourceSort = new BsonDocument();
-            for (var index = 0; index < source.Orderings.Count; index++)
-            {
-                var item = source.Orderings[index]; var name = "o" + index;
-                ordering.Add(ProjectionCell(item.Path, "joinOrdering" + index));
-                proof.Add(name, OrderingKey(item.Path, "joinOrderComparable" + index));
-                var direction = item.Descending ? -1 : 1;
-                sourceSort.Add(name + ".rank", direction); sourceSort.Add(name + ".value", direction);
-            }
-            proof.Add("keys", keys); proof.Add("values", values); proof.Add("ordering", ordering);
-            sourceSort.Add("id", 1);
-            page.Add(new("$project", proof)); page.Add(CountWindow()); page.Add(new("$sort", sourceSort));
-            if (traverses) FinishDescendantEnvelope(pipeline, page); else pipeline.AddRange(page);
-            ValidatePipeline(pipeline);
-            var membership = source.Predicates.Any(HasRelationships);
-            return new MongoCqlProjectionCommand(pipeline.ToArray(), membership, true, traverses, fetch == 0);
-        }
+        MongoCqlProjectionCommand Source<T>(CosmicQuery<T> source,bool isLeft,int maximumRows) where T:IHolon
+            =>CompileKeyedSource(source,query.Join.Keys.Select(key=>isLeft?key.Left:key.Right).ToArray(),
+                query.Columns.Where(column=>column.Source==(isLeft?CosmicJoinColumnSource.Left:CosmicJoinColumnSource.Right))
+                    .Select(column=>column.Path).ToArray(),maximumRows,
+                !isLeft && query.Join.RestrictsRightToLeftParents?ScopedChildSource(admittedParents):null);
 
         static BsonDocument[] ScopedChildSource(IReadOnlyList<Guid> parents)
         {
