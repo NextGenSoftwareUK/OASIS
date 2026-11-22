@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "session-source-inventory-required",
+  "status": "session-inventory-reviewed-awaiting-http",
   "base": "c4a65629d4136218be05b04a887490216c050e7a",
-  "candidate": "1c97234ec6b814c8e1945f8fc441871ff2c863fb",
-  "tag": "qualification/session-current-2026-11-21-1c97234e",
+  "candidate": "e359c71b9c7ba1b1c1eb3d54d0522dcaf953dbb4",
+  "tag": "qualification/session-http-2026-11-21-e359c71b",
   "buildProjects": [
     "WEB4"
   ],

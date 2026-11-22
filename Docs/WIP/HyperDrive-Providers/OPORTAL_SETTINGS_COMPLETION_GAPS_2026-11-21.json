@@ -76,8 +76,86 @@
       "inventoryRun": {
         "id": 44974123723,
         "control": "606ff48559cb06306acce37cef26705a487ab6f7",
-        "status": "queued",
-        "native": false
+        "status": "completed",
+        "native": false,
+        "conclusion": "success",
+        "job": 137060076851
+      },
+      "inventoryReview": {
+        "summary": {
+          "candidate": "1c97234ec6b814c8e1945f8fc441871ff2c863fb",
+          "status": "generated-pending-human-agent-review-not-deployed",
+          "managers": 932,
+          "routes": 833,
+          "managerAdded": [
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs|76|public async Task<OASISResult<bool>> LogoutAvatarSessionsAsync(Guid avatarId, List<string> sessionIds)",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs|101|public async Task<OASISResult<bool>> LogoutAllAvatarSessionsAsync(Guid avatarId)",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs|127|public async Task<OASISResult<AvatarSession>> CreateAvatarSessionAsync(Guid avatarId, CreateSessionRequest sessionData)",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs|181|public async Task<OASISResult<AvatarSession>> UpdateAvatarSessionAsync(Guid avatarId, string sessionId, UpdateSessionRequest sessionData)",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs|234|public async Task<OASISResult<AvatarSessionStats>> GetAvatarSessionStatsAsync(Guid avatarId)",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs|277|public OASISResult<IAvatar> RefreshToken(string token, string ipAddress)",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs|328|public OASISResult<string> RevokeToken(string token, string ipAddress)",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs|332|public OASISResult<string> RevokeToken(string token, string ipAddress, IAvatar requestingAvatar)",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs|385|public OASISResult<string> ValidateAccountToken(string accountToken)",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs|417|public OASISResult<string> ValidateResetToken(string token)"
+          ],
+          "managerRemoved": [
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs|102|public async Task<OASISResult<bool>> LogoutAvatarSessionsAsync(Guid avatarId, List<string> sessionIds)",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs|127|public async Task<OASISResult<bool>> LogoutAllAvatarSessionsAsync(Guid avatarId)",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs|153|public async Task<OASISResult<AvatarSession>> CreateAvatarSessionAsync(Guid avatarId, CreateSessionRequest sessionData)",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs|207|public async Task<OASISResult<AvatarSession>> UpdateAvatarSessionAsync(Guid avatarId, string sessionId, UpdateSessionRequest sessionData)",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs|260|public async Task<OASISResult<AvatarSessionStats>> GetAvatarSessionStatsAsync(Guid avatarId)",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs|303|public OASISResult<IAvatar> RefreshToken(string token, string ipAddress)",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs|354|public OASISResult<string> RevokeToken(string token, string ipAddress)",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs|358|public OASISResult<string> RevokeToken(string token, string ipAddress, IAvatar requestingAvatar)",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs|411|public OASISResult<string> ValidateAccountToken(string accountToken)",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs|443|public OASISResult<string> ValidateResetToken(string token)"
+          ],
+          "routeAdded": [],
+          "routeRemoved": [],
+          "generatedFiles": [
+            {
+              "bytes": 278058,
+              "sha256": "a48e0a59edd38332546d067fe2997bcc0b84e397f811f9ab89603a5c98253ecd",
+              "path": "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv"
+            },
+            {
+              "bytes": 167936,
+              "sha256": "90634b998c754a1b2175eee96ca9dbb99280df8005b81303ee1afcd00bdd8c16",
+              "path": "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv"
+            },
+            {
+              "bytes": 8209,
+              "sha256": "3671b61339b020d11a55c6a06d9dcaf115d39a7fe987b053c6e3378dfbbae5cd",
+              "path": "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
+            }
+          ],
+          "runtimeChanges": 0,
+          "behaviorCases": 0,
+          "fixtures": 0
+        },
+        "blobs": {
+          "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv": "2782b12d707cb11d7bbd85c7a126d15294c53ebd",
+          "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv": "7501d6be12fb63d73406eb39dae880b858398633"
+        },
+        "status": "reviewed",
+        "bytes": 39941,
+        "artifact": 14734129372,
+        "deltaReview": [
+          {
+            "kind": "manager",
+            "changedLineRows": 10,
+            "changedSources": [
+              "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-Session.cs"
+            ]
+          },
+          {
+            "kind": "route",
+            "changedLineRows": 0,
+            "changedSources": []
+          }
+        ],
+        "scope": "All manager signatures/route identities/dispositions and overload multiplicity unchanged; only session manager source-line annotations changed."
       }
     },
     "httpHost": {
@@ -87,6 +165,13 @@
       "requests": "3GETs; no session/auth mutations",
       "remaining": "Review source inventory, enable exact host selector, compile/run; not full session tracking or revocation.",
       "selector": "Exact HotspotHttpNative/session-list-http allowlisted, source review/compile/native dispatch still pending; no runtime selected before inventory acceptance."
+    },
+    "httpCandidate": {
+      "source": "e359c71b9c7ba1b1c1eb3d54d0522dcaf953dbb4",
+      "tag": "qualification/session-http-2026-11-21-e359c71b",
+      "base": "c4a65629d4136218be05b04a887490216c050e7a",
+      "status": "uncompiled-awaiting-http",
+      "temporaryIndex": "removed"
     }
   }
 }
