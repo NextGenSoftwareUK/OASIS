@@ -14,5 +14,12 @@
     "Verify deployed webhook event subscriptions include checkout.session.expired",
     "Closure write admission, cancellation/ownership and permanent erasure orchestration remain unfinished"
   ],
-  "cleanup": "Source only; no Stripe/shared Mongo calls, local build, runtime install, environment, download or result archive."
+  "cleanup": "Source only; no Stripe/shared Mongo calls, local build, runtime install, environment, download or result archive.",
+  "candidate": "53f40d86573cb94b1ecc30e38f880e0596b603af",
+  "routePreflight": {
+    "localTaskSource": "803actions/693storage-external classifications passed",
+    "newRoute": "Actor-scoped account assessment explicitly reviewed as injected repository-backed read",
+    "candidateManifest": "Existing frozen candidate manifest plus only the new account-assessment row; no unrelated task routes imported",
+    "priorFailure": "45071695894 stopped at route review before compile; native provider scenario did not run; owned container absence verified"
+  }
 }

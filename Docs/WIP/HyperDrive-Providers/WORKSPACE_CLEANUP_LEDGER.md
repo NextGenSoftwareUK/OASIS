@@ -2893,3 +2893,7 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 
 ### 2026-11-22 — durable checkout journal source
 - Reused existing billing audit collection; no new database, collection, index or background worker. No local environment/build/runtime/download/test output or Stripe/shared-cluster call. Source and one compact evidence doc retained. Existing run45071695894 unchanged; not restarted for source changes.
+
+### 2026-11-22 — reviewed route preflight
+- Run45071695894 failed source route review before compile/runtime; CI owned container absence verified. Corrected route classification; local task source manifest passed803actions/693storage-external actions after preserving four existing notification records and removing six stale empty-controller entries. No runtime installs, builds, databases, downloads or retained test outputs.
+- Next immutable candidate53f40d86 includes only its new assessment route record on existing reviewed manifest; exact pins verified. Owned temporary source index removed in finally. No new worktree/environment, schema/index or shared-service call.
