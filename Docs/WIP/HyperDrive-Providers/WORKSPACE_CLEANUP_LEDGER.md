@@ -1,4 +1,7 @@
 
+## 2026-11-22 sign-in budget qualification
+No local builds/downloads/runtime installs/environments/databases/test results. All private Core/root indexes and locks, including failed preparation, removed in finally. Prior45084348607 owned native fixture removal succeeded and SQLite absence/Mongo unpause observed. New45085506508 remote cleanup pending. Only scoped source/Git objects/tags and compact reports retained. Shared Atlas untouched.
+
 ## 2026-11-22 native account deadline and session affinity
 No local build, download, install, environment, database or generated test output. Core session-affinity and root native-deadline/first-write candidate indexes and locks removed in finally; physical module checkouts preserved.45082762807 owned native fixture removal succeeded with SQLite absent/Mongo unpaused marker;45084348607 remote finalizers pending. Source, Git objects/tags and compact proof retained. Shared Atlas untouched.
 

@@ -7,7 +7,7 @@
     "portalBranch": "dev",
     "portalHead": "5adca39",
     "reviewedDevelopment": "873f4c4b4904362b8b955c8c7e9f8826928501d8",
-    "currentCore": "a0dc92a25231a6d1fa010be9f6be48e33c7b2d1d",
+    "currentCore": "904775d7ba575ddf3c5ad3dc51a08316c9ab3a99",
     "currentWeb6": "f9aa81c6dc3e27ac02677c985d41929b768c5969",
     "scope": "Core/WEB6 identify current isolated qualification candidate, not live or newest shared Development. Shared b82 peer status reviewed; no unverified rollout."
   },
@@ -72,19 +72,21 @@
     ],
     "currentCompositionReview": "Current isolated candidate97031a02 on aa6 preserves Core35c4 and WEB6f9. Newer shared Developmentb82 grouping/test changes reviewed; must preserve on integration, no broad overwrite.",
     "globalSignout": {
-      "run": 45082762807,
-      "job": 137394400180,
+      "run": 45084348607,
+      "job": 137399418954,
       "conclusion": "failure",
-      "observedBlocker": "Mongo-paused password sign-in timed out. Fixture failover flag also disabled; fixed policy plus native awaited SDK cancellation and actual read-store session affinity prepared.",
-      "cleanup": "Native fixture removal succeeded; owned SQLite absence/Mongo unpause marker observed.",
-      "acceptance": "Complete global logout/session/failover journey not accepted. Earlier35 middleware cases retained."
+      "build": "0errors7m11.98",
+      "observedBlocker": "Password sign-in timed out. Fixture switched global provider to SQLite, deactivating Mongo before pause and exercising cold activation rather than a connected read.",
+      "correction": "Removed global switch; assert active primary and add credential-free progress stage trace. Added request-local read budget for normal provider settings longer than login budget.",
+      "cleanup": "Owned native fixture removal succeeded; SQLite absent/Mongo unpaused marker observed.",
+      "acceptance": "Complete sign-in/global signout/native/browser/hosted journey remains pending; older35 middleware cases retained."
     },
     "currentFocusedRun": {
-      "run": 45084348607,
-      "control": "b7b51c747244eb05a9a32964096259de86821a63",
-      "candidate": "5d68ce8fb58a7cacd0e9110bc176eff15f74fef7",
+      "run": 45085506508,
+      "control": "3f3ec4d8a82e120938f19a84800caf58848bbfdd",
+      "candidate": "820b06223e639c4b5757329015563a5a3f242f11",
       "status": "in_progress observed",
-      "scope": "Native Mongo GUID/expression SDK read deadline, session save on actual read authority, explicit enabled owned failover, first-write ledger initialization, existing admission/global-session journey."
+      "scope": "Changed password sign-in: explicit enabled failover, keep primary active before connected outage, long99s provider setting bounded by request-local login budget, save to observed read authority. Unchanged accepted billing assertions skipped."
     },
     "preparationFailure": {
       "run": 45069521383,
@@ -161,7 +163,7 @@
   },
   "cleanup": {
     "freeDiskGB": 28.97,
-    "thisTurn": "No local build/download/install/environment/database/test outputs. Core/root private indexes and locks removed; physical submodules preserved.45082762807 owned native fixture removal succeeded;45084348607 cleanup pending.",
+    "thisTurn": "No local builds/downloads/installs/environments/databases/results. All private Core/root indexes and locks, including unsuccessful preparation, removed in finally.45084348607 remote native fixture removal succeeded;45085506508 remote finalizers pending. Source and compact evidence retained.",
     "temporaryEmailSecrets": "Previously deleted and absence verified; not restaged."
   },
   "deliveryPolicy": "Finish remaining OPORTAL user flows breadth first; one representative end-to-end verification for changed behavior, reuse accepted evidence. A blocked backend flow must not stop independent screen work.",
@@ -194,7 +196,14 @@
       "candidate": "bc1ad3ac48826193eca7b93979b9d2b97e5bc0d5",
       "build": "0errors7m19.59",
       "marker": "BILLING_CLOSURE_ADMISSION_NATIVE_PROOF",
-      "scope": "Real service/Mongo read+write, owned-app refusal, free-account closure/idempotent repeat, checkout/free-plan/admin-grant/ownership/new-usage refusal. No avatar deletion, Stripe, browser or deployment acceptance."
+      "scope": "Real service/Mongo read+write, owned-app refusal, free-account closure/idempotent repeat, checkout/free-plan/admin-grant/ownership/new-usage refusal. No avatar deletion, Stripe, browser or deployment acceptance.",
+      "retainedOnNewerSource": {
+        "run": 45084348607,
+        "job": 137399418954,
+        "candidate": "5d68ce8fb58a7cacd0e9110bc176eff15f74fef7",
+        "runtime": "Dependency/checkout and billing-admission markers passed, including first-write ownership initialization. Whole run failed later on session fixture.",
+        "reuse": "Candidate820b changes only Core, paired pin and Mongo account deadline helper; billing source unchanged. Billing assertions not replayed in new run."
+      }
     }
   }
 }
