@@ -31,7 +31,7 @@ public sealed class PaidOverageBillingService(IPaidOverageStatementStore store,I
     {
         foreach(var account in await store.GetClosedAccountsAsync(now,token))
         {
-            try {await store.PrepareAsync(account.UserId,account.Month,"monthly:"+Guid.NewGuid().ToString("D"),token);}
+            try {await store.PrepareAsync(account.UserId,account.Month,"monthly:"+Guid.NewGuid().ToString("D"),token,account.CreditsOnly);}
             catch(Exception ex) when(ex is not OperationCanceledException){logger.LogError(ex,"OVERAGE_STATEMENT_PREPARATION_FAILED user={UserId} month={Month}",account.UserId,account.Month);}
         }
         foreach(var statement in await store.GetReadyAsync(now,token))
