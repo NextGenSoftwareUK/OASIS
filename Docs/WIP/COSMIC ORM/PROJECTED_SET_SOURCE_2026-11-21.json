@@ -1,0 +1,14 @@
+{
+  "coreSource": "69100164ecfef89c9f14255164321ab0222d1187",
+  "base": "a166813b01476a2fce34e5908d74dac1da845ba6",
+  "modelImplemented": true,
+  "compiled": false,
+  "nativeImplemented": false,
+  "nativeAccepted": false,
+  "developmentPushed": false,
+  "fullParityCredit": false,
+  "qualificationSource": "5077dfb4e44344c5560b6f7a426b8626473d3916",
+  "workflow": "qualify-cql-projected-set-contract.yml",
+  "cases": 3,
+  "automaticRunExpected": true
+}
