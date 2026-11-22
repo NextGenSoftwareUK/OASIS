@@ -631,5 +631,14 @@
     ],
     "externalEmailCalls": 0,
     "changesToSdkOrSecrets": false
+  },
+  "sharedDevelopmentReview": {
+    "source": "f26edeef1152961a2b46f2149a6c28c08188a09a",
+    "previousBase": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
+    "subscriptionPathsChanged": [],
+    "finding": "Concurrent CQL batch advanced Core and deployment graph. Frozen billing native run retained; recompose over new Development before integration, no broad merge or shared checkout switch.",
+    "nativeRun": 44969526963,
+    "nativeJob": 137046018207,
+    "nativeStatus": "in_progress"
   }
 }
