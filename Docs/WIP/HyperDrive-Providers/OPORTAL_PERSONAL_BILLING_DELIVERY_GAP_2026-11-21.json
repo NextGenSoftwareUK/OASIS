@@ -337,7 +337,13 @@
       "paths": 33,
       "sourceOnly": true,
       "emailDelivery": "incomplete; not accepted for rollout",
-      "temporaryIndex": "removed in finally"
+      "temporaryIndex": "removed in finally",
+      "inventoryRun": {
+        "id": 44968371312,
+        "control": "e61110b9f429d4cd710171d4ee43814ff6f8db09",
+        "status": "in_progress",
+        "native": false
+      }
     }
   }
 }
