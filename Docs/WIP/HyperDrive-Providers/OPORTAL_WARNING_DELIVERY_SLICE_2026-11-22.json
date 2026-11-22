@@ -166,14 +166,14 @@
   "developmentDelivery": {
     "revision": "c3f703531b05a0be2ee0cda51b5780d30ce53036",
     "previous": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
-    "status": "pushed-fast-forward-not-hosted-accepted",
+    "status": "WEB4-deployment-metadata-success-not-hosted-functional-accepted",
     "scope": "Accepted warning implementation/inventories/classifier and compact evidence only. Broader billing52a10f98 excluded.",
     "web4": {
       "id": "0095aaa6-861b-45d2-86aa-ef5426c1da78",
-      "status": "QUEUED",
+      "status": "SUCCESS",
       "source": "c3f703531b05a0be2ee0cda51b5780d30ce53036"
     },
     "previousRunningSource": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
-    "remaining": "Confirm actual successful Railway revision/startup and hosted acceptance without shared Atlas/PIPER data tests."
+    "remaining": "Selected WEB4 deployment reports exact revision c3f70353 SUCCESS; full Startup settings/hosted behavior and sibling service rollout acceptance remain separate. No shared auth/data test."
   }
 }
