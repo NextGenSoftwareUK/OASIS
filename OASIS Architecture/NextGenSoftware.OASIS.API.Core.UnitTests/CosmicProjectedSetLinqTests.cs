@@ -25,6 +25,10 @@ public sealed partial class CosmicSetQueryExecutorTests
         public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
             CosmicQueryPlan<T> plan,int maximumResults=100,CancellationToken cancellationToken=default) where T:IHolon
             =>throw new InvalidOperationException("Do not enumerate selected-set inputs independently.");
+        public Task<OASISResult<CosmicProjectionCompositionPacket>> ExecuteCosmicProjectionCompositionAsync<T,TResult>(
+            CosmicProjectionCompositionPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,
+            CancellationToken cancellationToken=default) where T:IHolon
+            =>throw new InvalidOperationException("Selected sets must dispatch only the native set contract.");
         public Task<OASISResult<CosmicProjectedSetPacket>> ExecuteCosmicProjectedSetAsync<T,TResult>(
             CosmicProjectedSetPlan<T,TResult> plan,CosmicProjectedSetExecutionLimits limits,
             CancellationToken cancellationToken=default) where T:IHolon

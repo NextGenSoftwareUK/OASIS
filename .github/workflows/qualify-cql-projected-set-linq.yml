@@ -44,7 +44,7 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
-      - name: Verify typed set materialization and admission
+      - name: Verify selected sets against the complete native provider contract
         working-directory: OASIS
         shell: pwsh
         run: |
