@@ -17,6 +17,43 @@ ROOT = Path(__file__).resolve().parents[2]
 BASE = "https://dev.api.web4.oasisomniverse.one/api/"
 SITE = ROOT.parent / "Web4Site"
 
+
+def selected_composition_cases(provider, identity):
+    name = "COSMIC owned set acceptance " + identity
+    description = "COSMIC owned composition " + identity
+    source = "SELECT Name, Description FROM " + provider + " WHERE Id = @id ORDER BY Id LIMIT 1"
+    parameters = {"id": identity, "description": description}
+    return [
+        ("cte", "WITH q(Label, Detail) AS (" + source + ") SELECT Label AS Display FROM q WHERE Detail = @description ORDER BY Label LIMIT 1",
+            parameters, "data/query-cql/composition", ["Display"], [[name]]),
+        ("derived", "SELECT q.Name AS Display FROM (" + source + ") AS q WHERE q.Description = @description ORDER BY q.Name LIMIT 1",
+            parameters, "data/query-cql/composition", ["Display"], [[name]]),
+        ("cte-set", "WITH q(Label, Detail) AS (" + source + ") (SELECT Label, Detail FROM q) UNION ALL (SELECT Label, Detail FROM q) ORDER BY Label LIMIT 2",
+            parameters, "data/query-cql/set", ["Label", "Detail"], [[name, description], [name, description]])]
+
+
+def compile_owned_composition(compiler, sql, parameters, expected_path, provider, identity):
+    program = ("const vm=require('node:vm');const s={module:{exports:{}}};vm.runInNewContext("
+        + json.dumps(compiler) + ",s);process.stdout.write(JSON.stringify(s.module.exports.compile("
+        + json.dumps(sql) + ",{}," + json.dumps(parameters) + ")));")
+    result = subprocess.run(["node", "-"], input=program, capture_output=True, text=True, check=True)
+    compiled = json.loads(result.stdout)
+    if compiled.get("path") != expected_path or compiled.get("body", {}).get("provider") != provider:
+        raise RuntimeError("The exact compiler did not emit the admitted native composition route.")
+    def source_ids(value):
+        if isinstance(value, dict):
+            own = [value.get("value")] if value.get("field") == "Id" and value.get("operator") == "Equal" else []
+            return own + [item for child in value.values() for item in source_ids(child)]
+        if isinstance(value, list):
+            return [item for child in value for item in source_ids(child)]
+        return []
+    body = compiled["body"]
+    sources = [body["left"], body["right"]] if expected_path.endswith("/set") else [body["source"]]
+    if any(source.get("take") != 1 or source_ids(source) != [identity] for source in sources):
+        raise RuntimeError("Every native source must retain only the one owned identity and its explicit bound.")
+    return compiled
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--deployment", required=True, type=lambda value: str(uuid.UUID(value)))
@@ -24,6 +61,9 @@ def main():
     parser.add_argument("--website", required=True)
     parser.add_argument("--resume-before-first-save", action="store_true")
     parser.add_argument("--selected-columns", action="store_true")
+    parser.add_argument("--selected-composition", action="store_true")
+    parser.add_argument("--release-proof", type=Path)
+
     parser.add_argument("--computed-scalars", action="store_true")
     parser.add_argument("--text-coalesce", action="store_true")
     parser.add_argument("--boolean-text-case", action="store_true")
@@ -36,6 +76,13 @@ def main():
     args = parser.parse_args()
     if any(not re.fullmatch("[0-9a-f]{40}", value) for value in (args.commit, args.website)):
         parser.error("Exact backend and website source commits are required.")
+    if args.selected_composition:
+        if (not args.selected_columns or args.release_proof is None or args.fixture_name == "HostedOwnedProjectedSetCurrent"
+                or any((args.computed_scalars,args.text_coalesce,args.boolean_text_case,
+                    args.boolean_metadata_case,args.combined_metadata_case,args.combined_coalescing))):
+            parser.error("Composition requires selected columns, its explicit release proof and a dedicated fixture name.")
+    elif args.release_proof is not None:
+        parser.error("An explicit composition release proof is scoped to the composition case.")
     if args.computed_scalars and (not args.selected_columns or any((
             args.text_coalesce,args.boolean_text_case,args.boolean_metadata_case,
             args.combined_metadata_case,args.combined_coalescing))):
@@ -65,7 +112,13 @@ def main():
         "text-coalesce-combined-image-handoff.json" if args.combined_coalescing else
         "text-coalesce-image-handoff.json" if args.text_coalesce else
         "projected-set-image-handoff.json" if args.selected_columns else "native-set-image-handoff.json")
-    delivery = json.loads((ROOT / "LocalState/COSMIC" / delivery_name).read_text())
+    delivery_path = args.release_proof.resolve() if args.selected_composition else ROOT / "LocalState/COSMIC" / delivery_name
+    if args.selected_composition and (not delivery_path.is_relative_to((ROOT / "LocalState/COSMIC").resolve()) or not delivery_path.is_file()):
+        parser.error("Use an existing exact composition qualification journal in LocalState/COSMIC.")
+    delivery = json.loads(delivery_path.read_text())
+    if args.selected_composition and not all(delivery.get(key) is True for key in ("compositionAccepted","imageAccepted","packageAccepted")):
+        parser.error("Wait for the exact combined-source builds, image and package qualification.")
+
     if delivery["source"] != args.commit or delivery.get("packageAccepted") is not True:
         raise RuntimeError("Wait for exact immutable package acceptance before hosted requests.")
     helpers = runpy.run_path(str(ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py"))
@@ -78,21 +131,18 @@ def main():
     if not args.resume_before_first_save:
         helpers["require_new_fixture"](journal_path)
     cfg = json.loads((Path.home() / ".railway/config.json").read_text())
-    request = urllib.request.Request("https://backboard.railway.com/graphql/v2",
-        data=json.dumps({"query":"query($id:String!){deployment(id:$id){id status meta}}",
-            "variables":{"id":args.deployment}}).encode(),
-        headers={"Content-Type":"application/json","Authorization":"Bearer "+cfg["user"]["token"],
-            "User-Agent":"railway-cli/5.6.21"})
-    with urllib.request.urlopen(request, timeout=30) as response:
-        envelope = json.load(response)
-    if envelope.get("errors"):
-        raise RuntimeError("Deployment observation failed; no demo request sent.")
-    deployed = envelope["data"]["deployment"]
-    metadata = deployed["meta"]
-    if isinstance(metadata, str):
-        metadata = json.loads(metadata)
-    if deployed["status"] != "SUCCESS" or metadata.get("commitHash") != args.commit:
-        raise RuntimeError("Exact successful rollout required; no demo request sent.")
+    rollout_guard = runpy.run_path(str(ROOT / "Scripts/Sandbox/Verify-HostedUnfilteredMapping.py"))["require_current_rollout"]
+    def verify_current_rollout():
+        request = urllib.request.Request("https://backboard.railway.com/graphql/v2",
+            data=json.dumps({"query":"query($id:String!,$s:String!,$e:String!){deployment(id:$id){id status meta} serving:serviceInstance(serviceId:$s,environmentId:$e){latestDeployment{id status meta}}}",
+                "variables":{"id":args.deployment,"s":"5123199a-43c4-4439-9921-e10e2aec7841",
+                    "e":"a31011a2-d047-4057-b5e8-57d52ebcfefe"}}).encode(),
+            headers={"Content-Type":"application/json","Authorization":"Bearer "+cfg["user"]["token"],
+                "User-Agent":"railway-cli/5.6.21"})
+        with urllib.request.urlopen(request,timeout=30) as response:
+            envelope=json.load(response)
+        return rollout_guard(envelope,args.deployment,args.commit)
+    verify_current_rollout()
     compiler = subprocess.check_output(["git","show",args.website+":cql-text.js"], cwd=SITE).decode()
     state.mkdir(parents=True, exist_ok=True)
     journal = {"source":args.commit,"deployment":args.deployment,"website":args.website,
@@ -140,7 +190,7 @@ def main():
     cookie = None
 
     def call(path, body, method="POST"):
-        if journal["pending"] is not None or len(journal["calls"]) >= 18:
+        if journal["pending"] is not None or len(journal["calls"]) >= (24 if args.selected_composition else 18):
             raise RuntimeError("Pending outcome or request cap; no retry.")
         if journal["calls"]:
             time.sleep(1)
@@ -238,7 +288,8 @@ def main():
             "expectedRevisions":{identity:None},"saveChildren":False,"recursive":False,
             "holon":{"id":identity,"name":"COSMIC owned set acceptance "+identity,
                 "isNewHolon":True,"isPublic":False,"isActive":True,
-                "metaData":{"COSMIC.Demo.Dataset":"COSMIC.CQL.ComputedScalars.v1" if args.computed_scalars else "COSMIC.CQL.BooleanTextCase.v1" if args.boolean_text_case else "COSMIC.CQL.TextCoalesce.v1" if args.text_coalesce else "COSMIC.CQL.NativeSet.v1",
+                **({"description":"COSMIC owned composition "+identity} if args.selected_composition else {}),
+                "metaData":{"COSMIC.Demo.Dataset":"COSMIC.CQL.SelectedComposition.v1" if args.selected_composition else "COSMIC.CQL.ComputedScalars.v1" if args.computed_scalars else "COSMIC.CQL.BooleanTextCase.v1" if args.boolean_text_case else "COSMIC.CQL.TextCoalesce.v1" if args.text_coalesce else "COSMIC.CQL.NativeSet.v1",
                     **({"coalescedText":None} if args.text_coalesce else {}),
                     **({"flag":True} if args.boolean_metadata_case else {}),
                     **({"flag":True,"stock":None} if args.computed_scalars else {})}}})
@@ -255,80 +306,98 @@ def main():
         journal["owned"][provider].update(saveAcknowledged=True,revision=revision)
         journal["holonWrites"]+=1
         write()
-        selection = "Name AS Label" if args.selected_columns else "*"
-        sql = "(SELECT "+selection+" FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1) UNION ALL (SELECT "+selection+" FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1)"
-        parameters={"id":identity}
-        if args.text_coalesce:
-            parameters["replacement"]="COSMIC replacement "+identity
-            sql="SELECT COALESCE(CAST(metadata.coalescedText AS STRING), @replacement) AS Label FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1"
-        if args.boolean_text_case:
-            parameters["whenTrue"]="COSMIC active "+identity
-            parameters["whenFalse"]="COSMIC inactive "+identity
-            sql="SELECT CASE WHEN IsActive THEN @whenTrue ELSE @whenFalse END AS Label FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1"
-            if args.boolean_metadata_case:
-                sql="SELECT CASE WHEN CAST(metadata.flag AS BOOLEAN) THEN @whenTrue ELSE @whenFalse END AS Label FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1"
-        if args.computed_scalars:
-            parameters.update(whenTrue="COSMIC active "+identity,whenFalse="COSMIC inactive "+identity,replacement=0)
-            sql="SELECT CASE WHEN CAST(metadata.flag AS BOOLEAN) THEN @whenTrue ELSE @whenFalse END AS Label, COALESCE(CAST(metadata.stock AS INT32), @replacement) AS Stock FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1"
-        program = "const vm=require('node:vm');const s={module:{exports:{}}};vm.runInNewContext("+json.dumps(compiler)+",s);process.stdout.write(JSON.stringify(s.module.exports.compile("+json.dumps(sql)+",{},"+json.dumps(parameters)+")));"
-        result = subprocess.run(["node","-"], input=program, capture_output=True, text=True, check=True)
-        compiled = json.loads(result.stdout)
-        if args.computed_scalars:
-            expected_columns=[
-                {"metadataPath":["flag"],"valueType":"Boolean","nullable":False,"function":"BooleanTextCase",
-                    "whenTrue":parameters["whenTrue"],"whenFalse":parameters["whenFalse"],"alias":"Label"},
-                {"metadataPath":["stock"],"valueType":"Int32","nullable":True,"function":"Int32Coalesce",
-                    "int32Replacement":parameters["replacement"],"alias":"Stock"}]
-            if compiled["path"]!="data/query-cql/projection" or compiled["body"].get("columns")!=expected_columns:
-                raise RuntimeError("Require both exact typed native computed columns before dispatch.")
-        elif args.boolean_text_case:
-            columns=compiled["body"].get("columns",[])
-            if (compiled["path"]!="data/query-cql/projection" or len(columns)!=1
-                    or columns[0].get("function")!="BooleanTextCase"
-                    or (not args.boolean_metadata_case and columns[0].get("field")!="IsActive")
-                    or (args.boolean_metadata_case and (columns[0].get("metadataPath")!=["flag"]
-                        or columns[0].get("valueType")!="Boolean" or columns[0].get("nullable") is not False))
-                    or columns[0].get("whenTrue")!=parameters["whenTrue"]
-                    or columns[0].get("whenFalse")!=parameters["whenFalse"]):
-                raise RuntimeError("Require the exact typed conditional text contract before dispatch.")
-        elif args.text_coalesce:
-            if (compiled["path"]!="data/query-cql/projection" or len(compiled["body"].get("columns",[]))!=1
-                    or compiled["body"]["columns"][0].get("function")!="TextCoalesce"
-                    or compiled["body"]["columns"][0].get("nullReplacement")!=parameters["replacement"]):
-                raise RuntimeError("Require the explicit typed native text-coalescing contract before dispatch.")
-        elif compiled["path"] != "data/query-cql/set" or compiled["body"]["kind"] != "Concat":
-            raise RuntimeError("Website compiler did not produce the expected native set contract.")
-        actual, _ = call(compiled["path"], compiled["body"])
-        result = actual["result"]
-        if result.get("provider") != provider or not (args.text_coalesce or args.boolean_text_case or args.computed_scalars) and result.get("kind") != "Concat":
-            raise RuntimeError("Native result lacks exact provenance.")
-        if args.computed_scalars:
-            columns=result.get("columns") or []
-            rows=result.get("rows")
-            if (result.get("version")!="cql-projection-v1" or len(columns)!=2
-                    or [column.get("alias") for column in columns]!=["Label","Stock"]
-                    or rows!=[[parameters["whenTrue"],parameters["replacement"]]]
-                    or type(rows[0][1]) is not int):
-                raise RuntimeError("Native computed projection did not return both exact typed cells.")
-        elif args.boolean_text_case:
-            columns=result.get("columns") or []
-            if (result.get("version")!="cql-projection-v1" or len(columns)!=1
-                    or columns[0].get("alias")!="Label" or result.get("rows")!=[[parameters["whenTrue"]]]):
-                raise RuntimeError("Native conditional text did not return its exact expected branch.")
-        elif args.text_coalesce:
-            columns=result.get("columns") or []
-            if (result.get("version")!="cql-projection-v1" or len(columns)!=1
-                    or columns[0].get("alias")!="Label" or result.get("rows")!=[[parameters["replacement"]]]):
-                raise RuntimeError("Native text coalescing did not return the exact expected explicit replacement.")
-        elif args.selected_columns:
-            expected = "COSMIC owned set acceptance " + identity
-            columns = result.get("columns") or []
-            if (result.get("version") != "cql-projected-set-v1" or len(columns) != 1
-                    or columns[0].get("alias") != "Label" or result.get("rows") != [[expected],[expected]]):
-                raise RuntimeError("Selected-value set must return exactly the two explicit cells, without hidden fields.")
-        elif [str(uuid.UUID(row["id"])) for row in result["rows"]] != [identity,identity]:
-            raise RuntimeError("Native entity set occurrence multiplicity differs.")
-        journal["owned"][provider]["sqlComputedScalarsAccepted" if args.computed_scalars else "sqlBooleanTextCaseAccepted" if args.boolean_text_case else "sqlCoalesceAccepted" if args.text_coalesce else "sqlSetAccepted"]=True
+        if args.selected_composition:
+            accepted_cases=[]
+            for label,sql,parameters,path,aliases,expected in selected_composition_cases(provider,identity):
+                compiled=compile_owned_composition(compiler,sql,parameters,path,provider,identity)
+                actual,_=call(path,compiled["body"])
+                result=actual.get("result") or {}
+                expected_version="cql-projected-set-v1" if path.endswith("/set") else "cql-composition-v1"
+                if (actual.get("isLoaded") is not True or result.get("version")!=expected_version
+                        or result.get("provider")!=provider or result.get("rows")!=expected
+                        or [column.get("alias") for column in result.get("columns",[])]!=aliases
+                        or path.endswith("/set") and result.get("kind")!="Concat"):
+                    raise RuntimeError("Populated native composition output, visibility or visible columns differ; preserve fixture.")
+                accepted_cases.append({"case":label,"rows":len(expected),"path":path})
+                journal["owned"][provider]["selectedCompositionCases"]=accepted_cases
+                write()
+            journal["owned"][provider]["sqlCompositionAccepted"]=True
+            write()
+        else:
+            selection = "Name AS Label" if args.selected_columns else "*"
+            sql = "(SELECT "+selection+" FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1) UNION ALL (SELECT "+selection+" FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1)"
+            parameters={"id":identity}
+            if args.text_coalesce:
+                parameters["replacement"]="COSMIC replacement "+identity
+                sql="SELECT COALESCE(CAST(metadata.coalescedText AS STRING), @replacement) AS Label FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1"
+            if args.boolean_text_case:
+                parameters["whenTrue"]="COSMIC active "+identity
+                parameters["whenFalse"]="COSMIC inactive "+identity
+                sql="SELECT CASE WHEN IsActive THEN @whenTrue ELSE @whenFalse END AS Label FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1"
+                if args.boolean_metadata_case:
+                    sql="SELECT CASE WHEN CAST(metadata.flag AS BOOLEAN) THEN @whenTrue ELSE @whenFalse END AS Label FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1"
+            if args.computed_scalars:
+                parameters.update(whenTrue="COSMIC active "+identity,whenFalse="COSMIC inactive "+identity,replacement=0)
+                sql="SELECT CASE WHEN CAST(metadata.flag AS BOOLEAN) THEN @whenTrue ELSE @whenFalse END AS Label, COALESCE(CAST(metadata.stock AS INT32), @replacement) AS Stock FROM "+provider+" WHERE Id = @id ORDER BY Id LIMIT 1"
+            program = "const vm=require('node:vm');const s={module:{exports:{}}};vm.runInNewContext("+json.dumps(compiler)+",s);process.stdout.write(JSON.stringify(s.module.exports.compile("+json.dumps(sql)+",{},"+json.dumps(parameters)+")));"
+            result = subprocess.run(["node","-"], input=program, capture_output=True, text=True, check=True)
+            compiled = json.loads(result.stdout)
+            if args.computed_scalars:
+                expected_columns=[
+                    {"metadataPath":["flag"],"valueType":"Boolean","nullable":False,"function":"BooleanTextCase",
+                        "whenTrue":parameters["whenTrue"],"whenFalse":parameters["whenFalse"],"alias":"Label"},
+                    {"metadataPath":["stock"],"valueType":"Int32","nullable":True,"function":"Int32Coalesce",
+                        "int32Replacement":parameters["replacement"],"alias":"Stock"}]
+                if compiled["path"]!="data/query-cql/projection" or compiled["body"].get("columns")!=expected_columns:
+                    raise RuntimeError("Require both exact typed native computed columns before dispatch.")
+            elif args.boolean_text_case:
+                columns=compiled["body"].get("columns",[])
+                if (compiled["path"]!="data/query-cql/projection" or len(columns)!=1
+                        or columns[0].get("function")!="BooleanTextCase"
+                        or (not args.boolean_metadata_case and columns[0].get("field")!="IsActive")
+                        or (args.boolean_metadata_case and (columns[0].get("metadataPath")!=["flag"]
+                            or columns[0].get("valueType")!="Boolean" or columns[0].get("nullable") is not False))
+                        or columns[0].get("whenTrue")!=parameters["whenTrue"]
+                        or columns[0].get("whenFalse")!=parameters["whenFalse"]):
+                    raise RuntimeError("Require the exact typed conditional text contract before dispatch.")
+            elif args.text_coalesce:
+                if (compiled["path"]!="data/query-cql/projection" or len(compiled["body"].get("columns",[]))!=1
+                        or compiled["body"]["columns"][0].get("function")!="TextCoalesce"
+                        or compiled["body"]["columns"][0].get("nullReplacement")!=parameters["replacement"]):
+                    raise RuntimeError("Require the explicit typed native text-coalescing contract before dispatch.")
+            elif compiled["path"] != "data/query-cql/set" or compiled["body"]["kind"] != "Concat":
+                raise RuntimeError("Website compiler did not produce the expected native set contract.")
+            actual, _ = call(compiled["path"], compiled["body"])
+            result = actual["result"]
+            if result.get("provider") != provider or not (args.text_coalesce or args.boolean_text_case or args.computed_scalars) and result.get("kind") != "Concat":
+                raise RuntimeError("Native result lacks exact provenance.")
+            if args.computed_scalars:
+                columns=result.get("columns") or []
+                rows=result.get("rows")
+                if (result.get("version")!="cql-projection-v1" or len(columns)!=2
+                        or [column.get("alias") for column in columns]!=["Label","Stock"]
+                        or rows!=[[parameters["whenTrue"],parameters["replacement"]]]
+                        or type(rows[0][1]) is not int):
+                    raise RuntimeError("Native computed projection did not return both exact typed cells.")
+            elif args.boolean_text_case:
+                columns=result.get("columns") or []
+                if (result.get("version")!="cql-projection-v1" or len(columns)!=1
+                        or columns[0].get("alias")!="Label" or result.get("rows")!=[[parameters["whenTrue"]]]):
+                    raise RuntimeError("Native conditional text did not return its exact expected branch.")
+            elif args.text_coalesce:
+                columns=result.get("columns") or []
+                if (result.get("version")!="cql-projection-v1" or len(columns)!=1
+                        or columns[0].get("alias")!="Label" or result.get("rows")!=[[parameters["replacement"]]]):
+                    raise RuntimeError("Native text coalescing did not return the exact expected explicit replacement.")
+            elif args.selected_columns:
+                expected = "COSMIC owned set acceptance " + identity
+                columns = result.get("columns") or []
+                if (result.get("version") != "cql-projected-set-v1" or len(columns) != 1
+                        or columns[0].get("alias") != "Label" or result.get("rows") != [[expected],[expected]]):
+                    raise RuntimeError("Selected-value set must return exactly the two explicit cells, without hidden fields.")
+            elif [str(uuid.UUID(row["id"])) for row in result["rows"]] != [identity,identity]:
+                raise RuntimeError("Native entity set occurrence multiplicity differs.")
+            journal["owned"][provider]["sqlComputedScalarsAccepted" if args.computed_scalars else "sqlBooleanTextCaseAccepted" if args.boolean_text_case else "sqlCoalesceAccepted" if args.text_coalesce else "sqlSetAccepted"]=True
         delete_operation=str(uuid.uuid4())
         journal["owned"][provider]["deleteOperationId"]=delete_operation
         write()
@@ -344,11 +413,14 @@ def main():
         journal["providers"].append({"provider":provider,"accepted":True,"rows":1 if args.text_coalesce or args.boolean_text_case or args.computed_scalars else 2,"exactCleanupVerified":True})
         write()
     call("avatar/revoke-token", {})
-    journal.update(sessionRevoked=True,selectedColumns=args.selected_columns,textCoalesce=args.text_coalesce,booleanTextCase=args.boolean_text_case,booleanMetadataCase=args.boolean_metadata_case,computedScalars=args.computed_scalars,completed=True,
+    journal.update(sessionRevoked=True,selectedComposition=args.selected_composition,selectedColumns=args.selected_columns,textCoalesce=args.text_coalesce,booleanTextCase=args.boolean_text_case,booleanMetadataCase=args.boolean_metadata_case,computedScalars=args.computed_scalars,completed=False,
         accepted=all(row["accepted"] for row in journal["providers"]))
     write()
     for name in ("issuance.dpapi","session.dpapi"):
         (state / name).unlink()
+    journal["finalRollout"]=verify_current_rollout()
+    journal["completed"]=True
+    write()
     print(json.dumps({"source":args.commit,"providers":journal["providers"],"calls":len(journal["calls"]),
         "holonWrites":journal["holonWrites"],"selectedColumns":args.selected_columns,"textCoalesce":args.text_coalesce,"booleanTextCase":args.boolean_text_case,"booleanMetadataCase":args.boolean_metadata_case,"computedScalars":args.computed_scalars,"sessionRevoked":True,"credentialsRemoved":True}))
 
