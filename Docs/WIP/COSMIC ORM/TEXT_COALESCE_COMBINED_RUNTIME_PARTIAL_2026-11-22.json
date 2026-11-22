@@ -1,0 +1,33 @@
+{
+  "source": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+  "checks": [
+    {
+      "service": "WEB7 SYMBIOTIC API",
+      "deployment": "3dbe8116-3253-488d-abf7-5125f57baac7",
+      "source": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB9 SINGULARITIY API",
+      "deployment": "070e2d7a-c480-4571-be17-ebd8ccff10d4",
+      "source": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB10 THE SOURCE API",
+      "deployment": "9520d2fe-3bbd-4458-bde5-fc8235b8ef6f",
+      "source": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    }
+  ],
+  "allSevenVerified": false,
+  "settingsWrites": 0,
+  "dataQueries": 0,
+  "liveQueriesAccepted": false
+}
