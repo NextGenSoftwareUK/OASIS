@@ -145,5 +145,16 @@
     "candidate": "04a9705d2ffc1abcf29bf84c79aa0488cbafb237",
     "status": "pending",
     "scope": "combined host compile and one current-graph real GET-PATCH-GET/native revision readback"
+  },
+  "tariffDependencyRestoration": {
+    "core": "97945862d2dbb427d238135c07dd4823236d0db4",
+    "coreTag": "qualification/profile-tariff-2026-11-21-97945862",
+    "candidate": "c88c90d9d2edf5420f5ee8ef8c7961fb74470ed9",
+    "tag": "qualification/profile-tariff-2026-11-21-c88c90d9",
+    "path": "Services/Subscriptions/StorageAttemptTariff.cs",
+    "scope": "one supported ApplyAvatarProfile operation addition, exact donor tariff file",
+    "status": "source-prepared-not-priced-admission-accepted",
+    "currentHttpQualification": "44965497145 stays frozen on04a/Corebe; unmetered HTTP scope only",
+    "remaining": "compile this final source and verify configured priced admission; do not infer paid acceptance from unmetered check"
   }
 }

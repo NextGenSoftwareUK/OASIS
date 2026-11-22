@@ -37,5 +37,17 @@
   "next": "Reconcile full matching personal billing controller/service/repository contracts on current shared source; preserve app billing/CQL changes. Do not copy controller alone or replay unchanged accepted cases. Genuine Stripe/rollout gates remain separate.",
   "externalPaymentCalls": 0,
   "sharedClusterCalls": 0,
-  "newBillingData": 0
+  "newBillingData": 0,
+  "dependencyReview": {
+    "comparison": "Developmentf549 versus verified source371f0570",
+    "subscriptionServiceFiles": 27,
+    "subscriptionControllerFiles": 5,
+    "finding": "Personal consent/retry restoration shares repository/model contracts with existing app billing; controller-only copy is incomplete",
+    "separateCoreDependencies": [
+      "MongoUsageOutboxStore.cs",
+      "UsageExecutionContracts.cs"
+    ],
+    "profileTariffDependency": "StorageAttemptTariff SupportedOperations ApplyAvatarProfile is required by profile; restored separately instead of sweeping all subscription changes",
+    "status": "graph traced; billing source not yet restored or qualified"
+  }
 }
