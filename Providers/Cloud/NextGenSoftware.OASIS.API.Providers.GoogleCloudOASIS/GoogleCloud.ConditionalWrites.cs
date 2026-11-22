@@ -63,27 +63,7 @@ public partial class GoogleCloudOASIS : IConditionalHolonStorageProvider
             var writes=0;
             foreach(var node in plan.Nodes) {
                 var snapshot=snapshots[node.Snapshot.Id];var old=previous[node.Snapshot.Id];
-                var proposal=plan.Operation==ConditionalHolonOperation.Save?node.Snapshot:Core.Serialization.StoredRecordJson.Project<Holon>(old);
-                proposal.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(node,
-                    plan.Operation==ConditionalHolonOperation.Save?HolonChildRoleWriteKind.SourceSave:HolonChildRoleWriteKind.SourceDelete,
-                    old!=null,old?.ChildRoleManifestJson);
-                proposal.Version=old==null?1:checked(old.Version+1);
-                proposal.PreviousVersionId=old?.VersionId??Guid.Empty;proposal.VersionId=Guid.NewGuid();
-                var now=DateTime.UtcNow;
-                if(old==null) {
-                    proposal.CreatedDate=now;proposal.CreatedByAvatarId=request.Write.ActorId;
-                    proposal.CreatedProviderType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.GoogleCloudOASIS);
-                    proposal.ModifiedDate=DateTime.MinValue;proposal.ModifiedByAvatarId=Guid.Empty;
-                } else {
-                    proposal.CreatedDate=old.CreatedDate;proposal.CreatedByAvatarId=old.CreatedByAvatarId;
-                    proposal.CreatedProviderType=old.CreatedProviderType;proposal.ModifiedDate=now;proposal.ModifiedByAvatarId=request.Write.ActorId;
-                }
-                proposal.InstanceSavedOnProviderType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.GoogleCloudOASIS);
-                if(plan.Operation!=ConditionalHolonOperation.Save) {
-                    proposal.IsActive=false;proposal.DeletedDate=now;proposal.DeletedByAvatarId=request.Write.ActorId;
-                }
-                proposal.ProviderUniqueStorageKey??=new();
-                proposal.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS]=proposal.Id.ToString();
+                var proposal=PrepareFirestoreConditionalHolon(plan,node,old);
                 var staged=await StageFirestoreDocumentAsync(proposal,snapshot.Exists?snapshot.ToDictionary():null,proposal.Id.ToString(),IsVersionControlEnabled);
                 var json=staged.ToString(Newtonsoft.Json.Formatting.None);
                 var committed=OasisJson.DeserializeStored<Holon>(json);acknowledged.Add(committed.Id,committed);
@@ -143,6 +123,32 @@ public partial class GoogleCloudOASIS : IConditionalHolonStorageProvider
                 "Firestore atomic graph operation failed.",dispatched?new GoogleFirestoreMutationReconciliationException(path,cause):cause);
         }
     }
+    private static Holon PrepareFirestoreConditionalHolon(ConditionalHolonPlan plan, PlannedHolonWrite node, Holon old)
+    {
+        var proposal=plan.Operation==ConditionalHolonOperation.Save?node.Snapshot:Core.Serialization.StoredRecordJson.Project<Holon>(old);
+        proposal.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(node,
+            plan.Operation==ConditionalHolonOperation.Save?HolonChildRoleWriteKind.SourceSave:HolonChildRoleWriteKind.SourceDelete,
+            old!=null,old?.ChildRoleManifestJson);
+        proposal.Version=old==null?1:checked(old.Version+1);
+        proposal.PreviousVersionId=old?.VersionId??Guid.Empty;proposal.VersionId=Guid.NewGuid();
+        var now=DateTime.UtcNow;
+        if(old==null) {
+            proposal.CreatedDate=now;proposal.CreatedByAvatarId=plan.ActorId;
+            proposal.CreatedProviderType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.GoogleCloudOASIS);
+            proposal.ModifiedDate=DateTime.MinValue;proposal.ModifiedByAvatarId=Guid.Empty;
+        } else {
+            proposal.CreatedDate=old.CreatedDate;proposal.CreatedByAvatarId=old.CreatedByAvatarId;
+            proposal.CreatedProviderType=old.CreatedProviderType;proposal.ModifiedDate=now;proposal.ModifiedByAvatarId=plan.ActorId;
+        }
+        proposal.InstanceSavedOnProviderType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.GoogleCloudOASIS);
+        if(plan.Operation!=ConditionalHolonOperation.Save) {
+            proposal.IsActive=false;proposal.DeletedDate=now;proposal.DeletedByAvatarId=plan.ActorId;
+        }
+        proposal.ProviderUniqueStorageKey??=new();
+        proposal.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS]=proposal.Id.ToString();
+        return proposal;
+    }
+
     protected virtual Task<IList<WriteResult>> CommitFirestoreConditionalBatchAsync(WriteBatch batch,CancellationToken token)
         =>batch.CommitAsync(token);
     private static string ConditionalOperationKey(Guid operation)=>"GoogleCloudOASIS:"+operation.ToString("N");
@@ -155,18 +161,26 @@ public partial class GoogleCloudOASIS : IConditionalHolonStorageProvider
     private static void ValidateOperationFence(DocumentSnapshot snapshot,Guid operation)
     {
         if(!snapshot.Exists)return;
-        var fields=snapshot.ToDictionary();
+        ValidateOperationFenceFields(snapshot.ToDictionary(), operation);
+        _=ObservedFirestoreRevision(snapshot);
+    }
+    private static void ValidateOperationFenceFields(Dictionary<string,object> fields, Guid operation)
+    {
         if(!fields.TryGetValue("operationId",out var id)||!Equals(id,operation.ToString("D"))
             ||!fields.TryGetValue("revision",out var value)||value is not string text
             ||!Guid.TryParseExact(text,"D",out var revision)||revision==Guid.Empty||text!=revision.ToString("D"))
             throw new InvalidDataException("Firestore operation fence has invalid identity/revision.");
-        _=ObservedFirestoreRevision(snapshot);
     }
     private async Task<IReadOnlyList<IHolon>> ReadFirestoreConditionalReceiptAsync(DocumentReference reference,ConditionalHolonPlan plan,CancellationToken token)
     {
         var snapshot=await reference.GetSnapshotAsync(token);if(!snapshot.Exists)return null;
-        var fields=snapshot.ToDictionary();
-        if(snapshot.Id!=ConditionalOperationKey(plan.OperationId)||!fields.TryGetValue("operationId",out var id)||!Equals(id,plan.OperationId.ToString("D"))
+        if(snapshot.Id!=ConditionalOperationKey(plan.OperationId))
+            throw new InvalidDataException("Firestore operation receipt has a different identity.");
+        return ReadFirestoreConditionalReceiptFields(snapshot.ToDictionary(), plan);
+    }
+    private static IReadOnlyList<IHolon> ReadFirestoreConditionalReceiptFields(Dictionary<string,object> fields, ConditionalHolonPlan plan)
+    {
+        if(!fields.TryGetValue("operationId",out var id)||!Equals(id,plan.OperationId.ToString("D"))
             ||!fields.TryGetValue("requestHash",out var hash)||hash is not string fingerprint||string.IsNullOrEmpty(fingerprint)
             ||!fields.TryGetValue("resultJson",out var value)||value is not string json||string.IsNullOrEmpty(json))
             throw new InvalidDataException("Firestore operation receipt is incomplete or has a different identity.");

@@ -1,0 +1,246 @@
+name: Bitcoin native Ordinals
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [work/hyperdrive-provider-completion, work/hyperdrive-bitcoin-avatar-qualification]
+    paths:
+      - '.github/workflows/bitcoin-native-ord.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.Ordinals.cs'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.OrdinalsMint.cs'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.OrdinalsCustody.cs'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.NativeBurn.cs'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.Runes.cs'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.NFTToken.cs'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests/BitcoinOASISOrdinalsIntegrationTests.cs'
+
+permissions:
+  contents: read
+
+jobs:
+  ord-regtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify Ordinals mint, transfer and burn on Bitcoin regtest
+        shell: bash
+        run: |
+          set -euo pipefail
+          owned="$(mktemp -d "$RUNNER_TEMP/oasis-bitcoin-ord.XXXXXXXX")"
+          fixture_pid=
+          explorer="oasis-ord-esplora-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          etch_pid=
+          image='blockstream/esplora@sha256:1d5c64df311cce3e7ab6fd5749f8e65c20099186014c058e561cbf52085ef6db'
+          cleanup() {
+            local status=$?
+            trap - EXIT
+            if docker container inspect "$explorer" >/dev/null 2>&1; then
+              docker rm -f -v "$explorer" || status=1
+            fi
+            if docker image inspect "$image" >/dev/null 2>&1; then
+              docker image rm "$image" || status=1
+            fi
+            if [[ -n "$etch_pid" ]] && kill -0 -- "$etch_pid" 2>/dev/null; then
+              kill -TERM -- "$etch_pid" || status=1
+              wait "$etch_pid" || true
+            fi
+            if [[ -n "$fixture_pid" ]]; then
+              if kill -0 -- "-$fixture_pid" 2>/dev/null; then
+                kill -TERM -- "-$fixture_pid" || status=1
+              fi
+              wait "$fixture_pid" || true
+            fi
+            rm -rf -- "$owned" || status=1
+            test ! -e "$owned" || status=1
+            exit "$status"
+          }
+          trap cleanup EXIT
+          ord_archive=ord-0.29.1-x86_64-unknown-linux-gnu.tar.gz
+          core_archive=bitcoin-30.4-x86_64-linux-gnu.tar.gz
+          curl -fsSL "https://github.com/ordinals/ord/releases/download/0.29.1/$ord_archive" -o "$owned/$ord_archive"
+          curl -fsSL "https://bitcoincore.org/bin/bitcoin-core-30.4/$core_archive" -o "$owned/$core_archive"
+          (
+            cd "$owned"
+            printf '%s  %s\n' 9c25c1cf4ab508c0b80648611827448737a09b5b39c39413b097136b22ba31ce "$ord_archive" \
+                               051a18c595d9a27df23cb7187ff9fb343e90943cb142af751e12787806500c3d "$core_archive" |
+              sha256sum --check
+            tar --strip-components=1 -xzf "$ord_archive"
+            tar -xzf "$core_archive" bitcoin-30.4/bin/bitcoind bitcoin-30.4/bin/bitcoin-cli
+          )
+          export PATH="$owned:$owned/bitcoin-30.4/bin:$PATH"
+          setsid ord env "$owned/chain" > "$owned/fixture.log" 2>&1 &
+          fixture_pid=$!
+          for attempt in {1..60}; do
+            if jq -e '.ord_port > 0' "$owned/chain/env.json" >/dev/null 2>&1; then break; fi
+            if ! kill -0 "$fixture_pid" 2>/dev/null; then
+              tail -n 15 "$owned/fixture.log"
+              exit 1
+            fi
+            sleep 1
+          done
+          port="$(jq -er '.ord_port' "$owned/chain/env.json")"
+          export OASIS_BITCOIN_ORD_API="http://127.0.0.1:$port"
+          wallet() { ord --datadir "$owned/chain" wallet "$@"; }
+          bitcoin() { bitcoin-cli -datadir="$owned/chain" "$@"; }
+          genesis="$(bitcoin getblockhash 0)"
+          test "$(curl -fsS "$OASIS_BITCOIN_ORD_API/r/blockhash/0" | jq -er .)" = "$genesis"
+          miner="$(wallet receive | jq -er '.addresses[0]')"
+          # This public BIP86 test vector is paired with disposable test private scalar 1.
+          descriptor="$(bitcoin getdescriptorinfo 'tr(79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798)' | jq -er .descriptor)"
+          source="$(bitcoin deriveaddresses "$descriptor" | jq -er '.[0]')"
+          burn_descriptor="$(bitcoin getdescriptorinfo 'tr(c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5)' | jq -er .descriptor)"
+          recipient="$(bitcoin deriveaddresses "$burn_descriptor" | jq -er '.[0]')"
+          bitcoin -rpcwallet=ord -named sendtoaddress address="$source" amount=0.01 fee_rate=2 >/dev/null
+          bitcoin -rpcwallet=ord -named sendtoaddress address="$recipient" amount=0.01 fee_rate=2 >/dev/null
+          bitcoin generatetoaddress 1 "$miner" >/dev/null
+          printf 'OASIS Ordinals native qualification\n' > "$owned/record.txt"
+          # The disposable wallet and its chain are deleted after the test.
+          receipt="$(wallet inscribe --no-backup --fee-rate 2 --file "$owned/record.txt" --destination "$source")"
+          inscription="$(jq -er '
+            select(.reveal_broadcast == true and (.inscriptions | length) == 1)
+            | .inscriptions[0].id | select(type == "string" and test("^[0-9a-f]{64}i[0-9]+$"))
+          ' <<< "$receipt")"
+          bitcoin getmempoolentry "${inscription%i*}" >/dev/null
+          bitcoin generatetoaddress 1 "$miner" >/dev/null
+
+          rpc_port="$(jq -er '.bitcoind_port' "$owned/chain/env.json")"
+          docker run -d --name "$explorer" --network host -v "$owned/chain:/bitcoin:ro" \
+            --entrypoint /srv/explorer/electrs_bitcoin/bin/electrs "$image" \
+            --network regtest --daemon-dir /bitcoin --daemon-rpc-addr "127.0.0.1:$rpc_port" \
+            --jsonrpc-import --http-addr 127.0.0.1:3002 --db-dir /tmp/esplora
+          export OASIS_BITCOIN_REGTEST_API=http://127.0.0.1:3002
+          export OASIS_BITCOIN_ORD_INSCRIPTION="$inscription"
+          export OASIS_BITCOIN_ORD_OWNER="$source"
+          export OASIS_BITCOIN_BRIDGE_POOL_ADDRESS="$source"
+          export OASIS_BITCOIN_ORD_RECIPIENT="$recipient"
+          export OASIS_BITCOIN_CORE_RPC_URL="http://127.0.0.1:$rpc_port"
+          export OASIS_BITCOIN_CORE_RPC_AUTH="cookiefile=$owned/chain/regtest/.cookie"
+          export OASIS_BITCOIN_ORD_MINER="$miner"
+          export OASIS_BITCOIN_ORD_WALLET_FIXTURE="$owned/avatar-wallets"
+          tip="$(bitcoin getbestblockhash)"
+          ready=false
+          for attempt in {1..60}; do
+            if [[ "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash" 2>/dev/null)" = "$tip" ]] &&
+              curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/inscription/$inscription" |
+              jq -e --arg id "$inscription" --arg owner "$source" '.id == $id and .address == $owner' >/dev/null; then
+              ready=true
+              break
+            fi
+            if [[ "$(docker inspect -f '{{.State.Running}}' "$explorer")" != true ]]; then
+              docker logs --tail 15 "$explorer"
+              exit 1
+            fi
+            sleep 1
+          done
+          test "$ready" = true
+          before="$(curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/inscription/$inscription" | jq -er '.satpoint')"
+          test "$(bitcoin getrawmempool | jq 'length')" = 0
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-BitcoinOrdinals -Operation {
+              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" --filter "FullyQualifiedName~OrdRegtestTransfersIndexedInscription" /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE -ne 0) { throw "Native Ordinals transfer failed." }
+            }'
+          sent="$(bitcoin getrawmempool | jq -er 'select(length == 1) | .[0]')"
+          bitcoin generatetoaddress 1 "$miner" >/dev/null
+          ownership=false
+          for attempt in {1..60}; do
+            if curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/inscription/$inscription" |
+              jq -e --arg recipient "$OASIS_BITCOIN_ORD_RECIPIENT" --arg satpoint "$sent:0:${before##*:}" \
+                '.address == $recipient and .satpoint == $satpoint' >/dev/null; then
+              ownership=true
+              break
+            fi
+            sleep 1
+          done
+          test "$ownership" = true
+          tip="$(bitcoin getbestblockhash)"
+          for attempt in {1..60}; do
+            if [[ "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip" ]]; then break; fi
+            sleep 1
+          done
+          test "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip"
+          dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" \
+            --no-build --no-restore --filter "FullyQualifiedName~OrdRegtestBurnsOnlyInscribedSatoshi" /m:2 /nr:false /p:UseSharedCompilation=false
+          curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/inscription/$inscription" |
+            jq -e '.address == null and (.charms | index("burned") != null)' >/dev/null
+          tip="$(bitcoin getbestblockhash)"
+          for attempt in {1..60}; do
+            if [[ "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip" ]]; then break; fi
+            sleep 1
+          done
+          test "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip"
+          dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" \
+            --no-build --no-restore --filter "FullyQualifiedName~OrdRegtestMintsCommitRevealAndReadback" /m:2 /nr:false /p:UseSharedCompilation=false
+          tip="$(bitcoin getbestblockhash)"
+          for attempt in {1..60}; do
+            if [[ "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip" ]]; then break; fi
+            sleep 1
+          done
+          test "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip"
+          dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" \
+            --no-build --no-restore --filter "FullyQualifiedName~OrdRegtestBurnsExactNativeBitcoinAmount" /m:2 /nr:false /p:UseSharedCompilation=false
+          cat > "$owned/rune-batch.yaml" <<EOF
+          mode: separate-outputs
+          etching:
+            rune: OASISTESTMINT
+            divisibility: 2
+            premine: 0
+            supply: 21.75
+            symbol: O
+            turbo: false
+            terms:
+              amount: 7.25
+              cap: 3
+          inscriptions:
+          - file: "$owned/record.txt"
+          EOF
+          ord --datadir "$owned/chain" wallet batch --no-backup --fee-rate 2 --batch "$owned/rune-batch.yaml" > "$owned/rune-etch.json" &
+          etch_pid=$!
+          for attempt in {1..60}; do
+            if [[ "$(bitcoin getrawmempool | jq 'length')" = 1 ]]; then break; fi
+            if ! kill -0 "$etch_pid" 2>/dev/null; then wait "$etch_pid"; exit 1; fi
+            sleep 1
+          done
+          test "$(bitcoin getrawmempool | jq 'length')" = 1
+          bitcoin generatetoaddress 6 "$miner" >/dev/null
+          wait "$etch_pid"
+          etch_pid=
+          test "$(bitcoin getrawmempool | jq 'length')" = 1
+          bitcoin generatetoaddress 1 "$miner" >/dev/null
+          tip="$(bitcoin getbestblockhash)"
+          for attempt in {1..60}; do
+            if [[ "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip" ]] &&
+              curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/rune/OASISTESTMINT" 2>/dev/null |
+                jq -e '.mintable and .entry.terms.amount == 725' >/dev/null; then break; fi
+            sleep 1
+          done
+          export OASIS_BITCOIN_RUNE_ID="$(curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/rune/OASISTESTMINT" |
+            jq -er 'select(.mintable and .entry.terms.amount == 725) | .id')"
+          test "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip"
+          dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" \
+            --no-build --no-restore --filter "FullyQualifiedName~OrdRegtestMintsExactRuneTranche" /m:2 /nr:false /p:UseSharedCompilation=false

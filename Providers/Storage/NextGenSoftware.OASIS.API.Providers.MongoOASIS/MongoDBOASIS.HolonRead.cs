@@ -41,7 +41,7 @@ public partial class MongoDBOASIS
                 var observations=documents.Select(document=>(Document:document,Native:BsonSerializer.Deserialize<NativeHolon>(document))).ToList();
                 if(observations.GroupBy(row=>row.Native.HolonId).Any(group=>group.Count()>1))throw new StorageIdentityAmbiguousException();
                 var selected=observations.SingleOrDefault(row=>id.HasValue?row.Native.HolonId==id.Value:row.Native.Id==key);
-                root=selected.Document==null?null:MongoNativeHolonHistory.Read(selected.Document).SingleOrDefault(row=>row.Version==version);
+                root=selected.Document==null?null:MongoNativeHolonHistory.Read(selected.Document,selectedVersion:version).SingleOrDefault();
                 records=children && fromProvider?observations.Select(row=>DataHelper.ConvertMongoEntityToOASISHolon(row.Native,false)).ToList():new List<IHolon>();
                 if(root!=null){records.RemoveAll(row=>row.Id==root.Id);records.Add(root);}
             }

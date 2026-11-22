@@ -17,15 +17,20 @@ using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS
 {
-    public class BlockscoutOASIS : OASISStorageProviderBase, IOASISStorageProvider
+    public partial class BlockscoutOASIS : OASISStorageProviderBase, IOASISStorageProvider
     {
         private readonly HttpClient _http;
 
         public BlockscoutOASIS(string baseUrl = "https://eth.blockscout.com/api/v2", string apiKey = "")
+            : this(new HttpClient { BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/") })
         {
-            _http = new HttpClient { BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/") };
             if (!string.IsNullOrEmpty(apiKey))
                 _http.DefaultRequestHeaders.Add("x-api-key", apiKey);
+        }
+
+        private BlockscoutOASIS(HttpClient client)
+        {
+            _http = client;
             ProviderName = "BlockscoutOASIS";
             ProviderDescription = "Blockscout open-source block explorer REST API provider.";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BlockscoutOASIS);
@@ -34,6 +39,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS
 
         private async Task<JObject> GetAsync(string path)
         {
+            if (addressesBackend != null)
+                throw new NotSupportedException("Use the configured public address query catalogue.");
             var resp = await _http.GetAsync(path);
             resp.EnsureSuccessStatusCode();
             return JObject.Parse(await resp.Content.ReadAsStringAsync());
@@ -41,12 +48,19 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
+            if (addressesBackend != null)
+                return await ActivateQuerySourceAsync(default);
+
             var r = new OASISResult<bool>();
             try { var res = await GetAsync("stats"); r.Result = res != null; r.Message = "BlockscoutOASIS activated"; }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Blockscout activation failed: {ex.Message}", ex); }
             return r;
         }
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() { _http.Dispose(); return new OASISResult<bool> { Result = true }; }
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            Dispose();
+            return Task.FromResult(new OASISResult<bool> { Result = true });
+        }
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 

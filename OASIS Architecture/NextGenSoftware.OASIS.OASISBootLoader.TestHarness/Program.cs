@@ -1,15 +1,17 @@
 using NextGenSoftware.OASIS.API.Core.Enums;
 using Boot = NextGenSoftware.OASIS.OASISBootLoader.OASISBootLoader;
+using HoloProvider = NextGenSoftware.OASIS.API.Providers.HoloOASIS.HoloOASIS;
 
 if (args.Length != 2 || !File.Exists(args[0])
     || !Enum.TryParse<ProviderType>(args[1], ignoreCase: false, out var providerType)
     || args[1] != providerType.ToString()
     || providerType is not (ProviderType.NeonOASIS or ProviderType.ConvexOASIS
         or ProviderType.SupabaseOASIS or ProviderType.SQLServerDBOASIS or ProviderType.BNBChainOASIS
-        or ProviderType.AzureCosmosDBOASIS or ProviderType.PolkadotOASIS or ProviderType.TRONOASIS))
+        or ProviderType.AzureCosmosDBOASIS or ProviderType.PolkadotOASIS or ProviderType.TRONOASIS
+        or ProviderType.HoloOASIS or ProviderType.PocketBaseOASIS or ProviderType.TursoOASIS))
 {
     Console.Error.WriteLine(
-        "Usage: BootLoader.TestHarness <protected-fixture-dna-path> <NeonOASIS|ConvexOASIS|SupabaseOASIS|SQLServerDBOASIS|BNBChainOASIS|AzureCosmosDBOASIS|PolkadotOASIS|TRONOASIS>");
+        "Usage: BootLoader.TestHarness <protected-fixture-dna-path> <NeonOASIS|ConvexOASIS|SupabaseOASIS|SQLServerDBOASIS|BNBChainOASIS|AzureCosmosDBOASIS|PolkadotOASIS|TRONOASIS|HoloOASIS|PocketBaseOASIS|TursoOASIS>");
     return 2;
 }
 
@@ -26,15 +28,43 @@ if (activation.IsError || provider is null || provider.ProviderType?.Value != pr
     || !provider.IsProviderActivated)
 {
     Console.Error.WriteLine($"Activation failed for {providerType}.");
+    if (providerType == ProviderType.HoloOASIS)
+        Console.Error.WriteLine(activation.Message);
     return 1;
 }
+
+var holo = provider as HoloProvider;
+var agent = holo?.HoloNETClientAppAgent?.HoloNETDNA.AgentPubKey;
 
 var deactivation = await provider.DeActivateProviderAsync();
 if (deactivation.IsError || !deactivation.Result || provider.IsProviderActivated)
 {
     Console.Error.WriteLine($"Deactivation failed for {providerType}.");
+    if (providerType == ProviderType.HoloOASIS)
+        Console.Error.WriteLine(deactivation.Message);
     return 1;
 }
 
 Console.WriteLine($"Registered, activated and deactivated {providerType} through BootLoader.");
+
+if (providerType == ProviderType.HoloOASIS)
+{
+    if (string.IsNullOrWhiteSpace(agent))
+    {
+        Console.Error.WriteLine("HoloOASIS did not expose the installed app identity.");
+        return 1;
+    }
+
+    var reopening = await holo!.ActivateProviderAsync();
+    var sameAgent = StringComparer.Ordinal.Equals(agent, holo.HoloNETClientAppAgent?.HoloNETDNA.AgentPubKey);
+    var closing = await holo.DeActivateProviderAsync();
+    if (reopening.IsError || !reopening.Result || !sameAgent || closing.IsError || !closing.Result || holo.IsProviderActivated)
+    {
+        Console.Error.WriteLine("HoloOASIS did not reopen and close the same installed app agent.");
+        return 1;
+    }
+
+    Console.WriteLine("Reactivated the same HoloOASIS provider instance and original app agent.");
+}
+
 return 0;

@@ -1,8 +1,17 @@
 using System;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.TursoOASIS;
+using NextGenSoftware.OASIS.Providers.TestSupport;
 
 namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
 {
@@ -17,6 +26,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
     [TestClass]
     public class TursoOASISIntegrationTests
     {
+        private const string OwnedFixture = "http://127.0.0.1:19693";
         private TursoOASIS _provider = null!;
         private bool _live;
 
@@ -33,6 +43,535 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             if (!_live)
                 Assert.Inconclusive(
                     "No live TursoOASIS backend configured - set the TURSOOASIS_* environment variables to run this.");
+        }
+
+        [TestMethod]
+        public async Task NativeStatementRejectionCannotAcknowledgeAvatarSave()
+        {
+            RequireOwnedFixture();
+            using var client = new HttpClient();
+            var avatar = new Avatar { Id = Guid.NewGuid(), Username = "rejected-native-write" };
+            await ExecuteFixtureSql(client, "CREATE TRIGGER oasis_test_reject BEFORE INSERT ON oasis_avatars BEGIN SELECT RAISE(ABORT, 'isolated native rejection'); END");
+            try
+            {
+                var result = await _provider.SaveAvatarAsync(avatar);
+                Assert.IsTrue(result.IsError);
+                Assert.IsFalse(result.IsSaved);
+                Assert.IsNull(result.Result);
+                var readback = await ExecuteFixtureSql(client, $"SELECT count(*) AS total FROM oasis_avatars WHERE id = '{avatar.Id:D}'");
+                Assert.AreEqual("0", readback.GetProperty("rows")[0][0].GetProperty("value").GetString());
+            }
+            finally
+            {
+                await ExecuteFixtureSql(client, "DROP TRIGGER oasis_test_reject");
+                Assert.IsFalse((await _provider.DeActivateProviderAsync()).IsError);
+                Assert.IsFalse(_provider.IsProviderActivated);
+            }
+
+        }
+
+        [TestMethod]
+        public async Task NativeBootstrapRollsBackOnSchemaError()
+        {
+            RequireOwnedFixture();
+            using var client = new HttpClient();
+            await ExecuteFixtureSql(client, "DROP TABLE oasis_avatar_details");
+            await ExecuteFixtureSql(client, "DROP TABLE oasis_holons");
+            await ExecuteFixtureSql(client, "DROP TABLE oasis_avatars");
+            await ExecuteFixtureSql(client, "CREATE TABLE oasis_avatars (id TEXT PRIMARY KEY)");
+
+            var rejected = await _provider.ActivateProviderAsync();
+            Assert.IsTrue(rejected.IsError);
+            Assert.IsFalse(_provider.IsProviderActivated);
+            var rollback = await ExecuteFixtureSql(client, "SELECT name FROM sqlite_master WHERE name IN ('oasis_avatar_details', 'oasis_holons')");
+            Assert.AreEqual(0, rollback.GetProperty("rows").GetArrayLength());
+
+            await ExecuteFixtureSql(client, "DROP TABLE oasis_avatars");
+            Assert.IsFalse((await _provider.ActivateProviderAsync()).IsError);
+            Assert.IsTrue(_provider.IsProviderActivated);
+            var schema = await ExecuteFixtureSql(client, "SELECT name FROM sqlite_master WHERE name IN ('oasis_avatars', 'oasis_avatar_details', 'oasis_holons', 'idx_avatars_username', 'idx_avatars_email', 'idx_holons_parent', 'idx_holons_type')");
+            Assert.AreEqual(7, schema.GetProperty("rows").GetArrayLength());
+        }
+
+        [DataTestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task CoreStorageSuiteAgainstNativeLibSql(bool synchronous)
+        {
+            RequireOwnedFixture();
+            using var client = new HttpClient();
+            var report = await CoreStorageConformance.RunAsync(
+                _provider, nameof(TursoOASIS), "native", synchronous, _ => Task.CompletedTask,
+                cleanupSoftDeletedFixture: async (id, _) =>
+                {
+                    var deleted = await ExecuteFixtureSql(client, $"DELETE FROM oasis_holons WHERE id = '{id:D}' AND is_deleted = 1");
+                    var count = deleted.GetProperty("affected_row_count").GetInt32();
+                    return new OASISResult<bool> { Result = count == 1, IsDeleted = count == 1, DeletedCount = count };
+                },
+                expectedDefaultDeletion: "soft",
+                observeNativeTombstone: async (id, owner, name) =>
+                {
+                    var readback = await ExecuteFixtureSql(client, $"SELECT data_json FROM oasis_holons WHERE id = '{id:D}' AND is_deleted = 1");
+                    var rows = readback.GetProperty("rows");
+                    if (rows.GetArrayLength() == 0)
+                        return false;
+                    Assert.AreEqual(1, rows.GetArrayLength());
+                    using var payload = JsonDocument.Parse(rows[0][0].GetProperty("value").GetString()!);
+                    Assert.AreEqual(owner, payload.RootElement.GetProperty("createdByAvatarId").GetGuid());
+                    Assert.AreEqual(name, payload.RootElement.GetProperty("name").GetString());
+                    return true;
+                });
+            Assert.IsTrue(report.Succeeded,
+                $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}; {report.Passed.Count} checks passed.");
+            Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+            Assert.IsTrue(report.FixtureCleanupComplete);
+        }
+
+        [TestMethod]
+        public async Task NativeAvatarDetailDeletionRollsBackWithAvatar()
+        {
+            RequireOwnedFixture();
+            using var client = new HttpClient();
+            var id = Guid.NewGuid();
+            var marker = $"avatar-detail-delete-{id:N}";
+            Assert.IsTrue((await _provider.SaveAvatarAsync(
+                new Avatar { Id = id, Username = marker, Email = marker + "@example.invalid" })).IsSaved);
+            Assert.IsTrue((await _provider.SaveAvatarDetailAsync(new AvatarDetail { Id = id, Username = marker })).IsSaved);
+
+            await ExecuteFixtureSql(client, $"CREATE TRIGGER oasis_test_protect_detail BEFORE DELETE ON oasis_avatar_details WHEN OLD.id = '{id:D}' BEGIN SELECT RAISE(ABORT, 'isolated detail deletion rejection'); END");
+            try
+            {
+                var rejected = await _provider.DeleteAvatarAsync(id, softDelete: false);
+                Assert.IsTrue(rejected.IsError);
+                Assert.IsFalse(rejected.IsDeleted);
+                Assert.IsTrue((await _provider.LoadAvatarAsync(id)).IsLoaded);
+                Assert.IsTrue((await _provider.LoadAvatarDetailAsync(id)).IsLoaded);
+            }
+            finally
+            {
+                await ExecuteFixtureSql(client, "DROP TRIGGER oasis_test_protect_detail");
+            }
+
+            var deleted = await _provider.DeleteAvatarAsync(id, softDelete: false);
+            Assert.IsTrue(deleted.IsDeleted, deleted.Message);
+            Assert.AreEqual(1, deleted.DeletedCount);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await _provider.LoadAvatarDetailAsync(id)).ErrorCode);
+        }
+
+        [TestMethod]
+        public async Task NativePointReadHonorsChildLoadingAndDepth()
+        {
+            RequireOwnedFixture();
+            var root = new Holon { Id = Guid.NewGuid(), Name = "root" };
+            var child = new Holon { Id = Guid.NewGuid(), Name = "child", HolonType = HolonType.Holon };
+            var grandchild = new Holon { Id = Guid.NewGuid(), Name = "grandchild", HolonType = HolonType.Quest };
+            child.Children.Add(grandchild);
+            root.Children.Add(child);
+            var saved = await _provider.SaveHolonAsync(root);
+            Assert.IsTrue(saved.IsSaved, saved.Message);
+            Assert.AreEqual(3, saved.SavedCount);
+
+            var flat = await _provider.LoadHolonAsync(root.Id, loadChildren: false);
+            Assert.IsTrue(flat.IsLoaded, flat.Message);
+            Assert.AreEqual(0, flat.Result!.Children.Count);
+            var direct = _provider.LoadHolon(root.Id, loadChildren: true, recursive: false);
+            Assert.IsTrue(direct.IsLoaded, direct.Message);
+            Assert.AreEqual(child.Id, direct.Result!.Children.Single().Id);
+            Assert.AreEqual(0, direct.Result.Children.Single().Children.Count);
+            var bounded = await _provider.LoadHolonAsync(root.Id, loadChildren: true, maxChildDepth: 1);
+            Assert.IsTrue(bounded.IsLoaded, bounded.Message);
+            Assert.AreEqual(0, bounded.Result!.Children.Single().Children.Count);
+            var recursive = await _provider.LoadHolonAsync(root.Id, loadChildren: true);
+            Assert.IsTrue(recursive.IsLoaded, recursive.Message);
+            Assert.AreEqual(grandchild.Id, recursive.Result!.Children.Single().Children.Single().Id);
+
+            var parentSelection = await _provider.LoadHolonsForParentAsync(root.Id, HolonType.Holon, loadChildren: true);
+            Assert.IsTrue(parentSelection.IsLoaded, parentSelection.Message);
+            Assert.AreEqual(1, parentSelection.LoadedCount);
+            Assert.AreEqual(grandchild.Id, parentSelection.Result!.Single().Children.Single().Id);
+            var boundedSelection = _provider.LoadHolonsForParent(root.Id, loadChildren: true, maxChildDepth: 1);
+            Assert.IsTrue(boundedSelection.IsLoaded, boundedSelection.Message);
+            Assert.AreEqual(0, boundedSelection.Result!.Single().Children.Count);
+            var flatSelection = await _provider.LoadHolonsForParentAsync(root.Id, loadChildren: false);
+            Assert.IsTrue(flatSelection.IsLoaded, flatSelection.Message);
+            Assert.AreEqual(0, flatSelection.Result!.Single().Children.Count);
+
+            Assert.IsTrue((await _provider.DeleteHolonAsync(child.Id)).IsDeleted);
+            var afterDelete = await _provider.LoadHolonAsync(root.Id, loadChildren: true);
+            Assert.IsTrue(afterDelete.IsLoaded, afterDelete.Message);
+            Assert.AreEqual(0, afterDelete.Result!.Children.Count);
+        }
+
+        [TestMethod]
+        [DoNotParallelize]
+        public async Task NativeSearchDoesNotTreatSqlFailureAsEmptyResults()
+        {
+            RequireOwnedFixture();
+            using var client = new HttpClient();
+            var query = new SearchParams { SearchOnlyForCurrentAvatar = false };
+            var empty = await _provider.SearchAsync(query, loadChildren: false);
+            Assert.IsTrue(empty.IsLoaded, empty.Message);
+            Assert.AreEqual(0, empty.LoadedCount);
+
+            await ExecuteFixtureSql(client, "ALTER TABLE oasis_holons RENAME TO oasis_test_unavailable_holons");
+            try
+            {
+                var failed = await _provider.SearchAsync(query, loadChildren: false);
+                Assert.IsTrue(failed.IsError);
+                Assert.IsFalse(failed.IsLoaded);
+                Assert.IsNull(failed.Result);
+                Assert.IsNotNull(failed.Exception);
+            }
+            finally
+            {
+                await ExecuteFixtureSql(client, "ALTER TABLE oasis_test_unavailable_holons RENAME TO oasis_holons");
+            }
+        }
+
+        [TestMethod]
+        [DoNotParallelize]
+        public async Task NativeSearchHonorsOwnerParentAndMetadata()
+        {
+            RequireOwnedFixture();
+            var owner = Guid.NewGuid();
+            var root = new Holon { Name = "Search fixture root", CreatedByAvatarId = owner };
+            var selected = new Holon { Name = "Matching fixture", CreatedByAvatarId = owner, MetaData = new() { ["scope"] = "selected" } };
+            var ownedChild = new Holon { Name = "Owned child", CreatedByAvatarId = owner };
+            selected.Children.Add(ownedChild);
+            selected.Children.Add(new Holon { Name = "Private child", CreatedByAvatarId = Guid.NewGuid() });
+            root.Children.Add(selected);
+            root.Children.Add(new Holon { Name = selected.Name, CreatedByAvatarId = Guid.NewGuid(), MetaData = selected.MetaData });
+            root.Children.Add(new Holon { Name = selected.Name, CreatedByAvatarId = owner, MetaData = new() { ["scope"] = "excluded" } });
+            var saved = await _provider.SaveHolonAsync(root);
+            Assert.IsTrue(saved.IsSaved, saved.Message);
+            Assert.AreEqual(6, saved.SavedCount);
+
+            var query = new SearchParams
+            {
+                AvatarId = owner,
+                ParentId = root.Id,
+                SearchOnlyForCurrentAvatar = true,
+                FilterByMetaData = new() { ["scope"] = "selected" },
+                MetaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All,
+                SearchGroups = new() { new SearchTextGroup { SearchHolons = true, SearchQuery = "matching", HolonType = HolonType.All } }
+            };
+            var results = await _provider.SearchAsync(query, loadChildren: false);
+            Assert.IsTrue(results.IsLoaded, results.Message);
+            Assert.AreEqual(1, results.LoadedCount);
+            Assert.AreEqual(selected.Id, results.Result!.SearchResultHolons.Single().Id);
+            Assert.AreEqual(0, results.Result.SearchResultHolons.Single().Children.Count);
+            Assert.AreEqual(0, results.Result.SearchResultAvatars.Count);
+
+            var expanded = await _provider.SearchAsync(query, loadChildren: true, maxChildDepth: 1);
+            Assert.IsTrue(expanded.IsLoaded, expanded.Message);
+            Assert.AreEqual(1, expanded.LoadedCount);
+            Assert.AreEqual(ownedChild.Id, expanded.Result!.SearchResultHolons.Single().Children.Single().Id);
+        }
+
+        [TestMethod]
+        public async Task NativeCollectionLoadsIndependentTreesOnlyWhenRequested()
+        {
+            RequireOwnedFixture();
+            var root = new Holon { Name = "Collection root", HolonType = HolonType.Holon };
+            var child = new Holon { Name = "Collection child", HolonType = HolonType.Holon };
+            var grandchild = new Holon { Name = "Collection grandchild", HolonType = HolonType.Quest };
+            root.Children.Add(child);
+            child.Children.Add(grandchild);
+            var saved = await _provider.SaveHolonAsync(root);
+            Assert.IsTrue(saved.IsSaved, saved.Message);
+            Assert.AreEqual(3, saved.SavedCount);
+
+            var flat = await _provider.LoadAllHolonsAsync(HolonType.Holon, loadChildren: false);
+            Assert.IsTrue(flat.IsLoaded, flat.Message);
+            Assert.AreEqual(2, flat.LoadedCount);
+            Assert.IsTrue(flat.Result!.All(holon => holon.Children.Count == 0));
+
+            var bounded = _provider.LoadAllHolons(HolonType.Holon, loadChildren: true, maxChildDepth: 1);
+            Assert.IsTrue(bounded.IsLoaded, bounded.Message);
+            Assert.AreEqual(2, bounded.LoadedCount);
+            var rootTree = bounded.Result!.Single(holon => holon.Id == root.Id);
+            var childTree = bounded.Result!.Single(holon => holon.Id == child.Id);
+            Assert.AreEqual(child.Id, rootTree.Children.Single().Id);
+            Assert.AreEqual(0, rootTree.Children.Single().Children.Count);
+            Assert.AreEqual(grandchild.Id, childTree.Children.Single().Id);
+
+            var recursive = await _provider.LoadAllHolonsAsync(HolonType.Holon, loadChildren: true);
+            Assert.IsTrue(recursive.IsLoaded, recursive.Message);
+            Assert.AreEqual(grandchild.Id, recursive.Result!.Single(holon => holon.Id == root.Id).Children.Single().Children.Single().Id);
+        }
+
+        [TestMethod]
+        public async Task NativeMetadataOnlyExpandsSelectedRoots()
+        {
+            RequireOwnedFixture();
+            var root = new Holon { Name = "Matching root", MetaData = new() { ["scope"] = "selected", ["team"] = "one" } };
+            var child = new Holon { Name = "Owned child" };
+            root.Children.Add(child);
+            var unrelated = new Holon { Name = "Unrelated root", MetaData = new() { ["scope"] = "other", ["team"] = "one" } };
+            unrelated.Children.Add(new Holon { Name = "Unrelated child" });
+            var saved = await _provider.SaveHolonsAsync(new[] { root, unrelated });
+            Assert.IsTrue(saved.IsSaved, saved.Message);
+            Assert.AreEqual(4, saved.SavedCount);
+
+            var flat = await _provider.LoadHolonsByMetaDataAsync("scope", "selected", loadChildren: false);
+            Assert.IsTrue(flat.IsLoaded, flat.Message);
+            Assert.AreEqual(1, flat.LoadedCount);
+            Assert.AreEqual(0, flat.Result!.Single().Children.Count);
+
+            var expanded = await _provider.LoadHolonsByMetaDataAsync("scope", "selected", loadChildren: true);
+            Assert.IsTrue(expanded.IsLoaded, expanded.Message);
+            Assert.AreEqual(1, expanded.LoadedCount);
+            Assert.AreEqual(child.Id, expanded.Result!.Single().Children.Single().Id);
+
+            var pairs = new System.Collections.Generic.Dictionary<string, string> { ["scope"] = "selected", ["team"] = "one" };
+            var byAll = _provider.LoadHolonsByMetaData(pairs, MetaKeyValuePairMatchMode.All, loadChildren: true, maxChildDepth: 1);
+            Assert.IsTrue(byAll.IsLoaded, byAll.Message);
+            Assert.AreEqual(root.Id, byAll.Result!.Single().Id);
+            Assert.AreEqual(child.Id, byAll.Result!.Single().Children.Single().Id);
+            var byAny = await _provider.LoadHolonsByMetaDataAsync(pairs, MetaKeyValuePairMatchMode.Any, loadChildren: true);
+            Assert.IsTrue(byAny.IsLoaded, byAny.Message);
+            Assert.AreEqual(2, byAny.LoadedCount);
+        }
+
+        [TestMethod]
+        public async Task NativeAvatarListingAcknowledgesOnlyLiveRecords()
+        {
+            RequireOwnedFixture();
+            var live = new Avatar { Id = Guid.NewGuid(), Username = "live-list-fixture", Email = "live-list@example.invalid" };
+            var removed = new Avatar { Id = Guid.NewGuid(), Username = "removed-list-fixture", Email = "removed-list@example.invalid" };
+            try
+            {
+                Assert.IsTrue((await _provider.SaveAvatarAsync(live)).IsSaved);
+                Assert.IsTrue((await _provider.SaveAvatarAsync(removed)).IsSaved);
+                Assert.IsTrue((await _provider.DeleteAvatarAsync(removed.Id, softDelete: true)).IsDeleted);
+                foreach (var list in new[] { await _provider.LoadAllAvatarsAsync(), _provider.LoadAllAvatars() })
+                {
+                    Assert.IsTrue(list.IsLoaded, list.Message);
+                    Assert.AreEqual(1, list.LoadedCount);
+                    Assert.AreEqual(live.Id, list.Result!.Single().Id);
+                }
+            }
+            finally
+            {
+                await _provider.DeleteAvatarAsync(live.Id, softDelete: false);
+                await _provider.DeleteAvatarAsync(removed.Id, softDelete: false);
+            }
+        }
+
+        [TestMethod]
+        public async Task NativeAliasDeletionAffectsOnlyTheSelectedLiveAvatar()
+        {
+            RequireOwnedFixture();
+            var first = new Avatar { Id = Guid.NewGuid(), Username = "O'Brien", Email = "one@example.invalid" };
+            var second = new Avatar { Id = Guid.NewGuid(), Username = "Other", Email = "two@example.invalid" };
+            Assert.IsTrue((await _provider.SaveAvatarAsync(first)).IsSaved);
+            Assert.IsTrue((await _provider.SaveAvatarAsync(second)).IsSaved);
+            Assert.IsTrue((await _provider.SaveAvatarDetailAsync(new AvatarDetail { Id = second.Id, Email = second.Email })).IsSaved);
+
+            var removedByName = await _provider.DeleteAvatarByUsernameAsync(first.Username);
+            Assert.IsTrue(removedByName.IsDeleted, removedByName.Message);
+            Assert.AreEqual(1, removedByName.DeletedCount);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await _provider.LoadAvatarAsync(first.Id)).ErrorCode);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await _provider.DeleteAvatarByUsernameAsync(first.Username)).ErrorCode);
+            Assert.IsTrue((await _provider.LoadAvatarAsync(second.Id)).IsLoaded);
+
+            var removedByEmail = _provider.DeleteAvatarByEmail(second.Email, softDelete: false);
+            Assert.IsTrue(removedByEmail.IsDeleted, removedByEmail.Message);
+            Assert.AreEqual(1, removedByEmail.DeletedCount);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await _provider.LoadAvatarDetailAsync(second.Id)).ErrorCode);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, _provider.DeleteAvatarByEmail(second.Email).ErrorCode);
+            Assert.IsTrue((await _provider.DeleteAvatarAsync(first.Id, softDelete: false)).IsDeleted);
+        }
+
+        [TestMethod]
+        public async Task NativeCredentialLookupReturnsOnlyUnambiguousLiveAvatars()
+        {
+            RequireOwnedFixture();
+            var owner = new Avatar
+            {
+                Id = Guid.NewGuid(), Username = "native-credential-owner",
+                VerificationToken = Guid.NewGuid().ToString("N"), ResetToken = Guid.NewGuid().ToString("N")
+            };
+            var refresh = Guid.NewGuid().ToString("N");
+            owner.RefreshTokens.Add(new RefreshToken { Token = refresh });
+            Assert.IsTrue((await _provider.SaveAvatarAsync(owner)).IsSaved);
+            Assert.AreEqual(owner.Id, (await _provider.LoadAvatarByVerificationTokenAsync(owner.VerificationToken)).Result?.Id);
+            Assert.AreEqual(owner.Id, _provider.LoadAvatarByResetToken(owner.ResetToken).Result?.Id);
+            Assert.AreEqual(owner.Id, (await _provider.LoadAvatarByRefreshTokenAsync(refresh)).Result?.Id);
+            Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID", _provider.LoadAvatarByRefreshToken(refresh, version: 1).ErrorCode);
+            Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID", _provider.LoadAvatarByResetToken(" ").ErrorCode);
+
+            var duplicate = new Avatar { Id = Guid.NewGuid(), Username = "native-credential-duplicate", ResetToken = owner.ResetToken };
+            Assert.IsTrue((await _provider.SaveAvatarAsync(duplicate)).IsSaved);
+            var ambiguous = await _provider.LoadAvatarByResetTokenAsync(owner.ResetToken);
+            Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity, ambiguous.ErrorCode);
+            Assert.IsNull(ambiguous.Result);
+            Assert.IsTrue((await _provider.DeleteAvatarAsync(duplicate.Id)).IsDeleted);
+            Assert.AreEqual(owner.Id, _provider.LoadAvatarByResetToken(owner.ResetToken).Result?.Id);
+            Assert.IsTrue((await _provider.DeleteAvatarAsync(owner.Id)).IsDeleted);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, _provider.LoadAvatarByRefreshToken(refresh).ErrorCode);
+            Assert.IsTrue((await _provider.DeleteAvatarAsync(owner.Id, softDelete: false)).IsDeleted);
+            Assert.IsTrue((await _provider.DeleteAvatarAsync(duplicate.Id, softDelete: false)).IsDeleted);
+        }
+
+        [TestMethod]
+        [DoNotParallelize]
+        public async Task NativeAliasExportPreservesOwnerAndLookupFailure()
+        {
+            RequireOwnedFixture();
+            using var client = new HttpClient();
+            var owner = new Avatar { Id = Guid.NewGuid(), Username = "export-owner", Email = "export-owner@example.invalid" };
+            var owned = new Holon { Name = "Owner payload", CreatedByAvatarId = owner.Id };
+            var foreign = new Holon { Name = "Foreign payload", CreatedByAvatarId = Guid.NewGuid() };
+            Assert.IsTrue((await _provider.SaveAvatarAsync(owner)).IsSaved);
+            Assert.IsTrue((await _provider.SaveHolonsAsync(new[] { owned, foreign })).IsSaved);
+
+            foreach (var export in new[]
+            {
+                await _provider.ExportAllDataForAvatarByUsernameAsync(owner.Username),
+                _provider.ExportAllDataForAvatarByEmail(owner.Email)
+            })
+            {
+                Assert.IsTrue(export.IsLoaded, export.Message);
+                Assert.AreEqual(1, export.LoadedCount);
+                Assert.AreEqual(owned.Id, export.Result!.Single().Id);
+            }
+            var missing = await _provider.ExportAllDataForAvatarByEmailAsync("missing@example.invalid");
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, missing.ErrorCode);
+
+            await ExecuteFixtureSql(client, "ALTER TABLE oasis_avatars RENAME TO oasis_test_unavailable_avatars");
+            try
+            {
+                var failed = await _provider.ExportAllDataForAvatarByUsernameAsync(owner.Username);
+                Assert.IsTrue(failed.IsError);
+                Assert.AreNotEqual(OASISResultErrorCodes.RecordNotFound, failed.ErrorCode);
+                Assert.IsNotNull(failed.Exception);
+                Assert.IsNull(failed.Result);
+            }
+            finally
+            {
+                await ExecuteFixtureSql(client, "ALTER TABLE oasis_test_unavailable_avatars RENAME TO oasis_avatars");
+            }
+        }
+
+        [TestMethod]
+        public async Task NativeAvatarWalletAndLegacyCredentialPayloadsRoundTrip()
+        {
+            RequireOwnedFixture();
+            using var client = new HttpClient();
+            var wallet = new ProviderWallet { WalletId = Guid.NewGuid(), PublicKey = "synthetic-wallet-public-key" };
+            var avatar = new Avatar
+            {
+                Id = Guid.NewGuid(), Username = "wallet-avatar",
+                VerificationToken = Guid.NewGuid().ToString("N"), ResetToken = Guid.NewGuid().ToString("N")
+            };
+            avatar.ProviderWallets[ProviderType.TursoOASIS] = new() { wallet };
+            var refresh = Guid.NewGuid().ToString("N");
+            avatar.RefreshTokens.Add(new RefreshToken { Token = refresh });
+            Assert.IsTrue((await _provider.SaveAvatarAsync(avatar)).IsSaved);
+
+            var loaded = await _provider.LoadAvatarAsync(avatar.Id);
+            Assert.IsTrue(loaded.IsLoaded, loaded.Message);
+            Assert.AreEqual(wallet.WalletId, loaded.Result!.ProviderWallets[ProviderType.TursoOASIS].Single().WalletId);
+            Assert.AreEqual(wallet.PublicKey, loaded.Result.ProviderWallets[ProviderType.TursoOASIS].Single().PublicKey);
+            Assert.AreEqual(avatar.Id, (await _provider.LoadAvatarByVerificationTokenAsync(avatar.VerificationToken)).Result?.Id);
+            Assert.AreEqual(avatar.Id, _provider.LoadAvatarByResetToken(avatar.ResetToken).Result?.Id);
+            Assert.AreEqual(avatar.Id, (await _provider.LoadAvatarByRefreshTokenAsync(refresh)).Result?.Id);
+
+            var legacy = new Avatar { Id = Guid.NewGuid(), Username = "legacy-avatar", ResetToken = Guid.NewGuid().ToString("N") };
+            var legacyRefresh = Guid.NewGuid().ToString("N");
+            legacy.RefreshTokens.Add(new RefreshToken { Token = legacyRefresh });
+            var legacyBytes = JsonSerializer.SerializeToUtf8Bytes(legacy, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            });
+            await ExecuteFixtureSql(client, $"INSERT INTO oasis_avatars(id,username,is_deleted,data_json) VALUES('{legacy.Id:D}','legacy-avatar',0,CAST(X'{Convert.ToHexString(legacyBytes)}' AS TEXT))");
+            Assert.AreEqual(legacy.Id, _provider.LoadAvatarByResetToken(legacy.ResetToken).Result?.Id);
+            Assert.AreEqual(legacy.Id, (await _provider.LoadAvatarByRefreshTokenAsync(legacyRefresh)).Result?.Id);
+            Assert.IsTrue((await _provider.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsDeleted);
+            Assert.IsTrue((await _provider.DeleteAvatarAsync(legacy.Id, softDelete: false)).IsDeleted);
+        }
+
+        [TestMethod]
+        public async Task NativeWalletSelectorsMatchOnlyOneLiveAvatar()
+        {
+            RequireOwnedFixture();
+            IOASISStorageProvider storage = _provider;
+            var publicKey = Guid.NewGuid().ToString("N");
+            var privateKey = Guid.NewGuid().ToString("N");
+            var first = new Avatar { Id = Guid.NewGuid(), Username = "wallet-selector-first" };
+            first.ProviderWallets[ProviderType.TursoOASIS] = new()
+            {
+                new ProviderWallet { WalletId = Guid.NewGuid(), PublicKey = publicKey, PrivateKey = privateKey }
+            };
+            var second = new Avatar { Id = Guid.NewGuid(), Username = "wallet-selector-second" };
+            second.ProviderWallets[ProviderType.TursoOASIS] = new()
+            {
+                new ProviderWallet { WalletId = Guid.NewGuid(), PublicKey = publicKey }
+            };
+            Assert.IsTrue((await storage.SaveAvatarAsync(first)).IsSaved);
+            Assert.AreEqual(first.Id, (await storage.LoadAvatarByPublicKeyAsync(publicKey)).Result?.Id);
+            Assert.AreEqual(first.Id, storage.LoadAvatarByPrivateKey(privateKey).Result?.Id);
+            Assert.IsTrue((await storage.SaveAvatarAsync(second)).IsSaved);
+            Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity, storage.LoadAvatarByPublicKey(publicKey).ErrorCode);
+            Assert.IsTrue((await storage.DeleteAvatarAsync(first.Id)).IsDeleted);
+            Assert.AreEqual(second.Id, storage.LoadAvatarByPublicKey(publicKey).Result?.Id);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await storage.LoadAvatarByPrivateKeyAsync(privateKey)).ErrorCode);
+            Assert.IsTrue((await storage.DeleteAvatarAsync(first.Id, softDelete: false)).IsDeleted);
+            Assert.IsTrue((await storage.DeleteAvatarAsync(second.Id, softDelete: false)).IsDeleted);
+        }
+
+        private void RequireOwnedFixture()
+        {
+            if (Environment.GetEnvironmentVariable("TURSOOASIS_URL") != OwnedFixture ||
+                Environment.GetEnvironmentVariable("OASIS_TURSO_OWNED_STORAGE_FIXTURE") != "1")
+                Assert.Inconclusive("This test requires the isolated native libSQL runner.");
+            RequireLive();
+        }
+
+        private static async Task<JsonElement> ExecuteFixtureSql(HttpClient client, string sql)
+        {
+            using var response = await client.PostAsJsonAsync(OwnedFixture + "/v2/pipeline", new
+            {
+                requests = new object[] { new { type = "execute", stmt = new { sql } }, new { type = "close" } }
+            });
+            response.EnsureSuccessStatusCode();
+            using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var statement = json.RootElement.GetProperty("results")[0];
+            Assert.AreEqual("ok", statement.GetProperty("type").GetString());
+            return statement.GetProperty("response").GetProperty("result").Clone();
+        }
+
+        [TestMethod]
+        public async Task NativeAvatarDeletionRequiresOneAffectedRow()
+        {
+            RequireOwnedFixture();
+            var avatar = new Avatar { Id = Guid.NewGuid(), Username = "native-delete-" + Guid.NewGuid().ToString("N") };
+            Assert.IsFalse((await _provider.SaveAvatarAsync(avatar)).IsError);
+            try
+            {
+                var soft = await _provider.DeleteAvatarAsync(avatar.Id);
+                Assert.IsTrue(soft.IsDeleted, soft.Message);
+                Assert.AreEqual(1, soft.DeletedCount);
+                var hidden = await _provider.LoadAvatarAsync(avatar.Id);
+                Assert.IsNull(hidden.Result);
+
+                var repeatedSoft = await _provider.DeleteAvatarAsync(avatar.Id);
+                Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, repeatedSoft.ErrorCode);
+                Assert.IsFalse(repeatedSoft.IsDeleted);
+
+                var hard = await _provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
+                Assert.IsTrue(hard.IsDeleted, hard.Message);
+                Assert.AreEqual(1, hard.DeletedCount);
+                var repeatedHard = await _provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
+                Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, repeatedHard.ErrorCode);
+                Assert.IsFalse(repeatedHard.IsDeleted);
+            }
+            finally
+            {
+                await _provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
+            }
         }
 
         [TestMethod]
@@ -78,6 +617,26 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             Assert.AreEqual(avatar.Id, found.Result!.Id);
 
             await _provider.DeleteAvatarAsync(avatar.Id, softDelete: true);
+        }
+
+        [TestMethod]
+        public async Task ConcurrentHolonDeletes_AcknowledgeOnlyTheWinningWrite()
+        {
+            RequireLive();
+            var holon = new Holon { Id = Guid.NewGuid(), Name = "Concurrent Turso deletion" };
+            var saved = await _provider.SaveHolonAsync(holon);
+            Assert.IsFalse(saved.IsError, saved.Message);
+
+            var attempts = await Task.WhenAll(_provider.DeleteHolonAsync(holon.Id), _provider.DeleteHolonAsync(holon.Id));
+            var winner = Array.Find(attempts, attempt => attempt.IsDeleted);
+            var other = Array.Find(attempts, attempt => !attempt.IsDeleted);
+            Assert.IsNotNull(winner);
+            Assert.IsNotNull(other);
+            Assert.IsFalse(winner.IsError, winner.Message);
+            Assert.AreEqual(1, winner.DeletedCount);
+            Assert.AreEqual(holon.Id, winner.Result!.Id);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, other.ErrorCode);
+            Assert.IsNull((await _provider.LoadHolonAsync(holon.Id)).Result);
         }
 
         [TestMethod]

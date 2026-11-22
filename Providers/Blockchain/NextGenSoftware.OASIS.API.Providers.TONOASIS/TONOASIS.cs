@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Common;
@@ -12,6 +13,14 @@ public sealed partial class TONOASIS : KeyValueStorageProviderBase, IDisposable
 {
     private readonly TonProviderBackend _owner;
     private bool _disposed;
+
+    public TONOASIS() : base(new PublicQueryOnlyBackend())
+    {
+        ProviderName = "TONOASIS";
+        ProviderDescription = "Native TON public header queries";
+        ProviderType = new(Core.Enums.ProviderType.TONOASIS);
+        ProviderCategory = new(Core.Enums.ProviderCategory.Storage);
+    }
 
     public TONOASIS(TonSandboxStorageOptions options, Func<byte[]> encryptionKeyResolver)
         : this(new TonProviderBackend(PersistedPrivateKeyValueBackend.Create(
@@ -36,6 +45,10 @@ public sealed partial class TONOASIS : KeyValueStorageProviderBase, IDisposable
 
     public override async Task<OASISResult<bool>> ActivateProviderAsync()
     {
+        if (_owner == null)
+            return new OASISResult<bool> { IsError = true, ErrorCount = 1, Result = false,
+                ErrorCode = "TON_STORAGE_NOT_CONFIGURED", Message = "Explicit native TVM storage options are required." };
+
         await _owner.Gate.WaitAsync().ConfigureAwait(false);
         try
         {
@@ -56,6 +69,10 @@ public sealed partial class TONOASIS : KeyValueStorageProviderBase, IDisposable
     public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().GetAwaiter().GetResult();
     public override async Task<OASISResult<bool>> DeActivateProviderAsync()
     {
+        ResetPublicQueryActivation();
+        if (_owner == null)
+            return new OASISResult<bool>(true);
+
         await _owner.Gate.WaitAsync().ConfigureAwait(false);
         try { IsProviderActivated = false; return new OASISResult<bool>(true); }
         finally { _owner.Gate.Release(); }
@@ -63,8 +80,36 @@ public sealed partial class TONOASIS : KeyValueStorageProviderBase, IDisposable
     public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().GetAwaiter().GetResult();
     public void Dispose()
     {
+        ResetPublicQueryActivation();
+        if (_owner == null)
+        {
+            _disposed = true;
+            return;
+        }
+
         _owner.Gate.Wait();
         try { if (_disposed) return; IsProviderActivated = false; _disposed = true; _owner.Private.Dispose(); }
         finally { _owner.Gate.Release(); }
+    }
+
+    private sealed class PublicQueryOnlyBackend : IKeyValueBackend
+    {
+        private static TonStorageException MissingStorage() =>
+            new("TON_STORAGE_NOT_CONFIGURED", "Explicit native TVM storage options are required.");
+
+        public Task<string> GetAsync(string key, CancellationToken cancellationToken = default) =>
+            Task.FromException<string>(MissingStorage());
+
+        public Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken cancellationToken = default) =>
+            Task.FromException<IReadOnlyList<string>>(MissingStorage());
+
+        public Task PutAsync(string key, string value, CancellationToken cancellationToken = default) =>
+            Task.FromException(MissingStorage());
+
+        public Task DeleteAsync(string key, CancellationToken cancellationToken = default) =>
+            Task.FromException(MissingStorage());
+
+        public Task VerifyAsync(CancellationToken cancellationToken = default) =>
+            Task.FromException(MissingStorage());
     }
 }

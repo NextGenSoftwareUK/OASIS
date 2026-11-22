@@ -20,13 +20,48 @@ public static partial class CqlV1Compiler
     public static CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> CompileGrouped(
         CqlGroupedV1Request request, Guid actor, ProviderType? provider,CosmicQueryReadAccess access)
     {
+        ValidateGroupedDescription(request);
+        // Key-only grouping over the full admitted input does not depend on source order.
+        var unorderedKeyGrouping = request.OrderBy == "None" && request.Take == null && request.Skip == 0
+            && request.Graph == null
+            && request.Columns.All(column => column?.KeyAlias != null && column.Operation == null && column.Selection == null);
+        var source = CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
+            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access,
+            unorderedKeyGrouping: unorderedKeyGrouping);
+        return CompileGroupedSelection(request, source);
+    }
+
+    private static void ValidateGroupedDescription(CqlGroupedV1Request request)
+    {
         if (request == null || request.Keys == null || request.Keys.Length is < 1 or > 8
             || request.ResultFilters == null || request.ResultFilters.Length > 32
             || request.ResultOrder == null || request.ResultOrder.Length > 32
             || request.Columns == null || request.Columns.Length is < 1 or > 32 || request.MaximumGroups is < 1 or > 100)
             throw new ArgumentException("Grouping requires one to8 keys, one to32 columns and one to100 output groups.");
-        var source = CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
-            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access);
+    }
+
+    /// <summary>Bind grouping to the exact source already captured for both stored and virtual branches.</summary>
+    public static CosmicMixedGroupingPlan<Holon, CosmicProjectionRecord, CosmicProjectionRecord> CompileMixedGrouping(
+        CosmicProjectionQuery<Holon, CosmicProjectionRecord> projection, CqlMixedGroupingV1Request description)
+    {
+        if (projection == null || description == null) throw new ArgumentException("A mixed projection and grouping are required.");
+        var request = new CqlGroupedV1Request
+        {
+            Keys = description.Keys, Columns = description.Columns,
+            ResultFilters = description.ResultFilters, ResultOrder = description.ResultOrder,
+            ResultSkip = description.ResultSkip, ResultTake = description.ResultTake,
+            MaximumGroups = description.MaximumGroups
+        };
+        ValidateGroupedDescription(request);
+        var selected = CompileGroupedSelection(request, projection.Source);
+        var prepared = CosmicMixedProjectionResults.PrepareGrouping(projection, selected);
+        if (prepared.IsError) throw new ArgumentException(prepared.Message);
+        return prepared.Result;
+    }
+
+    private static CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> CompileGroupedSelection(
+        CqlGroupedV1Request request, CosmicQuery<Holon> source)
+    {
         var options = CosmicGroupingOptions.Create(request.MaximumGroups, 1024 * 1024).Result;
         var groupingResult = source.GroupByColumns(request.Keys.Select(ProjectionColumn).ToArray(), options);
         if (groupingResult.IsError) throw new ArgumentException(groupingResult.Message);
@@ -38,27 +73,31 @@ public static partial class CqlV1Compiler
             ValidateSelectionAlias(column.Alias);
             if (column.KeyAlias != null)
             {
-                if (column.Operation != null || column.Selection != null) throw new ArgumentException("A key column cannot also aggregate.");
+                if (column.Operation != null || column.Selection != null || column.Distinct) throw new ArgumentException("A key column cannot also aggregate.");
                 var index = grouping.Key.Columns.ToList().FindIndex(key => key.Alias == column.KeyAlias);
                 return RequiredBinding(CosmicGroupedBinding<Holon, CosmicProjectionRecord>.Key(grouping, column.Alias, index));
             }
-            if (column.Operation is "Count" or "LongCount")
+            if (column.Operation == "Count" || column.Operation == "LongCount" && column.Selection == null)
             {
-                if (column.Selection != null) throw new ArgumentException("Grouped counts do not select paths.");
+                if (column.Selection != null || column.Distinct) throw new ArgumentException("Grouped row counts do not select paths or distinct values.");
                 return column.Operation == "Count"
                     ? RequiredBinding(CosmicGroupedBinding<Holon, CosmicProjectionRecord>.Aggregate(grouping, column.Alias, source.Count().Result))
                     : RequiredBinding(CosmicGroupedBinding<Holon, CosmicProjectionRecord>.Aggregate(grouping, column.Alias, source.LongCount().Result));
             }
             var operation = column.Operation switch
             {
+                "LongCount" => CosmicScalarOperation.LongCount,
                 "Min" => CosmicScalarOperation.Min, "Max" => CosmicScalarOperation.Max,
                 "Sum" => CosmicScalarOperation.Sum, "Average" => CosmicScalarOperation.Average,
                 _ => throw new ArgumentException("Select an explicit key or supported grouped aggregate.")
             };
+            if (column.Distinct && operation != CosmicScalarOperation.LongCount)
+                throw new ArgumentException("Distinct grouped values require selected LongCount.");
             var selected = column.Selection ?? throw new ArgumentException("This aggregate requires a selection.");
+            if (selected.Function.HasValue) throw new ArgumentException("Computed grouped selections require native function enrollment.");
             return CompileSelection(new CqlProjectionV1Column { Alias = column.Alias, Field = selected.Field,
                 MetadataPath = selected.MetadataPath, ValueType = selected.ValueType, Nullable = selected.Nullable },
-                new GroupedSelectionConsumer(grouping, column.Alias, operation));
+                new GroupedSelectionConsumer(grouping, column.Alias, operation, column.Distinct));
         }).ToArray();
         var result = grouping.SelectColumns(bindings);
         if (result.IsError) throw new ArgumentException(result.Message);
@@ -121,10 +160,13 @@ public static partial class CqlV1Compiler
         private readonly CosmicGroupedQuery<Holon, CosmicProjectionRecord> grouping;
         private readonly string alias;
         private readonly CosmicScalarOperation operation;
-        internal GroupedSelectionConsumer(CosmicGroupedQuery<Holon, CosmicProjectionRecord> grouping, string alias, CosmicScalarOperation operation)
-        { this.grouping = grouping; this.alias = alias; this.operation = operation; }
+        private readonly bool distinct;
+        internal GroupedSelectionConsumer(CosmicGroupedQuery<Holon, CosmicProjectionRecord> grouping, string alias, CosmicScalarOperation operation, bool distinct)
+        { this.grouping = grouping; this.alias = alias; this.operation = operation; this.distinct = distinct; }
         public CosmicGroupedBinding<Holon, CosmicProjectionRecord> Bind<TValue>(string unused, Expression<Func<Holon, TValue>> selector)
-            => BindScalar(grouping.Source, operation, selector, this);
+            => operation == CosmicScalarOperation.LongCount
+                ? RequiredBinding(CosmicGroupedBinding<Holon, CosmicProjectionRecord>.CountValues(grouping, alias, selector, distinct))
+                : BindScalar(grouping.Source, operation, selector, this);
         public CosmicGroupedBinding<Holon, CosmicProjectionRecord> Consume<TResult>(OASISResult<CosmicScalarQuery<Holon, TResult>> intent)
         {
             if (intent.IsError) throw new ArgumentException(intent.Message);

@@ -91,3 +91,9 @@ git submodule update --init "OASIS Architecture/NextGenSoftware.OASIS.API.Core" 
 ```
 
 Then, for example, `dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --filter "FullyQualifiedName~Subscription" -m:2 -nr:false -p:UseSharedCompilation=false`. In Git Bash write MSBuild switches with a dash (`-m:2`), because `/m:2` is rewritten into a path. The unit test project can contain compile errors from other in-flight work; check `git log` for the failing file before assuming your change broke it.
+
+## Shared MongoDB Atlas test isolation — owner instruction 2026-11-18
+
+The OASIS shared Atlas cluster used by dev, staging and production is not a test backend. Do not run provider tests, benchmarks, stress/soak loops, replication/sync tests or diagnostic polling against it. Reuse isolated local/CI Mongo containers (real-provider acceptance) or unit-test in-memory substitutes; never substitute mocks for shipping provider implementations. A separate throwaway Atlas project requires its own explicitly identified disposable configuration.
+
+Any exceptional shared-cluster test must be announced to David before it starts, with an explicit small operation bound, pauses between calls and capped retries. Client HTTP timeouts do not bound server-side operations or cancel background work. Do not infer permission from access to deployed credentials. Never copy secrets into source/evidence. Preserve blocked replication deliveries, including535/543; do not replay, clear, reauthorize or advance them to reduce load. Operational worker pauses must be explicit and preserve durable queues. Read Docs/WIP/HyperDrive-Providers/SHARED_MONGO_STANDDOWN_2026-11-18.md before resuming shared diagnostics.

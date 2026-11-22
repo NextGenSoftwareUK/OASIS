@@ -17,7 +17,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
 
         private void InitializeBillingIndexes()
         {
-            Subscriptions.Indexes.CreateMany(new[] {
+            EnsureSubscriptionIndexes(Subscriptions, new[] {
                 new CreateIndexModel<SubscriptionRecord>(Builders<SubscriptionRecord>.IndexKeys.Ascending(x => x.SandboxExpiresAtUtc).Ascending(x => x.UserId),
                     new CreateIndexOptions<SubscriptionRecord> { Name = "ix_sandbox_subscription_expiry",
                         PartialFilterExpression = new BsonDocument("SandboxExpiresAtUtc", new BsonDocument("$type", "date")) }),
@@ -25,16 +25,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                     Name = "ux_stripe_subscription", Unique = true, PartialFilterExpression = new BsonDocument("StripeSubscriptionId", new BsonDocument("$type", "string")) }),
                 new CreateIndexModel<SubscriptionRecord>(Builders<SubscriptionRecord>.IndexKeys.Ascending(x => x.StripeCustomerId), new CreateIndexOptions<SubscriptionRecord> { Name = "ux_stripe_customer", Unique = true, PartialFilterExpression = new BsonDocument("StripeCustomerId", new BsonDocument("$type", "string")) })
             });
-            OverageStatements.Indexes.CreateMany(new[] {
+            EnsureSubscriptionIndexes(OverageStatements, new[] {
                 new CreateIndexModel<PaidOverageStatement>(Builders<PaidOverageStatement>.IndexKeys.Ascending(x=>x.UserId).Ascending(x=>x.Month),new CreateIndexOptions{Name="ix_overage_account_month"}),
                 new CreateIndexModel<PaidOverageStatement>(Builders<PaidOverageStatement>.IndexKeys.Ascending(x=>x.State).Ascending(x=>x.NextAttemptAtUtc),new CreateIndexOptions{Name="ix_overage_collection"}),
                 new CreateIndexModel<PaidOverageStatement>(Builders<PaidOverageStatement>.IndexKeys.Ascending(x=>x.StripeInvoiceId),new CreateIndexOptions<PaidOverageStatement>{Name="ux_overage_invoice",Unique=true,PartialFilterExpression=new BsonDocument("StripeInvoiceId",new BsonDocument("$type","string"))})
             });
-            Orders.Indexes.CreateMany(new[] {
+            EnsureSubscriptionIndexes(Orders, new[] {
                 new CreateIndexModel<OrderRecord>(Builders<OrderRecord>.IndexKeys.Ascending(x => x.StripeInvoiceId), new CreateIndexOptions { Name = "ux_stripe_invoice", Unique = true }),
                 new CreateIndexModel<OrderRecord>(Builders<OrderRecord>.IndexKeys.Ascending(x => x.UserId).Descending(x => x.CreatedAt), new CreateIndexOptions { Name = "ix_user_orders" })
             });
-            BillingAudit.Indexes.CreateOne(new CreateIndexModel<BsonDocument>(new BsonDocument { { "UserId", 1 }, { "OccurredAtUtc", -1 } }, new CreateIndexOptions { Name = "ix_user_billing_audit" }));
+            EnsureSubscriptionIndexes(BillingAudit, new CreateIndexModel<BsonDocument>(new BsonDocument { { "UserId", 1 }, { "OccurredAtUtc", -1 } }, new CreateIndexOptions { Name = "ix_user_billing_audit" }));
         }
 
         public Task<SubscriptionRecord> GetSubscriptionAsync(string userId, CancellationToken cancellationToken = default) =>

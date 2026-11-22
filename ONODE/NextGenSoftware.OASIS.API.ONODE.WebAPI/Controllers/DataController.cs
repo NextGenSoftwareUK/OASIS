@@ -25,6 +25,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     /// </summary>
     [ApiController]
     [Route("api/data")]
+    [ServiceFilter(typeof(Services.AccessLog.AccessLogFilter))]
     public partial class DataController : OASISControllerBase
     {
         //  OASISDNA _settings;

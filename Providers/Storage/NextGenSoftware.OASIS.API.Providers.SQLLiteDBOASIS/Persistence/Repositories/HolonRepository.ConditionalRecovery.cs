@@ -13,6 +13,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
 public partial class HolonRepository
 {
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonPropertyWriteOutcomeAsync(
+        ConditionalHolonPropertyWriteRequest original, CancellationToken cancellationToken = default)
+        => ReadOutcomeAsync(original?.WriteRequest, null, false, cancellationToken, propertyWrite: original);
+
     public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonWriteOutcomeAsync(
         ConditionalHolonWriteRequest original, CancellationToken cancellationToken = default)
         => ReadOutcomeAsync(original, null, false, cancellationToken);
@@ -28,7 +32,8 @@ public partial class HolonRepository
 
     private Task<OASISResult<ConditionalHolonWriteOutcome>> ReadOutcomeAsync(
         ConditionalHolonWriteRequest original, CosmicStorageIdentity expectedSource, bool requireBinding,
-        CancellationToken cancellationToken, ConditionalHolonReceiptEvidenceRequest evidenceRequest = null)
+        CancellationToken cancellationToken, ConditionalHolonReceiptEvidenceRequest evidenceRequest = null,
+        ConditionalHolonPropertyWriteRequest propertyWrite = null)
     {
         var result = new OASISResult<ConditionalHolonWriteOutcome>();
         try
@@ -36,16 +41,19 @@ public partial class HolonRepository
             cancellationToken.ThrowIfCancellationRequested();
             if (requireBinding && expectedSource == null)
                 throw new ArgumentNullException(nameof(expectedSource));
+            if(propertyWrite!=null && !ReferenceEquals(propertyWrite.WriteRequest,original))
+                throw new ArgumentException("Selected status intent belongs to another base request.");
             var enrolledSource = original?.Write.ReplicationEnrollment?.SourceStorageIdentity;
             if (expectedSource != null && (expectedSource.Authority != Core.Enums.ProviderType.SQLLiteDBOASIS
                 || enrolledSource != null && enrolledSource.BindingFingerprint != expectedSource.BindingFingerprint))
                 throw new InvalidDataException("The requested source does not match the original operation binding.");
             expectedSource ??= enrolledSource;
-            var plan = original?.Write.ReplicationEnrollment == null
+            var plan = propertyWrite!=null ? ConditionalHolonPlan.CreatePropertyWrite(propertyWrite,Core.Enums.ProviderType.SQLLiteDBOASIS)
+                : original?.Write.ReplicationEnrollment == null
                 ? ConditionalHolonPlan.Create(original, Core.Enums.ProviderType.SQLLiteDBOASIS)
                 : ConditionalHolonPlan.CreateReplicating(original, Core.Enums.ProviderType.SQLLiteDBOASIS, original.Write.ReplicationEnrollment);
             var graph = PrepareGraph(original.Roots, original.SaveChildren, original.Recursive, original.MaxChildDepth);
-            var fingerprint = ConditionalFingerprint(original, graph);
+            var fingerprint = ConditionalFingerprint(original, graph,propertyWrite);
             if (original.Write.ReplicationEnrollment != null)
                 fingerprint = ReplicationFingerprint(fingerprint, original.Write.ReplicationEnrollment);
             var source = _dbContext.Database.GetDbConnection();
@@ -73,7 +81,7 @@ public partial class HolonRepository
             {
                 if (reader.IsDBNull(0) || reader.GetString(0) != fingerprint || reader.IsDBNull(1))
                     throw new InvalidDataException("Receipt is not bound to the original conditional intent.");
-                var verifiedRoots = ReadConditionalReceipt(reader.GetString(1), original, graph, fingerprint, out delta);
+                var verifiedRoots = ReadConditionalReceipt(reader.GetString(1), original, graph, fingerprint, out delta,propertyWrite);
                 if (evidenceRequest != null) evidence = ConditionalHolonReceiptEvidenceProjection.Create(evidenceRequest, verifiedRoots);
                 if (reader.Read()) throw new InvalidDataException("Conditional receipt identity is not unique.");
                 state = ConditionalHolonReceiptState.Committed;

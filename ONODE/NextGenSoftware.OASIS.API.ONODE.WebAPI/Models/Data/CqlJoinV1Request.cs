@@ -13,11 +13,25 @@ public sealed class CqlJoinV1Request
     public CqlJoinV1Source Left { get; set; } = new();
     public CqlJoinV1Source Right { get; set; } = new();
     public CqlJoinV1Key[] Keys { get; set; } = Array.Empty<CqlJoinV1Key>();
+    public bool MatchAnyKey { get; set; }
+    public int[]? KeyGroupStarts { get; set; }
     public CqlJoinV1Column[] Columns { get; set; } = Array.Empty<CqlJoinV1Column>();
     public int MaximumLeftRows { get; set; } = 100;
     public int MaximumRightRows { get; set; } = 100;
     public long MaximumPairs { get; set; } = 1000;
     public int MaximumResults { get; set; } = 25;
+    public string? OutputOrderBy { get; set; }
+    public bool OutputDescending { get; set; }
+    public CqlV1JoinOrder[]? OutputOrdering { get; set; }
+    public int? OutputOffset { get; set; }
+    public int? OutputLimit { get; set; }
+}
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class CqlV1JoinOrder
+{
+    public string? Alias { get; set; }
+    public bool Descending { get; set; }
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
@@ -38,6 +52,7 @@ public sealed class CqlJoinV1Source
 public sealed class CqlJoinV1Key
 {
     public string? Alias { get; set; }
+    public string? Operator { get; set; }
     public CqlScalarV1Selection? Left { get; set; }
     public CqlScalarV1Selection? Right { get; set; }
 }

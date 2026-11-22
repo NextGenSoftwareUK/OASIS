@@ -33,10 +33,11 @@ public class CqlPolkadotHostedAdmissionTests
     }
 
     [Fact]
-    public async Task PublicHeaderPresetsPlanNativeThreeTwoAndMongoPairsWithoutWallets()
+    public async Task ShippingPolkadotProviderPlansPublicThreeTwoAndMongoPairs()
     {
         var keys = Enumerable.Range(1,3).Select(number=>"0x"+number.ToString("x64")).ToArray();
-        using var source = PolkadotPublicHeaderMetadataSource.FromJson(JsonSerializer.Serialize(new {
+        using var source = new PolkadotOASIS();
+        source.ConfigurePublicHeaderQuery(JsonSerializer.Serialize(new {
             schema=1,rpcUrl="https://rpc.example.invalid/",genesisHash=PolkadotPublicHeaderMetadataSource.Genesis,
             blockHashes=keys,sourceOwner=Guid.NewGuid()}));
         var rows = new List<object>();
@@ -78,7 +79,7 @@ public class CqlPolkadotHostedAdmissionTests
 
     private sealed class ReadyRegistry(NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider source) : ICqlHostedSourceRegistry
     {
-        public NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider Find(ProviderType provider)
+        public NextGenSoftware.OASIS.API.Core.Interfaces.IOASISProvider Find(ProviderType provider)
             => provider == ProviderType.PolkadotOASIS ? source : null!;
         public Task ActivateReadSourceAsync(ProviderType provider, CancellationToken token)
         {

@@ -10,9 +10,23 @@ internal sealed partial class NeoCqlTranslator
         var projected = new List<(string, string)>();
         foreach (var column in columns)
         {
-            projected.Add(TranslateProjectionPath(column.Path));
+            projected.Add(TranslateProjectionColumn(column));
         }
         return projected.AsReadOnly();
+    }
+
+    internal (string State, string Value) TranslateProjectionColumn(CosmicProjectionColumn column)
+    {
+        if (column == null) throw new System.ArgumentNullException(nameof(column));
+        if (column.Function == CosmicProjectionFunction.None) return TranslateProjectionPath(column.Path);
+        if (column.Function != CosmicProjectionFunction.Utf16Length ||
+            column.Path.ValueType != typeof(string) ||
+            (System.Nullable.GetUnderlyingType(column.ValueType) ?? column.ValueType) != typeof(int))
+            throw new System.NotSupportedException("The computed projection has no admitted native implementation.");
+        var source = TranslateProjectionPath(column.Path);
+        var supplementary = Bind(@"[\x{10000}-\x{10FFFF}]");
+        var units = Utf16LengthUnits(source.Value, supplementary);
+        return (source.State, "CASE WHEN (" + source.State + ")=2 THEN " + units + " ELSE null END");
     }
 
     internal (string State, string Value) TranslateProjectionPath(CosmicQueryPath path)

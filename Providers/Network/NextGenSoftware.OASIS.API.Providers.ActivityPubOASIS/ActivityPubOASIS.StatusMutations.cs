@@ -28,8 +28,7 @@ public partial class ActivityPubOASIS
         try{
             ObjectDisposedException.ThrowIf(_disposed,this);
             if(string.IsNullOrWhiteSpace(key))throw new ArgumentException("A native status ID is required.",nameof(key));
-            selected=key.Trim();
-            if(selected is "." or "..")throw new ArgumentException("A native status ID cannot be a path navigation segment.",nameof(key));
+            selected=RequireNativePathId(key);
             if(string.IsNullOrWhiteSpace(_accessToken))throw new UnauthorizedAccessException("A Mastodon user token with write:statuses is required.");
             if(!_isActivated){
                 var activated=await ActivateProviderAsync();

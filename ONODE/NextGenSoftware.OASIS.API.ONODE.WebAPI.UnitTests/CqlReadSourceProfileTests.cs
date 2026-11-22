@@ -23,7 +23,8 @@ public class CqlReadSourceProfileTests
                 case "get_ProviderType": return new EnumValue<ProviderType>(ProviderType.SolanaOASIS);
                 case "get_QueryProviderType": return ProviderType.SolanaOASIS;
                 case "get_QueryCapabilities": return CosmicQueryCapabilities.ForStringMetadataKeyLookup("SolanaAccountAddress", 44, 8);
-                case "get_IsProviderActivated": return Active;
+                case "get_IsProviderActivated": return false;
+                case "get_IsQuerySourceActivated": return Active;
                 case "ActivateQuerySourceAsync":
                     ((CancellationToken)arguments![0]!).ThrowIfCancellationRequested();
                     Activations++;

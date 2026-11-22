@@ -1,0 +1,19 @@
+"""One explicit client transport: loopback inside the owned internal network."""
+import os
+
+
+def client_command(state, owner, label, network, command, native_web4_input=False):
+    assert isinstance(native_web4_input, bool)
+    assert state['Config']['Labels'].get(label) == owner
+    assert state['State']['Running'] is True and state['State']['Pid'] > 1
+    assert state['HostConfig']['NetworkMode'] == network
+    assert set(state['NetworkSettings']['Networks']) == {network}
+    assert not state['HostConfig'].get('PortBindings')
+    assert all(not value for value in state['NetworkSettings']['Ports'].values())
+    # Enter only the network namespace, retaining the runner filesystem. Drop
+    # back to the runner identity before executing the frozen HTTP client.
+    return ['sudo', '-n', *(['--preserve-env=COSMIC_URBIT_NATIVE_WEB4_INPUT'] if native_web4_input else []), 'nsenter', '--target', str(state['State']['Pid']), '--net',
+            '--setuid', str(os.getuid()), '--setgid', str(os.getgid()), '--',
+            '/usr/bin/env', 'GITHUB_ACTIONS=true',
+            'HOME=' + os.path.expanduser('~'), 'DOTNET_CLI_HOME=' + os.path.expanduser('~'),
+            'DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1', 'DOTNET_NOLOGO=1', *command]

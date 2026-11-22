@@ -88,12 +88,22 @@ public sealed partial class CosmicCqlNativeTests
             {
                 { "parts", new BsonArray(packet.Parts.Select(word => new BsonInt64(word))) }, { "count", packet.Count }
             }).ToArray();
-            var expression = new BsonDocument
+            var preparation = new BsonDocument();
+            var shifts = new BsonDocument();
+            var publication = new BsonDocument();
+            Translator.AddFloatingAggregate(preparation, shifts, publication, "sum",
+                "$inputs.parts", "$inputs.count", average: false, single: single);
+            Translator.AddFloatingAggregate(preparation, shifts, publication, "mean",
+                "$inputs.parts", "$inputs.count", average: true, single: single);
+            var pipeline = SingleKernelPipeline(vectors, new BsonDocument
             {
-                { "sum", Translator.FloatingAggregateValue("$inputs.parts", "$inputs.count", false, single) },
-                { "mean", Translator.FloatingAggregateValue("$inputs.parts", "$inputs.count", true, single) }
-            };
-            var rows = await fixture.Records.Aggregate<BsonDocument>(SingleKernelPipeline(vectors, expression),
+                { "sum", "$sum" }, { "mean", "$mean" }
+            }).ToList();
+            pipeline.InsertRange(pipeline.Count - 2, new BsonDocument[]
+            {
+                new("$set", preparation), new("$set", shifts), new("$set", publication)
+            });
+            var rows = await fixture.Records.Aggregate<BsonDocument>(pipeline.ToArray(),
                 new AggregateOptions { MaxTime = TimeSpan.FromSeconds(30), BatchSize = 64, AllowDiskUse = false }).ToListAsync();
             Assert.Equal(packets.Count, rows.Count);
             for (var index = 0; index < packets.Count; index++)

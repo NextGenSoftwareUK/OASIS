@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -26,6 +27,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 {
                     var settings = MongoClientSettings.FromConnectionString(connectionString);
                     settings.MaxConnectionPoolSize = 30;
+                    // After an Atlas upgrade, failover or primary change a pooled connection can point at a node that is no
+                    // longer the primary. Fail selection fast (the 30 s default hid it behind every request) and recycle
+                    // idle and old pooled connections so the pool re-resolves the topology instead of holding stale ones.
+                    settings.ServerSelectionTimeout = TimeSpan.FromSeconds(10);
+                    settings.ConnectTimeout = TimeSpan.FromSeconds(10);
+                    settings.MaxConnectionIdleTime = TimeSpan.FromMinutes(5);
+                    settings.MaxConnectionLifeTime = TimeSpan.FromMinutes(30);
                     client = new MongoClient(settings);
                     _clients[connectionString] = client;
                 }

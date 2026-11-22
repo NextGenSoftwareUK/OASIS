@@ -57,12 +57,23 @@ public sealed partial class CosmicCqlNativeTests
                 { "parts", new BsonArray(packet.Parts.Select(word => new BsonDecimal128(new Decimal128(word)))) },
                 { "count", packet.Count }
             }).ToArray();
-            var expression = new BsonDocument
+            var preparation = new BsonDocument();
+            var rounding = new BsonDocument();
+            var publication = new BsonDocument();
+            Translator.AddDecimalAggregate(preparation, rounding, publication, "sum", "$inputs.parts", "$inputs.count", average: false);
+            Translator.AddDecimalAggregate(preparation, rounding, publication, "mean", "$inputs.parts", "$inputs.count", average: true);
+            static int Depth(BsonValue value)
+                => value.IsBsonDocument ? 1 + value.AsBsonDocument.Values.Select(Depth).DefaultIfEmpty().Max()
+                    : value.IsBsonArray ? 1 + value.AsBsonArray.Select(Depth).DefaultIfEmpty().Max() : 0;
+
+            // Reserve room for the aggregation command and its enclosing pipeline.
+            Assert.All(new[] { preparation, rounding, publication }, stage => Assert.InRange(Depth(stage), 1, 45));
+            var pipeline = SingleKernelPipeline(vectors, new BsonDocument { { "sum", "$sum" }, { "mean", "$mean" } }).ToList();
+            pipeline.InsertRange(pipeline.Count - 2, new BsonDocument[]
             {
-                { "sum", Translator.DecimalAggregateValue("$inputs.parts", "$inputs.count", average: false) },
-                { "mean", Translator.DecimalAggregateValue("$inputs.parts", "$inputs.count", average: true) }
-            };
-            var rows = await fixture.Records.Aggregate<BsonDocument>(SingleKernelPipeline(vectors, expression),
+                new("$set", preparation), new("$set", rounding), new("$set", publication)
+            });
+            var rows = await fixture.Records.Aggregate<BsonDocument>(pipeline.ToArray(),
                 new AggregateOptions { MaxTime = TimeSpan.FromSeconds(30), BatchSize = 64, AllowDiskUse = false }).ToListAsync();
             Assert.Equal(packets.Count, rows.Count);
             for (var index = 0; index < packets.Count; index++)

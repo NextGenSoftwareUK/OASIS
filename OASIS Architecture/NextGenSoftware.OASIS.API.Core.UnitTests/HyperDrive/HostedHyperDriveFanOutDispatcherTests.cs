@@ -89,8 +89,9 @@ public sealed class HostedHyperDriveFanOutDispatcherTests
     public async Task LongProviderCallRenewsItsGlobalAndItemLease()
     {
         var store = new RecordingStore(NewItem(1));
-        var dispatcher = new HostedHyperDriveFanOutDispatcher(store,
-            new DelayedHandler(TimeSpan.FromMilliseconds(250)), "worker-1");
+        // The provider call stays in flight until the dispatcher has actually renewed its lease, so this does not depend on
+        // how quickly a loaded CI machine schedules the heartbeat timer.
+        var dispatcher = new HostedHyperDriveFanOutDispatcher(store, new RenewalGatedHandler(store), "worker-1");
 
         var result = await dispatcher.DispatchOnceAsync(leaseDuration: TimeSpan.FromMilliseconds(300));
 
@@ -133,8 +134,21 @@ public sealed class HostedHyperDriveFanOutDispatcherTests
         }
     }
 
+    private sealed class RenewalGatedHandler : IHostedHyperDriveFanOutHandler
+    {
+        private readonly RecordingStore _store;
+        public RenewalGatedHandler(RecordingStore store) => _store = store;
+        public async Task<OASISResult<bool>> ApplyAsync(HostedSyncFanOutItem item,
+            CancellationToken cancellationToken)
+        {
+            await _store.Renewed.Task.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
+            return new OASISResult<bool>(true);
+        }
+    }
+
     private sealed class RecordingStore : IHostedHyperDriveFanOutStore
     {
+        public TaskCompletionSource<bool> Renewed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly IReadOnlyList<HostedSyncFanOutItem> _items;
         public bool LoseLeaseOnComplete { get; set; }
         public bool LeaseAcquired { get; set; } = true;
@@ -160,6 +174,7 @@ public sealed class HostedHyperDriveFanOutDispatcherTests
             DateTime leaseUntilUtc, CancellationToken cancellationToken)
         {
             RenewCount++;
+            Renewed.TrySetResult(true);
             return Task.FromResult(new OASISResult<bool>(true));
         }
         public Task<OASISResult<bool>> ReleaseFanOutItemsAsync(IReadOnlyList<Guid> operationIds,

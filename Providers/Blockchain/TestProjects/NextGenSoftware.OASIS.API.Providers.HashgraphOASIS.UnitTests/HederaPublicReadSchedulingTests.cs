@@ -22,7 +22,7 @@ public sealed class HederaPublicReadSchedulingTests
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
         {
             Assert.AreEqual(HttpMethod.Get, request.Method);
-            Assert.AreEqual("?limit=1", request.RequestUri!.Query);
+            Assert.AreEqual("?transactions=false", request.RequestUri!.Query);
             string key = request.RequestUri.AbsolutePath[17..];
             Assert.IsTrue(Keys.Contains(key));
             int active = Interlocked.Increment(ref Active);

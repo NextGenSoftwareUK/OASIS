@@ -449,20 +449,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     }
                 }
 
-                // Load holons by multiple metadata pairs from SQLite - using LoadAllHolons and filter
-                var allHolons = await _holonRepository.LoadAllHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,version);
-                if (allHolons.IsError)
-                {
-                    return allHolons;
-                }
-                if(allHolons.Result==null)throw new System.IO.InvalidDataException("SQLite metadata candidate collection is missing.");
-                var filtered=allHolons.Result.Where(h =>
-                    NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(h.MetaData,filter,metaKeyValuePairMatchMode)).ToList();
-                result.Result = filtered;
-                result.IsError = false;
-                result.IsLoaded = true;
-                result.LoadedCount = filtered.Count;
-                result.Message = $"Successfully loaded {filtered.Count} holons by metadata pairs from SQLite";
+                return await _holonRepository.LoadMatchingHolonsAsync(filter, metaKeyValuePairMatchMode,
+                    type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version);
             }
             catch (Exception ex)
             {

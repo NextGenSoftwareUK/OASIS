@@ -1,4 +1,4 @@
-//using NextGenSoftware.OASIS.API.Providers.TONOASIS; // Not referenced in Core Only solution
+using NextGenSoftware.OASIS.API.Providers.TONOASIS;
 //using NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS;
 //using NextGenSoftware.OASIS.API.Providers.LineaOASIS;
 //using NextGenSoftware.OASIS.API.Providers.ScrollOASIS;
@@ -59,7 +59,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 {
     public static partial class OASISBootLoader
     {
-        private static OASISResult<IOASISStorageProvider> RegisterProviderInternal(ProviderType providerType, string overrideConnectionString = null, bool forceRegister = false)
+        private static OASISResult<IOASISStorageProvider> RegisterProviderInternal(ProviderType providerType, string overrideConnectionString = null, bool forceRegister = false, string polkadotPublicHeaderConfiguration = null)
         {
             OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
 
@@ -88,6 +88,40 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 holoOASIS.OnStorageProviderError += HoloOASIS_StorageProviderError;
                                 result.Result = holoOASIS;
                             }
+                            break;
+
+                        case ProviderType.PocketBaseOASIS:
+                            var pocketBaseUrl = OASISDNA?.OASIS?.StorageProviders?.PocketBaseOASIS?.ConnectionString;
+                            if (!Uri.TryCreate(pocketBaseUrl, UriKind.Absolute, out var pocketBaseEndpoint) ||
+                                (pocketBaseEndpoint.Scheme != Uri.UriSchemeHttps &&
+                                 (pocketBaseEndpoint.Scheme != Uri.UriSchemeHttp || !pocketBaseEndpoint.IsLoopback)) ||
+                                pocketBaseEndpoint.UserInfo.Length != 0 || pocketBaseEndpoint.Query.Length != 0 ||
+                                pocketBaseEndpoint.Fragment.Length != 0)
+                                throw new InvalidOperationException("PocketBase registration requires an HTTPS service URL or a loopback HTTP URL.");
+                            if (overrideConnectionString != null && !string.Equals(overrideConnectionString, pocketBaseUrl, StringComparison.Ordinal))
+                                throw new ArgumentException("PocketBase registration requires the configured service URL.", nameof(overrideConnectionString));
+                            var pocketBaseEmail = Environment.GetEnvironmentVariable("OASIS_POCKETBASE_ADMIN_EMAIL");
+                            var pocketBasePassword = Environment.GetEnvironmentVariable("OASIS_POCKETBASE_ADMIN_PASSWORD");
+                            if (string.IsNullOrWhiteSpace(pocketBaseEmail) || string.IsNullOrWhiteSpace(pocketBasePassword))
+                                throw new InvalidOperationException("PocketBase registration requires its administrator credentials in the process environment.");
+                            result.Result = new API.Providers.PocketBaseOASIS.PocketBaseOASIS(
+                                pocketBaseUrl, pocketBaseEmail, pocketBasePassword);
+                            break;
+
+                        case ProviderType.TursoOASIS:
+                            var tursoUrl = OASISDNA?.OASIS?.StorageProviders?.TursoOASIS?.ConnectionString;
+                            if (!Uri.TryCreate(tursoUrl, UriKind.Absolute, out var tursoEndpoint) ||
+                                (tursoEndpoint.Scheme != Uri.UriSchemeHttps &&
+                                 (tursoEndpoint.Scheme != Uri.UriSchemeHttp || !tursoEndpoint.IsLoopback)) ||
+                                tursoEndpoint.UserInfo.Length != 0 || tursoEndpoint.Query.Length != 0 ||
+                                tursoEndpoint.Fragment.Length != 0)
+                                throw new InvalidOperationException("Turso registration requires an HTTPS service URL or a loopback HTTP URL.");
+                            if (overrideConnectionString != null && !string.Equals(overrideConnectionString, tursoUrl, StringComparison.Ordinal))
+                                throw new ArgumentException("Turso registration requires the configured service URL.", nameof(overrideConnectionString));
+                            var tursoToken = Environment.GetEnvironmentVariable("OASIS_TURSO_AUTH_TOKEN");
+                            if (string.IsNullOrWhiteSpace(tursoToken))
+                                throw new InvalidOperationException("Turso registration requires an authentication token in the process environment.");
+                            result.Result = new API.Providers.TursoOASIS.TursoOASIS(tursoUrl, tursoToken);
                             break;
 
                         case ProviderType.SQLServerDBOASIS:
@@ -156,6 +190,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 solanaOasis.OnStorageProviderError += SolanaOASIS_StorageProviderError;
                                 result.Result = solanaOasis;
                             }
+                            break;
+
+                        case ProviderType.TONOASIS:
+                            result.Result = new TONOASIS();
                             break;
 
                         case ProviderType.EOSIOOASIS:
@@ -327,22 +365,28 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             result.Result = CloudProviderFactory.CreateAzureStorage(OASISDNA.OASIS.StorageProviders.AzureStorageOASIS,overrideConnectionString);
                             break;
                         case ProviderType.AzureCosmosDBOASIS:
-                            {
-                                AzureCosmosDBOASIS azureCosmosDBOASIS = new AzureCosmosDBOASIS(
-                                    new Uri(OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.ServiceEndpoint),
-                                    OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.AuthKey,
-                                    OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.DBName,
-                                    ListHelper.ConvertToList(OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.CollectionNames))
-                                {
-                                    IsVersionControlEnabled = OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.IsVersionControlEnabled,
-                                    NativeImportDatabaseName = OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.NativeImportDatabaseName,
-                                    NativeImportContainers = OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.NativeImportContainers
-                                };
+                        {
+                            var settings = OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS
+                                ?? throw new InvalidOperationException("Azure Cosmos DB storage settings are required.");
+                            if (overrideConnectionString != null &&
+                                !string.Equals(overrideConnectionString, settings.ServiceEndpoint, StringComparison.Ordinal))
+                                throw new ArgumentException("Azure Cosmos DB registration requires the configured service endpoint.",
+                                    nameof(overrideConnectionString));
 
-                                azureCosmosDBOASIS.OnStorageProviderError += AzureCosmosDBOASIS_StorageProviderError;
-                                result.Result = azureCosmosDBOASIS;
-                            }
+                            var provider = new AzureCosmosDBOASIS(
+                                new Uri(settings.ServiceEndpoint),
+                                settings.AuthKey,
+                                settings.DBName,
+                                ListHelper.ConvertToList(settings.CollectionNames))
+                            {
+                                IsVersionControlEnabled = settings.IsVersionControlEnabled,
+                                NativeImportDatabaseName = settings.NativeImportDatabaseName,
+                                NativeImportContainers = settings.NativeImportContainers
+                            };
+                            provider.OnStorageProviderError += AzureCosmosDBOASIS_StorageProviderError;
+                            result.Result = provider;
                             break;
+                        }
 
                         //case ProviderType.CardanoOASIS:
                         //    {
@@ -353,8 +397,24 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         //    }
                         //    break;
 
+                        case ProviderType.AlgorandOASIS:
+                        {
+                            var provider = CreateAlgorandProvider(OASISDNA?.OASIS?.StorageProviders?.AlgorandOASIS, overrideConnectionString);
+                            provider.OnStorageProviderError += (_, error) => HandleProviderError("AlgorandOASIS", error);
+                            result.Result = provider;
+                            break;
+                        }
+
                         case ProviderType.PolkadotOASIS:
                         {
+                            if (polkadotPublicHeaderConfiguration != null)
+                            {
+                                var reader = NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotOASIS
+                                    .CreatePublicHeaderReader(polkadotPublicHeaderConfiguration);
+                                reader.OnStorageProviderError += (_, error) => HandleProviderError("PolkadotOASIS", error);
+                                result.Result = reader;
+                                break;
+                            }
                             var settings = OASISDNA.OASIS.StorageProviders.PolkadotOASIS
                                 ?? throw new InvalidOperationException("Polkadot storage settings are required.");
                             if (!System.Text.RegularExpressions.Regex.IsMatch(settings.GenesisHash ?? "", "^0x[0-9a-fA-F]{64}$"))

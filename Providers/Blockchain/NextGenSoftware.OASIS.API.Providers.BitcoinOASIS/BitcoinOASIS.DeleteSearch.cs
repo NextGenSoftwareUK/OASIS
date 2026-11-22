@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -40,159 +41,205 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 {
     public partial class BitcoinOASIS
     {
-        /// <summary>
-        /// Create Holon from Bitcoin response when JSON deserialization fails
-        /// </summary>
-        private Holon CreateHolonFromBitcoin(string bitcoinJson)
-        {
-            try
-            {
-                // Extract basic information from Bitcoin JSON response
-                var holon = new Holon
-                {
-                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{ExtractBitcoinProperty(bitcoinJson, "name") ?? "bitcoin_holon"}"),
-                    Name = ExtractBitcoinProperty(bitcoinJson, "name") ?? "Bitcoin Holon",
-                    Description = ExtractBitcoinProperty(bitcoinJson, "description") ?? "",
-                    HolonType = HolonType.Holon,
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow,
-                    Version = 1,
-                    IsActive = true
-                };
-
-                return holon;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-
-
-
         public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
             return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
         }
 
-        public async Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        public Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
+            var memo = Encoding.UTF8.GetBytes(memoText ?? string.Empty);
+            return SendSignedTransactionAsync(fromWalletAddress, toWalletAddress, amount, memo, memoText, _privateKey, commitmentOnly: false);
+        }
 
+        private const string BitcoinTransactionIdMetadataKey = "BitcoinTransactionId";
+        private const string BitcoinBroadcastOutcomeUnknown = "BITCOIN_BROADCAST_OUTCOME_UNKNOWN";
+
+        private async Task<OASISResult<ITransactionResponse>> SendSignedTransactionAsync(
+            string fromWalletAddress, string toWalletAddress, decimal amount, byte[] memo, string memoText, string signingKey, bool commitmentOnly,
+            Func<uint256, Task> preparePublication = null)
+        {
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated.");
                     return result;
                 }
 
-                // Convert decimal amount to satoshis (1 BTC = 100,000,000 satoshis)
-                var amountInSatoshis = (long)(amount * 100000000);
-
-                // Create Bitcoin transaction using Blockstream API
-                var transactionRequest = new
+                if (string.IsNullOrWhiteSpace(signingKey))
                 {
-                    inputs = new[]
-                    {
-                        new
-                        {
-                            txid = "", // Will be filled by UTXO lookup
-                            vout = 0
-                        }
-                    },
-                    outputs = new[]
-                    {
-                        new
-                        {
-                            address = toWalletAddress,
-                            value = amountInSatoshis
-                        }
-                    }
-                };
-
-                // First, get UTXOs for the from address
-                var utxoResponse = await _httpClient.GetAsync($"/address/{fromWalletAddress}/utxo");
-                if (!utxoResponse.IsSuccessStatusCode)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to get UTXOs for address {fromWalletAddress}: {utxoResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref result, "A Bitcoin wallet signing key is required.");
                     return result;
                 }
 
-                var utxoContent = await utxoResponse.Content.ReadAsStringAsync();
-                var utxos = JsonSerializer.Deserialize<JsonElement[]>(utxoContent);
-
-                if (utxos == null || utxos.Length == 0)
+                var satoshis = amount * 100_000_000m;
+                if ((!commitmentOnly && satoshis <= 0) || satoshis > 2_100_000_000_000_000m || satoshis != decimal.Truncate(satoshis))
                 {
-                    OASISErrorHandling.HandleError(ref result, $"No UTXOs found for address {fromWalletAddress}");
+                    OASISErrorHandling.HandleError(ref result, "The Bitcoin amount must be a positive whole number of satoshis within the supply limit.");
                     return result;
                 }
 
-                // Find sufficient UTXOs
-                long totalValue = 0;
-                var selectedUtxos = new List<object>();
+                if (memo.Length > 80)
+                {
+                    OASISErrorHandling.HandleError(ref result, "A Bitcoin transaction data output may contain at most 80 bytes.");
+                    return result;
+                }
 
+                var network = SigningNetwork;
+                var source = BitcoinAddress.Create(fromWalletAddress, network);
+                var destination = commitmentOnly ? null : BitcoinAddress.Create(toWalletAddress, network);
+                var signer = new BitcoinSecret(signingKey, network);
+                var wrappedSegwit = source.Equals(signer.GetAddress(ScriptPubKeyType.SegwitP2SH));
+                if (!wrappedSegwit && !source.Equals(signer.GetAddress(ScriptPubKeyType.Legacy)) &&
+                    !source.Equals(signer.GetAddress(ScriptPubKeyType.Segwit)))
+                {
+                    OASISErrorHandling.HandleError(ref result, "The source address must belong to the configured signing key.");
+                    return result;
+                }
+
+                var genesis = (await _httpClient.GetStringAsync("block-height/0")).Trim();
+                if (!uint256.TryParse(genesis, out var genesisHash) || genesisHash != network.GetGenesis().GetHash())
+                {
+                    OASISErrorHandling.HandleError(ref result, "Esplora is serving a different Bitcoin network than the signing wallet.");
+                    return result;
+                }
+
+                var utxos = await _httpClient.GetFromJsonAsync<JsonElement[]>($"address/{source}/utxo");
+                var tipText = await _httpClient.GetStringAsync("blocks/tip/height");
+                var tip = long.Parse(tipText, System.Globalization.CultureInfo.InvariantCulture);
+                var coins = new List<Coin>();
                 foreach (var utxo in utxos)
                 {
-                    var value = utxo.GetProperty("value").GetInt64();
-                    totalValue += value;
-                    selectedUtxos.Add(new
-                    {
-                        txid = utxo.GetProperty("txid").GetString(),
-                        vout = utxo.GetProperty("vout").GetInt32()
-                    });
+                    var txid = uint256.Parse(utxo.GetProperty("txid").GetString());
+                    var index = utxo.GetProperty("vout").GetUInt32();
+                    var value = Money.Satoshis(utxo.GetProperty("value").GetInt64());
+                    var status = utxo.GetProperty("status");
+                    var confirmed = status.GetProperty("confirmed").GetBoolean();
 
-                    if (totalValue >= amountInSatoshis)
-                        break;
+                    // Old confirmed outputs are mature regardless of whether they came from mining.
+                    var mature = confirmed && tip - status.GetProperty("block_height").GetInt64() + 1 >= 100;
+                    if (!mature)
+                    {
+                        var funding = await ReadVerifiedTransactionAsync(txid);
+                        if (index >= funding.Outputs.Count ||
+                            funding.Outputs[(int)index].ScriptPubKey != source.ScriptPubKey ||
+                            funding.Outputs[(int)index].Value != value)
+                            throw new InvalidOperationException("Esplora returned inconsistent funding output details.");
+
+                        if (funding.IsCoinBase)
+                            continue;
+                    }
+
+                    var outpoint = new OutPoint(txid, index);
+                    var output = new TxOut(value, source.ScriptPubKey);
+                    coins.Add(wrappedSegwit
+                        ? new ScriptCoin(outpoint, output, signer.PrivateKey.PubKey.WitHash.ScriptPubKey)
+                        : new Coin(outpoint, output));
                 }
 
-                if (totalValue < amountInSatoshis)
+                var feeRate = await ReadBitcoinPaymentFeeRateAsync();
+
+                var payment = Money.Satoshis((long)satoshis);
+                var builder = network.CreateTransactionBuilder()
+                    .AddCoins(coins.ToArray())
+                    .AddKeys(signer.PrivateKey)
+                    .SetChange(source)
+                    .SendEstimatedFees(feeRate);
+                if (destination != null)
+                    builder.Send(destination, payment);
+
+                Script memoScript = null;
+                if (memo.Length > 0)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Insufficient funds. Available: {totalValue} satoshis, Required: {amountInSatoshis} satoshis");
+                    memoScript = TxNullDataTemplate.Instance.GenerateScriptPubKey(memo);
+                    // The builder applies a dust threshold to OP_RETURN. Final policy verification exempts it.
+                    builder.DustPrevention = false;
+                    builder.Send(memoScript, Money.Zero);
+                }
+
+                var transaction = builder.BuildTransaction(true);
+                if ((destination != null && !transaction.Outputs.Any(output => output.ScriptPubKey == destination.ScriptPubKey && output.Value >= payment)) ||
+                    (memoScript != null && !transaction.Outputs.Any(output => output.ScriptPubKey == memoScript && output.Value == Money.Zero)) ||
+                    !builder.Verify(transaction))
+                {
+                    OASISErrorHandling.HandleError(ref result, "The signed transaction failed payment or policy validation.");
                     return result;
                 }
 
-                // Create transaction with selected UTXOs
-                var finalTransaction = new
-                {
-                    inputs = selectedUtxos,
-                    outputs = new[]
-                    {
-                        new
-                        {
-                            address = toWalletAddress,
-                            value = amountInSatoshis
-                        }
-                    }
-                };
+                if (preparePublication != null)
+                    await preparePublication(transaction.GetHash());
 
-                // Broadcast transaction
-                var jsonContent = JsonSerializer.Serialize(finalTransaction);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var broadcastResponse = await _httpClient.PostAsync("/tx", content);
-                if (broadcastResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await broadcastResponse.Content.ReadAsStringAsync();
-                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    result.Result = new BitcoinTransactionResponse
-                    {
-                        TransactionResult = responseData.GetProperty("txid").GetString(),
-                        MemoText = memoText
-                    };
-                    result.IsError = false;
-                    result.Message = $"Bitcoin transaction sent successfully. TXID: {result.Result.TransactionResult}";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to broadcast Bitcoin transaction: {broadcastResponse.StatusCode}");
-                }
+                return await BroadcastSignedBitcoinAsync(transaction, memoText);
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"Error sending Bitcoin transaction: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Bitcoin transaction failed ({ex.GetType().Name}).");
+            }
+
+            return result;
+        }
+
+        private async Task<FeeRate> ReadBitcoinPaymentFeeRateAsync()
+        {
+            if (_paymentFeeRateSatPerVByte is not decimal feeRate)
+            {
+                var estimates = await _httpClient.GetFromJsonAsync<Dictionary<string, decimal>>("fee-estimates");
+                if (!estimates.TryGetValue("6", out feeRate) || feeRate <= 0)
+                    throw new InvalidOperationException("Esplora did not provide a fee estimate for six confirmations.");
+            }
+
+            return new FeeRate(Money.Satoshis((long)decimal.Ceiling(feeRate * 1000m)));
+        }
+
+        private async Task<OASISResult<ITransactionResponse>> BroadcastSignedBitcoinAsync(Transaction transaction, string memoText)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            var expectedId = transaction.GetHash();
+            using var body = new StringContent(transaction.ToHex(), Encoding.ASCII, "text/plain");
+            try
+            {
+                result.MetaData[BitcoinTransactionIdMetadataKey] = expectedId.ToString();
+                using var response = await _httpClient.PostAsync("tx", body);
+                if (!response.IsSuccessStatusCode)
+                {
+                    if ((int)response.StatusCode >= 500 || response.StatusCode == System.Net.HttpStatusCode.RequestTimeout)
+                    {
+                        result.ErrorCode = BitcoinBroadcastOutcomeUnknown;
+                        OASISErrorHandling.HandleError(ref result,
+                            $"Esplora did not confirm Bitcoin transaction {expectedId}: {response.StatusCode}.");
+                        return result;
+                    }
+
+                    var rejection = await response.Content.ReadAsStringAsync();
+                    rejection = System.Text.RegularExpressions.Regex.Replace(rejection, "[a-fA-F0-9]{64,}", "[redacted]");
+                    rejection = rejection.Replace('\r', ' ').Replace('\n', ' ').Trim();
+                    if (rejection.Length > 512)
+                        rejection = rejection[..512];
+                    OASISErrorHandling.HandleError(ref result, $"Esplora rejected Bitcoin transaction {expectedId}: {response.StatusCode}. {rejection}");
+                    return result;
+                }
+
+                var receipt = (await response.Content.ReadAsStringAsync()).Trim();
+                if (!uint256.TryParse(receipt, out var transactionId) || transactionId != expectedId)
+                {
+                    result.ErrorCode = BitcoinBroadcastOutcomeUnknown;
+                    OASISErrorHandling.HandleError(ref result, $"Esplora did not acknowledge the expected Bitcoin transaction {expectedId}.");
+                    return result;
+                }
+
+                result.Result = new BitcoinTransactionResponse
+                {
+                    TransactionResult = transactionId.ToString(),
+                    MemoText = memoText
+                };
+            }
+            catch (Exception ex)
+            {
+                result.ErrorCode = BitcoinBroadcastOutcomeUnknown;
+                OASISErrorHandling.HandleError(ref result,
+                    $"Esplora did not confirm Bitcoin transaction {expectedId} ({ex.GetType().Name}).");
             }
 
             return result;
@@ -210,187 +257,18 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
             try
             {
-                // Load all avatar details as separate objects by scanning blocks for OP_RETURN (same approach as LoadAllHolonsAsync)
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-                var avatarDetails = new List<IAvatarDetail>();
-                var seenIds = new HashSet<Guid>();
-                var blockHeightRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "getblockcount",
-                    @params = new object[0]
-                };
-                var blockHeightContent = new StringContent(JsonSerializer.Serialize(blockHeightRequest), Encoding.UTF8, "application/json");
-                var blockHeightResponse = await _httpClient.PostAsync("", blockHeightContent);
-                if (blockHeightResponse.IsSuccessStatusCode)
-                {
-                    var blockHeightResult = await blockHeightResponse.Content.ReadAsStringAsync();
-                    var blockHeightData = JsonSerializer.Deserialize<JsonElement>(blockHeightResult);
-                    if (blockHeightData.TryGetProperty("result", out var currentHeight))
-                    {
-                        var startHeight = Math.Max(0, currentHeight.GetInt32() - 100);
-                        for (int height = currentHeight.GetInt32(); height >= startHeight; height--)
-                        {
-                            var blockHashRequest = new
-                            {
-                                jsonrpc = "2.0",
-                                id = 1,
-                                method = "getblockhash",
-                                @params = new object[] { height }
-                            };
-                            var blockHashContent = new StringContent(JsonSerializer.Serialize(blockHashRequest), Encoding.UTF8, "application/json");
-                            var blockHashResponse = await _httpClient.PostAsync("", blockHashContent);
-                            if (!blockHashResponse.IsSuccessStatusCode) continue;
-                            var blockHashResult = await blockHashResponse.Content.ReadAsStringAsync();
-                            var blockHashData = JsonSerializer.Deserialize<JsonElement>(blockHashResult);
-                            if (!blockHashData.TryGetProperty("result", out var blockHash)) continue;
-                            var blockRequest = new
-                            {
-                                jsonrpc = "2.0",
-                                id = 1,
-                                method = "getblock",
-                                @params = new object[] { blockHash.GetString(), 2 }
-                            };
-                            var blockContent = new StringContent(JsonSerializer.Serialize(blockRequest), Encoding.UTF8, "application/json");
-                            var blockResponse = await _httpClient.PostAsync("", blockContent);
-                            if (!blockResponse.IsSuccessStatusCode) continue;
-                            var blockResult = await blockResponse.Content.ReadAsStringAsync();
-                            var blockData = JsonSerializer.Deserialize<JsonElement>(blockResult);
-                            if (!blockData.TryGetProperty("result", out var block) || !block.TryGetProperty("tx", out var transactions)) continue;
-                            foreach (var tx in transactions.EnumerateArray())
-                            {
-                                if (!tx.TryGetProperty("vout", out var vouts)) continue;
-                                foreach (var vout in vouts.EnumerateArray())
-                                {
-                                    if (!vout.TryGetProperty("scriptPubKey", out var scriptPubKey) || !scriptPubKey.TryGetProperty("asm", out var asm)) continue;
-                                    var asmString = asm.GetString();
-                                    if (asmString == null || !asmString.StartsWith("OP_RETURN")) continue;
-                                    try
-                                    {
-                                        var detailBytes = Convert.FromHexString(asmString.Substring("OP_RETURN ".Length));
-                                        var detailJson = Encoding.UTF8.GetString(detailBytes);
-                                        var avatarDetail = ParseBitcoinToAvatarDetail(detailJson);
-                                        if (avatarDetail != null && seenIds.Add(avatarDetail.Id))
-                                            avatarDetails.Add(avatarDetail);
-                                    }
-                                    catch { }
-                                }
-                            }
-                        }
-                    }
-                }
-                result.Result = avatarDetails;
-                result.IsError = false;
-                result.Message = $"Loaded {avatarDetails.Count} avatar details from Bitcoin blockchain (scanned last 100 blocks)";
+                result.Result = await ReadWalletRecordsAsync<IAvatarDetail>(DecodeAvatarDetailTransactionAsync, version);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading all avatar details from Bitcoin: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Bitcoin avatar detail listing failed ({ex.GetType().Name}).");
             }
+
             return result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid parentId, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Search for holons with ParentHolonId in OP_RETURN transactions
-                // Bitcoin doesn't natively support queries, so we search transactions containing the parent ID
-                var searchRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "searchrawtransactions",
-                    @params = new object[] { parentId.ToString(), true, 0, 1000 }
-                };
-
-                var searchContent = new StringContent(JsonSerializer.Serialize(searchRequest), Encoding.UTF8, "application/json");
-                var searchResponse = await _httpClient.PostAsync("", searchContent);
-
-                if (searchResponse.IsSuccessStatusCode)
-                {
-                    var searchResult = await searchResponse.Content.ReadAsStringAsync();
-                    var searchData = JsonSerializer.Deserialize<JsonElement>(searchResult);
-
-                    var holons = new List<IHolon>();
-                    if (searchData.TryGetProperty("result", out var transactions))
-                    {
-                        foreach (var transaction in transactions.EnumerateArray())
-                        {
-                            if (transaction.TryGetProperty("vout", out var vouts))
-                            {
-                                foreach (var vout in vouts.EnumerateArray())
-                                {
-                                    if (vout.TryGetProperty("scriptPubKey", out var scriptPubKey) &&
-                                        scriptPubKey.TryGetProperty("asm", out var asm))
-                                    {
-                                        var asmString = asm.GetString();
-                                        if (asmString != null && asmString.StartsWith("OP_RETURN"))
-                                        {
-                                            try
-                                            {
-                                                var opReturnData = asmString.Substring("OP_RETURN ".Length);
-                                                var holonBytes = Convert.FromHexString(opReturnData);
-                                                var holonJson = Encoding.UTF8.GetString(holonBytes);
-                                                var holonData = JsonSerializer.Deserialize<JsonElement>(holonJson);
-                                                
-                                                // Check if this holon has the matching parent ID
-                                                if (holonData.TryGetProperty("parent_holon_id", out var parentIdProp) &&
-                                                    parentIdProp.GetString() == parentId.ToString())
-                                                {
-                                                    var holon = ParseBitcoinToHolon(holonJson);
-                                                    if (holon != null && (holonType == HolonType.All || holon.HolonType == holonType))
-                                                    {
-                                                        holons.Add(holon);
-                                                    }
-                                                }
-                                            }
-                                            catch
-                                            {
-                                                continue;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    result.Result = holons;
-                    result.IsError = false;
-                    result.Message = $"Loaded {holons.Count} holons for parent from Bitcoin blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to search Bitcoin blockchain: {searchResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from Bitcoin: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid parentId, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true, int version = 0)
+            => LoadWalletHolonsAsync(holon => holon.ParentHolonId == parentId && (holonType == HolonType.All || holon.HolonType == holonType), loadChildren, recursive, maxChildDepth, curentChildDepth, version);
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true, int version = 0)
         {
@@ -407,88 +285,71 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     }
                 }
 
-                if (string.IsNullOrWhiteSpace(providerKey))
+                if (!uint256.TryParse(providerKey, out var transactionId))
                 {
-                    OASISErrorHandling.HandleError(ref result, "Provider key cannot be null or empty");
+                    OASISErrorHandling.HandleError(ref result, "A Bitcoin transaction ID is required.");
                     return result;
                 }
 
-                // Search for holon by provider key (transaction hash) in OP_RETURN transactions
-                var searchRequest = new
+                var transaction = await ReadVerifiedTransactionAsync(transactionId);
+
+                var holon = await DecodeHolonTransactionAsync(transaction);
+                if (holon == null || holon.IsDeleted || (version > 0 && holon.Version != version))
                 {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "getrawtransaction",
-                    @params = new object[] { providerKey, true }
-                };
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    OASISErrorHandling.HandleError(ref result, "The Bitcoin transaction does not contain the requested holon version.");
+                    return result;
+                }
 
-                var searchContent = new StringContent(JsonSerializer.Serialize(searchRequest), Encoding.UTF8, "application/json");
-                var searchResponse = await _httpClient.PostAsync("", searchContent);
-
-                if (searchResponse.IsSuccessStatusCode)
+                if (loadChildren)
                 {
-                    var searchResult = await searchResponse.Content.ReadAsStringAsync();
-                    var searchData = JsonSerializer.Deserialize<JsonElement>(searchResult);
-
-                    if (searchData.TryGetProperty("result", out var transaction))
+                    var children = await LoadHolonsForParentAsync(holon.Id, HolonType.All, loadChildren, recursive, maxChildDepth, 0, continueOnError, continueOnErrorRecursive, version);
+                    if (children.IsError)
                     {
-                        if (transaction.TryGetProperty("vout", out var vouts))
-                        {
-                            foreach (var vout in vouts.EnumerateArray())
-                            {
-                                if (vout.TryGetProperty("scriptPubKey", out var scriptPubKey) &&
-                                    scriptPubKey.TryGetProperty("asm", out var asm))
-                                {
-                                    var asmString = asm.GetString();
-                                    if (asmString != null && asmString.StartsWith("OP_RETURN"))
-                                    {
-                                        try
-                                        {
-                                            var opReturnData = asmString.Substring("OP_RETURN ".Length);
-                                            var holonBytes = Convert.FromHexString(opReturnData);
-                                            var holonJson = Encoding.UTF8.GetString(holonBytes);
-                                            var holon = ParseBitcoinToHolon(holonJson);
-                                            
-                                            if (holon != null)
-                                            {
-                                                // Load children if requested
-                                                if (loadChildren && (recursive || maxChildDepth > 0))
-                                                {
-                                                    var childrenResult = await LoadHolonsForParentAsync(holon.Id, HolonType.All, loadChildren, recursive, maxChildDepth, 0, continueOnError, continueOnErrorRecursive, version);
-                                                    if (!childrenResult.IsError && childrenResult.Result != null)
-                                                    {
-                                                        holon.Children = childrenResult.Result.ToList();
-                                                    }
-                                                }
-                                                
-                                                result.Result = holon;
-                                                result.IsError = false;
-                                                result.Message = "Holon loaded from Bitcoin blockchain successfully";
-                                                return result;
-                                            }
-                                        }
-                                        catch
-                                        {
-                                            continue;
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        OASISErrorHandling.HandleError(ref result, children.Message, children.Exception);
+                        return result;
                     }
-                    
-                    OASISErrorHandling.HandleError(ref result, "Holon not found in Bitcoin blockchain");
+
+                    holon.Children = children.Result.ToList();
                 }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to load holon from Bitcoin: {searchResponse.StatusCode}");
-                }
+
+                holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS] = transactionId.ToString();
+                result.Result = holon;
+            }
+            catch (BitcoinTransactionNotFoundException ex)
+            {
+                result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading holon from Bitcoin: {ex.Message}", ex);
             }
             return result;
+        }
+
+        private async Task<IHolon> DecodeHolonTransactionAsync(Transaction transaction)
+        {
+            Holon holon = null;
+            foreach (var output in transaction.Outputs)
+            {
+                var pushes = new TxNullDataTemplate(output.ScriptPubKey.Length).ExtractScriptPubKeyParameters(output.ScriptPubKey);
+                if (pushes?.Length != 1)
+                    continue;
+
+                var decoded = BitcoinRecordBlobStore.IsCommitment(pushes[0])
+                    ? await ReadEncryptedHolonAsync(pushes[0])
+                    : ParseBitcoinToHolon(Encoding.UTF8.GetString(pushes[0]));
+                if (decoded == null)
+                    continue;
+
+                if (holon != null)
+                    throw new InvalidOperationException("The Bitcoin transaction contains multiple holon records.");
+                holon = decoded;
+            }
+
+            return holon;
         }
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
@@ -501,24 +362,13 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-                // Bitcoin does not have a native index of avatars; return empty set (avatars are discovered via LoadAvatar by providerKey/email/username)
-                result.Result = new List<IAvatar>();
-                result.IsError = false;
-                result.Message = "Bitcoin provider does not support LoadAllAvatars; returning empty list.";
+                result.Result = await ReadWalletRecordsAsync<IAvatar>(DecodeAvatarTransactionAsync, version);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading all avatars from Bitcoin: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Bitcoin avatar listing failed ({ex.GetType().Name}).");
             }
+
             return result;
         }
 

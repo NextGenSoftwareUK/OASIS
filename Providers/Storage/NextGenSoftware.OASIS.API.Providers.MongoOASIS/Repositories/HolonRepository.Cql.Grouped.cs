@@ -63,8 +63,14 @@ public partial class HolonRepository
 
             var name = "a" + index;
             var present = IntegerField(name + "present");
-            var coverage = CosmicGroupedResults.ValidateParticipation(column.Selector.ValueType, inputs, present);
+            var coverage = CosmicGroupedResults.ValidateParticipation(column.Selector.ValueType, inputs, present, column.Distinct);
             if (coverage.IsError) throw new InvalidDataException(coverage.Message);
+            if (column.Operation == CosmicScalarOperation.LongCount)
+            {
+                expectedFields++;
+                values[index] = present;
+                continue;
+            }
             if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
             {
                 OASISResult<object> normalized;

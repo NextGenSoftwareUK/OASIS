@@ -33,13 +33,14 @@ public class CqlCosmosHostedAdmissionTests
     }
 
     [Fact]
-    public async Task PublicValidatorPresetsPlanNativeThreeTwoAndMongoPairsWithoutWallets()
+    public async Task ShippingCosmosProviderPlansPublicThreeTwoAndMongoPairs()
     {
         var keys = new[] {
             "cosmosvaloper1qphf0ferqcch0jca9hlqfm3x0eds3dpkcvpafp",
             "cosmosvaloper1qr6sk28w4r6kqsg0737wzgu05505t4glezetwn",
             "cosmosvaloper1q9p73lx07tjqc34vs8jrsu5pg3q4ha534uqv4w" };
-        using var source = CosmosPublicValidatorMetadataSource.FromJson(JsonSerializer.Serialize(new {
+        using var source = new CosmosBlockChainOASIS();
+        source.ConfigurePublicValidatorQuery(JsonSerializer.Serialize(new {
             schema=1,restUrl="https://rpc.example.invalid/",chainId="cosmoshub-4",addresses=keys,sourceOwner=Guid.NewGuid()}));
         var rows = new List<object>();
         foreach (var count in new[] { 3, 2 })
@@ -80,7 +81,7 @@ public class CqlCosmosHostedAdmissionTests
 
     private sealed class ReadyRegistry(NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider source) : ICqlHostedSourceRegistry
     {
-        public NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider Find(ProviderType provider)
+        public NextGenSoftware.OASIS.API.Core.Interfaces.IOASISProvider Find(ProviderType provider)
             => provider == ProviderType.CosmosBlockChainOASIS ? source : null!;
         public Task ActivateReadSourceAsync(ProviderType provider, CancellationToken token)
         {

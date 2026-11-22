@@ -50,8 +50,14 @@ public partial class Neo4jOASIS
             if (position >= aggregates.Count || aggregates[position++] is not IDictionary<string, object> aggregate
                 || !aggregate.TryGetValue("present", out var rawPresent) || rawPresent is not long present)
                 throw new InvalidDataException("Native grouped aggregate participation is invalid.");
-            var coverage = CosmicGroupedResults.ValidateParticipation(column.Selector.ValueType, inputs, present);
+            var coverage = CosmicGroupedResults.ValidateParticipation(column.Selector.ValueType, inputs, present, column.Distinct);
             if (coverage.IsError) throw new InvalidDataException(coverage.Message);
+            if (column.Operation == CosmicScalarOperation.LongCount)
+            {
+                if (aggregate.Count != 1) throw new InvalidDataException("Native grouped selected count packet is invalid.");
+                values[index] = present;
+                continue;
+            }
             if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
             {
                 OASISResult<object> normalized;

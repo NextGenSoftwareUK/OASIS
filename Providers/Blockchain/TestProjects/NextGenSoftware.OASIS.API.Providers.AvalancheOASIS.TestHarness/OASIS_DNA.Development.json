@@ -13,6 +13,13 @@
     "Explorer": "https://testnet.snowtrace.io"
   },
   "OASIS": {
+    "VersionPurge": {"Enabled": false, "ApplyToAll": false, "PurgeAfterDays": 30, "BatchSize": 25, "CycleSeconds": 300, "BackupRetentionDays": 0}, "HolonSeal": {
+      "Enabled": false,
+      "Key": "",
+      "KeyId": "k1",
+      "RetiredKeys": {},
+      "RefreshIntervalSeconds": 30
+    },
     "Terms": "Please be kind and respectful to everyone including animals and nature and work hard to co-create a better world for all! Enjoy your stay! :)",
     "Logging": {
       "LoggingFramework": "Default",
@@ -131,11 +138,12 @@
     "StorageProviders": {
       "LogSwitchingProviders": true,
       "ProviderMethodCallTimeOutSeconds": 99,
+      "AvatarLoginTimeoutSeconds": 10,
       "ActivateProviderTimeOutSeconds": 10,
       "DectivateProviderTimeOutSeconds": 10,
       "AutoReplicationEnabled": false,
       "AutoFailOverEnabled": true,
-      "AutoLoadBalanceEnabled": true,
+      "AutoLoadBalanceEnabled": false,
       "AutoLoadBalanceReadPollIntervalMins": 10,
       "AutoLoadBalanceWritePollIntervalMins": 10,
       "AutoReplicationProviders": "MongoDBOASIS, ArbitrumOASIS, PolygonOASIS, RootstockOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, PinataOASIS, HoloOASIS, SolanaOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
@@ -759,6 +767,7 @@
       "GroupCacheSeconds": 15
     },
     "Sandbox": {
+      "EnableDevelopmentWeb4Preview": false,
       "Enabled": false,
       "Providers": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS",
       "DemoAvatarUsernamePrefix": "sandbox-",
@@ -775,6 +784,8 @@
       "MaximumSessionsPerDay": 1000
     },
     "Web6": {
+      "OllamaBaseUrl": "",
+      "OllamaFreeModel": "",
       "DefaultProvider": "Auto",
       "DefaultOpenServModel": "gpt-5.4",
       "DefaultRoutingPriority": "cost",
@@ -828,6 +839,8 @@
       "ApiKeys": {
         "OpenAI": "",
         "Anthropic": "",
+        "GeminiFree": "",
+        "OpenRouter": "",
         "Gemini": "",
         "Groq": "",
         "Mistral": "",

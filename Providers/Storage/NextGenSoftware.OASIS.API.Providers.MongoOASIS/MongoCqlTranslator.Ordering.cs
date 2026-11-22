@@ -21,6 +21,14 @@ internal sealed class MongoCqlCommand
 
 internal sealed partial class MongoCqlTranslator
 {
+    private static BsonValue OrderingKey(CosmicProjectionColumn column, string prefix)
+    {
+        if (column.Function == CosmicProjectionFunction.None) return OrderingKey(column.Path, prefix);
+        var name = prefix + "computedKey";
+        return SingleLet(name, ProjectionCell(column, prefix + "cell"),
+            new BsonDocument { { "rank", "$$" + name + ".s" }, { "value", "$$" + name + ".v" } });
+    }
+
     private static BsonValue OrderingKey(CosmicQueryPath path,string prefix)
     {
         BsonValue Key(BsonValue raw) => WithMetadataOperand(raw, path, value =>

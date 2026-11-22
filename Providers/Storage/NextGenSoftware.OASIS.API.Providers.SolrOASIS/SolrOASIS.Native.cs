@@ -6,6 +6,8 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 
 namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS;
 
@@ -92,7 +94,27 @@ public partial class SolrOASIS
         using var payload = JsonDocument.Parse(json);
         if (payload.RootElement.GetProperty("id").GetString() != id)
             throw new InvalidDataException("Native ID differs from canonical stored payload.");
-        return JsonSerializer.Deserialize<T>(json,_jsonOpts);
+        return typeof(T) == typeof(AvatarDetail)
+            ? StoredRecordJson.DeserializeStored<T>(json)
+            : typeof(T) == typeof(Holon) ? (T)(object)StoredRecordJson.DeserializeStoredHolon(json)
+            : JsonSerializer.Deserialize<T>(json, _jsonOpts);
+    }
+
+    private async Task DeleteDocAsync(string collection, string id, bool requireExisting = true)
+    {
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        using var request = new HttpRequestMessage(HttpMethod.Post,
+            $"{_baseUrl}/solr/{collection}/update?commit=true&waitSearcher=true&versions=true&wt=json&omitHeader=false")
+        {
+            Content = Json(new { delete = new { id, _version_ = requireExisting ? 1 : 0 } })
+        };
+        using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+        response.EnsureSuccessStatusCode();
+        using var acknowledgement = await ReadNativeResponseAsync(response, 65536, deadline.Token);
+        ValidateNativeStatus(acknowledgement.RootElement);
+        var deletes = acknowledgement.RootElement.GetProperty("deletes");
+        if (deletes.ValueKind != JsonValueKind.Array || deletes.GetArrayLength() != 2 || deletes[0].GetString() != id || deletes[1].GetInt64() >= 0)
+            throw new InvalidDataException("Native Solr did not acknowledge this document deletion and its exact version.");
     }
 
     private async Task UpsertDocAsync(string collection, object value)

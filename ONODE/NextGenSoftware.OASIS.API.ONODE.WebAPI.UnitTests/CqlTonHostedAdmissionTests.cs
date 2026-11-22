@@ -83,7 +83,8 @@ public class CqlTonHostedAdmissionTests
     public async Task PublicHeaderPresetsPlanNativeThreeTwoAndMongoPairsWithoutWallets()
     {
         var keys = Enumerable.Range(1, 3).Select(value => Convert.ToBase64String(Enumerable.Repeat((byte)value, 32).ToArray())).ToArray();
-        using var source = TonPublicHeaderMetadataSource.FromJson(JsonSerializer.Serialize(new {
+        var source = new TONOASIS();
+        source.ConfigurePublicHeaderQuery(JsonSerializer.Serialize(new {
             schema = 1, restUrl = TonPublicHeaderMetadataSource.PublicEndpoint,
             globalId = -239,
             blocks = keys.Select((key, index) => new { seqno = index + 10, rootHash = key, fileHash = key }), sourceOwner = Guid.NewGuid() }));
@@ -126,7 +127,7 @@ public class CqlTonHostedAdmissionTests
 
     private sealed class ReadyRegistry(NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider source) : ICqlHostedSourceRegistry
     {
-        public NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider Find(ProviderType provider)
+        public NextGenSoftware.OASIS.API.Core.Interfaces.IOASISProvider Find(ProviderType provider)
             => provider == ProviderType.TONOASIS ? source : null!;
         public Task ActivateReadSourceAsync(ProviderType provider, CancellationToken token)
         {

@@ -41,7 +41,7 @@ public partial class CqlHostedSourcesTests
         public TaskCompletionSource? Release;
         public bool Fail;
         public bool IgnoreCancellation;
-        public IOASISStorageProvider Find(ProviderType type) => Providers.GetValueOrDefault(type);
+        public IOASISProvider Find(ProviderType type) => Providers.GetValueOrDefault(type);
         public QueryStorage Add(ProviderType type, bool active)
         {
             var storage = DispatchProxy.Create<QueryStorage, Adapter>();
@@ -75,6 +75,96 @@ public partial class CqlHostedSourcesTests
 
     private static CqlHostedSources Sources(Registry registry, bool configured = true)
         => new(configured ? Admission() : null, registry, NullLogger<CqlHostedSources>.Instance);
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(7)]
+    public async Task DiscoveryPublishesOnlyReadyStandaloneNativeKeyBounds(int maximumSetKeys)
+    {
+        var registry = new Registry();
+        registry.Add(ProviderType.MongoDBOASIS, active: true);
+        var social = (Adapter)(object)registry.Add(ProviderType.ActivityPubOASIS, active: false);
+        social.Capabilities = maximumSetKeys == 0
+            ? CosmicQueryCapabilities.ForStringMetadataPointLookup("NativeKey", 128)
+            : CosmicQueryCapabilities.ForStringMetadataKeyLookup("NativeKey", 128, maximumSetKeys);
+        using var sources = Sources(registry);
+        Assert.All(sources.Describe(), row => Assert.Null(row.TextKeyProfile));
+
+        await sources.StartAsync(default);
+        await sources.ExecuteTask!.WaitAsync(TimeSpan.FromSeconds(5));
+        var ready = Assert.Single(sources.Describe().Where(row => row.QueryOnly));
+        Assert.True(ready.Available);
+        Assert.Equal(new CqlHostedTextKeyProfile("NativeKey", 128, maximumSetKeys), ready.TextKeyProfile);
+        Assert.Null(Assert.Single(sources.Describe().Where(row => !row.QueryOnly)).TextKeyProfile);
+    }
+
+    private sealed class StartupRegistry(HashSet<ProviderType> independent) : ICqlHostedSourceRegistry
+    {
+        public readonly System.Collections.Concurrent.ConcurrentQueue<ProviderType> ReaderAttempts = new();
+        public readonly System.Collections.Concurrent.ConcurrentQueue<ProviderType> BootLoaderAttempts = new();
+        public readonly TaskCompletionSource ThreeReadersStarted = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public readonly TaskCompletionSource FourReadersStarted = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public readonly TaskCompletionSource ReleaseReaders = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public readonly TaskCompletionSource ReleaseBootLoader = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int readerCount;
+
+        public IOASISProvider Find(ProviderType type) => null;
+        public bool HasIndependentActivation(ProviderType type) => independent.Contains(type);
+
+        public async Task ActivateReadSourceAsync(ProviderType type, CancellationToken cancellationToken)
+        {
+            if (!independent.Contains(type))
+            {
+                BootLoaderAttempts.Enqueue(type);
+                await ReleaseBootLoader.Task.WaitAsync(cancellationToken);
+                return;
+            }
+
+            ReaderAttempts.Enqueue(type);
+            var started = Interlocked.Increment(ref readerCount);
+            if (started == 3)
+                ThreeReadersStarted.TrySetResult();
+            if (started == 4)
+                FourReadersStarted.TrySetResult();
+            await ReleaseReaders.Task.WaitAsync(cancellationToken);
+        }
+    }
+
+    [Fact]
+    public async Task StartupBoundsIndependentReadersWhileKeepingBootLoaderActivationsSerial()
+    {
+        var independent = new[] { ProviderType.ActivityPubOASIS, ProviderType.AkashOASIS,
+            ProviderType.AlgorandOASIS, ProviderType.AptosOASIS };
+        var bootLoader = new[] { ProviderType.EthereumOASIS, ProviderType.SolanaOASIS };
+        var enrolled = independent.Concat(bootLoader).ToArray();
+        var registry = new StartupRegistry(independent.ToHashSet());
+        var admission = new PricedStorageAdmissionFactory(null, Array.Empty<NativeStorageAdmissionBinding>(),
+            Array.Empty<ProviderType>(), enrolled.Select(type => new StorageQueryTariff(type, 0, "test-v1")).ToArray(),
+            null, enrolled);
+        using var sources = new CqlHostedSources(admission, registry, NullLogger<CqlHostedSources>.Instance);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        await sources.StartAsync(timeout.Token);
+        try
+        {
+            await registry.ThreeReadersStarted.Task.WaitAsync(timeout.Token);
+            Assert.Equal(3, registry.ReaderAttempts.Count);
+            Assert.Equal(bootLoader[0], Assert.Single(registry.BootLoaderAttempts));
+
+            registry.ReleaseReaders.TrySetResult();
+            await registry.FourReadersStarted.Task.WaitAsync(timeout.Token);
+            Assert.Equal(bootLoader[0], Assert.Single(registry.BootLoaderAttempts));
+        }
+        finally
+        {
+            registry.ReleaseReaders.TrySetResult();
+            registry.ReleaseBootLoader.TrySetResult();
+        }
+
+        await sources.ExecuteTask!.WaitAsync(timeout.Token);
+        Assert.Equal(independent.OrderBy(type => type), registry.ReaderAttempts.OrderBy(type => type));
+        Assert.Equal(bootLoader, registry.BootLoaderAttempts.ToArray());
+    }
 
     [Fact]
     public async Task OracleDiscoveryPlansAllFourPresetsWithTheSameConfiguredPublicCatalogue()

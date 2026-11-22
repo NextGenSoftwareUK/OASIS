@@ -29,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISHttpResponseMessage<Holon>> LoadHolonByProviderKey(string providerKey,
-            bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
+            bool loadChildren = false, bool recursive = true, int maxChildDepth = 0,
             bool continueOnError = true, bool loadChildrenFromProvider = false,
             string childHolonType = "All", int version = 0)
         {
@@ -79,7 +79,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadHolonsForParentByProviderKey(string providerKey,
-            string holonType = "All", bool loadChildren = true, bool recursive = true,
+            string holonType = "All", bool loadChildren = false, bool recursive = true,
             int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false,
             string childHolonType = "All", int version = 0,
             bool searchOnlyForCurrentAvatar = true, bool includePublic = true)

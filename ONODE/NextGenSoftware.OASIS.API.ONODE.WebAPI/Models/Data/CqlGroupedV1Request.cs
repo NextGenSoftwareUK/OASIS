@@ -38,6 +38,8 @@ public sealed class CqlGroupedV1Column
 {
     public string? Alias { get; set; }
     public string? KeyAlias { get; set; }
+    /// <summary>Count unique non-null selected values; valid only for selected LongCount.</summary>
+    public bool Distinct { get; set; }
     public string? Operation { get; set; }
     public CqlScalarV1Selection? Selection { get; set; }
 }

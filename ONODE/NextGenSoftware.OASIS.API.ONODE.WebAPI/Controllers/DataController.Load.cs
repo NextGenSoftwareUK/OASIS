@@ -21,9 +21,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     public partial class DataController
     {
+        /// <summary>Returns the number of direct holons under the signed-in avatar.</summary>
+        [Authorize]
+        [HttpGet("current-avatar/holon-count")]
+        [ProducesResponseType(typeof(OASISResult<int>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<OASISResult<int>>> GetCurrentAvatarHolonCount()
+        {
+            var avatarId = AvatarId;
+            if (avatarId == Guid.Empty)
+                return Unauthorized(new OASISResult<int> { IsError = true, Message = "Sign in to read your holon count." });
+
+            var holons = await HolonManager.LoadHolonsForParentAsync(avatarId,
+                loadChildren: false, recursive: false, avatarId: avatarId, includePublic: false);
+            if (holons.IsError || holons.Result == null)
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new OASISResult<int>
+                {
+                    IsError = true,
+                    ErrorCode = holons.ErrorCode,
+                    Message = "Could not read your holon count."
+                });
+
+            return Ok(new OASISResult<int>(holons.Result.Count()));
+        }
+
         /// <summary>
         /// Load's a holon data object for the given id.
-        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
         /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
         /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
         /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -48,14 +71,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISHttpResponseMessage<Holon>> LoadHolon(Models.Data.LoadHolonRequest request)
         {
-            //OASISResult<Holon> response = new OASISResult<Holon>();
+            var strategy = LoadBalancingStrategy.Auto;
+            if (request.LoadBalancingStrategy != null &&
+                (!Enum.GetNames<LoadBalancingStrategy>().Contains(request.LoadBalancingStrategy, StringComparer.OrdinalIgnoreCase) ||
+                 !Enum.TryParse(request.LoadBalancingStrategy, ignoreCase: true, out strategy) ||
+                 request.SetGlobally ||
+                 OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HyperDriveMode != NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2))
+            {
+                Response.StatusCode = StatusCodes.Status400BadRequest;
+                return TestDataHelper.CreateErrorResponse<Holon>(
+                    "LoadBalancingStrategy requires a named strategy on a request-scoped HyperDrive V2 read.",
+                    null, System.Net.HttpStatusCode.BadRequest);
+            }
+
             OASISHttpResponseMessage<Holon> response;
             (response, HolonType childHolonType) = ValidateHolonType<Holon>(request.ChildHolonType);
+            if (response.Result.IsError) return response;
 
             OASISConfigResult<Holon> configResult = await ConfigureOASISEngineAsync<Holon>(request);
 
-            if (configResult.IsError && configResult.Response != null)
-                return configResult.Response;
+            if (configResult.IsError)
+                return configResult.Response ?? TestDataHelper.CreateErrorResponse<Holon>("Could not configure the holon read.");
 
             OASISResult<IHolon> result = null;
             try
@@ -79,19 +115,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     manager = requestContext.Manager;
                 }
 
-                result = await manager.LoadHolonAsync(request.Id, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType, request.Version);
+                result = await manager.LoadHolonAsync(request.Id, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType, request.Version, ProviderType.Default, allowMissing: false, strategy: strategy);
 
-                ResetOASISSettings(request, configResult);
-
-                // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+                var mapped = MapHolonRead(result);
+                if (mapped.IsError)
                 {
-                    var testHolon = TestDataHelper.GetTestHolon(request.Id);
-                    return TestDataHelper.CreateSuccessResponse<Holon>(testHolon, "Holon loaded successfully (using test data)", System.Net.HttpStatusCode.OK);
+                    var failed = HttpResponseHelper.FormatResponse(mapped, System.Net.HttpStatusCode.BadRequest, request.ShowDetailedSettings);
+                    return requestContext == null ? failed : failed.BindRoutingPolicy(requestContext.Policy);
                 }
-
-                OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
-                var holon = (Holon)result.Result;
+                var holon = mapped.Result;
 
                 // Non-Wizards may only read holons they created, that are public, or that were shared with them
                 if (holon != null && Avatar?.AvatarType?.Value != AvatarType.Wizard)
@@ -103,23 +135,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                             "Forbidden. You do not have permission to access this holon.", null, System.Net.HttpStatusCode.Forbidden);
                 }
 
-                response.Result.Result = holon;
+                mapped.Result = holon;
 
-                var formatted = HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
+                var formatted = HttpResponseHelper.FormatResponse(mapped, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
                 return requestContext == null ? formatted : formatted.BindRoutingPolicy(requestContext.Policy);
             }
             catch (Exception ex)
             {
-                ResetOASISSettings(request, configResult);
-
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    var testHolon = TestDataHelper.GetTestHolon(request.Id);
-                    return TestDataHelper.CreateSuccessResponse<Holon>(testHolon, "Holon loaded successfully (using test data)", System.Net.HttpStatusCode.OK);
-                }
                 return TestDataHelper.CreateErrorResponse<Holon>($"Error loading holon: {ex.Message}", ex, System.Net.HttpStatusCode.BadRequest);
             }
+            finally
+            {
+                ResetOASISSettings(request, configResult);
+            }
+        }
+
+        private static OASISResult<Holon> MapHolonRead(OASISResult<IHolon> result)
+        {
+            if (result == null || (!result.IsError && result.Result == null))
+                return new OASISResult<Holon> { IsError = true, Message = "The provider returned no holon read result." };
+            var response = new OASISResult<Holon>();
+            OASISResultHelper<IHolon, Holon>.CopyResult(result, response);
+            if (!result.IsError) response.Result = (Holon)result.Result;
+            return response;
         }
 
 
@@ -137,7 +175,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         /// <summary>
         /// Load's a holon data object for the given id.
-        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
         /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
         /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
         /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -152,7 +190,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("load-holon/{id}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}")]
-        public async Task<OASISHttpResponseMessage<Holon>> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public async Task<OASISHttpResponseMessage<Holon>> LoadHolon(Guid id, bool loadChildren = false, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             return await LoadHolon(new Models.Data.LoadHolonRequest()
             {
@@ -167,7 +205,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         /// <summary>
         /// Load's a holon data object for the given id.
-        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
         /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
         /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
         /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -186,7 +224,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("load-holon/{id}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}/{providerType}/{setGlobally}")]
-        public async Task<OASISHttpResponseMessage<Holon>> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, string providerType = "", bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<Holon>> LoadHolon(Guid id, bool loadChildren = false, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, string providerType = "", bool setGlobally = false)
         {
             return await LoadHolon(new Models.Data.LoadHolonRequest()
             {
@@ -205,7 +243,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
       
         /// <summary>
         /// Load's a holon data object for the given id.
-        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
         /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
         /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
         /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -237,7 +275,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("load-holon/{id}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{autoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}")]
-        public async Task<OASISHttpResponseMessage<Holon>> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, string providerType = "Default", bool setGlobally = false, string autoReplicationMode = "DEFAULT", string autoFailOverMode = "DEFAULT", string autoLoadBalanceMode = "DEFAULT", string autoReplicationProviders = "DEFAULT", string autoFailOverProviders = "DEFAULT", string autoLoadBalanceProviders = "DEFAULT", bool waitForAutoReplicationResult = false, bool showDetailedSettings = false)
+        public async Task<OASISHttpResponseMessage<Holon>> LoadHolon(Guid id, bool loadChildren = false, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, string providerType = "Default", bool setGlobally = false, string autoReplicationMode = "DEFAULT", string autoFailOverMode = "DEFAULT", string autoLoadBalanceMode = "DEFAULT", string autoReplicationProviders = "DEFAULT", string autoFailOverProviders = "DEFAULT", string autoLoadBalanceProviders = "DEFAULT", bool waitForAutoReplicationResult = false, bool showDetailedSettings = false)
         {
             return await LoadHolon(new Models.Data.LoadHolonRequest()
             {
@@ -262,7 +300,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         /// <summary>
         /// Load's all holons for the given HolonType. Use 'All' to load all holons.
-        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
         /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
         /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
         /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -282,64 +320,63 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                OASISHttpResponseMessage<IEnumerable<Holon>> response;
-                (response, HolonType holonType) = ValidateHolonType<IEnumerable<Holon>>(request.HolonType);
-                (response, HolonType childHolonType) = ValidateHolonType<IEnumerable<Holon>>(request.ChildHolonType);
+                var (parentResponse, holonType) = ValidateHolonType<IEnumerable<Holon>>(request.HolonType);
+                if (parentResponse.Result.IsError) return parentResponse;
+                var (response, childHolonType) = ValidateHolonType<IEnumerable<Holon>>(request.ChildHolonType);
+                if (response.Result.IsError) return response;
 
-                if (response.Result.IsError)
-                    return response;
+                var configResult = ConfigureOASISEngine<IEnumerable<Holon>>(request);
+                if (configResult.IsError)
+                    return configResult.Response ?? TestDataHelper.CreateErrorResponse<IEnumerable<Holon>>("Could not configure the holon read.");
 
-                OASISConfigResult<IEnumerable<Holon>> configResult = ConfigureOASISEngine<IEnumerable<Holon>>(request);
-
-                if (configResult.IsError && configResult.Response != null)
-                    return configResult.Response;
-
-                OASISResult<IEnumerable<IHolon>> result = null;
                 try
                 {
-                    // Cap recursive depth to prevent full-tree loads from exhausting process memory
-                int safeMaxChildDepth = request.MaxChildDepth > 0 ? Math.Min(request.MaxChildDepth, 5) : 0;
-                result = await HolonManager.LoadAllHolonsAsync(holonType, request.LoadChildren, request.Recursive, safeMaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType, request.Version, avatarId: AvatarId, includePublic: request.IncludePublic);
-
-                    ResetOASISSettings(request, configResult);
-
-                    // Return test data if setting is enabled and result is null, has error, or is empty
-                    if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null || !result.Result.Any()))
+                    var manager = HolonManager;
+                    HolonRequestContext requestContext = null;
+                    if (configResult.RequestRoutingPolicy != null)
                     {
-                        var testHolons = TestDataHelper.GetTestHolons(5);
-                        return TestDataHelper.CreateSuccessResponse<IEnumerable<Holon>>(testHolons, "Holons loaded successfully (using test data)", System.Net.HttpStatusCode.OK);
+                        var context = manager.CreateRequestContext(configResult.RequestRoutingPolicy.ToOverrides(),
+                            configResult.RequestProviderType, routeDefaultProvider: configResult.RequestRoutingPolicy.AutoLoadBalancingEnabled);
+                        if (context.IsError)
+                        {
+                            var error = RequestContextError<IEnumerable<Holon>>(context);
+                            var status = HolonWriteEndpoint.Status(error);
+                            Response.StatusCode = (int)status;
+                            return HttpResponseHelper.FormatResponse(error, status, request.ShowDetailedSettings);
+                        }
+                        requestContext = context.Result;
+                        manager = requestContext.Manager;
                     }
-
-                    OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
-                    var holons = Mapper.Convert<IHolon, Holon>(result.Result);
-                    var list = holons as IList<Holon> ?? holons?.ToList() ?? new List<Holon>();
-                    response.Result.Result = list;
-
-                    return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
+                    int safeMaxChildDepth = request.MaxChildDepth > 0 ? Math.Min(request.MaxChildDepth, 5) : 0;
+                    var result = await manager.LoadAllHolonsAsync(holonType, request.LoadChildren, request.Recursive,
+                        safeMaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType,
+                        request.Version, avatarId: AvatarId, includePublic: request.IncludePublic);
+                    var formatted = FormatHolonListRead(result, request.ShowDetailedSettings);
+                    return requestContext == null ? formatted : formatted.BindRoutingPolicy(requestContext.Policy);
                 }
-                catch (Exception ex)
+                finally
                 {
                     ResetOASISSettings(request, configResult);
-
-                    // Return test data if setting is enabled, otherwise return error
-                    if (UseTestDataWhenLiveDataNotAvailable)
-                    {
-                        var testHolons = TestDataHelper.GetTestHolons(5);
-                        return TestDataHelper.CreateSuccessResponse<IEnumerable<Holon>>(testHolons, "Holons loaded successfully (using test data)", System.Net.HttpStatusCode.OK);
-                    }
-                    return TestDataHelper.CreateErrorResponse<IEnumerable<Holon>>($"Error loading holons: {ex.Message}", ex);
                 }
             }
             catch (Exception ex)
             {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    var testHolons = TestDataHelper.GetTestHolons(5);
-                    return TestDataHelper.CreateSuccessResponse<IEnumerable<Holon>>(testHolons, "Holons loaded successfully (using test data)", System.Net.HttpStatusCode.OK);
-                }
                 return TestDataHelper.CreateErrorResponse<IEnumerable<Holon>>($"Error loading holons: {ex.Message}", ex);
             }
+        }
+
+        private static OASISHttpResponseMessage<IEnumerable<Holon>> FormatHolonListRead(
+            OASISResult<IEnumerable<IHolon>> result, bool showDetailedSettings)
+        {
+            if (result == null || (!result.IsError && result.Result == null))
+                return TestDataHelper.CreateErrorResponse<IEnumerable<Holon>>("The provider returned no holon read result.");
+
+            var response = new OASISResult<IEnumerable<Holon>>();
+            OASISResultHelper<IHolon, Holon>.CopyResult(result, response);
+            if (!result.IsError)
+                response.Result = Mapper.Convert<IHolon, Holon>(result.Result).ToList();
+            return HttpResponseHelper.FormatResponse(response,
+                result.IsError ? System.Net.HttpStatusCode.BadRequest : System.Net.HttpStatusCode.OK, showDetailedSettings);
         }
 
 
@@ -350,36 +387,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("load-all-holons/{holonType}")]
-        public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadAllHolons(string holonType)
-        {
-            try
-            {
-                var result = await LoadAllHolons(new LoadAllHolonsRequest() { HolonType = holonType });
-
-                // Return test data if setting is enabled and result is null, has error, or is empty
-                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.Result == null || result.Result.IsError || result.Result.Result == null || !result.Result.Result.Any()))
-                {
-                    var testHolons = TestDataHelper.GetTestHolons(5);
-                    return TestDataHelper.CreateSuccessResponse<IEnumerable<Holon>>(testHolons, "Holons loaded successfully (using test data)");
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    var testHolons = TestDataHelper.GetTestHolons(5);
-                    return TestDataHelper.CreateSuccessResponse<IEnumerable<Holon>>(testHolons, "Holons loaded successfully (using test data)");
-                }
-                return TestDataHelper.CreateErrorResponse<IEnumerable<Holon>>($"Error loading holons: {ex.Message}", ex);
-            }
-        }
+        public Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadAllHolons(string holonType) =>
+            LoadAllHolons(new LoadAllHolonsRequest { HolonType = holonType });
 
         /// <summary>
         /// Load's all holons for the given HolonType. Use 'All' to load all holons.
-        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+        /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
         /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
         /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
         /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -394,7 +407,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("load-all-holons/{holonType}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}")]
-        public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadAllHolons(string holonType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadAllHolons(string holonType, bool loadChildren = false, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             return await LoadAllHolons(new LoadAllHolonsRequest()
             {
@@ -418,7 +431,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
        
       /// <summary>
       /// Load's all holons for the given HolonType. Use 'All' to load all holons.
-      /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+      /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
       /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
       /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
       /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -437,7 +450,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
       /// <returns></returns>
       [Authorize]
       [HttpGet("load-all-holons/{holonType}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}/{providerType}/{setGlobally}")]
-      public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadAllHolons(string holonType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, string providerType = "Default", bool setGlobally = false)
+      public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadAllHolons(string holonType, bool loadChildren = false, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, string providerType = "Default", bool setGlobally = false)
       {
           return await LoadAllHolons(new LoadAllHolonsRequest()
           {
@@ -454,7 +467,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
       /// <summary>
       /// Load's all holons for the given HolonType. Use 'All' to load all holons.
-      /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+      /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
       /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
       /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
       /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -486,7 +499,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
       /// <returns></returns>
       [Authorize]
       [HttpGet("load-all-holons/{holonType}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{autoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}")]
-      public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadAllHolons(string holonType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, string providerType = "Default", bool setGlobally = false, string autoReplicationMode = "DEFAULT", string autoFailOverMode = "DEFAULT", string autoLoadBalanceMode = "DEFAULT", string autoReplicationProviders = "DEFAULT", string autoFailOverProviders = "DEFAULT", string autoLoadBalanceProviders = "DEFAULT", bool waitForAutoReplicationResult = false, bool showDetailedSettings = false)
+      public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadAllHolons(string holonType, bool loadChildren = false, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, string providerType = "Default", bool setGlobally = false, string autoReplicationMode = "DEFAULT", string autoFailOverMode = "DEFAULT", string autoLoadBalanceMode = "DEFAULT", string autoReplicationProviders = "DEFAULT", string autoFailOverProviders = "DEFAULT", string autoLoadBalanceProviders = "DEFAULT", bool waitForAutoReplicationResult = false, bool showDetailedSettings = false)
       {
           return await LoadAllHolons(new LoadAllHolonsRequest()
           {
@@ -511,7 +524,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
       /// <summary>
       /// Load's all holons for the given parent and the given HolonType. Use 'All' to load all holons.
-      /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+      /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
       /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
       /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
       /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -585,7 +598,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
       
      /// <summary>
      /// Load's all holons for the given parent and the given HolonType. Use 'All' to load all holons.
-     /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+     /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
      /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
      /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
      /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -601,7 +614,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
      /// <returns></returns>
      [Authorize]
      [HttpGet("load-holons-for-parent/{id}/{holonType}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}")]
-     public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadHolonsForParent(Guid id, string holonType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+     public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadHolonsForParent(Guid id, string holonType, bool loadChildren = false, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
      {
          return await LoadHolonsForParent(new LoadHolonsForParentRequest()
          {
@@ -625,7 +638,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
      /// <summary>
      /// Load's all holons for the given parent and the given HolonType. Use 'All' to load all holons.
-     /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+     /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
      /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
      /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
      /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -645,7 +658,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
      /// <returns></returns>
      [Authorize]
      [HttpGet("load-holons-for-parent/{id}/{holonType}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}/{providerType}/{setGlobally}")]
-     public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadHolonsForParent(Guid id, string holonType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, string providerType = "Default", bool setGlobally = false)
+     public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadHolonsForParent(Guid id, string holonType, bool loadChildren = false, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, string providerType = "Default", bool setGlobally = false)
      {
          return await LoadHolonsForParent(new LoadHolonsForParentRequest()
          {
@@ -666,7 +679,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
      /// <summary>
      /// Load's all holons for the given parent and the given HolonType. Use 'All' to load all holons.
-     /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
+     /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to false.
      /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
      /// If loadChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to load, it defaults to 0, which means it will load to infinite depth.
      /// Set the continueOnError flag to true if you wish it to continue loading child holon's even if an error has occured, this defaults to true.
@@ -699,7 +712,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
      /// <returns></returns>
      [Authorize]
      [HttpGet("load-holons-for-parent/{id}/{holonType}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{autoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}")]
-     public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadHolonsForParent(Guid id, string holonType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, string providerType = "Default", bool setGlobally = false, string autoReplicationMode = "DEFAULT", string autoFailOverMode = "DEFAULT", string autoLoadBalanceMode = "DEFAULT", string autoReplicationProviders = "DEFAULT", string autoFailOverProviders = "DEFAULT", string autoLoadBalanceProviders = "DEFAULT", bool waitForAutoReplicationResult = false, bool showDetailedSettings = true)
+     public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadHolonsForParent(Guid id, string holonType, bool loadChildren = false, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, string providerType = "Default", bool setGlobally = false, string autoReplicationMode = "DEFAULT", string autoFailOverMode = "DEFAULT", string autoLoadBalanceMode = "DEFAULT", string autoReplicationProviders = "DEFAULT", string autoFailOverProviders = "DEFAULT", string autoLoadBalanceProviders = "DEFAULT", bool waitForAutoReplicationResult = false, bool showDetailedSettings = true)
      {
          return await LoadHolonsForParent(new LoadHolonsForParentRequest()
          {

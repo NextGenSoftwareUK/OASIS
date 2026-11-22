@@ -25,7 +25,7 @@ public sealed class NostrPublicEventMetadataTests
     [DataRow("all")] [DataRow("subset")] [DataRow("point")] [DataRow("page")]
     [DataRow("missing")] [DataRow("duplicate")] [DataRow("unexpected")] [DataRow("tampered")]
     [DataRow("cancel")] [DataRow("budget")] [DataRow("unknown")] [DataRow("inactive")]
-    [DataRow("empty-page-tampered")]
+    [DataRow("empty-page-tampered")] [DataRow("tampered-signature")]
     public async Task ControlledQueryRequiresCompleteVerifiedSelection(string scenario)
     {
         var native = Events(); var keys = native.Select(Id).ToArray(); string fault = ""; int calls = 0;
@@ -40,20 +40,27 @@ public sealed class NostrPublicEventMetadataTests
             {
                 var value = JsonNode.Parse(rows[0])!; value["content"] = "tampered"; rows[0] = value.ToJsonString();
             }
+            if (fault == "tampered-signature")
+            {
+                var value = JsonNode.Parse(rows[0])!;
+                var signature = value["sig"]!.GetValue<string>();
+                value["sig"] = (signature[0] == '0' ? "1" : "0") + signature[1..];
+                rows[0] = value.ToJsonString();
+            }
             return Task.FromResult<IReadOnlyList<string>>(rows);
         }
-        using var source = new NostrPublicEventMetadataSource(Relay, keys, Owner, Read);
+        using var source = new NostrOASIS(Relay, keys, Owner, Read);
         if (scenario != "inactive") Assert.IsFalse((await source.ActivateQuerySourceAsync(default)).IsError);
         fault = scenario; calls = 0;
         var selected = scenario == "unknown" ? new[] { new string('0', 64) }
             : scenario is "subset" or "unexpected" ? keys.Take(2).ToArray() : keys;
         var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.NostrOASIS).Result)
-            .Where(row => selected.Contains(CosmicQueryMetadata.Value<string>(row, NostrPublicEventMetadataSource.AddressMetadata))).Result;
+            .Where(row => selected.Contains(CosmicQueryMetadata.Value<string>(row, NostrOASIS.AddressMetadata))).Result;
         if (scenario == "point")
         {
             string key = keys[0];
             query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.NostrOASIS).Result)
-                .Where(row => CosmicQueryMetadata.Value<string>(row, NostrPublicEventMetadataSource.AddressMetadata) == key).Result;
+                .Where(row => CosmicQueryMetadata.Value<string>(row, NostrOASIS.AddressMetadata) == key).Result;
         }
         if (scenario == "page") query = query.Skip(1).Result.Take(1).Result;
         if (scenario == "empty-page-tampered") query = query.Take(0).Result;
@@ -65,6 +72,7 @@ public sealed class NostrPublicEventMetadataTests
         var result = await source.ExecuteCosmicQueryAsync(plan.Result, scenario == "budget" ? 2 : 100, cancellation.Token);
         if (scenario is "all" or "subset" or "point" or "page")
         {
+            Assert.AreEqual(1, calls, "Warm queries must still read the current relay response.");
             Assert.IsFalse(result.IsError, result.Exception?.ToString());
             Assert.AreEqual(scenario is "point" or "page" ? 1 : scenario == "subset" ? 2 : 3, result.Result.Count);
             Assert.AreEqual(scenario == "page" ? keys[1] : keys[0], result.Result[0].MetaData["NostrEventId"]);
@@ -91,7 +99,7 @@ public sealed class NostrPublicEventMetadataTests
     public async Task UnsupportedTextQueryRejectsBeforeNativeReadAndSourceCannotSaveOrDelete()
     {
         int calls = 0; string[] keys = Events().Select(Id).ToArray();
-        using var source = new NostrPublicEventMetadataSource(Relay, keys, Owner,
+        using var source = new NostrOASIS(Relay, keys, Owner,
             (_, _) => { calls++; throw new InvalidOperationException("No native read expected."); });
         var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.NostrOASIS).Result)
             .Where(row => row.Name == "unbounded search").Result;
@@ -121,7 +129,7 @@ public sealed class NostrPublicEventMetadataTests
             case "uppercase": config["eventIds"]![0] = config["eventIds"]![0]!.GetValue<string>().ToUpperInvariant(); break;
             case "extra": config["secret"] = "forbidden-inert-value"; break;
         }
-        Assert.ThrowsException<ArgumentException>(() => NostrPublicEventMetadataSource.FromJson(config.ToJsonString()));
+        Assert.ThrowsException<ArgumentException>(() => NostrOASIS.FromPublicQueryConfiguration(config.ToJsonString()));
     }
 
     private sealed record Frame(byte[] Bytes, bool End = true, WebSocketMessageType Type = WebSocketMessageType.Text);

@@ -1,6 +1,6 @@
 # NextGenSoftware.OASIS.API.Providers.QdrantOASIS
 
-Qdrant OASIS Provider — high-performance vector database for semantic search over OASIS holons and avatars via Qdrant REST API. https://oasisomniverse.one
+Qdrant OASIS Provider — native payload storage for OASIS holons and avatars via the Qdrant REST API. https://oasisomniverse.one
 
 ## Installation
 
@@ -27,6 +27,8 @@ Project references and conditional dependency versions are recorded in the sourc
 Use this package for the responsibility described above, alongside its owning OASIS runtime/provider integration. Inspect the source project's public APIs and owning component documentation for construction and configuration; this package installation command does not start an API server, authenticate an avatar or provision an external service.
 
 Provider adapters require their respective service configuration and credentials. Runtime libraries require the host application's lifecycle and persistent paths where applicable. Supply only the settings actually required by the owning component; do not copy production DNA into a client or public release.
+
+Payload writes omit vectors for unembedded records and preserve the stored embedding observed before an update. Use `SetHolonEmbeddingAsync` to attach a finite nonzero embedding of the configured dimension. `SearchHolonsByEmbeddingAsync` returns live holons and their native cosine similarity scores. The caller supplies the embedding. Coordinate external embedding updates with OASIS payload writes until an atomic update contract is available.
 
 ## Errors and security
 

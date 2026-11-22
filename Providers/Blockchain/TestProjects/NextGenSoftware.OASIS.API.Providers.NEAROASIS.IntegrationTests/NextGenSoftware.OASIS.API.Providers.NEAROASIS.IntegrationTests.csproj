@@ -30,4 +30,10 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.NEAROASIS\NextGenSoftware.OASIS.API.Providers.NEAROASIS.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="NearSqliteHyperDriveTests.cs" />
+    <Compile Include="NearSqliteHyperDriveTests.cs" Condition="'$(NearRoutingTests)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/NativePriorityRouting.cs" Link="TestSupport/NativePriorityRouting.cs" Condition="'$(NearRoutingTests)' == 'true'" />
+    <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" Condition="'$(NearRoutingTests)' == 'true'" />
+  </ItemGroup>
 </Project>

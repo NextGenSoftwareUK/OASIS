@@ -987,10 +987,14 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
 
     public SQLLiteDBOASISIntegrationTests()
     {
-        var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root != null && !File.Exists(Path.Combine(root.FullName,"Scripts/TestHosts/Run-ReusableUsageRecoveryTests.ps1"))) root = root.Parent;
-        if (root == null) throw new InvalidOperationException("Existing task checkout required.");
-        var directory = Path.Combine(root.FullName,"TestResults/SQLiteCurrent");
+        var directory = Environment.GetEnvironmentVariable("OASIS_SQLITE_TEST_FIXTURE_DIRECTORY");
+        if (directory == null)
+        {
+            var root = new DirectoryInfo(AppContext.BaseDirectory);
+            while (root != null && !File.Exists(Path.Combine(root.FullName,"Scripts/TestHosts/Run-ReusableUsageRecoveryTests.ps1"))) root = root.Parent;
+            if (root == null) throw new InvalidOperationException("Existing task checkout required.");
+            directory = Path.Combine(root.FullName,"TestResults/SQLiteCurrent");
+        }
         Directory.CreateDirectory(directory);
         _databasePath = Path.Combine(directory,"integration-current.db");
         _lease = new FileStream(Path.Combine(directory,"environment.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);

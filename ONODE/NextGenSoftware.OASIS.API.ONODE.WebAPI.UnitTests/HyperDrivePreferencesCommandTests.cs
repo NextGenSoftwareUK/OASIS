@@ -65,13 +65,8 @@ public sealed class HyperDriveCommandExecutorTests
         provider.SetupGet(x => x.IsProviderActivated).Returns(true);
         provider.Setup(x => x.ActivateProvider())
             .Returns(new OASISResult<bool>(true));
-        provider.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>(), true, true, 0, true, false, 0))
+        provider.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>(), false, It.IsAny<bool>(), 0, true, false, 0))
             .ReturnsAsync(() => new OASISResult<IHolon> { Result = stored, IsError = false });
-        // The V2 manager owns child traversal. This preferences record has no
-        // children; the provider must acknowledge that observation explicitly.
-        provider.Setup(x => x.LoadHolonsForParentAsync(It.IsAny<Guid>(), HolonType.All,
-                false, false, 0, 0, It.IsAny<bool>(), false, 0))
-            .ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(Array.Empty<IHolon>()) { IsLoaded = true });
         provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), It.IsAny<bool>(), It.IsAny<bool>(),
                 It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>()))
             .ReturnsAsync((IHolon holon, bool _, bool _, int _, bool _, bool _) =>
@@ -96,6 +91,7 @@ public sealed class HyperDriveCommandExecutorTests
 
         Assert.True(first.Succeeded, first.Message);
         Assert.True(replay.Succeeded, replay.Message);
+        Assert.DoesNotContain(provider.Invocations, call => call.Method.Name == nameof(IOASISStorageProvider.LoadHolonsForParentAsync));
         Assert.Equal(writesAfterFirstExecution,
             provider.Invocations.Count(x => x.Method.Name == nameof(IOASISStorageProvider.SaveHolonAsync)));
         Assert.Equal(operationId.ToString("D"), stored!.MetaData["HyperDrive.PreferencesOperationId.v1"]);

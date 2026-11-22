@@ -166,7 +166,7 @@ public sealed partial class MongoSubscriptionUsageRepository
             await OverageStatements.ReplaceOneAsync(session,x=>x.Id==id,statement,cancellationToken:ct);
             var blocked=statement.PaymentFailed || await OverageStatements.Find(session,x=>x.UserId==statement.UserId && x.Id!=id && x.PaymentFailed && x.State!="paid").AnyAsync(ct);
             await Subscriptions.UpdateOneAsync(session,x=>x.UserId==statement.UserId,Builders<SubscriptionRecord>.Update.Set(x=>x.OveragePaymentBlocked,blocked).Inc(x=>x.AuthorizationVersion,1),cancellationToken:ct);
-            if(invoice.Status=="paid" && invoice.InvoiceId!=null)
+            if(invoice.Status=="paid" && invoice.InvoiceId!=null && !statement.UserId.StartsWith("app:",StringComparison.Ordinal))
                 await InsertInvoiceAsync(session,new OrderRecord {UserId=statement.UserId,StripeInvoiceId=invoice.InvoiceId,Amount=invoice.AmountPaid/100m,
                     BilledAmount=invoice.Subtotal/100m,Currency="USD",Description="OASIS USD paid overages "+statement.Month,Status="paid",CreatedAt=_time.GetUtcNow().UtcDateTime},ct);
             if(eventId!=null)

@@ -92,7 +92,7 @@ public sealed class CommittedHolonReplicaTarget : IHyperDriveIdempotentReplicati
             frozen=new HostedSyncFanOutItem{OperationId=item.OperationId,AvatarId=item.AvatarId,
                 EntityId=item.EntityId,EntityType=item.EntityType,Kind=item.Kind,VersionId=item.VersionId,
                 PayloadJson=item.PayloadJson,AttemptCount=item.AttemptCount};
-            var mutation=CommittedHolonReplicaPayload.Read(frozen.PayloadJson);
+            var mutation=ReadValidatedEnvelope(frozen);
             if(mutation.SourceId!=_sourceId || mutation.SourceAuthority!=_sourceAuthority)
                 return Denied("COSMIC_REPLICA_SOURCE_NOT_ENROLLED","The source is not enrolled for this route.");
             if(_policy.BindingIdentity!=_policyBinding)
@@ -121,6 +121,25 @@ public sealed class CommittedHolonReplicaTarget : IHyperDriveIdempotentReplicati
     private static OASISResult<bool> Denied(string code, string message, Exception cause = null)
         => new() { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message, Exception = cause };
 
+    private CommittedHolonReplicaRequest ReadValidatedEnvelope(HostedSyncFanOutItem item)
+    {
+        if (item == null || item.EntityType != EntityType)
+            throw new InvalidDataException("A committed holon graph item is required.");
+        var request = CommittedHolonReplicaPayload.ReadForTarget(item.PayloadJson, ReplicationTargetId);
+        if (request.NativeRoutes.Count > 0)
+        {
+            CommittedHolonReplicaPlan.ValidateNativeDestination(request, _expectedStorage);
+            var route = request.NativeRoutes.Single(value => value.TargetId == ReplicationTargetId);
+            if (route.PolicyBinding != _policyBinding || route.TargetStorage.BindingFingerprint != _expectedStorage.BindingFingerprint)
+                throw new InvalidDataException("The frozen destination or policy differs from the receiver's configured binding.");
+        }
+        if (item.OperationId != request.OperationId || item.AvatarId != request.ActorId
+            || item.EntityId != request.Roots[0].Id || item.VersionId != request.Roots[0].VersionId
+            || item.Kind != (request.Operation == ConditionalHolonOperation.Save ? SyncOperationKind.Upsert : SyncOperationKind.Delete))
+            throw new InvalidDataException("Hosted routing fields disagree with the frozen graph payload.");
+        return request;
+    }
+
     private async Task<OASISResult<bool>> ApplyFrozenMutationAsync(HostedSyncFanOutItem item, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -128,21 +147,9 @@ public sealed class CommittedHolonReplicaTarget : IHyperDriveIdempotentReplicati
         CommittedHolonReplicaPlan plan;
         try
         {
-            if (item == null || item.EntityType != EntityType) throw new InvalidDataException("A committed holon graph item is required.");
-            request = CommittedHolonReplicaPayload.ReadForTarget(item.PayloadJson,ReplicationTargetId);
-            if(request.NativeRoutes.Count > 0)
-            {
-                CommittedHolonReplicaPlan.ValidateNativeDestination(request,_expectedStorage);
-                var route=request.NativeRoutes.Single(value => value.TargetId == ReplicationTargetId);
-                if(route.PolicyBinding != _policyBinding || route.TargetStorage.BindingFingerprint != _expectedStorage.BindingFingerprint)
-                    throw new InvalidDataException("The frozen destination or policy differs from the receiver's configured binding.");
-            }
+            request = ReadValidatedEnvelope(item);
             if (request.SourceId != _sourceId || request.SourceAuthority != _sourceAuthority)
                 return Error("COSMIC_REPLICA_SOURCE_NOT_ENROLLED", "The payload source is not enrolled for this target.");
-            if (item.OperationId != request.OperationId || item.AvatarId != request.ActorId
-                || item.EntityId != request.Roots[0].Id || item.VersionId != request.Roots[0].VersionId
-                || item.Kind != (request.Operation == ConditionalHolonOperation.Save ? SyncOperationKind.Upsert : SyncOperationKind.Delete))
-                throw new InvalidDataException("Hosted routing fields disagree with the frozen graph payload.");
             plan = CommittedHolonReplicaPlan.Create(request, _targetAuthority);
         }
         catch (Exception error) when (error is InvalidDataException || error is ArgumentException)

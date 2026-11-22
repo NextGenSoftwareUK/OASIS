@@ -7,9 +7,13 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Interfaces
 {
-    public interface IHolonRepository : IConditionalHolonReceiptEvidenceStorageProvider, IHolonReplicaHeadAuditStorageProvider, ICommittedHolonReplicaReceiptStorageProvider, IHolonMigrationMutationStorageProvider, NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IHolonMigrationReplicaAdoptionStorageProvider
+    public interface IHolonRepository : IConditionalHolonReceiptEvidenceStorageProvider, IHolonReplicaHeadAuditStorageProvider, ICommittedHolonReplicaReceiptStorageProvider, IHolonMigrationMutationStorageProvider, NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IHolonMigrationReplicaAdoptionStorageProvider, IConditionalHolonPropertyStorageProvider
     {
         Task<OASISResult<IEnumerable<IHolon>>> ExportAllVersionsAsync();
+        Task<OASISResult<IEnumerable<IHolon>>> LoadMatchingHolonsAsync(
+            Dictionary<string, string> filter, MetaKeyValuePairMatchMode mode, HolonType type,
+            bool loadChildren, bool recursive, int maxChildDepth, int currentChildDepth,
+            bool continueOnError, int version);
         OASISResult<HolonWritePreparation> ClaimHolonWritePreparation(HolonWritePreparation candidate, System.Threading.CancellationToken cancellationToken);
         Task<OASISResult<HolonWritePreparation>> ReadHolonWritePreparationAsync(Guid operationId, Guid actorId, System.Threading.CancellationToken cancellationToken = default);
         NextGenSoftware.OASIS.Common.OASISResult<IEnumerable<IHolon>> ExecuteReplicatingHolonWrite(
@@ -17,8 +21,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Interfaces
         OASISResult<IEnumerable<IHolon>> ApplyBoundCommittedHolonReplica(CommittedHolonReplicaRequest request,
             CosmicStorageIdentity expectedStorage, System.Threading.CancellationToken cancellationToken);
         OASISResult<IEnumerable<IHolon>> ApplyCommittedHolonReplica(CommittedHolonReplicaRequest request,System.Threading.CancellationToken cancellationToken);
-        OASISResult<IEnumerable<IHolon>> InitializeCommittedHolonReplica(CommittedHolonReplicaRequest request,System.Threading.CancellationToken cancellationToken);
-        Task<OASISResult<HolonReplicaInitializationOutcome>> ReadReplicaInitializationOutcomeAsync(CommittedHolonReplicaRequest original,System.Threading.CancellationToken cancellationToken);
+        OASISResult<IEnumerable<IHolon>> InitializeCommittedHolonReplica(CommittedHolonReplicaRequest request,System.Threading.CancellationToken cancellationToken,CosmicStorageIdentity expectedStorage=null);
+        Task<OASISResult<HolonReplicaInitializationOutcome>> ReadReplicaInitializationOutcomeAsync(CommittedHolonReplicaRequest original,System.Threading.CancellationToken cancellationToken,CosmicStorageIdentity expectedStorage=null);
         OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
 
         Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);

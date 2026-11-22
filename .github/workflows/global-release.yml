@@ -710,6 +710,27 @@ jobs:
           ./Scripts/New-OASISReleaseNotes.ps1 -Component STARRuntime -Version '${{ needs.plan.outputs.star_version }}' -OutputPath 'artifacts/global-release/star-runtime.md'
           gh release create $tag artifacts/global-release/assets/*.zip --title 'STAR ODK Runtime v${{ needs.plan.outputs.star_version }}' --notes-file 'artifacts/global-release/star-runtime.md' --verify-tag=false
 
+  star-installers:
+    # Windows (.exe), macOS (.pkg/.dmg) and Linux (.tar.gz/.deb/.rpm) installers, attached to the STAR release.
+    if: inputs.star_runtime && inputs.publish
+    needs: [plan, star-runtime-release]
+    uses: ./.github/workflows/star-installers.yml
+    with:
+      version: ${{ needs.plan.outputs.star_version }}
+    secrets: inherit
+
+  publish-runtimes:
+    # Publishes any new OASIS, STAR or Edge Runtime release to STARNET so the STAR CLI and the STARNET
+    # web UI can install it. Versions STARNET already has are skipped.
+    if: ${{ always() && inputs.publish && (needs.runtime-release.result == 'success' || needs.star-runtime-release.result == 'success' || needs.edge-standalone.result == 'success') }}
+    needs: [plan, runtime-release, star-runtime-release, edge-standalone]
+    uses: ./.github/workflows/publish-runtimes.yml
+    with:
+      oasis_version: ${{ needs.runtime-release.result == 'success' && needs.plan.outputs.oasis_version || '' }}
+      star_version: ${{ needs.star-runtime-release.result == 'success' && needs.plan.outputs.star_version || '' }}
+      edge_version: ${{ needs.edge-standalone.result == 'success' && needs.plan.outputs.edge_version || '' }}
+    secrets: inherit
+
   optional-established-release-workflows:
     if: inputs.publish && (contains(inputs.optional_components, 'oide') || contains(inputs.optional_components, 'hyperdrive_client'))
     needs: plan

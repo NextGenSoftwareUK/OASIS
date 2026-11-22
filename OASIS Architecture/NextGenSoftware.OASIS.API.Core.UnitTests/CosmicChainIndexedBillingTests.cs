@@ -8,6 +8,66 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public partial class CosmicChainIndexedExecutionTests
 {
+    [Theory]
+    [InlineData(true, true, true)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, false)]
+    public async Task NetworkSourceRequiresActiveIndependentQueryEnrollment(
+        bool active, bool independent, bool enrolled)
+    {
+        const NextGenSoftware.OASIS.API.Core.Enums.ProviderType type =
+            NextGenSoftware.OASIS.API.Core.Enums.ProviderType.AxelarOASIS;
+        var provider = new Mock<IOASISProvider>(MockBehavior.Strict);
+        provider.SetupGet(value => value.ProviderType)
+            .Returns(new NextGenSoftware.Utilities.EnumValue<NextGenSoftware.OASIS.API.Core.Enums.ProviderType>(type));
+        provider.As<ICosmicReadOnlyQueryActivation>().SetupGet(value => value.IsQuerySourceActivated).Returns(active);
+        var store = new Mock<IUsageOutboxStore>(MockBehavior.Strict);
+        var begins = new List<UsageProviderAttempt>();
+        var receipts = new List<UsageProviderReceipt>();
+        store.Setup(value => value.BeginProviderAttemptAsync(It.IsAny<string>(), It.IsAny<string>(),
+            It.IsAny<UsageProviderAttempt>(), It.IsAny<CancellationToken>()))
+            .Callback((string id, string owner, UsageProviderAttempt attempt, CancellationToken token) => begins.Add(attempt))
+            .Returns(Task.CompletedTask);
+        store.Setup(value => value.AppendReceiptAsync(It.IsAny<string>(), It.IsAny<string>(),
+            It.IsAny<UsageProviderReceipt>(), It.IsAny<CancellationToken>()))
+            .Callback((string id, string owner, UsageProviderReceipt receipt, CancellationToken token) => receipts.Add(receipt))
+            .Returns(Task.CompletedTask);
+        var operation = new UsageOutboxOperation { Id = "network-cql", ExecutionOwner = "owner", UserId = actor.ToString("D"),
+            Policy = new UsageEndpointPolicy { RequiresProviderMeasurement = true, ReservedUnits = 10,
+                EstimatedCostUsd = 1, MaximumProviderAttempts = 10 } };
+        var handle = new UsageExecutionHandle(operation, store.Object, new Web4UsageLedgerOptions(),
+            new SubscriptionAuthorizationResult(), Mock.Of<IUsageReservationAuthority>());
+        var prepared = new PreparedStorageExecution(handle, "network-cql",
+            new Dictionary<NextGenSoftware.OASIS.API.Core.Enums.ProviderType, string>(), new[] { type },
+            new[] { new StorageQueryTariff(type, 0.01m, "network-test-v1") }, null, false, null,
+            enrolled ? new[] { type } : Array.Empty<NextGenSoftware.OASIS.API.Core.Enums.ProviderType>());
+        var allowed = active && independent && enrolled;
+        Assert.Equal(allowed, !prepared.AdmitQueryProvider(provider.Object, independent).IsError);
+
+        var calls = 0;
+        var result = await prepared.ExecuteQueryAsync(provider.Object, () =>
+        {
+            Assert.Single(begins);
+            calls++;
+            return Task.FromResult(new OASISResult<int>(7));
+        }, independent);
+        if (!allowed)
+        {
+            Assert.Equal(PreparedStorageExecution.RejectedCode, result.ErrorCode);
+            Assert.Equal(0, calls);
+            Assert.Empty(begins);
+            Assert.Empty(receipts);
+            return;
+        }
+        Assert.False(result.IsError, result.Message);
+        Assert.Equal(7, result.Result);
+        Assert.Equal(1, calls);
+        var receipt = Assert.Single(receipts);
+        Assert.Equal(Assert.Single(begins).ClientRequestId, receipt.ClientRequestId);
+        Assert.Equal(0.01m, receipt.ActualCostUsd);
+    }
+
     private CosmicIndexedReadTariffPolicy Tariffs(int maximum = 100) => new(source, maximum,
         CosmicIndexedReadTariffPolicy.Required.Select(op => new CosmicIndexedReadTariff(op,
             op == CosmicIndexedReadOperation.IndexSqlSnapshot ? 0.01m : 0.002m, "indexed-test-v1")));

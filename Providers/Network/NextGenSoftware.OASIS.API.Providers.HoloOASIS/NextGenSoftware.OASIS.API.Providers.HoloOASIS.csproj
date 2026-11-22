@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;net10.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
+    <DefineConstants>$(DefineConstants);OASIS_INTERNAL_STORED_RECORD_SEARCH</DefineConstants>
 	  <PackageId>NextGenSoftware.OASIS.API.Providers.HoloOASIS</PackageId>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API Holochain OASIS Provider</Product>
@@ -38,6 +39,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\StoredRecordSearch.cs" Link="Search\StoredRecordSearch.cs" />
+    <Compile Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\StoredRecordNumericComparison.cs" Link="Search\StoredRecordNumericComparison.cs" />
     <Compile Remove="OASIS hAPP\**" />
     <EmbeddedResource Remove="OASIS hAPP\**" />
     <None Remove="OASIS hAPP\**" />
@@ -68,6 +71,14 @@
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <ProjectReference Include="../../Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <Compile Remove="HoloOASIS.Cql.cs" />
   </ItemGroup>
 
   <ItemGroup>

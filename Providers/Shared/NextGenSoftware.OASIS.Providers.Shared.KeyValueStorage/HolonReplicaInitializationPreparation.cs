@@ -36,10 +36,15 @@ public sealed class HolonReplicaInitializationAuthorizationContext
     public ProviderType TargetAuthority {get;}
     public string TargetEndpointIdentity {get;}
     public CommittedHolonReplicaRequest Mutation {get;}
+    public Guid? SourceOperationId {get;}
+    public string SourcePayloadDigest {get;}
+    public string SourceErrorCode {get;}
     internal HolonReplicaInitializationAuthorizationContext(HolonReplicaInitializationAuthorizationStage stage,Guid actor,long sequence,Guid operation,string route,
-        string sourceId,ProviderType sourceAuthority,string sourceStore,string targetId,ProviderType targetAuthority,string targetEndpoint,CommittedHolonReplicaRequest mutation=null)
+        string sourceId,ProviderType sourceAuthority,string sourceStore,string targetId,ProviderType targetAuthority,string targetEndpoint,
+        CommittedHolonReplicaRequest mutation=null,HolonReplicationObligation source=null)
     {Stage=stage;OperatorId=actor;Sequence=sequence;InitializationOperationId=operation;RouteBinding=route;Mutation=mutation;
-        SourceId=sourceId;SourceAuthority=sourceAuthority;SourceStoreIdentity=sourceStore;TargetId=targetId;TargetAuthority=targetAuthority;TargetEndpointIdentity=targetEndpoint;}
+        SourceId=sourceId;SourceAuthority=sourceAuthority;SourceStoreIdentity=sourceStore;TargetId=targetId;TargetAuthority=targetAuthority;TargetEndpointIdentity=targetEndpoint;
+        SourceOperationId=source?.Inspection.OperationId;SourcePayloadDigest=source?.PayloadDigest;SourceErrorCode=source?.Inspection.ErrorCode;}
 }
 
 /// <summary>Reviewable metadata only. Preparation does not initialize a target, complete a delivery or promise cutover.</summary>
@@ -75,6 +80,7 @@ public sealed class HolonReplicaInitializationPreparation
     private readonly IHolonReplicaInitializationPolicy _policy;
     private readonly string _sourceId,_targetId,_policyBinding,_sourceStoreIdentity,_targetEndpointIdentity;
     private readonly ProviderType _sourceAuthority,_targetAuthority;
+    internal ProviderType TargetAuthority => _targetAuthority;
     public string RouteBinding {get;}
     public HolonReplicaInitializationPreparation(string catalogId,Guid catalogVersion,string sourceId,string sourceStoreIdentity,
         ProviderType sourceAuthority,IHolonReplicationObligationReader source,string targetId,string targetEndpointIdentity,
@@ -100,21 +106,33 @@ public sealed class HolonReplicaInitializationPreparation
     /// <summary>Reauthorize an already reviewed intent before application/recovery.
     /// A completed source is admitted only for exact receipt/acknowledgement recovery;
     /// it does not grant permission to initialize an unrelated target.</summary>
-    public async Task<OASISResult<CommittedHolonReplicaRequest>> ReauthorizeApplicationAsync(
+    public Task<OASISResult<CommittedHolonReplicaRequest>> ReauthorizeApplicationAsync(
         HolonReplicaInitializationIntent intent,CancellationToken token=default)
+        => ReauthorizeApplicationAsync(intent, allowCompleted: true, token);
+
+    internal async Task<OASISResult<CommittedHolonReplicaRequest>> ReauthorizeApplicationAsync(
+        HolonReplicaInitializationIntent intent, bool allowCompleted, CancellationToken token)
     {
         ArgumentNullException.ThrowIfNull(intent);
         OASISResult<CommittedHolonReplicaRequest> Failed(string code,string message,Exception cause=null)
             =>new(){IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause};
-        var reviewed=await PrepareCoreAsync(intent.OperatorId,intent.Sequence,intent.InitializationOperationId,true,token).ConfigureAwait(false);
+        var reviewed=await PrepareCoreAsync(intent.OperatorId,intent.Sequence,intent.InitializationOperationId,allowCompleted,token).ConfigureAwait(false);
         if(reviewed.IsError)return Failed(reviewed.ErrorCode,reviewed.Message,reviewed.Exception);
         if(reviewed.Result.Fingerprint!=intent.Fingerprint)
             return Failed("COSMIC_REPLICA_INITIALIZATION_INTENT_CHANGED","The current authorized source differs from the durable reviewed intent.");
         var source=await _source.ReadObligationAsync(intent.Sequence,token).ConfigureAwait(false);
         if(source==null || source.IsError || source.IsWarning || source.Exception!=null || source.Result==null
+            || source.Result.Inspection.Sequence!=intent.Sequence
+            || source.Result.Inspection.OperationId!=intent.SourceOperationId
+            || source.Result.Inspection.TargetId!=_targetId
+            || source.Result.Inspection.AttemptCount!=intent.AttemptCount
+            || (source.Result.Inspection.State!=HolonDeliveryState.ReconciliationRequired
+                && !(allowCompleted && source.Result.Inspection.State==HolonDeliveryState.Completed))
+            || source.Result.Inspection.ErrorCode!="COSMIC_REPLICA_LINEAGE_CONFLICT"
+            || source.Result.Inspection.RecoveryEvidence?.RequiresNativeReconciliation!=false
             || source.Result.PayloadDigest!=intent.SourcePayloadDigest
             || Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(source.Result.PayloadJson)))!=intent.SourcePayloadDigest)
-            return Failed("COSMIC_REPLICA_INITIALIZATION_SOURCE_CHANGED","A second authoritative source read must match the reviewed frozen payload.",source?.Exception);
+            return Failed("COSMIC_REPLICA_INITIALIZATION_SOURCE_CHANGED","The source obligation changed after the repair was authorized.",source?.Exception);
         var original=CommittedHolonReplicaPayload.Read(source.Result.PayloadJson);
         return new(new CommittedHolonReplicaRequest(intent.InitializationOperationId,original.SourceId,original.SourceAuthority,
             original.ActorId,original.Operation,original.Roots,original.SaveChildren,original.Recursive,original.MaxChildDepth));
@@ -156,7 +174,7 @@ public sealed class HolonReplicaInitializationPreparation
                 original.Operation,original.Roots,original.SaveChildren,original.Recursive,original.MaxChildDepth);
             var plan=CommittedHolonReplicaPlan.CreateInitialBaseline(baseline,_targetAuthority);
             var beforePolicy=CommittedHolonReplicaPayload.Capture(baseline);
-            var approval=await Authorized(Context(HolonReplicaInitializationAuthorizationStage.ApproveInitialization,operatorId,sequence,initializationOperationId,baseline),token).ConfigureAwait(false);
+            var approval=await Authorized(Context(HolonReplicaInitializationAuthorizationStage.ApproveInitialization,operatorId,sequence,initializationOperationId,baseline,frozen),token).ConfigureAwait(false);
             if(approval.IsError)return Error(approval.ErrorCode,approval.Message,approval.Exception);
             if(!approval.Result)
                 return Error("COSMIC_REPLICA_INITIALIZATION_DENIED","The host policy did not approve this exact baseline.");
@@ -167,8 +185,9 @@ public sealed class HolonReplicaInitializationPreparation
         catch(OperationCanceledException)when(token.IsCancellationRequested){throw;}
         catch(Exception cause){return Error("COSMIC_REPLICA_INITIALIZATION_PREPARATION_FAILED","Initialization preparation failed; no target or queue mutation was requested.",cause);}
     }
-    private HolonReplicaInitializationAuthorizationContext Context(HolonReplicaInitializationAuthorizationStage stage,Guid actor,long sequence,Guid operation,CommittedHolonReplicaRequest mutation=null)
-        =>new(stage,actor,sequence,operation,RouteBinding,_sourceId,_sourceAuthority,_sourceStoreIdentity,_targetId,_targetAuthority,_targetEndpointIdentity,mutation);
+    private HolonReplicaInitializationAuthorizationContext Context(HolonReplicaInitializationAuthorizationStage stage,Guid actor,long sequence,Guid operation,
+        CommittedHolonReplicaRequest mutation=null,HolonReplicationObligation source=null)
+        =>new(stage,actor,sequence,operation,RouteBinding,_sourceId,_sourceAuthority,_sourceStoreIdentity,_targetId,_targetAuthority,_targetEndpointIdentity,mutation,source);
     private async Task<OASISResult<bool>> Authorized(HolonReplicaInitializationAuthorizationContext context,CancellationToken token)
     {
         OASISResult<bool> Failed(string code,string message,Exception cause=null)=>new(){IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause};

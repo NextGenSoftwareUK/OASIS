@@ -32,7 +32,11 @@ internal static class ReplicaBaselineRepairCommand
         string SourcePayloadDigest, string SourceStoreIdentity, string TargetFile,
         [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string SourceProvider=null,
         [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string TargetProvider=null,
-        [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string TargetStoreIdentity=null);
+        [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string TargetStoreIdentity=null,
+        [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string TargetEndpointFingerprint=null,
+        [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string TargetNativeStoreId=null,
+        [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string SourceEndpointFingerprint=null,
+        [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string SourceNativeStoreId=null);
 
     internal static async Task<int> RunAsync(string[] args)
     {
@@ -152,6 +156,20 @@ internal static class ReplicaBaselineRepairCommand
             throw new ArgumentException("A complete reviewed V2 repair request is required.");
         var sourceType=SourceProfile(request.SourceProvider);
         var targetType=TargetProfile(request.TargetProvider);ValidateRoute(sourceType,targetType);
+        CosmicStorageIdentity reviewedSource = null;
+        if (request.SourceEndpointFingerprint != null || request.SourceNativeStoreId != null)
+        {
+            if (sourceType != ProviderType.MongoDBOASIS)
+                throw new ArgumentException("The reviewed native identity is supported for MongoDB repair sources.");
+            reviewedSource = new CosmicStorageIdentity(sourceType, request.SourceEndpointFingerprint, request.SourceNativeStoreId);
+        }
+        CosmicStorageIdentity reviewedTarget = null;
+        if (request.TargetEndpointFingerprint != null || request.TargetNativeStoreId != null)
+        {
+            if (targetType != ProviderType.SQLLiteDBOASIS)
+                throw new ArgumentException("The reviewed native identity is supported for SQLite repair targets.");
+            reviewedTarget = new CosmicStorageIdentity(targetType, request.TargetEndpointFingerprint, request.TargetNativeStoreId);
+        }
         var settings=dna.OASIS.StorageProviders;
         var configuredSource=sourceType switch {
             ProviderType.MongoDBOASIS=>StoreIdentity(settings.MongoDBOASIS.ConnectionString,settings.MongoDBOASIS.DBName),
@@ -194,10 +212,10 @@ internal static class ReplicaBaselineRepairCommand
         {
             var activated=await source.ActivateProviderAsync();
             if(activated.IsError || activated.IsWarning)throw new InvalidOperationException("Source activation failed.");
-            var queue=((IHolonReplicationOutboxSource)source).GetHolonReplicationOutbox();
-            if(queue.IsError || queue.Result is not IHolonReplicationObligationReader outbox)
-                throw new InvalidOperationException("Configured source outbox unavailable.");
-            Func<HolonReplicaInitializationIntent,HolonReplicaInitializationOutcome,CancellationToken,Task<OASISResult<bool>>> complete=queue.Result switch {
+            var outbox = reviewedSource == null
+                ? RequireOutbox(((IHolonReplicationOutboxSource)source).GetHolonReplicationOutbox())
+                : RequireOutbox(((MongoDBOASIS)source).GetBoundHolonReplicationOutbox(reviewedSource));
+            Func<HolonReplicaInitializationIntent,HolonReplicaInitializationOutcome,CancellationToken,Task<OASISResult<bool>>> complete=outbox switch {
                 MongoHolonReplicationOutbox mongo=>mongo.CompleteInitializedBaselineAsync,
                 NeoOutbox neo=>neo.CompleteInitializedBaselineAsync,
                 SqliteHolonReplicationOutbox sqlite=>sqlite.CompleteInitializedBaselineAsync,
@@ -210,12 +228,20 @@ internal static class ReplicaBaselineRepairCommand
                 || held.Result.Inspection.OperationId!=request.SourceOperationId
                 || held.Result.PayloadDigest!=request.SourcePayloadDigest)
                 throw new InvalidOperationException("Reviewed source operation or payload changed.");
+            var nativeRoute = held.Result.Inspection.NativeRoute;
+            if (nativeRoute != null && (reviewedSource == null || reviewedTarget == null
+                || nativeRoute.SourceStorage.BindingFingerprint != reviewedSource.BindingFingerprint
+                || nativeRoute.TargetStorage.BindingFingerprint != reviewedTarget.BindingFingerprint))
+                throw new InvalidOperationException("The frozen route differs from the reviewed native stores.");
             var receiver=await target.ActivateProviderAsync();
             if(receiver.IsError || receiver.IsWarning)throw new InvalidOperationException("Target activation failed.");
             if(target is not ICommittedHolonReplicaInitializationRecoveryStorageProvider receiverOwner)
                 throw new InvalidOperationException("Configured target has no initialization receipt owner.");
-            var preparation=Preparation(request,sourceType,outbox,targetIdentity);
-            var application=new HolonReplicaInitializationApplication(preparation,receiverOwner,complete);
+            var preparation=Preparation(request,sourceType,outbox,targetIdentity,nativeRoute);
+            var application = reviewedTarget == null
+                ? new HolonReplicaInitializationApplication(preparation,receiverOwner,complete)
+                : new HolonReplicaInitializationApplication(preparation,
+                    (IBoundCommittedHolonReplicaInitializationRecoveryStorageProvider)receiverOwner,reviewedTarget,complete);
             return await application.ExecuteAsync(request.OperatorId,request.Sequence,request.InitializationOperationId,protectedJournal,deadline.Token);
         }
         finally
@@ -233,23 +259,37 @@ internal static class ReplicaBaselineRepairCommand
         }
     }
 
-    internal static HolonReplicaInitializationPreparation Preparation(Request request,ProviderType sourceType,
-        IHolonReplicationObligationReader source,string targetFile)
-        =>new("web4-demo-repair",request.CatalogVersion,HolonReplicationRoutes.SourceId(sourceType),request.SourceStoreIdentity,
-            sourceType,source,HolonReplicationRoutes.TargetId(TargetProfile(request.TargetProvider)),targetFile,TargetProfile(request.TargetProvider),
-            new Policy(request,targetFile,sourceType));
+    private static IHolonReplicationObligationReader RequireOutbox<T>(OASISResult<T> result) where T : class
+        => result.IsError || result.IsWarning || result.Exception != null || result.Result is not IHolonReplicationObligationReader reader
+            ? throw new InvalidOperationException("Configured source outbox unavailable.")
+            : reader;
 
-    private sealed class Policy(Request request,string file,ProviderType sourceType) : IHolonReplicaInitializationPolicy
+    internal static HolonReplicaInitializationPreparation Preparation(Request request,ProviderType sourceType,
+        IHolonReplicationObligationReader source,string targetFile,HolonReplicationRouteBinding nativeRoute = null)
+    {
+        var targetType = TargetProfile(request.TargetProvider);
+        var sourceId = nativeRoute?.SourceId ?? HolonReplicationRoutes.SourceId(sourceType);
+        var targetId = nativeRoute?.TargetId ?? HolonReplicationRoutes.TargetId(targetType);
+        return new("web4-demo-repair",request.CatalogVersion,sourceId,request.SourceStoreIdentity,
+            sourceType,source,targetId,targetFile,targetType,new Policy(request,targetFile,sourceType,sourceId,targetId));
+    }
+
+    private sealed class Policy(Request request,string file,ProviderType sourceType,string sourceId,string targetId) : IHolonReplicaInitializationPolicy
     {
         public string BindingIdentity=>"reviewed-demo-baseline:"+Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(request))));
         public Task<OASISResult<bool>> AuthorizeAsync(HolonReplicaInitializationAuthorizationContext context,CancellationToken token)
             =>Task.FromResult(new OASISResult<bool>(context.OperatorId==request.OperatorId && context.Sequence==request.Sequence
                 && context.InitializationOperationId==request.InitializationOperationId
-                && context.SourceId==HolonReplicationRoutes.SourceId(sourceType)
+                && context.SourceId==sourceId
                 && context.SourceStoreIdentity==request.SourceStoreIdentity && context.TargetEndpointIdentity==file
                 && context.SourceAuthority==sourceType && context.TargetAuthority==TargetProfile(request.TargetProvider)
-                && context.TargetId==HolonReplicationRoutes.TargetId(TargetProfile(request.TargetProvider))
-                && (context.Mutation==null || context.Mutation.ActorId==request.SourceActorId
-                    && context.Mutation.Roots.Count==1 && context.Mutation.Roots[0].Id==request.RootId)));
+                && context.TargetId==targetId
+                && (context.Stage == HolonReplicaInitializationAuthorizationStage.ReadHeldSource
+                    || context.Stage == HolonReplicaInitializationAuthorizationStage.ApproveInitialization
+                    && context.SourceOperationId == request.SourceOperationId
+                    && context.SourcePayloadDigest == request.SourcePayloadDigest
+                    && context.SourceErrorCode == "COSMIC_REPLICA_LINEAGE_CONFLICT"
+                    && context.Mutation != null && context.Mutation.ActorId == request.SourceActorId
+                    && context.Mutation.Roots.Count == 1 && context.Mutation.Roots[0].Id == request.RootId)));
     }
 }

@@ -90,6 +90,7 @@ internal static partial class MongoNativeRecordWriter
                         replacement.Add(children, retained.DeepClone());
                 }
             }
+            if(typeof(T)==typeof(Holon)) MongoHolonSeal.Apply(replacement,observed,MongoHolonSeal.Owner(holon.CreatedByAvatarId));
             var writer=raw.WithWriteConcern(WriteConcern.WMajority.With(journal:true));
             if(updating && typeof(T)==typeof(Holon))MongoNativeHolonHistory.Stage(replacement,observed);
             else if(updating)PrepareAccountHistory<T>(replacement,observed,retainAccountHistory);
@@ -147,6 +148,10 @@ internal static partial class MongoNativeRecordWriter
         if(observed!=null)
         {
             RetainUnknownFields<Holon>(body,observed);
+        }
+        MongoHolonSeal.Apply(body,observed,MongoHolonSeal.Owner(record.CreatedByAvatarId));
+        if(observed!=null)
+        {
             MongoNativeHolonHistory.Stage(body,observed);
         }
         return body;

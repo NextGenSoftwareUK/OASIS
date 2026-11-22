@@ -9,14 +9,25 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.UnitTests;
 public class ActivityPubCqlTests
 {
     private const string Status="""{"id":"123","uri":"https://remote.invalid/statuses/123","content":"<p>Hello</p>","created_at":"2026-01-02T03:04:05Z","account":{"id":"42","acct":"alice"},"visibility":"public"}""";
-    private static CosmicQuery<Holon> Query() => CosmicQuery<Holon>.Create(
+    private static CosmicQuery<Holon> Query(string key = "123") => CosmicQuery<Holon>.Create(
         CosmicQueryScope.Named(ProviderType.ActivityPubOASIS).Result)
-        .Where(h=>CosmicQueryMetadata.Value<string>(h,ActivityPubOASIS.CqlStatusKey)=="123").Result;
+        .Where(h=>CosmicQueryMetadata.Value<string>(h,ActivityPubOASIS.CqlStatusKey)==key).Result;
     private static CosmicQueryPlan<Holon> Plan(ActivityPubOASIS provider,CosmicQuery<Holon>? query=null)
     {
         var result=CosmicQueryPlanner.Plan(query ?? Query(),ProviderType.ActivityPubOASIS,
             new[]{new CosmicQueryTarget(ProviderType.ActivityPubOASIS,provider.QueryCapabilities)});
         Assert.False(result.IsError,result.Message);return result.Result;
+    }
+
+    [Fact]
+    public async Task PointQueryRejectsPathNavigationBeforeNativeDispatch()
+    {
+        var transport = new Transport();
+        using var provider = new ActivityPubOASIS("https://mastodon.invalid", "", transport);
+        Assert.False((await provider.ActivateProviderAsync()).IsError);
+        var result = await provider.ExecuteCosmicQueryAsync(Plan(provider, Query("..")));
+        Assert.Equal("CQL_INVALID_SOURCE_KEY", result.ErrorCode);
+        Assert.Equal(0, transport.StatusReads);
     }
 
     [Fact]

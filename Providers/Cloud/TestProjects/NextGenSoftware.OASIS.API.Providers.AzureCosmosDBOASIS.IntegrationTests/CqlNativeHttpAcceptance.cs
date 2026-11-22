@@ -30,14 +30,14 @@ internal static class CqlNativeHttpAcceptance
     private sealed class Providers(AzureCosmosDBOASIS provider, HolonManager manager) : ICqlV1Providers
     {
         internal int Lookups;
-        public IOASISStorageProvider Resolve(ProviderType? requested)
+        public IOASISProvider Resolve(ProviderType? requested)
         {
             Interlocked.Increment(ref Lookups);
             if (requested.HasValue && requested != ProviderType.AzureCosmosDBOASIS || !provider.IsProviderActivated)
                 throw new InvalidOperationException("Only the already active owned Cosmos fixture is eligible.");
             return provider;
         }
-        public HolonManager CreateManager(IOASISStorageProvider selected)
+        public HolonManager CreateManager(IOASISProvider selected)
             => ReferenceEquals(provider, selected) ? manager : throw new InvalidOperationException("Provider substitution rejected.");
     }
 

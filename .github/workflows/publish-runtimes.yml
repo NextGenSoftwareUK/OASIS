@@ -1,0 +1,143 @@
+# Publishes the OASIS Runtime, STAR Runtime and Edge Runtime to STARNET from their GitHub releases,
+# so the STAR CLI/ODK and the STARNET web UI can install them.
+#
+# Each runtime is published as ONE package (the CLI downloads a runtime by name + version) holding a
+# folder per platform: win-x64/, osx-x64/, osx-arm64/, linux-x64/, linux-arm64/.
+#
+# It only uploads a runtime when its version is newer than what STARNET already has: the STAR API's
+# POST api/runtimes/publish-release endpoint skips versions that are already published.
+#
+# Runs at the end of every global release, by hand (any or all runtimes, any version), and nightly
+# as a safety net so a release can never be missed.
+#
+# Needs repository secrets STARNET_PUBLISH_USERNAME and STARNET_PUBLISH_PASSWORD: the OASIS avatar
+# that owns the official runtimes on STARNET.
+name: Publish runtimes to STARNET
+
+on:
+  workflow_call:
+    inputs:
+      oasis_version: { type: string, required: false, default: '' }
+      star_version: { type: string, required: false, default: '' }
+      edge_version: { type: string, required: false, default: '' }
+  workflow_dispatch:
+    inputs:
+      oasis_version:
+        description: OASIS Runtime version (empty = latest release)
+        required: false
+        type: string
+      star_version:
+        description: STAR ODK Runtime version (empty = latest release)
+        required: false
+        type: string
+      edge_version:
+        description: OASIS Edge Runtime version (empty = latest release)
+        required: false
+        type: string
+      star_api:
+        description: STAR API to publish to
+        required: false
+        default: https://api.starnet.oasisomniverse.one
+        type: string
+  schedule:
+    - cron: '17 3 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-runtimes
+  cancel-in-progress: false
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  STAR_API: ${{ inputs.star_api || 'https://api.starnet.oasisomniverse.one' }}
+  WEB4_API: https://api.web4.oasisomniverse.one
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+          - { name: OASIS Runtime, tag_prefix: OASIS-Runtime-v, asset_prefix: OASIS.Runtime.v, input: oasis_version }
+          - { name: STAR Runtime, tag_prefix: STAR-ODK-Runtime-v, asset_prefix: STAR.Runtime.v, input: star_version }
+          - { name: Edge Runtime, tag_prefix: OASIS-Edge-Runtime-v, asset_prefix: OASIS.Edge.Runtime.v, input: edge_version }
+    steps:
+      - name: Find the ${{ matrix.name }} release
+        id: rel
+        shell: bash
+        env:
+          WANTED: ${{ inputs[matrix.input] }}
+        run: |
+          set -euo pipefail
+          if [ -n "${WANTED:-}" ]; then
+            tag="${{ matrix.tag_prefix }}${WANTED#v}"
+          else
+            tag=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 200 --exclude-drafts --exclude-pre-releases --json tagName \
+              --jq '[.[] | select(.tagName | startswith("${{ matrix.tag_prefix }}"))][0].tagName')
+          fi
+          [ -n "$tag" ] || { echo "No ${{ matrix.name }} release found"; exit 1; }
+          version="${tag#${{ matrix.tag_prefix }}}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "${{ matrix.name }}: $tag" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Sign in to OASIS
+        id: auth
+        shell: bash
+        env:
+          OASIS_USERNAME: ${{ secrets.STARNET_PUBLISH_USERNAME }}
+          OASIS_PASSWORD: ${{ secrets.STARNET_PUBLISH_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${OASIS_USERNAME:-}" ] || [ -z "${OASIS_PASSWORD:-}" ]; then
+            echo "::error::Add the STARNET_PUBLISH_USERNAME and STARNET_PUBLISH_PASSWORD repository secrets (the avatar that owns the official runtimes)."
+            exit 1
+          fi
+          body=$(jq -n --arg u "$OASIS_USERNAME" --arg p "$OASIS_PASSWORD" '{username:$u,password:$p}')
+          token=$(curl -sfS -X POST "$WEB4_API/api/avatar/authenticate" -H 'Content-Type: application/json' -d "$body" \
+            | jq -r '.result.result.jwtToken // .result.jwtToken // .result.JwtToken // .Result.JwtToken // empty')
+          [ -n "$token" ] || { echo "::error::Could not sign in to OASIS as the publishing avatar."; exit 1; }
+          echo "::add-mask::$token"
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Package every platform into one archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          v='${{ steps.rel.outputs.version }}'
+          mkdir -p dl pkg
+          gh release download '${{ steps.rel.outputs.tag }}' --repo "$GITHUB_REPOSITORY" --pattern '${{ matrix.asset_prefix }}*.zip' --dir dl --clobber
+          shopt -s nullglob
+          zips=(dl/*.zip)
+          [ ${#zips[@]} -gt 0 ] || { echo "No platform archives in ${{ steps.rel.outputs.tag }}"; exit 1; }
+          for z in "${zips[@]}"; do
+            rid=$(basename "$z" .zip); rid="${rid##*.}"
+            mkdir -p "pkg/$rid"
+            unzip -q -o "$z" -d "pkg/$rid"
+            echo "- $rid" >> "$GITHUB_STEP_SUMMARY"
+          done
+          (cd pkg && zip -q -r -9 ../runtime.zip .)
+          ls -lh runtime.zip
+
+      - name: Publish to STARNET (skipped if this version is already there)
+        shell: bash
+        run: |
+          set -euo pipefail
+          resp=$(curl -sS --max-time 3000 -X POST "$STAR_API/api/runtimes/publish-release" \
+            -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
+            --form-string 'Name=${{ matrix.name }}' \
+            --form-string 'Version=${{ steps.rel.outputs.version }}' \
+            --form-string 'Description=${{ matrix.name }} v${{ steps.rel.outputs.version }} for Windows, macOS and Linux.' \
+            -F 'Archive=@runtime.zip;type=application/zip' -w '\n%{http_code}')
+          code=$(echo "$resp" | tail -n1); json=$(echo "$resp" | sed '$d')
+          msg=$(echo "$json" | jq -r '.message // .Message // empty' 2>/dev/null || true)
+          changed=$(echo "$json" | jq -r '.result.changed // .result.Changed // empty' 2>/dev/null || true)
+          echo "HTTP $code: $msg"
+          echo "**${{ matrix.name }} v${{ steps.rel.outputs.version }}**: ${msg:-HTTP $code}" >> "$GITHUB_STEP_SUMMARY"
+          [ "$code" = "200" ] || { echo "::error::Publishing ${{ matrix.name }} failed (HTTP $code): $msg"; exit 1; }
+          [ "$changed" = "false" ] && echo "Already published; nothing uploaded." || true

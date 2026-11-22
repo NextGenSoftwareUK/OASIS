@@ -43,6 +43,15 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         threshold=9007199254740993L;Assert.AreEqual(0,repeated.ToArray().Length);
         Assert.AreEqual(1,NativeReselectionProbe.Constructors);Passed("repeated selected shapes preserve native stages and per-read closure binding");
 
+        var nested = root.Take(1).Where(row => row.Version >= 1)
+            .Select(row => new { Detail = new { row.Name, row.Version }, row.Id })
+            .Where(row => row.Detail.Version >= 1).OrderBy(row => row.Detail.Name).Take(1)
+            .Select(row => row.Detail.Name);
+        var nestedResult = await nested.ToCosmicListAsync();
+        Assert.IsFalse(nestedResult.IsError, nestedResult.Message + nestedResult.Exception);
+        Assert.AreEqual("protected source root", nestedResult.Result.Single());
+        Passed("nested anonymous member composition preserves native windows");
+
         // A later shape/window cannot discard the invalid required input column.
         NativeProjectionProbe.Constructors=0;NativeReselectionProbe.Constructors=0;
         var invalid=await root.Take(1).Where(row=>row.Version>=1)
