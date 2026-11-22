@@ -1,0 +1,30 @@
+{
+  "operation": "git prune-packed",
+  "scope": "C:\\Source\\OASIS2\\.git\\objects",
+  "before": {
+    "count": "77859",
+    "size": "1520960",
+    "in-pack": "1075264",
+    "packs": "1043",
+    "size-pack": "2450779",
+    "prune-packable": "46096",
+    "garbage": "0",
+    "size-garbage": "0"
+  },
+  "after": {
+    "count": "31769",
+    "size": "802917",
+    "in-pack": "1075264",
+    "packs": "1043",
+    "size-pack": "2450779",
+    "prune-packable": "0",
+    "garbage": "0",
+    "size-garbage": "0"
+  },
+  "looseStorageKiBReclaimed": 718043,
+  "workingIndexUnchanged": true,
+  "currentFeatureAndImageCandidatePresent": true,
+  "manualSourceObjectDeletion": false,
+  "unreachableUniqueObjectsPruned": false,
+  "elapsedSeconds": 116.584
+}

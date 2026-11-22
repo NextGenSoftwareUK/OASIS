@@ -57,17 +57,6 @@ on:
       - "STAR ODK/**"
       - "Providers/**"
       - "HoloNET-ORM"
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "SemVer version to publish (for example 2.0.2)"
-        required: true
-        default: "2.0.2"
-      publish:
-        description: "Publish GitHub, NuGet, and npm releases after every build passes"
-        required: true
-        type: boolean
-        default: false
 
 permissions:
   contents: read

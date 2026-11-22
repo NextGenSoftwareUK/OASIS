@@ -1,0 +1,21 @@
+{
+  "checkedUtc": "2026-11-21T22:15:30.326349+00:00",
+  "environment": "dev",
+  "service": "WEB4",
+  "savedAutoLoadBalanceEnabled": true,
+  "latestFailedDeployment": "378684f0-7cbc-48fe-a598-7e1572261655",
+  "failedSource": "3159c8fb14e00b2f6a7b4f793c2e2fe54b91fddf",
+  "failure": "MapController.cs:44 CS1503 constructor mismatch (HolonManager/Guid versus Guid/OASISDNA)",
+  "lastSuccessfulDeployment": "715347fa-f200-4bae-8546-5cfe4db440ca",
+  "lastSuccessfulSource": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+  "candidate": "f54923d82ac8bffa7877d9307f18e879d41a8254",
+  "restoredOnode": "d51bdd8cba5183c9a7597f85f1d6ddd4be20d629",
+  "imageRun": 44955207943,
+  "compositionRun": 44955232840,
+  "bothRunsLastStatus": "in_progress",
+  "timeout240Live": false,
+  "settingsWrites": 0,
+  "dataQueries": 0,
+  "localBuilds": 0,
+  "downloadedArtifacts": 0
+}

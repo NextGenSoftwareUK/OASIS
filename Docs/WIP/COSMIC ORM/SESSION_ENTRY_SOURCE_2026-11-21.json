@@ -1,0 +1,26 @@
+{
+  "coreSource": "553182248e0dcbc2b5478ea2f552f85b9a0007c5",
+  "qualificationSource": "ec127ea75a999d6e594267bc1a7e12113f2480cc",
+  "run": 44891869607,
+  "selectedCases": 3,
+  "observedStatus": "completed",
+  "qualified": true,
+  "providerIoAllowed": false,
+  "frozenDemoCore": "13fabae5a78c70b961c300657a875f1cfabe238d",
+  "frozenDemoSource": "6b5713f7d02379a6bd1769c13981d22682ee7b0d",
+  "includedInDemoCandidate": false,
+  "fullParityCredit": false,
+  "job": 136809234588,
+  "passed": 3,
+  "failed": 0,
+  "skipped": 0,
+  "actualWeb4BuildSucceeded": true,
+  "actualWeb4BuildErrors": 0,
+  "artifact": {
+    "id": 14702729585,
+    "bytes": 1644,
+    "sha256": "e788ad9b4892d4f7e9f70ba8cab9603a1df6a8c7cdbb5637c5edf88dfc2eb76d",
+    "exactEntry": "entry.trx",
+    "filesWritten": 0
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "reviewedComposition": "d51bdd8cba5183c9a7597f85f1d6ddd4be20d629",
+  "featureBranchHead": "81ec030d8b2839934373b97e784b1023d80d112e",
+  "previousFeatureHead": "e1457ed91602c9ba6a57ef21a577b465dbca0497",
+  "restoredParent": "51e0f880c59584cf9007e8bb89f4a7f6425c1a4f",
+  "packageParent": "df3e4adf86cc38ebcab67654a601c98873df4e69",
+  "qualifiedFilesExact": [
+    "Interfaces/Managers/STARNET/STARNET System/ISTARNETManagerBase.cs",
+    "Managers/MapManager.cs",
+    "Managers/OASIS ONODE Core/OASISManager.cs",
+    "Managers/STARNET/Quest System/GeoHotSpotManager.cs",
+    "Managers/STARNET/STARNET System/STARNETManagerBase.Create.Load.cs"
+  ],
+  "packageFilesExact": [
+    "Managers/STARNET/STARNET System/STARNETManagerBase.Activate.Part1.cs",
+    "Managers/STARNET/STARNET System/STARNETManagerBase.PackageStore.cs",
+    "Managers/STARNET/STARNET System/STARNETManagerBase.Publish.Core.cs"
+  ],
+  "preservedUnrelatedBranchOnlyPaths": [
+    "ONET/ONETDiscovery.Core.cs"
+  ],
+  "rootShouldPin": "d51bdd8cba5183c9a7597f85f1d6ddd4be20d629",
+  "newBranches": 0,
+  "newWorktrees": 0,
+  "workingTreeChanges": 0,
+  "compilationAccepted": false,
+  "baseDevelopment": "3159c8fb14e00b2f6a7b4f793c2e2fe54b91fddf",
+  "sourceOnly": true,
+  "nativeAcceptanceRun": 44948941338,
+  "nextQualifiedCoreSource": "7165ab625f90501047ca10c3b9f193ed0498caf5"
+}

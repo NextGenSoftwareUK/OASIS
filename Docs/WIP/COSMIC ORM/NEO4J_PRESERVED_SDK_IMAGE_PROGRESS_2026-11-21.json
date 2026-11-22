@@ -1,0 +1,27 @@
+{
+  "source": "eb8499df642322db817a5dbc546a472c490c9b16",
+  "tag": "cosmic-neo-preserved-eb8499df6423",
+  "baseDevelopment": "f871bac61195d591d875c92d47e3c0fffac50b72",
+  "core": "cd0849607d8739666a0d7dc7f0f236a623935e01",
+  "coreSourceTree": "983d9f31e394a3679ca6ce8c6cfee7ea2cdd5308",
+  "coreSourceByteIdenticalToQualified": "01d10ae033608064e7f6b34fa434e4166073de27",
+  "imageRun": 44866523001,
+  "imageJob": 136731315044,
+  "observedImageStatus": "in_progress",
+  "nativeAcceptedSource": "06009cfabc0e260c7a1c4772f09ffb48273dc882",
+  "nativeRun": 44863220453,
+  "contractAndActualWeb4BuildRun": 44862562387,
+  "oldSdkCohortsRepeated": false,
+  "scopedRootRuntimePaths": 9,
+  "allOtherDevelopmentPinsAndBytesPreserved": true,
+  "developmentPushed": false,
+  "imagePackageAndHostedSqlAcceptancePending": true,
+  "retainedJournal": "LocalState/COSMIC/neo-read-image-handoff.json",
+  "cleanupBytesReclaimed": 3941805255,
+  "dataOrUniqueHistoryDeletion": false,
+  "otherCandidateWorkflowFailure": {
+    "run": 44866521916,
+    "workflow": ".github/workflows/publish-mcp.yml",
+    "investigated": false
+  }
+}

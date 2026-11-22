@@ -30,7 +30,7 @@ public sealed partial class CqlV1Web4NativeTests
         => RunGroupedDistinctNativeFixture(providerName, false, requiredDomains: true);
 
     private async Task RunGroupedDistinctNativeFixture(string providerName, bool primitiveDomains, bool mixedHttp = false,
-        bool requiredDomains = false, bool singlePerformance = false, bool sharedInputs = false, bool guidDomains = false, bool mixedGuidHttp = false, bool guidRowsHttp = false, bool predicateCrossingHttp = false, bool guidFilterHttp = false, bool int32FilterNative = false, bool int32FilterHttp = false)
+        bool requiredDomains = false, bool singlePerformance = false, bool sharedInputs = false, bool guidDomains = false, bool mixedGuidHttp = false, bool guidRowsHttp = false, bool predicateCrossingHttp = false, bool guidFilterHttp = false, bool int32FilterNative = false, bool int32FilterHttp = false, bool utcDateFilterNative = false, bool sessionJourney = false, bool statelessJourney = false, bool statelessInsertJourney = false, bool parentReferenceJourney = false, bool childrenReferenceJourney = false, bool readOnlyJourney = false, bool findJourney = false, bool syncJourney = false, bool statelessLifetimeJourney = false, bool statelessLinqJourney = false, bool updateJourney = false, bool lifecycleJourney = false, bool inspectionJourney = false, bool whereJourney = false, bool unfilteredMappingHttp = false, bool dateKeysHttp = false, bool snapshotPreparation = false, bool rangeRegistration = false, bool statelessGetJourney = false, bool setJourney = false, bool setHttpJourney = false)
     {
         Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -100,7 +100,54 @@ public sealed partial class CqlV1Web4NativeTests
                 return await CosmicGroupedExecutor.ExecuteAsync(planned.Result,
                     new[] { (ICosmicQueryStorageProvider)provider });
             }
-            if (int32FilterNative)
+            if (setHttpJourney)
+                checks=await VerifyNativeSetHttpJourney(provider,ids,queryElapsed);
+            else if (setJourney)
+                checks=await VerifyNativeSetJourney(provider,ids,queryElapsed);
+            else if (statelessGetJourney)
+                checks=await VerifyStatelessGetJourney(provider,ids,queryElapsed);
+            else if (rangeRegistration)
+                checks=await VerifyRangeRegistration(provider,ids,queryElapsed);
+            else if (snapshotPreparation)
+            {
+                checks=await VerifyGroupedDistinctMixedNativeHttpProvider(provider,work,database,mongo,ids,
+                    queryTimings:queryElapsed,snapshotPreparation:true);
+                Assert.AreEqual(1,ids.Count,"Only one owned snapshot may be written.");
+            }
+            else if (whereJourney)
+                checks = await VerifyWhereJourney(provider, ids, queryElapsed);
+            else if (lifecycleJourney)
+                checks = await VerifyLifecycleJourney(provider, ids, queryElapsed);
+            else if (updateJourney)
+                checks = await VerifyUpdateJourney(provider, ids, queryElapsed);
+            else if (statelessLinqJourney)
+                checks = await VerifyStatelessLinqJourney(provider, ids, queryElapsed);
+            else if (statelessLifetimeJourney)
+                checks = await VerifyStatelessLifetimeJourney(provider, ids, queryElapsed);
+            else if (syncJourney)
+                checks = await VerifySyncJourney(provider, ids, queryElapsed);
+            else if (findJourney)
+                checks = await VerifyFindJourney(provider, ids, queryElapsed);
+            else if (inspectionJourney)
+                checks = await VerifyInspectionJourney(provider, ids, queryElapsed);
+            else if (readOnlyJourney)
+                checks = await VerifyReadOnlyJourney(provider, ids, queryElapsed);
+            else if (childrenReferenceJourney)
+                checks = await VerifyChildrenReferenceJourney(provider, ids, queryElapsed);
+            else if (parentReferenceJourney)
+                checks = await VerifyParentReferenceJourney(provider, ids, queryElapsed);
+            else if (statelessInsertJourney)
+                checks = await VerifyStatelessInsertJourney(provider, ids, queryElapsed);
+            else if (statelessJourney)
+                checks = await VerifyStatelessJourney(provider, ids, queryElapsed);
+            else if (sessionJourney)
+                checks = await VerifySessionJourney(provider, ids, queryElapsed);
+            else if (utcDateFilterNative)
+            {
+                checks = await VerifyNativeUtcDates(provider, work, database, mongo, queryElapsed);
+                Assert.AreEqual(0, ids.Count, "Native date queries must not write a holon.");
+            }
+            else if (int32FilterNative)
             {
                 checks = await VerifyNativeInt32Filters(provider, work, database, mongo, queryElapsed);
                 Assert.AreEqual(0, ids.Count, "Native projection must not write a holon.");
@@ -111,10 +158,10 @@ public sealed partial class CqlV1Web4NativeTests
                     queryTimings: queryElapsed, predicateCrossing: true);
                 Assert.AreEqual(4, ids.Count);
             }
-            else if (mixedGuidHttp || guidRowsHttp || guidFilterHttp || int32FilterHttp)
+            else if (mixedGuidHttp || guidRowsHttp || guidFilterHttp || int32FilterHttp || unfilteredMappingHttp || dateKeysHttp)
             {
                 checks = await VerifyGroupedDistinctMixedNativeHttpProvider(provider, work, database, mongo, ids,
-                    guidCounts: true, queryTimings: queryElapsed, guidRows: guidRowsHttp || guidFilterHttp, guidFilters: guidFilterHttp, int32Http: int32FilterHttp);
+                    guidCounts: true, queryTimings: queryElapsed, guidRows: guidRowsHttp || guidFilterHttp, guidFilters: guidFilterHttp, int32Http: int32FilterHttp, unfiltered: unfilteredMappingHttp, dateKeys: dateKeysHttp);
                 Assert.AreEqual(5, ids.Count, "Four stored writes and one virtual-only cleanup identity.");
             }
             else if (guidDomains)
@@ -304,8 +351,159 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 var root = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT")!);
                 var report = Path.Combine(root, "TestResults/Neo4jCurrent/" + providerName
-                    + (int32FilterHttp ? "-int32-filter-http-native.json" : int32FilterNative ? "-int32-filter-native.json" : guidFilterHttp ? "-guid-filter-http-native.json" : predicateCrossingHttp ? "-predicate-crossing-http-native.json" : guidRowsHttp ? "-guid-rows-http-native.json" : mixedGuidHttp ? "-grouped-guid-http-native.json" : guidDomains ? "-grouped-guid-native.json" : sharedInputs ? "-grouped-shared-inputs.json" : singlePerformance ? "-grouped-distinct-single-profile.json" : requiredDomains ? "-grouped-distinct-required-native.json" : mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
-                if (int32FilterHttp)
+                    + (setHttpJourney ? "-set-http-native.json" : setJourney ? "-set-native.json" : statelessGetJourney ? "-stateless-get-native.json" : rangeRegistration ? "-session-range-native.json" : snapshotPreparation ? "-unfiltered-snapshot-native.json" : dateKeysHttp ? "-mapped-date-keys-native.json" : unfilteredMappingHttp ? "-unfiltered-mapping-native.json" : whereJourney ? "-boolean-where-native.json" : inspectionJourney ? "-inspection-native-journey.json" : lifecycleJourney ? "-lifecycle-native-journey.json" : updateJourney ? "-update-native-journey.json" : statelessLinqJourney ? "-stateless-linq-native-journey.json" : statelessLifetimeJourney ? "-stateless-lifetime-native-journey.json" : syncJourney ? "-sync-native-journey.json" : findJourney ? "-find-native-journey.json" : readOnlyJourney ? "-read-only-native-journey.json" : childrenReferenceJourney ? "-children-reference-native-journey.json" : parentReferenceJourney ? "-parent-reference-native-journey.json" : statelessInsertJourney ? "-stateless-insert-native-journey.json" : statelessJourney ? "-stateless-native-journey.json" : sessionJourney ? "-session-native-journey.json" : utcDateFilterNative ? "-utc-date-filter-native.json" : int32FilterHttp ? "-int32-filter-http-native.json" : int32FilterNative ? "-int32-filter-native.json" : guidFilterHttp ? "-guid-filter-http-native.json" : predicateCrossingHttp ? "-predicate-crossing-http-native.json" : guidRowsHttp ? "-guid-rows-http-native.json" : mixedGuidHttp ? "-grouped-guid-http-native.json" : guidDomains ? "-grouped-guid-native.json" : sharedInputs ? "-grouped-shared-inputs.json" : singlePerformance ? "-grouped-distinct-single-profile.json" : requiredDomains ? "-grouped-distinct-required-native.json" : mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
+                if (setHttpJourney)
+                    await File.WriteAllTextAsync(report,JsonSerializer.Serialize(new {
+                        provider=providerName,checks,ownedCleanupIds=ids.Count,successfulHolonWrites=1,
+                        queryElapsedMilliseconds=queryElapsed,nativeProviderVerified=true,realHttpVerified=true,
+                        concatMultiplicityVerified=true,foreignRowsHiddenVerified=true,anonymousRefusedVerified=true,
+                        usageSettledVerified=true,oneNativeAttemptPerReadVerified=true,exactCleanupVerified=true }));
+                else if (setJourney)
+                    await File.WriteAllTextAsync(report,JsonSerializer.Serialize(new {
+                        provider=providerName,checks,ownedCleanupIds=ids.Count,successfulHolonWrites=4,
+                        queryElapsedMilliseconds=queryElapsed,nativeProviderVerified=true,
+                        allFourSetOperationsVerified=true,concatMultiplicityVerified=true,independentWindowsVerified=true,
+                        foreignRowsHiddenVerified=true,inputLimitBeforeEmptyOutputVerified=true,
+                        ordinaryReadPreservedVerified=true,exactCleanupVerified=true }));
+                else if (statelessGetJourney)
+                    await File.WriteAllTextAsync(report,JsonSerializer.Serialize(new {
+                        provider=providerName,checks,ownedCleanupIds=ids.Count,successfulHolonWrites=2,
+                        queryElapsedMilliseconds=queryElapsed,nativeProviderVerified=true,
+                        freshInstancesVerified=true,persistedUpdateVisibleVerified=true,syncAsyncAgreementVerified=true,
+                        absentAndForeignHiddenVerified=true,cancellationAndLifetimeVerified=true,exactCleanupVerified=true }));
+                else if (rangeRegistration)
+                    await File.WriteAllTextAsync(report,JsonSerializer.Serialize(new {
+                        provider=providerName,checks,ownedCleanupIds=ids.Count,successfulHolonWrites=6,
+                        queryElapsedMilliseconds=queryElapsed,nativeProviderVerified=true,
+                        registrationDoesNotWriteVerified=true,explicitOwnedSaveVerified=true,
+                        attachBaselineAndUpdateVerified=true,foreignPrivateReadExcludedVerified=true,
+                        explicitUpdateRangeVerified=true,hardRemoveRangeVerified=true,
+                        exactCleanupVerified=true }));
+                else if (snapshotPreparation)
+                    await File.WriteAllTextAsync(report,JsonSerializer.Serialize(new {
+                        provider=providerName,checks,successfulHolonWrites=1,ownedCleanupIds=ids.Count,
+                        rawNativeRecords=2,queryElapsedMilliseconds=queryElapsed,
+                        nativeProviderVerified=true,emptySnapshotPredicateVerified=true,
+                        originalFieldsVerified=true,privateStableSnapshotSavedVerified=true,
+                        foreignOwnerRejectedVerified=true,nativeSourceUnchangedVerified=true,
+                        exactCleanupVerified=true}));
+                else if (dateKeysHttp)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider=providerName, checks,
+                        successfulHolonWrites=4,ownedCleanupIds=ids.Count,rawNativeRecords=2,
+                        successfulHttpQueries=4,foreignOwnerRequests=1,queryElapsedMilliseconds=queryElapsed,
+                        nativeProviderVerified=true,realHttpVerified=true,emptyNativePredicateVerified=true,
+                        completeIdentityUnionVerified=true,globalPagingVerified=true,foreignOwnerRejectedVerified=true,
+                        nativeSourceUnchangedVerified=true,noNativeOnlyHolonMaterializedVerified=true,exactCleanupVerified=true,
+                        exactUtcTickKeysVerified=true,nullKeyGroupVerified=true,staleCachedKeyExcludedVerified=true }));
+                else if (unfilteredMappingHttp)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        successfulHolonWrites = 4, ownedCleanupIds = ids.Count, rawNativeRecords = 2,
+                        successfulHttpQueries = 2, foreignOwnerRequests = 1, queryElapsedMilliseconds = queryElapsed,
+                        nativeProviderVerified = true, realHttpVerified = true, emptyNativePredicateVerified = true,
+                        completeIdentityUnionVerified = true, globalPagingVerified = true,
+                        foreignOwnerRejectedVerified = true, nativeSourceUnchangedVerified = true,
+                        noNativeOnlyHolonMaterializedVerified = true, exactCleanupVerified = true }));
+                else if (whereJourney)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        ownedCleanupIds = ids.Count, successfulHolonWrites = 5, queryElapsedMilliseconds = queryElapsed,
+                        nativeProviderVerified = true, typedWhereCompiledVerified = true,
+                        nestedBooleanRelationshipsVerified = true, nativePageVerified = true,
+                        nativeCountVerified = true, nativeProjectionVerified = true,
+                        foreignActorIsolationVerified = true, exactCleanupVerified = true }));
+                else if (inspectionJourney)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        ownedCleanupIds = ids.Count, successfulHolonWrites = 3, queryElapsedMilliseconds = queryElapsed,
+                        nativeProviderVerified = true, defaultReadOnlyMaterializationVerified = true,
+                        existingModePreservedVerified = true, explicitAddAttachMutableVerified = true,
+                        immutableEntryStateVerified = true, pendingIntentInspectionVerified = true,
+                        readOnlyNoFlushVerified = true, disposedInspectionRefusedVerified = true,
+                        exactCleanupVerified = true }));
+                else if (lifecycleJourney)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        ownedCleanupIds = ids.Count, successfulHolonWrites = 3, queryElapsedMilliseconds = queryElapsed,
+                        nativeProviderVerified = true, fluentModelConstraintsVerified = true, preDispatchValidationVerified = true, reentrancyRefusedVerified = true,
+                        committedCallbackFailureRetainsOutcomeVerified = true, noOpSkipsCallbacksVerified = true,
+                        ownedWriteRefusalSkipsCallbackVerified = true, cancellationAndIdentityRefusedVerified = true,
+                        exactCleanupVerified = true }));
+                else if (updateJourney)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        ownedCleanupIds = ids.Count, successfulHolonWrites = 3, queryElapsedMilliseconds = queryElapsed,
+                        nativeProviderVerified = true, detachedValuesPersistedVerified = true, forcedTrackedUpdateVerified = true,
+                        staleAndForeignRefusedVerified = true, revisionlessBatchRefusedVerified = true,
+                        reloadAndReadOnlyCancelIntentVerified = true, nativeSurvivorVerified = true, exactCleanupVerified = true }));
+                else if (statelessLinqJourney)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        ownedCleanupIds = ids.Count, successfulHolonWrites = 2, queryElapsedMilliseconds = queryElapsed,
+                        nativeProviderVerified = true, freshStatelessRowsVerified = true, nativeProjectionAndTerminalsVerified = true,
+                        trackingRefusedVerified = true, foreignRowsHiddenVerified = true, managedIdentityAndNoFlushVerified = true,
+                        closedExecutionRefusedVerified = true, exactCleanupVerified = true }));
+                else if (statelessLifetimeJourney)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        ownedCleanupIds = ids.Count, successfulHolonWrites = 3, queryElapsedMilliseconds = queryElapsed,
+                        nativeProviderVerified = true, busyDisposeRefusedVerified = true, closedBeforeEnumerationVerified = true,
+                        borrowedProviderPreservedVerified = true, freshSessionWriteVerified = true, idempotentDisposeVerified = true,
+                        hardDeleteAbsenceVerified = true, exactCleanupVerified = true }));
+                else if (syncJourney)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        ownedCleanupIds = ids.Count, successfulHolonWrites = 8, queryElapsedMilliseconds = queryElapsed,
+                        nativeProviderVerified = true, managedSyncVerified = true, statelessSyncVerified = true,
+                        asyncNativeAgreementVerified = true, generatedAcknowledgementVerified = true,
+                        staleSyncRefusedVerified = true, hardDeleteAbsenceVerified = true, exactCleanupVerified = true }));
+                else if (findJourney)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        ownedCleanupIds = ids.Count, successfulHolonWrites = 2, queryElapsedMilliseconds = queryElapsed,
+                        nativeProviderVerified = true, canonicalCacheAndPendingValuesVerified = true, freshAuthorizationVerified = true,
+                        readsDoNotFlushVerified = true, negativeCacheAbsentVerified = true, detachLoadsFreshVerified = true,
+                        localKeyGuardVerified = true, exactCleanupVerified = true }));
+                else if (readOnlyJourney)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        ownedCleanupIds = ids.Count, successfulHolonWrites = 4, queryElapsedMilliseconds = queryElapsed,
+                        nativeProviderVerified = true, readOnlyUpdatesSuppressedVerified = true, mutableBaselineVerified = true,
+                        laterMutableWriteVerified = true, reloadRetainsModeVerified = true, explicitDeletionVerified = true,
+                        detachClearFlagsRemovedVerified = true, exactCleanupVerified = true }));
+                else if (childrenReferenceJourney)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        ownedCleanupIds = ids.Count, successfulHolonWrites = 4, queryElapsedMilliseconds = queryElapsed,
+                        nativeProviderVerified = true, canonicalChildrenVerified = true, pendingValuesPreservedVerified = true,
+                        freshSourceAuthorizationVerified = true, privateChildrenHiddenVerified = true,
+                        readsDoNotFlushVerified = true, partialReplacementRefusedVerified = true, exactCleanupVerified = true }));
+                else if (parentReferenceJourney)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        ownedCleanupIds = ids.Count, successfulHolonWrites = 3, queryElapsedMilliseconds = queryElapsed,
+                        nativeProviderVerified = true, canonicalParentVerified = true, pendingValuesPreservedVerified = true,
+                        freshSourceAuthorizationVerified = true, privateTargetHiddenVerified = true,
+                        readsDoNotFlushVerified = true, freshDetachedParentVerified = true, exactCleanupVerified = true }));
+                else if (statelessInsertJourney)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        ownedCleanupIds = ids.Count, successfulHolonWrites = 3, queryElapsedMilliseconds = queryElapsed,
+                        nativeProviderVerified = true, generatedIdsVerified = true, createOnlyVerified = true,
+                        wholeBatchAuthorizationVerified = true, failedIdentitiesUnpublishedVerified = true,
+                        existingRecordsUnchangedVerified = true, parentPreservedVerified = true, exactCleanupVerified = true }));
+                else if (statelessJourney)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        ownedCleanupIds = ids.Count, successfulHolonWrites = 8, queryElapsedMilliseconds = queryElapsed,
+                        nativeProviderVerified = true, explicitRevisionsVerified = true, freshIdentityVerified = true,
+                        localEditsNotFlushedVerified = true, mixedCreateUpdateVerified = true,
+                        staleBatchAtomicityVerified = true, actorIsolationVerified = true,
+                        wholeBatchDeleteAuthorizationVerified = true, hardRecordsAbsentVerified = true,
+                        exactCleanupVerified = true }));
+                else if (sessionJourney)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        ownedCleanupIds = ids.Count, successfulHolonWrites = 8, queryElapsedMilliseconds = queryElapsed,
+                        nativeProviderVerified = true, ownedBatchVerified = true, identityResolutionVerified = true,
+                        pendingValuesPreservedVerified = true, stateTransitionsVerified = true,
+                        clearReloadVerified = true, actorIsolationVerified = true, exactCleanupVerified = true,
+                        noTrackingVerified = true, databaseValuesVerified = true, explicitReloadVerified = true, standardLinqVerified = true, linqTrackingModesVerified = true, deferredDeletionVerified = true, removalCancellationVerified = true, wholeBatchDeleteAuthorizationVerified = true, softRecordRetainedVerified = true, hardRecordsAbsentVerified = true, parentBoundBeforeWriteVerified = true, unsupportedMixNotCommittedVerified = true }));
+                else if (utcDateFilterNative)
+                    await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
+                        rawNativeRecords = providerName == "MongoDBOASIS" ? 17 : providerName == "Neo4jOASIS" ? 18 : 15,
+                        nativeQueries = 16, foreignOwnerRequests = 1, successfulHolonWrites = 0,
+                        queryElapsedMilliseconds = queryElapsed, nativeProviderVerified = true,
+                        actualApiCompilerVerified = true, typedUtcDateVerified = true, exact100nsVerified = true,
+                        nativeTemporalVerified = providerName != "SQLLiteDBOASIS",
+                        nullabilityVerified = true, invalidCalendarAndPrecisionExcludedVerified = true,
+                        nativeSourceUnchangedVerified = true, noHolonMaterializedVerified = true, exactCleanupVerified = true }));
+                else if (int32FilterHttp)
                     await File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { provider = providerName, checks,
                         successfulHolonWrites = 4, ownedCleanupIds = ids.Count, rawNativeRecords = 3,
                         successfulHttpQueries = 4, foreignOwnerRequests = 1, queryElapsedMilliseconds = queryElapsed,

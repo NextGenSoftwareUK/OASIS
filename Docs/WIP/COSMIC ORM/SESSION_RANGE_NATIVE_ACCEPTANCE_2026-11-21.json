@@ -1,0 +1,52 @@
+{
+  "source": "55b8ba31a2ef3d7cf9a10327a2b06d9d6aaaca4e",
+  "core": "7165ab625f90501047ca10c3b9f193ed0498caf5",
+  "run": 44948941338,
+  "job": 136982373307,
+  "artifact": 14725643611,
+  "bytes": 4891,
+  "sha256": "ba354d9344262417cae8aff94850c4313170473b33c392c8b862edccd4be3ac7",
+  "contractPassed": 5,
+  "nativePassed": 3,
+  "failed": 0,
+  "skipped": 0,
+  "exactArchiveAndOutcomesVerified": true,
+  "requiredFlagsPerProvider": [
+    "nativeProviderVerified",
+    "registrationDoesNotWriteVerified",
+    "explicitOwnedSaveVerified",
+    "attachBaselineAndUpdateVerified",
+    "foreignPrivateReadExcludedVerified",
+    "explicitUpdateRangeVerified",
+    "hardRemoveRangeVerified",
+    "exactCleanupVerified"
+  ],
+  "allFlagsVerified": true,
+  "successfulLogicalWritesPerProvider": 6,
+  "ownedCleanupIdsPerProvider": 2,
+  "exactCleanupVerified": true,
+  "queryElapsedMilliseconds": {
+    "MongoDBOASIS": {
+      "range-create": 578,
+      "range-attached-update": 100,
+      "range-foreign-read": 107,
+      "range-hard-delete": 77
+    },
+    "SQLLiteDBOASIS": {
+      "range-create": 371,
+      "range-attached-update": 61,
+      "range-foreign-read": 41,
+      "range-hard-delete": 42
+    },
+    "Neo4jOASIS": {
+      "range-create": 1457,
+      "range-attached-update": 218,
+      "range-foreign-read": 893,
+      "range-hard-delete": 225
+    }
+  },
+  "productionBenchmark": false,
+  "liveAccepted": false,
+  "fullParity": false,
+  "localArtifactFiles": 0
+}

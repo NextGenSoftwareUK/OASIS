@@ -1,0 +1,22 @@
+{
+  "checkedUtc": "2026-11-21T22:19:02.035863+00:00",
+  "source": "cdae5413b9338771428fba4e51d27bfac8994a83",
+  "deployment": "dpl_HpzBrTpLQgQVW43Lg4MbTASXgH5X",
+  "url": "https://web4-site-ejbhyemwl-oasis-team.vercel.app/web4-sandbox.html",
+  "readyState": "READY",
+  "javascriptExactSourceVerified": true,
+  "javascriptSha256": {
+    "cql-text.js": "69d286b36f138f6d81da84a2598df4ffd83dc231edb7ffceaacb0b604e944523",
+    "cql-playground.js": "9f8e6ad7023a80529a9d26cfb84aa63bbf2150bf6cf951cde1dae6e02c75aa3d",
+    "cql-ask.js": "d6d28c2cd478eac800b0fa905ad62eeeb8c5d8f8f9d813136e240a452e4fb4a7"
+  },
+  "htmlSourceBytes": 305277,
+  "htmlServedBytes": 305440,
+  "htmlOnlyDifference": "163-byte Vercel preview feedback script for this exact deployment; original source otherwise identical",
+  "renderedBrowserVerified": false,
+  "applicationApiCalls": 0,
+  "dataWrites": 0,
+  "publicPromotion": false,
+  "localFilesDownloaded": 0,
+  "stoppedOwnedComparisonProcess": true
+}

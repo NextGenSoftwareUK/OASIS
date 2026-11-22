@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "date": "2026-11-21",
+  "implementationSource": "140194ec91464e4365f636574c91f0fa7329ddfb",
+  "nativeSource": "06009cfabc0e260c7a1c4772f09ffb48273dc882",
+  "runtimeUnchangedBetweenQualifications": true,
+  "driverContract": {
+    "run": 44862562387,
+    "job": 136718985702,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "artifact": 14690652842,
+    "bytes": 1518,
+    "sha256": "8a9e8db68bd0a83c5436f7e7a5d0b8d12fedf05f98ec4bc6416092af327052f6",
+    "exactMembers": [
+      "activation.trx"
+    ],
+    "strictRamVerification": true
+  },
+  "actualWeb4Build": {
+    "success": true,
+    "errors": 0,
+    "warnings": 1985,
+    "warningsReviewed": false
+  },
+  "native": {
+    "run": 44863220453,
+    "job": 136721044759,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "artifact": 14690179562,
+    "bytes": 1244,
+    "sha256": "fe5a26c9d9f2c776ebd17c783af1ae7de19de2bf598be6866a3639b6bf38efc5",
+    "exactMembers": [
+      "native.trx"
+    ],
+    "strictRamVerification": true,
+    "ownedHolonIds": 2,
+    "coldReadOnlyEnrollment": true,
+    "realCqlQueryReturnedOwnedId": true,
+    "snapshotAndRevisionsPreserved": true,
+    "incompleteProjectionRefusedWithoutRepair": true,
+    "ownedHolonsAbsentAfterCleanup": true,
+    "githubOwnedServiceTeardownSucceeded": true,
+    "durationSecondsReported": 5,
+    "productionPerformanceBenchmark": false
+  },
+  "oldAcceptedCohortsRepeated": false,
+  "sharedAtlasOrPiperOperations": false,
+  "localBuildsInstallsDatabasesImagesArchivesCreated": false,
+  "ciArtifactRetentionDays": 2,
+  "liveDeployment": false,
+  "liveNeoReadinessVerified": false,
+  "efParityRowsPerPrimary": 61,
+  "efParityTotal": 168,
+  "extensionRowsPerPrimary": 4,
+  "extensionTotal": 13,
+  "remaining": [
+    "scoped exact-Development candidate qualification/image/package",
+    "Development rollout after current-ref and queue checks",
+    "real hosted Neo discovery and SQL result acceptance",
+    "full EF/NH parity",
+    "real free WEB6 model acceptance",
+    "complete virtual/hybrid/OPORTAL journey"
+  ]
+}

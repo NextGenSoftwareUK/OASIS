@@ -1,4 +1,4 @@
-﻿# NextGen Software WEB4 OASIS API DNA.
+# NextGen Software WEB4 OASIS API DNA.
 
 This module is responsible for loading and managing the OASISDNA.json config file. This is where all of the settings for the ONODE are kept such as settings for each OASIS Provider configured for that ONODE, which ones to use for auto-replication, auto-loadbalance, auto-failover, email, authentication, security, error handling, encryption, logging settings etc.
 

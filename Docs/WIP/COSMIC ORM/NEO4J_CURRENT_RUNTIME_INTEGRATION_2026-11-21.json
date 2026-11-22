@@ -1,0 +1,31 @@
+{
+  "core": "319613115da3aab3290782450f4ee68ffc7fe5f9",
+  "coreParents": [
+    "94e5c738c3a1152025c68c5886a8ebb62078e783",
+    "1a4edb88cc9b2e6540f4e5c0bd3edbd4ac67c406"
+  ],
+  "coreTree": "22bce28f949375f41e06fe49154c4dfe4071b2cb",
+  "rootDevelopment": "151976987e9c6b726a89d56ce381cf46c2ecf7e0",
+  "sdkScopeByteIdenticalToQualified": "01d10ae033608064e7f6b34fa434e4166073de27",
+  "sdkScopePaths": [
+    "Queries",
+    "Holons/HolonChangeTracking.Reload.cs",
+    "Managers/HolonManager",
+    "Objects/NativeData"
+  ],
+  "edgeAndCurrentReplicationFixesPreserved": true,
+  "allOtherCurrentDevPinsPreserved": true,
+  "managedReadThroughShippingSdkAddedToExistingNativeCase": true,
+  "newNativeAccepted": false,
+  "futureDevelopmentCorePinChangesRunSdkGuard": true,
+  "imageCacheExportMode": "min",
+  "reasonCacheChange": "Published image was ready at04:39:20 but full intermediate cache export held job until04:52:49.",
+  "oldQualifiedImageSource": "eb8499df642322db817a5dbc546a472c490c9b16",
+  "oldImageRun": 44866523001,
+  "oldPackageRun": 44868433793,
+  "oldArtifact": 14692734512,
+  "oldSnapshotNotCurrentDeployment": true,
+  "rootDevelopmentPushed": false,
+  "privateCoreDevelopmentPushed": false,
+  "thinIndexAbsent": true
+}

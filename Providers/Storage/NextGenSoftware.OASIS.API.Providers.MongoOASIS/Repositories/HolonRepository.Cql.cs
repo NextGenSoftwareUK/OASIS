@@ -40,7 +40,17 @@ public partial class HolonRepository
         IClientSessionHandle session,Func<AggregateOptions> options,CancellationToken cancellationToken)
     {
             if (session == null) throw new InvalidOperationException("Entity stages require their native snapshot owner.");
-            var inputCount = (await ReadNativeCqlRowsAsync(composition.Source, composition.Options.MaximumInputRows,
+            if(composition.Inputs!=null)
+            {
+                long inputBytes=0;
+                foreach(var input in composition.Inputs)
+                    await ReadNativeCqlRowsAsync(input.Command,input.MaximumRows,composition.Options.MaximumInputPayloadBytes,
+                        session,options,cancellationToken,bytes=>{
+                            inputBytes=checked(inputBytes+bytes);
+                            if(inputBytes>composition.Options.MaximumInputPayloadBytes)throw new MongoCqlLimitException();
+                        }).ConfigureAwait(false);
+            }
+            var inputCount = (await ReadNativeCqlRowsAsync(composition.Source, composition.MaximumInputRows,
                 composition.Options.MaximumInputPayloadBytes, session, options, cancellationToken).ConfigureAwait(false)).Count;
             long work = 0;
             foreach (var stage in composition.Stages)
@@ -48,7 +58,7 @@ public partial class HolonRepository
                 cancellationToken.ThrowIfCancellationRequested();
                 work = checked(work + inputCount);
                 if (work > composition.Options.MaximumStageRows) throw new MongoCqlLimitException();
-                inputCount = (await ReadNativeCqlRowsAsync(stage, composition.Options.MaximumInputRows,
+                inputCount = (await ReadNativeCqlRowsAsync(stage, composition.MaximumInputRows,
                     composition.Options.MaximumInputPayloadBytes, session, options, cancellationToken).ConfigureAwait(false)).Count;
             }
     }

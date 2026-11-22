@@ -41,7 +41,7 @@ public static partial class CqlV1Compiler
             request.AnyDescendants, request.Graph, branchLimit.HasValue ? "Id" : order == null ? request.OrderBy : "Id",
             branchLimit == null && request.Descending,
             order == null && branchLimit == null ? request.Skip : 0, order == null ? branchLimit ?? request.Take : null, access,
-            includeCloudReadProfile: true, excludedVirtualMappingId: excludedVirtualMappingId);
+            includeCloudReadProfile: true, excludedVirtualMappingId: excludedVirtualMappingId, where: request.Where);
         var columns = request.Columns.Select(ProjectionColumn).ToArray();
         if (order != null && order.Any(term => request.Columns.Any(column =>
             column.Alias == term?.Alias && column.Function.HasValue)))

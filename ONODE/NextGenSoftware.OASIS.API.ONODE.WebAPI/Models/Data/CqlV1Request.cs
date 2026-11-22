@@ -17,6 +17,8 @@ public sealed class CqlDemoIdentityRequest
 public sealed class CqlV1Request
 {
     public string? Provider { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CqlWhereV1Predicate? Where { get; set; }
     public CqlV1Filter[] Filters { get; set; } = Array.Empty<CqlV1Filter>();
     public CqlV1Filter[] AnyOf { get; set; } = Array.Empty<CqlV1Filter>();
     public CqlV1ChildExists[] AnyChildren { get; set; } = Array.Empty<CqlV1ChildExists>();

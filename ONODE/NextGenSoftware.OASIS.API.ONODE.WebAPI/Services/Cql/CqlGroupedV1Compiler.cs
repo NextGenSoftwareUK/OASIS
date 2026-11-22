@@ -27,7 +27,7 @@ public static partial class CqlV1Compiler
             && request.Columns.All(column => column?.KeyAlias != null && column.Operation == null && column.Selection == null);
         var source = CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
             request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access,
-            unorderedKeyGrouping: unorderedKeyGrouping);
+            unorderedKeyGrouping: unorderedKeyGrouping, where: request.Where);
         return CompileGroupedSelection(request, source);
     }
 

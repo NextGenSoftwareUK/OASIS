@@ -1,0 +1,52 @@
+{
+  "phase": "deployment_metadata_verified",
+  "source": "67e58b16872f1e7009d0652fc4156e963954bd84",
+  "previousDevelopment": "3c4f557cd853589aa7f88abab2dd8f2bfc99bb8a",
+  "core": "8610fe90ba227529dcea34f310969213b3dc40ed",
+  "digest": "sha256:c7fec5272c930146d202bcca4b7201956b29728579cf4ffe3567ccfffcae7150",
+  "imageRun": 44833377210,
+  "nativeRuns": [
+    44774548460,
+    44777556408,
+    44780582654,
+    44783441788,
+    44787039375
+  ],
+  "packageRun": 44838406816,
+  "artifact": 14678614102,
+  "artifactSha256": "826ac631bd89b66e58d3638dc548bd3d85e2e12ea743b80bf037546bc3fd1c28",
+  "savedDnaSha256": "0755d6b0d5aef81ce47b35cf7e49cc380935ee069a08bedcc041d5280ac40c33",
+  "autoLoadBalanceEnabled": false,
+  "configurationWrites": 0,
+  "dataWrites": 0,
+  "pushedUtc": "2026-11-20T23:44:07.143773+00:00",
+  "deployment": "e070ad35-ce6a-4edf-9ecf-728c3e75d570",
+  "deploymentStatus": "SUCCESS",
+  "swaggerHttp": 200,
+  "swaggerBytes": 2954809,
+  "swaggerElapsedMilliseconds": 10272,
+  "swaggerWireBytes": 2954809,
+  "swaggerContentEncoding": "identity",
+  "priorSchemaAttempt": "body read timeout",
+  "savedDnaSha256After": "0755d6b0d5aef81ce47b35cf7e49cc380935ee069a08bedcc041d5280ac40c33",
+  "loadedDnaIndependentlyVerified": false,
+  "populatedBrowserFlowVerified": false,
+  "imageJob": 136623653871,
+  "packageJob": 136640473925,
+  "packageArtifactBytes": 783,
+  "nativeUpdateRun": 44819045003,
+  "nativeLifecycleModelComponent": {
+    "run": 44815952650,
+    "acceptedJourneys": 3,
+    "overallRunSucceeded": false,
+    "supersededUpdateFailures": 3
+  },
+  "newInspectionCoreExcluded": "01d10ae033608064e7f6b34fa434e4166073de27",
+  "cqlPostRoutes": 11,
+  "readinessScope": "successful exact deployment and public schema; populated browser/model and loaded effective DNA not independently verified",
+  "cleanup": {
+    "path": "C:\\Source\\OASIS2\\LocalState\\COSMIC\\session-model-development-release-handoff.json",
+    "bytes": 1313,
+    "absenceVerified": true
+  }
+}

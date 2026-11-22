@@ -1,0 +1,49 @@
+{
+  "coreSource": "86bfb64d496dce5afd8eaf8c8f50c89de2492570",
+  "mongoQualificationSource": "b18a9dbddc510e7430d1e6544187a361fe244b9e",
+  "mongoNativeRun": 44962474921,
+  "mongoNativeJob": 137024093443,
+  "mongoArtifact": {
+    "id": 14730551918,
+    "bytes": 1707,
+    "sha256": "49a6310cf06eeaeab1b1eb547215c9a3aa47765c12882e383f912ac1138ea954",
+    "exactTwoEntriesVerified": true
+  },
+  "mongoReport": {
+    "provider": "MongoDBOASIS",
+    "checks": 7,
+    "ownedCleanupIds": 4,
+    "successfulHolonWrites": 4,
+    "queryElapsedMilliseconds": {
+      "create-owned": 598,
+      "create-foreign": 21,
+      "union": 70,
+      "concat": 17,
+      "intersect": 18,
+      "except": 18,
+      "concat-window": 24,
+      "bound-before-empty-page": 6,
+      "ordinary-get": 33
+    },
+    "nativeProviderVerified": true,
+    "allFourSetOperationsVerified": true,
+    "concatMultiplicityVerified": true,
+    "independentWindowsVerified": true,
+    "foreignRowsHiddenVerified": true,
+    "inputLimitBeforeEmptyOutputVerified": true,
+    "ordinaryReadPreservedVerified": true,
+    "exactCleanupVerified": true
+  },
+  "mongoOwnedContainerCleanupVerified": true,
+  "mongoCurrentDirectoryMatchesAccepted": true,
+  "provider": "MongoDBOASIS",
+  "nativeAccepted": true,
+  "failed": 0,
+  "skipped": 0,
+  "developmentPushed": false,
+  "sqlTextImplemented": false,
+  "linqImplemented": false,
+  "fullParityCredit": false,
+  "localBuilds": 0,
+  "localFilesDownloaded": 0
+}

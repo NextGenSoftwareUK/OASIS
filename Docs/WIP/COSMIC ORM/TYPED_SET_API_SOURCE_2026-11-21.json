@@ -1,0 +1,16 @@
+{
+  "coreSource": "79fb3fc71cace5bd7da760a6e08a18da54a19488",
+  "base": "86bfb64d496dce5afd8eaf8c8f50c89de2492570",
+  "compiled": false,
+  "nativeAccepted": false,
+  "sharedHydrationOwner": true,
+  "developmentPushed": false,
+  "parentSource": "c3c2cf1b58fc1c5ad3c6f5fadc49d05e51bc5ae3",
+  "qualificationSource": "b9de6e4293c2b04882b337eedee727388f81c2e9",
+  "workflow": "qualify-cql-set-typed.yml",
+  "cases": 3,
+  "automaticRunExpected": true,
+  "run": 44964796737,
+  "status": "in_progress",
+  "conclusion": null
+}

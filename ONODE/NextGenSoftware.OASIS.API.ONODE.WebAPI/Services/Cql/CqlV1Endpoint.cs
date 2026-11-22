@@ -212,10 +212,12 @@ internal static class CqlV1Projection
     }
 
     internal static IReadOnlyList<Row> Create(IReadOnlyList<IHolon> roots,CosmicQueryReadAccess access,
-        bool includeMetadata,CosmicQueryGraphOptions graph,CancellationToken cancellation=default)
+        bool includeMetadata,CosmicQueryGraphOptions graph,CancellationToken cancellation=default,
+        bool preserveRootOccurrences=false)
     {
         cancellation.ThrowIfCancellationRequested();
         if(roots==null || access==null)throw new Rejected("CQL_VISIBILITY_VIOLATION");
+        if(preserveRootOccurrences && graph!=null)throw new Rejected("CQL_PROVIDER_RESULT_INVALID");
         var result=new List<Row>();
         var pending=new Stack<(IHolon Source,List<Row> Output,Guid Parent,int Depth,HashSet<Guid> Seen)>();
         var count=roots.Count;
@@ -225,7 +227,7 @@ internal static class CqlV1Projection
         {
             cancellation.ThrowIfCancellationRequested();
             var root=roots[index];
-            if(root==null || !rootIds.Add(root.Id))throw new Rejected("CQL_PROVIDER_RESULT_INVALID");
+            if(root==null || !preserveRootOccurrences && !rootIds.Add(root.Id))throw new Rejected("CQL_PROVIDER_RESULT_INVALID");
             pending.Push((root,result,Guid.Empty,0,new HashSet<Guid>()));
         }
         if(roots.Count!=count)throw new Rejected("CQL_PROVIDER_RESULT_INVALID");

@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "coreMerge": "cd0849607d8739666a0d7dc7f0f236a623935e01",
+  "parents": [
+    "01d10ae033608064e7f6b34fa434e4166073de27",
+    "19431b32a846b644c1fc17b910687815eaf0a1bb"
+  ],
+  "sourceTree": "983d9f31e394a3679ca6ce8c6cfee7ea2cdd5308",
+  "allSourceBytesIdenticalToAlreadyQualifiedCore": "01d10ae033608064e7f6b34fa434e4166073de27",
+  "acceptedSdkSourcePreserved": true,
+  "automaticThreeWayMergeClean": true,
+  "existingAcceptedSdkCohortsRepeated": false,
+  "ineligibleCandidate": "f84455dbed88e48eae1a9eeecbc08f6864c40530",
+  "ineligibleReason": "Core194 did not contain the already-qualified session/stateless SDK.",
+  "ineligibleImageRun": 44865002886,
+  "imageCancellationConfirmed": true,
+  "ineligibleCandidateDeployed": false,
+  "specificNeoNativeOnCore194Passed": 44865000703,
+  "specificPassIsNotFullSdkAcceptance": true,
+  "priorQualifiedNeoSource": "06009cfabc0e260c7a1c4772f09ffb48273dc882",
+  "qualifiedCore01dNativeNeoRun": 44863220453,
+  "contractAndActualWeb4Build": 44862562387,
+  "currentDevelopmentPreserved": "f871bac61195d591d875c92d47e3c0fffac50b72",
+  "pairedManifestSynchronized": true,
+  "temporaryManifestIndexBytes": 678,
+  "temporaryIndexAbsent": true,
+  "newRuntimeImagePackageAndLiveAcceptanceRequired": true,
+  "stagingProductionDeployments": false,
+  "retiredJournalBytes": 1631,
+  "retiredJournalAbsent": true
+}

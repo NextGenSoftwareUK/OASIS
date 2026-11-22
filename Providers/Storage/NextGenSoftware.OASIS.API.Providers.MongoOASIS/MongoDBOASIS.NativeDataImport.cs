@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 /// <see cref="NativeConnection"/> (<c>uri</c> and <c>database</c>) it reads whatever the caller points it at; with none it
 /// reads <see cref="NativeImportDatabaseName"/> on this deployment, which must not be the OASIS database.
 /// </summary>
-public partial class MongoDBOASIS : INativeDataQueryProvider
+public partial class MongoDBOASIS : INativeDataQueryProvider, INativeDataSnapshotQueryProvider
 {
     private static readonly JsonWriterSettings CanonicalJson = new() { OutputMode = JsonOutputMode.CanonicalExtendedJson };
     private static readonly JsonWriterSettings ReadableJson = new() { OutputMode = JsonOutputMode.RelaxedExtendedJson };
@@ -160,23 +160,33 @@ public partial class MongoDBOASIS : INativeDataQueryProvider
         }
     }
 
-    public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativePredicateRecordsAsync(
+    public Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativePredicateRecordsAsync(
         string sourceName, IReadOnlyList<NativeRecordFilter> matches, IReadOnlyList<string> fields, int limit,
         NativeConnection connection = null, CancellationToken cancellationToken = default)
+        => QueryNativeRecordsCoreAsync(sourceName, matches, fields, limit, connection, cancellationToken, false);
+
+    public Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeSnapshotRecordsAsync(
+        string sourceName, IReadOnlyList<NativeRecordFilter> matches, IReadOnlyList<string> fields, int limit,
+        NativeConnection connection = null, CancellationToken cancellationToken = default)
+        => QueryNativeRecordsCoreAsync(sourceName, matches, fields, limit, connection, cancellationToken, true);
+
+    private async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsCoreAsync(
+        string sourceName, IReadOnlyList<NativeRecordFilter> matches, IReadOnlyList<string> fields, int limit,
+        NativeConnection connection, CancellationToken cancellationToken, bool snapshotRead)
     {
         var result = new OASISResult<IReadOnlyList<NativeRecord>>();
         if (string.IsNullOrWhiteSpace(sourceName) || sourceName.StartsWith("system.", StringComparison.Ordinal)
-            || matches == null || matches.Count is < 1 or > 8
+            || matches == null || (matches.Count < (snapshotRead ? 0 : 1) || matches.Count > 8)
             || matches.Any(match => match == null || !IsNativeScalarField(match.Field)) || fields == null || fields.Count is < 1 or > 32
             || fields.Any(field => field == "_id" || !IsNativeScalarField(field))
-            || fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || limit is < 1 or > 100)
+            || fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || (limit < 1 || limit > (snapshotRead ? 200 : 100)))
             return Refuse(result, "A native collection, one to eight exact scalar matches, one to 32 unique fields and a limit of one to 100 are required.",
                 "NATIVE_QUERY_INVALID");
 
-        matches = NativeRecordFilter.Capture(matches);
+        matches = snapshotRead ? NativeRecordFilter.CaptureForProjection(matches) : NativeRecordFilter.Capture(matches);
         fields = fields.ToArray();
         BsonDocument filter;
-        try { filter = CompileNativePredicateFilter(matches); }
+        try { filter = matches.Count == 0 ? new BsonDocument() : CompileNativePredicateFilter(matches); }
         catch (ArgumentException)
         { return Refuse(result, "The exact native predicate is unsupported.", "NATIVE_QUERY_INVALID"); }
 

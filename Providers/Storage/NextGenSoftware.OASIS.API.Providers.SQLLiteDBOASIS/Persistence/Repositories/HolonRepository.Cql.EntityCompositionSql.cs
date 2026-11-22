@@ -34,22 +34,33 @@ public partial class HolonRepository
         }
     }
 
+    private sealed class EntityCompositionSource
+    {
+        internal readonly string Sql;
+        internal readonly int MaximumRows;
+        internal EntityCompositionSource(string sql,int maximumRows) {Sql=sql;MaximumRows=maximumRows;}
+    }
+
     private async Task ValidateEntityCompositionAsync(EntityCompositionSql entitySql,CosmicEntityCompositionOptions options,
-        SqliteCqlReadBudget budget,SqliteCqlTraversalGuard traversal,CancellationToken cancellationToken)
+        SqliteCqlReadBudget budget,SqliteCqlTraversalGuard traversal,CancellationToken cancellationToken,
+        IReadOnlyList<EntityCompositionSource> sources=null)
     {
         // Source bounds apply before filtering, including a later Take(0).
         // Native rows are measured here, never filtered in managed code.
-        var sourceRows = 0;
         long sourceBytes = 0;
-        var sourceQuery = _dbContext.Holons.FromSqlRaw(entitySql.Source,
-            entitySql.Parameters.Cast<object>().ToArray()).AsNoTracking();
-        await foreach (var row in sourceQuery.AsAsyncEnumerable().WithCancellation(cancellationToken).ConfigureAwait(false))
+        var inputs=sources??new[]{new EntityCompositionSource(entitySql.Source,options.MaximumInputRows)};
+        foreach(var input in inputs)
         {
-            budget.Check(); traversal?.Check();
-            sourceBytes = checked(sourceBytes + CqlRecordSize(row));
-            if (++sourceRows > options.MaximumInputRows
-                || sourceBytes > options.MaximumInputPayloadBytes)
-                throw new SqliteCqlResourceException("Entity composition exceeds its native source row/payload budget.");
+            var sourceRows=0;
+            var sourceQuery=_dbContext.Holons.FromSqlRaw(input.Sql,
+                entitySql.Parameters.Cast<object>().ToArray()).AsNoTracking();
+            await foreach(var row in sourceQuery.AsAsyncEnumerable().WithCancellation(cancellationToken).ConfigureAwait(false))
+            {
+                budget.Check();traversal?.Check();
+                sourceBytes=checked(sourceBytes+CqlRecordSize(row));
+                if(++sourceRows>input.MaximumRows || sourceBytes>options.MaximumInputPayloadBytes)
+                    throw new SqliteCqlResourceException("Entity composition exceeds its native source row/payload budget.");
+            }
         }
         long work = 0;
         for (var index = 0; index < entitySql.StageCounts.Count; index++)
@@ -75,8 +86,6 @@ public partial class HolonRepository
         var predicate = translator.TranslateSource(source.Predicates);
         var ordering = translator.TranslateOrdering(source.Orderings);
         var definitions = new List<string>();
-        var counts = new List<string>();
-        var scopes = new List<string>();
         var relation = "entity0";
         var position = "__cosmicEntityPosition0";
         definitions.Add(relation + " AS MATERIALIZED (SELECT Holon.*,row_number() OVER (ORDER BY "
@@ -84,8 +93,18 @@ public partial class HolonRepository
             + " LIMIT " + translator.Bind(source.Limit ?? -1) + " OFFSET " + translator.Bind(source.Offset) + ")");
         string Prefix() => "WITH " + string.Join(",", definitions) + " ";
         var sourceSql = Prefix() + "SELECT * FROM " + relation + " ORDER BY " + position;
-        var hasRelationship = translator.HasRelationship;
-        foreach (var stage in plan.Query.Stages)
+        return CompileEntityStages(source,plan.Query.Stages,translator,predicate,definitions,
+            relation,position,sourceSql,translator.HasRelationship);
+    }
+
+    private static EntityCompositionSql CompileEntityStages<T>(CosmicQuery<T> source,
+        IReadOnlyList<CosmicEntityStage> stages,CqlSqlTranslator translator,string predicate,
+        List<string> definitions,string relation,string position,string sourceSql,bool hasRelationship) where T:IHolon
+    {
+        var counts=new List<string>();
+        var scopes=new List<string>();
+        string Prefix()=>"WITH "+string.Join(",",definitions)+" ";
+        foreach (var stage in stages)
         {
             // Observe the whole current relation before a later empty window can
             // suppress protected traversal errors or the cumulative-work bound.

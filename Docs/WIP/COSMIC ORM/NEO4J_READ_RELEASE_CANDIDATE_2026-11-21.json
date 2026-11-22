@@ -1,0 +1,35 @@
+{
+  "source": "f84455dbed88e48eae1a9eeecbc08f6864c40530",
+  "tag": "cosmic-neo-read-f84455dbed88",
+  "baseDevelopment": "c87dee13668f9127a1f2c655676f8c0c09c7a1a0",
+  "core": "19431b32a846b644c1fc17b910687815eaf0a1bb",
+  "runtimePaths": 7,
+  "runtimeProviderAndHostIdenticalToQualifiedSource": "06009cfabc0e260c7a1c4772f09ffb48273dc882",
+  "allConcurrentDependencyPinsPreserved": true,
+  "newCoreNativeQualificationRequired": true,
+  "nativeRun": 44865000703,
+  "imageRun": 44865002886,
+  "observedStatus": "queued",
+  "developmentPushed": false,
+  "priorCoreNativeRunAccepted": 44863220453,
+  "priorDriverContractAndBuildAccepted": 44862562387,
+  "otherCandidateWorkflowFailure": {
+    "name": ".github/workflows/publish-mcp.yml",
+    "run": 44864996837,
+    "investigated": false
+  },
+  "noteErratum": "Immutable candidate note says8 runtime paths; actual Git delta and journal contain7 runtime paths,2 CI/test files and1 note.",
+  "retainedJournal": "LocalState/COSMIC/neo-read-image-handoff.json",
+  "journalCleanup": "Persist final image/package/deployment outcome before removing exact owned non-secret journal.",
+  "gitResourceChange": {
+    "multiPackIndexBytes": 8016948,
+    "commitLookupMillisecondsObserved": 435,
+    "packFilesObserved": 28332,
+    "packBytesObserved": 5720364889,
+    "sourcePacksDeleted": false,
+    "indexIsRequiredGitMetadataNotDisposableBuildOutput": true,
+    "futureOwnedFetchesRecurseSubmodules": false,
+    "futureOwnedGitAutoMaintenanceDisabledPerCommand": true
+  },
+  "localBuildsInstallsDatabasesImagesArchivesCreated": false
+}

@@ -37,6 +37,8 @@ public sealed class CqlV1JoinOrder
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class CqlJoinV1Source
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CqlWhereV1Predicate? Where { get; set; }
     public CqlV1Filter[] Filters { get; set; } = Array.Empty<CqlV1Filter>();
     public CqlV1Filter[] AnyOf { get; set; } = Array.Empty<CqlV1Filter>();
     public CqlV1ChildExists[] AnyChildren { get; set; } = Array.Empty<CqlV1ChildExists>();

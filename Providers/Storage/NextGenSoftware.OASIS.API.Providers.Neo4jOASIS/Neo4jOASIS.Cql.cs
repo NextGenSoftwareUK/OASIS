@@ -42,7 +42,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
 
     private async Task<OASISResult<CqlReadOutcome>> ExecuteCqlReadAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults, CancellationToken cancellationToken, CosmicEntityCompositionPlan<T> composition=null,
-        bool countOnly=false) where T:IHolon
+        bool countOnly=false,CosmicSetQueryPlan<T> set=null) where T:IHolon
     {
         OASISResult<CqlReadOutcome> Error(string code,string message,Exception cause=null)
             => new(){IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause};
@@ -60,6 +60,12 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
                 var stages = EntityCompositionCapabilities.Admit(composition.Query);
                 if (stages.IsError) return Error(stages.ErrorCode, stages.Message);
             }
+            if(set!=null)
+            {
+                var admitted=CosmicSetQueryPlanner.Plan(set.Query,Core.Enums.ProviderType.Neo4jOASIS,
+                    new CosmicQueryTarget(Core.Enums.ProviderType.Neo4jOASIS,CqlCapabilities),SetQueryCapabilities,set.Options);
+                if(admitted.IsError)return Error(admitted.ErrorCode,admitted.Message);
+            }
             var compiled=CompileCqlSource(plan.Query);
             var translator=compiled.Translator;
             var descendantPredicate=compiled.DescendantPredicate;
@@ -72,8 +78,8 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
             translator.Parameters.Add("limit", fetch);
             translator.Parameters.Add("offset",plan.Query.Offset);
             cancellationToken.ThrowIfCancellationRequested();
-            if(composition == null && fetch==0 && !translator.HasRelationship)return new OASISResult<CqlReadOutcome>(new CqlReadOutcome(Array.Empty<IHolon>())){IsLoaded=true};
-            if (!IsProviderActivated || _driver == null) return Error("CQL_PROVIDER_INACTIVE", "Neo4j provider is not activated.");
+            if(composition == null && set == null && fetch==0 && !translator.HasRelationship)return new OASISResult<CqlReadOutcome>(new CqlReadOutcome(Array.Empty<IHolon>())){IsLoaded=true};
+            if (!IsQuerySourceActivated || _driver == null) return Error("CQL_PROVIDER_INACTIVE", "Neo4j provider is not activated.");
             // Validation is outside the page branch: SKIP must never hide an invalid
             // projection. Both branches execute inside one native read query.
             var source=compiled.Source;
@@ -113,6 +119,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
                 + "false AS traversalCycle,false AS traversalLimit"+returnKeys+" } RETURN id,revision,valid,snapshot,traversalCycle,traversalLimit ORDER BY "+finalOrder;
             if (plan.PostWindowPredicate != null) query = CompileCqlPostWindowElement(compiled, plan);
             if (composition != null) query = CompileCqlEntityComposition(compiled, composition, maximumResults,countOnly);
+            if(set!=null)query=CompileCqlSet(compiled,set,maximumResults);
             using var budget=readBudget=new NeoCqlReadBudget(plan.Query.GraphOptions?.MaximumPayloadBytes??32*1024*1024,cancellationToken);
             budget.Check();
             await using var readOwner = await LeaseCqlReadAsync(budget.Token).ConfigureAwait(false);
@@ -121,8 +128,11 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
             budget.Check();
             var cursor = await transaction.RunAsync(query, translator.Parameters).ConfigureAwait(false);
             long nativeCount=0;
-            var rows=await ReadCqlRowsAsync(cursor,rootBudget,budget,composition?.Options,
-                countOnly ? new Action<long>(count=>nativeCount=count) : null).ConfigureAwait(false);
+            var options=composition?.Options??(set==null?null:new CosmicEntityCompositionOptions(
+                Math.Max(set.Options.MaximumLeftInputRows,set.Options.MaximumRightInputRows),set.Options.MaximumInputPayloadBytes));
+            var rows=await ReadCqlRowsAsync(cursor,rootBudget,budget,options,
+                countOnly ? new Action<long>(count=>nativeCount=count) : null,
+                set==null?null:checked(set.Options.MaximumLeftInputRows+set.Options.MaximumRightInputRows)).ConfigureAwait(false);
             if(!countOnly && plan.Query.GraphOptions!=null)
             {
                 Task<IReadOnlyList<IHolon>> ReadChildren(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.CosmicQueryChildSelection selection,CancellationToken token)

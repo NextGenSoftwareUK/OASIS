@@ -1,0 +1,141 @@
+{
+  "coreSource": "13bd050e89b7f29ef347a97cf732d7bc1e721376",
+  "providers": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "sourceImplemented": true,
+  "compiled": true,
+  "nativeAccepted": true,
+  "hostedAccepted": false,
+  "ordinaryNativeFilterAdmissionUnchanged": true,
+  "snapshotMaximumCandidates": 200,
+  "representativeCasesPlanned": 3,
+  "fullParityCredit": false,
+  "qualificationSource": "5ee28ea7860c166da978c117b48ee7cf01a2020a",
+  "qualificationRun": 44939282442,
+  "qualificationJob": 136952699865,
+  "qualificationObservedStatus": "completed",
+  "selectedCoreCases": 2,
+  "websiteSource": "c76faf0613cc94c9a7b2720267adf666ac4fe708",
+  "newBrowserHelperCasesPassed": 1,
+  "browserSnapshotMaximumCandidates": 200,
+  "browserVerified": false,
+  "deployed": true,
+  "nativeQualificationSource": "4acff4b102b0a5424b0906074d5d943b8ec32c56",
+  "nativeQualificationRun": 44940844848,
+  "nativeQualificationJob": 136957463175,
+  "nativeQualificationObservedStatus": "completed",
+  "selectedNativeCases": 3,
+  "qualificationConclusion": "success",
+  "coreCasesPassed": 2,
+  "coreCasesFailed": 0,
+  "coreCasesSkipped": 0,
+  "actualWeb4BuildErrors": 0,
+  "artifact": {
+    "id": 14720683359,
+    "bytes": 1533,
+    "sha256": "b2bb1c03284e7a559ee4fb7427907281d3735332707fb9ee6388bf8de5a59ad5",
+    "exactEntry": "snapshot.trx",
+    "filesWritten": 0
+  },
+  "deliveryCandidate": "f54923d82ac8bffa7877d9307f18e879d41a8254",
+  "deliveryTag": "cosmic-cql-qualified-batch-f54923d82ac8",
+  "deliveryBaseDevelopment": "3159c8fb14e00b2f6a7b4f793c2e2fe54b91fddf",
+  "deliveryChangedPaths": 14,
+  "deliveryApiDirectoryExact": true,
+  "imageDispatched": true,
+  "nativeInitialFailure": {
+    "run": 44939785488,
+    "job": 136954233377,
+    "failed": 3,
+    "reason": "Fixture requested 200 rows from projection contract capped at 100; failed before snapshot reads or saves.",
+    "shippingSourceChanged": false,
+    "ownedMongoCleanupPassed": true,
+    "ownedServiceCleanupPassed": true
+  },
+  "hostedVerifierSource": "4acff4b102b0a5424b0906074d5d943b8ec32c56",
+  "nativeQualificationConclusion": "success",
+  "nativeArtifact": {
+    "id": 14721358788,
+    "bytes": 2863,
+    "sha256": "0da2e5813e8369cedf35cb34e319690bb1e779fe3948d555ab4e95b77642a28b",
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "allSevenFlagsVerified": true,
+    "exactCleanupVerified": true,
+    "filesWritten": 0,
+    "queryElapsedMilliseconds": {
+      "MongoDBOASIS": {
+        "snapshot-original-fields": 7,
+        "snapshot-owned-save": 280,
+        "snapshot-native-readback": 5
+      },
+      "SQLLiteDBOASIS": {
+        "snapshot-original-fields": 2,
+        "snapshot-owned-save": 235,
+        "snapshot-native-readback": 4
+      },
+      "Neo4jOASIS": {
+        "snapshot-original-fields": 46,
+        "snapshot-owned-save": 1112,
+        "snapshot-native-readback": 11
+      }
+    }
+  },
+  "packageAccepted": true,
+  "deliverySuperseded": false,
+  "compositionPeerDevelopment": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+  "compositionCompilePending": false,
+  "priorDeliveryCandidates": [
+    {
+      "source": "5a45f00493526a86b5c8bdd2eb68bc07a1c42c4d",
+      "imageRun": 44941886532,
+      "digest": "sha256:ffa4565b1a54525a1ee5592512961ce35c3d1feaeccc6c28b7fbf6e6cb7a4547",
+      "packageRun": 44942744524,
+      "packageArtifact": {
+        "id": 14722003029,
+        "bytes": 781,
+        "sha256": "139b948e559acbb84f271d45bba043514b09e4adbfdf9e4aad1f04aa94030f8e"
+      },
+      "supersededByDevelopment": "606e1a52619dbe86a56e619a5a86bc4794d6a0b4",
+      "deploymentAllowed": false
+    }
+  ],
+  "compositionSource": "86310a0918dc428f4d557c129cc6dc185f0150bc",
+  "compositionRun": 44943435624,
+  "compositionObservedStatus": "completed",
+  "compositionCompiled": true,
+  "compositionBehaviorCasesRun": 0,
+  "compositionConclusion": "success",
+  "compositionArtifact": {
+    "id": 14722444671,
+    "bytes": 353,
+    "sha256": "a3a3fc4c3030d3da890df95d735546f0476d383ca64e5819708f22174aeef8e7",
+    "filesWritten": 0
+  },
+  "compositionJob": 136965436369,
+  "web4CompositionErrors": 0,
+  "web5CompositionErrors": 0,
+  "imageRun": 44944552781,
+  "imageObservedStatus": "in_progress",
+  "combinedPackageAcceptance": {
+    "id": 14723207113,
+    "bytes": 781,
+    "sha256": "78483413e001bb917b1aa8d73d83319d4c2c026595ef05b57d80a50103a3265b",
+    "exactSourceDigestAndFiveAssembliesVerified": true,
+    "ownedContainerAbsent": true,
+    "dataWrites": 0,
+    "liveDeployment": false,
+    "run": 44945668173,
+    "source": "2d114754f7faf4690b16ce1fa8a27077c522845b",
+    "digest": "sha256:ce464edd4c60ea4474278650064bcafbfaed8f7126a753138e675428ab3b8f58",
+    "runtimeReadinessAccepted": false
+  },
+  "deliveryGate": "Current nine-path image/package and successful exact Development rollout pending; hosted harness must refuse until those gates are accepted.",
+  "deployment": "88620d5d-7d91-4922-8e43-554ac984f71d",
+  "packageRun": 44956782867,
+  "deliveryCore": "7165ab625f90501047ca10c3b9f193ed0498caf5"
+}

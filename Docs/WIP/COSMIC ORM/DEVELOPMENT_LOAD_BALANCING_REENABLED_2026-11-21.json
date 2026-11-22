@@ -1,0 +1,272 @@
+{
+  "environment": "dev",
+  "authorizedUtc": "2026-11-21T08:50:32.573152+00:00",
+  "phase": "runtime_verified",
+  "services": [
+    {
+      "id": "5123199a-43c4-4439-9921-e10e2aec7841",
+      "name": "WEB4 OASIS API",
+      "oldSavedValue": false,
+      "newSavedValue": true,
+      "oldDnaSha256": "0755d6b0d5aef81ce47b35cf7e49cc380935ee069a08bedcc041d5280ac40c33",
+      "newDnaSha256": "797a455777280a6625a2580ad8f2cd83e49ac3f506155a879fd4f61999395666",
+      "baselineDeployment": "df265269-6c18-4e7c-93f3-3bcd89b7ef00",
+      "baselineSource": "1bb737b84ab9e103ebfee169d6773845c1ceda85",
+      "savedVerified": true,
+      "rolloutDispatched": true,
+      "rolloutDispatchStarted": true,
+      "rolloutAcknowledgement": {
+        "id": "e6f141b7-5a78-450c-8a85-c67ed45b5d2c",
+        "status": "INITIALIZING"
+      },
+      "observedStatus": "SUCCESS",
+      "observedDeployment": "e6f141b7-5a78-450c-8a85-c67ed45b5d2c",
+      "runtimeStartupDnaVerified": true,
+      "runtimeVerificationExitCode": 0
+    },
+    {
+      "id": "1e6ee65f-df5d-42b1-972e-97f3a560f5d3",
+      "name": "WEB6 AI API",
+      "oldSavedValue": false,
+      "newSavedValue": true,
+      "oldDnaSha256": "d421d94d769361713030966e731853cf2d9907fc2ec860c681cacad5ae606e36",
+      "newDnaSha256": "2387bf3b1b90edf88b2f2dcbaf77adda9e645eb390343430c77697181528e9f7",
+      "baselineDeployment": "924b21c5-1c56-430d-b44c-57cde05bd3f9",
+      "baselineSource": "1bb737b84ab9e103ebfee169d6773845c1ceda85",
+      "savedVerified": true,
+      "rolloutDispatched": true,
+      "rolloutDispatchStarted": true,
+      "rolloutAcknowledgement": {
+        "id": "40b8fb1c-ab33-4bc7-8630-92cfc1a93bc4",
+        "status": "INITIALIZING"
+      },
+      "observedStatus": "SUCCESS",
+      "observedDeployment": "40b8fb1c-ab33-4bc7-8630-92cfc1a93bc4",
+      "runtimeStartupDnaVerified": true,
+      "runtimeVerificationExitCode": 0
+    },
+    {
+      "id": "31bd0ff6-2d3d-4793-8197-eabcd3afcb75",
+      "name": "WEB7 SYMBIOTIC API",
+      "oldSavedValue": false,
+      "newSavedValue": true,
+      "oldDnaSha256": "d421d94d769361713030966e731853cf2d9907fc2ec860c681cacad5ae606e36",
+      "newDnaSha256": "2387bf3b1b90edf88b2f2dcbaf77adda9e645eb390343430c77697181528e9f7",
+      "baselineDeployment": "8cf996d7-476d-4664-9407-96e8ffab4e26",
+      "baselineSource": "1bb737b84ab9e103ebfee169d6773845c1ceda85",
+      "savedVerified": true,
+      "rolloutDispatched": true,
+      "rolloutDispatchStarted": true,
+      "rolloutAcknowledgement": {
+        "id": "818819c2-cafa-47c8-9902-ddd89033571a",
+        "status": "INITIALIZING"
+      },
+      "observedStatus": "SUCCESS",
+      "observedDeployment": "818819c2-cafa-47c8-9902-ddd89033571a",
+      "runtimeStartupDnaVerified": true,
+      "runtimeVerificationExitCode": 0
+    },
+    {
+      "id": "36eda15e-fd28-4fc6-a0c9-7fe454829554",
+      "name": "WEB9 SINGULARITIY API",
+      "oldSavedValue": false,
+      "newSavedValue": true,
+      "oldDnaSha256": "d421d94d769361713030966e731853cf2d9907fc2ec860c681cacad5ae606e36",
+      "newDnaSha256": "2387bf3b1b90edf88b2f2dcbaf77adda9e645eb390343430c77697181528e9f7",
+      "baselineDeployment": "3863a631-1788-4824-87d1-9adb5caa8d4a",
+      "baselineSource": "1bb737b84ab9e103ebfee169d6773845c1ceda85",
+      "savedVerified": true,
+      "rolloutDispatched": true,
+      "rolloutDispatchStarted": true,
+      "rolloutAcknowledgement": {
+        "id": "91072896-ea25-4955-98ad-f2a547bb5f21",
+        "status": "INITIALIZING"
+      },
+      "observedStatus": "SUCCESS",
+      "observedDeployment": "91072896-ea25-4955-98ad-f2a547bb5f21",
+      "runtimeStartupDnaVerified": true,
+      "runtimeVerificationExitCode": 0
+    },
+    {
+      "id": "6f9e4f24-29be-49d7-914b-f1f9b42790d6",
+      "name": "WEB10 THE SOURCE API",
+      "oldSavedValue": false,
+      "newSavedValue": true,
+      "oldDnaSha256": "d421d94d769361713030966e731853cf2d9907fc2ec860c681cacad5ae606e36",
+      "newDnaSha256": "2387bf3b1b90edf88b2f2dcbaf77adda9e645eb390343430c77697181528e9f7",
+      "baselineDeployment": "32061dae-608c-4a3d-a601-d2e6797c92aa",
+      "baselineSource": "1bb737b84ab9e103ebfee169d6773845c1ceda85",
+      "savedVerified": true,
+      "rolloutDispatched": true,
+      "rolloutDispatchStarted": true,
+      "rolloutAcknowledgement": {
+        "id": "7e82f653-220e-4811-9b80-8cc444fe153f",
+        "status": "INITIALIZING"
+      },
+      "observedStatus": "SUCCESS",
+      "observedDeployment": "7e82f653-220e-4811-9b80-8cc444fe153f",
+      "runtimeStartupDnaVerified": true,
+      "runtimeVerificationExitCode": 0
+    },
+    {
+      "id": "95c937b9-b4e8-4fd3-866f-bd98d5420b2f",
+      "name": "WEB8 IGN API",
+      "oldSavedValue": false,
+      "newSavedValue": true,
+      "oldDnaSha256": "d421d94d769361713030966e731853cf2d9907fc2ec860c681cacad5ae606e36",
+      "newDnaSha256": "2387bf3b1b90edf88b2f2dcbaf77adda9e645eb390343430c77697181528e9f7",
+      "baselineDeployment": "26a7853e-3f87-4f47-b40f-2f01279ba69c",
+      "baselineSource": "1bb737b84ab9e103ebfee169d6773845c1ceda85",
+      "savedVerified": true,
+      "rolloutDispatched": true,
+      "rolloutDispatchStarted": true,
+      "rolloutAcknowledgement": {
+        "id": "b8703efb-53bd-4f31-b979-7a98ff949f2b",
+        "status": "INITIALIZING"
+      },
+      "observedStatus": "SUCCESS",
+      "observedDeployment": "b8703efb-53bd-4f31-b979-7a98ff949f2b",
+      "runtimeStartupDnaVerified": true,
+      "runtimeVerificationExitCode": 0
+    },
+    {
+      "id": "bb2c3e9a-ec96-44a5-9916-05e06d54b1f4",
+      "name": "WEB5 STAR API",
+      "oldSavedValue": false,
+      "newSavedValue": true,
+      "oldDnaSha256": "d421d94d769361713030966e731853cf2d9907fc2ec860c681cacad5ae606e36",
+      "newDnaSha256": "2387bf3b1b90edf88b2f2dcbaf77adda9e645eb390343430c77697181528e9f7",
+      "baselineDeployment": "6cfc4859-245e-4542-bb96-96d36dcc6ef4",
+      "baselineSource": "1bb737b84ab9e103ebfee169d6773845c1ceda85",
+      "savedVerified": true,
+      "rolloutDispatched": true,
+      "rolloutDispatchStarted": true,
+      "rolloutAcknowledgement": {
+        "id": "87c21e4a-8d89-48f7-8760-9c3076a332ca",
+        "status": "INITIALIZING"
+      },
+      "observedStatus": "SUCCESS",
+      "observedDeployment": "87c21e4a-8d89-48f7-8760-9c3076a332ca",
+      "runtimeStartupDnaVerified": true,
+      "runtimeVerificationExitCode": 0
+    }
+  ],
+  "stagingProductionChanged": false,
+  "unchangedEnvironmentChecks": [
+    {
+      "environment": "staging",
+      "service": "WEB4 OASIS API",
+      "savedAutoLoadBalanceEnabled": false,
+      "writes": 0
+    },
+    {
+      "environment": "staging",
+      "service": "WEB6 AI API",
+      "savedAutoLoadBalanceEnabled": false,
+      "writes": 0
+    },
+    {
+      "environment": "staging",
+      "service": "WEB7 SYMBIOTIC API",
+      "savedAutoLoadBalanceEnabled": false,
+      "writes": 0
+    },
+    {
+      "environment": "staging",
+      "service": "WEB9 SINGULARITIY API",
+      "savedAutoLoadBalanceEnabled": false,
+      "writes": 0
+    },
+    {
+      "environment": "staging",
+      "service": "WEB10 THE SOURCE API",
+      "savedAutoLoadBalanceEnabled": false,
+      "writes": 0
+    },
+    {
+      "environment": "staging",
+      "service": "WEB8 IGN API",
+      "savedAutoLoadBalanceEnabled": false,
+      "writes": 0
+    },
+    {
+      "environment": "staging",
+      "service": "WEB5 STAR API",
+      "savedAutoLoadBalanceEnabled": false,
+      "writes": 0
+    },
+    {
+      "environment": "production",
+      "service": "WEB4 OASIS API",
+      "savedAutoLoadBalanceEnabled": false,
+      "writes": 0
+    },
+    {
+      "environment": "production",
+      "service": "WEB6 AI API",
+      "savedAutoLoadBalanceEnabled": false,
+      "writes": 0
+    },
+    {
+      "environment": "production",
+      "service": "WEB7 SYMBIOTIC API",
+      "savedAutoLoadBalanceEnabled": false,
+      "writes": 0
+    },
+    {
+      "environment": "production",
+      "service": "WEB9 SINGULARITIY API",
+      "savedAutoLoadBalanceEnabled": false,
+      "writes": 0
+    },
+    {
+      "environment": "production",
+      "service": "WEB10 THE SOURCE API",
+      "savedAutoLoadBalanceEnabled": false,
+      "writes": 0
+    },
+    {
+      "environment": "production",
+      "service": "WEB8 IGN API",
+      "savedAutoLoadBalanceEnabled": false,
+      "writes": 0
+    },
+    {
+      "environment": "production",
+      "service": "WEB5 STAR API",
+      "savedAutoLoadBalanceEnabled": false,
+      "writes": 0
+    }
+  ],
+  "sourceDevelopmentOverride": "OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.Development.json",
+  "sharedDefaultsAndFullTemplatesRemainFalse": false,
+  "isolatedHarnessSettingsPreserved": true,
+  "submoduleInventory": {
+    "Core": "no DNA JSON found at33a21b61",
+    "ONODECore": "no DNA JSON found at ac12ee38 after exact filtered fetch",
+    "WEB6": "no DNA JSON found at f042a533",
+    "STAR": {
+      "revision": "d687095c4db7611575002db361b972052d17e28f",
+      "appGenerationTemplates": [
+        {
+          "path": "NextGenSoftware.OASIS.STAR.STARDNA/DNA/Default/OASIS_DNA.json",
+          "autoLoadBalanceEnabled": true
+        },
+        {
+          "path": "STAR OAPP DNA Templates/NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.NuGet/OASIS_DNA.json",
+          "autoLoadBalanceEnabled": true
+        }
+      ],
+      "changed": false,
+      "intentionalDifference": "Pre-existing app-creation profiles preserved; Development rollout uses service DNA override."
+    },
+    "ONODEManager": {
+      "revision": "7d55828d3a7905d6938dff508bb30d423ddecc48",
+      "dnaJsonFiles": 0,
+      "inspectedExistingInitializedPeerRepositoryReadOnly": true,
+      "correction": "The local submodule is uninitialized; its earlier lookup used the parent repository, so remote-ref unavailability was not established."
+    }
+  },
+  "rootSharedDefaultsAndFullTemplatesRemainFalse": true,
+  "submoduleInventoryCompleteForPreviouslyPendingCopies": true
+}

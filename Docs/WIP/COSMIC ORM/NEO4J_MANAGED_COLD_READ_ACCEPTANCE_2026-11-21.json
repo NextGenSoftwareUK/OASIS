@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-21",
+  "source": "43dd47c1241b3707022abba4c9d395f2813fe173",
+  "core": "319613115da3aab3290782450f4ee68ffc7fe5f9",
+  "run": 44870788700,
+  "job": 136744609272,
+  "artifact": 14694669325,
+  "artifactBytes": 1243,
+  "artifactSha256": "d45eb3622e659fb861d13a0db98b78b1ea3be465faa8d403e82a40018c00de6c",
+  "exactEntries": [
+    "native.trx"
+  ],
+  "passed": 1,
+  "failed": 0,
+  "skipped": 0,
+  "scope": [
+    "shipping Neo4j provider cold read",
+    "CosmicSession through actual HolonManager",
+    "default read-only entries",
+    "HasChanges false",
+    "write-capable storage remains inactive",
+    "snapshot and revisions preserved",
+    "missing projection explicitly refused without repair",
+    "owned fixture cleanup"
+  ],
+  "liveDeploymentAccepted": false,
+  "artifactInspection": "RAM only"
+}

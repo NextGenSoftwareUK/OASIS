@@ -1,0 +1,69 @@
+{
+  "unitSource": "c3878a657a7952dc5b84bfdb43d867f2442aff76",
+  "coreSource": "33a21b6141852bd7f61e8eab2ed354cb0bbc9de0",
+  "unitRun": 44886656181,
+  "unitJob": 136793281159,
+  "unitArtifact": 14699959522,
+  "unitArtifactBytes": 1937,
+  "unitArtifactSha256": "3f42c664b08e92f35a895c15e4fae3170e6311cb983027bebd0e5ba9cef51eeb",
+  "unitPassed": 5,
+  "unitFailed": 0,
+  "unitSkipped": 0,
+  "actualWeb4BuildSucceeded": true,
+  "nativeSource": "4dbd26270c3a24305d68fbca692c334d6bb9bf38",
+  "nativeRun": 44887621608,
+  "nativeJob": 136796248116,
+  "nativeAccepted": true,
+  "websiteSource": "3d8f108f6161b8b4a0e6c8e2f80d1358fb6185f8",
+  "newParserCasesPassed": 9,
+  "hostedAcceptance": false,
+  "publicPublicationVerified": false,
+  "archiveWrittenToDisk": false,
+  "nativeAcceptedProviders": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "initialNativeArtifact": {
+    "id": 14701135601,
+    "bytes": 3157,
+    "sha256": "cdde52023f9a9f11dcacf774dc2171bfdd7882d6200ea1b8f89ac56b2abcd229",
+    "passedProviders": [
+      "MongoDBOASIS",
+      "Neo4jOASIS"
+    ],
+    "failedProviders": [
+      "SQLLiteDBOASIS"
+    ]
+  },
+  "sqliteRetryArtifact": {
+    "id": 14700896986,
+    "bytes": 1712,
+    "sha256": "5f45117f567e211f66cfa08a2ae832e1156464ac77e4ddd4b16e299e920f4e2d",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0
+  },
+  "sqliteRetryRun": 44888307669,
+  "sqliteRetryJob": 136798344832,
+  "previousMongoNeoCasesRepeated": false,
+  "imageSource": "6b5713f7d02379a6bd1769c13981d22682ee7b0d",
+  "imageRun": 44891296213,
+  "imageObservedStatus": "queued",
+  "imageQualified": false,
+  "packageQualified": false,
+  "developmentPushed": false,
+  "compositionCoreSource": "13fabae5a78c70b961c300657a875f1cfabe238d",
+  "sharedMapPreserved": true,
+  "previousImage": {
+    "source": "6fc00e9465d298a84e48f7bfc904e4e29ae3e0ec",
+    "run": 44889042435,
+    "job": 136800612368,
+    "buildSucceeded": true,
+    "digest": "sha256:cc41e5e3d80f843207ebf092b37510ce81a9d5a38245443d392c7e6e896fcfaf",
+    "supersededBecause": "Development advanced to reviewed Map98ccee24",
+    "packageRun": 44890945656,
+    "queuedPackageCancellationAcknowledged": true,
+    "deployed": false
+  }
+}

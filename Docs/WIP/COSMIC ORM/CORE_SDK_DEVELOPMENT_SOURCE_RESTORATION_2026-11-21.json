@@ -1,0 +1,17 @@
+{
+  "source": "319613115da3aab3290782450f4ee68ffc7fe5f9",
+  "previousCoreDevelopment": "1a4edb88cc9b2e6540f4e5c0bd3edbd4ac67c406",
+  "qualifiedSdkSource": "01d10ae033608064e7f6b34fa434e4166073de27",
+  "scopedSourcePathsByteIdentical": [
+    "Queries",
+    "Holons/HolonChangeTracking.Reload.cs",
+    "Managers/HolonManager",
+    "Objects/NativeData"
+  ],
+  "cleanMergeOfQualifiedSdkAndExistingDevelopment": true,
+  "newEdgeAndReplicationBaselinePreserved": true,
+  "rootApiDeploymentPerformed": false,
+  "newNeoReadinessRootCodeStillQualificationOnly": true,
+  "observedCoreDevelopment": "319613115da3aab3290782450f4ee68ffc7fe5f9",
+  "sourcePublicationVerified": true
+}

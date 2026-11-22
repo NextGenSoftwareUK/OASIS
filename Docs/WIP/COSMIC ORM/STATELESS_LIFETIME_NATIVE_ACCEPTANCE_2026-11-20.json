@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "run": 44783441788,
+  "job": 136451911316,
+  "source": "57cbb99ad4a69fdc681163f4f7b4e393396dc4f3",
+  "core": "7e107c1a28a7ab213de9e9ba80b409d9ad9a6d11",
+  "artifact": 14653352215,
+  "bytes": 2980,
+  "sha256": "d86c8e2e3b015f72817a76af140948d970cc0c6f19c6c21a879d98a6cba85404",
+  "passed": 3,
+  "failed": 0,
+  "skipped": 0,
+  "providers": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "perProvider": {
+    "successfulHolonWrites": 3,
+    "ownedCleanupIds": 1,
+    "timings": 5,
+    "requiredFlags": 8
+  },
+  "acceptedOldCasesRerun": 0,
+  "localArtifactFiles": 0,
+  "deployed": false,
+  "fullEfParity": false
+}

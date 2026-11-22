@@ -5,6 +5,10 @@ if [ -n "$OASIS_DNA_JSON" ]; then
 else
     echo "WARNING: OASIS_DNA_JSON not set - OASIS_DNA.json will not be written"
 fi
+# Native sandboxes refuse to start unless /data/COSMIC exists; a fresh volume does not have it.
+if [ -d /data ] && [ ! -d /data/COSMIC ]; then
+    mkdir -p /data/COSMIC && chmod 700 /data/COSMIC
+fi
 for value in "${OASIS_SANDBOX_IPFS:-false}" "${OASIS_SANDBOX_SOLID:-false}" "${OASIS_SANDBOX_POUCHDB:-false}" \
     "${OASIS_SANDBOX_ORBITDB:-false}" "${OASIS_SANDBOX_GUN:-false}" "${OASIS_SANDBOX_WAKU:-false}" "${OASIS_SANDBOX_DUCKDB:-false}" "${OASIS_SANDBOX_NATS:-false}" "${OASIS_SANDBOX_DAPR:-false}" "${OASIS_SANDBOX_OPENVINO:-false}"; do
     case "$value" in

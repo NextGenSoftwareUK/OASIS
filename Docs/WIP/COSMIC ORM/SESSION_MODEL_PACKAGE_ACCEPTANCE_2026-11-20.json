@@ -1,0 +1,15 @@
+{
+  "source": "8377500d697427d493cb7a49c11347c038ffd0c4",
+  "core": "8610fe90ba227529dcea34f310969213b3dc40ed",
+  "imageRun": 44821820588,
+  "digest": "sha256:ada4fc8d44a69287987f8f8077211f76c9b3df465947535f456418fd7d687819",
+  "packageRun": 44828462049,
+  "packageJob": 136606992069,
+  "artifact": 14675586219,
+  "artifactBytes": 783,
+  "artifactSha256": "2b95790f9e298d960a817f4255a21a88169445b789a6c3cc5fec7d4404abef87",
+  "strictPackageVerified": true,
+  "ownedContainerAbsent": true,
+  "dataWrites": 0,
+  "liveDeploymentVerified": false
+}

@@ -1,0 +1,28 @@
+{
+  "source": "f54923d82ac8bffa7877d9307f18e879d41a8254",
+  "run": 44955232840,
+  "job": 137001753951,
+  "core": "7165ab625f90501047ca10c3b9f193ed0498caf5",
+  "onode": "d51bdd8cba5183c9a7597f85f1d6ddd4be20d629",
+  "star": "ead6c9cab83c0144c64cf3bfa22f94733a0aeaf5",
+  "artifact": {
+    "id": 14727103468,
+    "bytes": 349,
+    "sha256": "54ba3463f0767769e949f7a11a7c1bbdbca62fb22a8104d7ba88107eff5679be",
+    "exactGraphVerified": true
+  },
+  "web4Errors": 0,
+  "web5Errors": 0,
+  "web4Elapsed": "00:06:50.15",
+  "web5Elapsed": "00:00:42.91",
+  "behaviorCases": 0,
+  "databaseWrites": 0,
+  "liveDeployment": false,
+  "imageRun": 44955207943,
+  "imageJob": 137001678295,
+  "imageConclusion": "success",
+  "imageDigest": "sha256:31b581d535967f4ce4fb6aff985b43540d36fe2954043c216ba5dea8debbdcd3",
+  "packageRun": 44956782867,
+  "packageLastStatus": "queued",
+  "packageAccepted": false
+}

@@ -4,14 +4,21 @@ from pathlib import Path
 from owned_docker_resources import missing_resource
 
 
+def image_tag(source, profile, teaching_image=False):
+    # Package scope and image flavor are independent: cql-api may inspect either build.
+    suffix = '-teaching' if teaching_image or profile != 'cql-api' else ''
+    return 'ghcr.io/nextgensoftwareuk/oasis-web4:' + source + suffix
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--source', required=True)
     p.add_argument('--digest', required=True)
+    p.add_argument('--teaching-image', action='store_true')
     p.add_argument('--require-tron-reader', action='store_true')
     p.add_argument('--require-urbit-reader', action='store_true')
     p.add_argument('--require-infura-reader', action='store_true')
-    p.add_argument('--profile', choices=['full', 'tron-api', 'maplibre'], default='full')
+    p.add_argument('--profile', choices=['full', 'tron-api', 'maplibre', 'cql-api'], default='full')
     o = p.parse_args()
     assert not (o.require_urbit_reader or o.require_infura_reader) or o.profile == 'full', 'Urbit and Infura require the full WEB4 package.'
     assert os.environ.get('GITHUB_ACTIONS') == 'true', 'Cloud-only image qualification.'
@@ -23,7 +30,7 @@ def main():
     assert run.isdecimal() and attempt.isdecimal()
     name = 'oasis-web4-package-' + run + '-' + attempt
     image = 'ghcr.io/nextgensoftwareuk/oasis-web4@' + o.digest
-    tag = 'ghcr.io/nextgensoftwareuk/oasis-web4:' + o.source + '-teaching'
+    tag = image_tag(o.source, o.profile, o.teaching_image)
     out = root / 'TestResults/Web4FullPackage'
     out.mkdir(parents=True, exist_ok=False)
 
@@ -59,7 +66,7 @@ def main():
     probe = r'''
 const fs=require('node:fs'), crypto=require('node:crypto'), assert=require('node:assert/strict');
 const expected=JSON.parse(process.argv[1]), requireTron=JSON.parse(process.argv[2]), profile=process.argv[3], requireUrbit=JSON.parse(process.argv[4]), requireInfura=JSON.parse(process.argv[5]);
-assert(['full','tron-api','maplibre'].includes(profile));
+assert(['full','tron-api','maplibre','cql-api'].includes(profile));
 assert(profile!=='tron-api'||requireTron, 'TRON API package requires its reader');
 assert(!(requireUrbit||requireInfura)||profile==='full', 'Urbit and Infura require the full WEB4 package');
 for(const [file,hash] of Object.entries(expected)) assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),hash);
@@ -88,6 +95,36 @@ if(requireUrbit)requireProjectReader('UrbitOASIS','2.0.0',
 if(requireInfura)requireProjectReader('InfuraOASIS','2.0.1',
  ['InfuraPublicAccountMetadataSource','CredentialHandler'],
  ['CqlInfuraReadSourceRegistration','AddInfuraReadSource']);
+if(profile==='cql-api'){
+ const api=fs.readFileSync('/app/NextGenSoftware.OASIS.API.ONODE.WebAPI.dll');
+ const core=fs.readFileSync('/app/NextGenSoftware.OASIS.API.Core.dll');
+ for(const symbol of ['CompileMixedGrouping','CqlMixedGroupingV1Request'])assert(api.includes(Buffer.from(symbol)),symbol);
+ for(const symbol of ['CosmicMixedGroupingPlan','PrepareGrouping'])assert(core.includes(Buffer.from(symbol)),symbol);
+ const deps=JSON.parse(fs.readFileSync('/app/NextGenSoftware.OASIS.API.ONODE.WebAPI.deps.json','utf8'));
+ const target=deps.targets[deps.runtimeTarget.name];
+ const apiKeys=Object.keys(target).filter(k=>k.startsWith('NextGenSoftware.OASIS.API.ONODE.WebAPI/'));
+ assert.equal(apiKeys.length,1,'Exactly one WEB4 runtime dependency entry is required');
+ const reachable=new Set(),pending=[apiKeys[0]];
+ while(pending.length){
+  const key=pending.pop();if(reachable.has(key))continue;
+  reachable.add(key);
+  for(const [name,version] of Object.entries(target[key].dependencies||{})){
+   const dependency=name+'/'+version;
+   if(Object.hasOwn(target,dependency))pending.push(dependency);
+  }
+ }
+ for(const provider of ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']){
+  const name='NextGenSoftware.OASIS.API.Providers.'+provider,file=name+'.dll';
+  const versions=Object.keys(deps.libraries).filter(k=>k.startsWith(name+'/'));
+  assert.equal(versions.length,1,provider+' must have one exact dependency version');
+  const key=versions[0];
+  assert.equal(deps.libraries[key].type,'project',provider+' must be the shipping project');
+  assert(target[key].runtime[file],provider+' must be in the runtime dependency graph');
+  assert(reachable.has(key),provider+' must be reachable through exact WEB4 runtime dependency versions');
+  assert(fs.readFileSync('/app/'+file).includes(Buffer.from('ExecuteCosmicQueryAsync')),provider+' must contain its native CQL entry point');
+  names.push(name);
+ }
+}
 let versions=[];
 if(profile==='full'){
 const pins=require('/app/openvino-model-server-pins.json');
@@ -96,7 +133,7 @@ assert.equal(fs.realpathSync('/ovms'),'/opt/ovms-rootfs/ovms');
 assert(fs.statSync('/opt/ovms-rootfs/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2').size>0);
 versions=pins.versions;
 }
-console.log(JSON.stringify({packagedSourceHashes:true,assemblies:names.length+(requireTron?1:0)+(requireUrbit?1:0)+(requireInfura?1:0),tronReaderPackaged:requireTron,urbitReaderPackaged:requireUrbit,infuraReaderPackaged:requireInfura,modelVersions:versions,modelHashes:profile==='full',apiQualified:false}));
+console.log(JSON.stringify({packagedSourceHashes:true,assemblies:names.length+(requireTron?1:0)+(requireUrbit?1:0)+(requireInfura?1:0),tronReaderPackaged:requireTron,urbitReaderPackaged:requireUrbit,infuraReaderPackaged:requireInfura,modelVersions:versions,modelHashes:profile==='full',cqlRuntimeGraphVerified:profile==='cql-api',apiQualified:false}));
 '''
     try:
         docker('create', '--name', name, '--label', 'oasis.package.owner=' + name,
@@ -107,11 +144,12 @@ console.log(JSON.stringify({packagedSourceHashes:true,assemblies:names.length+(r
         state = json.loads(docker('inspect', name).stdout)[0]
         assert state['Image'] == metadata['Id'] and state['State']['ExitCode'] == 0
         assert not state['State']['Running'] and not state['State']['OOMKilled']
-        assert ack['apiQualified'] is False and ack['assemblies'] == {'tron-api': 2, 'maplibre': 3, 'full': 6}[o.profile] + int(require_tron) + int(o.require_urbit_reader) + int(o.require_infura_reader)
+        assert ack['apiQualified'] is False and ack['assemblies'] == {'tron-api': 2, 'maplibre': 3, 'full': 6, 'cql-api': 5}[o.profile] + int(require_tron) + int(o.require_urbit_reader) + int(o.require_infura_reader)
         assert ack['tronReaderPackaged'] is require_tron
         assert ack['urbitReaderPackaged'] is o.require_urbit_reader
         assert ack['infuraReaderPackaged'] is o.require_infura_reader
         assert ack['modelHashes'] is (o.profile == 'full')
+        assert ack['cqlRuntimeGraphVerified'] is (o.profile == 'cql-api')
         (out / 'acknowledged.json').write_text(json.dumps({'source': o.source, 'image': image,
             'profile': o.profile, 'tag': tag, 'imageId': metadata['Id'], 'expectedHashes': expected, 'checks': ack,
             'liveDeployment': False}, indent=2))

@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-21",
+  "websiteBranch": "work/cosmic-cql",
+  "functionalSource": "e308aff477e84e068492f869b416b6e619c5276e",
+  "helpSource": "030ea27f27543b6590c3cb56e2c60968c9895303",
+  "base": "d462899f78bdc3a6f3179411d5c96e192255c251",
+  "syntax": [
+    "TOP n",
+    "TOP(n)",
+    "DISTINCT TOP n"
+  ],
+  "scope": [
+    "rows",
+    "selected columns",
+    "grouped output",
+    "bounded join inputs and output"
+  ],
+  "implementation": "existing readWindow parser and existing typed take/resultTake fields",
+  "newCases": 4,
+  "passed": 4,
+  "failed": 0,
+  "skipped": 0,
+  "oldAcceptedSuitesRepeated": false,
+  "testedCanonicalStores": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "validation": "exact payload equivalence with admitted LIMIT forms; conflicting windows, scalar TOP, percentages, ties and out-of-range refused",
+  "nodeRuntime": "existing Node18",
+  "execution": "frozen JavaScript and tests in RAM",
+  "filesInstalled": 0,
+  "backendChanges": false,
+  "liveDataCalls": 0,
+  "hostedBrowserAccepted": false,
+  "publicWebsitePublicationVerified": false,
+  "existingOffsetFetchSupportPreserved": true,
+  "pipeline": {
+    "nativeRun": 44870788700,
+    "imageRun": 44872485267,
+    "observedStatus": "queued"
+  }
+}
