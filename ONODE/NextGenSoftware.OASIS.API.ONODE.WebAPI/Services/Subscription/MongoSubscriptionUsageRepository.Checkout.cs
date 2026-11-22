@@ -29,6 +29,7 @@ public sealed partial class MongoSubscriptionUsageRepository : ISubscriptionChec
             using var session = await _client.StartSessionAsync(cancellationToken: token);
             session.StartTransaction(new TransactionOptions(readConcern: ReadConcern.Snapshot,
                 readPreference: ReadPreference.Primary, writeConcern: WriteConcern.WMajority));
+            await EnsureOpeningBalanceAsync(session, token);
             var slotId = "checkout-slot:" + avatarId;
             var slot = await BillingAudit.Find(session, new BsonDocument("_id", slotId)).SingleOrDefaultAsync(token);
             if (slot != null && slot["UserId"].AsString != avatarId)

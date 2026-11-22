@@ -16,6 +16,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         // adding another read/write to every metered request.
         private async Task FenceOpenAccountOwnershipAsync(IClientSessionHandle session, string actor, CancellationToken ct)
         {
+            await EnsureOpeningBalanceAsync(session, ct);
             if (Guid.TryParse(actor, out var accountId)) actor = accountId.ToString("D");
             var slotId = "checkout-slot:" + actor;
             var slot = await BillingAudit.Find(session, new BsonDocument("_id", slotId)).SingleOrDefaultAsync(ct);

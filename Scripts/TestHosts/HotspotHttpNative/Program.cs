@@ -191,15 +191,6 @@ try
     {
         billingRepository = new MongoSubscriptionUsageRepository(client, database, TimeProvider.System,
             initializeEmptyLedger: mode == "session-global-http");
-        if (mode == "session-global-http")
-        {
-            // Initialize only this new owned fixture before app/checkout audit writes.
-            // Existing or shared ledgers must retain the reviewed opening-balance guard.
-            await billingRepository.SaveSubscriptionAsync(new SubscriptionRecord {
-                UserId = accounts[2].Id.ToString("D"), PlanId = "free", Status = "active",
-                CurrentPeriodStart = DateTime.UtcNow, CurrentPeriodEnd = DateTime.UtcNow.AddDays(1)
-            });
-        }
         if (mode is not ("billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "billing-warning-browser" or "billing-restoration-http"))
         {
             await billingRepository.CreateAppAccountAsync("owned-billing", "Owned billing route fixture", "enterprise",
