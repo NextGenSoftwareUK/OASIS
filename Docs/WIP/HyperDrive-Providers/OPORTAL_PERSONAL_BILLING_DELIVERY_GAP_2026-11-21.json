@@ -611,6 +611,19 @@
         "status": "in_progress",
         "mode": "billing-http"
       }
+    },
+    "adminHttpHost": {
+      "mode": "billing-admin-http",
+      "status": "prepared-uncompiled-unrun-not-selected",
+      "scope": "Exactly ordinary403/no native owner mutation then real native Wizard POST/acknowledged owners/native administrator+reason readback. Reuses owned enterprise app/repository/JWT/MVC/lease/cleanup.",
+      "exclusions": [
+        "notification replay",
+        "payments",
+        "email",
+        "full Startup",
+        "hosted"
+      ],
+      "runningNotificationRunUnchanged": 44969526963
     }
   },
   "warningEmailRootCause": {

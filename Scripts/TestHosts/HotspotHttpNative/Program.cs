@@ -39,7 +39,7 @@ Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
 var mode = Environment.GetEnvironmentVariable("OASIS_HOTSPOT_HTTP_MODE") ?? "binding";
-Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http", "Unsupported hotspot HTTP check mode.");
+Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http", "Unsupported hotspot HTTP check mode.");
 var dna = new OASISDNA { OASIS = new() {
     HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
         AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
@@ -62,7 +62,7 @@ try
     var accounts = new List<Avatar> {
         new Avatar { Id = actor, Username = "http-" + actor.ToString("N"), Email = actor.ToString("N") + "@example.test", AvatarType = new EnumValue<AvatarType>(AvatarType.User) },
         new Avatar { Id = Guid.NewGuid(), FirstName = "OASIS", LastName = "SYSTEM", Username = "root", Email = "anorak@oasisomniverse.one", AvatarType = new EnumValue<AvatarType>(AvatarType.System) } };
-    if (mode is "competition-publisher" or "billing-http") accounts.Add(new Avatar { Id = wizardActor,
+    if (mode is "competition-publisher" or "billing-http" or "billing-admin-http") accounts.Add(new Avatar { Id = wizardActor,
         Username = "wizard-" + wizardActor.ToString("N"), Email = wizardActor.ToString("N") + "@example.test",
         AvatarType = new EnumValue<AvatarType>(mode == "billing-http" ? AvatarType.User : AvatarType.Wizard) });
     foreach (var account in accounts)
@@ -140,7 +140,7 @@ try
     }
     var builder = WebApplication.CreateBuilder(); builder.Logging.ClearProviders(); builder.WebHost.UseUrls("http://127.0.0.1:0");
     MongoSubscriptionUsageRepository? billingRepository = null;
-    if (mode == "billing-http")
+    if (mode is "billing-http" or "billing-admin-http")
     {
         billingRepository = new MongoSubscriptionUsageRepository(client, database, TimeProvider.System);
         await billingRepository.CreateAppAccountAsync("owned-billing", "Owned billing route fixture", "enterprise",
@@ -204,7 +204,30 @@ try
         using var result = JsonDocument.Parse(resultText);
         Require(result.RootElement.GetProperty(resultProperty).GetBoolean(), "Owned browser completion marker missing.");
     }
-    if (mode == "billing-http")
+    if (mode == "billing-admin-http")
+    {
+        const string path = "/api/subscription/admin/app-accounts/owned-billing/owners";
+        var request = new { ownerAvatarIds = new[] { wizardActor.ToString("D") }, reason = "Owned HTTP ownership replacement" };
+        using var refused = await http.PostAsJsonAsync(path, request);
+        Require(refused.StatusCode == HttpStatusCode.Forbidden, "Ordinary actor changed app ownership.");
+        var unchanged = await billingRepository!.GetAppAccountAsync("owned-billing");
+        Require(unchanged.OwnerAvatarIds.SequenceEqual(new[] { actor.ToString("D") }), "Refused owner command mutated app ownership.");
+        var adminJwt = new JwtSecurityToken(claims: new[] { new Claim("sub", wizardActor.ToString("D")) },
+            expires: DateTime.UtcNow.AddMinutes(5), signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
+        using var command = new HttpRequestMessage(HttpMethod.Post, path) { Content = JsonContent.Create(request) };
+        command.Headers.Authorization = new AuthenticationHeaderValue("Bearer", new JwtSecurityTokenHandler().WriteToken(adminJwt));
+        using var saved = await http.SendAsync(command);
+        Require(saved.IsSuccessStatusCode, "Wizard owner command failed.");
+        var reply = JObject.Parse(await saved.Content.ReadAsStringAsync());
+        Require(!reply.Value<bool>("isError") && reply["result"]!["ownerAvatarIds"]!.Values<string>()
+            .SequenceEqual(new[] { wizardActor.ToString("D") }), "Owner acknowledgement differs from the requested canonical IDs.");
+        var stored = await billingRepository.GetAppAccountAsync("owned-billing");
+        Require(stored.OwnerAvatarIds.SequenceEqual(new[] { wizardActor.ToString("D") }) &&
+            stored.UpdatedBy == wizardActor.ToString("D") && stored.Reason == request.reason,
+            "Native owner mutation did not persist the authenticated administrator/reason.");
+        Console.WriteLine("BILLING_ADMIN_RESTORATION_HTTP_PROOF: real native Wizard owner replacement acknowledged and persisted actor/reason; ordinary403 left ownership unchanged. No Stripe/shared cluster/full Startup/hosted acceptance.");
+    }
+    else if (mode == "billing-http")
     {
         const string path = "/api/subscription/app-owner/owned-billing/notifications";
         using var initial = await http.GetAsync(path);
