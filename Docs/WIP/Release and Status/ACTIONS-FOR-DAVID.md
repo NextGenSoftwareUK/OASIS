@@ -197,6 +197,8 @@ If you used a different username, tell me that username only. I will record the 
 
 #### Your final production approval
 
+22 November collection-routing release evidence: Development snapshot73a7f82be3f6da1797d1400242c8d1bf0c13cf0b / Core9dcc856add106fa26b27ea5d26ef50b590bf92fd now has seven successful rollouts, native completeness/visibility verification, exact image/package acceptance and actual V2 runtime settings verification. Real PIPER business accounts were not queried. For the eventual authorized staging/production release, use a reviewed release snapshot containing this fix and its reachable paired dependency pins; fresh CI and Development builds fetched these exact pins successfully. Do not rebuild the known-unfetchable historical pins or treat a variable-only restart as a code fix. The existing staging identity/token prerequisites and your final approval still apply; no staging/production settings or deployments changed, and no new sign-in is requested here. [Development evidence](<../COSMIC ORM/COLLECTION_READ_AUTHORITY_DEVELOPMENT_ACCEPTANCE_2026-11-22.json>).
+
 After staging passes, I will send the exact GitHub run link. Sign in as **dellams**, open **Review deployments**, select `oasis-production-gated`, inspect the candidate/staging evidence and click **Approve and deploy** only if satisfied. I will not approve on your behalf. Approval is not needed yet; there is no accepted staging candidate waiting today.
 
 The gate promotes the same source SHA and pinned dependencies, not a byte-identical prebuilt container image. Live end-to-end proof remains incomplete until staging, your approval and production acceptance all pass.

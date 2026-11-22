@@ -1,5 +1,5 @@
 {
-  "phase": "development_rollout_pending",
+  "phase": "deployment_and_runtime_verified",
   "baseCore": "1f649cd707df50f6ef8f999583e1117054a43133",
   "core": "9dcc856add106fa26b27ea5d26ef50b590bf92fd",
   "changedOperations": [
@@ -10,7 +10,7 @@
   "previouslyProtectedParentOperationsPreserved": true,
   "compiled": true,
   "tested": true,
-  "deployed": false,
+  "deployed": true,
   "piperDataAccessed": false,
   "peerChecked": "248c0767ba9be1adda4d9cb7433a325c8449c3d8/a88a9926235434e3cd6bc2a607985cca5d7e6637",
   "source": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
@@ -136,25 +136,25 @@
   "observedDevelopmentAfterPush": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
   "liveAccepted": false,
   "web6Deployment": "c50654a6-5d5b-4a69-be04-3f1135713ddc",
-  "web6DeploymentStatus": "BUILDING",
+  "web6DeploymentStatus": "SUCCESS",
   "web7Deployment": "938f5494-62a2-406e-a86a-0185d36569ce",
   "web7DeploymentStatus": "SUCCESS",
   "web9Deployment": "f158d320-d189-4803-af86-a400d732dea7",
-  "web9DeploymentStatus": "QUEUED",
+  "web9DeploymentStatus": "SUCCESS",
   "web4Deployment": "e9856467-4735-47c6-ada7-8e3d6c3f0efa",
-  "web4DeploymentStatus": "BUILDING",
+  "web4DeploymentStatus": "SUCCESS",
   "web10Deployment": "3df5b11c-6050-41a1-9efd-0b4e8cf6729d",
   "web10DeploymentStatus": "SUCCESS",
   "web8Deployment": "af1a971e-840a-4638-9fea-15ebc1f6b3f1",
-  "web8DeploymentStatus": "BUILDING",
+  "web8DeploymentStatus": "SUCCESS",
   "web5Deployment": "63fe7c43-a7da-4d61-86b8-10e7b58abbbf",
-  "web5DeploymentStatus": "QUEUED",
+  "web5DeploymentStatus": "SUCCESS",
   "latestRolloutObservation": {
     "web6": {
       "deployment": "c50654a6-5d5b-4a69-be04-3f1135713ddc",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "source": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
-      "imageDigest": null
+      "imageDigest": "sha256:5581ccd5bbd2a71490f22ffee18d1fa532ec8e75ebc7078ad34f57d952370499"
     },
     "web7": {
       "deployment": "938f5494-62a2-406e-a86a-0185d36569ce",
@@ -164,15 +164,15 @@
     },
     "web9": {
       "deployment": "f158d320-d189-4803-af86-a400d732dea7",
-      "status": "QUEUED",
+      "status": "SUCCESS",
       "source": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
-      "imageDigest": null
+      "imageDigest": "sha256:d046e445312b66a709cd984d2d14501a9bf97ddaf32697ccbb6b25c2c023aded"
     },
     "web4": {
       "deployment": "e9856467-4735-47c6-ada7-8e3d6c3f0efa",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "source": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
-      "imageDigest": null
+      "imageDigest": "sha256:9c8f9528f5162ab2ea123452d203f448ec6bc641a5f1c2b28b10e0142da3d1fe"
     },
     "web10": {
       "deployment": "3df5b11c-6050-41a1-9efd-0b4e8cf6729d",
@@ -182,15 +182,21 @@
     },
     "web8": {
       "deployment": "af1a971e-840a-4638-9fea-15ebc1f6b3f1",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "source": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
-      "imageDigest": null
+      "imageDigest": "sha256:714fe2ae47bc5e9b82e5800fb09c59237b0b705de4c12ec08f958a90478d47d9"
     },
     "web5": {
       "deployment": "63fe7c43-a7da-4d61-86b8-10e7b58abbbf",
-      "status": "QUEUED",
+      "status": "SUCCESS",
       "source": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
-      "imageDigest": null
+      "imageDigest": "sha256:92f852f3fc1eda6cb01cc86a4ee7dc8576acbd6e134c611cbf3b9b06772c88bf"
     }
-  }
+  },
+  "deploymentAccepted": true,
+  "runtimeSettingsAccepted": true,
+  "allSevenDevelopmentDeploymentsSucceeded": true,
+  "customerCollectionQueriesExecuted": false,
+  "realPiperBusinessAccountAcceptance": false,
+  "liveRuntimeProof": "COLLECTION_READ_AUTHORITY_DEVELOPMENT_ACCEPTANCE_2026-11-22.json"
 }
