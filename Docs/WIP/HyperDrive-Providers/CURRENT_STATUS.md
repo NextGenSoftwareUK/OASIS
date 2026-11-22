@@ -1,3 +1,7 @@
+## 22 November: OPORTAL recovered-checkout confirmation fixed and delivered
+
+Portal dev8fd470c (docs5ab50d8) now waits for a refreshed subscription matching the checkout plan before reporting active success. Five focused actual-source unit states/syntax/endpoint drift passed. Public dev HTML and referenced script both HTTP200; SHA25674f946043cc28a05c7c0deb84c9b2f1c471f0b063d3ba1464e8277210f70f672 matches source. Static delivery is not browser/Stripe acceptance. Backend run45080960598/job137388797973 remains in progress. Shared Developmentb82 and COSMIC current status reviewed without modifying peer checkouts or deploying unverified source. No shared Atlas calls or local builds/downloads/environments.
+
 ## 22 November: checkout native flow progressed; real failover next
 
 Run45079998287/job137385766897 compiled with zero errors and passed ACCOUNT_DEPENDENCY_NATIVE_PROOF, including actor-bound checkout recovery and atomic reservation. It then failed a fixture issuer-selection assumption: changing global CurrentStorageProvider does not change the configured login manager primary. The fixture now pauses only the validated owned CI Mongo for SQLite issuance, with unpause in finally. Run45080960598 is queued on control660a680bbc7, candidate97031a02 (billing admission source included). No paid Stripe, browser, hosted, full-account-deletion or complete-portal acceptance claimed. Prepared billing admission work is now committed; four unrelated dirty gitlinks remain unstaged. Previous run owned fixture removal succeeded.

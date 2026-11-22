@@ -5,10 +5,11 @@
     "taskBranch": "work/hyperdrive-provider-completion",
     "taskWorktree": "C:/Source/OASIS2-hyperdrive",
     "portalBranch": "dev",
-    "portalHead": "38a77a3",
-    "reviewedDevelopment": "aa6f1cb26d8",
-    "currentCore": "9dcc856add106fa26b27ea5d26ef50b590bf92fd",
-    "currentWeb6": "d9e60ceaecef5513d1bcd6285cd668076bc77edf"
+    "portalHead": "5ab50d8",
+    "reviewedDevelopment": "b82e1fa55a521c22f5110cb7cbd1fd4599040ebb",
+    "currentCore": "35c4baba7a4e7d07ee279c2446b7a17d93cf73b5",
+    "currentWeb6": "f9aa81c6dc3e27ac02677c985d41929b768c5969",
+    "scope": "Core/WEB6 identify current isolated qualification candidate, not live or newest shared Development. Shared b82 peer status reviewed; no unverified rollout."
   },
   "web6": {
     "deployment": "c50654a6-5d5b-4a69-be04-3f1135713ddc",
@@ -45,10 +46,11 @@
       "Readiness errors display Retry",
       "Password reset control cleared across sessions; stale responses rejected",
       "Selected sign-out buttons wired in dev source4d4f81e; enabled only by new real-revocation capability, not accepted as live/browser-tested",
-      "Checkout recovery review/resume/cancel UI source4baca47, activated only by API-advertised links; no extra startup reads; runtime/Stripe/browser delivery pending"
+      "Checkout recovery review/resume/cancel UI source4baca47, activated only by API-advertised links; no extra startup reads; runtime/Stripe/browser delivery pending",
+      "Dev8fd470c checkout recovery now awaits refreshed exact active plan before success. Five focused source unit states, syntax and endpoint checks passed; public dev script SHA25674f946043cc28a05c7c0deb84c9b2f1c471f0b063d3ba1464e8277210f70f672 matches. Static delivery only, not Stripe/browser acceptance."
     ],
     "remaining": [
-      "Global sign-out wired and capability gated; real SQLite session write fails qualification, not accepted or deployed",
+      "Global sign-out wired/capability gated; actual two-authority issuance, revocation and partial-failure journey still under isolated verification; not deployed/accepted.",
       "Selected sign-out backend and UI source implemented; native/browser/deployed acceptance pending",
       "Account deletion lifecycle and Settings wiring",
       "Hosted Stripe paid lifecycle and full browser/site acceptance",
@@ -67,7 +69,7 @@
       "Single revoke acknowledgement requirement",
       "Email-delete endpoint delegation correction"
     ],
-    "currentCompositionReview": "Older source candidates must preserve newer Core9dcc and WEB6d9 changes before integration.",
+    "currentCompositionReview": "Current isolated candidate97031a02 on aa6 preserves Core35c4 and WEB6f9. Newer shared Developmentb82 grouping/test changes reviewed; must preserve on integration, no broad overwrite.",
     "globalSignout": {
       "run": 45068055435,
       "job": 137348566147,
@@ -77,11 +79,12 @@
       "acceptance": "Not accepted; preserve previous 35 middleware passes without replay."
     },
     "currentFocusedRun": {
-      "run": 45077616005,
-      "control": "e73dc8cac36fa64098851e229167f753d6acb087",
-      "candidate": "ee45a8ce74a1916fce4ce25db4b4e63b374c569e",
-      "status": "queued at dispatch; prior run terminal, one dispatch",
-      "scope": "Corrected missing-account/native BSON contracts and current session/checkout journey; retained35 middleware and accepted preference rows not replayed"
+      "run": 45080960598,
+      "job": 137388797973,
+      "control": "660a680bbc7045194dc08543e4c23936a620bf1b",
+      "candidate": "97031a02b65d0e65ecf60db5e631afa1905ac4e9",
+      "status": "in_progress observed",
+      "scope": "Billing admission and real primary-unavailability SSO issuance within existing global-session journey. Accepted old middleware/provider cohorts not rerun separately."
     },
     "preparationFailure": {
       "run": 45069521383,
@@ -121,6 +124,14 @@
         "Core refresh-token runtime-only BSON member filter"
       ],
       "cleanup": "Owned SQLite directory/Mongo DB/temp DNA/container absence verified; Mongo not paused"
+    },
+    "checkoutNativeProof": {
+      "run": 45079998287,
+      "job": 137385766897,
+      "build": "zero errors,6m18.89",
+      "runtime": "ACCOUNT_DEPENDENCY_NATIVE_PROOF: actual actor-bound controller/Mongo snapshot, customerless journal request/ack/close, one concurrent reservation winner, closed-slot reuse and old-close isolation.",
+      "failureAfterProof": "Issuer assertion used incorrect fixture assumption that changing global selection changes configured login manager primary; corrected by validated owned Mongo pause/unpause for real failover.",
+      "limits": "No Stripe calls, paid lifecycle, browser or hosted acceptance. Whole journey failed; retained marker is scoped evidence only."
     }
   },
   "providers": {
@@ -141,16 +152,16 @@
   },
   "cleanup": {
     "freeDiskGB": 28.97,
-    "thisTurn": "Read-only metadata and bounded selected CI logs in RAM; no runtime/download/build/database/test archive created.",
+    "thisTurn": "No local build/download/environment/database/test output; source unit checks and two public static requests only, in-memory responses. Temporary candidate indexes/locks removed. Previous45079998287 remote owned native fixture removal succeeded;45080960598 cleanup pending.",
     "temporaryEmailSecrets": "Previously deleted and absence verified; not restaged."
   },
   "deliveryPolicy": "Finish remaining OPORTAL user flows breadth first; one representative end-to-end verification for changed behavior, reuse accepted evidence. A blocked backend flow must not stop independent screen work.",
   "accountDeletion": {
-    "status": "Incomplete; authenticated dependency-review API implemented, uncompiled/unrun/undeployed; permanent removal not enabled",
-    "source": "75c07dbc3b6",
-    "preparedRealCheck": "Actor-owned application/empty ledger/unchanged avatar through actual controller and owned Mongo; no Stripe call",
-    "nextCandidate": "58d7316d2394c99cc46813a4af83dc5268529b56",
-    "currentSharedBase": "9452340f0c6",
+    "status": "Incomplete. Real dependency review passed at scoped isolated HTTP/native level; billing admission source committed and currently qualifying. No avatar/private-data/replica deletion or portal deletion control enabled.",
+    "source": "21e9d634962",
+    "preparedRealCheck": "Admission closure, idempotent repeat and new billing/checkout/ownership refusal in existing native journey",
+    "nextCandidate": "97031a02b65d0e65ecf60db5e631afa1905ac4e9",
+    "currentSharedBase": "b82e1fa55a5",
     "limits": [
       "Closure admission and durable checkout intents",
       "Subscription cancellation/ownership handling",
