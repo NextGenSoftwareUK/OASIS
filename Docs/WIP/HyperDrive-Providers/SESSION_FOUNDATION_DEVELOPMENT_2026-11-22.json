@@ -1,0 +1,34 @@
+{
+  "status": "verified phase-one source integration; rollout and loaded-runtime acceptance separate",
+  "parent": "94dcc89a9bf750cc6a687f6137594284ffcf749a",
+  "qualifiedSource": "06c79aeaa7143b39034684345a371313ca8b6631",
+  "core": "c486c152b05d1d5d4a9afc312dd2121c9299e1c1",
+  "sourceChanges": [
+    "Docker/oasis-dependency-versions.env",
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
+  ],
+  "compile": {
+    "run": 45005901782,
+    "job": 137157312204,
+    "result": "success",
+    "WEB4": "00:05:20.60",
+    "WEB5": "00:00:32.75",
+    "errors": 0,
+    "managers": 934,
+    "routes": 827
+  },
+  "retainedNative": {
+    "issuer": 45002183207,
+    "accessSession": 45003726813,
+    "scope": "Real owned HTTP/native acknowledged issuer, rotation/revoke matching access and refresh, independent credential and native account state preserved. Owned cleanup verified."
+  },
+  "composition": "All compile and native source retained byte-for-byte for these scoped paths. Current94dcc89a worker rollout gate correction preserved; only those two non-compiler scripts differ from the qualified parent graph. Current ONODEManager292 pin preserved.",
+  "rolloutPrecheck": "Latest deployment metadata for all seven dev services SUCCESS/exact94dcc89a; no pending owned deployment added before this integration.",
+  "limits": [
+    "Strict WEB4-WEB10 adapters/redaction source618c3c73 remains excluded; qualification45008649921 still pending.",
+    "This phase issues bound tokens but leaves existing validators unchanged; no forced legacy-session retirement.",
+    "No global/selected logout or OPORTAL control enablement, cross-provider session failover, DNA/worker setting change, shared database probe or full-site acceptance."
+  ],
+  "recordedUtc": "2026-11-22T09:42:54.644212+00:00"
+}

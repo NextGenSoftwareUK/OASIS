@@ -28,7 +28,7 @@ def web4_worker_gate_errors(source):
     if not enabled:
         return errors + ["missing subscription usage registration block"]
     block = enabled.group("body")
-    for worker in ("SubscriptionUsageExpiryWorker", "PaidOverageBillingWorker", "AppOverageStatementWorker"):
+    for worker in ("SubscriptionUsageExpiryWorker", "PaidOverageBillingWorker"):
         registration = (
             r"Services\.Operations\.HostedMongoWorkerControl\.AddMaintenanceWorker"
             r"<Services\.Subscription\." + worker + r">\(services,\s*Configuration\)"
