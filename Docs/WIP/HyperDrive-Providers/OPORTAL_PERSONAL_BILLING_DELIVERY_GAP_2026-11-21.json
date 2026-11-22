@@ -1001,12 +1001,12 @@
       ],
       "nativeRunUnchanged": 44971805468,
       "temporaryIndex": "removed",
-      "status": "uncompiled"
+      "status": "compiled-with-selected-http-refusals-not-email-delivery"
     },
     "latestHttpHost": {
       "mode": "billing-warning-http",
       "candidate": "cbbcad57f460f31cba56c576e3fab3e5888822c1",
-      "status": "prepared-uncompiled-unrun",
+      "status": "accepted-capability-disabled-anonymous-http-on-cbbcad57",
       "scope": "Actual signed MVC GET notification capability, disabled email POST503 and anonymous401; native collection stays empty. Actual repository/services/SDK gateway registered; no fake response/provider or external send.",
       "excluded": [
         "accepted notification/admin/event persistence replay",
@@ -1017,7 +1017,13 @@
       "run": {
         "id": 44972567732,
         "control": "c77afd3b9d853dc8e76771517488422651056b3f",
-        "status": "in_progress"
+        "status": "completed",
+        "conclusion": "success",
+        "job": 137055328327,
+        "buildErrors": 0,
+        "buildElapsed": "00:07:20.98",
+        "proof": "WARNING_ACTION_HTTP_PROOF",
+        "cleanup": "Owned database/tempDNA/container absence verified."
       }
     }
   },
