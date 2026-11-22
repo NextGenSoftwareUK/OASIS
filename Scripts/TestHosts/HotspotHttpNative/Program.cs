@@ -40,7 +40,7 @@ Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
 var mode = Environment.GetEnvironmentVariable("OASIS_HOTSPOT_HTTP_MODE") ?? "binding";
-Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "session-list-http" or "mfa-native", "Unsupported hotspot HTTP check mode.");
+Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "session-list-http" or "mfa-native" or "mfa-http", "Unsupported hotspot HTTP check mode.");
 var dna = new OASISDNA { OASIS = new() {
     HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
         AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
@@ -55,6 +55,8 @@ var dna = new OASISDNA { OASIS = new() {
         MongoDBOASIS = new() { ConnectionString = ownedUri, DBName = database, NativeImportDBName = database } } } };
 var provider = new MongoDBOASIS(ownedUri, database, dna);
 WebApplication? app = null;
+var previousMfaGate = AvatarManager.SecondFactorGate;
+var mfaPassword = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
 try
 {
     var active = await provider.ActivateProviderAsync(); Require(!active.IsError, active.Message);
@@ -69,6 +71,11 @@ try
     foreach (var account in accounts)
     {
         account.IsActive = true; account.Version = 1; account.VersionId = Guid.NewGuid(); account.CreatedDate = DateTime.UtcNow;
+        if (mode == "mfa-http" && account.Id == actor)
+        {
+            account.Verified = DateTime.UtcNow;
+            account.Password = BCrypt.Net.BCrypt.HashPassword(mfaPassword);
+        }
         if (mode == "session-list-http" && account.Id == actor)
         {
             var now = DateTime.UtcNow;
@@ -153,6 +160,17 @@ try
         }
     }
     var builder = WebApplication.CreateBuilder(); builder.Logging.ClearProviders(); builder.WebHost.UseUrls("http://127.0.0.1:0");
+    NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa.MfaService? httpMfa = null;
+    var mfaNow = DateTime.UtcNow;
+    if (mode == "mfa-http")
+    {
+        var settings = new MfaSettings { Enabled = true, CodeDigits = 6, TimeStepSeconds = 30, AllowedDriftSteps = 0 };
+        var store = new NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa.MongoMfaStore(() => dna);
+        httpMfa = new NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa.MfaService(() => settings, store,
+            dna.OASIS.Security.SecretKey, () => mfaNow);
+        builder.Services.AddSingleton(httpMfa);
+        builder.Services.AddHttpContextAccessor();
+    }
     MongoSubscriptionUsageRepository? billingRepository = null;
     if (mode is "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider")
     {
@@ -180,7 +198,7 @@ try
             builder.Services.AddTransient<UsageWarningEmailService>();
         }
     }
-    var key = new SymmetricSecurityKey(secret);
+    var key = new SymmetricSecurityKey(mode == "mfa-http" ? System.Text.Encoding.ASCII.GetBytes(dna.OASIS.Security.SecretKey) : secret);
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {
         options.MapInboundClaims = false;
         options.TokenValidationParameters = new() { ValidateIssuer = false, ValidateAudience = false,
@@ -189,6 +207,9 @@ try
     builder.Services.AddControllers().AddApplicationPart(typeof(GeoHotSpotsController).Assembly)
         .AddApplicationPart(typeof(NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.NftController).Assembly);
     app = builder.Build(); app.UseAuthentication();
+    if (mode == "mfa-http")
+        AvatarManager.SecondFactorGate = NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa.MfaGate.Create(httpMfa!,
+            app.Services.GetRequiredService<IHttpContextAccessor>());
     if (mode is "browser" or "catalogue-browser" or "competition-browser")
     {
         var portal = Environment.GetEnvironmentVariable("OASIS_GEO_PORTAL_ROOT") ?? throw new InvalidOperationException("Pinned Portal root required.");
@@ -241,7 +262,12 @@ try
         using var result = JsonDocument.Parse(resultText);
         Require(result.RootElement.GetProperty(resultProperty).GetBoolean(), "Owned browser completion marker missing.");
     }
-    if (mode == "mfa-native")
+    if (mode == "mfa-http")
+    {
+        await MfaHttpQualification.RunAsync(http, provider, httpMfa!, () => mfaNow,
+            () => mfaNow = mfaNow.AddSeconds(30), dna, actor, accounts[0].Username, mfaPassword);
+    }
+    else if (mode == "mfa-native")
     {
         await MfaNativeQualification.RunAsync(dna, actor);
     }
@@ -749,6 +775,7 @@ try
 }
 finally
 {
+    AvatarManager.SecondFactorGate = previousMfaGate;
     try { if (app != null) { await app.StopAsync(); await app.DisposeAsync(); } }
     finally
     {
