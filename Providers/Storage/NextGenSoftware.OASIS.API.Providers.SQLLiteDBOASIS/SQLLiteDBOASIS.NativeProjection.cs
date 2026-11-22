@@ -57,15 +57,36 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                         : column.InputType == typeof(int) ? $"typeof({input}) = 'integer' AND {input} BETWEEN -2147483648 AND 2147483647"
                         : column.InputType == typeof(double) ? $"typeof({input}) = 'real' AND {input} BETWEEN $nativeDoubleMin AND $nativeDoubleMax"
                         : $"typeof({input}) = 'integer'";
-                    outputs.Add($"CASE WHEN {input} IS NULL THEN 1 WHEN {domain} THEN 2 ELSE 3 END");
-                    // Read size before retrieving text into managed memory. Computed lengths transfer only integers.
-                    outputs.Add(column.ValueType == typeof(string)
+                    var state=$"CASE WHEN {input} IS NULL THEN 1 WHEN {domain} THEN 2 ELSE 3 END";
+                    var bytes=column.ValueType == typeof(string)
                         ? $"CASE WHEN {input} IS NULL THEN 8 WHEN {domain} THEN length(CAST({input} AS BLOB)) ELSE 0 END"
-                        : column.ValueType == typeof(Guid) ? $"CASE WHEN {input} IS NULL THEN 8 ELSE 36 END" : "8");
+                        : column.ValueType == typeof(Guid) ? $"CASE WHEN {input} IS NULL THEN 8 ELSE 36 END" : "8";
                     var value = column.Function == NativeRecordFunction.Utf16Length
                         ? $"{SqliteCqlReadBudget.TextStringLengthFunction}({input})"
                         : column.InputType == typeof(DateTime) ? SqliteCqlDate.ColumnValue(input) : input;
-                    outputs.Add($"CASE WHEN {domain} THEN {value} ELSE NULL END");
+                    var output=$"CASE WHEN {domain} THEN {value} ELSE NULL END";
+                    string LiteralParameter(object argument)
+                    {
+                        var key="$nativeProjectionArg"+command.Parameters.Count;
+                        command.Parameters.AddWithValue(key,argument);return key;
+                    }
+                    if(column.Function==NativeRecordFunction.BooleanTextCase)
+                    {
+                        var yes=LiteralParameter(column.WhenTrue);var no=LiteralParameter(column.WhenFalse);
+                        output=$"CASE WHEN {domain} THEN CASE WHEN {input}=1 THEN {yes} ELSE {no} END ELSE NULL END";
+                        bytes=$"CASE WHEN {domain} THEN CASE WHEN {input}=1 THEN length(CAST({yes} AS BLOB)) ELSE length(CAST({no} AS BLOB)) END ELSE 0 END";
+                    }
+                    else if(column.Function is NativeRecordFunction.TextCoalesce or NativeRecordFunction.Int32Coalesce)
+                    {
+                        var replacement=column.Function==NativeRecordFunction.TextCoalesce
+                            ? LiteralParameter(column.NullReplacement):LiteralParameter(column.Int32Replacement.Value);
+                        var replacementBytes=column.Function==NativeRecordFunction.TextCoalesce
+                            ? $"length(CAST({replacement} AS BLOB))":"8";
+                        state=$"CASE WHEN {input} IS NULL THEN 2 ELSE ({state}) END";
+                        bytes=$"CASE WHEN {input} IS NULL THEN {replacementBytes} ELSE ({bytes}) END";
+                        output=$"CASE WHEN {input} IS NULL THEN {replacement} ELSE ({output}) END";
+                    }
+                    outputs.Add(state);outputs.Add(bytes);outputs.Add(output);
                 }
                 command.CommandText = $"SELECT {string.Join(", ", outputs)} FROM {Quote(sourceName)} WHERE {predicates} ORDER BY rowid LIMIT $take";
                 command.Parameters.AddWithValue("$take", limit);
