@@ -40,7 +40,7 @@ Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
 var mode = Environment.GetEnvironmentVariable("OASIS_HOTSPOT_HTTP_MODE") ?? "binding";
-Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "session-list-http", "Unsupported hotspot HTTP check mode.");
+Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "session-list-http" or "mfa-native", "Unsupported hotspot HTTP check mode.");
 var dna = new OASISDNA { OASIS = new() {
     HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
         AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
@@ -241,7 +241,11 @@ try
         using var result = JsonDocument.Parse(resultText);
         Require(result.RootElement.GetProperty(resultProperty).GetBoolean(), "Owned browser completion marker missing.");
     }
-    if (mode == "session-list-http")
+    if (mode == "mfa-native")
+    {
+        await MfaNativeQualification.RunAsync(dna, actor);
+    }
+    else if (mode == "session-list-http")
     {
         var endpointSource = app.Services.GetRequiredService<Microsoft.AspNetCore.Routing.EndpointDataSource>();
         foreach (var contract in new[] {
