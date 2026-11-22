@@ -1,11 +1,11 @@
 {
-  "phase": "replacement_qualification_pending_prior_cleanup",
+  "phase": "remaining_run_observed",
   "baseCore": "32fbf1bfd1e990b3119423bc024e149162d76d3e",
   "core": "1f649cd707df50f6ef8f999583e1117054a43133",
   "compiled": false,
   "nativeAccepted": false,
   "deployed": false,
-  "source": "64c674c4e116e08aaae8897885390b76d54037c5",
+  "source": "f94fab22804adac182b7fbdcccbe023afd7ef07d",
   "website": "7c002846b2e95654b5c2261f6c13a703acc6c9d2",
   "sqlCaptureAccepted": true,
   "demoControlAccepted": true,
@@ -19,5 +19,89 @@
   "supersededNativeRun": 45051729488,
   "supersededNativeCancellationAcknowledged": true,
   "supersededNativeCleanupVerified": false,
-  "localRuntimeOrDatabaseInstalled": false
+  "localRuntimeOrDatabaseInstalled": false,
+  "partialAcceptance": {
+    "source": "d9f2e7f24dd590ff90a4cfaa0add340305c4d608",
+    "core": "1f649cd707df50f6ef8f999583e1117054a43133",
+    "run": 45051729488,
+    "runConclusion": "cancelled",
+    "fullRunAccepted": false,
+    "artifact": 14765967778,
+    "bytes": 4244,
+    "sha256": "1dca8381b20d862eb050e338a437b390e039f58d09de21bf688e4c590057e541",
+    "tests": [
+      {
+        "file": "core.trx",
+        "passed": 2,
+        "names": [
+          "NextGenSoftware.OASIS.API.Core.UnitTests.CqlRecordDistinctWireTests.ScalarDistinctRetainsItsSingleColumnContract",
+          "NextGenSoftware.OASIS.API.Core.UnitTests.CqlRecordDistinctWireTests.DistinctCapturesCurrentTupleAndKeepsEarlierStageBindingsAfterReselection"
+        ]
+      },
+      {
+        "file": "Mongo.trx",
+        "passed": 1,
+        "names": [
+          "NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests.CosmicCqlNativeTests.NativeRecordDistinctUsesVisibleTuplesAndOrderedStages"
+        ]
+      },
+      {
+        "file": "SQLite.trx",
+        "passed": 1,
+        "names": [
+          "NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests.SQLLiteDBOASISIntegrationTests.NativeRecordDistinctUsesVisibleTuplesAndOrderedStages"
+        ]
+      }
+    ],
+    "neoAccepted": false,
+    "web4Compiled": false,
+    "ownedMongoStopped": true,
+    "ownedContainersStopped": true,
+    "localArtifactWritten": false,
+    "unchangedAcceptedFiles": [
+      {
+        "path": "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CqlRecordDistinctWireTests.cs",
+        "sha256": "f246a9988af48308911f79bec981d1d334b094beaeb64df5ff6477c9840be1bf"
+      },
+      {
+        "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.Composition.cs",
+        "sha256": "a329d53f79e7b8ac4a717b95cceaea66a330310daffe9751d7b655f119ad0d39"
+      },
+      {
+        "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/CosmicCqlNativeTests.RecordDistinct.cs",
+        "sha256": "63189daf9f09369d2e970ebb9b1858ac306a8e5815fbb86b9127deb4af2c9e56"
+      },
+      {
+        "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests/CosmicCqlRecordDistinctTests.cs",
+        "sha256": "f1fee401bdee7bf007ed966f7f471faf1e71bb954b16d75f2bd33ea2ed935bba"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlCompositionV1Compiler.cs",
+        "sha256": "c986d6b8e6fe7d88794c72ce517a4848c7f41f79221bd201e9076733270bd659"
+      },
+      {
+        "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.CompositionSql.cs",
+        "sha256": "b163bfe117c9fa79487fd49c71ad9d822d147d2180d99b93763d9b3dc0f7c3c5",
+        "reviewedDifferenceFromPassedSource": "local lambda parameter rename only; no behavior difference"
+      }
+    ],
+    "unnecessaryCancellationCorrection": "C# accepted the earlier lambda; Core2/Mongo1/SQLite1 already passed. Preserve those exact artifact passes; full run remains cancelled. Remaining mode runs Neo and actual WEB4 build only."
+  },
+  "priorCleanupVerified": true,
+  "requestedUtc": "2026-11-22T17:58:42.751846+00:00",
+  "dispatchAcknowledged": true,
+  "failedDispatch": {
+    "reason": "GitHub dispatch rejected bare SHA ref with422; no run created",
+    "ref": "f94fab22804adac182b7fbdcccbe023afd7ef07d"
+  },
+  "run": 45052662341,
+  "status": "in_progress",
+  "conclusion": "",
+  "job": 137300998567,
+  "coreCaptureAccepted": true,
+  "mongoNativeAccepted": true,
+  "sqliteNativeAccepted": true,
+  "neoNativeAccepted": false,
+  "web4Compiled": false,
+  "observedUtc": "2026-11-22T17:59:20.737841+00:00"
 }
