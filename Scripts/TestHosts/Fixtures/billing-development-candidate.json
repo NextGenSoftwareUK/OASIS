@@ -15,9 +15,7 @@
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailDispatcher.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailService.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningReader.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.WarningEmails.cs",
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv"
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.WarningEmails.cs"
   ],
   "core": {
     "base": "a166813b01476a2fce34e5908d74dac1da845ba6",

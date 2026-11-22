@@ -23,8 +23,11 @@
   "inventoryRun": {
     "id": 44988505939,
     "control": "3bc7fa77952e21c656ccd87e340ed1cd4a864fde",
-    "status": "queued",
-    "mode": "inventory-only-no-runtime-no-secrets"
+    "status": "completed",
+    "mode": "inventory-only-no-runtime-no-secrets",
+    "conclusion": "failure",
+    "job": 137104240172,
+    "failure": "Exact-scope guard: descriptor included2future CSV paths while actual frozen source changes8paths. Descriptor corrected to exact8; source/gates unchanged. No inventory/build/runtime executed."
   },
   "pins": "verified",
   "temporaryIndex": "removed"
