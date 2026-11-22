@@ -30,11 +30,14 @@
   "compositionAccepted": false,
   "nativeQualificationAccepted": false,
   "nativeQualificationRun": 45004657247,
-  "mongoCorrectionRun": 45006551717,
+  "mongoCorrectionRun": 45010074469,
   "workerGateTestsPassed": 6,
   "manifestValidated": true,
   "imageAccepted": false,
   "packageAccepted": false,
   "developmentPushed": false,
-  "liveAccepted": false
+  "liveAccepted": false,
+  "mongoCorrectionSource": "c2c158a0bfaf446fe15e66d864a586bf897c167d",
+  "compositionRun": 45009513105,
+  "compositionControl": "1626a6482d6e439d0b62bac96a3b667c6f6e5e74"
 }
