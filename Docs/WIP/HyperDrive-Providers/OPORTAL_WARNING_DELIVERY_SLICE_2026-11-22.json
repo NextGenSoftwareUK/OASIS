@@ -156,8 +156,24 @@
       "id": 44991621000,
       "control": "eee7a7adb3997b169240715ec72e6cdae256f8cd",
       "candidate": "d68b635b0a56fa96de1075c627b2261213870f56",
-      "status": "queued",
-      "mode": "compile-only-no-native-no-secrets"
+      "status": "completed",
+      "mode": "compile-only-no-native-no-secrets",
+      "conclusion": "success",
+      "job": 137113721234,
+      "buildElapsed": "00:05:08.83"
     }
+  },
+  "developmentDelivery": {
+    "revision": "c3f703531b05a0be2ee0cda51b5780d30ce53036",
+    "previous": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
+    "status": "pushed-fast-forward-not-hosted-accepted",
+    "scope": "Accepted warning implementation/inventories/classifier and compact evidence only. Broader billing52a10f98 excluded.",
+    "web4": {
+      "id": "0095aaa6-861b-45d2-86aa-ef5426c1da78",
+      "status": "QUEUED",
+      "source": "c3f703531b05a0be2ee0cda51b5780d30ce53036"
+    },
+    "previousRunningSource": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
+    "remaining": "Confirm actual successful Railway revision/startup and hosted acceptance without shared Atlas/PIPER data tests."
   }
 }

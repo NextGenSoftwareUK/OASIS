@@ -1,0 +1,27 @@
+{
+  "status": "verified-source-ready-for-fast-forward-integration-not-hosted-accepted",
+  "base": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
+  "source": "d68b635b0a56fa96de1075c627b2261213870f56",
+  "nativeBrowser": {
+    "run": 44990168013,
+    "job": 137109268095,
+    "candidate": "6de38f50ddef025703b0fb2c618905570e553106",
+    "proof": "Actual SDK/fragment/button controlled-recipient submission, repeat already accepted, one native real provider acknowledgement, unchanged avatar/quota; all eight shipping warning files identical in source."
+  },
+  "currentComposition": {
+    "run": 44991621000,
+    "job": 137113721234,
+    "result": "success",
+    "buildElapsed": "00:05:08.83",
+    "managerMethods": 933,
+    "controllerActions": 832,
+    "scope": "Actual WEB4 build plus required inventory/classifier/pin gates; no native replay."
+  },
+  "cleanup": "Both temporary CI secrets deleted/GET404 verified; native DB/tempDNA/container/browser runtime/cache absence verified. No local build/environment.",
+  "scope": "Explicit consent-checked warning POST, read-only alert GET, durable immutable event and acknowledged Resend SDK path; current CQL graph and worker/DNA settings preserved.",
+  "remaining": [
+    "Railway exact revision/startup and hosted warning acceptance.",
+    "Full subscriptions/Stripe and all-OPORTAL acceptance.",
+    "Broader billing restoration52a10f98 remains separate/unverified and is excluded."
+  ]
+}
