@@ -1,5 +1,5 @@
 {
-  "status": "Actor-scoped read API and real dependency readers implemented; compile/native/Stripe/browser/deployed acceptance pending; permanent deletion still unfinished",
+  "status": "Actor-scoped dependency HTTP/native read accepted at representative isolated scope; billing admission source implemented and qualifying. Permanent deletion and hosted/Stripe/browser acceptance remain incomplete.",
   "implemented": [
     "One native Mongo snapshot of stored subscription, owned apps, unsettled usage, unbilled overages and unresolved statements",
     "Canonical Stripe subscription/customer ownership and open invoice read through real existing SDK/configuration",
@@ -9,18 +9,25 @@
     "Operational failure is explicit and logs exception type only; no credential or remote error response exposed"
   ],
   "limits": [
-    "This is an informational snapshot, not authorization to delete",
-    "Admission must be linearized and prerequisites revalidated at actual closure",
-    "Cancellation, app ownership handling, identity/profile and private-data deletion orchestration/UI remain unfinished",
-    "Canonical customer/open checkout and renewal race handling still needed before closure",
-    "Checkout sessions created before any stored customer identity require durable checkout-intent accounting before complete closure admission",
-    "Not yet wired in Portal: endpoint must first pass source/build/native gate and be present in deployed canonical spec; do not break endpoint-drift build gate"
+    "Dependency assessment remains informational, not permission to delete.",
+    "Billing admission now linearizes local subscription/checkout/ownership/usage gate; native acceptance pending45081933164.",
+    "Canonical real Stripe customer/subscription/open invoice/open checkout checks implemented but unverified against Stripe in current scope.",
+    "Durable checkout intent and atomic account reservation implemented and scoped native proof retained; Stripe create/resume/cancel/expiry journey remains pending.",
+    "Identity/profile/private-data/provider-replica erasure orchestration and authenticated permanent-deletion UI remain unfinished.",
+    "Source must preserve newer shared Development and pass required acceptance/rollout gates before portal delete control is enabled."
   ],
   "cleanup": "Source only. No Stripe requests, database reads/writes, local build/download/env or test outputs.",
   "preparedVerification": "One actual HTTP assessment uses the existing owned Mongo/global-session fixture, expects owned application and empty billing flags, and unchanged native avatar version. No Stripe credential needed or called in that case; no accepted cohorts replayed.",
   "sharedReview": {
-    "Development": "9452340f0c6",
+    "Development": "b82e1fa55a521c22f5110cb7cbd1fd4599040ebb",
     "peer": "Latest physical COSMIC status reviewed; own lifecycle source remains unverified and excluded from peer runtime batches",
     "action": "Preserve newer Core/CQL/WEB6 refs when composing deployable source; current frozen session run not a Development deployment"
+  },
+  "representativeEvidence": {
+    "run": 45080960598,
+    "job": 137388797973,
+    "build": "0errors5m39.70",
+    "marker": "ACCOUNT_DEPENDENCY_NATIVE_PROOF",
+    "scope": "Real actor-bound controller and owned Mongo snapshot, owned-app flag, unresolved customerless checkout detection and terminal journal closure. No Stripe requests or full closure claim."
   }
 }
