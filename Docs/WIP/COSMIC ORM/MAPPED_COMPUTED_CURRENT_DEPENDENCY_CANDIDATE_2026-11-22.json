@@ -14,7 +14,7 @@
     "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.NativeProjection.cs"
   ],
   "compiled": true,
-  "deployed": false,
+  "deployed": true,
   "nativeEvidenceRetained": true,
   "compositionPhase": "accepted",
   "goalComplete": false,
@@ -106,9 +106,9 @@
   "priorObservedWeb4Deployment": "752fff53-97b6-4145-b583-f03ee7b638c6",
   "developmentPushed": true,
   "developmentPushedAt": "2026-11-22T13:38:55.500621+00:00",
-  "liveAccepted": false,
+  "liveAccepted": true,
   "deployment": "e5d72385-ddfc-4cdb-a3fe-836c1540e0aa",
-  "deploymentStatus": "QUEUED",
+  "deploymentStatus": "SUCCESS",
   "deploymentCommit": "863bdc7de586be91c1ef2f053c3b30de43b2fd72",
   "nativeAccepted": true,
   "nativeEvidence": [
@@ -213,5 +213,7 @@
     }
   ],
   "nativeSourceEquivalentTo": "c25ce0b7ac7d6b1de734e31d7bbc2c706de7c384",
-  "nativeCoreUnchanged": true
+  "nativeCoreUnchanged": true,
+  "liveAcceptanceScope": "Owned full+virtual computed HTTP rows on MongoDB/SQLite/Neo4j; not browser or WEB6",
+  "hostedProof": "mapped-computed-current-hosted-acceptance.json"
 }
