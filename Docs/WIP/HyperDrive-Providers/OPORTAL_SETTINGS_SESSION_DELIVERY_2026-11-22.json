@@ -1,0 +1,38 @@
+{
+  "status": "accepted-session-source-composed-current-build-and-inventory-open",
+  "core": {
+    "base": "fb6133609f45ec3ccb9d3a3a1ee01ffa9b6f01eb",
+    "candidate": "e990c6e4dbc6b130011391bfab39d78d32b93bc6",
+    "tag": "qualification/session-current-2026-11-22-e990c6e4",
+    "paths": [
+      "Managers/AvatarManager/AvatarManager-Session.cs",
+      "Objects/Avatar/AvatarSessionManagement.cs"
+    ],
+    "donor": "c268e5002f3fe0a86180bd329111596cf199ab25"
+  },
+  "retainedProof": {
+    "run": 44977175851,
+    "job": 137069568377,
+    "scope": "Actual MVC/native persisted refresh generations, stable one-way IDs, no raw tokens/invented device/location, foreign refusal and unchanged avatar."
+  },
+  "sourceGap": "Current Development still has demo session list and six duplicate AvatarAdmin session routes. Portal strict count checks cannot treat those as accepted real records.",
+  "limits": [
+    "Only persisted refresh credential read generations, not physical device sessions.",
+    "Stats/create/update/selected/all revocation remain unfinished; disabled Settings mutations stay disabled.",
+    "Current combined inventory/build and hosted Settings acceptance remain open; no accepted behavior replay planned."
+  ],
+  "cleanup": "One temporary index/lock removed in finally; physical Core checkout unchanged.",
+  "root": {
+    "base": "64a04f7b2a1e8a7640ca199d62ffc9638538cac1",
+    "candidate": "08fbfda9d3bad02d8196b8dedb56695bce8a7448",
+    "tag": "qualification/session-delivery-2026-11-22-08fbfda9",
+    "paths": [
+      "Docker/oasis-dependency-versions.env",
+      "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarAdminController.cs"
+    ],
+    "status": "source-only-awaiting-billing-native-result-and-inventory-build",
+    "preservation": "Only exact previously tested AvatarAdmin duplicate-route removal plus accepted session reader/DTO and paired Core pin; all current CQL/billing/warning source retained. No DNA/worker/settings changes.",
+    "remaining": "Await original billing44994656993; then review updated inventories and build combined graph. No unchanged session/MFA/provider replay."
+  }
+}
