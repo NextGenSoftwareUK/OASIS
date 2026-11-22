@@ -23,11 +23,11 @@ Current image candidate **c25ce0b7ac7d6b1de734e31d7bbc2c706de7c384** / **Corebab
 
 [Mapped API45002198772](MAPPED_COMPUTED_WIRE_ACCEPTANCE_2026-11-22.json) passed3controls/build. [Combined session/mapped45009513105](MAPPED_COMPUTED_CURRENT_COMPOSITION_ACCEPTANCE_2026-11-22.json) passed3controls plus actual WEB4/WEB5 for5b489985/Core1d627b36; exact TRX/source stamp verified. Earlier45005838375 remains accepted forfbcb99a9/Core5240d3bd.
 
-Because current dependency pins changed, exact-source compile **45014425835** is **queued** for candidatec25ce0b7/Corebabf7b82 (workflow control6f609a0e). Its dispatch was acknowledged once; do not replay. This is a dependency-graph build, not a repeat of accepted provider journeys. Exact image/package, Development rollout and hosted mixed acceptance remain open.
+Because current dependency pins changed, exact-source compile **45014425835** is **queued** for candidatec25ce0b7/Corebabf7b82 (workflow control6f609a0e). Its dispatch was acknowledged once; do not replay. This is a dependency-graph build, not a repeat of accepted provider journeys. Exact image producer **45014821002** is also **queued** for the same immutable candidatec25ce0b7; it runs alongside compilation to shorten the critical path. Both gates plus exact package acceptance are required before Development. Producer intent is durable in mapped-computed-image-handoff.json; never dispatch it again. No image/package or rollout acceptance yet.
 
 Release gates:
 1. Accept the current exact compile artifact/source stamp; preserve all three native proofs.
-2. Produce and qualify one exact five-reader image/package.
+2. In parallel, produce the exact five-reader image; qualify its immutable package once the image is available. Both compile and package must pass before integration.
 3. Freshly review shared Development/peer source and integrate a scoped verified batch.
 4. Observe required rollouts/running source, then execute the bounded owned full/virtual live check.
 
