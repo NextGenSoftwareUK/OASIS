@@ -24,6 +24,7 @@ public class CosmicProjectionExecutorTests
         public CosmicProjectionCapabilities ProjectionCapabilities { get; set; } = Names;
         public CosmicProjectionRow[] Data = { new("coffee") };
         public bool Loaded = true;
+        public bool Warning;
         public int Calls;
         public Action? DuringRead;
         public Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteCosmicProjectionAsync<T, TResult>(CosmicProjectionPlan<T, TResult> plan,
@@ -31,7 +32,7 @@ public class CosmicProjectionExecutorTests
             CancellationToken cancellationToken = default) where T : IHolon
         {
             Calls++; DuringRead?.Invoke();
-            return Task.FromResult(new OASISResult<IReadOnlyList<CosmicProjectionRow>>(Data) { IsLoaded = Loaded });
+            return Task.FromResult(new OASISResult<IReadOnlyList<CosmicProjectionRow>>(Data) { IsLoaded = Loaded, IsWarning = Warning });
         }
     }
     public class Snapshot
@@ -67,6 +68,18 @@ public class CosmicProjectionExecutorTests
         var result = await CosmicProjectionExecutor.ExecuteAsync(Plan(first.QueryProviderType, second.QueryProviderType), new[] { first, second });
         Assert.True(result.IsError); Assert.Null(result.Result); Assert.False(result.IsLoaded);
         Assert.Equal(0, Snapshot.Calls); Assert.Equal(1, first.Calls); Assert.Equal(1, second.Calls);
+    }
+
+    [Fact]
+    public async Task WarningPacketCannotPublishOrConstructDto()
+    {
+        var first = new Projection(ProviderType.MongoDBOASIS) { Warning = true };
+        var second = new Projection(ProviderType.Neo4jOASIS);
+        Snapshot.Calls = 0;
+        var result = await CosmicProjectionExecutor.ExecuteAsync(Plan(first.QueryProviderType, second.QueryProviderType), new[] { first, second });
+        Assert.Equal("CQL_PROVIDER_RESULT_INVALID", result.ErrorCode);
+        Assert.True(result.IsError); Assert.Null(result.Result); Assert.False(result.IsLoaded);
+        Assert.Equal(1, first.Calls); Assert.Equal(0, second.Calls); Assert.Equal(0, Snapshot.Calls);
     }
 
     [Fact]
