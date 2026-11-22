@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson.Serialization.Attributes;
@@ -14,10 +15,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public bool Enabled { get; set; }
         public decimal MonthlyCapUsd { get; set; }
         public string PricingVersion { get; set; }
+        public string PricingSha256 { get; set; }
+        public string Currency { get; set; }
+        [BsonRepresentation(MongoDB.Bson.BsonType.Decimal128)] public decimal RatePerRequestUsd { get; set; }
+        public string ConsentId { get; set; }
+        public int ConsentSchemaVersion { get; set; }
         public DateTime? ConsentAtUtc { get; set; }
         public string ConsentBy { get; set; }
         /// <summary>The owner avatar whose verified Stripe account is invoiced for this app's overage.</summary>
         public string BillingAvatarId { get; set; }
+        public string VerifiedStripeCustomerId { get; set; }
+        public string VerifiedStripeSubscriptionId { get; set; }
+        public long BillingAuthorizationVersion { get; set; }
+        public DateTime? PaymentVerifiedAtUtc { get; set; }
+
+        public AppPaygSettings Copy() => (AppPaygSettings)MemberwiseClone();
+        public AppPaygSettings Redacted()
+        {
+            var copy = Copy();
+            copy.VerifiedStripeCustomerId = null;
+            copy.VerifiedStripeSubscriptionId = null;
+            return copy;
+        }
     }
 
     /// <summary>
@@ -34,6 +53,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public string PlanId { get; set; }
         /// <summary>active or disabled.</summary>
         public string Status { get; set; }
+        /// <summary>Linearizes app consent and billable admission with concurrent app changes.</summary>
+        public long AuthorizationVersion { get; set; }
+        public bool AppOveragePaymentBlocked { get; set; }
         /// <summary>SHA-256 of the key. The key itself is shown once, when created or rotated, and never stored.</summary>
         public string KeyHashSha256 { get; set; }
         public string KeyPrefix { get; set; }
@@ -48,7 +70,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public string PerUserPlanId { get; set; }
         /// <summary>Avatars allowed to open the owner usage view of ONLY this app (administrator-set, audited).</summary>
         public List<string> OwnerAvatarIds { get; set; } = new List<string>();
-        /// <summary>Pay-as-you-go preference of this app pool. Settings only: nothing is charged.</summary>
+        /// <summary>Preferences for future app request overages; each reservation retains its own immutable accepted terms.</summary>
         public AppPaygSettings Payg { get; set; }
         /// <summary>This app's own on/off choices that override the node defaults (null = follow the default).</summary>
         public AppUsageOverrides Overrides { get; set; }
@@ -58,21 +80,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         {
             var copy = (AppAccountRecord)MemberwiseClone();
             copy.KeyHashSha256 = null;
+            copy.Payg = Payg?.Redacted();
             return copy;
         }
     }
 
     public sealed class AppUsageOverrides
     {
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public bool? OwnerViewEnabled { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public bool? WarningsEnabled { get; set; }
         /// <summary>Record who read this app's holons even when the node default is off (or stop recording when it is on).</summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public bool? AccessLogEnabled { get; set; }
         /// <summary>Seal every version of data saved through this app (tamper-evident history) even when the owner has not; null/false = the app does not require it. Needs HolonSeal.Enabled and a key on the node.</summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public bool? SealedHistoryEnabled { get; set; }
-        /// <summary>Purge earlier saved versions of this app's deleted data after the node's PurgeAfterDays: true = yes, false = never, null = follow the node default. A holon owner's own choice beats it; a legal hold beats both. Needs OASIS.VersionPurge.Enabled on the node.</summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public bool? VersionPurgeEnabled { get; set; }
-        /// <summary>This app's own number of days before purge (0 to 3650; 0 = at deletion). null = follow the node's OASIS.VersionPurge.PurgeAfterDays (default 30). A holon owner's own days beat it.</summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public int? VersionPurgeDays { get; set; }
     }
 
