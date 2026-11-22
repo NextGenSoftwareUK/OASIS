@@ -1,0 +1,21 @@
+{
+  "source": "863bdc7de586be91c1ef2f053c3b30de43b2fd72",
+  "baseDevelopment": "a706143b9502815785940ad24434a684cac53aaa",
+  "priorQualifiedSource": "c25ce0b7ac7d6b1de734e31d7bbc2c706de7c384",
+  "core": "babf7b82936f07d9decff57fac52b08ed527eb35",
+  "preservedOnodeManager": "0cf009958d9bf29664799d70a76f0fb6e596c7ae",
+  "changedPaths": [
+    "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CqlMappedComputedWireTests.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlVirtualProjectionV1Compiler.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.NativeProjection.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.NativeProjection.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.NativeProjection.cs"
+  ],
+  "compiled": false,
+  "deployed": false,
+  "nativeEvidenceRetained": true,
+  "compositionPhase": "prepared_not_dispatched",
+  "goalComplete": false
+}
