@@ -118,6 +118,18 @@
   ],
   "packageRequestedAt": "2026-11-22T14:37:49.841008+00:00",
   "packageRun": 45034075797,
-  "packageStatus": "in_progress",
-  "packageConclusion": null
+  "packageStatus": "completed",
+  "packageConclusion": "success",
+  "packageAccepted": true,
+  "packageArtifact": 14759210057,
+  "packageJob": 137243821018,
+  "developmentPushPhase": "acknowledged",
+  "developmentPushRequestedAt": "2026-11-22T14:41:35.113247+00:00",
+  "developmentPushed": true,
+  "developmentPushedAt": "2026-11-22T14:41:43.221425+00:00",
+  "liveAccepted": false,
+  "web4Deployment": "95b122e3-d65b-4ab0-8cb2-733c36281c6a",
+  "web4DeploymentStatus": "QUEUED",
+  "web6Deployment": "00b75010-9c5e-434c-9798-1c7e17a77e71",
+  "web6DeploymentStatus": "QUEUED"
 }
