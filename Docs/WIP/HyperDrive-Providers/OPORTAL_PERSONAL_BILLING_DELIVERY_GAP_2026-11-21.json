@@ -1037,6 +1037,23 @@
       "credentialValuesPrintedOrCopied": false,
       "ownerAction": "Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md#part-h--isolated-warning-email-provider-verification-21-november-2026",
       "independentWork": "Continue Settings/native session implementation and portal breadth; not whole-goal blocked."
+    },
+    "realProviderRunner": {
+      "mode": "billing-warning-provider",
+      "status": "prepared-uncompiled-unselected-pending-H1",
+      "gate": "Requires explicit isolated enabled flag, dedicated test key/sender, rejects ambient deployment email credentials. Workflow selector not enabled.",
+      "source": "Scripts/TestHosts/HotspotHttpNative/Program.cs",
+      "scope": "Exactly one real pinned SDK submission+identical idempotent replay; require same actual provider ID and native Mongo immutable payload/receipt readback. No artificial successful provider receipt.",
+      "recipient": "Fixed delivered@resend.dev provider-controlled test recipient; simulated delivery event is not real inbox acceptance.",
+      "officialRecipientReference": "https://resend.com/changelog/sending-test-emails",
+      "secretHandling": "Key from isolated environment secret, in-memory DNA only after serialized fixture DNA exists; clear field in finally; no source/file/log credentials.",
+      "excluded": [
+        "real user email",
+        "shared Mongo",
+        "Portal enabled flow",
+        "inbox delivery",
+        "hosted acceptance"
+      ]
     }
   },
   "sharedDevelopmentReview": {

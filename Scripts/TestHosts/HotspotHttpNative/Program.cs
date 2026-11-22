@@ -39,7 +39,7 @@ Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
 var mode = Environment.GetEnvironmentVariable("OASIS_HOTSPOT_HTTP_MODE") ?? "binding";
-Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http", "Unsupported hotspot HTTP check mode.");
+Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider", "Unsupported hotspot HTTP check mode.");
 var dna = new OASISDNA { OASIS = new() {
     HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
         AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
@@ -140,10 +140,10 @@ try
     }
     var builder = WebApplication.CreateBuilder(); builder.Logging.ClearProviders(); builder.WebHost.UseUrls("http://127.0.0.1:0");
     MongoSubscriptionUsageRepository? billingRepository = null;
-    if (mode is "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http")
+    if (mode is "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider")
     {
         billingRepository = new MongoSubscriptionUsageRepository(client, database, TimeProvider.System);
-        if (mode is not ("billing-warning-store" or "billing-warning-http"))
+        if (mode is not ("billing-warning-store" or "billing-warning-http" or "billing-warning-provider"))
         {
             await billingRepository.CreateAppAccountAsync("owned-billing", "Owned billing route fixture", "enterprise",
                 actor.ToString("D"), "Owned isolated fixture", false, null, CancellationToken.None);
@@ -220,7 +220,44 @@ try
         using var result = JsonDocument.Parse(resultText);
         Require(result.RootElement.GetProperty(resultProperty).GetBoolean(), "Owned browser completion marker missing.");
     }
-    if (mode == "billing-warning-http")
+    if (mode == "billing-warning-provider")
+    {
+        Require(Environment.GetEnvironmentVariable("OASIS_WARNING_TEST_RESEND_ENABLED") == "true",
+            "Real provider qualification requires the explicit isolated test gate.");
+        var warningTestKey = Environment.GetEnvironmentVariable("OASIS_WARNING_TEST_RESEND_KEY");
+        var warningSender = Environment.GetEnvironmentVariable("OASIS_WARNING_TEST_EMAIL_FROM");
+        Require(!string.IsNullOrWhiteSpace(warningTestKey) && !string.IsNullOrWhiteSpace(warningSender),
+            "Dedicated warning test credential and configured sender are required.");
+        Require(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("OASIS_RESEND_KEY")) &&
+            string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("RESEND_API_KEY")),
+            "An ambient deployment email credential must not override the dedicated test credential.");
+        const string recipient = "delivered@resend.dev";
+        // Populate only the already-booted in-memory fixture DNA, never its serialized file.
+        dna.OASIS.UsageVisibility = new UsageVisibilitySettings { EmailEnabled = true };
+        dna.OASIS.Email.DisableAllEmails = false;
+        var month = DateTime.UtcNow.ToString("yyyy-MM", System.Globalization.CultureInfo.InvariantCulture);
+        var delivery = await billingRepository!.PrepareWarningEmailAsync("user:" + actor.ToString("D"), month, 80,
+            warningSender, recipient, "OASIS isolated warning qualification", "<p>Isolated OASIS warning submission qualification.</p>");
+        using var providerHttp = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+        var gateway = new UsageWarningEmailGateway(providerHttp, TimeProvider.System);
+        try
+        {
+            dna.OASIS.Email.ResendKey = warningTestKey;
+            var accepted = await gateway.SendAsync(delivery.Email, CancellationToken.None);
+            Require(!accepted.IsError && accepted.IsSaved && accepted.Result != Guid.Empty,
+                "Real email provider did not acknowledge the isolated warning submission.");
+            await billingRepository.AcknowledgeWarningEmailAsync(delivery.Email.EventId, accepted.Result);
+            var replay = await gateway.SendAsync(delivery.Email, CancellationToken.None);
+            Require(!replay.IsError && replay.IsSaved && replay.Result == accepted.Result,
+                "Real provider idempotent replay did not return the original acceptance ID.");
+            var stored = await billingRepository.GetWarningEmailAsync(delivery.Email.EventId);
+            Require(stored != null && stored.ProviderAcknowledgement == accepted.Result && stored.Email == delivery.Email,
+                "Native warning payload/provider acceptance readback differs.");
+            Console.WriteLine("WARNING_PROVIDER_ACCEPTANCE_PROOF: real pinned Resend SDK submitted one owned event to the fixed provider-controlled test recipient; identical replay returned the same actual provider ID and Mongo persisted it. Two bounded API calls, no real recipient, no inbox/delivery-event/Portal/hosted acceptance.");
+        }
+        finally { dna.OASIS.Email.ResendKey = null; }
+    }
+    else if (mode == "billing-warning-http")
     {
         var notifications = client.GetDatabase(database).GetCollection<MongoDB.Bson.BsonDocument>("usage_notification_settings");
         Require(await notifications.CountDocumentsAsync(FilterDefinition<MongoDB.Bson.BsonDocument>.Empty) == 0,
