@@ -25,6 +25,7 @@ def main():
     parser.add_argument("--resume-before-first-save", action="store_true")
     parser.add_argument("--selected-columns", action="store_true")
     parser.add_argument("--text-coalesce", action="store_true")
+    parser.add_argument("--combined-coalescing", action="store_true")
     parser.add_argument("--providers", nargs="+", choices=["MongoDBOASIS","SQLLiteDBOASIS","Neo4jOASIS"],
         default=["MongoDBOASIS","SQLLiteDBOASIS","Neo4jOASIS"])
     parser.add_argument("--fixture-name", default="HostedOwnedProjectedSetCurrent")
@@ -41,7 +42,10 @@ def main():
         parser.error("Use a bounded selected-column fixture name without path separators.")
     if args.selected_columns and args.resume_before_first_save:
         parser.error("Selected-column checks use immutable checkpoints; reconcile an interrupted fixture explicitly.")
-    delivery_name = ("text-coalesce-image-handoff.json" if args.text_coalesce else
+    if args.combined_coalescing and not args.text_coalesce:
+        parser.error("Combined coalescing selects only the qualified coalescing release journal.")
+    delivery_name = ("text-coalesce-combined-image-handoff.json" if args.combined_coalescing else
+        "text-coalesce-image-handoff.json" if args.text_coalesce else
         "projected-set-image-handoff.json" if args.selected_columns else "native-set-image-handoff.json")
     delivery = json.loads((ROOT / "LocalState/COSMIC" / delivery_name).read_text())
     if delivery["source"] != args.commit or delivery.get("packageAccepted") is not True:
