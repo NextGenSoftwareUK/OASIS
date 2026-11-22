@@ -25,7 +25,7 @@
   "imagePhase": "accepted",
   "imageAccepted": true,
   "packageAccepted": true,
-  "deployed": false,
+  "deployed": true,
   "sharedBackendCalls": 0,
   "localBuildOrEnvironment": false,
   "imagePriorRuns": [
@@ -97,64 +97,70 @@
   "developmentPushed": true,
   "developmentPushedAt": "2026-11-22T20:20:24.499421+00:00",
   "observedDevelopmentAfterPush": "4ffc955ea7b656527b2c8b5e1943a8c41017037c",
-  "phase": "development_rollout_pending",
+  "phase": "deployment_and_runtime_verified",
   "liveAccepted": false,
   "web6Deployment": "de6dd56d-819d-45c0-9202-d2a69256cfa1",
-  "web6DeploymentStatus": "BUILDING",
+  "web6DeploymentStatus": "SUCCESS",
   "web7Deployment": "1f101607-5d52-45d9-9522-cb70cc9753db",
-  "web7DeploymentStatus": "QUEUED",
+  "web7DeploymentStatus": "SUCCESS",
   "web9Deployment": "e88d79cc-65d0-4000-a130-9a91743f7c33",
-  "web9DeploymentStatus": "QUEUED",
+  "web9DeploymentStatus": "SUCCESS",
   "web4Deployment": "4130ba24-53b7-4acd-962a-b7b8eea2ef93",
-  "web4DeploymentStatus": "QUEUED",
+  "web4DeploymentStatus": "SUCCESS",
   "web10Deployment": "6e536735-af67-42c0-acfc-2febc4f1fc96",
-  "web10DeploymentStatus": "QUEUED",
+  "web10DeploymentStatus": "SUCCESS",
   "web8Deployment": "6f3d9343-0566-410c-800f-58b3c4326663",
-  "web8DeploymentStatus": "BUILDING",
+  "web8DeploymentStatus": "SUCCESS",
   "web5Deployment": "04489084-27cf-4ced-af9c-108098a95b2d",
-  "web5DeploymentStatus": "BUILDING",
+  "web5DeploymentStatus": "SUCCESS",
   "latestRolloutObservation": {
     "web6": {
       "deployment": "de6dd56d-819d-45c0-9202-d2a69256cfa1",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "source": "4ffc955ea7b656527b2c8b5e1943a8c41017037c",
-      "imageDigest": null
+      "imageDigest": "sha256:7bce4af354d9d8e0b53ba96b25c2f745e85b0772b4bba123f8d68e16c3ec2131"
     },
     "web7": {
       "deployment": "1f101607-5d52-45d9-9522-cb70cc9753db",
-      "status": "QUEUED",
+      "status": "SUCCESS",
       "source": "4ffc955ea7b656527b2c8b5e1943a8c41017037c",
-      "imageDigest": null
+      "imageDigest": "sha256:a8f14ea7e60d142fcb6c8e2fba4517da76f21092dc8935c74a2da3f72af23726"
     },
     "web9": {
       "deployment": "e88d79cc-65d0-4000-a130-9a91743f7c33",
-      "status": "QUEUED",
+      "status": "SUCCESS",
       "source": "4ffc955ea7b656527b2c8b5e1943a8c41017037c",
-      "imageDigest": null
+      "imageDigest": "sha256:f0e41104a14cdc70533c3c0aef7360f36a7f533fe345d7a1113d46f99ba8e879"
     },
     "web4": {
       "deployment": "4130ba24-53b7-4acd-962a-b7b8eea2ef93",
-      "status": "QUEUED",
+      "status": "SUCCESS",
       "source": "4ffc955ea7b656527b2c8b5e1943a8c41017037c",
-      "imageDigest": null
+      "imageDigest": "sha256:429644533d8c162104a87cb733b444f22e3c1a3426fabb508d6256c1f1667b6e"
     },
     "web10": {
       "deployment": "6e536735-af67-42c0-acfc-2febc4f1fc96",
-      "status": "QUEUED",
+      "status": "SUCCESS",
       "source": "4ffc955ea7b656527b2c8b5e1943a8c41017037c",
-      "imageDigest": null
+      "imageDigest": "sha256:7fcb01e17a02297771349cb61ec179ca5f871b5dda97214191d52927577f727d"
     },
     "web8": {
       "deployment": "6f3d9343-0566-410c-800f-58b3c4326663",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "source": "4ffc955ea7b656527b2c8b5e1943a8c41017037c",
-      "imageDigest": null
+      "imageDigest": "sha256:6ead1413ac730091ba5448e9f0444565cfddaebfb1cdb39c70918b4d4cd60273"
     },
     "web5": {
       "deployment": "04489084-27cf-4ced-af9c-108098a95b2d",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "source": "4ffc955ea7b656527b2c8b5e1943a8c41017037c",
-      "imageDigest": null
+      "imageDigest": "sha256:44ffeb8f1a605e0babbd707d7c6b71e94f3b96d74ae4a4155e1d3c48072afee9"
     }
-  }
+  },
+  "deploymentAccepted": true,
+  "runtimeSettingsAccepted": true,
+  "allSevenDevelopmentDeploymentsSucceeded": true,
+  "customerCollectionQueriesExecuted": false,
+  "realPiperBusinessAccountAcceptance": false,
+  "liveRuntimeProof": "NATIVE_GROUPING_DEVELOPMENT_ACCEPTANCE_2026-11-22.json"
 }
