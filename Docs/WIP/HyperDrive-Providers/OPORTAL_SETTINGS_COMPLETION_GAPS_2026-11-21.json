@@ -258,9 +258,17 @@
       },
       "host": "Actual BCrypt-hashed verified fixture actor, actual MfaService/MongoMfaStore injected supported clock, shipped MfaGate installed/restored finally, actual controller POSTs; fixture signing key matches Core issuance encoding. No deployment/source DNA flags changed.",
       "managementUi": {
-        "commit": "OPORTAL dev95f8069",
+        "commit": "OPORTAL dev7aa464e",
         "status": "prepared-entry-disabled",
-        "scope": "Actual enrol/confirm/recovery replacement/disable request handlers, manual key and one-time recovery rendering, pending/version/token guards and tab/logout clearing. Syntax/cache checked; generic-close secret clearing and browser acceptance still required."
+        "scope": "Actual enrol/confirm/recovery replacement/disable request handlers, manual key and one-time recovery rendering, pending/version/token guards and tab/logout clearing. Syntax/cache checked; generic-close secret clearing and browser acceptance still required.",
+        "lifecycle": "Setup/recovery/code DOM clears on explicit/tab/logout and generic modal close; pending Security work invalidated. Entry disabled; no browser acceptance."
+      },
+      "diagnosticRun": {
+        "id": 44979088900,
+        "control": "8d58c26eeba590069bcc1536d7fa037b1173af71",
+        "candidate": "e5aa77161465fa6c683746bac49ea647dd7adeb0",
+        "status": "in_progress",
+        "scope": "Same unfinished MFA HTTP cohort; exception/base/runtime avatar types and8stack method identities only, no message/body/credentials."
       }
     }
   },
