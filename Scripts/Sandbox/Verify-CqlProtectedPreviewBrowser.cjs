@@ -12,8 +12,9 @@ function validateRead(query){
   const body=query?.body,allowed=new Set(['provider','filters','orderBy','skip','take','includeMetadata','maximumDurationMilliseconds']);
   if(query?.path!=='data/query-cql'||body?.provider!==provider||Object.keys(body).some(k=>!allowed.has(k))||
       body.orderBy!=='None'||body.skip!==0||body.includeMetadata!==true||
-      body.maximumDurationMilliseconds!==undefined&&(!Number.isInteger(body.maximumDurationMilliseconds)||body.maximumDurationMilliseconds<1||body.maximumDurationMilliseconds>30000)||!Number.isInteger(body.take)||body.take<1||body.take>10||
+      body.maximumDurationMilliseconds!==undefined&&(!Number.isInteger(body.maximumDurationMilliseconds)||body.maximumDurationMilliseconds<1||body.maximumDurationMilliseconds>30000)||!Number.isInteger(body.take)||body.take<1||body.take>100||
       !Array.isArray(body.filters)||body.filters.length!==1)throw Error('Public reader scope changed');
+  // The host example may declare a25/100-row output window; exact GUID keys independently bound data to five rows.
   const filter=body.filters[0];
   const ids=filter.operator==='Equal'?[filter.value]:filter.operator==='In'?filter.value:null;
   if(filter.field!=='Id'||filter.scalar!=='Guid'||Object.keys(filter).some(k=>!['field','scalar','operator','value'].includes(k))||
