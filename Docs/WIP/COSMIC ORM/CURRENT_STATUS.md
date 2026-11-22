@@ -59,6 +59,7 @@ Delivery order:
 Preserve the entire real SDK/client/API provider programme and priorities: HoloOASIS, Solana, Ethereum, Polygon, Arbitrum, Near, EOS, SOLID, IPFS, ActivityPub, Cosmos, Polkadot, TON, TRON and Hedera, plus Supabase priority and remaining popular providers. LocalFile is already scoped/done and is not a current priority.
 
 Open examples:
+- Next major query-family investigation: standalone GroupJoin collections. Current LINQ capture refuses materialization; the native packet has no whole-left entity contract. Extend native transport, validation and the three shipping providers, then preserve each left identity/order, complete ordered right collections, empty groups, permissions and group-level paging. This is an identified implementation gap, not a completed feature or new deployment gate.
 - General CASE predicates, multiple WHEN/numeric branches, broader computed expressions and ORM/model/session/transaction families; Q55 stays incomplete.
 - Broader selected-set tuples/domains and nested composition. Existing scalar/entity set proofs remain valid.
 - Real WEB6 inference through reviewed SQL to WEB4 results, rendered browser acceptance and public website delivery. Deferred model/account actions stay in the owner list; do not repeat expired sign-in/grant requests.
