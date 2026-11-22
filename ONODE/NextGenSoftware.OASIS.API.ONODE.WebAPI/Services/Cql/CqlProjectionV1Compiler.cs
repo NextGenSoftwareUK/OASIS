@@ -130,6 +130,18 @@ public static partial class CqlV1Compiler
         }
     }
 
+    private sealed class TextCoalesceSelectionConsumer<TResult>(ISelectionConsumer<TResult> consumer,string replacement)
+        :ISelectionConsumer<TResult>
+    {
+        public TResult Bind<TValue>(string alias,Expression<Func<Holon,TValue>> selector)
+        {
+            if(typeof(TValue)!=typeof(string))
+                throw new ArgumentException("Text coalescing requires an exact String input.");
+            return consumer.Bind(alias,Expression.Lambda<Func<Holon,string>>(
+                Expression.Coalesce(selector.Body,Expression.Constant(replacement,typeof(string))),selector.Parameters));
+        }
+    }
+
     private sealed class ProjectionSelectionConsumer : ISelectionConsumer<CosmicProjectionSelection<Holon>>
     {
         public CosmicProjectionSelection<Holon> Bind<TValue>(string alias, Expression<Func<Holon, TValue>> selector)
@@ -146,6 +158,18 @@ public static partial class CqlV1Compiler
         if (column == null) throw new ArgumentException("A column is required.");
         ValidateSelectionAlias(column.Alias);
         var alias = column.Alias;
+        if(column.Function!=CqlV1Function.TextCoalesce && column.NullReplacement!=null)
+            throw new ArgumentException("Only text coalescing accepts a replacement.");
+        if(column.Function==CqlV1Function.TextCoalesce)
+        {
+            if(column.NullReplacement==null || column.NullReplacement.Length>512)
+                throw new ArgumentException("Text coalescing needs a literal replacement of at most512 characters.");
+            var input=new CqlProjectionV1Column {
+                Alias=column.Alias,Field=column.Field,MetadataPath=column.MetadataPath,
+                ValueType=column.ValueType,Nullable=column.MetadataPath==null?null:true
+            };
+            return CompileSelection(input,new TextCoalesceSelectionConsumer<TResult>(consumer,column.NullReplacement));
+        }
         if (column.Function.HasValue)
         {
             if (column.Function != CqlV1Function.Utf16Length)

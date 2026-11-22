@@ -240,7 +240,20 @@ internal static class CqlRequestCapture
         if(columns.Length==0)throw new ArgumentException("Selected indexed intent requires at least one column.");
         return Array(columns,32,column=>column==null?throw new ArgumentException("Missing selected column."):
             new CqlProjectionV1Column{Alias=column.Alias,Field=column.Field,ValueType=column.ValueType,Nullable=column.Nullable,Function=column.Function,
+                NullReplacement=CaptureTextReplacement(column),
                 MetadataPath=column.MetadataPath==null?null:Array(column.MetadataPath,8,item=>item)});
+    }
+
+    private static string CaptureTextReplacement(CqlProjectionV1Column column)
+    {
+        if(column.Function==CqlV1Function.TextCoalesce)
+        {
+            if(column.NullReplacement==null || column.NullReplacement.Length>512)
+                throw new ArgumentException("Text coalescing needs a literal replacement of at most512 characters.");
+        }
+        else if(column.NullReplacement!=null)
+            throw new ArgumentException("Only text coalescing accepts a replacement.");
+        return column.NullReplacement;
     }
 
     private static TOutput[] Array<TInput, TOutput>(TInput[] values, int maximum, Func<TInput, TOutput> copy)
