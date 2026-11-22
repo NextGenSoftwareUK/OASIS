@@ -37,11 +37,11 @@ public partial class Neo4jOASIS
         return expected;
     }
 
-    private static async Task ArchiveRecordVersionAsync(IAsyncTransaction transaction,string kind,IHolonBase stored)
+    private static async Task ArchiveRecordVersionAsync(IAsyncTransaction transaction,string kind,IHolonBase stored,string nativeSnapshot=null)
     {
         var archived=await (await transaction.RunAsync("MERGE (v:OasisRecordVersion {Kind:$kind,RecordId:$id,Version:$version}) "
             + "ON CREATE SET v.SnapshotJson=$snapshot WITH v WHERE v.SnapshotJson=$snapshot RETURN v",
-            new{kind,id=stored.Id.ToString(),version=stored.Version,snapshot=OasisJson.Serialize(stored)})).ToListAsync();
+            new{kind,id=stored.Id.ToString(),version=stored.Version,snapshot=nativeSnapshot??OasisJson.Serialize(stored)})).ToListAsync();
         if(archived.Count!=1)throw new StorageLifecycleConflictException("Neo4j archived record version conflicts with its original snapshot.");
     }
 

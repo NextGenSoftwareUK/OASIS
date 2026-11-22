@@ -22,7 +22,13 @@ function Normalize([string]$value) {
     return ([regex]::Replace($value, '\s+', ' ')).Trim()
 }
 
-function Get-Disposition([string]$body, [string]$methodName, [string]$controllerName, [string[]]$injectedMembers = @()) {
+function Get-ModeAwareManagerMembers([string]$source) {
+    @([regex]::Matches($source,
+        '(?m)^\s*(?:private|protected|internal|public)\s+(?:(?:readonly|static|virtual|override|new)\s+)*(?:[A-Za-z_]\w*\.)*(?:AvatarManager|HolonManager|SearchManager|WalletManager)\??\s+(?<name>[A-Za-z_]\w*)\s*(?:;|=|\{|=>)') |
+        ForEach-Object { $_.Groups['name'].Value } | Sort-Object -Unique)
+}
+
+function Get-Disposition([string]$body, [string]$methodName, [string]$controllerName, [string[]]$injectedMembers = @(), [string[]]$modeAwareMembers = @()) {
     # Route actions use the lazily acquired Data manager and the owned batch-write boundary.
     if ($controllerName -eq 'MapRoutesController') { return 'DirectModeAwareManagerBoundary' }
     if ($controllerName -in @('HyperDriveController', 'HyperDriveSyncController', 'ProviderController')) {
@@ -39,6 +45,11 @@ function Get-Disposition([string]$body, [string]$methodName, [string]$controller
     }
     if ($body -match '\b[A-Za-z_][A-Za-z0-9_]*Manager(?:Base)?\b') {
         return 'CoveredFeatureManagerDelegation'
+    }
+    foreach ($member in $modeAwareMembers) {
+        if ($body -match ('(?<![A-Za-z0-9_])' + [regex]::Escape($member) + '\s*\.')) {
+            return 'DirectModeAwareManagerBoundary'
+        }
     }
     if ($body -match '\[FromServices\]' -or $body -match '\b_[a-zA-Z0-9_]*(?:Service|Repository|Client)\b') {
         return 'InjectedServiceRepositoryOrClient'
@@ -65,6 +76,7 @@ $rows = foreach ($file in Get-ChildItem -LiteralPath $controllerRoot -Recurse -F
     $injectedMembers = @([regex]::Matches(($lines -join "`n"),
         '(?m)^\s*(?:private|protected|internal|public)\s+(?:(?:readonly|static)\s+)*[A-Za-z_][\w.]*(?:Service|Repository|Client)\??\s+(?<name>_[A-Za-z_]\w*)\s*[;=]') |
         ForEach-Object { $_.Groups['name'].Value } | Sort-Object -Unique)
+    $modeAwareMembers = @(Get-ModeAwareManagerMembers ($lines -join "`n"))
     $relative = $file.FullName.Substring($repoRoot.Length + 1).Replace('\', '/')
     $className = ''
     for ($classIndex = 0; $classIndex -lt $lines.Count; $classIndex++) {
@@ -98,7 +110,7 @@ $rows = foreach ($file in Get-ChildItem -LiteralPath $controllerRoot -Recurse -F
         $next = $cursor + 1
         while ($next -lt $lines.Count -and $lines[$next] -notmatch '^\s*\[Http(?:Get|Post|Put|Patch|Delete)') { $next++ }
         $body = ($lines[$bodyStart..([Math]::Max($bodyStart, $next - 1))] -join "`n")
-        $disposition = Get-Disposition $body $methodName $className $injectedMembers
+        $disposition = Get-Disposition $body $methodName $className $injectedMembers $modeAwareMembers
         [pscustomobject]@{
             SourceFile = $relative
             Line = $attributeLine
