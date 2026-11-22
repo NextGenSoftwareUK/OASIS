@@ -1,0 +1,15 @@
+{
+  "status": "Account deletion prerequisite-reader implementation only; uncompiled/unrun/unwired/undeployed",
+  "implemented": [
+    "One native Mongo snapshot of stored subscription, owned apps, unsettled usage, unbilled overages and unresolved statements",
+    "Canonical Stripe subscription/customer ownership and open invoice read through real existing SDK/configuration",
+    "Customer-only accounts still checked for open invoices; local cancelled status never substitutes for canonical Stripe state"
+  ],
+  "limits": [
+    "This is an informational snapshot, not authorization to delete",
+    "Admission must be linearized and prerequisites revalidated at actual closure",
+    "Cancellation, app ownership handling, identity/profile and private-data deletion orchestration/UI remain unfinished",
+    "Canonical customer/open checkout and renewal race handling still needed before closure"
+  ],
+  "cleanup": "Source only. No Stripe requests, database reads/writes, local build/download/env or test outputs."
+}
