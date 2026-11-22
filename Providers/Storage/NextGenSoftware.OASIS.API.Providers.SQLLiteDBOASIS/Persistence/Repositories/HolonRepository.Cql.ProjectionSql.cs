@@ -25,12 +25,15 @@ public partial class HolonRepository
                 return ("CASE WHEN ("+conditional.State+")=2 THEN 2 ELSE 3 END",
                     "CASE WHEN ("+conditional.State+")=2 THEN CASE WHEN ("+conditional.Value+")=1 THEN "+whenTrue+" ELSE "+whenFalse+" END ELSE NULL END");
             }
-            if (column.Function == CosmicProjectionFunction.TextCoalesce)
+            if ((column.Function == CosmicProjectionFunction.TextCoalesce || column.Function == CosmicProjectionFunction.Int32Coalesce))
             {
-                if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(string) || column.NullReplacement == null)
-                    throw new NotSupportedException("Native text coalescing requires an exact string input and captured replacement.");
+                var coalesceIsText=column.Function==CosmicProjectionFunction.TextCoalesce;
+              if(coalesceIsText
+                  ? column.Path.ValueType!=typeof(string) || column.ValueType!=typeof(string) || column.NullReplacement==null
+                  : column.Path.ValueType!=typeof(int?) || column.ValueType!=typeof(int) || !column.Int32Replacement.HasValue)
+                    throw new NotSupportedException("Native coalescing requires exact source and captured replacement domains.");
                 var input=ProjectionOperand(column.Path,prefix,comparable);
-                var replacement=Bind(column.NullReplacement);
+                var replacement=(coalesceIsText ? Bind(column.NullReplacement) : Bind(column.Int32Replacement.Value));
                 return ("CASE WHEN ("+input.State+") IN (0,1) THEN 2 ELSE ("+input.State+") END",
                     "CASE WHEN ("+input.State+") IN (0,1) THEN "+replacement+" ELSE ("+input.Value+") END");
             }

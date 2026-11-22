@@ -27,6 +27,10 @@ The physical checkout contains unrelated concurrent changes: use the established
 - Prepared hosted verifier: `Scripts/Sandbox/Verify-HostedOwnedNativeSets.py`, explicit `--selected-columns --boolean-text-case --boolean-metadata-case`, fresh bounded fixture name and exact source/website/deployment. Requires its own accepted release journal, unique ready source descriptions before writes, immutable checkpoints and exact cleanup. Not executed for conditional metadata yet.
 - Durable private journals under `LocalState/COSMIC`: `boolean-metadata-case-*.json`, `boolean-text-case-image-handoff.json`, `text-coalesce-combined-image-handoff.json`. Preserve unknown-outcome journals; never replay a dispatch, create, delete or session issuance blindly.
 
+## Next source-only breadth work
+
+Nullable Int32 coalescing captured in Core703310f2 and implemented in the three native translators through the existing coalesced-cell owner. No transport/SQL/native qualification or deployment acceptance yet; do not include this successor in the frozen01de release.
+
 ## Full scope and remaining gaps
 
 Full EF/NHibernate parity remains incomplete: **61/168 feature rows plus4/13 separate extensions**. Representative feature checks are not full parity or hardened coverage. [Checklist](CQL_PARITY_CHECKLIST.md).

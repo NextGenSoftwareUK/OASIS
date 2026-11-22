@@ -101,15 +101,18 @@ internal sealed partial class MongoCqlTranslator
                 {"v",Choose(valid,Choose(Op("$eq","$$"+conditionalName+".v",Literal(true)),Literal(column.WhenTrue),Literal(column.WhenFalse)),BsonNull.Value)}
             });
         }
-        if (column.Function == CosmicProjectionFunction.TextCoalesce)
+        if ((column.Function == CosmicProjectionFunction.TextCoalesce || column.Function == CosmicProjectionFunction.Int32Coalesce))
         {
-            if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(string) || column.NullReplacement == null)
-                throw new NotSupportedException("Native text coalescing requires an exact string input and captured replacement.");
+            var coalesceIsText=column.Function==CosmicProjectionFunction.TextCoalesce;
+              if(coalesceIsText
+                  ? column.Path.ValueType!=typeof(string) || column.ValueType!=typeof(string) || column.NullReplacement==null
+                  : column.Path.ValueType!=typeof(int?) || column.ValueType!=typeof(int) || !column.Int32Replacement.HasValue)
+                throw new NotSupportedException("Native coalescing requires exact source and captured replacement domains.");
             var coalesced = prefix + "coalescedText";
             var absent = Op("$lte", "$$" + coalesced + ".s", Literal(1));
             return SingleLet(coalesced,ProjectionCell(column.Path,prefix+"source"),new BsonDocument {
                 {"s",Choose(absent,Literal(2),"$$"+coalesced+".s")},
-                {"v",Choose(absent,Literal(column.NullReplacement),"$$"+coalesced+".v")}
+                {"v",Choose(absent,(coalesceIsText ? Literal(column.NullReplacement) : Literal(column.Int32Replacement.Value)),"$$"+coalesced+".v")}
             });
         }
         if (column.Function != CosmicProjectionFunction.Utf16Length ||
