@@ -1,15 +1,16 @@
 {
   "scope": "billing",
-  "status": "current CQL composition source only; source inventory next",
+  "status": "source inventory accepted; current native validation next",
   "base": "09d61416ea4ed2926bf044e211fc73502ab4adbe",
-  "candidate": "3c51c3a259d3a1235c4a2c196b390f618295544b",
-  "tag": "qualification/session-validation-current-2026-11-22-3c51c3a2",
+  "candidate": "78af78ee6e09dc940022204856999230835d2a18",
+  "tag": "qualification/session-validation-inventory-2026-11-22-78af78ee",
   "buildProjects": [
     "WEB4",
     "WEB5"
   ],
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
     "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
   ],
   "core": {

@@ -17,16 +17,17 @@
   "previousCandidate": "76a51228b29f6af7b822717b79bdd3321b0c52bd",
   "rootCandidate": {
     "scope": "billing",
-    "status": "current CQL composition source only; source inventory next",
+    "status": "source inventory accepted; current native validation next",
     "base": "09d61416ea4ed2926bf044e211fc73502ab4adbe",
-    "candidate": "3c51c3a259d3a1235c4a2c196b390f618295544b",
-    "tag": "qualification/session-validation-current-2026-11-22-3c51c3a2",
+    "candidate": "78af78ee6e09dc940022204856999230835d2a18",
+    "tag": "qualification/session-validation-inventory-2026-11-22-78af78ee",
     "buildProjects": [
       "WEB4",
       "WEB5"
     ],
     "allowedPaths": [
       "Docker/oasis-dependency-versions.env",
+      "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
       "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
     ],
     "core": {
@@ -37,5 +38,48 @@
     "nativeMode": "mfa-http",
     "remaining": "Inventory and actual changed session-validation/native checks; not wired into middleware, no selected/global logout or OPORTAL enablement. Retain issuer run45002183207; no email/browser/payment replay."
   },
-  "composition": "Preserved current Development09d61416/CQL Core3696bd32; no AvatarManager overlap against a7d15b4f; six exact issuer/validator files copied from immutable source76a51228."
+  "composition": "Preserved current Development09d61416/CQL Core3696bd32; no AvatarManager overlap against a7d15b4f; six exact issuer/validator files copied from immutable source76a51228.",
+  "sourceInventory": {
+    "run": 45003280543,
+    "artifact": 14746354235,
+    "zipSha256": "2b6bb962691d7e9372133d4ff70827c1b17c8ddef00f76e424a1fe0ad038474a",
+    "sourceCandidate": "3c51c3a259d3a1235c4a2c196b390f618295544b",
+    "managers": 934,
+    "routes": 827,
+    "semanticManagerAdditions": [
+      {
+        "Disposition": "ModeAwareLegacyAndV2Boundary",
+        "ProviderBacked": "True",
+        "Signature": "public async Task<OASISResult<IAvatar>> LoadAvatarForAccessSessionAsync(Guid avatarId, string sessionId, ProviderType authority)",
+        "SourceFile": "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/AvatarManager/AvatarManager-AccessSession.cs"
+      }
+    ],
+    "semanticManagerRemovals": 0,
+    "routeSemanticChanges": 0,
+    "verifiedGeneratedFiles": [
+      {
+        "path": "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
+        "bytes": 278788,
+        "sha256": "84aac676e0a7d8e63479a32695988528755885f7ba47b9d60c6751b20f32649b"
+      },
+      {
+        "path": "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
+        "bytes": 166711,
+        "sha256": "8e5fcab0384ded3cdbbd81742d13bf70fbf75ea183684e9a1772fd46909006f8"
+      },
+      {
+        "path": "Scripts/verify_web4_hyperdrive_route_manifest.ps1",
+        "bytes": 8209,
+        "sha256": "3671b61339b020d11a55c6a06d9dcaf115d39a7fe987b053c6e3378dfbbae5cd"
+      }
+    ],
+    "imported": [
+      {
+        "path": "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
+        "blob": "c482e0c7ba0bacb55d5c2a65cf912329f61ff056",
+        "sha256": "84aac676e0a7d8e63479a32695988528755885f7ba47b9d60c6751b20f32649b"
+      }
+    ],
+    "scope": "Source declarations/classification only; no runtime acceptance."
+  }
 }
