@@ -243,6 +243,22 @@ try
     }
     if (mode == "session-list-http")
     {
+        var endpointSource = app.Services.GetRequiredService<Microsoft.AspNetCore.Routing.EndpointDataSource>();
+        foreach (var contract in new[] {
+            ("GET", "api/avatar/{avatarId}/sessions"),
+            ("GET", "api/avatar/{avatarId}/sessions/stats"),
+            ("POST", "api/avatar/{avatarId}/sessions"),
+            ("PUT", "api/avatar/{avatarId}/sessions/{sessionId}"),
+            ("POST", "api/avatar/{avatarId}/sessions/logout"),
+            ("POST", "api/avatar/{avatarId}/sessions/logout-all") })
+        {
+            var matches = endpointSource.Endpoints.OfType<Microsoft.AspNetCore.Routing.RouteEndpoint>()
+                .Where(endpoint => string.Equals(endpoint.RoutePattern.RawText?.Trim('/'), contract.Item2, StringComparison.OrdinalIgnoreCase) &&
+                    endpoint.Metadata.GetMetadata<Microsoft.AspNetCore.Routing.HttpMethodMetadata>()?.HttpMethods.Contains(contract.Item1) == true)
+                .ToList();
+            Require(matches.Count == 1 && matches[0].Metadata.GetMetadata<Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor>()?.ControllerName == "AvatarSession",
+                "Session route must have exactly one canonical controller owner: " + contract.Item1 + " " + contract.Item2);
+        }
         var initial = await provider.LoadAvatarAsync(actor);
         Require(!initial.IsError && initial.Result?.RefreshTokens?.Count == 3, "Native session credential seed did not persist.");
         var initialVersion = initial.Result!.VersionId;

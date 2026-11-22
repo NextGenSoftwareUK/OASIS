@@ -250,6 +250,7 @@
       "status": "in_progress",
       "mode": "session-list-http",
       "pins": "verified"
-    }
+    },
+    "regressionGuard": "Prepared actual MVC EndpointDataSource check: all6session verb/templates each have exactly1endpoint owned by AvatarSessionController. No route filtering or fake responses. Added after dispatch; not included in current44977175851 run."
   }
 }
