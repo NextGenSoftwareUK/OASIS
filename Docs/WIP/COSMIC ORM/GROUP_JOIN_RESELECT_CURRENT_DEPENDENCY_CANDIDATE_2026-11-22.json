@@ -1,0 +1,41 @@
+{
+  "source": "0fe0b90913c93898eba06140eb817f916a6abe2d",
+  "baseMappedCandidate": "863bdc7de586be91c1ef2f053c3b30de43b2fd72",
+  "baseDevelopment": "a706143b9502815785940ad24434a684cac53aaa",
+  "core": "34848a57c2b165696bdeda91d26e0a7cddd273c8",
+  "changedRootPaths": [
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicJoinEntityPairTests.cs",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicJoinLeftEntityTests.cs",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicJoinSelectionTests.cs",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CqlRecordReselectHttpTests.cs",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CqlRecordReselectWireTests.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlCompositionV1Request.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlCompositionV1Compiler.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlCompositionV1Endpoint.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectionV1Endpoint.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/CosmicCqlNativeTests.Join.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Cql.Join.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/HolonRepository.Cql.Join.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.Join.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.JoinCompiler.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.JoinDecoder.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.Join.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.Join.cs",
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.GroupedDistinct.cs",
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.MappedComputed.cs",
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.MappedHttp.cs",
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/Neo4jNativeCqlJoins.cs",
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests/CosmicCqlJoinTests.cs"
+  ],
+  "sourceBytesVerified": true,
+  "preservedOnodeManager": "0cf009958d9bf29664799d70a76f0fb6e596c7ae",
+  "retainedNativeRuns": [
+    45025247615,
+    45026011510
+  ],
+  "compositionAccepted": false,
+  "deployed": false,
+  "qualificationPhase": "prepared_not_dispatched",
+  "activeMappedImageRun": 45027230988,
+  "websiteSource": "d63fd52be46be83543c99249b4251b17bf3e4a7b"
+}
