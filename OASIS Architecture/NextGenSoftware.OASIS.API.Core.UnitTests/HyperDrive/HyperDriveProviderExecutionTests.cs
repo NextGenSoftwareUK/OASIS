@@ -1528,7 +1528,8 @@ public sealed partial class HyperDriveProviderExecutionTests
 
         result.IsError.Should().BeTrue();
         result.Result.Should().BeNull();
-        result.ErrorCode.Should().Be("HYPERDRIVE_FAILOVER_EXHAUSTED");
+        // Complete collection reads are pinned to the authoritative provider (no failover), so its own error code surfaces.
+        result.ErrorCode.Should().Be("FILE_STORE_UNAVAILABLE");
         result.Message.Should().Contain("unavailable");
     }
 
