@@ -185,7 +185,17 @@
     "source": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarMfaController.cs",
     "behavior": "Existing real status/enrol/confirm/disable/recovery/events and authenticate-mfa routes plus Core SecondFactorGate. Reuse existing contract rather than implement another MFA backend.",
     "missing": "OPORTAL Settings enrolment/recovery/disable and login challenge handling; inspect real service/native evidence before acceptance.",
-    "nodeSettings": "unchanged"
+    "nodeSettings": "unchanged",
+    "loginUiWork": {
+      "status": "source-implemented-not-native-or-browser-accepted",
+      "files": [
+        "OPORTAL assets/js/scripts.js",
+        "OPORTAL assets/components/modals/login.html"
+      ],
+      "behavior": "Intercept actual mfaRequired response before sign-in persistence; memory-only challenge, password clearing, authenticator/recovery submission, restart/logout invalidation, duplicate submit prevention, current account/modal guards and visible network errors. No token-free/incomplete/error false login.",
+      "checks": "2Node syntax, cache refs,3local no-persistence state controls; no backend calls",
+      "remaining": "Real owned MFA/HTTP/browser, Settings enrollment/recovery/disable and SDK/DID entry-point review."
+    }
   },
   "portalExpiryFix": {
     "source": "OPORTAL assets/js/scripts.js isJwtValid",
