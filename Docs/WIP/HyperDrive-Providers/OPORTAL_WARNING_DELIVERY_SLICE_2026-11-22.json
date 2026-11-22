@@ -133,6 +133,12 @@
     ],
     "status": "source-frozen-awaiting-inventory-and-build",
     "behaviorSource": "All eight warning implementation paths identical to accepted6de38f50; Core/provider CQL changes preserved; no shared checkout changes.",
-    "remaining": "Current-source inventories and combined build required before integration; no accepted behavior replay."
+    "remaining": "Current-source inventories and combined build required before integration; no accepted behavior replay.",
+    "inventoryRun": {
+      "id": 44991206311,
+      "control": "26a47a09dbf9971ee4c208124ba364b1a52f0441",
+      "status": "queued",
+      "mode": "inventory-only-no-runtime-no-secrets"
+    }
   }
 }
