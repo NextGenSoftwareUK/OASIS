@@ -8637,3 +8637,14 @@ Owned Chrome stopped; marker/path and process absence verified before normal rec
 21 November — Bounded parameter lists:4compiler controls in RAM, no output files/DB/API/env/download. Current-status source condensed into actual checkpoint; earlier history retained at prior Git revision and canonical evidence docs. Local historical notes preserved without new duplicate file. Image44951130403 kept active; necessary Holo journals retained.
 
 21 November — Fresh ONODE composition uses Git merge-tree/commit-tree in existing repositories, no worktree/checkout/env/build/install/download. Initial assertion stopped before any push; inspected4-line package addition and corrected source sets, then exact5+3file preservation passed. Existing COSMIC branch advanced normally with unrelated ONET delta retained outside reviewed root pin. Keep compact current-onode-composition.json until root/runtime qualification evidence durable; old77e remote image preserved, no stale package job.
+
+
+### 22 November — combined computed live acceptance
+
+Development **09d61416ea4ed2926bf044e211fc73502ab4adbe**, Core **3696bd32ff84ee49db4b189dfcea946da7172dbd** is deployed. All seven WEB4–WEB10 running revisions and loaded AutoLoadBalanceEnabled=true verified. [Runtime evidence](COMPUTED_SCALARS_RUNTIME_ACCEPTANCE_2026-11-22.json).
+
+The exact website2973da77 compiler's combined Boolean metadata CASE and Int32 COALESCE query passed live on the real MongoDB, SQLite and Neo4j providers. Each returned its expected text/integer cells. Eighteen paced calls, three private creates, acknowledged conditional deletes and exact absence; visitor revoked and credentials removed. [Hosted evidence](COMPUTED_SCALARS_HOSTED_ACCEPTANCE_2026-11-22.json). No PIPER writes or staging/production changes. This supersedes pending runtime/hosted statements in the historical sections below.
+
+Mapped computed row API qualification45002198772 passed three focused controls and actual WEB4 compilation on81bce49c/Core5240d3bd. [Wire evidence](MAPPED_COMPUTED_WIRE_ACCEPTANCE_2026-11-22.json). Representative mixed native execution and mapped SQL enrollment remain open; this successor is not deployed. Full parity remains61/168 plus4/13 extensions, with real WEB6 inference and rendered browser acceptance still open.
+
+Evidence reconciliation used len(calls), because the private journal stores call descriptors rather than a numeric count. No live operation was replayed. Seventy-five compact checkpoints retained for audit; zero credential files or downloaded archives. No local build, runtime install, database or new worktree.

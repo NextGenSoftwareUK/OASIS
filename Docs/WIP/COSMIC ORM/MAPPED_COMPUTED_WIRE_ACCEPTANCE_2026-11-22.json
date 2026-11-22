@@ -1,0 +1,15 @@
+{
+  "source": "81bce49c7caded0e68da82f467407c9c8733aa59",
+  "core": "5240d3bd34d003407fe8b08070203e8d4efb5e1a",
+  "run": 45002198772,
+  "job": 137145972655,
+  "artifact": 14746816641,
+  "bytes": 1691,
+  "sha256": "3ce58d6e1183781eed4648133063d02439c168359238d36bda8907e5df8f27b3",
+  "wireAccepted": true,
+  "testsPassed": 3,
+  "actualWeb4BuildPassed": true,
+  "localArchiveRetained": false,
+  "nativeMixedAccepted": false,
+  "liveAccepted": false
+}

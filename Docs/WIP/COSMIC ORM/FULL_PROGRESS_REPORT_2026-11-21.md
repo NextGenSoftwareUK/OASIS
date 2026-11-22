@@ -344,3 +344,14 @@ Not every priority is complete. TRON/Supabase hosted admission and several priva
 - Performance is required; CI duration/Swagger transfer time do not establish production query latency.
 
 Next: confirm exact serving revision, one bounded Neo SQL numeric/render browser check and owned cleanup; complete usable SQL/Ask journeys; continue framework breadth and virtual/hybrid/policy demo, then optimization/hardening and full real-provider implementations. Full goal ACTIVE.
+
+
+### 22 November — combined computed live acceptance
+
+Development **09d61416ea4ed2926bf044e211fc73502ab4adbe**, Core **3696bd32ff84ee49db4b189dfcea946da7172dbd** is deployed. All seven WEB4–WEB10 running revisions and loaded AutoLoadBalanceEnabled=true verified. [Runtime evidence](COMPUTED_SCALARS_RUNTIME_ACCEPTANCE_2026-11-22.json).
+
+The exact website2973da77 compiler's combined Boolean metadata CASE and Int32 COALESCE query passed live on the real MongoDB, SQLite and Neo4j providers. Each returned its expected text/integer cells. Eighteen paced calls, three private creates, acknowledged conditional deletes and exact absence; visitor revoked and credentials removed. [Hosted evidence](COMPUTED_SCALARS_HOSTED_ACCEPTANCE_2026-11-22.json). No PIPER writes or staging/production changes. This supersedes pending runtime/hosted statements in the historical sections below.
+
+Mapped computed row API qualification45002198772 passed three focused controls and actual WEB4 compilation on81bce49c/Core5240d3bd. [Wire evidence](MAPPED_COMPUTED_WIRE_ACCEPTANCE_2026-11-22.json). Representative mixed native execution and mapped SQL enrollment remain open; this successor is not deployed. Full parity remains61/168 plus4/13 extensions, with real WEB6 inference and rendered browser acceptance still open.
+
+Evidence reconciliation used len(calls), because the private journal stores call descriptors rather than a numeric count. No live operation was replayed. Seventy-five compact checkpoints retained for audit; zero credential files or downloaded archives. No local build, runtime install, database or new worktree.

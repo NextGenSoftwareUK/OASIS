@@ -3,7 +3,15 @@
 Updated 22 November 2026. Work only on `work/cosmic-cql-ton-public`; website uses its existing `work/cosmic-cql` branch.
 The physical checkout contains unrelated concurrent changes: use the established scoped Git-object publisher; do not reset, switch, stage or overwrite them.
 
-## Last accepted demo runtime
+## Current accepted Development slice — 22 November
+
+Development **09d61416ea4ed2926bf044e211fc73502ab4adbe**, Core **3696bd32ff84ee49db4b189dfcea946da7172dbd** is deployed. All seven WEB4–WEB10 running revisions and loaded AutoLoadBalanceEnabled=true verified. [Runtime evidence](COMPUTED_SCALARS_RUNTIME_ACCEPTANCE_2026-11-22.json).
+
+The exact website2973da77 compiler's combined Boolean metadata CASE and Int32 COALESCE query passed live on the real MongoDB, SQLite and Neo4j providers. Each returned its expected text/integer cells. Eighteen paced calls, three private creates, acknowledged conditional deletes and exact absence; visitor revoked and credentials removed. [Hosted evidence](COMPUTED_SCALARS_HOSTED_ACCEPTANCE_2026-11-22.json). No PIPER writes or staging/production changes. This supersedes pending runtime/hosted statements in the historical sections below.
+
+Mapped computed row API qualification45002198772 passed three focused controls and actual WEB4 compilation on81bce49c/Core5240d3bd. [Wire evidence](MAPPED_COMPUTED_WIRE_ACCEPTANCE_2026-11-22.json). Representative mixed native execution and mapped SQL enrollment remain open; this successor is not deployed. Full parity remains61/168 plus4/13 extensions, with real WEB6 inference and rendered browser acceptance still open.
+
+## Earlier accepted demo runtime
 
 - Root **a96652767c3b382cdbd9e4ccaa80516358abff53**, Core **eef9f1a1d6bca1041c0971fadf764c2664f64d26**. Normal fast-forward from reviewed peer warning-email commit c3f70353; peer changes preserved.
 - All seven WEB4–WEB10 deployments succeeded. Exact running source and startup **AutoLoadBalanceEnabled=true** verified on every service. [Runtime evidence](TEXT_COALESCE_COMBINED_RUNTIME_ACCEPTANCE_2026-11-22.json).
