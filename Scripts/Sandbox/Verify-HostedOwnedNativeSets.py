@@ -18,11 +18,16 @@ BASE = "https://dev.api.web4.oasisomniverse.one/api/"
 SITE = ROOT.parent / "Web4Site"
 
 
-def selected_composition_cases(provider, identity):
+def selected_composition_cases(provider, identity, staged_sets=False):
     name = "COSMIC owned set acceptance " + identity
     description = "COSMIC owned composition " + identity
     source = "SELECT Name, Description FROM " + provider + " WHERE Id = @id ORDER BY Id LIMIT 1"
     parameters = {"id": identity, "description": description}
+    if staged_sets:
+        return [("staged-cte-set", "WITH q(Label, Detail) AS (" + source + ") "
+            "(SELECT Label AS Display FROM q WHERE Detail = @description ORDER BY Label DESC LIMIT 1 OFFSET 0) "
+            "UNION ALL (SELECT Label AS Other FROM q WHERE Detail <> @description) ORDER BY Display LIMIT 2",
+            parameters, "data/query-cql/set", ["Display"], [[name]])]
     return [
         ("cte", "WITH q(Label, Detail) AS (" + source + ") SELECT Label AS Display FROM q WHERE Detail = @description ORDER BY Label LIMIT 1",
             parameters, "data/query-cql/composition", ["Display"], [[name]]),
@@ -107,6 +112,7 @@ def main():
     parser.add_argument("--resume-before-first-save", action="store_true")
     parser.add_argument("--selected-columns", action="store_true")
     parser.add_argument("--selected-composition", action="store_true")
+    parser.add_argument("--staged-set-composition", action="store_true")
     parser.add_argument("--release-proof", type=Path)
     parser.add_argument("--serving-source-review", type=Path)
 
@@ -122,6 +128,9 @@ def main():
     args = parser.parse_args()
     if any(not re.fullmatch("[0-9a-f]{40}", value) for value in (args.commit, args.website)):
         parser.error("Exact backend and website source commits are required.")
+    if args.staged_set_composition and (not args.selected_composition or args.fixture_name in {
+            "HostedOwnedProjectedSetCurrent", "HostedOwnedProjectedSetComposition20261122"}):
+        parser.error("Staged sets require composition mode and a separate never-used fixture namespace.")
     if args.serving_source_review is not None and not args.selected_composition:
         parser.error("Serving-source reviews are scoped to the selected-composition case.")
     if args.selected_composition:
@@ -247,7 +256,7 @@ def main():
     cookie = None
 
     def call(path, body, method="POST"):
-        if journal["pending"] is not None or len(journal["calls"]) >= (24 if args.selected_composition else 18):
+        if journal["pending"] is not None or len(journal["calls"]) >= (18 if args.staged_set_composition else 24 if args.selected_composition else 18):
             raise RuntimeError("Pending outcome or request cap; no retry.")
         if journal["calls"]:
             time.sleep(1)
@@ -367,7 +376,7 @@ def main():
         write()
         if args.selected_composition:
             accepted_cases=[]
-            for label,sql,parameters,path,aliases,expected in selected_composition_cases(provider,identity):
+            for label,sql,parameters,path,aliases,expected in selected_composition_cases(provider,identity,args.staged_set_composition):
                 compiled=compile_owned_composition(compiler,sql,parameters,path,provider,identity)
                 actual,_=call(path,compiled["body"])
                 result=actual.get("result") or {}
@@ -472,7 +481,7 @@ def main():
         journal["providers"].append({"provider":provider,"accepted":True,"rows":1 if args.text_coalesce or args.boolean_text_case or args.computed_scalars else 2,"exactCleanupVerified":True})
         write()
     call("avatar/revoke-token", {})
-    journal.update(sessionRevoked=True,selectedComposition=args.selected_composition,selectedColumns=args.selected_columns,textCoalesce=args.text_coalesce,booleanTextCase=args.boolean_text_case,booleanMetadataCase=args.boolean_metadata_case,computedScalars=args.computed_scalars,completed=False,
+    journal.update(sessionRevoked=True,stagedSetComposition=args.staged_set_composition,selectedComposition=args.selected_composition,selectedColumns=args.selected_columns,textCoalesce=args.text_coalesce,booleanTextCase=args.boolean_text_case,booleanMetadataCase=args.boolean_metadata_case,computedScalars=args.computed_scalars,completed=False,
         accepted=all(row["accepted"] for row in journal["providers"]))
     write()
     for name in ("issuance.dpapi","session.dpapi"):
