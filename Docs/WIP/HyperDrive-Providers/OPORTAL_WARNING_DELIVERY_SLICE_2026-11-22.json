@@ -89,5 +89,14 @@
     "classifierSha256": "3671b61339b020d11a55c6a06d9dcaf115d39a7fe987b053c6e3378dfbbae5cd",
     "classifierReview": "Exact control classifier hash verified; adds typed manager alias and primary-constructor repository discovery. Three label changes follow source bodies/helper changes; no route removals. Inventories retain overload multiplicity.",
     "cleanup": "Temporary index and lock removed in finally; physical submodules unchanged."
+  },
+  "enabledBrowserRun": {
+    "id": 44990168013,
+    "control": "d601bfb7afc9e41bbf17e3291950a24d3d007cbe",
+    "candidate": "6de38f50ddef025703b0fb2c618905570e553106",
+    "status": "queued",
+    "scope": "Actual shipping SDK/subscription fragment/current warning POST and native provider acknowledgement, fixed delivered@resend.dev recipient, isolated CI Mongo only.",
+    "secrets": "H1 authorization reused; two temporary CI secrets staged via existing authenticated CLI. Failed initial credential override left both absent; no credential printed. Delete exact two names after terminal and verify404.",
+    "remaining": "Compile/browser/native cleanup and temporary secret absence not yet accepted."
   }
 }
