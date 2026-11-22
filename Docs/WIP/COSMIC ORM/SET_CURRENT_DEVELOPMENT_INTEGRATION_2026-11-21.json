@@ -1,0 +1,21 @@
+{
+  "coreSource": "a166813b01476a2fce34e5908d74dac1da845ba6",
+  "coreFeatureBase": "34fdd27bd04ef8e41f6fadafdd724a450f215cff",
+  "developmentSource": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
+  "developmentCore": "048f79dbe9b3589a09ab90657511fe760c7a18ea",
+  "compiled": false,
+  "nativeAccepted": false,
+  "developmentPushed": false,
+  "parentSource": "c04648d13456143c89b4f63ecbadf37d59e3c35f",
+  "rootMergeConflictsResolved": [
+    "Core gitlink",
+    "dependency manifest"
+  ],
+  "currentCompositionQualified": false,
+  "qualificationSource": "f26edeef1152961a2b46f2149a6c28c08188a09a",
+  "workflow": "qualify-cql-snapshot-composition.yml",
+  "automaticRunExpected": true,
+  "run": 44967343151,
+  "status": "queued",
+  "conclusion": null
+}
