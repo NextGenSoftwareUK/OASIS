@@ -10,7 +10,7 @@
     "Managers/AvatarManager/AvatarManager-SaveUtils.cs",
     "Managers/AvatarManager/AvatarManager-Session.cs"
   ],
-  "status": "source inventory accepted; authoritative session native qualification queued",
+  "status": "isolated authoritative session native acceptance passed; seven middleware/global logout/UI/deployment still open",
   "invariant": "One authority-specific lookup replaces existing avatar read; inactive, missing, malformed or unavailable credentials never authenticate.",
   "remaining": "Wire strict binding validation at every actual middleware after issuer rollout; native test active/revoked/rotation/authority behavior; implement acknowledged selected/global logout; enable OPORTAL only after acceptance.",
   "supersededSource": "10609958ee2262cfe9dd4cfafba9cf03bfac7b19",
@@ -85,8 +85,13 @@
   "qualification": {
     "run": 45003726813,
     "control": "de92af872fd93109c67e7087829b02c68f432762",
-    "status": "queued",
+    "status": "success",
     "observedUtc": "2026-11-22T08:36:48.796508+00:00",
-    "scope": "New authority-specific access validation against actual HTTP-issued credentials; rotation/revoke reject matching access and refresh, independent credential/profile/revision preserved; malformed bindings refused. Not seven-middleware/global logout/UI/deployment acceptance."
+    "scope": "New authority-specific access validation against actual HTTP-issued credentials; rotation/revoke reject matching access and refresh, independent credential/profile/revision preserved; malformed bindings refused. Not seven-middleware/global logout/UI/deployment acceptance.",
+    "job": 137150609746,
+    "buildErrors": 0,
+    "buildElapsed": "00:07:14.70",
+    "cleanup": "Owned database/tempDNA/container absence verified.",
+    "proof": "Actual HTTP/native rotation/revoke invalidated matching access/refresh; independent credential active; revision/profile/password unchanged; malformed bindings refused. Not middleware/global logout acceptance."
   }
 }

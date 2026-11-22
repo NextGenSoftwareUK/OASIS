@@ -1,0 +1,71 @@
+{
+  "status": "draft source only; not compiled/native-tested/deployed; strict validation requires prior issuer rollout and retirement of unbound tokens",
+  "core": {
+    "base": "c486c152b05d1d5d4a9afc312dd2121c9299e1c1",
+    "candidate": "494c0e2d4de160403b9136c769cbf70079f64db4",
+    "tag": "qualification/session-enforcement-2026-11-22-494c0e2d",
+    "paths": [
+      "Helpers/AvatarSessionIdentity.cs"
+    ]
+  },
+  "web5": {
+    "base": "cf763aecfff7cc33d6aeacc9121db01c767a50f6",
+    "candidate": "531c98973164a295c39e5c2bdcf1a4b1bc4ba789",
+    "tag": "qualification/session-enforcement-2026-11-22-531c9897",
+    "paths": [
+      "NextGenSoftware.OASIS.STAR.WebAPI/Middleware/JwtMiddleware.cs",
+      "NextGenSoftware.OASIS.STAR.WebAPI/Program.cs"
+    ],
+    "previousCandidate": "68330c2102ab7df918e04820578dace1912cee77"
+  },
+  "web6": {
+    "base": "f042a533548f4ac8a9649f98b259a9024d802bf7",
+    "candidate": "5fbdb5c3958574f8150b68dacd3c6037b83a852f",
+    "tag": "qualification/session-enforcement-2026-11-22-5fbdb5c3",
+    "paths": [
+      "NextGenSoftware.OASIS.Web6.WebAPI/Middleware/JwtMiddleware.cs",
+      "NextGenSoftware.OASIS.Web6.WebAPI/Controllers/AdminController.cs"
+    ],
+    "previousCandidate": "19bf2e7980bdd8d32858bdb459f0d6b805eebc0c"
+  },
+  "rootAdapterBlobs": {
+    "WEB7/NextGenSoftware.OASIS.Web7.WebAPI/Middleware/JwtMiddleware.cs": "d9761c954344468d993c59208280518cddb557c6",
+    "WEB8/NextGenSoftware.OASIS.Web8.WebAPI/Middleware/JwtMiddleware.cs": "e9f61c45e59cda3194903131af8c9afa43c2045e",
+    "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Middleware/JwtMiddleware.cs": "b5b1c6df2633f83bb49d206257d6e159e0f03cb0",
+    "WEB10/NextGenSoftware.OASIS.Web10.WebAPI/Middleware/JwtMiddleware.cs": "8600c55671a7cd6bd17bb2c74b306b367067aecc"
+  },
+  "root": {
+    "base": "09d61416ea4ed2926bf044e211fc73502ab4adbe",
+    "candidate": "1f26794f5ff070b14d0d3bcdfe7c4382a444b8bd",
+    "tag": "qualification/session-enforcement-2026-11-22-1f26794f",
+    "paths": [
+      "Docker/oasis-dependency-versions.env",
+      "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
+      "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/JwtMiddleware.cs",
+      "STAR ODK",
+      "WEB10/NextGenSoftware.OASIS.Web10.WebAPI/Middleware/JwtMiddleware.cs",
+      "WEB10/NextGenSoftware.OASIS.Web10.WebAPI/Program.cs",
+      "WEB6",
+      "WEB7/NextGenSoftware.OASIS.Web7.WebAPI/Middleware/JwtMiddleware.cs",
+      "WEB7/NextGenSoftware.OASIS.Web7.WebAPI/Program.cs",
+      "WEB8/NextGenSoftware.OASIS.Web8.WebAPI/Middleware/JwtMiddleware.cs",
+      "WEB8/NextGenSoftware.OASIS.Web8.WebAPI/Program.cs",
+      "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Middleware/JwtMiddleware.cs",
+      "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Program.cs"
+    ],
+    "previousCandidate": "3f3aa9afa40641bd9b3b54c262450650068022a1"
+  },
+  "protocol": "Each API validates signature/issuer/audience/lifetime and exact bound session before publishing request identity. WEB4 retains independent offline-grant endpoint policy without authenticating an invalid bearer. WEB6 now requires its first authoritative avatar/session lookup.",
+  "rolloutRequirement": "Do not deploy strict validators until acknowledged issuer source is deployed on all issuers and the maximum old configured access lifetime has elapsed; no permanent unbound-token bypass.",
+  "ordering": "WEB5 and WEB7-WEB10 originally ran framework authorization before JWT middleware; moved it immediately after successful-session middleware. WEB4 keeps its existing validated-principal bridge ordering, WEB6 already has correct order.",
+  "availabilityLimit": "Authoritative revocation reads cannot currently fail over to an unproven stale credential replica. This batch does not prove cross-provider session failover; that remains part of the active HyperDrive programme.",
+  "consumerAudit": "WEB5/7-10 have no direct NameIdentifier or Identity.Name consumers in their API source. WEB6 AdminActor was the one mapped-subject consumer; changed it to the shared canonical validated subject, avoiding bearer audit misattribution as api-key.",
+  "nextVerification": [
+    "Compile all seven actual API projects on the latest verified foundation graph under one bounded lease.",
+    "Exercise real middleware/HTTP authorization with actual native issued, rotated and revoked credentials; preserve independent sessions and reject inconsistent subjects.",
+    "Verify WEB4 independent signed offline-grant authorization remains separate from failed bearer identity; preserve canonical WEB6 audit attribution.",
+    "Check current dev rollout queue and exact running issuer source before any staged deployment; retire old configured token lifetimes before strict enforcement.",
+    "Global/selected logout and cross-provider session freshness/failover are still unfinished; keep OPORTAL controls disabled until real acceptance."
+  ]
+}

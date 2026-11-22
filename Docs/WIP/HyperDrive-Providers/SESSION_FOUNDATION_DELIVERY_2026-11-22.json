@@ -1,0 +1,63 @@
+{
+  "status": "current composition compile only pending; no integration push while dev deployments building",
+  "candidate": {
+    "scope": "billing",
+    "status": "current composition pin drift corrected; compile only pending",
+    "base": "24ec05bb5f57cf15b3b18fdd2ed2d987911aba64",
+    "candidate": "06c79aeaa7143b39034684345a371313ca8b6631",
+    "tag": "qualification/session-foundation-current-2026-11-22-06c79aea",
+    "buildProjects": [
+      "WEB4",
+      "WEB5"
+    ],
+    "allowedPaths": [
+      "Docker/oasis-dependency-versions.env",
+      "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
+      "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
+    ],
+    "core": {
+      "base": "3696bd32ff84ee49db4b189dfcea946da7172dbd",
+      "candidate": "c486c152b05d1d5d4a9afc312dd2121c9299e1c1"
+    },
+    "nativeHost": "HotspotHttpNative",
+    "nativeMode": "mfa-http",
+    "remaining": "Compile only current ONODEManager/dependency graph before phase-one integration; retain45003726813 runtime proof. Do not deploy strict enforcement drafts or add to live dev build queue."
+  },
+  "retainedNative": {
+    "run": 45003726813,
+    "control": "de92af872fd93109c67e7087829b02c68f432762",
+    "status": "success",
+    "observedUtc": "2026-11-22T08:36:48.796508+00:00",
+    "scope": "New authority-specific access validation against actual HTTP-issued credentials; rotation/revoke reject matching access and refresh, independent credential/profile/revision preserved; malformed bindings refused. Not seven-middleware/global logout/UI/deployment acceptance.",
+    "job": 137150609746,
+    "buildErrors": 0,
+    "buildElapsed": "00:07:14.70",
+    "cleanup": "Owned database/tempDNA/container absence verified.",
+    "proof": "Actual HTTP/native rotation/revoke invalidated matching access/refresh; independent credential active; revision/profile/password unchanged; malformed bindings refused. Not middleware/global logout acceptance."
+  },
+  "sourceBasis": "78af78ee6e09dc940022204856999230835d2a18",
+  "sourceEquality": "Same accepted Corec486c152 and reviewed934manager/827route source; current Development24ec05bb ONODEManager/HoloNET pins preserved. No native replay.",
+  "observedDevDeployments": [
+    {
+      "id": "65a37064-da95-44e7-8b35-88e014e2cc9f",
+      "source": "24ec05bb5f57cf15b3b18fdd2ed2d987911aba64",
+      "status": "BUILDING"
+    },
+    {
+      "id": "17c18583-72bd-4052-8b0a-dc571c3cfd4c",
+      "source": "4daa75ca295d75f48c54a5871f16e9be4e1304ed",
+      "status": "BUILDING"
+    }
+  ],
+  "limits": [
+    "Not all middleware/session failover/global logout or complete OPORTAL acceptance.",
+    "Strict draft enforcement remains separate; no settings/worker changes."
+  ],
+  "supersededCandidate": "966b81d2159cb544ceb8b4b29b1f0594b598dc02",
+  "pinCorrection": {
+    "key": "ONODE_MANAGER_COMMIT",
+    "selectedGitlink": "29217030f057bc9090417c70b592be7e5850f466",
+    "previousManifest": "7d55828d3a7905d6938dff508bb30d423ddecc48",
+    "cause": "Development24ec05bb moved gitlink without paired manifest. Pre-push correctly rejected prior immutable candidate; no guard bypass or deployment occurred."
+  }
+}

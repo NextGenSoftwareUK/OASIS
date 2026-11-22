@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "source inventory accepted; current native validation next",
-  "base": "09d61416ea4ed2926bf044e211fc73502ab4adbe",
-  "candidate": "78af78ee6e09dc940022204856999230835d2a18",
-  "tag": "qualification/session-validation-inventory-2026-11-22-78af78ee",
+  "status": "current composition pin drift corrected; compile only pending",
+  "base": "24ec05bb5f57cf15b3b18fdd2ed2d987911aba64",
+  "candidate": "06c79aeaa7143b39034684345a371313ca8b6631",
+  "tag": "qualification/session-foundation-current-2026-11-22-06c79aea",
   "buildProjects": [
     "WEB4",
     "WEB5"
@@ -19,5 +19,5 @@
   },
   "nativeHost": "HotspotHttpNative",
   "nativeMode": "mfa-http",
-  "remaining": "Inventory and actual changed session-validation/native checks; not wired into middleware, no selected/global logout or OPORTAL enablement. Retain issuer run45002183207; no email/browser/payment replay."
+  "remaining": "Compile only current ONODEManager/dependency graph before phase-one integration; retain45003726813 runtime proof. Do not deploy strict enforcement drafts or add to live dev build queue."
 }
