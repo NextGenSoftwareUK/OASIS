@@ -24,11 +24,11 @@ public static partial class CqlV1Endpoint
             request=CqlRequestCapture.Capture(request);
             var requested=CqlV1Compiler.RequestedProvider(request?.Provider);
             var policy=CaptureReadPolicy(http,actor,requested,providers,admission);
-            var intent=CqlV1Compiler.CompileSet(request,actor,policy?.Selected??requested,policy?.Access);
             if(!TryResolveEligible(providers,requested,admission,out var storage,out var rowAdapter,out var selected,policy))
                 return Failure(403,"CQL_PROVIDER_NOT_ELIGIBLE","The provider is not eligible for this admitted set.");
             if(rowAdapter is not ICosmicSetQueryStorageProvider adapter)
                 return Failure(400,"CQL_CAPABILITY_UNSUPPORTED","The provider does not implement native sets.");
+            var intent=CqlV1Compiler.CompileSet(request,actor,selected,policy?.Access);
             var planned=CosmicSetQueryPlanner.Plan(intent,selected,
                 new CosmicQueryTarget(selected,adapter.QueryCapabilities),adapter.SetQueryCapabilities,
                 new CosmicSetQueryOptions(request.MaximumLeftRows,request.MaximumRightRows,

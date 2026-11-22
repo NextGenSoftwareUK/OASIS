@@ -45,7 +45,7 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
-      - name: Verify canonical set source DTO, capture, occurrence output and WEB4
+      - name: Verify metered set endpoint and concrete authority binding
         working-directory: OASIS
         shell: pwsh
         run: |
