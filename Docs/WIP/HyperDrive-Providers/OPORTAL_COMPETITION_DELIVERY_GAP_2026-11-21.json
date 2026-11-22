@@ -1,6 +1,6 @@
 {
   "date": "2026-11-21",
-  "status": "scoped source restoration prepared; compile/composition/browser gates open",
+  "status": "current composition compiled; actual browser/native main flow accepted; publisher authorization and delivery open",
   "acceptedRun": 44777915227,
   "acceptedScope": "three-provider native main flow; browser/HTTP/full Startup not accepted",
   "core": {
@@ -123,8 +123,16 @@
     "control": "9f7b454e26aa9a19b4b24de717cbf8955450d564",
     "candidate": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
     "portal": "185f8bed4013b5be7ddc7837a348d1b3a85b0de8",
-    "status": "in-progress",
-    "scope": "same failed browser main flow with original exact renderer restored; no accepted native cohort replay"
+    "status": "success",
+    "scope": "same failed browser main flow with original exact renderer restored; no accepted native cohort replay",
+    "buildErrors": 0,
+    "buildElapsed": "00:06:26.22",
+    "proof": "COMPETITION_POPUP_BROWSER_PROOF",
+    "httpRequests": 7,
+    "httpGets": 6,
+    "httpPosts": 1,
+    "nativeReadback": "exactly one actor-bound tournament participant; avatar unchanged",
+    "cleanup": "database/temporaryDNA/container/browser runtime/cache absence verified"
   },
   "browserDiagnosticOutcome": {
     "run": 44963284578,
@@ -136,5 +144,9 @@
     "cause": "entries is not defined in redundant added counter assignment",
     "cleanup": "DB/DNA/container/browser runtime/cache absent",
     "resolution": "Restore original exact2472 renderer, keep one original counter owner; syntax passed. Original native acceptance remains retained, browser main flow requires same failed-case retry."
-  }
+  },
+  "remaining": [
+    "actual publisher HTTP Wizard authorization and acknowledgement",
+    "scoped Development integration and hosted/full Startup acceptance"
+  ]
 }

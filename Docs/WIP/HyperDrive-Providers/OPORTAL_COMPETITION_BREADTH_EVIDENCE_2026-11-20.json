@@ -1,6 +1,6 @@
 {
   "date": "2026-11-20",
-  "status": "source/syntax/actual WEB5 compile and three-provider native main flow accepted; browser/HTTP and full site open",
+  "status": "native three-provider main flow retained; current composition compile and actual browser/HTTP main flow accepted; publisher authorization and hosted gates open",
   "portalCommit": "af82fe78836522571cfea2d5e58d4bb97a3a850e",
   "coreCommit": "26b9e8f1d323991443310f94b9edcba24c8740e4",
   "starCommit": "1e09e7195ca336d31f0629da5ffad24bbf605d3a",
@@ -72,5 +72,16 @@
     "nativeFixtures": "passed",
     "allPostJobSteps": "passed",
     "localGeneratedFiles": 0
+  },
+  "currentAcceptance": {
+    "run": 44964087032,
+    "job": 137029078586,
+    "candidate": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
+    "portal": "185f8bed4013b5be7ddc7837a348d1b3a85b0de8",
+    "scope": "actual SDK/component/MVC/native Mongo main flow including persisted join and unchanged avatar",
+    "status": "success",
+    "requests": 7,
+    "mutations": 1,
+    "cleanup": "all owned scopes absent"
   }
 }
