@@ -20,6 +20,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.DNA;
@@ -39,7 +40,7 @@ Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
 var mode = Environment.GetEnvironmentVariable("OASIS_HOTSPOT_HTTP_MODE") ?? "binding";
-Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider", "Unsupported hotspot HTTP check mode.");
+Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "session-list-http", "Unsupported hotspot HTTP check mode.");
 var dna = new OASISDNA { OASIS = new() {
     HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
         AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
@@ -68,6 +69,19 @@ try
     foreach (var account in accounts)
     {
         account.IsActive = true; account.Version = 1; account.VersionId = Guid.NewGuid(); account.CreatedDate = DateTime.UtcNow;
+        if (mode == "session-list-http" && account.Id == actor)
+        {
+            var now = DateTime.UtcNow;
+            account.LastBeamedIn = now.AddMinutes(-10);
+            account.RefreshTokens = new List<RefreshToken> {
+                new() { Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)), Created = now.AddMinutes(-10),
+                    Expires = now.AddDays(1), CreatedByIp = "127.0.0.1" },
+                new() { Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)), Created = now.AddHours(-2),
+                    Expires = now.AddDays(1), Revoked = now.AddMinutes(-1), CreatedByIp = "127.0.0.2" },
+                new() { Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)), Created = now.AddDays(-2),
+                    Expires = now.AddDays(-1), CreatedByIp = "127.0.0.3" }
+            };
+        }
         var saved = await provider.SaveAvatarAsync(account); Require(!saved.IsError, "Owned actor seed failed: " + saved.Message);
         var detail = await provider.SaveAvatarDetailAsync(new AvatarDetail { Id = account.Id, Username = account.Username,
             Email = account.Email, Version = 1, VersionId = Guid.NewGuid(), CreatedDate = DateTime.UtcNow });
@@ -220,7 +234,48 @@ try
         using var result = JsonDocument.Parse(resultText);
         Require(result.RootElement.GetProperty(resultProperty).GetBoolean(), "Owned browser completion marker missing.");
     }
-    if (mode == "billing-warning-provider")
+    if (mode == "session-list-http")
+    {
+        var initial = await provider.LoadAvatarAsync(actor);
+        Require(!initial.IsError && initial.Result?.RefreshTokens?.Count == 3, "Native session credential seed did not persist.");
+        var initialVersion = initial.Result!.VersionId;
+        string path = "/api/avatar/" + actor.ToString("D") + "/sessions";
+        using var response = await http.GetAsync(path);
+        var body = await response.Content.ReadAsStringAsync();
+        var envelope = JObject.Parse(body);
+        Require(response.IsSuccessStatusCode && !envelope.Value<bool>("isError"), "Actual session-list HTTP failed.");
+        var view = envelope["result"]!;
+        var sessions = view["sessions"]!.ToObject<List<AvatarSession>>()!;
+        Require(view.Value<int>("totalSessions") == 3 && view.Value<int>("activeSessions") == 1 && sessions.Count == 3,
+            "Session-list counts do not match persisted credentials.");
+        foreach (var credential in initial.Result.RefreshTokens)
+        {
+            byte[] digest;
+            using (var hash = SHA256.Create())
+                digest = hash.ComputeHash(System.Text.Encoding.UTF8.GetBytes(actor.ToString("D") + "\n" + credential.Token));
+            var id = BitConverter.ToString(digest).Replace("-", "").ToLowerInvariant();
+            var row = sessions.Single(item => item.Id == id);
+            Require(row.AvatarId == actor && row.IsActive == credential.IsActive && row.IpAddress == credential.CreatedByIp &&
+                row.LoginTime == credential.Created && row.ExpiresAt == credential.Expires && row.SecurityToken == null &&
+                row.DeviceName == null && row.Location == null, "Session-list invented or changed stored credential evidence.");
+            Require(!body.Contains(credential.Token, StringComparison.Ordinal), "Session-list leaked a refresh credential.");
+        }
+        Require(view.Value<int?>("failedLoginAttempts") == null && view.Value<int?>("sessionTimeoutMinutes") == null &&
+            view.Value<string>("securityStatus") == "Not assessed", "Session-list invented security assessment or counters.");
+        using var reload = await http.GetAsync(path);
+        var repeated = JObject.Parse(await reload.Content.ReadAsStringAsync())["result"]!["sessions"]!;
+        Require(reload.IsSuccessStatusCode && repeated.Children<JObject>().Select(item => item.Value<string>("id"))
+            .SequenceEqual(sessions.Select(item => item.Id)), "Persisted session public IDs changed across reads.");
+        using var foreignRead = await http.GetAsync("/api/avatar/" + accounts[1].Id.ToString("D") + "/sessions");
+        var foreignEnvelope = JObject.Parse(await foreignRead.Content.ReadAsStringAsync());
+        Require(foreignEnvelope.Value<bool>("isError") && foreignEnvelope["result"]?.Type is null or JTokenType.Null,
+            "A non-Wizard read another avatar's session records.");
+        var stored = await provider.LoadAvatarAsync(actor);
+        Require(!stored.IsError && stored.Result!.VersionId == initialVersion && stored.Result.RefreshTokens.Count == 3,
+            "Session reads mutated the native avatar.");
+        Console.WriteLine("SESSION_LIST_HTTP_NATIVE_PROOF: actual signed MVC/manager/native Mongo read returned only persisted active/revoked/expired credentials, stable public hashes, no raw tokens/invented device/security values and unchanged native avatar. Not device tracking, create/update/revocation/JWT/other-provider/hosted acceptance.");
+    }
+    else if (mode == "billing-warning-provider")
     {
         Require(Environment.GetEnvironmentVariable("OASIS_WARNING_TEST_RESEND_ENABLED") == "true",
             "Real provider qualification requires the explicit isolated test gate.");

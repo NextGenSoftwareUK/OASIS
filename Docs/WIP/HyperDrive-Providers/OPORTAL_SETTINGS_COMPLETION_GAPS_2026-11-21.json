@@ -79,6 +79,13 @@
         "status": "queued",
         "native": false
       }
+    },
+    "httpHost": {
+      "mode": "session-list-http",
+      "status": "prepared-uncompiled-unselected",
+      "scope": "Actual signed MVC/manager/native Mongo with3persisted cryptographically random owned credentials (active/revoked/expired), correct counts/native fields, stable one-way IDs, no raw credentials/invented device/location/security values, foreign read refusal and unchanged native avatar.",
+      "requests": "3GETs; no session/auth mutations",
+      "remaining": "Review source inventory, enable exact host selector, compile/run; not full session tracking or revocation."
     }
   }
 }
