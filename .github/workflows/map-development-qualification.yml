@@ -55,6 +55,8 @@ jobs:
             Scripts/TestHosts/Fixtures/catalogue-browser-native-http.cjs
             Scripts/TestHosts/Fixtures/competition-browser-host.html
             Scripts/TestHosts/Fixtures/competition-browser-native-http.cjs
+            Scripts/TestHosts/Fixtures/mfa-settings-browser-host.html
+            Scripts/TestHosts/Fixtures/mfa-settings-browser-native-http.cjs
             Scripts/TestHosts/Fixtures/profile-browser-runtime.json
             Scripts/verify_web4_hyperdrive_route_manifest.ps1
             Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1

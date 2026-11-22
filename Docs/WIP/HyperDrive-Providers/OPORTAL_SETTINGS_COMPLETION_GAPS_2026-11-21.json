@@ -334,7 +334,7 @@
     },
     "browserQualification": {
       "host": "Scripts/TestHosts/Fixtures/mfa-settings-browser-host.html",
-      "status": "queued-actual-settings-browser",
+      "status": "sparse-checkout-fixed-awaiting-same-browser-cohort",
       "scope": "Actual SDK/Settings fragment/script/stylesheet against native API: status, enrollment/manual key, confirmation, recovery replacement after real next TOTP step, recovery disable, secret clearing and reopen. Network requests constrained to own loopback endpoints; no response stubs, setup/recovery/body logging or local environment.",
       "remaining": "Actual browser/native lifecycle and cleanup acceptance; full Startup/hosted and other Settings gaps remain open.",
       "runner": "Scripts/TestHosts/Fixtures/mfa-settings-browser-native-http.cjs",
@@ -344,8 +344,12 @@
         "id": 44986818576,
         "control": "6ccbba56f53db5ba58529324cd31e1bfc1e5c9b0",
         "candidate": "fbe6c7248f064e44766260e78e00a24b98555e0d",
-        "status": "queued",
-        "mode": "mfa-browser"
+        "status": "completed",
+        "mode": "mfa-browser",
+        "conclusion": "failure",
+        "job": 137099088845,
+        "failure": "Workflow sparse checkout omitted tracked MFA browser host/runner; Resolve-Path failed before host build or browser/native cases.",
+        "cleanup": "Owned container and browser runtime/cache absence verified; native host never started."
       }
     }
   },

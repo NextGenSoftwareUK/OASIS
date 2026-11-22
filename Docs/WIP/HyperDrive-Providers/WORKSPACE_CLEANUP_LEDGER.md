@@ -2721,3 +2721,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 2026-11-21 CORRECTED PROVIDER44985151774 SUCCESS CLEANUP: selected RAM log verifies owned DB/tempDNA/container absence. Both temporary test secrets deleted immediately afterward; exact-name404absence verified. No local output/env/archive/download/database/worktree or deployment credential change. H1 complete; no secrets retained.
 
 2026-11-21 MFA HTTP44985814682 SUCCESS: selected log inspected RAM-only, owned DB/tempDNA/container absence verified. OPORTAL management source/cache/docs only, Node syntax checked; no local runtime/browser/build/env/archive/database/download created. Email secrets remain deleted.
+
+2026-11-21 MFA browser44986818576 failed before host build/native/browser case because sparse checkout omitted actual tracked host/runner. Container/browser runtime/cache absence verified from RAM selected logs. No native host DB/tempDNA created, no local outputs/env/download/browser/database/worktree or email secrets. Exact2sparse paths corrected, no application change.
