@@ -1,10 +1,5 @@
 name: Qualify reviewed WEB4 source in a real hosted browser
 on:
-  push:
-    branches: [work/cosmic-cql-ton-public]
-    paths:
-      - ".github/workflows/qualify-cql-hosted-browser.yml"
-      - "Scripts/Sandbox/Verify-CqlProtectedPreviewBrowser.cjs"
   workflow_dispatch:
     inputs:
       website_source:

@@ -20,6 +20,15 @@ function validateRead(query){
       new Set(ids.map(id=>id.toLowerCase())).size!==ids.length)throw Error('Public example requires bounded unique GUID identities');
   return ids.map(id=>id.toLowerCase());
 }
+function capturesResponse(method,pathname){
+  return method==='POST'&&['/api/sandbox/session','/api/data/query-cql','/api/avatar/revoke-token'].includes(pathname);
+}
+function responseEnvelope(pathname,payload,client){
+  if(pathname==='/api/sandbox/session')return payload;
+  if(pathname==='/api/avatar/revoke-token')return payload?.result;
+  if(pathname==='/api/data/query-cql')return client.unwrap(payload);
+  throw Error('Unadmitted response route');
+}
 async function run(){
   if(process.platform!=='linux'||process.env.GITHUB_ACTIONS!=='true'||typeof WebSocket!=='function')
     throw Error('This qualification requires the existing Linux CI browser runtime');
@@ -41,6 +50,7 @@ async function run(){
     assets.set('/'+name,{body,sha256:crypto.createHash('sha256').update(body).digest('hex')});
   }
   const live=process.env.CQL_BROWSER_LIVE_FLOW==='1';
+  const client=require(path.join(site,'cql-playground.js'));
   const report={websiteSource:website,declaredApiSource:backend,apiSourceVerifiedInsideRunner:false,
     approvedOrigin:origin,provider,liveRequested:live,publicWebsitePublicationVerified:false,modelCalls:0,applicationHolonWrites:0,
     apiRequests:{},blockedApi:[],scriptExceptions:[],assetHashes:{},populatedReadVerified:false,fullBrowserDataFlowVerified:false};
@@ -52,12 +62,12 @@ async function run(){
     {env,stdio:['ignore','ignore','pipe']});
   fs.writeFileSync(path.join(work,'owner.json'),JSON.stringify({owner:'cosmic-cql-linux-ci',pid:browser.pid,work,profile}));
   let socket,session,sequence=0,eventFailure=null,reviewed,expectedIds,readResult,querySentAt=0,lastApi=0;
-  const pending=new Map(),ready=new Map(),waiters=new Map(),responses=new Map(),loadedReads=[];
+  const pending=new Map(),ready=new Map(),waiters=new Map(),responses=new Map(),loadedReads=[],networkMethods=new Map();
   const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
   function send(method,params={},sessionId){
     return new Promise((resolve,reject)=>{
       const id=++sequence,timer=setTimeout(()=>{pending.delete(id);reject(Error('CDP deadline '+method));},45000);
-      pending.set(id,{resolve,reject,timer});socket.send(JSON.stringify({id,method,params,...(sessionId?{sessionId}:{})}));
+      pending.set(id,{resolve,reject,timer,method});socket.send(JSON.stringify({id,method,params,...(sessionId?{sessionId}:{})}));
     });
   }
   async function evaluate(expression){
@@ -110,14 +120,17 @@ async function run(){
       await send('Fetch.failRequest',{requestId:p.requestId,errorReason:'BlockedByClient'},sid);
     }else if(message.method==='Runtime.exceptionThrown'){
       report.scriptExceptions.push({line:p.exceptionDetails?.lineNumber,type:p.exceptionDetails?.exception?.className||'ScriptException'});
+    }else if(message.method==='Network.requestWillBeSent'&&p.request.url.startsWith(api+'/api/')){
+      networkMethods.set(p.requestId,p.request.method);
     }else if(message.method==='Network.responseReceived'&&p.response.url.startsWith(api+'/api/')){
       const pathname=new URL(p.response.url).pathname;
-      if(['/api/sandbox/session','/api/data/query-cql','/api/avatar/revoke-token'].includes(pathname))
+      if(capturesResponse(networkMethods.get(p.requestId),pathname))
         responses.set(p.requestId,{path:pathname,status:p.response.status});
     }else if(message.method==='Network.loadingFinished'&&responses.has(p.requestId)){
       const observation=responses.get(p.requestId);responses.delete(p.requestId);
       const wire=await send('Network.getResponseBody',{requestId:p.requestId},sid);
-      const payload=JSON.parse(wire.base64Encoded?Buffer.from(wire.body,'base64').toString():wire.body);
+      const raw=JSON.parse(wire.base64Encoded?Buffer.from(wire.body,'base64').toString():wire.body);
+      const payload=responseEnvelope(observation.path,raw,client);
       observation.acknowledged=observation.status===200&&payload?.isError===false;
       if(observation.path==='/api/data/query-cql'){
         const rows=payload?.result?.rows;
@@ -145,7 +158,7 @@ async function run(){
       const value=JSON.parse(message.data);
       if(value.id&&pending.has(value.id)){
         const item=pending.get(value.id);pending.delete(value.id);clearTimeout(item.timer);
-        value.error?item.reject(Error('CDP rejected command')):item.resolve(value.result);
+        value.error?item.reject(Error('CDP '+item.method+' '+value.error.code+': '+String(value.error.message).replace(/[\r\n]/g,' ').slice(0,180))):item.resolve(value.result);
       }else event(value).catch(error=>{eventFailure=error.message;});
     });
     report.browserVersion=(await send('Browser.getVersion')).product;
@@ -217,5 +230,5 @@ async function run(){
       ownedBrowserStopped:report.ownedBrowserStopped,profileAbsent:report.profileAbsent,error:report.error||report.cleanupError||report.eventFailure}));
   }
 }
-module.exports={validateRead};
+module.exports={validateRead,capturesResponse,responseEnvelope};
 if(require.main===module)run().catch(error=>{console.error('Browser qualification stopped: '+error.message);process.exitCode=1;});
