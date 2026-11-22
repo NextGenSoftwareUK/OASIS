@@ -20,5 +20,9 @@
   "liveAccepted": false,
   "preparedSource": "84242bd06aee5b8593ec193f8c7518977e651320",
   "qualificationFixture": "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CqlMappedComputedWireTests.cs",
-  "compositionAccepted": false
+  "compositionAccepted": true,
+  "compositionRun": 45005838375,
+  "compositionJob": 137157113992,
+  "compositionArtifact": 14749265298,
+  "compositionArtifactSha256": "77024b5207430c677fa5933bd07aa9160daccfafa22fa80e20e7199d980f06c5"
 }

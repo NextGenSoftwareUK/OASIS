@@ -1,0 +1,16 @@
+{
+  "source": "fbcb99a9ee3b71374437a2c356743398b8ed95af",
+  "core": "5240d3bd34d003407fe8b08070203e8d4efb5e1a",
+  "workflowControl": "a5ac1ba0f3033c91c3d89c6e0770aa8b60b8b159",
+  "run": 45005838375,
+  "job": 137157113992,
+  "artifact": 14749265298,
+  "bytes": 1944,
+  "sha256": "77024b5207430c677fa5933bd07aa9160daccfafa22fa80e20e7199d980f06c5",
+  "testsPassed": 3,
+  "web4Compiled": true,
+  "web5Compiled": true,
+  "dataWrites": 0,
+  "compositionAccepted": true,
+  "archiveSaved": false
+}

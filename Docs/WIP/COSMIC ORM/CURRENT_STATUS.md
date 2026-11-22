@@ -22,7 +22,7 @@ Native/mixed HTTP qualification45004657247/source5d39eeddbc29f168d81e6a26af355f6
 - [Two-provider proof](MAPPED_COMPUTED_NATIVE_PARTIAL_ACCEPTANCE_2026-11-22.json): artifact14747698752/3349bytes/SHA3057a4daa6c54ebd6a39afa0ba015114235f437eea658fd46240bfef1f23d16f inspected in RAM. Both earlier superseded45003939030/45004084607 are terminal/cancelled.
 
 Frozen candidate **fbcb99a9ee3b71374437a2c356743398b8ed95af** preserves Development24ec05bb dependencies, including HoloNETdfd20db7 and ONODEManager29217030, with the paired manifest validated. [Candidate record](MAPPED_COMPUTED_RELEASE_CANDIDATE_2026-11-22.json).
-Exact-source composition **45005838375/job137157113992** is **queued**: three mapped controls plus actual WEB4/WEB5 builds. Workflow control isa5ac1ba0, actual checkout input isfbcb99a9; verify source.json before accepting. Dispatch is acknowledged once; never replay it.
+[Exact-source composition45005838375/job137157113992](MAPPED_COMPUTED_COMPOSITION_ACCEPTANCE_2026-11-22.json) is **accepted**: three mapped controls and actual WEB4/WEB5 builds, zero build errors. Artifact source.json verifies rootfbcb99a9/Core5240d3bd; workflow control isa5ac1ba0. RAM ZIP/TRX/source inspection verified artifact14749265298/1944bytes/SHA77024b5207430c677fa5933bd07aa9160daccfafa22fa80e20e7199d980f06c5. Dispatch is acknowledged once; never replay it.
 
 No mapped image/package acceptance, Development push or hosted acceptance yet. Keep these gates:
 1. Accept the focused Mongo correction and exact composition, with immutable artifact/source evidence.
