@@ -1,5 +1,5 @@
 {
-  "status": "confirmed-source-gap-not-runtime-tested",
+  "status": "partially-accepted-settings-incomplete-not-hosted-accepted",
   "development": "f26edeef1152961a2b46f2149a6c28c08188a09a",
   "core": "a166813b01476a2fce34e5908d74dac1da845ba6",
   "corePath": "Managers/AvatarManager/AvatarManager-Session.cs",
@@ -419,5 +419,25 @@
       "scope": "Self sign-in records on Security tab; explicit refresh; count/date/state validation; issued/expiry/IP fields; no raw token/device/location/security claims; current modal/client/token guards and logout clearing.",
       "remaining": "Actual browser against accepted API candidate and hosted rollout; create/update/revocation remain incomplete."
     }
+  },
+  "currentCompletion": {
+    "mfa": {
+      "status": "native-http-and-settings-browser-accepted",
+      "run": 44987479159,
+      "portal": "e895bf621c01fe7f38025ce0d8bc9fab20b1ab70",
+      "api": "fbe6c7248f064e44766260e78e00a24b98555e0d",
+      "scope": "Real settings enrollment, confirmation, recovery replacement, recovery-code disable, secret clearing and reopen status. Login-popup browser, full Startup and hosted acceptance remain open."
+    },
+    "sessionRead": {
+      "status": "real-native-http-accepted-not-integrated",
+      "run": 44977175851,
+      "scope": "Persisted refresh credential generations; no fabricated device/location, no all-device revocation acceptance."
+    },
+    "remaining": [
+      "Sign Out All Sessions: durable refresh and access-token revocation across validators before enabling UI.",
+      "Delete Account: permanent associated-data erasure contract and actual implementation.",
+      "Current Development integration and hosted acceptance of changed Settings flows."
+    ],
+    "historicalFields": "Findings and trace below retain their original observation context; currentCompletion records superseding acceptance without claiming full Settings completion."
   }
 }
