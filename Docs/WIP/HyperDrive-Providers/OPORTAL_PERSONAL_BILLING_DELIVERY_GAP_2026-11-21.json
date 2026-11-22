@@ -235,7 +235,7 @@
     ],
     "dnaCallback": "current constructor and actual paid pool admission use live callback; Startup unchanged",
     "preservedIndexHelper": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Indexes.cs",
-    "status": "scope-and-preservation-verified-awaiting-inventory-and-compile",
+    "status": "source-inventory-rejected-awaiting-missing-route-restoration",
     "temporaryIndexes": "removed in finally",
     "remaining": "inventory and API compilation, then changed-composition native/API checks; retain original financial proofs, genuine Stripe gate separate",
     "actualChangedPaths": [
@@ -278,8 +278,36 @@
     "inventoryRun": {
       "id": 44967825713,
       "control": "b3a3939c4713e2c296109e95e56334de397a0271",
-      "status": "in_progress",
-      "native": false
+      "status": "completed",
+      "native": false,
+      "conclusion": "success",
+      "job": 137040741427,
+      "artifact": 14733000001,
+      "artifactBytes": 39625
+    },
+    "inventoryReview": {
+      "status": "rejected-source-delivery-gaps",
+      "managers": 930,
+      "routes": 827,
+      "managerBlob": "919543e08a5e7ef1cf641820f14de8c8d3bfbb2d",
+      "routeBlob": "7f7232f1aed772ed79cbe437d924c830e4cf6b92",
+      "method": "Four RAM ZIP entries and all three generated file lengths/SHA256 verified; working CSV bytes restored in finally. No ZIP retained.",
+      "missingRoutes": [
+        {
+          "route": "POST api/subscription/admin/app-accounts/{appId}/owners",
+          "consumer": "OPORTAL assets/js/subscription-admin-modal.js:505"
+        },
+        {
+          "route": "GET api/subscription/usage/alerts",
+          "consumer": "OPORTAL assets/js/usage-charts.js:77"
+        },
+        {
+          "route": "GET/POST api/subscription/app-owner/{appId}/notifications",
+          "consumer": "Existing published generated endpoint contract"
+        }
+      ],
+      "finding": "Deleting old SubscriptionOwnerController removed four endpoints not replaced by new admin/app-owner/notification controllers. Existing overlapping routes correctly move to new controllers; do not restore whole old controller and create duplicate route owners.",
+      "next": "Restore missing canonical controller actions and their actual authorization/repository dependencies; preserve personal consent, owner controls and alerts. Review email acknowledgement semantics before moving old MaybeEmailAsync (swallows exceptions and marks notified before delivery). Regenerate inventory only after source corrections; no compile/runtime dispatch yet."
     }
   }
 }

@@ -208,8 +208,8 @@ jobs:
           if ($LASTEXITCODE) { throw 'Generated route inventory failed validation.' }
           $afterManagers = @(Import-Csv $managerPath)
           $afterRoutes = @(Import-Csv $routePath)
-          $managerKey = { param($row) "$($row.SourceFile)|$($row.Signature)" }
-          $routeKey = { param($row) "$($row.SourceFile)|$($row.Controller)|$($row.Action)|$($row.Verb)|$($row.Template)" }
+          $managerKey = { param($row) "$($row.SourceFile)|$($row.Line)|$($row.Signature)" }
+          $routeKey = { param($row) "$($row.SourceFile)|$($row.Line)|$($row.Controller)|$($row.Action)|$($row.Verb)|$($row.Template)" }
           $oldManagerKeys = @($beforeManagers | ForEach-Object { & $managerKey $_ })
           $newManagerKeys = @($afterManagers | ForEach-Object { & $managerKey $_ })
           $oldRouteKeys = @($beforeRoutes | ForEach-Object { & $routeKey $_ })
