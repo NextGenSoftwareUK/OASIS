@@ -1,0 +1,14 @@
+{
+  "status": "Native failure identified and provider source corrected; new verification pending",
+  "failedRun": 45074820751,
+  "job": 137369608518,
+  "build": "Actual current API/native host build passed with zero errors in5m39.55; first native absence assertion failed before sign-in",
+  "cause": "Two SQLite null-result branches used capitalized Found and were missed by prior case-sensitive source scan; async GUID read did not publish RecordNotFound",
+  "fix": [
+    "Both remaining SQLite branches now publish explicit absent-record code; all14 account/detail null-result message branches source-checked",
+    "Mongo GUID and filtered single-avatar queries now publish loaded count and explicit absence only after successful empty native queries; exceptions/ambiguous results remain errors",
+    "Neo4j GUID lookup already has explicit native RecordNotFound marker; no source change or retest requested"
+  ],
+  "preparedRealCheck": "Existing sync/async SQLite assertion plus zero-session revocation across actual admitted Mongo/SQLite authorities; native re-reads activate each provider explicitly and prove no account was created. No Core null-envelope guessing.",
+  "cleanup": "Selected terminal logs verified owned SQLite directory, Mongo database, temporary DNA and container absent; Mongo not left paused. No local build, database, environment or downloaded logs/results."
+}

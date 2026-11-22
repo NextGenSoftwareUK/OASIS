@@ -2912,3 +2912,7 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 ### 2026-11-22 — atomic checkout reservation
 - Added one bounded mutable reservation projection per account in the existing billing audit collection; no new collection, index, service/worker or environment. Immutable request/provider/terminal events remain separate records.
 - Prepared one real Mongo concurrent two-request/reuse/replay journey in existing host; not executed or claimed accepted. Node syntax/endpoint drift/content hash checked in Portal without builds, installs, downloads or retained results. Current45074820751 frozen candidate preserved.
+
+### 2026-11-22 — native absent-account result correction
+- Current host45074820751 built0errors5m39.55; first native absence check failed before sign-in. Selected logs confirm SQLite directory/Mongo DB/temp DNA/container absent and Mongo not paused. No local logs/archive/build/database/environment/download retained.
+- Fixed two remaining SQLite branches and four Mongo avatar query boundaries; source-checked all14SQLite account/detail absence branches. New zero-session core/native no-account check reactivates each provider before direct native verification, respecting Mongo lifecycle. No accepted native preference/middleware cohort replayed.

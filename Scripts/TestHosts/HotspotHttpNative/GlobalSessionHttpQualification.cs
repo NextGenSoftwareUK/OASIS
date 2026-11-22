@@ -64,6 +64,19 @@ internal static class GlobalSessionHttpQualification
             Check(!ProviderManager.Instance.SetAndReplaceAutoFailOverListForProvidersForAvatarLogin("MongoDBOASIS,SQLLiteDBOASIS").IsError,
                 "Owned SSO authority policy failed.");
 
+            var noAccount = Guid.NewGuid();
+            var noSessions = await AvatarManager.Instance.LogoutAllAvatarSessionsAsync(noAccount);
+            Check(!noSessions.IsError && noSessions.IsSaved && noSessions.Result,
+                "Confirmed absence at admitted providers did not complete zero-session revocation.");
+            Check(!(await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(ProviderType.MongoDBOASIS)).IsError,
+                "Owned Mongo selection after absent revocation failed.");
+            var absentMongoAfter = await mongo.LoadAvatarAsync(noAccount);
+            Check(!(await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(ProviderType.SQLLiteDBOASIS)).IsError,
+                "Owned SQLite selection after absent revocation failed.");
+            var absentSqliteAfter = await sqlite.LoadAvatarAsync(noAccount);
+            Check(!absentMongoAfter.IsError && absentMongoAfter.Result == null && !absentSqliteAfter.IsError && absentSqliteAfter.Result == null,
+                "Zero-session revocation created a native account or the absence verification failed.");
+
             async Task<JObject> Read(HttpResponseMessage response)
             {
                 using (response)
