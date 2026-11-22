@@ -12,13 +12,14 @@ namespace NextGenSoftware.OASIS.SubscriptionLedger.OutboxAdmin;
 /// <summary>Private infrastructure operator command. The actor always comes from WEB4's exact JWT and administrator policy.</summary>
 public static class OutboxAdminCommand
 {
-    public const string Usage = "Usage: requeue <operation-uuid> <action-uuid> <reason>. Read configuration and administrator token from the protected environment; never put secrets on the command line.";
+    public const string Usage = "Usage: requeue <WEB4-WEB10 service> <operation-uuid> <action-uuid> <reason>. Read configuration and administrator token from the protected environment; never put secrets on the command line.";
 
     public static async Task<int> RunAsync(string[] args, IConfiguration configuration, TextWriter output, TextWriter error, CancellationToken cancellationToken = default)
     {
         if (args.Length == 1 && args[0] is "--help" or "-h") { await output.WriteLineAsync(Usage); return 0; }
-        if (args.Length != 4 || args[0] != "requeue" || !Guid.TryParseExact(args[1], "D", out _) || !Guid.TryParseExact(args[2], "D", out _) ||
-            string.IsNullOrWhiteSpace(args[3]) || args[3].Length > 1000)
+        if (args.Length != 5 || args[0] != "requeue" || args[1] is not ("WEB4" or "WEB5" or "WEB6" or "WEB7" or "WEB8" or "WEB9" or "WEB10") ||
+            !Guid.TryParseExact(args[2], "D", out _) || !Guid.TryParseExact(args[3], "D", out _) ||
+            string.IsNullOrWhiteSpace(args[4]) || args[4].Length > 1000)
         { await WriteErrorAsync(error, "INVALID_ARGUMENTS", Usage); return 2; }
         try
         {
@@ -29,9 +30,9 @@ public static class OutboxAdminCommand
             string database = Required(configuration, "SUBSCRIPTION_OUTBOX_DATABASE");
             var store = new MongoUsageOutboxStore(connection, database);
             // No InitializeAsync here: the operator role needs find/update on the existing outbox, not schema-management privileges.
-            await store.RequeueDeadletterAsync(args[1], args[2], actor, args[3], deadline.Token);
-            await output.WriteLineAsync(JsonSerializer.Serialize(new { isError = false, code = "DEADLETTER_REQUEUED", operationId = args[1], actionId = args[2], actor,
-                message = "The original immutable settlement is queued for WEB4 delivery. Monitor its acknowledgement; provider execution was not repeated." }));
+            await store.RequeueDeadletterAsync(args[1], args[2], args[3], actor, args[4], deadline.Token);
+            await output.WriteLineAsync(JsonSerializer.Serialize(new { isError = false, code = "DEADLETTER_REQUEUED", service = args[1], operationId = args[2], actionId = args[3], actor,
+                message = "The original immutable settlement is queued for the selected service delivery. Monitor its acknowledgement; provider execution was not repeated." }));
             return 0;
         }
         catch (SecurityTokenException)

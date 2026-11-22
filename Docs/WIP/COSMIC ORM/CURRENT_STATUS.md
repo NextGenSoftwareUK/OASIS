@@ -3,7 +3,7 @@
 Updated 22 November 2026. Work only on `work/cosmic-cql-ton-public`; website uses its existing `work/cosmic-cql` branch.
 The physical checkout contains unrelated concurrent changes: use the established scoped Git-object publisher; do not reset, switch, stage or overwrite them.
 
-## Live Development
+## Last accepted demo runtime
 
 - Root **a96652767c3b382cdbd9e4ccaa80516358abff53**, Core **eef9f1a1d6bca1041c0971fadf764c2664f64d26**. Normal fast-forward from reviewed peer warning-email commit c3f70353; peer changes preserved.
 - All seven WEB4–WEB10 deployments succeeded. Exact running source and startup **AutoLoadBalanceEnabled=true** verified on every service. [Runtime evidence](TEXT_COALESCE_COMBINED_RUNTIME_ACCEPTANCE_2026-11-22.json).
@@ -12,6 +12,8 @@ The physical checkout contains unrelated concurrent changes: use the established
 - HoloOASIS previously passed a real native live CQL read. Conductor readiness budget is 480 seconds (formerly240), returning immediately when ready; admin bind remains separate. Recovery does not prove intermittent conductor joining can never recur. No conductor/lair reset or user-data migration.
 - Last full startup diagnostic reported105 readers/102 verified, with CosmosBlockChainOASIS, HashgraphOASIS and ArweaveOASIS unavailable. This is an earlier startup snapshot, not proof of their current availability or of a current Holo failure.
 - No staging/production promotion, PIPER data mutation or DNA-setting change in these query slices.
+
+Shared Development advanced to **546dfb451cb11a8ec9355d2d25db853bab16617a** with the peer verified portal batch. Its rollout is separate from the last accepted demo evidence below. A preserved combined metadata candidate **d147fd8995430adf085a116e7c6a412a545e3634** / Core **3f5156e6e2cb7f6f9fd29ca6fa417dfe75808ce1** is prepared; combined graph build, new exact image/package and runtime acceptance remain open. Earlier01de image/package cannot certify this changed runtime.
 
 ## Next release: conditional text
 

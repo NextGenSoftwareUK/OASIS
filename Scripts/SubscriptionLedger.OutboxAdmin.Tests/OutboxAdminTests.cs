@@ -69,7 +69,7 @@ public sealed class OutboxAdminTests : IDisposable
             _ => throw new InvalidOperationException()
         };
         using var output = new StringWriter(); using var errors = new StringWriter();
-        int code = await OutboxAdminCommand.RunAsync(new[] { "requeue", _operation, _action, "approved repair" }, Config(token), output, errors);
+        int code = await OutboxAdminCommand.RunAsync(new[] { "requeue", "WEB6", _operation, _action, "approved repair" }, Config(token), output, errors);
         Assert.Equal(3, code); Assert.Contains("ADMIN_AUTHENTICATION_FAILED", errors.ToString()); Assert.Empty(output.ToString());
         Assert.DoesNotContain(token, errors.ToString()); Assert.DoesNotContain(Secret, errors.ToString());
     }
@@ -80,16 +80,25 @@ public sealed class OutboxAdminTests : IDisposable
     public async Task SignedOrdinaryOrUnapprovedAvatarCannotRequeue(string defect)
     {
         using var output = new StringWriter(); using var errors = new StringWriter();
-        int code = await OutboxAdminCommand.RunAsync(new[] { "requeue", _operation, _action, "approved repair" },
+        int code = await OutboxAdminCommand.RunAsync(new[] { "requeue", "WEB6", _operation, _action, "approved repair" },
             Config(Token(admin: defect != "claim"), allowed: defect == "allowlist" ? Guid.NewGuid().ToString("D") : _actor), output, errors);
         Assert.Equal(3, code); Assert.Contains("ADMIN_AUTHORIZATION_FAILED", errors.ToString());
+    }
+
+    [Fact]
+    public async Task UnsupportedServiceIsRejectedBeforeAuthenticationOrStorage()
+    {
+        using var output = new StringWriter(); using var errors = new StringWriter();
+        int code = await OutboxAdminCommand.RunAsync(new[] { "requeue", "WEB11", _operation, _action, "reason" },
+            new ConfigurationBuilder().Build(), output, errors);
+        Assert.Equal(2, code); Assert.Contains("INVALID_ARGUMENTS", errors.ToString()); Assert.Empty(output.ToString());
     }
 
     [Fact]
     public async Task ActorCannotBeInjectedThroughArguments()
     {
         using var output = new StringWriter(); using var errors = new StringWriter();
-        int code = await OutboxAdminCommand.RunAsync(new[] { "requeue", _operation, _action, "reason", "--actor", Guid.NewGuid().ToString("D") }, Config(), output, errors);
+        int code = await OutboxAdminCommand.RunAsync(new[] { "requeue", "WEB6", _operation, _action, "reason", "--actor", Guid.NewGuid().ToString("D") }, Config(), output, errors);
         Assert.Equal(2, code); Assert.Contains("INVALID_ARGUMENTS", errors.ToString());
     }
 
@@ -98,7 +107,7 @@ public sealed class OutboxAdminTests : IDisposable
     {
         File.WriteAllText(_dnaPath, "{}");
         using var output = new StringWriter(); using var errors = new StringWriter();
-        int code = await OutboxAdminCommand.RunAsync(new[] { "requeue", _operation, _action, "reason" }, Config(), output, errors);
+        int code = await OutboxAdminCommand.RunAsync(new[] { "requeue", "WEB6", _operation, _action, "reason" }, Config(), output, errors);
         Assert.Equal(2, code); Assert.Contains("OPERATOR_CONFIGURATION_INVALID", errors.ToString()); Assert.Equal("{}", File.ReadAllText(_dnaPath));
     }
 
@@ -137,7 +146,13 @@ public sealed class OutboxAdminTests : IDisposable
             Assert.True(await store.TryBeginAsync(operation, default));
             using var output = new StringWriter(); using var errors = new StringWriter();
             var configuration = Config(mongo: connection, database: database);
-            string[] command = { "requeue", _operation, _action, "Service credential repaired; approved ticket 123" };
+            using var refusedOutput = new StringWriter(); using var refusedErrors = new StringWriter();
+            Assert.Equal(4, await OutboxAdminCommand.RunAsync(new[] { "requeue", "WEB5", _operation, _action, "Wrong service" },
+                configuration, refusedOutput, refusedErrors));
+            Assert.Contains("OUTBOX_SERVICE_CONFLICT", refusedErrors.ToString()); Assert.Empty(refusedOutput.ToString());
+            var unchanged = await store.GetAsync(_operation, default);
+            Assert.Equal("deadletter", unchanged.State); Assert.Empty(unchanged.AdministrativeActions);
+            string[] command = { "requeue", "WEB6", _operation, _action, "Service credential repaired; approved ticket 123" };
             Assert.Equal(0, await OutboxAdminCommand.RunAsync(command, configuration, output, errors));
             Assert.Equal(0, await OutboxAdminCommand.RunAsync(command, configuration, output, errors));
             var after = await store.GetAsync(_operation, default);
