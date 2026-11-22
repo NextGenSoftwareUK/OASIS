@@ -135,7 +135,7 @@ jobs:
           $source=(git rev-parse HEAD).Trim()
           if($source -ne $env:GITHUB_SHA){throw 'Source checkout differs from exact workflow revision'}
           $core=(git -C "OASIS Architecture/NextGenSoftware.OASIS.API.Core" rev-parse HEAD).Trim()
-          @{source=$source;core=$core;scope='${{ inputs.scope }}';corePassed=$(if($remainingOnly){0}else{2});nativePassed=$(if($remainingOnly){1}else{3});web4Compiled=$true;providers=$(if($remainingOnly){@('Neo4jOASIS')}else{@('MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS')});priorPartialProof=$(if($remainingOnly){'RECORD_DISTINCT_PARTIAL_ACCEPTANCE_2026-11-22.json'}else{$null});ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content (Join-Path $reportRoot 'source.json') -Encoding utf8
+          @{source=$source;core=$core;scope='${{ inputs.scope }}';corePassed=$(if($remainingOnly){0}else{2});nativePassed=$(if($remainingOnly){1}else{3});web4Compiled=$true;providers=@(if($remainingOnly){'Neo4jOASIS'}else{'MongoDBOASIS';'SQLLiteDBOASIS';'Neo4jOASIS'});priorPartialProof=$(if($remainingOnly){'RECORD_DISTINCT_PARTIAL_ACCEPTANCE_2026-11-22.json'}else{$null});ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content (Join-Path $reportRoot 'source.json') -Encoding utf8
       - name: Stop owned Mongo
         if: always() && inputs.scope != 'remaining-neo-and-web4'
         run: docker rm -f -v cql-where-mongo
