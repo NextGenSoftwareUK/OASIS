@@ -115,5 +115,24 @@
     "warningImplementationOverlaps": 0,
     "avatarManagerAndEmailManagerSourceChanges": 0,
     "scope": "Read-only diff: no shipping/deployment acceptance; preserve latest CQL changes and build combined graph before integration."
+  },
+  "currentDevelopmentComposition": {
+    "candidate": "6834bb7c3cf6ff86d48b122fcf7650d93415a90d",
+    "base": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
+    "tag": "qualification/warning-current-2026-11-22-6834bb7c",
+    "paths": [
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Owners.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.WarningEmails.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailDispatcher.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailGateway.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailService.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningReader.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
+      "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
+    ],
+    "status": "source-frozen-awaiting-inventory-and-build",
+    "behaviorSource": "All eight warning implementation paths identical to accepted6de38f50; Core/provider CQL changes preserved; no shared checkout changes.",
+    "remaining": "Current-source inventories and combined build required before integration; no accepted behavior replay."
   }
 }

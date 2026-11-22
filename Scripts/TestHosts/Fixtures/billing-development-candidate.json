@@ -1,15 +1,13 @@
 {
   "scope": "billing",
-  "status": "reviewed-source-awaiting-compile-and-enabled-browser",
-  "base": "b8561b84a7b2298ff7b305dd8a352748b98b2980",
-  "candidate": "6de38f50ddef025703b0fb2c618905570e553106",
-  "tag": "qualification/warning-reviewed-2026-11-22-6de38f50",
+  "status": "current-development-composition-awaiting-source-inventory-review",
+  "base": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
+  "candidate": "6834bb7c3cf6ff86d48b122fcf7650d93415a90d",
+  "tag": "qualification/warning-current-2026-11-22-6834bb7c",
   "buildProjects": [
     "WEB4"
   ],
   "allowedPaths": [
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Owners.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.WarningEmails.cs",
@@ -21,10 +19,10 @@
     "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
   ],
   "core": {
-    "base": "66151891ab7d1cdd0f8bdcf97cc14449de131651",
-    "candidate": "66151891ab7d1cdd0f8bdcf97cc14449de131651"
+    "base": "dcf11fe46181438b46eba57a88310f7172c89a61",
+    "candidate": "dcf11fe46181438b46eba57a88310f7172c89a61"
   },
-  "remaining": "Review current-base source inventories; compile and verify enabled warning browser/native flow before Development integration. No unrelated billing/session source included.",
+  "remaining": "Regenerate/review current-source inventories then compile combined graph only; accepted warning behavior source unchanged, no provider replay or credentials needed.",
   "nativeHost": "HotspotHttpNative",
   "nativeMode": "billing-warning-browser",
   "portal": "e895bf621c01fe7f38025ce0d8bc9fab20b1ab70"
