@@ -22,7 +22,7 @@ public sealed partial class CqlV1Web4NativeTests
     public Task NativeSetHttpPreservesOccurrencesPermissionsAndMetering(string providerName)
         =>RunGroupedDistinctNativeFixture(providerName,false,setHttpJourney:true);
     private static async Task<int> VerifyNativeSetHttpJourney(IOASISStorageProvider provider,
-        List<Guid> owned,Dictionary<string,long> timings,bool selectedColumns=false)
+        List<Guid> owned,Dictionary<string,long> timings,bool selectedColumns=false,bool stagedInputs=false)
     {
         var type=provider.ProviderType.Value;var actor=Guid.NewGuid();var outsider=Guid.NewGuid();
         var row=new Holon {Id=Guid.NewGuid(),Name="native-set-http",CreatedByAvatarId=actor,IsPublic=false,IsActive=true,IsNewHolon=true};
@@ -55,6 +55,23 @@ public sealed partial class CqlV1Web4NativeTests
                     body.Left.Columns=new[]{new CqlProjectionV1Column{Field="Name",Alias="label"}};
                     body.Right.Columns=new[]{new CqlProjectionV1Column{Field="Name",Alias="other"}};
                 }
+                if(stagedInputs)
+                {
+                    Assert.IsTrue(selectedColumns);
+                    body.Left.Columns=new[]{
+                        new CqlProjectionV1Column{Field="Name",Alias="name"},
+                        new CqlProjectionV1Column{Field="Description",Alias="detail"}};
+                    body.Left.Stages=new[]{
+                        new CqlCompositionV1Stage{Operation="Where",Filters=new[]{
+                            new CqlGroupedV1Filter{Alias="name",Operator=CqlV1Operator.Equal,Value=JsonSerializer.SerializeToElement(row.Name)}}},
+                        new CqlCompositionV1Stage{Operation="OrderBy",Order=new[]{new CqlGroupedV1Ordering{Alias="name",Descending=true}}},
+                        new CqlCompositionV1Stage{Operation="Skip",Count=0},
+                        new CqlCompositionV1Stage{Operation="Take",Count=1},
+                        new CqlCompositionV1Stage{Operation="Select",Columns=new[]{new CqlCompositionV1Column{Alias="label",SourceAlias="name"}}}};
+                    body.Right.Stages=new[]{
+                        new CqlCompositionV1Stage{Operation="Where",Filters=new[]{
+                            new CqlGroupedV1Filter{Alias="other",Operator=CqlV1Operator.NotEqual,Value=JsonSerializer.SerializeToElement(row.Name)}}}};
+                }
                 async Task Send(string? bearer,int expected)
                 {
                     using var request=new HttpRequestMessage(HttpMethod.Post,"/api/data/query-cql/set"){
@@ -85,7 +102,7 @@ public sealed partial class CqlV1Web4NativeTests
                     Assert.AreEqual(1,operation.ProviderAttempts.Count);Assert.AreEqual(1,operation.Receipts.Count);
                     Assert.AreEqual(0.002m,authority.Settlements[operation.Id].ActualCostUsd);
                 }
-                await Send(ownerToken,2);await Send(otherToken,0);await Send(null,0);
+                await Send(ownerToken,stagedInputs?1:2);await Send(otherToken,0);await Send(null,0);
                 Assert.AreEqual(2,authority.Started.Count);Assert.AreEqual(2,authority.Settlements.Count);
             }
             finally{await app.StopAsync();}
