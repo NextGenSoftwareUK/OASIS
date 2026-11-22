@@ -218,7 +218,14 @@
       "status": "prepared-uncompiled-unselected",
       "scope": "Existing MfaService/MongoMfaStore on exact owned loopback DB: encrypted pending enrollment, confirm, authenticator challenge/consumption, recovery consumption/refusal, disable and actual lifecycle audit. Uses supported injected clock to advance30s without sleeping; no mock store/provider or secret output.",
       "remaining": "Compile and select after current session failure resolved; then actual HTTP/login/browser and Settings UI. No source/deployed MFA setting changed.",
-      "selector": "Explicit mfa-native host plus both workflow allowlists prepared; descriptor remains session-list-http. No MFA dispatch or node setting change. Initial edit guard found2allowlists rather than1; both updated explicitly."
+      "selector": "Explicit mfa-native host plus both workflow allowlists prepared; descriptor remains session-list-http. No MFA dispatch or node setting change. Initial edit guard found2allowlists rather than1; both updated explicitly.",
+      "run": {
+        "id": 44977748392,
+        "control": "5673e2c3b0d4acae75ef858615341e595defea62",
+        "candidate": "e5aa77161465fa6c683746bac49ea647dd7adeb0",
+        "status": "in_progress",
+        "mode": "mfa-native"
+      }
     },
     "statusUi": {
       "commit": "OPORTAL dev c8059aa",
