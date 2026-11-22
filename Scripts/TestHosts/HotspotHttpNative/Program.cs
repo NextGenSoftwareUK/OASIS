@@ -40,7 +40,7 @@ Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
 var mode = Environment.GetEnvironmentVariable("OASIS_HOTSPOT_HTTP_MODE") ?? "binding";
-Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "session-list-http" or "mfa-native" or "mfa-http" or "mfa-browser" or "billing-warning-browser", "Unsupported hotspot HTTP check mode.");
+Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "session-list-http" or "mfa-native" or "mfa-http" or "mfa-browser" or "billing-warning-browser" or "billing-restoration-http", "Unsupported hotspot HTTP check mode.");
 var dna = new OASISDNA { OASIS = new() {
     HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
         AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
@@ -65,7 +65,7 @@ try
     var accounts = new List<Avatar> {
         new Avatar { Id = actor, Username = "http-" + actor.ToString("N"), Email = actor.ToString("N") + "@example.test", AvatarType = new EnumValue<AvatarType>(AvatarType.User) },
         new Avatar { Id = Guid.NewGuid(), FirstName = "OASIS", LastName = "SYSTEM", Username = "root", Email = "anorak@oasisomniverse.one", AvatarType = new EnumValue<AvatarType>(AvatarType.System) } };
-    if (mode is "competition-publisher" or "billing-http" or "billing-admin-http" or "billing-warning-browser") accounts.Add(new Avatar { Id = wizardActor,
+    if (mode is "competition-publisher" or "billing-http" or "billing-admin-http" or "billing-warning-browser" or "billing-restoration-http") accounts.Add(new Avatar { Id = wizardActor,
         Username = "wizard-" + wizardActor.ToString("N"), Email = wizardActor.ToString("N") + "@example.test",
         AvatarType = new EnumValue<AvatarType>(mode == "billing-http" ? AvatarType.User : AvatarType.Wizard) });
     foreach (var account in accounts)
@@ -178,10 +178,10 @@ try
     }
     if (mode is "mfa-http" or "mfa-browser") builder.Logging.AddProvider(new SanitizedHttpExceptionLogger());
     MongoSubscriptionUsageRepository? billingRepository = null;
-    if (mode is "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "billing-warning-browser")
+    if (mode is "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "billing-warning-browser" or "billing-restoration-http")
     {
         billingRepository = new MongoSubscriptionUsageRepository(client, database, TimeProvider.System);
-        if (mode is not ("billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "billing-warning-browser"))
+        if (mode is not ("billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "billing-warning-browser" or "billing-restoration-http"))
         {
             await billingRepository.CreateAppAccountAsync("owned-billing", "Owned billing route fixture", "enterprise",
                 actor.ToString("D"), "Owned isolated fixture", false, null, CancellationToken.None);
@@ -204,6 +204,17 @@ try
             builder.Services.AddTransient<UsageWarningEmailService>();
         }
     }
+    if (mode == "billing-restoration-http")
+    {
+        Require(string.IsNullOrWhiteSpace(SubscriptionStripeConfiguration.SecretKey(builder.Configuration)),
+            "Stripe credentials are forbidden in the owned no-charge contract check.");
+        builder.Services.AddSingleton<ISubscriptionUsageRepository>(billingRepository!);
+        builder.Services.AddSingleton<ISubscriptionBillingRepository>(billingRepository!);
+        builder.Services.AddSingleton<IPaidOverageStatementStore>(billingRepository!);
+        builder.Services.AddSingleton<ISubscriptionService, SubscriptionService>();
+        builder.Services.AddSingleton<IPaidOverageGateway, StripePaidOverageGateway>();
+        builder.Services.AddTransient<PaidOverageBillingService>();
+    }
     var key = new SymmetricSecurityKey((mode is "mfa-http" or "mfa-browser") ? System.Text.Encoding.ASCII.GetBytes(dna.OASIS.Security.SecretKey) : secret);
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {
         options.MapInboundClaims = false;
@@ -211,7 +222,7 @@ try
             ValidateIssuerSigningKey = true, IssuerSigningKey = key, ValidateLifetime = true, ClockSkew = TimeSpan.Zero };
     });
     var mvc = builder.Services.AddControllers();
-    if (mode is "mfa-http" or "mfa-browser" or "billing-warning-browser")
+    if (mode is "mfa-http" or "mfa-browser" or "billing-warning-browser" or "billing-restoration-http")
     {
         // WEB4 hosts authentication; WEB5's proxy has its own deployment and the same public URL.
         // This multi-API fixture must use WEB4's application surface for the auth journey.
@@ -281,7 +292,17 @@ try
         using var result = JsonDocument.Parse(resultText);
         Require(result.RootElement.GetProperty(resultProperty).GetBoolean(), "Owned browser completion marker missing.");
     }
-    if (mode == "billing-warning-browser")
+    if (mode == "billing-restoration-http")
+    {
+        await WarningBrowserFixture.SeedAsync(billingRepository!, database, actor, wizardActor);
+        var before = await provider.LoadAvatarAsync(actor);
+        Require(!before.IsError && before.Result != null, "Owned billing actor unavailable.");
+        await BillingRestorationHttpQualification.RunAsync(http, billingRepository!, actor);
+        var after = await provider.LoadAvatarAsync(actor);
+        Require(!after.IsError && after.Result!.VersionId == before.Result.VersionId,
+            "Billing contract check changed the avatar.");
+    }
+    else if (mode == "billing-warning-browser")
     {
         Require(Environment.GetEnvironmentVariable("OASIS_WARNING_TEST_RESEND_ENABLED") == "true",
             "Warning browser requires the explicit isolated provider gate.");

@@ -227,5 +227,18 @@
       "status": "queued",
       "mode": "compile-only-WEB4-and-OUTBOXADMINTESTS-no-native-no-secrets"
     }
+  },
+  "representativeNativePreparation": {
+    "status": "prepared-not-compiled-selected-or-run",
+    "mode": "billing-restoration-http",
+    "helper": "Scripts/TestHosts/HotspotHttpNative/BillingRestorationHttpQualification.cs",
+    "scope": [
+      "Actual WEB4 MVC with isolated real Mongo, canonical subscriber usage/unbound-consent fields.",
+      "Empty own statements, canonical statement retry404, conflicting-intent400, explicit no-charge200.",
+      "No statements generated; subscriber consent/quota and avatar version unchanged.",
+      "Two changed CLI cases only: invalid service before auth/storage and actual Mongo wrong-service refusal followed by correct acknowledged idempotent requeue preserving settlement."
+    ],
+    "protection": "Exact owned loopback URI; no Stripe credential permitted; no email/payment/shared outbox operation. Fixtures create fresh IDs in unique owned databases.",
+    "remaining": "Existing combined build44993120942 still queued; do not replace its pending concurrency slot. Select new native mode only after result and source review. No earlier accepted warning/MFA suites replayed."
   }
 }

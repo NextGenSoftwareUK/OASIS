@@ -76,7 +76,7 @@ jobs:
           $files = @{ map='Scripts/TestHosts/Fixtures/map-development-candidate.json'; hotspot='Scripts/TestHosts/Fixtures/hotspot-development-candidate.json'; quest='Scripts/TestHosts/Fixtures/quest-authoritative-candidate.json'; competition='Scripts/TestHosts/Fixtures/competition-development-candidate.json'; profile='Scripts/TestHosts/Fixtures/profile-development-candidate.json'; billing='Scripts/TestHosts/Fixtures/billing-development-candidate.json' }
           $file = $files[$env:CANDIDATE_SCOPE]
           $candidate = Get-Content $file -Raw | ConvertFrom-Json
-          if ($env:CANDIDATE_SCOPE -eq 'billing' -and '${{ inputs.native_check }}' -eq 'true' -and ($candidate.nativeHost -ne 'HotspotHttpNative' -or $candidate.nativeMode -notin @('billing-http','billing-admin-http','billing-warning-store','billing-warning-http','billing-warning-provider','session-list-http','mfa-native','mfa-http','mfa-browser','billing-warning-browser'))) { throw 'Billing requires an explicitly reviewed HTTP host mode.' }
+          if ($env:CANDIDATE_SCOPE -eq 'billing' -and '${{ inputs.native_check }}' -eq 'true' -and ($candidate.nativeHost -ne 'HotspotHttpNative' -or $candidate.nativeMode -notin @('billing-http','billing-admin-http','billing-warning-store','billing-warning-http','billing-warning-provider','session-list-http','mfa-native','mfa-http','mfa-browser','billing-warning-browser','billing-restoration-http'))) { throw 'Billing requires an explicitly reviewed HTTP host mode.' }
           if ($env:CANDIDATE_SCOPE -eq 'competition' -and '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -notin @('competition-browser','competition-publisher')) { throw 'Competition requires an explicit browser or publisher host.' }
           if ($env:CANDIDATE_SCOPE -eq 'profile' -and '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -ne 'profile-http') { throw 'Profile restoration requires its explicit HTTP host.' }
           "file=$file" >> $env:GITHUB_OUTPUT
@@ -284,7 +284,7 @@ jobs:
           if ($hostName -notin @('MapDevelopmentNative','HotspotDevelopmentNative','HotspotHttpNative')) { throw 'Unsupported native qualification host.' }
           if ($hostName -eq 'HotspotHttpNative') {
             $env:OASIS_HOTSPOT_HTTP_MODE = if ($candidate.nativeMode) { $candidate.nativeMode } else { 'binding' }
-            if ($env:OASIS_HOTSPOT_HTTP_MODE -notin @('binding','populated','browser','quest-empty','catalogue','catalogue-browser','competition-browser','competition-publisher','profile-http','billing-http','billing-admin-http','billing-warning-store','billing-warning-http','billing-warning-provider','session-list-http','mfa-native','mfa-http','mfa-browser','billing-warning-browser')) { throw 'Unsupported hotspot HTTP check mode.' }
+            if ($env:OASIS_HOTSPOT_HTTP_MODE -notin @('binding','populated','browser','quest-empty','catalogue','catalogue-browser','competition-browser','competition-publisher','profile-http','billing-http','billing-admin-http','billing-warning-store','billing-warning-http','billing-warning-provider','session-list-http','mfa-native','mfa-http','mfa-browser','billing-warning-browser','billing-restoration-http')) { throw 'Unsupported hotspot HTTP check mode.' }
             if ($env:OASIS_HOTSPOT_HTTP_MODE -eq 'catalogue-browser') {
               $env:OASIS_GEO_BROWSER_HOST = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/catalogue-browser-host.html).Path
               $env:OASIS_GEO_BROWSER_SCRIPT = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/catalogue-browser-native-http.cjs).Path
@@ -304,6 +304,10 @@ jobs:
             if ($LASTEXITCODE) { throw "Combined Development native $hostName host build failed." }
             dotnet "../qualification-control/Scripts/TestHosts/$hostName/bin/Release/net10.0/$hostName.dll"
             if ($LASTEXITCODE) { throw "Combined Development native $hostName check failed." }
+            if ($hostName -eq 'HotspotHttpNative' -and $env:OASIS_HOTSPOT_HTTP_MODE -eq 'billing-restoration-http') {
+              dotnet test Scripts/SubscriptionLedger.OutboxAdmin.Tests/SubscriptionLedger.OutboxAdmin.Tests.csproj --configuration Release --filter 'FullyQualifiedName~UnsupportedServiceIsRejectedBeforeAuthenticationOrStorage|FullyQualifiedName~RealMongoRequeueUsesAuthenticatedActorAndPreservesSettlement' --logger 'console;verbosity=normal' /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE) { throw 'Changed operator service-binding checks failed.' }
+            }
           }
       - name: Remove only the owned native fixture
         if: ${{ always() && inputs.native_check }}
