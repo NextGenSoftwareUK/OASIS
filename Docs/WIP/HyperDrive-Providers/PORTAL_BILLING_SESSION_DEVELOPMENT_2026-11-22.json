@@ -1,0 +1,51 @@
+{
+  "status": "verified-source-ready-for-integration-not-hosted-accepted",
+  "base": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+  "source": "f688e6fe3f08230ad9006e1ae615cec423b090db",
+  "core": "a7d15b4ffc3fbcedd3c7164f06ba8fafb262a563",
+  "sourceScope": {
+    "rootPaths": 41,
+    "corePaths": [
+      "Managers/AvatarManager/AvatarManager-Session.cs",
+      "Objects/Avatar/AvatarSessionManagement.cs",
+      "Services/Subscriptions/MongoUsageOutboxStore.cs",
+      "Services/Subscriptions/UsageExecutionContracts.cs"
+    ],
+    "preservation": "Current verified CQL coalescing preserved; zero portal overlap. Core pin/manifest paired. Startup only removes obsolete app-statement worker registration with its deleted implementation; DNA and remaining worker settings unchanged."
+  },
+  "currentBuild": {
+    "run": 44996842514,
+    "job": 137129596073,
+    "control": "ddbf174c5af798825e856d2fcb9e07042388f0c8",
+    "status": "success",
+    "web4Elapsed": "00:03:38.23",
+    "web5Elapsed": "00:00:22.21",
+    "operatorTestsProjectElapsed": "00:00:05.75",
+    "managerMethods": 933,
+    "controllerActions": 827
+  },
+  "retainedBehavior": [
+    {
+      "run": 44994656993,
+      "job": 137122983239,
+      "scope": "Actual native HTTP consent fields, canonical statement404/conflicting intent400, explicit no-charge200; no statement and unchanged quota/subscriber/avatar. Exactly2changed real CLI service-binding cases passed."
+    },
+    {
+      "run": 44977175851,
+      "job": 137069568377,
+      "scope": "Real native session credential-generation reads, stable one-way IDs/no raw tokens/no invented device or location, foreign refusal and unchanged avatar. Same exact reader/DTO and canonical route correction; auth helpers unchanged."
+    },
+    {
+      "run": 44990168013,
+      "job": 137109268095,
+      "scope": "Actual warning SDK/component/button with controlled sink and persisted provider acknowledgement; one submission, repeat previously accepted. Same warning implementation retained."
+    }
+  ],
+  "cleanup": "Owned native DB/tempDNA/container absence verified; temporary email secrets removed/404 verified. No local runtime/build/download/archive/DB; temporary Git indexes removed. No shared Atlas/PIPER/protected delivery replay.",
+  "remaining": [
+    "Railway exact running revisions/startup and hosted acceptance.",
+    "Genuine Stripe/paid billing, app-owner browser/admin and full subscription acceptance.",
+    "Session stats/create/update/revocation and account erasure; disabled Settings controls remain disabled.",
+    "Full OPORTAL/all providers/HyperDrive reliability remain incomplete."
+  ]
+}
