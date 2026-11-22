@@ -1,0 +1,14 @@
+{
+  "source": "863bdc7de586be91c1ef2f053c3b30de43b2fd72",
+  "core": "babf7b82936f07d9decff57fac52b08ed527eb35",
+  "run": 45027230988,
+  "job": 137222787917,
+  "digest": "sha256:289a8075178c44b2914244ef7b17b4905a98fa6734fe4b935b095760b6aeec59",
+  "imageAccepted": true,
+  "checkoutSourceVerified": true,
+  "pinnedCoreVerified": true,
+  "preservedOnodeManager": "0cf009958d9bf29664799d70a76f0fb6e596c7ae",
+  "teachingSidecars": false,
+  "packageAccepted": false,
+  "liveAccepted": false
+}
