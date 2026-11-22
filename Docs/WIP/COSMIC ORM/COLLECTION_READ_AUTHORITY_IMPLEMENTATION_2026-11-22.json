@@ -1,0 +1,16 @@
+{
+  "phase": "core_source_published",
+  "baseCore": "1f649cd707df50f6ef8f999583e1117054a43133",
+  "core": "9dcc856add106fa26b27ea5d26ef50b590bf92fd",
+  "changedOperations": [
+    "LoadAllHolons",
+    "LoadHolonsByMetaData",
+    "LoadHolonsByMetaDataPairs"
+  ],
+  "previouslyProtectedParentOperationsPreserved": true,
+  "compiled": false,
+  "tested": false,
+  "deployed": false,
+  "piperDataAccessed": false,
+  "peerChecked": "248c0767ba9be1adda4d9cb7433a325c8449c3d8/a88a9926235434e3cd6bc2a607985cca5d7e6637"
+}
