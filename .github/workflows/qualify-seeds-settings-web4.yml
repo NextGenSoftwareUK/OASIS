@@ -6,8 +6,6 @@ on:
     paths:
       - '.github/workflows/qualify-seeds-settings-web4.yml'
       - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS/**'
-      - 'Docker/oasis-dependency-versions.env'
-      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlSeedsSettingsHostedConfigurationTests.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlSeedsSettingsHttpTests.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/ReviewedPublicMongoHttpFixture.cs'

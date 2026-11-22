@@ -1,0 +1,167 @@
+{
+  "core": "1e9c9b52fee83fee0e1e3055dc48b0143bcbe8a9",
+  "base": "21a5966a12aa9c57109131cf7a519394d30e9a27",
+  "sourcePrepared": true,
+  "compiled": true,
+  "nativeProviderAdmitted": false,
+  "runtimeHooked": true,
+  "deployed": false,
+  "next": "Implement native Neo4j keyed source and representative Core/provider checks before admission; MongoDB/SQLite follow on the same source contract.",
+  "nativeProviderSourceImplemented": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "qualification": "Pending exact native workflow",
+  "source": "2bb54171442af5316c062e474fb6e987e7173f9f",
+  "qualificationRun": 45078689312,
+  "qualificationPhase": "NativeAccepted",
+  "unrelatedOwnedCancelRequested": [
+    45076199516,
+    45076199140,
+    45076199132,
+    45076199054,
+    45076199410,
+    45076199100,
+    45076199477,
+    45076199407,
+    45076199102,
+    45076199401,
+    45076199408,
+    45076199423,
+    45076199383,
+    45076199076,
+    45076199065,
+    45076199411,
+    45076199421,
+    45076199405,
+    45076199413
+  ],
+  "qualificationJob": 137381608782,
+  "requiredPinRun": 45076771319,
+  "requiredPinAttempt": 2,
+  "requiredPinJob": 137374205856,
+  "unrelatedCancelFollowup": 45076199398,
+  "failedRun": 45076199105,
+  "rootCause": "CountWindow remained local to CompileJoin during shared source extraction",
+  "correction": "Move canonical count-window builder to class scope for both callers",
+  "dispatchAt": "2026-11-22T22:14:10.911948+00:00",
+  "dispatchResolution": "Initial filename/SHA request rejected; no matching run exists. Numeric registered workflow ID and verified existing branch used.",
+  "requiredPinAccepted": true,
+  "unrelatedRunObservations": [
+    {
+      "run": 45076771321,
+      "status": "CancellationRequested",
+      "conclusion": ""
+    },
+    {
+      "run": 45076771258,
+      "status": "CancellationRequested",
+      "conclusion": ""
+    },
+    {
+      "run": 45076771199,
+      "status": "CancellationRequested",
+      "conclusion": ""
+    },
+    {
+      "run": 45076771269,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771145,
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "run": 45076771342,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771406,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771303,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771368,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771150,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771348,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771385,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771314,
+      "status": "CancellationRequested",
+      "conclusion": ""
+    },
+    {
+      "run": 45076771350,
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "run": 45076771163,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771156,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771173,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771200,
+      "conclusion": "cancelled",
+      "status": "completed"
+    },
+    {
+      "run": 45076771280,
+      "conclusion": "success",
+      "status": "completed"
+    }
+  ],
+  "expandedEntityGraphsAdmitted": false,
+  "nativeAccepted": true,
+  "olderNeoQualificationRun": 45076941597,
+  "expectedNativeTests": 5,
+  "sharedSourceAndHydrationOwners": true,
+  "temporarySourcePayload": "C:\\Source\\OASIS2\\LocalState\\COSMIC\\KeyedEntitySourceProposals.json",
+  "temporarySourcePayloadRemovedAfterPublication": true,
+  "controlSource": "402d61ddc9b5621bb81809ef8c6801d290e2784c",
+  "qualificationSource": "2bb54171442af5316c062e474fb6e987e7173f9f",
+  "neoNativeAcceptedProof": "neo-keyed-entity-native-acceptance.json",
+  "runtimeSourceUnchangedByTriggerFix": true,
+  "failedCombinedRun": 45078210575,
+  "freeGiBObserved": 23.6,
+  "sourceQualified": "2bb54171442af5316c062e474fb6e987e7173f9f",
+  "wholeEntityAcceptedProviders": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ]
+}

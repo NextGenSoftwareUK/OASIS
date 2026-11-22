@@ -73,8 +73,8 @@ C# grouping comprehensions use this same path:
 
 The source window remains before grouping; HAVING, ordering and paging remain
 after reduction. Element functions without native grouping admission and custom
-comparers return explicit errors. Projected-element grouping collections are described below; whole-entity
-snapshot collections remain unfinished.
+comparers return explicit errors. Projected-element and canonical whole-entity snapshot collections are described below;
+raw grouped-sequence composition remains unfinished.
 
 ## Complete projected-element collections
 
@@ -102,8 +102,24 @@ an error rather than a partial group. All cells and group-count limits pass
 before an application key/element constructor or setter runs. Warning packets
 cannot acknowledge complete native projection results.
 
-Whole-entity grouping collections need a native keyed snapshot path and remain
-unimplemented. This collection path currently materializes the captured root;
+Canonical Holon identity elements also support complete snapshot collections:
+
+    var groups = await source.OrderBy(entity => entity.Name)
+        .GroupBy(entity => entity.Description)
+        .ToCosmicListAsync(cancellationToken);
+
+MongoDB uses one SDK snapshot session for native keys and bounded entity reads.
+SQLite uses one serializable read transaction. Neo4j obtains keys and
+revision-checked snapshots in one native query. The source compiler, typed
+proof decoder and selected-identity hydration are shared with joins where
+applicable. Core validates complete counts, source order, entity identity,
+caller access and payload before publishing immutable group collections.
+
+The [three-provider native qualification](../WIP/COSMIC%20ORM/KEYED_ENTITY_THREE_PROVIDER_NATIVE_ACCEPTANCE_2026-11-22.json)
+covers canonical Holon roots, including empty and windowed sources,
+group-count rejection, cancellation, and the two refactored join paths.
+Graph expansion is explicitly unadmitted here; full custom entity model
+mapping remains separate. This collection path materializes the captured root;
 additional operators on the raw grouped sequence need explicit group-member
 composition support.
 

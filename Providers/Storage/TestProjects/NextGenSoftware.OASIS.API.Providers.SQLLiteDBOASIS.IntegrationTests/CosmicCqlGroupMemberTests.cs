@@ -69,8 +69,27 @@ public partial class SQLLiteDBOASISIntegrationTests
                 || ProjectedGroupElement.ConstructorCalls!=0)
                 throw new System.InvalidOperationException("Group bound must reject before application construction.");
             var entities=await left.GroupBy(h=>h.Description).ToCosmicListAsync();
-            if(!entities.IsError || entities.ErrorCode!="CQL_GROUPING_UNSUPPORTED")
-                throw new System.InvalidOperationException("Whole-entity groups require independent snapshot admission.");
+            if(entities.IsError || entities.Result.Count!=2 || entities.Result[0].Key!="coffee"
+                || !entities.Result[0].Select(h=>h.Name).SequenceEqual(new[]{"L-A","L-B"})
+                || entities.Result[1].Key!="tea" || entities.Result[1].Single().Name!="L-C"
+                || entities.Result.SelectMany(group=>group).Select(h=>h.Id).Distinct().Count()!=3
+                || entities.Result.SelectMany(group=>group).Any(h=>h.Id==Guid.Empty)
+                || entities.Result.Any(group=>group.Any(h=>h.Description!=group.Key)))
+                throw new System.InvalidOperationException("Complete snapshot entity grouping differs: "+entities.Message);
+            var entityWindow=await left.Take(2).GroupBy(h=>h.Description).ToCosmicListAsync();
+            if(entityWindow.IsError || entityWindow.Result.Count!=1
+                || !entityWindow.Result[0].Select(h=>h.Name).SequenceEqual(new[]{"L-A","L-B"}))
+                throw new System.InvalidOperationException("Whole-entity source window differs: "+entityWindow.Message);
+            var entityEmpty=await left.Where(h=>h.Name=="missing-owned-group").GroupBy(h=>h.Description).ToCosmicListAsync();
+            if(entityEmpty.IsError || entityEmpty.Result.Count!=0)
+                throw new System.InvalidOperationException("Empty whole-entity source differs: "+entityEmpty.Message);
+            var entityLimited=await bounded.GroupBy(h=>h.Description).ToCosmicListAsync();
+            if(!entityLimited.IsError || entityLimited.ErrorCode!="CQL_RESULT_LIMIT" || entityLimited.Result!=null)
+                throw new System.InvalidOperationException("Whole-entity group bound must reject the complete result.");
+            var entityCancelled=await left.GroupBy(h=>h.Description)
+                .ToCosmicListAsync(new System.Threading.CancellationToken(true));
+            if(!entityCancelled.IsError || entityCancelled.ErrorCode!="CQL_QUERY_CANCELLED")
+                throw new System.InvalidOperationException("Whole-entity grouping cancellation differs.");
             var cancelled=await left.GroupBy(h=>h.Description,h=>h.Name)
                 .ToCosmicListAsync(new System.Threading.CancellationToken(true));
             if(!cancelled.IsError || cancelled.ErrorCode!="CQL_QUERY_CANCELLED")

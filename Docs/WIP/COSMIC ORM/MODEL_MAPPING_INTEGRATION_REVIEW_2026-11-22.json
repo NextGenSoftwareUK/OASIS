@@ -1,0 +1,20 @@
+{
+  "baseCore": "1e9c9b52fee83fee0e1e3055dc48b0143bcbe8a9",
+  "priority": "Broader model mapping after the canonical entity-group native slice; retain all existing roadmap requirements.",
+  "attributePath": "Custom Attributes/CustomOASISProperty.cs",
+  "saveOwner": "Managers/HolonManager/HolonManager-Private.Helpers.cs: ExtractCustomPropertiesForStorage",
+  "readOwner": "Managers/HolonManager/HolonManager-Metadata.V2.cs: MapV2MetaData",
+  "pathOwner": "Queries/CosmicQueryExpression.cs: Parser.Path / HasNativeScalarMetadataMarker",
+  "existingContract": "CustomOASISProperty has StoreAsJsonString only. Query path stores property.Name; storage extraction writes property.Name and canonical-field->metadata name report; V2 typed hydration matches metadata names to readable properties case-insensitively with exact numeric/tree conversion before setters.",
+  "invariants": [
+    "No ambient static model binding across apps/avatars.",
+    "One mapping owner must serve extraction, typed hydration, query-path capture and selected write ownership.",
+    "Alias collisions/reserved canonical fields must fail before invoking application getters/setters or publishing writes.",
+    "Explicit alias mappings must not rewrite existing/PIPER data or configuration.",
+    "Do not implement fluent mappings as duplicate metadata writes or an interceptor workaround.",
+    "Preserve literal M01/M26/M27/M28/M30 deferred entries, not drop them."
+  ],
+  "next": "Decide model-scoped immutable descriptor and integration with session/query lifetime before implementing fluent mapping. Attributes can map native MetaData fields but must use the same descriptor owner.",
+  "reviewOnly": true,
+  "implemented": false
+}

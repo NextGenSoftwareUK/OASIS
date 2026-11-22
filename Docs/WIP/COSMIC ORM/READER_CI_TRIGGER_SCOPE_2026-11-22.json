@@ -1,0 +1,145 @@
+{
+  "base": "338c5c5d151ef6382eb37930b3f9d1fffbf6a1a1",
+  "workflows": [
+    {
+      "workflow": "Qualify bounded Civic network CQL",
+      "path": ".github/workflows/qualify-civic-network.yml",
+      "removedSharedPinTriggers": 2,
+      "manualDispatchPreserved": true,
+      "jobImplementationUnchanged": true
+    },
+    {
+      "workflow": "Qualify Civic WEB4 read integration",
+      "path": ".github/workflows/qualify-civic-web4.yml",
+      "removedSharedPinTriggers": 2,
+      "manualDispatchPreserved": true,
+      "jobImplementationUnchanged": true
+    },
+    {
+      "workflow": "Qualify GOMapRoute WEB4 read integration",
+      "path": ".github/workflows/qualify-gomap-web4.yml",
+      "removedSharedPinTriggers": 2,
+      "manualDispatchPreserved": true,
+      "jobImplementationUnchanged": true
+    },
+    {
+      "workflow": "Qualify bounded Holonym current attestation CQL",
+      "path": ".github/workflows/qualify-holonym-attestation.yml",
+      "removedSharedPinTriggers": 2,
+      "manualDispatchPreserved": true,
+      "jobImplementationUnchanged": true
+    },
+    {
+      "workflow": "Qualify Holonym WEB4 read integration",
+      "path": ".github/workflows/qualify-holonym-web4.yml",
+      "removedSharedPinTriggers": 2,
+      "manualDispatchPreserved": true,
+      "jobImplementationUnchanged": true
+    },
+    {
+      "workflow": "Qualify bounded MapLibre current style CQL",
+      "path": ".github/workflows/qualify-maplibre-style.yml",
+      "removedSharedPinTriggers": 2,
+      "manualDispatchPreserved": true,
+      "jobImplementationUnchanged": true
+    },
+    {
+      "workflow": "Qualify MapLibre WEB4 read integration",
+      "path": ".github/workflows/qualify-maplibre-web4.yml",
+      "removedSharedPinTriggers": 2,
+      "manualDispatchPreserved": true,
+      "jobImplementationUnchanged": true
+    },
+    {
+      "workflow": "Qualify native Neo4j cold read activation",
+      "path": ".github/workflows/qualify-neo4j-read-activation-native.yml",
+      "removedSharedPinTriggers": 2,
+      "manualDispatchPreserved": true,
+      "jobImplementationUnchanged": true
+    },
+    {
+      "workflow": "Qualify bounded OpenVINO model server client",
+      "path": ".github/workflows/qualify-openvino-client.yml",
+      "removedSharedPinTriggers": 2,
+      "manualDispatchPreserved": true,
+      "jobImplementationUnchanged": true
+    },
+    {
+      "workflow": "Qualify bounded owned OpenVINO versioned model CQL",
+      "path": ".github/workflows/qualify-openvino-query.yml",
+      "removedSharedPinTriggers": 2,
+      "manualDispatchPreserved": true,
+      "jobImplementationUnchanged": true
+    },
+    {
+      "workflow": "Qualify OpenVINO model metadata WEB4 read integration",
+      "path": ".github/workflows/qualify-openvino-web4.yml",
+      "removedSharedPinTriggers": 2,
+      "manualDispatchPreserved": true,
+      "jobImplementationUnchanged": true
+    },
+    {
+      "workflow": "Qualify Polygon ID schema WEB4 read integration",
+      "path": ".github/workflows/qualify-polygon-id-schema-web4.yml",
+      "removedSharedPinTriggers": 2,
+      "manualDispatchPreserved": true,
+      "jobImplementationUnchanged": true
+    },
+    {
+      "workflow": "Qualify bounded Polygon ID pinned schema CQL",
+      "path": ".github/workflows/qualify-polygon-id-schema.yml",
+      "removedSharedPinTriggers": 2,
+      "manualDispatchPreserved": true,
+      "jobImplementationUnchanged": true
+    },
+    {
+      "workflow": "Qualify bounded Sandbox contract metadata CQL",
+      "path": ".github/workflows/qualify-sandbox-contract.yml",
+      "removedSharedPinTriggers": 2,
+      "manualDispatchPreserved": true,
+      "jobImplementationUnchanged": true
+    },
+    {
+      "workflow": "Qualify Sandbox contract WEB4 read integration",
+      "path": ".github/workflows/qualify-sandbox-web4.yml",
+      "removedSharedPinTriggers": 2,
+      "manualDispatchPreserved": true,
+      "jobImplementationUnchanged": true
+    },
+    {
+      "workflow": "Qualify SEEDS settings WEB4 read integration",
+      "path": ".github/workflows/qualify-seeds-settings-web4.yml",
+      "removedSharedPinTriggers": 2,
+      "manualDispatchPreserved": true,
+      "jobImplementationUnchanged": true
+    },
+    {
+      "workflow": "Qualify bounded SEEDS current settings CQL",
+      "path": ".github/workflows/qualify-seeds-settings.yml",
+      "removedSharedPinTriggers": 2,
+      "manualDispatchPreserved": true,
+      "jobImplementationUnchanged": true
+    },
+    {
+      "workflow": "Qualify bounded Self Protocol registry CQL",
+      "path": ".github/workflows/qualify-self-protocol-registry.yml",
+      "removedSharedPinTriggers": 2,
+      "manualDispatchPreserved": true,
+      "jobImplementationUnchanged": true
+    },
+    {
+      "workflow": "Qualify Self Protocol WEB4 read integration",
+      "path": ".github/workflows/qualify-self-protocol-web4.yml",
+      "removedSharedPinTriggers": 2,
+      "manualDispatchPreserved": true,
+      "jobImplementationUnchanged": true
+    }
+  ],
+  "workflowCount": 19,
+  "requiredDependencyWorkflowUnchanged": true,
+  "changedGroupFeatureWorkflowUnchanged": true,
+  "providerSourceTriggersPreserved": true,
+  "sourceReviewed": true,
+  "newProviderAcceptance": false,
+  "reason": "Preserve accepted reader evidence and qualify materially changed behavior. Shared pin-only changes compile through required pins/image and selected feature checks; explicit reader requalification remains manual when shared semantics change."
+}

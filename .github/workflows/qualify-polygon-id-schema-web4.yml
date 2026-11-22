@@ -6,8 +6,6 @@ on:
     paths:
       - '.github/workflows/qualify-polygon-id-schema-web4.yml'
       - 'Providers/Identity/NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS/**'
-      - 'Docker/oasis-dependency-versions.env'
-      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlPolygonIdSchemaHostedConfigurationTests.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlPolygonIdSchemaHttpTests.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/ReviewedPublicMongoHttpFixture.cs'
