@@ -1,0 +1,48 @@
+{
+  "source": "56ed1ea1848a70ce3359b782f4e65c43a96698c2",
+  "coreSource": "d22248d3cc99b7cfc447376974605d892637b284",
+  "workflow": "qualify-cql-projected-set-native.yml",
+  "status": "completed",
+  "nativeImplemented": true,
+  "nativeAccepted": true,
+  "compiled": true,
+  "developmentPushed": false,
+  "checks": 7,
+  "ownedRecords": 4,
+  "localBuild": false,
+  "run": 44974753787,
+  "conclusion": "success",
+  "artifact": {
+    "id": 14735687111,
+    "bytes": 1768,
+    "sha256": "fd0f7039e51608774c1246f1673b91edc74fb61af58e2bf3bb99dad64ab9d149"
+  },
+  "report": {
+    "provider": "SQLLiteDBOASIS",
+    "checks": 7,
+    "ownedCleanupIds": 4,
+    "successfulHolonWrites": 4,
+    "queryElapsedMilliseconds": {
+      "create-owned": 699,
+      "create-foreign": 15,
+      "union": 60,
+      "concat": 4,
+      "intersect": 6,
+      "except": 5,
+      "global-window": 8,
+      "bound-before-empty-page": 6,
+      "ordinary-selected-window": 15
+    },
+    "nativeProviderVerified": true,
+    "allFourSetOperationsVerified": true,
+    "concatMultiplicityVerified": true,
+    "independentWindowsVerified": true,
+    "selectedTupleEqualityVerified": true,
+    "hiddenInputColumnsExcludedVerified": true,
+    "foreignRowsHiddenVerified": true,
+    "inputLimitBeforeEmptyOutputVerified": true,
+    "ordinaryReadPreservedVerified": true,
+    "exactCleanupVerified": true
+  },
+  "job": 137062030884
+}
