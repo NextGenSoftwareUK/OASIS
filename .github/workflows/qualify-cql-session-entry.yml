@@ -1,0 +1,66 @@
+name: Qualify session entry and range registration
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicSessionEntryTests.cs"
+      - "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicSessionRegistrationTests.cs"
+      - ".github/workflows/qualify-cql-session-entry.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  read-activation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Read reviewed dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify session registration and entry compatibility
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-session-entry-ci -Operation {
+            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicSessionEntryTests|FullyQualifiedName~CosmicSessionRegistrationTests' --results-directory TestResults/SessionEntry --logger 'trx;LogFileName=entry.trx'
+            if ($LASTEXITCODE) { throw 'Session registration contract failed' }
+            [xml]$report = Get-Content TestResults/SessionEntry/entry.trx
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '5' -or $report.TestRun.ResultSummary.Counters.total -ne '5') { throw 'All five session checks must pass' }
+            dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE) { throw 'Actual WEB4 composition failed to compile' }
+          }
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: cql-session-entry
+          path: OASIS/TestResults/SessionEntry/entry.trx
+          if-no-files-found: ignore
+          retention-days: 2

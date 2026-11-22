@@ -29,7 +29,7 @@ public static partial class CqlV1Compiler
         if ((children || kind==CosmicJoinKind.Cross) != (request.Keys.Length==0))
             throw new ArgumentException("Cross and Child joins accept no explicit keys. Other joins require at least one key.");
         CosmicQuery<Holon> Source(CqlJoinV1Source source)=>CompileSource(actor,provider,source.Filters,source.AnyOf,
-            source.AnyChildren,source.AnyDescendants,source.Graph,source.OrderBy,source.Descending,source.Skip,source.Take,access);
+            source.AnyChildren,source.AnyDescendants,source.Graph,source.OrderBy,source.Descending,source.Skip,source.Take,access, where: source.Where);
         var left=Source(request.Left);var right=Source(request.Right);
         var leftKeys=request.Keys.Select(key=>
         {

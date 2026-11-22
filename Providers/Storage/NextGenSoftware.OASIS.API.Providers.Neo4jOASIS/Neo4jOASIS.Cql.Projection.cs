@@ -75,7 +75,7 @@ public partial class Neo4jOASIS : ICosmicQueryEntityProjectionStorageProvider
             translator.Parameters.Add("projectionBytes", maximumPayloadBytes);
             cancellationToken.ThrowIfCancellationRequested();
             if (entityProjection==null && fetch == 0 && !translator.HasRelationship) return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(Array.Empty<CosmicProjectionRow>()) { IsLoaded = true };
-            if (!IsProviderActivated || _driver == null) return ProjectionCqlFailure("CQL_PROVIDER_INACTIVE", "Neo4j provider is not activated.");
+            if (!IsQuerySourceActivated || _driver == null) return ProjectionCqlFailure("CQL_PROVIDER_INACTIVE", "Neo4j provider is not activated.");
 
             // Invalid ownership/traversal branches remain outside the page and
             // selected columns. No entity snapshot is returned or hydrated.

@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "run": 44736376145,
+  "job": 136288694151,
+  "source": "aa4378189d2748617d68d43c545839ab89a1342f",
+  "core": "7b04e2dc707ba02f12848799cdfa7aee02f12714",
+  "artifact": 14629032038,
+  "bytes": 3913,
+  "sha256": "bbcfe50e580a7115583bbeded06c75f354840d6906f40ae3d6c6d5b5ce873eef",
+  "passed": 4,
+  "failed": 0,
+  "skipped": 0,
+  "nativeJourneys": 3,
+  "getterSafetyControls": 1,
+  "providers": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "perProvider": {
+    "logicalSuccessfulWrites": 8,
+    "ownedCleanupIds": 4,
+    "timedOperations": 18,
+    "requiredFlagsVerified": 20
+  },
+  "verification": "exact TRX identities/counters and exact JSON member set plus required values/flags; ZIP processed in memory",
+  "localGeneratedFiles": 0,
+  "fullEfParity": false,
+  "hostedAcceptance": false,
+  "mixedSaveDeleteSupported": false
+}

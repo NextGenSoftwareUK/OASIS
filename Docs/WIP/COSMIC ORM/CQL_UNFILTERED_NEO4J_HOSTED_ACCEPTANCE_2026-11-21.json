@@ -1,0 +1,78 @@
+{
+  "source": "6b5713f7d02379a6bd1769c13981d22682ee7b0d",
+  "deployment": "1fa92e09-c55b-4a34-8913-0c5d6b0d4f54",
+  "provider": "Neo4jOASIS",
+  "nativeSource": "ShopLoyaltyMember",
+  "websiteCompiler": "3d8f108f6161b8b4a0e6c8e2f80d1358fb6185f8",
+  "mappingId": "9111657c-3eaf-40af-8997-f6bf8fbbb400",
+  "queryAccepted": true,
+  "unfilteredSqlCompiled": true,
+  "mixedRowsReturned": 3,
+  "exactMappingCleanupVerified": true,
+  "sessionRevoked": true,
+  "totalCalls": 8,
+  "ownedMappingCreates": 1,
+  "ownedMappingDeletes": 1,
+  "deleteResent": false,
+  "nativeDataImported": false,
+  "browserVerified": false,
+  "encryptedCredentialsAbsent": true,
+  "calls": [
+    {
+      "path": "sandbox/session",
+      "method": "POST",
+      "status": 200,
+      "isError": false,
+      "operationId": "19a29497-a5e1-41ff-8b40-4856fcd49f01"
+    },
+    {
+      "path": "native-data/Neo4jOASIS/sources",
+      "method": "GET",
+      "status": 200,
+      "isError": false,
+      "operationId": "c806b054-ccdc-4fd3-8473-f2e402bc7cfe"
+    },
+    {
+      "path": "native-data/Neo4jOASIS/virtual-mappings/prepare",
+      "method": "POST",
+      "status": 200,
+      "isError": false,
+      "operationId": "2c86bb53-9147-491e-a1c3-6dd9385099f2"
+    },
+    {
+      "path": "data/save-holon",
+      "method": "POST",
+      "status": 200,
+      "isError": false,
+      "operationId": "fb2639d2-d47d-4ae4-bac3-2d05553c0588"
+    },
+    {
+      "path": "data/query-cql/projection/mixed",
+      "method": "POST",
+      "status": 200,
+      "isError": false,
+      "operationId": "f6d40bf6-3689-4624-a44d-9c23449a84dd"
+    },
+    {
+      "path": "data/delete-holon",
+      "method": "DELETE",
+      "status": 200,
+      "isError": false,
+      "operationId": "5acdc702-bdd9-403c-935d-c03df47dcac4"
+    },
+    {
+      "path": "data/query-cql",
+      "method": "POST",
+      "status": 200,
+      "isError": false,
+      "operationId": "5c2c9a42-1ce7-492e-8d41-cb911ca24af8"
+    },
+    {
+      "path": "avatar/revoke-token",
+      "method": "POST",
+      "status": 200,
+      "isError": false,
+      "operationId": "8a437cf1-4fb7-46ab-a6d6-1d5e0825e9a8"
+    }
+  ]
+}

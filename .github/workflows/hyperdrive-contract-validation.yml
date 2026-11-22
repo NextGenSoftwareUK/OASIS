@@ -105,7 +105,9 @@ jobs:
 
       - name: Verify WEB4 route-to-boundary manifest
         shell: pwsh
-        run: ./Scripts/verify_web4_hyperdrive_route_manifest.ps1
+        run: |
+          ./Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1
+          ./Scripts/verify_web4_hyperdrive_route_manifest.ps1
 
       - name: Verify V2 storage-operation parity and coverage
         shell: pwsh

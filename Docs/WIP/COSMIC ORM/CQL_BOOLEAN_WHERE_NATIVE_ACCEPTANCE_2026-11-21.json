@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-21",
+  "source": "89d00c0bf2c559493536fda12cc363e5873de210",
+  "run": 44881512855,
+  "job": 136777616639,
+  "artifact": 14698351931,
+  "artifactBytes": 2759,
+  "artifactSha256": "4669c8b405eb2437aa8ae6f5656e34e1811491806f90c8bbe74e1ad23e0c5707",
+  "exactEntries": [
+    "where-native.trx",
+    "MongoDBOASIS-boolean-where-native.json",
+    "SQLLiteDBOASIS-boolean-where-native.json",
+    "Neo4jOASIS-boolean-where-native.json"
+  ],
+  "passed": 3,
+  "failed": 0,
+  "skipped": 0,
+  "providers": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "checksPerProvider": 4,
+  "ownedHolonsPerProvider": 5,
+  "logicalWritesPerProvider": 5,
+  "verified": [
+    "typed WHERE compiler uses shipping providers",
+    "nested Boolean child visibility",
+    "native page exact Tea identity",
+    "native count exact2",
+    "native projected Coffee/Tea cell values",
+    "foreign actor sees0 protected roots",
+    "exact owned cleanup"
+  ],
+  "timingSamplesPerProvider": 4,
+  "productionPerformanceBenchmark": false,
+  "containersStopped": true,
+  "earlierFailedRun": 44880709057,
+  "earlierFailurePreserved": true,
+  "apiTreeEqualsImageSource": "1bb737b84ab9e103ebfee169d6773845c1ceda85",
+  "hostedAcceptance": false
+}

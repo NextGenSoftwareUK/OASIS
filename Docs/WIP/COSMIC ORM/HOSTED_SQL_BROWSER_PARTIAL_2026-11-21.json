@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "websiteCommit": "d462899f78bdc3a6f3179411d5c96e192255c251",
+  "preview": "https://web4-site-cv1mn9kpj-oasis-team.vercel.app",
+  "browserOrigin": "https://web4.oasisomniverse.one",
+  "candidateAssetsInjectedOnly": true,
+  "publicWebsitePublicationVerified": false,
+  "query": "SELECT COUNT(*) Total FROM <provider>",
+  "acknowledgedProviders": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS"
+  ],
+  "acknowledgementBasis": "Per-provider response acknowledgement and result-property checks completed before third-provider deadline; two scalar requests sent.",
+  "scalarValueAndRenderedResultAssertions": false,
+  "neo": {
+    "querySent": false,
+    "available": false,
+    "queryOnly": false,
+    "generation": 0,
+    "code": "CQL_SOURCE_NOT_READY",
+    "causeConfirmed": false
+  },
+  "targetedNeoFollowup": {
+    "businessQueries": 0,
+    "otherAcceptedProvidersRetested": false,
+    "demoSessionRevoked": true,
+    "profileAbsent": true
+  },
+  "auth": {
+    "sessionHttp": 200,
+    "revokeHttp": 200
+  },
+  "configurationWrites": 0,
+  "piperDataChanged": false,
+  "ownedBrowserStopped": true,
+  "profileAbsent": true,
+  "ownedBrowserDirectoryAbsent": true,
+  "fullBrowserJourneyAccepted": false,
+  "criticalAssetHashesMatchGit": {
+    "cql-text.js": "dd5a8754c8d34613ef8eaafa46137bc32f5abe583a308afb5b294cecd87f241a",
+    "cql-playground.js": "331918b92ba02e7cf733b7b6213fd7ee1466af960beaed57c9eb3049b9dbb4e0",
+    "web4-session.js": "a80650c080f0a5d97248cc6ff0866a5a2a4b15882d469ca6cc2f54dffb6b792f"
+  }
+}

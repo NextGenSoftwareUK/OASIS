@@ -1,0 +1,83 @@
+2026-11-21 HOLO240 LIVE ACCEPTANCE: exactf549/WEB4 deployment88620d5d, HoloOASIS discovery available=true/no error/generation1 and real shipping-provider public-subset CQL query returned2expected rows.4paced calls, temporary session revoked and sealed credentials removed. No conductor/lair reset, recovery request, PIPER change or staging/production deployment.240-second timeout is deployed and this startup/native read is accepted; intermittent join root cause is NOT claimed permanently resolved. Canonical HOLO_READINESS_240_HOSTED_ACCEPTANCE_2026-11-21.json. Mongo+Neo snapshot live accepted; SQLite pre-write local journal interruption still open. Retain compact non-secret outcome/intent acknowledgements only, no new runtime/download/build or credential retention.
+
+2026-11-21 VERIFIED BATCH IN DEVELOPMENT: f54923d8 normal fast-forward pushed after exact WEB4/WEB5 compilation, image and package44956782867 success. Strict package artifact14728250973/783bytes/SHA3fdbd3ad3abdf3d70ad3403f78fb9872c95c17b09a6e5767098f508efe00f5bc verifies source/digest/5assemblies/CQL graph and container absent/0writes. All7 Railway WEB4-WEB10 deployments for exact f549 observed QUEUED or BUILDING; IDs in HOLO_READINESS_240_DELIVERY_2026-11-21.json. Existing COSMIC branch includes Development ancestry without source-tree changes or new branches.240seconds NOT verified live, Holo join remains unproven; no PIPER/staging/production action or local builds/downloads. Continue observing existing deployment IDs, no duplicate redeploy.
+
+2026-11-21 read-only Railway preflight: latest Dev3159 WEB4 deployment378684f0 failed at MapController:44 CS1503 constructor mismatch. Last successful WEB4 remains606e1a52/deployment715347fa. Current candidatef549 includes reviewed restorationd51; exact image44955207943 and actual WEB4/WEB5 composition44955232840 remain in progress, no replacement/restart. Saved load balancing=true, zero setting writes/data queries. Detailed selected non-secret proof: HOLO_DELIVERY_PREFLIGHT_2026-11-21.json.240 seconds not live.
+
+2026-11-21 qualified batch now frozen at f54923d82ac8bffa7877d9307f18e879d41a8254, directly on Development3159c8fb. Includes native-accepted Core7165 ranges, reviewed ONODEd51/STARead6 history, 240-second readiness and snapshot source. Whole WEB4 API and three provider directories match feature source; three dependency histories preserve current Development ancestry. Image44955207943 and exact WEB4/WEB5 composition44955232840 are authoritatively QUEUED. One dispatch each; no duplicate producer, Development push or live acceptance. Package qualification follows successful exact image. Local free space44269977600 bytes; no runtime/build/database/image install; temporary publication index absent.
+
+# Persisted Holo cell readiness budget — 21 November 2026
+
+David explicitly requested doubling the current timeout. The current shipping owner is HoloOasisDevelopmentConductor.PersistedCellReadinessBudget, increased from 120 to 240 seconds. This waits for the exact persisted app cell; it does not replace native readiness with a timer, retry provisioning, create another interface, or reset conductor/lair data.
+
+Historical commit918da95d740fb296f0417369d2380f70ae3a4036 separated this deadline from HoloNET admin binding after an observed 73-second retained DHT initialization. That change remains present; it was not lost. The recurrent new failure exceeded the retained 120-second budget.
+
+This is a code constant, not an OASIS DNA setting. No DNA setting or Railway variable needs changing for this increment. Source publication does not change the running timeout. Actual WEB4 compilation and a qualified Development image rollout with retained-state readiness observation remain required. The already built snapshot2d114754 image still contains120 seconds and is not evidence of the new budget.
+
+No staging/production deployment, PIPER operation, local build/install/download or conductor state deletion. Disposable scoped Git index removed; existing active delivery journals retained. A longer budget alone is not proof that the network join issue is resolved.
+
+## Frozen delivery candidate
+
+Candidate91423bce2e32fd664074784522020b85d2282e14 (tag cosmic-holo-readiness-240-91423bce2e32) is directly on the package-qualified snapshot2d114754 and changes exactly one conductor source file:120 to240 seconds. Core stays13bd050; unqualified range SDK work is excluded. Current shared Development remains606e1a52.
+
+Image run44946308915 is confirmed in progress. Composition compile44945969209/source029545dc is confirmed in progress; range compatibility44945637242/sourcee2161fb6 also remains in progress. Observe these same handles; no duplicate producer. Image/package acceptance and exact Development startup observation remain open.
+
+The original snapshot2d package44945668173 remains accepted as packaging evidence, not as evidence for the new timeout. Its immutable source is preserved; no stale image is deployed merely to synchronize branches.
+
+## Compilation accepted
+
+Run44945969209/job136973233689 succeeded on029545dc: actual WEB4 build0 errors4m34.95s and WEB5 build0 errors28.14s. Strict RAM verification of artifact14723533241 (351bytes, SHA2566ac639a3ae82c8da61c0af6200dde23b2057e18327f495ad5ea774aa9a4f2daf) confirmed compiled.json exact source/Core3b69/ONODE9c8/STAR677, both compilation flags, zero behavior cases/database writes. This compile source includes range registration; frozen delivery91423bce deliberately retains qualified Core13bd. The image itself must independently compile/package that exact frozen graph. No retained-cell runtime success claimed.
+
+Development advanced fcb6e088 with SmartBrick ONODE34a8685e/STAR872f0be8 pins. Preserve those pins and ancestry in the existing task branch; do not deploy stale91423bce over them. Original image44946308915 continues without replacement/replay. A combined frozen graph must pass its own image/package gate; prior behavior/contract evidence is retained.
+
+## Current integrated candidate
+
+Frozen7c5f0a164cf18f55903d1fa3e009dc5eaec93a1f/tagcosmic-holo-readiness-240-7c5f0a164cf1 is directly on current Developmentfcb6e088. Eight paths: the seven already qualified snapshot changes plus the240-second conductor deadline. It preserves ONODE34a8685e and STAR872f0be8 from Development, Core13bd050 from the accepted snapshot, and all other dependency/settings bytes. Official manifest sync/ref validator passed. Source body for the timeout equals compile-qualified029545dc.
+
+The existing COSMIC feature integrated Development ancestry in2c2298c02b82e61416ef432bbc3a59980bd87202. New exact image dispatch acknowledged once; observe same candidate/source. Prior91423bce image44946308915 remains in progress and is preserved as superseded-base evidence, not authorized for stale Development replacement. Both image handles and original candidates remain in the compact handoff journal. No new branch/worktree/environment or local image/download.
+
+Combined image/package/live readiness remain pending. Compilation/native behavior acceptance from prior source is retained without rerunning unrelated accepted cohorts.
+
+Read-only Railway preflight: saved Development WEB4 load balancing=true; active peer46ca1820 BUILDING, fcb6e088 QUEUED, last successful606e1a52. Preserve peer rollouts. No new rollout while active ones remain. These are deployment/saved-config observations, not loaded in-memory Holo cell readiness.
+
+Original91423bce image44946308915/job136974290676 terminalSUCCESS, digest sha256:10ffc6fe0487678b25b8f52e43e4151705831244cbaf37ccb9883f3f0ce1438e. Retain remote artifact as superseded-base provenance; no separate package run or deployment. Current combined7c5f0a16 image44946907870/job136977414701 confirmed queued. Native range44947147551/job136976863629 is in progress at its selected test step with isolated Mongo started; not yet accepted.
+
+## Corrected current release candidate
+
+42a13288100085314041e7305bbbdca400f11fed/tagcosmic-holo-readiness-240-42a132881000 is directly on Developmentd40364ed, preserving ONODE689a89bd and STAR72b38266. Exact nine paths: seven accepted snapshot paths, the240-second conductor deadline and MapController constructor call repair. Core stays13bd050; UpdateRange/RemoveRange source7165 is excluded. Official manifest/ref validation passed. Image dispatch acknowledged once; package and live startup pending.
+
+Feature7cd5605f integrates Developmentd403 ancestry and dependency fixes without losing pending COSMIC source. Replacement combined Core5/native3 qualification44948216478/job136980131747 is queued on fixedfb43 source; its older ONODE34 constructor contract equals latest689 contract, while the exact current image independently builds current dependency graph. Failed native44947147551 remains preserved as compile-failure evidence, not a native failure.
+
+## Known dependency regression prevents shipping the current frozen image
+
+Peer current status identifies missing qualified Map/shallow/hotspot files in recently advanced ONODE/STAR package pins and prepares combined restoration1fe579cf/1de76d2d. Direct comparison confirms MapManager(HolonManager,Guid), present in accepted9c8, is absent in689. Our caller fix matches current contracts but does not restore those independently lost features.
+
+Own queued image44948470462 cancellation acknowledged before build. This is cancellation for a confirmed source regression, not queue duration or observation timeout. Do not start another pin-chasing image while restoration is unqualified. Preserve current42a132 source and earlier successful91423 image proof; combine timeout/snapshot with the restored graph only after inspecting peer compile44948349449 (queued). Native session44948941338 remains independent and does not qualify missing Map functionality. No peer jobs/deployments cancelled, no production or data mutation.
+
+## Peer restoration compilation accepted
+
+Run44948349449/job136980553768 terminalSUCCESS. Logs attest exact rootf8bee8a4c8ca5a5598759aa4aeb409b45292f86a, ONODE1fe579cf5e385b4a6ecce12934a7dd7578c2340c and STAR1de76d2d5b1428ac3c645139823757224a1e2ca3. Actual WEB4 compiled0errors5m12.99s; WEB5 compiled0errors32.66s. This was compile-only: no native/browser fixture or new behavior acceptance.
+
+Fresh shared Development now17f2f1e83577961d21cb0c458dc2412b918d4cad, so inspect peer fresh-head composition before using those qualified pins. Preserve package metadata/reference changes and accepted Map/hotspot source together. No stale overwrite or automatic full branch merge authorized by this compile result. Timeout/snapshot source remains prepared; no duplicate image producer.
+
+## Fresh restoration composed; current immutable candidate77e206b3
+
+Current candidate77e206b3a8240964e57261ef0c6dc76e30e0bfe3/tagcosmic-holo-readiness-240-77e206b3a824 is directly on peer309eedb14cd652ee63e96e689f4aa60bd3253d3f, which is directly on current Development17f2f1e8. It preserves restored ONODE51e0f880/STARead6c9ca and all package-publishing changes. Own delta is exactly eight paths: original seven snapshot paths plus240-second deadline. Core13bd stays pinned; session range7165 remains excluded.
+
+The restored MapManager(HolonManager,Guid) constructor is present. Both current candidate and featureca7b6f54 preserve the original admitted-manager MapController owner; the temporary provider-constructor adaptation is no longer needed. Constructor presence and exact controller tree identity checked; no new parallel/fallback path. Official manifest/ref validator passed, temporary index absent.
+
+Native all-four-range44948941338 has started (owned CI containers initializing). Prior restorationf8bee compiled successfully; fresh309eed compile still pending in peer status. Current image is deliberately NOT dispatched until that fresh qualification is reconciled. The one active Holo handoff journal carries all prior contract/native/package evidence; old duplicate journal remains removed.
+
+## Exact combined image qualification dispatched
+
+One image dispatch for77e206b3 acknowledged with fresh shared Development still17f2f1e8. The exact image build now qualifies the combined WEB4 graph directly; no second standalone CQL compile is required before starting this build. This supersedes the earlier self-imposed pre-build wait, not any deployment gate. Peer compilef8bee acceptance, exact restored source identity and earlier native snapshot proof remain retained; actual77e source/image/package/rollout still must pass.
+
+Initial workflow list had not yet exposed its run ID after acknowledged204. Preserve the existing dispatch journal and reconcile the same source; do not dispatch another producer for visibility delay. No Development push, local image download or staging/production action.
+
+## Fresh package/restoration histories composed without another branch
+
+ONODE reviewed compositiond51bdd8cba5183c9a7597f85f1d6ddd4be20d629 merges restored51e0 and current Development packagedf3e histories. Five qualified interface/Map/base/geo/shallow files match restored source exactly; three current activation/package-store/publish files match df3e exactly. The initial identity assertion incorrectly classified Activate.Part1 as unchanged; inspection showed exactly four valid package-store lines. The corrected source sets retain both features, not strip package changes.
+
+Published via existing private COSMIC branch81ec030d8b2839934373b97e784b1023d80d112e. Its pre-existing ONETDiscovery.Core.cs change remains on that branch but is excluded from the reviewed parent composition pinned by the root. Both old branch and reviewed composition are ancestors; no new branch, checkout, worktree or force-push.
+
+Current77e image44951130403 succeeded, digest58175516218f2fcbba3cb90938cc2ccf8ee1b7b6835c9884dccb76e7a29564c7, but cannot overwrite newer Dev3159 package ancestry. Do not spend another package job on that superseded graph. The next exact batch includes native-accepted Core7165, reviewed ONODEd51b and preserved STARead6, retaining all current package history. Actual combined build/package/rollout remain required; no new native cohort rerun.

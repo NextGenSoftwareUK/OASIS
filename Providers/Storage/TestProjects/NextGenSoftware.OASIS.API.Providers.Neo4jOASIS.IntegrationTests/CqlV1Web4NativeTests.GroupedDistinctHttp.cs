@@ -21,7 +21,7 @@ public sealed partial class CqlV1Web4NativeTests
 
     private static async Task<int> VerifyGroupedDistinctMixedNativeHttpProvider(
         IOASISStorageProvider provider, string work, string database, MongoClient? mongo, List<Guid> created,
-        bool guidCounts = false, Dictionary<string, long>? queryTimings = null, bool guidRows = false, bool predicateCrossing = false, bool guidFilters = false, bool int32Http = false)
+        bool guidCounts = false, Dictionary<string, long>? queryTimings = null, bool guidRows = false, bool predicateCrossing = false, bool guidFilters = false, bool int32Http = false, bool unfiltered = false, bool dateKeys = false, bool snapshotPreparation = false)
     {
         var reader = (INativeDataProjectionQueryProvider)provider;
         var actor = Guid.NewGuid();
@@ -72,6 +72,10 @@ public sealed partial class CqlV1Web4NativeTests
                         { "stock", new BsonInt64(2147483648L) }
                     } }).ToArray();
                 }
+                if(dateKeys) {
+                    nativeRows[0].Add("occurredAt",MixedDateFirst);
+                    nativeRows[1].Add("occurredAt",MixedDateSecond);
+                }
                 await source.InsertManyAsync(nativeRows);
                 fingerprint = async () => (await source.Find(FilterDefinition<BsonDocument>.Empty)
                     .Sort(new BsonDocument("_id", 1)).ToListAsync()).Select(row => row.ToBson()).ToArray();
@@ -100,6 +104,11 @@ public sealed partial class CqlV1Web4NativeTests
                         command.Parameters.AddWithValue("$wideText", "wide-int32");
                         command.Parameters.AddWithValue("$wideStock", 2147483648L);
                     }
+                    if(dateKeys) {
+                        command.CommandText += "; ALTER TABLE items ADD COLUMN occurredAt TEXT; UPDATE items SET occurredAt=CASE id WHEN 1 THEN $dateFirst ELSE $dateSecond END";
+                        command.Parameters.AddWithValue("$dateFirst",MixedDateFirst);
+                        command.Parameters.AddWithValue("$dateSecond",MixedDateSecond);
+                    }
                     command.Parameters.AddWithValue("$emoji", "😀");
                     command.Parameters.AddWithValue("$nul", "abc\0def");
                     await command.ExecuteNonQueryAsync();
@@ -127,6 +136,9 @@ public sealed partial class CqlV1Web4NativeTests
                         await (await inspection.RunAsync($"CREATE (:{label} {{text:$wideText,identity:$first,stock:$wideStock}})",
                             new { wideText = "wide-int32", first = MixedGuidFirst.ToString("D"), wideStock = 2147483648L })).ConsumeAsync();
                     }
+                    if(dateKeys)
+                        await (await inspection.RunAsync($"MATCH (n:{label}) SET n.occurredAt=CASE n.text WHEN $emoji THEN $firstDate ELSE $secondDate END",
+                            new {emoji="😀",firstDate=MixedDateFirst,secondDate=MixedDateSecond})).ConsumeAsync();
                     fingerprint = async () => (await (await inspection.RunAsync(
                         $"MATCH (n:{label}) RETURN elementId(n) AS key,n.text AS text,n.identity AS identity ORDER BY key")).ToListAsync())
                         .Select(row => JsonSerializer.SerializeToUtf8Bytes(new { key = row["key"].As<string>(),
@@ -146,12 +158,27 @@ public sealed partial class CqlV1Web4NativeTests
                         .Select(row => JsonSerializer.SerializeToUtf8Bytes(new { key = row["key"].As<string>(), text = row["text"].As<string>() })).ToArray();
                 }
             }
+            if(dateKeys && neoProvider != null)
+                fingerprint=async ()=>(await(await inspection!.RunAsync(
+                    $"MATCH (n:{label}) RETURN elementId(n) AS key,n.text AS text,n.identity AS identity,n.occurredAt AS occurredAt ORDER BY key")).ToListAsync())
+                    .Select(row=>JsonSerializer.SerializeToUtf8Bytes(new {key=row["key"].As<string>(),text=row["text"].As<string>(),
+                        identity=row["identity"].As<string>(),occurredAt=row["occurredAt"].As<string>()})).ToArray();
             var before = await fingerprint();
             var mappedFields = new Dictionary<string, string> { ["textAlias"] = "text" };
             if (guidCounts) mappedFields.Add("guidAlias", "identity");
             if (int32Http) mappedFields.Add("stockAlias", "stock");
+            if(dateKeys) mappedFields.Add("occurredAlias","occurredAt");
             var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, actor, reader.NativeDataProviderType,
                 sourceName, VirtualHolonMapping.SandboxConnectionName, reader.DescribeVirtualQueryConnection(null), mappedFields);
+            if (snapshotPreparation)
+            {
+                var snapshotChecks=await VerifyUnfilteredSnapshotNative(provider,mapping,created,
+                    queryTimings ?? new Dictionary<string,long>());
+                var snapshotAfter=await fingerprint();
+                Assert.AreEqual(before.Length,snapshotAfter.Length);
+                for(var index=0;index<before.Length;index++)CollectionAssert.AreEqual(before[index],snapshotAfter[index]);
+                return snapshotChecks;
+            }
             var original = await mapping.QueryAsync(actor, reader, null,
                 new[] { new NativeRecordFilter("textAlias", CosmicQueryComparisonOperator.Equal, 2L, NativeRecordFunction.Utf16Length) },
                 guidCounts ? new[] { "textAlias", "guidAlias" } : new[] { "textAlias" }, 1);
@@ -171,8 +198,8 @@ public sealed partial class CqlV1Web4NativeTests
             }
             await VerifyMappedNativeHttpAsync(provider, mapping, original.Result.Single(),
                 groupedDistinctOnly: true, createdObserver: created.Add,
-                guidDistinct: guidCounts, queryTimings: queryTimings, virtualOnlyId: virtualOnlyId, guidRows: guidRows, predicateCrossing: predicateCrossing, guidFilters: guidFilters, int32Http: int32Http);
-            if (guidCounts && mongoProvider != null && !guidFilters && !int32Http)
+                guidDistinct: guidCounts, queryTimings: queryTimings, virtualOnlyId: virtualOnlyId, guidRows: guidRows, predicateCrossing: predicateCrossing, guidFilters: guidFilters, int32Http: int32Http, unfiltered: unfiltered, dateKeys: dateKeys);
+            if (guidCounts && mongoProvider != null && !guidFilters && !int32Http && !unfiltered && !dateKeys)
             {
                 // UUID legacy subtype does not encode a unique byte-order convention.
                 // Native import admits Standard UUIDs; do not guess an external legacy representation.
@@ -198,7 +225,7 @@ public sealed partial class CqlV1Web4NativeTests
             var after = await fingerprint();
             Assert.AreEqual(before.Length, after.Length);
             for (var index = 0; index < before.Length; index++) CollectionAssert.AreEqual(before[index], after[index]);
-            return int32Http ? 5 : guidFilters ? 5 : guidRows ? 4 : 3;
+            return dateKeys ? 5 : unfiltered ? 3 : int32Http ? 5 : guidFilters ? 5 : guidRows ? 4 : 3;
         }
         finally
         {

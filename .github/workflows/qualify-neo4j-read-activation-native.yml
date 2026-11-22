@@ -1,0 +1,79 @@
+name: Qualify native Neo4j cold read activation
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public, Development]
+    paths:
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core'
+      - 'Docker/oasis-dependency-versions.env'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests/Neo4jReadActivationNativeTests.cs'
+      - '.github/workflows/qualify-neo4j-read-activation-native.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  read-activation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      neo4j:
+        image: neo4j:5.26.0-community@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5
+        env:
+          NEO4J_AUTH: neo4j/oasis-fixture-only
+        ports:
+          - 17687:7687
+        options: >-
+          --health-cmd "cypher-shell -u neo4j -p oasis-fixture-only 'RETURN 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Read reviewed dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify one real cold-enrollment query and nonrepair refusal
+        working-directory: OASIS
+        shell: pwsh
+        env:
+          OASIS_NEO4J_READ_ACTIVATION_URI: bolt://127.0.0.1:17687
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner neo4j-cold-read-native-ci -Operation {
+            dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~ColdReadEnrollmentQueriesExistingHolonAndRefusesLegacyWithoutRepair' --results-directory TestResults/NeoColdReadActivation --logger 'trx;LogFileName=native.trx'
+            if ($LASTEXITCODE) { throw 'Native cold CQL enrollment failed' }
+            [xml]$report = Get-Content TestResults/NeoColdReadActivation/native.trx
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '1' -or $report.TestRun.ResultSummary.Counters.total -ne '1' -or $report.TestRun.ResultSummary.Counters.notExecuted -ne '0') { throw 'Exactly one real native journey must pass' }
+          }
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: neo4j-cold-read-native
+          path: OASIS/TestResults/NeoColdReadActivation/native.trx
+          if-no-files-found: ignore
+          retention-days: 2

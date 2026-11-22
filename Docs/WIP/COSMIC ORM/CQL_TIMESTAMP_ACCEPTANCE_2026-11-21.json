@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-21",
+  "websiteSource": "bf795c7763a827aafb0380f8b11f559f36f66f8c",
+  "websiteBranch": "work/cosmic-cql",
+  "passed": 4,
+  "failed": 0,
+  "skipped": 0,
+  "scope": [
+    "TIMESTAMP literals",
+    "explicit timezone offsets normalized to UTC",
+    "one through seven fractional digits preserved",
+    "calendar and UTC-range validation"
+  ],
+  "canonicalStores": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "execution": "existing Node18; frozen source and tests in RAM",
+  "oldAcceptedSuitesRepeated": false,
+  "liveCalls": 0,
+  "filesInstalled": 0,
+  "publicWebsitePublicationVerified": false,
+  "hostedBrowserAccepted": false
+}

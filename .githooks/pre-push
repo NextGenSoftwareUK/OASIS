@@ -30,5 +30,14 @@ while read -r local_ref local_oid remote_ref remote_oid; do
     echo "Synchronize and commit the Railway manifest on the revision being pushed." >&2
     exit 1
   fi
+  # Development advances must preserve the previously deployed dependency history.
+  # Source rewrites need explicit reconciliation, never an automatic divergent-tip replacement.
+  if [ "$remote_ref" = refs/heads/Development ] &&
+     [ "$remote_oid" != 0000000000000000000000000000000000000000 ]; then
+    if ! "$PY" Scripts/validate_dependency_ancestry.py --base "$remote_oid" --ref "$commit"; then
+      echo "pre-push: Development dependency history would be lost or cannot be verified." >&2
+      exit 1
+    fi
+  fi
 done
 exit 0

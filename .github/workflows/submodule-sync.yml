@@ -110,6 +110,9 @@ jobs:
           # committed parent gitlinks, so this proves the exact PR source graph.
           python3 Scripts/check_submodule_branches.py "$(git rev-parse HEAD)" "$TARGET"
           python3 Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          if [ "$TARGET" = Development ]; then
+            python3 Scripts/validate_dependency_ancestry.py --base "origin/$TARGET" --ref HEAD
+          fi
 
           git push --force origin "$SYNC_BRANCH"
 

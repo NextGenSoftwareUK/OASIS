@@ -1,0 +1,30 @@
+{
+  "source": "eb8499df642322db817a5dbc546a472c490c9b16",
+  "imageRun": 44866523001,
+  "imageJob": 136731315044,
+  "digest": "sha256:6b06d15cb2146612fc9b10ce52286c4ccf8705f6cde207ab58883e6b0dc8ce6f",
+  "packageRun": 44868433793,
+  "packageJob": 136737278007,
+  "artifact": 14692734512,
+  "artifactBytes": 781,
+  "artifactSha256": "6b08feb6cfca949841b7100c814de4b701a065e707982dea68fdf0bc925e6716",
+  "exactMembers": [
+    "Web4FullPackage/acknowledged.json",
+    "Web4FullPackage/cleanup.json"
+  ],
+  "acknowledgedImage": "ghcr.io/nextgensoftwareuk/oasis-web4@sha256:6b06d15cb2146612fc9b10ce52286c4ccf8705f6cde207ab58883e6b0dc8ce6f",
+  "tag": "ghcr.io/nextgensoftwareuk/oasis-web4:eb8499df642322db817a5dbc546a472c490c9b16-teaching",
+  "assemblies": 5,
+  "packagedSourceHashes": true,
+  "cqlRuntimeGraphVerified": true,
+  "expectedHostHash": "5f34b462e6d1197e3fc53add782ee14f73d70a351bc45cfa1d6e8ca20e8064c2",
+  "apiQualified": false,
+  "liveDeployment": false,
+  "ownedContainerAbsent": true,
+  "dataWrites": 0,
+  "strictZipBytesAndHashVerifiedInRam": true,
+  "noArchiveSavedLocally": true,
+  "snapshotValidButSupersededByCurrentRuntimeDependencies": true,
+  "retiredJournalBytes": 2082,
+  "retiredJournalAbsent": true
+}

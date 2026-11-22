@@ -1,0 +1,41 @@
+{
+  "websiteSource": "eed3ac0a01a5c6fd146083896a3df80b978be8d5",
+  "providers": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "newParserCasesPassed": 3,
+  "utcOffsetNormalization": true,
+  "sevenDigitFractionPreserved": true,
+  "invalidDateRejected": true,
+  "dateTimeLikeRejected": true,
+  "mappedGroupingAdmitted": false,
+  "nativeCasesRerun": false,
+  "hostedAcceptance": false,
+  "publicPublicationVerified": false,
+  "localGeneratedFiles": 0,
+  "groupingKeyFollowup": {
+    "websiteSource": "cd8c8d4bf7b9f1a6afcc51d8f236a36c0048eaa8",
+    "newParserCasesPassed": 6,
+    "scopes": [
+      "DateTime GROUP BY key with row count",
+      "SELECT DISTINCT DateTime key"
+    ],
+    "selectedValueAggregatesRefused": true,
+    "nativeDomainAcceptance": true,
+    "backendChanged": false,
+    "publicPublicationVerified": false,
+    "nativeEvidence": {
+      "run": 44890869474,
+      "artifact": 14702812086,
+      "sha256": "2e452d267c07c5195465b5293ce1344c91ecaba99d1f792bed88abdaa0f7d3c8",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "allTwelveFlagsVerified": true,
+      "exactCleanupVerified": true,
+      "archiveWrittenToDisk": false
+    }
+  }
+}

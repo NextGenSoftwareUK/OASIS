@@ -60,6 +60,14 @@ For a **new chat**, paste: goal + “see `Docs/Devs/STAR_CLI_SessionHandoff.md`�
 - OASIS APIs often use **`OASISResult<T>`** — keep that pattern for new surface area.
 - **NextGenSoftware-Libraries** lives as a **sibling** of this repo (e.g. `../NextGenSoftware-Libraries`), not under `OASIS/external-libs`.
 
+## COSMIC breadth-first delivery (David, 20 November 2026)
+
+Deliver feature breadth before exhaustive depth. Current order: (1) functional EF/NHibernate feature parity, starting with MongoDB/SQLite/Neo4j and shared Core implementations; (2) complete SQL/CQL text and WEB6 Ask Your Data user flows; (3) full/virtual/hybrid Holon workflows; then expanded edge coverage, optimisation and hardening. Preserve the complete provider roadmap and existing provider priorities.
+
+Work in cohesive batches across shared Core and real shipping providers. Use representative end-to-end checks for the newly changed feature/provider paths. Do not multiply scalar variants, edge-case matrices, benchmarks or soak runs while major feature families remain unimplemented. Preserve accepted evidence; rerun only changed behavior, failures or required repository checks. Fix real build and functional blockers promptly.
+
+Keep builds, caller permissions, source/data preservation, acknowledged writes, isolated tests and required CI/deployment gates. Defer nonessential performance tuning and hardening; address serious regressions immediately. Report implementation, representative functional verification and hardened coverage separately. Do not mark full parity or deployment acceptance merely from source presence or a smoke test. Publish usable demo slices as they become available instead of waiting for the whole programme. Follow the existing single-branch, coordination, cleanup and rollout rules.
+
 ## Railway WEB4-WEB10 dependency policy
 
 - `Docker/oasis-dependency-versions.env` is the single source of deployed dependency SHAs. Never duplicate commit pins in individual WEB4-WEB10 Dockerfiles or clone moving branch tips.

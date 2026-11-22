@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "source": "74bcfd4ffe060f55704df2d6b7d3e9fe21521685",
+  "core": "035a3efb536068189c21071bc3744fa89b69083e",
+  "deployment": "b9df95b8-3aaf-4af6-ba0b-a76d5bfa8698",
+  "deploymentStatus": "SUCCESS",
+  "pushedUtc": "2026-11-20T17:18:25.291803+00:00",
+  "nativeRuns": [
+    44768554362,
+    44771413273
+  ],
+  "image": {
+    "run": 44774875537,
+    "job": 136421899282,
+    "digest": "sha256:5de04d200a21b3af1345939032c3e4843aac398aa3d7bddd1a5efc88f5466d04"
+  },
+  "package": {
+    "run": 44780547195,
+    "artifact": 14650714965,
+    "bytes": 782,
+    "sha256": "61345f758339fa1c2a681fe8558d3e38d2543d43d80709833e0c8c1782a3c09a",
+    "strictVerified": true
+  },
+  "swagger": {
+    "http": 200,
+    "bytes": 2954809,
+    "elapsedMilliseconds": 8304,
+    "cqlPostRoutes": 11
+  },
+  "savedDnaSha256": "0755d6b0d5aef81ce47b35cf7e49cc380935ee069a08bedcc041d5280ac40c33",
+  "savedAutoLoadBalanceEnabled": false,
+  "loadedDnaIndependentlyVerified": false,
+  "applicationDataQueries": 0,
+  "configurationWrites": 0,
+  "populatedBrowserModelFlowVerified": false,
+  "stagingProductionTouched": false,
+  "localArtifactFiles": 0,
+  "cleanup": {
+    "removedPath": "C:\\Source\\OASIS2\\LocalState\\COSMIC\\navigation-development-release-handoff.json",
+    "bytes": 1108,
+    "basis": "canonical local proof and status durable before removal; serialized remote recording pending"
+  }
+}

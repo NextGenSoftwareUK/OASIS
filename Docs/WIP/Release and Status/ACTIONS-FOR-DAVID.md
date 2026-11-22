@@ -31,6 +31,27 @@ Links: [full handoff](../COSMIC%20ORM/CLOUD_HANDOFF_2026-11-18.md), [official Cl
 
 ### WEB4 COSMIC demo preview access · 13 November
 
+21 November update — preview access resolved through the existing native Vercel connection; no new login needed. The reviewed six-file sandbox-only candidate bd739705c3f231db9d15cbec71fdf48ef00281f0 is READY: https://web4-site-p6g80bybm-oasis-team.vercel.app/web4-sandbox.html. Static browser review passed with zero application-data requests; exact qualified runtime hashes retained and Ask layout visually reviewed. Decision pending: approve publication of these website assets at the existing public WEB4 sandbox URL. Reason: this changes the public website while the standing goal excludes production promotion. It would not deploy any staging/production backend or alter PIPER data. Real WEB6 model verification remains separately gated by the existing free-model configuration action. Preserve earlier history below.
+
+
+21 November: preview static access works via existing scoped OIDC; credentialed preview auth preflight returns wildcard/no credentials. Approved public WEB4 origin permits credentials. Bounded candidate browser test there established and revoked one demo session; later test failed to establish its session. SQL journey and auth diagnostic are agent-owned, not a new request for David to sign in or change protection/CORS. Free-model configuration remains a separate existing owner action.
+
+
+20 November: protected preview access resolved using existing Vercel CLI scoped OIDC (HTTP200), no login/protection/configuration change. Controlled browser rendered sandbox tabs, backend requests blocked. Full SQL/Ask browser journey remains engineering work; Free-model configuration remains the existing separate owner action.
+
+
+20 November native-access update. Existing installed Vercel58.4 CLI credentials successfully inspected the exact oasis-team/web4-site project without a new login, consent, linking or protection/configuration change. The connected tool still403 is a separate path. Native protected-preview request returned no HTTP result; this is an engineering-owned client diagnostic, not a request for David to sign in again. Signed-in browser acceptance remains open, and the permanent Free model/catalogue action stays separate. No production website publication or access-control change was made.
+
+20 November connected-access evidence: read-only Vercel list_projects for the existing oasis-team scope returned403 forbidden/not authorized. This agrees with the existing team-access blocker; no additional sign-in request, consent link, account change, production publication or competing owner action was made. Existing owner decision/access step remains pending. Native ORM/API work and isolated CI continue independently.
+
+
+
+20 November evidence update (same open action; no new sign-in request). Latest existing-branch Web4Site a85d93b6 preview is built successfully: https://web4-site-kpgpby09s-oasis-team.vercel.app/web4-sandbox.html (GitHub deployment7935475840). The public web4.oasisomniverse.one/web4-sandbox.html static page returned200 but lacks the newer Ask Your Data tab and virtual-mapping controls. Engineering's11 new actual-handler acknowledgement/source-guard tests passed; signed-in hosted acceptance remains open. Existing owner step remains authorize the existing OASIS Vercel team connection or arrange the agreed Development sandbox website publication using the already recorded hostname decision. Do not disable deployment protection or expose secrets. Permanent Free WEB6 route/catalogue action remains separate below; no new Bronze grant requested.
+
+
+
+19 November verification update. The existing team authorization remains pending (connector403 for OASIS team); known CLI auth paths and VERCEL_TOKEN/VERCEL_OIDC_TOKEN contain no reusable authentication. No new sign-in or expiring link was requested. GitHub confirms [Website4767c837 preview](https://web4-site-fiq9i7t7v-oasis-team.vercel.app/web4-sandbox.html) built successfully, but its static page request redirects to the Vercel account page. The [current public sandbox](https://web4.oasisomniverse.one/web4-sandbox.html) returns200 and still serves the older frontend. Two displayed-example controls passed44607947923, but protected/hosted acceptance is open. Retain David's preferred sandbox.web4/sandbox.web6 hostnames; no DNS/domain/protection setting was changed. Continue isolated provider work while this existing access action remains open.
+
 15 November. A fresh one-time OASIS team consent link was shared privately in chat after the connector returned a team-scoped 403. Approval is pending. The latest confirmed protected preview includes the canonical SQL fields and quoted metadata syntax. The Vercel project lookup still returns a team-scoped HTTP 403. After approval, engineering will inspect the Git integration, verify the Development website domain and credentialed WEB4 origin, and run the signed-in walkthrough.
 
 Open. Authorize the existing Vercel connection for the OASIS team with a current Vercel consent link. The earlier link was time-limited. The connector currently returns HTTP 403 for the team and the installed CLI has no active credentials. This access is for the existing [protected preview of Web4Site `726362ba2d75`](https://web4-site-qbjhk295o-oasis-team.vercel.app/web4-sandbox.html) for authenticated browser acceptance. The public site still serves the previous frontend. [Web4Site feature branch](https://github.com/NextGenSoftwareUK/Web4Site/tree/work/cosmic-cql)
@@ -996,6 +1017,9 @@ Power recovery verified on 11 November UTC: battery 21% and charging (Win32_Batt
 
 ### WEB6 Ask your data Development demo entitlement · 13 November
 
+21 November UTC update: a new scoped read of saved Development WEB6 OASIS DNA still found GeminiFree/OpenRouter API keys and Ollama URL/model unset (four presence booleans only). No secret values printed, inference/data calls, setting changes, new sign-in request or Bronze grant. Existing permanent-Free-route action remains pending; saved settings do not prove loaded runtime configuration. Evidence: [presence-only verification](../COSMIC%20ORM/WEB6_FREE_ROUTE_PRESENCE_2026-11-21.json). Earlier owner decisions and history below are preserved.
+
+
 **Current action, 17 November UTC** Configure a permanent Free WEB6 route and publish the reviewed additive catalogue using existing authorized access or direct owner publication. The earlier one-time Bronze grants are closed and the visitor is back on Free. Earlier sign-in and grant instructions below record previous steps. No new Bronze approval or sign-in is pending. The two Development configuration steps are described below.
 
 Read-only verification during CQL image44208771977: the Development WEB6 service's saved OASIS_DNA_JSON has none of the four requested Free-route fields configured (GeminiFree/OpenRouter keys and Ollama URL/model). Only presence booleans were reported; no secrets/settings were changed. Saved configuration is not proof of what the running deployment has loaded. Existing action remains pending; no new login or Bronze approval is requested.
@@ -1055,6 +1079,10 @@ Open 13 November. Approve the Vercel OASIS team access request when a fresh one-
 - **Reason** The quota blocks disposable sandbox avatar creation and other MongoDB writes. Engineering will verify sandbox sign-in, subscriptions and HyperDrive after capacity is restored. Railway continues to log rejected writes from the WEB4 usage settlement and reconciliation workers. Engineering will verify both worker cycles after storage recovery. Railway deployment 3480bc4b subsequently crashed at startup when Atlas rejected subscription index initialization at the same quota. 16 November follow-up: the subscription and outbox index startup repair restored public WEB4 health on Railway 506283cd. MongoDB quota rejections still gate sandbox sign-in, usage worker verification and write-dependent CQL acceptance. [WEB4 dev deployment](https://railway.com/) · [Current status](../HyperDrive-Providers/CURRENT_STATUS.md)
 
 ## PIPER parent collection routing and load-balancing decision
+
+21 November latest: David explicitly instructed immediate Development re-enablement for testing. Completed: seven Development saved copies true; existing-image redeploys SUCCESS and seven running startup DNA files true. Fourteen staging/production saved copies remain false; no rollout there. Earlier conditional hold is superseded for Development. PIPER SA/SLP/student-service completeness verification remains engineering work, not a new owner approval or login request.
+
+21 November update: David conditionally authorized re-enabling load balancing only once verified safe. Holo catalogue availability alone is insufficient. Separate SA/SLP/student-service completeness acceptance is still not established in current evidence; retain false and continue engineering verification without new login requests. This supersedes the older wording that the owner decision itself is pending. No source/deployed setting changed and no staging/production authorization inferred.
 
 16 November Cancun time. The owner confirmed that disabling automatic load balancing restored PIPER's missing records. Development `4d0d2022170c` includes the authoritative-parent routing and async visibility fixes. Exact image CI 43981891022 passed. Development WEB4 deployment `b41caa36-ffb0-41cd-a956-f9b86aaa2948` is queued. The real SA, SLP and student-service results remain separate verification items, and the owner has retained the decision to turn load balancing back on.
 

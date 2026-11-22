@@ -1,0 +1,36 @@
+{
+  "coreSource": "b8b69aef680f8c74e449739e8849db53159a510c",
+  "coreBase": "7165ab625f90501047ca10c3b9f193ed0498caf5",
+  "phase": "qualification_source_pushed",
+  "nativeAccepted": false,
+  "developmentPushed": false,
+  "source": "a7b1df5f73ab8d906c8cedac093cc32dd571fdb5",
+  "coreControls": 2,
+  "nativeJourneys": 3,
+  "automaticWorkflowExpected": true,
+  "run": 44959006866,
+  "status": "in_progress",
+  "conclusion": null,
+  "implementation": "fresh actor/authority-bound Get/GetAsync, shared ReadAsync owner",
+  "tracking": false,
+  "absenceCached": false,
+  "implicitWrites": false,
+  "fullParityCredit": false,
+  "localBuilds": 0,
+  "localRuntimeInstalls": 0,
+  "job": 137013407491,
+  "redundantQueuedSuiteCancellations": [
+    {
+      "run": 44959006809,
+      "workflow": ".github/workflows/qualify-gomap-web4.yml",
+      "onlyMatchedChanges": [
+        "Docker/oasis-dependency-versions.env",
+        "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
+      ],
+      "coreDelta": "A\tQueries/CosmicStatelessSession.Get.cs",
+      "queuedOnly": true,
+      "requestStartedUtc": "2026-11-21T22:53:34.845229+00:00",
+      "requestAccepted": true
+    }
+  ]
+}

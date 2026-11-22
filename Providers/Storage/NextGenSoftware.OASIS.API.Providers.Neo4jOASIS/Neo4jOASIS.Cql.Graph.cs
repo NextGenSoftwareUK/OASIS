@@ -70,10 +70,10 @@ public partial class Neo4jOASIS
         return rows.AsReadOnly();
     }
 
-    private static async Task<IReadOnlyList<IHolon>> ReadCqlRowsAsync(IResultCursor cursor,int maximumRows,NeoCqlReadBudget budget, CosmicEntityCompositionOptions entityOptions=null, Action<long> observeEntityCount=null)
+    private static async Task<IReadOnlyList<IHolon>> ReadCqlRowsAsync(IResultCursor cursor,int maximumRows,NeoCqlReadBudget budget, CosmicEntityCompositionOptions entityOptions=null, Action<long> observeEntityCount=null,int? maximumEntityInputRows=null)
     {
         var rows=new List<IHolon>();
-        var inputProofOwner=entityOptions==null ? null : new NeoCqlEntityInputProof(entityOptions);
+        var inputProofOwner=entityOptions==null ? null : new NeoCqlEntityInputProof(entityOptions,maximumEntityInputRows);
         var countSeen=false;
         while(await cursor.FetchAsync().ConfigureAwait(false))
         {
@@ -105,7 +105,7 @@ public partial class Neo4jOASIS
         return rows.AsReadOnly();
     }
 
-    private sealed class NeoCqlEntityInputProof(CosmicEntityCompositionOptions options)
+    private sealed class NeoCqlEntityInputProof(CosmicEntityCompositionOptions options,int? maximumRows=null)
     {
         private int rows;private long bytes;
         internal void Observe(IRecord record)=>Observe(record.Values);
@@ -117,7 +117,7 @@ public partial class Neo4jOASIS
             var snapshot=record["snapshot"].As<string>();
             if(snapshot==null)throw new NeoCqlLimitException("Entity source record exceeds its native payload bound.");
             bytes=checked(bytes+Encoding.UTF8.GetByteCount(snapshot));
-            if(++rows>options.MaximumInputRows || bytes>options.MaximumInputPayloadBytes)
+            if(++rows>(maximumRows??options.MaximumInputRows) || bytes>options.MaximumInputPayloadBytes)
                 throw new NeoCqlLimitException("Entity source exceeds its row/payload budget.");
             _=ReadCqlCanonicalSnapshot(record,snapshot);
         }

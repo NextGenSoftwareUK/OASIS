@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             IReadOnlyList<NativeProjectionColumn> selected;
             try
             {
-                matches = NativeRecordFilter.Capture(filters);
+                matches = NativeRecordFilter.CaptureForProjection(filters);
                 selected = NativeProjectionColumn.Capture(columns);
             }
             catch (ArgumentException)
@@ -196,7 +196,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     }
                     command.Parameters.AddWithValue($"$match{index}", match.Value);
                 }
-                return string.Join(" AND ", predicates);
+                return predicates.Count == 0 ? "1 = 1" : string.Join(" AND ", predicates);
         }
     }
 }

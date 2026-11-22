@@ -1,0 +1,202 @@
+{
+  "owner": "cosmic-cql-protected-preview-readonly",
+  "url": "https://web4.oasisomniverse.one/web4-sandbox.html",
+  "applicationDataRequestsSent": 1,
+  "filesInstalled": 0,
+  "configurationWrites": 0,
+  "title": "WEB4 Sandbox \ufffd HyperDrive, COSMIC ORM & CQL",
+  "ready": "interactive",
+  "ask": true,
+  "virtual": false,
+  "editorControls": [
+    {
+      "tag": "SELECT",
+      "id": "cql-preset",
+      "type": "select-one"
+    },
+    {
+      "tag": "SELECT",
+      "id": "cql-provider",
+      "type": "select-one"
+    },
+    {
+      "tag": "TEXTAREA",
+      "id": "cql-text",
+      "type": "textarea"
+    },
+    {
+      "tag": "INPUT",
+      "id": "cql-virtual-mapping",
+      "type": "text"
+    },
+    {
+      "tag": "SELECT",
+      "id": "cql-saved-mapping",
+      "type": "select-one"
+    },
+    {
+      "tag": "TEXTAREA",
+      "id": "cql-request",
+      "type": "textarea"
+    },
+    {
+      "tag": "SELECT",
+      "id": "cql-oracle-preset",
+      "type": "select-one"
+    },
+    {
+      "tag": "INPUT",
+      "id": "im-virtual-fields",
+      "type": "text"
+    },
+    {
+      "tag": "TEXTAREA",
+      "id": "ask-question",
+      "type": "textarea"
+    },
+    {
+      "tag": "SELECT",
+      "id": "ask-example-provider",
+      "type": "select-one"
+    }
+  ],
+  "candidateAssetsAtApprovedOrigin": true,
+  "candidateWebsiteSource": "2bbdfc940a159cca597bb95328471971038aa6e3",
+  "candidateScriptHashesVerified": true,
+  "publicWebsitePublicationVerified": false,
+  "holoDiscovery": {
+    "provider": "HoloOASIS",
+    "available": true,
+    "queryOnly": true,
+    "federationAvailable": true,
+    "activationGeneration": 1,
+    "diagnosticCodes": []
+  },
+  "visibleSqlTabVerified": true,
+  "sqlEditorRequestsAcknowledged": [
+    {
+      "acknowledged": true,
+      "resultPresent": true,
+      "nonnegativeIntegerCount": true,
+      "renderedAliasAndValueVerified": true
+    }
+  ],
+  "sqlEditorApiJourneyVerified": true,
+  "scalarResultRenderingVerified": true,
+  "exactNestedWhereRequestVerified": true,
+  "visibleScalarResultVerified": true,
+  "populatedSqlResultsVerified": false,
+  "fullBrowserDataFlowVerified": false,
+  "screenshot": "C:\\Source\\OASIS2\\LocalState\\COSMIC\\RecoveryLaptopHostedBrowserCurrent\\preview.png",
+  "screenshotBytes": 61808,
+  "screenshotSha256": "b39f9390a14961d6c88a59504f2d8089e544369400c6ba34fa022fa8194b7348",
+  "blockedRequests": [
+    {
+      "method": "OPTIONS",
+      "origin": "https://dev.api.web4.oasisomniverse.one",
+      "path": "/api/hyperdrive/status"
+    },
+    {
+      "method": "OPTIONS",
+      "origin": "https://dev.api.web4.oasisomniverse.one",
+      "path": "/api/hyperdrive/metrics"
+    },
+    {
+      "method": "OPTIONS",
+      "origin": "https://dev.api.web4.oasisomniverse.one",
+      "path": "/api/hyperdrive/connections"
+    },
+    {
+      "method": "OPTIONS",
+      "origin": "https://dev.api.web4.oasisomniverse.one",
+      "path": "/api/hyperdrive/best-provider"
+    },
+    {
+      "method": "OPTIONS",
+      "origin": "https://dev.api.web4.oasisomniverse.one",
+      "path": "/api/sandbox/faults"
+    },
+    {
+      "method": "OPTIONS",
+      "origin": "https://dev.api.web4.oasisomniverse.one",
+      "path": "/api/sandbox/faults"
+    }
+  ],
+  "scriptExceptions": [],
+  "protocolErrors": [
+    "CDP -32000",
+    "CDP -32000",
+    "CDP -32000",
+    "CDP -32000"
+  ],
+  "renderedProbe": true,
+  "completedSqlProviders": [
+    "Neo4jOASIS"
+  ],
+  "sqlResponses": [
+    {
+      "acknowledged": true,
+      "resultPresent": true,
+      "nonnegativeIntegerCount": true,
+      "renderedAliasAndValueVerified": true
+    }
+  ],
+  "neoDiscovery": {
+    "provider": "Neo4jOASIS",
+    "available": true,
+    "queryOnly": false,
+    "federationAvailable": true,
+    "activationGeneration": 1,
+    "diagnosticCodes": []
+  },
+  "demoSessionRequested": true,
+  "demoSessionRevoked": true,
+  "apiRequestCounts": {
+    "POST /api/sandbox/session": 1,
+    "GET /api/data/query-cql/providers": 1,
+    "POST /api/data/query-cql/scalar": 1,
+    "POST /api/avatar/revoke-token": 1
+  },
+  "authResponses": [
+    {
+      "path": "/api/sandbox/session",
+      "http": 204
+    },
+    {
+      "path": "/api/sandbox/session",
+      "http": 200,
+      "errorEnvelope": false
+    },
+    {
+      "path": "/api/avatar/revoke-token",
+      "http": 204
+    },
+    {
+      "path": "/api/avatar/revoke-token",
+      "http": 200,
+      "errorEnvelope": false
+    }
+  ],
+  "candidateAssetHashes": {
+    "/web4-sandbox.html": "6e46b497bab78455113048f402d89abe13fe42e704812b46d8008eb531e14af7",
+    "/web4-session.js": "a80650c080f0a5d97248cc6ff0866a5a2a4b15882d469ca6cc2f54dffb6b792f",
+    "/web4-tabs.js": "aec0dd8db831166964e1886ee30bee375e30a9f7ea18cfa2e5d4819b924da955",
+    "/cql-demo-preparation.js": "c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a",
+    "/lossless-metadata.js": "86dc43b8175a77db42fabbbf3363696a6d8593f50e3c26547ac60cf312789e7b",
+    "/cql-playground.js": "331918b92ba02e7cf733b7b6213fd7ee1466af960beaed57c9eb3049b9dbb4e0",
+    "/cql-ask.js": "3ad67a4ed3b6568c7c7e84d4e1955c802729b427e0d6d9f12c128758e13daa84",
+    "/cql-text.js": "d17b60caf687ddc24da166c4a117d8adb435bf895174811b0c0d62e384f4118f"
+  },
+  "ownedBrowserStopped": true,
+  "ownedBrowserForcedStop": true,
+  "ownedWorkVerified": true,
+  "profileCleanupError": "EBUSY",
+  "profileCleanupPending": true,
+  "servingSource": "1bb737b84ab9e103ebfee169d6773845c1ceda85",
+  "deployment": "df265269-6c18-4e7c-93f3-3bcd89b7ef00",
+  "visualScreenshotReviewed": true,
+  "ownedWorkDirectoryAbsent": true,
+  "ownedBytesRemoved": 6822065,
+  "holoDataQueryVerified": false,
+  "holoRestartStabilityVerified": false
+}

@@ -1,0 +1,40 @@
+{
+  "phase": "push_rejected_concurrent_reference_change",
+  "source": "709da75a496c2bd30c63f6d63e1aaac60a5ee47f",
+  "previousDevelopment": "5ecb5a6d3cf396eeaea7ab458a1f1f6ca2e5aa17",
+  "runtimeQualifiedSource": "65ad48c230d01d59f070409a6cfe557f37ed495f",
+  "nonRuntimeDifferencePaths": [
+    ".github/workflows/global-release.yml",
+    ".github/workflows/star-installers.yml"
+  ],
+  "allOtherTrackedBytesAndGitlinksIdentical": true,
+  "imageSourceLabelNotRewritten": true,
+  "core": "01d10ae033608064e7f6b34fa434e4166073de27",
+  "digest": "sha256:92fe1d20c213528b5009c25df7e7f2e2342d5a813a99a1b7d84a0b58c8db9624",
+  "imageRun": 44846784753,
+  "imageJob": 136668346033,
+  "nativeRun": 44837204603,
+  "nativeArtifact": 14678588732,
+  "packageRun": 44849651286,
+  "packageJob": 136677714580,
+  "artifact": 14683739835,
+  "artifactBytes": 783,
+  "artifactSha256": "7402ab76a6c61059a0d23f22113a9da6aca45b33c66f5669df8c1040148dacef",
+  "savedDnaSha256": "0755d6b0d5aef81ce47b35cf7e49cc380935ee069a08bedcc041d5280ac40c33",
+  "autoLoadBalanceEnabled": false,
+  "configurationWrites": 0,
+  "dataWrites": 0,
+  "observedDevelopment": "96f403ccd841a6c9377f066b5e09e41fb66d1260",
+  "candidateDeployed": false,
+  "preservedConcurrentRuntimePath": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisDevelopmentConductor.cs",
+  "newCombinedImageRequired": true,
+  "newCombinedImageDispatchSession": 19519,
+  "cleanup": {
+    "path": "C:\\Source\\OASIS2\\LocalState\\COSMIC\\session-inspection-development-release-handoff.json",
+    "bytes": 1103,
+    "absenceVerified": true
+  },
+  "newCombinedImageSource": "3bba5467e82169f0eeaa80b449b2ba000a15f89b",
+  "newCombinedImageRun": 44854701764,
+  "nativeCohortsRepeated": false
+}

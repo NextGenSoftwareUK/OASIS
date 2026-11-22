@@ -1,0 +1,3 @@
+# Exact Int32 native qualification
+
+Three NEW cases reuse actual Mongo/SQLite/Neo providers and the API compiler, eight native records per store, eight comparisons including >Max/<Min, foreign-owner refusal, whole-source byte fingerprints, no holon materialization and exact owned cleanup. Ten new API contract rows and fourteen accepted Website SQL/Ask rows complete the scoped test plan. Native qualification is pending; this direct mapped-read fixture does not claim mixed HTTP metering, hosted browser/model acceptance or full ORM parity. Existing cohorts are retained, no shared Atlas or PIPER data used, no local environment/build/database artifacts.

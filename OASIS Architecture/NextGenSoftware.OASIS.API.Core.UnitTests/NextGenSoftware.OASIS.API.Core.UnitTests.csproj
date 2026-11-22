@@ -90,4 +90,15 @@
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlUrbitReadSourceRegistration.cs" Link="Production/CqlUrbitReadSourceRegistration.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReadSourceProfile.cs" Link="Production/CqlReadSourceProfile.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlWhereV1Predicate.cs" Link="Production/CqlWhereV1Predicate.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlWhereV1Compiler.cs" Link="Production/CqlWhereV1Compiler.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlSetV1Request.cs" Link="Production/CqlSetV1Request.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetV1Compiler.cs" Link="Production/CqlSetV1Compiler.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetV1Endpoint.cs" Link="Production/CqlSetV1Endpoint.cs" />
+  </ItemGroup>
 </Project>

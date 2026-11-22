@@ -72,6 +72,10 @@ public sealed class CqlV1Controller : ControllerBase
     [RequestSizeLimit(32768)]
     public Task<IActionResult> Grouped(CqlGroupedV1Request request) => CqlV1Endpoint.ExecuteGroupedAsync(HttpContext, request, providers);
 
+    [HttpPost("set")]
+    [RequestSizeLimit(32768)]
+    public Task<IActionResult> Set(CqlSetV1Request request) => CqlV1Endpoint.ExecuteSetAsync(HttpContext, request, providers);
+
     [HttpPost("join")]
     [RequestSizeLimit(32768)]
     public Task<IActionResult> Join(CqlJoinV1Request request) => CqlV1Endpoint.ExecuteJoinAsync(HttpContext, request, providers);

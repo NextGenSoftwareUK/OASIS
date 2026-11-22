@@ -1,0 +1,22 @@
+{
+  "coreSource": "8b543e538df91a6ab257292327041dc30bccca5f",
+  "base": "79fb3fc71cace5bd7da760a6e08a18da54a19488",
+  "compiled": false,
+  "nativeAccepted": false,
+  "standardOperators": [
+    "Union",
+    "Concat",
+    "Intersect",
+    "Except"
+  ],
+  "resultStagesShared": true,
+  "developmentPushed": false,
+  "parentSource": "3c1bee00623f6f19f6b193c27341a1134cc104bd",
+  "qualificationSource": "0f1e999fe86a8da28cf20fd499ad726c64a9755b",
+  "workflow": "qualify-cql-set-linq.yml",
+  "cases": 6,
+  "automaticRunExpected": true,
+  "run": 44965175654,
+  "status": "queued",
+  "conclusion": null
+}

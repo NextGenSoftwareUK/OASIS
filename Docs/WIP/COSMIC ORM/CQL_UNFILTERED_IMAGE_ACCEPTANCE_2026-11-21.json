@@ -1,0 +1,40 @@
+{
+  "source": "6b5713f7d02379a6bd1769c13981d22682ee7b0d",
+  "core": "13fabae5a78c70b961c300657a875f1cfabe238d",
+  "imageRun": 44891296213,
+  "imageJob": 136807464445,
+  "imageConclusion": "success",
+  "digest": "sha256:bbd69aa3d0ee5512206cbe18016634f9682d26a4131108da6683ce0b2a87638a",
+  "packageRun": 44894688335,
+  "packageObservedStatus": "completed",
+  "packageAccepted": true,
+  "developmentPushed": true,
+  "hostedAccepted": true,
+  "localImageDownloaded": false,
+  "packageJob": 136817727944,
+  "packageArtifact": {
+    "id": 14703765335,
+    "bytes": 782,
+    "sha256": "ff6d830c2caba3517f0977fa1ca615f96489b81d47c0ba7f0103382665836ad4",
+    "expectedEntries": [
+      "Web4FullPackage/acknowledged.json",
+      "Web4FullPackage/cleanup.json"
+    ],
+    "filesWritten": 0
+  },
+  "apiQualified": false,
+  "ownedContainerAbsent": true,
+  "dataWrites": 0,
+  "developmentDeployment": "1fa92e09-c55b-4a34-8913-0c5d6b0d4f54",
+  "developmentObservedStatus": "SUCCESS",
+  "developmentLoadBalancingSaved": true,
+  "hostedMongoAccepted": true,
+  "hostedAllThreeAccepted": true,
+  "hostedBrowserAccepted": false,
+  "hostedScope": "Bounded unfiltered SQL compiled to live mixed projection, owned mapping creation and exact conditional cleanup",
+  "hostedRows": {
+    "MongoDBOASIS": 6,
+    "SQLLiteDBOASIS": 4,
+    "Neo4jOASIS": 3
+  }
+}

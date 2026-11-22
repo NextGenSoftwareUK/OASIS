@@ -1,0 +1,22 @@
+{
+  "deployment": "88620d5d-7d91-4922-8e43-554ac984f71d",
+  "source": "f54923d82ac8bffa7877d9307f18e879d41a8254",
+  "websiteCompiler": "3d8f108f6161b8b4a0e6c8e2f80d1358fb6185f8",
+  "provider": "MongoDBOASIS",
+  "mappingId": "cf9c504e-8ec1-459e-9320-e3addfc66d96",
+  "snapshotId": "1b80ac3d-f19e-8120-8ea1-a18349dab8f4",
+  "nativeSource": "customers",
+  "mixedRowsReturned": 6,
+  "queryAccepted": true,
+  "unfilteredSqlCompiled": true,
+  "snapshotIdentityReconciliationVerified": true,
+  "exactSnapshotCleanupVerified": true,
+  "exactMappingCleanupVerified": true,
+  "sessionRevoked": true,
+  "completed": true,
+  "calls": 13,
+  "browserVerified": false,
+  "nativeDataImported": false,
+  "protectedCredentialsRemoved": true,
+  "piperDataTouched": false
+}

@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "ownedBrowserDirectory": "C:/Source/OASIS2/LocalState/COSMIC/RecoveryLaptopHostedBrowserCurrent",
+  "measuredFiles": 326,
+  "measuredBytes": 9552143,
+  "markerPid": 8424,
+  "markerPidAbsent": true,
+  "ownedChromeProcessesAbsent": true,
+  "profileResolvedWithinOwnedDirectory": true,
+  "reparsePoints": 0,
+  "profileRemovedWithoutForce": true,
+  "reviewedScreenshotRemoved": true,
+  "markerRemoved": true,
+  "emptyDirectoryRemovedNonRecursively": true,
+  "absenceVerified": true,
+  "earlierBroadDeletionRejected": true,
+  "saferScopedDeletionSucceeded": true,
+  "userProfilesOrDatabasesRemoved": false,
+  "unknownRemoteDemoSessionCreation": "not confirmed; no token received and no PIPER data touched"
+}

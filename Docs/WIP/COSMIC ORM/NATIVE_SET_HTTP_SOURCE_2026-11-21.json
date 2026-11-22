@@ -1,0 +1,18 @@
+{
+  "qualificationSource": "b296f97dee7225dfb455ddcc473d17c0b8cabe23",
+  "coreSource": "34fdd27bd04ef8e41f6fadafdd724a450f215cff",
+  "workflow": "qualify-cql-set-http-native.yml",
+  "cases": 1,
+  "checks": 3,
+  "compiled": false,
+  "accepted": false,
+  "provider": "MongoDBOASIS",
+  "ownedHolonWrites": 1,
+  "httpCalls": 3,
+  "developmentPushed": false,
+  "priorQualificationSource": "0db77e3cf579c1e67e1903c6e952324ac5a101b0",
+  "projectXmlItemsValidated": true,
+  "run": 44967019200,
+  "status": "in_progress",
+  "conclusion": null
+}

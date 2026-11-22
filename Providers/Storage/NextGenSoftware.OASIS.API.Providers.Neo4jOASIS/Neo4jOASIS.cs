@@ -69,7 +69,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             await _lifecycleGate.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                if (!IsProviderActivated || _driver == null) throw new NeoCqlNotReadyException();
+                if (!IsQuerySourceActivated || _driver == null) throw new NeoCqlNotReadyException();
                 if (_cqlReadTransports == null)
                 {
                     var factory = _cqlReadDriverFactory;
@@ -123,11 +123,13 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 await _driver.VerifyConnectivityAsync().ConfigureAwait(false);
                 await EnsureHolonWriteSchemaAsync().ConfigureAwait(false);
                 await UpgradeCqlProjectionsAsync().ConfigureAwait(false);
+                _querySourceActivated = true;
                 IsProviderActivated = true;
                 return new OASISResult<bool>(true);
             }
             catch (Exception ex)
             {
+                _querySourceActivated = false;
                 IsProviderActivated = false;
                 return new OASISResult<bool>(false) { IsError = true, Message = $"Neo4j activation failed: {ex.Message}", Exception = ex };
             }
@@ -149,6 +151,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 await Task.WhenAll(CloseReadPoolAsync(reads), CloseStorageDriverAsync(storage)).ConfigureAwait(false);
                 _cqlReadTransports = null;
                 _driver = null;
+                _querySourceActivated = false;
                 IsProviderActivated = false;
                 return new OASISResult<bool>(true);
             }

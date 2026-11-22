@@ -1,0 +1,57 @@
+{
+  "coreSource": "86bfb64d496dce5afd8eaf8c8f50c89de2492570",
+  "sqliteQualificationSource": "97831121685c7d9df33e2a5e5583ed5b0469e8dc",
+  "sqliteNativeRun": 44961797361,
+  "sqliteNativeJob": 137022004593,
+  "sqliteArtifact": {
+    "id": 14730460706,
+    "bytes": 4082,
+    "sha256": "3ec5f8b2d9cbbb3137f6df770257ff53682bfddee3a0adfe26c02fa3c8d566e3",
+    "exactThreeEntriesVerified": true
+  },
+  "sqliteReport": {
+    "provider": "SQLLiteDBOASIS",
+    "checks": 7,
+    "ownedCleanupIds": 4,
+    "successfulHolonWrites": 4,
+    "queryElapsedMilliseconds": {
+      "create-owned": 679,
+      "create-foreign": 14,
+      "union": 72,
+      "concat": 16,
+      "intersect": 13,
+      "except": 12,
+      "concat-window": 14,
+      "bound-before-empty-page": 2,
+      "ordinary-get": 47
+    },
+    "nativeProviderVerified": true,
+    "allFourSetOperationsVerified": true,
+    "concatMultiplicityVerified": true,
+    "independentWindowsVerified": true,
+    "foreignRowsHiddenVerified": true,
+    "inputLimitBeforeEmptyOutputVerified": true,
+    "ordinaryReadPreservedVerified": true,
+    "exactCleanupVerified": true
+  },
+  "sharedContractAccepted": true,
+  "sharedContractArtifact": {
+    "id": 14729748256,
+    "bytes": 2307,
+    "sha256": "9e3beba1055cdb2323dcf0a41c81ac6e7e851b76e9d6eecc7be7bc9994afb8b4",
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0
+  },
+  "actualWeb4BuildErrors": 0,
+  "actualWeb4BuildElapsed": "00:05:44.33",
+  "sqliteCurrentDirectoryMatchesAccepted": true,
+  "provider": "SQLLiteDBOASIS",
+  "nativeAccepted": true,
+  "developmentPushed": false,
+  "sqlTextImplemented": false,
+  "linqImplemented": false,
+  "fullParityCredit": false,
+  "localBuilds": 0,
+  "localFilesDownloaded": 0
+}

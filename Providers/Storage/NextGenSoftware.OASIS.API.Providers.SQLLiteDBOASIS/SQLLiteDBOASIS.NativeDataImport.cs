@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
     /// Either way the file is opened read-only and the OASIS database is refused. Rows page in rowid order; a table's declared
     /// primary key (as a JSON array of its values) is the native key when it has one, otherwise its rowid.
     /// </summary>
-    public partial class SQLLiteDBOASIS : INativeDataQueryProvider
+    public partial class SQLLiteDBOASIS : INativeDataQueryProvider, INativeDataSnapshotQueryProvider
     {
         /// <summary>The largest SQLite file a caller may upload (DNA OASIS.NativeImport.MaximumSqliteUploadMegabytes).</summary>
         public static int MaximumUploadBytes => NativeImportOptions.MegabytesToBytes(NativeImportOptions.Current.MaximumSqliteUploadMegabytes, nameof(NativeImportSettings.MaximumSqliteUploadMegabytes));
@@ -160,19 +160,29 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             }
         }
 
-        public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativePredicateRecordsAsync(
+        public Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativePredicateRecordsAsync(
             string sourceName, IReadOnlyList<NativeRecordFilter> matches, IReadOnlyList<string> fields, int limit,
             NativeConnection connection = null, CancellationToken cancellationToken = default)
+            => QueryNativeRecordsCoreAsync(sourceName, matches, fields, limit, connection, cancellationToken, false);
+
+        public Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeSnapshotRecordsAsync(
+            string sourceName, IReadOnlyList<NativeRecordFilter> matches, IReadOnlyList<string> fields, int limit,
+            NativeConnection connection = null, CancellationToken cancellationToken = default)
+            => QueryNativeRecordsCoreAsync(sourceName, matches, fields, limit, connection, cancellationToken, true);
+
+        private async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsCoreAsync(
+            string sourceName, IReadOnlyList<NativeRecordFilter> matches, IReadOnlyList<string> fields, int limit,
+            NativeConnection connection, CancellationToken cancellationToken, bool snapshotRead)
         {
             var result = new OASISResult<IReadOnlyList<NativeRecord>>();
             if (connection != null || string.IsNullOrWhiteSpace(sourceName) ||
-                matches == null || matches.Count is < 1 or > 8 ||
+                matches == null || (matches.Count < (snapshotRead ? 0 : 1) || matches.Count > 8) ||
                 matches.Any(match => match == null || string.IsNullOrWhiteSpace(match.Field) || match.Value is not (string or int or long)) ||
                 fields == null || fields.Count is < 1 or > 32 || fields.Any(string.IsNullOrWhiteSpace) ||
-                fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || limit is < 1 or > 100)
+                fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || (limit < 1 || limit > (snapshotRead ? 200 : 100)))
                 return Error("NATIVE_QUERY_INVALID", "Select a configured table, one to eight exact String or Int64 matches, fields and a row limit.");
 
-            matches = NativeRecordFilter.Capture(matches);
+            matches = snapshotRead ? NativeRecordFilter.CaptureForProjection(matches) : NativeRecordFilter.Capture(matches);
             fields = fields.ToArray();
             try
             {
@@ -189,7 +199,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     deadline: TimeSpan.FromSeconds(Math.Min(30, NativeImportOptions.ReadTimeout.TotalSeconds)));
                 using var command = lease.Connection.CreateCommand();
                 command.CommandTimeout = Math.Max(1, (int)Math.Ceiling(NativeImportOptions.ReadTimeout.TotalSeconds));
-                var predicateSql = CompileNativePredicateSql(matches, command);
+                var predicateSql = matches.Count == 0 ? "1=1" : CompileNativePredicateSql(matches, command);
                 command.CommandText = $"SELECT rowid, {string.Join(", ", projected.Select(Quote))} FROM {Quote(sourceName)} " +
                     $"WHERE {predicateSql} ORDER BY rowid LIMIT $take";
                 command.Parameters.AddWithValue("$take", limit);
