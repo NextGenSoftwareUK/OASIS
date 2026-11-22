@@ -1064,5 +1064,20 @@
     "nativeRun": 44969526963,
     "nativeJob": 137046018207,
     "nativeStatus": "in_progress"
+  },
+  "authorizedTemporaryProviderVerification": {
+    "ownerDecision": "Use existing dev credential in temporary CI secret (chat reply21November).",
+    "control": "0bbb009a44",
+    "candidate": "e5aa77161465fa6c683746bac49ea647dd7adeb0",
+    "mode": "billing-warning-provider",
+    "secrets": [
+      "OASIS_WARNING_TEST_RESEND_KEY",
+      "OASIS_WARNING_TEST_EMAIL_FROM"
+    ],
+    "staging": "Both metadata verified; values memory/stdin only, no files or logs; initial sender failure reconciled then succeeded.",
+    "access": "Workflow passes secrets only when explicit native warning-provider selector is true.",
+    "dispatch": "One POST timed out20s; first run list showed no new run, subsequent exact-head read timed out30s. Outcome unconfirmed; do not duplicate POST until reconciled.",
+    "externalCalls": "No provider acceptance confirmed; fixed delivered@resend.dev, max2bounded submissions with same idempotency key.",
+    "cleanup": "Both temporary secrets must be deleted after terminal verification and absence confirmed. Deployment credentials/settings unchanged."
   }
 }

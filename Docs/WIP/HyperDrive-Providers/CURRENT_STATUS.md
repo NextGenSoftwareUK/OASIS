@@ -1,3 +1,5 @@
+Current H1 update: David authorized existing dev credential in temporary CI secrets. Both test credential/sender metadata verified; bounded warning-provider control0bbb009a44 pushed. One dispatch POST timed out; run creation unconfirmed after read timeout, no duplicate POST. Reconcile exact-head run list before any retry. Temporary secrets remain agent-owned cleanup obligations; no provider acceptance claim.
+
 Current Settings status — 21 November 2026 (supersedes historical entries below)
 
 OPORTAL is not 100% complete. Session-list HTTP/native Mongo acceptance passed44977175851 on reviewed e5aa7716: zero build errors, actual active/revoked/expired records, foreign refusal, no credential disclosure and unchanged avatar. Duplicate route ownership fixed. This does not prove device tracking, create/update, logout or JWT revocation.
