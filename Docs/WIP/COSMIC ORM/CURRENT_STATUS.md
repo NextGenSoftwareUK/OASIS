@@ -13,16 +13,18 @@ Updated22November2026. Implementation branch: **work/cosmic-cql-ton-public**; we
 
 ## Active release — mapped computed rows
 
-Shipping source uses **Core5240d3bd34d003407fe8b08070203e8d4efb5e1a** plus the real Mongo aggregation, SQLite SQL and Neo4j Cypher implementations. Literal arguments are captured, native computations retain exact domains, and projection-only functions remain refused as source predicates. [Mapped API qualification45002198772](MAPPED_COMPUTED_WIRE_ACCEPTANCE_2026-11-22.json) passed3controls and actual WEB4 compilation.
+Native mapping contracts originated at **Core5240d3bd34d003407fe8b08070203e8d4efb5e1a**. Current combined source is **Core1d627b36d81e53284a51455baca3e4c733a2b13a**, preserving the exact verified session foundation and the real Mongo aggregation, SQLite SQL and Neo4j Cypher implementations. Literal arguments are captured, native computations retain exact domains, and projection-only functions remain refused as source predicates. [Mapped API qualification45002198772](MAPPED_COMPUTED_WIRE_ACCEPTANCE_2026-11-22.json) passed3controls and actual WEB4 compilation.
 
 Native/mixed HTTP qualification45004657247/source5d39eeddbc29f168d81e6a26af355f6531251605 finished2/3:
 - SQLite and Neo4j passed7representative checks each, including full/virtual computed rows, distinct literals, null/empty/zero, stale saved-copy reconciliation, global computed paging, permissions, unchanged records and exact cleanup.
 - Mongo stopped on the fixture's64-character database name (native maximum63), before a shipping-function failure was established. The owned suffix is shortened and checked before resource creation.
-- Mongo-only correction **45006551717/job137159328214**, source **29491dfaa7576a9dd1ac9bd15816e0cb3c12d54d**, is **queued**. Preserve accepted SQLite/Neo cases.
+- Mongo-only correction **45006551717/job137159328214**, source **29491dfaa7576a9dd1ac9bd15816e0cb3c12d54d**, is **in progress**. Preserve accepted SQLite/Neo cases.
 - [Two-provider proof](MAPPED_COMPUTED_NATIVE_PARTIAL_ACCEPTANCE_2026-11-22.json): artifact14747698752/3349bytes/SHA3057a4daa6c54ebd6a39afa0ba015114235f437eea658fd46240bfef1f23d16f inspected in RAM. Both earlier superseded45003939030/45004084607 are terminal/cancelled.
 
-Frozen candidate **fbcb99a9ee3b71374437a2c356743398b8ed95af** preserves Development24ec05bb dependencies, including HoloNETdfd20db7 and ONODEManager29217030, with the paired manifest validated. [Candidate record](MAPPED_COMPUTED_RELEASE_CANDIDATE_2026-11-22.json).
-[Exact-source composition45005838375/job137157113992](MAPPED_COMPUTED_COMPOSITION_ACCEPTANCE_2026-11-22.json) is **accepted**: three mapped controls and actual WEB4/WEB5 builds, zero build errors. Artifact source.json verifies rootfbcb99a9/Core5240d3bd; workflow control isa5ac1ba0. RAM ZIP/TRX/source inspection verified artifact14749265298/1944bytes/SHA77024b5207430c677fa5933bd07aa9160daccfafa22fa80e20e7199d980f06c5. Dispatch is acknowledged once; never replay it.
+Current frozen candidate **5b48998592d677a9a8ab020e8972593fe697f70f** combines verified Development **ae34125670eb547296396432efd10a857a50d048** / session foundationCorec486c152 with mapped contracts inCore1d627b36. Exact six peer Core paths and934manager inventory are retained; our three native mapping Core paths and four production root paths are unchanged. Worker-gate6pure controls passed in RAM. HoloNETdfd20db7, ONODEManager29217030 and the paired dependency manifest are preserved/validated. [Candidate record](MAPPED_COMPUTED_RELEASE_CANDIDATE_2026-11-22.json). Unqualified strict session enforcement618c3c73 remains excluded.
+
+Prior [exact composition45005838375/job137157113992](MAPPED_COMPUTED_COMPOSITION_ACCEPTANCE_2026-11-22.json) accepted3mapped controls and actual WEB4/WEB5 builds forfbcb99a9/Core5240d3bd, with source-stamped artifact14749265298 verified. Keep that proof attached to its actual source.
+Because the combined Core now includes peer C# changes, current exact qualification **45009513105** is **queued** for source5b489985/Core1d627b36 (workflow control1626a648). Do not substitute the prior build for current acceptance. Dispatch acknowledged once; preserve the original handle.
 
 No mapped image/package acceptance, Development push or hosted acceptance yet. Keep these gates:
 1. Accept the focused Mongo correction and exact composition, with immutable artifact/source evidence.
@@ -40,7 +42,7 @@ Prepared hosted verifier: Scripts/Sandbox/Verify-HostedUnfilteredMapping.py --co
 
 ## Coordination and deployment
 
-- Shared Development last reviewed: **47b0f596b5057c1b2aedf86c980372da62f3478c**. Since candidate base24ec, only two CI worker-gate scripts changed to stop requiring the retired AppOverageStatementWorker. Preserve that correction before the next release.
+- Shared Development last reviewed: **ae34125670eb547296396432efd10a857a50d048**. Verified phase-one session foundation, worker-gate correction and corrected ONODEManager pin are preserved in the combined source. Loaded rollout acceptance remains separate from source integration.
 - Peer HyperDrive status last reviewed: accepted session foundation is separately composing/compiling; strict seven-service session enforcement remains unshipped. Do not import unqualified auth/Core changes or overwrite peer work. Review C:/Source/OASIS2-hyperdrive/Docs/WIP/HyperDrive-Providers/CURRENT_STATUS.md and shared Development every30minutes/before another provider.
 - Work on the one agreed feature branch. Normal COSMIC Development pushes at most once/hour, qualified batches only; critical fixes may go sooner. Last own push08:04:01UTC22November. No empty/unverified push just to meet the clock. No staging/production authorization.
 - Core gitlink and dependency manifest move together; official sync and require-gitlinks validation are mandatory. No moving dependency branch pins.
