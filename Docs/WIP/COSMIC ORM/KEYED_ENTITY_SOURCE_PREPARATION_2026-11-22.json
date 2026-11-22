@@ -1,5 +1,5 @@
 {
-  "core": "0f521ee7c6332b09c516988c9e5c0f5c6fe8e3c9",
+  "core": "ee221ea374a93857bf7fd918cfa8ccac2117414a",
   "base": "21a5966a12aa9c57109131cf7a519394d30e9a27",
   "sourcePrepared": true,
   "compiled": false,
@@ -13,7 +13,7 @@
   "qualification": "Pending exact native workflow",
   "source": "10983ac1b51f62362094cabd13f1631ff27990aa",
   "qualificationRun": 45076199105,
-  "qualificationPhase": "InProgress",
+  "qualificationPhase": "FailedCompilation",
   "unrelatedOwnedCancelRequested": [
     45076199516,
     45076199140,
@@ -39,5 +39,8 @@
   "requiredPinRun": 45076199054,
   "requiredPinAttempt": 2,
   "requiredPinJob": 137374205856,
-  "unrelatedCancelFollowup": 45076199398
+  "unrelatedCancelFollowup": 45076199398,
+  "failedRun": 45076199105,
+  "rootCause": "Missing DNA namespace import for HyperDriveModes in new manager file",
+  "correction": "Use canonical DNA HyperDriveModes; no runtime workaround"
 }
