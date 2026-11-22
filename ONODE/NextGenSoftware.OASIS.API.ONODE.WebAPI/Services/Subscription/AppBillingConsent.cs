@@ -126,7 +126,7 @@ public static class AppBillingConsent
     public static void RequirePaidPayer(SubscriptionRecord payer, DateTime now, bool authorizingUsage = false)
     {
         if (payer == null || payer.PlanId is not ("bronze" or "silver" or "gold" or "enterprise") || payer.Status is not ("active" or "trialing") ||
-            payer.CurrentPeriodEnd.HasValue && payer.CurrentPeriodEnd.Value <= now || payer.OveragePaymentBlocked ||
+            !payer.IsActiveAt(now) || payer.OveragePaymentBlocked ||
             string.IsNullOrWhiteSpace(payer.StripeCustomerId) || string.IsNullOrWhiteSpace(payer.StripeSubscriptionId))
         {
             const string message = "An active paid subscription with a verified payment method and no blocked overage payment is required.";

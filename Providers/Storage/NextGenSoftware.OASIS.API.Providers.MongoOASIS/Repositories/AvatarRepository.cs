@@ -66,6 +66,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
                 result.Result = await _dbContext.Avatar.Find(filter).FirstOrDefaultAsync();
+                result.IsLoaded = result.Result != null;
+                result.LoadedCount = result.IsLoaded ? 1 : 0;
+                if (!result.IsLoaded) result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
             }
             catch (Exception ex)
             {
@@ -83,6 +86,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
                 result.Result = _dbContext.Avatar.Find(filter).FirstOrDefault();
+                result.IsLoaded = result.Result != null;
+                result.LoadedCount = result.IsLoaded ? 1 : 0;
+                if (!result.IsLoaded) result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
             }
             catch (Exception ex)
             {
@@ -104,6 +110,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 result.Result = matches.SingleOrDefault();
                 result.IsLoaded = result.Result != null;
                 result.LoadedCount = result.IsLoaded ? 1 : 0;
+                if (!result.IsLoaded) result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
             }
             catch (Exception ex)
             {
@@ -126,6 +133,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 result.Result = matches.SingleOrDefault();
                 result.IsLoaded = result.Result != null;
                 result.LoadedCount = result.IsLoaded ? 1 : 0;
+                if (!result.IsLoaded) result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
             }
             catch (Exception ex)
             {
