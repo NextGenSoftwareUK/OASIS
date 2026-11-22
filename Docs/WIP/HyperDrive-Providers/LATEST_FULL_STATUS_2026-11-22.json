@@ -76,13 +76,12 @@
       "acceptance": "Not accepted; preserve previous 35 middleware passes without replay."
     },
     "currentFocusedRun": {
-      "run": 45071695894,
-      "control": "7cf0a2d1b569b0197c71d24659ab3e56350ce1a0",
-      "candidate": "6786b9d624cde7a885fb84c6092cbcb60783e68f",
-      "core": "35c4baba7a4e7d07ee279c2446b7a17d93cf73b5",
-      "status": "queued at latest job observation; frozen candidate unchanged",
-      "scope": "Real selected/global logout, complete admitted session listing, SQLite absence and actor-scoped account assessment. Existing accepted35 middleware cases not replayed.",
-      "job": 137359858093
+      "run": 45073038989,
+      "job": 137364066136,
+      "control": "8b0563c7e05beadade9016cd0c19729b377d58d9",
+      "candidate": "53f40d86573cb94b1ecc30e38f880e0596b603af",
+      "status": "queued at latest job observation",
+      "scope": "New session/list/assessment and native checkout journal flow; recovery additions not in frozen run; no accepted middleware replay"
     },
     "preparationFailure": {
       "run": 45069521383,
@@ -99,6 +98,11 @@
       "reason": "New selected-session StorageOperationRequest incorrectly qualified under Managers.OASISHyperDrive; actual type lives directly under Core",
       "correction": "Both new occurrences fixed in Core35c4; source candidate preserves accepted CQL grouping and WEB6 current docs",
       "acceptance": "Failed before native runtime; no new session/provider acceptance"
+    },
+    "routeGateFailure": {
+      "run": 45071695894,
+      "reason": "Assessment HTTP action missing from route manifest; corrected and manually reviewed as repository-backed read",
+      "runtime": "No build/native scenario executed; owned container absence verified"
     }
   },
   "providers": {
@@ -140,7 +144,8 @@
       "status": "Wired source; not compiled/native/Stripe/browser/deployed accepted",
       "storage": "Existing billing audit collection; no new DB/collection/index/worker",
       "behavior": "Persist request before Stripe; provider acknowledgement before redirect; close after confirmed activation or signed expiry; customerless unresolved requests visible to assessment",
-      "remaining": "Ambiguous creation reconciliation and full closure admission/erasure"
+      "remaining": "Ambiguous creation reconciliation and full closure admission/erasure",
+      "recoverySource": "0f2efc4330e: pending list and canonical no-create recovery; uncompiled/unrun/undeployed and UI wiring pending"
     }
   }
 }
