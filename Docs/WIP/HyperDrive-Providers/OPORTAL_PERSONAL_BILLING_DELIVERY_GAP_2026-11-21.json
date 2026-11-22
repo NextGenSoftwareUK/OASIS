@@ -890,7 +890,13 @@
       "status": "source-only-inventory-required",
       "startup": "Exactly seven new registration lines inserted into previous candidate, no wholesale task Startup copy. Existing guarded billing worker/DNA callback preserved.",
       "temporaryIndex": "removed",
-      "remaining": "New route inventory/compile/native check, Portal integration, actual provider/retention/hosted acceptance."
+      "remaining": "New route inventory/compile/native check, Portal integration, actual provider/retention/hosted acceptance.",
+      "inventoryRun": {
+        "id": 44971562804,
+        "control": "0fa65c413e34ab2a371bf0889e1e2b6a8306fd27",
+        "status": "in_progress",
+        "native": false
+      }
     }
   },
   "sharedDevelopmentReview": {
