@@ -1,14 +1,16 @@
 {
   "scope": "billing",
-  "status": "current-development-source-inventory-required",
+  "status": "current-source-inventory-reviewed-awaiting-admin-http",
   "base": "f26edeef1152961a2b46f2149a6c28c08188a09a",
-  "candidate": "0a2cf8b41d553eb0029dadf576f06d4b2a33dfc3",
-  "tag": "qualification/billing-current-2026-11-21-0a2cf8b4",
+  "candidate": "bb3510eca8b346e8ed2521eddf66e72d208e84d1",
+  "tag": "qualification/billing-current-inventory-2026-11-21-bb3510ec",
   "buildProjects": [
     "WEB4"
   ],
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
     "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAdminController.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs",
@@ -52,5 +54,5 @@
   },
   "remaining": "Review regenerated inventory, compile and verify actual changed HTTP flow. Reliable warning email delivery and hosted acceptance remain open.",
   "nativeHost": "HotspotHttpNative",
-  "nativeMode": "billing-http"
+  "nativeMode": "billing-admin-http"
 }

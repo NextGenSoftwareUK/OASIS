@@ -650,6 +650,109 @@
         "artifact": 14733291810,
         "artifactBytes": 40578,
         "review": "pending"
+      },
+      "inventoryReview": {
+        "status": "reviewed",
+        "blobs": {
+          "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv": "93728ea88564ecf21f98d13c739e1bdbc02fb5d1",
+          "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv": "b084a5de3da00f17cc7ea23ab74b88ce6dc6960a"
+        },
+        "summary": {
+          "candidate": "0a2cf8b41d553eb0029dadf576f06d4b2a33dfc3",
+          "status": "generated-pending-human-agent-review-not-deployed",
+          "managers": 932,
+          "routes": 832,
+          "managerAdded": [
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/HolonManager/HolonManager-Cql.V2.cs|259|public Task<OASISResult<CosmicQueryExecution>> ExecuteSetQueryAsync<T>(CosmicSetQueryPlan<T> plan, IReadOnlyList<ICosmicQueryStorageProvider> adapters, int maximumResults = 100, CancellationToken cancellationToken = default)",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/HolonManager/HolonManager-Cql.V2.cs|270|public async Task<OASISResult<CosmicQueryExecution<T>>> ExecuteTypedSetQueryAsync<T>(CosmicSetQueryPlan<T> plan, IReadOnlyList<ICosmicQueryStorageProvider> adapters, int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon, new()",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/HolonManager/HolonManager-Cql.V2.cs|300|public async Task<OASISResult<CosmicQueryExecution<T>>> ExecuteTypedEntityCompositionQueryAsync<T>(CosmicEntityCompositionPlan<T> plan, IReadOnlyList<ICosmicQueryStorageProvider> adapters, int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon, new()",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/HolonManager/HolonManager-Cql.V2.cs|358|public async Task<OASISResult<CosmicQueryExecution<T>>> ExecuteQueryAsync<T>(CosmicQueryPlan<T> plan, IReadOnlyList<ICosmicQueryStorageProvider> adapters, int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon, new()"
+          ],
+          "managerRemoved": [
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/HolonManager/HolonManager-Cql.V2.cs|259|public async Task<OASISResult<CosmicQueryExecution<T>>> ExecuteTypedEntityCompositionQueryAsync<T>(CosmicEntityCompositionPlan<T> plan, IReadOnlyList<ICosmicQueryStorageProvider> adapters, int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon, new()",
+            "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/HolonManager/HolonManager-Cql.V2.cs|317|public async Task<OASISResult<CosmicQueryExecution<T>>> ExecuteQueryAsync<T>(CosmicQueryPlan<T> plan, IReadOnlyList<ICosmicQueryStorageProvider> adapters, int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon, new()"
+          ],
+          "routeAdded": [
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs|75|CqlV1Controller|Set|POST|set",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs|79|CqlV1Controller|Join|POST|join",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs|83|CqlV1Controller|Composition|POST|composition",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs|87|CqlV1Controller|Federation|POST|federation",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAdminController.cs|126|SubscriptionAdminController|SetAppOwners|POST|app-accounts/{appId}/owners",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAdminController.cs|131|SubscriptionAdminController|UpdateAppAccount|POST|app-accounts/{appId}",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs|22|SubscriptionAppOwnerController|MyApps|GET|apps",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs|30|SubscriptionAppOwnerController|Settings|GET|{appId}/settings",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs|42|SubscriptionAppOwnerController|SaveSettings|POST|{appId}/settings",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs|49|SubscriptionAppOwnerController|Notifications|GET|{appId}/notifications",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs|61|SubscriptionAppOwnerController|SaveNotifications|POST|{appId}/notifications",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs|75|SubscriptionAppOwnerController|Usage|GET|{appId}/usage",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs|101|SubscriptionAppOwnerController|Billing|GET|{appId}/payg",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs|124|SubscriptionAppOwnerController|SaveBilling|POST|{appId}/payg",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs|154|SubscriptionAppOwnerController|PayNow|POST|{appId}/payg/pay-now",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs|639|SubscriptionController|GetOverageStatementsAdmin|GET|overages/admin/statements",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs|647|SubscriptionController|PayOveragesNow|POST|overages/pay-now",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs|682|SubscriptionController|GetPaidOveragePrices|GET|overages/prices",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs|688|SubscriptionController|GetUsage|GET|usage",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs|745|SubscriptionController|UpdateHyperDriveConfig|POST|update-hyperdrive-config",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs|789|SubscriptionController|GetHyperDriveUsage|GET|hyperdrive-usage",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs|831|SubscriptionController|CheckHyperDriveQuota|POST|check-hyperdrive-quota",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionNotificationController.cs|18|SubscriptionNotificationController|Get|GET|",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionNotificationController.cs|25|SubscriptionNotificationController|Save|POST|",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionNotificationController.cs|57|SubscriptionNotificationController|Alerts|GET|/api/subscription/usage/alerts"
+          ],
+          "routeRemoved": [
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs|75|CqlV1Controller|Join|POST|join",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs|79|CqlV1Controller|Composition|POST|composition",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs|83|CqlV1Controller|Federation|POST|federation",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAdminController.cs|126|SubscriptionAdminController|UpdateAppAccount|POST|app-accounts/{appId}",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs|638|SubscriptionController|GetOverageStatementsAdmin|GET|overages/admin/statements",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs|646|SubscriptionController|PayOveragesNow|POST|overages/pay-now",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs|663|SubscriptionController|GetPaidOveragePrices|GET|overages/prices",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs|669|SubscriptionController|GetUsage|GET|usage",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs|724|SubscriptionController|UpdateHyperDriveConfig|POST|update-hyperdrive-config",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs|768|SubscriptionController|GetHyperDriveUsage|GET|hyperdrive-usage",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs|810|SubscriptionController|CheckHyperDriveQuota|POST|check-hyperdrive-quota",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs|58|SubscriptionOwnerController|SetOwners|POST|admin/app-accounts/{appId}/owners",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs|69|SubscriptionOwnerController|MyApps|GET|app-owner/apps",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs|74|SubscriptionOwnerController|AppUsage|GET|app-owner/{appId}/usage",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs|107|SubscriptionOwnerController|GetMyNotifications|GET|usage/notifications",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs|111|SubscriptionOwnerController|SetMyNotifications|POST|usage/notifications",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs|116|SubscriptionOwnerController|GetOwnerNotifications|GET|app-owner/{appId}/notifications",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs|120|SubscriptionOwnerController|SetOwnerNotifications|POST|app-owner/{appId}/notifications",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs|126|SubscriptionOwnerController|Alerts|GET|usage/alerts",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs|152|SubscriptionOwnerController|GetAppSettings|GET|app-owner/{appId}/settings",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs|165|SubscriptionOwnerController|SetAppSettings|POST|app-owner/{appId}/settings",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs|193|SubscriptionOwnerController|GetPayg|GET|app-owner/{appId}/payg",
+            "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs|205|SubscriptionOwnerController|SetPayg|POST|app-owner/{appId}/payg"
+          ],
+          "generatedFiles": [
+            {
+              "sha256": "d5aeba0801cbf1a860a218917864b51d06ce2d763b264c687f8a03fae308f5a8",
+              "bytes": 278059,
+              "path": "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv"
+            },
+            {
+              "sha256": "4816f316b044a2cd7e0ed2256816958991c9bb8449a360ba62f913e61369dd12",
+              "bytes": 167695,
+              "path": "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv"
+            },
+            {
+              "sha256": "3671b61339b020d11a55c6a06d9dcaf115d39a7fe987b053c6e3378dfbbae5cd",
+              "bytes": 8209,
+              "path": "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
+            }
+          ],
+          "runtimeChanges": 0,
+          "behaviorCases": 0,
+          "fixtures": 0
+        }
+      },
+      "qualifiedCandidate": {
+        "source": "bb3510eca8b346e8ed2521eddf66e72d208e84d1",
+        "tag": "qualification/billing-current-inventory-2026-11-21-bb3510ec",
+        "status": "uncompiled-awaiting-admin-http",
+        "review": "932 managers/832 routes; preserves all prior routes and adds CQL Set only, with three existing CQL action line shifts. Manager adds two set methods plus existing method line shifts. First exact-line count assertion refused shifted rows; semantic multiset review preserves overload multiplicity.",
+        "nativeMode": "billing-admin-http",
+        "temporaryIndex": "removed"
       }
     }
   },
