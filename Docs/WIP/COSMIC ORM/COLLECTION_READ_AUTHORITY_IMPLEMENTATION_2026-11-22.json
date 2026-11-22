@@ -1,5 +1,5 @@
 {
-  "phase": "core_source_published",
+  "phase": "contract_qualification_running",
   "baseCore": "1f649cd707df50f6ef8f999583e1117054a43133",
   "core": "9dcc856add106fa26b27ea5d26ef50b590bf92fd",
   "changedOperations": [
@@ -12,5 +12,15 @@
   "tested": false,
   "deployed": false,
   "piperDataAccessed": false,
-  "peerChecked": "248c0767ba9be1adda4d9cb7433a325c8449c3d8/a88a9926235434e3cd6bc2a607985cca5d7e6637"
+  "peerChecked": "248c0767ba9be1adda4d9cb7433a325c8449c3d8/a88a9926235434e3cd6bc2a607985cca5d7e6637",
+  "source": "a6d7482446544c234f00de1227ea6af96a1ec290",
+  "testCount": 4,
+  "dispatchPhase": "acknowledged",
+  "requestedUtc": "2026-11-22T18:38:10.735406+00:00",
+  "run": 45056435476,
+  "job": 137312603707,
+  "status": "in_progress",
+  "conclusion": "",
+  "requiredPinRun": 45056182991,
+  "requiredPinConclusion": "success"
 }
