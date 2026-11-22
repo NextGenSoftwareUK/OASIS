@@ -170,8 +170,11 @@
         "id": 44975845712,
         "control": "30014d977810ee78bf7489ff5266fee0a5b9d73d",
         "candidate": "e359c71b9c7ba1b1c1eb3d54d0522dcaf953dbb4",
-        "status": "queued",
-        "dispatch": "POST observation timed out after20s; exact-head run list confirmed exactly1run, no repeated POST."
+        "status": "completed",
+        "dispatch": "POST observation timed out after20s; exact-head run list confirmed exactly1run, no repeated POST.",
+        "conclusion": "failure",
+        "job": 137065454786,
+        "diagnosis": "Original selected-log retrieval still pending; no duplicate run or inferred root cause."
       }
     },
     "httpCandidate": {

@@ -2679,3 +2679,5 @@ Quest44943023703 compile failure: owned container absence verified, no host/nati
 Corrected quest44944060273 live handle preserved; source-only mission/chapter recompose uses GitHub tree/commit/immutable tag, no local build/env/runtime/install/download/database/browser/output/worktree. Prior quest container cleanup verified; current owned fixture cleanup pending. No shared API/data/auth/DNA/worker mutation.
 
 Final WEB4 startup verification Node fs read only, selected source/3bool flags emitted; six previous checks not repeated. Seven dev rollout IDs now success. No data/auth/shared Mongo requests, source/deployed settings/worker changes, local install/build/runtime/download/env/database/browser/output/worktree. Quest owned CI cleanup remains pending terminal result.
+
+2026-11-21 session diagnostic follow-up: run44975845712/job137065454786 terminal failure verified. Selected log retrieval remains live in original process; no duplicate run/download, no local output/environment/database created. OPORTAL dev5669f8c pushed password-visibility button correction; only source/cache/docs changed. Remote fixture cleanup not yet inspected for this run.
