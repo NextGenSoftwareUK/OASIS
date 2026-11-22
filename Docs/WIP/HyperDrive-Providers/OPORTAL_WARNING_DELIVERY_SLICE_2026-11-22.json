@@ -36,5 +36,10 @@
     "control": "0506d8206d5df7935075cf9ef1c33eab9b7e4e6c",
     "status": "queued",
     "mode": "inventory-only-no-runtime-no-secrets"
+  },
+  "core": {
+    "base": "66151891ab7d1cdd0f8bdcf97cc14449de131651",
+    "candidate": "66151891ab7d1cdd0f8bdcf97cc14449de131651",
+    "changed": false
   }
 }

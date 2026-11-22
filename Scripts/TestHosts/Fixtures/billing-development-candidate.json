@@ -18,8 +18,8 @@
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.WarningEmails.cs"
   ],
   "core": {
-    "base": "a166813b01476a2fce34e5908d74dac1da845ba6",
-    "candidate": "c268e5002f3fe0a86180bd329111596cf199ab25"
+    "base": "66151891ab7d1cdd0f8bdcf97cc14449de131651",
+    "candidate": "66151891ab7d1cdd0f8bdcf97cc14449de131651"
   },
   "remaining": "Review current-base source inventories; compile and verify enabled warning browser/native flow before Development integration. No unrelated billing/session source included.",
   "nativeHost": "HotspotHttpNative",
