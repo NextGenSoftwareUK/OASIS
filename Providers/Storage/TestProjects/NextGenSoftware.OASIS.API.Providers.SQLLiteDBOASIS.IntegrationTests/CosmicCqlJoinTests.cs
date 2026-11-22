@@ -23,6 +23,34 @@ public partial class SQLLiteDBOASISIntegrationTests
     }
 
     [Fact]
+    public async Task NativeRecordReselectionKeepsHiddenInputsAndPublishesOnlyVisibleAliases()
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var seed=new[]{new Holon{Name="coffee",Description="left",IsPublic=true},
+            new Holon{Name="tea",Description="left",IsPublic=true}};
+        (await provider.SaveHolonsAsync(seed,saveChildren:false)).IsError.Should().BeFalse();
+        var source=CosmicQuery<Holon>.Create().Where(h=>h.Description=="left").OrderBy(h=>h.Name).Take(10).Result;
+        var query=source.SelectColumns(new[]{
+            CosmicProjectionSelection<Holon>.Create("name",h=>h.Name).Result,
+            CosmicProjectionSelection<Holon>.Create("version",h=>h.Version).Result}).Result;
+        query=query.OrderByDescending(row=>(string)row["name"]).Result.Take(1).Result;
+        query=query.SelectOutputColumns(new[]{new CosmicProjectionOutputBinding("Display","name")}).Result;
+        query=query.Where(row=>(string)row["Display"]=="tea").Result;
+        var adapter=(ICosmicQueryProjectionCompositionStorageProvider)provider;
+        var planned=CosmicProjectionCompositionPlanner.Plan(query,adapter.QueryProviderType,new[]{
+            new CosmicProjectionCompositionTarget(adapter.QueryProviderType,adapter.QueryCapabilities,
+                adapter.ProjectionCapabilities,adapter.CompositionCapabilities)});
+        planned.IsError.Should().BeFalse(planned.Message);
+        var read=await CosmicManager(provider,true).ExecuteProjectionCompositionQueryAsync(
+            planned.Result,new[]{provider},maximumResults:10);
+        read.IsError.Should().BeFalse(read.Message+read.Exception);
+        var row=read.Result.Providers.Single().Rows.Single();
+        row.Aliases.Should().Equal("Display");
+        row["Display"].Should().Be("tea");
+    }
+
+    [Fact]
     public async Task NativeGroupJoinPreservesLeftIdentityOrderedMatchesAndCompleteGroupPage()
     {
         using var provider=new SQLLiteDBOASIS(TestConnectionString);

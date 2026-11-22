@@ -45,7 +45,7 @@ public static partial class CqlV1Endpoint
             if (result.IsError) return QueryFailure(http, result.ErrorCode);
             var output = result.Result.Providers.Single();
             if (output.Provider != selected) return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "Projection provenance differs from its admitted provider.");
-            var columns = SelectedWireColumns(intent.Columns);
+            var columns = SelectedWireColumns(intent);
             var rows = SelectedWireRows(output.Rows, deadline.Token);
             deadline.Token.ThrowIfCancellationRequested();
             var response = JsonResponse(new OASISResult<object>(new

@@ -22,6 +22,35 @@ public sealed partial class CosmicCqlNativeTests
     }
 
     [Fact]
+    public Task NativeRecordReselectionKeepsHiddenInputsAndPublishesOnlyVisibleAliases()
+        =>WithMongoGraph(async fixture=>
+        {
+            var source=CosmicQuery<Holon>.Create().Where(h=>h.Description=="L").OrderBy(h=>h.Name).Take(10).Result;
+            var query=source.SelectColumns(new[]{
+                CosmicProjectionSelection<Holon>.Create("name",h=>h.Name).Result,
+                CosmicProjectionSelection<Holon>.Create("version",h=>h.Version).Result}).Result;
+            query=query.OrderByDescending(row=>(string)row["name"]).Result.Take(1).Result;
+            query=query.SelectOutputColumns(new[]{new CosmicProjectionOutputBinding("Display","name")}).Result;
+            query=query.Where(row=>(string)row["Display"]=="tea").Result;
+            var adapter=(ICosmicQueryProjectionCompositionStorageProvider)fixture.Provider;
+            var planned=CosmicProjectionCompositionPlanner.Plan(query,adapter.QueryProviderType,new[]{
+                new CosmicProjectionCompositionTarget(adapter.QueryProviderType,adapter.QueryCapabilities,
+                    adapter.ProjectionCapabilities,adapter.CompositionCapabilities)});
+            Assert.False(planned.IsError,planned.Message);
+            var read=await Manager(fixture.Provider).ExecuteProjectionCompositionQueryAsync(
+                planned.Result,new[]{fixture.Provider},maximumResults:10);
+            Assert.False(read.IsError,read.Message+read.Exception);
+            var row=read.Result.Providers.Single().Rows.Single();
+            Assert.Equal(new[]{"Display"},row.Aliases);
+            Assert.Equal("tea",row["Display"]);
+        },configure:root=>
+        {
+            root.Name="coffee";root.Description="L";
+            foreach(var child in root.Children){child.Name="coffee";child.Description="R";}
+            var other=root.Children.First().Children.Single();other.Name="tea";other.Description="L";
+        });
+
+    [Fact]
     public Task NativeGroupJoinPreservesLeftIdentityOrderedMatchesAndCompleteGroupPage()
         =>WithMongoGraph(async fixture=>
         {

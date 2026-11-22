@@ -828,3 +828,5 @@ Native semantics are described in
 [S05E]: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44561911974
 
 21November2026: stateless Get/GetAsync fresh authorized key lookup native accepted on MongoDB/SQLite/Neo4j in44959006866 (2Core+3native; STATELESS_GET_NATIVE_ACCEPTANCE_2026-11-21.json). S19 parent remains open. New set-query model709dcaa is source-only; no native executor/LINQ/SQL acceptance and no Q50/Q51/Q53/Q54 promotion. Denominators and full parity scope unchanged.
+
+22November source-only addition: runtime record reselection and additive WEB4 composition Select stage retain hidden native input validation and earlier windows while emitting only final aliases/cells. Three Core/API and three actual SDK native checks are prepared, not run. No new row is green, no SQL CTE or full parity claim. GroupJoin native45019120717 remains its original queued source. [Reselection source](RECORD_RESELECT_SOURCE_2026-11-22.json).

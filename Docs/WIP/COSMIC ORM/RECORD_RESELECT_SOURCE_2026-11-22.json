@@ -1,0 +1,31 @@
+{
+  "core": "34848a57c2b165696bdeda91d26e0a7cddd273c8",
+  "parentBase": "b9a94db0e4366693ba4128cfeb4ea23c0724e0a6",
+  "compiled": false,
+  "nativeAccepted": false,
+  "deployed": false,
+  "scope": "CQL composition Select stage and visible record bindings",
+  "controlsPrepared": 3,
+  "nativeJourneysPrepared": 3,
+  "web4BuildRequired": true,
+  "workflow": ".github/workflows/qualify-cql-record-reselect-native.yml",
+  "invariants": [
+    "Current visible aliases only",
+    "Retain original native inputs and earlier stages",
+    "Validate hidden cells before publication",
+    "Publish only final aliases and cells",
+    "Retain actor/provider/read access and one usage receipt"
+  ],
+  "syntaxOnly": {
+    "csharpFiles": 11,
+    "yaml": true,
+    "powershell": true
+  },
+  "frozenMappedRelease": "c25ce0b7ac7d6b1de734e31d7bbc2c706de7c384",
+  "remaining": [
+    "Exact compilation and three control results",
+    "Three actual SDK native journeys",
+    "SQL nested query/CTE front-end capture",
+    "Qualified image/package/current dependency integration and hosted acceptance"
+  ]
+}
