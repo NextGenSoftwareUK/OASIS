@@ -54,7 +54,7 @@ public sealed class SubscriptionAppOwnerController(MongoSubscriptionUsageReposit
             var app = await repository.GetAppForOwnerAsync(appId, actor, IsAdministrator(actor), HttpContext.RequestAborted);
             var subject = "app:" + app.AppId + ":owner:" + actor;
             return SubscriptionNotificationController.View(subject,
-                await repository.GetNotificationSettingsAsync(subject, HttpContext.RequestAborted));
+                await repository.GetNotificationSettingsAsync(subject, HttpContext.RequestAborted), app.Overrides?.WarningsEnabled);
         });
     }
 
@@ -68,7 +68,7 @@ public sealed class SubscriptionAppOwnerController(MongoSubscriptionUsageReposit
             var subject = "app:" + app.AppId + ":owner:" + actor;
             var saved = await repository.SaveNotificationSettingsAsync(subject, request.Thresholds,
                 request.EmailRequested, actor, request.WarningsEnabled, HttpContext.RequestAborted);
-            return SubscriptionNotificationController.View(subject, saved);
+            return SubscriptionNotificationController.View(subject, saved, app.Overrides?.WarningsEnabled);
         }, isSave: true);
     }
 

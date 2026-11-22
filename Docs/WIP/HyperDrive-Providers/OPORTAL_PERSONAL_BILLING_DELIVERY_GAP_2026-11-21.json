@@ -323,10 +323,12 @@
     ],
     "invariant": "Authorize and resolve actual app through GetAppForOwnerAsync before reading/saving actor-specific subject; use canonical returned AppId, authenticated actor and existing notification repository. Shared view handles both personal and owner subjects.",
     "remaining": [
-      "Restore alerts with correct warning/email acknowledgement semantics",
-      "Recompose candidate including existing admin action and new notification actions",
-      "Regenerate source inventories and compile",
+      "Repair reliable email delivery acknowledgement; old GET marked before send and swallowed failures, not imported",
+      "Recompose candidate with existing admin ownership action and new notification/alert actions",
+      "Regenerate inventories and compile",
       "Verify changed HTTP behavior against owned native backend"
-    ]
+    ],
+    "alertReadRestoration": "Authenticated GET usage/alerts restored using actual personal subscription/karma and owned-app pool/preferences. Query does not claim/mark/send email. No swallowed errors.",
+    "ownerNotificationInheritance": "Own override, then app warnings override, then node default; shared view reports inheritedWarningDefault."
   }
 }
