@@ -12,5 +12,9 @@
     "Paired root gitlink/manifest source composition",
     "Verified dev rollout"
   ],
-  "cleanup": "RAM-only bounded selected logs; temporary index/lock removed; no environment/build/download/backend operations."
+  "cleanup": "RAM-only bounded selected logs; temporary index/lock removed; no environment/build/download/backend operations.",
+  "rootCandidate": "a4e0512ed125cb5efbf8caa065c3299351d80089",
+  "rootBase": "ca4f83361423e1f7219be5d4d6798e64c26cae67",
+  "rootTag": "qualification/web6-aws-hotfix-2026-11-22-a4e0512e",
+  "qualification": "Actual WEB6 build followed by four real SDK assembly GetTypes checks; not run yet."
 }

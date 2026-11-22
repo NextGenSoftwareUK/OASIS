@@ -49,6 +49,7 @@ jobs:
             Scripts/TestHosts/MapDevelopmentNative
             Scripts/TestHosts/HotspotDevelopmentNative
             Scripts/TestHosts/HotspotHttpNative
+            Scripts/TestHosts/AwsSdkAbiProbe
             Scripts/TestHosts/Fixtures/geo-assets-browser-host.html
             Scripts/TestHosts/Fixtures/geo-assets-browser-native-http.cjs
             Scripts/TestHosts/Fixtures/catalogue-browser-host.html
@@ -201,6 +202,14 @@ jobs:
               }
               dotnet build $project --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
               if ($LASTEXITCODE) { throw "Combined Development $target API build failed." }
+              if ($target -eq 'WEB6' -and $candidate.awsSdkAbiCheck -eq $true) {
+                $probe = '../qualification-control/Scripts/TestHosts/AwsSdkAbiProbe/AwsSdkAbiProbe.csproj'
+                dotnet build $probe --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
+                if ($LASTEXITCODE) { throw 'AWS SDK ABI probe build failed.' }
+                $output = Join-Path (Split-Path $project) 'bin/Release/net10.0'
+                dotnet run --project $probe --configuration Release --no-build -- $output
+                if ($LASTEXITCODE) { throw 'Compiled WEB6 AWS SDK ABI qualification failed.' }
+              }
             }
           }
           Write-Host 'SCOPED_DEVELOPMENT_COMPILE: selected actual candidate APIs compiled; no behavior, Unity, deployed or complete-OPORTAL acceptance inferred.'
