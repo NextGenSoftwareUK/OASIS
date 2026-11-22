@@ -124,6 +124,18 @@ internal static class GlobalSessionHttpQualification
                 missingAfter.Result.VersionId == missingBefore.Result.VersionId && missingAfter.Result.ModifiedDate == missingBefore.Result.ModifiedDate,
                 "Missing-password authentication mutated the native account.");
             var first = await Login(ProviderType.MongoDBOASIS);
+            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", first.Value<string>("jwtToken"));
+            var beforeAssessment = await mongo.LoadAvatarAsync(actor);
+            var assessment = await Read(await http.GetAsync("/api/avatar/account-closure/assessment"));
+            var facts = assessment["result"];
+            Check(!assessment.Value<bool>("isError") && facts != null && facts.Value<bool>("hasOwnedApplications") &&
+                !facts.Value<bool>("subscriptionRequiresCancellation") && !facts.Value<bool>("hasOpenStripeInvoices") &&
+                !facts.Value<bool>("hasPendingStripeCheckouts") && !facts.Value<bool>("hasUnsettledUsage") &&
+                !facts.Value<bool>("hasUnbilledCharges") && !facts.Value<bool>("hasUnresolvedStatements"),
+                "The real actor-scoped dependency assessment did not reflect its owned application and empty billing ledger.");
+            var afterAssessment = await mongo.LoadAvatarAsync(actor);
+            Check(!afterAssessment.IsError && afterAssessment.Result.VersionId == beforeAssessment.Result.VersionId,
+                "Dependency assessment mutated the native avatar.");
             var second = await Login(ProviderType.SQLLiteDBOASIS);
             http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", second.Value<string>("jwtToken"));
             var allSessions = await Read(await http.GetAsync("/api/avatar/" + actor + "/sessions"));

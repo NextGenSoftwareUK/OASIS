@@ -2880,3 +2880,7 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 
 ### 2026-11-22 — complete admitted session listing
 - Implemented source-only V2 issuer-authoritative aggregate listing and one representative two-store HTTP assertion in existing runner. Source Git objects retained; owned temporary index removed in finally. No local builds, test databases, runtime installs, downloads or result archives. Current run45070278761 remains separate and is not restarted for this change.
+
+### 2026-11-22 — account dependency review API
+- Implemented actor-scoped read API and real Stripe customer subscription/open-checkout reads; no endpoint invoked, Stripe/shared backend contacted, or local build/database/runtime/download created. Existing cached Stripe47 SDK XML inspected without installing/copying it.
+- Prepared one owned native assessment check in existing runner. Current run45070278761 unchanged; no duplicate dispatch. Fetched Development9452340f without submodule updates; preserved four preexisting physical gitlink differences.

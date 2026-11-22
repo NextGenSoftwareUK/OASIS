@@ -181,7 +181,7 @@ try
     }
     if (mode is "mfa-http" or "mfa-middleware-http" or "session-global-http" or "mfa-browser") builder.Logging.AddProvider(new SanitizedHttpExceptionLogger());
     MongoSubscriptionUsageRepository? billingRepository = null;
-    if (mode is "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "billing-warning-browser" or "billing-restoration-http")
+    if (mode is "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "billing-warning-browser" or "billing-restoration-http" or "session-global-http")
     {
         billingRepository = new MongoSubscriptionUsageRepository(client, database, TimeProvider.System);
         if (mode is not ("billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "billing-warning-browser" or "billing-restoration-http"))
