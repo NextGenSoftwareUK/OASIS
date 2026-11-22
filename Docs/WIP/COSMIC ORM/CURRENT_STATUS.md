@@ -17,7 +17,7 @@ Shared Development advanced to **546dfb451cb11a8ec9355d2d25db853bab16617a** with
 
 ## Next release: combined computed scalars
 
-Selected full candidate **09d61416ea4ed2926bf044e211fc73502ab4adbe** / Core **3696bd32ff84ee49db4b189dfcea946da7172dbd** preserves current portal Development546dfb45 and includes both Boolean metadata CASE and nullable Int32 COALESCE. Native provider/Query/API trees match their accepted cohorts; [Six combined transport controls and actual WEB4/WEB5 builds44999417026 passed](COMPUTED_SCALARS_COMPOSITION_ACCEPTANCE_2026-11-22.json). Exact image45000216418 is running; exact package and live acceptance remain open. No deployment acceptance yet.
+Selected full candidate **09d61416ea4ed2926bf044e211fc73502ab4adbe** / Core **3696bd32ff84ee49db4b189dfcea946da7172dbd** preserves current portal Development546dfb45 and includes both Boolean metadata CASE and nullable Int32 COALESCE. Native provider/Query/API trees match their accepted cohorts; [Six combined transport controls and actual WEB4/WEB5 builds44999417026 passed](COMPUTED_SCALARS_COMPOSITION_ACCEPTANCE_2026-11-22.json). Exact image45000216418 passed with digest1d5821db5dad4664db7265c32da729a37107f8e12a0a0ba9389e948b22f0bebc; package45000952408 is running; exact package and live acceptance remain open. No deployment acceptance yet.
 
 Metadata-only baseline d147fd89/Core3f5156e6 passed44998378698: three transport controls, actualWEB4/WEB5, exact source-stamped artifact14744173953/1922bytes/SHA4c030f20b8dae0c66f69c8f9ccc970fc99181892d2fcc37c89eafd1c3c8c53e2. [Baseline proof](BOOLEAN_METADATA_CURRENT_COMPOSITION_ACCEPTANCE_2026-11-22.json).
 
@@ -44,6 +44,11 @@ Nullable Int32 coalescing passed representative native qualification44997253843 
 SQL website aaf83abafe72bf6816304adf1e0244729d5a2fd2 adds COALESCE(CAST(metadata.stock AS INT32),0); three new parser controls and three changed-parser text regressions passed in RAM.
 Ask integer guidance and one focused review UI journey also passed on website2973da776e44caedf3cef650abdd862ace4865d8; no model inference claim.
 These proofs use Core703310f2 before portal composition. Current feature Core3696bd32 preserves that Queries tree and the peer portal files; combined-graph release qualification/image, real WEB6 inference, hosted integer acceptance and broader numeric domains remain open. Metadata-only d147fd89 stays frozen; the selected full candidate above qualifies both features together.
+
+## Mapped computed scalars — contract work only
+
+Core **5240d3bd34d003407fe8b08070203e8d4efb5e1a** extends the native mapping projection descriptor with bounded text/Boolean/Int32 literals and complete computation identity. Projected functions are explicitly refused in source-predicate descriptors; mixed-schema validation compares all literal arguments and rejects null required computed cells.
+This Core successor is unqualified and is not pinned by the root feature or the frozen09d release. The three raw native implementations, API/SQL enrollment and representative mixed real/virtual checks remain pending. Do not advertise mapped function support or deploy this successor yet.
 
 ## Full scope and remaining gaps
 
