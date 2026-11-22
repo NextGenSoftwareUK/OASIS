@@ -54,7 +54,8 @@ public partial class HolonRepository
                         await ValidateScope(compiled.LeftPredicate).ConfigureAwait(false);
                         await ValidateScope(compiled.RightPredicate).ConfigureAwait(false);
                     }
-                    var childStorageKeys = plan.Query.SelectsChildEntity ? new Dictionary<Guid,string>() : null;
+                    var leftStorageKeys = plan.Query.SelectsLeftEntity ? new Dictionary<Guid,string>() : null;
+                    var rightStorageKeys = plan.Query.SelectsChildEntity ? new Dictionary<Guid,string>() : null;
                     var left = await ReadSource(plan.Query.Join.Left, true, compiled.Left,
                         limits.MaximumLeftRows, limits.MaximumLeftPayloadBytes).ConfigureAwait(false);
                     var right = await ReadSource(plan.Query.Join.Right, false, compiled.Right,
@@ -94,36 +95,40 @@ public partial class HolonRepository
                         }
                     }
                     Check();
-                    var children = plan.Query.SelectsChildEntity
-                        ? await ReadMatchedChildren(rows, bytes).ConfigureAwait(false)
-                        : null;
+                    var entityBytes=bytes;
+                    var leftEntities=plan.Query.SelectsLeftEntity ? await ReadSelectedEntities(rows,true).ConfigureAwait(false) : null;
+                    var rightEntities=plan.Query.SelectsChildEntity ? await ReadSelectedEntities(rows,false).ConfigureAwait(false) : null;
                     var packet = new CosmicJoinPacket(left.Rows.Values.ToArray(), right.Rows.Values.ToArray(), rows.ToArray(),
-                        left.Count, right.Count, pairCount, children);
+                        left.Count, right.Count, pairCount, rightEntities, leftEntities);
                     transaction?.Commit(); Check();
                     return new OASISResult<CosmicJoinPacket>(packet) { IsLoaded = true };
 
-                    async Task<IHolon[]> ReadMatchedChildren(IReadOnlyList<CosmicJoinRow> pairs, long measured)
+                    async Task<IHolon[]> ReadSelectedEntities(IReadOnlyList<CosmicJoinRow> pairs, bool isLeft)
                     {
                         if (pairs.Count == 0)
                             return Array.Empty<IHolon>();
-                        var identities = pairs.Select(pair => pair.RightId ?? throw new InvalidDataException(
-                            "A whole-child result must have a native right identity.")).ToArray();
-                        var byId = new Dictionary<Guid, IHolon>(identities.Length);
-                        var storageKeys = identities.Select(id => childStorageKeys[id]).ToArray();
+                        var identities = pairs.Select(pair => isLeft ? (Guid?)pair.LeftId : pair.RightId).ToArray();
+                        if(isLeft && identities.Any(id=>!id.HasValue || id.Value==Guid.Empty))
+                            throw new InvalidDataException("A selected left entity requires its preserved native identity.");
+                        var uniqueIdentities = identities.Where(id=>id.HasValue).Select(id=>id.Value).Distinct().ToArray();
+                        if(uniqueIdentities.Length==0)return new IHolon[identities.Length];
+                        var byId = new Dictionary<Guid, IHolon>(uniqueIdentities.Length);
+                        var sourceKeys=isLeft ? leftStorageKeys : rightStorageKeys;
+                        var storageKeys = uniqueIdentities.Select(id => sourceKeys[id]).ToArray();
                         var records = _dbContext.Holons.AsNoTracking().Where(row => storageKeys.Contains(row.Id));
                         await foreach (var record in records.AsAsyncEnumerable().WithCancellation(cancellationToken).ConfigureAwait(false))
                         {
                             Check();
-                            measured = checked(measured + CqlRecordSize(record));
-                            if (measured > limits.MaximumPayloadBytes)
-                                throw new SqliteCqlResourceException("Native joined child entities exceed the output byte budget.");
+                            entityBytes = checked(entityBytes + CqlRecordSize(record));
+                            if (entityBytes > limits.MaximumPayloadBytes)
+                                throw new SqliteCqlResourceException("Native selected entities exceed the output byte budget.");
                             var child = GetHolonFromEntity(record);
                             byId.Add(child.Id, child);
                         }
                         Check();
-                        if (byId.Count != identities.Length)
-                            throw new InvalidDataException("Native child entities do not match the joined identities.");
-                        return identities.Select(id => byId[id]).ToArray();
+                        if (byId.Count != uniqueIdentities.Length)
+                            throw new InvalidDataException("Native selected entities do not match the joined identities.");
+                        return identities.Select(id => id.HasValue ? byId[id.Value] : null).ToArray();
                     }
 
                     void Check() { budget.Check(); traversal?.Check(); }
@@ -162,8 +167,9 @@ public partial class HolonRepository
                             var position = reader.GetInt64(0);
                             var storageKey = reader.GetString(1);
                             var id = (Guid)DecodeProjectionCell(storageKey, typeof(Guid));
-                            if (!isLeft && childStorageKeys != null && !childStorageKeys.TryAdd(id,storageKey))
-                                throw new InvalidDataException("Native child source has duplicate logical identities.");
+                            var entityStorageKeys=isLeft ? leftStorageKeys : rightStorageKeys;
+                            if (entityStorageKeys != null && !entityStorageKeys.TryAdd(id,storageKey))
+                                throw new InvalidDataException("Native selected source has duplicate logical identities.");
                             var visible = (bool)DecodeProjectionCell(reader.GetValue(2), typeof(bool));
                             var creator = reader.IsDBNull(3) ? Guid.Empty : (Guid)DecodeProjectionCell(reader.GetValue(3), typeof(Guid));
                             measured = checked(measured + 48);
