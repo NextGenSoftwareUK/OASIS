@@ -23,11 +23,11 @@ Current image candidate **c25ce0b7ac7d6b1de734e31d7bbc2c706de7c384** / **Corebab
 
 [Mapped API45002198772](MAPPED_COMPUTED_WIRE_ACCEPTANCE_2026-11-22.json) passed3controls/build. [Combined session/mapped45009513105](MAPPED_COMPUTED_CURRENT_COMPOSITION_ACCEPTANCE_2026-11-22.json) passed3controls plus actual WEB4/WEB5 for5b489985/Core1d627b36; exact TRX/source stamp verified. Earlier45005838375 remains accepted forfbcb99a9/Core5240d3bd.
 
-Because current dependency pins changed, exact-source compile **45014425835** was last observed **in progress** for candidatec25ce0b7/Corebabf7b82 (workflow control6f609a0e). Its dispatch was acknowledged once; do not replay. This is a dependency-graph build, not a repeat of accepted provider journeys. Exact image producer **45014821002** was also observed **in progress** for the same immutable candidatec25ce0b7; it runs alongside compilation to shorten the critical path. Both gates plus exact package acceptance are required before Development. Producer intent is durable in mapped-computed-image-handoff.json; never dispatch it again. No image/package or rollout acceptance yet.
+Exact-source compile **45014425835/job137183566983 PASSED** for candidatec25ce0b7/Corebabf7b82: three mapped transport controls plus actual WEB4 and WEB5 builds. ZIP14754211746/1956bytes/SHA01ad769fc91bb53163a45fd70461f583298b0c5d311eb68c9af03c9cb378374b passed strict RAM-only two-entry TRX/source verification. [Latest composition](MAPPED_COMPUTED_LATEST_COMPOSITION_ACCEPTANCE_2026-11-22.json). Exact image **45014821002/job137184781030 PASSED**; checkout Git HEAD, metadata digest and no-teaching selection verified. Digestsha256:990809aaf471f28f9115c858afe04b8e1a81bfa104f50d3c43d11077e1768a9b. [Image proof](MAPPED_COMPUTED_IMAGE_ACCEPTANCE_2026-11-22.json). One immutable cql-api package qualification **45021700914/job137205841154** is queued; controls job intentionally skipped for that profile. This does not establish API startup/live acceptance. No image or archive downloaded to laptop; no Development push.
 
 Release gates:
-1. Accept the current exact compile artifact/source stamp; preserve all three native proofs.
-2. In parallel, produce the exact five-reader image; qualify its immutable package once the image is available. Both compile and package must pass before integration.
+1. Exact current compilation and source stamp accepted; all three native proofs retained.
+2. Exact image accepted; await the original immutable package45021700914. Package acceptance remains required before integration.
 3. Freshly review shared Development/peer source and integrate a scoped verified batch.
 4. Observe required rollouts/running source, then execute the bounded owned full/virtual live check.
 
@@ -46,6 +46,8 @@ This successor remains **unqualified** and must not be swept into the active map
 CQL composition now has an additive typed Select stage for choosing/renaming current visible aliases after native filtering, sorting or paging. Shared Core retains all original native inputs and previous result stages, refuses re-entry of dropped aliases, validates hidden cells, and constructs records with final output aliases. The WEB4 wire formatter emits only final columns/cells; actor/provider/read scope and acknowledged usage remain unchanged. This is groundwork for nested SQL/CTE capture, not a claim that that text syntax is implemented.
 
 Three Core/API controls and one real-native journey/provider are prepared in one isolated CI workflow, plus actual WEB4 compilation. Eleven C#files, workflow YAML and PowerShell AST parse in RAM using existing tools. No C# compilation/native/live acceptance yet. The GroupJoin45019120717 source/run remains separate and must not be replayed. Both successors stay excluded from the frozen mapped release. [Source record](RECORD_RESELECT_SOURCE_2026-11-22.json).
+
+Record reselection qualification **45021538432/job137205328402** is confirmed queued for exacte9d782a6/Core34848a57: three Core/API controls, three new real-native journeys and actual WEB4 build. Twenty older automatic compatibility checks for source3a972d83 were cancelled and terminal cancellation verified, while its focused GroupJoin45019120717 and every current release/record check remain intact. [Record CI handoff](RECORD_RESELECT_CI_HANDOFF_2026-11-22.json).
 
 ## SQL and Ask delivery
 

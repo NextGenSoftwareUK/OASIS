@@ -27,13 +27,13 @@
     "compositionAccepted": true,
     "archiveSaved": false
   },
-  "compositionAccepted": false,
+  "compositionAccepted": true,
   "nativeQualificationAccepted": true,
   "nativeQualificationRun": 45004657247,
   "mongoCorrectionRun": 45010074469,
   "workerGateTestsPassed": 6,
   "manifestValidated": true,
-  "imageAccepted": false,
+  "imageAccepted": true,
   "packageAccepted": false,
   "developmentPushed": false,
   "liveAccepted": false,
@@ -86,5 +86,10 @@
     "compositionAccepted": true,
     "archiveSaved": false
   },
-  "requiresCurrentGraphCompile": true
+  "requiresCurrentGraphCompile": true,
+  "compositionRun": 45014425835,
+  "compositionArtifact": 14754211746,
+  "imageRun": 45014821002,
+  "imageDigest": "sha256:990809aaf471f28f9115c858afe04b8e1a81bfa104f50d3c43d11077e1768a9b",
+  "packageRun": 45021700914
 }
