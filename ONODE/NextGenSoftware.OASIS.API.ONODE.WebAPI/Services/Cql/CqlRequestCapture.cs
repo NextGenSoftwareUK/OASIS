@@ -24,7 +24,8 @@ internal static class CqlRequestCapture
                 Where=copy.Where,Filters=copy.Filters,AnyOf=copy.AnyOf,AnyChildren=copy.AnyChildren,
                 AnyDescendants=copy.AnyDescendants,OrderBy=copy.OrderBy,Descending=copy.Descending,
                 Skip=copy.Skip,Take=source.Take.HasValue?copy.Take:null,
-                Columns=source.Columns==null?null:CaptureColumns(source.Columns)
+                Columns=source.Columns==null?null:CaptureColumns(source.Columns),
+                Stages=source.Stages==null?null:CaptureSelectedStages(source.Stages)
             };
         }
         return new CqlSetV1Request {
@@ -36,6 +37,33 @@ internal static class CqlRequestCapture
                 :new CqlV1Ordering {Field=term.Field,Descending=term.Descending}),
             Reverse=value.Reverse,IncludeMetadata=value.IncludeMetadata
         };
+    }
+
+    private static CqlCompositionV1Stage[] CaptureSelectedStages(CqlCompositionV1Stage[] stages)
+    {
+        var comparisons=0;
+        CqlGroupedV1Filter Filter(CqlGroupedV1Filter value)
+        {
+            if(value==null || ++comparisons>32
+                || value.Value.ValueKind is JsonValueKind.Object or JsonValueKind.Array
+                || value.Value.ValueKind==JsonValueKind.String && value.Value.GetString()!.Length>512
+                || value.Value.ValueKind==JsonValueKind.Number && value.Value.GetRawText().Length>64)
+                throw new ArgumentException("Selected stage capture requires at most32 bounded scalar comparisons.");
+            return new CqlGroupedV1Filter {Alias=value.Alias,Operator=value.Operator,
+                Value=value.Value.ValueKind==JsonValueKind.Undefined ? default : value.Value.Clone()};
+        }
+        return Array(stages,16,stage=>stage==null ? throw new ArgumentException("Missing selected stage.")
+            : new CqlCompositionV1Stage {
+                Operation=stage.Operation,Count=stage.Count,
+                Filters=stage.Filters==null?null:Array(stage.Filters,32,Filter),
+                AnyOf=stage.AnyOf==null?null:Array(stage.AnyOf,32,Filter),
+                Order=stage.Order==null?null:Array(stage.Order,8,term=>term==null
+                    ?throw new ArgumentException("Missing selected ordering.")
+                    :new CqlGroupedV1Ordering {Alias=term.Alias,Descending=term.Descending}),
+                Columns=stage.Columns==null?null:Array(stage.Columns,32,column=>column==null
+                    ?throw new ArgumentException("Missing selected binding.")
+                    :new CqlCompositionV1Column {Alias=column.Alias,SourceAlias=column.SourceAlias})
+            });
     }
 
     internal static CqlFederationV1Request CaptureAndValidateFederation(CqlFederationV1Request value)

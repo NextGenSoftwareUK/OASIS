@@ -13,7 +13,7 @@ public static partial class CqlV1Compiler
         ProviderType? provider, CosmicQueryReadAccess access = null)
     {
         var kind=ValidateSetRequest(request);
-        if(request.Left.Columns!=null || request.Right.Columns!=null)
+        if(request.Left.Columns!=null || request.Right.Columns!=null || request.Left.Stages!=null || request.Right.Stages!=null)
             throw new ArgumentException("Explicit selected columns require the selected-value set compiler.");
         var query=RequiredSet(CosmicSetQuery<Holon>.Create(SetSource(request.Left,actor,provider,access),SetSource(request.Right,actor,provider,access),kind));
         if(request.Ordering!=null)

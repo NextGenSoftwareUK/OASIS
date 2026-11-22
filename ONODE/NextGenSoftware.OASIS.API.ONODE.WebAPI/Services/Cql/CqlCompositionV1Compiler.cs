@@ -21,9 +21,16 @@ public static partial class CqlV1Compiler
         if (request?.Source == null || request.Source.Provider != null || request.Source.Graph != null
             || request.Stages == null || request.Stages.Length is < 1 or > 16)
             throw new ArgumentException("Composition requires one source without nested provider/graph overrides and1–16 ordered stages.");
-        var query = CompileProjection(request.Source, actor, provider,access);
+        return ApplyCompositionStages(CompileProjection(request.Source, actor, provider,access),request.Stages);
+    }
+
+    private static CosmicProjectionQuery<Holon,CosmicProjectionRecord> ApplyCompositionStages(
+        CosmicProjectionQuery<Holon,CosmicProjectionRecord> query,CqlCompositionV1Stage[] stages)
+    {
+        if(query==null || stages==null || stages.Length is <1 or >16)
+            throw new ArgumentException("Selected composition requires one captured projection and1–16 ordered stages.");
         var filterCount = 0; var orderCount = 0;
-        foreach (var stage in request.Stages)
+        foreach (var stage in stages)
         {
             if (stage == null) throw new ArgumentException("Composition stages cannot be null.");
             if (stage.Operation == "Where")

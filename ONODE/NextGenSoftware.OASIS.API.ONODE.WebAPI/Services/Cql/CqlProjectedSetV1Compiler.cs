@@ -18,7 +18,8 @@ public static partial class CqlV1Compiler
         CosmicProjectionQuery<Holon,CosmicProjectionRecord> Selection(CqlSetV1Source source)
         {
             if(source.Columns.Length is <1 or >32)throw new ArgumentException("Select one to32 columns per input.");
-            return RequiredSet(SetSource(source,actor,provider,access).SelectColumns(source.Columns.Select(ProjectionColumn).ToArray()));
+            var selected=RequiredSet(SetSource(source,actor,provider,access).SelectColumns(source.Columns.Select(ProjectionColumn).ToArray()));
+            return source.Stages==null ? selected : ApplyCompositionStages(selected,source.Stages);
         }
         var query=RequiredSet(CosmicProjectedSetQuery<Holon,CosmicProjectionRecord>.Create(
             Selection(request.Left),Selection(request.Right),kind));
