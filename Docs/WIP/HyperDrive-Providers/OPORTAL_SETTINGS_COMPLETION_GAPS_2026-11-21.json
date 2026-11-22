@@ -31,5 +31,26 @@
   ],
   "sharedClusterCalls": 0,
   "sessionsRevoked": 0,
-  "localBuilds": 0
+  "localBuilds": 0,
+  "revocationTrace": {
+    "status": "source-invariant-gap-confirmed-not-fixed",
+    "sessionFindings": [
+      "GetAvatarSessionsAsync returns demo devices, IPs, locations and counts.",
+      "CreateAvatarSessionAsync creates only an in-memory object with no storage save.",
+      "UpdateAvatarSessionAsync synthesizes fields rather than loading/persisting a real session.",
+      "GetAvatarSessionStatsAsync returns hard-coded numbers.",
+      "Selected/all logout return success without revocation."
+    ],
+    "existingRealPath": "RefreshToken/RevokeTokenCore load exact authoritative refresh credential and save through SaveAvatarSession with provider binding. Preserve this owner rather than add a separate disconnected session store.",
+    "requestValidation": "JWT middleware validates signature/identity and loads avatar, but does not check a persistent session revocation state. Token generation lacks session identity/revocation-version binding.",
+    "requiredInvariant": "An acknowledged revocation must persist at the token authority, stop further refresh and invalidate all corresponding access tokens across WEB4-WEB10 validators; session list/stats must derive from the same persisted records.",
+    "implementationOrder": [
+      "Define persisted session/token identity and authority binding shared by issuance, refresh and validation.",
+      "Implement acknowledged atomic session mutations and actual list/stats using shipping providers; preserve concurrent auth/profile updates.",
+      "Update all API validation consumers, including WEB5-WEB10, before claiming cross-service logout.",
+      "Only then connect Settings all-session action; verify owned native end-to-end revoked token refusal and unrelated-account preservation."
+    ],
+    "currentWorktreePreserved": true,
+    "noAuthenticationTraffic": true
+  }
 }
