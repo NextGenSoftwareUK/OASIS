@@ -1,0 +1,48 @@
+{
+  "run": 44967019200,
+  "job": 137038221611,
+  "source": "b296f97dee7225dfb455ddcc473d17c0b8cabe23",
+  "coreSource": "34fdd27bd04ef8e41f6fadafdd724a450f215cff",
+  "artifact": 14732335521,
+  "bytes": 1652,
+  "sha256": "0059236e516a2f1f4bdd1ff3d81252550569db081370cdcbdfc1398922107296",
+  "trx": {
+    "total": "1",
+    "executed": "1",
+    "passed": "1",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "report": {
+    "provider": "MongoDBOASIS",
+    "checks": 3,
+    "ownedCleanupIds": 1,
+    "successfulHolonWrites": 1,
+    "queryElapsedMilliseconds": {
+      "owner-http": 384,
+      "foreign-http": 27,
+      "anonymous-http": 7
+    },
+    "nativeProviderVerified": true,
+    "realHttpVerified": true,
+    "concatMultiplicityVerified": true,
+    "foreignRowsHiddenVerified": true,
+    "anonymousRefusedVerified": true,
+    "usageSettledVerified": true,
+    "oneNativeAttemptPerReadVerified": true,
+    "exactCleanupVerified": true
+  },
+  "ownedContainerStop": "success",
+  "scope": "Real Mongo shipping controller, JWT, native Concat and durable usage outbox; not hosted deployment or all operator HTTP matrix"
+}
