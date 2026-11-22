@@ -41,5 +41,14 @@
     "status": "success on previous issuer source; public method signatures unchanged by final acknowledgement publication correction; exact log review pending",
     "job": 137142496276,
     "review": "Terminal logs verified 933 manager methods/751 provider-delegating; 827 routes/712 provider-external. Final correction changes no public manager declaration or route/classifier; retain existing manifests, no repeat inventory."
+  },
+  "qualification": {
+    "run": 45001337029,
+    "control": "f06c71287141a8250e94ef86258992e7a0b32a69",
+    "observedUtc": "2026-11-22T08:05:58.531071+00:00",
+    "status": "in_progress",
+    "mode": "mfa-http",
+    "scope": "Changed signed session/provider claims match actual native persisted generations; no validator/global revocation/full portal claim.",
+    "credentials": "none staged; isolated loopback Mongo only"
   }
 }
