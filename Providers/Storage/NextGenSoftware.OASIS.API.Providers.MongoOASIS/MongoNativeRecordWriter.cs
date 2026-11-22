@@ -52,6 +52,9 @@ internal static partial class MongoNativeRecordWriter
                 }
                 holon.Id=originalId;
                 var creation=BsonSerializer.Deserialize<T>(original);
+                if(typeof(T)==typeof(Avatar) || typeof(T)==typeof(AvatarDetail))
+                    AccountSaveRevision.RequireDeclaredSuccessor(creation.Version,creation.VersionId,
+                        holon.Version,holon.VersionId,holon.PreviousVersionId);
                 holon.CreatedProviderType=creation.CreatedProviderType;
                 holon.CreatedOASISType=creation.CreatedOASISType;
                 observed=original;
