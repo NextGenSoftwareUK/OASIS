@@ -129,7 +129,10 @@
   "developmentPushedAt": "2026-11-22T14:41:43.221425+00:00",
   "liveAccepted": false,
   "web4Deployment": "95b122e3-d65b-4ab0-8cb2-733c36281c6a",
-  "web4DeploymentStatus": "QUEUED",
+  "web4DeploymentStatus": "BUILDING",
   "web6Deployment": "00b75010-9c5e-434c-9798-1c7e17a77e71",
-  "web6DeploymentStatus": "QUEUED"
+  "web6DeploymentStatus": "SUCCESS",
+  "web6StartupRecoveryAccepted": true,
+  "web6HealthHttpStatus": 200,
+  "web6HealthElapsedMilliseconds": 579
 }
