@@ -2,10 +2,11 @@
   "scope": "billing",
   "status": "billing-restoration-source-awaiting-inventory-review",
   "base": "c3f703531b05a0be2ee0cda51b5780d30ce53036",
-  "candidate": "59f8edf7f24ba94a66e816a4f7f51952fb2b0f2b",
-  "tag": "qualification/billing-review-2026-11-22-59f8edf7",
+  "candidate": "6e26b0eb75bc85cf694512881ac5de2eb9c10d1b",
+  "tag": "qualification/billing-cli-2026-11-22-6e26b0eb",
   "buildProjects": [
-    "WEB4"
+    "WEB4",
+    "OUTBOXADMINTESTS"
   ],
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
@@ -42,7 +43,10 @@
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionModels.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionUsageModels.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageSeries.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs"
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
+    "Scripts/SubscriptionLedger.OutboxAdmin.Tests/OutboxAdminTests.cs",
+    "Scripts/SubscriptionLedger.OutboxAdmin/OutboxAdminCommand.cs",
+    "Scripts/SubscriptionLedger.OutboxAdmin/README.md"
   ],
   "core": {
     "base": "dcf11fe46181438b46eba57a88310f7172c89a61",

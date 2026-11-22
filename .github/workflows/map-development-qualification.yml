@@ -185,10 +185,14 @@ jobs:
         run: |
           $candidate = Get-Content (Join-Path ../qualification-control $env:CANDIDATE_FILE) -Raw | ConvertFrom-Json
           $projects = if ($candidate.buildProjects) { @($candidate.buildProjects) } else { @('WEB4') }
-          if (@($projects | Where-Object { $_ -notin @('WEB4','WEB5') }).Count) { throw 'Unsupported qualification build target.' }
+          if (@($projects | Where-Object { $_ -notin @('WEB4','WEB5','OUTBOXADMINTESTS') }).Count) { throw 'Unsupported qualification build target.' }
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner map-development-candidate-ci -Operation {
             foreach ($target in $projects) {
-              $project = if ($target -eq 'WEB5') { 'STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj' } else { 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj' }
+              $project = switch ($target) {
+                'WEB4' { 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj' }
+                'WEB5' { 'STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj' }
+                'OUTBOXADMINTESTS' { 'Scripts/SubscriptionLedger.OutboxAdmin.Tests/SubscriptionLedger.OutboxAdmin.Tests.csproj' }
+              }
               dotnet build $project --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
               if ($LASTEXITCODE) { throw "Combined Development $target API build failed." }
             }
