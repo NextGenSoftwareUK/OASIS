@@ -678,6 +678,8 @@
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SeedsController.cs","115","SeedsController","SaveSeedTransaction","POST","save-seed-transaction","CoveredFeatureManagerDelegation"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SeedsController.cs","130","SeedsController","GetSeedTransactionsForAvatar","GET","avatar/{avatarId}/transactions","CoveredFeatureManagerDelegation"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SeedsController.cs","142","SeedsController","GetMySeedTransactions","GET","me/transactions","CoveredFeatureManagerDelegation"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SelfAvatarProfileController.cs","33","SelfAvatarProfileController","GetProfile","GET","","DirectModeAwareManagerBoundary"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SelfAvatarProfileController.cs","54","SelfAvatarProfileController","ApplyProfile","PATCH","","DirectModeAwareManagerBoundary"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SettingsController.cs","34","SettingsController","GetAllSettingsForCurrentLoggedInAvatar","GET","get-all-settings-for-current-logged-in-avatar","CoveredFeatureManagerDelegation"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SettingsController.cs","97","SettingsController","GetHyperDriveSettings","GET","hyperdrive-settings","CoveredFeatureManagerDelegation"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SettingsController.cs","118","SettingsController","UpdateHyperDriveSettings","PUT","hyperdrive-settings","CoveredFeatureManagerDelegation"
