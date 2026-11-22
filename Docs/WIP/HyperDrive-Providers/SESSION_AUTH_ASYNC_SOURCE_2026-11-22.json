@@ -1,0 +1,10 @@
+{
+  "base": "9fc8211646ccaee12a3d0d05448bc9676ce62b69",
+  "candidate": "d447525c672d0ecbf34cffaad533c95d3ce1e7ca",
+  "tag": "qualification/session-auth-async-2026-11-22-d447525c",
+  "path": "Managers/AvatarManager/AvatarManager-Auth.cs",
+  "invariant": "AuthenticateAsync awaits real asynchronous session save, then requires IsSaved before issuing credentials.",
+  "status": "source only; not compiled/runtime-tested/deployed",
+  "verification": "Exact one-line replacement inside existing async authentication method; synchronous Authenticate unchanged; existing flags and acknowledgement-before-issuance preserved.",
+  "remaining": "Current-source build and representative isolated authentication acceptance; no performance measurement claimed"
+}
