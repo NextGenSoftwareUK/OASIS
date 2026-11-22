@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "current-source-inventory-reviewed-awaiting-admin-http",
+  "status": "warning-event-source-awaiting-native-compile",
   "base": "f26edeef1152961a2b46f2149a6c28c08188a09a",
-  "candidate": "bb3510eca8b346e8ed2521eddf66e72d208e84d1",
-  "tag": "qualification/billing-current-inventory-2026-11-21-bb3510ec",
+  "candidate": "bcab1ce944485f78c352b764efc9214caafc69d0",
+  "tag": "qualification/warning-events-2026-11-21-bcab1ce9",
   "buildProjects": [
     "WEB4"
   ],
@@ -32,6 +32,7 @@
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Overages.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Owners.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Pool.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.WarningEmails.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PaidOverageBillingService.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PaidOverageStatements.cs",
@@ -44,6 +45,8 @@
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionModels.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionUsageModels.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageSeries.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailDispatcher.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailGateway.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
     "Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1",
     "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
@@ -54,5 +57,5 @@
   },
   "remaining": "Review regenerated inventory, compile and verify actual changed HTTP flow. Reliable warning email delivery and hosted acceptance remain open.",
   "nativeHost": "HotspotHttpNative",
-  "nativeMode": "billing-admin-http"
+  "nativeMode": "billing-warning-store"
 }

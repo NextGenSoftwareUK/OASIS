@@ -828,10 +828,18 @@
     },
     "nativeHost": {
       "mode": "billing-warning-store",
-      "status": "source-prepared-uncompiled-unselected",
+      "status": "candidate-prepared-uncompiled",
       "scope": "Real Mongo repeated event preparation preserves original payload/time/ID, native reload, empty provider acknowledgement refused and remains pending. Disabled actual gateway refuses before transport; no artificial successful provider ID or email call.",
       "pending": "Compose three warning source files and verified-email dispatcher change into exact current candidate, compile and execute once.",
-      "priorAdminRun": 44970338582
+      "priorAdminRun": 44970338582,
+      "candidate": "bcab1ce944485f78c352b764efc9214caafc69d0",
+      "tag": "qualification/warning-events-2026-11-21-bcab1ce9",
+      "sourceScope": [
+        "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailGateway.cs",
+        "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.WarningEmails.cs",
+        "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailDispatcher.cs"
+      ],
+      "remaining": "One native event-store/disabled-gateway check plus API build; no actual email/acknowledgement claim. Authorized preparation/registration/retention/hosted remain open."
     }
   },
   "sharedDevelopmentReview": {
