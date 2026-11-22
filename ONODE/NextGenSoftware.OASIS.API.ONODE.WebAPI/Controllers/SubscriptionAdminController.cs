@@ -25,16 +25,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             Execute(() => _repository.GetAdminSubscriptionsAsync(cursor, limit, HttpContext.RequestAborted));
 
         [HttpGet("invoices")]
-        public Task<IActionResult> Invoices([FromQuery] DateTime? before = null, [FromQuery] int limit = 100) =>
-            Execute(() => _repository.GetAdminInvoicesAsync(Utc(before), limit, HttpContext.RequestAborted));
+        public Task<IActionResult> Invoices([FromQuery] DateTime? before = null, [FromQuery] int limit = 100, [FromQuery] string beforeId = null) =>
+            Execute(() => _repository.GetAdminInvoicesAsync(Utc(before), limit, HttpContext.RequestAborted, beforeId));
 
         [HttpGet("usage/events")]
-        public Task<IActionResult> Events([FromQuery] DateTime? before = null, [FromQuery] int limit = 100) =>
-            Execute(() => _repository.GetAdminEventsAsync(Utc(before), limit, HttpContext.RequestAborted));
+        public Task<IActionResult> Events([FromQuery] DateTime? before = null, [FromQuery] int limit = 100, [FromQuery] string beforeId = null) =>
+            Execute(() => _repository.GetAdminEventsAsync(Utc(before), limit, HttpContext.RequestAborted, beforeId));
 
         [HttpGet("usage/audit")]
-        public Task<IActionResult> Audit([FromQuery] DateTime? before = null, [FromQuery] int limit = 100) =>
-            Execute(() => _repository.GetAdminAuditAsync(Utc(before), limit, HttpContext.RequestAborted));
+        public Task<IActionResult> Audit([FromQuery] DateTime? before = null, [FromQuery] int limit = 100, [FromQuery] string beforeId = null) =>
+            Execute(() => _repository.GetAdminAuditAsync(Utc(before), limit, HttpContext.RequestAborted, beforeId));
 
         [HttpGet("analytics")]
         public Task<IActionResult> Analytics([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
@@ -52,7 +52,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 SubscriptionServiceIdentity.RequireAdministrator(HttpContext, _configuration);
                 var result = new Dictionary<string, IReadOnlyList<UsageOutboxOperation>>();
                 foreach (string service in new[] { "WEB5", "WEB6", "WEB7", "WEB8", "WEB9", "WEB10" })
-                    result[service] = await Outbox(service).GetAdministrativeSnapshotAsync(state, limit, HttpContext.RequestAborted);
+                    result[service] = await Outbox(service).GetAdministrativeSnapshotAsync(service, state, limit, HttpContext.RequestAborted);
                 return Ok(new OASISResult<Dictionary<string, IReadOnlyList<UsageOutboxOperation>>> { Result = result });
             }
             catch (UnauthorizedAccessException ex) { return StatusCode(403, new OASISResult<bool> { IsError = true, Message = ex.Message }); }
@@ -67,7 +67,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 string actor = SubscriptionServiceIdentity.RequireAdministrator(HttpContext, _configuration);
                 if (request == null || !Guid.TryParseExact(request.ActionId, "D", out _) || string.IsNullOrWhiteSpace(request.Reason))
                     throw new ArgumentException("Service, action UUID and reason are required.");
-                await Outbox(request.Service).RequeueDeadletterAsync(request.OperationId, request.ActionId, actor, request.Reason, HttpContext.RequestAborted);
+                await Outbox(request.Service).RequeueDeadletterAsync(request.Service, request.OperationId, request.ActionId, actor, request.Reason, HttpContext.RequestAborted);
                 return Ok(new OASISResult<bool> { Result = true, Message = "The immutable settlement was requeued; provider execution was not repeated." });
             }
             catch (UnauthorizedAccessException ex) { return StatusCode(403, new OASISResult<bool> { IsError = true, Message = ex.Message }); }
