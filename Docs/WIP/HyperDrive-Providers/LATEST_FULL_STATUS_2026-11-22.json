@@ -5,7 +5,7 @@
     "taskBranch": "work/hyperdrive-provider-completion",
     "taskWorktree": "C:/Source/OASIS2-hyperdrive",
     "portalBranch": "dev",
-    "portalHead": "5ab50d8",
+    "portalHead": "5adca39",
     "reviewedDevelopment": "b82e1fa55a521c22f5110cb7cbd1fd4599040ebb",
     "currentCore": "35c4baba7a4e7d07ee279c2446b7a17d93cf73b5",
     "currentWeb6": "f9aa81c6dc3e27ac02677c985d41929b768c5969",
@@ -47,7 +47,8 @@
       "Password reset control cleared across sessions; stale responses rejected",
       "Selected sign-out buttons wired in dev source4d4f81e; enabled only by new real-revocation capability, not accepted as live/browser-tested",
       "Checkout recovery review/resume/cancel UI source4baca47, activated only by API-advertised links; no extra startup reads; runtime/Stripe/browser delivery pending",
-      "Dev8fd470c checkout recovery now awaits refreshed exact active plan before success. Five focused source unit states, syntax and endpoint checks passed; public dev script SHA25674f946043cc28a05c7c0deb84c9b2f1c471f0b063d3ba1464e8277210f70f672 matches. Static delivery only, not Stripe/browser acceptance."
+      "Dev8fd470c checkout recovery now awaits refreshed exact active plan before success. Five focused source unit states, syntax and endpoint checks passed; public dev script SHA25674f946043cc28a05c7c0deb84c9b2f1c471f0b063d3ba1464e8277210f70f672 matches. Static delivery only, not Stripe/browser acceptance.",
+      "Orders now renders actual invoice/PDF document links if provided, dev5adca39 served script SHA7d2d9675d827244cc31d18fa79ae0c121d77b37deed5b371fd732cae9706c778 verified. Signed Stripe invoice URL persistence source implemented; backend acceptance pending. No extra request."
     ],
     "remaining": [
       "Global sign-out wired/capability gated; actual two-authority issuance, revocation and partial-failure journey still under isolated verification; not deployed/accepted.",
@@ -79,12 +80,11 @@
       "acceptance": "Not accepted; preserve previous 35 middleware passes without replay."
     },
     "currentFocusedRun": {
-      "run": 45080960598,
-      "job": 137388797973,
-      "control": "660a680bbc7045194dc08543e4c23936a620bf1b",
-      "candidate": "97031a02b65d0e65ecf60db5e631afa1905ac4e9",
+      "run": 45081933164,
+      "control": "78d9cc44d9b9f04123b8c711a2eb86f8516d8845",
+      "candidate": "2faa1118c13c4a9b00d4dfb5578e1b9868ba511f",
       "status": "in_progress observed",
-      "scope": "Billing admission and real primary-unavailability SSO issuance within existing global-session journey. Accepted old middleware/provider cohorts not rerun separately."
+      "scope": "Corrected owned-empty-ledger initialization; billing admission, real primary-unavailability session journey and invoice document source."
     },
     "preparationFailure": {
       "run": 45069521383,
@@ -132,6 +132,14 @@
       "runtime": "ACCOUNT_DEPENDENCY_NATIVE_PROOF: actual actor-bound controller/Mongo snapshot, customerless journal request/ack/close, one concurrent reservation winner, closed-slot reuse and old-close isolation.",
       "failureAfterProof": "Issuer assertion used incorrect fixture assumption that changing global selection changes configured login manager primary; corrected by validated owned Mongo pause/unpause for real failover.",
       "limits": "No Stripe calls, paid lifecycle, browser or hosted acceptance. Whole journey failed; retained marker is scoped evidence only."
+    },
+    "priorQualificationFailure": {
+      "run": 45080960598,
+      "job": 137388797973,
+      "build": "0errors5m39.70",
+      "runtime": "Checkout/dependency marker passed, then LEGACY_OPENING_BALANCE_REQUIRED at newly exercised billing write.",
+      "fix": "New owned fixture initializes empty ledger using existing production SaveSubscriptionAsync before app/checkout audit writes. No production guard disabled.",
+      "cleanup": "Native fixture removal succeeded; SQLite absence/Mongo unpause marker observed."
     }
   },
   "providers": {
@@ -152,7 +160,7 @@
   },
   "cleanup": {
     "freeDiskGB": 28.97,
-    "thisTurn": "No local build/download/environment/database/test output; source unit checks and two public static requests only, in-memory responses. Temporary candidate indexes/locks removed. Previous45079998287 remote owned native fixture removal succeeded;45080960598 cleanup pending.",
+    "thisTurn": "No local build/download/environment/database/test outputs. Focused source invoice-link check initially exposed empty whitespace, corrected and passed; endpoint/syntax passed. Two static requests RAM-only; temporary index/lock removed. Previous45080960598 native fixture removal succeeded;45081933164 remote cleanup pending.",
     "temporaryEmailSecrets": "Previously deleted and absence verified; not restaged."
   },
   "deliveryPolicy": "Finish remaining OPORTAL user flows breadth first; one representative end-to-end verification for changed behavior, reuse accepted evidence. A blocked backend flow must not stop independent screen work.",

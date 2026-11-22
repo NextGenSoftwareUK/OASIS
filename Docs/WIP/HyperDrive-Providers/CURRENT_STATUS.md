@@ -1,3 +1,7 @@
+## 22 November: Orders invoice links wired; owned ledger fixture corrected
+
+Portal dev5adca39 adds invoice/PDF links from actual order data, no extra request. Focused actual-source link checks and syntax/endpoint drift passed; dev script HTTP200/hash7d2d9675d827244cc31d18fa79ae0c121d77b37deed5b371fd732cae9706c778 matches. API actual signed Stripe invoice URL persistence committed f831741773d, not backend accepted yet. Run45080960598 built0errors and passed checkout/dependency marker, then fixture opening-balance guard refused new ledger write. Corrected fixture initializes its owned empty ledger through production SaveSubscriptionAsync before audit writes; guard unchanged. Run45081933164 is in progress on control78d9cc44/candidate2faa1118. Prior native fixture removal succeeded. No hosted/paid/full portal acceptance; shared Atlas untouched.
+
 ## 22 November: OPORTAL recovered-checkout confirmation fixed and delivered
 
 Portal dev8fd470c (docs5ab50d8) now waits for a refreshed subscription matching the checkout plan before reporting active success. Five focused actual-source unit states/syntax/endpoint drift passed. Public dev HTML and referenced script both HTTP200; SHA25674f946043cc28a05c7c0deb84c9b2f1c471f0b063d3ba1464e8277210f70f672 matches source. Static delivery is not browser/Stripe acceptance. Backend run45080960598/job137388797973 remains in progress. Shared Developmentb82 and COSMIC current status reviewed without modifying peer checkouts or deploying unverified source. No shared Atlas calls or local builds/downloads/environments.
