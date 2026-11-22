@@ -29,7 +29,7 @@ The physical checkout contains unrelated concurrent changes: use the established
 
 ## Next source-only breadth work
 
-Nullable Int32 coalescing captured in Core703310f2 and implemented in the three native translators through the existing coalesced-cell owner. No transport/SQL/native qualification or deployment acceptance yet; do not include this successor in the frozen01de release.
+Nullable Int32 coalescing captured in Core703310f2 and implemented in the three native translators through the existing coalesced-cell owner. Representative native qualification prepared for null/missing/zero/value results, distinct literal formulas, selected filtering and invalid-domain/executable-code refusal (five owned records/provider with exact cleanup); transport/SQL and qualification acceptance remain open; do not include this successor in the frozen01de release.
 
 ## Full scope and remaining gaps
 
