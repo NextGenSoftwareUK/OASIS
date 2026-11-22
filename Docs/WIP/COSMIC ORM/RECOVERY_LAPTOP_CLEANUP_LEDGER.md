@@ -8657,3 +8657,6 @@ API/wire qualification45002198772 remains accepted. New representative raw nativ
 Website b1764d41720d1effbd3cd0797647cd6bdb3154f3 adds mapped row SQL enrollment for the same functions, canonical Id first and selected-alias ordering. Three focused Node parser controls passed in RAM. One initial fixture omitted required ORDER BY Id; corrected fixture then passed, without changing the ordering contract. Grouped computed functions remain refused. No rendered preview, native mixed merge or hosted mapped acceptance claimed.
 
 No Development push, shared database calls, local build/install/database, new branch or worktree. CI uses owned isolated Mongo/SQLite/Neo4j sources and existing bounded build lease. Only compact journals retained. Full parity stays61/168 plus4/13 separate extensions.
+
+
+22 November08:44UTC resource observation: C: has33.31GiB free (about35.77GB decimal). No local outputs or environments created by this mapped slice; alternate publishing index removed by its finally block. Native CI45004084607/job137151696939 queued; original superseded45003939030 cancellation acknowledged, terminal status still to reconcile. Existing compact journals retained until acceptance/cleanup reconciliation.
