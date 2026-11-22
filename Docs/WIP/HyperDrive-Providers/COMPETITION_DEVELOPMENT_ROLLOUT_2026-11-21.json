@@ -17,43 +17,43 @@
     {
       "service": "WEB4 OASIS API",
       "id": "0f0ab0be-8022-45a0-acb8-8eaa5daa30ff",
-      "status": "QUEUED",
+      "status": "BUILDING",
       "commit": "0cfb095359df5dd6ee92ace4e55055e6f015b246"
     },
     {
       "service": "WEB5 STAR API",
       "id": "c55171fe-ddad-4a1e-9719-2fa6cf66377d",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "commit": "0cfb095359df5dd6ee92ace4e55055e6f015b246"
     },
     {
       "service": "WEB6 AI API",
       "id": "1cc0917e-57b8-4217-8785-be0bae14a470",
-      "status": "QUEUED",
+      "status": "SUCCESS",
       "commit": "0cfb095359df5dd6ee92ace4e55055e6f015b246"
     },
     {
       "service": "WEB7 SYMBIOTIC API",
       "id": "baa9df32-d71c-4e2f-9373-b8541e522c07",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "commit": "0cfb095359df5dd6ee92ace4e55055e6f015b246"
     },
     {
       "service": "WEB8 IGN API",
       "id": "56d2ed86-9b77-4ffc-a068-ef68b5ce74c6",
-      "status": "QUEUED",
+      "status": "BUILDING",
       "commit": "0cfb095359df5dd6ee92ace4e55055e6f015b246"
     },
     {
       "service": "WEB9 SINGULARITIY API",
       "id": "65e2507f-3e4d-47bc-96e6-d60e85cd3802",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "commit": "0cfb095359df5dd6ee92ace4e55055e6f015b246"
     },
     {
       "service": "WEB10 THE SOURCE API",
       "id": "4f61dbf6-8cf5-420f-9e8b-ae2f84ba35bf",
-      "status": "QUEUED",
+      "status": "SUCCESS",
       "commit": "0cfb095359df5dd6ee92ace4e55055e6f015b246"
     }
   ],
