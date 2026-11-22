@@ -227,6 +227,15 @@
     "sourceFix": "Removed duplicate six-action session region from AvatarAdminController; AvatarSessionController remains sole endpoint owner. No alias or fallback route added.",
     "status": "source-prepared-not-compiled-or-http-accepted",
     "cleanup": "Owned database/tempDNA/container absence verified in diagnostic log.",
-    "remaining": "Refresh source inventories and frozen candidate, then rerun only failed session HTTP cohort. Confirm actual route selection and session contract."
+    "remaining": "Refresh source inventories and frozen candidate, then rerun only failed session HTTP cohort. Confirm actual route selection and session contract.",
+    "qualification": {
+      "candidate": "9081f1c959433ec396d8c5cd1ef1a533a4e242c0",
+      "control": "360ee7a6309151d41764834d95f51887896fa779",
+      "run": 44977000859,
+      "status": "in_progress",
+      "mode": "inventory-only",
+      "pins": "verified",
+      "temporaryIndex": "removed"
+    }
   }
 }
