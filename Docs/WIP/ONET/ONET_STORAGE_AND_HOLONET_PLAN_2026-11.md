@@ -10,37 +10,25 @@ November 2026. Follows `ONET_AUDIT_2026-10.md`. Covers the two open strategic it
 - `ONETManager` and `ONETDiscovery` both wrote `onet-peers.json` with different schemas (`List<ONETNode>` vs `Dictionary<string, DiscoveredNode>`). After any network stop, discovery's next `LoadPeerCacheAsync` threw and aborted discovery init. The manager now writes `onet-known-peers.json` via `OASISPersistence` atomic writes; the integration test `ONETManager_StartStop_PeerCacheRoundTrip_PreservesConnectedNodes` checks discovery still loads after a manager stop.
 - Unit test project no longer globs the nested `ONODE.Core.Tests` project (root cause of the CS0579 duplicate-attribute errors).
 
-## 7. One peer store
+## 7. One peer store — done (November 2026)
 
-### Current state
+Peers used to be persisted in up to three places (discovery's `onet-peers.json`, the manager's file and the ONET state Holon), and restart behaviour depended on which was written last.
 
-Peers are persisted in three places:
+Now each node has exactly one durable peer store, chosen by `ONETManager.UsesProviderPeerStore`:
 
-| Store | Owner | Contents | When written |
-|---|---|---|---|
-| `onet-peers.json` | `ONETDiscovery` | discovered nodes (no public keys) | node registration |
-| `onet-known-peers.json` | `ONETManager` | connected peers with public keys | network stop |
-| ONET state Holon (`HolonManager`) | `ONETManager` | connected peers + AES-GCM sealed identity | network stop, new identity; only with `ONET.InstanceId`/`RAILWAY_SERVICE_ID` and a provider |
+| Configuration | Store |
+|---|---|
+| storage provider and `ONET.InstanceId` (or `RAILWAY_SERVICE_ID`) | ONET state Holon, `onet_peers` metadata (identity sealed alongside) |
+| otherwise | node-local `onet-known-peers.json` via `OASISPersistence` (atomic writes) |
 
-The audit made `ONETProtocol` the owner of the single live peer table, but persistence is still split. Restart behaviour depends on which store happened to be written last.
+- Peers are saved on network stop and loaded on network start. Restored peers go to `ONETDiscovery.AddKnownPeers`, which fills the discovered-node table and the Kademlia table, and then `ReconnectKnownPeersAsync` reconnects them, rejecting id/key mismatches.
+- Discovery no longer reads or writes a file of its own.
+- There's no read-one-then-the-other fallback. A failed load or save is logged as an error.
+- Old `onet-peers.json` files are ignored and can be deleted.
 
-### Target
-
-- One record type, `ONETPeerRecord` (`Id`, `Address`, `PublicKey`, `Capabilities`, `LastSeen`), owned by `ONETProtocol`.
-- One durable store per node, chosen once at start:
-  - provider-backed: the state Holon, when `InstanceId` and a storage provider are configured (Railway and hosted nodes);
-  - node-local: one file through `OASISPersistence` otherwise.
-  Not both, and no read-one-then-the-other fallback.
-- Discovery, Kademlia seeding and reconnect all read from the protocol's table after load; nothing else reads files.
-- Writes on peer add/remove (debounced) as well as on stop, so a crash does not lose the table.
-
-### Steps
-
-1. Add `ONETPeerRecord` and an `IONETPeerStore` with `LoadAsync`/`SaveAsync` returning `OASISResult`; implement `HolonPeerStore` and `FilePeerStore`.
-2. `ONETProtocol` loads the store once in `InitializeAsync`, fills its peer table, registers public keys (rejecting id/key mismatches as now) and seeds Kademlia.
-3. Remove `ONETDiscovery.PersistPeerCacheAsync`/`LoadPeerCacheAsync`, `ONETManager.PersistPeersAsync`/`LoadPersistedPeersAsync`, and the `onet_peers` metadata write in `SaveStateToHolonAsync` (identity stays in the Holon).
-4. One-time read of the old files/metadata on upgrade, then delete them. Upgrade path only, removed after one release.
-5. Tests: restart round-trip for each store; corrupt store surfaces an error; Kademlia seeded from the store.
+Follow-ups:
+- Save on peer add/remove (debounced) as well as on stop, so a crash does not lose recently learned peers.
+- Discovery-only peers (learned but never connected) are not persisted. They are re-learned through bootstrap and peer exchange.
 
 ## 8. HoloNET P2P mode
 
@@ -53,6 +41,21 @@ The audit made `ONETProtocol` the owner of the single live peer table, but persi
 - `ONETManager.ApplicationEndpoint` throws in HoloNET mode, so request/response (peer exchange, HyperDrive sync) is unavailable.
 
 So HoloNET mode is Internal mode with an extra dependency, and the topology it reports is wrong.
+
+### Interim fix (November 2026)
+
+`HoloNETP2PProvider` now does what this mode claimed to do:
+- It requires a live conductor connection. It reuses HoloOASIS's connection, or connects to `HoloNETDNA.HolochainConductorAppAgentURI`, and fails clearly when that isn't configured. The URL is no longer hardcoded.
+- It runs the real signed ONET transport by wrapping `InternalP2PNetworkProvider`.
+- Peers, messages and events come from that transport.
+- `ApplicationEndpoint` works in both modes.
+
+Removed:
+- the conductor counted as a fake "peer", and invented "data received" messages;
+- `ConnectToNodeAsync`/`DisconnectFromNodeAsync` re-pointing or closing the conductor websocket;
+- ONET never being started in this mode.
+
+Also: `ONETProtocol` now raises `NodeConnected`/`NodeDisconnected`. It used to declare them and never raise them, so no provider forwarded any connect events.
 
 ### Target
 
@@ -76,4 +79,4 @@ Holochain carries ONET traffic; ONET identity and signing stay the same, so both
 
 ## Order
 
-#7 first (small, contained, fixes restart determinism for both modes), then #8, which reuses the peer store for Holochain-discovered nodes.
+#7 is done; #8 reuses the same peer store for Holochain-discovered nodes.

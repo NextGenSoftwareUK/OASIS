@@ -302,6 +302,40 @@ public class ONETIntegrationTests : IDisposable
         }
     }
 
+    [Fact]
+    public async Task ONETProtocol_ConnectDisconnectAndStop_RaiseNodeEventsOncePerChange()
+    {
+        var nodeA = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        var nodeB = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        var connected = new List<string>();
+        var disconnected = new List<(string NodeId, string Reason)>();
+        nodeA.NodeConnected += (_, e) => connected.Add(e.NodeId);
+        nodeA.NodeDisconnected += (_, e) => disconnected.Add((e.NodeId, e.Reason));
+
+        (await nodeA.StartNetworkAsync()).IsError.Should().BeFalse();
+        (await nodeB.StartNetworkAsync()).IsError.Should().BeFalse();
+        try
+        {
+            var address = $"127.0.0.1:{nodeB.ListenPort}";
+            (await nodeA.ConnectToNodeAsync("peer-b", address)).IsError.Should().BeFalse();
+            (await nodeA.ConnectToNodeAsync("peer-b", address)).IsError.Should().BeFalse();
+            connected.Should().Equal(new[] { "peer-b" }, "reconnecting an already-connected peer is not a new connection");
+
+            (await nodeA.DisconnectFromNodeAsync("peer-b")).IsError.Should().BeFalse();
+            disconnected.Should().ContainSingle(d => d.NodeId == "peer-b");
+
+            (await nodeA.ConnectToNodeAsync("peer-b", address)).IsError.Should().BeFalse();
+            await nodeA.StopNetworkAsync();
+            connected.Should().Equal(new[] { "peer-b", "peer-b" });
+            disconnected.Should().HaveCount(2).And.Contain(d => d.NodeId == "peer-b" && d.Reason == "ONET network stopped");
+        }
+        finally
+        {
+            await nodeA.StopNetworkAsync();
+            await nodeB.StopNetworkAsync();
+        }
+    }
+
     private static (string Id, string Public, string Private) NewNodeIdentity()
     {
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
@@ -474,13 +508,9 @@ public class ONETIntegrationTests : IDisposable
 
             await mgr.StopNetworkAsync();
 
-            // The manager's known-peer file must not overwrite discovery's discovered-node cache (different schema).
+            // Without provider persistence the node has exactly one peer store: the node-local known-peer file.
             System.IO.File.Exists(System.IO.Path.Combine(dataDir, "onet-known-peers.json")).Should().BeTrue();
-            var discovery = new ONETDiscovery(storageProvider: null, dna);
-            var loadPeerCache = (Task)typeof(ONETDiscovery)
-                .GetMethod("LoadPeerCacheAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
-                .Invoke(discovery, null)!;
-            await loadPeerCache;
+            System.IO.File.Exists(System.IO.Path.Combine(dataDir, "onet-peers.json")).Should().BeFalse();
 
             // Fresh manager on same DataDirectory — file cache should survive.
             var dna2 = new OASISDNA();
