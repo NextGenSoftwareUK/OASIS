@@ -1,0 +1,23 @@
+{
+  "candidate": "385fdffe7ca33dbcf602a831f88a04f50230c96c",
+  "base": "b8561b84a7b2298ff7b305dd8a352748b98b2980",
+  "tag": "qualification/warning-slice-2026-11-22-385fdffe",
+  "status": "source-frozen-not-inventory-compiled-or-native-accepted",
+  "paths": [
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Owners.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailGateway.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailDispatcher.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningEmailService.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageWarningReader.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.WarningEmails.cs"
+  ],
+  "invariants": [
+    "Existing notification/app-owner routes preserved; no duplicate separate controller.",
+    "Alerts GET reads only; explicit subscriber POST owns email delivery.",
+    "Same tested warning services/SDK lifecycle, precise owner lookup helper and7DI lines.",
+    "No Core/gitlink/dependency pin/worker/DNA/default/other billing source change."
+  ],
+  "next": "Generate/review source inventories, then compile and actual enabled warning browser on exact current source; no prior provider replay suite."
+}
