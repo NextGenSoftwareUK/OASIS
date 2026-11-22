@@ -1,3 +1,5 @@
+Corrected warning-provider run44985151774/control4dd759d982 active on fbe6c724/base5633710e. Lazy SDK lifecycle fix frozen, pins/scope verified; shared entrypoint/conductor preserved. Prior temporary secrets were deleted; restaged under existing H1 authorization only for corrected bounded sink/idempotent replay run. Both must be removed after terminal result. Provider replay/Portal/hosted acceptance remain open.
+
 Latest warning-provider status:44984161552 failed after0error7m04.47 build in ResendClient constructor resetting an already-used HttpClient.BaseAddress. Real gateway lifecycle fix prepared: one lazy SDK client per transport. Full replay acceptance remains open. Owned DB/tempDNA/container cleanup verified; both temporary CI secrets deleted and404absence verified. H1 owner decision complete, engineering remains agent-owned. Shared Development5633710e conductor-only delta reviewed; unqualified peer Core not imported.
 
 Current Settings status — 21 November 2026 (supersedes historical entries below)

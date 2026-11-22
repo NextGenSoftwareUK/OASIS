@@ -1091,6 +1091,20 @@
       "failure": "HttpClient.set_BaseAddress from ResendClient constructor invoked by UsageWarningEmailGateway.SendAsync after transport started.",
       "cleanup": "Owned database/tempDNA/container absence verified."
     },
-    "fix": "Source: one lazy thread-safe ResendClient per gateway/HttpClient; disabled validation still precedes credential/SDK initialization. Not compiled/provider replay accepted yet."
+    "fix": "Source: one lazy thread-safe ResendClient per gateway/HttpClient; disabled validation still precedes credential/SDK initialization. Not compiled/provider replay accepted yet.",
+    "correctedCandidate": {
+      "source": "fbe6c7248f064e44766260e78e00a24b98555e0d",
+      "base": "5633710e7c4b983053351ad3e88438558352cbef",
+      "tag": "qualification/warning-sdk-2026-11-21-fbe6c724",
+      "pins": "verified",
+      "scope": "Only gateway fix plus exact shared entrypoint/conductor deltas over prior reviewed candidate; temporary index/lock removed."
+    },
+    "correctedRun": {
+      "id": 44985151774,
+      "control": "4dd759d98212b527dc231d9b1d3530d7bfe5b9c7",
+      "status": "in_progress",
+      "mode": "billing-warning-provider"
+    },
+    "currentSecretState": "Prior run secrets deleted/absence verified; restaged from dev for corrected bounded run under existing H1 authorization. Both metadata verified22November04:27UTC; remove both after terminal corrected run and verify absence."
   }
 }
