@@ -21,7 +21,7 @@ The physical checkout contains unrelated concurrent changes: use the established
 - API qualification44995661351/job137126022382 passed three controls and actual WEB4 compilation. [Wire evidence](BOOLEAN_METADATA_CASE_WIRE_ACCEPTANCE_2026-11-22.json).
 - Website **5f60b8a3d4afbf7948f5f3076e6a988f517cd2ac**: four changed SQL parser controls and one focused Ask review UI journey passed. CASE accepts IsActive/IsPublic or a known CAST(metadata.flag AS BOOLEAN); literal text branches only, bounded512characters. Metadata is required: invalid/null/missing values must error rather than choose false.
 - Exact preview HTML/compiler/playground/Ask bytes accepted, responses inspected in RAM. [Preview evidence](BOOLEAN_METADATA_CASE_PREVIEW_SOURCE_ACCEPTANCE_2026-11-22.json). No rendered-browser or real WEB6 inference acceptance.
-- Exact image **44996549738/job137128701744** is running at last authoritative observation. Package inspection, Development rollout and live conditional SQL remain pending.
+- Exact image **44996549738/job137128701744** passed, digestc56c0536d1428809f0fdb4843e31ec5c7c59244f8a4f4676c1930e9e1839463a. Package44997300304 queued at last observation; Development rollout and live conditional SQL remain pending.
 - Earlier canonical-only candidate565aab06 has accepted image44994753282 and package44995695068; [package evidence](BOOLEAN_TEXT_CASE_PACKAGE_ACCEPTANCE_2026-11-22.json). It is not deployed. Prefer one qualified batch containing both canonical and metadata conditions when ready, rather than two unnecessary rollouts.
 - Last own Development push completed **06:35:52.487838UTC**. Next ordinary push **not before07:35:52.487838UTC**, and only after image/package acceptance plus fresh shared-branch/peer review. Never force-push or sweep unqualified peer changes into deployment.
 - Prepared hosted verifier: `Scripts/Sandbox/Verify-HostedOwnedNativeSets.py`, explicit `--selected-columns --boolean-text-case --boolean-metadata-case`, fresh bounded fixture name and exact source/website/deployment. Requires its own accepted release journal, unique ready source descriptions before writes, immutable checkpoints and exact cleanup. Not executed for conditional metadata yet.
@@ -29,7 +29,7 @@ The physical checkout contains unrelated concurrent changes: use the established
 
 ## Next source-only breadth work
 
-Nullable Int32 coalescing captured in Core703310f2 and implemented in the three native translators through the existing coalesced-cell owner. Representative native qualification prepared for null/missing/zero/value results, distinct literal formulas, selected filtering and invalid-domain/executable-code refusal (five owned records/provider with exact cleanup); transport/SQL and qualification acceptance remain open; do not include this successor in the frozen01de release.
+Nullable Int32 coalescing captured in Core703310f2 and implemented in the three native translators through the existing coalesced-cell owner. Representative native qualification prepared for null/missing/zero/value results, distinct literal formulas, selected filtering and invalid-domain/executable-code refusal (five owned records/provider with exact cleanup); transport implemented with three focused capture/domain controls plus actual WEB4 build queued; SQL and qualification acceptance remain open; do not include this successor in the frozen01de release.
 
 ## Full scope and remaining gaps
 

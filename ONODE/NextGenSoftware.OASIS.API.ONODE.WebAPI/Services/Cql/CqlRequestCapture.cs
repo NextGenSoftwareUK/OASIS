@@ -240,7 +240,7 @@ internal static class CqlRequestCapture
         if(columns.Length==0)throw new ArgumentException("Selected indexed intent requires at least one column.");
         return Array(columns,32,column=>column==null?throw new ArgumentException("Missing selected column."):
             new CqlProjectionV1Column{Alias=column.Alias,Field=column.Field,ValueType=column.ValueType,Nullable=column.Nullable,Function=column.Function,
-                NullReplacement=CaptureTextReplacement(column),WhenTrue=CaptureConditionalBranch(column,true),WhenFalse=CaptureConditionalBranch(column,false),
+                Int32Replacement=CaptureInt32Replacement(column),NullReplacement=CaptureTextReplacement(column),WhenTrue=CaptureConditionalBranch(column,true),WhenFalse=CaptureConditionalBranch(column,false),
                 MetadataPath=column.MetadataPath==null?null:Array(column.MetadataPath,8,item=>item)});
     }
 
@@ -254,6 +254,18 @@ internal static class CqlRequestCapture
         }
         else if(value!=null) throw new ArgumentException("Only conditional text accepts branch literals.");
         return value;
+    }
+
+    private static int? CaptureInt32Replacement(CqlProjectionV1Column column)
+    {
+        if(column.Function==CqlV1Function.Int32Coalesce)
+        {
+            if(!column.Int32Replacement.HasValue)
+                throw new ArgumentException("Int32 coalescing requires a captured integer replacement.");
+        }
+        else if(column.Int32Replacement.HasValue)
+            throw new ArgumentException("Only Int32 coalescing accepts an integer replacement.");
+        return column.Int32Replacement;
     }
 
     private static string CaptureTextReplacement(CqlProjectionV1Column column)

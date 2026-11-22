@@ -143,6 +143,18 @@ public static partial class CqlV1Compiler
         }
     }
 
+    private sealed class Int32CoalesceSelectionConsumer<TResult>(ISelectionConsumer<TResult> consumer,int replacement)
+        :ISelectionConsumer<TResult>
+    {
+        public TResult Bind<TValue>(string alias,Expression<Func<Holon,TValue>> selector)
+        {
+            if(typeof(TValue)!=typeof(int?))
+                throw new ArgumentException("Int32 coalescing requires an exact nullable Int32 input.");
+            return consumer.Bind(alias,Expression.Lambda<Func<Holon,int>>(
+                Expression.Coalesce(selector.Body,Expression.Constant(replacement,typeof(int))),selector.Parameters));
+        }
+    }
+
     private sealed class TextCoalesceSelectionConsumer<TResult>(ISelectionConsumer<TResult> consumer,string replacement)
         :ISelectionConsumer<TResult>
     {
@@ -171,6 +183,8 @@ public static partial class CqlV1Compiler
         if (column == null) throw new ArgumentException("A column is required.");
         ValidateSelectionAlias(column.Alias);
         var alias = column.Alias;
+        if(column.Function!=CqlV1Function.Int32Coalesce && column.Int32Replacement.HasValue)
+            throw new ArgumentException("Only Int32 coalescing accepts an integer replacement.");
         if(column.Function!=CqlV1Function.BooleanTextCase && (column.WhenTrue!=null || column.WhenFalse!=null))
             throw new ArgumentException("Only conditional text accepts branch literals.");
         if(column.Function==CqlV1Function.BooleanTextCase)
@@ -194,6 +208,16 @@ public static partial class CqlV1Compiler
                 ValueType=column.ValueType,Nullable=column.MetadataPath==null?null:true
             };
             return CompileSelection(input,new TextCoalesceSelectionConsumer<TResult>(consumer,column.NullReplacement));
+        }
+        if(column.Function==CqlV1Function.Int32Coalesce)
+        {
+            if(!column.Int32Replacement.HasValue || column.MetadataPath==null || column.Nullable!=true)
+                throw new ArgumentException("Int32 coalescing requires a typed nullable metadata path and captured replacement.");
+            var input=new CqlProjectionV1Column {
+                Alias=column.Alias,MetadataPath=column.MetadataPath,Field=column.Field,
+                ValueType=column.ValueType,Nullable=column.Nullable
+            };
+            return CompileSelection(input,new Int32CoalesceSelectionConsumer<TResult>(consumer,column.Int32Replacement.Value));
         }
         if (column.Function.HasValue)
         {
