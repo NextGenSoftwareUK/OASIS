@@ -96,3 +96,5 @@ Open examples:
 - Detailed accepted/failed evidence and prior chronology remain in [Full progress report](FULL_PROGRESS_REPORT_2026-11-21.md), linked JSON reports and Git history. This handoff replaces repetitive historical status paragraphs without discarding those evidence sources.
 
 Prepared mapped release candidate 84242bd06aee5b8593ec193f8c7518977e651320 over current Development24ec05bb; four production root paths plus Core5240d3bd only, manifest validated, current HoloNET/ONODEManager preserved. Feature branch integrates this reviewed peer ancestry. Native45004657247 is still queued; current-composition build, image/package and live acceptance remain required. No Development push.
+
+Frozen current-dependency mapped candidate fbcb99a9ee3b71374437a2c356743398b8ed95af additionally carries its exact three descriptor controls. Registered exact-source composition gate now selects only those changed controls plus actual WEB4/WEB5 compilation; accepted older Boolean/Int32 cohorts are not multiplied. Native45004657247 remains independent and queued. No image dispatch or Development push until both gates accept.

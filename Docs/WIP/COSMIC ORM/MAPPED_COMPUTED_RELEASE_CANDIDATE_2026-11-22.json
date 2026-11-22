@@ -1,5 +1,5 @@
 {
-  "source": "84242bd06aee5b8593ec193f8c7518977e651320",
+  "source": "fbcb99a9ee3b71374437a2c356743398b8ed95af",
   "core": "5240d3bd34d003407fe8b08070203e8d4efb5e1a",
   "baseDevelopment": "24ec05bb5f57cf15b3b18fdd2ed2d987911aba64",
   "featureSource": "a2ba7b5ab31980c202540a30b5d9fb7161adcda0",
@@ -17,5 +17,8 @@
   "imageAccepted": false,
   "packageAccepted": false,
   "developmentPushed": false,
-  "liveAccepted": false
+  "liveAccepted": false,
+  "preparedSource": "84242bd06aee5b8593ec193f8c7518977e651320",
+  "qualificationFixture": "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CqlMappedComputedWireTests.cs",
+  "compositionAccepted": false
 }
