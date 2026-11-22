@@ -334,12 +334,19 @@
     },
     "browserQualification": {
       "host": "Scripts/TestHosts/Fixtures/mfa-settings-browser-host.html",
-      "status": "selected-awaiting-dispatch",
+      "status": "queued-actual-settings-browser",
       "scope": "Actual SDK/Settings fragment/script/stylesheet against native API: status, enrollment/manual key, confirmation, recovery replacement after real next TOTP step, recovery disable, secret clearing and reopen. Network requests constrained to own loopback endpoints; no response stubs, setup/recovery/body logging or local environment.",
       "remaining": "Actual browser/native lifecycle and cleanup acceptance; full Startup/hosted and other Settings gaps remain open.",
       "runner": "Scripts/TestHosts/Fixtures/mfa-settings-browser-native-http.cjs",
       "selector": "Explicit mfa-browser host/workflow prepared: WEB4-only surface, fresh verified actor, real-time MfaService, actual assets/SDK/browser, native lifecycle audit and unchanged avatar; existing remote browser runtime/cleanup. Descriptor remains mfa-http; no browser run selected.",
-      "portal": "e895bf621c01fe7f38025ce0d8bc9fab20b1ab70"
+      "portal": "e895bf621c01fe7f38025ce0d8bc9fab20b1ab70",
+      "run": {
+        "id": 44986818576,
+        "control": "6ccbba56f53db5ba58529324cd31e1bfc1e5c9b0",
+        "candidate": "fbe6c7248f064e44766260e78e00a24b98555e0d",
+        "status": "queued",
+        "mode": "mfa-browser"
+      }
     }
   },
   "portalExpiryFix": {

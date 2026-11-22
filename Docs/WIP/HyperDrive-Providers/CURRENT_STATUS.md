@@ -1,3 +1,5 @@
+Actual Settings MFA browser44986818576/control6ccbba56f5 confirmed queued on frozen fbe6c724 and exact OPORTALe895bf6. One real SDK/fragment/control journey selected; no accepted HTTP/native/provider suite replay. Browser/native lifecycle readback/cleanup remain pending; no email secrets or local browser environment.
+
 MFA HTTP/native accepted:44985814682/job137096010577 on fbe6c724 SUCCESS,0errors4m48.42. Token-free password challenge, authenticator/recovery signed JWT and native credential generations, consumed challenge refusal and real provider-bound refresh rotation passed. Owned DB/tempDNA/container cleanup passed. OPORTAL e895bf62 management now enables only after current nodeEnabled status with no pending operation; actual Settings browser selected next, not yet accepted. No node/DNA settings changed.
 
 MFA continuation:44985814682/control e8e62b794c confirmed queued on reviewed fbe6c724; actual refresh-envelope HTTP validation/rotation selected. No email secrets configured or passed, no accepted provider/native/session cohort replay. HTTP/browser/hosted acceptance remains open.
