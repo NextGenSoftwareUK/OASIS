@@ -2908,3 +2908,7 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 ### 2026-11-22 — complete provider save dependency closure
 - Run45073038989/job137364066136 failed actual build5m59.08 on omitted AccountSaveRevision helper; no native scenario executed. Reviewed existing accepted preference evidence44659888087/44661680570 and exact helper/Mongo/Neo blobs against acceptedbabfd2b5 source; retained those tests without replay.
 - Composed current Developmentaa6f1cb2 personal-overage cap fix plus complete provider save dependency graph in immutable0903b867 candidate; pins verified. Owned temporary index removed in finally. No local build, runtime, database, new worktree/environment, download or results.
+
+### 2026-11-22 — atomic checkout reservation
+- Added one bounded mutable reservation projection per account in the existing billing audit collection; no new collection, index, service/worker or environment. Immutable request/provider/terminal events remain separate records.
+- Prepared one real Mongo concurrent two-request/reuse/replay journey in existing host; not executed or claimed accepted. Node syntax/endpoint drift/content hash checked in Portal without builds, installs, downloads or retained results. Current45074820751 frozen candidate preserved.

@@ -45,6 +45,13 @@
     "behavior": "No extra startup read or endpoint-map download; older servers do not expose recovery controls. Known unresolved journal attempts block another checkout/plan change before Stripe.",
     "cancellation": "Actor/ledger/operation-bound real Stripe47 SessionService.ExpireAsync; exact expiry verified and majority journal closure acknowledged before success. Completed checkout is not cancelled.",
     "status": "Source wired; API/native/Stripe/browser/deployment acceptance pending",
-    "remainingConcurrency": "Known-pending precheck is not yet an atomic per-account creation reservation; simultaneous new requests require serialization before full payment reliability acceptance."
+    "remainingConcurrency": "Per-account transactional reservation now implemented in source; native/API/Stripe acceptance pending."
+  },
+  "reservationSource": {
+    "status": "Implemented, uncompiled/unrun/undeployed; not included in frozen45074820751",
+    "invariant": "Only a majority-acknowledged per-account reservation plus request transaction may return an operation for Stripe creation. Closing appends immutable evidence and releases that exact reservation in one transaction. Older closed-operation replays cannot release a newer operation.",
+    "storage": "One mutable checkout-reservation projection per account in existing billing audit collection, using existing unique document ID; requested/created/closed audit events remain immutable. No new collection/index/worker.",
+    "conflicts": "Existing reservation and native duplicate/write conflicts return explicit domain errors before Stripe; no automatic retry, replacement checkout or swallowed exception.",
+    "preparedRealCheck": "Exactly one winner from two concurrent real Mongo Begin calls, successful slot reuse after closure and old-closure replay isolation; bounded addition to existing owned journey."
   }
 }

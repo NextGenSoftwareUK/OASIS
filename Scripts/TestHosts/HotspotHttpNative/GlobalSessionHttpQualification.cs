@@ -140,7 +140,15 @@ internal static class GlobalSessionHttpQualification
             Check(!subscriptionView.Value<bool>("isError") && recoveryLinks?.Value<string>("protocol") == "checkout-journal-v1" &&
                 pendingPath != null && pendingPath.StartsWith("/", StringComparison.Ordinal) && !pendingPath.StartsWith("//", StringComparison.Ordinal),
                 "The real subscription API did not advertise its usable recovery link.");
-            var checkoutOperation = await checkoutJournal.BeginCheckoutAsync(actor.ToString("D"), "bronze", CancellationToken.None);
+            async Task<string?> ReserveCheckout()
+            {
+                try { return await checkoutJournal.BeginCheckoutAsync(actor.ToString("D"), "bronze", CancellationToken.None); }
+                catch (NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.CheckoutReservationException) { return null; }
+            }
+            var reservations = await Task.WhenAll(ReserveCheckout(), ReserveCheckout());
+            Check(reservations.Count(operation => operation != null) == 1,
+                "Concurrent native checkout reservations did not produce exactly one acknowledged winner.");
+            var checkoutOperation = reservations.Single(operation => operation != null)!;
             var pendingList = await Read(await http.GetAsync(pendingPath));
             Check(!pendingList.Value<bool>("isError") && pendingList["result"] is JArray attempts && attempts.Count == 1 &&
                 attempts[0].Value<string>("operationId") == checkoutOperation && !attempts[0].Value<bool>("hasProviderSession") && !string.IsNullOrEmpty(attempts[0].Value<string>("reconcileUrl")),
@@ -161,13 +169,19 @@ internal static class GlobalSessionHttpQualification
             const string storedSessionFixture = "cs_owned_native_journal_fixture";
             await checkoutJournal.RecordCheckoutSessionAsync(actor.ToString("D"), checkoutOperation, storedSessionFixture, CancellationToken.None);
             await checkoutJournal.CloseCheckoutAsync(actor.ToString("D"), checkoutOperation, storedSessionFixture, CancellationToken.None);
+            var nextCheckout = await checkoutJournal.BeginCheckoutAsync(actor.ToString("D"), "silver", CancellationToken.None);
+            await checkoutJournal.CloseCheckoutAsync(actor.ToString("D"), checkoutOperation, storedSessionFixture, CancellationToken.None);
+            var afterReplay = await checkoutJournal.GetPendingCheckoutsAsync(actor.ToString("D"), CancellationToken.None);
+            Check(afterReplay.Count == 1 && afterReplay[0].OperationId == nextCheckout,
+                "Replaying an older checkout closure released or hid a newer reservation.");
+            await checkoutJournal.CloseCheckoutAsync(actor.ToString("D"), nextCheckout, "cs_owned_next_journal_fixture", CancellationToken.None);
             var closedPendingList = await Read(await http.GetAsync(pendingPath));
             Check(!closedPendingList.Value<bool>("isError") && closedPendingList["result"] is JArray remainingAttempts && remainingAttempts.Count == 0,
                 "The real pending-checkout API retained an acknowledged closed operation.");
             var closedAssessment = await Read(await http.GetAsync("/api/avatar/account-closure/assessment"));
             Check(!closedAssessment.Value<bool>("isError") && !closedAssessment["result"]!.Value<bool>("hasPendingStripeCheckouts"),
                 "Acknowledged native checkout closure remained unresolved in dependency assessment.");
-            Console.WriteLine("ACCOUNT_DEPENDENCY_NATIVE_PROOF: actual actor-bound controller/Mongo snapshot and owned app, customerless checkout journal request/acknowledgement/closure; no Stripe calls or paid lifecycle acceptance.");
+            Console.WriteLine("ACCOUNT_DEPENDENCY_NATIVE_PROOF: actual actor-bound controller/Mongo snapshot and owned app, customerless checkout journal request/acknowledgement/closure, one concurrent reservation winner, closed-slot reuse and old-closure replay isolation; no Stripe calls or paid lifecycle acceptance.");
             var afterAssessment = await mongo.LoadAvatarAsync(actor);
             Check(!afterAssessment.IsError && afterAssessment.Result.VersionId == beforeAssessment.Result.VersionId,
                 "Dependency assessment mutated the native avatar.");

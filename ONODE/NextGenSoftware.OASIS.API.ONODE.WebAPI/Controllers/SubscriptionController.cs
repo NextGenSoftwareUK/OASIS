@@ -355,6 +355,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     SessionUrl = session.Url
                 });
             }
+            catch (OASISSub.CheckoutReservationException conflict)
+            {
+                return Conflict(new { IsError = true, ErrorCode = conflict.Code, Message = conflict.Message });
+            }
             catch (Exception ex)
             {
                 return StatusCode(500, new { IsError = true, Message = "Checkout could not be confirmed. Check My subscriptions before starting another checkout." });
