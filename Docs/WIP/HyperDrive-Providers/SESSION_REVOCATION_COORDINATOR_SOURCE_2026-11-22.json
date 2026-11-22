@@ -1,0 +1,13 @@
+{
+  "base": "eaebc1182df6aa84b8f2f75b62f718198564b09b",
+  "candidate": "a1bbae4f1386b57d2639854ad3a9e5747259d184",
+  "tag": "qualification/session-revocation-coordinator-2026-11-22-a1bbae4f",
+  "status": "Internal source implementation only; uncompiled/unrun/unwired/undeployed",
+  "behavior": "One shared cutoff; each supplied authority attempted once; acknowledged count and completed/failed authorities retained; any incomplete authority returns error rather than global success.",
+  "remaining": [
+    "Prove complete authority discovery across issuer history and configuration changes",
+    "Wire existing selected/global endpoints and OPORTAL",
+    "Real-provider native verification"
+  ],
+  "cleanup": "Temporary index/lock removed; no local runtime/build/download/env/database or changed physical checkout."
+}
