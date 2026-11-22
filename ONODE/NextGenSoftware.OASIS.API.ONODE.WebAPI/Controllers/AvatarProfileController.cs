@@ -1012,7 +1012,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<bool>> DeleteByEmail(string email, ProviderType providerType, bool setGlobally = false)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
-            return await DeleteByUsername(email);
+            return await DeleteByEmail(email);
         }
 
         // ── INVENTORY ─────────────────────────────────────────────────────────
