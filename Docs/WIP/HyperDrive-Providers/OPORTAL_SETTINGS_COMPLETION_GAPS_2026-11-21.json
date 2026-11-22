@@ -350,6 +350,14 @@
         "job": 137099088845,
         "failure": "Workflow sparse checkout omitted tracked MFA browser host/runner; Resolve-Path failed before host build or browser/native cases.",
         "cleanup": "Owned container and browser runtime/cache absence verified; native host never started."
+      },
+      "correctedRun": {
+        "id": 44987479159,
+        "control": "78aa01b16482ba64dd2ddb55a0ff2b69c2c05dbc",
+        "candidate": "fbe6c7248f064e44766260e78e00a24b98555e0d",
+        "status": "queued",
+        "mode": "mfa-browser",
+        "portal": "e895bf6"
       }
     }
   },
