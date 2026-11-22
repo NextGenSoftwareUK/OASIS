@@ -91,7 +91,7 @@
       {
         "service": "WEB4",
         "id": "5dac9fab-201a-4270-8a9a-629dadcc90d4",
-        "status": "QUEUED"
+        "status": "SUCCESS"
       },
       {
         "service": "WEB5",
@@ -124,6 +124,7 @@
         "status": "BUILDING"
       }
     ],
-    "scope": "Original automatic handles only; saved source and deployment metadata, not loaded DNA/live auth or complete portal acceptance."
+    "scope": "Original automatic handles only; saved source and deployment metadata, not loaded DNA/live auth or complete portal acceptance.",
+    "web4ObservedUtc": "2026-11-22T10:10:09.828870+00:00"
   }
 }

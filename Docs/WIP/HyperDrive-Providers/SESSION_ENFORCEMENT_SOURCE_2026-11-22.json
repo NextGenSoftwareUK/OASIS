@@ -138,16 +138,26 @@
     "remaining": "One leased actual seven-API build and 35 native HTTP middleware cases. Existing foundation45005901782 continues unchanged; no replacement, no dev deployment. Strict rollout/global logout/OPORTAL acceptance open."
   },
   "qualification": {
-    "run": 45008649921,
-    "control": "2f2902887de1775cf9f4f0418d791e4413f8566a",
-    "status": "failure",
-    "observedUtc": "2026-11-22T09:40:26.071241+00:00",
+    "run": 45011186951,
+    "control": "9da91def3c6706473c855d819a6bc1e17cf2de9e",
+    "status": "queued",
+    "observedUtc": "2026-11-22T10:10:09.751270+00:00",
     "mode": "mfa-middleware-http",
-    "queue": "Shared serialized native/compile qualification group, cancel-in-progress=false; one pending new-feature run behind original foundation45005901782. No replacement or parallel group claim.",
-    "scope": "One leased actual seven-API build, source ordering guard and35native HTTP middleware cases; no browser/global logout/cross-provider/hosted acceptance.",
-    "job": 137165812176,
-    "cause": "Control sparse checkout omitted Test-SessionMiddlewareOrdering.ps1; failed before dotnet build or native cases.",
-    "cleanup": "Owned container absence verified; test host never started, no host DB/tempDNA created."
+    "scope": "Corrected sparse checkout; unchangedf552d770/Core618c3c73 and35middleware cases. Separate timeout-failover draft750d excluded. No new source/runtime acceptance yet."
   },
-  "runnerCorrection": "Added exact ordering guard to existing sparse checkout; shipping candidate f552d770/Core618c3c73 and35case input unchanged."
+  "runnerCorrection": "Added exact ordering guard to existing sparse checkout; shipping candidate f552d770/Core618c3c73 and35case input unchanged.",
+  "previousQualifications": [
+    {
+      "run": 45008649921,
+      "control": "2f2902887de1775cf9f4f0418d791e4413f8566a",
+      "status": "failure",
+      "observedUtc": "2026-11-22T09:40:26.071241+00:00",
+      "mode": "mfa-middleware-http",
+      "queue": "Shared serialized native/compile qualification group, cancel-in-progress=false; one pending new-feature run behind original foundation45005901782. No replacement or parallel group claim.",
+      "scope": "One leased actual seven-API build, source ordering guard and35native HTTP middleware cases; no browser/global logout/cross-provider/hosted acceptance.",
+      "job": 137165812176,
+      "cause": "Control sparse checkout omitted Test-SessionMiddlewareOrdering.ps1; failed before dotnet build or native cases.",
+      "cleanup": "Owned container absence verified; test host never started, no host DB/tempDNA created."
+    }
+  ]
 }
