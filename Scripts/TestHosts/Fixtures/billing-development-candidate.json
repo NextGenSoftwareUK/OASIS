@@ -1,13 +1,15 @@
 {
   "scope": "billing",
-  "status": "current-development-composition-awaiting-source-inventory-review",
+  "status": "current-development-reviewed-inventory-awaiting-compile-only",
   "base": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
-  "candidate": "6834bb7c3cf6ff86d48b122fcf7650d93415a90d",
-  "tag": "qualification/warning-current-2026-11-22-6834bb7c",
+  "candidate": "d68b635b0a56fa96de1075c627b2261213870f56",
+  "tag": "qualification/warning-composed-2026-11-22-d68b635b",
   "buildProjects": [
     "WEB4"
   ],
   "allowedPaths": [
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Owners.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.WarningEmails.cs",

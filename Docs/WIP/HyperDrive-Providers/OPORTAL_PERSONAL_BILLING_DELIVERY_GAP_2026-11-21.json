@@ -1116,11 +1116,14 @@
   },
   "enabledWarningBrowserPreparation": {
     "seed": "Scripts/TestHosts/HotspotHttpNative/WarningBrowserFixture.cs",
-    "status": "host-service-workflow-wired-uncompiled-unselected",
+    "status": "actual-enabled-component-browser-native-accepted",
     "scope": "Actual verified fixed sink actor, separate native fixture Wizard, detached-approved acknowledged quota snapshot/free plan, explicit80percent email opt-in through repository, real service/controller/SDK/button, native one-event provider acknowledgement and unchanged avatar/quota readback.",
     "boundaries": "Not payment/provider execution/original shared-writer authorization. No existing shared migration/delivery535/543 touched. Approval key only in memory, owned database cleanup required.",
-    "remaining": "Current Settings browser result; select exact Portal warning browser source, stage authorized temporary secrets only for selected run, compile/execute and remove secrets/owned artifacts afterward.",
+    "remaining": "Current Development integration/build and full Startup/hosted acceptance remain open; no provider replay needed.",
     "runner": "Scripts/TestHosts/Fixtures/warning-email-browser-native-http.cjs",
-    "selector": "Explicit billing-warning-browser prepared in both allowlists/browser selector/sparse checkout/host mapping; temporary email secrets only supplied for explicit provider/browser modes. Current descriptor remains mfa-browser; no secrets staged."
+    "selector": "Explicit billing-warning-browser ran successfully; both temporary secrets deleted and GET404 verified, all owned CI outputs absent.",
+    "run": 44990168013,
+    "job": 137109268095,
+    "candidate": "6de38f50ddef025703b0fb2c618905570e553106"
   }
 }

@@ -137,8 +137,20 @@
     "inventoryRun": {
       "id": 44991206311,
       "control": "26a47a09dbf9971ee4c208124ba364b1a52f0441",
-      "status": "queued",
-      "mode": "inventory-only-no-runtime-no-secrets"
+      "status": "completed",
+      "mode": "inventory-only-no-runtime-no-secrets",
+      "conclusion": "success",
+      "artifact": 14742425556
+    },
+    "review": {
+      "managers": 933,
+      "routes": 832,
+      "addedOverAcceptedInventory": "One existing current Core ExecuteProjectedSetQueryAsync; no manager identity removals. Route/classifier hashes equal prior accepted inventory.",
+      "managerBlob": "cc0ca472f555bc5e0aeefc166aff1f993243d2d5",
+      "managerSha256": "5e7699b67a9a4a5a06acd9e9bfd4392590a2af7a547aa837e45dd1ab383479f8",
+      "reviewedCandidate": "d68b635b0a56fa96de1075c627b2261213870f56",
+      "tag": "qualification/warning-composed-2026-11-22-d68b635b",
+      "scope": "Compile changed combined graph only; no accepted email/MFA replay or credentials."
     }
   }
 }
