@@ -53,7 +53,7 @@ jobs:
             dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlSetCompilerTests' --results-directory TestResults/SetContract --logger 'trx;LogFileName=entry.trx'
             if ($LASTEXITCODE) { throw 'WEB4 native set contract failed' }
             [xml]$report = Get-Content TestResults/SetContract/entry.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '6' -or $report.TestRun.ResultSummary.Counters.total -ne '6') { throw 'All six LINQ set controls must pass' }
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '7' -or $report.TestRun.ResultSummary.Counters.total -ne '7') { throw 'All seven WEB4 set controls must pass' }
             dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI /m:2 /nr:false /p:UseSharedCompilation=false
             if ($LASTEXITCODE) { throw 'Actual WEB4 composition failed to compile' }
           }

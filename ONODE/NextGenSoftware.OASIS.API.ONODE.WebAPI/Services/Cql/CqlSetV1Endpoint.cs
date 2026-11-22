@@ -50,7 +50,8 @@ public static partial class CqlV1Endpoint
             var response=JsonResponse(new OASISResult<object>(new
             {
                 version="cql-set-v1",provider=selected.ToString(),kind=intent.Kind.ToString(),count=output.Rows.Count,
-                rows=CqlV1Projection.Create(output.Rows,intent.Left.ReadAccess,request.IncludeMetadata,null,deadline.Token)
+                rows=CqlV1Projection.Create(output.Rows,intent.Left.ReadAccess,request.IncludeMetadata,null,deadline.Token,
+                    preserveRootOccurrences:intent.Kind==CosmicSetQueryKind.Concat)
             }){IsLoaded=true});
             deadline.Token.ThrowIfCancellationRequested();return response;
         }
@@ -59,7 +60,7 @@ public static partial class CqlV1Endpoint
         {return Failure(400,"CQL_REQUEST_INVALID","Invalid bounded CQL set description.");}
         catch(InvalidOperationException) when(!http.Items.ContainsKey(CqlV1ResourceFilter.DispatchedKey))
         {return Failure(503,"CQL_PROVIDER_UNAVAILABLE","The requested provider is unavailable.");}
-        catch(ProjectionWireException){return Failure(503,"CQL_PROVIDER_RESULT_INVALID","A joined scalar has an invalid public wire domain.");}
+        catch(CqlV1Projection.Rejected cause){return Failure(cause.Code=="CQL_RESPONSE_LIMIT"?413:503,cause.Code,"Native set rows violated the public output contract.");}
         catch(ResponseLimitException){return Failure(413,"CQL_RESPONSE_LIMIT","Set response exceeds the public output limit.");}
         catch(OperationCanceledException)
         {return Failure(http.RequestAborted.IsCancellationRequested?499:504,"CQL_QUERY_CANCELLED","The set query was cancelled.");}

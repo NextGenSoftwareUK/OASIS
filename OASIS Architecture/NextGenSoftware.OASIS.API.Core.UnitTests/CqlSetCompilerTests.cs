@@ -39,4 +39,15 @@ public sealed class CqlSetCompilerTests
         request.Kind="Union";request.MaximumRightRows=1001;
         Assert.Throws<ArgumentException>(()=>CqlV1Compiler.CompileSet(request,Guid.NewGuid(),ProviderType.MongoDBOASIS));
     }
+    [Fact]
+    public void ConcatPublicProjectionPreservesOccurrencesWithoutWeakeningFlatOrGraphContracts()
+    {
+        var row=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=Guid.NewGuid(),IsPublic=true};
+        var rows=new NextGenSoftware.OASIS.API.Core.Interfaces.IHolon[]{row,row};
+        var access=CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result;
+        Assert.Throws<CqlV1Projection.Rejected>(()=>CqlV1Projection.Create(rows,access,false,null));
+        var result=CqlV1Projection.Create(rows,access,false,null,preserveRootOccurrences:true);
+        Assert.Equal(2,result.Count);Assert.Equal(row.Id,result[0].Id);Assert.Equal(row.Id,result[1].Id);
+        Assert.NotSame(result[0],result[1]);
+    }
 }
