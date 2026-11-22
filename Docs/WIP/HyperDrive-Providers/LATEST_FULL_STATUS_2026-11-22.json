@@ -87,6 +87,11 @@
       "run": 45069521383,
       "reason": "Candidate direct-parent mismatch; failed before build/provider execution",
       "corrected": "Rebuilt immutable candidate directly on reviewed base73a; dependency pins verified"
+    },
+    "admittedListSource": {
+      "core": "d89c1dccc64c3a5f9539e2121bd27b1ed517a066",
+      "status": "source implemented; native/browser/deployed acceptance pending",
+      "scope": "Complete V2 admitted issuer list; existing queued candidate unchanged"
     }
   },
   "providers": {
