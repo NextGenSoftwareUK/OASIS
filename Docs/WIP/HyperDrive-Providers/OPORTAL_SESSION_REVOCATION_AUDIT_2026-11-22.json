@@ -1,0 +1,300 @@
+{
+  "recordedUtc": "2026-11-22T07:55:14.798579+00:00",
+  "status": "source-audit-only; global revocation not implemented or accepted",
+  "development": "546dfb451cb11a8ec9355d2d25db853bab16617a",
+  "core": "a7d15b4ffc3fbcedd3c7164f06ba8fafb262a563",
+  "invariant": "An acknowledged sign-out invalidates the selected or all persisted session credentials and their access tokens across WEB4-WEB10; unrelated avatar state is preserved; failed persistence never reports success.",
+  "findings": [
+    "Both Core logout methods return simulated success without persistence.",
+    "Access JWT issuance in four authentication paths and refresh precedes the session save; JWTs lack persisted session/provider binding.",
+    "WEB4 has a strict existing avatar read but no session-revocation validation.",
+    "WEB5 and WEB7-WEB10 assign the authenticated principal before the avatar read and continue when the read returns an error or null.",
+    "WEB6 validates cryptographic identity without an avatar/session lookup; do not claim the fix has no additional lookup across all services.",
+    "Signed V2 refresh envelopes already bind the stored refresh credential to its acknowledged serving provider. New validation must use that authority, avoiding stale replica acceptance.",
+    "Current stable public session IDs are SHA256(avatar GUID D + newline + stored refresh token); do not expose raw refresh tokens as access claims."
+  ],
+  "nextImplementation": [
+    "Centralize the stable non-secret credential identity and session-bound JWT contract; mint the response JWT only after acknowledged session persistence.",
+    "Validate exact session identity, active avatar and credential state at its authoritative provider across all seven APIs; publish identity to the request only after validation.",
+    "Implement selected/global revocation with acknowledged provider-bound optimistic writes; concurrent sign-in/refresh or profile changes must not resurrect revoked sessions or be overwritten.",
+    "Use a controlled issuer/validator rollout with an explicit legacy-token retirement boundary; do not permanently accept unbound tokens as a fallback. Account for configured token lifetimes rather than assuming 15 minutes.",
+    "Enable the OPORTAL control only after real native HTTP checks prove access and refresh rejection, account isolation, persistence failure handling and unchanged unrelated state."
+  ],
+  "evidence": [
+    {
+      "scope": "core",
+      "revision": "a7d15b4ffc3fbcedd3c7164f06ba8fafb262a563",
+      "path": "Managers/AvatarManager/AvatarManager-Session.cs",
+      "blob": "7ae6ce5fedea807d16705997a37b49cbb87889db",
+      "relevantLines": [
+        {
+          "line": 36,
+          "text": "var loaded = await LoadAvatarAsync(avatarId, loadPrivateKeys: false, hideAuthDetails: false);"
+        },
+        {
+          "line": 83,
+          "text": "// For now, simulate successful logout - this would be implemented with actual session management"
+        },
+        {
+          "line": 108,
+          "text": "// For now, simulate successful logout - this would be implemented with actual session management"
+        },
+        {
+          "line": 298,
+          "text": "avatar.RefreshTokens.Add(newRefreshToken);"
+        },
+        {
+          "line": 301,
+          "text": "avatar.JwtToken = GenerateJWTToken(avatar);"
+        },
+        {
+          "line": 304,
+          "text": "OASISResult<IAvatar> saveAvatarResult = SaveAvatarSession(avatar, authority);"
+        },
+        {
+          "line": 308,
+          "text": "response.Result = BuildSessionResponse(saveAvatarResult, newRefreshToken.Token, authority);"
+        },
+        {
+          "line": 366,
+          "text": "var saveAvatar = SaveAvatarSession(avatar, authority);"
+        },
+        {
+          "line": 393,
+          "text": "tokenHandler.ValidateToken(accountToken, new Microsoft.IdentityModel.Tokens.TokenValidationParameters"
+        }
+      ]
+    },
+    {
+      "scope": "core",
+      "revision": "a7d15b4ffc3fbcedd3c7164f06ba8fafb262a563",
+      "path": "Managers/AvatarManager/AvatarManager-Auth.cs",
+      "blob": "4c17c155c7da9e1ed2dfd05e4edeb2c4883ff767",
+      "relevantLines": [
+        {
+          "line": 30,
+          "text": "var result = email ? await LoadAvatarByEmailAsync(identifier, false, false) : await LoadAvatarAsync(identifier, false, false);"
+        },
+        {
+          "line": 35,
+          "text": "result = await LoadAvatarAsync(identifier, false, false);"
+        },
+        {
+          "line": 111,
+          "text": "var jwtToken = GenerateJWTToken(result.Result);"
+        },
+        {
+          "line": 117,
+          "text": "result.Result.RefreshTokens.Add(refreshToken);"
+        },
+        {
+          "line": 128,
+          "text": "result.Result = BuildSessionResponse(saveAvatarResult, refreshToken.Token);"
+        },
+        {
+          "line": 224,
+          "text": "var jwtToken = GenerateJWTToken(result.Result);"
+        },
+        {
+          "line": 230,
+          "text": "result.Result.RefreshTokens.Add(refreshToken);"
+        },
+        {
+          "line": 242,
+          "text": "result.Result = BuildSessionResponse(saveAvatarResult, refreshToken.Token);"
+        },
+        {
+          "line": 337,
+          "text": "var loadResult = await LoadAvatarAsync(avatarId, false, false);"
+        },
+        {
+          "line": 390,
+          "text": "var jwtToken     = GenerateJWTToken(avatar);"
+        },
+        {
+          "line": 396,
+          "text": "avatar.RefreshTokens.Add(refreshToken);"
+        },
+        {
+          "line": 406,
+          "text": "result.Result  = BuildSessionResponse(saveResult, refreshToken.Token);"
+        },
+        {
+          "line": 460,
+          "text": "var loadResult = await LoadAvatarAsync(avatarId, false, false);"
+        },
+        {
+          "line": 509,
+          "text": "var load = await LoadAvatarAsync(avatarId, false, false);"
+        },
+        {
+          "line": 515,
+          "text": "var jwtToken = GenerateJWTToken(avatar);"
+        },
+        {
+          "line": 518,
+          "text": "avatar.RefreshTokens.Add(refreshToken);"
+        },
+        {
+          "line": 528,
+          "text": "result.Result = BuildSessionResponse(save, refreshToken.Token);"
+        }
+      ]
+    },
+    {
+      "scope": "core",
+      "revision": "a7d15b4ffc3fbcedd3c7164f06ba8fafb262a563",
+      "path": "Managers/AvatarManager/AvatarManager-SaveUtils.cs",
+      "blob": "c1023fc6e347489591656f3f2852a1094aaa8529",
+      "relevantLines": [
+        {
+          "line": 173,
+          "text": "internal string GenerateJWTToken(IAvatar account)"
+        },
+        {
+          "line": 470,
+          "text": "OASISResult<IAvatar> avatarResult = await LoadAvatarAsync(result.Result.Id, false, false);"
+        },
+        {
+          "line": 695,
+          "text": "//        var jwtToken = GenerateJWTToken(result.Result);"
+        },
+        {
+          "line": 698,
+          "text": "//        result.Result.RefreshTokens.Add(refreshToken);"
+        }
+      ]
+    },
+    {
+      "scope": "core",
+      "revision": "a7d15b4ffc3fbcedd3c7164f06ba8fafb262a563",
+      "path": "Managers/AvatarManager/AvatarManager-RefreshAuthority.cs",
+      "blob": "61341d213c44dd86730b9bbdcea275ac0292bd80",
+      "relevantLines": [
+        {
+          "line": 16,
+          "text": "private IAvatar BuildSessionResponse(OASISResult<IAvatar> saved, string storedToken,"
+        },
+        {
+          "line": 70,
+          "text": "private OASISResult<IAvatar> SaveAvatarSession(IAvatar avatar, ProviderType authority) =>"
+        }
+      ]
+    },
+    {
+      "scope": "WEB4",
+      "revision": "546dfb451cb11a8ec9355d2d25db853bab16617a",
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/JwtMiddleware.cs",
+      "blob": "b384a22c5e6b8db01c0355a69f911abec7316eea",
+      "relevantLines": [
+        {
+          "line": 43,
+          "text": "var avatar = await Program.AvatarManager.LoadAvatarAsync(id);"
+        },
+        {
+          "line": 48,
+          "text": "context.User = principal;"
+        }
+      ]
+    },
+    {
+      "scope": "WEB5",
+      "revision": "cf763aecfff7cc33d6aeacc9121db01c767a50f6",
+      "path": "NextGenSoftware.OASIS.STAR.WebAPI/Middleware/JwtMiddleware.cs",
+      "blob": "5ecf8009a5a5dcd08c25f5aca354e3d738b52331",
+      "relevantLines": [
+        {
+          "line": 47,
+          "text": "context.User = tokenHandler.ValidateToken(token, new TokenValidationParameters"
+        },
+        {
+          "line": 85,
+          "text": "OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(id, false, false);"
+        }
+      ]
+    },
+    {
+      "scope": "WEB6",
+      "revision": "f042a533548f4ac8a9649f98b259a9024d802bf7",
+      "path": "NextGenSoftware.OASIS.Web6.WebAPI/Middleware/JwtMiddleware.cs",
+      "blob": "21bb4b5a0ab25bc5a77e5074cd362a30cd80ac50",
+      "relevantLines": [
+        {
+          "line": 33,
+          "text": "context.User = new JwtSecurityTokenHandler().ValidateToken(authorization.Substring(7).Trim(), CreateValidationParameters(key, issuer), out SecurityToken validated);"
+        }
+      ]
+    },
+    {
+      "scope": "WEB7",
+      "revision": "546dfb451cb11a8ec9355d2d25db853bab16617a",
+      "path": "WEB7/NextGenSoftware.OASIS.Web7.WebAPI/Middleware/JwtMiddleware.cs",
+      "blob": "99276bfd074da9872d76942ed34f52ce112abcaa",
+      "relevantLines": [
+        {
+          "line": 38,
+          "text": "context.User = tokenHandler.ValidateToken(token, new TokenValidationParameters"
+        },
+        {
+          "line": 56,
+          "text": "OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(id, false, false);"
+        }
+      ]
+    },
+    {
+      "scope": "WEB8",
+      "revision": "546dfb451cb11a8ec9355d2d25db853bab16617a",
+      "path": "WEB8/NextGenSoftware.OASIS.Web8.WebAPI/Middleware/JwtMiddleware.cs",
+      "blob": "c5411d4465f8ba81b112a9c3b1226d6644a481e4",
+      "relevantLines": [
+        {
+          "line": 38,
+          "text": "context.User = tokenHandler.ValidateToken(token, new TokenValidationParameters"
+        },
+        {
+          "line": 56,
+          "text": "OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(id, false, false);"
+        }
+      ]
+    },
+    {
+      "scope": "WEB9",
+      "revision": "546dfb451cb11a8ec9355d2d25db853bab16617a",
+      "path": "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Middleware/JwtMiddleware.cs",
+      "blob": "ac312e80894f980db3a9ba2178a9388f0b434973",
+      "relevantLines": [
+        {
+          "line": 38,
+          "text": "context.User = tokenHandler.ValidateToken(token, new TokenValidationParameters"
+        },
+        {
+          "line": 56,
+          "text": "OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(id, false, false);"
+        }
+      ]
+    },
+    {
+      "scope": "WEB10",
+      "revision": "546dfb451cb11a8ec9355d2d25db853bab16617a",
+      "path": "WEB10/NextGenSoftware.OASIS.Web10.WebAPI/Middleware/JwtMiddleware.cs",
+      "blob": "10e2f479c1788a7ebe3e50466034f8cdbeccd702",
+      "relevantLines": [
+        {
+          "line": 38,
+          "text": "context.User = tokenHandler.ValidateToken(token, new TokenValidationParameters"
+        },
+        {
+          "line": 56,
+          "text": "OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(id, false, false);"
+        }
+      ]
+    }
+  ],
+  "verificationScope": "Read-only pinned-source inspection; no runtime authentication, shared database, payment, worker or deployment configuration operations.",
+  "notClaimed": [
+    "runtime revocation",
+    "functional logout-all",
+    "full OPORTAL completion",
+    "provider or HyperDrive completion"
+  ]
+}
