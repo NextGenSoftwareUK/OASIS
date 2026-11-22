@@ -5,7 +5,7 @@
     "taskBranch": "work/hyperdrive-provider-completion",
     "taskWorktree": "C:/Source/OASIS2-hyperdrive",
     "portalBranch": "dev",
-    "portalHead": "57422d7",
+    "portalHead": "7b1f1ce",
     "reviewedDevelopment": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
     "currentCore": "9dcc856add106fa26b27ea5d26ef50b590bf92fd",
     "currentWeb6": "d9e60ceaecef5513d1bcd6285cd668076bc77edf"
@@ -43,11 +43,12 @@
     "latestDeliveredFixes": [
       "Current subscription selection instead of historical first row",
       "Readiness errors display Retry",
-      "Password reset control cleared across sessions; stale responses rejected"
+      "Password reset control cleared across sessions; stale responses rejected",
+      "Selected sign-out buttons wired in dev source4d4f81e; enabled only by new real-revocation capability, not accepted as live/browser-tested"
     ],
     "remaining": [
       "Global sign-out wired and capability gated; real SQLite session write fails qualification, not accepted or deployed",
-      "Selected sign-out backend coordination",
+      "Selected sign-out backend and UI source implemented; native/browser/deployed acceptance pending",
       "Account deletion lifecycle and Settings wiring",
       "Hosted Stripe paid lifecycle and full browser/site acceptance",
       "Current deployed performance measurement"
@@ -73,6 +74,19 @@
       "observedBlocker": "Real SQLite password sign-in session save rejected: session write requires one active pending credential and explicit authority.",
       "cleanup": "Owned Mongo unpaused; owned SQLite directory absent verified in selected logs.",
       "acceptance": "Not accepted; preserve previous 35 middleware passes without replay."
+    },
+    "currentFocusedRun": {
+      "run": 45070278761,
+      "control": "e8f47dcd0a8eb3a49bdde542488b3df71686a2c3",
+      "candidate": "e2477d836b662eec2b979a50c6ea6794e2150260",
+      "core": "05c4ba09a45aaf3232dfbcd5d0f6a25d0144c06b",
+      "status": "queued at dispatch",
+      "scope": "Failed real global flow plus new selected-session/isolation and SQLite absent-account checks; accepted35 middleware cases not replayed"
+    },
+    "preparationFailure": {
+      "run": 45069521383,
+      "reason": "Candidate direct-parent mismatch; failed before build/provider execution",
+      "corrected": "Rebuilt immutable candidate directly on reviewed base73a; dependency pins verified"
     }
   },
   "providers": {

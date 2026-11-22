@@ -2873,3 +2873,7 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 ### 2026-11-22 — selected session logout implementation
 - Replaced simulated selected-session success in immutable Core source f8970497dbdd8b469ec0a6cd0e33a223e51df0cc; retained as reviewable source tag. Temporary source index removed in finally.
 - Added representative HTTP unknown-selection/no-write and selected-vs-independent credential checks to the existing runner; not dispatched while run45069521383 remains queued. No local runtime, environment, build, database or downloaded result created.
+
+### 2026-11-22 — portal selected-session wiring and exact-base candidate
+- No local builds, databases, runtimes, downloads or test archives. Two owned temporary source index files removed in finally. Source, hashes and compact evidence retained. GitHub log bodies read/filtered in memory.
+- Run45069521383 failed before build/provider startup on parent mismatch; no provider environment from that step. Corrected run45070278761 dispatched once, queued at observation. Reuse current handle; no duplicate dispatch.
