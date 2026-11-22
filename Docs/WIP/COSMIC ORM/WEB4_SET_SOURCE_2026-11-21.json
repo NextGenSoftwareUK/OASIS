@@ -1,0 +1,10 @@
+{
+  "source": "d37c02a674c4346f47f882f00b8da67098be2d4e",
+  "coreSource": "8b543e538df91a6ab257292327041dc30bccca5f",
+  "compiled": false,
+  "nativeAccepted": false,
+  "route": "api/data/query-cql/set",
+  "serverReadPolicy": true,
+  "developmentPushed": false,
+  "sqlTextImplemented": false
+}
