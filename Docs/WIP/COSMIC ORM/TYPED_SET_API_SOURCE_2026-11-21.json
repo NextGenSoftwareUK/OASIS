@@ -4,5 +4,13 @@
   "compiled": false,
   "nativeAccepted": false,
   "sharedHydrationOwner": true,
-  "developmentPushed": false
+  "developmentPushed": false,
+  "parentSource": "c3c2cf1b58fc1c5ad3c6f5fadc49d05e51bc5ae3",
+  "qualificationSource": "b9de6e4293c2b04882b337eedee727388f81c2e9",
+  "workflow": "qualify-cql-set-typed.yml",
+  "cases": 3,
+  "automaticRunExpected": true,
+  "run": 44964796737,
+  "status": "in_progress",
+  "conclusion": null
 }
