@@ -1,0 +1,24 @@
+{
+  "candidate": "c25ce0b7ac7d6b1de734e31d7bbc2c706de7c384",
+  "development": "ca4f83361423e1f7219be5d4d6798e64c26cae67",
+  "mappedProductionPaths": [
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlVirtualProjectionV1Compiler.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.NativeProjection.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.NativeProjection.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.NativeProjection.cs"
+  ],
+  "coreCandidate": "babf7b82936f07d9decff57fac52b08ed527eb35",
+  "preserveDevelopmentPaths": [
+    ".github/workflows/release-onode-manager.yml",
+    "ONODE/ONODEManager",
+    "ONODE/Tests/SubscriptionLedger.ProtocolTests/SubscriptionLedger.ProtocolTests.csproj",
+    "Scripts/validate_dependency_ancestry.py"
+  ],
+  "manifestMustBeResynchronized": true,
+  "packageRun": 45021700914,
+  "packageAccepted": false,
+  "peerWeb6HotfixRun": 45018741401,
+  "peerWeb6AcceptanceOpen": true,
+  "developmentPushed": false,
+  "unqualifiedGroupJoinAndReselectExcluded": true
+}

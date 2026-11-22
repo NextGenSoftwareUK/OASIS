@@ -51,6 +51,10 @@ Select-only routing corrected in the source successor: an intent without row-res
 
 Prior record reselection qualification **45021538432/job137205328402** was confirmed queued for exacte9d782a6/Core34848a57: three Core/API controls, three new real-native journeys and actual WEB4 build. Twenty older automatic compatibility checks for source3a972d83 were cancelled and terminal cancellation verified, while its focused GroupJoin45019120717 and every current release/record check remain intact. [Record CI handoff](RECORD_RESELECT_CI_HANDOFF_2026-11-22.json).
 
+Latest record qualification **45023290705/job137210682075** is queued on exacta15142c6/Core34848a57: four Core/API controls and three changed real-native journeys covering shape-only and composed reads. Prior45021538432 was authoritatively queued, cancelled only after the replacement existed, and terminal completed/cancelled verified. No accepted case was discarded. [Current record handle](RECORD_RESELECT_CI_HANDOFF_2026-11-22.json).
+
+Mapped integration review compared candidatec25 with current Developmentca4: preserve separate ONODEManager/release-CI, protocol-test includes and ancestry-check changes; resynchronize the paired manifest. A local read-only attempt to resolve current ONODEManager0cf could not fetch that object and was stopped; no private source or branch changed. Peer WEB6 hotfix45018741401 still awaits its own qualification. Package45021700914 remains queued, so no Development push or rollout yet. [Scoped integration review](MAPPED_COMPUTED_INTEGRATION_REVIEW_2026-11-22.json).
+
 ## SQL and Ask delivery
 
 Website **83852a7556c03f507e5f252af5246114c3c85f18** inherits the parser/Ask changes from475a4ff3 and enrolls mapped row CASE/text-COALESCE/Int32-COALESCE, Id first and selected-alias ordering. Three parser controls and two changed Ask UI controls passed in RAM. Ask preserves the selected source, refuses mapping substitution, remains free-visitor scoped and requires review before execution.
