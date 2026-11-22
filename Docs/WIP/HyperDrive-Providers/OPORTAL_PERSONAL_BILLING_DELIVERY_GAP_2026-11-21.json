@@ -809,7 +809,8 @@
         "Compile/real delivery verification",
         "Hosted acceptance"
       ],
-      "externalEmailCalls": 0
+      "externalEmailCalls": 0,
+      "windowBoundaryCorrection": "Source review: reserve one minute before24h expiry and bound entire SDK submission to15seconds via linked cancellation. Owned timeout returns explicit unconfirmed error; caller cancellation propagates. Original warning44971805468 frozen before correction, no acceptance inferred."
     },
     "eventStoreSource": {
       "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.WarningEmails.cs",
