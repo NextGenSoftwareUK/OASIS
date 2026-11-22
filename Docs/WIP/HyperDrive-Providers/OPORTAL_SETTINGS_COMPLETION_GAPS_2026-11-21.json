@@ -85,7 +85,8 @@
       "status": "prepared-uncompiled-unselected",
       "scope": "Actual signed MVC/manager/native Mongo with3persisted cryptographically random owned credentials (active/revoked/expired), correct counts/native fields, stable one-way IDs, no raw credentials/invented device/location/security values, foreign read refusal and unchanged native avatar.",
       "requests": "3GETs; no session/auth mutations",
-      "remaining": "Review source inventory, enable exact host selector, compile/run; not full session tracking or revocation."
+      "remaining": "Review source inventory, enable exact host selector, compile/run; not full session tracking or revocation.",
+      "selector": "Exact HotspotHttpNative/session-list-http allowlisted, source review/compile/native dispatch still pending; no runtime selected before inventory acceptance."
     }
   }
 }
