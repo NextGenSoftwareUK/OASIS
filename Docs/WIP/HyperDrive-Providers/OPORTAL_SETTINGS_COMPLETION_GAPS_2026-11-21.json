@@ -240,7 +240,7 @@
     },
     "httpQualification": {
       "source": "Scripts/TestHosts/HotspotHttpNative/MfaHttpQualification.cs",
-      "status": "fixture-refresh-envelope-assertion-corrected-awaiting-run",
+      "status": "refresh-envelope-corrected-http-queued",
       "scope": "Actual status/enrol/confirm, password authenticate token-free challenge and no persisted credential, actual authenticate-mfa authenticator/recovery, consumed challenge refusal, signed issuer/audience/lifetime/JWT subject and native refresh persistence. No mock HTTP/provider or response body/credential logging.",
       "remaining": "Compile/runtime result and owned cleanup; then Settings management UI/browser/hosted.",
       "run": {
@@ -316,7 +316,15 @@
         "failure": "Fixture directly compared public refresh envelope to raw stored token. Actual HyperDrive BuildSessionResponse signs provider-bound envelope; fixture invariant was wrong.",
         "cleanup": "Owned database/tempDNA/container absence verified."
       },
-      "refreshVerificationCorrection": "Native generation count plus actual shipping refresh-token HTTP validation/rotation and signed JWT checks; no private grammar clone or raw token equality. Source prepared, not dispatched while warning-provider run active."
+      "refreshVerificationCorrection": "Native generation count plus actual shipping refresh-token HTTP validation/rotation and signed JWT checks; no private grammar clone or raw token equality. Source prepared, not dispatched while warning-provider run active.",
+      "refreshCorrectedRun": {
+        "id": 44985814682,
+        "control": "e8e62b794c392380d791598114b160f7d3e072ca",
+        "candidate": "fbe6c7248f064e44766260e78e00a24b98555e0d",
+        "status": "queued",
+        "mode": "mfa-http",
+        "secrets": "Both temporary email secrets deleted; selector passes none."
+      }
     },
     "browserQualification": {
       "host": "Scripts/TestHosts/Fixtures/mfa-settings-browser-host.html",
