@@ -24,8 +24,8 @@ public static partial class CqlV1Compiler
             request.Columns is not { Length: >= 1 and <= 32 })
             throw new ArgumentException("Mixed projection requires supported native predicates, selected ordering and a bounded result.");
 
-        if(request.Columns.Any(column=>column?.NullReplacement!=null))
-            throw new ArgumentException("Mapped sources have no enrolled native text-coalescing contract.");
+        if(request.Columns.Any(column=>column?.NullReplacement!=null || column?.WhenTrue!=null || column?.WhenFalse!=null))
+            throw new ArgumentException("Mapped sources have no enrolled native literal computed-text contract.");
 
         if ((request.ResultOperation == CqlProjectionV1ResultOperation.Group) != (request.Grouping != null))
             throw new ArgumentException("Only mixed grouping accepts a grouping description.");

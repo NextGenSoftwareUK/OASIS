@@ -240,8 +240,20 @@ internal static class CqlRequestCapture
         if(columns.Length==0)throw new ArgumentException("Selected indexed intent requires at least one column.");
         return Array(columns,32,column=>column==null?throw new ArgumentException("Missing selected column."):
             new CqlProjectionV1Column{Alias=column.Alias,Field=column.Field,ValueType=column.ValueType,Nullable=column.Nullable,Function=column.Function,
-                NullReplacement=CaptureTextReplacement(column),
+                NullReplacement=CaptureTextReplacement(column),WhenTrue=CaptureConditionalBranch(column,true),WhenFalse=CaptureConditionalBranch(column,false),
                 MetadataPath=column.MetadataPath==null?null:Array(column.MetadataPath,8,item=>item)});
+    }
+
+    private static string CaptureConditionalBranch(CqlProjectionV1Column column,bool whenTrue)
+    {
+        var value=whenTrue?column.WhenTrue:column.WhenFalse;
+        if(column.Function==CqlV1Function.BooleanTextCase)
+        {
+            if(value==null || value.Length>512)
+                throw new ArgumentException("Conditional text requires two literal branches of at most512 characters.");
+        }
+        else if(value!=null) throw new ArgumentException("Only conditional text accepts branch literals.");
+        return value;
     }
 
     private static string CaptureTextReplacement(CqlProjectionV1Column column)

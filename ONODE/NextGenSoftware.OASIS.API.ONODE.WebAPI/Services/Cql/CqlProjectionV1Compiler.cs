@@ -130,6 +130,19 @@ public static partial class CqlV1Compiler
         }
     }
 
+    private sealed class BooleanTextCaseSelectionConsumer<TResult>(ISelectionConsumer<TResult> consumer,string whenTrue,string whenFalse)
+        :ISelectionConsumer<TResult>
+    {
+        public TResult Bind<TValue>(string alias,Expression<Func<Holon,TValue>> selector)
+        {
+            if(typeof(TValue)!=typeof(bool))
+                throw new ArgumentException("Conditional text requires an exact Boolean input.");
+            return consumer.Bind(alias,Expression.Lambda<Func<Holon,string>>(
+                Expression.Condition(selector.Body,Expression.Constant(whenTrue,typeof(string)),
+                    Expression.Constant(whenFalse,typeof(string))),selector.Parameters));
+        }
+    }
+
     private sealed class TextCoalesceSelectionConsumer<TResult>(ISelectionConsumer<TResult> consumer,string replacement)
         :ISelectionConsumer<TResult>
     {
@@ -158,6 +171,18 @@ public static partial class CqlV1Compiler
         if (column == null) throw new ArgumentException("A column is required.");
         ValidateSelectionAlias(column.Alias);
         var alias = column.Alias;
+        if(column.Function!=CqlV1Function.BooleanTextCase && (column.WhenTrue!=null || column.WhenFalse!=null))
+            throw new ArgumentException("Only conditional text accepts branch literals.");
+        if(column.Function==CqlV1Function.BooleanTextCase)
+        {
+            if(column.WhenTrue==null || column.WhenFalse==null || column.WhenTrue.Length>512 || column.WhenFalse.Length>512
+                || column.MetadataPath!=null || column.NullReplacement!=null)
+                throw new ArgumentException("Conditional text requires a canonical Boolean field and two bounded literal strings.");
+            var input=new CqlProjectionV1Column {
+                Alias=column.Alias,Field=column.Field,ValueType=column.ValueType,Nullable=column.Nullable
+            };
+            return CompileSelection(input,new BooleanTextCaseSelectionConsumer<TResult>(consumer,column.WhenTrue,column.WhenFalse));
+        }
         if(column.Function!=CqlV1Function.TextCoalesce && column.NullReplacement!=null)
             throw new ArgumentException("Only text coalescing accepts a replacement.");
         if(column.Function==CqlV1Function.TextCoalesce)
