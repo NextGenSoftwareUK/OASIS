@@ -40,7 +40,7 @@ Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
 var mode = Environment.GetEnvironmentVariable("OASIS_HOTSPOT_HTTP_MODE") ?? "binding";
-Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "session-list-http" or "mfa-native" or "mfa-http" or "mfa-browser", "Unsupported hotspot HTTP check mode.");
+Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "session-list-http" or "mfa-native" or "mfa-http" or "mfa-browser" or "billing-warning-browser", "Unsupported hotspot HTTP check mode.");
 var dna = new OASISDNA { OASIS = new() {
     HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
         AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
@@ -65,12 +65,17 @@ try
     var accounts = new List<Avatar> {
         new Avatar { Id = actor, Username = "http-" + actor.ToString("N"), Email = actor.ToString("N") + "@example.test", AvatarType = new EnumValue<AvatarType>(AvatarType.User) },
         new Avatar { Id = Guid.NewGuid(), FirstName = "OASIS", LastName = "SYSTEM", Username = "root", Email = "anorak@oasisomniverse.one", AvatarType = new EnumValue<AvatarType>(AvatarType.System) } };
-    if (mode is "competition-publisher" or "billing-http" or "billing-admin-http") accounts.Add(new Avatar { Id = wizardActor,
+    if (mode is "competition-publisher" or "billing-http" or "billing-admin-http" or "billing-warning-browser") accounts.Add(new Avatar { Id = wizardActor,
         Username = "wizard-" + wizardActor.ToString("N"), Email = wizardActor.ToString("N") + "@example.test",
         AvatarType = new EnumValue<AvatarType>(mode == "billing-http" ? AvatarType.User : AvatarType.Wizard) });
     foreach (var account in accounts)
     {
         account.IsActive = true; account.Version = 1; account.VersionId = Guid.NewGuid(); account.CreatedDate = DateTime.UtcNow;
+        if (mode == "billing-warning-browser" && account.Id == actor)
+        {
+            account.Email = "delivered@resend.dev";
+            account.Verified = DateTime.UtcNow;
+        }
         if ((mode is "mfa-http" or "mfa-browser") && account.Id == actor)
         {
             account.Verified = DateTime.UtcNow;
@@ -173,10 +178,10 @@ try
     }
     if (mode is "mfa-http" or "mfa-browser") builder.Logging.AddProvider(new SanitizedHttpExceptionLogger());
     MongoSubscriptionUsageRepository? billingRepository = null;
-    if (mode is "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider")
+    if (mode is "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "billing-warning-browser")
     {
         billingRepository = new MongoSubscriptionUsageRepository(client, database, TimeProvider.System);
-        if (mode is not ("billing-warning-store" or "billing-warning-http" or "billing-warning-provider"))
+        if (mode is not ("billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "billing-warning-browser"))
         {
             await billingRepository.CreateAppAccountAsync("owned-billing", "Owned billing route fixture", "enterprise",
                 actor.ToString("D"), "Owned isolated fixture", false, null, CancellationToken.None);
@@ -185,14 +190,14 @@ try
         }
         builder.Services.AddSingleton(billingRepository);
         builder.Services.AddSingleton<IUsageSeriesSource>(billingRepository);
-        if (mode == "billing-warning-http")
+        if (mode is "billing-warning-http" or "billing-warning-browser")
         {
-            dna.OASIS.UsageVisibility = new UsageVisibilitySettings { EmailEnabled = false };
+            dna.OASIS.UsageVisibility = new UsageVisibilitySettings { EmailEnabled = mode == "billing-warning-browser", WarningsEnabled = true };
             builder.Services.AddSingleton<ISubscriptionUsageRepository>(billingRepository);
             builder.Services.AddSingleton<ISubscriptionBillingRepository>(billingRepository);
             builder.Services.AddSingleton<ISubscriptionService, SubscriptionService>();
             builder.Services.AddSingleton<UsageWarningReader>();
-            builder.Services.AddSingleton(new HttpClient { Timeout = TimeSpan.FromSeconds(15) });
+            builder.Services.AddHttpClient();
             builder.Services.AddTransient<UsageWarningEmailGateway>(services =>
                 new UsageWarningEmailGateway(services.GetRequiredService<HttpClient>(), TimeProvider.System));
             builder.Services.AddTransient<UsageWarningEmailDispatcher>();
@@ -206,7 +211,7 @@ try
             ValidateIssuerSigningKey = true, IssuerSigningKey = key, ValidateLifetime = true, ClockSkew = TimeSpan.Zero };
     });
     var mvc = builder.Services.AddControllers();
-    if (mode is "mfa-http" or "mfa-browser")
+    if (mode is "mfa-http" or "mfa-browser" or "billing-warning-browser")
     {
         // WEB4 hosts authentication; WEB5's proxy has its own deployment and the same public URL.
         // This multi-API fixture must use WEB4's application surface for the auth journey.
@@ -220,13 +225,13 @@ try
     if (mode is "mfa-http" or "mfa-browser")
         AvatarManager.SecondFactorGate = NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa.MfaGate.Create(httpMfa!,
             app.Services.GetRequiredService<IHttpContextAccessor>());
-    if (mode is "browser" or "catalogue-browser" or "competition-browser" or "mfa-browser")
+    if (mode is "browser" or "catalogue-browser" or "competition-browser" or "mfa-browser" or "billing-warning-browser")
     {
         var portal = Environment.GetEnvironmentVariable("OASIS_GEO_PORTAL_ROOT") ?? throw new InvalidOperationException("Pinned Portal root required.");
         var browserHost = Environment.GetEnvironmentVariable("OASIS_GEO_BROWSER_HOST") ?? throw new InvalidOperationException("Geo browser host required.");
-        Require(File.Exists(Path.Combine(portal, mode switch { "catalogue-browser" => "assets/js/missions-modal.js", "competition-browser" => "assets/js/competition-modal.js", "mfa-browser" => "assets/js/settings-modal.js", _ => "assets/js/map-modal.js" })) && File.Exists(browserHost), "Actual Portal/browser assets missing.");
+        Require(File.Exists(Path.Combine(portal, mode switch { "catalogue-browser" => "assets/js/missions-modal.js", "competition-browser" => "assets/js/competition-modal.js", "mfa-browser" => "assets/js/settings-modal.js", "billing-warning-browser" => "assets/js/usage-charts.js", _ => "assets/js/map-modal.js" })) && File.Exists(browserHost), "Actual Portal/browser assets missing.");
         app.UseStaticFiles(new StaticFileOptions { FileProvider = new PhysicalFileProvider(Path.Combine(portal, "assets")), RequestPath = "/assets" });
-        app.MapGet(mode switch { "catalogue-browser" => "/__catalogue_browser", "competition-browser" => "/__competition_browser", "mfa-browser" => "/__mfa_settings_browser", _ => "/__geo_browser" }, () => Results.File(browserHost, "text/html"));
+        app.MapGet(mode switch { "catalogue-browser" => "/__catalogue_browser", "competition-browser" => "/__competition_browser", "mfa-browser" => "/__mfa_settings_browser", "billing-warning-browser" => "/__warning_email_browser", _ => "/__geo_browser" }, () => Results.File(browserHost, "text/html"));
     }
     app.Use(async (context, next) => {
         if (context.User.Identity?.IsAuthenticated == true && Guid.TryParse(context.User.FindFirst("sub")?.Value, out var id))
@@ -276,7 +281,45 @@ try
         using var result = JsonDocument.Parse(resultText);
         Require(result.RootElement.GetProperty(resultProperty).GetBoolean(), "Owned browser completion marker missing.");
     }
-    if (mode == "mfa-browser")
+    if (mode == "billing-warning-browser")
+    {
+        Require(Environment.GetEnvironmentVariable("OASIS_WARNING_TEST_RESEND_ENABLED") == "true",
+            "Warning browser requires the explicit isolated provider gate.");
+        var testKey = Environment.GetEnvironmentVariable("OASIS_WARNING_TEST_RESEND_KEY");
+        var sender = Environment.GetEnvironmentVariable("OASIS_WARNING_TEST_EMAIL_FROM");
+        Require(!string.IsNullOrWhiteSpace(testKey) && !string.IsNullOrWhiteSpace(sender), "Temporary warning credential/sender required.");
+        Require(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("OASIS_RESEND_KEY")) &&
+            string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("RESEND_API_KEY")), "Ambient email credential forbidden.");
+        await WarningBrowserFixture.SeedAsync(billingRepository!, database, actor, wizardActor);
+        await billingRepository!.SaveNotificationSettingsAsync("user:" + actor.ToString("D"), new[] { 80 },
+            true, actor.ToString("D"), true, CancellationToken.None);
+        var before = await provider.LoadAvatarAsync(actor);
+        Require(!before.IsError && before.Result?.Email == "delivered@resend.dev" && before.Result.IsVerified,
+            "Owned warning actor must be verified at the fixed provider-controlled recipient.");
+        dna.OASIS.Email.DisableAllEmails = false;
+        try
+        {
+            // Credentials enter only already-booted memory, never the serialized fixture DNA.
+            dna.OASIS.Email.ResendKey = testKey;
+            dna.OASIS.Email.EmailFrom = sender;
+            await RunOwnedBrowserAsync(new { baseUrl = address, token = new JwtSecurityTokenHandler().WriteToken(jwt),
+                avatarId = actor.ToString("D") }, "warningEmailBrowserVerified");
+            var deliveries = await client.GetDatabase(database).GetCollection<MongoDB.Bson.BsonDocument>("usage_notification_settings")
+                .Find(new MongoDB.Bson.BsonDocument("kind", "usage-warning-email-v1")).ToListAsync();
+            Require(deliveries.Count == 1, "Browser action created more than one warning event.");
+            var delivery = await billingRepository!.GetWarningEmailAsync(Guid.Parse(deliveries[0]["eventId"].AsString));
+            Require(delivery.Subject == "user:" + actor.ToString("D") && delivery.Email.To == "delivered@resend.dev" &&
+                delivery.ProviderAcknowledgement.HasValue && delivery.ProviderAcknowledgement.Value != Guid.Empty,
+                "Browser warning has no actual native provider acknowledgement or wrong recipient.");
+            var after = await provider.LoadAvatarAsync(actor);
+            var usage = await billingRepository.GetAggregateAsync(actor.ToString("D"), CancellationToken.None);
+            Require(!after.IsError && after.Result!.VersionId == before.Result.VersionId && usage.MonthlyRequests == 24000,
+                "Warning action mutated the avatar or quota fixture.");
+            Console.WriteLine("WARNING_EMAIL_BROWSER_NATIVE_PROOF: actual SDK/fragment/button submitted one current warning, second explicit action reported already accepted; one persisted controlled-recipient event/provider acknowledgement, unchanged avatar/quota. Not inbox delivery/payment/full Startup/hosted acceptance.");
+        }
+        finally { dna.OASIS.Email.ResendKey = null; dna.OASIS.Email.EmailFrom = null; }
+    }
+    else if (mode == "mfa-browser")
     {
         var before = await provider.LoadAvatarAsync(actor);
         Require(!before.IsError && before.Result != null, "Owned browser actor unavailable.");
