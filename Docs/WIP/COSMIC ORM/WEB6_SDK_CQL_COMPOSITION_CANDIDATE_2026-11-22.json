@@ -1,0 +1,33 @@
+{
+  "source": "94d9966baaf80a72188040d80058f7104a94e87a",
+  "baseNativeCandidate": "0fe0b90913c93898eba06140eb817f916a6abe2d",
+  "liveDevelopment": "863bdc7de586be91c1ef2f053c3b30de43b2fd72",
+  "core": "34848a57c2b165696bdeda91d26e0a7cddd273c8",
+  "web6": "d9e60ceaecef5513d1bcd6285cd668076bc77edf",
+  "scopedWeb6Source": {
+    "web6": "d9e60ceaecef5513d1bcd6285cd668076bc77edf",
+    "scopedWeb6Candidate": "9bd4ca1ae4c71ee98d30e34f3c636c5517bc02fc",
+    "baseWeb6": "0348ded2819e3cb1566e09c49150e41c4ea4d435",
+    "peerWeb6Fix": "50f8e7ff8f5e231804cd5917b4139c3fb78c61dc",
+    "peerQualificationRun": 45018741401,
+    "exactPeerProjectFile": true,
+    "onlyRuntimeChange": "AWSSDK.BedrockRuntime 4.0.101.18 -> 3.7.415",
+    "cataloguePreserved": true,
+    "peerSessionChangesExcluded": true,
+    "compiled": false,
+    "deployed": false,
+    "whitespaceChecked": "Scoped default check; complete branch delta checked with CRLF recognized, preserving upstream catalogue bytes"
+  },
+  "retainedNativeRuns": [
+    45025247615,
+    45026011510,
+    45029053929
+  ],
+  "retainedCompositionRun": 45027751578,
+  "qualification": "seven actual API builds and four real AWS assembly type loads; no native/provider/cloud calls",
+  "phase": "automatic_push_run_pending",
+  "compiled": false,
+  "deployed": false,
+  "oldImageSourceMustNotBeRelabeled": "0fe0b90913c93898eba06140eb817f916a6abe2d",
+  "oldImageRun": 45030371324
+}

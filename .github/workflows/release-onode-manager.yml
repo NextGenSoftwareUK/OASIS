@@ -93,6 +93,9 @@ jobs:
       - name: Run unit tests
         run: dotnet test OASIS/ONODE/ONODEManager/NextGenSoftware.OASIS.ONODE.Tests/NextGenSoftware.OASIS.ONODE.Tests.csproj --logger "trx"
 
+      - name: Run Manager view model tests
+        run: dotnet test OASIS/ONODE/ONODEManager/NextGenSoftware.OASIS.ONODE.Manager.Tests/NextGenSoftware.OASIS.ONODE.Manager.Tests.csproj --logger "trx"
+
   # ── Windows (MSIX via Velopack) ────────────────────────────────────────────
   build-windows:
     needs: [prepare, test]
