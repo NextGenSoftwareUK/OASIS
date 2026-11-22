@@ -173,5 +173,22 @@
     "status": "uncompiled",
     "scope": "fourteen profile paths, current STAR/Competition preserved and tariff included",
     "temporaryIndexes": "removed"
+  },
+  "currentCompositionAcceptance": {
+    "run": 44966844672,
+    "job": 137037701646,
+    "candidate": "bc159110315d0e7a442ebd6b55ab4eac16b39b8b",
+    "result": "success",
+    "buildErrors": 0,
+    "buildElapsed": "00:05:46.33",
+    "proof": "PROFILE_RESTORATION_HTTP_PROOF",
+    "scope": "Real MVC/manager/router/native Mongo GET-PATCH-GET; both selected fields and exact account/detail revisions, username/email preserved.",
+    "cleanup": "Owned database, DNA and container absence verified.",
+    "excluded": [
+      "full Startup",
+      "paid admission",
+      "SSO",
+      "hosted acceptance"
+    ]
   }
 }

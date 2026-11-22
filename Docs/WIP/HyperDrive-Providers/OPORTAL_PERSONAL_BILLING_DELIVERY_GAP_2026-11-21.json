@@ -62,5 +62,218 @@
       "Donor replaces old owner/controller and app-billing paths with complete consent/request/statement owners"
     ],
     "historyObservation": "Local root merge-tree refuses unrelated histories; no force/unrelated-history merge used. Scoped source reconciliation is required; any cross-history comparison remains evidence only."
+  },
+  "preparedRestoration": {
+    "base": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
+    "candidate": "e46d986cb97c346e82379d92e5b666233f2920d3",
+    "tag": "qualification/billing-restoration-2026-11-21-e46d986c",
+    "core": "ab4adf66366f0b3f5e4e352a436a3dcd4878da8e",
+    "coreTag": "qualification/billing-restoration-2026-11-21-ab4adf66",
+    "coreFiles": [
+      "Services/Subscriptions/MongoUsageOutboxStore.cs",
+      "Services/Subscriptions/UsageExecutionContracts.cs"
+    ],
+    "rootChanges": [
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAdminController.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionNotificationController.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs",
+        "change": "remove superseded implementation; matching new owner included"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppAccounts.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppBillingConsent.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppOveragePrices.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppRequestCharges.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppStatementPreparation.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppUsageSettingsPatch.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/ISubscriptionBillingRepository.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Admin.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.AppAccounts.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.AppBilling.cs",
+        "change": "remove superseded implementation; matching new owner included"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Billing.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Grants.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Overages.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Owners.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Pool.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PaidOverageBillingService.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PaidOverageStatements.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalChargeConsent.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalChargeCorrections.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalOverageRequestJsonConverters.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalStatementPreparation.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/StripePaidOverageGateway.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionAdminModels.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionModels.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionUsageModels.cs",
+        "change": "restore matching contract; current index/constructor/DNA protections retained"
+      }
+    ],
+    "verifiedIndexCalls": [
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Billing.cs",
+        "collection": "Subscriptions"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Billing.cs",
+        "collection": "OverageStatements"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Billing.cs",
+        "collection": "Orders"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Billing.cs",
+        "collection": "BillingAudit"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Grants.cs",
+        "collection": "Grants"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.cs",
+        "collection": "_events"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.cs",
+        "collection": "_audit"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.cs",
+        "collection": "_buckets"
+      }
+    ],
+    "dnaCallback": "current constructor and actual paid pool admission use live callback; Startup unchanged",
+    "preservedIndexHelper": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Indexes.cs",
+    "status": "scope-and-preservation-verified-awaiting-inventory-and-compile",
+    "temporaryIndexes": "removed in finally",
+    "remaining": "inventory and API compilation, then changed-composition native/API checks; retain original financial proofs, genuine Stripe gate separate",
+    "actualChangedPaths": [
+      "Docker/oasis-dependency-versions.env",
+      "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAdminController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAppOwnerController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionNotificationController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionOwnerController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppAccounts.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppBillingConsent.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppOveragePrices.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppRequestCharges.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppStatementPreparation.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppUsageSettingsPatch.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/ISubscriptionBillingRepository.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Admin.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.AppAccounts.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.AppBilling.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Billing.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Overages.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Owners.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Pool.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PaidOverageBillingService.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PaidOverageStatements.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalChargeConsent.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalChargeCorrections.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalOverageRequestJsonConverters.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalStatementPreparation.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/StripePaidOverageGateway.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionAdminModels.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionModels.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionUsageModels.cs"
+    ],
+    "unchangedSelections": [
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Grants.cs"
+    ]
   }
 }

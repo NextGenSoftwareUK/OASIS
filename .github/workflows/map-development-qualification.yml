@@ -4,7 +4,7 @@ on:
     inputs:
       candidate_scope:
         type: choice
-        options: [map, hotspot, quest, competition, profile]
+        options: [map, hotspot, quest, competition, profile, billing]
         default: map
       native_check:
         type: boolean
@@ -45,6 +45,7 @@ jobs:
             Scripts/TestHosts/Fixtures/quest-authoritative-candidate.json
             Scripts/TestHosts/Fixtures/competition-development-candidate.json
             Scripts/TestHosts/Fixtures/profile-development-candidate.json
+            Scripts/TestHosts/Fixtures/billing-development-candidate.json
             Scripts/TestHosts/MapDevelopmentNative
             Scripts/TestHosts/HotspotDevelopmentNative
             Scripts/TestHosts/HotspotHttpNative
@@ -66,9 +67,10 @@ jobs:
         env:
           CANDIDATE_SCOPE: ${{ inputs.candidate_scope }}
         run: |
-          if ($env:CANDIDATE_SCOPE -notin @('map','hotspot','quest','competition','profile')) { throw 'Unsupported candidate scope.' }
-          if ($env:CANDIDATE_SCOPE -notin @('map','competition','profile') -and '${{ inputs.inventory_only }}' -eq 'true') { throw 'Only map, competition and profile scopes generate source inventories.' }
-          $files = @{ map='Scripts/TestHosts/Fixtures/map-development-candidate.json'; hotspot='Scripts/TestHosts/Fixtures/hotspot-development-candidate.json'; quest='Scripts/TestHosts/Fixtures/quest-authoritative-candidate.json'; competition='Scripts/TestHosts/Fixtures/competition-development-candidate.json'; profile='Scripts/TestHosts/Fixtures/profile-development-candidate.json' }
+          if ($env:CANDIDATE_SCOPE -notin @('map','hotspot','quest','competition','profile','billing')) { throw 'Unsupported candidate scope.' }
+          if ($env:CANDIDATE_SCOPE -notin @('map','competition','profile','billing') -and '${{ inputs.inventory_only }}' -eq 'true') { throw 'Only map, competition, profile and billing scopes generate source inventories.' }
+          $files = @{ map='Scripts/TestHosts/Fixtures/map-development-candidate.json'; hotspot='Scripts/TestHosts/Fixtures/hotspot-development-candidate.json'; quest='Scripts/TestHosts/Fixtures/quest-authoritative-candidate.json'; competition='Scripts/TestHosts/Fixtures/competition-development-candidate.json'; profile='Scripts/TestHosts/Fixtures/profile-development-candidate.json'; billing='Scripts/TestHosts/Fixtures/billing-development-candidate.json' }
+          if ($env:CANDIDATE_SCOPE -eq 'billing' -and '${{ inputs.native_check }}' -eq 'true') { throw 'Billing requires a reviewed changed-composition native host before runtime selection.' }
           $file = $files[$env:CANDIDATE_SCOPE]
           $candidate = Get-Content $file -Raw | ConvertFrom-Json
           if ($env:CANDIDATE_SCOPE -eq 'competition' -and '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -notin @('competition-browser','competition-publisher')) { throw 'Competition requires an explicit browser or publisher host.' }
