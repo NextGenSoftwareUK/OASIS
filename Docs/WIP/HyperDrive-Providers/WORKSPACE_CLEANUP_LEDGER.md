@@ -2887,3 +2887,6 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 
 ### 2026-11-22 — current shared source composition
 - Composed immutable Core/WEB6/root Git objects without branch switches or changing shared submodule checkouts. Two temporary root indexes removed in finally, including failed missing-add staging attempt. Source tags retained for review; no databases, builds, runtimes, downloads or test artifacts. Root58d7316d exact gitlink/manifest check passed. Current queued session run preserved.
+
+### 2026-11-22 — session request namespace correction
+- Run45070278761 failed compiling new selected-session request namespace; no native session acceptance or provider scenario executed. Corrected both occurrences in actual Core namespace. Next current-base candidate6786b9d paired pins verified. Two owned temporary indexes removed in finally; no local build, runtime, database, downloads or result archives. Failed tag-form manifest check was corrected to exact SHA; no repository bypass.

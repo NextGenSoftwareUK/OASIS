@@ -1,16 +1,17 @@
 {
-  "core": "eed1f7c613ccfba6b8617077c254c97ad8bba371",
+  "core": "35c4baba7a4e7d07ee279c2446b7a17d93cf73b5",
   "web6": "f9aa81c6dc3e27ac02677c985d41929b768c5969",
   "reviewedDevelopment": "9452340f0c69335e63f4ce73b5c2200dbb60adce",
   "status": "Conflict-free Git source composition only; not compiled, runtime accepted or deployed",
   "sourceReview": "Shared Core delta is five CQL query files; own session/authentication changes retained. WEB6 shared delta is Server README; own strict session adapter retained.",
   "preserveCurrentRun": 45070278761,
-  "candidate": "58d7316d2394c99cc46813a4af83dc5268529b56",
+  "candidate": "6786b9d624cde7a885fb84c6092cbcb60783e68f",
   "candidateBase": "9452340f0c69335e63f4ce73b5c2200dbb60adce",
   "addedAccountPaths": [
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AccountClosurePrerequisites.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.AccountClosure.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarAccountClosureController.cs"
   ],
-  "currentRunStatus": "45070278761/job137355471005 in_progress at final observation; existing handle retained"
+  "currentRunStatus": "45070278761 failed at compile: incorrect fully-qualified StorageOperationRequest namespace in selected logout; both new occurrences corrected",
+  "priorCandidate": "58d7316d2394c99cc46813a4af83dc5268529b56"
 }
