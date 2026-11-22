@@ -165,7 +165,14 @@
       "requests": "3GETs; no session/auth mutations",
       "remaining": "Review source inventory, enable exact host selector, compile/run; not full session tracking or revocation.",
       "selector": "Exact HotspotHttpNative/session-list-http allowlisted, source review/compile/native dispatch still pending; no runtime selected before inventory acceptance.",
-      "diagnostics": "Named initial/repeat/foreign stage, selected HTTP status/content type/body length only; middleware logs exception/base/runtime avatar types then rethrows, never body/credentials or fabricated response. Source unchanged; retry same failed cohort after diagnostic commit."
+      "diagnostics": "Named initial/repeat/foreign stage, selected HTTP status/content type/body length only; middleware logs exception/base/runtime avatar types then rethrows, never body/credentials or fabricated response. Source unchanged; retry same failed cohort after diagnostic commit.",
+      "diagnosticRun": {
+        "id": 44975845712,
+        "control": "30014d977810ee78bf7489ff5266fee0a5b9d73d",
+        "candidate": "e359c71b9c7ba1b1c1eb3d54d0522dcaf953dbb4",
+        "status": "queued",
+        "dispatch": "POST observation timed out after20s; exact-head run list confirmed exactly1run, no repeated POST."
+      }
     },
     "httpCandidate": {
       "source": "e359c71b9c7ba1b1c1eb3d54d0522dcaf953dbb4",
