@@ -1,0 +1,10 @@
+{
+  "base": "370bd534ebb0924455baa30e95c614c8bd1a53d5",
+  "candidate": "9fc8211646ccaee12a3d0d05448bc9676ce62b69",
+  "tag": "qualification/session-revoke-ack-2026-11-22-9fc82116",
+  "path": "Managers/AvatarManager/AvatarManager-Session.cs",
+  "invariant": "Token Revoked requires authoritative save IsSaved acknowledgement; null or unacknowledged saves return explicit failure.",
+  "status": "source only; not compiled/native-tested/deployed",
+  "verification": "Exact two source replacements and one-path Git-object diff; no shared checkout mutation",
+  "remaining": "Real-provider revocation failure/acknowledgement qualification, global revocation and OPORTAL wiring"
+}
