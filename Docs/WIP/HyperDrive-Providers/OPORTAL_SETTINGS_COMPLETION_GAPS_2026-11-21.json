@@ -198,7 +198,7 @@
     }
   },
   "mfaSourceDiscovery": {
-    "status": "native-lifecycle-accepted-password-http-failed-ui-prepared-disabled",
+    "status": "native-and-http-mfa-accepted-settings-browser-next",
     "source": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarMfaController.cs",
     "behavior": "Existing real status/enrol/confirm/disable/recovery/events and authenticate-mfa routes plus Core SecondFactorGate. Reuse existing contract rather than implement another MFA backend.",
     "missing": "Resolve actual password HTTP500; accept second-factor JWT/refresh issuance, actual browser and hosted paths; activate prepared management only after verification. Native enrollment/lifecycle accepted, login/status/management UI source exists.",
@@ -240,7 +240,7 @@
     },
     "httpQualification": {
       "source": "Scripts/TestHosts/HotspotHttpNative/MfaHttpQualification.cs",
-      "status": "refresh-envelope-corrected-http-queued",
+      "status": "accepted-http-native-scope-not-browser-hosted",
       "scope": "Actual status/enrol/confirm, password authenticate token-free challenge and no persisted credential, actual authenticate-mfa authenticator/recovery, consumed challenge refusal, signed issuer/audience/lifetime/JWT subject and native refresh persistence. No mock HTTP/provider or response body/credential logging.",
       "remaining": "Compile/runtime result and owned cleanup; then Settings management UI/browser/hosted.",
       "run": {
@@ -258,8 +258,8 @@
       },
       "host": "Actual BCrypt-hashed verified fixture actor, actual MfaService/MongoMfaStore injected supported clock, shipped MfaGate installed/restored finally, actual controller POSTs; fixture signing key matches Core issuance encoding. No deployment/source DNA flags changed.",
       "managementUi": {
-        "commit": "OPORTAL dev2271d00",
-        "status": "prepared-entry-disabled",
+        "commit": "e895bf621c01fe7f38025ce0d8bc9fab20b1ab70",
+        "status": "enabled-only-after-current-node-status-not-browser-accepted",
         "scope": "Actual enrol/confirm/recovery replacement/disable request handlers, manual key and one-time recovery rendering, pending/version/token guards and tab/logout clearing. Syntax/cache checked; generic-close secret clearing and browser acceptance still required.",
         "lifecycle": "Setup/recovery/code DOM clears on explicit/tab/logout and generic modal close; pending Security work invalidated. Entry disabled; no browser acceptance."
       },
@@ -321,18 +321,25 @@
         "id": 44985814682,
         "control": "e8e62b794c392380d791598114b160f7d3e072ca",
         "candidate": "fbe6c7248f064e44766260e78e00a24b98555e0d",
-        "status": "queued",
+        "status": "completed",
         "mode": "mfa-http",
-        "secrets": "Both temporary email secrets deleted; selector passes none."
+        "secrets": "Both temporary email secrets deleted; selector passes none.",
+        "conclusion": "success",
+        "job": 137096010577,
+        "buildErrors": 0,
+        "buildElapsed": "00:04:48.42",
+        "proof": "Actual password token-free challenge, authenticator/recovery signed JWT, consumed challenge refusal, native credential generations and provider-bound refresh HTTP rotation passed.",
+        "cleanup": "Owned database/tempDNA/container absence verified."
       }
     },
     "browserQualification": {
       "host": "Scripts/TestHosts/Fixtures/mfa-settings-browser-host.html",
-      "status": "host-and-journey-prepared-syntax-checked-unselected",
+      "status": "selected-awaiting-dispatch",
       "scope": "Actual SDK/Settings fragment/script/stylesheet against native API: status, enrollment/manual key, confirmation, recovery replacement after real next TOTP step, recovery disable, secret clearing and reopen. Network requests constrained to own loopback endpoints; no response stubs, setup/recovery/body logging or local environment.",
-      "remaining": "Corrected HTTP result; activate management and pin exact Portal revision, select and run browser journey, verify cleanup. Prepared host wiring not compiled/accepted yet.",
+      "remaining": "Actual browser/native lifecycle and cleanup acceptance; full Startup/hosted and other Settings gaps remain open.",
       "runner": "Scripts/TestHosts/Fixtures/mfa-settings-browser-native-http.cjs",
-      "selector": "Explicit mfa-browser host/workflow prepared: WEB4-only surface, fresh verified actor, real-time MfaService, actual assets/SDK/browser, native lifecycle audit and unchanged avatar; existing remote browser runtime/cleanup. Descriptor remains mfa-http; no browser run selected."
+      "selector": "Explicit mfa-browser host/workflow prepared: WEB4-only surface, fresh verified actor, real-time MfaService, actual assets/SDK/browser, native lifecycle audit and unchanged avatar; existing remote browser runtime/cleanup. Descriptor remains mfa-http; no browser run selected.",
+      "portal": "e895bf621c01fe7f38025ce0d8bc9fab20b1ab70"
     }
   },
   "portalExpiryFix": {

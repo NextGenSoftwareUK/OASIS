@@ -1,6 +1,6 @@
 {
   "scope": "billing",
-  "status": "warning-provider-accepted-awaiting-mfa-refresh-http",
+  "status": "mfa-http-refresh-accepted-awaiting-settings-browser",
   "base": "5633710e7c4b983053351ad3e88438558352cbef",
   "candidate": "fbe6c7248f064e44766260e78e00a24b98555e0d",
   "tag": "qualification/warning-sdk-2026-11-21-fbe6c724",
@@ -60,5 +60,6 @@
   },
   "remaining": "Review regenerated inventory, compile and verify actual changed HTTP flow. Reliable warning email delivery and hosted acceptance remain open.",
   "nativeHost": "HotspotHttpNative",
-  "nativeMode": "mfa-http"
+  "nativeMode": "mfa-browser",
+  "portal": "e895bf621c01fe7f38025ce0d8bc9fab20b1ab70"
 }
