@@ -64,6 +64,9 @@ public sealed partial class MongoSubscriptionUsageRepository
         var sourceIds = candidates.Where(x => x.Operation.BillingStatementId != null).Select(x => x.Operation.BillingStatementId).Distinct(StringComparer.Ordinal).ToArray();
         var sources = sourceIds.Length == 0 ? new List<PaidOverageStatement>() : await OverageStatements.Find(session,
             Builders<PaidOverageStatement>.Filter.In(x => x.Id, sourceIds)).ToListAsync(token);
+        // A positive correction may never exceed the customer's currently approved cap: if they lowered it after
+        // the original request, the lower cap wins over the cap bound into that request's terms.
+        var currentCap = (await Subscriptions.Find(session, x => x.UserId == operation.UserId).FirstOrDefaultAsync(token))?.MonthlyOverageLimitUsd ?? 0;
         // Refunds release capacity before positive redistribution, in deterministic settlement order.
         var running = checked(aggregate.SettledOverageUsd + candidates.Sum(x => Math.Min(0, x.TargetActual - x.OriginalActual)));
         var movements = new List<PersonalChargeMovement>();
@@ -73,7 +76,7 @@ public sealed partial class MongoSubscriptionUsageRepository
             var terms = current.PersonalOverageChargeTerms;
             var target = candidate.TargetActual;
             if (target > candidate.OriginalActual) {
-                var available = Math.Max(0, terms.MonthlyCapUsd - running - aggregate.ReservedOverageUsd);
+                var available = Math.Max(0, Math.Min(terms.MonthlyCapUsd, currentCap) - running - aggregate.ReservedOverageUsd);
                 var accepted = Math.Min(target - candidate.OriginalActual, available);
                 target = checked(candidate.OriginalActual + accepted); running = checked(running + accepted);
             }
