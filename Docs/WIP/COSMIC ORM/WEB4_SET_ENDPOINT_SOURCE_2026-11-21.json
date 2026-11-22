@@ -1,0 +1,11 @@
+{
+  "qualificationSource": "212d942c379d806046466bd8d01e49438abad96f",
+  "workflow": "qualify-cql-set-endpoint.yml",
+  "cases": 2,
+  "scope": "Shipping endpoint and durable admission owner with controlled native acknowledgements; not real HTTP transport or native SDK mathematics",
+  "compiled": false,
+  "accepted": false,
+  "developmentPushed": false,
+  "priorQualificationSource": "c1ce62ed9cba1c5b0fc02e6afc221ba4d6c72e4c",
+  "defaultAuthorityBound": true
+}
