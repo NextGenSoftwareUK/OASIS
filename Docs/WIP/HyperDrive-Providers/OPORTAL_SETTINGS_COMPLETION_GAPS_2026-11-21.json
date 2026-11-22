@@ -219,6 +219,11 @@
       "scope": "Existing MfaService/MongoMfaStore on exact owned loopback DB: encrypted pending enrollment, confirm, authenticator challenge/consumption, recovery consumption/refusal, disable and actual lifecycle audit. Uses supported injected clock to advance30s without sleeping; no mock store/provider or secret output.",
       "remaining": "Compile and select after current session failure resolved; then actual HTTP/login/browser and Settings UI. No source/deployed MFA setting changed.",
       "selector": "Explicit mfa-native host plus both workflow allowlists prepared; descriptor remains session-list-http. No MFA dispatch or node setting change. Initial edit guard found2allowlists rather than1; both updated explicitly."
+    },
+    "statusUi": {
+      "commit": "OPORTAL dev c8059aa",
+      "status": "source-implemented-syntax-checked-not-browser-accepted",
+      "scope": "On-demand real status GET, explicit retry, strict contract, current modal/client/token guards and logout clearing; management disabled."
     }
   },
   "portalExpiryFix": {
@@ -254,9 +259,16 @@
       "candidate": "e5aa77161465fa6c683746bac49ea647dd7adeb0",
       "control": "433a85885e8a9ac852fec4fdaadee53f1721dba9",
       "run": 44977175851,
-      "status": "in_progress",
+      "status": "completed",
       "mode": "session-list-http",
-      "pins": "verified"
+      "pins": "verified",
+      "conclusion": "success",
+      "job": 137069568377,
+      "buildErrors": 0,
+      "buildElapsed": "00:04:44.74",
+      "evidence": "Initial/repeat200JSON; foreign read error envelope with no data; persisted active/revoked/expired records and stable hashes; no raw tokens/invented security data; unchanged native avatar.",
+      "cleanup": "Owned database/tempDNA/container absence verified.",
+      "remaining": "Not device tracking/create/update/logout/JWT revocation/other-provider/full Startup/browser/hosted acceptance."
     },
     "regressionGuard": "Prepared actual MVC EndpointDataSource check: all6session verb/templates each have exactly1endpoint owned by AvatarSessionController. No route filtering or fake responses. Added after dispatch; not included in current44977175851 run."
   }
