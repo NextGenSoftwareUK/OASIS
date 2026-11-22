@@ -175,9 +175,27 @@ async function run(){
     await waitFor(()=>evaluate("document.readyState==='complete'&&!!window.cqlPlayground&&!!window.cqlAsk"),'Real page initialization');
     if(Object.keys(report.assetHashes).length!==assetNames.length)throw Error('Not all exact source assets loaded');
     await evaluate("document.querySelector('button[data-tab=\"cql\"]').click();true");
-    for(const name of ['derived','staged-set']){
+    report.renderedExamples=[];
+    for(const name of ['derived','staged-set','tuple-distinct']){
       const loaded=await evaluate("(()=>{const b=document.getElementById('cql-load-"+name+"-example');b.click();const t=document.getElementById('cql-text');return t.value.trim()===document.getElementById('cql-"+name+"-example').textContent.trim()&&t.getClientRects().length>0;})()");
       if(!loaded)throw Error('Displayed advanced example did not populate the visible real editor');
+      report.renderedExamples.push(name);
+      if(name==='tuple-distinct'){
+        report.tupleDistinctCompilerCaptures=[];
+        for(const identity of ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']){
+          const captured=await evaluate("window.CqlText.compile(document.getElementById('cql-text').value.replaceAll('MongoDBOASIS',"+JSON.stringify(identity)+"))");
+          const stages=captured?.body?.stages,operations=stages?.map(stage=>stage.operation);
+          const selection=stages?.find(stage=>stage.operation==='Select');
+          if(captured?.path!=='data/query-cql/composition'||captured?.body?.provider!==identity||
+              captured?.body?.source?.take!==25||!selection||
+              !isDeepStrictEqual(selection.columns,[{alias:'Label',sourceAlias:'Name'},{alias:'Detail',sourceAlias:'Description'}])||
+              operations.indexOf('Select')<0||operations.indexOf('Distinct')<=operations.indexOf('Select')||
+              operations.indexOf('OrderBy')<=operations.indexOf('Distinct')||
+              stages.at(-1)?.operation!=='Take'||stages.at(-1)?.count!==5)
+            throw Error('Real browser tuple-distinct compiler capture differs from reviewed native stages');
+          report.tupleDistinctCompilerCaptures.push({provider:identity,path:captured.path,sourceTake:25,operations});
+        }
+      }
     }
     report.advancedExampleControlsRendered=true;
     if(live){
