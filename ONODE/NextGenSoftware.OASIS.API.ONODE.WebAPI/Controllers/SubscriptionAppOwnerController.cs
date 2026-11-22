@@ -46,6 +46,32 @@ public sealed class SubscriptionAppOwnerController(MongoSubscriptionUsageReposit
             actor, IsAdministrator(actor), HttpContext.RequestAborted), isSave: true);
     }
 
+    [HttpGet("{appId}/notifications")]
+    public Task<IActionResult> Notifications(string appId)
+    {
+        return Run(async actor =>
+        {
+            var app = await repository.GetAppForOwnerAsync(appId, actor, IsAdministrator(actor), HttpContext.RequestAborted);
+            var subject = "app:" + app.AppId + ":owner:" + actor;
+            return SubscriptionNotificationController.View(subject,
+                await repository.GetNotificationSettingsAsync(subject, HttpContext.RequestAborted));
+        });
+    }
+
+    [HttpPost("{appId}/notifications")]
+    public Task<IActionResult> SaveNotifications(string appId, [FromBody] UsageNotificationPreferencesRequest request)
+    {
+        return Run(async actor =>
+        {
+            if (request == null) throw new ArgumentException("Notification preferences are required.");
+            var app = await repository.GetAppForOwnerAsync(appId, actor, IsAdministrator(actor), HttpContext.RequestAborted);
+            var subject = "app:" + app.AppId + ":owner:" + actor;
+            var saved = await repository.SaveNotificationSettingsAsync(subject, request.Thresholds,
+                request.EmailRequested, actor, request.WarningsEnabled, HttpContext.RequestAborted);
+            return SubscriptionNotificationController.View(subject, saved);
+        }, isSave: true);
+    }
+
     [HttpGet("{appId}/usage")]
     public Task<IActionResult> Usage(string appId, [FromQuery] string from = null, [FromQuery] string to = null)
     {

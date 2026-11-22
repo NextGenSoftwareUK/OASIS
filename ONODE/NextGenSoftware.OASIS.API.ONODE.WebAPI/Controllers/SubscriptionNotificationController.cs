@@ -19,7 +19,7 @@ public sealed class SubscriptionNotificationController(MongoSubscriptionUsageRep
     public Task<IActionResult> Get()
     {
         return ForSubscriber(async id =>
-            View(id, await repository.GetNotificationSettingsAsync("user:" + id, HttpContext.RequestAborted)));
+            View("user:" + id, await repository.GetNotificationSettingsAsync("user:" + id, HttpContext.RequestAborted)));
     }
 
     [HttpPost]
@@ -30,18 +30,18 @@ public sealed class SubscriptionNotificationController(MongoSubscriptionUsageRep
             if (request == null) throw new ArgumentException("Notification preferences are required.");
             var saved = await repository.SaveNotificationSettingsAsync("user:" + id, request.Thresholds,
                 request.EmailRequested, id, request.WarningsEnabled, HttpContext.RequestAborted);
-            return View(id, saved);
+            return View("user:" + id, saved);
         }, isSave: true);
     }
 
-    private static object View(string id, UsageNotificationSettings settings)
+    internal static object View(string subject, UsageNotificationSettings settings)
     {
         var dna = OASISBootLoader.OASISBootLoader.OASISDNA;
         var defaults = dna?.OASIS?.UsageVisibility ?? new UsageVisibilitySettings();
         bool inherited = settings?.Thresholds == null || settings.Thresholds.Count == 0;
         return new
         {
-            subject = "user:" + id,
+            subject,
             thresholds = inherited ? defaults.DefaultWarningPercents : settings.Thresholds,
             isDefault = inherited,
             warningsEnabled = settings?.WarningsOverride ?? defaults.WarningsEnabled,

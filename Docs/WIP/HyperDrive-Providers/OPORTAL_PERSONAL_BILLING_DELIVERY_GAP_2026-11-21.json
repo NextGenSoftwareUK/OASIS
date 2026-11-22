@@ -309,5 +309,24 @@
       "finding": "Deleting old SubscriptionOwnerController removed four endpoints not replaced by new admin/app-owner/notification controllers. Existing overlapping routes correctly move to new controllers; do not restore whole old controller and create duplicate route owners.",
       "next": "Restore missing canonical controller actions and their actual authorization/repository dependencies; preserve personal consent, owner controls and alerts. Review email acknowledgement semantics before moving old MaybeEmailAsync (swallows exceptions and marks notified before delivery). Regenerate inventory only after source corrections; no compile/runtime dispatch yet."
     }
+  },
+  "routeRestorationWork": {
+    "status": "partial-source-only-not-compiled",
+    "existingAdminOwnerAction": {
+      "source": "649386fa4e6d954fdc34cc776628111adf646620",
+      "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionAdminController.cs",
+      "finding": "Task branch already has SetAppOwners/AppOwnersRequest and canonical administrator AppAccountCall; reconcile this existing action into candidate rather than reimplement."
+    },
+    "newOwnerNotificationActions": [
+      "GET api/subscription/app-owner/{appId}/notifications",
+      "POST api/subscription/app-owner/{appId}/notifications"
+    ],
+    "invariant": "Authorize and resolve actual app through GetAppForOwnerAsync before reading/saving actor-specific subject; use canonical returned AppId, authenticated actor and existing notification repository. Shared view handles both personal and owner subjects.",
+    "remaining": [
+      "Restore alerts with correct warning/email acknowledgement semantics",
+      "Recompose candidate including existing admin action and new notification actions",
+      "Regenerate source inventories and compile",
+      "Verify changed HTTP behavior against owned native backend"
+    ]
   }
 }
