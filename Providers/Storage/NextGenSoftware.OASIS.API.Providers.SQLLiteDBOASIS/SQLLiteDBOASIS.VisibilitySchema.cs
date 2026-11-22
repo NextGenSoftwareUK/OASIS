@@ -15,6 +15,8 @@ public partial class SQLLiteDBOASIS
     {
         using var transaction=await _appDataContext.Database.BeginTransactionAsync().ConfigureAwait(false);
         var connection=_appDataContext.Database.GetDbConnection();
+        await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"RefreshTokens",
+            new Dictionary<string,string> {{"AuthorityProvider","TEXT NULL"}}).ConfigureAwait(false);
         using (var receiptSchema = connection.CreateCommand())
         {
             receiptSchema.Transaction = transaction.GetDbTransaction();
@@ -76,6 +78,13 @@ public partial class SQLLiteDBOASIS
             await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),table,new Dictionary<string,string>{
                 {"CreatedDateKind","INTEGER NOT NULL DEFAULT 0"},{"ModifiedDateKind","INTEGER NOT NULL DEFAULT 0"},
                 {"DeletedDateKind","INTEGER NOT NULL DEFAULT 0"}}).ConfigureAwait(false);
+        using(var profileIdentity=connection.CreateCommand())
+        {
+            profileIdentity.Transaction=transaction.GetDbTransaction();
+            profileIdentity.CommandText="CREATE UNIQUE INDEX IF NOT EXISTS oasis_avatar_username_unique ON Avatar(Username COLLATE BINARY) WHERE typeof(Username)='text' AND Username<>''; "
+                +"CREATE UNIQUE INDEX IF NOT EXISTS oasis_avatar_email_unique ON Avatar(Email COLLATE BINARY) WHERE typeof(Email)='text' AND Email<>'';";
+            await profileIdentity.ExecuteNonQueryAsync().ConfigureAwait(false);
+        }
         await transaction.CommitAsync().ConfigureAwait(false);
     }
 
