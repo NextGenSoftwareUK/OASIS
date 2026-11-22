@@ -290,7 +290,13 @@
         "cleanup": "Owned database/tempDNA/container absence verified."
       },
       "rootCause": "Fixture registered both WEB4 AvatarAuthController api/avatar/authenticate and pinned STARcf763aec WEB5 AvatarController api/[controller]/authenticate. Separate API surfaces collided in combined fixture; this is not evidence of a production authentication bug.",
-      "fix": "MFA host explicitly uses WEB4 ApplicationPart only; preserves other mode surfaces. Actual endpoint metadata must show exactly1POST authenticate owned by AvatarAuth. No production code/route alias/filter/fallback changed."
+      "fix": "MFA host explicitly uses WEB4 ApplicationPart only; preserves other mode surfaces. Actual endpoint metadata must show exactly1POST authenticate owned by AvatarAuth. No production code/route alias/filter/fallback changed.",
+      "correctedRun": {
+        "id": 44980535540,
+        "control": "03708113a553e3063cf932f92d5242623b92b9f9",
+        "candidate": "e5aa77161465fa6c683746bac49ea647dd7adeb0",
+        "status": "in_progress"
+      }
     }
   },
   "portalExpiryFix": {

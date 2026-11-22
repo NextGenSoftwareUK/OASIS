@@ -2701,3 +2701,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 2026-11-21 MFA DIAGNOSTIC: one dispatch44979088900 verified active; remote fixture cleanup pending. OPORTAL7aa464e source/cache/docs and syntax-only checks, no local build/env/download/database/archive/worktree or shared backend request.
 
 2026-11-21 MFA diagnostic44979088900 failure;0error7m07.04 build, password500, no middleware exception marker. RAM selected log confirms owned DB/tempDNA/container absence. No local build/env/archive/download/database/worktree created. New server type-only logger prepared, no dispatch yet.
+
+2026-11-21 MFA fixture root cause:44979849197 failed after0error5m37.66 build; RAM logs identify route ambiguity, owned DB/tempDNA/container absence verified. Corrected fixture-only WEB4 surface;44980535540 one dispatch verified active, cleanup pending. No local build/download/env/archive/database/worktree or shared backend activity.
