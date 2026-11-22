@@ -17,7 +17,7 @@ public partial class MongoDBOASIS : ICosmicQueryJoinStorageProvider
     {
         internal static readonly CosmicJoinCapabilities Value = new(
             new[] { CosmicJoinKind.Inner, CosmicJoinKind.Left, CosmicJoinKind.Cross, CosmicJoinKind.Full }, CqlProjectionCapabilities, CqlProjectionCapabilities,
-            supportsChildNavigation:true,supportsOutputOrdering:true,supportsKeyComparisons:true,supportsChildEntities:true, supportsNullableKeyEquality: true, supportsLeftEntities: true)
+            supportsChildNavigation:true,supportsOutputOrdering:true,supportsKeyComparisons:true,supportsChildEntities:true, supportsNullableKeyEquality: true, supportsLeftEntities: true, supportsEntityPairs: true)
             { SupportsAnyKey = true };
     }
     public static CosmicJoinCapabilities CqlJoinCapabilities => JoinContract.Value;

@@ -116,7 +116,23 @@ public partial class Neo4jOASIS
                 + "entry{.id,.visible,.creator,.valid,.domainValid,.cycle,.traversalLimit,.payloadLimit,.bytes,.keys,.values,.ordering}"
                 + " AS proof,size(rightInput) AS nativeCount "
             : "RETURN 1 AS kind,-1 AS lp,ri AS rp,rightInput[ri] AS proof,size(rightInput) AS nativeCount ";
-        if (query.SelectsChildEntity || query.SelectsLeftEntity)
+        if(query.SelectsEntityPair)
+        {
+            var entityLimit=binder.Bind(limits.MaximumPayloadBytes);
+            var entityOrder=values.Count==0 ? "" : ","+string.Join(",",values);
+            string Snapshot(string node)=>"CASE WHEN "+node+" IS NOT NULL THEN {id:"+node+".Id,revision:"+node
+                +".ProviderRevisionId,snapshot:CASE WHEN size("+node+".SnapshotJson)<="+entityLimit+" THEN "+node+".SnapshotJson END} END";
+            output="WITH kind,lp,rp,proof,nativeCount,CASE WHEN kind=2 THEN leftInput[lp] END AS selectedLeft,"
+                +"CASE WHEN kind=2 AND rp>=0 THEN rightInput[rp] END AS selectedRight"+entityOrder+" "
+                +"OPTIONAL MATCH (leftEntity:Holon) WHERE elementId(leftEntity)=selectedLeft.entityLocator "
+                +"AND coalesce(leftEntity.ProviderRevisionId,'')=selectedLeft.entityRevision "
+                +"OPTIONAL MATCH (rightEntity:Holon) WHERE elementId(rightEntity)=selectedRight.entityLocator "
+                +"AND coalesce(rightEntity.ProviderRevisionId,'')=selectedRight.entityRevision "
+                +"RETURN kind,lp,rp,proof,nativeCount,"+Snapshot("leftEntity")+" AS leftEntity,"
+                +Snapshot("rightEntity")+" AS rightEntity ORDER BY kind ASC,"
+                +string.Join(",",orderTerms.Concat(new[]{"lp ASC","rp ASC"}));
+        }
+        else if (query.SelectsChildEntity || query.SelectsLeftEntity)
         {
             var entityLimit = binder.Bind(limits.MaximumPayloadBytes);
             var entityOrder = values.Count == 0 ? "" : "," + string.Join(",", values);

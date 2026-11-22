@@ -22,6 +22,40 @@ public sealed partial class CosmicCqlNativeTests
     }
 
     [Fact]
+    public Task NativeGroupJoinPreservesLeftIdentityOrderedMatchesAndCompleteGroupPage()
+        =>WithMongoGraph(async fixture=>
+        {
+            var manager=Manager(fixture.Provider);
+            var source=CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.MongoDBOASIS).Result);
+            var root=CosmicLinq.Create(manager,fixture.Provider,source).Result;
+            var left=root.Where(h=>h.Name.StartsWith("L-")).OrderBy(h=>h.Name);
+            var right=root.Where(h=>h.Name.StartsWith("R-")).OrderByDescending(h=>h.Name);
+            var query=left.GroupJoin(right,l=>l.Description,r=>r.Description,(parent,matches)=>new{Parent=parent,Matches=matches});
+            var read=await query.ToCosmicListAsync();
+            Assert.False(read.IsError,read.Message+read.Exception);
+            var rows=read.Result;
+            Assert.Equal(new[]{"L-A","L-B","L-C"},rows.Select(row=>row.Parent.Name));
+            Assert.NotEqual(rows[0].Parent.Id,rows[1].Parent.Id);
+            foreach(var row in rows.Take(2)){Assert.Equal(new[]{"R-B","R-A"},row.Matches.Select(match=>match.Name));}
+            Assert.Empty(rows[2].Matches);
+            var page=await query.Skip(1).Take(1).ToCosmicListAsync();
+            Assert.False(page.IsError,page.Message+page.Exception);
+            Assert.Equal("L-B",Assert.Single(page.Result).Parent.Name);
+            Assert.Equal(new[]{"R-B","R-A"},page.Result.Single().Matches.Select(match=>match.Name));
+            var flattened=await query.SelectMany(group=>group.Matches,(group,match)=>new{Parent=group.Parent.Name,Match=match.Name}).ToCosmicListAsync();
+            Assert.False(flattened.IsError,flattened.Message+flattened.Exception);
+            Assert.Equal(4,flattened.Result.Count);
+        },configure:root=>
+        {
+            root.Name="L-A";root.Description="coffee";
+            var children=root.Children.ToArray();
+            children[0].Name="R-A";children[1].Name="R-B";
+            foreach(var child in children)child.Description="coffee";
+            var other=children[0].Children.Single();other.Name="L-B";other.Description="coffee";
+            root.Children.Add(new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,Name="L-C",Description="tea"});
+        });
+
+    [Fact]
     public Task NativeJoinPublishesWholeLeftEntitiesWithMultiplicityAndIndependentPage()
         =>WithMongoGraph(async fixture=>
         {

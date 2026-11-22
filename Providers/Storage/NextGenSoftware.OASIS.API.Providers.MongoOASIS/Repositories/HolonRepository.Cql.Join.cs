@@ -87,17 +87,19 @@ public partial class HolonRepository
             deadline.Token.ThrowIfCancellationRequested();
             if (query.OutputLimit.HasValue ? !receivedFacet : pairCount != rows.Count)
                 throw new InvalidDataException("Native join pair count disagrees with its complete stream.");
-            var entities = query.SelectsChildEntity || query.SelectsLeftEntity ? await ReadSelectedEntities().ConfigureAwait(false) : null;
+            var leftEntities = query.SelectsLeftEntity ? await ReadSelectedEntities(true).ConfigureAwait(false) : null;
+            var rightEntities = query.SelectsChildEntity ? await ReadSelectedEntities(false).ConfigureAwait(false) : null;
             return new CosmicJoinPacket(left.Rows.Values.ToArray(), right.Rows.Values.ToArray(), rows.ToArray(),
-                left.Count, right.Count, pairCount, query.SelectsChildEntity ? entities : null, query.SelectsLeftEntity ? entities : null);
+                left.Count, right.Count, pairCount, rightEntities, leftEntities);
 
-            async Task<IHolon[]> ReadSelectedEntities()
+            async Task<IHolon[]> ReadSelectedEntities(bool isLeft)
             {
-                var identities = rows.Select(row => query.SelectsLeftEntity ? row.LeftId : row.RightId
-                    ?? throw new InvalidDataException("A selected entity must have its native source identity.")).ToArray();
-                var uniqueIdentities = identities.Distinct().ToArray();
-                var scope = query.SelectsLeftEntity ? query.Join.Left.Scope : query.Join.Right.Scope;
-                var access = query.SelectsLeftEntity ? query.Join.Left.ReadAccess : query.Join.Right.ReadAccess;
+                var identities = rows.Select(row => isLeft ? (Guid?)row.LeftId : row.RightId).ToArray();
+                if(isLeft && identities.Any(id=>!id.HasValue || id.Value==Guid.Empty))
+                    throw new InvalidDataException("A selected left entity requires its preserved native identity.");
+                var uniqueIdentities = identities.Where(id=>id.HasValue).Select(id=>id.Value).Distinct().ToArray();
+                var scope = isLeft ? query.Join.Left.Scope : query.Join.Right.Scope;
+                var access = isLeft ? query.Join.Left.ReadAccess : query.Join.Right.ReadAccess;
                 var byId = new Dictionary<Guid, IHolon>(identities.Length);
                 foreach (var batch in uniqueIdentities.Chunk(CosmicQueryExpression.MaximumMembershipValues))
                 {
@@ -115,7 +117,7 @@ public partial class HolonRepository
                 }
                 if (byId.Count != uniqueIdentities.Length)
                     throw new InvalidDataException("Native selected entities do not match the joined identities.");
-                return identities.Select(id => byId[id]).ToArray();
+                return identities.Select(id => id.HasValue ? byId[id.Value] : null).ToArray();
             }
 
             void AddPair(BsonDocument data, bool paged)

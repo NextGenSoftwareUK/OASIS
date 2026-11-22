@@ -1,0 +1,29 @@
+{
+  "core": "f8fc9bb795fc4d1f966b63c2b724741dce7bc62f",
+  "parentBase": "e6b22d6babdb4839c8fa82d552151d01b1a13fb3",
+  "stage": "source-implemented; compilation and native qualification open",
+  "implementedScope": [
+    "Whole-left/right records in one native pair stream",
+    "Anonymous outer-and-matches LINQ GroupJoin carrier",
+    "Separate left identities for repeated keys",
+    "Ordered complete right collections and empty groups",
+    "Group-level Skip/Take and existing joined cardinality terminals",
+    "Existing immediate flattened GroupJoin route preserved"
+  ],
+  "compiled": false,
+  "nativeExecuted": false,
+  "deployed": false,
+  "fullParity": false,
+  "qualificationWorkflow": ".github/workflows/qualify-cql-group-join-native.yml",
+  "expectedCoreTests": 5,
+  "expectedNativeTests": 6,
+  "existingReleaseSource": "c25ce0b7ac7d6b1de734e31d7bbc2c706de7c384",
+  "remaining": [
+    "Exact changed Core and three-provider compilation",
+    "Five Core and six real-native checks",
+    "Broader grouped-result projections, predicates and ordering",
+    "Representative nullable/composite-key and source visibility GroupJoin verification",
+    "WEB4/SQL demo enrollment where applicable",
+    "Qualified current-dependency image/package and Development acceptance"
+  ]
+}

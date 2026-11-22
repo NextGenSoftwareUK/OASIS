@@ -18,6 +18,40 @@ public partial class Neo4jNativeCqlTests
     }
 
     [TestMethod]
+    public Task NativeGroupJoinPreservesLeftIdentityOrderedMatchesAndCompleteGroupPage()
+        =>WithNativeGraph(async fixture=>
+        {
+            var manager=GraphManager(fixture.Provider);
+            var source=CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.Neo4jOASIS).Result);
+            var root=CosmicLinq.Create(manager,fixture.Provider,source).Result;
+            var left=root.Where(h=>h.Name.StartsWith("L-")).OrderBy(h=>h.Name);
+            var right=root.Where(h=>h.Name.StartsWith("R-")).OrderByDescending(h=>h.Name);
+            var query=left.GroupJoin(right,l=>l.Description,r=>r.Description,(parent,matches)=>new{Parent=parent,Matches=matches});
+            var read=await query.ToCosmicListAsync();
+            Assert.IsFalse(read.IsError,read.Message+read.Exception);
+            var rows=read.Result;
+            CollectionAssert.AreEqual(new[]{"L-A","L-B","L-C"},rows.Select(row=>row.Parent.Name).ToArray());
+            Assert.AreNotEqual(rows[0].Parent.Id,rows[1].Parent.Id);
+            foreach(var row in rows.Take(2)){CollectionAssert.AreEqual(new[]{"R-B","R-A"},row.Matches.Select(match=>match.Name).ToArray());}
+            Assert.AreEqual(0,rows[2].Matches.Count());
+            var page=await query.Skip(1).Take(1).ToCosmicListAsync();
+            Assert.IsFalse(page.IsError,page.Message+page.Exception);
+            Assert.AreEqual("L-B",page.Result.Single().Parent.Name);
+            CollectionAssert.AreEqual(new[]{"R-B","R-A"},page.Result.Single().Matches.Select(match=>match.Name).ToArray());
+            var flattened=await query.SelectMany(group=>group.Matches,(group,match)=>new{Parent=group.Parent.Name,Match=match.Name}).ToCosmicListAsync();
+            Assert.IsFalse(flattened.IsError,flattened.Message+flattened.Exception);
+            Assert.AreEqual(4,flattened.Result.Count);
+        },configure:root=>
+        {
+            root.Name="L-A";root.Description="coffee";
+            var children=root.Children.ToArray();
+            children[0].Name="R-A";children[1].Name="R-B";
+            foreach(var child in children)child.Description="coffee";
+            var other=children[0].Children.Single();other.Name="L-B";other.Description="coffee";
+            root.Children.Add(new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,Name="L-C",Description="tea"});
+        });
+
+    [TestMethod]
     public Task NativeJoinPublishesWholeLeftEntitiesWithMultiplicityAndIndependentPage()
         =>WithNativeGraph(async fixture=>
         {

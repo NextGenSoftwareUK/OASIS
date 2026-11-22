@@ -31,11 +31,13 @@ Release gates:
 3. Freshly review shared Development/peer source and integrate a scoped verified batch.
 4. Observe required rollouts/running source, then execute the bounded owned full/virtual live check.
 
-## Next parity family — source-only successor
+## Next parity family — GroupJoin source implemented, unqualified
 
-Whole-left native join transport is implemented in shared Core and the actual MongoDB, SQLite and Neo4j readers. It preserves source identity, match multiplicity, unmatched preserved rows, independent native output paging, detached entity copies and permission proof. Two focused Core journeys and one native journey/provider are written, not compiled or executed. Provider reads remain under their existing shared snapshot/transaction; there is no managed source-query fallback.
+Shared Core now captures an anonymous outer-and-matches LINQ GroupJoin and assembles complete groups from one fully validated native pair stream. Actual MongoDB, SQLite and Neo4j readers carry both whole sources under their existing snapshots/transactions. Separate left identities survive repeated keys; right source order, empty matches and group-level Skip/Take are preserved. The original immediate flattened GroupJoin route remains native. No source-query delegate is compiled and no second independent source scan or managed predicate/join fallback is introduced.
 
-This successor is **unqualified** and must not be swept into the active mapped-computed release: that immutable candidate stays c25ce0b7/Corebabf7b82 with its existing45014425835 and45014821002 handles. Publish only the qualified candidate, never the latest feature tip merely for synchronization. Standalone GroupJoin collections, whole-both-source grouping and group-level paging remain open; parity counts are unchanged. [Source record](GROUP_JOIN_WHOLE_LEFT_SOURCE_2026-11-22.json).
+Five focused Core controls and six real-native journeys are selected in one new CI workflow (two changed journeys/provider). C# syntax for17changed files, workflow YAML and PowerShell AST pass using existing tools in memory; these checks do not prove compilation or native behavior. Grouped-result projections/filtering/ordering beyond the direct carrier and further representative key/visibility checks remain open. Q44 and61/168+4/13 stay unchanged. [Source record](GROUP_JOIN_COLLECTIONS_SOURCE_2026-11-22.json).
+
+This successor remains **unqualified** and must not be swept into the active mapped-computed release: candidatec25ce0b7/Corebabf7b82 and its existing45014425835/45014821002 handles are unchanged. Publish only a qualified scoped batch, never the feature tip merely for synchronization.
 
 ## SQL and Ask delivery
 
@@ -66,7 +68,7 @@ Delivery order:
 Preserve the entire real SDK/client/API provider programme and priorities: HoloOASIS, Solana, Ethereum, Polygon, Arbitrum, Near, EOS, SOLID, IPFS, ActivityPub, Cosmos, Polkadot, TON, TRON and Hedera, plus Supabase priority and remaining popular providers. LocalFile is already scoped/done and is not a current priority.
 
 Open examples:
-- Next major query-family investigation: standalone GroupJoin collections. Current LINQ capture refuses materialization; the native packet has no whole-left entity contract. Extend native transport, validation and the three shipping providers, then preserve each left identity/order, complete ordered right collections, empty groups, permissions and group-level paging. This is an identified implementation gap, not a completed feature or new deployment gate.
+- Standalone GroupJoin now has native source implementation for the direct anonymous outer-and-matches carrier, complete ordered matches and group-level paging. Compilation/native qualification and broader grouped-result composition/key/visibility acceptance remain open. No full Q44/EF parity or live acceptance is claimed.
 - General CASE predicates, multiple WHEN/numeric branches, broader computed expressions and ORM/model/session/transaction families; Q55 stays incomplete.
 - Broader selected-set tuples/domains and nested composition. Existing scalar/entity set proofs remain valid.
 - Real WEB6 inference through reviewed SQL to WEB4 results, rendered browser acceptance and public website delivery. Deferred model/account actions stay in the owner list; do not repeat expired sign-in/grant requests.
@@ -89,3 +91,5 @@ Mongo-only45006551717 failed at raw original-row snapshot read after native comp
 All three mapped native journeys accepted: retained SQLite/Neo45004657247 and corrected Mongo45010074469 (seven checks each, real mixed HTTP/global paging/permissions/unchanged-data/exact cleanup). Current5b489985/Core1d627b36 composition45009513105 also passed3controls and actual WEB4/WEB5 builds; source-stamped artifact14749818775/1954bytes/SHAe94469673ef722bb9c37064e99f8ce6444b35c7c45d6d14e8d782e67afe84a7e verified in RAM. Mongo artifact14750456409/1699bytes/SHAf201ea7888a3e0b8c66ee0088b763c257c3c5ec585ffdd0dc4c411be9d76ee9c verified.
 
 Development throughf7516ea9 adds an internal one-line explicit Enumerable.Reverse compatibility fix and removes a retired compile include from a protocol-test project. Preserved both in current Corebabf7b82936f07d9decff57fac52b08ed527eb35 / image candidatec25ce0b7ac7d6b1de734e31d7bbc2c706de7c384. Strict diffs preserve mapped code and API source. Current ONODEManager shared-client/port and WEB6 model-catalogue pins are also preserved; a current dependency-graph compile is required. Native/compile proofs keep their actual sources; this new binary is not labelled exact-source compiled by the earlier gate. A single current-graph compile will cover the new dependency pins; accepted native cases are retained. Exact image/package qualification remains mandatory. No unchanged native cases repeated, image dispatch yet or Development push.
+
+Peer coordination22November: reviewed Developmentca4f8336 and current HyperDrive status. Peer reports WEB6 startup AWS SDK major-version mismatch and owns its ABI/startup hotfix; real Ask acceptance must wait for that verified recovery. No duplicate fix or WEB6 deployment from this task. Preserve the peer's future verified dependency pin when composing the next release.
