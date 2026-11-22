@@ -2877,3 +2877,6 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 ### 2026-11-22 — portal selected-session wiring and exact-base candidate
 - No local builds, databases, runtimes, downloads or test archives. Two owned temporary source index files removed in finally. Source, hashes and compact evidence retained. GitHub log bodies read/filtered in memory.
 - Run45069521383 failed before build/provider startup on parent mismatch; no provider environment from that step. Corrected run45070278761 dispatched once, queued at observation. Reuse current handle; no duplicate dispatch.
+
+### 2026-11-22 — complete admitted session listing
+- Implemented source-only V2 issuer-authoritative aggregate listing and one representative two-store HTTP assertion in existing runner. Source Git objects retained; owned temporary index removed in finally. No local builds, test databases, runtime installs, downloads or result archives. Current run45070278761 remains separate and is not restarted for this change.

@@ -1,0 +1,8 @@
+{
+  "core": "d89c1dccc64c3a5f9539e2121bd27b1ed517a066",
+  "parent": "05c4ba09a45aaf3232dfbcd5d0f6a25d0144c06b",
+  "status": "Source implemented; native/HTTP/browser/deployed acceptance pending",
+  "change": "V2 session list reads each admitted authority, requires complete reads and stable policy, uses issuer state rather than replicated token state, deduplicates historical unbound records as inactive. V1 explicit existing protocol unchanged.",
+  "reason": "Single routed account read hides sessions issued by other providers; Settings selected-signout needs the complete authoritative list.",
+  "cleanup": "Owned temporary Git index removed in finally. No local build, runtime or database."
+}

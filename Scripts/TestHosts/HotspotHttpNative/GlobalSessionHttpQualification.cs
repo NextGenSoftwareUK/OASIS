@@ -126,6 +126,12 @@ internal static class GlobalSessionHttpQualification
             var first = await Login(ProviderType.MongoDBOASIS);
             var second = await Login(ProviderType.SQLLiteDBOASIS);
             http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", second.Value<string>("jwtToken"));
+            var allSessions = await Read(await http.GetAsync("/api/avatar/" + actor + "/sessions"));
+            var expectedIds = new[] { first, second }.Select(credentials => new JwtSecurityTokenHandler()
+                .ReadJwtToken(credentials.Value<string>("jwtToken")).Claims.Single(claim => claim.Type == AvatarSessionIdentity.SessionClaim).Value).ToArray();
+            Check(!allSessions.Value<bool>("isError") && allSessions["result"]?["sessions"] is JArray persistedSessions &&
+                expectedIds.All(id => persistedSessions.Any(row => row.Value<string>("id") == id && row.Value<bool>("isActive"))),
+                "The real session list omitted an active issuing provider's credential.");
             var unknownSelection = await Read(await http.PostAsJsonAsync("/api/avatar/" + actor + "/sessions/logout",
                 new[] { new string('a', 64) }));
             Check(unknownSelection.Value<bool>("isError") && !unknownSelection.Value<bool>("result"),
