@@ -23,7 +23,7 @@ internal static class GlobalSessionHttpQualification
     public static async Task RunAsync(HttpClient http, MongoDBOASIS mongo, OASISDNA dna,
         Guid actor, string username, string password,
         NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionCheckoutJournal checkoutJournal, IMongoDatabase ownedDatabase,
-        AccountClosureAdmissionService closureService, Guid closureActor)
+        AccountClosureAdmissionService closureService, Guid closureActor, bool verifyBillingAdmission = true)
     {
         const string ownedUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Check(Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") == ownedUri, "Exact owned Mongo fixture required.");
@@ -202,6 +202,8 @@ internal static class GlobalSessionHttpQualification
                 "Missing-password authentication mutated the native account.");
             var first = await Login(ProviderType.MongoDBOASIS);
             http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", first.Value<string>("jwtToken"));
+            if (verifyBillingAdmission)
+            {
             var beforeAssessment = await mongo.LoadAvatarAsync(actor);
             var assessment = await Read(await http.GetAsync("/api/avatar/account-closure/assessment"));
             var facts = assessment["result"];
@@ -310,6 +312,8 @@ internal static class GlobalSessionHttpQualification
             var afterAssessment = await mongo.LoadAvatarAsync(actor);
             Check(!afterAssessment.IsError && afterAssessment.Result.VersionId == beforeAssessment.Result.VersionId,
                 "Dependency assessment mutated the native avatar.");
+            }
+            else Console.WriteLine("BILLING_ACCEPTANCE_RETAINED: unchanged billing source from45084348607; billing assertions not replayed in changed sign-in qualification.");
             var second = await Login(ProviderType.SQLLiteDBOASIS);
             http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", second.Value<string>("jwtToken"));
             var allSessions = await Read(await http.GetAsync("/api/avatar/" + actor + "/sessions"));

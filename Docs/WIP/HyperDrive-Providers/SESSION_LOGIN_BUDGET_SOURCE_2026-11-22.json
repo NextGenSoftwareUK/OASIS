@@ -16,5 +16,13 @@
     "proofs": "Dependency/checkout and billing-admission markers passed; whole journey failed on sign-in timeout.",
     "fixtureCorrection": "Legacy SetAndActivateCurrentStorageProviderAsync(SQLLite) deactivated Mongo before pause. Removed global switch, assert primary active, retain actual native issuer assertion and add credential-free auth/routing/provider/operation stage trace.",
     "cleanup": "SQLite absent/Mongo unpaused marker observed; final remote fixture removal must be checked."
+  },
+  "retainedBillingEvidence": {
+    "run": 45084348607,
+    "job": 137399418954,
+    "source": "5d68ce8fb58a7cacd0e9110bc176eff15f74fef7",
+    "newCandidate": "820b06223e639c4b5757329015563a5a3f242f11",
+    "comparison": "Exact candidate diff changes only Core gitlink, paired dependency pin and Mongo account deadline helper; no billing/closure source change.",
+    "nextScope": "Existing billing assertions remain callable in fixture but explicit changed-session invocation skips them. Native session setup retained; no new billing acceptance claimed."
   }
 }

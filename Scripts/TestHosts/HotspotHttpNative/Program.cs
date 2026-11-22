@@ -396,7 +396,7 @@ try
     else if (mode == "session-global-http")
     {
         await GlobalSessionHttpQualification.RunAsync(http, provider, dna, actor, accounts[0].Username, mfaPassword, billingRepository!, client.GetDatabase(database),
-            app.Services.GetRequiredService<AccountClosureAdmissionService>(), accounts[2].Id);
+            app.Services.GetRequiredService<AccountClosureAdmissionService>(), accounts[2].Id, verifyBillingAdmission: false);
     }
     else if (mode is "mfa-http" or "mfa-middleware-http" or "session-global-http")
     {
