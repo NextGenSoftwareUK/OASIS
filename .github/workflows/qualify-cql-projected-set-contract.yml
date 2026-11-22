@@ -45,15 +45,15 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
-      - name: Verify selected set capability admission
+      - name: Verify both selected set input plans
         working-directory: OASIS
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-projected-set-ci -Operation {
-            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicProjectedSetCapabilityTests' --results-directory TestResults/SetContract --logger 'trx;LogFileName=entry.trx'
+            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicProjectedSetPlannerTests' --results-directory TestResults/SetContract --logger 'trx;LogFileName=entry.trx'
             if ($LASTEXITCODE) { throw 'Session registration contract failed' }
             [xml]$report = Get-Content TestResults/SetContract/entry.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '3' -or $report.TestRun.ResultSummary.Counters.total -ne '3') { throw 'All three selected-value set controls must pass' }
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '2' -or $report.TestRun.ResultSummary.Counters.total -ne '2') { throw 'Both selected-value planner controls must pass' }
             dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI /m:2 /nr:false /p:UseSharedCompilation=false
             if ($LASTEXITCODE) { throw 'Actual WEB4 composition failed to compile' }
           }
