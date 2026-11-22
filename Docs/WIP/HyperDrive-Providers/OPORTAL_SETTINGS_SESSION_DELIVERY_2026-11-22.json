@@ -31,8 +31,8 @@
       "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
       "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarAdminController.cs"
     ],
-    "status": "source-only-awaiting-billing-native-result-and-inventory-build",
+    "status": "source-selected-for-independent-inventory-billing-native-still-running",
     "preservation": "Only exact previously tested AvatarAdmin duplicate-route removal plus accepted session reader/DTO and paired Core pin; all current CQL/billing/warning source retained. No DNA/worker/settings changes.",
-    "remaining": "Await original billing44994656993; then review updated inventories and build combined graph. No unchanged session/MFA/provider replay."
+    "remaining": "Source-only inventory may run independently of billing native44994656993; after inventory review and billing result, build combined graph. No prior accepted session behavior replay."
   }
 }
