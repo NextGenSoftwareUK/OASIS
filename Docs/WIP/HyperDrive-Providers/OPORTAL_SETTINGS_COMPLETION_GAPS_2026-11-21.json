@@ -277,6 +277,12 @@
       "cleanup": "Owned database/tempDNA/container absence verified.",
       "remaining": "Not device tracking/create/update/logout/JWT revocation/other-provider/full Startup/browser/hosted acceptance."
     },
-    "regressionGuard": "Prepared actual MVC EndpointDataSource check: all6session verb/templates each have exactly1endpoint owned by AvatarSessionController. No route filtering or fake responses. Added after dispatch; not included in current44977175851 run."
+    "regressionGuard": "Prepared actual MVC EndpointDataSource check: all6session verb/templates each have exactly1endpoint owned by AvatarSessionController. No route filtering or fake responses. Added after dispatch; not included in current44977175851 run.",
+    "portalUi": {
+      "commit": "OPORTAL dev1905c73",
+      "status": "source-implemented-syntax-checked-not-browser-accepted",
+      "scope": "Self sign-in records on Security tab; explicit refresh; count/date/state validation; issued/expiry/IP fields; no raw token/device/location/security claims; current modal/client/token guards and logout clearing.",
+      "remaining": "Actual browser against accepted API candidate and hosted rollout; create/update/revocation remain incomplete."
+    }
   }
 }
