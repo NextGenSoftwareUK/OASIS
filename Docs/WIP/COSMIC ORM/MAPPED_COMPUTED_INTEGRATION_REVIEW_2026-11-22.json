@@ -1,6 +1,6 @@
 {
   "candidate": "c25ce0b7ac7d6b1de734e31d7bbc2c706de7c384",
-  "development": "ca4f83361423e1f7219be5d4d6798e64c26cae67",
+  "development": "a706143b9502815785940ad24434a684cac53aaa",
   "mappedProductionPaths": [
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlVirtualProjectionV1Compiler.cs",
     "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.NativeProjection.cs",
@@ -16,9 +16,24 @@
   ],
   "manifestMustBeResynchronized": true,
   "packageRun": 45021700914,
-  "packageAccepted": false,
+  "packageAccepted": true,
   "peerWeb6HotfixRun": 45018741401,
   "peerWeb6AcceptanceOpen": true,
   "developmentPushed": false,
-  "unqualifiedGroupJoinAndReselectExcluded": true
+  "unqualifiedGroupJoinAndReselectExcluded": true,
+  "packageProof": "MAPPED_COMPUTED_PACKAGE_ACCEPTANCE_2026-11-22.json",
+  "peerWeb6BuildConclusion": "success",
+  "peerWeb6Job": 137196716513,
+  "peerWeb6LiveAcceptanceOpen": true,
+  "currentDevelopmentDeltaSinceReview": "Only dependency manifest synchronization: ONODE_MANAGER_COMMIT now matches 0cf009958d9bf29664799d70a76f0fb6e596c7ae gitlink.",
+  "remainingIntegrationGate": "Frozen mapped image compiled ONODEManager fa6; current Development pins 0cf. Preserve current Development pin and qualify the composed candidate before deployment; do not relabel old image as exact current source.",
+  "coreDeltaReviewed": {
+    "base": "33a28387bc35a4113e260b94bd981bbd1ba36728",
+    "candidate": "babf7b82936f07d9decff57fac52b08ed527eb35",
+    "paths": [
+      "Objects/NativeData/NativeRecordFilter.cs",
+      "Objects/NativeData/NativeRecordProjection.cs",
+      "Queries/CosmicMixedProjectionResults.cs"
+    ]
+  }
 }
