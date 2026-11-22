@@ -48,7 +48,7 @@ These proofs use Core703310f2 before portal composition. Current feature Core369
 ## Mapped computed scalars — contract work only
 
 Core **5240d3bd34d003407fe8b08070203e8d4efb5e1a** extends the native mapping projection descriptor with bounded text/Boolean/Int32 literals and complete computation identity. Projected functions are explicitly refused in source-predicate descriptors; mixed-schema validation compares all literal arguments and rejects null required computed cells.
-This Core successor is unqualified; it is pinned only on the feature branch together with these raw implementations and is excluded from the frozen09d release. Three raw native implementations now use real Mongo aggregation, SQLite SQL and Neo4j Cypher, with bound literal arguments, argument-aware value deduplication and native state/byte accounting. API/SQL enrollment and representative mixed real/virtual checks remain pending. Do not advertise mapped function support or deploy this successor yet.
+This Core successor is unqualified; it is pinned only on the feature branch together with these raw implementations and is excluded from the frozen09d release. Three raw native implementations now use real Mongo aggregation, SQLite SQL and Neo4j Cypher, with bound literal arguments, argument-aware value deduplication and native state/byte accounting. Mapped row API enrollment now captures all three functions and literal identity; three focused descriptor/predicate/aggregate-refusal controls plus actual WEB4 build are prepared for CI. SQL and representative mixed real/virtual native checks remain pending. Do not advertise mapped function support or deploy this successor yet.
 
 ## Full scope and remaining gaps
 
