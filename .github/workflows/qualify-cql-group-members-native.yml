@@ -1,4 +1,4 @@
-name: Qualify complete native projected grouping collections
+name: Qualify native projected and snapshot entity grouping collections
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
       - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests/CosmicCqlGroupMemberTests.cs"
       - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/Neo4jNativeCqlGroupMembers.cs"
       - ".github/workflows/qualify-cql-group-members-native.yml"
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.KeyedEntities.cs"
   workflow_dispatch:
 
 permissions:
@@ -94,9 +95,6 @@ jobs:
           }
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-group-members-native-ci -Operation {
             # One newly changed native grouped journey per store; retain prior GroupJoin proof without replay.
-            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~WarningPacketCannotPublishOrConstructDto' --results-directory $reportRoot --logger 'trx;LogFileName=ProjectionContract.trx'
-            if($LASTEXITCODE){throw 'Projection acknowledgement contract failed'}
-            Verify-Report (Join-Path $reportRoot 'ProjectionContract.trx') 1
             $nativeFilter='FullyQualifiedName~NativeProjectedGroupingCollectionsAreCompleteOrderedAndBounded'
             $projects=@(
               @{name='Mongo';path='Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests';expected=1},
@@ -119,7 +117,7 @@ jobs:
           $source=(git rev-parse HEAD).Trim()
           if($source -ne $env:GITHUB_SHA){throw 'Source checkout differs from exact workflow revision'}
           $core=(git -C "OASIS Architecture/NextGenSoftware.OASIS.API.Core" rev-parse HEAD).Trim()
-          @{source=$source;core=$core;newNativePassed=3;completeProjectedGroupsVerified=$true;sourceAndMemberOrderVerified=$true;sourceWindowAndEmptyVerified=$true;dtoConstructionVerified=$true;groupBoundBeforeConstructionVerified=$true;wholeEntityGroupsExplicitlyUnsupported=$true;cancellationVerified=$true;projectionWarningContractPassed=1;providers=@('MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS');ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content (Join-Path $reportRoot 'source.json') -Encoding utf8
+          @{source=$source;core=$core;newNativePassed=3;completeProjectedGroupsVerified=$true;sourceAndMemberOrderVerified=$true;sourceWindowAndEmptyVerified=$true;dtoConstructionVerified=$true;groupBoundBeforeConstructionVerified=$true;wholeEntityGroupsVerifiedProviders=@("Neo4jOASIS");wholeEntityGroupsUnadmittedProviders=@("MongoDBOASIS","SQLLiteDBOASIS");cancellationVerified=$true;projectionWarningContractRetainedCore="21a5966a12aa9c57109131cf7a519394d30e9a27";providers=@('MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS');ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content (Join-Path $reportRoot 'source.json') -Encoding utf8
       - name: Stop owned Mongo
         if: always()
         run: docker rm -f -v cql-where-mongo

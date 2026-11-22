@@ -1,10 +1,14 @@
 {
-  "core": "93cd70c0a439499f768910751228a0341aea866d",
+  "core": "0f521ee7c6332b09c516988c9e5c0f5c6fe8e3c9",
   "base": "21a5966a12aa9c57109131cf7a519394d30e9a27",
   "sourcePrepared": true,
   "compiled": false,
   "nativeProviderAdmitted": false,
-  "runtimeHooked": false,
+  "runtimeHooked": true,
   "deployed": false,
-  "next": "Implement native Neo4j keyed source and representative Core/provider checks before admission; MongoDB/SQLite follow on the same source contract."
+  "next": "Implement native Neo4j keyed source and representative Core/provider checks before admission; MongoDB/SQLite follow on the same source contract.",
+  "nativeProviderSourceImplemented": [
+    "Neo4jOASIS"
+  ],
+  "qualification": "Pending exact native workflow"
 }
