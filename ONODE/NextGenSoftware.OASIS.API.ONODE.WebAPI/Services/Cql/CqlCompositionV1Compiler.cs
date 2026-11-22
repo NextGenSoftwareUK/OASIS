@@ -70,6 +70,13 @@ public static partial class CqlV1Compiler
                         new CompositionOrderingConsumer(query));
                 }
             }
+            else if (stage.Operation == "Distinct")
+            {
+                if (stage.Filters != null || stage.AnyOf != null || stage.Order != null
+                    || stage.Count != null || stage.Columns != null)
+                    throw new ArgumentException("Distinct accepts no fields and compares exactly the currently visible record.");
+                query = RequiredComposition(query.Distinct());
+            }
             else if (stage.Operation is "Skip" or "Take")
             {
                 if (stage.Filters != null || stage.AnyOf != null || stage.Order != null || stage.Columns != null || !stage.Count.HasValue

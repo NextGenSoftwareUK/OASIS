@@ -175,7 +175,8 @@ internal sealed partial class MongoCqlTranslator
                 current.Add(new("$sort", new BsonDocument("rank", 1)));
                 current.Add(new("$group", new BsonDocument
                 {
-                    { "_id", new BsonDocument("$ifNull", new BsonArray { "$k" + distinct.ColumnIndex + ".value", BsonNull.Value }) },
+                    { "_id", new BsonArray(distinct.ColumnIndices.Select(column =>
+                        (BsonValue)new BsonDocument("$ifNull", new BsonArray { "$k" + column + ".value", BsonNull.Value }))) },
                     { "firstRow", new BsonDocument("$first", "$$ROOT") }
                 }));
                 current.Add(new("$replaceRoot", new BsonDocument("newRoot", "$firstRow")));

@@ -144,8 +144,9 @@ public partial class Neo4jOASIS
                 text.Append("WITH position,rank ORDER BY rank DESC ");
             else if (stage is CosmicSelectedDistinctStage distinct)
             {
-                text.Append("WITH input[position].values[").Append(distinct.ColumnIndex)
-                    .Append("].v AS distinctKey,position,rank ORDER BY rank ASC ")
+                text.Append("WITH [").Append(string.Join(",",distinct.ColumnIndices.Select(column =>
+                    "input[position].values[" + column + "].v")))
+                    .Append("] AS distinctKey,position,rank ORDER BY rank ASC ")
                     .Append("WITH distinctKey,head(collect(position)) AS position,min(rank) AS rank ")
                     .Append("WITH position,rank ORDER BY rank ASC ");
             }
