@@ -25,9 +25,13 @@
   ],
   "retainedCompositionRun": 45027751578,
   "qualification": "seven actual API builds and four real AWS assembly type loads; no native/provider/cloud calls",
-  "phase": "automatic_push_run_pending",
+  "phase": "automatic_run_observed",
   "compiled": false,
   "deployed": false,
   "oldImageSourceMustNotBeRelabeled": "0fe0b90913c93898eba06140eb817f916a6abe2d",
-  "oldImageRun": 45030371324
+  "oldImageRun": 45030371324,
+  "control": "0837e8bb26a2a8efecdae1edbc2626af4d56348d",
+  "run": 45031220175,
+  "status": "queued",
+  "conclusion": null
 }
