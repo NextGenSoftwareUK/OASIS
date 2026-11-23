@@ -72,6 +72,11 @@ internal static class GlobalSessionHttpQualification
             dna.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds = 2;
             dna.OASIS.OASISHyperDriveConfig.AutoFailoverEnabled = true;
             ProviderManager.Instance.IsAutoFailOverEnabled = true;
+            dna.OASIS.OASISHyperDriveConfig.AutoReplicationEnabled = true;
+            ProviderManager.Instance.IsAutoReplicationEnabled = true;
+            ProviderManager.Instance.IsAutoLoadBalanceEnabled = false;
+            Check(!ProviderManager.Instance.SetAndReplaceAutoReplicationListForProviders("MongoDBOASIS").IsError,
+                "Owned replication destination policy failed.");
             Check(ProviderManager.Instance.IsAutoFailOverEnabled, "Owned SSO failover policy must be enabled.");
             Check(!ProviderManager.Instance.SetAndReplaceAutoFailOverListForProvidersForAvatarLogin("MongoDBOASIS,SQLLiteDBOASIS").IsError,
                 "Owned SSO authority policy failed.");
@@ -127,6 +132,9 @@ internal static class GlobalSessionHttpQualification
                 // The shipping singleton retains its configured primary affinity. Changing
                 // ProviderManager.CurrentStorageProvider does not select a different issuer.
                 // Exercise real SSO failover by making only the owned primary unavailable.
+                var primaryBefore = provider == ProviderType.SQLLiteDBOASIS ? await mongo.LoadAvatarAsync(actor) : null;
+                Check(primaryBefore == null || !primaryBefore.IsError && primaryBefore.Result != null,
+                    "Owned primary before-image could not be loaded.");
                 JObject envelope;
                 var previousProviderTimeout = dna.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds;
                 try
@@ -155,6 +163,12 @@ internal static class GlobalSessionHttpQualification
                     diagnostic = System.Text.RegularExpressions.Regex.Replace(diagnostic, @"[A-Za-z0-9+/=_-]{40,}", "[opaque-value]");
                     diagnostic = System.Text.RegularExpressions.Regex.Replace(diagnostic, @"(?i)(password|secret|token|api[-_ ]?key)\s*[:=]\s*[^ ;]+", "$1=[redacted]");
                     throw new InvalidOperationException("Real password authentication failed at " + provider + ": " + diagnostic[..Math.Min(400, diagnostic.Length)]);
+                }
+                if (primaryBefore != null)
+                {
+                    var primaryAfter = await mongo.LoadAvatarAsync(actor);
+                    Check(!primaryAfter.IsError && primaryAfter.Result.VersionId == primaryBefore.Result.VersionId,
+                        "Issuing a session at SQLite changed its non-authority Mongo replica.");
                 }
                 var credentials = envelope["result"]!;
                 var parts = credentials.Value<string>("refreshToken")!.Split('.');

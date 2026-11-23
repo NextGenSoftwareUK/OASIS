@@ -1,0 +1,14 @@
+{
+  "core": "27dae38da3f3212e360d939db642d02c01c8fc5f",
+  "tag": "qualification/session-authority-ack-owner-20261122",
+  "status": "Source prepared; compile/native/hosted acceptance pending",
+  "observedRun": 45086300342,
+  "job": 137405599176,
+  "build": "0errors7m03.39",
+  "failure": "SQL session save trace reached PrimaryConfirmation; HTTP exceeded15s and completed after owned Mongo unpause. Unchanged billing assertions skipped.",
+  "sourceCause": "General avatar save awaits replication after PrimaryConfirmation when enabled; session issuance used it although credential authority is one native store.",
+  "fix": "One async session issuance owner uses existing SaveAvatarCoreAsync requireProvider=true on actual read authority; no credential-write failover/replica fanout. Password, DID and completed second-factor use it. Ordinary avatar save policy unchanged.",
+  "next": "Paused-primary password issuance with replication explicitly enabled; require acknowledged issuer and unchanged Mongo version. DID/second-factor changed save path still requires representative verification. Not all-session/all-provider/replication/hosted acceptance.",
+  "cleanup": "Private Core index/lock removed; no local build/download/environment/database.",
+  "acknowledgement": "All3 V2 inferred-ack assignments replaced by one account-save acknowledgement boundary. Preserve native IsSaved and reject payload without native acknowledgement. Not all-provider/entry-point acceptance."
+}
