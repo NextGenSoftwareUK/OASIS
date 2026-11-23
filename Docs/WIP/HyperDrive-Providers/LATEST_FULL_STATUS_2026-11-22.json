@@ -674,5 +674,10 @@
     "status": "status/routing panels, owned preference save/readback, empty deliveries and close accepted",
     "run": 45169287524,
     "remaining": "populated delivery history and whole-provider HA"
+  },
+  "portalCommunityUi20261123": {
+    "run": 45172482199,
+    "status": "Activity and Chain empty-list filters/close; populated Social contacts and keyboard composer handoff/return accepted",
+    "remaining": "populated activity, live polling, wider graph pagination; whole portal still incomplete"
   }
 }

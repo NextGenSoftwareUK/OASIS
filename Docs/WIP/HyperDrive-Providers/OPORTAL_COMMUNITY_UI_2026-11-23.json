@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-23",
+  "status": "three scoped real-backend journeys accepted",
+  "run": 45172482199,
+  "job": 137685261989,
+  "control": "6a4b68569f2e08f6d66417b8a2eab422a2987f24",
+  "portal": "bab60d68ff606f6567ec875ded4454bcd82e1807",
+  "cacheOnlyFollowup": "efe084d",
+  "producer": "f4ac6302cbeadf6b1af77cbd9c6cdf27cfec402b",
+  "image": "sha256:078cd7c8acbd7a14de653178e8f7aba5d030a191da519f6f8c37c3756eeea704",
+  "artifact": 14816299817,
+  "artifactBytes": 4365,
+  "accepted": {
+    "Activity": [
+      "actual empty activity response",
+      "empty filter",
+      "live updates not enabled",
+      "normal close"
+    ],
+    "Social": [
+      "real incoming message setup between owned accounts",
+      "two graph nodes and one interaction edge",
+      "keyboard contact selection opens prefilled message composer",
+      "no send merely opening contact",
+      "composer close returns to graph",
+      "normal close"
+    ],
+    "Chain": [
+      "empty recorded activity",
+      "filter",
+      "provider selector",
+      "disabled pagination",
+      "normal close"
+    ]
+  },
+  "remaining": [
+    "populated karma/activity filters and pagination",
+    "live polling lifecycle",
+    "graph pagination and expanded contact sets"
+  ],
+  "cleanup": "All package/startup container/network/database/process/DNA assertions true; runtime/cache/TLS absent; compact artifact inspected/disposed in RAM. No local builds/downloads/envs/database/results; reused shipping image. No shared Atlas/PIPER calls."
+}
