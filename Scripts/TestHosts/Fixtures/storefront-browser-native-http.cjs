@@ -43,14 +43,17 @@ async function verify({baseUrl,token,avatarId,gameId,oappId,itemId}) {
   await page.locator('#games-modal-block [data-tab="mine"]').click();await page.locator('#games-mine-list article').waitFor();
   await page.locator('#games-filter').fill('no matching game');assert.match(await page.locator('#games-mine-list').textContent(),/No matches/);
   await page.locator('#games-filter').fill('Owned storefront');assert.equal(await page.locator('#games-mine-list article').count(),1);
+  await page.locator('#games-close-btn').click();
   await page.locator('#fixture-oapps').click();await page.locator('#oapps-my-list article').waitFor();
   await page.locator('#oapps-my-list summary').click();assert.ok((await page.locator('#oapps-my-list article').textContent()).includes(oappId));
   assert.equal(await page.locator('#oapps-my-list a').getAttribute('href'),'https://app.example/open');
   await page.locator('#oapps-modal-block [data-tab="all"]').click();await page.locator('#oapps-all-list article').waitFor();
   await page.locator('#oapps-modal-block [data-tab="search"]').click();await page.locator('#oapps-search-input').fill('Owned storefront OAPP');
   await page.locator('#oapps-search-btn').click();await page.locator('#oapps-search-results article').waitFor();
+  await page.locator('#oapps-modal-close-btn').click();
   await page.locator('#fixture-inventory').click();await page.waitForFunction(()=>document.getElementById('inv-mine-list').textContent.includes('empty'));
   await page.locator('#inventory-modal-block [data-tab="all"]').click();await page.locator('#inv-all-list article').waitFor();
+  assert.match(await page.locator('#inv-all-list article').textContent(), /× 3/, 'Stored inventory quantity must survive the real catalogue read.');
   await page.locator('#inv-all-list [data-inv-item]').click();await page.locator('#inv-detail').waitFor({state:'visible'});
   assert.ok((await page.locator('#inv-detail-body').textContent()).includes(itemId));
   await page.locator('#inv-detail-close').click();assert.equal(await page.locator('#inv-detail').isHidden(),true);

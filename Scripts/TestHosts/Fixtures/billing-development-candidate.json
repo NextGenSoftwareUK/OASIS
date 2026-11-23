@@ -5,10 +5,10 @@
   "allowedPaths": [
     "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Infrastructure/Serializers/MetaDataDictionarySerializer.cs"
   ],
-  "status": "Fix observed Game native metadata list->string encoding at Mongo serializer; same browser breadth with raw BSON and typed readback invariant",
+  "status": "Mongo list raw BSON/typed Game passed; real browser found unbounded popup height, now source-fixed; continue same breadth flow",
   "nativeMode": "storefront-browser",
   "nativeHost": "HotspotHttpNative",
-  "portal": "4d60218ba247b106a8b3f24afdf0583694288f71",
+  "portal": "71ea1255c7e7241cdc766179aaf4d4525865004a",
   "scope": "billing",
   "tag": "qualification/mongo-metadata-list-20261123",
   "candidate": "d531a4d543f6bc9428372ab1454110b882ac493c"
