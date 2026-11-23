@@ -85,9 +85,9 @@ jobs:
             if ($report.TestRun.ResultSummary.Counters.passed -ne '3' -or $report.TestRun.ResultSummary.Counters.total -ne '3') { throw 'All three native selected-column HTTP journeys must pass' }
             foreach ($store in 'MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS') {
               $e=Get-Content "TestResults/Neo4jCurrent/$store-fluent-graph-native.json" -Raw | ConvertFrom-Json
-              if ($e.provider -ne $store -or $e.checks -ne 5 -or $e.ownedCleanupIds -ne 3 -or $e.successfulHolonWrites -ne 1 -or @($e.queryElapsedMilliseconds.PSObject.Properties).Count -ne 3) { throw 'Incomplete native report' }
+              if ($e.provider -ne $store -or $e.checks -ne 6 -or $e.ownedCleanupIds -ne 3 -or $e.successfulHolonWrites -ne 1 -or @($e.queryElapsedMilliseconds.PSObject.Properties).Count -ne 4) { throw 'Incomplete native report' }
               if($e.nativeProviderVerified -ne $true -or $e.exactCleanupVerified -ne $true){throw 'Native fixture/cleanup acknowledgement missing'}
-              foreach ($name in 'typedRootChildGrandchild','modelCodecWithoutLocalFactory','identityRevisionAndManifestPreserved','privateChildrenExcluded','selectedManifestRetained') {
+              foreach ($name in 'grandchildConstraintBeforeWrite','typedRootChildGrandchild','modelCodecWithoutLocalFactory','identityRevisionAndManifestPreserved','privateChildrenExcluded','selectedManifestRetained') {
                 if ($e.evidence.$name -ne $true) { throw "Missing native proof $name" }
               }
             }

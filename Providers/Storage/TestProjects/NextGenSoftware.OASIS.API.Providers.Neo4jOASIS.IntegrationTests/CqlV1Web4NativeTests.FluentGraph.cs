@@ -44,6 +44,7 @@ public sealed partial class CqlV1Web4NativeTests
         var manager=new HolonManager(provider,dna,registry);var actor=Guid.NewGuid();
         var builder=new CosmicModelBuilder();
         builder.Entity<FluentGraphNode>().Property(row=>row.Score).HasMetadataKey("graph_score");
+        builder.Entity<FluentGraphNode>().Property(row=>row.Name).HasMaxLength(8);
         var built=builder.Build();Assert.IsFalse(built.IsError,built.Message);
         FluentGraphNode New(string name,int score)=>new(){Id=Guid.NewGuid(),Name=name,Score=score,
             CreatedByAvatarId=actor,IsActive=true,IsPublic=false,IsNewHolon=true};
@@ -56,6 +57,13 @@ public sealed partial class CqlV1Web4NativeTests
             var clock=System.Diagnostics.Stopwatch.StartNew();
             try{return await action();}finally{timings.Add(name,clock.ElapsedMilliseconds);}
         }
+        leaf.Name="invalid-long-name";
+        var rejected=await Timed("invalid-grandchild",()=>manager.SaveOwnedModelHolonsAsync(
+            new[]{root},actor,new CosmicWriteOptions(Guid.NewGuid()),providerType:adapter.QueryProviderType,
+            metadataModel:built.Result));
+        Assert.IsTrue(rejected.IsError);Assert.IsFalse(rejected.IsSaved);
+        Assert.AreEqual("COSMIC_MODEL_VALIDATION_FAILED",rejected.ErrorCode);
+        leaf.Name="leaf";
         var saved=await Timed("create-graph",()=>manager.SaveOwnedModelHolonsAsync(
             new[]{root},actor,new CosmicWriteOptions(Guid.NewGuid()),providerType:adapter.QueryProviderType,
             metadataModel:built.Result));
@@ -87,8 +95,8 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(visible.IsError,visible.Message+visible.Exception);Assert.AreEqual(1,visible.Result.Count);
         Assert.AreEqual(0,visible.Result.Single().Components.Count);
         Assert.AreEqual(manifests[root.Id],visible.Result.Single().ChildRoleManifestJson);
-        return new NativeFixtureJourneyProof(5,1,new Dictionary<string,bool>{
-            ["typedRootChildGrandchild"]=true,["modelCodecWithoutLocalFactory"]=true,
+        return new NativeFixtureJourneyProof(6,1,new Dictionary<string,bool>{
+            ["grandchildConstraintBeforeWrite"]=true,["typedRootChildGrandchild"]=true,["modelCodecWithoutLocalFactory"]=true,
             ["identityRevisionAndManifestPreserved"]=true,["privateChildrenExcluded"]=true,
             ["selectedManifestRetained"]=true});
     }

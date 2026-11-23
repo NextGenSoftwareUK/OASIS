@@ -89,7 +89,7 @@ The declared entity currently derives from Holon and has a public parameterless 
 
 Build snapshots are independent: later builder edits do not affect an existing model. The same immutable model is bound before query expressions/windows and remains attached to session reads, source predicates/order/projections, scalar terminal captures, typed hydration and owned save preparation. Query/session model mismatch or model rebinding fails explicitly. There is no global per-type override or client-side query evaluation.
 
-This initial slice covers flat scalar roots. Explicit model graph expansion, unrestricted POCOs, XML mappings, annotation override precedence, inheritance conventions, converters and the full fluent ORM feature family remain open. Other query shapes still require their independently admitted native contracts. Follow the source/native/live qualification status in [the COSMIC status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md); source presence alone is not parity or deployment acceptance.
+This initial slice covers flat scalar roots. Explicit model graph expansion is now source-integrated through selected child-role bindings and awaits its own native qualification. Unrestricted POCOs, XML mappings, annotation override precedence, inheritance conventions, converters and the full fluent ORM feature family remain open. Other query shapes still require their independently admitted native contracts. Follow the source/native/live qualification status in [the COSMIC status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md); source presence alone is not parity or deployment acceptance.
 
 
 ## Fluent application constraints
@@ -123,3 +123,5 @@ The convention applies to every public custom property in this flat scalar contr
 An explicit model now travels with an admitted WithChildren query through typed child-role hydration. Configure each child CLR contract in the same model and register its role with HolonChildRoleBinding. Configured role members use the existing model metadata codec before role callbacks; a separate local metadata factory is unnecessary. Unconfigured roles retain their registered factory contract.
 
 Root and child identities, parent links, committed revisions and stored role observations must remain unchanged. Native visibility and graph budgets still apply; omitted private members are not materialized and their complete stored relationship observation is retained. This source integration requires its new three-provider qualification before acceptance. It does not add unrestricted POCO relationships or make session writes implicitly save a graph.
+
+Model constraints cover every node selected by an owned graph save after authorization, not only the roots. This does not cause a session root-only save to select children implicitly.
