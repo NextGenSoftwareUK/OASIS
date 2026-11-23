@@ -1,0 +1,61 @@
+name: OPORTAL actual page navigation
+on:
+  workflow_dispatch:
+    inputs:
+      portal:
+        description: Immutable OPORTAL source SHA
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  page:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: control
+          sparse-checkout: |
+            Scripts/TestHosts/Fixtures/profile-browser-runtime.json
+            Scripts/TestHosts/Fixtures/portal-page-navigation.cjs
+          sparse-checkout-cone-mode: false
+      - name: Validate immutable source
+        env:
+          PORTAL_SHA: ${{ inputs.portal }}
+        run: |
+          [[ "$PORTAL_SHA" =~ ^[0-9a-f]{40}$ ]]
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/OPORTAL-JS
+          ref: ${{ inputs.portal }}
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: portal
+      - name: Prepare reusable pinned browser package
+        run: |
+          set -euo pipefail
+          command -v google-chrome >/dev/null
+          owned="$GITHUB_WORKSPACE/portal-page-owned"
+          test ! -e "$owned"
+          mkdir "$owned"
+          metadata="$GITHUB_WORKSPACE/control/Scripts/TestHosts/Fixtures/profile-browser-runtime.json"
+          version="$(node -p "require('$metadata').version")"
+          expected="$(node -p "require('$metadata').integrity")"
+          actual="$(npm view "playwright-core@$version" dist.integrity --registry https://registry.npmjs.org --cache "$owned/npm-cache")"
+          test "$actual" = "$expected"
+          npm install --prefix "$owned/runtime" --cache "$owned/npm-cache" --registry https://registry.npmjs.org --ignore-scripts --no-audit --no-fund "playwright-core@$version"
+      - name: Verify real anonymous page and navigation
+        env:
+          OASIS_PORTAL_ROOT: ${{ github.workspace }}/portal
+          OASIS_PROFILE_BROWSER_RUNTIME: ${{ github.workspace }}/portal-page-owned/runtime
+        run: node control/Scripts/TestHosts/Fixtures/portal-page-navigation.cjs
+      - name: Remove owned browser runtime and cache
+        if: always()
+        run: |
+          set -euo pipefail
+          owned="$GITHUB_WORKSPACE/portal-page-owned"
+          test "$owned" = "$GITHUB_WORKSPACE/portal-page-owned"
+          test ! -L "$owned"
+          if test -e "$owned"; then rm -rf -- "$owned"; fi
+          test ! -e "$owned"
+          echo 'Owned portal browser runtime/cache absence verified.'
