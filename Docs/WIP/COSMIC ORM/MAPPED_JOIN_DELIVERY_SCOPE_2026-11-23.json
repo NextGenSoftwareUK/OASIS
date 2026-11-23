@@ -1,5 +1,5 @@
 {
-  "source": "609507f1528be3f271dca9b39c7308619f9fd6a7",
+  "source": "eb201d869a9e2cf523dfa912541b279444d67e68",
   "producerSource": "f4deb324605367a691272d0084b4654f936b0478",
   "developmentBase": "721f33130849794856c546218dceb06ee1396c87",
   "rootChangedPaths": [
@@ -19,6 +19,7 @@
     "Docs/WIP/COSMIC ORM/TYPED_MODEL_GROUP_PACKAGE_ACCEPTANCE_2026-11-23.json",
     "Docs/WIP/COSMIC ORM/TYPED_MODEL_GROUP_RELEASE_CANDIDATE_2026-11-23.json",
     "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicJoinResultsTests.cs",
     "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.ModelMetadataAliases.cs"
   ],
   "runtimeRootPaths": [
@@ -40,5 +41,9 @@
   "allOtherGitlinksPreserved": true,
   "manifestGatePassed": true,
   "newerUtcDatePartsCoreExcluded": "dc88abf6a615fc5b5c06b6cd4871683d23e43081",
-  "deployed": false
+  "deployed": false,
+  "onlyQualifiedProducerDelta": [
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicJoinResultsTests.cs"
+  ],
+  "testCallerDeltaOnlyThreeRenames": true
 }

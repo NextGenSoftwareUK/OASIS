@@ -1,5 +1,5 @@
 {
-  "source": "609507f1528be3f271dca9b39c7308619f9fd6a7",
+  "source": "eb201d869a9e2cf523dfa912541b279444d67e68",
   "producerSource": "f4deb324605367a691272d0084b4654f936b0478",
   "qualifiedSource": "ed9a5f064d05be25336fed3ad6ddae914ed2e056",
   "core": "e7402f4f2f14e9a7f628026efde79180c376f815",
@@ -86,5 +86,14 @@
   "deliveryScopeAccepted": true,
   "preservedDevelopmentDocPaths": [],
   "phase": "prepared_waiting_normal_cadence",
-  "newerUtcDatePartsCoreExcluded": "dc88abf6a615fc5b5c06b6cd4871683d23e43081"
+  "newerUtcDatePartsCoreExcluded": "dc88abf6a615fc5b5c06b6cd4871683d23e43081",
+  "supersededPreparedSource": "609507f1528be3f271dca9b39c7308619f9fd6a7",
+  "preservedRootUnitTestPaths": [
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicJoinResultsTests.cs"
+  ],
+  "rootTestCallerSource": "e097b5c809599968c5e83c71d959344d2f4683b4",
+  "rootTestCallerGateAccepted": true,
+  "rootTestCallerGateRun": 45094274338,
+  "rootTestCallerGateProof": "utc-date-parts-wire-acceptance.json",
+  "deploymentDeferredForCombinedQualifiedBatch": true
 }
