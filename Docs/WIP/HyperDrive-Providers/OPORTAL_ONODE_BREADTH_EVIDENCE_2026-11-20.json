@@ -46,7 +46,7 @@
       "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs"
     ],
     "preparedCurrentSource": {
-      "root": "4301e20790e6fca4fca9daaab6e79faaed68c305",
+      "root": "103b3da3d7d47405c2612a02cbb3fa2d03fe6a3e",
       "base": "c2cc1430b31d63f0e4981600e97c19db4d020fe1",
       "donor": "9fe17097d0c65f964da7d38a2b6b28fe4fd78590",
       "merge": "All four source files three-way clean; newer JWT/session/Startup context retained.",
@@ -59,11 +59,10 @@
       "newRepair": "Local provider read uses one named managed HTTP client registered unconditionally and authenticates from the same existing .oasis/supervisor-token store as the shipping SupervisorClient. Missing/empty/unreadable credential and unavailable service produce visible failure; no secret copied to source/DNA/logs.",
       "status": "source prepared and pushed; current composition inventories/build/real supervisor/browser acceptance pending",
       "remaining": [
-        "Supervisor-to-WEB4 bearer transport and command enum binding",
-        "Correct provider DNA schema/native provider read",
-        "non-secret configuration projection",
-        "individual peer read",
-        "native browser/API/supervisor flow and delivery"
+        "Compile and qualify changed API/service source against real endpoints",
+        "Non-secret remote configuration and individual peers",
+        "Native provider DNA schema/source owner",
+        "Full user account connection/refresh lifecycle and deployment"
       ],
       "commandWireRepair": {
         "module": "81d37fd8cb2046cededc07fed818f357845db578",
@@ -71,6 +70,16 @@
         "path": "NextGenSoftware.OASIS.ONODE.Service/Services/HolonBridge.cs",
         "scope": "Canonical camel-case/string-enum command transport (numeric enums rejected), required HTTP success for state/command status and Pending reads, no command execution before acknowledged Executing update, response/content disposal. Existing configured-port/shared-client behavior preserved.",
         "status": "source-only, whitespace/paired-manifest checks passed; build/native/browser not accepted; no bearer transport claimed"
+      },
+      "authenticatedBridge": {
+        "module": "072b0a819fed609d9f0a0cab94650e1b61d5b4a6",
+        "sourceBase": "0cf009958d9bf29664799d70a76f0fb6e596c7ae",
+        "status": "source-only, build/native/runtime acceptance pending",
+        "connection": "One connection-owned HttpClient sends runtime-secret bearer on state/poll/status. Missing actor/node or token starts no remote polling; 401/403 cancels both remote loops while local supervisor remains running.",
+        "endpoint": "Explicit Supervisor Web4ApiBaseUrl supports HTTPS remote or local HTTP. Empty retains existing configured local WEB4 port; URI credentials/query/fragment rejected.",
+        "credentials": "Supervisor Web4AccessToken is runtime secret configuration only and JsonIgnore excludes JSON snapshots. No credential was read/generated/copied into source/DNA/logs.",
+        "knownRemaining": "Operator reconnect/restart after expired/rejected token; full account connection UI/refresh lifecycle and real protected API/supervisor/browser proof still required.",
+        "unchanged": "No OASIS DNA setting changed; source defaults leave an unconnected node without a bearer, not a fabricated connection."
       }
     }
   }
