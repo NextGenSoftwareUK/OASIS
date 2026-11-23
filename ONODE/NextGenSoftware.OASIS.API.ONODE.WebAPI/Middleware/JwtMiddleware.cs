@@ -19,6 +19,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
         public async Task Invoke(HttpContext context)
         {
             var headers = context.Request.Headers.Authorization;
+            if (context.WebSockets.IsWebSocketRequest && context.Request.Path.StartsWithSegments("/ws/onode"))
+            {
+                string credential = null;
+                foreach (var protocol in context.WebSockets.WebSocketRequestedProtocols)
+                {
+                    if (!protocol.StartsWith("oasis-jwt.", StringComparison.Ordinal)) continue;
+                    if (credential != null || headers.Count != 0)
+                    { await Reject(context, 401, "INVALID_AUTHORIZATION_HEADER", "A single WebSocket bearer credential is required."); return; }
+                    credential = protocol.Substring("oasis-jwt.".Length);
+                }
+                if (credential != null)
+                    headers = new Microsoft.Extensions.Primitives.StringValues("Bearer " + credential);
+            }
             if (headers.Count == 0) { await _next(context); return; }
             if (headers.Count != 1 || !AuthenticationHeaderValue.TryParse(headers[0], out var header) ||
                 !string.Equals(header.Scheme, "Bearer", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(header.Parameter))
