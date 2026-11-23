@@ -1,3 +1,7 @@
+## 2026-11-23 - MCP session readiness source fix delivered
+
+Portal devf573156 (report6feabcd): MCP tab awaits the existing shared refresh readiness before reading/displaying its bearer/config, discards stale client/session results and reports readiness failure. No new API request/polling. Syntax/endpoint/diff passed; browser acceptance pending. Focused real LocalFile HTTP fixture45097985487/job137442005421 active. Previously accepted7dev rollouts/session/MFA/browser evidence retained; no extra Dev deployment.
+
 ## 2026-11-23 - Seven dev deployments and account-review browser accepted
 
 All7 exact Railway dev deployments SUCCESS and in-container source6bbbae4b confirmed. WEB4 three selected worker-pause flags all true, unchanged. Live Swagger metadata833WEB4/640WEB5 includes new assessment/checkout routes; canonical portal catalogue refreshedf69a2f8. New review browser45096493185/job137437334269 SUCCESS,0errors5m31.31; real owned-app requirement, no browser mutations, native avatar unchanged/session active. Both remote cleanup steps SUCCESS. BroadCI integration45095683887 has one failed old subject-only-JWT fixture; f4ff99e source corrects it to actual persisted issuance, focused verification pending. No middleware weakening/shared backend calls. Permanent erasure/real hosted Stripe/whole OPORTAL remain incomplete.
