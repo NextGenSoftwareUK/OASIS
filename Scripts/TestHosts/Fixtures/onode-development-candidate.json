@@ -1,11 +1,16 @@
 {
   "scope": "onode",
-  "status": "source-reconciled-awaiting-inventory-and-combined-build",
-  "candidate": "103b3da3d7d47405c2612a02cbb3fa2d03fe6a3e",
-  "base": "0331b8fd44324ff9bddd799a1503e02844cde60f",
-  "tag": "qualification/onode-runtime-secret-root-20261123",
+  "status": "reviewed-current-CQL-source-awaiting-combined-compile",
+  "candidate": "a67b910f5f8d7c43339615485af031967d112f2e",
+  "base": "daf058b51c6f4251d99415c3a002691e36895e53",
+  "tag": "qualification/onode-current-cql-reviewed-root-20261123",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ONODEController.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Hubs/ONODEWebSocketHub.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/JwtMiddleware.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
     "ONODE/ONODEManager"
   ],
   "buildProjects": [
@@ -13,9 +18,15 @@
     "ONODESUPERVISOR"
   ],
   "core": {
-    "candidate": "ca5939339fb82180890e6fe533c96c4e2f1cf21a"
+    "candidate": "271603c32f13345cebd350b557f7c6bd10ab9d04"
   },
   "onodeManager": "072b0a819fed609d9f0a0cab94650e1b61d5b4a6",
-  "compositionBase": "c2cc1430b31d63f0e4981600e97c19db4d020fe1",
-  "remaining": "Review source inventories; compile changed API/service together; qualify actual protected browser/API/bridge/command flow before acceptance. No native success inferred from this build."
+  "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
+  "remaining": "Review source inventories; compile changed API/service together; qualify actual protected browser/API/bridge/command flow before acceptance. No native success inferred from this build.",
+  "inventoryReview": {
+    "run": 45204381673,
+    "artifact": 14833515324,
+    "bytes": 40247,
+    "scope": "Only ONODEController rows differ; manager/profile/classifier inputs unchanged; official build gates revalidate full current composition."
+  }
 }
