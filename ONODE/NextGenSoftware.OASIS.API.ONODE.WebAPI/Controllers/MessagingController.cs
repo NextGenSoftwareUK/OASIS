@@ -185,7 +185,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>Creates a group conversation. The caller becomes its creator and a member.</summary>
         [Authorize]
         [HttpPost("groups")]
-        public async Task<OASISResult<ConversationInfo>> CreateGroup([FromBody] CreateGroupRequest request)
+        public async Task<OASISResult<ConversationInfo>> CreateGroup([FromBody] Models.Messaging.CreateGroupRequest request)
         {
             if (request == null)
                 return new OASISResult<ConversationInfo> { IsError = true, Message = "The request body is required." };
