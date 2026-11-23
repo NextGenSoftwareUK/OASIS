@@ -1,0 +1,96 @@
+{
+  "run": 45124692924,
+  "job": 137526233179,
+  "artifact": 14795562883,
+  "archiveBytes": 3301,
+  "archiveSha256": "dfbf4c3cfade6e77553d83101d0830d27488c37b3fa6cd4052d8177f7b81c16f",
+  "archiveSavedLocally": false,
+  "source": {
+    "deployed": false,
+    "source": "808761b624a8be2ca67c1e3edcbbb283821413ff",
+    "ownedValueModelVerified": true,
+    "nativePassed": 3,
+    "ownedFixturesAbsent": true,
+    "sharedDatabaseCalls": 0,
+    "core": "7186c8065e5423c44a5998ae858ac4c33a52b584",
+    "actualWeb4Compiled": true
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-owned": 486,
+        "read-owned": 81,
+        "project-owned-leaves": 57,
+        "refuse-null-owned": 18,
+        "update-owned": 31,
+        "read-updated-owned": 7
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "requiredOwnedNullPreservedBeforeValidation": true,
+        "ownedMetadataAliasStored": true,
+        "typedComponentRoundtrip": true,
+        "nativeLeafFilterOrderProjection": true,
+        "nestedUpdateAcknowledged": true,
+        "immutableOwnedSnapshot": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-owned": 458,
+        "read-owned": 40,
+        "project-owned-leaves": 9,
+        "refuse-null-owned": 4,
+        "update-owned": 48,
+        "read-updated-owned": 10
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "requiredOwnedNullPreservedBeforeValidation": true,
+        "ownedMetadataAliasStored": true,
+        "typedComponentRoundtrip": true,
+        "nativeLeafFilterOrderProjection": true,
+        "nestedUpdateAcknowledged": true,
+        "immutableOwnedSnapshot": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-owned": 1320,
+        "read-owned": 722,
+        "project-owned-leaves": 451,
+        "refuse-null-owned": 7,
+        "update-owned": 49,
+        "read-updated-owned": 293
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "requiredOwnedNullPreservedBeforeValidation": true,
+        "ownedMetadataAliasStored": true,
+        "typedComponentRoundtrip": true,
+        "nativeLeafFilterOrderProjection": true,
+        "nestedUpdateAcknowledged": true,
+        "immutableOwnedSnapshot": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "fullParityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T06:40:56.896972+00:00"
+}

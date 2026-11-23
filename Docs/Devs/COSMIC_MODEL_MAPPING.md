@@ -131,3 +131,41 @@ Model constraints cover every node selected by an owned graph save after authori
 Each admitted join source retains its own immutable model, including when both sources use the same CLR contract with different metadata keys. Join scalar output capture and LINQ correlation keys now use those models; typed whole-entity results reuse the source query materializer. GroupJoin carrier scalar admission uses the left model, while matched right entities use their own source model.
 
 The representative qualifier covers scalar and typed Join, matched/unmatched GroupJoin and correlated SelectMany. This is source-integrated pending its native qualification, and does not imply unrestricted computed joined expressions or all post-join composition.
+
+## Declaring annotation-only entity contracts
+
+Entity<T>() declares a contract in an explicit model even when its properties already have CustomOASISProperty annotations or use only canonical Holon fields:
+
+```csharp
+var builder = new CosmicModelBuilder();
+builder.Entity<Reading>();
+var model = builder.Build();
+```
+
+Explicit property mappings and naming conventions are optional for this declaration. Typed child-role materialization can use any contract declared in the same model, including an annotation-only contract. Build freezes the entity set; declaring additional types later does not change an existing model. The annotation-only qualifier45118868505 passed one native graph journey per MongoDB, SQLite and Neo4j store plus the WEB4 build. Its isolated fixtures were removed. Deployment acceptance is separate; consult current status before treating it as deployed.
+
+## Per-model read-only entity contracts
+
+```csharp
+builder.Entity<Reading>().IsReadOnly();
+var readModel = builder.Build();
+```
+
+Queries and typed hydration remain available. SaveChanges refuses inserts, updates and deletions of a configured read-only contract with COSMIC_MODEL_READ_ONLY_ENTITY. A policy on a base contract includes its runtime subtypes. Application edits and removal intents can still be staged; a prohibited persistence request returns an explicit error.
+
+Policy belongs to the immutable model snapshot. Building another writable model for the same CLR type does not alter this model, and changing the builder later does not unlock existing sessions. Mandatory provider/caller permissions still apply. This is a persistence mapping policy; general immutable-object construction, keyless views and full M18 parity remain separate scope. The read-only qualifier45119523112 passed three native journeys and the WEB4 build; deployment status remains in the COSMIC status.
+
+## Owned value objects
+
+```csharp
+builder.Entity<CustomerHolon>().OwnsOne(row => row.Address)
+    .IsRequired().HasMetadataKey("mailing_address");
+```
+
+The complete value object is stored atomically in its parent's metadata. Its scalar CLR leaf chains bind to native metadata paths, so Address.City and Address.Region.Code can participate in admitted filters, ordering and scalar DTO projections. Root snapshot tracking detects nested value edits; saving the parent replaces the component value through the existing owned write pipeline. The parent's permissions govern the value.
+
+This initial contract accepts acyclic plain public classes with public parameterless constructors and public non-indexed property getters/setters. Components can contain scalar leaves and recursively plain components. It rejects Holon/navigation/collection types, public fields and custom JSON/data-contract/type-converter mapping attributes. Shape limits are sixteen metadata segments, 256 scalar leaves and 1,024 shape nodes. It does not create separate component holon identities, schemas or custom serializers. Whole-component selected projections and broader owned/collection mappings require separate query contracts.
+
+Capture freezes the alias and property chains without invoking getters. The final owned-value qualifier45124692924 passed all three representative native journeys and the WEB4 build, including null preservation. Deployment status remains separate in the COSMIC status.
+
+Plain value properties and custom model fields retain explicit nulls through canonical snapshots and hydration, so constructor initializers cannot replace a submitted null. Authoritative record/audit field compaction retains its established policy; explicit serializer overrides remain respected outside the plain owned contract. The owned qualifier includes null-required-component refusal and a null nested string with a non-null constructor default.

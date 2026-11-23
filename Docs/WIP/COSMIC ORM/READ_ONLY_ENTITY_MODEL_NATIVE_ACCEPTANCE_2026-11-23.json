@@ -1,0 +1,99 @@
+{
+  "run": 45119523112,
+  "job": 137509846865,
+  "artifact": 14792823800,
+  "archiveBytes": 3250,
+  "archiveSha256": "0c9d0378a09b6428fa6be76512dca9c1822e1a32536ca62bcc5ad18745f33650",
+  "archiveSavedLocally": false,
+  "source": {
+    "source": "3906c2c1493f9148c6279b2beb262311d6d6c054",
+    "ownedFixturesAbsent": true,
+    "actualWeb4Compiled": true,
+    "readOnlyModelVerified": true,
+    "sharedDatabaseCalls": 0,
+    "nativePassed": 3,
+    "deployed": false,
+    "core": "ab24837a42c520184c5612e119868af1984939d2"
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 5,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-valid": 587,
+        "read-locked": 106,
+        "refuse-update": 18,
+        "refuse-delete": 3,
+        "refuse-insert": 1,
+        "read-unchanged": 5,
+        "write-unlocked": 34,
+        "read-updated": 5
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "readOnlyInsertRefused": true,
+        "readOnlyUpdateAndDeleteRefused": true,
+        "authorityUnchangedAfterRefusals": true,
+        "independentWritableModel": true,
+        "immutablePolicySnapshot": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 5,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-valid": 735,
+        "read-locked": 65,
+        "refuse-update": 8,
+        "refuse-delete": 0,
+        "refuse-insert": 2,
+        "read-unchanged": 18,
+        "write-unlocked": 41,
+        "read-updated": 7
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "readOnlyInsertRefused": true,
+        "readOnlyUpdateAndDeleteRefused": true,
+        "authorityUnchangedAfterRefusals": true,
+        "independentWritableModel": true,
+        "immutablePolicySnapshot": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 5,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-valid": 1010,
+        "read-locked": 573,
+        "refuse-update": 6,
+        "refuse-delete": 0,
+        "refuse-insert": 2,
+        "read-unchanged": 322,
+        "write-unlocked": 48,
+        "read-updated": 9
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "readOnlyInsertRefused": true,
+        "readOnlyUpdateAndDeleteRefused": true,
+        "authorityUnchangedAfterRefusals": true,
+        "independentWritableModel": true,
+        "immutablePolicySnapshot": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "fullParityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T05:53:46.798143+00:00"
+}
