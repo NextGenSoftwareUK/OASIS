@@ -1,3 +1,5 @@
+2026-11-23 04:36 UTC — SHARED FLUENT CONSTRAINTS NATIVE ACCEPTED. Run45111894147/job137485902365 passed all three real MongoDB/SQLite/Neo4j journeys on source6eff6800/Core23cb662e. Required/length/decimal precision and scale are enforced on the authorized owned snapshot after callbacks, remain active when session lifecycle is replaced, reject writes without changing revision, preserve immutable builder snapshots, and permit valid mapped save/read. The inherited-property identity bug is fixed by declared module/token/type identity. Strict five-entry 3,275-byte artifact14789489871 was inspected in RAM (SHAf29ad57a1566d40a000f7d910d58923a720b4e62e3146ed2cb2f77f63a83189c); three TRX cases passed, actual WEB4 compiled, owned fixtures removed, zero shared database calls. No schema-generation/DB-constraint/full M03 or full M11 parity claim. This Core is feature-only; Development remains aa257/Core854. Retain accepted cohorts; prepare the next cohesive feature batch before another normal deployment.
+
 # COSMIC ORM implementation status
 
 Updated 2 November 2026. Full programme remains incomplete.
