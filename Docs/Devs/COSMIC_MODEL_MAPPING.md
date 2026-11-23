@@ -1,3 +1,9 @@
+## Ordered entity-set stages — API source implemented; native qualification pending
+
+The existing set request can carry EntityStages: one to16 ordered Where, OrderBy, Skip, Take or Reverse operations after the request's existing combined window and before OutputColumns. Where uses the shared typed predicate tree and cumulative predicate bounds. Ordering uses declared entity fields and stable Id tie-breaking. No operation is moved across an earlier window. Input selected-column sets reject this entity contract, preserving tuple equality.
+
+The implementation delegates to existing immutable Core entity composition and the shipping providers. Source capture, compiler and three-provider authenticated native HTTP qualification are pending. SQL/Ask integration and live acceptance remain separate gates. This does not certify arbitrary selected-result stages or full SQL/ORM parity.
+
 ## Explicitly mapped private setters — source implemented; native qualification pending
 
 Fluent and allowlisted XML scalar mappings may select a public getter with a non-public setter. A domain method can change that property while COSMIC handles its metadata alias, snapshot tracking, validation and typed native query binding. V2 hydration invokes a non-public setter only when the immutable application model explicitly maps that property; unconfigured legacy hydration retains its existing public-setter admission. Getter-only properties remain unsupported.
