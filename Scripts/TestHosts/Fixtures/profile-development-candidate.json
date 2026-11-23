@@ -1,19 +1,32 @@
 {
   "scope": "profile",
-  "status": "reviewed-current-composition-awaiting-profile-http",
-  "base": "c367eb178946cad44c4dc3ce81881dba26a07f40",
-  "candidate": "e1cf13421bd8acd707d9cda49d2952b01240f2ab",
-  "tag": "qualification/profile-reviewed-current-root-20261123",
+  "status": "verified-selected-set-CQL-composed-nullable-profile-inventory-pending",
+  "base": "4b8d3923c7b5c2f51e434dbd8d2104ffa41dc68e",
+  "candidate": "3b07071ead4daf7309b64737014bd8359add0e93",
+  "tag": "qualification/profile-selected-set-root-20261123",
   "buildProjects": [
     "WEB4"
   ],
   "allowedPaths": [
+    "Docker/oasis-dependency-versions.env",
     "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv"
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SelfAvatarProfileController.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Profile.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/AvatarRepository.HistoryPatch.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/AvatarRepository.Profile.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.AvatarHistory.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Profile.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.ProfileSchema.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Schema.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Profile.cs",
+    "STAR ODK",
+    "Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1",
+    "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
   ],
   "core": {
-    "base": "def8cf76c73ed6495155dd16077a58030af33067",
-    "candidate": "cb1c50c24ac8520be6f328bca08e48e04737854b"
+    "base": "ef05dbecb1428a91da53abdcfab39bf2d55aa51b",
+    "candidate": "271603c32f13345cebd350b557f7c6bd10ab9d04"
   },
   "remaining": "Review current-composition inventories, run existing profile HTTP composition proof, then qualify and deliver one shipping image. Preserve prior provider/browser matrix acceptance; do not repeat it.",
   "nativeHost": "HotspotHttpNative",
