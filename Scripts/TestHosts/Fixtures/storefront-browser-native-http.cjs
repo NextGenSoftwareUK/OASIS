@@ -4,7 +4,7 @@ async function verify({baseUrl,token,avatarId,gameId,oappId,itemId}) {
  const base=new URL(baseUrl);assert.equal(base.hostname,'127.0.0.1');assert.equal(base.protocol,'http:');
  const {chromium}=require(path.join(process.env.OASIS_PROFILE_BROWSER_RUNTIME,'node_modules/playwright-core'));
  const browser=await chromium.launch({channel:'chrome',headless:true}),context=await browser.newContext({serviceWorkers:'block'});
- const errors=[],unexpected=[],requests=[];
+ const errors=[],unexpected=[],requests=[],responseFacts=[];
  const allowed=new Set(['/api/games','/api/games/load-all-for-avatar','/api/oapps/load-all-for-avatar','/api/oapps','/api/oapps/search','/api/avatar/inventory','/api/inventoryitems']);
  try{
   await context.route('**/*',route=>{const req=route.request(),url=new URL(req.url());
@@ -16,6 +16,13 @@ async function verify({baseUrl,token,avatarId,gameId,oappId,itemId}) {
   });
   await context.addInitScript(({token,avatarId})=>{localStorage.setItem('avatar',JSON.stringify({id:avatarId}));sessionStorage.setItem('ownedCatalogueBearer',token);},{token,avatarId});
   const page=await context.newPage();page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));
+  page.on('response',async response=>{
+   const route=new URL(response.url()).pathname;if(!allowed.has(route)||responseFacts.length>=14)return;
+   try{const body=await response.json();const message=String(body.message||'');responseFacts.push({route,http:response.status(),isError:body.isError,
+    resultArray:Array.isArray(body.result),count:Array.isArray(body.result)?body.result.length:null,
+    message:/secret|password|token|connectionstring|credential/i.test(message)?'[redacted]':message.replace(/[a-z]+:\/\/\S+/gi,'[endpoint]').slice(0,200)});}
+   catch{responseFacts.push({route,http:response.status(),json:false});}
+  });
   await page.goto(baseUrl+'/__storefront_browser');await page.waitForFunction(()=>window.__storefrontReady===true);
   const gamesResponse=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/games');
   await page.locator('#fixture-games').click();
@@ -52,6 +59,7 @@ async function verify({baseUrl,token,avatarId,gameId,oappId,itemId}) {
    assert.equal(await page.locator('#'+id).textContent(),'');
   assert.deepEqual(errors,[]);assert.deepEqual(unexpected,[]);assert.equal(requests.length,7);
   return {storefrontBrowserVerified:true,games:true,oapps:true,inventory:true,zeroBrowserMutations:true};
- }finally{await context.close();await browser.close();}
+ }catch(error){throw new Error(error.message+' | requests='+JSON.stringify(requests)+' | responses='+JSON.stringify(responseFacts)+' | browserErrors='+JSON.stringify(errors)+' | blocked='+JSON.stringify(unexpected));}
+ finally{await context.close();await browser.close();}
 }
 module.exports={verify};
