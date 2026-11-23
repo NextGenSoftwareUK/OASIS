@@ -1,16 +1,16 @@
 {
   "implementation": "Games now renders real Game/STARNETDNA details/capabilities and supplied absolute web launch target from already-fetched records. No new API fanout.",
   "scope": "One new real populated Games/OAPPs/Inventory SDK/browser/HTTP/native Mongo browse/detail/launch-link/logout journey; seven browser GETs, zero browser mutations. Existing accepted Gifts/session/provider cohorts not selected.",
-  "base": "ae9d72651bdffefce8d2695f09f9060f052c8703",
-  "checks": "Native typed Game point readback after seed exposes original codec exception before browser. Same shipping source; no timeout increase or accepted cohort replay.",
-  "status": "native-Game-metadata-hydration-failure-pinpoint-active",
+  "base": "15798b127af2274aa811252ad6335cbfc8661a49",
+  "checks": "Same representative native/browser journey now checks raw BSON array + exact platforms and real typed readback before browser. Source syntax/diff and reviewed file identity passed; compile/native/browser pending.",
+  "status": "root-cause-list-writer-fix-in-qualification",
   "cleanup": "No local runtime/env/build/database/download/results. Same owned ephemeral CI Mongo/browser fixture; existing finally cleanup. No shared Atlas/PIPER calls.",
   "control": "42766fe7ebb9001e512bf52f80d5cbfc87343a26",
   "run": 45106635634,
   "portal": "4d60218ba247b106a8b3f24afdf0583694288f71",
-  "source": "18c06063e97a859f2acba080d20a6ad299fe3bb8",
-  "activeRun": 45108587954,
-  "activeControl": "119a4a08023621551344f16cd7c70a92e1e016ac",
+  "source": "d531a4d543f6bc9428372ab1454110b882ac493c",
+  "activeRun": 45109755916,
+  "activeControl": "f725558345bb79b4729fb78c73858dbe514edf1a",
   "attempts": [
     {
       "build": "0errors4m58.44",
@@ -31,6 +31,19 @@
       "errorCode": "COSMIC_METADATA_HYDRATION_FAILED",
       "http": 200,
       "job": 137472528213
+    },
+    {
+      "stage": "native typed Game point readback",
+      "cause": "System.ArgumentException: Could not cast or convert from System.String to System.Collections.Generic.List<System.String>.",
+      "build": "0errors5m24.78",
+      "cleanup": "Owned DB/DNA/container/browser runtime/cache absence verified.",
+      "job": 137475488863,
+      "run": 45108587954,
+      "errorCode": "COSMIC_METADATA_HYDRATION_FAILED",
+      "conclusion": "failure"
     }
-  ]
+  ],
+  "rootCause": "Mongo MetaDataDictionarySerializer handles CLR arrays but sends IList/List<T> to the complex JSON-text writer. Core correctly requires a declared list, so new Game SupportedPlatforms cannot hydrate.",
+  "fix": "Six-line producer fix writes IList values as BSON arrays using existing element serializer; explicit strings/complex POCO JSON-text contracts stay unchanged. No read-time guessing/fallback.",
+  "legacyRemaining": "Already persisted JSON-text list metadata is not silently reinterpreted; assess explicit typed migration before claiming existing catalogue/full provider repaired. No shared Atlas inspection/mutation performed."
 }

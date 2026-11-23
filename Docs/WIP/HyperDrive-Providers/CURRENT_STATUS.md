@@ -1,3 +1,7 @@
+## 2026-11-23 - Mongo list writer root cause fixed in candidate; Gifts7runtime accepted
+
+45108587954/job137475488863 compiled0errors5m24.78 thennativeGamepointread proved String->List<string> failure; cleanupDB/DNA/container/browserruntime/cache verified. Mongo serializer handles arrays but routes IList/List<T> to complexJSONtext. Candidate d531a4d5 on current15798 changesonly6writerlines to native BSONarray; no readerfallback. Run45109755916 active withrawBSON/exacttypedread and samebrowserjourney. Legacystringassessment remainsopen. PeerCOSMICstatus reviewed; Mongo serializerunchangedbetweenfailed/currentbase, no coordinationoverlap. Giftsall7SUCCESS/running: WEB4=61b1d01d, others15798; Core80400/GiftsController preserved, WEB4threepauseflagstrue. No sharedbackend/localoutputs.
+
 ## 2026-11-23 - Storefront first-boundary failure under diagnosis; WEB4 superseded
 
 45106635634/job137469327400 compiled0errors4m58.44, three native seeds saved, then first Games article timedout15s. No browser acceptance. Owned DB/DNA/container/browser runtime/cache absent. Replacement45107657362 observes same actualGamesresponse selectedfacts, no increasedtimeout/newrequest/acceptedcohortreplay. Portal4d60218 actualpage/Games served200 exactsource. WEB4ae9 deploymentREMOVED, replaced e10c12ff on peer61b1d01d BUILDING; Core80400 and GiftsController preserved,4SQLite/readfiles differ so notsourceequivalent. Prior6runtimeproofs retained; no sharedbackendcalls/localoutputs.
