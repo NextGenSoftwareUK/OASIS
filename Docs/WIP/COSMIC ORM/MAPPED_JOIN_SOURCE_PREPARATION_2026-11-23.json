@@ -1,0 +1,15 @@
+{
+  "base": "048b02d54870e793de8f18439ff8f00950ad3547",
+  "core": "97ed8a080e0df7f1918b42a500d694e47e1d0026",
+  "sourceImplemented": true,
+  "compiled": false,
+  "nativeAccepted": false,
+  "deployed": false,
+  "changedFiles": [
+    "Queries/CosmicJoinResults.cs",
+    "Queries/CosmicJoinExecutor.cs",
+    "Managers/HolonManager/HolonManager-Cql.V2.cs",
+    "Queries/CosmicLinq.GroupJoin.cs"
+  ],
+  "requiresRepresentativeNativeJoins": true
+}

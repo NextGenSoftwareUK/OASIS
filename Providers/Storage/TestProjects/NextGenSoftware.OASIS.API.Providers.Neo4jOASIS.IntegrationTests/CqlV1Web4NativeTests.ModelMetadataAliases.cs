@@ -93,6 +93,29 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.AreEqual(modelId,groups.Result[0].Single().Id);
         Assert.AreEqual(23,groups.Result[0].Single().Score);
         Assert.AreNotSame(model,groups.Result[0].Single());
+        var joined=await Timed("typed-mapped-join",()=>groupRoot.Join(groupRoot,
+            left=>left.Score,right=>right.Score,(left,right)=>right).ToCosmicListAsync());
+        Assert.IsFalse(joined.IsError,joined.Message+joined.Exception);
+        Assert.AreEqual(1,joined.Result.Count);Assert.AreEqual(modelId,joined.Result[0].Id);
+        Assert.AreEqual(23,joined.Result[0].Score);Assert.AreNotSame(model,joined.Result[0]);
+        var matched=await Timed("typed-mapped-groupjoin",()=>groupRoot.GroupJoin(groupRoot,
+            left=>left.Score,right=>right.Score,(left,matches)=>new{
+                left.Score,Left=left,Matches=matches,Count=matches.Count()}).ToCosmicListAsync());
+        Assert.IsFalse(matched.IsError,matched.Message+matched.Exception);
+        Assert.AreEqual(1,matched.Result.Count);Assert.AreEqual(23,matched.Result[0].Score);
+        Assert.AreEqual(modelId,matched.Result[0].Left.Id);Assert.AreEqual(23,matched.Result[0].Left.Score);
+        Assert.AreEqual(1,matched.Result[0].Count);
+        Assert.AreEqual(modelId,matched.Result[0].Matches.Single().Id);
+        Assert.AreEqual(23,matched.Result[0].Matches.Single().Score);
+        var emptyQuery=reader.Query<AliasedScoreHolon>().Result.Where(row=>row.Id==modelId && row.Score==999).Result;
+        var emptyRoot=CosmicLinq.Create(manager,adapter,emptyQuery).Result;
+        var unmatched=await Timed("typed-mapped-unmatched-group",()=>groupRoot.GroupJoin(emptyRoot,
+            left=>left.Score,right=>right.Score,(left,matches)=>new{
+                left.Score,Left=left,Matches=matches,Count=matches.Count()}).ToCosmicListAsync());
+        Assert.IsFalse(unmatched.IsError,unmatched.Message+unmatched.Exception);
+        Assert.AreEqual(1,unmatched.Result.Count);Assert.AreEqual(23,unmatched.Result[0].Score);
+        Assert.AreEqual(modelId,unmatched.Result[0].Left.Id);
+        Assert.AreEqual(0,unmatched.Result[0].Count);Assert.IsFalse(unmatched.Result[0].Matches.Any());
         CollidingAliasHolon.GetterCalls=0;ReservedAliasHolon.GetterCalls=0;
         var scope=CosmicQueryScope.Named(adapter.QueryProviderType).Result;
         var collision=CosmicQuery<CollidingAliasHolon>.Create(scope).Where(row=>row.First==1);
@@ -100,9 +123,10 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsTrue(collision.IsError);Assert.IsNull(collision.Result);
         Assert.IsTrue(reserved.IsError);Assert.IsNull(reserved.Result);
         Assert.AreEqual(0,CollidingAliasHolon.GetterCalls);Assert.AreEqual(0,ReservedAliasHolon.GetterCalls);
-        return new NativeFixtureJourneyProof(5,2,new Dictionary<string,bool>{
+        return new NativeFixtureJourneyProof(8,2,new Dictionary<string,bool>{
             ["aliasStoredWithoutClrKey"]=true,["freshTypedReadVerified"]=true,
             ["nativePredicateProjectionVerified"]=true,["selectedUpdateVerified"]=true,["typedIdentityGroupsVerified"]=true,
+            ["typedJoinEntitiesVerified"]=true,["typedMappedGroupJoinVerified"]=true,["unmatchedTypedGroupVerified"]=true,
             ["collisionAndReservedRefusedBeforeGetters"]=true});
     }
 }
