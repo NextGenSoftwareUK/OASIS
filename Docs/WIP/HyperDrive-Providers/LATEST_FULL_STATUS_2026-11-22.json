@@ -224,5 +224,15 @@
     "uiScope": "source/syntax checked, browser not newly accepted",
     "publishedCommit": "bea1473a1bfa3c4260982728b4cdcdeed5570465",
     "equivalentCommit": "d74ceb6d3e770691ef97b94a204adc4a3f96b855"
+  },
+  "storefrontPublication20261123": {
+    "run": 45114577286,
+    "job": 137494371969,
+    "conclusion": "success",
+    "development": "21abed0bedfde0399f66eef1da62cff0d92d34b7",
+    "core": "fc2470e77afa41e0a35850dbb2ce3c3f9e23b6dd",
+    "portal": "71ea1255c7e7241cdc766179aaf4d4525865004a",
+    "scope": "Combined Games/OAPPs/Inventory native browser accepted; published source, running Railway acceptance pending. Earlier candidate-pending fields are historical.",
+    "remaining": "Full page Startup/SSO, hosted Stripe, permanent deletion, existing catalogue migration and remaining portal breadth."
   }
 }

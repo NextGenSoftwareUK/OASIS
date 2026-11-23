@@ -3,7 +3,7 @@
   "scope": "One new real populated Games/OAPPs/Inventory SDK/browser/HTTP/native Mongo browse/detail/launch-link/logout journey; seven browser GETs, zero browser mutations. Existing accepted Gifts/session/provider cohorts not selected.",
   "base": "aa257b03a0baae0175e7b47cd367a93fd139f55c",
   "checks": "GitHub job 137494371969 completed SUCCESS for run 45114577286. Combined native/browser job accepted; terminal log extraction unavailable on this observation. No claim of full production Startup, hosted Stripe, or legacy catalogue migration acceptance.",
-  "status": "combined-cloud-job-passed-publication-pending",
+  "status": "combined-native-browser-accepted-published-to-Development-runtime-pending",
   "cleanup": "No local runtime/env/build/database/download/results. Same owned ephemeral CI Mongo/browser fixture; existing finally cleanup. No shared Atlas/PIPER calls.",
   "control": "42766fe7ebb9001e512bf52f80d5cbfc87343a26",
   "run": 45106635634,
@@ -93,7 +93,7 @@
     "job": 137494371969,
     "conclusion": "success",
     "source": "21abed0bedfde0399f66eef1da62cff0d92d34b7",
-    "publication": "pending scoped integration",
-    "cleanup": "Workflow success observed; terminal cleanup markers not independently extracted in this observation."
+    "publication": "Published Development 21abed0bedfde0399f66eef1da62cff0d92d34b7 and Core Development fc2470e77afa41e0a35850dbb2ce3c3f9e23b6dd; all eight branch gates and paired manifest passed. Running Railway revision not yet verified.",
+    "cleanup": "GitHub owned native fixture and browser runtime/cache cleanup steps SUCCESS. No local downloads/build/env/database created."
   }
 }
