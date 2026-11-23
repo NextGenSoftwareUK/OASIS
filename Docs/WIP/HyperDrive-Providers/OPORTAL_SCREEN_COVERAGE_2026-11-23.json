@@ -12,10 +12,10 @@
     {
       "route": "avatar",
       "open": "openAvatarModal",
-      "status": "current native profile HTTP accepted; packaged Startup form hydration fails; delivery open",
-      "run": 45190600949,
-      "scope": "Current e1cf/Corecb1 real MVC/manager/router/native Mongo GET/PATCH/GET passes. Packaged profile45196807788 GET200 but form cannot edit; same-image diagnostic45197652733 active. Earlier provider/portrait scopes retained.",
-      "evidence": "Docs/WIP/HyperDrive-Providers/OPORTAL_PROFILE_DELIVERY_GAP_2026-11-21.json"
+      "status": "actual Startup profile edit/save/native persisted readback/close accepted; remaining profile actions not complete",
+      "run": 45210041080,
+      "scope": "Shipping Startup browser form hydration, edit/save and independent native persisted readback accepted on immutable profile source; prior native provider scopes retained.",
+      "evidence": "Docs/WIP/HyperDrive-Providers/OPORTAL_PROFILE_ACCEPTANCE_2026-11-23.json"
     },
     {
       "route": "wallet",
@@ -88,7 +88,9 @@
     {
       "route": "onode",
       "open": "openONODEModal",
-      "status": "further evidence reconciliation or main journey required; not complete"
+      "status": "source and component API/SDK/command scopes accepted; actual Startup authentication500 unresolved; combined browser pending",
+      "run": 45238041414,
+      "scope": "Current CQL source inventory accepted45237515982. Prior actual supervisor HTTP/SDK/role command evidence retained45221661443. Bridge45236110787 compiled but sign-in500 stopped journey; all owned cleanup acknowledged. Combined real Startup/pinned Portal run active, no browser/applied-runtime acceptance."
     },
     {
       "route": "developer",
