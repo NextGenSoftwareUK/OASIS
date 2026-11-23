@@ -54,8 +54,7 @@ Intrinsic annotation names are cached with weak type keys. The cache contains
 immutable property/name information and no avatar, application, connection or
 permission state.
 
-Full fluent model configuration, converters, complex/owned types, inheritance,
-schema migrations, and unrestricted POCO mapping remain separate roadmap work.
+Fluent scalar configuration, application constraints, naming conventions, selected child-role graphs, per-model read-only policies and owned plain value objects are described below with their representative native evidence. Converters, general inheritance mapping, schema migrations and unrestricted POCO mapping remain open roadmap work.
 Full/virtual/hybrid source policies govern where data resides; this attribute
 defines a CLR property's Holon metadata key and does not introduce a new import
 or virtual-source lifecycle.
@@ -89,7 +88,7 @@ The declared entity currently derives from Holon and has a public parameterless 
 
 Build snapshots are independent: later builder edits do not affect an existing model. The same immutable model is bound before query expressions/windows and remains attached to session reads, source predicates/order/projections, scalar terminal captures, typed hydration and owned save preparation. Query/session model mismatch or model rebinding fails explicitly. There is no global per-type override or client-side query evaluation.
 
-This initial slice covers flat scalar roots. Explicit model graph expansion is now source-integrated through selected child-role bindings and awaits its own native qualification. Unrestricted POCOs, XML mappings, annotation override precedence, inheritance conventions, converters and the full fluent ORM feature family remain open. Other query shapes still require their independently admitted native contracts. Follow the source/native/live qualification status in [the COSMIC status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md); source presence alone is not parity or deployment acceptance.
+The scalar contract is also integrated with selected child-role graphs. The conventions/graph qualifier45115667791 passed six native journeys across MongoDB, SQLite and Neo4j, including graph identity, private-child exclusion and descendant validation. Unrestricted POCOs, XML mappings, annotation override precedence, inheritance conventions, converters and the full fluent ORM feature family remain open. Other query shapes still require their independently admitted native contracts. Follow the source/native/live qualification status in [the COSMIC status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md); source presence alone is not parity or deployment acceptance.
 
 
 ## Fluent application constraints
@@ -122,7 +121,7 @@ The convention applies to every public custom property in this flat scalar contr
 
 An explicit model now travels with an admitted WithChildren query through typed child-role hydration. Configure each child CLR contract in the same model and register its role with HolonChildRoleBinding. Configured role members use the existing model metadata codec before role callbacks; a separate local metadata factory is unnecessary. Unconfigured roles retain their registered factory contract.
 
-Root and child identities, parent links, committed revisions and stored role observations must remain unchanged. Native visibility and graph budgets still apply; omitted private members are not materialized and their complete stored relationship observation is retained. This source integration requires its new three-provider qualification before acceptance. It does not add unrestricted POCO relationships or make session writes implicitly save a graph.
+Root and child identities, parent links, committed revisions and stored role observations must remain unchanged. Native visibility and graph budgets still apply; omitted private members are not materialized and their complete stored relationship observation is retained. The conventions/graph qualifier45115667791 accepted the selected graph integration on all three native providers. It does not add unrestricted POCO relationships or make session writes implicitly save a graph.
 
 Model constraints cover every node selected by an owned graph save after authorization, not only the roots. This does not cause a session root-only save to select children implicitly.
 
@@ -130,7 +129,7 @@ Model constraints cover every node selected by an owned graph save after authori
 
 Each admitted join source retains its own immutable model, including when both sources use the same CLR contract with different metadata keys. Join scalar output capture and LINQ correlation keys now use those models; typed whole-entity results reuse the source query materializer. GroupJoin carrier scalar admission uses the left model, while matched right entities use their own source model.
 
-The representative qualifier covers scalar and typed Join, matched/unmatched GroupJoin and correlated SelectMany. This is source-integrated pending its native qualification, and does not imply unrestricted computed joined expressions or all post-join composition.
+The representative qualifier covers scalar and typed Join, matched/unmatched GroupJoin and correlated SelectMany. The independent-model join qualifier45115044812 accepted these representative paths on MongoDB, SQLite and Neo4j. Unrestricted computed joined expressions and all post-join composition remain open.
 
 ## Declaring annotation-only entity contracts
 
@@ -169,3 +168,7 @@ This initial contract accepts acyclic plain public classes with public parameter
 Capture freezes the alias and property chains without invoking getters. The final owned-value qualifier45124692924 passed all three representative native journeys and the WEB4 build, including null preservation. Deployment status remains separate in the COSMIC status.
 
 Plain value properties and custom model fields retain explicit nulls through canonical snapshots and hydration, so constructor initializers cannot replace a submitted null. Authoritative record/audit field compaction retains its established policy; explicit serializer overrides remain respected outside the plain owned contract. The owned qualifier includes null-required-component refusal and a null nested string with a non-null constructor default.
+
+## Current release boundary
+
+Development revision7700707e includes the annotation-only, read-only and owned-value batch, with Core7186c806 pinned in both the gitlink and deployment manifest. Native qualifiers45118868505,45119523112 and45124692924 passed the three-store journeys; the exact image45125287105 and package45126351817 gates passed. At the last rollout observation, WEB5 through WEB10 had succeeded while WEB4 was still building. This is source and native acceptance, not current WEB4 runtime or browser acceptance. The full EF/NHibernate roadmap remains incomplete.
