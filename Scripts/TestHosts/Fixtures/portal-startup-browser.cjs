@@ -251,7 +251,11 @@ async function main(){
    assert.match(child.id,/^[0-9a-f-]{36}$/i);
    stage='Catalogue native depth comparison';
    for(const deep of [false,true]){
-    const reply=await context.request.get(proxy5Origin+'/api/oapps'+(deep?'?loadChildren=true':''),{headers:{Authorization:'Bearer '+ownedToken}});assert.equal(reply.status(),200);const body=await reply.json();assert.equal(body.isError,false);assert.ok(Array.isArray(body.result));const app=body.result.find(row=>row.id===catalogueAppId);assert.ok(app);assert.ok(Array.isArray(app.children));assert.equal(app.children.some(row=>row.id===child.id),deep,'Actual descendant loading matches explicit request');
+    stage=deep?'Catalogue explicit descendant list':'Catalogue default shallow list';
+    const path='/api/oapps'+(deep?'?loadChildren=true':'');
+    const reply=await context.request.get(proxy5Origin+path,{headers:{Authorization:'Bearer '+ownedToken,'Idempotency-Key':require('node:crypto').randomUUID()}});
+    const body=await reply.json();httpFacts.push({path,status:reply.status(),isError:body.isError,...(body.isError?{errorCode:body.errorCode,routingMessage:safeRoutingMessage(body.message)}:{})});
+    assert.equal(reply.status(),200);assert.equal(body.isError,false);assert.ok(Array.isArray(body.result));const app=body.result.find(row=>row.id===catalogueAppId);assert.ok(app);assert.ok(Array.isArray(app.children));assert.equal(app.children.some(row=>row.id===child.id),deep,'Actual descendant loading matches explicit request');
    }
   }
 
@@ -282,7 +286,7 @@ async function main(){
    await checkPopup('OappMap','#oapp-map-modal-close-btn',async()=>{
     stage='OAPP map explicit depth';const [response]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname.toLowerCase()==='/api/oapps'),page.evaluate(()=>window.openOappMapModal())]);
     assert.equal(new URL(response.url()).searchParams.get('loadChildren'),'true');const raw=await response.json();assert.equal(raw.isError,false);assert.ok(Array.isArray(raw.result));assert.equal(raw.result.length,popupGroup==='web5-depth'?1:0);
-    await page.waitForFunction(expected=>document.getElementById('oapp-map-status').textContent===expected,popupGroup==='web5-depth'?'1 OAPPs Ãƒâ€šÃ‚Â· returned relationships only':'No OAPPs found.');
+    await page.waitForFunction(expected=>document.getElementById('oapp-map-status').textContent===expected,popupGroup==='web5-depth'?'1 OAPPs ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· returned relationships only':'No OAPPs found.');
     stage='OAPP map filters';await page.locator('#oapp-map-filter').fill('no matching OAPP');assert.equal(await page.locator('#oapp-map-detail').isHidden(),true);await page.locator('#oapp-map-reset-btn').click();
    });
    await checkPopup('Launcher','#oapp-launcher-modal-close-btn',async()=>{
@@ -330,7 +334,7 @@ async function main(){
    });
    await checkPopup('Celestial','#celestial-map-modal-close-btn',async()=>{
     stage='Celestial real lists';await page.evaluate(()=>window.openCelestialMapModal());
-    await page.waitForFunction(()=>document.getElementById('celestial-map-status').textContent==='0 spaces Ãƒâ€šÃ‚Â· 0 bodies Ãƒâ€šÃ‚Â· returned memberships only');
+    await page.waitForFunction(()=>document.getElementById('celestial-map-status').textContent==='0 spaces ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· 0 bodies ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· returned memberships only');
    });
    await checkPopup('GlobalSearch','#global-search-modal-close-btn',async()=>{
     stage='Global avatar search';await page.evaluate(()=>window.openGlobalSearchModal());await page.locator('#global-search-modal-block [data-type="Avatar"]').click();
@@ -338,7 +342,7 @@ async function main(){
     const raw=await response.json(),envelope=typeof raw.isError==='boolean'?raw:raw.result;assert.equal(envelope.isError,false);const records=envelope.result;assert.ok(Array.isArray(records));assert.equal(records.length,1);assert.equal(records[0].id,recipient.avatar.id);
     await page.waitForFunction(()=>document.getElementById('gs-status-bar').textContent==='1 result');
     assert.ok((await page.locator('#gs-results').textContent()).includes(records[0].name||records[0].username||records[0].id));
-    stage='Global clear';await page.locator('#gs-input').fill('');await page.waitForFunction(()=>document.getElementById('gs-results').textContent==='Start typing to search across the OASISÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦');
+    stage='Global clear';await page.locator('#gs-input').fill('');await page.waitForFunction(()=>document.getElementById('gs-results').textContent==='Start typing to search across the OASISÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦');
    });
    await checkPopup('Activity','#activity-feed-modal-close-btn',async()=>{
     stage='Activity read';const [response]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname==='/api/karma/activity'),page.evaluate(()=>window.openActivityFeedModal())]);
@@ -349,7 +353,7 @@ async function main(){
    });
    await checkPopup('Social','#social-graph-modal-close-btn',async()=>{
     stage='Social contacts';await page.evaluate(()=>window.openSocialGraphModal());
-    await page.waitForFunction(()=>document.getElementById('social-graph-status').textContent==='1 messaging contacts Ãƒâ€šÃ‚Â· 1 recent messages checked');
+    await page.waitForFunction(()=>document.getElementById('social-graph-status').textContent==='1 messaging contacts ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· 1 recent messages checked');
     assert.equal(await page.locator('#social-graph-svg circle').count(),2);assert.equal(await page.locator('#social-graph-svg line').count(),1);
     assert.equal(await page.locator('#social-graph-more-btn').isHidden(),true);
     stage='Social compose';await page.locator('#social-graph-svg [data-contact-id="'+recipient.avatar.id+'"]').press('Enter');
