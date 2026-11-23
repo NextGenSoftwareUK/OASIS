@@ -12,6 +12,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
     {
         private IMongoCollection<AppAccountRecord> AppAccounts => _database.GetCollection<AppAccountRecord>("subscription_app_accounts");
 
+        // Ownership changes are rare; use the existing per-account gate rather than
+        // adding another read/write to every metered request.
+        private async Task FenceOpenAccountOwnershipAsync(IClientSessionHandle session, string actor, CancellationToken ct)
+        {
+            await EnsureOpeningBalanceAsync(session, ct);
+            if (Guid.TryParse(actor, out var accountId)) actor = accountId.ToString("D");
+            var slotId = "checkout-slot:" + actor;
+            var slot = await BillingAudit.Find(session, new BsonDocument("_id", slotId)).SingleOrDefaultAsync(ct);
+            if (slot != null && (slot["UserId"].AsString != actor ||
+                !slot.GetValue("AccountClosureOperationId", BsonNull.Value).IsBsonNull ||
+                !slot.GetValue("AccountClosureStartedAtUtc", BsonNull.Value).IsBsonNull))
+                throw new SubscriptionUsageConflictException("App ownership cannot be assigned to an account that is closing.");
+            var fenced = await BillingAudit.UpdateOneAsync(session, new BsonDocument("_id", slotId),
+                Builders<BsonDocument>.Update.SetOnInsert("UserId", actor).SetOnInsert("Kind", "checkout-reservation")
+                    .Set("OccurredAtUtc", _time.GetUtcNow().UtcDateTime).Inc("OwnershipVersion", 1),
+                new UpdateOptions { IsUpsert = true }, ct);
+            if (!fenced.IsAcknowledged || fenced.MatchedCount != 1 && fenced.UpsertedId == null)
+                throw new InvalidOperationException("The account ownership fence was not acknowledged.");
+        }
+
         public Task<(AppAccountRecord Account, string ApiKey)> CreateAppAccountAsync(string appId, string name, string planId, string actor, string reason, bool pooledQuota = false, string perUserPlanId = null, CancellationToken cancellationToken = default)
         {
             AppAccountRules.ValidateAppId(appId);
@@ -24,6 +44,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 var now = _time.GetUtcNow().UtcDateTime;
                 if (await AppAccounts.Find(session, x => x.AppId == appId).AnyAsync(ct))
                     throw new SubscriptionUsageConflictException("An app account with this id already exists.");
+                await FenceOpenAccountOwnershipAsync(session, actor, ct);
                 string key = AppAccountRules.GenerateKey();
                 var account = new AppAccountRecord
                 {

@@ -2243,6 +2243,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("AuthorityProvider")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("AvatarId")
                         .HasColumnType("TEXT");
 

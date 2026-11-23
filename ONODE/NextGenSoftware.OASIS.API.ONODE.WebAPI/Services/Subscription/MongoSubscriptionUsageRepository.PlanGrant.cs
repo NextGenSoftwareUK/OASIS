@@ -40,6 +40,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 if (end > now.AddYears(MaxAdminGrantYears)) throw new ArgumentException($"A grant may last at most {MaxAdminGrantYears} years.");
 
                 var existing = await Subscriptions.Find(session, x => x.UserId == userId).FirstOrDefaultAsync(ct);
+                if (existing?.IsBillingAdmissionOpen == false)
+                    throw new SubscriptionUsageConflictException("Billing admission is closed for this account.");
                 if (existing?.StripeSubscriptionId != null && existing.Status is "active" or "trialing")
                     throw new SubscriptionUsageConflictException("This avatar has an active Stripe subscription, which is canonical; cancel it before granting a plan.");
 
