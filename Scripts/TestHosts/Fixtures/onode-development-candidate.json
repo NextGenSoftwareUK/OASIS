@@ -1,0 +1,21 @@
+{
+  "scope": "onode",
+  "status": "source-reconciled-awaiting-inventory-and-combined-build",
+  "candidate": "103b3da3d7d47405c2612a02cbb3fa2d03fe6a3e",
+  "base": "0331b8fd44324ff9bddd799a1503e02844cde60f",
+  "tag": "qualification/onode-runtime-secret-root-20261123",
+  "allowedPaths": [
+    "Docker/oasis-dependency-versions.env",
+    "ONODE/ONODEManager"
+  ],
+  "buildProjects": [
+    "WEB4",
+    "ONODESUPERVISOR"
+  ],
+  "core": {
+    "candidate": "ca5939339fb82180890e6fe533c96c4e2f1cf21a"
+  },
+  "onodeManager": "072b0a819fed609d9f0a0cab94650e1b61d5b4a6",
+  "compositionBase": "c2cc1430b31d63f0e4981600e97c19db4d020fe1",
+  "remaining": "Review source inventories; compile changed API/service together; qualify actual protected browser/API/bridge/command flow before acceptance. No native success inferred from this build."
+}
