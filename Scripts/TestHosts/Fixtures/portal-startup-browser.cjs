@@ -194,7 +194,7 @@ async function main(){
     const deletion=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/data/delete-holon'&&r.request().method()==='DELETE');
     const after=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/data/load-holons-for-parent'&&r.request().method()==='POST');
     stage='Data delete';await page.locator('#data-confirm-delete-btn').click();const deleted=await (await deletion).json();
-    assert.equal(deleted.result.isError,false);assert.equal(deleted.result.result,true,'Acknowledged native deletion');
+    assert.equal(deleted.result.isError,false);assert.equal(deleted.result.result.id,savedHolonId,'Acknowledged deleted holon identity');
     const remaining=await (await after).json();assert.equal(remaining.result.isError,false);assert.ok(Array.isArray(remaining.result.result));
     assert.ok(!remaining.result.result.some(row=>row.id===savedHolonId));
     await page.waitForFunction(id=>document.getElementById('data-modal-status').hidden&&
