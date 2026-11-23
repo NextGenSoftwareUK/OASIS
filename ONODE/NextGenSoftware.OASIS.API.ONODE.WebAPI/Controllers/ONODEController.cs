@@ -225,9 +225,72 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// Get node configuration
-        /// </summary>
+        /// <summary>Public loaded configuration only; provider credentials and arbitrary node settings are excluded.</summary>
+        [HttpGet("public-config")]
+        public IActionResult GetPublicNodeConfig()
+        {
+            var oasis = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS;
+            var storage = oasis?.StorageProviders;
+            if (oasis == null || storage == null)
+                return StatusCode(503, new { isError = true, message = "Loaded OASIS configuration is unavailable." });
+            var mode = oasis.HyperDriveMode;
+            if (mode != NextGenSoftware.OASIS.API.DNA.HyperDriveModes.Legacy &&
+                mode != NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2)
+                return StatusCode(503, new { isError = true, message = "Loaded HyperDrive mode is invalid." });
+            var routingSettings = new Dictionary<string, object>();
+            var routingSource = "OASIS.StorageProviders";
+            if (mode == NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2)
+            {
+                var hyperdrive = oasis.OASISHyperDriveConfig;
+                if (hyperdrive == null)
+                    return StatusCode(503, new { isError = true, message = "Loaded HyperDrive routing configuration is unavailable." });
+                routingSource = "OASIS.OASISHyperDriveConfig";
+                routingSettings["isEnabled"] = hyperdrive.IsEnabled;
+                routingSettings["autoFailoverEnabled"] = hyperdrive.AutoFailoverEnabled;
+                routingSettings["autoReplicationEnabled"] = hyperdrive.AutoReplicationEnabled;
+                routingSettings["autoLoadBalancingEnabled"] = hyperdrive.AutoLoadBalancingEnabled;
+                routingSettings["enabledProviders"] = hyperdrive.EnabledProviders?.ToArray() ?? Array.Empty<string>();
+                routingSettings["autoFailoverProviders"] = hyperdrive.AutoFailoverProviders?.ToArray() ?? Array.Empty<string>();
+                routingSettings["autoReplicationProviders"] = hyperdrive.AutoReplicationProviders?.ToArray() ?? Array.Empty<string>();
+                routingSettings["loadBalancingProviders"] = hyperdrive.LoadBalancingProviders?.ToArray() ?? Array.Empty<string>();
+            }
+            else
+            {
+                string[] Providers(string value) => (value ?? "").Split(',',
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                routingSettings["autoFailOverEnabled"] = storage.AutoFailOverEnabled;
+                routingSettings["autoReplicationEnabled"] = storage.AutoReplicationEnabled;
+                routingSettings["autoLoadBalanceEnabled"] = storage.AutoLoadBalanceEnabled;
+                routingSettings["autoFailOverLocalProvidersEnabled"] = storage.AutoFailOverLocalProvidersEnabled;
+                routingSettings["autoFailOverProviders"] = Providers(storage.AutoFailOverProviders);
+                routingSettings["autoReplicationProviders"] = Providers(storage.AutoReplicationProviders);
+                routingSettings["autoLoadBalanceProviders"] = Providers(storage.AutoLoadBalanceProviders);
+                routingSettings["autoFailOverLocalProviders"] = Providers(storage.AutoFailOverLocalProviders);
+                routingSettings["autoFailOverProvidersForAvatarLogin"] = Providers(storage.AutoFailOverProvidersForAvatarLogin);
+            }
+            return Ok(new OASISResult<object>(new
+            {
+                schemaVersion = "onode-public-config-v1",
+                sources = new { oasisDna = "Loaded WEB4 OASIS DNA" },
+                oasisDna = new
+                {
+                    hyperDriveMode = mode,
+                    routingPolicy = new { source = routingSource, settings = routingSettings },
+                    storage = new
+                    {
+                        storage.AutoFailOverEnabled, storage.AutoReplicationEnabled,
+                        storage.AutoLoadBalanceEnabled, storage.AutoFailOverLocalProvidersEnabled
+                    },
+                    timeouts = new
+                    {
+                        storage.ProviderMethodCallTimeOutSeconds, storage.AvatarLoginTimeoutSeconds,
+                        storage.ActivateProviderTimeOutSeconds, storage.DectivateProviderTimeOutSeconds
+                    }
+                }
+            }));
+        }
+
+        /// <summary>Get API-managed node configuration.</summary>
         [HttpGet("config")]
         public async Task<IActionResult> GetNodeConfig()
         {
@@ -279,100 +342,65 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        // ── Provider endpoints ────────────────────────────────────────────────────
-        // Read-only in local mode; OPORTAL reads directly. Writes go via supervisor.
-
-        /// <summary>
-        /// Returns configured OASIS storage providers and their enabled state from OASISDNA.json.
-        /// </summary>
+        // Provider actions share the authenticated supervisor transport and preserve its acknowledgement.
         [HttpGet("providers")]
-        public IActionResult GetProviders()
-        {
-            try
-            {
-                var path = OASISBootLoader.OASISBootLoader.OASISDNA != null
-                    ? (Environment.GetEnvironmentVariable("OASISDNA_PATH") ?? "OASISDNA.json")
-                    : "OASISDNA.json";
+        public Task<IActionResult> GetProviders([FromQuery] string role = "failover")
+            => SendSupervisorProviderRequestAsync(System.Net.Http.HttpMethod.Get, "supervisor/providers?role=" + Uri.EscapeDataString(role));
 
-                // Resolve the actual path used by OASIS
-                var resolved = Environment.GetEnvironmentVariable("OASISDNA_PATH")
-                    ?? Path.Combine(AppContext.BaseDirectory, "OASISDNA.json");
-
-                if (!System.IO.File.Exists(resolved))
-                    return Ok(new List<object>());
-
-                var json = System.IO.File.ReadAllText(resolved);
-                using var doc = System.Text.Json.JsonDocument.Parse(json);
-                var root = doc.RootElement;
-
-                System.Text.Json.JsonElement providersEl = default;
-                bool found = root.TryGetProperty("OASISDNA", out var oasisdna)
-                    ? (oasisdna.TryGetProperty("StorageProviders", out var sp) && sp.TryGetProperty("Providers", out providersEl))
-                    : (root.TryGetProperty("StorageProviders", out var sp2) && sp2.TryGetProperty("Providers", out providersEl));
-
-                if (!found) return Ok(new List<object>());
-
-                var list = new List<object>();
-                foreach (var p in providersEl.EnumerateArray())
-                {
-                    list.Add(new
-                    {
-                        providerType = p.TryGetProperty("ProviderType", out var pt) ? pt.GetString() : "",
-                        isEnabled    = p.TryGetProperty("IsEnabled",    out var ie) && ie.GetBoolean(),
-                        priority     = p.TryGetProperty("Priority",     out var pr) ? pr.GetInt32() : 0,
-                    });
-                }
-                return Ok(list);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error reading providers");
-                return StatusCode(500, new { message = "Error reading providers", error = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// Proxies provider enable/disable/priority writes to ONODEService supervisor.
-        /// Called by OPORTAL in local mode (same machine). If supervisor unavailable, 404.
-        /// </summary>
         [HttpPut("providers/{providerType}/enable")]
-        public async Task<IActionResult> EnableProvider(string providerType)
-        {
-            try
-            {
-                using var http = new System.Net.Http.HttpClient { BaseAddress = new Uri("http://127.0.0.1:8765/"), Timeout = TimeSpan.FromSeconds(5) };
-                var resp = await http.PutAsync($"supervisor/providers/{Uri.EscapeDataString(providerType)}/enable", null);
-                if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, await resp.Content.ReadAsStringAsync());
-                return Ok(new { message = $"{providerType} enabled. Restart service to apply." });
-            }
-            catch { return StatusCode(503, new { message = "ONODEService supervisor not reachable." }); }
-        }
+        public Task<IActionResult> EnableProvider(string providerType, [FromQuery] string role = "failover",
+            [FromQuery] string? expectedRevision = null)
+            => SendSupervisorProviderRequestAsync(System.Net.Http.HttpMethod.Put,
+                $"supervisor/providers/{Uri.EscapeDataString(providerType)}/enable" + ProviderRoutingQuery(role, expectedRevision));
 
         [HttpPut("providers/{providerType}/disable")]
-        public async Task<IActionResult> DisableProvider(string providerType)
-        {
-            try
-            {
-                using var http = new System.Net.Http.HttpClient { BaseAddress = new Uri("http://127.0.0.1:8765/"), Timeout = TimeSpan.FromSeconds(5) };
-                var resp = await http.PutAsync($"supervisor/providers/{Uri.EscapeDataString(providerType)}/disable", null);
-                if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, await resp.Content.ReadAsStringAsync());
-                return Ok(new { message = $"{providerType} disabled." });
-            }
-            catch { return StatusCode(503, new { message = "ONODEService supervisor not reachable." }); }
-        }
+        public Task<IActionResult> DisableProvider(string providerType, [FromQuery] string role = "failover",
+            [FromQuery] string? expectedRevision = null)
+            => SendSupervisorProviderRequestAsync(System.Net.Http.HttpMethod.Put,
+                $"supervisor/providers/{Uri.EscapeDataString(providerType)}/disable" + ProviderRoutingQuery(role, expectedRevision));
 
         [HttpPut("providers/{providerType}/priority")]
-        public async Task<IActionResult> SetProviderPriority(string providerType, [FromBody] JsonElement body)
+        public Task<IActionResult> SetProviderPriority(string providerType, [FromBody] JsonElement body,
+            [FromQuery] string role = "failover", [FromQuery] string? expectedRevision = null)
+            => SendSupervisorProviderRequestAsync(System.Net.Http.HttpMethod.Put,
+                $"supervisor/providers/{Uri.EscapeDataString(providerType)}/priority" + ProviderRoutingQuery(role, expectedRevision), body.GetRawText());
+
+        private static string ProviderRoutingQuery(string role, string? revision) =>
+            "?role=" + Uri.EscapeDataString(role) + "&expectedRevision=" + Uri.EscapeDataString(revision ?? "");
+
+        private async Task<IActionResult> SendSupervisorProviderRequestAsync(
+            System.Net.Http.HttpMethod method, string path, string? body = null)
         {
             try
             {
-                using var http = new System.Net.Http.HttpClient { BaseAddress = new Uri("http://127.0.0.1:8765/"), Timeout = TimeSpan.FromSeconds(5) };
-                var content = new System.Net.Http.StringContent(body.GetRawText(), System.Text.Encoding.UTF8, "application/json");
-                var resp = await http.PutAsync($"supervisor/providers/{Uri.EscapeDataString(providerType)}/priority", content);
-                if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, await resp.Content.ReadAsStringAsync());
-                return Ok(new { message = $"{providerType} priority updated." });
+                var tokenPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                    ".oasis", "supervisor-token");
+                if (!System.IO.File.Exists(tokenPath))
+                    return StatusCode(503, new { message = "ONODEService supervisor credential is unavailable." });
+                var token = (await System.IO.File.ReadAllTextAsync(tokenPath, HttpContext.RequestAborted)).Trim();
+                if (string.IsNullOrEmpty(token))
+                    return StatusCode(503, new { message = "ONODEService supervisor credential is unavailable." });
+                var factory = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions
+                    .GetRequiredService<System.Net.Http.IHttpClientFactory>(HttpContext.RequestServices);
+                using var http = factory.CreateClient("ONODESupervisor");
+                using var request = new System.Net.Http.HttpRequestMessage(method, path);
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                if (body != null)
+                    request.Content = new System.Net.Http.StringContent(body, System.Text.Encoding.UTF8, "application/json");
+                using var response = await http.SendAsync(request, HttpContext.RequestAborted);
+                return new ContentResult
+                {
+                    StatusCode = (int)response.StatusCode,
+                    ContentType = response.Content.Headers.ContentType?.ToString() ?? "application/json",
+                    Content = await response.Content.ReadAsStringAsync(HttpContext.RequestAborted)
+                };
             }
-            catch { return StatusCode(503, new { message = "ONODEService supervisor not reachable." }); }
+            catch (Exception ex) when (ex is System.Net.Http.HttpRequestException || ex is TaskCanceledException ||
+                                       ex is System.IO.IOException || ex is UnauthorizedAccessException)
+            {
+                _logger.LogWarning("ONODEService provider request could not be completed.");
+                return StatusCode(503, new { message = "ONODEService supervisor not reachable." });
+            }
         }
 
         // ── Holon Bridge endpoints ────────────────────────────────────────────────
@@ -402,27 +430,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         // ── Rate limiting ─────────────────────────────────────────────────────────
-        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (int Count, DateTime WindowStart)> _rateLimits = new();
+        private static readonly object RateLimitGate = new();
+        private static readonly Dictionary<string, (int Count, DateTime WindowStart)> _rateLimits = new(StringComparer.Ordinal);
         private const int RateLimitMax = 10;
+        private const int ReadCommandRateLimitMax = 60;
         private static readonly TimeSpan RateLimitWindow = TimeSpan.FromMinutes(1);
 
-        static bool CheckRateLimit(string nodeId)
+        static bool CheckRateLimit(string nodeId, bool readOnly)
         {
-            var now = DateTime.UtcNow;
-            var entry = _rateLimits.GetOrAdd(nodeId, _ => (0, now));
-            if (now - entry.WindowStart > RateLimitWindow)
-                entry = (0, now);
-
-            if (entry.Count >= RateLimitMax) return false;
-            _rateLimits[nodeId] = (entry.Count + 1, entry.WindowStart);
-            return true;
+            lock (RateLimitGate)
+            {
+                var key = (readOnly ? "read:" : "write:") + nodeId;
+                var now = DateTime.UtcNow;
+                if (!_rateLimits.TryGetValue(key, out var entry) || now - entry.WindowStart > RateLimitWindow)
+                    entry = (0, now);
+                var limit = readOnly ? ReadCommandRateLimitMax : RateLimitMax;
+                if (entry.Count >= limit) return false;
+                _rateLimits[key] = (entry.Count + 1, entry.WindowStart);
+                return true;
+            }
         }
 
         /// <summary>
         /// ONODEService pushes current aggregate node state every ~5 seconds.
         /// </summary>
         [HttpPut("node-state/{nodeId}")]
-        public IActionResult PushNodeState(string nodeId, [FromBody] AvatarNodeStateHolonDto state)
+        public async Task<IActionResult> PushNodeState(string nodeId, [FromBody] AvatarNodeStateHolonDto state)
         {
             if (string.IsNullOrWhiteSpace(nodeId) || state == null)
                 return BadRequest(new { message = "nodeId and state body are required." });
@@ -432,9 +465,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             _nodeStates[nodeId] = state;
 
             // Push to any OPORTAL browser clients watching this nodeId via WebSocket (local mode)
-            _ = Hubs.ONODEWebSocketHub.BroadcastAsync(nodeId, state);
-
-            return Ok(new { message = "Node state received." });
+            var delivery = await Hubs.ONODEWebSocketHub.BroadcastAsync(nodeId, state);
+            return Ok(new { message = "Node state received.", deliveredSubscribers = delivery.Result,
+                isWarning = delivery.IsWarning, warning = delivery.IsWarning ? delivery.Message : null });
         }
 
         /// <summary>
@@ -462,12 +495,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (cmd == null || string.IsNullOrWhiteSpace(cmd.TargetNodeId))
                 return BadRequest(new { message = "Command body with TargetNodeId is required." });
 
-            if (!CheckRateLimit(cmd.TargetNodeId))
-                return StatusCode(429, new { message = $"Rate limit exceeded. Max {RateLimitMax} commands per minute per node." });
+            var readOnly = cmd.Command is "GetConfig" or "GetMetrics" or "GetProviders" or "GetLogs";
+            if (!CheckRateLimit(cmd.TargetNodeId, readOnly))
+                return StatusCode(429, new { message = $"Rate limit exceeded. Max {(readOnly ? ReadCommandRateLimitMax : RateLimitMax)} {(readOnly ? "read" : "write")} commands per minute per node." });
 
             cmd.Id = string.IsNullOrWhiteSpace(cmd.Id) ? Guid.NewGuid().ToString() : cmd.Id;
             cmd.Status = "Pending";
             cmd.IssuedAt = DateTime.UtcNow;
+            cmd.IssuedByAvatarId = Avatar.Id.ToString();
             _commands[cmd.Id] = cmd;
 
             AppendAudit(cmd.TargetNodeId, cmd.IssuedByAvatarId, $"Command:{cmd.Command}", cmd.Service ?? cmd.Payload);
@@ -504,23 +539,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!_commands.TryGetValue(commandId, out var cmd))
                 return NotFound(new { message = "Command not found." });
 
-            cmd.Status = update.Status;
             cmd.Result = update.Result;
+            cmd.Status = update.Status;
             if (update.Status is "Done" or "Error")
             {
                 cmd.CompletedAt = DateTime.UtcNow;
                 AppendAudit(cmd.TargetNodeId, cmd.IssuedByAvatarId,
                     $"CommandResult:{cmd.Command}:{update.Status}", update.Result);
+                cmd.Completion.TrySetResult(true);
             }
 
             return Ok(cmd);
         }
 
         [HttpGet("commands/{commandId}")]
-        public IActionResult GetCommand(string commandId)
+        public async Task<IActionResult> GetCommand(string commandId, [FromQuery] int waitMilliseconds = 0)
         {
+            if (waitMilliseconds < 0 || waitMilliseconds > 10000)
+                return BadRequest(new { message = "Command wait must be between zero and 10000 milliseconds." });
             if (!_commands.TryGetValue(commandId, out var cmd))
                 return NotFound(new { message = "Command not found." });
+            if (waitMilliseconds > 0 && cmd.Status is "Pending" or "Executing")
+            {
+                try
+                {
+                    await cmd.Completion.Task.WaitAsync(TimeSpan.FromMilliseconds(waitMilliseconds), HttpContext.RequestAborted);
+                }
+                catch (TimeoutException) { } // The bounded read returns the actual still-pending status.
+            }
             return Ok(cmd);
         }
 
@@ -573,6 +619,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public int Port { get; set; }
         public double UptimeSeconds { get; set; }
         public int? Pid { get; set; }
+        public string WindowMode { get; set; } = "";
+        public List<HolonProviderStateDto> Providers { get; set; } = new();
+    }
+
+    public class HolonProviderStateDto
+    {
+        public string ProviderType { get; set; } = "";
+        public bool IsEnabled { get; set; }
+        public int Priority { get; set; }
     }
 
     public class HolonMetricsDto
@@ -581,6 +636,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public long BytesReadPerSec { get; set; }
         public long BytesWrittenPerSec { get; set; }
         public double RequestsPerSec { get; set; }
+        public double AvgLatencyMs { get; set; }
     }
 
     public class AvatarNodeStateHolonDto
@@ -588,6 +644,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public string NodeId { get; set; } = "";
         public string AvatarId { get; set; } = "";
         public string Version { get; set; } = "";
+        public List<string> Capabilities { get; set; } = new();
         public DateTime LastSeen { get; set; }
         public List<HolonServiceStateDto> Services { get; set; } = new();
         public HolonMetricsDto? Metrics { get; set; }
@@ -595,6 +652,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
     public class CommandHolonDto
     {
+        internal TaskCompletionSource<bool> Completion { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public string Id { get; set; } = "";
         public string TargetNodeId { get; set; } = "";
         public string IssuedByAvatarId { get; set; } = "";

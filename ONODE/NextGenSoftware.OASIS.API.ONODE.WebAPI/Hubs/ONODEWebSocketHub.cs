@@ -1,72 +1,92 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
-using WS = System.Net.WebSockets.WebSocket;
-using WebSocketMessageType = System.Net.WebSockets.WebSocketMessageType;
-using WebSocketState = System.Net.WebSockets.WebSocketState;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.Common;
+using WS = System.Net.WebSockets.WebSocket;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Hubs;
 
-/// <summary>
-/// Manages native WebSocket connections from OPORTAL clients.
-/// When ONODEService pushes node state (PUT /api/v1/onode/node-state/{nodeId}),
-/// the controller calls BroadcastAsync() to push it instantly to all connected browsers
-/// watching that nodeId — eliminating the 5s polling lag in local mode.
-/// </summary>
+/// <summary>Owns authenticated ONODE live-state subscriptions until their request closes.</summary>
 public class ONODEWebSocketHub
 {
-    // nodeId → set of open WebSocket connections watching that node
-    private static readonly ConcurrentDictionary<string, ConcurrentBag<WS>> _connections = new();
+    private static readonly object RegistryGate = new();
+    private static readonly Dictionary<string, Dictionary<WS, SemaphoreSlim>> Connections = new(StringComparer.Ordinal);
 
-    public static void Register(string nodeId, WS ws)
+    public static void Register(string nodeId, WS socket)
     {
-        var bag = _connections.GetOrAdd(nodeId, _ => new ConcurrentBag<WS>());
-        bag.Add(ws);
-    }
-
-    public static void Unregister(string nodeId, WS ws)
-    {
-        // Bags don't support remove; the Send loop skips closed sockets
-        // and cleanup happens in BroadcastAsync.
-    }
-
-    /// <summary>Sends the serialised payload to every open socket watching nodeId.</summary>
-    public static async Task BroadcastAsync(string nodeId, object payload)
-    {
-        if (!_connections.TryGetValue(nodeId, out var bag) || bag.IsEmpty) return;
-
-        var json    = JsonSerializer.Serialize(payload, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-        var bytes   = Encoding.UTF8.GetBytes(json);
-        var segment = new ArraySegment<byte>(bytes);
-
-        var dead    = new List<WS>();
-        foreach (var ws in bag)
+        lock (RegistryGate)
         {
-            if (ws.State == WebSocketState.Open)
+            if (!Connections.TryGetValue(nodeId, out var subscribers))
+                Connections[nodeId] = subscribers = new();
+            if (!subscribers.ContainsKey(socket))
+                subscribers.Add(socket, new SemaphoreSlim(1, 1));
+        }
+    }
+
+    public static void Unregister(string nodeId, WS socket)
+    {
+        lock (RegistryGate)
+        {
+            if (!Connections.TryGetValue(nodeId, out var subscribers)) return;
+            subscribers.Remove(socket);
+            if (subscribers.Count == 0) Connections.Remove(nodeId);
+        }
+        // The accepting request owns/disposes the socket. A removed send gate remains
+        // alive only while an already-started broadcast holds its managed reference.
+    }
+
+    public static async Task<OASISResult<int>> BroadcastAsync(string nodeId, object payload)
+    {
+        KeyValuePair<WS, SemaphoreSlim>[] subscribers;
+        lock (RegistryGate)
+            subscribers = Connections.TryGetValue(nodeId, out var group) ? group.ToArray() : [];
+
+        var result = new OASISResult<int>();
+        var bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(payload,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+        var deliveries = await Task.WhenAll(subscribers.Select(async subscriber =>
+        {
+            var entered = false;
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+            try
             {
-                try { await ws.SendAsync(segment, WebSocketMessageType.Text, true, CancellationToken.None); }
-                catch { dead.Add(ws); }
+                await subscriber.Value.WaitAsync(deadline.Token);
+                entered = true;
+                if (subscriber.Key.State != WebSocketState.Open)
+                {
+                    Unregister(nodeId, subscriber.Key);
+                    return (Sent: false, Error: (Exception)null);
+                }
+                await subscriber.Key.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, deadline.Token);
+                return (Sent: true, Error: (Exception)null);
             }
-            else dead.Add(ws);
-        }
-
-        // Rebuild bag without dead sockets (ConcurrentBag doesn't support remove)
-        if (dead.Any())
+            catch (Exception ex) when (ex is WebSocketException || ex is OperationCanceledException || ex is ObjectDisposedException)
+            {
+                Unregister(nodeId, subscriber.Key);
+                subscriber.Key.Abort();
+                return (Sent: false, Error: ex);
+            }
+            finally { if (entered) subscriber.Value.Release(); }
+        }));
+        result.Result = deliveries.Count(delivery => delivery.Sent);
+        result.Exception = deliveries.FirstOrDefault(delivery => delivery.Error != null).Error;
+        if (result.Exception != null)
         {
-            var live = new ConcurrentBag<WS>(bag.Except(dead));
-            _connections[nodeId] = live;
-            foreach (var ws in dead)
-                try { ws.Dispose(); } catch { }
+            result.IsWarning = true;
+            result.Message = "Node state was accepted, but a live subscriber disconnected or exceeded its delivery deadline.";
         }
+        return result;
     }
 
-    public static int ConnectionCount(string nodeId) =>
-        _connections.TryGetValue(nodeId, out var bag)
-            ? bag.Count(ws => ws.State == WebSocketState.Open)
-            : 0;
+    public static int ConnectionCount(string nodeId)
+    {
+        lock (RegistryGate)
+            return Connections.TryGetValue(nodeId, out var subscribers)
+                ? subscribers.Keys.Count(socket => socket.State == WebSocketState.Open) : 0;
+    }
 }
