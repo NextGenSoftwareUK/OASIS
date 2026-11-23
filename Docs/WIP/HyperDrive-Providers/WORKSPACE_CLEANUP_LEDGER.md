@@ -2999,3 +2999,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 2026-11-23 compile45105105606 SUCCESS: native/browser disabled, no fixture/runtime created; logs processed in RAM. No local build/env/database/download/results. Parent publication uses one owned index removed in finally. Source/doc Git objects retained; dirtygitlinks untouched.
 
 2026-11-23 Games breadth: renderer controls/metadata/Railway selectedrevisions processed in RAM. No local download/build/env/database/results. Source/compactreports/Gitcandidate retained. New45106635634 ownedCI fixture queued with existing finallycleanup; acceptedGifts fixture not rerun. Fourdirtygitlinks and blockedcache untouched.
+
+2026-11-23 storefront45106635634 FAILED at firstbrowserlist after successfulcompile/native seeds; terminal owned DB/DNA/container/browser runtime/cache absence verified. Logs/selected static delivery/rollout metadata RAMonly. Replacement45107657362 active, same ownedfixture finallycleanup. C: lastobserved23.58GB; no local installs/builds/downloads/env/DB/results. Blockedcache and unrelatedgitlinks untouched.

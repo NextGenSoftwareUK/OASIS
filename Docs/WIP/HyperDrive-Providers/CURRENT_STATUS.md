@@ -1,3 +1,7 @@
+## 2026-11-23 - Storefront first-boundary failure under diagnosis; WEB4 superseded
+
+45106635634/job137469327400 compiled0errors4m58.44, three native seeds saved, then first Games article timedout15s. No browser acceptance. Owned DB/DNA/container/browser runtime/cache absent. Replacement45107657362 observes same actualGamesresponse selectedfacts, no increasedtimeout/newrequest/acceptedcohortreplay. Portal4d60218 actualpage/Games served200 exactsource. WEB4ae9 deploymentREMOVED, replaced e10c12ff on peer61b1d01d BUILDING; Core80400 and GiftsController preserved,4SQLite/readfiles differ so notsourceequivalent. Prior6runtimeproofs retained; no sharedbackendcalls/localoutputs.
+
 ## 2026-11-23 - Six exact Gifts rollout revisions accepted; Games breadth added
 
 WEB5/6/7/8/9/10 SUCCESS and selected runningae9d7265 verified; WEB4building. Portal dev4d60218 adds actualGame/STARNETDNA readonly details, capabilities and supplied weblaunchlink using existingrecords/no extraHTTP. Changedrendererunit/syntax/drift/diffpass. One new Games/OAPPs/Inventory browser/native run45106635634 queued on acceptedbackend18c06063 and exactPortal;7GETs/zero browsermutations, no acceptedcohortreplay. FullStartup/hosted/fullportal remain open; see OPORTAL_STOREFRONT_BROWSER_2026-11-23.json.

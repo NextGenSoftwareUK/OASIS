@@ -1,10 +1,16 @@
 {
-  "status": "six-exact-running-revisions-accepted-WEB4-building",
+  "status": "six-earlier-runtime-proofs-retained-WEB4-superseded",
   "deployments": [
     {
       "id": "010f50d4-8f3a-4426-ba99-3c0ae1fb8a51",
-      "status": "BUILDING",
-      "service": "WEB4"
+      "status": "REMOVED",
+      "service": "WEB4",
+      "replacement": {
+        "preservation": "Core80400 pin exact and GiftsController unchanged. Four unrelated SQLite/read files differ; not source-equivalent and their qualification is peer-owned.",
+        "id": "e10c12ff-7730-4066-b952-4c65a0513ff3",
+        "status": "BUILDING",
+        "commit": "61b1d01d5e0500523ad50e6e98a04b5072fd99b5"
+      }
     },
     {
       "id": "23a4ec3a-7715-4fd9-a981-8f556a342e42",
@@ -45,7 +51,7 @@
   ],
   "core": "80400bb46dab74632a99d1f27bf6a0a6a94b7840",
   "observedUtc": "2026-11-23T03:31:43.4438163Z",
-  "remaining": "Verify WEB4 terminal deployment and selected running source; six others exact runtime accepted. No whole-portal/hosted functional acceptance.",
+  "remaining": "Observe replacement WEB4 and current remaining service revisions; do not force old revision/redeploy. Earlier six exact ae9 runtime proofs remain historical evidence.",
   "source": "d06a42ca51d078d8d2248916ed7861e96974dbfc",
   "published": "ae9d72651bdffefce8d2695f09f9060f052c8703",
   "scope": "Only exact Gates-qualified Core Gifts16linevalidation plus pairedmanifest and named evidence. Current CQL5ea preserved. No DNA/environment/worker changes or shared auth/data/payment probes.",
