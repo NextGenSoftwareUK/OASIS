@@ -1,9 +1,9 @@
 {
   "scope": "onode",
-  "status": "canonical-saved-role-editor-source-ready-for-component-check",
-  "candidate": "aa2001467167543e6f1bcbae793b358bac09d98e",
-  "base": "e6415c6578d7f4de5c04bd722b3c18cc1870dfc8",
-  "tag": "qualification/onode-routing-editor-root-20261123",
+  "status": "explicit-role-revision-transports-ready-for-real-http-check",
+  "candidate": "3a0794006f9e85bd95fdaf804a18b5467e5e5f09",
+  "base": "aa2001467167543e6f1bcbae793b358bac09d98e",
+  "tag": "qualification/onode-role-transport-root-20261123",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
     "ONODE/ONODEManager"
@@ -14,9 +14,9 @@
   "core": {
     "candidate": "271603c32f13345cebd350b557f7c6bd10ab9d04"
   },
-  "onodeManager": "b03b884cc84b17a7033cb55e528ec87ed27278d8",
+  "onodeManager": "dbfd109918f7875a7a299c258f2a9b6e31a5a6d0",
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
-  "remaining": "Verify saved modern/legacy membership/order, revision rejection, final-provider protection and preservation. Wire explicit role/revision through all API/commands/SDK/UI; saved-only edits require restart, not runtime activation. Existing e641 shipping image remains frozen.",
+  "remaining": "Verify real role/revision HTTP+SDK+command operations; wire OPORTAL and WEB4 proxy role/revision. Applied runtime/restart and cross-writer concurrency acceptance remain open.",
   "inventoryReview": {
     "run": 45213996648,
     "artifact": 14836649117,
@@ -76,7 +76,7 @@
   },
   "routingEditorRun": {
     "run": 45220758834,
-    "status": "in_progress",
+    "status": "success",
     "source": "aa2001467167543e6f1bcbae793b358bac09d98e",
     "onodeManager": "b03b884cc84b17a7033cb55e528ec87ed27278d8",
     "scope": "Saved canonical modern/legacy role membership/order, BOM-aware UTF8, supplied revision rejection, final-provider protection and unrelated-field preservation. Not runtime activation.",
@@ -85,6 +85,7 @@
       "Structured provider edit errors",
       "Applied runtime/restart acceptance and full bridge/browser",
       "Complete concurrency ownership across other DNA writers"
-    ]
+    ],
+    "job": 137854071744
   }
 }

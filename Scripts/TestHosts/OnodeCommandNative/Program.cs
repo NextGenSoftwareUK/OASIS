@@ -171,6 +171,44 @@ try
             using (var rejected = await raw.GetAsync("/supervisor/public-config", deadline.Token))
                 Require(rejected.StatusCode == HttpStatusCode.Unauthorized, "Old token survived acknowledged rotation.");
             await client.GetPublicConfigurationAsync(deadline.Token);
+            var httpRouting = await client.GetProviderRoutingAsync("failover", deadline.Token);
+            var httpRoutingRevision = httpRouting[0].Revision;
+            var membershipAck = await client.SetProviderMembershipAsync("MongoDBOASIS", true, "failover", httpRoutingRevision, deadline.Token);
+            Require(membershipAck.ReloadRequired, "Saved membership did not require runtime reload.");
+            var savedRouting = await client.GetProviderRoutingAsync("failover", deadline.Token);
+            Require(savedRouting.Single(item => item.ProviderType == "MongoDBOASIS").Priority == 2,
+                "Real SDK membership edit did not persist.");
+            try
+            {
+                await client.SetProviderRoutingPriorityAsync("MongoDBOASIS", 1, "failover", httpRoutingRevision, deadline.Token);
+                throw new InvalidOperationException("HTTP stale revision was accepted.");
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Conflict) { }
+            await client.SetProviderRoutingPriorityAsync("MongoDBOASIS", 1, "failover", savedRouting[0].Revision, deadline.Token);
+            var replicationBefore = await client.GetProviderRoutingAsync("replication", deadline.Token);
+            await client.SetProviderMembershipAsync("MongoDBOASIS", true, "replication", replicationBefore[0].Revision, deadline.Token);
+            var replicationAfter = await client.GetProviderRoutingAsync("replication", deadline.Token);
+            Require(replicationAfter.Single(item => item.ProviderType == "MongoDBOASIS").IsEnabled,
+                "Replication membership was not saved by the real SDK.");
+            var balancingBefore = await client.GetProviderRoutingAsync("loadBalancing", deadline.Token);
+            await client.SetProviderMembershipAsync("SQLLiteDBOASIS", true, "loadBalancing", balancingBefore[0].Revision, deadline.Token);
+            Require((await client.GetProviderRoutingAsync("loadBalancing", deadline.Token))
+                .Single(item => item.ProviderType == "SQLLiteDBOASIS").IsEnabled, "Load-balancing role used the wrong configuration key.");
+            var commandRole = new CommandHolon { TargetNodeId = config.NodeId, Command = CommandType.GetProviders,
+                Payload = JsonSerializer.Serialize(new { role = "replication" }) };
+            using (var commandRoleView = JsonDocument.Parse((await executor.ExecuteAsync(commandRole, deadline.Token))!))
+                Require(commandRoleView.RootElement.EnumerateArray().All(item => item.GetProperty("role").GetString() == "replication"),
+                    "Command transport lost the selected routing role.");
+            var replicationLatest = await client.GetProviderRoutingAsync("replication", deadline.Token);
+            commandRole.Command = CommandType.DisableProvider;
+            commandRole.Payload = JsonSerializer.Serialize(new { providerType = "MongoDBOASIS", role = "replication",
+                expectedRevision = replicationLatest[0].Revision });
+            await executor.ExecuteAsync(commandRole, deadline.Token);
+            Require(!(await client.GetProviderRoutingAsync("replication", deadline.Token))
+                .Single(item => item.ProviderType == "MongoDBOASIS").IsEnabled, "Command edit did not persist in its selected role.");
+            Require((await client.GetProviderRoutingAsync("failover", deadline.Token))
+                .Single(item => item.ProviderType == "MongoDBOASIS").Priority == 1, "A different role edit changed failover order.");
+            Console.WriteLine("ONODE_ROUTING_HTTP: shipping SDK and actual MVC saved all three roles, ordered failover, rejected stale revision with409, preserved independent roles and returned reload-required; actual command role read/edit passed. No applied-runtime or WEB4 bridge/browser acceptance.");
             await File.WriteAllTextAsync(dna, "{", deadline.Token);
             try
             {
