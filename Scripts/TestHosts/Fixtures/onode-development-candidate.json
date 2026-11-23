@@ -73,5 +73,18 @@
     "run": 45218443408,
     "source": "e6415c6578d7f4de5c04bd722b3c18cc1870dfc8",
     "status": "queued"
+  },
+  "routingEditorRun": {
+    "run": 45220758834,
+    "status": "in_progress",
+    "source": "aa2001467167543e6f1bcbae793b358bac09d98e",
+    "onodeManager": "b03b884cc84b17a7033cb55e528ec87ed27278d8",
+    "scope": "Saved canonical modern/legacy role membership/order, BOM-aware UTF8, supplied revision rejection, final-provider protection and unrelated-field preservation. Not runtime activation.",
+    "remaining": [
+      "Explicit role/revision plumbing through supervisor API, command payloads, client and OPORTAL controls",
+      "Structured provider edit errors",
+      "Applied runtime/restart acceptance and full bridge/browser",
+      "Complete concurrency ownership across other DNA writers"
+    ]
   }
 }
