@@ -29,9 +29,17 @@ public sealed partial class CqlV1Web4NativeTests
     public Task GroupedDistinctRequiredAndCanonicalDomainsUseRealNativeProvider(string providerName)
         => RunGroupedDistinctNativeFixture(providerName, false, requiredDomains: true);
 
+    private sealed record NativeFixtureJourneyProof(int Checks,int SuccessfulWrites,IReadOnlyDictionary<string,bool> Evidence);
+
     private async Task RunGroupedDistinctNativeFixture(string providerName, bool primitiveDomains, bool mixedHttp = false,
-        bool requiredDomains = false, bool singlePerformance = false, bool sharedInputs = false, bool guidDomains = false, bool mixedGuidHttp = false, bool guidRowsHttp = false, bool predicateCrossingHttp = false, bool guidFilterHttp = false, bool int32FilterNative = false, bool int32FilterHttp = false, bool utcDateFilterNative = false, bool sessionJourney = false, bool statelessJourney = false, bool statelessInsertJourney = false, bool parentReferenceJourney = false, bool childrenReferenceJourney = false, bool readOnlyJourney = false, bool findJourney = false, bool syncJourney = false, bool statelessLifetimeJourney = false, bool statelessLinqJourney = false, bool updateJourney = false, bool lifecycleJourney = false, bool inspectionJourney = false, bool whereJourney = false, bool unfilteredMappingHttp = false, bool dateKeysHttp = false, bool snapshotPreparation = false, bool rangeRegistration = false, bool statelessGetJourney = false, bool setJourney = false, bool setHttpJourney = false, bool projectedSetJourney = false, bool projectedSetHttpJourney = false, bool projectedSetLinqJourney = false, bool textCoalesceJourney = false, bool booleanTextCaseJourney = false, bool int32CoalesceJourney = false, bool mappedComputedJourney = false, bool tupleSetJourney = false, bool stagedSetHttpJourney = false)
+        bool requiredDomains = false, bool singlePerformance = false, bool sharedInputs = false, bool guidDomains = false, bool mixedGuidHttp = false, bool guidRowsHttp = false, bool predicateCrossingHttp = false, bool guidFilterHttp = false, bool int32FilterNative = false, bool int32FilterHttp = false, bool utcDateFilterNative = false, bool sessionJourney = false, bool statelessJourney = false, bool statelessInsertJourney = false, bool parentReferenceJourney = false, bool childrenReferenceJourney = false, bool readOnlyJourney = false, bool findJourney = false, bool syncJourney = false, bool statelessLifetimeJourney = false, bool statelessLinqJourney = false, bool updateJourney = false, bool lifecycleJourney = false, bool inspectionJourney = false, bool whereJourney = false, bool unfilteredMappingHttp = false, bool dateKeysHttp = false, bool snapshotPreparation = false, bool rangeRegistration = false, bool statelessGetJourney = false, bool setJourney = false, bool setHttpJourney = false, bool projectedSetJourney = false, bool projectedSetHttpJourney = false, bool projectedSetLinqJourney = false, bool textCoalesceJourney = false, bool booleanTextCaseJourney = false, bool int32CoalesceJourney = false, bool mappedComputedJourney = false, bool tupleSetJourney = false, bool stagedSetHttpJourney = false,
+        Func<IOASISStorageProvider,List<Guid>,Dictionary<string,long>,Task<NativeFixtureJourneyProof>>? nativeJourney=null,
+        string? nativeJourneySuffix=null)
     {
+        if((nativeJourney==null)!=(nativeJourneySuffix==null)
+            || nativeJourneySuffix!=null && (nativeJourneySuffix.Length>80
+                || !System.Text.RegularExpressions.Regex.IsMatch(nativeJourneySuffix,@"^-[a-z0-9-]+\.json$")))
+            throw new ArgumentException("A bounded owned journey suffix and callback must be supplied together.");
         Assert.AreEqual("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(mongoUri, Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -53,6 +61,7 @@ public sealed partial class CqlV1Web4NativeTests
         var complete = false; var active = false; var checks = 0;
         var queryElapsed = new Dictionary<string, long>();
         Dictionary<string, object>? singleProfile = null;
+        NativeFixtureJourneyProof? journeyProof=null;
         var timer = System.Diagnostics.Stopwatch.StartNew();
         var mongo = authority == ProviderType.MongoDBOASIS ? new MongoClient(mongoUri) : null;
         if (mongo != null)
@@ -100,7 +109,12 @@ public sealed partial class CqlV1Web4NativeTests
                 return await CosmicGroupedExecutor.ExecuteAsync(planned.Result,
                     new[] { (ICosmicQueryStorageProvider)provider });
             }
-            if(stagedSetHttpJourney)
+            if(nativeJourney!=null)
+            {
+                journeyProof=await nativeJourney(provider,ids,queryElapsed);
+                checks=journeyProof.Checks;
+            }
+            else if(stagedSetHttpJourney)
                 checks=await VerifyNativeSetHttpJourney(provider,ids,queryElapsed,selectedColumns:true,stagedInputs:true);
             else if (tupleSetJourney)
                 checks=await VerifyNativeTupleSetJourney(provider,ids,queryElapsed);
@@ -312,7 +326,7 @@ public sealed partial class CqlV1Web4NativeTests
             }
             else
             {
-                var strings = await Seed(("a", "A"), ("a", "a"), ("a", "λ"), ("a", "λ"),
+                var strings = await Seed(("a", "A"), ("a", "a"), ("a", "Î»"), ("a", "Î»"),
                     ("a", "x\0y"), ("a", "x"), ("a", null));
                 var stringResult = await Run(strings, h => CosmicQueryMetadata.Value<string>(h, "stock"));
                 Assert.IsFalse(stringResult.IsError, stringResult.Message + stringResult.Exception);
@@ -369,8 +383,13 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 var root = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT")!);
                 var report = Path.Combine(root, "TestResults/Neo4jCurrent/" + providerName
-                    + (stagedSetHttpJourney ? "-staged-set-http-native.json" : tupleSetJourney ? "-projected-tuple-set-native.json" : mappedComputedJourney ? "-mapped-computed-native.json" : int32CoalesceJourney ? "-int32-coalesce-native.json" : booleanTextCaseJourney ? "-boolean-text-case-native.json" : textCoalesceJourney ? "-text-coalesce-native.json" : projectedSetLinqJourney ? "-projected-set-linq-native.json" : projectedSetHttpJourney ? "-projected-set-http-native.json" : projectedSetJourney ? "-projected-set-native.json" : setHttpJourney ? "-set-http-native.json" : setJourney ? "-set-native.json" : statelessGetJourney ? "-stateless-get-native.json" : rangeRegistration ? "-session-range-native.json" : snapshotPreparation ? "-unfiltered-snapshot-native.json" : dateKeysHttp ? "-mapped-date-keys-native.json" : unfilteredMappingHttp ? "-unfiltered-mapping-native.json" : whereJourney ? "-boolean-where-native.json" : inspectionJourney ? "-inspection-native-journey.json" : lifecycleJourney ? "-lifecycle-native-journey.json" : updateJourney ? "-update-native-journey.json" : statelessLinqJourney ? "-stateless-linq-native-journey.json" : statelessLifetimeJourney ? "-stateless-lifetime-native-journey.json" : syncJourney ? "-sync-native-journey.json" : findJourney ? "-find-native-journey.json" : readOnlyJourney ? "-read-only-native-journey.json" : childrenReferenceJourney ? "-children-reference-native-journey.json" : parentReferenceJourney ? "-parent-reference-native-journey.json" : statelessInsertJourney ? "-stateless-insert-native-journey.json" : statelessJourney ? "-stateless-native-journey.json" : sessionJourney ? "-session-native-journey.json" : utcDateFilterNative ? "-utc-date-filter-native.json" : int32FilterHttp ? "-int32-filter-http-native.json" : int32FilterNative ? "-int32-filter-native.json" : guidFilterHttp ? "-guid-filter-http-native.json" : predicateCrossingHttp ? "-predicate-crossing-http-native.json" : guidRowsHttp ? "-guid-rows-http-native.json" : mixedGuidHttp ? "-grouped-guid-http-native.json" : guidDomains ? "-grouped-guid-native.json" : sharedInputs ? "-grouped-shared-inputs.json" : singlePerformance ? "-grouped-distinct-single-profile.json" : requiredDomains ? "-grouped-distinct-required-native.json" : mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json"));
-                if(stagedSetHttpJourney)
+                    + (nativeJourneySuffix ?? (stagedSetHttpJourney ? "-staged-set-http-native.json" : tupleSetJourney ? "-projected-tuple-set-native.json" : mappedComputedJourney ? "-mapped-computed-native.json" : int32CoalesceJourney ? "-int32-coalesce-native.json" : booleanTextCaseJourney ? "-boolean-text-case-native.json" : textCoalesceJourney ? "-text-coalesce-native.json" : projectedSetLinqJourney ? "-projected-set-linq-native.json" : projectedSetHttpJourney ? "-projected-set-http-native.json" : projectedSetJourney ? "-projected-set-native.json" : setHttpJourney ? "-set-http-native.json" : setJourney ? "-set-native.json" : statelessGetJourney ? "-stateless-get-native.json" : rangeRegistration ? "-session-range-native.json" : snapshotPreparation ? "-unfiltered-snapshot-native.json" : dateKeysHttp ? "-mapped-date-keys-native.json" : unfilteredMappingHttp ? "-unfiltered-mapping-native.json" : whereJourney ? "-boolean-where-native.json" : inspectionJourney ? "-inspection-native-journey.json" : lifecycleJourney ? "-lifecycle-native-journey.json" : updateJourney ? "-update-native-journey.json" : statelessLinqJourney ? "-stateless-linq-native-journey.json" : statelessLifetimeJourney ? "-stateless-lifetime-native-journey.json" : syncJourney ? "-sync-native-journey.json" : findJourney ? "-find-native-journey.json" : readOnlyJourney ? "-read-only-native-journey.json" : childrenReferenceJourney ? "-children-reference-native-journey.json" : parentReferenceJourney ? "-parent-reference-native-journey.json" : statelessInsertJourney ? "-stateless-insert-native-journey.json" : statelessJourney ? "-stateless-native-journey.json" : sessionJourney ? "-session-native-journey.json" : utcDateFilterNative ? "-utc-date-filter-native.json" : int32FilterHttp ? "-int32-filter-http-native.json" : int32FilterNative ? "-int32-filter-native.json" : guidFilterHttp ? "-guid-filter-http-native.json" : predicateCrossingHttp ? "-predicate-crossing-http-native.json" : guidRowsHttp ? "-guid-rows-http-native.json" : mixedGuidHttp ? "-grouped-guid-http-native.json" : guidDomains ? "-grouped-guid-native.json" : sharedInputs ? "-grouped-shared-inputs.json" : singlePerformance ? "-grouped-distinct-single-profile.json" : requiredDomains ? "-grouped-distinct-required-native.json" : mixedHttp ? "-grouped-distinct-http-native.json" : primitiveDomains ? "-grouped-distinct-primitives-native.json" : "-grouped-distinct-native.json")));
+                if(journeyProof!=null)
+                    await File.WriteAllTextAsync(report,JsonSerializer.Serialize(new {
+                        provider=providerName,checks,ownedCleanupIds=ids.Count,
+                        successfulHolonWrites=journeyProof.SuccessfulWrites,queryElapsedMilliseconds=queryElapsed,
+                        nativeProviderVerified=true,evidence=journeyProof.Evidence,exactCleanupVerified=true }));
+                else if(stagedSetHttpJourney)
                     await File.WriteAllTextAsync(report,JsonSerializer.Serialize(new {
                         provider=providerName,checks,ownedCleanupIds=ids.Count,successfulHolonWrites=1,
                         queryElapsedMilliseconds=queryElapsed,nativeProviderVerified=true,realHttpVerified=true,
