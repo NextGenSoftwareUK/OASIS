@@ -196,7 +196,7 @@
     "root": "e1cf13421bd8acd707d9cda49d2952b01240f2ab",
     "core": "cb1c50c24ac8520be6f328bca08e48e04737854b",
     "star": "ffd7fe494e1aacec50315baadff38273c88b8a11",
-    "status": "current composition native HTTP accepted; shipping image building; not deployed",
+    "status": "native profile/current populated catalogue accepted; nullable HTTP profile repair prepared, new shipping image queued",
     "preservation": "Core current published async query family merged cleanly; six scoped profile/tariff files differ from def8cf76. Root source retains Development91e3 and pairs pins/manifest. Physical dirty submodule checkouts unchanged.",
     "inventoryReview": {
       "run": 45190132446,
@@ -233,6 +233,29 @@
       "status": "active",
       "portal": "34e4d23ad3322a60db3c4ea019381c5ab0d50b31",
       "scope": "Exact package hashes, real Startup register/verify/password auth, actual profile popup edit two fields/save/independent readback/revision preservation/close. No native provider/portrait matrix replay."
+    },
+    "nullableFieldRepair": {
+      "diagnosticRun": 45198313230,
+      "diagnosticJob": 137774637691,
+      "reason": "Profile GET200 omits null address because HTTP IgnoreNullValues=true; strict UI rejects incomplete editable document. Avatar/detail revisions are both nonzero.",
+      "observedFields": [
+        "avatarId",
+        "avatarRevision",
+        "detailRevision",
+        "email",
+        "firstName",
+        "lastName",
+        "title",
+        "username"
+      ],
+      "root": "c2cc1430b31d63f0e4981600e97c19db4d020fe1",
+      "core": "ca5939339fb82180890e6fe533c96c4e2f1cf21a",
+      "coreParent": "cb1c50c24ac8520be6f328bca08e48e04737854b",
+      "change": "NET10 System.Text.Json JsonIgnoreCondition.Never on the six editable string properties of AvatarProfileSnapshot; retains null values and existing Core persistence/revision behavior.",
+      "sourceScope": "one Core interface/DTO file, parent Core gitlink plus paired manifest; no manager/controller/provider logic or DNA setting change",
+      "imageRun": 45199130351,
+      "status": "source prepared and tags pushed, manifest verified, image queued; compilation/changed Startup acceptance pending",
+      "preserved": "native profile45190600949 and populated OAPP45196340465 retained; no unchanged native matrices repeated"
     }
   }
 }
