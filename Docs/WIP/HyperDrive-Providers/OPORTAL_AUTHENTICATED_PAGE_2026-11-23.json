@@ -4,12 +4,12 @@
   "portal": "f89b2ec160bab77ebcf05d7ba5d343f328c0b493",
   "source": "045206ea73cfd8cff587896c3baca32087051575",
   "image": "sha256:2db67297c729643caf5f4792039753910c346ca16c72fe7bdb6211cbf85b614e",
-  "status": "in_progress",
+  "status": "success-scoped-WEB4-page-not-whole-portal",
   "scope": "Actual page Beam In, native dashboard counts/current plan, real missing-Stripe error, My Subscription/Orders, authenticated deep-link reload, explicit production session renewal. Paid catalogue/checkout and WEB5/6 excluded and still open.",
   "transport": "Owned labelled API container remains on internal Docker network with no published ports. Runner selects only that network private IPv4, opens owned loopback TCP bridge and ephemeral localhost TLS proxy; production API status/headers/body relayed unchanged. WEB5/6/shared API destinations blocked, no synthetic replies.",
   "realFix": "Email-only browser field rejected valid usernames; Portal55988cf/f89b2ec now supports email or username, native required validity retained. Public page/loader/login fragment exact HTTP200 source match.",
-  "limits": "Pending runtime/browser acceptance; not hosted production performance, WEB5/6 SSO, Stripe or full portal acceptance. Existing source/image comparison remains auth/API-only; older Inventory declarations excluded.",
-  "cleanup": "No local builds/downloads/runtimes/envs/databases/results; cloud owned API/Mongo/network/volumes in finally, browser/static/TLS proxy in finally, exact runtime/npm cache/TLS directory always cleanup. Terminal cleanup pending.",
+  "limits": "Accepted only WEB4 page slice on owned fresh data. Paid Plans/checkout, hosted latency, WEB5/WEB6 cards/SSO and remaining popups open. Earlier Inventory declarations absent from reused image; no whole-tree/current-provider equivalence.",
+  "cleanup": "Verified owned containers/network/database volumes absent and runtime/cache/TLS absence marker. Existing image reused; no local builds/env/download/database/results.",
   "attempts": [
     {
       "run": 45119118175,
@@ -41,5 +41,21 @@
       "cleanupArtifact": 14793496600,
       "cleanup": "Owned containers/network/DB volumes absent; runtime/cache/TLS absence verified"
     }
-  ]
+  ],
+  "job": 137512623138,
+  "proof": {
+    "artifact": 14793447648,
+    "bytes": 3950,
+    "read": "Selected acknowledged/cleanup ZIP entries in RAM",
+    "apiHealth": true,
+    "authentication": true,
+    "portalBrowser": true,
+    "gracefulExit": 0,
+    "containersAbsent": true,
+    "networkAbsent": true,
+    "databaseVolumesRemoved": true,
+    "runtimeCacheTlsAbsent": true,
+    "liveDeployment": false,
+    "cqlAcceptance": false
+  }
 }

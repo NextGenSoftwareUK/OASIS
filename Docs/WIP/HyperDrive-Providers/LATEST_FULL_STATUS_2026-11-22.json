@@ -59,7 +59,8 @@
       "MCP readiness and renewal event; stale checkout actions give explicit reopen guidance",
       "Gifts duplicate logout handler removed; complete representative real popup flow accepted",
       "Games/OAPPs/Inventory combined native/browser45114577286 accepted and backend21abed0b published; running rollout pending.",
-      "Inventory linked NFT/GeoNFT IDs, stack, dates and custom properties now rendered from existing response; Portal17ed8e4 script served exact, focused rendering check passed."
+      "Inventory linked NFT/GeoNFT IDs, stack, dates and custom properties now rendered from existing response; Portal17ed8e4 script served exact, focused rendering check passed.",
+      "Real username sign-in form fixed; actual authenticated WEB4 page slice45120405171 accepted."
     ],
     "remaining": [
       "Authenticated full portal page/navigation and WEB5/WEB6 SSO/browser acceptance; isolated WEB4 shipping Startup auth accepted45118119727.",
@@ -261,5 +262,16 @@
     "proofArtifact": 14792607082,
     "cleanup": "Containers/network/DB volumes absent, graceful exit0",
     "remaining": "Full authenticated portal browser, WEB5/6 SSO and Stripe"
+  },
+  "authenticatedPortalPage20261123": {
+    "run": 45120405171,
+    "job": 137512623138,
+    "status": "success",
+    "portal": "f89b2ec160bab77ebcf05d7ba5d343f328c0b493",
+    "scope": "Actual whole page username Beam In, dashboard counts/current plan, My Subscription/Orders, deep-link reload and explicit native renewal through production WEB4 Startup; real missing-Stripe error visible",
+    "source": "045206ea73cfd8cff587896c3baca32087051575",
+    "artifact": 14793447648,
+    "cleanup": "Containers/network/database volumes/runtime/cache/TLS absent",
+    "excluded": "Paid catalogue/checkout, WEB5/6 cards/SSO, hosted latency, all other popups and whole portal"
   }
 }
