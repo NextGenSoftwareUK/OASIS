@@ -33,15 +33,26 @@
     "scope": "One controller only: expose authenticated persisted active-session read, attribute session creation to authenticated first participant, remove preview comment. Ten additions/one removal, all current CQL/NFT pins preserved.",
     "manifest": "Exact source paired-pin validation passed; no gitlinks changed.",
     "imageRun": 45152795368,
-    "state": "pending-behind-existing-image45152186051",
+    "state": "in-progress-build-and-push",
     "deployment": "Not published to Development; compile/native chat acceptance pending.",
     "sourceGates": {
       "freshSharedBranches": "All eight origin/Development references refreshed; official checker passes for exact candidatee3720dad.",
       "pairedPins": "sync_railway_dependency_manifest.py --check-ref e3720dad440a01a4f684ccbede0a988ad7e0617d passed.",
       "initialCheck": "First attempt used cached Core origin/cac5 and failed; fresh actual shared Coref4a matched the existing candidate. No source/history repair or gitlink change needed.",
-      "build": "45152795368 remains live pending behind active45152186051; checked2026-11-23T10:07Z. No duplicate/restart/deployment."
-    }
+      "build": "45152795368 active job137621749663 Build and push; existing same handle followed, no duplicate."
+    },
+    "imageJob": 137621749663
   },
   "cleanup": "First run selected RAM artifact verifies package container absent/all five startup cleanup booleans true; terminal runtime/cache/TLS absence verified. Candidate exact owned Temp index/lock removed in finally. No local build/runtime/download/environment/database/test results.",
-  "next": "Follow image45152795368; bind its terminal source/digest then chat-only actual Startup journey. Retain accepted HyperDrive outcome; do not repeat it. Normal scoped Development publication only after acceptance/current gates/cadence."
+  "next": "Follow image45152795368; bind its terminal source/digest then chat-only actual Startup journey. Retain accepted HyperDrive outcome; do not repeat it. Normal scoped Development publication only after acceptance/current gates/cadence.",
+  "staticDelivery20261123": {
+    "origin": "https://dev.oportal.oasisomniverse.one",
+    "scope": "Four static scripts only, HTTP200/source exact after LF normalization. No hosted authentication/data/performance request.",
+    "assets": {
+      "data-modal.js": "770bfaf838e5cc6883761e6b0c16e551158961f7610d067f05d16579030dd6a3",
+      "dashboard.js": "5740f661674c05da15db5fc4eb0f024dbb2ac843d2a79590431ad57f27291e87",
+      "messaging-modal.js": "8fa1d5aae6a5db6ef8d935cbcbef4f0374fb9ba0fdf0cad822c0bba1a6788397",
+      "hyperdrive-modal.js": "be15ebe07ef2e072c8155d5580d7e16b091187578673f2a604961488bbf5b07e"
+    }
+  }
 }
