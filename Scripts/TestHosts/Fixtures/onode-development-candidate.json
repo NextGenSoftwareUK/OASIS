@@ -1,22 +1,21 @@
 {
   "scope": "onode",
-  "status": "explicit-role-revision-transports-ready-for-real-http-check",
-  "candidate": "3a0794006f9e85bd95fdaf804a18b5467e5e5f09",
-  "base": "aa2001467167543e6f1bcbae793b358bac09d98e",
-  "tag": "qualification/onode-role-transport-root-20261123",
+  "status": "web4-role-revision-proxy-source-inventory-pending",
+  "candidate": "8ef461ffa37e0c465cc395ce25622f3af23cf3f1",
+  "base": "3a0794006f9e85bd95fdaf804a18b5467e5e5f09",
+  "tag": "qualification/onode-web4-role-proxy-20261123",
   "allowedPaths": [
-    "Docker/oasis-dependency-versions.env",
-    "ONODE/ONODEManager"
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ONODEController.cs"
   ],
   "buildProjects": [
-    "ONODESUPERVISOR"
+    "WEB4"
   ],
   "core": {
     "candidate": "271603c32f13345cebd350b557f7c6bd10ab9d04"
   },
   "onodeManager": "dbfd109918f7875a7a299c258f2a9b6e31a5a6d0",
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
-  "remaining": "Verify real role/revision HTTP+SDK+command operations; wire OPORTAL and WEB4 proxy role/revision. Applied runtime/restart and cross-writer concurrency acceptance remain open.",
+  "remaining": "Review regenerated route positions; compile changed WEB4 only. Preserve service/SDK/command acceptance once current run terminates. Actual WEB4 bridge/browser, applied runtime and cross-writer concurrency remain open.",
   "inventoryReview": {
     "run": 45213996648,
     "artifact": 14836649117,
