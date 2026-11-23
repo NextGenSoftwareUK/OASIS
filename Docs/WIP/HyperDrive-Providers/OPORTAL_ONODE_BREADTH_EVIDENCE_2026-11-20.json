@@ -361,5 +361,30 @@
       "package/release/deployment acceptance",
       "remaining OPORTAL screen/action families, paid Stripe, all-provider and HyperDrive acceptance"
     ]
+  },
+  "onodeVerifiedPublication20261123": {
+    "parent": "94fc39ff58ce7bd53e5df081625941086ec77ce1",
+    "module": "23f15e935dae03f9e29a522d88c56e2af5b820a2",
+    "status": "published-to-Development-deployments-queued-not-running-accepted",
+    "allEightFreshDependencyHeadsPassed": true,
+    "manifestAndGitlinksPaired": true,
+    "codeTreeMatchesAcceptedBatch": true,
+    "preservedIncoming": "04d1625b25ac45051f04b92d3c8836f4157080a4",
+    "devWeb4SavedWorkerHolds": {
+      "hyperdrive": true,
+      "usage": true,
+      "maintenance": true
+    },
+    "otherServiceHolds": "WEB5-WEB10 selected fields unset; their entry points do not register the three WEB4 worker types. No configuration changed.",
+    "deployments": {
+      "WEB4": "8dbc5d34-e3cf-40fb-bed8-77d4de2079a1",
+      "WEB5": "233d754e-237b-4731-bb3e-7a8eb221e6b4",
+      "WEB6": "50e1f1e9-e28c-4ece-b451-7e7f2c4e6253",
+      "WEB7": "a62bf300-8d7e-4316-bbf6-8dd69422871a",
+      "WEB8": "0c8c8eba-817c-4755-b359-9fa1e54ae7d3",
+      "WEB9": "ae21de0c-11bd-4f09-a423-8851dedd41bf",
+      "WEB10": "c5c50815-6431-4be3-a28c-8adec78fd056"
+    },
+    "verification": "CLI selected metadata reports all seven QUEUED on exact parent; no shared authentication/database/queue calls."
   }
 }

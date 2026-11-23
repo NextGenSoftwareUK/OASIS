@@ -3215,3 +3215,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 2026-11-23 popup45255458012: actual owned API/supervisor stopped, exact generated token/metrics/DNA/databases/directory removed; cloud Mongo container/browser runtime/cache absence verified. Temporary196d22 source index removed. No local runtime/build/download/env; no deployed DNA/limiter or shared data changes.
 
 2026-11-23 successful45257965206: actual owned API/supervisor stopped, native databases and exact generated DNA/token/metrics/directory removed; cloud Mongo container/browser runtime/cache absence verified. Retained compact source acceptance JSON only; no local runtime/build/download/env created.
+
+2026-11-23 publication94fc39f: all temporary publication/normalization indexes removed; evidence-only CRLF corrected from normalized committed blob before branch publication. No worktree/source/module checkout switch, no local build/runtime/download/env. Existing four dirty gitlinks preserved. Only selected Railway metadata/worker flags reported; no deployed DNA/env dump, shared session/database/queue call.
