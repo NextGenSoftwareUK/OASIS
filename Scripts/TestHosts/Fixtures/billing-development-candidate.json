@@ -1,7 +1,9 @@
 {
   "nativeHost": "HotspotHttpNative",
-  "base": "d74ceb6d3e770691ef97b94a204adc4a3f96b855",
-  "buildProjects": [],
+  "base": "5ea9f8e3f9e1674516ceddcf3c9d16fd9ef4f8fa",
+  "buildProjects": [
+    "WEB4"
+  ],
   "portal": "a85a0c5f0fbe701adfd7e78d33f84084d5ce8479",
   "remaining": "Actual popup/SDK/HTTP/native Mongo send-receive-open-history and logout only; full Startup/SSO/hosted and whole portal remain open.",
   "scope": "billing",
@@ -9,8 +11,8 @@
     "Docker/oasis-dependency-versions.env",
     "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
   ],
-  "status": "Restore exact accepted Gifts validation omitted by prior composition; new browser journey and missing-recipient no-write check",
+  "status": "Current Development composition compile only; accepted Gifts browser45104328970 retained and not replayed",
   "nativeMode": "gifts-browser",
-  "candidate": "a61af6a6f361ed864ed32ccc6287ee69a159cdfd",
-  "tag": "qualification/gifts-validation-browser-20261123"
+  "candidate": "d06a42ca51d078d8d2248916ed7861e96974dbfc",
+  "tag": "qualification/gifts-current-development-lf-20261123"
 }
