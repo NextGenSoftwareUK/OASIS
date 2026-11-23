@@ -353,7 +353,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | M15 | Primitive and value-object collections | ❌ | ❌ | ❌ | Needs mapping, equality and update semantics. |
 | M16 | Shadow and indexer properties | ❌ | ❌ | ❌ | No proven model/session state mapping. |
 | M17 | Backing fields, private setters and constructor materialization | ❌ | ❌ | ❌ | Public positional records with matching readable properties and an optional init-only assignment passed native projection checks in [43633134876](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43633134876). That projection evidence does not cover mapped entity backing fields, private setters or constructor materialization. |
-| M18 | Immutable entities / read-only mappings | ❌ | ❌ | ❌ | Detached results are not immutable entity persistence. |
+| M18 | Immutable entities / read-only mappings | ❌ | ❌ | ❌ | Immutable per-model read-only contract policy is source-integrated (Coreab24837a) and under a new native three-provider qualifier. It refuses session insert/update/delete persistence while another model for the same CLR type remains writable. General immutable-object materialization, keyless view mapping and full parity remain open; no source-only completion credit. |
 | M19 | Inheritance: discriminator / table-per-hierarchy equivalent | ❌ | ❌ | ❌ | HolonType alone is not proven polymorphic mapping. |
 | M20 | Inheritance: table-per-type equivalent | ❌ | ❌ | ❌ | Define faithful non-relational equivalent and test. |
 | M21 | Inheritance: table-per-concrete-type equivalent | ❌ | ❌ | ❌ | No complete polymorphic CRUD/query proof. |

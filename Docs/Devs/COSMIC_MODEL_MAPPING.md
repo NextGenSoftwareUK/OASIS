@@ -143,3 +143,14 @@ var model = builder.Build();
 ```
 
 Explicit property mappings and naming conventions are optional for this declaration. Typed child-role materialization can use any contract declared in the same model, including an annotation-only contract. Build freezes the entity set; declaring additional types later does not change an existing model. This source change is under its separate native qualifier; consult current status before treating it as deployed.
+
+## Per-model read-only entity contracts
+
+```csharp
+builder.Entity<Reading>().IsReadOnly();
+var readModel = builder.Build();
+```
+
+Queries and typed hydration remain available. SaveChanges refuses inserts, updates and deletions of a configured read-only contract with COSMIC_MODEL_READ_ONLY_ENTITY. A policy on a base contract includes its runtime subtypes. Application edits and removal intents can still be staged; a prohibited persistence request returns an explicit error.
+
+Policy belongs to the immutable model snapshot. Building another writable model for the same CLR type does not alter this model, and changing the builder later does not unlock existing sessions. Mandatory provider/caller permissions still apply. This is a persistence mapping policy; general immutable-object construction, keyless views and full M18 parity remain separate scope. Native qualification and deployment status are recorded in the COSMIC status.
