@@ -80,6 +80,7 @@ async function main(){
   context=await browser.newContext({serviceWorkers:'block',ignoreHTTPSErrors:true});
   const errors=[],otherServices=[],reads=[];
   await context.route('**/*',async route=>{
+   try {
    const request=route.request(),url=new URL(request.url());
    if(url.origin==='https://api.web4.oasisomniverse.one'){
     const mutation=request.method()!=='GET'&&request.method()!=='OPTIONS';
@@ -175,6 +176,13 @@ async function main(){
    }
    if(url.origin===origin||['data:','blob:'].includes(url.protocol)||['fonts.googleapis.com','fonts.gstatic.com'].includes(url.hostname))return route.continue();
    otherServices.push(request.method()+' '+url.origin+url.pathname);return route.abort();
+   } catch (error) {
+    errors.push('network-admission');
+    const match=String(error.stack||'').match(/portal-startup-browser\.cjs:(\d+):/);
+    console.error('PORTAL_STARTUP_ADMISSION_FAILURE:'+JSON.stringify({stage,path:new URL(route.request().url()).pathname,
+     errorType:['AssertionError','TypeError','Error'].includes(error.name)?error.name:'Error',sourceLine:match?Number(match[1]):0}));
+    await route.abort();
+   }
   });
   const page=await context.newPage();page.on('pageerror',()=>errors.push('page-error'));
   page.on('response',async response=>{

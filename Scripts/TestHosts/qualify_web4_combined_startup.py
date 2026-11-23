@@ -242,6 +242,14 @@ console.log(JSON.stringify(b));
                                 else:
                                     assert isinstance(value,bool)
                     print('PORTAL_STARTUP_HTTP_FACTS:' + json.dumps(selected, separators=(',', ':')), flush=True)
+                admission_failure=re.search(r'PORTAL_STARTUP_ADMISSION_FAILURE:(\{[^\n]*\})',browser.stderr)
+                if admission_failure:
+                    failure=json.loads(admission_failure.group(1))
+                    assert set(failure)=={'stage','path','errorType','sourceLine'}
+                    assert re.fullmatch(r'[A-Za-z0-9 /-]{1,80}',failure['stage'])
+                    assert isinstance(failure['path'],str) and len(failure['path'])<=200 and failure['path'].startswith('/api/') and '?' not in failure['path']
+                    assert failure['errorType'] in ('AssertionError','TypeError','Error') and isinstance(failure['sourceLine'],int)
+                    print('PORTAL_STARTUP_ADMISSION_FAILURE:'+json.dumps(failure,separators=(',',':')),flush=True)
                 safe_stage = re.search(r'PORTAL_STARTUP_BROWSER_FAILURE stage=([^;\n]+)', browser.stderr)
                 raise RuntimeError('Owned portal Startup browser failed at ' + (safe_stage.group(1) if safe_stage else 'unreported stage'))
             assert 'PORTAL_STARTUP_BROWSER_PROOF:' in browser.stdout
