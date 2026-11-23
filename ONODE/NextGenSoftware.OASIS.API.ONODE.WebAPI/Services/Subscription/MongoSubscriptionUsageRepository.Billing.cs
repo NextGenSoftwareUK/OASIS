@@ -46,6 +46,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public Task SaveSubscriptionAsync(SubscriptionRecord record, CancellationToken cancellationToken = default)
         {
             ValidateSubscription(record);
+            if (!record.IsBillingAdmissionOpen) throw new ArgumentException("Closure state is managed by the account closure protocol.");
             if (record.PlanId != "free" || record.StripeSubscriptionId != null)
                 throw new ArgumentException("Paid subscription state must arrive through the authenticated Stripe event protocol.");
             // MongoDB may rerun the whole callback after a write conflict. Keep the
@@ -56,6 +57,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 await EnsureOpeningBalanceAsync(session, ct);
                 var candidate = JsonSerializer.Deserialize<SubscriptionRecord>(requestJson);
                 var existing = await Subscriptions.Find(session, x => x.UserId == candidate.UserId).FirstOrDefaultAsync(ct);
+                if (existing?.IsBillingAdmissionOpen == false)
+                    throw new SubscriptionUsageConflictException("Billing admission is closed for this account.");
                 if (existing?.PlanId == "free" && existing.Status is "active" or "free") return true;
                 if (existing?.StripeSubscriptionId != null && existing.PlanId != "free" && existing.Status is "active" or "trialing")
                     throw new SubscriptionUsageConflictException("An active Stripe subscription can only be changed by its canonical Stripe state; cancel it before activating a free plan.");
@@ -97,8 +100,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                     verifiedPayer.CustomerId!=record.StripeCustomerId || verifiedPayer.SubscriptionId!=record.StripeSubscriptionId ||
                     verifiedPayer.VerifiedAtUtc.Kind!=DateTimeKind.Utc || verifiedPayer.VerifiedAtUtc>now ||
                     now-verifiedPayer.VerifiedAtUtc>TimeSpan.FromMinutes(5) ||
-                    record.Status is not ("active" or "trialing") ||
-                    record.CurrentPeriodEnd.HasValue && record.CurrentPeriodEnd<=now ||
+                    record.Status is not ("active" or "trialing") || !record.IsActiveAt(now) ||
                     string.IsNullOrWhiteSpace(record.StripeCustomerId) || string.IsNullOrWhiteSpace(record.StripeSubscriptionId))
                     throw new SubscriptionUsageConflictException("The verified paid subscription changed; refresh billing before accepting overages.");
                 pricing.Rate(record.PlanId);
@@ -200,6 +202,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 if (!superseded)
                 {
                     canonical.AuthorizationVersion = current?.AuthorizationVersion ?? 0;
+                    canonical.AccountClosureOperationId = current?.AccountClosureOperationId;
+                    canonical.AccountClosureStartedAtUtc = current?.AccountClosureStartedAtUtc;
                     canonical.PayAsYouGoEnabled = current?.PayAsYouGoEnabled ?? false;
                     canonical.OveragePaymentBlocked = current?.OveragePaymentBlocked ?? false;
                     canonical.PaidOverageConsentId = current?.PaidOverageConsentId;

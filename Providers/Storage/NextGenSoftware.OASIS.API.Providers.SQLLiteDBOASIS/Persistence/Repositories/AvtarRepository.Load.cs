@@ -269,6 +269,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         IsLoaded = false,
                         IsError = false,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
                         Message = "No Avatar Found"
                     };
 
@@ -370,6 +371,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         IsLoaded = false,
                         IsError = false,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
                         Message = "No Avatar found"
                     };
 
@@ -407,6 +409,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         IsLoaded = false,
                         IsError = false,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
                         Message = "No Avatar Found"
                     };
 

@@ -15,6 +15,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public string AvatarId { get; set; }
 
         public string Token { get; set; }
+        public string AuthorityProvider { get; set; }
         public DateTime Expires { get; set; }
         public bool IsExpired {set; get;}
         public DateTime Created { get; set; }
@@ -29,6 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
 
             this.Id=source.Id;
             this.Token=source.Token;
+            this.AuthorityProvider=source.AuthorityProvider;
             this.Expires=source.Expires;
             this.IsExpired=source.IsExpired;
             this.Created=source.Created;
@@ -45,6 +47,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
 
             item.Id=this.Id;
             item.Token=this.Token;
+            item.AuthorityProvider=this.AuthorityProvider;
             item.Expires=this.Expires;
             item.Created=this.Created;
             item.CreatedByIp=this.CreatedByIp;
