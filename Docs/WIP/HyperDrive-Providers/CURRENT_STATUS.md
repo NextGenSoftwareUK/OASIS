@@ -1,3 +1,7 @@
+## 2026-11-23 - Current shared source composed without checkout changes
+
+Prepared rootb71528fb/Core6df988c8/WEB678a27a29 preserves Development721f3313 mapped grouping and own session authority/MFA/provider source. Module source merges clean; root conflicts resolved only in those gitlinks and paired manifest, exact pins verified. Immutable tags pushed; not built/accepted/deployed or selected for active browser run45092519963. Physical checkouts unchanged.
+
 ## 2026-11-23 - Account-deletion preparatory UI wired
 
 Portal devc856109 replaces inert Coming Soon action with explicit real read-only account-dependency review, timestamp, billing/ownership requirements and subscription/usage navigation. No startup request or mutation. Captured actor/client/bearer/revision guards, login/logout private-state clearing. Syntax/diff checks only; new browser flow pending. Permanent account/data erasure remains incomplete. Settings sign-out run45092519963/job137425049453 is active on pinned Portal282eb9a and cannot certify this later review action.

@@ -1,0 +1,13 @@
+{
+  "status": "clean source merge only; not compiled, accepted or deployed",
+  "core": "6df988c8f802bc4fdfaebdc03f3dba8f9160c5f9",
+  "tag": "qualification/session-shared-mapping-20261123",
+  "parents": [
+    "27dae38da3f3212e360d939db642d02c01c8fc5f",
+    "048b02d54870e793de8f18439ff8f00950ad3547"
+  ],
+  "tree": "7e1e0326c56383e41fedf2661ebce213a6985582",
+  "sharedRoot": "721f33130849794856c546218dceb06ee1396c87",
+  "remaining": "Compose current root/API/provider/manifest source, qualify changed combined shipping contract before Development integration. Preserve current Settings browser run.",
+  "cleanup": "Git objects and compact report only; no worktree checkout, environment, build, download or test result."
+}
