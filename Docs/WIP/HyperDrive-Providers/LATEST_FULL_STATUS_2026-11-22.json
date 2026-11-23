@@ -242,5 +242,14 @@
     "checks": "Rendering, syntax, endpoint drift and diff passed",
     "scope": "New fields rendering only; no repeat native/browser cohort",
     "backendDeployment": "0e9725b4-13cb-4bb0-92d1-4b1a902ee05c still QUEUED"
+  },
+  "actualAnonymousPage20261123": {
+    "run": 45117362822,
+    "job": 137503148480,
+    "conclusion": "success",
+    "portal": "81fc716d1dc37eeabdd70d501c2605c500f5d2f8",
+    "scope": "Actual portal page anonymous navigation and signup refresh; zero API traffic/page errors/missing local assets",
+    "excluded": "Authenticated dashboard/full backend Startup/SSO/Stripe",
+    "cleanup": "Verified server/browser closed and runtime/cache absent"
   }
 }
