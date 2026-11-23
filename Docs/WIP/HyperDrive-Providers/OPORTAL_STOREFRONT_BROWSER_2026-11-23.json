@@ -1,16 +1,16 @@
 {
   "implementation": "Games now renders real Game/STARNETDNA details/capabilities and supplied absolute web launch target from already-fetched records. No new API fanout.",
   "scope": "One new real populated Games/OAPPs/Inventory SDK/browser/HTTP/native Mongo browse/detail/launch-link/logout journey; seven browser GETs, zero browser mutations. Existing accepted Gifts/session/provider cohorts not selected.",
-  "base": "15798b127af2274aa811252ad6335cbfc8661a49",
-  "checks": "Same representative Inventory continuation with real WEB4 controller selected; no shipping substitute, forced click, timeout increase or backend-source change. Current popup style/page served HTTP200 LF-normalized exactsource71ea125.",
-  "status": "Games-OAPP-paths-observed-Inventory-fixture-route-corrected",
+  "base": "aa257b03a0baae0175e7b47cd367a93fd139f55c",
+  "checks": "Packed native item readback checks quantity/source/rarity/max/weight/flags/URI; actual browser loads existing thumbnail and item detail. Static JS/diff/paired pins pass; native/browser pending.",
+  "status": "Inventory-model-fields-source-fixed-current-CQL-qualification-active",
   "cleanup": "No local runtime/env/build/database/download/results. Same owned ephemeral CI Mongo/browser fixture; existing finally cleanup. No shared Atlas/PIPER calls.",
   "control": "42766fe7ebb9001e512bf52f80d5cbfc87343a26",
   "run": 45106635634,
   "portal": "71ea1255c7e7241cdc766179aaf4d4525865004a",
-  "source": "d531a4d543f6bc9428372ab1454110b882ac493c",
-  "activeRun": 45112267754,
-  "activeControl": "dff1365db3104ce5d27792f1d6e60e0cd2a86cf7",
+  "source": "21abed0bedfde0399f66eef1da62cff0d92d34b7",
+  "activeRun": 45114577286,
+  "activeControl": "760228568abd03949d61af18134fab2d1200c905",
   "attempts": [
     {
       "build": "0errors4m58.44",
@@ -61,10 +61,31 @@
       "job": 137482995228,
       "acceptedObservations": "Native BSON list/exact typed Game, Games all/mine/filter/details/launch href, OAPP own/all/search/details/launch href and normal close/tab clicks passed.",
       "build": "0errors6m58.00"
+    },
+    {
+      "run": 45112267754,
+      "observed": "Correct WEB4 Inventory200 and catalogue200; stored quantity3 lost",
+      "build": "0errors7m10.38",
+      "cause": "InventoryItem18fields lacked custom persistence declarations",
+      "conclusion": "failure",
+      "cleanup": "DB/DNA/container/browser runtime/cache absence verified",
+      "job": 137487070020
+    },
+    {
+      "job": 137492156798,
+      "run": 45113881509,
+      "correction": "One current-Development manifest row reviewed; conservative disposition unchanged; source gate retained",
+      "cause": "Current CQL MapMetaData expression-wrapper changed normalized signature",
+      "conclusion": "failure-before-build"
     }
   ],
   "rootCause": "Mongo MetaDataDictionarySerializer handles CLR arrays but sends IList/List<T> to the complex JSON-text writer. Core correctly requires a declared list, so new Game SupportedPlatforms cannot hydrate.",
-  "fix": "Six-line producer fix writes IList values as BSON arrays using existing element serializer; explicit strings/complex POCO JSON-text contracts stay unchanged. No read-time guessing/fallback.",
-  "legacyRemaining": "Already persisted JSON-text list metadata is not silently reinterpreted; assess explicit typed migration before claiming existing catalogue/full provider repaired. No shared Atlas inspection/mutation performed.",
-  "viewportFix": "Portal71ea125 bounds shared7popup height and enables vertical scrolling. Test host now uses all6shipping stylesheets and actual close controls between popup opens; no forced click or timeout increase."
+  "fix": "InventoryItem18fields declared durable; Mongo IList uses native array, URI native string. Core pin paired; one reviewed manager row. No read fallback.",
+  "legacyRemaining": "Already string-encoded lists or omitted historical item values are not reconstructed; explicit assessment/reimport/migration separate. Shared Atlas untouched.",
+  "viewportFix": "Portal71ea125 bounds shared7popup height and enables vertical scrolling. Test host now uses all6shipping stylesheets and actual close controls between popup opens; no forced click or timeout increase.",
+  "coreComposition": {
+    "delta": "InventoryItem19lines only; verified fluent mapping source preserved; physical module checkout untouched",
+    "currentDevelopment": "854b2b3129701b3a5162d49d55e7e8a86be4f6ef",
+    "combined": "fc2470e77afa41e0a35850dbb2ce3c3f9e23b6dd"
+  }
 }

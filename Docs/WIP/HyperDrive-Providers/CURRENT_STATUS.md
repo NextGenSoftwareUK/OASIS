@@ -1,3 +1,7 @@
+## 2026-11-23 - Inventory persistence source fixed preserving latest fluent CQL
+
+45112267754/job137487070020 compiled0errors7m10.38; real Inventory route/catalogue200 thenquantity3lost. Corefc2470e7 adds18modelpersistence annotations(19lines) on latest854fluent source; Mongo nativeURI/list8lines. Candidate21abed0b on aa257 includespairedpin andone reviewed metadata-wrapper manifestrow.45113881509 stoppedbeforebuild onthat stale signature; gateunchanged.45114577286 active forpackednativeitem/thumbnail/browserflow. Legacyassessment/fullStartup/wholeportal open; no sharedbackend/localoutputs.
+
 ## 2026-11-23 - Games/OAPP browser paths observed; Inventory fixture route fixed
 
 45110969977/job137482995228 compiled0errors6m58.00; nativeBSON/typedGame plus Gamesall/mine/filter/details/link and OAPPown/all/search/details/link/normalnavigation passed. FirstAvatarInventoryGET500: combinedfixture registeredbothrealWEB4 routeandWEB5proxy underoneorigin. Fixture nowselectsactualWEB4controller withoutprod/auth/storagechanges;45112267754 active. OwnedDB/DNA/container/browserruntime/cache absenceverified. NewscrollCSS/page served200 exact71ea125. d531Mongo6linewritefixnotdeployed; legacyassessment/fullStartup/wholeportalremainopen. Prioracceptedcohortsnotselected.

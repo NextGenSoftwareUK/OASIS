@@ -6,10 +6,16 @@
     "taskWorktree": "C:/Source/OASIS2-hyperdrive",
     "portalBranch": "dev",
     "portalHead": "71ea1255c7e7241cdc766179aaf4d4525865004a",
-    "reviewedDevelopment": "15798b127af2274aa811252ad6335cbfc8661a49",
+    "reviewedDevelopment": "aa257b03a0baae0175e7b47cd367a93fd139f55c",
     "currentCore": "80400bb46dab74632a99d1f27bf6a0a6a94b7840",
     "currentWeb6": "78a27a295e74721358eb2b02399f79eff5b21633",
-    "scope": "Seven running dev revisions verified: WEB4=61b1d01d, WEB5-WEB10=15798b12; both preserve Core80400/Gifts. Active Games diagnosis uses exact accepted source18c06063; not full portal acceptance."
+    "scope": "currentCore/currentWeb6 retain last verified Gifts runtime snapshot. Current Development aa257/Core854 fluent mapping preserved in Inventory21ab/Corefc qualification. Full portal acceptance remains open.",
+    "currentQualification": {
+      "root": "21abed0bedfde0399f66eef1da62cff0d92d34b7",
+      "core": "fc2470e77afa41e0a35850dbb2ce3c3f9e23b6dd",
+      "run": 45114577286,
+      "status": "active-not-accepted-or-deployed"
+    }
   },
   "web6": {
     "deployment": "c50654a6-5d5b-4a69-be04-3f1135713ddc",
@@ -55,7 +61,7 @@
       "Games actual Game/STARNETDNA details and supplied web launch links served; native catalogue conversion failure remains under diagnosis"
     ],
     "remaining": [
-      "Complete Games/OAPP/Inventory real browser flow after native list writer and popup viewport fixes; legacy string-encoded list assessment",
+      "Inventory quantity/details/assets current-source native/browser verification; legacy list/missing-field assessment",
       "Full portal page/navigation and real Startup/SSO browser acceptance across all screens",
       "Hosted Stripe paid lifecycle and checkout recovery acceptance; existing owner action remains open",
       "Permanent account and all-data/provider/replica erasure lifecycle",
@@ -104,7 +110,7 @@
     "protectedDeliveries": "535/543 not replayed; audit543 unavailable, preserve hold."
   },
   "cleanup": {
-    "freeDiskGB": 24.0,
+    "freeDiskGB": 23.93,
     "thisTurn": "No local builds/downloads/environments/databases/results. Owned Core/root composition indexes and locks removed in finally; source Git objects/tags retained.45104328970 owned DB/DNA/container/browser runtime/cache absence verified. Existing policy-blocked8038-byte cache untouched.",
     "temporaryEmailSecrets": "Previously deleted and absence verified; not restaged."
   },
@@ -153,7 +159,7 @@
     "Permanent account/private-data/provider-replica erasure and Settings deletion remain unfinished.",
     "Changed async DID/MFA session-save and sync/detail native acknowledgement paths require representative verification before full entry-point acceptance."
   ],
-  "lastUpdatedUtc": "2026-11-23T04:16:55.7622235Z",
+  "lastUpdatedUtc": "2026-11-23T04:54:56.7642562Z",
   "latestFocusedRun": {
     "id": 45091356813,
     "job": 137421421351,
@@ -168,7 +174,7 @@
       "Subscription/MCP renewal notification and stale checkout guidance",
       "Single Gifts logout handler; no undeclared-variable error"
     ],
-    "pending": "Native Mongo BSON-list write and typed Game readback passed within45109755916; browser rendered Games details then failed off-viewport tab. Shared7popup scrolling fixed Portal71ea125; same journey45110969977 active, backendd531 not deployed. Legacy metadata assessment still open."
+    "pending": "Actual Inventory quantity-loss found. Inventory18field declarations and Mongo native URI/list fixes in45114577286; strict current CQL helper inventory row reviewed, gate not skipped. Legacy/full portal remain open."
   },
   "settingsBrowserPreparation": {
     "run": 45093523946,
