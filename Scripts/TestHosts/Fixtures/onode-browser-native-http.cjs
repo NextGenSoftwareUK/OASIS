@@ -61,8 +61,8 @@ async function verify({baseUrl,token,avatarId,nodeId}){
   const providerActions=await mongoRow().locator('.onode-row-actions').boundingBox();
   assert.ok(providerName&&providerActions&&providerName.width>=80&&providerActions.x>=providerName.x+providerName.width);
   stage='replication role edit';await page.locator('#onode-provider-role').selectOption('replication');
-  await mongoRow('replication').getByRole('button',{name:'Remove',exact:true}).click();
-  await mongoRow('replication').getByRole('button',{name:'Include',exact:true}).waitFor();
+  stage='replication role remove click';await mongoRow('replication').getByRole('button',{name:'Remove',exact:true}).click();
+  stage='replication role saved readback';await mongoRow('replication').getByRole('button',{name:'Include',exact:true}).waitFor();
   stage='load balancing role read';await page.locator('#onode-provider-role').selectOption('loadBalancing');
   await mongoRow('loadBalancing').getByRole('button',{name:'Remove',exact:true}).waitFor();
   stage='reported services';await tab('services');
@@ -89,7 +89,25 @@ async function verify({baseUrl,token,avatarId,nodeId}){
   return {actualOnodePopup:true,registeredPublicViews:true,savedRoleWriteReadback:true,
    roleSelection:true,providerLayout:true,reportedServicesMetrics:true,realLiveFrame:true,loadedApiView:true,closed:true,
    apiMocks:false,errors:0};
- }catch(error){throw new Error('Owned ONODE browser failed at '+stage+'; type='+error.name+'; credential-bearing detail withheld.');}
+ }catch(error){
+  const observation=await context.pages()[0]?.evaluate(()=>{
+   const roles=['failover','replication','loadBalancing'];
+   const selected=document.getElementById('onode-provider-role')?.value;
+   const button=document.querySelector('#onode-providers-grid button[data-provider="MongoDBOASIS"][data-enabled]');
+   const rowRole=button?.dataset.role;
+   const status=document.getElementById('onode-modal-status');
+   const message=status?.textContent||'';
+   const reason=/revision|selection changed/i.test(message)?'revision':
+    /unconfirmed/i.test(message)?'unconfirmed':/at least one provider/i.test(message)?'last provider':
+    /invalid|inconsistent|did not return/i.test(message)?'contract':/failed|HTTP|acknowledge/i.test(message)?'transport':'unknown';
+   return {selected:roles.includes(selected)?selected:'unknown',row:roles.includes(rowRole)?rowRole:'missing',
+    disabled:button?.disabled?'yes':'no',status:status?.classList.contains('onode-status--error')?'error':
+     status?.classList.contains('onode-status--loading')?'loading':status?.classList.contains('onode-status--success')?'success':'idle',reason};
+  }).catch(()=>null);
+  const detail=observation?' selected '+observation.selected+' row '+observation.row+' disabled '+observation.disabled+
+   ' status '+observation.status+' reason '+observation.reason:'';
+  throw new Error('Owned ONODE browser failed at '+stage+detail+'; type='+error.name+'; credential-bearing detail withheld.');
+ }
  finally{await context.close();await browser.close();}
 }
 module.exports={verify};
