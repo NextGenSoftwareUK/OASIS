@@ -2989,3 +2989,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 - 2026-11-23 worker-status publicationbea1473a: .git-worker-publish-index and lock removed in finally. Named docs/one completed H1 section/source Git objects retained. No local env/build/database/download/results. New remote rollout pending; prior policy-blocked8038byte cache remains separately recorded.
 
 - 2026-11-23 equivalent-source rollout: selected SSH revision/3pause flags, Swagger and read-only watch metadata processed in RAM; no local downloads/env/build/results. Policy runner uses Python-B; no bytecode created. Existing skipped-build feature untouched. Prior8038-byte blocked cache remains recorded.
+
+2026-11-23 OPORTAL breadth f5283af/a85a0c5: source, focused Node controls and compact tracked reports only. No runtime/install/download/database/build/test-result artifacts created. C: free observed26.74GB. Existing blocked8038-byte Python cache remains recorded and was not retried. Four unrelated dirty gitlinks untouched.

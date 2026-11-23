@@ -1,3 +1,7 @@
+## 2026-11-23 - OPORTAL breadth: subscription renewal and Gifts sign-out fixed
+
+Portal dev f5283af updates visible MCP credentials after acknowledged session renewal and gives explicit checkout reopen guidance; a85a0c5 removes duplicate Gifts logout handler using undefined variables and resets send UI in the single current cleanup owner. Focused changed DOM/auth controls, syntax, endpoint drift and whitespace pass; full browser/backend Gifts and hosted Stripe/whole portal remain open. Prior native/backend/browser evidence retained, no cohort replay. Next: representative real Gifts browser/HTTP journey using existing isolated CI fixture, then remaining unaccepted screens. COSMIC status reviewed read-only; no provider overlap or shared Atlas/PIPER calls.
+
 ## 2026-11-23 - Worker-status rollout source-equivalent runtime accepted
 
 All7 SUCCESS and running revisions checked. WEB5/6/7/8/10=bea1473a; WEB4/9=d74ceb6d after release back-merge. Both Git trees exactly70a805b9515a9c97f58f755e54a5f1dcd19522d7; no source regression or forced restarts. New WEB4 public Swagger field backgroundWorkersPauseConfigured is boolean;3selected running pause flags true. Existing7dev watch policies verified read-only, no setting change; optional skipped-build cache remains unaudited/not enabled. Normal CI still tracked separately; no hosted auth/data/payment operations.
