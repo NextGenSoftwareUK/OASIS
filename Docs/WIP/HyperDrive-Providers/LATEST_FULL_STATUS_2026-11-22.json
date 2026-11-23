@@ -858,5 +858,26 @@
       "peerReport": "All7 dev deployments SUCCESS; source/deployment evidence only. Profile/OAPP retained. Preserve verified new CQL batch in next shipping composition.",
       "overlap": "Only ONODE CQL Models/Services changed; no ONODE controller/Hub/JWT/Startup or classifier overlap found."
     }
+  },
+  "currentOnodeBridge20261123": {
+    "source": "949a857c40ceb731171dd7c69f11b44937e679f2",
+    "core": "bc574ddec918f18924a3f77d9214af08a9e5ed8c",
+    "onodeManager": "3ecf0f8ea9713412da9071a1c6d12f961b050c8e",
+    "nativeRun": 45231243298,
+    "nativeJob": 137891040788,
+    "status": "in_progress",
+    "scope": "Actual WEB4 Startup, real native Mongo password-issued Wizard/User sessions, real supervisor push/poll/execute/ack, local revision-aware proxy and live WebSocket. No browser/applied runtime/all-provider acceptance yet.",
+    "performanceSource": [
+      "Removed hard-coded ten-second initial command polling delay; configured cadence remains.",
+      "Separated bounded read command budget60/min from unchanged write budget10/min; atomic counter update.",
+      "Popup requires the authenticated SDK HTTP transport it actually uses, not unused wrapper presence."
+    ],
+    "inventories": {
+      "run": 45227491740,
+      "artifact": 14843032392,
+      "managerRecords": 938,
+      "routeRecords": 835,
+      "review": "Exactly one published Core set-count manager boundary added; V2 guard and real executor inspected, no removals/disposition changes. Route positions only."
+    }
   }
 }

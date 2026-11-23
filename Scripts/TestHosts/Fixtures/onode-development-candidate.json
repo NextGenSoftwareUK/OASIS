@@ -79,7 +79,7 @@
     "qualificationScope": "Package and actual Startup only; unchanged authentication/browser matrix not replayed. Older frozen source must not replace current Development75a.",
     "packageStartupStatus": "success",
     "artifact": 14842651339,
-    "scope": "Actual packaged source/Startup/password auth; no browser/CQL/live deployment acceptance."
+    "scope": "Packaged source/actual Startup/password auth only; older e641 source, not current deployment or browser/CQL acceptance."
   },
   "routingEditorRun": {
     "run": 45220758834,
@@ -125,5 +125,26 @@
     "cause": "Current Core has one new public set-count manager record absent from committed inventory; reviewed and retained from existing inventory artifact.",
     "ownedMongoCreated": false,
     "apiStarted": false
+  },
+  "nativeBridgeRun": {
+    "source": "949a857c40ceb731171dd7c69f11b44937e679f2",
+    "core": "bc574ddec918f18924a3f77d9214af08a9e5ed8c",
+    "onodeManager": "3ecf0f8ea9713412da9071a1c6d12f961b050c8e",
+    "nativeRun": 45231243298,
+    "nativeJob": 137891040788,
+    "status": "in_progress",
+    "scope": "Actual WEB4 Startup, real native Mongo password-issued Wizard/User sessions, real supervisor push/poll/execute/ack, local revision-aware proxy and live WebSocket. No browser/applied runtime/all-provider acceptance yet.",
+    "performanceSource": [
+      "Removed hard-coded ten-second initial command polling delay; configured cadence remains.",
+      "Separated bounded read command budget60/min from unchanged write budget10/min; atomic counter update.",
+      "Popup requires the authenticated SDK HTTP transport it actually uses, not unused wrapper presence."
+    ],
+    "inventories": {
+      "run": 45227491740,
+      "artifact": 14843032392,
+      "managerRecords": 938,
+      "routeRecords": 835,
+      "review": "Exactly one published Core set-count manager boundary added; V2 guard and real executor inspected, no removals/disposition changes. Route positions only."
+    }
   }
 }
