@@ -49,7 +49,7 @@
     "preparedControl": "109def7342c",
     "behavior": "Create one OAPP through actual WEB5 API, child through actual WEB4 API, compare independent shallow/deep responses, then populated Map/Launcher detail/browse",
     "backend": "isolated fresh native Mongo and actual issued SSO; no handcrafted stored documents, synthetic JWTs or response mocks",
-    "status": "corrected fixture exposed real tariff allowlist mismatch; Core candidate prepared",
+    "status": "LoadAvatar allowlist/fixture-host mismatch repaired in candidate; current run45184249838",
     "run": 45182126611,
     "job": 137718312154,
     "control": "9433abda05057f5b54849f19ec0a19622302e907",
@@ -62,7 +62,9 @@
     "diagnosis": "Actual LoadAvatar requires its own explicit physical-operation tariff; owned fixture listed holon operations only. Add only LoadAvatar to isolated pricing; no production pricing/admission change.",
     "diagnosticArtifact": 14820672993,
     "diagnosticArtifactBytes": 2459,
-    "failedReadinessRun": 45182126611
+    "failedReadinessRun": 45182126611,
+    "failedReadinessArtifact": 14821409108,
+    "failedReadinessArtifactBytes": 1655
   },
   "categoryArgumentCandidate": {
     "star": "ffd7fe494e1aacec50315baadff38273c88b8a11",
@@ -77,9 +79,13 @@
     "root": "181a340f4e5eca1897cb802a4c6240dde0f81cfa",
     "core": "117604427751726e4623a076c06cb91b84a01d6f",
     "star": "ffd7fe494e1aacec50315baadff38273c88b8a11",
-    "status": "source only; next real flow qualification required",
+    "status": "cloud compile and actual populated flow qualifying",
     "invariant": "Every admitted physical LoadAvatar can be explicitly priced; tariff configuration still restricts provider, price, catalogue and duplicate keys",
     "change": "Add only LoadAvatar to existing supported operations. Test declares it only on new WEB5 host executing the read; accepted old WEB4 billing host keeps supported tariffs. No production configuration change.",
-    "remaining": "Actual new Core/Web5 compile, provider read/creation/depth flow; new WEB4 shipping image/package before release"
-  }
+    "remaining": "Actual new Core/Web5 compile, provider read/creation/depth flow; new WEB4 shipping image/package before release",
+    "run": 45184249838,
+    "job": 137725622755,
+    "control": "7eac4067700b7643a6baa963c4814bb22a583771"
+  },
+  "deploymentConfigurationObservation": "Selected dev WEB5 admission env read unavailable; no conclusion about its loaded pricing, no shared config/data change."
 }
