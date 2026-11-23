@@ -174,7 +174,7 @@ try
     stage = "actual WEB4 Startup";
     api = Host.CreateDefaultBuilder()
         .ConfigureLogging(logging => logging.ClearProviders())
-        .ConfigureWebHost(web => web.UseSetting(WebHostDefaults.ApplicationKey, typeof(Web4Startup).Assembly.FullName)
+        .ConfigureWebHostDefaults(web => web.UseSetting(WebHostDefaults.ApplicationKey, typeof(Web4Startup).Assembly.FullName)
             .UseStartup<Web4Startup>().ConfigureKestrel(server => server.Listen(IPAddress.Loopback, 0)))
         .ConfigureServices(services => services.PostConfigure<Microsoft.Extensions.Http.HttpClientFactoryOptions>("ONODESupervisor",
             settings => settings.HttpClientActions.Add(client => { client.BaseAddress = new Uri(supervisorOrigin); client.Timeout = TimeSpan.FromSeconds(5); })))
@@ -182,7 +182,7 @@ try
     await api.StartAsync(deadline.Token);
     var origin = api.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
     Check(new Uri(origin).IsLoopback, "WEB4 server escaped loopback.");
-    using var http = new HttpClient { BaseAddress = new Uri(origin), Timeout = TimeSpan.FromSeconds(10) };
+    using var http = new HttpClient(new HttpClientHandler { UseCookies = false }) { BaseAddress = new Uri(origin), Timeout = TimeSpan.FromSeconds(10) };
     async Task<string> SignIn(Guid id)
     {
         using var response = await http.PostAsJsonAsync("/api/avatar/authenticate",
@@ -330,5 +330,7 @@ finally
         throw new InvalidOperationException("Owned cleanup escaped the temporary directory.");
     Directory.Delete(resolvedOwned, recursive: true);
     foreach (var pair in priorEnvironment) Environment.SetEnvironmentVariable(pair.Key, pair.Value);
-    Console.WriteLine("ONODE_BRIDGE_CLEANUP: owned API/supervisor/bridge stopped; databases, DNA, generated token and owned directory removed.");
+    Console.WriteLine(databaseNamesValidated
+        ? "ONODE_BRIDGE_CLEANUP: owned API/supervisor/bridge stopped; databases, DNA, generated token and owned directory removed."
+        : "ONODE_BRIDGE_CLEANUP: no database ownership claim; existing data preserved, owned resources stopped/removed.");
 }
