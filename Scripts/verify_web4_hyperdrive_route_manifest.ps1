@@ -46,8 +46,7 @@ function Get-Disposition([string]$body, [string]$methodName, [string]$controller
     if ($controllerName -in @('HyperDriveController', 'HyperDriveSyncController', 'ProviderController')) {
         return 'HyperDriveOrProviderControlPlane'
     }
-    if ($body -match ('\breturn\s+(?:await\s+)?' + [regex]::Escape($methodName) + '\s*\(') -or
-        $body -match '\breturn\s+await\s+[A-Za-z_]\w*\s*\(') {
+    if ($body -match ('\breturn\s+(?:await\s+)?' + [regex]::Escape($methodName) + '\s*\(')) {
         return 'ControllerActionDelegation'
     }
     if ($body -match '\b(?:AvatarManager|HolonManager|SearchManager|WalletManager)\b') {
@@ -80,6 +79,9 @@ function Get-Disposition([string]$body, [string]$methodName, [string]$controller
     }
     if ($body -match '\b(?:HttpClient|SendAsync|PostAsync|GetAsync|SmtpClient)\b') {
         return 'ExplicitExternalTransport'
+    }
+    if ($body -match '\breturn\s+await\s+[A-Za-z_]\w*\s*\(') {
+        return 'ControllerActionDelegation'
     }
     return 'LocalOrNonStorageEndpoint'
 }
