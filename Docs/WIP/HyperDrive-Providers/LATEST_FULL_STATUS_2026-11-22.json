@@ -706,5 +706,26 @@
     "profile": "Null address omission confirmed45198313230; snapshot HTTP serializer repair prepared. Newly published4b8/ef05 CQL merged cleanly into daf058/271603; source inventories reviewed, exact image45205685460 building. Older91e-based45199130351 cancelled as superseded. No new deployment or nullable Startup acceptance yet.",
     "oapp": "Populated canonical OAPP+child creation, independent default-shallow/explicit-deep selection and Map/Launcher filter/detail/browse/close passed45196340465/artifact14830060049. Existing persisted serialized graph relationship edits remain open. New backend source not published to Development yet.",
     "breadth": "Admin seven source-specific native/browser scopes and unchanged 51-event Karma Ledger evidence retained in screen matrix. No duplicate unchanged matrices. Whole portal/paid Stripe/provider/HyperDrive completion remains unproven."
+  },
+  "latestOnodePublicView20261123": {
+    "date": "2026-11-23",
+    "portal": "0d7ccd6",
+    "publicViewCompile": {
+      "run": 45211702265,
+      "job": 137821953656,
+      "source": "1d9c6e19cbc0e97a468d7781311e988c74cf5f43",
+      "web4Errors": 0,
+      "supervisorErrors": 0
+    },
+    "providerTransportSource": "a03f6c902b816f831daeecf76e65265bab6f8c55",
+    "classifierSource": "693154e540bdc081fe58764014df4541a561eff4",
+    "inventoryRun": 45213996648,
+    "status": "Inventory active; actual command probe prepared but not run; full bridge/browser/provider-schema acceptance open.",
+    "profileDev": {
+      "commit": "52f9a287a67a558c8f687e2d701c7483be0a91c1",
+      "deployment": "10116560-0293-4aac-8f4b-c8fc8202283a",
+      "observedStatus": "BUILDING",
+      "liveAccepted": false
+    }
   }
 }

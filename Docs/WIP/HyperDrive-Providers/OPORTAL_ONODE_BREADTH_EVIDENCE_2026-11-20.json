@@ -109,5 +109,26 @@
         "routeBlob": "f8a45cceffc5b3ceaa38263737e8ea6de28037de"
       }
     }
+  },
+  "latestOnodePublicView20261123": {
+    "date": "2026-11-23",
+    "portal": "0d7ccd6",
+    "publicViewCompile": {
+      "run": 45211702265,
+      "job": 137821953656,
+      "source": "1d9c6e19cbc0e97a468d7781311e988c74cf5f43",
+      "web4Errors": 0,
+      "supervisorErrors": 0
+    },
+    "providerTransportSource": "a03f6c902b816f831daeecf76e65265bab6f8c55",
+    "classifierSource": "693154e540bdc081fe58764014df4541a561eff4",
+    "inventoryRun": 45213996648,
+    "status": "Inventory active; actual command probe prepared but not run; full bridge/browser/provider-schema acceptance open.",
+    "profileDev": {
+      "commit": "52f9a287a67a558c8f687e2d701c7483be0a91c1",
+      "deployment": "10116560-0293-4aac-8f4b-c8fc8202283a",
+      "observedStatus": "BUILDING",
+      "liveAccepted": false
+    }
   }
 }
