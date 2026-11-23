@@ -1,3 +1,7 @@
+## 2026-11-23 - Settings browser checkout correction
+
+45092112547/job137423771196 failed before compilation: committed fixture HTML/script were omitted from limited control checkout. Added both exact paths; no product failure or browser acceptance inferred. Native fixture and browser runtime/cache removal steps both SUCCESS. Earlier general session acceptance45091356813 retained. Replacement will run only the same unaccepted Settings journey.
+
 ## 2026-11-23 - Subscription breadth source fixes and browser qualification
 
 Portal dev a5a6a56: missing subscription no longer triggers plan-specific history, My subscriptions now has an explicit Retry; Orders Retry retained. Five changed source-expression cases/syntax/diff passed; no browser/API acceptance inferred. Actual Settings button run45092112547 on ee351724210 pins Portal282eb9a (Settings unchanged by later subscription edit); do not dispatch a duplicate. General native acceptance45091356813 retained.

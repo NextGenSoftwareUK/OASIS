@@ -58,6 +58,8 @@ jobs:
             Scripts/TestHosts/Fixtures/competition-browser-native-http.cjs
             Scripts/TestHosts/Fixtures/mfa-settings-browser-host.html
             Scripts/TestHosts/Fixtures/mfa-settings-browser-native-http.cjs
+            Scripts/TestHosts/Fixtures/session-settings-browser-host.html
+            Scripts/TestHosts/Fixtures/session-settings-browser-native-http.cjs
             Scripts/TestHosts/Fixtures/subscription-usage-browser-host.html
             Scripts/TestHosts/Fixtures/warning-email-browser-native-http.cjs
             Scripts/TestHosts/Fixtures/profile-browser-runtime.json
