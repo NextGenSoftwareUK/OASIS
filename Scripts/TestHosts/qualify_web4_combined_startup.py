@@ -253,7 +253,7 @@ console.log(JSON.stringify(b));
                 clan_failure=re.search(r'PORTAL_STARTUP_CLAN_FAILURE:(\{[^\n]*\})',browser.stderr)
                 if clan_failure:
                     failure=json.loads(clan_failure.group(1))
-                    assert set(failure)<= {'errorType','sourceLine','status','nameLength','buttonDisabled','activeTab','unavailable'}
+                    assert set(failure)<= {'errorType','sourceLine','status','nameLength','buttonDisabled','activeTab','unavailable','operation','formOwner','formValid','invalidFields','bound','hit'}
                     assert isinstance(failure.get('status',''),str) and len(failure.get('status',''))<=320
                     print('PORTAL_STARTUP_CLAN_FAILURE:'+json.dumps(failure,separators=(',',':')),flush=True)
                 safe_stage = re.search(r'PORTAL_STARTUP_BROWSER_FAILURE stage=([^;\n]+)', browser.stderr)

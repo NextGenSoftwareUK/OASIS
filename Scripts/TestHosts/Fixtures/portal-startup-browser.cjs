@@ -224,9 +224,14 @@ async function main(){
     let passed=false,closePassed=true,observedStage=name;
     try{await work();passed=true;observedStage=stage;}
     catch(error){observedStage=stage;if(name==='Clan'){
-     const state=await page.evaluate(()=>({status:document.getElementById('clan-status')?.textContent||'',nameLength:document.getElementById('clan-create-name')?.value.length||0,buttonDisabled:document.getElementById('clan-create-btn')?.disabled===true,activeTab:document.querySelector('#clan-modal-block .map-tab.is-active')?.dataset.tab||'unknown'})).catch(()=>({unavailable:true}));
+     const state=await page.evaluate(()=>({status:document.getElementById('clan-status')?.textContent||'',nameLength:document.getElementById('clan-create-name')?.value.length||0,buttonDisabled:document.getElementById('clan-create-btn')?.disabled===true,activeTab:document.querySelector('#clan-modal-block .map-tab.is-active')?.dataset.tab||'unknown',
+      formOwner:document.getElementById('clan-create-btn')?.form?.id||'none',
+      formValid:document.getElementById('clan-create-form')?.matches(':valid')===true,
+      invalidFields:Array.from(document.getElementById('clan-create-form')?.querySelectorAll(':invalid')||[]).map(node=>node.id),
+      bound:document.getElementById('clan-modal-block')?.dataset.clanBound==='true',
+      hit:(()=>{const button=document.getElementById('clan-create-btn'),rect=button?.getBoundingClientRect(),hit=rect&&document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);return hit?{tag:hit.tagName,id:hit.id,classes:String(hit.className).slice(0,120)}:null;})()})).catch(()=>({unavailable:true}));
      if(state.status){state.status=state.status.replace(/(?:https?|mongodb(?:\+srv)?):\/\/[^\s]+/gi,'[URI]').replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,'[JWT]').slice(0,320);if(/password|secret|credential|connectionstring|refresh.?token/i.test(state.status))state.status='Sensitive detail withheld';}
-     const match=String(error.stack||'').match(/portal-startup-browser\.cjs:(\d+):/);state.errorType=['AssertionError','TimeoutError','TypeError','Error'].includes(error.name)?error.name:'Error';state.sourceLine=match?Number(match[1]):0;
+     const match=String(error.stack||'').match(/portal-startup-browser\.cjs:(\d+):/);state.errorType=['AssertionError','TimeoutError','TypeError','Error'].includes(error.name)?error.name:'Error';state.sourceLine=match?Number(match[1]):0;state.operation=String(error.message||'').startsWith('page.waitForResponse')?'response':String(error.message||'').startsWith('locator.click')?'click':'other';
      console.error('PORTAL_STARTUP_CLAN_FAILURE:'+JSON.stringify(state));
     }}
     try{
