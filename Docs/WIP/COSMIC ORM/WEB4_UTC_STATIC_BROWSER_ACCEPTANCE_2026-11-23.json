@@ -1,0 +1,131 @@
+{
+  "run": 45112226975,
+  "job": 137486950031,
+  "source": "1c1dac98bebc3bcc49cfd4957f6e545d52e63b5d",
+  "artifact": 14790132618,
+  "artifactSha256": "19cea1ad6bd8a908d07934fd97bef534b4c24ba80f8624280737e5ea1bb82825",
+  "archiveSavedLocally": false,
+  "report": {
+    "websiteSource": "f58c9f4d4760b36ba92bacfcf3d33d098f8146df",
+    "declaredApiSource": "aa257b03a0baae0175e7b47cd367a93fd139f55c",
+    "apiSourceVerifiedInsideRunner": false,
+    "approvedOrigin": "https://web4.oasisomniverse.one",
+    "provider": "HoloOASIS",
+    "liveRequested": false,
+    "publicWebsitePublicationVerified": false,
+    "modelCalls": 0,
+    "applicationHolonWrites": 0,
+    "apiRequests": {},
+    "blockedApi": [],
+    "scriptExceptions": [],
+    "assetHashes": {
+      "/web4-sandbox.html": "e0f9abfeaed2eaafb5190083e49df128c1a9cf5d744e9335fbcbd292f7dd746b",
+      "/web4-session.js": "a80650c080f0a5d97248cc6ff0866a5a2a4b15882d469ca6cc2f54dffb6b792f",
+      "/web4-tabs.js": "aec0dd8db831166964e1886ee30bee375e30a9f7ea18cfa2e5d4819b924da955",
+      "/cql-demo-preparation.js": "c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a",
+      "/cql-text.js": "ef7a9f4e6abff142ef62e66359e304bf9b847220ef0df5207a32ada886e5641e",
+      "/lossless-metadata.js": "86dc43b8175a77db42fabbbf3363696a6d8593f50e3c26547ac60cf312789e7b",
+      "/cql-playground.js": "d92468dadf3a3040fd02f0d53da86e772ea118b8502a74d8c0900108e77e436a",
+      "/cql-ask.js": "6a7f1cb70cade02191ad85b367d0206efaabac73af317fb5bf66150acdc7d51f"
+    },
+    "populatedReadVerified": false,
+    "fullBrowserDataFlowVerified": false,
+    "browserVersion": "Chrome/157.0.8103.78",
+    "reviewFamily": "utc-date-parts",
+    "utcDatePartCompilerCaptures": [
+      {
+        "provider": "MongoDBOASIS",
+        "mixed": false,
+        "path": "data/query-cql/projection",
+        "functions": [
+          "UtcYear",
+          "UtcMonth",
+          "UtcDay",
+          "UtcDayOfYear",
+          "UtcHour",
+          "UtcMinute",
+          "UtcSecond"
+        ]
+      },
+      {
+        "provider": "MongoDBOASIS",
+        "mixed": true,
+        "path": "data/query-cql/projection/mixed",
+        "functions": [
+          "UtcYear",
+          "UtcMonth",
+          "UtcDay",
+          "UtcDayOfYear",
+          "UtcHour",
+          "UtcMinute",
+          "UtcSecond"
+        ]
+      },
+      {
+        "provider": "SQLLiteDBOASIS",
+        "mixed": false,
+        "path": "data/query-cql/projection",
+        "functions": [
+          "UtcYear",
+          "UtcMonth",
+          "UtcDay",
+          "UtcDayOfYear",
+          "UtcHour",
+          "UtcMinute",
+          "UtcSecond"
+        ]
+      },
+      {
+        "provider": "SQLLiteDBOASIS",
+        "mixed": true,
+        "path": "data/query-cql/projection/mixed",
+        "functions": [
+          "UtcYear",
+          "UtcMonth",
+          "UtcDay",
+          "UtcDayOfYear",
+          "UtcHour",
+          "UtcMinute",
+          "UtcSecond"
+        ]
+      },
+      {
+        "provider": "Neo4jOASIS",
+        "mixed": false,
+        "path": "data/query-cql/projection",
+        "functions": [
+          "UtcYear",
+          "UtcMonth",
+          "UtcDay",
+          "UtcDayOfYear",
+          "UtcHour",
+          "UtcMinute",
+          "UtcSecond"
+        ]
+      },
+      {
+        "provider": "Neo4jOASIS",
+        "mixed": true,
+        "path": "data/query-cql/projection/mixed",
+        "functions": [
+          "UtcYear",
+          "UtcMonth",
+          "UtcDay",
+          "UtcDayOfYear",
+          "UtcHour",
+          "UtcMinute",
+          "UtcSecond"
+        ]
+      }
+    ],
+    "visibleSqlEditorVerified": true,
+    "visibleAskQuestionVerified": true,
+    "web6DraftRequested": false,
+    "staticUtcDatePartsVerified": true,
+    "advancedExamplesReplayed": false,
+    "screenshotSha256": "0debe1abd46d72fb6ee506882f945b668a6312b0e3be705bde546b35fac31f8d",
+    "ownedBrowserStopped": true,
+    "profileAbsent": true,
+    "apiResponses": []
+  }
+}

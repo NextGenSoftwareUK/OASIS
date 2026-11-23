@@ -1,0 +1,9 @@
+{
+  "directAnnotations": 1,
+  "reflectedMethodEquality": false,
+  "declaredIdentityEquality": true,
+  "sourceCoreCorrection": "4385ce1fdfdc40e2ad963bd196a48a13d6861509",
+  "execution": "PowerShell in-memory reflection probe; no repository build, runtime installation, database or user record access",
+  "retainedRuntimeOrBuildOutput": false,
+  "observedUtc": "2026-11-23T04:58:47.474813+00:00"
+}

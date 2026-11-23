@@ -89,4 +89,45 @@ The declared entity currently derives from Holon and has a public parameterless 
 
 Build snapshots are independent: later builder edits do not affect an existing model. The same immutable model is bound before query expressions/windows and remains attached to session reads, source predicates/order/projections, scalar terminal captures, typed hydration and owned save preparation. Query/session model mismatch or model rebinding fails explicitly. There is no global per-type override or client-side query evaluation.
 
-This initial slice covers flat scalar roots. Explicit model graph expansion, unrestricted POCOs, XML mappings, annotation override precedence, inheritance conventions, converters and the full fluent ORM feature family remain open. Other query shapes still require their independently admitted native contracts. Follow the source/native/live qualification status in [the COSMIC status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md); source presence alone is not parity or deployment acceptance.
+This initial slice covers flat scalar roots. Explicit model graph expansion is now source-integrated through selected child-role bindings and awaits its own native qualification. Unrestricted POCOs, XML mappings, annotation override precedence, inheritance conventions, converters and the full fluent ORM feature family remain open. Other query shapes still require their independently admitted native contracts. Follow the source/native/live qualification status in [the COSMIC status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md); source presence alone is not parity or deployment acceptance.
+
+
+## Fluent application constraints
+
+Required values, maximum string/blob length and exact decimal precision/scale use the existing application validation rule owner:
+
+```csharp
+builder.Entity<InvoiceHolon>().Property(row => row.Caption)
+    .IsRequired().HasMaxLength(80).HasMetadataKey("caption");
+builder.Entity<InvoiceHolon>().Property(row => row.Amount)
+    .HasPrecision(10, 2).HasMetadataKey("amount");
+```
+
+Unannotated custom properties need their metadata mapping before Build. Canonical or annotated properties can receive constraints without being renamed. Build freezes both aliases and rules; later builder edits leave existing sessions unchanged. Model constraints apply to the private authorized save snapshot after application callbacks, so replacing session callbacks cannot disable them. Failed validation dispatches no write. These are application constraints, not generated database columns, native schema constraints or a full validation/schema parity claim. Current verification and deployment scope remains in the COSMIC status.
+
+## Automatic custom scalar naming conventions
+
+Configure a whole flat model instead of writing an alias for every custom field:
+
+```csharp
+builder.Entity<Reading>()
+    .UsePropertyNamingConvention(CosmicPropertyNamingConvention.SnakeCase);
+```
+
+PropertyName preserves CLR spelling; SnakeCase maps ReadingValue to reading_value and HTTPStatus to http_status. Explicit fluent aliases and inherited property annotations take precedence. Canonical Holon fields retain their names. Each Build resolves a separate immutable snapshot, so changing the builder convention does not change existing queries or sessions.
+
+The convention applies to every public custom property in this flat scalar contract. A property outside the admitted scalar/public getter/setter contract, reserved key or collision makes Build return an error. Complex properties require their separately specified mapping support. Query, save and hydration use the same model map. Verification and deployment status remain in the COSMIC status; this does not establish full naming/model parity.
+
+## Explicit models and selected child roles
+
+An explicit model now travels with an admitted WithChildren query through typed child-role hydration. Configure each child CLR contract in the same model and register its role with HolonChildRoleBinding. Configured role members use the existing model metadata codec before role callbacks; a separate local metadata factory is unnecessary. Unconfigured roles retain their registered factory contract.
+
+Root and child identities, parent links, committed revisions and stored role observations must remain unchanged. Native visibility and graph budgets still apply; omitted private members are not materialized and their complete stored relationship observation is retained. This source integration requires its new three-provider qualification before acceptance. It does not add unrestricted POCO relationships or make session writes implicitly save a graph.
+
+Model constraints cover every node selected by an owned graph save after authorization, not only the roots. This does not cause a session root-only save to select children implicitly.
+
+## Explicit models across joins
+
+Each admitted join source retains its own immutable model, including when both sources use the same CLR contract with different metadata keys. Join scalar output capture and LINQ correlation keys now use those models; typed whole-entity results reuse the source query materializer. GroupJoin carrier scalar admission uses the left model, while matched right entities use their own source model.
+
+The representative qualifier covers scalar and typed Join, matched/unmatched GroupJoin and correlated SelectMany. This is source-integrated pending its native qualification, and does not imply unrestricted computed joined expressions or all post-join composition.

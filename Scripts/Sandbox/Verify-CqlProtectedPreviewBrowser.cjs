@@ -52,6 +52,10 @@ async function run(){
     assets.set('/'+name,{body,sha256:crypto.createHash('sha256').update(body).digest('hex')});
   }
   const live=process.env.CQL_BROWSER_LIVE_FLOW==='1';
+  const reviewFamily=process.env.CQL_BROWSER_REVIEW_FAMILY||'advanced';
+  if(!['advanced','utc-date-parts'].includes(reviewFamily))throw Error('Unknown reviewed browser feature family');
+  if(live&&reviewFamily!=='advanced')throw Error('This browser family admits static source review only');
+
   const client=require(path.join(site,'cql-playground.js'));
   const report={websiteSource:website,declaredApiSource:backend,apiSourceVerifiedInsideRunner:false,
     approvedOrigin:origin,provider,liveRequested:live,publicWebsitePublicationVerified:false,modelCalls:0,applicationHolonWrites:0,
@@ -175,6 +179,9 @@ async function run(){
     await waitFor(()=>evaluate("document.readyState==='complete'&&!!window.cqlPlayground&&!!window.cqlAsk"),'Real page initialization');
     if(Object.keys(report.assetHashes).length!==assetNames.length)throw Error('Not all exact source assets loaded');
     await evaluate("document.querySelector('button[data-tab=\"cql\"]').click();true");
+
+    report.reviewFamily=reviewFamily;
+    if(reviewFamily==='advanced'){
     report.renderedExamples=[];
     for(const name of ['derived','staged-set','tuple-distinct']){
       const loaded=await evaluate("(()=>{const b=document.getElementById('cql-load-"+name+"-example');b.closest('details').open=true;if(!b.getClientRects().length)return false;b.click();const t=document.getElementById('cql-text');return t.value.trim()===document.getElementById('cql-"+name+"-example').textContent.trim()&&t.getClientRects().length>0;})()");
@@ -198,6 +205,38 @@ async function run(){
       }
     }
     report.advancedExampleControlsRendered=true;
+
+    }else{
+      const names=['YEAR','MONTH','DAY','DAYOFYEAR','HOUR','MINUTE','SECOND'];
+      const expected=['UtcYear','UtcMonth','UtcDay','UtcDayOfYear','UtcHour','UtcMinute','UtcSecond'];
+      const mapping='20000000-0000-0000-0000-000000000000';
+      report.utcDatePartCompilerCaptures=[];
+      for(const identity of ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']){
+        for(const mixed of [false,true]){
+          const query='SELECT Id, '+names.map((name,index)=>name+'(CAST(metadata.observed AS DATETIME)) AS Part'+index).join(', ')+
+            ' FROM '+identity+(mixed?" WITH VIRTUAL MAPPING '"+mapping+"'":'')+' ORDER BY Part0 DESC, Id LIMIT 5';
+          const capture=await evaluate("(()=>{const t=document.getElementById('cql-text');t.value="+JSON.stringify(query)+";return {visible:t.getClientRects().length>0,compiled:window.CqlText.compile(t.value)}})()");
+          const compiled=capture.compiled,columns=compiled?.body?.columns;
+          if(!capture.visible||compiled?.path!==(mixed?'data/query-cql/projection/mixed':'data/query-cql/projection')||
+             compiled?.body?.provider!==identity||columns?.length!==8||columns[0].field!=='Id'||
+             !isDeepStrictEqual(columns.slice(1).map(column=>column.function),expected)||
+             columns.slice(1).some(column=>column.valueType!=='DateTime'||column.nullable!==true||
+               !isDeepStrictEqual(column.metadataPath,['observed']))||
+             !isDeepStrictEqual(compiled.body.selectedOrder,[{alias:'Part0',descending:true},{alias:'Id',descending:false}])||
+             (mixed?compiled.body.virtualMappingId!==mapping:compiled.body.virtualMappingId!==undefined))
+            throw Error('Displayed UTC row capture differs from reviewed typed stored/mixed contracts');
+          report.utcDatePartCompilerCaptures.push({provider:identity,mixed,path:compiled.path,functions:expected});
+        }
+      }
+      await evaluate("document.querySelector('button[data-tab=ask]').click();true");
+      const ask=await evaluate("(()=>{const q=document.getElementById('ask-question');q.value='Use my supplied UTC DateTime metadata.observed field to show years from the selected mapping.';return {visible:q.getClientRects().length>0,initialized:!!window.cqlAsk}})()");
+      if(!ask.visible||!ask.initialized)throw Error('Ask review controls are not initialized and visible');
+      report.visibleSqlEditorVerified=true;
+      report.visibleAskQuestionVerified=true;
+      report.web6DraftRequested=false;
+      report.staticUtcDatePartsVerified=true;
+      report.advancedExamplesReplayed=false;
+    }
     if(live){
       await evaluate("document.getElementById('demo-btn').click();true");
       await waitFor(()=>evaluate("!!session.identity()&&!document.getElementById('cql-run').disabled"),'Temporary session and discovery');

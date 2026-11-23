@@ -1,0 +1,96 @@
+{
+  "run": 45115044812,
+  "job": 137495874414,
+  "artifact": 14791357630,
+  "archiveBytes": 3181,
+  "archiveSha256": "1784b71803953f94ca55aa18c342fbf8974f8f1562f41059dc84198f7b96bb45",
+  "archiveSavedLocally": false,
+  "source": {
+    "ownedFixturesAbsent": true,
+    "core": "76647129ee433b3170ac31ba64234ed6adfa3e6c",
+    "fluentJoinVerified": true,
+    "sharedDatabaseCalls": 0,
+    "actualWeb4Compiled": true,
+    "nativePassed": 3,
+    "deployed": false,
+    "source": "b2f863080b76e1bc9e45c0cfbd2cf83574fb437b"
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 5,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-left": 529,
+        "create-right": 22,
+        "scalar-join": 167,
+        "typed-right-join": 79,
+        "typed-groupjoin": 32,
+        "unmatched-groupjoin": 18,
+        "correlated-selectmany": 18
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "independentSourceAliases": true,
+        "scalarJoinProjection": true,
+        "typedJoinAndGroupJoin": true,
+        "unmatchedGroupPreserved": true,
+        "correlatedSelectMany": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 5,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-left": 492,
+        "create-right": 21,
+        "scalar-join": 29,
+        "typed-right-join": 18,
+        "typed-groupjoin": 8,
+        "unmatched-groupjoin": 6,
+        "correlated-selectmany": 2
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "independentSourceAliases": true,
+        "scalarJoinProjection": true,
+        "typedJoinAndGroupJoin": true,
+        "unmatchedGroupPreserved": true,
+        "correlatedSelectMany": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 5,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-left": 1326,
+        "create-right": 69,
+        "scalar-join": 1793,
+        "typed-right-join": 1334,
+        "typed-groupjoin": 1174,
+        "unmatched-groupjoin": 1485,
+        "correlated-selectmany": 39
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "independentSourceAliases": true,
+        "scalarJoinProjection": true,
+        "typedJoinAndGroupJoin": true,
+        "unmatchedGroupPreserved": true,
+        "correlatedSelectMany": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "fullParityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T05:09:04.036432+00:00"
+}

@@ -1,0 +1,17 @@
+{
+  "scope": "Current frozen release source; no native result or deployed source advanced by documentation correction",
+  "producerSource": "045206ea73cfd8cff587896c3baca32087051575",
+  "core": "a0714bfa39ae0b94c11935f92c3bb189a12d89fa",
+  "combinedNative": 45115667791,
+  "joinNative": 45115044812,
+  "image": 45115797593,
+  "contractAccepted": false,
+  "deployed": false,
+  "checklistRowsReconciled": [
+    "M03",
+    "M05",
+    "M11"
+  ],
+  "inMemoryReflectionProbeRetainedOutput": false,
+  "archiveOrDatabaseCreatedLocally": false
+}
