@@ -1,3 +1,7 @@
+## 2026-11-23 - Six exact Gifts rollout revisions accepted; Games breadth added
+
+WEB5/6/7/8/9/10 SUCCESS and selected runningae9d7265 verified; WEB4building. Portal dev4d60218 adds actualGame/STARNETDNA readonly details, capabilities and supplied weblaunchlink using existingrecords/no extraHTTP. Changedrendererunit/syntax/drift/diffpass. One new Games/OAPPs/Inventory browser/native run45106635634 queued on acceptedbackend18c06063 and exactPortal;7GETs/zero browsermutations, no acceptedcohortreplay. FullStartup/hosted/fullportal remain open; see OPORTAL_STOREFRONT_BROWSER_2026-11-23.json.
+
 ## 2026-11-23 - Verified Gifts validation batch PUBLISHED
 
 Developmentae9d72651bdffefce8d2695f09f9060f052c8703 preserves currentCQL5ea and ships Core80400 exact16lineGiftsguard plus pairedmanifest/namedproofs. Eightbranchpolicies pass, browser/native45104328970 and currentcompile45105105606 accepted. Exact7Railway devdeploymentIDs in GIFTS_DEV_ROLLOUT_2026-11-23.json; queued/building, no runningacceptance yet. No sourceDNA/env/worker changes/sharedbackend calls. Fourdirtygitlinks untouched; publishindex removed.
