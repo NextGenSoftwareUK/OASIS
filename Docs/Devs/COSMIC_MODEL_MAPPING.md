@@ -218,3 +218,24 @@ XML is bounded to1,048,576 characters and64 explicit allowed contracts. DTDs/ext
 The XML syntax reference is the [official NHibernate mapping guide](https://nhibernate.info/doc/nhibernate-reference/mapping.html). This importer deliberately translates mutable=false to COSMIC explicit read-only persistence refusal, including inserts/deletes, rather than NHibernate immutable tracking behavior. That semantic difference is part of the current admission contract and prevents a full compatibility claim. Existing COSMIC UTC and numeric-domain rules continue to govern values.
 
 The XML qualifier45132975102 passed three MongoDB/SQLite/Neo4j journeys, one XML-admission control and the actual WEB4 build, with exact owned fixture cleanup. This accepts the declared import subset and explicit COSMIC policies; deployment and broader NHibernate compatibility remain separate.
+
+## Declared metadata properties without CLR fields
+
+```csharp
+builder.Entity<StockHolon>().ShadowProperty<int>("Stock")
+    .IsRequired().HasMetadataKey("stock_quantity");
+builder.Entity<StockHolon>().ShadowProperty<string>("Label").HasMaxLength(40);
+var built = builder.Build();
+// Use an open session bound to built.Result and a tracked entity:
+var field = session.ShadowProperty<int>(entity, "Stock");
+var staged = field.Result.SetCurrentValue(10);
+var query = session.Query<StockHolon>().Result
+    .Where(row => CosmicShadow.Value<int>(row, "Stock") >= 10);
+// Check each OASISResult before using Result.
+```
+
+A shadow declaration records its exact CLR scalar domain, logical name, literal metadata key and application constraints in the immutable model. The existing metadata dictionary remains the sole persisted value; no companion holon or duplicate CLR field is created. Logical-name markers work inside model-bound native filters, ordering and scalar/DTO projections. Use a literal logical name and the exact declared generic domain. Undeclared/domain-mismatched markers remain outside the admitted query grammar.
+
+Typed entries operate only on this session's tracked roots. GetCurrentValue, SetCurrentValue and RemoveCurrentValue recheck session/entity lifetime; absence is distinct from explicit null. Missing reads return COSMIC_SHADOW_VALUE_MISSING instead of inventing a CLR default. A present null is invalid for a non-nullable value domain. IsRequired refuses absence/null at save; other configured constraints use the existing authorized private-snapshot validation owner. Staging a value is not a persistence acknowledgement.
+
+Build freezes keys/types/rules, rejects storage collisions with CLR/other shadow fields and preserves declarations when creating a filter-bypass model. Existing caller authorization still controls persistence and reads. This batch does not implement arbitrary custom CLR indexer access, notification proxies or unrestricted converted domains; full M16 remains open. Native qualification and deployment acceptance are separate.
