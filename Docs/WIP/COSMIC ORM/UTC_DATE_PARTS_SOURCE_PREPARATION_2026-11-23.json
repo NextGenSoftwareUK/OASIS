@@ -14,7 +14,7 @@
   "nativeTranslationImplemented": true,
   "wireSqlAiImplemented": false,
   "compiled": false,
-  "nativeAccepted": false,
+  "nativeAccepted": true,
   "deployed": false,
   "frozenMappedJoinImageCore": "e7402f4f2f14e9a7f628026efde79180c376f815",
   "nativeRepresentationFindings": {
@@ -22,7 +22,7 @@
     "SQLite": "Admitted UTC metadata values are calendar strings; component extraction must not round fractional seconds through a temporal parser.",
     "Neo4j": "Admitted UTC metadata values normalize to fixed-width calendar strings; native temporal conversion must remain guard-bound."
   },
-  "qualificationPhase": "CombinedNativeWireAndWeb4Running",
+  "qualificationPhase": "NativeAccepted_WireJoinRegressionAndBuildPending",
   "source": "71468c6a8eea192230669f783706453e83e642ec",
   "nativeRun": 45092822579,
   "dependencyRun": 45091888415,
@@ -36,5 +36,8 @@
   "expectedNativeTests": 3,
   "expectedWireTests": 2,
   "combinedSource": "45be96d1556a48ee3235d230cc2ccfd9494c9743",
-  "nativeSource": "45be96d1556a48ee3235d230cc2ccfd9494c9743"
+  "nativeSource": "45be96d1556a48ee3235d230cc2ccfd9494c9743",
+  "nativeProof": "utc-date-parts-native-acceptance.json",
+  "actualWeb4Compiled": false,
+  "expectedWireAndJoinTests": 8
 }

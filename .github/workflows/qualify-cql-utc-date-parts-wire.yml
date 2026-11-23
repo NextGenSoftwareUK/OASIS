@@ -50,10 +50,10 @@ jobs:
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-utc-date-parts-wire-ci -Operation {
-            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlUtcDatePartsWireTests' --results-directory TestResults/SetContract --logger 'trx;LogFileName=entry.trx'
+            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlUtcDatePartsWireTests|FullyQualifiedName~ChildEntityMustMatchNativeSourceProof|FullyQualifiedName~ChildEntitiesAreDetachedAndChargedToTheOutputBudget' --results-directory TestResults/SetContract --logger 'trx;LogFileName=entry.trx'
             if ($LASTEXITCODE) { throw 'Selected-set contract failed' }
             [xml]$report = Get-Content TestResults/SetContract/entry.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '2' -or $report.TestRun.ResultSummary.Counters.total -ne '2') { throw 'Both UTC date-part transport controls must pass' }
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '8' -or $report.TestRun.ResultSummary.Counters.total -ne '8') { throw 'Both transport controls and six changed join-proof regressions must pass' }
             dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI /m:2 /nr:false /p:UseSharedCompilation=false
             if ($LASTEXITCODE) { throw 'Actual WEB4 composition failed to compile' }
           }
