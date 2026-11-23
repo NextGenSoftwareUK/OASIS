@@ -308,3 +308,19 @@ Stateless LINQ supports both untracked modes and continues to refuse session tra
 All modes use the same actor/authority-bound native reads and session operation/lifetime
 gates; identity resolution never substitutes for a new access check. Undefined modes
 are refused before execution. Full graph-wide ORM tracking parity remains open.
+
+
+### Native selection after identity-based entity sets (qualification pending)
+Union/Concat/Intersect/Except over entities can be followed by scalar, anonymous or
+DTO Select and detached shape reselection. Entity equality stays based on stored
+identity: different entities with equal Name values remain separate after entity
+Union, and Concat preserves occurrences. Each operand keeps its own source window;
+post-set entity filtering/order/paging stays before the selection. Metadata cell
+domains are decoded only for retained selected rows. Discarded malformed typed
+metadata must not fail the later selection; retained malformed required values fail
+atomically. Selection, both input guards and entity stages share one provider-owned
+read snapshot. This is independently enrolled on shipping MongoDB, SQLite and Neo4j.
+Ordinary selected-tuple sets retain their distinct value-equality contract.
+Mappings must give the selected columns identical physical meaning on both operands;
+genuinely different bindings are refused. Subsequent selected filters/order/pages,
+terminals and HTTP/SQL/Ask transport need further native integration. Full parity is open.

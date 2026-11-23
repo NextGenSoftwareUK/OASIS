@@ -1,0 +1,48 @@
+{
+  "baseCore": "e6ff129e186f166c422aca697ff91e644d75642b",
+  "baseRoot": "df5b838278bec4f58690bf5e600f5009552886c2",
+  "phase": "source-implemented-qualification-pending",
+  "nativeProvidersImplemented": true,
+  "linqTransportImplemented": true,
+  "qualified": false,
+  "published": true,
+  "next": "Prepare representative all-three real SDK journey and CI qualification, review complete source against concurrent branches, then publish Core/root together with exact pins.",
+  "mongoNativeDrafted": true,
+  "sqliteNativeDrafted": true,
+  "neoNativeDrafted": true,
+  "nativeProvidersDrafted": 3,
+  "core": "f339a3c24542c5232823f1d119393e71f195ccfd",
+  "coreSourcePaths": [
+    "Managers/HolonManager/HolonManager-Cql.V2.cs",
+    "Queries/CosmicEntityComposition.cs",
+    "Queries/CosmicLinq.SetProjection.cs",
+    "Queries/CosmicLinq.Sets.cs",
+    "Queries/CosmicProjectionExecutor.cs",
+    "Queries/CosmicSetProjection.cs"
+  ],
+  "providerSourcePaths": [
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.SetProjection.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Cql.Projection.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.Projection.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.Set.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.Projection.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.Projection.cs"
+  ],
+  "designInvariants": [
+    "entity set equality uses authoritative identity, not selected tuple equality",
+    "only retained entity-set rows enter selected-cell domain validation",
+    "discarded rows with malformed or missing typed metadata must not poison selection",
+    "single provider-owned read snapshot binds input membership, entity stages and projected cells",
+    "caller read access, independent input budgets, occurrence ordering and complete acknowledgements stay enforced",
+    "no CLR selector execution or client-evaluation fallback"
+  ],
+  "rejectedProjectionPushdown": {
+    "method": "project both operands into visible cells before the entity set",
+    "reasons": [
+      "tuple equality changes when distinct entities share selected values",
+      "current CosmicProjectedSetResults validates every operand selected cell before membership; discarded invalid cells would incorrectly fail late projection"
+    ]
+  },
+  "httpSqlAskTransportImplemented": false,
+  "laterSelectedStagesImplemented": false
+}
