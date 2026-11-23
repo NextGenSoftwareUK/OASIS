@@ -31,12 +31,6 @@
     "reviewedRoot": "c2cc1430b31d63f0e4981600e97c19db4d020fe1",
     "earlierBuildCandidate": "9fe17097d0c65f964da7d38a2b6b28fe4fd78590",
     "status": "earlier API/browser contract batch not delivered in current root; supervisor transport still unverified",
-    "missingBatchPaths": [
-      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ONODEController.cs",
-      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Hubs/ONODEWebSocketHub.cs",
-      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/JwtMiddleware.cs",
-      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs"
-    ],
     "preserve": "Current JWT/session/Startup changes must survive three-way reconciliation. Previous build44743831833 does not establish runtime or deployment acceptance.",
     "supervisorFindings": [
       "HolonBridge hard-codes local WEB4 URL and creates HTTP clients without WEB4 bearer credentials for Wizard-protected /api/v1/onode operations.",
@@ -44,6 +38,33 @@
       "CommandExecutor.GetConfig returns complete file contents; a non-secret producer projection is still needed before enabling that remote popup read.",
       "Registered-node peer-list command/runtime path is still missing."
     ],
-    "next": "After independent profile delivery, reconcile existing ONODE source batch with current JWT/Startup, implement canonical authenticated bridge/command serialization and non-secret reads, then qualify actual browser/API/supervisor flows. No fake status, fabricated peer/config rows, silent legacy path or shared-cluster test."
+    "next": "After independent profile delivery, reconcile existing ONODE source batch with current JWT/Startup, implement canonical authenticated bridge/command serialization and non-secret reads, then qualify actual browser/API/supervisor flows. No fake status, fabricated peer/config rows, silent legacy path or shared-cluster test.",
+    "reconcilePaths": [
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ONODEController.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Hubs/ONODEWebSocketHub.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/JwtMiddleware.cs",
+      "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs"
+    ],
+    "preparedCurrentSource": {
+      "root": "6d3495d4c02cdb135af8c5da0fe9c4ddd1071f84",
+      "base": "c2cc1430b31d63f0e4981600e97c19db4d020fe1",
+      "donor": "9fe17097d0c65f964da7d38a2b6b28fe4fd78590",
+      "merge": "All four source files three-way clean; newer JWT/session/Startup context retained.",
+      "restored": [
+        "Wizard-authenticated WebSocket acceptance after JWT middleware; protocol bearer extraction uses existing validator",
+        "server-derived command audit issuer",
+        "provider/window/latency snapshot fields",
+        "awaited broadcasts and owned live-socket removal"
+      ],
+      "newRepair": "Local provider read uses one named managed HTTP client registered unconditionally and authenticates from the same existing .oasis/supervisor-token store as the shipping SupervisorClient. Missing/empty/unreadable credential and unavailable service produce visible failure; no secret copied to source/DNA/logs.",
+      "status": "source prepared and pushed; current composition inventories/build/real supervisor/browser acceptance pending",
+      "remaining": [
+        "Supervisor-to-WEB4 bearer transport and command enum binding",
+        "Correct provider DNA schema/native provider read",
+        "non-secret configuration projection",
+        "individual peer read",
+        "native browser/API/supervisor flow and delivery"
+      ]
+    }
   }
 }
