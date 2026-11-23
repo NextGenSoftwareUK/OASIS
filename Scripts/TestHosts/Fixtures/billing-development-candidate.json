@@ -1,18 +1,13 @@
 {
+  "base": "ae9d72651bdffefce8d2695f09f9060f052c8703",
+  "buildProjects": [],
+  "remaining": "Actual SDK/HTTP/native Mongo populated catalogues, details, supplied launch targets, inventory empty ownership and logout; full Startup/SSO/hosted excluded.",
+  "allowedPaths": [],
+  "status": "New Games OAPPs Inventory browser breadth only; no accepted Gifts/session/provider replay",
+  "nativeMode": "storefront-browser",
   "nativeHost": "HotspotHttpNative",
-  "base": "5ea9f8e3f9e1674516ceddcf3c9d16fd9ef4f8fa",
-  "buildProjects": [
-    "WEB4"
-  ],
-  "portal": "a85a0c5f0fbe701adfd7e78d33f84084d5ce8479",
-  "remaining": "Actual popup/SDK/HTTP/native Mongo send-receive-open-history and logout only; full Startup/SSO/hosted and whole portal remain open.",
+  "portal": "4d60218ba247b106a8b3f24afdf0583694288f71",
   "scope": "billing",
-  "allowedPaths": [
-    "Docker/oasis-dependency-versions.env",
-    "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
-  ],
-  "status": "Current Development composition compile only; accepted Gifts browser45104328970 retained and not replayed",
-  "nativeMode": "gifts-browser",
-  "candidate": "d06a42ca51d078d8d2248916ed7861e96974dbfc",
-  "tag": "qualification/gifts-current-development-lf-20261123"
+  "tag": "qualification/portal-storefront-browser-20261123",
+  "candidate": "18c06063e97a859f2acba080d20a6ad299fe3bb8"
 }

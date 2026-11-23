@@ -40,7 +40,7 @@ Require(!File.Exists(dnaPath), "Owned DNA path already exists.");
 Require(!(await (await client.ListDatabaseNamesAsync()).ToListAsync()).Contains(database), "Owned database already exists.");
 var secret = RandomNumberGenerator.GetBytes(64);
 var mode = Environment.GetEnvironmentVariable("OASIS_HOTSPOT_HTTP_MODE") ?? "binding";
-Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "session-list-http" or "mfa-native" or "mfa-http" or "mfa-middleware-http" or "session-global-http" or "mfa-browser" or "billing-warning-browser" or "billing-restoration-http" or "gifts-browser", "Unsupported hotspot HTTP check mode.");
+Require(mode is "binding" or "populated" or "browser" or "quest-empty" or "catalogue" or "catalogue-browser" or "competition-browser" or "competition-publisher" or "profile-http" or "billing-http" or "billing-admin-http" or "billing-warning-store" or "billing-warning-http" or "billing-warning-provider" or "session-list-http" or "mfa-native" or "mfa-http" or "mfa-middleware-http" or "session-global-http" or "mfa-browser" or "billing-warning-browser" or "billing-restoration-http" or "gifts-browser" or "storefront-browser", "Unsupported hotspot HTTP check mode.");
 var dna = new OASISDNA { OASIS = new() {
     HyperDriveMode = HyperDriveModes.V2, OASISHyperDriveConfig = new() {
         AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false },
@@ -239,7 +239,7 @@ try
             ValidateIssuerSigningKey = true, IssuerSigningKey = key, ValidateLifetime = true, ClockSkew = TimeSpan.Zero };
     });
     var mvc = builder.Services.AddControllers();
-    if (mode == "gifts-browser")
+    if (mode is "gifts-browser" or "storefront-browser")
         mvc.AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(
             new System.Text.Json.Serialization.JsonStringEnumConverter(allowIntegerValues: true)));
     if (mode is "mfa-http" or "mfa-middleware-http" or "session-global-http" or "mfa-browser" or "billing-warning-browser" or "billing-restoration-http" or "gifts-browser")
@@ -266,13 +266,13 @@ try
             app.Services.GetRequiredService<IHttpContextAccessor>());
     var accountReviewBrowser = Environment.GetEnvironmentVariable("OASIS_ACCOUNT_REVIEW_BROWSER") == "true";
     var sessionBrowser = mode == "session-global-http" && Environment.GetEnvironmentVariable("OASIS_SESSION_SETTINGS_BROWSER") == "true";
-    if (sessionBrowser || (mode is "browser" or "catalogue-browser" or "competition-browser" or "mfa-browser" or "billing-warning-browser" or "gifts-browser"))
+    if (sessionBrowser || (mode is "browser" or "catalogue-browser" or "competition-browser" or "mfa-browser" or "billing-warning-browser" or "gifts-browser" or "storefront-browser"))
     {
         var portal = Environment.GetEnvironmentVariable("OASIS_GEO_PORTAL_ROOT") ?? throw new InvalidOperationException("Pinned Portal root required.");
         var browserHost = Environment.GetEnvironmentVariable("OASIS_GEO_BROWSER_HOST") ?? throw new InvalidOperationException("Geo browser host required.");
-        Require(File.Exists(Path.Combine(portal, mode switch { "gifts-browser" => "assets/js/gifts-modal.js", "session-global-http" => "assets/js/settings-modal.js", "catalogue-browser" => "assets/js/missions-modal.js", "competition-browser" => "assets/js/competition-modal.js", "mfa-browser" => "assets/js/settings-modal.js", "billing-warning-browser" => "assets/js/usage-charts.js", _ => "assets/js/map-modal.js" })) && File.Exists(browserHost), "Actual Portal/browser assets missing.");
+        Require(File.Exists(Path.Combine(portal, mode switch { "storefront-browser" => "assets/js/games-modal.js", "gifts-browser" => "assets/js/gifts-modal.js", "session-global-http" => "assets/js/settings-modal.js", "catalogue-browser" => "assets/js/missions-modal.js", "competition-browser" => "assets/js/competition-modal.js", "mfa-browser" => "assets/js/settings-modal.js", "billing-warning-browser" => "assets/js/usage-charts.js", _ => "assets/js/map-modal.js" })) && File.Exists(browserHost), "Actual Portal/browser assets missing.");
         app.UseStaticFiles(new StaticFileOptions { FileProvider = new PhysicalFileProvider(Path.Combine(portal, "assets")), RequestPath = "/assets" });
-        app.MapGet(mode switch { "gifts-browser" => "/__gifts_browser", "session-global-http" => "/__session_settings_browser", "catalogue-browser" => "/__catalogue_browser", "competition-browser" => "/__competition_browser", "mfa-browser" => "/__mfa_settings_browser", "billing-warning-browser" => "/__warning_email_browser", _ => "/__geo_browser" }, () => Results.File(browserHost, "text/html"));
+        app.MapGet(mode switch { "storefront-browser" => "/__storefront_browser", "gifts-browser" => "/__gifts_browser", "session-global-http" => "/__session_settings_browser", "catalogue-browser" => "/__catalogue_browser", "competition-browser" => "/__competition_browser", "mfa-browser" => "/__mfa_settings_browser", "billing-warning-browser" => "/__warning_email_browser", _ => "/__geo_browser" }, () => Results.File(browserHost, "text/html"));
     }
     app.Use(async (context, next) => {
         using var authenticationTrace = mode == "session-global-http" && context.Request.Path == "/api/avatar/authenticate"
@@ -334,6 +334,34 @@ try
         using var result = JsonDocument.Parse(resultText);
         Require(result.RootElement.GetProperty(resultProperty).GetBoolean(), "Owned browser completion marker missing.");
     }
+    if (mode == "storefront-browser")
+    {
+        var data = new HolonManager(provider, dna, ProviderManager.Instance);
+        var game = new Game { Id = Guid.NewGuid(), Name = "Owned storefront game", Developer = "Owned developer",
+            Publisher = "Owned publisher", SupportedPlatforms = new List<string> { "Windows", "Linux" }, SupportsAvatarSSO = true,
+            STARNETDNA = new STARNETDNA { Id = Guid.NewGuid(), CreatedByAvatarId = actor, Version = "1.0.0", VersionSequence = 1,
+                LaunchTarget = "https://game.example/play" } };
+        var oapp = new OAPP { Id = Guid.NewGuid(), Name = "Owned storefront OAPP", Description = "Owned browser application",
+            STARNETDNA = new STARNETDNA { Id = Guid.NewGuid(), CreatedByAvatarId = actor, Version = "1.0.0", VersionSequence = 1,
+                LaunchTarget = "https://app.example/open" } };
+        var item = new NextGenSoftware.OASIS.API.Core.Objects.InventoryItem { Id = Guid.NewGuid(), Name = "Owned storefront item", Quantity = 3,
+            GameSource = "Owned game", STARNETDNA = new STARNETDNA { Id = Guid.NewGuid(), CreatedByAvatarId = actor, Version = "1.0.0", VersionSequence = 1 } };
+        foreach (var record in new NextGenSoftware.OASIS.API.Core.Interfaces.IHolon[] { game, oapp, item })
+        {
+            record.MetaData["STARNETHolonId"] = ((NextGenSoftware.OASIS.API.Core.Interfaces.STAR.ISTARNETHolon)record).STARNETDNA.Id.ToString();
+            record.MetaData["CreatedByAvatarId"] = actor.ToString(); record.MetaData["Active"] = "1";
+        }
+        var savedGame = await data.SaveHolonAsync<Game>(game, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);
+        Require(!savedGame.IsError && savedGame.IsSaved, "Owned game seed failed: " + savedGame.Message);
+        var savedOapp = await data.SaveHolonAsync<OAPP>(oapp, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);
+        Require(!savedOapp.IsError && savedOapp.IsSaved, "Owned OAPP seed failed: " + savedOapp.Message);
+        var savedItem = await data.SaveHolonAsync<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>(item, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);
+        Require(!savedItem.IsError && savedItem.IsSaved, "Owned inventory item seed failed: " + savedItem.Message);
+        await RunOwnedBrowserAsync(new { baseUrl = address, token = new JwtSecurityTokenHandler().WriteToken(jwt), avatarId = actor,
+            gameId = game.Id, oappId = oapp.Id, itemId = item.Id }, "storefrontBrowserVerified");
+        Console.WriteLine("STOREFRONT_BROWSER_PROOF: actual Games/OAPPs/Inventory SDK/browser/HTTP/native Mongo browse/details and supplied launch links; zero browser mutations. Full Startup/SSO/hosted excluded.");
+    }
+    else
     if (mode == "gifts-browser")
     {
         var missingRecipient = Guid.NewGuid();
