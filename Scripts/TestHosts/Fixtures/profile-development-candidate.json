@@ -1,9 +1,9 @@
 {
   "scope": "profile",
-  "status": "current-development-composed-awaiting-http",
-  "base": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
-  "candidate": "bc159110315d0e7a442ebd6b55ab4eac16b39b8b",
-  "tag": "qualification/profile-current-2026-11-21-bc159110",
+  "status": "current-CQL-composed-source-inventory-pending",
+  "base": "181a340f4e5eca1897cb802a4c6240dde0f81cfa",
+  "candidate": "a7f63457a3d9ffb7bf2236231acbf1b815b06c63",
+  "tag": "qualification/profile-delivery-root-20261123",
   "buildProjects": [
     "WEB4"
   ],
@@ -24,10 +24,10 @@
     "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.AvatarHistory.cs"
   ],
   "core": {
-    "base": "048f79dbe9b3589a09ab90657511fe760c7a18ea",
-    "candidate": "5a998cee52fa0616ba70ce69a9af8b181ada170c"
+    "base": "117604427751726e4623a076c06cb91b84a01d6f",
+    "candidate": "ad83f7adb23111fb0aab913c5843bf2075419657"
   },
-  "remaining": "Review generated source inventories, compile current API/provider graph, qualify changed composition and deliver; original accepted native/browser evidence retained.",
+  "remaining": "Review current-composition inventories, run existing profile HTTP composition proof, then qualify and deliver one shipping image. Preserve prior provider/browser matrix acceptance; do not repeat it.",
   "nativeHost": "HotspotHttpNative",
   "nativeMode": "profile-http"
 }
