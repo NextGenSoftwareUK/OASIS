@@ -11,5 +11,10 @@
     "Managers/HolonManager/HolonManager-Cql.V2.cs",
     "Queries/CosmicLinq.GroupJoin.cs"
   ],
-  "requiresRepresentativeNativeJoins": true
+  "requiresRepresentativeNativeJoins": true,
+  "source": "9839f4b25dbc14a91d30e02fc5b0bf5e1b661008",
+  "qualificationPhase": "NativeRunning",
+  "expectedNativeTests": 3,
+  "nativeRun": 45088635438,
+  "nativeJob": 137412885983
 }
