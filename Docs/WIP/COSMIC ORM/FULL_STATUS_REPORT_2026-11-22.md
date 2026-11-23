@@ -1,12 +1,10 @@
-23 November 2026 — VERIFIED QUERY BATCH PUBLISHED TO DEVELOPMENT; ROLLOUT PENDING. Producer74596888/Corebc combines the peer's profile/OAPP delivery with the verified entity/selected-set element families and native set counts/quantifiers. Current-source HTTP3/compiler3 run45214881916, required legacy45214889666, image45214897823 and immutable package45217561222 passed; original SDK cohorts retained. All eight shared dependency tips were freshly reconciled and prior seven Development52f deployments healthy. More than one hour since the prior own Development push. Websitec4e4804 remains a READY preview with44 SQL/73 Ask+display1 controls, not genuine inference/public promotion. New deployment revision, running source/settings and paced count transport still require acceptance. No DNA, staging/production or customer/PIPER changes. Full parity remains open.
-
 # COSMIC / CQL / HyperDrive full status
 
 Updated 23 November 2026. The filename is retained as the existing report entry point. Full programme completion is not claimed.
 
 ## Delivery and coverage
 
-Current Development is52f9a287/Core271; all seven original WEB4-WEB10 deployments succeeded. The current query candidate74596888/Corebc incorporates that peer delivery on the same feature branch. It has not been published to Development. The exact combined native/API, legacy HTTP and image jobs are running; package/live gates follow.
+Current Development is75a6769d/Corebc; all seven original WEB4-WEB10 deployments succeeded. The release incorporates the peer profile/OAPP delivery. Native/API, legacy regression, exact image/package and paced live point-count transport gates passed. Running source matched before/after; in-process V2 load balancing, failover and replication are true. Populated native evidence and hosted/browser evidence remain separately scoped.
 
 MongoDB, SQLite and Neo4j remain at61/168 strictly certified framework rows each, plus4/13 separately scoped extensions. Functional breadth is advancing faster than that conservative parent-row tally: a row stays open when unrestricted composition or full parity remains missing. Implementation, representative native verification, hardened coverage and live acceptance are separate.
 
@@ -21,11 +19,11 @@ Recent representative native delivery:
 
 ## SQL editor and Ask Your Data
 
-Latest preview sourcec4e4804 is [READY](https://web4-site-rjyc3ds24-oasis-team.vercel.app/web4-sandbox.html); no public promotion occurred.
+Latest preview source94fca0f is [READY](https://web4-site-ag5d2gp0q-oasis-team.vercel.app/web4-sandbox.html); no public promotion occurred. It fixes the selected-set grid response version and passed five focused run/render controls.
 
 Typed SQL supports retained filters, relationships, projections, grouping/HAVING, joins, ordering/pages and scoped WITH/derived/set composition. Recent source adds direct visible-column DISTINCT and COUNT(*)/COUNT(1)/ANY(*) over bounded combined full records. COUNT preserves entity identity/occurrences and earlier windows. Selected-value/numeric set reductions and arbitrary nested composition remain open.
 
-The count slice passed44 SQL controls,73 mocked Ask controls and one displayed-example capture. It uses the matching native Reduction API. Real API checks passed on correctedaa619/Core75c; the newer peer-integrated745/Corebc is being qualified separately. No hosted count browser flow is inferred from parser or mock checks.
+The count slice passed44 SQL controls,73 mocked Ask controls and one displayed-example capture. It uses the matching native Reduction API. Real API checks passed on correctedaa619/Core75c; the newer peer-integrated745/Corebc also passed its native/API and exact image/package gates, then deployed as75a. Three paced live random-ID counts passed; no populated hosted count browser flow is inferred from zero counts, parser or mock checks.
 
 Ask drafts remain freeOnly, without avatar-context injection, scoped to ready providers and explicitly reviewed before execution. Genuine Free inference through to query results remains open because the existing dedicated-Free configuration action is deferred. No new login, paid fallback or entitlement grant is requested.
 
@@ -66,8 +64,12 @@ Full EF/NHibernate parity, all provider interfaces using real clients/SDKs/APIs,
 
 Use onlywork/cosmic-cql-ton-public for parent/Core implementation. Preserve the website's existingwork/cosmic-cql branch. Review peer/Development every30minutes and integrate verified non-overlapping work; normal own Development publication is at most once/hour, critical fixes may be sooner. No staging/production or public-site promotion without approval.
 
-The current peer Core merge preserved every contributor blob. The old qualified element image/package cannot overwrite newer Development; a new combined image/package is required. All new native tests use owned isolated CI data, never sustained shared Atlas workloads. No PIPER records were read or changed by this batch. No new local runtime/env/build/DB/image/archive/browser installation occurred; last observed C free28,024,283,136bytes. Disposable fixtures/containers/credentials/checkpoints are removed by their recorded owners and compact receipts retained.
+The current peer Core merge preserved every contributor blob. The older element image/package were not used to overwrite peer Development. The newer combined image/package qualified the integrated source before the75a publication. All new native tests use owned isolated CI data, never sustained shared Atlas workloads. No PIPER records were read or changed by this batch. No new local runtime/env/build/DB/image/archive/browser installation occurred; last observed C free28,024,283,136bytes. Disposable fixtures/containers/credentials/checkpoints are removed by their recorded owners and compact receipts retained.
 
 [ORM roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md) | [CQL roadmap](CQL_COMPLETION_ROADMAP.md) | [Cleanup ledger](RECOVERY_LAPTOP_CLEANUP_LEDGER.md) | [Owner actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md)
 
 [Earlier report and chronological updates, preserved in Git](https://github.com/NextGenSoftwareUK/OASIS/blob/74596888b42aa8cb4099a29353d88cc0488d1b1b/Docs/WIP/COSMIC%20ORM/FULL_STATUS_REPORT_2026-11-22.md).
+
+## Live check and cleanup
+
+The accepted75a live check issued one temporary visitor, read HyperDrive status, made one random-ID point count on each primary store and revoked the session: six paced calls, zero application Holon writes/PIPER queries. Observed count round-trips were Mongo1123ms, SQLite721ms, Neo783ms, excluding deliberate pauses; single observations, not benchmark guarantees. Credentials removed;19 disposable checkpoints/26,467bytes removed, compact replay guard retained. [Exact source/runtime/cleanup receipt](COORDINATED_QUERY_FAMILY_DEVELOPMENT_ACCEPTANCE_2026-11-23.json).

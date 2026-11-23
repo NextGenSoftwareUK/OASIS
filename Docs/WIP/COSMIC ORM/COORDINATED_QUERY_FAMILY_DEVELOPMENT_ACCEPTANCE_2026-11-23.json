@@ -1,0 +1,175 @@
+{
+  "source": "75a6769d2814f1347a1f2b42f687d494d96b2b11",
+  "core": "bc574ddec918f18924a3f77d9214af08a9e5ed8c",
+  "producerSource": "74596888b42aa8cb4099a29353d88cc0488d1b1b",
+  "producerImageDigest": "sha256:1fa11ea5137bf5f6b23ce6ed4bba0b2ea573a8afabf439375a5f16b92769fcb9",
+  "web4ActualImageDigest": "sha256:fcce28aac64089a6187198f5ef832e68f7674589995b2e08432322adcd074f54",
+  "rollouts": {
+    "web6": {
+      "deployment": "3f959edc-3379-4e08-a3c8-99a48be9f2f4",
+      "status": "SUCCESS",
+      "source": "75a6769d2814f1347a1f2b42f687d494d96b2b11",
+      "imageDigest": "sha256:6e350220b9e6654ea2b2053caa909da0e074929f9ee1e5f6e09ac1e2c7962b74"
+    },
+    "web7": {
+      "deployment": "55b970ca-8c2e-4164-a89f-552198d90e4d",
+      "status": "SUCCESS",
+      "source": "75a6769d2814f1347a1f2b42f687d494d96b2b11",
+      "imageDigest": "sha256:ca30074651e81460a77cbcbf00dc5cbf5575e10ddbd50d203a6f8aa28a48075b"
+    },
+    "web9": {
+      "deployment": "cd25d327-c620-463c-ad1d-e16e27bd6e5a",
+      "status": "SUCCESS",
+      "source": "75a6769d2814f1347a1f2b42f687d494d96b2b11",
+      "imageDigest": "sha256:d87d9eb6ddb0fdc3386672317a55526f3720252cccf7ff20e459e117ba76004b"
+    },
+    "web4": {
+      "deployment": "2b575c71-cfe2-47ba-af82-df7518f66631",
+      "status": "SUCCESS",
+      "source": "75a6769d2814f1347a1f2b42f687d494d96b2b11",
+      "imageDigest": "sha256:fcce28aac64089a6187198f5ef832e68f7674589995b2e08432322adcd074f54"
+    },
+    "web10": {
+      "deployment": "6484f9b0-87fd-42f2-bfea-58e3ee2e18b4",
+      "status": "SUCCESS",
+      "source": "75a6769d2814f1347a1f2b42f687d494d96b2b11",
+      "imageDigest": "sha256:b7029f7270f25f6f09c472b4ef6759d892482677993028b9e5b8726b1012e265"
+    },
+    "web8": {
+      "deployment": "e94be680-b6fe-457a-8cf7-0ab779944d06",
+      "status": "SUCCESS",
+      "source": "75a6769d2814f1347a1f2b42f687d494d96b2b11",
+      "imageDigest": "sha256:2afd6f8b2bc6852a514c34d9ab1e50ff8335db82c23386252ad4a25014c5c8f2"
+    },
+    "web5": {
+      "deployment": "b7bbd3bf-0cc6-4685-bd2d-3eabc5efd893",
+      "status": "SUCCESS",
+      "source": "75a6769d2814f1347a1f2b42f687d494d96b2b11",
+      "imageDigest": "sha256:e436d04725778404206109e924358167279f4090e9b988809b2c9a7bf773dae4"
+    }
+  },
+  "allSevenDeploymentsAccepted": true,
+  "runtimeSourceBeforeAfterMatched": true,
+  "startupBefore": {
+    "source": "75a6769d2814f1347a1f2b42f687d494d96b2b11",
+    "startupDnaAutoLoadBalanceEnabled": true,
+    "startupDnaAutoFailOverEnabled": true,
+    "startupDnaAutoReplicationEnabled": true,
+    "legacyStorageLoadBalanceEnabled": true,
+    "scope": "selected startup DNA fields; not in-process manager attestation",
+    "observedUtc": "2026-11-23T16:52:36.721057+00:00"
+  },
+  "startupAfter": {
+    "source": "75a6769d2814f1347a1f2b42f687d494d96b2b11",
+    "startupDnaAutoLoadBalanceEnabled": true,
+    "startupDnaAutoFailOverEnabled": true,
+    "startupDnaAutoReplicationEnabled": true,
+    "legacyStorageLoadBalanceEnabled": true,
+    "scope": "selected startup DNA fields; not in-process manager attestation",
+    "observedUtc": "2026-11-23T16:54:43.901492+00:00"
+  },
+  "runtime": {
+    "source": "75a6769d2814f1347a1f2b42f687d494d96b2b11",
+    "startedUtc": "2026-11-23T16:52:38.304194+00:00",
+    "calls": [
+      {
+        "route": "sandbox/session",
+        "method": "POST",
+        "status": 200,
+        "elapsedMs": 3566,
+        "isError": false
+      },
+      {
+        "route": "hyperdrive/status",
+        "method": "GET",
+        "status": 200,
+        "elapsedMs": 353,
+        "isError": false
+      },
+      {
+        "route": "data/query-cql/set",
+        "method": "POST",
+        "status": 200,
+        "elapsedMs": 1123,
+        "isError": false
+      },
+      {
+        "route": "data/query-cql/set",
+        "method": "POST",
+        "status": 200,
+        "elapsedMs": 721,
+        "isError": false
+      },
+      {
+        "route": "data/query-cql/set",
+        "method": "POST",
+        "status": 200,
+        "elapsedMs": 783,
+        "isError": false
+      },
+      {
+        "route": "avatar/revoke-token",
+        "method": "POST",
+        "status": 200,
+        "elapsedMs": 430,
+        "isError": false
+      }
+    ],
+    "pending": null,
+    "completed": true,
+    "temporarySessionsIssued": 1,
+    "applicationHolonWrites": 0,
+    "piperRecordsQueried": false,
+    "liveNativeTransportAccepted": true,
+    "populatedResultsAccepted": false,
+    "selectedRuntimeSettings": {
+      "mode": "OASISHyperDrive2",
+      "effectiveConfigurationSource": "OASIS.OASISHyperDriveConfig",
+      "effectiveConfigurationAppliedUtc": "2026-11-23T16:48:56.3094606Z",
+      "autoLoadBalancingEnabled": true,
+      "autoFailoverEnabled": true,
+      "autoReplicationEnabled": true,
+      "backgroundWorkersPauseConfigured": true
+    },
+    "runtimeSettingsObserved": true,
+    "nativeTransport": [
+      {
+        "provider": "MongoDBOASIS",
+        "value": "0",
+        "valueType": "Int64",
+        "elapsedMs": 1123,
+        "scope": "random GUID point count; zero does not prove populated hosted semantics"
+      },
+      {
+        "provider": "SQLLiteDBOASIS",
+        "value": "0",
+        "valueType": "Int64",
+        "elapsedMs": 721,
+        "scope": "random GUID point count; zero does not prove populated hosted semantics"
+      },
+      {
+        "provider": "Neo4jOASIS",
+        "value": "0",
+        "valueType": "Int64",
+        "elapsedMs": 783,
+        "scope": "random GUID point count; zero does not prove populated hosted semantics"
+      }
+    ],
+    "sessionRevoked": true,
+    "credentialsRemoved": true,
+    "finishedUtc": "2026-11-23T16:52:55.345049+00:00",
+    "checkpointCleanup": {
+      "filesRemoved": 19,
+      "bytesRemoved": 26467,
+      "replayGuardRetained": true
+    }
+  },
+  "sourceAndRuntimeSettingsAccepted": true,
+  "hostedSetCountTransportAccepted": true,
+  "populatedHostedDataAccepted": false,
+  "realWeb6InferenceAccepted": false,
+  "fullParityClaimed": false,
+  "workerPauseConfigurationIsNotLivenessProof": true,
+  "deploymentAccepted": true,
+  "observedUtc": "2026-11-23T16:54:45.342310+00:00"
+}
