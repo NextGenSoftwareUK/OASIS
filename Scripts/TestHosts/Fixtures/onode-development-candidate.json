@@ -1,20 +1,11 @@
 {
   "scope": "onode",
   "status": "actual-startup-bridge-and-pinned-popup-browser-prepared-not-accepted",
-  "candidate": "53413a9d90b311471604a07061c2b7763345bfbe",
-  "base": "41d8876721d8f3c9cadd831b8fff1b79bb2ff035",
-  "tag": "qualification/onode-comparer-held-head-20261123",
+  "candidate": "f9420a96ef7f37c0ef5dd4aa92ba83b871d15099",
+  "base": "53413a9d90b311471604a07061c2b7763345bfbe",
+  "tag": "qualification/onode-held-head-reviewed-20261123",
   "allowedPaths": [
-    "Docker/oasis-dependency-versions.env",
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ONODEController.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Hubs/ONODEWebSocketHub.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/JwtMiddleware.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
-    "ONODE/ONODEManager",
-    "Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1",
-    "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv"
   ],
   "buildProjects": [
     "WEB4"
@@ -26,12 +17,12 @@
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
   "remaining": "Review current comparer/held-head composition inventory; ongoing browser45249781136 remains frozen on earlier accepted source. Preserve accepted bridge proof; qualify changed current graph before publication.",
   "inventoryReview": {
-    "run": 45237515982,
-    "artifact": 14849027990,
-    "bytes": 40080,
+    "run": 45250072037,
+    "artifact": 14854822674,
+    "bytes": 40047,
     "managerRecords": 938,
     "routeRecords": 835,
-    "scope": "No semantic changes; route exact blob; manager positions reviewed."
+    "scope": "No semantic differences; exact route blob; manager line positions reviewed."
   },
   "pendingProviderTransport": {
     "candidate": "a03f6c902b816f831daeecf76e65265bab6f8c55",
