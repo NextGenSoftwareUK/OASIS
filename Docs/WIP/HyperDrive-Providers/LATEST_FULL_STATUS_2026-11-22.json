@@ -6,8 +6,8 @@
     "taskWorktree": "C:/Source/OASIS2-hyperdrive",
     "portalBranch": "dev",
     "portalHead": "5adca39",
-    "reviewedDevelopment": "873f4c4b4904362b8b955c8c7e9f8826928501d8",
-    "currentCore": "904775d7ba575ddf3c5ad3dc51a08316c9ab3a99",
+    "reviewedDevelopment": "5fd4d4df91934d0ac9bfd3f890ccf780cc01787f",
+    "currentCore": "27dae38da3f3212e360d939db642d02c01c8fc5f",
     "currentWeb6": "f9aa81c6dc3e27ac02677c985d41929b768c5969",
     "scope": "Core/WEB6 identify current isolated qualification candidate, not live or newest shared Development. Shared b82 peer status reviewed; no unverified rollout."
   },
@@ -72,21 +72,22 @@
     ],
     "currentCompositionReview": "Current isolated candidate97031a02 on aa6 preserves Core35c4 and WEB6f9. Newer shared Developmentb82 grouping/test changes reviewed; must preserve on integration, no broad overwrite.",
     "globalSignout": {
-      "run": 45084348607,
-      "job": 137399418954,
+      "run": 45086300342,
+      "job": 137405599176,
       "conclusion": "failure",
-      "build": "0errors7m11.98",
-      "observedBlocker": "Password sign-in timed out. Fixture switched global provider to SQLite, deactivating Mongo before pause and exercising cold activation rather than a connected read.",
-      "correction": "Removed global switch; assert active primary and add credential-free progress stage trace. Added request-local read budget for normal provider settings longer than login budget.",
+      "build": "0errors7m03.39",
+      "observedBlocker": "Actual trace reached SQLite SaveAvatar/PrimaryConfirmation; request exceeded15s and finished after Mongo unpause.",
+      "sourceFinding": "General avatar mutation awaits enabled replica fanout after primary confirmation. Session issuance now uses existing pinned authority save; no generic replica wait or write failover for credential issuance.",
+      "acknowledgement": "One account-save boundary now preserves native IsSaved; no inferred acknowledgement from returned payload.",
       "cleanup": "Owned native fixture removal succeeded; SQLite absent/Mongo unpaused marker observed.",
-      "acceptance": "Complete sign-in/global signout/native/browser/hosted journey remains pending; older35 middleware cases retained."
+      "acceptance": "Complete session/global signout/browser/hosted journey still pending. DID/second-factor changed save path and sync/detail acknowledgement changes not all entry-point accepted."
     },
     "currentFocusedRun": {
-      "run": 45086300342,
-      "control": "8a6ac75aa03b6e650a6dba35935c5663096ece32",
-      "candidate": "820b06223e639c4b5757329015563a5a3f242f11",
+      "run": 45088151222,
+      "control": "88dc28ed289a1bd5a5cdae604ed79c9b7be3d7a0",
+      "candidate": "a2a3e3085daaacb3a5c8eb1ce918e31f4ab8c806",
       "status": "in_progress observed",
-      "scope": "Changed password sign-in: explicit enabled failover, keep primary active before connected outage, long99s provider setting bounded by request-local login budget, save to observed read authority. Unchanged accepted billing assertions skipped."
+      "scope": "Single-authority async credential save, real native acknowledgement, paused-Mongo SQL issuance with replication explicitly enabled and unchanged Mongo version; accepted billing assertions skipped."
     },
     "preparationFailure": {
       "run": 45069521383,
@@ -151,6 +152,11 @@
       "productCandidate": "820b06223e639c4b5757329015563a5a3f242f11 unchanged",
       "runtime": "No native scenario ran; prior billing/middleware evidence unchanged.",
       "cleanup": "Owned native fixture removal succeeded."
+    },
+    "preparedSharedCore": {
+      "core": "af05f04219e57acbf382a2d7b0cc39e007fdb1e6",
+      "shared": "2051db6641cb60d654489a1af8841a58899dd667",
+      "status": "Clean prepared merge only; current native run does not test it. Parent/API/provider integration and verification still required."
     }
   },
   "providers": {
@@ -171,7 +177,7 @@
   },
   "cleanup": {
     "freeDiskGB": 28.97,
-    "thisTurn": "Read-only selected CI metadata/logs in memory and one host source reference correction. No local build, download, environment, database or generated results.45085506508 remote native fixture removal succeeded;45086300342 finalizers pending.",
+    "thisTurn": "No local builds/downloads/environments/databases/results. All Core/root private indexes and locks, including unsuccessful preparation, removed. Shared merge uses Git objects only; physical modules preserved.45086300342 remote cleanup succeeded;45088151222 finalizers pending.",
     "temporaryEmailSecrets": "Previously deleted and absence verified; not restaged."
   },
   "deliveryPolicy": "Finish remaining OPORTAL user flows breadth first; one representative end-to-end verification for changed behavior, reuse accepted evidence. A blocked backend flow must not stop independent screen work.",
@@ -213,5 +219,10 @@
         "reuse": "Candidate820b changes only Core, paired pin and Mongo account deadline helper; billing source unchanged. Billing assertions not replayed in new run."
       }
     }
-  }
+  },
+  "engineeringRemaining": [
+    "General V2 avatar-save per-call replication mode/completion semantics still need review; session issuance now has its own existing pinned authority contract.",
+    "Permanent account/private-data/provider-replica erasure and Settings deletion remain unfinished.",
+    "Changed async DID/MFA session-save and sync/detail native acknowledgement paths require representative verification before full entry-point acceptance."
+  ]
 }

@@ -1,4 +1,7 @@
 
+## 2026-11-22 native session authority/acknowledgement
+No local build/download/install/environment/database/results. Core/root private indexes and locks, including unsuccessful preparation, removed in finally. Shared Core merge prepared as Git objects without checkout/worktree changes.45086300342 native fixture removal succeeded;45088151222 remote finalizers pending. Source/tags and compact evidence retained; shared Atlas untouched.
+
 ## 2026-11-22 native host namespace correction
 No local builds/downloads/installs/environments/databases/results.45085506508 failed compilation before host/native scenario execution; remote owned native fixture removal succeeded.45086300342 remote finalizers pending. Only source and compact evidence retained; shared Atlas untouched.
 
