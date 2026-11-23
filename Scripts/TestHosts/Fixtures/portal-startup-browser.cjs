@@ -9,12 +9,13 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','nft','data','data-crud','messaging','data-messaging','nft-messaging-data'].includes(popupGroup));
+ assert.ok(['none','nft','data','data-crud','map-route','messaging','data-messaging','nft-messaging-data'].includes(popupGroup));
  const selectedPopups=popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
-  popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite',messaging:'Messaging'}[popupGroup]];
+  popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','map-route':'MapRoute',messaging:'Messaging'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
  let recipient,recipientToken,sentMessage=0,dataReads=0;
+ let routeId,routeCreates=0,routeUpdates=0;
  let savedHolonId,holonSaves=0,holonDeletes=0,pointReads=0;
  const dataName='Owned portal record '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
  if(api5){assert.equal(api5.hostname,'127.0.0.1');assert.equal(api5.protocol,'http:');}
@@ -69,6 +70,20 @@ async function main(){
    if(url.origin==='https://api.web4.oasisomniverse.one'){
     const mutation=request.method()!=='GET'&&request.method()!=='OPTIONS';
     let ownedOperation=false;
+    if(popupGroup==='map-route'){
+     if(request.method()==='POST'&&url.pathname==='/api/map/routes'){
+      assert.equal(++routeCreates,1,'One explicit owned GPX publication');const body=request.postDataJSON();
+      routeId=body.route.id;assert.match(routeId,/^[0-9a-f-]{36}$/i);
+      assert.equal(body.route.sourceApp,'Our World');assert.equal(body.route.sourceRouteId,'owned-walk');
+      assert.equal(body.route.isPublic,false);assert.equal(body.route.segments.length,1);assert.equal(body.route.segments[0].length,2);
+      assert.equal(body.route.segments[0][0].utc,'2026-11-21T10:00:00.1234567Z');
+      assert.equal(Object.keys(body.expectedRevisions).length,2);assert.ok(Object.values(body.expectedRevisions).every(v=>v===null));ownedOperation=true;
+     }else if(request.method()==='PUT'&&routeId&&url.pathname==='/api/map/routes/'+routeId+'/access'){
+      assert.equal(++routeUpdates,1,'One explicit owned rename');const body=request.postDataJSON();
+      assert.equal(body.name,'Renamed owned walk');assert.equal(body.isPublic,false);
+      assert.equal(body.providerType,'MongoDBOASIS');assert.equal(Object.keys(body.expectedRevisions).length,2);ownedOperation=true;
+     }
+    }
     if(popupGroup==='data-crud'){
      if(request.method()==='POST'&&url.pathname==='/api/data/load-holons-for-parent'){
       assert.ok(++dataReads<=4,'Bounded actual Data browse');
@@ -200,6 +215,25 @@ async function main(){
     await page.waitForFunction(id=>document.getElementById('data-modal-status').hidden&&
      !document.querySelector('#data-browse-grid [data-holon-idx="'+id+'"]'),savedHolonId);
     assert.equal(holonSaves,1);assert.equal(pointReads,1);assert.equal(holonDeletes,1);
+   });
+   await checkPopup('MapRoute','#map-close-btn',async()=>{
+    stage='Map routes open';await page.locator('#dashboard button.dash-panel-link').filter({hasText:'View Map'}).click();
+    await page.locator('#map-modal-block [data-tab="routes"]').click();
+    stage='Map GPX import';
+    const gpx='<?xml version="1.0"?><gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="Owned fixture"><trk><name>Owned walk</name><extensions><route xmlns="https://oasisomniverse.one/schemas/map-route/v1" sourceApp="Our World" sourceRouteId="owned-walk"/></extensions><trkseg><trkpt lat="21.1" lon="-86.8"><time>2026-11-21T10:00:00.1234567Z</time></trkpt><trkpt lat="21.1001" lon="-86.8001"><time>2026-11-21T10:01:00Z</time></trkpt></trkseg></trk></gpx>';
+    await page.locator('#map-route-file').setInputFiles({name:'owned-walk.gpx',mimeType:'application/gpx+xml',buffer:Buffer.from(gpx)});
+    await page.waitForFunction(()=>document.getElementById('map-route-status').textContent.includes('2 points in 1 connected segments'));
+    assert.equal(await page.locator('#map-route-public').isChecked(),false);
+    stage='Map route publish';await page.locator('#map-route-save').click();
+    await page.waitForFunction(()=>document.getElementById('map-route-status').textContent.startsWith('Private to its owner.'));
+    assert.ok(routeId);assert.equal(await page.locator('#map-route-id').inputValue(),routeId);
+    stage='Map route rename';await page.locator('#map-route-name').fill('Renamed owned walk');await page.locator('#map-route-save').click();
+    await page.waitForFunction(()=>document.getElementById('map-route-status').textContent.startsWith('Private to its owner.')&&document.getElementById('map-route-name').value==='Renamed owned walk'&&!document.getElementById('map-route-save').disabled);
+    stage='Map saved-route reopen';await page.locator('#map-route-clear').click();
+    await page.locator('#map-route-id').fill(routeId);await page.locator('#map-route-open').click();
+    await page.waitForFunction(()=>document.getElementById('map-route-status').textContent.includes('Our World / owned-walk.')&&document.getElementById('map-route-name').value==='Renamed owned walk');
+    await page.locator('#map-routes-refresh').click();await page.waitForFunction(()=>document.getElementById('map-saved-routes').textContent.includes('Renamed owned walk'));
+    assert.equal(routeCreates,1);assert.equal(routeUpdates,1);
    });
    await checkPopup('Messaging','#messaging-modal-close-btn',async()=>{
    stage='Messaging send';await page.locator('#dash-card-messages').click();
