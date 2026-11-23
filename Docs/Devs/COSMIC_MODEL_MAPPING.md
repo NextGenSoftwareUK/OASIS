@@ -326,3 +326,15 @@ genuinely different bindings are refused. Subsequent selected filters/order/page
 terminals and HTTP/SQL/Ask transport need further native integration. Full parity is open.
 
 Development df5b8382/Coree6ff has exact source, seven original rollout and authorized runtime-setting acceptance for the three deployed sections above. The newer native post-set selection section remains on Coref339 with image/package/deployment and HTTP/SQL/Ask acceptance separate.
+
+
+### Late set projection request transport (qualification pending)
+POST /api/data/query-cql/set admits OutputColumns on entity-set requests. They
+are evaluated after identity membership and top-level entity ordering/windowing.
+Input Columns/Stages select a different, value-tuple contract and cannot be mixed
+with OutputColumns. IncludeMetadata expansion is refused on a detached selection.
+The response version is cql-set-projection-v1 with explicit columns and scalar
+row arrays, using the existing exact-number/UTC wire rules. Actor policy is
+server-selected for both operands; one physical-attempt owner covers execution.
+Request capture copies late column paths. No caller-provided actor or permissions
+are accepted. Later selected stages and SQL/Ask client integration remain separate.

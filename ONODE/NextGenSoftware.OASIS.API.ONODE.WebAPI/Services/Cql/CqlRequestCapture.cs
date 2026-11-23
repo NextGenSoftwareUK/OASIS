@@ -35,7 +35,8 @@ internal static class CqlRequestCapture
             Ordering=value.Ordering==null?null:Array(value.Ordering,4,term=>term==null
                 ?throw new ArgumentException("Missing set ordering.")
                 :new CqlV1Ordering {Field=term.Field,Descending=term.Descending}),
-            Reverse=value.Reverse,IncludeMetadata=value.IncludeMetadata
+            Reverse=value.Reverse,IncludeMetadata=value.IncludeMetadata,
+            OutputColumns=value.OutputColumns==null?null:CaptureColumns(value.OutputColumns)
         };
     }
 

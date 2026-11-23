@@ -22,7 +22,7 @@ public sealed partial class CqlV1Web4NativeTests
     public Task NativeSetHttpPreservesOccurrencesPermissionsAndMetering(string providerName)
         =>RunGroupedDistinctNativeFixture(providerName,false,setHttpJourney:true);
     private static async Task<int> VerifyNativeSetHttpJourney(IOASISStorageProvider provider,
-        List<Guid> owned,Dictionary<string,long> timings,bool selectedColumns=false,bool stagedInputs=false)
+        List<Guid> owned,Dictionary<string,long> timings,bool selectedColumns=false,bool stagedInputs=false,bool lateSelection=false)
     {
         var type=provider.ProviderType.Value;var actor=Guid.NewGuid();var outsider=Guid.NewGuid();
         var row=new Holon {Id=Guid.NewGuid(),Name="native-set-http",CreatedByAvatarId=actor,IsPublic=false,IsActive=true,IsNewHolon=true};
@@ -55,6 +55,11 @@ public sealed partial class CqlV1Web4NativeTests
                     body.Left.Columns=new[]{new CqlProjectionV1Column{Field="Name",Alias="label"}};
                     body.Right.Columns=new[]{new CqlProjectionV1Column{Field="Name",Alias="other"}};
                 }
+                if(lateSelection)
+                {
+                    Assert.IsFalse(selectedColumns);Assert.IsFalse(stagedInputs);
+                    body.OutputColumns=new[]{new CqlProjectionV1Column{Field="Name",Alias="label"}};
+                }
                 if(stagedInputs)
                 {
                     Assert.IsTrue(selectedColumns);
@@ -86,9 +91,9 @@ public sealed partial class CqlV1Web4NativeTests
                     Assert.AreEqual(HttpStatusCode.OK,response.StatusCode,text);
                     using var json=JsonDocument.Parse(text);var result=json.RootElement.GetProperty("result");
                     var rows=result.GetProperty("rows");Assert.AreEqual(expected,rows.GetArrayLength());
-                    if(selectedColumns)
+                    if(selectedColumns || lateSelection)
                     {
-                        Assert.AreEqual("cql-projected-set-v1",result.GetProperty("version").GetString());
+                        Assert.AreEqual(lateSelection?"cql-set-projection-v1":"cql-projected-set-v1",result.GetProperty("version").GetString());
                         var columns=result.GetProperty("columns");Assert.AreEqual(1,columns.GetArrayLength());
                         Assert.AreEqual("label",columns[0].GetProperty("alias").GetString());
                         foreach(var item in rows.EnumerateArray())

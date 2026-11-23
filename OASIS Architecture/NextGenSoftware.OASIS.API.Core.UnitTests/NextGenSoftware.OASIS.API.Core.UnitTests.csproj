@@ -97,6 +97,8 @@
   <ItemGroup>
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlSetV1Request.cs" Link="Production/CqlSetV1Request.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetV1Compiler.cs" Link="Production/CqlSetV1Compiler.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetProjectionV1Compiler.cs" Link="Production/CqlSetProjectionV1Compiler.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetProjectionV1Endpoint.cs" Link="Production/CqlSetProjectionV1Endpoint.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetV1Endpoint.cs" Link="Production/CqlSetV1Endpoint.cs" />

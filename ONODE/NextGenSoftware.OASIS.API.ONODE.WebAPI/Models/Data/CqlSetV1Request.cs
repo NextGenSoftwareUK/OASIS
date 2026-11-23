@@ -18,6 +18,9 @@ public sealed class CqlSetV1Request
     public CqlV1Ordering[]? Ordering { get; set; }
     public bool Reverse { get; set; }
     public bool IncludeMetadata { get; set; }
+    /// <summary>Selection after entity membership and output entity windows.
+    /// Cannot be combined with selected columns/stages on either operand.</summary>
+    public CqlProjectionV1Column[]? OutputColumns {get;set;}
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
