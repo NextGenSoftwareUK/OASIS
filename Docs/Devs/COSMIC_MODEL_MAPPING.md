@@ -1,16 +1,16 @@
-## WEB4 late entity-set selected stages — source implemented, qualification pending
+## WEB4 late entity-set selected stages — native qualified, deployment pending
 
 The existing /api/data/query-cql/set request accepts SelectedStages only with OutputColumns. EntityStages remain before selection; SelectedStages run afterwards and use the common selected comparison, ordering, window, Distinct, Reverse and visible-column reselection compiler. Source operand Columns/Stages cannot be mixed with this identity-set mode. Requests capture nested cells, ordering and binding arrays before dispatch. Response columns follow final visible aliases.
 
-Actual provider capabilities are revalidated, and the existing manager attempt and settlement owner executes the native selected set packet once. One combined native SDK/real-JWT HTTP cohort is pending; source presence is not live acceptance. SQL/Ask lowering remains open.
+Actual provider capabilities are revalidated, and the existing manager attempt and settlement owner executes the native selected set packet once. The combined SDK3/real-JWT HTTP3 plus occurrence1/compiler3 controls and actual WEB4 build passed45197249669. Source-browser45198153247 passed on client7cbc. These proofs do not establish hosted populated data or real WEB6 inference. SQL/Ask lowering is source-qualified on website7cbc6d98 with38 parser and75 review/UI controls; hosted data and real model acceptance remain open.
 
-## Selected stages after entity identity sets — source implemented, qualification pending
+## Selected stages after entity identity sets — native qualified, deployment pending
 
 Late entity-set selection now captures selected Where, ordering/ThenBy, windows, Reverse and Distinct. Entity identity membership occurs first; selected-tuple equality is used only by an explicitly requested selected Distinct. Complete late cells validate before selected stages can hide a malformed value. Native stage proof uses bounded zero-based row occurrences so Concat duplicates remain distinct occurrences.
 
 Independent provider enrollment is required. MongoDB and SQLite retain their existing snapshot/read owner; Neo4j stages consume the captured native cells under the existing read transaction and deadline, without a second MATCH or a repeatable-snapshot guarantee. Native ordinals choose validated output cells; no managed filter/order/expression substitute runs. Input, stage work, proof and output limits remain explicit. The shared proof verifier checks every native stage before application value construction.
 
-Representative three-provider qualification and one altered-occurrence proof control are pending. SQL/WEB4 selected-stage transport, async set terminals, nested set trees and full parity remain open. This source is not deployed.
+Representative SDK3 and real-JWT HTTP3, one altered-occurrence control, three compiler/capture controls and actual WEB4 build passed45197249669. Exact isolated cleanup verified. SQL/WEB4 selected-stage transport is source/native-qualified with client source-browser acceptance; hosted populated acceptance, async set terminals, nested set trees and full parity remain open. This source is not deployed.
 
 ## Async query family deployment
 
