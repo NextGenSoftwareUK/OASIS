@@ -114,7 +114,9 @@ def main():
             time.sleep(1)
         with tempfile.TemporaryDirectory(prefix='oasis-startup-',dir=os.environ['RUNNER_TEMP']) as tmp:
             envfile=Path(tmp)/'environment';envfile.write_text(''.join(k+'='+v+'\n' for k,v in configuration(root,'mongodb://mongo:27017/?replicaSet=rs0',marker,o.profile).items()));envfile.chmod(0o600)
-            docker('create','--name',api,'--label','oasis.startup.owner='+marker,'--network',network,
+            portal_root = os.environ.get('OASIS_STARTUP_PORTAL_ROOT', '')
+            published_port = ('--publish', '127.0.0.1::8080') if portal_root else ()
+            docker('create','--name',api,'--label','oasis.startup.owner='+marker,'--network',network,*published_port,
                 '--memory','3g','--cpus','2','--env-file',str(envfile),image);created.append(('container',api));docker('start',api)
         probe = r"""
 (async()=>{
@@ -143,7 +145,21 @@ console.log(JSON.stringify(b));
                     raise RuntimeError('Full image Docker health readiness deadline.')
                 time.sleep(2)
         auth_checked = os.environ.get('OASIS_STARTUP_AUTHENTICATION') == 'true'
-        if auth_checked:
+        portal_checked = False
+        if portal_root:
+            assert auth_checked, 'Portal Startup browser requires explicit auth qualification.'
+            exposed = docker('port', api, '8080/tcp').stdout.strip()
+            assert re.fullmatch(r'127\.0\.0\.1:[0-9]+', exposed), 'Owned loopback API port required.'
+            browser_env = dict(os.environ, OASIS_STARTUP_API_URL='http://' + exposed)
+            browser = subprocess.run(['node', str(root / 'Scripts/TestHosts/Fixtures/portal-startup-browser.cjs')],
+                env=browser_env, capture_output=True, text=True, timeout=150)
+            if browser.returncode:
+                safe_stage = re.search(r'PORTAL_STARTUP_BROWSER_FAILURE stage=([^;\n]+)', browser.stderr)
+                raise RuntimeError('Owned portal Startup browser failed at ' + (safe_stage.group(1) if safe_stage else 'unreported stage'))
+            assert 'PORTAL_STARTUP_BROWSER_PROOF:' in browser.stdout
+            print('PORTAL_STARTUP_BROWSER_PROOF: actual page sign-in/dashboard/subscriptions/refresh passed through isolated shipping Startup.', flush=True)
+            portal_checked = True
+        elif auth_checked:
             auth_script = root / 'Scripts/TestHosts/Fixtures/startup-authentication.cjs'
             docker('exec', api, 'node', '-e', auth_script.read_text(encoding='utf-8'), timeout=120)
             print('STARTUP_AUTH_PROOF: shipping registration/verification/password/session/subscription journey passed; owned Mongo only.', flush=True)
@@ -152,7 +168,7 @@ console.log(JSON.stringify(b));
             docker('exec',api,'node','-e',native,timeout=20)
         docker('stop','--time','20',api,timeout=30)
         state=json.loads(docker('inspect',api).stdout)[0];assert state['State']['ExitCode']==0 and not state['State']['OOMKilled']
-        (out/'acknowledged.json').write_text(json.dumps({'source':package['source'],'image':image,'apiHealth':True,'dockerHealthVerified':o.profile in ('full', 'maplibre'),'nativeMetadata':o.profile == 'full','gracefulExit':0,'authentication':auth_checked,'internalNetwork':True,'liveDeployment':False,'cqlAcceptance':False},indent=2))
+        (out/'acknowledged.json').write_text(json.dumps({'source':package['source'],'image':image,'apiHealth':True,'dockerHealthVerified':o.profile in ('full', 'maplibre'),'nativeMetadata':o.profile == 'full','gracefulExit':0,'authentication':auth_checked,'portalBrowser':portal_checked,'internalNetwork':True,'liveDeployment':False,'cqlAcceptance':False},indent=2))
     finally:
         if ('container',api) in created:
             observed=json.loads(docker('inspect',api).stdout)[0]

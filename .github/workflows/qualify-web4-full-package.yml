@@ -54,6 +54,11 @@ on:
         required: false
         type: boolean
         default: false
+      startup_portal:
+        description: Optional exact OPORTAL SHA for actual page dashboard/subscription browser through owned Startup
+        required: false
+        type: string
+        default: ""
       retained_waku:
         description: Verify the packaged native Waku runtime with the aged original archive
         required: false
@@ -108,6 +113,8 @@ jobs:
           cp Scripts/TestHosts/qualify_web4_combined_startup.py "$RUNNER_TEMP/qualify_web4_combined_startup.py"
           cp Scripts/TestHosts/owned_docker_resources.py "$RUNNER_TEMP/owned_docker_resources.py"
           cp Scripts/TestHosts/Fixtures/startup-authentication.cjs "$RUNNER_TEMP/startup-authentication.cjs"
+          cp Scripts/TestHosts/Fixtures/portal-startup-browser.cjs "$RUNNER_TEMP/portal-startup-browser.cjs"
+          cp Scripts/TestHosts/Fixtures/profile-browser-runtime.json "$RUNNER_TEMP/profile-browser-runtime.json"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ inputs.source }}
@@ -120,6 +127,38 @@ jobs:
           cp "$RUNNER_TEMP/owned_docker_resources.py" Scripts/TestHosts/owned_docker_resources.py
           mkdir -p Scripts/TestHosts/Fixtures
           cp "$RUNNER_TEMP/startup-authentication.cjs" Scripts/TestHosts/Fixtures/startup-authentication.cjs
+          cp "$RUNNER_TEMP/portal-startup-browser.cjs" Scripts/TestHosts/Fixtures/portal-startup-browser.cjs
+      - name: Validate immutable portal browser selection
+        if: inputs.startup_portal != ''
+        env:
+          PORTAL: ${{ inputs.startup_portal }}
+          AUTH: ${{ inputs.startup_authentication }}
+          STARTUP: ${{ inputs.combined_startup }}
+        run: |
+          [[ "$PORTAL" =~ ^[0-9a-f]{40}$ ]]
+          test "$AUTH" = true
+          test "$STARTUP" = true
+      - uses: actions/checkout@v7
+        if: inputs.startup_portal != ''
+        with:
+          repository: NextGenSoftwareUK/OPORTAL-JS
+          ref: ${{ inputs.startup_portal }}
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: oportal-startup-source
+          persist-credentials: false
+      - name: Prepare owned pinned portal browser
+        if: inputs.startup_portal != ''
+        run: |
+          set -euo pipefail
+          command -v google-chrome >/dev/null
+          owned="$GITHUB_WORKSPACE/portal-startup-owned"
+          test ! -e "$owned"
+          mkdir "$owned"
+          version="$(node -p "require('$RUNNER_TEMP/profile-browser-runtime.json').version")"
+          expected="$(node -p "require('$RUNNER_TEMP/profile-browser-runtime.json').integrity")"
+          actual="$(npm view "playwright-core@$version" dist.integrity --registry https://registry.npmjs.org --cache "$owned/npm-cache")"
+          test "$actual" = "$expected"
+          npm install --prefix "$owned/runtime" --cache "$owned/npm-cache" --registry https://registry.npmjs.org --ignore-scripts --no-audit --no-fund "playwright-core@$version"
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -147,6 +186,8 @@ jobs:
           DIGEST: ${{ inputs.digest }}
           PACKAGE_PROFILE: ${{ inputs.package_profile }}
           OASIS_STARTUP_AUTHENTICATION: ${{ inputs.startup_authentication }}
+          OASIS_STARTUP_PORTAL_ROOT: ${{ inputs.startup_portal != '' && format('{0}/oportal-startup-source', github.workspace) || '' }}
+          OASIS_PROFILE_BROWSER_RUNTIME: ${{ github.workspace }}/portal-startup-owned/runtime
         run: python3 -B Scripts/TestHosts/qualify_web4_combined_startup.py --digest "$DIGEST" --profile "$PACKAGE_PROFILE"
       - name: Retrieve the qualified Waku archive
         if: inputs.retained_waku
@@ -173,6 +214,16 @@ jobs:
             "ghcr.io/nextgensoftwareuk/oasis-web4@$DIGEST" \
             /qualification/Scripts/TestHosts/Verify-WakuHostedRuntime.cjs \
             /opt/waku/logosdeliverynode /original /result
+      - name: Remove owned portal browser runtime and cache
+        if: always() && inputs.startup_portal != ''
+        run: |
+          set -euo pipefail
+          owned="$GITHUB_WORKSPACE/portal-startup-owned"
+          test "$owned" = "$GITHUB_WORKSPACE/portal-startup-owned"
+          test ! -L "$owned"
+          if test -e "$owned"; then rm -rf -- "$owned"; fi
+          test ! -e "$owned"
+          echo 'Owned Startup portal runtime/cache/TLS absence verified.'
       - uses: actions/upload-artifact@v7
         if: always()
         with:
