@@ -85,9 +85,9 @@ jobs:
             if ($report.TestRun.ResultSummary.Counters.passed -ne '3' -or $report.TestRun.ResultSummary.Counters.total -ne '3') { throw 'All three native owned-value journeys must pass' }
             foreach ($store in 'MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS') {
               $e=Get-Content "TestResults/Neo4jCurrent/$store-owned-value-model-native.json" -Raw | ConvertFrom-Json
-              if ($e.provider -ne $store -or $e.checks -ne 5 -or $e.ownedCleanupIds -ne 1 -or $e.successfulHolonWrites -ne 2 -or @($e.queryElapsedMilliseconds.PSObject.Properties).Count -ne 5) { throw 'Incomplete native report' }
+              if ($e.provider -ne $store -or $e.checks -ne 6 -or $e.ownedCleanupIds -ne 1 -or $e.successfulHolonWrites -ne 2 -or @($e.queryElapsedMilliseconds.PSObject.Properties).Count -ne 6) { throw 'Incomplete native report' }
               if($e.nativeProviderVerified -ne $true -or $e.exactCleanupVerified -ne $true){throw 'Native fixture/cleanup acknowledgement missing'}
-              foreach ($name in 'ownedMetadataAliasStored','typedComponentRoundtrip','nativeLeafFilterOrderProjection','nestedUpdateAcknowledged','immutableOwnedSnapshot') {
+              foreach ($name in 'requiredOwnedNullPreservedBeforeValidation','ownedMetadataAliasStored','typedComponentRoundtrip','nativeLeafFilterOrderProjection','nestedUpdateAcknowledged','immutableOwnedSnapshot') {
                 if ($e.evidence.$name -ne $true) { throw "Missing native proof $name" }
               }
             }

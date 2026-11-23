@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
 public sealed partial class CqlV1Web4NativeTests
 {
-    public sealed class OwnedRegion {public string Code {get;set;}="";}
+    public sealed class OwnedRegion {public string? Code {get;set;}="DEFAULT";}
     public sealed class OwnedAddress
     {
         public string City {get;set;}="";
@@ -69,18 +69,22 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(projected.IsError,projected.Message+projected.Exception);Assert.AreEqual(1,projected.Result.Count);
         Assert.AreEqual("Alpha",projected.Result[0].City);Assert.AreEqual(123,projected.Result[0].Zip);
         Assert.AreEqual("NW",projected.Result[0].Code);
-        entity.Address.City="Beta";entity.Address.PostCode=124;entity.Address.Region.Code="SE";
+        entity.Address=null!;
+        var required=await Timed("refuse-null-owned",()=>writer.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid())));
+        Assert.IsTrue(required.IsError);Assert.IsFalse(required.IsSaved);
+        Assert.AreEqual("COSMIC_MODEL_VALIDATION_FAILED",required.ErrorCode);Assert.AreEqual(version,entity.Version);
+        entity.Address=new OwnedAddress{City="Beta",PostCode=124,Region=new OwnedRegion{Code=null}};
         var updated=await Timed("update-owned",()=>writer.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid())));
         Assert.IsFalse(updated.IsError,updated.Message+updated.Exception);Assert.IsTrue(updated.IsSaved);
         Assert.AreEqual(version+1,entity.Version);
         var changed=reader.Query<OwnedAddressHolon>().Result.Where(row=>row.Id==id
-            && row.Address.City=="Beta" && row.Address.PostCode==124 && row.Address.Region.Code=="SE").Result;
+            && row.Address.City=="Beta" && row.Address.PostCode==124 && row.Address.Region.Code==null).Result;
         var fresh=await Timed("read-updated-owned",()=>reader.ReadAsync(changed,trackResults:false));
         Assert.IsFalse(fresh.IsError,fresh.Message+fresh.Exception);Assert.AreEqual(1,fresh.Result.Count);
         Assert.AreEqual("Beta",fresh.Result[0].Address.City);Assert.AreEqual(124,fresh.Result[0].Address.PostCode);
-        Assert.AreEqual("SE",fresh.Result[0].Address.Region.Code);Assert.AreEqual(version+1,fresh.Result[0].Version);
-        return new NativeFixtureJourneyProof(5,2,new Dictionary<string,bool>{
-            ["ownedMetadataAliasStored"]=true,["typedComponentRoundtrip"]=true,
+        Assert.IsNull(fresh.Result[0].Address.Region.Code);Assert.AreEqual(version+1,fresh.Result[0].Version);
+        return new NativeFixtureJourneyProof(6,2,new Dictionary<string,bool>{
+            ["requiredOwnedNullPreservedBeforeValidation"]=true,["ownedMetadataAliasStored"]=true,["typedComponentRoundtrip"]=true,
             ["nativeLeafFilterOrderProjection"]=true,["nestedUpdateAcknowledged"]=true,
             ["immutableOwnedSnapshot"]=true});
     }
