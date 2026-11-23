@@ -22,5 +22,11 @@
     "artifact": 14835002736,
     "bytes": 40376,
     "scope": "835 routes; exactly one new public-config non-storage route; zero removed or changed route contracts."
+  },
+  "compileRun": {
+    "run": 45211702265,
+    "job": 137821953656,
+    "status": "queued",
+    "scope": "Actual WEB4 API and ONODE Supervisor builds only; runtime/browser acceptance remains open."
   }
 }
