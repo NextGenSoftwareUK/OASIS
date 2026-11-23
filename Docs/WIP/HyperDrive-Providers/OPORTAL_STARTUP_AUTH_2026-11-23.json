@@ -1,0 +1,21 @@
+{
+  "run": 45117941133,
+  "control": "f670bd726f18f2d3050e082f9d09da7dc15f1ef6",
+  "status": "in_progress",
+  "source": "045206ea73cfd8cff587896c3baca32087051575",
+  "core": "a0714bfa39ae0b94c11935f92c3bb189a12d89fa",
+  "image": "sha256:2db67297c729643caf5f4792039753910c346ca16c72fe7bdb6211cbf85b614e",
+  "imageBuild": 45115797593,
+  "priorPackage": 45116744608,
+  "profile": "cql-api",
+  "scope": "Real shipping Program/Startup registration, token verification, password issuance, protected session and subscription list reads against fresh owned internal-network Mongo. No synthetic JWT or shared/Stripe calls.",
+  "comparison": "WEB4 API tree identical to deployed21abed0b; Core Managers/AvatarManager identical to fc2470e. Image omits later Inventory declarations; no current Inventory/image/full-tree equivalence claim.",
+  "remaining": "Not accepted until terminal runtime evidence. Full portal authenticated browser and hosted Stripe remain open.",
+  "cleanup": "Cloud image reused, no image rebuild; owned network/containers/anonymous volumes cleaned in existing finally; local source checks only with Python -B, no runtime/env/build/download/database/results. Prior package verifiers reused from peer e39a3da0 preserving cql-api scope.",
+  "liveWeb4": {
+    "deployment": "0e9725b4-13cb-4bb0-92d1-4b1a902ee05c",
+    "status": "SUCCESS",
+    "runningCommit": "21abed0bedfde0399f66eef1da62cff0d92d34b7",
+    "verification": "Selected running RAILWAY_GIT_COMMIT_SHA field; no backend data/auth calls."
+  }
+}
