@@ -41,3 +41,7 @@ if ((Get-Disposition 'return await Task.FromResult(Ok());' 'Get' 'ExampleControl
 Write-Host 'Storage reader/journal and awaited unqualified helper classifications passed; no runtime calls.'
 
 if ((Get-Disposition 'return await ReadAsync(AvatarManager.Instance);' 'Get' 'ExampleController') -ne 'DirectModeAwareManagerBoundary') { throw 'Helper delegation masked the direct storage boundary.' }
+
+if ((Get-Disposition 'public Task<IActionResult> Get() => SendSupervisorProviderRequestAsync(method, path);' 'Get' 'ExampleController') -ne 'ControllerActionDelegation') { throw 'Expression-bodied async helper delegation was classified as local.' }
+if ((Get-Disposition 'return ReadCheckoutAsync(actor);' 'Get' 'ExampleController') -ne 'ControllerActionDelegation') { throw 'Returned async helper task was classified as local.' }
+if ((Get-Disposition 'return Ok(new { value = 1 });' 'Get' 'ExampleController') -ne 'LocalOrNonStorageEndpoint') { throw 'Local action result was classified as helper delegation.' }
