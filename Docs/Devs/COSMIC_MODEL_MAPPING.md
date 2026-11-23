@@ -241,3 +241,24 @@ Typed entries operate only on this session's tracked roots. GetCurrentValue, Set
 Build freezes keys/types/rules, rejects storage collisions with CLR/other shadow fields and preserves declarations when creating a filter-bypass model. Existing caller authorization still controls persistence and reads. This batch does not implement arbitrary custom CLR indexer access, notification proxies or unrestricted converted domains; full M16 remains open. Native qualification and deployment acceptance are separate.
 
 Development3b81b749/Core13ca deployment and runtime settings are accepted for collections, application query filters and the XML subset. Isolated native behavior proofs retain their exact scopes; this does not infer hosted model CRUD/browser/real-WEB6 or full parity. New shadow-property code remains a later unqualified feature batch.
+
+The fluent shadow qualifier45137770577 passed three native provider journeys and the actual WEB4 build, with exact owned cleanup. Deployment and full M16 remain separate.
+
+## XML declarations for the metadata dictionary
+
+```xml
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2">
+  <class name="StockContract">
+    <dynamic-component name="MetaData">
+      <property name="Stock" type="Int32" column="stock_quantity" not-null="true"/>
+      <property name="Label" type="String" column="stock_label" length="40"/>
+    </dynamic-component>
+  </class>
+</hibernate-mapping>
+```
+
+Import uses the same explicit CLR contract allowlist. A single dynamic-component named MetaData declares scalar shadow fields over the existing canonical dictionary, without new CLR fields or companion records. Type is mandatory for each dictionary entry. Column aliases and application constraints share the ordinary XML parser and model admission owners. The resulting model works with the same typed session entries and CosmicShadow.Value markers.
+
+An optional XML value-type field has a nullable CLR domain; not-null=true uses its non-nullable scalar domain and enforces presence. Reference-domain null handling follows the declared Required rule. Unsupported component targets, missing/unknown types, duplicate components/fields, reserved/colliding keys or non-scalar ordinary property declarations fail the complete import before destination mutation. Nested relationships/components and arbitrary CLR dictionaries/indexers remain separate contracts.
+
+The syntax reference is [NHibernate dynamic components](https://nhibernate.info/doc/nhibernate-reference/components.html#components-dynamic). COSMIC's admitted subset maps the canonical metadata dictionary and retains the documented read-only/identity/query differences. The XML dictionary integration still needs its own native acceptance.

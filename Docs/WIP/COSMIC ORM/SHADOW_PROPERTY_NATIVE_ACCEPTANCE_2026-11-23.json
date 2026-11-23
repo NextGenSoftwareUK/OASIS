@@ -1,0 +1,102 @@
+{
+  "run": 45137770577,
+  "job": 137568055850,
+  "artifact": 14800114993,
+  "archiveBytes": 3489,
+  "archiveSha256": "18cd6ed69f53e2627e33d98d47739b4258c448a720c80f03f2aef424a129175f",
+  "archiveSavedLocally": false,
+  "source": {
+    "actualWeb4Compiled": true,
+    "nativePassed": 3,
+    "source": "07448d020621e9103414ec99456473e2f6aeade0",
+    "deployed": false,
+    "ownedFixturesAbsent": true,
+    "shadowPropertyVerified": true,
+    "sharedDatabaseCalls": 0,
+    "core": "01841529e9e54743ff51ecfac697154a01fba853"
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-shadow-model": 526,
+        "read-shadow-model": 93,
+        "project-shadow-model": 58,
+        "refuse-missing-shadow": 17,
+        "update-shadow-model": 33,
+        "read-updated-shadow": 8,
+        "foreign-shadow-visibility": 2
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "declaredMetadataWithoutClrProperties": true,
+        "nativeLogicalNameFilterOrderProjection": true,
+        "shadowConstraintsBeforeWrite": true,
+        "trackedMetadataUpdateAcknowledged": true,
+        "immutableShadowAndBypassSnapshots": true,
+        "callerVisibilityAndEntryLifetime": true,
+        "existingClrMetadataDecoderPreserved": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-shadow-model": 717,
+        "read-shadow-model": 71,
+        "project-shadow-model": 16,
+        "refuse-missing-shadow": 7,
+        "update-shadow-model": 43,
+        "read-updated-shadow": 18,
+        "foreign-shadow-visibility": 14
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "declaredMetadataWithoutClrProperties": true,
+        "nativeLogicalNameFilterOrderProjection": true,
+        "shadowConstraintsBeforeWrite": true,
+        "trackedMetadataUpdateAcknowledged": true,
+        "immutableShadowAndBypassSnapshots": true,
+        "callerVisibilityAndEntryLifetime": true,
+        "existingClrMetadataDecoderPreserved": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-shadow-model": 998,
+        "read-shadow-model": 1656,
+        "project-shadow-model": 1137,
+        "refuse-missing-shadow": 10,
+        "update-shadow-model": 71,
+        "read-updated-shadow": 1114,
+        "foreign-shadow-visibility": 439
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "declaredMetadataWithoutClrProperties": true,
+        "nativeLogicalNameFilterOrderProjection": true,
+        "shadowConstraintsBeforeWrite": true,
+        "trackedMetadataUpdateAcknowledged": true,
+        "immutableShadowAndBypassSnapshots": true,
+        "callerVisibilityAndEntryLifetime": true,
+        "existingClrMetadataDecoderPreserved": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "fullParityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T08:28:38.357147+00:00"
+}
