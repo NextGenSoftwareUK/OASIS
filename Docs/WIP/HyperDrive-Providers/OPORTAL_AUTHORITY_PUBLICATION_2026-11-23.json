@@ -1,5 +1,5 @@
 {
-  "status": "verified-source-image-and-new-popup-slice-core-published-parent-ready",
+  "status": "published-to-Development-rollout-pending",
   "base": "9307d04330616f96982a01fd11b7497d08fc7aeb",
   "core": "2356b0a8b4d8a425cf13a8abe45b0b4dfcd7defa",
   "imageSource": "121dcb0287e5eaa4816fbbdf01645030613d264f",
@@ -17,5 +17,7 @@
   "corePublication": "Fast-forward2356 to Core Development completed; preserves already-pinned718 CQL work.",
   "parentScope": "Current9307 sandbox script preserved; only paired Core pin, admission guide and named evidence/status are added. No unrelated dirty gitlinks staged.",
   "cleanup": "RAM-only selected4159B artifact; package container absent/dataWrites0; runtime hosts exited0; owned containers/network/database volumes absent, generated WEB5 DNA absent/not used; runtime/cache/TLS removal verified. No local builds/downloads/env/database/results.",
-  "remaining": "Parent publication/rollout, compatible runtime then explicit dev WEB4 authority setting and saved/running verification. No hosted login/database test. Paid Stripe/WEB6/permanent account erasure/all other popup actions/providers/HyperDrive full programme remain open."
+  "remaining": "Follow seven existing deployment handles; verify compatible WEB4 runtime, then declare dev WEB4 Mongo collection authority and verify saved/running config. Held-worker loading remains pending; no hosted auth/data test or full portal claim.",
+  "parentPublication": "bf14ebc8f82abf1a7a3f345b4a6df32c842581b0",
+  "branchGates": "All8 freshly fetched Development submodule branch gates and paired manifest passed."
 }

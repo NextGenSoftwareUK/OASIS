@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-22",
+  "date": "2026-11-23",
   "overall": "Incomplete; OPORTAL breadth first remains priority. Goal active.",
   "source": {
     "taskBranch": "work/hyperdrive-provider-completion",
@@ -14,7 +14,7 @@
       "root": "121dcb0287e5eaa4816fbbdf01645030613d264f",
       "core": "2356b0a8b4d8a425cf13a8abe45b0b4dfcd7defa",
       "run": 45132201881,
-      "status": "image-package-and-three-new-popups-accepted-core-published-parent-pending"
+      "status": "accepted-published-bf14-rollout-pending"
     }
   },
   "web6": {
@@ -163,7 +163,7 @@
     "Permanent account/private-data/provider-replica erasure and Settings deletion remain unfinished.",
     "Whole-host DID/MFA frontend and WEB6 SSO acceptance remain open; existing changed-save/native45094516900 retained."
   ],
-  "lastUpdatedUtc": "2026-11-23T07:37:09.391634+00:00",
+  "lastUpdatedUtc": "2026-11-23T07:43:35.753338+00:00",
   "latestFocusedRun": {
     "id": 45091356813,
     "job": 137421421351,
@@ -283,7 +283,7 @@
     "notAccepted": "Hosted/paid Stripe/WEB6/full portal"
   },
   "shippingPopupBreadth20261123": {
-    "status": "verified-source-image-and-new-popup-slice-core-published-parent-ready",
+    "status": "published-to-Development-rollout-pending",
     "base": "9307d04330616f96982a01fd11b7497d08fc7aeb",
     "core": "2356b0a8b4d8a425cf13a8abe45b0b4dfcd7defa",
     "imageSource": "121dcb0287e5eaa4816fbbdf01645030613d264f",
@@ -301,6 +301,70 @@
     "corePublication": "Fast-forward2356 to Core Development completed; preserves already-pinned718 CQL work.",
     "parentScope": "Current9307 sandbox script preserved; only paired Core pin, admission guide and named evidence/status are added. No unrelated dirty gitlinks staged.",
     "cleanup": "RAM-only selected4159B artifact; package container absent/dataWrites0; runtime hosts exited0; owned containers/network/database volumes absent, generated WEB5 DNA absent/not used; runtime/cache/TLS removal verified. No local builds/downloads/env/database/results.",
-    "remaining": "Parent publication/rollout, compatible runtime then explicit dev WEB4 authority setting and saved/running verification. No hosted login/database test. Paid Stripe/WEB6/permanent account erasure/all other popup actions/providers/HyperDrive full programme remain open."
+    "remaining": "Follow seven existing deployment handles; verify compatible WEB4 runtime, then declare dev WEB4 Mongo collection authority and verify saved/running config. Held-worker loading remains pending; no hosted auth/data test or full portal claim.",
+    "parentPublication": "bf14ebc8f82abf1a7a3f345b4a6df32c842581b0",
+    "branchGates": "All8 freshly fetched Development submodule branch gates and paired manifest passed."
+  },
+  "authorityDevRollout20261123": {
+    "source": "bf14ebc8f82abf1a7a3f345b4a6df32c842581b0",
+    "core": "2356b0a8b4d8a425cf13a8abe45b0b4dfcd7defa",
+    "environment": "dev",
+    "environmentId": "a31011a2-d047-4057-b5e8-57d52ebcfefe",
+    "services": [
+      {
+        "name": "WEB4",
+        "service": "5123199a-43c4-4439-9921-e10e2aec7841",
+        "deployment": "0a9eea0d-247e-4d3f-84d6-f606a90778bf",
+        "status": "QUEUED"
+      },
+      {
+        "name": "WEB5",
+        "service": "bb2c3e9a-ec96-44a5-9916-05e06d54b1f4",
+        "deployment": "1a897df1-cb54-40cd-851b-1d9ee3641b94",
+        "status": "QUEUED"
+      },
+      {
+        "name": "WEB6",
+        "service": "1e6ee65f-df5d-42b1-972e-97f3a560f5d3",
+        "deployment": "511ab86e-58fd-446c-b9ec-b957e7923c07",
+        "status": "BUILDING"
+      },
+      {
+        "name": "WEB7",
+        "service": "31bd0ff6-2d3d-4793-8197-eabcd3afcb75",
+        "deployment": "37111a7a-6f81-46bb-8ddb-56214a97273e",
+        "status": "BUILDING"
+      },
+      {
+        "name": "WEB8",
+        "service": "95c937b9-b4e8-4fd3-866f-bd98d5420b2f",
+        "deployment": "946b55cd-8288-418a-82f1-ffbf23fae533",
+        "status": "QUEUED"
+      },
+      {
+        "name": "WEB9",
+        "service": "36eda15e-fd28-4fc6-a0c9-7fe454829554",
+        "deployment": "a53f6925-5318-4aa3-9087-2c9b733d8ec1",
+        "status": "QUEUED"
+      },
+      {
+        "name": "WEB10",
+        "service": "6f9e4f24-29be-49d7-914b-f1f9b42790d6",
+        "deployment": "e72029aa-64c3-4856-a3b9-0d5578e7ca97",
+        "status": "BUILDING"
+      }
+    ],
+    "configuration": {
+      "savedDevWeb4Holds": {
+        "hyperdriveWorkers": true,
+        "usageReconciliation": true,
+        "applicationMaintenance": true
+      },
+      "method": "Restored two saved holds with skip-deploys; saved all3 true verified. Standing shared-cluster hold remains applicable. No additional deployment requested.",
+      "runningHolds": "Pending; last observed770 runtime had false/true/false. Do not claim workers stopped yet.",
+      "collectionAuthority": "Not set yet; first verify compatible bf14 runtime, then update only admitted dev WEB4. Saved WEB5 admission is absent and is preserved."
+    },
+    "verification": "Metadata and selected environment fields only; no shared database/login/benchmark/API data calls.",
+    "remaining": "Follow these same handles; no duplicate root pushes/builds. If existing WEB4 deploy did not capture staged holds, combine required authority/hold rollout into one WEB4-only deployment after compatibility is verified."
   }
 }

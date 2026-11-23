@@ -1,0 +1,62 @@
+{
+  "source": "bf14ebc8f82abf1a7a3f345b4a6df32c842581b0",
+  "core": "2356b0a8b4d8a425cf13a8abe45b0b4dfcd7defa",
+  "environment": "dev",
+  "environmentId": "a31011a2-d047-4057-b5e8-57d52ebcfefe",
+  "services": [
+    {
+      "name": "WEB4",
+      "service": "5123199a-43c4-4439-9921-e10e2aec7841",
+      "deployment": "0a9eea0d-247e-4d3f-84d6-f606a90778bf",
+      "status": "QUEUED"
+    },
+    {
+      "name": "WEB5",
+      "service": "bb2c3e9a-ec96-44a5-9916-05e06d54b1f4",
+      "deployment": "1a897df1-cb54-40cd-851b-1d9ee3641b94",
+      "status": "QUEUED"
+    },
+    {
+      "name": "WEB6",
+      "service": "1e6ee65f-df5d-42b1-972e-97f3a560f5d3",
+      "deployment": "511ab86e-58fd-446c-b9ec-b957e7923c07",
+      "status": "BUILDING"
+    },
+    {
+      "name": "WEB7",
+      "service": "31bd0ff6-2d3d-4793-8197-eabcd3afcb75",
+      "deployment": "37111a7a-6f81-46bb-8ddb-56214a97273e",
+      "status": "BUILDING"
+    },
+    {
+      "name": "WEB8",
+      "service": "95c937b9-b4e8-4fd3-866f-bd98d5420b2f",
+      "deployment": "946b55cd-8288-418a-82f1-ffbf23fae533",
+      "status": "QUEUED"
+    },
+    {
+      "name": "WEB9",
+      "service": "36eda15e-fd28-4fc6-a0c9-7fe454829554",
+      "deployment": "a53f6925-5318-4aa3-9087-2c9b733d8ec1",
+      "status": "QUEUED"
+    },
+    {
+      "name": "WEB10",
+      "service": "6f9e4f24-29be-49d7-914b-f1f9b42790d6",
+      "deployment": "e72029aa-64c3-4856-a3b9-0d5578e7ca97",
+      "status": "BUILDING"
+    }
+  ],
+  "configuration": {
+    "savedDevWeb4Holds": {
+      "hyperdriveWorkers": true,
+      "usageReconciliation": true,
+      "applicationMaintenance": true
+    },
+    "method": "Restored two saved holds with skip-deploys; saved all3 true verified. Standing shared-cluster hold remains applicable. No additional deployment requested.",
+    "runningHolds": "Pending; last observed770 runtime had false/true/false. Do not claim workers stopped yet.",
+    "collectionAuthority": "Not set yet; first verify compatible bf14 runtime, then update only admitted dev WEB4. Saved WEB5 admission is absent and is preserved."
+  },
+  "verification": "Metadata and selected environment fields only; no shared database/login/benchmark/API data calls.",
+  "remaining": "Follow these same handles; no duplicate root pushes/builds. If existing WEB4 deploy did not capture staged holds, combine required authority/hold rollout into one WEB4-only deployment after compatibility is verified."
+}
