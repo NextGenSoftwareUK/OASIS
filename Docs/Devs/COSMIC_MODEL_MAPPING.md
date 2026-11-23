@@ -171,7 +171,7 @@ Plain value properties and custom model fields retain explicit nulls through can
 
 ## Current release boundary
 
-Development revision7700707e includes the annotation-only, read-only and owned-value batch, with Core7186c806 pinned in both the gitlink and deployment manifest. Native qualifiers45118868505,45119523112 and45124692924 passed the three-store journeys; the exact image45125287105 and package45126351817 gates passed. At the last rollout observation, WEB5 through WEB10 had succeeded while WEB4 was still building. This is source and native acceptance, not current WEB4 runtime or browser acceptance. The full EF/NHibernate roadmap remains incomplete.
+Development revision7700707e includes the annotation-only, read-only and owned-value batch, with Core7186c806 pinned in both the gitlink and deployment manifest. Native qualifiers45118868505,45119523112 and45124692924 passed the three-store journeys; the exact image45125287105 and package45126351817 gates passed. All seven original service deployments subsequently succeeded. Before/after startup reads and an authorized HyperDrive status check confirmed exact WEB4 source7700707e and enabled load balancing, failover and replication. The temporary session was revoked and credentials removed. This adds deployment/settings acceptance; new business-query/browser acceptance is separate. The full EF/NHibernate roadmap remains incomplete.
 
 ## Ordered primitive and value-object collections
 
