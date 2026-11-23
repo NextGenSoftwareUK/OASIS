@@ -85,6 +85,30 @@ async function main(){
   await page.waitForFunction(()=>localStorage.getItem('loggedIn')==='true');
   stage='dashboard';await page.locator('#dashboard').waitFor({state:'visible'});
   assert.equal(await page.locator('#dash-name').textContent(),account.username);
+  if(process.env.OASIS_STARTUP_POPUP_BREADTH==='true'){
+   assert.equal(api5,null,'WEB4-only new-popup scenario');
+   stage='Files popup';await page.locator('#dash-card-files').click();
+   await page.waitForFunction(()=>document.getElementById('files-stat-count').textContent==='0'&&
+    document.getElementById('files-list').textContent.includes('No files stored yet'));
+   await page.locator('#files-close-btn').click();await page.waitForURL(url=>url.pathname==='/');
+   stage='Wallet popup';await page.locator('#dash-card-wallets').click();
+   await page.waitForFunction(()=>document.getElementById('wallet-stat-wallets').textContent==='0'&&
+    !document.getElementById('wallet-grid-empty').hidden&&document.getElementById('wallet-modal-status').hidden);
+   await page.locator('#wallet-modal-close-btn').click();await page.waitForURL(url=>url.pathname==='/');
+   stage='Karma popup';await page.locator('#dash-card-karma').click();
+   await page.waitForFunction(()=>document.getElementById('karma-records-list').textContent.includes('No karma records found')&&
+    document.querySelectorAll('#karma-stats-grid .karma-stat-card').length===4&&
+    document.getElementById('karma-modal-status').hidden);
+   await page.locator('#karma-modal-block [data-tab="stats"]').click();
+   await page.locator('#karma-tab-stats').waitFor({state:'visible'});
+   await page.locator('#karma-modal-close-btn').click();await page.waitForURL(url=>url.pathname==='/');
+   assert.deepEqual(errors,[]);
+   assert.ok(reads.some(read=>read.path.includes('/api/wallet/avatar/')&&read.isError===false));
+   assert.ok(reads.some(read=>read.path.includes('/api/files/')&&read.isError===false));
+   assert.ok(reads.some(read=>read.path.includes('/api/karma/')&&read.isError===false));
+   console.log('PORTAL_STARTUP_BROWSER_PROOF: actual page Files/Wallet/Karma reads, empty lists, Karma stats tab and normal closes through shipping WEB4 Startup/native owned Mongo. Prior subscription/Games/OAPP cohorts not selected; writes, external chain execution, paid Stripe, WEB6 and hosted excluded.');
+   return;
+  }
   if(api5){
    stage='WEB5 Games dashboard';await page.locator('#dash-card-games').scrollIntoViewIfNeeded();
    await page.waitForFunction(()=>document.getElementById('dash-card-games').textContent==='0');

@@ -59,6 +59,11 @@ on:
         required: false
         type: string
         default: ""
+      startup_popup_breadth:
+        description: Only new Files, Wallet and Karma full-page reads; compatible authority-enabled image required
+        required: false
+        type: boolean
+        default: false
       retained_waku:
         description: Verify the packaged native Waku runtime with the aged original archive
         required: false
@@ -105,6 +110,13 @@ jobs:
           AUTH: ${{ inputs.startup_authentication }}
           STARTUP: ${{ inputs.combined_startup }}
         run: test "$AUTH" != true || test "$STARTUP" = true
+      - name: Validate new popup breadth selection
+        if: inputs.startup_popup_breadth
+        env:
+          AUTH: ${{ inputs.startup_authentication }}
+          STARTUP: ${{ inputs.combined_startup }}
+          PORTAL: ${{ inputs.startup_portal }}
+        run: test "$AUTH" = true && test "$STARTUP" = true && test -n "$PORTAL"
       - name: Verify startup readiness and error boundaries
         run: python3 -B Scripts/TestHosts/test_web4_combined_startup.py
       - name: Retain verifier before checking exact image source
@@ -188,6 +200,7 @@ jobs:
           DIGEST: ${{ inputs.digest }}
           PACKAGE_PROFILE: ${{ inputs.package_profile }}
           OASIS_STARTUP_AUTHENTICATION: ${{ inputs.startup_authentication }}
+          OASIS_STARTUP_POPUP_BREADTH: ${{ inputs.startup_popup_breadth }}
           OASIS_STARTUP_PORTAL_ROOT: ${{ inputs.startup_portal != '' && format('{0}/oportal-startup-source', github.workspace) || '' }}
           OASIS_PROFILE_BROWSER_RUNTIME: ${{ github.workspace }}/portal-startup-owned/runtime
         run: python3 -B Scripts/TestHosts/qualify_web4_combined_startup.py --digest "$DIGEST" --profile "$PACKAGE_PROFILE"

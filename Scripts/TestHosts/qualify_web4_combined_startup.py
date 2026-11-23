@@ -125,6 +125,11 @@ def main():
                 assert ipaddress.ip_address(selected_ip).version==4 and ipaddress.ip_address(selected_ip).is_private
                 mongo_uri='mongodb://'+selected_ip+':27017/?replicaSet=rs0&directConnection=true'
             fixture_env=configuration(root,mongo_uri,marker,o.profile)
+            if os.environ.get('OASIS_STARTUP_POPUP_BREADTH') == 'true':
+                # This explicit new-image scenario needs collection authority under passive boot.
+                admission=json.loads(fixture_env['PREPARED_STORAGE_ADMISSION_JSON'])
+                admission['authoritativeProvider']='MongoDBOASIS'
+                fixture_env['PREPARED_STORAGE_ADMISSION_JSON']=json.dumps(admission,separators=(',', ':'))
             if web5_app:
                 fixture_env['SUBSCRIPTION_SERVICE_KEY_WEB5']=secrets.token_hex(32)
             envfile=Path(tmp)/'environment';envfile.write_text(''.join(k+'='+v+'\n' for k,v in fixture_env.items()));envfile.chmod(0o600)
@@ -197,7 +202,8 @@ console.log(JSON.stringify(b));
                 safe_stage = re.search(r'PORTAL_STARTUP_BROWSER_FAILURE stage=([^;\n]+)', browser.stderr)
                 raise RuntimeError('Owned portal Startup browser failed at ' + (safe_stage.group(1) if safe_stage else 'unreported stage'))
             assert 'PORTAL_STARTUP_BROWSER_PROOF:' in browser.stdout
-            print('PORTAL_STARTUP_BROWSER_PROOF: actual page sign-in/dashboard/subscriptions/refresh passed through isolated shipping Startup.', flush=True)
+            scenario = 'WEB5 Games/OAPPs' if web5_process else ('Files/Wallet/Karma' if os.environ.get('OASIS_STARTUP_POPUP_BREADTH') == 'true' else 'dashboard/subscriptions/refresh')
+            print('PORTAL_STARTUP_BROWSER_PROOF: actual page sign-in/' + scenario + ' passed through isolated shipping Startup.', flush=True)
             portal_checked = True
         elif auth_checked:
             auth_script = root / 'Scripts/TestHosts/Fixtures/startup-authentication.cjs'
@@ -211,7 +217,7 @@ console.log(JSON.stringify(b));
             docker('exec',api,'node','-e',native,timeout=20)
         docker('stop','--time','20',api,timeout=30)
         state=json.loads(docker('inspect',api).stdout)[0];assert state['State']['ExitCode']==0 and not state['State']['OOMKilled']
-        (out/'acknowledged.json').write_text(json.dumps({'source':package['source'],'image':image,'apiHealth':True,'dockerHealthVerified':o.profile in ('full', 'maplibre'),'nativeMetadata':o.profile == 'full','gracefulExit':0,'authentication':auth_checked,'portalBrowser':portal_checked,'portalWeb5Browser':bool(web5_process),'web5GracefulExit':web5_process.graceful_exit if web5_process else None,'internalNetwork':True,'liveDeployment':False,'cqlAcceptance':False},indent=2))
+        (out/'acknowledged.json').write_text(json.dumps({'source':package['source'],'image':image,'apiHealth':True,'dockerHealthVerified':o.profile in ('full', 'maplibre'),'nativeMetadata':o.profile == 'full','gracefulExit':0,'authentication':auth_checked,'portalBrowser':portal_checked,'portalWeb5Browser':bool(web5_process),'portalPopupBreadth':portal_checked and os.environ.get('OASIS_STARTUP_POPUP_BREADTH') == 'true','web5GracefulExit':web5_process.graceful_exit if web5_process else None,'internalNetwork':True,'liveDeployment':False,'cqlAcceptance':False},indent=2))
     finally:
         shutdown_error=None
         try:
