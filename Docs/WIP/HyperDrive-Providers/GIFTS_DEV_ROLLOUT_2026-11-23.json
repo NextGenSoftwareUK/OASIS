@@ -1,5 +1,5 @@
 {
-  "status": "six-earlier-runtime-proofs-retained-WEB4-superseded",
+  "status": "all-seven-current-runtime-source-accepted",
   "deployments": [
     {
       "id": "010f50d4-8f3a-4426-ba99-3c0ae1fb8a51",
@@ -50,8 +50,8 @@
     }
   ],
   "core": "80400bb46dab74632a99d1f27bf6a0a6a94b7840",
-  "observedUtc": "2026-11-23T03:31:43.4438163Z",
-  "remaining": "Observe replacement WEB4 and current remaining service revisions; do not force old revision/redeploy. Earlier six exact ae9 runtime proofs remain historical evidence.",
+  "observedUtc": "2026-11-23T03:54:22.2198872Z",
+  "remaining": "Whole portal/full Startup/hosted functional acceptance remains open. Gifts delivery source/running revisions accepted; no extra shared auth/data test.",
   "source": "d06a42ca51d078d8d2248916ed7861e96974dbfc",
   "published": "ae9d72651bdffefce8d2695f09f9060f052c8703",
   "scope": "Only exact Gates-qualified Core Gifts16linevalidation plus pairedmanifest and named evidence. Current CQL5ea preserved. No DNA/environment/worker changes or shared auth/data/payment probes.",
@@ -59,5 +59,55 @@
     "45104328970/job137462037424 real Gifts SDK/browser/HTTP/native flow SUCCESS",
     "45105105606/job137464470175 current composition WEB4compile0errors5m08.68",
     "All8submodule Development policies and pairedpins pass"
-  ]
+  ],
+  "currentRuntime": [
+    {
+      "status": "SUCCESS",
+      "service": "WEB4",
+      "id": "e10c12ff-7730-4066-b952-4c65a0513ff3",
+      "revision": "61b1d01d5e0500523ad50e6e98a04b5072fd99b5"
+    },
+    {
+      "status": "SUCCESS",
+      "service": "WEB5",
+      "id": "2df76e5b-042d-435f-a08b-1fd0f4e66719",
+      "revision": "15798b127af2274aa811252ad6335cbfc8661a49"
+    },
+    {
+      "status": "SUCCESS",
+      "service": "WEB6",
+      "id": "3665e9d6-8200-4b4f-998b-f22e1f5d295a",
+      "revision": "15798b127af2274aa811252ad6335cbfc8661a49"
+    },
+    {
+      "status": "SUCCESS",
+      "service": "WEB7",
+      "id": "07447f06-0441-4f05-ae10-487e89b7ae3e",
+      "revision": "15798b127af2274aa811252ad6335cbfc8661a49"
+    },
+    {
+      "status": "SUCCESS",
+      "service": "WEB8",
+      "id": "41e9aaf9-7139-4185-a301-e67c3fe3eb58",
+      "revision": "15798b127af2274aa811252ad6335cbfc8661a49"
+    },
+    {
+      "status": "SUCCESS",
+      "service": "WEB9",
+      "id": "4e33305e-e01e-483e-a5f0-bfcba4f6edca",
+      "revision": "15798b127af2274aa811252ad6335cbfc8661a49"
+    },
+    {
+      "status": "SUCCESS",
+      "service": "WEB10",
+      "id": "a2f8b677-e6cf-4b3b-8061-2920881af799",
+      "revision": "15798b127af2274aa811252ad6335cbfc8661a49"
+    }
+  ],
+  "preservationProof": "Both running Git revisions pin exact Core80400 and unchanged GiftsController. They include peer SQLite/read/script changes, so no entire-tree equivalence or peer functional acceptance claimed.",
+  "web4SelectedPauseFlags": {
+    "allTrue": true,
+    "count": 3,
+    "scope": "Selected running WEB4 flags only; no other service worker configuration inferred."
+  }
 }

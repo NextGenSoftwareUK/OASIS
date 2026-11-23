@@ -5,11 +5,11 @@
     "taskBranch": "work/hyperdrive-provider-completion",
     "taskWorktree": "C:/Source/OASIS2-hyperdrive",
     "portalBranch": "dev",
-    "portalHead": "e70d2a3",
-    "reviewedDevelopment": "721f33130849794856c546218dceb06ee1396c87",
-    "currentCore": "27dae38da3f3212e360d939db642d02c01c8fc5f",
-    "currentWeb6": "f9aa81c6dc3e27ac02677c985d41929b768c5969",
-    "scope": "Core/WEB6 identify current isolated qualification candidate, not live or newest shared Development. Shared b82 peer status reviewed; no unverified rollout."
+    "portalHead": "4d60218ba247b106a8b3f24afdf0583694288f71",
+    "reviewedDevelopment": "15798b127af2274aa811252ad6335cbfc8661a49",
+    "currentCore": "80400bb46dab74632a99d1f27bf6a0a6a94b7840",
+    "currentWeb6": "78a27a295e74721358eb2b02399f79eff5b21633",
+    "scope": "Seven running dev revisions verified: WEB4=61b1d01d, WEB5-WEB10=15798b12; both preserve Core80400/Gifts. Active Games diagnosis uses exact accepted source18c06063; not full portal acceptance."
   },
   "web6": {
     "deployment": "c50654a6-5d5b-4a69-be04-3f1135713ddc",
@@ -39,125 +39,53 @@
       "Profile GET/PATCH/native revisions",
       "Usage-warning actual button, Resend SDK and durable acknowledgement",
       "Billing consent/no-charge/missing-statement/conflict handling",
-      "Native session listing"
+      "Native session listing",
+      "Actual persisted session issuance/global revocation45091356813",
+      "Settings selected/global sign-out browser45093523946",
+      "Changed MFA issuance/challenge/recovery/refresh45094516900",
+      "Read-only account-deletion requirements browser45096493185",
+      "Gifts send/receive/open/history/logout browser/native45104328970"
     ],
     "latestDeliveredFixes": [
-      "Current subscription selection instead of historical first row",
-      "Readiness errors display Retry",
-      "Password reset control cleared across sessions; stale responses rejected",
-      "Selected sign-out buttons wired in dev source4d4f81e; enabled only by new real-revocation capability, not accepted as live/browser-tested",
-      "Checkout recovery review/resume/cancel UI source4baca47, activated only by API-advertised links; no extra startup reads; runtime/Stripe/browser delivery pending",
-      "Dev8fd470c checkout recovery now awaits refreshed exact active plan before success. Five focused source unit states, syntax and endpoint checks passed; public dev script SHA25674f946043cc28a05c7c0deb84c9b2f1c471f0b063d3ba1464e8277210f70f672 matches. Static delivery only, not Stripe/browser acceptance.",
-      "Orders now renders actual invoice/PDF document links if provided, dev5adca39 served script SHA7d2d9675d827244cc31d18fa79ae0c121d77b37deed5b371fd732cae9706c778 verified. Signed Stripe invoice URL persistence source implemented; backend acceptance pending. No extra request."
+      "Current subscription selection, retry states, real invoice/PDF links and exact-plan checkout activation confirmation",
+      "Selected/global sign-out native acknowledgement and seven-service session enforcement; component/browser acceptance retained",
+      "Read-only account closure requirements review; permanent erasure still unavailable",
+      "MCP readiness and renewal event; stale checkout actions give explicit reopen guidance",
+      "Gifts duplicate logout handler removed; complete representative real popup flow accepted",
+      "Games actual Game/STARNETDNA details and supplied web launch links served; native catalogue conversion failure remains under diagnosis"
     ],
     "remaining": [
-      "Global sign-out wired/capability gated; actual two-authority issuance, revocation and partial-failure journey still under isolated verification; not deployed/accepted.",
-      "Selected sign-out backend and UI source implemented; native/browser/deployed acceptance pending",
-      "Account deletion lifecycle and Settings wiring",
-      "Hosted Stripe paid lifecycle and full browser/site acceptance",
-      "Current deployed performance measurement"
+      "Games COSMIC_METADATA_HYDRATION_FAILED; OAPP/Inventory paths not yet accepted in current cohort",
+      "Full portal page/navigation and real Startup/SSO browser acceptance across all screens",
+      "Hosted Stripe paid lifecycle and checkout recovery acceptance; existing owner action remains open",
+      "Permanent account and all-data/provider/replica erasure lifecycle",
+      "Current hosted dashboard/screen performance acceptance"
     ]
   },
   "sessions": {
-    "run": 45061982715,
-    "build": "Actual seven-API host0errors6m21.20",
-    "runtime": "35real loopback HTTP cases across actual WEB4-WEB10 middleware and framework user policy; active/rotation/revoke/independent access and inconsistent-subject refusal.",
-    "cleanup": "Owned Mongo database, temporary DNA and container absence verified from selected RAM-only logs.",
-    "sourceOnly": [
-      "Strict middleware enforcement",
-      "Login timeout failover suppression fix and single-case regression",
-      "Async password session-save correction",
-      "Single revoke acknowledgement requirement",
-      "Email-delete endpoint delegation correction"
-    ],
-    "currentCompositionReview": "Current isolated candidate97031a02 on aa6 preserves Core35c4 and WEB6f9. Newer shared Developmentb82 grouping/test changes reviewed; must preserve on integration, no broad overwrite.",
-    "globalSignout": {
-      "run": 45086300342,
-      "job": 137405599176,
-      "conclusion": "failure",
-      "build": "0errors7m03.39",
-      "observedBlocker": "Actual trace reached SQLite SaveAvatar/PrimaryConfirmation; request exceeded15s and finished after Mongo unpause.",
-      "sourceFinding": "General avatar mutation awaits enabled replica fanout after primary confirmation. Session issuance now uses existing pinned authority save; no generic replica wait or write failover for credential issuance.",
-      "acknowledgement": "One account-save boundary now preserves native IsSaved; no inferred acknowledgement from returned payload.",
-      "cleanup": "Owned native fixture removal succeeded; SQLite absent/Mongo unpaused marker observed.",
-      "acceptance": "Complete session/global signout/browser/hosted journey still pending. DID/second-factor changed save path and sync/detail acknowledgement changes not all entry-point accepted."
+    "middleware": {
+      "run": 45061982715,
+      "scope": "Actual WEB4-WEB10 middleware and framework policy; retained, not replayed",
+      "cases": 35
     },
-    "currentFocusedRun": {
-      "run": 45088151222,
-      "control": "88dc28ed289a1bd5a5cdae604ed79c9b7be3d7a0",
-      "candidate": "a2a3e3085daaacb3a5c8eb1ce918e31f4ab8c806",
-      "status": "in_progress observed",
-      "scope": "Single-authority async credential save, real native acknowledgement, paused-Mongo SQL issuance with replication explicitly enabled and unchanged Mongo version; accepted billing assertions skipped."
+    "localFileHttp": {
+      "scope": "Actual persisted issuance/protected reads, configured pause field, hard delete then401",
+      "run": 45098982294
     },
-    "preparationFailure": {
-      "run": 45069521383,
-      "reason": "Candidate direct-parent mismatch; failed before build/provider execution",
-      "corrected": "Rebuilt immutable candidate directly on reviewed base73a; dependency pins verified"
+    "nativeSession": {
+      "scope": "Real Mongo/SQLite issuance, revocation, fresh login and incomplete-revocation refusal",
+      "run": 45091356813
     },
-    "admittedListSource": {
-      "core": "d89c1dccc64c3a5f9539e2121bd27b1ed517a066",
-      "status": "source implemented; native/browser/deployed acceptance pending",
-      "scope": "Complete V2 admitted issuer list; existing queued candidate unchanged"
+    "settingsBrowser": {
+      "scope": "Actual selected/global sign-out controls, native refusals and cleared session",
+      "run": 45093523946
     },
-    "compileFailure": {
-      "run": 45070278761,
-      "reason": "New selected-session StorageOperationRequest incorrectly qualified under Managers.OASISHyperDrive; actual type lives directly under Core",
-      "correction": "Both new occurrences fixed in Core35c4; source candidate preserves accepted CQL grouping and WEB6 current docs",
-      "acceptance": "Failed before native runtime; no new session/provider acceptance"
+    "remaining": "Full production Startup/SSO/hosted portal acceptance and other credential entry points remain separate; no whole-provider HA claim.",
+    "mfa": {
+      "scope": "Actual changed HTTP/native password challenge/TOTP/recovery/refresh and read-only initial status",
+      "run": 45094516900
     },
-    "routeGateFailure": {
-      "run": 45071695894,
-      "reason": "Assessment HTTP action missing from route manifest; corrected and manually reviewed as repository-backed read",
-      "runtime": "No build/native scenario executed; owned container absence verified"
-    },
-    "providerDependencyFailure": {
-      "run": 45073038989,
-      "buildElapsed": "5m59.08",
-      "cause": "Composed SQLite source referenced existing declared-successor helper omitted from candidate; no native scenario executed",
-      "correction": "Include accepted helper/Mongo/Neo source dependency closure, exact blob match to babfd2b5; preserve newer shared base"
-    },
-    "nativeAbsenceFailure": {
-      "run": 45074820751,
-      "job": 137369608518,
-      "build": "0errors5m39.55",
-      "failure": "Missing RecordNotFound at async SQLite GUID path; initial absence assertion, before sign-in",
-      "sourceFixes": [
-        "Two remaining SQLite absence branches",
-        "Mongo successful empty single-avatar queries",
-        "Core refresh-token runtime-only BSON member filter"
-      ],
-      "cleanup": "Owned SQLite directory/Mongo DB/temp DNA/container absence verified; Mongo not paused"
-    },
-    "checkoutNativeProof": {
-      "run": 45079998287,
-      "job": 137385766897,
-      "build": "zero errors,6m18.89",
-      "runtime": "ACCOUNT_DEPENDENCY_NATIVE_PROOF: actual actor-bound controller/Mongo snapshot, customerless journal request/ack/close, one concurrent reservation winner, closed-slot reuse and old-close isolation.",
-      "failureAfterProof": "Issuer assertion used incorrect fixture assumption that changing global selection changes configured login manager primary; corrected by validated owned Mongo pause/unpause for real failover.",
-      "limits": "No Stripe calls, paid lifecycle, browser or hosted acceptance. Whole journey failed; retained marker is scoped evidence only."
-    },
-    "priorQualificationFailure": {
-      "run": 45081933164,
-      "job": 137391813475,
-      "build": "0errors6m00.75",
-      "runtime": "Checkout/dependency marker passed; closed-account usage refusal assertion failed.",
-      "rootCause": "Composed candidate omitted existing task-source IsActiveAt use in AuthorizeAsync and retained inline status/expiry check.",
-      "fix": "Scoped canonical predicate replacement preserving shared constructor/index/app billing changes.",
-      "cleanup": "Owned native fixture removal succeeded; SQLite absence/Mongo unpause marker observed."
-    },
-    "hostCompileFailure": {
-      "run": 45085506508,
-      "job": 137403081738,
-      "error": "Native host trace missing namespace; corrected fully qualified reference.",
-      "productCandidate": "820b06223e639c4b5757329015563a5a3f242f11 unchanged",
-      "runtime": "No native scenario ran; prior billing/middleware evidence unchanged.",
-      "cleanup": "Owned native fixture removal succeeded."
-    },
-    "preparedSharedCore": {
-      "core": "af05f04219e57acbf382a2d7b0cc39e007fdb1e6",
-      "shared": "2051db6641cb60d654489a1af8841a58899dd667",
-      "status": "Clean prepared merge only; current native run does not test it. Parent/API/provider integration and verification still required."
-    }
+    "status": "representative-native-and-component-browser-accepted-source-deployed"
   },
   "providers": {
     "recordedShippingProjects": 234,
@@ -176,7 +104,7 @@
     "protectedDeliveries": "535/543 not replayed; audit543 unavailable, preserve hold."
   },
   "cleanup": {
-    "freeDiskGB": 25.92,
+    "freeDiskGB": 24.0,
     "thisTurn": "No local builds/downloads/environments/databases/results. Owned Core/root composition indexes and locks removed in finally; source Git objects/tags retained.45104328970 owned DB/DNA/container/browser runtime/cache absence verified. Existing policy-blocked8038-byte cache untouched.",
     "temporaryEmailSecrets": "Previously deleted and absence verified; not restaged."
   },
@@ -225,7 +153,7 @@
     "Permanent account/private-data/provider-replica erasure and Settings deletion remain unfinished.",
     "Changed async DID/MFA session-save and sync/detail native acknowledgement paths require representative verification before full entry-point acceptance."
   ],
-  "lastUpdatedUtc": "2026-11-23T03:22:50.639243Z",
+  "lastUpdatedUtc": "2026-11-23T03:54:22.3208489Z",
   "latestFocusedRun": {
     "id": 45091356813,
     "job": 137421421351,
@@ -240,14 +168,12 @@
       "Subscription/MCP renewal notification and stale checkout guidance",
       "Single Gifts logout handler; no undeclared-variable error"
     ],
-    "pending": "Verified Gifts backend batch published Developmentae9d7265, Core80400 fast-forwarded. Seven exact Railway deployment IDs recorded; rollout pending. Whole OPORTAL/hosted Stripe/permanent erasure remain open."
+    "pending": "Gifts deployed/current source verified across7services. Games native metadata hydration fails; pinpoint run45108587954 active. OAPP/Inventory not accepted. No accepted cohort replay."
   },
   "settingsBrowserPreparation": {
-    "status": "accepted representative actual browser/native scope",
     "run": 45093523946,
-    "job": 137428169979,
-    "portal": "282eb9a",
-    "excludes": "hosted/full Startup, later account review and permanent deletion"
+    "status": "accepted-component-browser",
+    "scope": "Selected/global sign-out; full Startup/hosted excluded"
   },
   "accountDeletionReview": {
     "source": "c856109",

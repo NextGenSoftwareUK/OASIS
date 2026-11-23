@@ -2,15 +2,15 @@
   "implementation": "Games now renders real Game/STARNETDNA details/capabilities and supplied absolute web launch target from already-fetched records. No new API fanout.",
   "scope": "One new real populated Games/OAPPs/Inventory SDK/browser/HTTP/native Mongo browse/detail/launch-link/logout journey; seven browser GETs, zero browser mutations. Existing accepted Gifts/session/provider cohorts not selected.",
   "base": "ae9d72651bdffefce8d2695f09f9060f052c8703",
-  "checks": "Replacement observes same real Games response HTTP/result/count/id and sanitized message at the failed boundary. No timeout increase, backend change or additional request; accepted cohorts excluded.",
-  "status": "failed-first-Games-list-boundary-recheck-active",
+  "checks": "Native typed Game point readback after seed exposes original codec exception before browser. Same shipping source; no timeout increase or accepted cohort replay.",
+  "status": "native-Game-metadata-hydration-failure-pinpoint-active",
   "cleanup": "No local runtime/env/build/database/download/results. Same owned ephemeral CI Mongo/browser fixture; existing finally cleanup. No shared Atlas/PIPER calls.",
   "control": "42766fe7ebb9001e512bf52f80d5cbfc87343a26",
   "run": 45106635634,
   "portal": "4d60218ba247b106a8b3f24afdf0583694288f71",
   "source": "18c06063e97a859f2acba080d20a6ad299fe3bb8",
-  "activeRun": 45107657362,
-  "activeControl": "a6b9b39b3c4bf9f0d5af4ec2a02b055fc05dd354",
+  "activeRun": 45108587954,
+  "activeControl": "119a4a08023621551344f16cd7c70a92e1e016ac",
   "attempts": [
     {
       "build": "0errors4m58.44",
@@ -20,6 +20,17 @@
       "stage": "first Games list article did not appear within15s",
       "cleanup": "Owned database/DNA/container/browser runtime/cache absence verified.",
       "scope": "All three native seed saves passed; no Games/OAPP/Inventory browser acceptance."
+    },
+    {
+      "cleanup": "Owned DB/DNA/container/browser runtime/cache absence verified",
+      "scope": "First Games read fails before rendering; no browser cohort accepted.",
+      "build": "0errors4m59.30",
+      "conclusion": "failure",
+      "message": "Typed persistent metadata could not be hydrated.",
+      "run": 45107657362,
+      "errorCode": "COSMIC_METADATA_HYDRATION_FAILED",
+      "http": 200,
+      "job": 137472528213
     }
   ]
 }
