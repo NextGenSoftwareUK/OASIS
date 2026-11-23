@@ -1,3 +1,7 @@
+## 2026-11-23 - OPORTAL Orders recovery delivered to dev source
+
+OPORTAL dev 282eb9a adds explicit Retry orders after readiness/read errors, using the existing SDK and current-session guards. Syntax/diff checks passed; browser/live acceptance pending. MFA source candidate run45091356813/job137421421351 is running the native invariant step. No duplicate run dispatched.
+
 ## 2026-11-23 - MFA dependency source fix prepared
 
 Candidate ec097f7e propagates sign-in cancellation through MFA and removes index DDL from MFA reads. General SSO fixture now honors owned DNA MFA setting. Prior run 45088151222 failed; no run currently claimed successful. Build/native verification pending. Enabled MFA remains Mongo-dependent; no bypass or availability claim. OPORTAL breadth remains the priority. See MFA_LOGIN_CANCELLATION_SOURCE_2026-11-23.json.

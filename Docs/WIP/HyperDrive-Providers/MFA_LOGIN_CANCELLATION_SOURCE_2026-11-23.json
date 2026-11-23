@@ -18,5 +18,10 @@
     "Temporary Git index and lock removed in finally.",
     "No local runtime downloads, builds, databases or generated test outputs."
   ],
-  "sharedSafety": "No shared Atlas traffic, worker changes, deployment or DNA setting changes."
+  "sharedSafety": "No shared Atlas traffic, worker changes, deployment or DNA setting changes.",
+  "verificationRun": {
+    "id": 45091356813,
+    "job": 137421421351,
+    "lastObserved": "in progress: Verify only the new combined candidate native invariant"
+  }
 }

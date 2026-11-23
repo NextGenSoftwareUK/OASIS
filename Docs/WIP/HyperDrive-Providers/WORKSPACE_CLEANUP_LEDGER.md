@@ -2949,3 +2949,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 - No local build, runtime, database, new worktree/environment, download/log archive or test results created. Prior45074820751 terminal cleanup verified; next dispatch only after publishing current control source.
 
 - 2026-11-23 MFA candidate: temporary .git-mfa-candidate-index and lock removed by finally; no runtime downloads/build outputs/databases created. Compact source report and Git objects retained.
+
+- 2026-11-23 OPORTAL Orders retry: source edit, Node syntax/diff checks only. No download/env/database/build/results created; compact report retained. CI45091356813 remains active; remote fixture cleanup not yet claimed.
