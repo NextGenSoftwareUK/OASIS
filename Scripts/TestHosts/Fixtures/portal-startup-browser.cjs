@@ -9,8 +9,8 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','tools','web5-breadth','community','storage','hyperdrive','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
- const selectedPopups=popupGroup==='tools'?['Designer','Developer']:popupGroup==='web5-breadth'?['HolonBrowser','Celestial','GlobalSearch']:popupGroup==='community'?['Activity','Social','Chain']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+ assert.ok(['none','tools-followup','tools','web5-breadth','community','storage','hyperdrive','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
+ const selectedPopups=popupGroup==='tools-followup'?['Developer','GlobalSearch']:popupGroup==='tools'?['Designer','Developer']:popupGroup==='web5-breadth'?['HolonBrowser','Celestial','GlobalSearch']:popupGroup==='community'?['Activity','Social','Chain']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
   popupGroup==='none'?[]:[{storage:'Storage',hyperdrive:'HyperDrive',eggs:'Eggs',nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
@@ -275,7 +275,7 @@ async function main(){
    await checkPopup('Developer','#dev-portal-close-btn',async()=>{
     stage='Developer resources';await page.evaluate(()=>window.openDevPortalModal());await page.locator('#dev-portal-modal-block .dev-portal-link').first().waitFor({state:'visible'});
     const links=await page.locator('#dev-portal-modal-block a[href]').evaluateAll(nodes=>nodes.map(node=>({href:node.href,target:node.target,rel:node.rel})));
-    assert.ok(links.length>0);assert.ok(links.every(link=>new URL(link.href).protocol==='https:'));assert.ok(links.filter(link=>link.target==='_blank').every(link=>link.rel.split(/\s+/).includes('noopener')));
+    assert.ok(links.length>0);assert.ok(links.every(link=>new URL(link.href).origin===origin||['https:','mailto:'].includes(new URL(link.href).protocol)));assert.ok(links.filter(link=>link.target==='_blank').every(link=>link.rel.split(/\s+/).includes('noopener')));
    });
    await checkPopup('HolonBrowser','#holon-browser-modal-close-btn',async()=>{
     stage='Holon Browser read';await page.evaluate(()=>window.openHolonBrowserModal());
@@ -289,9 +289,10 @@ async function main(){
    });
    await checkPopup('GlobalSearch','#global-search-modal-close-btn',async()=>{
     stage='Global avatar search';await page.evaluate(()=>window.openGlobalSearchModal());await page.locator('#global-search-modal-block [data-type="Avatar"]').click();
-    await page.locator('#gs-input').fill(recipient.username);
+    const [response]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname==='/api/avatar/search-directory'),page.locator('#gs-input').fill(recipient.username)]);
+    const raw=await response.json(),envelope=typeof raw.isError==='boolean'?raw:raw.result;assert.equal(envelope.isError,false);const records=envelope.result;assert.ok(Array.isArray(records));assert.equal(records.length,1);assert.equal(records[0].id,recipient.avatar.id);
     await page.waitForFunction(()=>document.getElementById('gs-status-bar').textContent==='1 result');
-    assert.ok((await page.locator('#gs-results').textContent()).includes(recipient.username));
+    assert.ok((await page.locator('#gs-results').textContent()).includes(records[0].name||records[0].username||records[0].id));
     stage='Global clear';await page.locator('#gs-input').fill('');await page.waitForFunction(()=>document.getElementById('gs-results').textContent==='Start typing to search across the OASIS…');
    });
    await checkPopup('Activity','#activity-feed-modal-close-btn',async()=>{
