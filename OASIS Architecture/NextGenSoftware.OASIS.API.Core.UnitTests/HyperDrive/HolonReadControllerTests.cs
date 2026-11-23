@@ -20,7 +20,10 @@ public class HolonReadControllerTests
             OASISResult<Holon> Map(OASISResult<IHolon>? result) =>
                 Assert.IsType<OASISResult<Holon>>(method!.Invoke(null, new object?[] { result }));
             Assert.True(Map(null).IsError);
-            Assert.True(Map(new OASISResult<IHolon>()).IsError);
+            var absent = Map(new OASISResult<IHolon> { ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "No Holon Found" });
+            Assert.True(absent.IsError);
+            Assert.Equal(OASISResultErrorCodes.RecordNotFound, absent.ErrorCode);
+            Assert.Equal(OASISResultErrorCodes.RecordNotFound, Map(new OASISResult<IHolon>()).ErrorCode);
             var failure = Map(new OASISResult<IHolon> {
                 IsError = true, ErrorCode = "REAL_SINGLE_READ_ERROR", Message = "Storage lookup failed."
             });
