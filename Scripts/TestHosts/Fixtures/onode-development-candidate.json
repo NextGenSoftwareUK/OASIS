@@ -61,5 +61,12 @@
     "scope": "Service-only source; deliberately different modern/legacy settings verify canonical routing owner.",
     "job": 137838543842,
     "source": "5f1152f1028ee8e12d6aec3f2202016bdda7320c"
+  },
+  "publicHttpRun": {
+    "run": 45217891546,
+    "status": "in_progress",
+    "previousRun": 45217372769,
+    "previousFailure": "Test host CS0136 local view shadowing; actual supervisor compiled zero errors; no HTTP execution. Host renamed httpView and retry uses same production source.",
+    "scope": "Real supervisor MVC/socket/client, auth denial/rotation, secret exclusion and malformed-config error."
   }
 }
