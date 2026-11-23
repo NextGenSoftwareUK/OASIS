@@ -1,6 +1,6 @@
 {
   "date": "2026-11-23",
-  "status": "four scoped journeys accepted; Developer unresolved",
+  "status": "five scoped journeys accepted; wider actions remain open",
   "accepted": {
     "HolonBrowser": {
       "run": 45173584845,
@@ -24,13 +24,31 @@
     }
   },
   "Developer": {
-    "status": "failed resources stage; precise load/link diagnostic running",
-    "run": 45175750287,
-    "source": "9e69a771ab986d29d6b0ed390cf34b4827874153",
-    "changes": "Removed six unavailable href# controls; secured ten blank-target local links and refreshed fragment cache. All relative Postman resource paths exist locally."
+    "status": "actual popup load/link validation/normal close accepted",
+    "run": 45176428928,
+    "source": "577b2a860bcf7ec18577cb304713c54b9a50e283",
+    "changes": "Removed six unavailable href# controls; secured ten blank-target local links and refreshed fragment cache. All relative Postman resource paths exist locally.",
+    "artifact": 14820316303,
+    "artifactBytes": 4279,
+    "rootCause": "Resource link had whitespace in hostname, causing actual URL validation failure; diagnostic confirmed popup selected/visible and content loaded",
+    "fix": "Verified intended public site HTTP200/title, corrected hostname and cache key",
+    "limits": "External destination availability not exhaustively checked; valid same-origin resources and email links allowed",
+    "diagnostic": {
+      "run": 45175750287,
+      "artifact": 14819660833,
+      "artifactBytes": 3789,
+      "cleanup": "All owned package/startup cleanup assertions true; runtime/cache/TLS absent"
+    },
+    "liveStatic": {
+      "scriptMatchesSource": true,
+      "fragmentMatchesSource": true,
+      "httpStatus": 200,
+      "scriptSha256": "6e1ed921afac66f5ed90663829ae71abe3a1392d8b77b826a9836a3e9551e7cd",
+      "fragmentSha256": "7872c19ffc2ead4ae7717701a3a7df8fb4b9983162c334b2620cc407f75e341f"
+    }
   },
   "testCorrections": "Original assertions incorrectly expected only HTTPS links and a username when renderer uses display name. Existing real renderer retained; assertions now follow actual contracts. Accepted screens not rerun.",
-  "cleanup": "All three terminal receipts RAM-only. WEB5 containers/network/DB volumes/process/DNA absent and publish/browser/cache/TLS outputs absent; other two runs package container/dataWrites0 plus all five startup cleanup booleans true, runtime/cache/TLS absent. Diagnostic cleanup pending.",
+  "cleanup": "All terminal compact receipts inspected/disposed in RAM; owned package/startup containers/network/DB volumes/process/DNA and runtime/cache/TLS absent. No local build/download/env/database/results. Public static asset checks only; no shared Atlas/PIPER authentication/data calls.",
   "localGeneratedArtifacts": false,
   "sharedAtlasCalls": false,
   "reviewedDevelopment": "3ae678ddcbd0624a19cc4f3ff662a89b27b13896",

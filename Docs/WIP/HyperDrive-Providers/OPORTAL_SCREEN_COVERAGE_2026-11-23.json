@@ -90,14 +90,16 @@
     {
       "route": "developer",
       "open": "openDevPortalModal",
-      "status": "resource-stage failure; precise diagnostic running",
-      "run": 45175750287
+      "status": "shared opener load/link validation/normal close accepted; alias route not separately replayed",
+      "run": 45176428928,
+      "scope": "actual content and link format; all external destinations not verified"
     },
     {
       "route": "devportal",
       "open": "openDevPortalModal",
-      "status": "resource-stage failure; precise diagnostic running",
-      "run": 45175750287
+      "status": "shared opener load/link validation/normal close accepted; alias route not separately replayed",
+      "run": 45176428928,
+      "scope": "actual content and link format; all external destinations not verified"
     },
     {
       "route": "subscription",

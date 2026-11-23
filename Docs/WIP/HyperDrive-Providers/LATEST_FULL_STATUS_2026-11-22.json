@@ -679,5 +679,17 @@
     "run": 45172482199,
     "status": "Activity and Chain empty-list filters/close; populated Social contacts and keyboard composer handoff/return accepted",
     "remaining": "populated activity, live polling, wider graph pagination; whole portal still incomplete"
+  },
+  "portalBrowseTools20261123": {
+    "accepted": {
+      "HolonBrowser": 45173584845,
+      "Celestial": 45173584845,
+      "Designer": 45174256363,
+      "GlobalAvatarSearch": 45175138805,
+      "Developer": 45176428928
+    },
+    "scope": "Recorded narrow journeys; empty WEB5 lists, designer export/remove, unique avatar search/clear and developer resources/link validation/close. Not whole-screen/all-actions or all external links.",
+    "liveStaticDeveloper": "577b2a8 script/fragment source matches dev HTTP200",
+    "remaining": "All named wider portal/action/provider/paid Stripe work remains open"
   }
 }
