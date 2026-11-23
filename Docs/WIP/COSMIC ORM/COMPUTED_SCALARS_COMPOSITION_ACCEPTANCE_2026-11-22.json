@@ -1,0 +1,32 @@
+{
+  "source": "09d61416ea4ed2926bf044e211fc73502ab4adbe",
+  "core": "3696bd32ff84ee49db4b189dfcea946da7172dbd",
+  "peerDevelopment": "546dfb451cb11a8ec9355d2d25db853bab16617a",
+  "booleanMetadataNativeRun": 44995661257,
+  "int32NativeRun": 44997253843,
+  "nativeQueriesEquivalent": true,
+  "nativeProviderTreesEquivalent": true,
+  "wireTreesEquivalent": true,
+  "testsExpected": 6,
+  "qualificationAccepted": true,
+  "developmentPushed": false,
+  "website": "2973da776e44caedf3cef650abdd862ace4865d8",
+  "workflow": "qualify-cql-boolean-text-case-wire.yml",
+  "priorRunIds": [
+    44998378698,
+    44995661351,
+    44993122409
+  ],
+  "requestedAt": "2026-11-22T07:39:38.036367+00:00",
+  "phase": "dispatch_acknowledged",
+  "run": 44999417026,
+  "status": "completed",
+  "conclusion": "success",
+  "artifact": 14745432456,
+  "artifactBytes": 2377,
+  "artifactSha256": "348dc6f0e12c3466794938c6429f5f959d6dfcb0dfe56a4f248a2b18e58c973e",
+  "testsPassed": 6,
+  "web4Compiled": true,
+  "web5Compiled": true,
+  "localArchiveRetained": false
+}

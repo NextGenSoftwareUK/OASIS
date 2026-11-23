@@ -19,10 +19,10 @@ Use a dedicated operator Mongo role scoped to `find` and `update` on that databa
 After inspecting the deadletter and verifying the repair, generate an action UUID and keep it with the change ticket:
 
 ```powershell
-dotnet run --project Scripts/SubscriptionLedger.OutboxAdmin -- requeue 'OPERATION-UUID' 'ACTION-UUID' 'Service credential rotation verified; change ticket 123'
+dotnet run --project Scripts/SubscriptionLedger.OutboxAdmin -- requeue 'WEB6' 'OPERATION-UUID' 'ACTION-UUID' 'Service credential rotation verified; change ticket 123'
 ```
 
-The command prints one JSON result. Exit `0` acknowledges the requeue action, `2` is invalid arguments/configuration, `3` is failed administrator authentication/authorization, `4` is a protocol/state conflict, and `5` is an unacknowledged timeout/storage failure. For exit `5`, retry the same operation UUID, action UUID and reason: identical administrative actions are idempotent even if the first process lost its acknowledgement. Do not generate a second action to compensate for an unknown first result.
+The first argument after `requeue` selects the exact consuming service (`WEB4` through `WEB10`). It must match the stored operation; a different service is refused before mutation. Authentication still uses the WEB4 administrator policy. The command prints one JSON result including that service. Exit `0` acknowledges the requeue action, `2` is invalid arguments/configuration, `3` is failed administrator authentication/authorization, `4` is a protocol/state conflict, and `5` is an unacknowledged timeout/storage failure. For exit `5`, retry the same operation UUID, action UUID and reason: identical administrative actions are idempotent even if the first process lost its acknowledgement. Do not generate a second action to compensate for an unknown first result.
 
 Only a deadletter with an existing terminal settlement can transition to pending. The same atomic update appends the administrator, reason, action UUID, previous error, timestamp and immutable settlement fingerprint to `AdministrativeActions`. Changed actor/reason under an existing action UUID conflicts. Active or settled operations cannot be requeued. A successful CLI result means the original settlement awaits delivery; use WEB4's owned usage events and service metrics to verify its final acknowledgement.
 

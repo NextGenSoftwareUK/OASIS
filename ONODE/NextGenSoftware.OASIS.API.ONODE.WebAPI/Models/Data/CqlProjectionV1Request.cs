@@ -38,6 +38,14 @@ public sealed class CqlProjectionV1Column
 {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public CqlV1Function? Function { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? NullReplacement { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? Int32Replacement { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? WhenTrue { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? WhenFalse { get; set; }
     public string? Alias { get; set; }
     public string? Field { get; set; }
     public string[]? MetadataPath { get; set; }

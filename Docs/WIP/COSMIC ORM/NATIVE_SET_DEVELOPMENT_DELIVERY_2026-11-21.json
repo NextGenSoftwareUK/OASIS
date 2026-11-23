@@ -1,0 +1,293 @@
+{
+  "source": "f26edeef1152961a2b46f2149a6c28c08188a09a",
+  "workflow": "build-web4-image.yml",
+  "compositionRun": 44967343151,
+  "compositionAccepted": true,
+  "nativeHttpRun": 44967019200,
+  "nativeHttpAccepted": true,
+  "preflight": "set-release-source-preflight.json",
+  "priorRunIds": [
+    44955207943,
+    44951130403,
+    44948470462,
+    44946907870,
+    44946308915,
+    44944552781,
+    44941886532,
+    44891296213,
+    44889042435,
+    44880188523,
+    44872485267,
+    44866523001,
+    44865002886,
+    44854701764,
+    44846784753,
+    44833377210,
+    44821820588,
+    44793095032,
+    44774875537,
+    44760573258
+  ],
+  "priorActiveRuns": [],
+  "requestedAt": "2026-11-22T00:36:23.182888+00:00",
+  "phase": "dispatch_acknowledged",
+  "developmentPushed": true,
+  "packageAccepted": true,
+  "httpStatus": 204,
+  "run": 44967634285,
+  "status": "in_progress",
+  "conclusion": null,
+  "compositionProof": {
+    "run": 44967343151,
+    "job": 137039250240,
+    "artifact": 14731409986,
+    "bytes": 351,
+    "sha256": "442655d8e2053b6399dabaa9f53c63f24e4be765cd613a1f30fa5054a3c6b87c",
+    "exactGraphVerified": true,
+    "report": {
+      "star": "cf763aecfff7cc33d6aeacc9121db01c767a50f6",
+      "onode": "d51bdd8cba5183c9a7597f85f1d6ddd4be20d629",
+      "web5Compiled": true,
+      "web4Compiled": true,
+      "behaviorCasesRun": 0,
+      "core": "a166813b01476a2fce34e5908d74dac1da845ba6",
+      "databaseWrites": 0,
+      "source": "f26edeef1152961a2b46f2149a6c28c08188a09a"
+    }
+  },
+  "digest": "sha256:c3c5c8ecc0568612d245ad11285bc6b0834d275e027b7fa1e569394350134600",
+  "imageBuildAccepted": true,
+  "imageJob": 137040157954,
+  "imageSourceCheckoutVerified": true,
+  "packageDispatchIntent": true,
+  "packagePriorRunIds": [
+    44956782867,
+    44945668173,
+    44942744524,
+    44894688335,
+    44890945656,
+    44881253419,
+    44875035703,
+    44868433793,
+    44857060403,
+    44849651286,
+    44838406816,
+    44828462049,
+    44797921197,
+    44780547195,
+    44765840913,
+    44743127267,
+    44697170930,
+    44684636563,
+    44676239183,
+    44658363693
+  ],
+  "packageRequestedAt": "2026-11-22T00:49:17.452836+00:00",
+  "packageInputs": {
+    "source": "f26edeef1152961a2b46f2149a6c28c08188a09a",
+    "digest": "sha256:c3c5c8ecc0568612d245ad11285bc6b0834d275e027b7fa1e569394350134600",
+    "package_profile": "cql-api",
+    "teaching_image": false,
+    "tron_reader": false,
+    "urbit_reader": false,
+    "infura_reader": false,
+    "combined_startup": false,
+    "retained_waku": false
+  },
+  "packageDispatchAcknowledged": true,
+  "packageDispatchStatus": 204,
+  "packageRun": 44968677902,
+  "packageStatus": "in_progress",
+  "packageConclusion": null,
+  "packageJob": 137043410832,
+  "packageProof": {
+    "artifact": 14732487025,
+    "bytes": 774,
+    "sha256": "e8eaadd160317a17664a818ce4b388c882133fdee6e946465edfa3ef768a8c52",
+    "entries": {
+      "Web4FullPackage/acknowledged.json": {
+        "source": "f26edeef1152961a2b46f2149a6c28c08188a09a",
+        "image": "ghcr.io/nextgensoftwareuk/oasis-web4@sha256:c3c5c8ecc0568612d245ad11285bc6b0834d275e027b7fa1e569394350134600",
+        "profile": "cql-api",
+        "tag": "ghcr.io/nextgensoftwareuk/oasis-web4:f26edeef1152961a2b46f2149a6c28c08188a09a",
+        "imageId": "sha256:c3c5c8ecc0568612d245ad11285bc6b0834d275e027b7fa1e569394350134600",
+        "expectedHashes": {
+          "/app/host-sandbox-ipfs.cjs": "5f34b462e6d1197e3fc53add782ee14f73d70a351bc45cfa1d6e8ca20e8064c2"
+        },
+        "checks": {
+          "packagedSourceHashes": true,
+          "assemblies": 5,
+          "tronReaderPackaged": false,
+          "urbitReaderPackaged": false,
+          "infuraReaderPackaged": false,
+          "modelVersions": [],
+          "modelHashes": false,
+          "cqlRuntimeGraphVerified": true,
+          "apiQualified": false
+        },
+        "liveDeployment": false
+      },
+      "Web4FullPackage/cleanup.json": {
+        "ownedContainerAbsent": true,
+        "dataWrites": 0
+      }
+    }
+  },
+  "developmentPushIntent": true,
+  "developmentBefore": "0cfb095359df5dd6ee92ace4e55055e6f015b246",
+  "privateCoreDevelopmentObserved": "0565870edaf2dfadf4161401fb46c2df9a2737b7",
+  "privateCoreDevelopmentOverwritten": false,
+  "developmentPushVerified": true,
+  "developmentPushedAt": "2026-11-22T00:52:38.480244+00:00",
+  "runtimeVerified": false,
+  "developmentRollouts": [
+    {
+      "service": "WEB4 OASIS API",
+      "id": "5123199a-43c4-4439-9921-e10e2aec7841",
+      "deployments": [
+        {
+          "id": "416cbaae-740e-42ff-9ef9-3cbb3f7a296b",
+          "status": "QUEUED",
+          "source": "f26edeef1152961a2b46f2149a6c28c08188a09a"
+        },
+        {
+          "id": "0f0ab0be-8022-45a0-acb8-8eaa5daa30ff",
+          "status": "SUCCESS",
+          "source": "0cfb095359df5dd6ee92ace4e55055e6f015b246"
+        },
+        {
+          "id": "88620d5d-7d91-4922-8e43-554ac984f71d",
+          "status": "REMOVED",
+          "source": "f54923d82ac8bffa7877d9307f18e879d41a8254"
+        }
+      ]
+    },
+    {
+      "service": "WEB6 AI API",
+      "id": "1e6ee65f-df5d-42b1-972e-97f3a560f5d3",
+      "deployments": [
+        {
+          "id": "967c0b42-57df-4348-8335-e473079f3281",
+          "status": "QUEUED",
+          "source": "f26edeef1152961a2b46f2149a6c28c08188a09a"
+        },
+        {
+          "id": "1cc0917e-57b8-4217-8785-be0bae14a470",
+          "status": "SUCCESS",
+          "source": "0cfb095359df5dd6ee92ace4e55055e6f015b246"
+        },
+        {
+          "id": "0f80b7ec-4d13-43da-9bd5-52e3d7c3ad88",
+          "status": "REMOVED",
+          "source": "f54923d82ac8bffa7877d9307f18e879d41a8254"
+        }
+      ]
+    },
+    {
+      "service": "WEB7 SYMBIOTIC API",
+      "id": "31bd0ff6-2d3d-4793-8197-eabcd3afcb75",
+      "deployments": [
+        {
+          "id": "810a94db-317c-44c8-b4e3-46f4ce6f6f03",
+          "status": "BUILDING",
+          "source": "f26edeef1152961a2b46f2149a6c28c08188a09a"
+        },
+        {
+          "id": "baa9df32-d71c-4e2f-9373-b8541e522c07",
+          "status": "SUCCESS",
+          "source": "0cfb095359df5dd6ee92ace4e55055e6f015b246"
+        },
+        {
+          "id": "055f4f4f-80d8-4d4a-81f6-b13973a5ca45",
+          "status": "REMOVED",
+          "source": "f54923d82ac8bffa7877d9307f18e879d41a8254"
+        }
+      ]
+    },
+    {
+      "service": "WEB9 SINGULARITIY API",
+      "id": "36eda15e-fd28-4fc6-a0c9-7fe454829554",
+      "deployments": [
+        {
+          "id": "64b32280-bb0b-4070-b4f5-8ed51eea53ea",
+          "status": "QUEUED",
+          "source": "f26edeef1152961a2b46f2149a6c28c08188a09a"
+        },
+        {
+          "id": "65e2507f-3e4d-47bc-96e6-d60e85cd3802",
+          "status": "SUCCESS",
+          "source": "0cfb095359df5dd6ee92ace4e55055e6f015b246"
+        },
+        {
+          "id": "61e5ba21-da64-4590-b679-e8e6d432311e",
+          "status": "REMOVED",
+          "source": "f54923d82ac8bffa7877d9307f18e879d41a8254"
+        }
+      ]
+    },
+    {
+      "service": "WEB10 THE SOURCE API",
+      "id": "6f9e4f24-29be-49d7-914b-f1f9b42790d6",
+      "deployments": [
+        {
+          "id": "ef248e2d-a91f-4c46-830a-fbab90a70c77",
+          "status": "BUILDING",
+          "source": "f26edeef1152961a2b46f2149a6c28c08188a09a"
+        },
+        {
+          "id": "4f61dbf6-8cf5-420f-9e8b-ae2f84ba35bf",
+          "status": "SUCCESS",
+          "source": "0cfb095359df5dd6ee92ace4e55055e6f015b246"
+        },
+        {
+          "id": "d96c2e84-cd3f-4217-bbc5-e62547d34c13",
+          "status": "REMOVED",
+          "source": "f54923d82ac8bffa7877d9307f18e879d41a8254"
+        }
+      ]
+    },
+    {
+      "service": "WEB8 IGN API",
+      "id": "95c937b9-b4e8-4fd3-866f-bd98d5420b2f",
+      "deployments": [
+        {
+          "id": "b8f11763-4fb7-421e-9831-7b811dd32a7b",
+          "status": "BUILDING",
+          "source": "f26edeef1152961a2b46f2149a6c28c08188a09a"
+        },
+        {
+          "id": "56d2ed86-9b77-4ffc-a068-ef68b5ce74c6",
+          "status": "SUCCESS",
+          "source": "0cfb095359df5dd6ee92ace4e55055e6f015b246"
+        },
+        {
+          "id": "0f895385-1fae-417b-b4a0-bff20609d4f7",
+          "status": "REMOVED",
+          "source": "f54923d82ac8bffa7877d9307f18e879d41a8254"
+        }
+      ]
+    },
+    {
+      "service": "WEB5 STAR API",
+      "id": "bb2c3e9a-ec96-44a5-9916-05e06d54b1f4",
+      "deployments": [
+        {
+          "id": "798b4c4f-0c0b-44ff-9bf7-c4b722b508d8",
+          "status": "QUEUED",
+          "source": "f26edeef1152961a2b46f2149a6c28c08188a09a"
+        },
+        {
+          "id": "c55171fe-ddad-4a1e-9719-2fa6cf66377d",
+          "status": "SUCCESS",
+          "source": "0cfb095359df5dd6ee92ace4e55055e6f015b246"
+        },
+        {
+          "id": "65931a0b-e308-46e3-a004-5e4e96a0f2f1",
+          "status": "REMOVED",
+          "source": "f54923d82ac8bffa7877d9307f18e879d41a8254"
+        }
+      ]
+    }
+  ],
+  "rolloutObservedUtc": "2026-11-22T00:52:48.891667+00:00"
+}

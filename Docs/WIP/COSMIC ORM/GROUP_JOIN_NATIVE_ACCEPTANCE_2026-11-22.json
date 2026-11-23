@@ -1,0 +1,43 @@
+{
+  "run": 45025247615,
+  "job": 137216751860,
+  "artifact": 14756480415,
+  "sha256": "19e92004c4b816f07fab1f14fff3cb25fabe000282871346dfd5f679a02fb0b9",
+  "bytes": 4695,
+  "stamp": {
+    "retainedCoreRun": 45019120717,
+    "retainedCorePassed": 5,
+    "deployed": false,
+    "sharedDatabaseCalls": 0,
+    "ownedFixturesAbsent": true,
+    "source": "a2c2cad760503b71f733fe5cf13fdfbe5e5aceb8",
+    "nativePassed": 5,
+    "core": "34848a57c2b165696bdeda91d26e0a7cddd273c8",
+    "providers": [
+      "MongoDBOASIS",
+      "SQLLiteDBOASIS",
+      "Neo4jOASIS"
+    ],
+    "retainedMongoWholeLeft": true
+  },
+  "methods": {
+    "Mongo": [
+      "NativeGroupJoinPreservesLeftIdentityOrderedMatchesAndCompleteGroupPage"
+    ],
+    "SQLite": [
+      "NativeGroupJoinPreservesLeftIdentityOrderedMatchesAndCompleteGroupPage",
+      "NativeJoinPublishesWholeLeftEntitiesWithMultiplicityAndIndependentPage"
+    ],
+    "Neo4j": [
+      "NativeJoinPublishesWholeLeftEntitiesWithMultiplicityAndIndependentPage",
+      "NativeGroupJoinPreservesLeftIdentityOrderedMatchesAndCompleteGroupPage"
+    ]
+  },
+  "nativePassed": 5,
+  "retainedCorePassed": 5,
+  "retainedMongoWholeLeftPassed": 1,
+  "retainedRun": 45019120717,
+  "archiveSaved": false,
+  "fullGroupJoinParity": false,
+  "liveAccepted": false
+}

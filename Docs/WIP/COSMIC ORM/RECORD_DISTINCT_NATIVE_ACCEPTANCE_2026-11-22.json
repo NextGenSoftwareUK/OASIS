@@ -1,0 +1,31 @@
+{
+  "source": "f94fab22804adac182b7fbdcccbe023afd7ef07d",
+  "core": "1f649cd707df50f6ef8f999583e1117054a43133",
+  "run": 45052662341,
+  "job": 137300998567,
+  "conclusion": "success",
+  "artifact": 14766398272,
+  "artifactBytes": 1630,
+  "artifactSha256": "04d8b4624b33d559ce6c8659047d83a07bd0baa27522c107bddf5223cab913cf",
+  "proof": {
+    "sharedDatabaseCalls": 0,
+    "web4Compiled": true,
+    "scope": "remaining-neo-and-web4",
+    "priorPartialProof": "RECORD_DISTINCT_PARTIAL_ACCEPTANCE_2026-11-22.json",
+    "providers": "Neo4jOASIS",
+    "core": "1f649cd707df50f6ef8f999583e1117054a43133",
+    "deployed": false,
+    "corePassed": 0,
+    "source": "f94fab22804adac182b7fbdcccbe023afd7ef07d",
+    "nativePassed": 1,
+    "ownedFixturesAbsent": true
+  },
+  "nativeTest": "NativeRecordDistinctUsesVisibleTuplesAndOrderedStages",
+  "priorProof": "RECORD_DISTINCT_PARTIAL_ACCEPTANCE_2026-11-22.json",
+  "allThreeNativeProvidersAccepted": true,
+  "actualWeb4Compiled": true,
+  "fullEfParity": false,
+  "liveAccepted": false,
+  "ownedContainersStopped": true,
+  "artifactWrittenLocally": false
+}

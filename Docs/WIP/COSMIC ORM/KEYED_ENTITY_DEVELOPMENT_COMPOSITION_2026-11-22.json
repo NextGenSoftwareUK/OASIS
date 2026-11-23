@@ -1,0 +1,22 @@
+{
+  "development": "b82e1fa55a521c22f5110cb7cbd1fd4599040ebb",
+  "featureBase": "212e3bc6912a5038feac9f9790fdcfcac2f79430",
+  "commonBase": "f6530263dc3ae7bb7f6b638519bff9226ea625c3",
+  "core": "2051db6641cb60d654489a1af8841a58899dd667",
+  "web6": "c214296e8b8cfde671466a5a82e24d5fc83f9509",
+  "nativeQualifiedCore": "1e9c9b52fee83fee0e1e3055dc48b0143bcbe8a9",
+  "nativeProofRetained": 45078689312,
+  "shippingCoreSourceUnchanged": true,
+  "incomingCoreTestBlobPreserved": true,
+  "web6ChangedPaths": [
+    "NextGenSoftware.OASIS.Web6.UsageProtocol.Tests/ScheduledRunTests.cs"
+  ],
+  "incomingRootPaths": [
+    "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "WEB6"
+  ],
+  "newExactPinImageRequired": true,
+  "oldImageRetainedHistorical": 45080017872,
+  "deployed": false
+}

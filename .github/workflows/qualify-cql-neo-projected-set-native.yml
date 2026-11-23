@@ -1,0 +1,91 @@
+name: Qualify native Neo4j selected-value sets
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.Graph.cs"
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.EntityComposition.cs"
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.cs"
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.Set.cs"
+      - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.NativeProjectedSets.cs"
+      - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.NeoProjectedSets.cs"
+      - ".github/workflows/qualify-cql-neo-projected-set-native.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  read-activation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUBSCRIPTION_TEST_MONGODB_URI: mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000
+    services:
+      neo4j:
+        image: neo4j:5.26.0-community@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5
+        env:
+          NEO4J_AUTH: neo4j/oasis-local-test-only
+        ports:
+          - 17687:7687
+        options: >-
+          --health-cmd "cypher-shell -u neo4j -p oasis-local-test-only 'RETURN 1'"
+          --health-interval 5s --health-timeout 5s --health-retries 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Read reviewed dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify real Neo4j selected tuples in one read statement
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          $env:OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT=(Get-Location).Path
+          New-Item -ItemType Directory TestResults/Neo4jCurrent | Out-Null
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-neo-projected-set-native-ci -Operation {
+            dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~NativeNeoProjectedSetsUseTupleEqualityAndOneReadStatement' --results-directory TestResults/Neo4jCurrent --logger 'trx;LogFileName=mapping-native.trx'
+            if ($LASTEXITCODE) { throw 'Native Neo4j set qualification failed' }
+            [xml]$report=Get-Content TestResults/Neo4jCurrent/mapping-native.trx
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '1' -or $report.TestRun.ResultSummary.Counters.total -ne '1') { throw 'Neo4j set journey must pass' }
+            foreach ($store in 'Neo4jOASIS') {
+              $e=Get-Content "TestResults/Neo4jCurrent/$store-projected-set-native.json" -Raw | ConvertFrom-Json
+              if ($e.provider -ne $store -or $e.checks -ne 7 -or $e.ownedCleanupIds -ne 4 -or $e.successfulHolonWrites -ne 4 -or @($e.queryElapsedMilliseconds.PSObject.Properties).Count -ne 9) { throw 'Incomplete native report' }
+              foreach ($name in 'nativeProviderVerified','allFourSetOperationsVerified','concatMultiplicityVerified','independentWindowsVerified','foreignRowsHiddenVerified','inputLimitBeforeEmptyOutputVerified','ordinaryReadPreservedVerified','selectedTupleEqualityVerified','hiddenInputColumnsExcludedVerified','exactCleanupVerified') {
+                if ($e.$name -ne $true) { throw "Missing native proof $name" }
+              }
+            }
+          }
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: cql-neo-projected-set-native
+          path: |
+            OASIS/TestResults/Neo4jCurrent/mapping-native.trx
+            OASIS/TestResults/Neo4jCurrent/*-projected-set-native.json
+          if-no-files-found: ignore
+          retention-days: 2

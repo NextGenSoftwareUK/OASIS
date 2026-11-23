@@ -1,0 +1,28 @@
+{
+  "source": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
+  "core": "1f649cd707df50f6ef8f999583e1117054a43133",
+  "web6": "d9e60ceaecef5513d1bcd6285cd668076bc77edf",
+  "onodeCore": "1b28ed0436173b827e58b75a3bb5a99c1bb661ec",
+  "run": 45053785527,
+  "job": 137304474831,
+  "digest": "sha256:52a265f84e261be3c82080c809c00455f7042533ea0dd040beef197c9c7370cc",
+  "teachingSidecars": false,
+  "exactPrivatePinsVerified": true,
+  "nativeQualifiedSource": "f94fab22804adac182b7fbdcccbe023afd7ef07d",
+  "nativeRun": 45052662341,
+  "reviewedNonRuntimeDelta": [
+    ".github/workflows/qualify-cql-record-distinct-native.yml",
+    "Docs/WIP/COSMIC ORM/CQL_PARITY_CHECKLIST.md",
+    "Docs/WIP/COSMIC ORM/CURRENT_STATUS.md",
+    "Docs/WIP/COSMIC ORM/FULL_PROGRESS_REPORT_2026-11-21.md",
+    "Docs/WIP/COSMIC ORM/RECORD_DISTINCT_HOSTED_PLAN_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECORD_DISTINCT_IMPLEMENTATION_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECORD_DISTINCT_NATIVE_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECORD_DISTINCT_PREVIEW_SOURCE_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md",
+    "Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md",
+    "Scripts/Sandbox/Verify-HostedOwnedNativeSets.py"
+  ],
+  "deployed": false,
+  "imageDownloadedLocally": false
+}

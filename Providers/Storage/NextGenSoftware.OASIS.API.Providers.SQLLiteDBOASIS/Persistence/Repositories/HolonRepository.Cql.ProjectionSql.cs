@@ -15,6 +15,28 @@ public partial class HolonRepository
         {
             if (column == null) throw new ArgumentNullException(nameof(column));
             if (column.Function == CosmicProjectionFunction.None) return ProjectionOperand(column.Path, prefix, comparable);
+            if (column.Function == CosmicProjectionFunction.BooleanTextCase)
+            {
+                if(column.Path.ValueType != typeof(bool) || column.ValueType != typeof(string)
+                    || column.WhenTrue == null || column.WhenFalse == null)
+                    throw new NotSupportedException("Native conditional text requires an exact Boolean path and captured literal branches.");
+                var conditional=ProjectionOperand(column.Path,prefix,comparable);
+                var whenTrue=Bind(column.WhenTrue);var whenFalse=Bind(column.WhenFalse);
+                return ("CASE WHEN ("+conditional.State+")=2 THEN 2 ELSE 3 END",
+                    "CASE WHEN ("+conditional.State+")=2 THEN CASE WHEN ("+conditional.Value+")=1 THEN "+whenTrue+" ELSE "+whenFalse+" END ELSE NULL END");
+            }
+            if ((column.Function == CosmicProjectionFunction.TextCoalesce || column.Function == CosmicProjectionFunction.Int32Coalesce))
+            {
+                var coalesceIsText=column.Function==CosmicProjectionFunction.TextCoalesce;
+              if(coalesceIsText
+                  ? column.Path.ValueType!=typeof(string) || column.ValueType!=typeof(string) || column.NullReplacement==null
+                  : column.Path.ValueType!=typeof(int?) || column.ValueType!=typeof(int) || !column.Int32Replacement.HasValue)
+                    throw new NotSupportedException("Native coalescing requires exact source and captured replacement domains.");
+                var input=ProjectionOperand(column.Path,prefix,comparable);
+                var replacement=(coalesceIsText ? Bind(column.NullReplacement) : Bind(column.Int32Replacement.Value));
+                return ("CASE WHEN ("+input.State+") IN (0,1) THEN 2 ELSE ("+input.State+") END",
+                    "CASE WHEN ("+input.State+") IN (0,1) THEN "+replacement+" ELSE ("+input.Value+") END");
+            }
             if (column.Function != CosmicProjectionFunction.Utf16Length ||
                 column.Path.ValueType != typeof(string) ||
                 (Nullable.GetUnderlyingType(column.ValueType) ?? column.ValueType) != typeof(int))

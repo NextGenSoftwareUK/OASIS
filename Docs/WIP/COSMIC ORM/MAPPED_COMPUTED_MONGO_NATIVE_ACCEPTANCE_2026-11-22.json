@@ -1,0 +1,35 @@
+{
+  "source": "c2c158a0bfaf446fe15e66d864a586bf897c167d",
+  "core": "1d627b36d81e53284a51455baca3e4c733a2b13a",
+  "run": 45010074469,
+  "job": 137170251121,
+  "artifact": 14750456409,
+  "bytes": 1699,
+  "sha256": "f201ea7888a3e0b8c66ee0088b763c257c3c5ec585ffdd0dc4c411be9d76ee9c",
+  "nativeAccepted": true,
+  "provider": {
+    "provider": "MongoDBOASIS",
+    "checks": 7,
+    "successfulHolonWrites": 4,
+    "rawNativeRecords": 3,
+    "queryElapsedMilliseconds": {
+      "computed": 57,
+      "request1": 491,
+      "request2": 56,
+      "request3": 37
+    },
+    "nativeProviderVerified": true,
+    "literalIdentityVerified": true,
+    "nullEmptyZeroVerified": true,
+    "invalidDomainPreserved": true,
+    "ownerRefusalVerified": true,
+    "noMaterializationVerified": true,
+    "nativeSourceUnchanged": true,
+    "mixedHttpVerified": true,
+    "staleCacheReconciled": true,
+    "computedGlobalPaging": true,
+    "exactCleanupVerified": true
+  },
+  "archiveSaved": false,
+  "liveAccepted": false
+}

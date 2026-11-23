@@ -1,0 +1,38 @@
+{
+  "source": "a6d7482446544c234f00de1227ea6af96a1ec290",
+  "core": "9dcc856add106fa26b27ea5d26ef50b590bf92fd",
+  "run": 45056435476,
+  "job": 137312603707,
+  "artifact": 14767594778,
+  "artifactName": "hyperdrive-contract-results",
+  "archiveBytes": 1925,
+  "archiveSha256": "b5d6a5b60c5944c4cb058ec11fbd66089c0ecce4b54ee97af8cd04387dff9f8f",
+  "passed": 4,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive.HyperDriveProviderExecutionTests.CollectionAuthorityFailureCannotFailOverToAPartialReplica",
+      "duration": "00:00:00.0117629"
+    },
+    {
+      "name": "NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive.HyperDriveProviderExecutionTests.CollectionQueryNeverAcceptsPartialReplicaAndPreservesActorScope(operation: \"LoadHolonsByMetaData\", mode: \"async\", actorLabel: \"SLP\")",
+      "duration": "00:00:00.0040586"
+    },
+    {
+      "name": "NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive.HyperDriveProviderExecutionTests.CollectionQueryNeverAcceptsPartialReplicaAndPreservesActorScope(operation: \"LoadHolonsByMetaDataPairs\", mode: \"load-balance\", actorLabel: \"student-service\")",
+      "duration": "00:00:00.4071923"
+    },
+    {
+      "name": "NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive.HyperDriveProviderExecutionTests.CollectionQueryNeverAcceptsPartialReplicaAndPreservesActorScope(operation: \"LoadAllHolons\", mode: \"sync\", actorLabel: \"SA\")",
+      "duration": "00:00:03.7479459"
+    }
+  ],
+  "actualWeb4Compiled": true,
+  "providerIoRouteAndOperationManifestsPassed": true,
+  "nativeDatabaseMode": false,
+  "piperDataAccessed": false,
+  "realSaSlpStudentAccountAcceptance": false,
+  "scope": "managed routing with nonempty partial replica, representative synthetic actor scopes, and unavailable-authority failover refusal; caller permission implementation unchanged",
+  "deployed": false,
+  "archiveWrittenLocally": false
+}

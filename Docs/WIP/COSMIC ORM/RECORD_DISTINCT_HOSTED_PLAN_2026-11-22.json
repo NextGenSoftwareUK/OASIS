@@ -1,0 +1,49 @@
+{
+  "schema": "cql-record-distinct-hosted-plan-v1",
+  "website": "7c002846b2e95654b5c2261f6c13a703acc6c9d2",
+  "scope": "live HTTP transport only; duplicate/null semantics are covered by native SDK proof, not claimed from a single live row",
+  "requestCap": 18,
+  "paceSeconds": 1,
+  "newPrivateHolonsMaximum": 3,
+  "nativeProviders": [
+    {
+      "provider": "MongoDBOASIS",
+      "path": "data/query-cql/composition",
+      "boundedOwnedSource": true,
+      "visibleTuple": [
+        "Display",
+        "Detail"
+      ],
+      "distinctBeforeFinalOrderAndWindow": true
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "path": "data/query-cql/composition",
+      "boundedOwnedSource": true,
+      "visibleTuple": [
+        "Display",
+        "Detail"
+      ],
+      "distinctBeforeFinalOrderAndWindow": true
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "path": "data/query-cql/composition",
+      "boundedOwnedSource": true,
+      "visibleTuple": [
+        "Display",
+        "Detail"
+      ],
+      "distinctBeforeFinalOrderAndWindow": true
+    }
+  ],
+  "executedLive": false,
+  "requires": [
+    "native acceptance",
+    "actual WEB4 compilation",
+    "exact image",
+    "exact package",
+    "verified Development rollout"
+  ],
+  "sourceRecordsUnaffected": true
+}

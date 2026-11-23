@@ -1,0 +1,280 @@
+{
+  "phase": "live_transport_accepted",
+  "baseCore": "32fbf1bfd1e990b3119423bc024e149162d76d3e",
+  "core": "1f649cd707df50f6ef8f999583e1117054a43133",
+  "compiled": true,
+  "nativeAccepted": true,
+  "deployed": false,
+  "source": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
+  "website": "7c002846b2e95654b5c2261f6c13a703acc6c9d2",
+  "sqlCaptureAccepted": true,
+  "demoControlAccepted": true,
+  "websitePublishedLive": false,
+  "priorRun": 45051729488,
+  "qualificationNeedsDispatch": false,
+  "sqlCaptureTestsPassed": 14,
+  "demoControlTestsPassed": 1,
+  "requiredPinRun": 45051729233,
+  "requiredPinConclusion": "success",
+  "supersededNativeRun": 45051729488,
+  "supersededNativeCancellationAcknowledged": true,
+  "supersededNativeCleanupVerified": true,
+  "localRuntimeOrDatabaseInstalled": false,
+  "partialAcceptance": {
+    "source": "d9f2e7f24dd590ff90a4cfaa0add340305c4d608",
+    "core": "1f649cd707df50f6ef8f999583e1117054a43133",
+    "run": 45051729488,
+    "runConclusion": "cancelled",
+    "fullRunAccepted": false,
+    "artifact": 14765967778,
+    "bytes": 4244,
+    "sha256": "1dca8381b20d862eb050e338a437b390e039f58d09de21bf688e4c590057e541",
+    "tests": [
+      {
+        "file": "core.trx",
+        "passed": 2,
+        "names": [
+          "NextGenSoftware.OASIS.API.Core.UnitTests.CqlRecordDistinctWireTests.ScalarDistinctRetainsItsSingleColumnContract",
+          "NextGenSoftware.OASIS.API.Core.UnitTests.CqlRecordDistinctWireTests.DistinctCapturesCurrentTupleAndKeepsEarlierStageBindingsAfterReselection"
+        ]
+      },
+      {
+        "file": "Mongo.trx",
+        "passed": 1,
+        "names": [
+          "NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests.CosmicCqlNativeTests.NativeRecordDistinctUsesVisibleTuplesAndOrderedStages"
+        ]
+      },
+      {
+        "file": "SQLite.trx",
+        "passed": 1,
+        "names": [
+          "NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests.SQLLiteDBOASISIntegrationTests.NativeRecordDistinctUsesVisibleTuplesAndOrderedStages"
+        ]
+      }
+    ],
+    "neoAccepted": false,
+    "web4Compiled": false,
+    "ownedMongoStopped": true,
+    "ownedContainersStopped": true,
+    "localArtifactWritten": false,
+    "unchangedAcceptedFiles": [
+      {
+        "path": "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CqlRecordDistinctWireTests.cs",
+        "sha256": "f246a9988af48308911f79bec981d1d334b094beaeb64df5ff6477c9840be1bf"
+      },
+      {
+        "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.Composition.cs",
+        "sha256": "a329d53f79e7b8ac4a717b95cceaea66a330310daffe9751d7b655f119ad0d39"
+      },
+      {
+        "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/CosmicCqlNativeTests.RecordDistinct.cs",
+        "sha256": "63189daf9f09369d2e970ebb9b1858ac306a8e5815fbb86b9127deb4af2c9e56"
+      },
+      {
+        "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests/CosmicCqlRecordDistinctTests.cs",
+        "sha256": "f1fee401bdee7bf007ed966f7f471faf1e71bb954b16d75f2bd33ea2ed935bba"
+      },
+      {
+        "path": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlCompositionV1Compiler.cs",
+        "sha256": "c986d6b8e6fe7d88794c72ce517a4848c7f41f79221bd201e9076733270bd659"
+      },
+      {
+        "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.CompositionSql.cs",
+        "sha256": "b163bfe117c9fa79487fd49c71ad9d822d147d2180d99b93763d9b3dc0f7c3c5",
+        "reviewedDifferenceFromPassedSource": "local lambda parameter rename only; no behavior difference"
+      }
+    ],
+    "unnecessaryCancellationCorrection": "C# accepted the earlier lambda; Core2/Mongo1/SQLite1 already passed. Preserve those exact artifact passes; full run remains cancelled. Remaining mode runs Neo and actual WEB4 build only."
+  },
+  "priorCleanupVerified": true,
+  "requestedUtc": "2026-11-22T17:58:42.751846+00:00",
+  "dispatchAcknowledged": true,
+  "failedDispatch": {
+    "reason": "GitHub dispatch rejected bare SHA ref with422; no run created",
+    "ref": "f94fab22804adac182b7fbdcccbe023afd7ef07d"
+  },
+  "run": 45052662341,
+  "status": "completed",
+  "conclusion": "success",
+  "job": 137300998567,
+  "coreCaptureAccepted": true,
+  "mongoNativeAccepted": true,
+  "sqliteNativeAccepted": true,
+  "neoNativeAccepted": true,
+  "web4Compiled": true,
+  "observedUtc": "2026-11-22T17:59:20.737841+00:00",
+  "compositionAccepted": true,
+  "nativeAcceptance": {
+    "source": "f94fab22804adac182b7fbdcccbe023afd7ef07d",
+    "core": "1f649cd707df50f6ef8f999583e1117054a43133",
+    "run": 45052662341,
+    "job": 137300998567,
+    "conclusion": "success",
+    "artifact": 14766398272,
+    "artifactBytes": 1630,
+    "artifactSha256": "04d8b4624b33d559ce6c8659047d83a07bd0baa27522c107bddf5223cab913cf",
+    "proof": {
+      "sharedDatabaseCalls": 0,
+      "web4Compiled": true,
+      "scope": "remaining-neo-and-web4",
+      "priorPartialProof": "RECORD_DISTINCT_PARTIAL_ACCEPTANCE_2026-11-22.json",
+      "providers": "Neo4jOASIS",
+      "core": "1f649cd707df50f6ef8f999583e1117054a43133",
+      "deployed": false,
+      "corePassed": 0,
+      "source": "f94fab22804adac182b7fbdcccbe023afd7ef07d",
+      "nativePassed": 1,
+      "ownedFixturesAbsent": true
+    },
+    "nativeTest": "NativeRecordDistinctUsesVisibleTuplesAndOrderedStages",
+    "priorProof": "RECORD_DISTINCT_PARTIAL_ACCEPTANCE_2026-11-22.json",
+    "allThreeNativeProvidersAccepted": true,
+    "actualWeb4Compiled": true,
+    "fullEfParity": false,
+    "liveAccepted": false,
+    "ownedContainersStopped": true,
+    "artifactWrittenLocally": false
+  },
+  "imagePhase": "accepted",
+  "imageAccepted": true,
+  "packageAccepted": true,
+  "developmentPushed": true,
+  "liveAccepted": true,
+  "producerSource": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
+  "qualifiedSource": "f94fab22804adac182b7fbdcccbe023afd7ef07d",
+  "reviewedNonRuntimeDelta": [
+    ".github/workflows/qualify-cql-record-distinct-native.yml",
+    "Docs/WIP/COSMIC ORM/CQL_PARITY_CHECKLIST.md",
+    "Docs/WIP/COSMIC ORM/CURRENT_STATUS.md",
+    "Docs/WIP/COSMIC ORM/FULL_PROGRESS_REPORT_2026-11-21.md",
+    "Docs/WIP/COSMIC ORM/RECORD_DISTINCT_HOSTED_PLAN_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECORD_DISTINCT_IMPLEMENTATION_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECORD_DISTINCT_NATIVE_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECORD_DISTINCT_PREVIEW_SOURCE_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md",
+    "Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md",
+    "Scripts/Sandbox/Verify-HostedOwnedNativeSets.py"
+  ],
+  "imagePriorRuns": [
+    45041530132,
+    45038846333,
+    45032877587,
+    45030371324,
+    45027230988,
+    45014821002,
+    45000216418,
+    44996549738,
+    44994753282,
+    44993508966,
+    44991192060,
+    44986701215,
+    44977327473,
+    44975049171,
+    44972994559,
+    44967634285,
+    44955207943,
+    44951130403,
+    44948470462,
+    44946907870
+  ],
+  "imageRequestedUtc": "2026-11-22T18:10:30.656592+00:00",
+  "imageRun": 45053785527,
+  "imageJob": 137304474831,
+  "imageConclusion": "",
+  "digest": "sha256:52a265f84e261be3c82080c809c00455f7042533ea0dd040beef197c9c7370cc",
+  "packagePhase": "accepted",
+  "packagePriorRuns": [
+    45042421108,
+    45040787492,
+    45034075797,
+    45028463476,
+    45021700914,
+    45000952408,
+    44997300304,
+    44995695068,
+    44994400291,
+    44991967776,
+    44987890064,
+    44978356294,
+    44976532042,
+    44974125204,
+    44968677902,
+    44956782867,
+    44945668173,
+    44942744524,
+    44894688335,
+    44890945656
+  ],
+  "packageRequestedUtc": "2026-11-22T18:22:07.504851+00:00",
+  "packageRun": 45054911320,
+  "packageJob": 137307887938,
+  "developmentBase": "f29262d8b6df380e0d267228d92508e4da393561",
+  "developmentPushPhase": "acknowledged",
+  "developmentPushRequestedAt": "2026-11-22T18:26:13.202958+00:00",
+  "peerSource": "248c0767ba9be1adda4d9cb7433a325c8449c3d8",
+  "developmentPushedAt": "2026-11-22T18:26:20.518885+00:00",
+  "observedDevelopmentAfterPush": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
+  "web6Deployment": "9181eb61-2467-4f1e-932f-97c899c8e12d",
+  "web6DeploymentStatus": "SUCCESS",
+  "web7Deployment": "6f5c7573-3282-4d44-b116-bfe9b4114cc9",
+  "web7DeploymentStatus": "SUCCESS",
+  "web9Deployment": "7717c60b-80b9-4fe9-a24e-3ae4bf8755ff",
+  "web9DeploymentStatus": "SUCCESS",
+  "web4Deployment": "0bdcd21c-9ba4-4cd4-a9f9-4483791a46b5",
+  "web4DeploymentStatus": "SUCCESS",
+  "web10Deployment": "595130d4-dc01-4c78-8686-b6e92e41fcc9",
+  "web10DeploymentStatus": "SUCCESS",
+  "web8Deployment": "7157b8dc-511f-4f72-9938-ff1d4e3c2008",
+  "web8DeploymentStatus": "SUCCESS",
+  "web5Deployment": "0c8ae9a0-322e-48ce-a912-e1a6764c7a06",
+  "web5DeploymentStatus": "SUCCESS",
+  "latestRolloutObservation": {
+    "web6": {
+      "deployment": "9181eb61-2467-4f1e-932f-97c899c8e12d",
+      "status": "SUCCESS",
+      "source": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
+      "imageDigest": "sha256:92a67dcc333b5fabc244fc023903e5fe2ffc3c400bd7a166ca013637d0025463"
+    },
+    "web7": {
+      "deployment": "6f5c7573-3282-4d44-b116-bfe9b4114cc9",
+      "status": "SUCCESS",
+      "source": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
+      "imageDigest": "sha256:238e75d5186858cf36162fed9f237e7ee9881411839d65ed218287fffbedd0b0"
+    },
+    "web9": {
+      "deployment": "7717c60b-80b9-4fe9-a24e-3ae4bf8755ff",
+      "status": "SUCCESS",
+      "source": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
+      "imageDigest": "sha256:27d65a2ccbdbeeb4a30175e10e55780bf58ed0b025d7bfdd88abd49f1ded4093"
+    },
+    "web4": {
+      "deployment": "0bdcd21c-9ba4-4cd4-a9f9-4483791a46b5",
+      "status": "SUCCESS",
+      "source": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
+      "imageDigest": "sha256:f2c4d9ef5f1d38a88b34b10df684d7b3e97587a8b7c3090a593c81e1ca4f9c91"
+    },
+    "web10": {
+      "deployment": "595130d4-dc01-4c78-8686-b6e92e41fcc9",
+      "status": "SUCCESS",
+      "source": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
+      "imageDigest": "sha256:3b3777a2938b6b0495361e3fb3dfaf44c7c231a21b2ba59370990a4dbb99b09c"
+    },
+    "web8": {
+      "deployment": "7157b8dc-511f-4f72-9938-ff1d4e3c2008",
+      "status": "SUCCESS",
+      "source": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
+      "imageDigest": "sha256:9e32c74b6c1b89f015eaa03dbcdd1c37f8878954aae03fb5de9e4956a4ae9d88"
+    },
+    "web5": {
+      "deployment": "0c8ae9a0-322e-48ce-a912-e1a6764c7a06",
+      "status": "SUCCESS",
+      "source": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
+      "imageDigest": "sha256:38d14dc71f5c5bcfaa18e5d6e69e4299225d536495cffbaa5710dcd58a1e1df8"
+    }
+  },
+  "liveProof": "RECORD_DISTINCT_HOSTED_ACCEPTANCE_2026-11-22.json",
+  "allSevenDevelopmentDeploymentsSucceeded": true,
+  "complexStorageBrowserDataFlowAccepted": false,
+  "realModelInferenceAccepted": false
+}

@@ -1,0 +1,17 @@
+{
+  "source": "565aab065a010e64bb3652b4eb59e0ad9a7ad397",
+  "digest": "sha256:2636e5a1221e02e91437456cebbb73816284b50c5fe82f9f7652b78aa447ae6a",
+  "run": 44995695068,
+  "artifact": 14743153896,
+  "bytes": 774,
+  "sha256": "553e1b957da392b5a3e952e531452010d9153f1051e236a489159299d7d84e10",
+  "packageAccepted": true,
+  "profile": "cql-api",
+  "assemblies": 5,
+  "cqlRuntimeGraphVerified": true,
+  "apiQualified": false,
+  "ownedContainerAbsent": true,
+  "dataWrites": 0,
+  "localArchiveRetained": false,
+  "developmentPushed": false
+}

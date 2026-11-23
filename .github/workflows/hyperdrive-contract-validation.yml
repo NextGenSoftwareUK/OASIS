@@ -140,13 +140,11 @@ jobs:
         shell: pwsh
         env:
           OASIS_HYPERDRIVE_TEST_FILTER: ${{ inputs.contract_filter || 'FullyQualifiedName~HyperDrive' }}
-        run: >-
-          dotnet test
-          'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/NextGenSoftware.OASIS.API.Core.UnitTests.csproj'
-          --configuration Release
-          --filter "$env:OASIS_HYPERDRIVE_TEST_FILTER"
-          --logger 'trx;LogFileName=hyperdrive-contracts.trx'
-          --results-directory artifacts/hyperdrive-contract-validation
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner hyperdrive-behavior-contract-ci -Operation {
+            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/NextGenSoftware.OASIS.API.Core.UnitTests.csproj' --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false --filter "$env:OASIS_HYPERDRIVE_TEST_FILTER" --logger 'trx;LogFileName=hyperdrive-contracts.trx' --results-directory artifacts/hyperdrive-contract-validation
+            if($LASTEXITCODE){throw 'Selected HyperDrive contract verification failed'}
+          }
 
       - name: Start owned native seal routing fixture
         if: ${{ inputs.native_seal }}

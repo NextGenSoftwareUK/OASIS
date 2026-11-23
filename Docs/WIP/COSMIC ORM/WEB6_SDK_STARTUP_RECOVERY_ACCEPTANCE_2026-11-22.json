@@ -1,0 +1,16 @@
+{
+  "source": "94d9966baaf80a72188040d80058f7104a94e87a",
+  "core": "34848a57c2b165696bdeda91d26e0a7cddd273c8",
+  "web6": "d9e60ceaecef5513d1bcd6285cd668076bc77edf",
+  "deployment": "00b75010-9c5e-434c-9798-1c7e17a77e71",
+  "status": "SUCCESS",
+  "healthHttpStatus": 200,
+  "healthStatus": "ok",
+  "healthVersion": "3.2.0",
+  "healthElapsedMilliseconds": 579,
+  "currentDeploymentVerified": true,
+  "dataCalls": 0,
+  "modelCalls": 0,
+  "realModelVerified": false,
+  "sdkStartupRecoveryAccepted": true
+}

@@ -1,0 +1,39 @@
+{
+  "source": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
+  "developmentBase": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
+  "runtimePaths": [
+    "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
+  ],
+  "rootChangedPaths": [
+    ".github/workflows/hyperdrive-contract-validation.yml",
+    ".github/workflows/qualify-cql-hosted-browser.yml",
+    "Docker/oasis-dependency-versions.env",
+    "Docs/WIP/COSMIC ORM/COLLECTION_READ_AUTHORITY_CONTRACT_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/COLLECTION_READ_AUTHORITY_IMPLEMENTATION_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/CQL_PARITY_CHECKLIST.md",
+    "Docs/WIP/COSMIC ORM/CURRENT_STATUS.md",
+    "Docs/WIP/COSMIC ORM/FULL_PROGRESS_REPORT_2026-11-21.md",
+    "Docs/WIP/COSMIC ORM/RECORD_DISTINCT_BROWSER_CANDIDATE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECORD_DISTINCT_BROWSER_STATIC_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECORD_DISTINCT_DELIVERY_SCOPE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECORD_DISTINCT_DEVELOPMENT_CANDIDATE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECORD_DISTINCT_HOSTED_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECORD_DISTINCT_IMAGE_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECORD_DISTINCT_IMAGE_CANDIDATE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECORD_DISTINCT_PACKAGE_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/HyperDrive/HyperDriveCollectionAuthorityTests.cs",
+    "Scripts/Sandbox/Verify-CqlProtectedPreviewBrowser.cjs"
+  ],
+  "coreBase": "1f649cd707df50f6ef8f999583e1117054a43133",
+  "coreSource": "9dcc856add106fa26b27ea5d26ef50b590bf92fd",
+  "changedCoreFiles": [
+    "Managers/OASIS HyperDrive/OASISHyperDrive.cs"
+  ],
+  "allOtherGitlinksPreserved": true,
+  "manifestGatePassed": true,
+  "reviewedBrowserToolChanges": "already accepted static Chrome control08a796c/site7c002846; no shipping API changes",
+  "deployed": false
+}

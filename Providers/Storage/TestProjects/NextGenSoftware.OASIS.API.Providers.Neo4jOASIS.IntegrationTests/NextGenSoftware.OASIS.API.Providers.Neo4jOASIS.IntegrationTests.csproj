@@ -114,4 +114,8 @@
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetV1Compiler.cs" Link="Web4/CqlSetV1Compiler.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetV1Endpoint.cs" Link="Web4/CqlSetV1Endpoint.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectedSetV1Compiler.cs" Link="Web4/CqlProjectedSetV1Compiler.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectedSetV1Endpoint.cs" Link="Web4/CqlProjectedSetV1Endpoint.cs" />
+  </ItemGroup>
 </Project>

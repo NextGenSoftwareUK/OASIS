@@ -269,6 +269,14 @@ public static partial class CqlV1Endpoint
         }, code, message);
     }
 
+    private static object SelectedWireColumns<T>(CosmicProjectionQuery<T,CosmicProjectionRecord> query) where T:IHolon
+        =>query.OutputColumnIndices.Select((index,output)=>new
+        {
+            alias=query.OutputAliases[output],
+            valueType=ProjectionWireType(Nullable.GetUnderlyingType(query.Columns[index].ValueType) ?? query.Columns[index].ValueType),
+            nullable=!query.Columns[index].ValueType.IsValueType || Nullable.GetUnderlyingType(query.Columns[index].ValueType)!=null
+        }).ToArray();
+
     private static object SelectedWireColumns(IReadOnlyList<CosmicProjectionColumn> columns)
         => columns.Select(column => new
         {

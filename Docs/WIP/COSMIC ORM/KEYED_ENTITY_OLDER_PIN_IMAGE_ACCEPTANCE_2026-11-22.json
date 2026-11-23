@@ -1,0 +1,26 @@
+{
+  "source": "2bf7a758929417d26737460a7ac97e7b591756b4",
+  "core": "1e9c9b52fee83fee0e1e3055dc48b0143bcbe8a9",
+  "web6": "285884e6741c5a26055df90e9f5932317ba3b219",
+  "onodeCore": "1b28ed0436173b827e58b75a3bb5a99c1bb661ec",
+  "run": 45080017872,
+  "job": 137385826804,
+  "digest": "sha256:f4570f730f5737a933e1dc738f1b74c2adc0b62a1f05968286a2dfddc23dffc1",
+  "teachingSidecars": false,
+  "exactPrivatePinsVerified": true,
+  "contractQualifiedSource": "2bb54171442af5316c062e474fb6e987e7173f9f",
+  "contractRun": 45078689312,
+  "reviewedQualifiedSourceDelta": [
+    "Docs/Devs/COSMIC_LINQ_GROUPING.md",
+    "Docs/WIP/COSMIC ORM/CQL_PARITY_CHECKLIST.md",
+    "Docs/WIP/COSMIC ORM/CURRENT_STATUS.md",
+    "Docs/WIP/COSMIC ORM/FULL_STATUS_REPORT_2026-11-22.md",
+    "Docs/WIP/COSMIC ORM/KEYED_ENTITY_SOURCE_PREPARATION_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/KEYED_ENTITY_THREE_PROVIDER_NATIVE_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/PROJECTED_GROUP_MEMBERS_DELIVERY_SCOPE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/PROJECTED_GROUP_MEMBERS_DEVELOPMENT_CANDIDATE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md"
+  ],
+  "deployed": false,
+  "imageDownloadedLocally": false
+}

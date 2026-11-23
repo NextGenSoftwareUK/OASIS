@@ -1,0 +1,15 @@
+{
+  "source": "d147fd8995430adf085a116e7c6a412a545e3634",
+  "core": "3f5156e6e2cb7f6f9fd29ca6fa417dfe75808ce1",
+  "peerDevelopment": "546dfb451cb11a8ec9355d2d25db853bab16617a",
+  "peerCore": "a7d15b4ffc3fbcedd3c7164f06ba8fafb262a563",
+  "metadataSource": "01de83ad1705423bd7f60e9a8fdb35e2dbf033ed",
+  "metadataCore": "74d4f046b2f49893a19c40e161e73999772ab412",
+  "featureSource": "8274510f7caf1d187f59cbd51c203910931b568b",
+  "featureCore": "3696bd32ff84ee49db4b189dfcea946da7172dbd",
+  "nativeRuntimeEquivalent": true,
+  "qualificationAccepted": false,
+  "imageAccepted": false,
+  "packageAccepted": false,
+  "developmentPushed": false
+}

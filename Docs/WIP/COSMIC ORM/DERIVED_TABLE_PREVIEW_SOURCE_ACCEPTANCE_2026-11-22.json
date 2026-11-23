@@ -1,0 +1,32 @@
+{
+  "source": "7f65737b6132d936f7264a9579ba425a3d3418c6",
+  "url": "https://web4-site-cphrnd47m-oasis-team.vercel.app/web4-sandbox.html",
+  "deployment": "dpl_F4km5fA5dJ6XqN41dPYabRHEmNn5",
+  "assets": [
+    {
+      "path": "web4-sandbox.html",
+      "bytes": 309716,
+      "sha256": "982a54bb4a7028b471f20312ef20dc7fc516bf8f6abb00025340d3b13dbf65fb"
+    },
+    {
+      "path": "cql-text.js",
+      "bytes": 106893,
+      "sha256": "ea504bad28a02208d2088d105484b2f70b8a09aacf37f63fb28d077333c5d7f4"
+    },
+    {
+      "path": "cql-playground.js",
+      "bytes": 33172,
+      "sha256": "bc202b05b3dfb6e0d051c8f89390bdc5eb8256126f4c34b0953bcfb84c828935"
+    },
+    {
+      "path": "cql-ask.js",
+      "bytes": 40881,
+      "sha256": "cf35bcb62e9aeab4d5c3c7a978dd4bea9ede26356c3383f97c10f63562147ea0"
+    }
+  ],
+  "htmlOnlyTransformation": "Exact deployment-specific Vercel feedback script",
+  "renderedBrowserVerified": false,
+  "realModelVerified": false,
+  "dataCalls": 0,
+  "savedAssets": false
+}

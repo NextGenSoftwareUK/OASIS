@@ -1,0 +1,14 @@
+{
+  "source": "c25ce0b7ac7d6b1de734e31d7bbc2c706de7c384",
+  "core": "babf7b82936f07d9decff57fac52b08ed527eb35",
+  "run": 45014821002,
+  "job": 137184781030,
+  "digest": "sha256:990809aaf471f28f9115c858afe04b8e1a81bfa104f50d3c43d11077e1768a9b",
+  "checkoutGitHeadVerified": true,
+  "dockerMetadataDigestVerified": true,
+  "teachingSidecars": false,
+  "imageAccepted": true,
+  "packageAccepted": false,
+  "liveAccepted": false,
+  "observedAt": "2026-11-22T12:17:13.055541+00:00"
+}

@@ -1,0 +1,93 @@
+name: Qualify CQL and WEB6 SDK recovery composition
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - ".github/workflows/qualify-cql-web6-sdk-composition.yml"
+permissions:
+  contents: read
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      EXPECTED_SOURCE: 94d9966baaf80a72188040d80058f7104a94e87a
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          path: control
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 94d9966baaf80a72188040d80058f7104a94e87a
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Read reviewed dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Build actual seven APIs and load real WEB6 AWS assemblies
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          if ((git rev-parse HEAD).Trim() -ne $env:EXPECTED_SOURCE) { throw 'Exact source mismatch' }
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-web6-sdk-composition -Operation {
+            $projects=@(
+              'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj',
+              'STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj',
+              'WEB6/NextGenSoftware.OASIS.Web6.WebAPI/NextGenSoftware.OASIS.Web6.WebAPI.csproj',
+              'WEB7/NextGenSoftware.OASIS.Web7.WebAPI/NextGenSoftware.OASIS.Web7.WebAPI.csproj',
+              'WEB8/NextGenSoftware.OASIS.Web8.WebAPI/NextGenSoftware.OASIS.Web8.WebAPI.csproj',
+              'WEB9/NextGenSoftware.OASIS.Web9.WebAPI/NextGenSoftware.OASIS.Web9.WebAPI.csproj',
+              'WEB10/NextGenSoftware.OASIS.Web10.WebAPI/NextGenSoftware.OASIS.Web10.WebAPI.csproj'
+            )
+            foreach($project in $projects){
+              dotnet build $project --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
+              if($LASTEXITCODE){throw "Actual API compilation failed: $project"}
+            }
+            $probe='../control/Scripts/TestHosts/AwsSdkAbiProbe/AwsSdkAbiProbe.csproj'
+            dotnet build $probe --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
+            if($LASTEXITCODE){throw 'Peer AWS SDK ABI probe did not compile'}
+            dotnet run --project $probe --configuration Release --no-build -- WEB6/NextGenSoftware.OASIS.Web6.WebAPI/bin/Release/net10.0
+            if($LASTEXITCODE){throw 'Real WEB6 SDK assembly ABI check failed'}
+          }
+          $report=@{
+            source=(git rev-parse HEAD).Trim()
+            core=(git -C "OASIS Architecture/NextGenSoftware.OASIS.API.Core" rev-parse HEAD).Trim()
+            web6=(git -C WEB6 rev-parse HEAD).Trim()
+            compiledApis=@('WEB4','WEB5','WEB6','WEB7','WEB8','WEB9','WEB10')
+            awsSdkAbiAccepted=$true
+            awsAssembliesLoaded=4
+            nativeProviderCalls=0
+            cloudCalls=0
+            dataWrites=0
+            deployed=$false
+          }
+          New-Item -ItemType Directory -Force TestResults/Web6SdkComposition | Out-Null
+          $report | ConvertTo-Json -Depth 5 | Set-Content TestResults/Web6SdkComposition/source.json -Encoding utf8
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: cql-web6-sdk-composition
+          path: OASIS/TestResults/Web6SdkComposition/source.json
+          if-no-files-found: ignore
+          retention-days: 2

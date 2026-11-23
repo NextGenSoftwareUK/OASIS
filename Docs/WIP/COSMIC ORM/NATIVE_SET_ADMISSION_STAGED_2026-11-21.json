@@ -1,0 +1,17 @@
+{
+  "service": "WEB4 OASIS API",
+  "environment": "dev",
+  "key": "PREPARED_STORAGE_ADMISSION_JSON",
+  "addedRoute": "POST /api/data/query-cql/set",
+  "priorRoutes": 11,
+  "savedRoutes": 12,
+  "beforeSha256": "fc809cbac32ff7b67ba7935a028f8a08287a59af1decea1811d5124ed39b186a",
+  "candidateSha256": "60beffdee5f57015117b04b145bd075a0df55901c2a54679f639889c355ab005",
+  "skipDeploys": true,
+  "phase": "saved_configuration_verified",
+  "runtimeVerified": false,
+  "protectedRollbackRetained": true,
+  "timestamp": "2026-11-22T00:39:43.105679+00:00",
+  "transport": "Railway GraphQL variableUpsert",
+  "deploymentTriggered": false
+}

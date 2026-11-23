@@ -1,0 +1,121 @@
+{
+  "source": "ced904ff0ff4710cc8c6749516867c38e9fb59d2",
+  "tag": "cosmic-holo-readiness-480-dev-c4a65629",
+  "baseDevelopment": "c4a65629d4136218be05b04a887490216c050e7a",
+  "timeoutSeconds": 480,
+  "scope": [
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisDevelopmentConductor.cs"
+  ],
+  "phase": "tag_published",
+  "compositionAccepted": true,
+  "packageAccepted": true,
+  "developmentPushed": false,
+  "liveVerified": false,
+  "holochainSource": "ff2d25190a64416e9cfd0faf142a6bd2f191e420",
+  "featureIntegration": "e3957a4ea5aa4d885f354de886b15218eaec1d24",
+  "compositionPriorRunIds": [
+    44972506394,
+    44967343151,
+    44955232840,
+    44945969209,
+    44943435624
+  ],
+  "compositionRequestedAt": "2026-11-21T21:10:37.433206-05:00",
+  "compositionPhase": "dispatch_acknowledged",
+  "imagePriorRunIds": [
+    44972994559,
+    44967634285,
+    44955207943,
+    44951130403,
+    44948470462,
+    44946907870,
+    44946308915,
+    44944552781,
+    44941886532,
+    44891296213,
+    44889042435,
+    44880188523,
+    44872485267,
+    44866523001,
+    44865002886
+  ],
+  "imageRequestedAt": "2026-11-21T21:10:44.228638-05:00",
+  "imagePhase": "dispatch_acknowledged",
+  "compositionRun": 44975041727,
+  "compositionStatus": "completed",
+  "compositionConclusion": "success",
+  "imageRun": 44975049171,
+  "imageStatus": "completed",
+  "imageConclusion": "success",
+  "compositionArtifact": {
+    "id": 14735483270,
+    "bytes": 351,
+    "sha256": "2c9484084d29b9ec77b3c6210fc85913e96e089d044af15d77a36fed798d783d"
+  },
+  "compositionProof": {
+    "star": "cf763aecfff7cc33d6aeacc9121db01c767a50f6",
+    "source": "ced904ff0ff4710cc8c6749516867c38e9fb59d2",
+    "onode": "d51bdd8cba5183c9a7597f85f1d6ddd4be20d629",
+    "behaviorCasesRun": 0,
+    "web5Compiled": true,
+    "core": "a166813b01476a2fce34e5908d74dac1da845ba6",
+    "databaseWrites": 0,
+    "web4Compiled": true
+  },
+  "imageJob": 137062958603,
+  "imageSourceVerified": true,
+  "digest": "sha256:f509c20b00aa77920b5aebb3ede7bf3420ac0091622dcf65cf36c0e0fdf6c4fb",
+  "packagePriorRunIds": [
+    44974125204,
+    44968677902,
+    44956782867,
+    44945668173,
+    44942744524,
+    44894688335,
+    44890945656,
+    44881253419,
+    44875035703,
+    44868433793,
+    44857060403,
+    44849651286,
+    44838406816,
+    44828462049,
+    44797921197
+  ],
+  "packageRequestedAt": "2026-11-21T21:29:15.902956-05:00",
+  "packagePhase": "dispatch_acknowledged",
+  "packageRun": 44976532042,
+  "packageStatus": "completed",
+  "packageConclusion": "success",
+  "packageArtifact": {
+    "id": 14736057602,
+    "bytes": 775,
+    "sha256": "cb469c0647161d7a61779cdd9dbe4856d51f50a8f87033a837017ab506e02312"
+  },
+  "packageAcknowledgment": {
+    "source": "ced904ff0ff4710cc8c6749516867c38e9fb59d2",
+    "image": "ghcr.io/nextgensoftwareuk/oasis-web4@sha256:f509c20b00aa77920b5aebb3ede7bf3420ac0091622dcf65cf36c0e0fdf6c4fb",
+    "profile": "cql-api",
+    "tag": "ghcr.io/nextgensoftwareuk/oasis-web4:ced904ff0ff4710cc8c6749516867c38e9fb59d2",
+    "imageId": "sha256:f509c20b00aa77920b5aebb3ede7bf3420ac0091622dcf65cf36c0e0fdf6c4fb",
+    "expectedHashes": {
+      "/app/host-sandbox-ipfs.cjs": "5f34b462e6d1197e3fc53add782ee14f73d70a351bc45cfa1d6e8ca20e8064c2"
+    },
+    "checks": {
+      "packagedSourceHashes": true,
+      "assemblies": 5,
+      "tronReaderPackaged": false,
+      "urbitReaderPackaged": false,
+      "infuraReaderPackaged": false,
+      "modelVersions": [],
+      "modelHashes": false,
+      "cqlRuntimeGraphVerified": true,
+      "apiQualified": false
+    },
+    "liveDeployment": false
+  },
+  "packageCleanup": {
+    "ownedContainerAbsent": true,
+    "dataWrites": 0
+  }
+}

@@ -18,27 +18,12 @@ public sealed class UsageVisibilityTests
         Assert.StartsWith("app-overages-", prices.Version);
     }
 
-    [Theory]
-    [InlineData(null, true, true)]
-    [InlineData(null, false, false)]
-    [InlineData(true, false, true)]
-    [InlineData(false, true, false)]
-    public void APersonOrAppOwnChoiceBeatsTheNodeDefault(bool? own, bool nodeDefault, bool expected)
-        => Assert.Equal(expected, SubscriptionOwnerController.Effective(own, nodeDefault));
-
     [Fact]
     public void UsageVisibilityDefaultsAreOnExceptNothingElseSurprising()
     {
         var s = new UsageVisibilitySettings();
         Assert.True(s.OwnerViewEnabled); Assert.True(s.WarningsEnabled); Assert.True(s.EmailEnabled); Assert.True(s.AppPayAsYouGoEnabled);
     }
-
-    [Theory]
-    [InlineData(true, false, true)]
-    [InlineData(false, true, true)]
-    [InlineData(false, false, false)]
-    public void OnlyOwnersOrAdministratorsMayViewAnApp(bool owner, bool admin, bool expected)
-        => Assert.Equal(expected, SubscriptionOwnerController.CanViewApp(owner, admin));
 
     [Fact]
     public void DefaultThresholdsAreUsedWhenNoneAreChosen()

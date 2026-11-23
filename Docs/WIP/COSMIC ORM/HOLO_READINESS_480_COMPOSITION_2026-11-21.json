@@ -1,0 +1,27 @@
+{
+  "source": "f2f11105a7d7a79097c09631e63d0ccec30c81b5",
+  "workflow": "qualify-cql-snapshot-composition.yml",
+  "timeoutSeconds": 480,
+  "phase": "dispatch_acknowledged",
+  "startedUtc": "2026-11-22T01:37:29.561667+00:00",
+  "liveVerified": false,
+  "run": 44972506394,
+  "status": "completed",
+  "conclusion": "success",
+  "compositionAccepted": true,
+  "artifact": {
+    "id": 14734840773,
+    "bytes": 349,
+    "sha256": "2cfafe15f392577bd88a079c96f4af1bb064d95168552e988dd02cd1e5772615"
+  },
+  "exactGraph": {
+    "core": "69100164ecfef89c9f14255164321ab0222d1187",
+    "web4Compiled": true,
+    "web5Compiled": true,
+    "onode": "d51bdd8cba5183c9a7597f85f1d6ddd4be20d629",
+    "star": "cf763aecfff7cc33d6aeacc9121db01c767a50f6",
+    "source": "f2f11105a7d7a79097c09631e63d0ccec30c81b5",
+    "databaseWrites": 0,
+    "behaviorCasesRun": 0
+  }
+}

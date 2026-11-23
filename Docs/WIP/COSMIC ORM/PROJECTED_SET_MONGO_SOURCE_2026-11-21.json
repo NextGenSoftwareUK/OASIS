@@ -1,0 +1,16 @@
+{
+  "source": "352819a3d9bcbdab1c3376297d59c575fbe07e68",
+  "coreSource": "d22248d3cc99b7cfc447376974605d892637b284",
+  "workflow": "qualify-cql-mongo-projected-set-native.yml",
+  "status": "in_progress",
+  "nativeImplemented": true,
+  "nativeAccepted": false,
+  "compiled": false,
+  "developmentPushed": false,
+  "checks": 7,
+  "ownedRecords": 4,
+  "localBuild": false,
+  "priorSource": "ab5878a02a2de84cbcabe82db2ccbc60d351206d",
+  "run": 44975943926,
+  "conclusion": null
+}

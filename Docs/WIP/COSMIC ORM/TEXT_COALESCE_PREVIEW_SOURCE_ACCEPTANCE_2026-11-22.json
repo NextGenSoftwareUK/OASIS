@@ -1,0 +1,41 @@
+{
+  "source": "dbc80e04171c1e7ee7cf499487ef991a7927a5ae",
+  "deployment": "dpl_HZFD5GZGgCT5HKjPtSbicqtcPEGn",
+  "url": "https://web4-site-ejoh0ube9-oasis-team.vercel.app/web4-sandbox.html",
+  "state": "READY",
+  "assets": [
+    {
+      "path": "web4-sandbox.html",
+      "bytes": 307168,
+      "sha256": "cdb7c6167fdbc7919a8b712df5ed303a0f95c6441641dbd68d7885af180e0cca",
+      "exactSourceMatched": true,
+      "expectedPlatformToolbarBytes": 163
+    },
+    {
+      "path": "cql-text.js",
+      "bytes": 86077,
+      "sha256": "8719080a5fdd362184e26b4cdc41f511479482cda23c2eaa2c098f0c608d536e",
+      "exactSourceMatched": true,
+      "expectedPlatformToolbarBytes": 0
+    },
+    {
+      "path": "cql-playground.js",
+      "bytes": 32992,
+      "sha256": "8666c7d6f08e21726748cbd33d657cd8c2d0f792f0c9b2a4262235fa9b9abffe",
+      "exactSourceMatched": true,
+      "expectedPlatformToolbarBytes": 0
+    },
+    {
+      "path": "cql-ask.js",
+      "bytes": 37587,
+      "sha256": "139d7038a6d1064a2a2e2f69a92085715f266ea66f9d85112b498d66a1e8d28f",
+      "exactSourceMatched": true,
+      "expectedPlatformToolbarBytes": 0
+    }
+  ],
+  "servedSourceAccepted": true,
+  "browserRenderedAccepted": false,
+  "liveQueriesExecuted": 0,
+  "publicPromoted": false,
+  "localAssetsSaved": false
+}

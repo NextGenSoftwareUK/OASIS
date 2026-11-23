@@ -26,6 +26,8 @@ public static partial class CqlV1Endpoint
             var policy=CaptureReadPolicy(http,actor,requested,providers,admission);
             if(!TryResolveEligible(providers,requested,admission,out var storage,out var rowAdapter,out var selected,policy))
                 return Failure(403,"CQL_PROVIDER_NOT_ELIGIBLE","The provider is not eligible for this admitted set.");
+            if(request.Left.Columns!=null || request.Right.Columns!=null)
+                return await ExecuteProjectedSetAsync(http,request,providers,actor,selected,policy?.Access,storage,rowAdapter);
             if(rowAdapter is not ICosmicSetQueryStorageProvider adapter)
                 return Failure(400,"CQL_CAPABILITY_UNSUPPORTED","The provider does not implement native sets.");
             var intent=CqlV1Compiler.CompileSet(request,actor,selected,policy?.Access);
@@ -61,6 +63,7 @@ public static partial class CqlV1Endpoint
         catch(InvalidOperationException) when(!http.Items.ContainsKey(CqlV1ResourceFilter.DispatchedKey))
         {return Failure(503,"CQL_PROVIDER_UNAVAILABLE","The requested provider is unavailable.");}
         catch(CqlV1Projection.Rejected cause){return Failure(cause.Code=="CQL_RESPONSE_LIMIT"?413:503,cause.Code,"Native set rows violated the public output contract.");}
+        catch(ProjectionWireException){return Failure(503,"CQL_PROVIDER_RESULT_INVALID","A selected set scalar has an invalid public wire domain.");}
         catch(ResponseLimitException){return Failure(413,"CQL_RESPONSE_LIMIT","Set response exceeds the public output limit.");}
         catch(OperationCanceledException)
         {return Failure(http.RequestAborted.IsCancellationRequested?499:504,"CQL_QUERY_CANCELLED","The set query was cancelled.");}

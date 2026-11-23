@@ -1,0 +1,35 @@
+{
+  "source": "09d61416ea4ed2926bf044e211fc73502ab4adbe",
+  "deployment": "53ba48e5-1242-48e3-81d6-311ac0ae71d3",
+  "website": "2973da776e44caedf3cef650abdd862ace4865d8",
+  "providers": [
+    {
+      "provider": "MongoDBOASIS",
+      "accepted": true,
+      "rows": 1,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "accepted": true,
+      "rows": 1,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "accepted": true,
+      "rows": 1,
+      "exactCleanupVerified": true
+    }
+  ],
+  "holonWrites": 3,
+  "computedScalars": true,
+  "sessionRevoked": true,
+  "accepted": true,
+  "calls": 18,
+  "credentialsRemoved": true,
+  "strictIntegerCellVerified": true,
+  "browserRendered": false,
+  "realWeb6Inference": false,
+  "piperDataTouched": false
+}

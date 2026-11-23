@@ -1,0 +1,64 @@
+{
+  "source": "f29262d8b6df380e0d267228d92508e4da393561",
+  "core": "32fbf1bfd1e990b3119423bc024e149162d76d3e",
+  "run": 45040193368,
+  "job": 137262684307,
+  "dependencyRun": 45040193341,
+  "dependencyJob": 137262683937,
+  "artifact": 14761254668,
+  "artifactBytes": 4556,
+  "artifactSha256": "75413febbacea5134523b3824983a037fac3c1bc5a3d1643bdfdcc469c9dc676",
+  "files": [
+    "Mongo.trx",
+    "SQLite.trx",
+    "Neo4j.trx",
+    "source.json"
+  ],
+  "stamp": {
+    "independentGroupsAndPagesVerified": true,
+    "providers": [
+      "MongoDBOASIS",
+      "SQLLiteDBOASIS",
+      "Neo4jOASIS"
+    ],
+    "source": "f29262d8b6df380e0d267228d92508e4da393561",
+    "completeOrderedMatchesVerified": true,
+    "unsupportedExecutableSelectorsRefused": true,
+    "core": "32fbf1bfd1e990b3119423bc024e149162d76d3e",
+    "changedMaterializerRegressionPassed": 1,
+    "declaredLeftFieldsVerified": true,
+    "sharedDatabaseCalls": 0,
+    "ownedFixturesAbsent": true,
+    "deployed": false,
+    "newNativePassed": 3
+  },
+  "cases": [
+    {
+      "provider": "Mongo",
+      "name": "NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests.CosmicCqlNativeTests.NativeGroupJoinProjectsDeclaredOuterFieldsAndCompleteMatches",
+      "duration": "00:00:00.3068226",
+      "outcome": "Passed"
+    },
+    {
+      "provider": "Mongo",
+      "name": "NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests.CosmicCqlNativeTests.NativeGroupJoinPreservesLeftIdentityOrderedMatchesAndCompleteGroupPage",
+      "duration": "00:00:01.0440803",
+      "outcome": "Passed"
+    },
+    {
+      "provider": "SQLite",
+      "name": "NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests.SQLLiteDBOASISIntegrationTests.NativeGroupJoinProjectsDeclaredOuterFieldsAndCompleteMatches",
+      "duration": "00:00:01.8272440",
+      "outcome": "Passed"
+    },
+    {
+      "provider": "Neo4j",
+      "name": "NativeGroupJoinProjectsDeclaredOuterFieldsAndCompleteMatches",
+      "duration": "00:00:05.5075052",
+      "outcome": "Passed"
+    }
+  ],
+  "nativeAccepted": true,
+  "liveAccepted": false,
+  "archiveSaved": false
+}

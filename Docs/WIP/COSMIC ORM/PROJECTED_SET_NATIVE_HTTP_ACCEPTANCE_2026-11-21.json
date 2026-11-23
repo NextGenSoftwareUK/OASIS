@@ -1,0 +1,79 @@
+{
+  "source": "4d3dd349856625a0cbfde6ecc8df5ae00c2668f0",
+  "core": "4343c083f4c31df916c5b8e19263f83d4875144d",
+  "run": 44985236025,
+  "job": 137094255478,
+  "artifact": {
+    "id": 14738739597,
+    "bytes": 2818,
+    "sha256": "42adce6b344225d19778cbf23a767af0f01e836a90b171101519947ab17e1e2d"
+  },
+  "cases": 3,
+  "nativeHttpAccepted": true,
+  "developmentPushed": false,
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 3,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "owner-http": 570,
+        "foreign-http": 58,
+        "anonymous-http": 5
+      },
+      "nativeProviderVerified": true,
+      "realHttpVerified": true,
+      "selectedVisibleColumnsVerified": true,
+      "concatMultiplicityVerified": true,
+      "foreignRowsHiddenVerified": true,
+      "anonymousRefusedVerified": true,
+      "usageSettledVerified": true,
+      "oneNativeAttemptPerReadVerified": true,
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 3,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "owner-http": 67,
+        "foreign-http": 20,
+        "anonymous-http": 1
+      },
+      "nativeProviderVerified": true,
+      "realHttpVerified": true,
+      "selectedVisibleColumnsVerified": true,
+      "concatMultiplicityVerified": true,
+      "foreignRowsHiddenVerified": true,
+      "anonymousRefusedVerified": true,
+      "usageSettledVerified": true,
+      "oneNativeAttemptPerReadVerified": true,
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 3,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "owner-http": 2040,
+        "foreign-http": 48,
+        "anonymous-http": 1
+      },
+      "nativeProviderVerified": true,
+      "realHttpVerified": true,
+      "selectedVisibleColumnsVerified": true,
+      "concatMultiplicityVerified": true,
+      "foreignRowsHiddenVerified": true,
+      "anonymousRefusedVerified": true,
+      "usageSettledVerified": true,
+      "oneNativeAttemptPerReadVerified": true,
+      "exactCleanupVerified": true
+    }
+  },
+  "ownedMongoStopped": true,
+  "ownedNeoContainerStopped": true,
+  "sharedAtlasOperations": 0
+}

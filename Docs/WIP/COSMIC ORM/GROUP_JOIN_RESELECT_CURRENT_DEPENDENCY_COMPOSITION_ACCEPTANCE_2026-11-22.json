@@ -1,0 +1,15 @@
+{
+  "source": "0fe0b90913c93898eba06140eb817f916a6abe2d",
+  "core": "34848a57c2b165696bdeda91d26e0a7cddd273c8",
+  "run": 45027751578,
+  "job": 137224402648,
+  "artifact": 14756442264,
+  "bytes": 1947,
+  "sha256": "c69ff1492978b6d4b28a437ac26323640fb9f5626576dac1f696420db7254825",
+  "testsPassed": 3,
+  "web4Compiled": true,
+  "web5Compiled": true,
+  "dataWrites": 0,
+  "compositionAccepted": true,
+  "archiveSaved": false
+}

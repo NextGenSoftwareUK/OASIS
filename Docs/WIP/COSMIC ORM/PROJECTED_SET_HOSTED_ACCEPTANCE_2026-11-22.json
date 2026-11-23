@@ -1,0 +1,42 @@
+{
+  "source": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
+  "website": "251e316de349cc1a177cfcb91733937a1e3bf2f8",
+  "deployment": "5379fa31-02e0-4b54-b1c9-62399d5c03a5",
+  "providers": [
+    {
+      "provider": "MongoDBOASIS",
+      "accepted": true,
+      "rows": 2,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "accepted": true,
+      "rows": 2,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "accepted": true,
+      "rows": 2,
+      "exactCleanupVerified": true
+    }
+  ],
+  "calls": 21,
+  "ownedWrites": 3,
+  "ownedRecordsAbsent": true,
+  "sessionsRevoked": 2,
+  "protectedCredentialFilesRemaining": 0,
+  "neoReadiness": [
+    {
+      "provider": "Neo4jOASIS",
+      "available": true,
+      "errorCode": null,
+      "activationGeneration": 1,
+      "activationHostInstance": "341a177d-455e-496c-a2c5-efac16f79321"
+    }
+  ],
+  "initialNeoRefusalPreserved": true,
+  "allThreeHostedAccepted": true,
+  "verificationScope": "Populated website SQL compiler to native selected-column Concat on three shipping providers; no general full parity or real WEB6 inference claim."
+}

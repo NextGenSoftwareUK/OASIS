@@ -1,0 +1,69 @@
+{
+  "source": "f26edeef1152961a2b46f2149a6c28c08188a09a",
+  "deployment": "416cbaae-740e-42ff-9ef9-3cbb3f7a296b",
+  "website": "580d407b78d40dedda6a88c0c203e1f2b7fd1f87",
+  "providers": [
+    {
+      "provider": "MongoDBOASIS",
+      "accepted": true,
+      "rows": 2,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "accepted": true,
+      "rows": 2,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "accepted": true,
+      "rows": 2,
+      "exactCleanupVerified": true
+    }
+  ],
+  "calls": 17,
+  "ownedHolonCreates": 3,
+  "exactOwnedHolonDeletes": 3,
+  "owned": {
+    "MongoDBOASIS": {
+      "id": "c3f2ea77-0132-437c-aa4c-ea8a32683dd6",
+      "saveAcknowledged": true,
+      "deleteAcknowledged": true,
+      "saveOperationId": "7fd4535e-af8f-49e6-81af-68f2b747f646",
+      "revision": "9b21ecb2-6ad8-427a-b86f-dba2cf5bd96c",
+      "sqlSetAccepted": true,
+      "deleteOperationId": "1fd855ac-2a40-485b-bb57-7869855fa3dc",
+      "absenceVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "id": "bffbbbcd-f028-4ca2-9722-75d611e6ebaa",
+      "saveAcknowledged": true,
+      "deleteAcknowledged": true,
+      "saveOperationId": "18b342c6-0a46-42f3-9d05-a921f2362e09",
+      "revision": "de921c79-dcf5-45ba-94e0-662435284f28",
+      "sqlSetAccepted": true,
+      "deleteOperationId": "177134ff-b9a2-4bb1-afc8-5c89d1600aff",
+      "absenceVerified": true
+    },
+    "Neo4jOASIS": {
+      "id": "1ead2287-ba88-43a4-a647-50cefd8c2fe9",
+      "saveAcknowledged": true,
+      "deleteAcknowledged": true,
+      "saveOperationId": "49f92398-91c3-4e4a-8350-3243fe9b1baf",
+      "revision": "e81eb5f7-1f13-493b-8c93-1d5d415df72e",
+      "sqlSetAccepted": true,
+      "deleteOperationId": "89136b52-b03f-4d7d-a144-f39a77cd6d4f",
+      "absenceVerified": true
+    }
+  },
+  "sessionRevoked": true,
+  "credentialFilesRemoved": true,
+  "protectedAdmissionBackupsRemoved": [
+    "C:\\Source\\OASIS2\\LocalState\\COSMIC\\NativeSetAdmissionCurrent\\admission-before.dpapi",
+    "C:\\Source\\OASIS2\\LocalState\\COSMIC\\NativeSetAdmissionCurrent\\admission-candidate.dpapi"
+  ],
+  "replicationEnabled": false,
+  "scope": "Live exact backend and website SQL compiler to real native Concat on three providers; conditional own-record create/delete/absence. Not all operators/ordering/browser/full ORM parity.",
+  "initialNeo503CauseProven": false
+}

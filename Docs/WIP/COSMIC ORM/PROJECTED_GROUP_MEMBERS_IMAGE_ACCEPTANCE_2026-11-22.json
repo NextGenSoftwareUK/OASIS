@@ -1,0 +1,28 @@
+{
+  "source": "724ac7e5e4b67ef6d4117dd054825e40085cb77e",
+  "core": "21a5966a12aa9c57109131cf7a519394d30e9a27",
+  "web6": "285884e6741c5a26055df90e9f5932317ba3b219",
+  "onodeCore": "1b28ed0436173b827e58b75a3bb5a99c1bb661ec",
+  "run": 45074754112,
+  "job": 137369403714,
+  "digest": "sha256:ab5d4a6eec767a2f47782d749afb0aeb5e3a475a48113ac2b6ece8f4b6eae860",
+  "teachingSidecars": false,
+  "exactPrivatePinsVerified": true,
+  "contractQualifiedSource": "0b2d34f32684befabaf2b43fe708b94b31e86a9f",
+  "contractRun": 45072884018,
+  "reviewedQualifiedSourceDelta": [
+    "Docs/Devs/COSMIC_LINQ_GROUPING.md",
+    "Docs/WIP/COSMIC ORM/CQL_PARITY_CHECKLIST.md",
+    "Docs/WIP/COSMIC ORM/CURRENT_STATUS.md",
+    "Docs/WIP/COSMIC ORM/GROUPBY_OVERLOADS_IMAGE_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/GROUPBY_OVERLOADS_RELEASE_CANDIDATE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/PROJECTED_GROUP_MEMBERS_CANDIDATE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/PROJECTED_GROUP_MEMBERS_DEVELOPMENT_COMPOSITION_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/PROJECTED_GROUP_MEMBERS_NATIVE_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/PersonalChargeCorrections.cs",
+    "ONODE/Tests/SubscriptionLedger.ProtocolTests/PaidOverageLedgerTests.cs"
+  ],
+  "deployed": false,
+  "imageDownloadedLocally": false
+}

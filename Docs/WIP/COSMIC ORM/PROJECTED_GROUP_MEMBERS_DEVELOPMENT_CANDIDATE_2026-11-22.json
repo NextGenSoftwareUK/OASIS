@@ -1,0 +1,190 @@
+{
+  "source": "f6530263dc3ae7bb7f6b638519bff9226ea625c3",
+  "producerSource": "724ac7e5e4b67ef6d4117dd054825e40085cb77e",
+  "core": "21a5966a12aa9c57109131cf7a519394d30e9a27",
+  "baseDevelopment": "abbe207b17c8f6b6e727ab2b1ce00be16a920844",
+  "digest": "sha256:ab5d4a6eec767a2f47782d749afb0aeb5e3a475a48113ac2b6ece8f4b6eae860",
+  "preservedDevelopmentUnitTestPaths": [
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/Subscription/PaidOverageStripeSandboxTests.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/Subscription/SubscriptionControllerTests.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/Subscription/UsageVisibilityMongoTests.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/UsageSeriesTests.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/UsageVisibilityTests.cs"
+  ],
+  "producerTreeDeltaOnlySeparateUnitTests": true,
+  "runtimeTreeEquivalentToQualifiedProducer": true,
+  "imageAccepted": true,
+  "packageAccepted": true,
+  "manifestGatePassed": true,
+  "allIncomingUnitTestBlobsPreserved": true,
+  "newerUnqualifiedEntityGroupingExcluded": true,
+  "developmentPushed": true,
+  "liveAccepted": false,
+  "deliveryScopeAccepted": true,
+  "runtimeRootPaths": [
+    "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
+  ],
+  "nativeAccepted": true,
+  "developmentPushPhase": "acknowledged",
+  "developmentPushRequestedAt": "2026-11-22T22:36:05.978553+00:00",
+  "peerSource": "73d36867c08e9f82b78e2df456258ce1996943f1",
+  "priorOwnPushElapsedMinutes": 135.5,
+  "priorRolloutObservation": {
+    "web6": {
+      "deployment": "01b84fbe-0623-4fc3-9194-92c97850f8df",
+      "status": "SUCCESS",
+      "source": "abbe207b17c8f6b6e727ab2b1ce00be16a920844",
+      "imageDigest": "sha256:b158b0c439f9e59b0064fda7e973ae701351938dc74fd8aa5cc2dab5268c9e09"
+    },
+    "web7": {
+      "deployment": "e26d169d-59ed-466f-b0d1-e99d62bed6c7",
+      "status": "SUCCESS",
+      "source": "abbe207b17c8f6b6e727ab2b1ce00be16a920844",
+      "imageDigest": "sha256:a8f14ea7e60d142fcb6c8e2fba4517da76f21092dc8935c74a2da3f72af23726"
+    },
+    "web9": {
+      "deployment": "9a8e0e7e-32e7-4d8c-a4d3-004058abb5ea",
+      "status": "SUCCESS",
+      "source": "abbe207b17c8f6b6e727ab2b1ce00be16a920844",
+      "imageDigest": "sha256:37446c989b47249a537291f6b1ecc947e0eeb1e0d5d44a144aed8e86bd0f6ce0"
+    },
+    "web4": {
+      "deployment": "ef32b4f5-f978-4ce7-bffc-d321335e54ce",
+      "status": "SUCCESS",
+      "source": "abbe207b17c8f6b6e727ab2b1ce00be16a920844",
+      "imageDigest": "sha256:b48ceef70604cc2a186d1714a06a29e8650693a47e509ccdfc943eaa8bb8f63f"
+    },
+    "web10": {
+      "deployment": "f9f64286-02f9-437c-82b2-488f98f8fc8a",
+      "status": "SUCCESS",
+      "source": "abbe207b17c8f6b6e727ab2b1ce00be16a920844",
+      "imageDigest": "sha256:50924c4be6232d5e6153fce847962abd2b6a3eac168e7e085e9c1603948d7cb4"
+    },
+    "web8": {
+      "deployment": "6e8457d0-0d12-4bb6-8458-d550523ebec6",
+      "status": "SUCCESS",
+      "source": "abbe207b17c8f6b6e727ab2b1ce00be16a920844",
+      "imageDigest": "sha256:6ead1413ac730091ba5448e9f0444565cfddaebfb1cdb39c70918b4d4cd60273"
+    },
+    "web5": {
+      "deployment": "0afd13ca-1961-44fa-9599-b1685950d052",
+      "status": "SUCCESS",
+      "source": "abbe207b17c8f6b6e727ab2b1ce00be16a920844",
+      "imageDigest": "sha256:44ffeb8f1a605e0babbd707d7c6b71e94f3b96d74ae4a4155e1d3c48072afee9"
+    }
+  },
+  "cadenceException": null,
+  "developmentPushedAt": "2026-11-22T22:36:15.950417+00:00",
+  "observedDevelopmentAfterPush": "f6530263dc3ae7bb7f6b638519bff9226ea625c3",
+  "phase": "deployment_and_runtime_verified",
+  "web6Deployment": "59b5adcf-3252-40b0-8c7b-ffcc57050242",
+  "web6DeploymentStatus": "SUCCESS",
+  "web7Deployment": "cb1de341-df8a-43ca-9807-a6a97013878b",
+  "web7DeploymentStatus": "SUCCESS",
+  "web9Deployment": "b700d0b4-e3fb-48f6-9325-af1acdc55cb2",
+  "web9DeploymentStatus": "SUCCESS",
+  "web4Deployment": "fe85c078-5a2c-4a26-a4bd-9d92d968f067",
+  "web4DeploymentStatus": "SUCCESS",
+  "web10Deployment": "0fd2829b-0609-4860-8f84-1f1dab3d53d5",
+  "web10DeploymentStatus": "SUCCESS",
+  "web8Deployment": "eaf6f182-5f35-479c-90a8-e4ff1c68b2b5",
+  "web8DeploymentStatus": "SUCCESS",
+  "web5Deployment": "521c3e86-528a-4778-9d2c-80dd18c1b130",
+  "web5DeploymentStatus": "SUCCESS",
+  "latestRolloutObservation": {
+    "web6": {
+      "deployment": "aeeb8c69-2d31-4e95-aacf-5e8ba70b52de",
+      "status": "QUEUED",
+      "source": "b82e1fa55a521c22f5110cb7cbd1fd4599040ebb",
+      "imageDigest": null
+    },
+    "web7": {
+      "deployment": "d3085d17-4f27-4c12-830a-256baa260307",
+      "status": "BUILDING",
+      "source": "b82e1fa55a521c22f5110cb7cbd1fd4599040ebb",
+      "imageDigest": null
+    },
+    "web9": {
+      "deployment": "856fada0-b215-4e33-b329-774552f2e371",
+      "status": "BUILDING",
+      "source": "b82e1fa55a521c22f5110cb7cbd1fd4599040ebb",
+      "imageDigest": null
+    },
+    "web4": {
+      "deployment": "4484dbe0-fb69-4476-8e25-e1b203796432",
+      "status": "QUEUED",
+      "source": "b82e1fa55a521c22f5110cb7cbd1fd4599040ebb",
+      "imageDigest": null
+    },
+    "web10": {
+      "deployment": "c0817507-e722-48cb-bcba-5027116debc3",
+      "status": "QUEUED",
+      "source": "b82e1fa55a521c22f5110cb7cbd1fd4599040ebb",
+      "imageDigest": null
+    },
+    "web8": {
+      "deployment": "2a1c7396-6663-47db-b83d-7088ab6bc4ba",
+      "status": "BUILDING",
+      "source": "b82e1fa55a521c22f5110cb7cbd1fd4599040ebb",
+      "imageDigest": null
+    },
+    "web5": {
+      "deployment": "0ab934bb-cbc0-4a50-9d39-37c2631a4b82",
+      "status": "QUEUED",
+      "source": "b82e1fa55a521c22f5110cb7cbd1fd4599040ebb",
+      "imageDigest": null
+    }
+  },
+  "qualifiedOriginalRolloutObservation": {
+    "web4": {
+      "deployment": "fe85c078-5a2c-4a26-a4bd-9d92d968f067",
+      "status": "SUCCESS",
+      "source": "f6530263dc3ae7bb7f6b638519bff9226ea625c3",
+      "imageDigest": "sha256:49bf9a0b053b95cbdfdee8767a375353d43bd3e965a438096b03743254eb0834"
+    },
+    "web5": {
+      "deployment": "521c3e86-528a-4778-9d2c-80dd18c1b130",
+      "status": "SUCCESS",
+      "source": "f6530263dc3ae7bb7f6b638519bff9226ea625c3",
+      "imageDigest": "sha256:121f4553edc01838dd68c10fc79ca14161031ad563d2e2527e4aa37f831b5029"
+    },
+    "web6": {
+      "deployment": "59b5adcf-3252-40b0-8c7b-ffcc57050242",
+      "status": "SUCCESS",
+      "source": "f6530263dc3ae7bb7f6b638519bff9226ea625c3",
+      "imageDigest": "sha256:b44e75a44bb06d5d5178ca148094bf4c27d420785a261c310991beab344e6f99"
+    },
+    "web7": {
+      "deployment": "cb1de341-df8a-43ca-9807-a6a97013878b",
+      "status": "SUCCESS",
+      "source": "f6530263dc3ae7bb7f6b638519bff9226ea625c3",
+      "imageDigest": "sha256:8c8815cdce9f179244e6811bb9b9e24dd15962eccbe7fac4ea65cc2e949d9b36"
+    },
+    "web8": {
+      "deployment": "eaf6f182-5f35-479c-90a8-e4ff1c68b2b5",
+      "status": "SUCCESS",
+      "source": "f6530263dc3ae7bb7f6b638519bff9226ea625c3",
+      "imageDigest": "sha256:d4cea3906d6b24a8ca8ea0e9af8e4a8f1e9fc94b992e9e7f5bc6b076ad1a0986"
+    },
+    "web9": {
+      "deployment": "b700d0b4-e3fb-48f6-9325-af1acdc55cb2",
+      "status": "SUCCESS",
+      "source": "f6530263dc3ae7bb7f6b638519bff9226ea625c3",
+      "imageDigest": "sha256:7006e252fd39e927b54ad7f6320935942e116f7ceda962bb0f17c1fe25ce103b"
+    },
+    "web10": {
+      "deployment": "0fd2829b-0609-4860-8f84-1f1dab3d53d5",
+      "status": "SUCCESS",
+      "source": "f6530263dc3ae7bb7f6b638519bff9226ea625c3",
+      "imageDigest": "sha256:77cc07d2976ad6c5e446da4ed057e9e6596393a80e8a9d1af823619db0bc9213"
+    }
+  },
+  "deployed": true,
+  "deploymentAccepted": true,
+  "runtimeSettingsAccepted": true,
+  "allSevenDevelopmentDeploymentsSucceeded": true,
+  "customerCollectionQueriesExecuted": false,
+  "realPiperBusinessAccountAcceptance": false,
+  "liveRuntimeProof": "PROJECTED_GROUP_MEMBERS_DEVELOPMENT_ACCEPTANCE_2026-11-22.json"
+}

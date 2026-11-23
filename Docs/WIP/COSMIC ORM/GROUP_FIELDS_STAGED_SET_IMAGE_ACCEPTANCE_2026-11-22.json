@@ -1,0 +1,21 @@
+{
+  "source": "f29262d8b6df380e0d267228d92508e4da393561",
+  "core": "32fbf1bfd1e990b3119423bc024e149162d76d3e",
+  "web6": "d9e60ceaecef5513d1bcd6285cd668076bc77edf",
+  "onodeCore": "1b28ed0436173b827e58b75a3bb5a99c1bb661ec",
+  "run": 45041530132,
+  "job": 137266853304,
+  "digest": "sha256:7c0ae0fde2fb569d224f19edd7041d03be5a680021d0c2f1d3627040c73fecfe",
+  "teachingSidecars": false,
+  "exactPrivatePinsVerified": true,
+  "nativeGroupFieldsRun": 45040193368,
+  "stagedSetOriginalNativeRun": 45038000464,
+  "stagedSetOriginalCore": "34848a57c2b165696bdeda91d26e0a7cddd273c8",
+  "reviewedCoreChangedPaths": [
+    "Queries/CosmicLinq.GroupJoin.cs",
+    "Queries/CosmicLinq.SelectMany.cs"
+  ],
+  "stagedApiTreeUnchanged": true,
+  "deployed": false,
+  "noImageDownloaded": true
+}

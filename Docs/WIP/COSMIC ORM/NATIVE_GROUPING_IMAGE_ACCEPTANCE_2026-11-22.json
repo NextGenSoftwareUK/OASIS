@@ -1,0 +1,23 @@
+{
+  "source": "4ffc955ea7b656527b2c8b5e1943a8c41017037c",
+  "core": "6b227830bfb0e81f352207a02aa255379ed881c3",
+  "web6": "d9e60ceaecef5513d1bcd6285cd668076bc77edf",
+  "onodeCore": "1b28ed0436173b827e58b75a3bb5a99c1bb661ec",
+  "run": 45064714122,
+  "job": 137338178042,
+  "digest": "sha256:3bc088235ff416cf34f879b1deb0c146c9a77aff73705ecb285908e1ccae6fc1",
+  "teachingSidecars": false,
+  "exactPrivatePinsVerified": true,
+  "contractQualifiedSource": "9377df3eca7b01ef129458b22c10874d8e8cba6b",
+  "contractRun": 45063783244,
+  "reviewedNonRuntimeDelta": [
+    "Docs/Devs/COSMIC_LINQ_GROUPING.md",
+    "Docs/WIP/COSMIC ORM/CQL_PARITY_CHECKLIST.md",
+    "Docs/WIP/COSMIC ORM/CURRENT_STATUS.md",
+    "Docs/WIP/COSMIC ORM/LINQ_GROUPBY_CANDIDATE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/LINQ_GROUPBY_NATIVE_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md"
+  ],
+  "deployed": false,
+  "imageDownloadedLocally": false
+}

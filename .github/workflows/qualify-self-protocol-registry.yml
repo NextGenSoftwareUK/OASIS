@@ -5,8 +5,6 @@ on:
     branches: [work/cosmic-cql-ton-public]
     paths:
       - '.github/workflows/qualify-self-protocol-registry.yml'
-      - 'Docker/oasis-dependency-versions.env'
-      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core'
       - 'Providers/Identity/NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS/**'
       - 'Providers/Identity/TestProjects/NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS.UnitTests/**'
       - 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/ReviewedEvmReadClient.cs'

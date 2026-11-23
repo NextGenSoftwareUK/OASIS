@@ -1,0 +1,95 @@
+{
+  "source": "c25ce0b7ac7d6b1de734e31d7bbc2c706de7c384",
+  "core": "babf7b82936f07d9decff57fac52b08ed527eb35",
+  "baseDevelopment": "f7516ea95979c41b1c9df62f6bd5ab108d61486b",
+  "peerCore": "c486c152b05d1d5d4a9afc312dd2121c9299e1c1",
+  "productionPaths": [
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlVirtualProjectionV1Compiler.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.NativeProjection.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.NativeProjection.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.NativeProjection.cs"
+  ],
+  "qualificationFixture": "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CqlMappedComputedWireTests.cs",
+  "nativeQueryContractSource": "5240d3bd34d003407fe8b08070203e8d4efb5e1a",
+  "previousAcceptedComposition": {
+    "source": "fbcb99a9ee3b71374437a2c356743398b8ed95af",
+    "core": "5240d3bd34d003407fe8b08070203e8d4efb5e1a",
+    "workflowControl": "a5ac1ba0f3033c91c3d89c6e0770aa8b60b8b159",
+    "run": 45005838375,
+    "job": 137157113992,
+    "artifact": 14749265298,
+    "bytes": 1944,
+    "sha256": "77024b5207430c677fa5933bd07aa9160daccfafa22fa80e20e7199d980f06c5",
+    "testsPassed": 3,
+    "web4Compiled": true,
+    "web5Compiled": true,
+    "dataWrites": 0,
+    "compositionAccepted": true,
+    "archiveSaved": false
+  },
+  "compositionAccepted": true,
+  "nativeQualificationAccepted": true,
+  "nativeQualificationRun": 45004657247,
+  "mongoCorrectionRun": 45010074469,
+  "workerGateTestsPassed": 6,
+  "manifestValidated": true,
+  "imageAccepted": true,
+  "packageAccepted": false,
+  "developmentPushed": false,
+  "liveAccepted": false,
+  "mongoCorrectionSource": "c2c158a0bfaf446fe15e66d864a586bf897c167d",
+  "compositionExactCandidateSource": true,
+  "retainedCompositionSource": "5b48998592d677a9a8ab020e8972593fe697f70f",
+  "retainedCompilationCore": "1d627b36d81e53284a51455baca3e4c733a2b13a",
+  "reviewedCompatibilityDelta": "Queries/CosmicSelectedStageProofEvaluator.cs",
+  "reviewedRootDelta": [
+    "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "ONODE/ONODEManager",
+    "ONODE/Tests/SubscriptionLedger.ProtocolTests/SubscriptionLedger.ProtocolTests.csproj",
+    "WEB6"
+  ],
+  "exactImageCompilationRequired": true,
+  "nativeEvidenceSources": [
+    {
+      "provider": "SQLLiteDBOASIS",
+      "source": "5d39eeddbc29f168d81e6a26af355f6531251605",
+      "core": "5240d3bd34d003407fe8b08070203e8d4efb5e1a",
+      "run": 45004657247
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "source": "5d39eeddbc29f168d81e6a26af355f6531251605",
+      "core": "5240d3bd34d003407fe8b08070203e8d4efb5e1a",
+      "run": 45004657247
+    },
+    {
+      "provider": "MongoDBOASIS",
+      "source": "c2c158a0bfaf446fe15e66d864a586bf897c167d",
+      "core": "1d627b36d81e53284a51455baca3e4c733a2b13a",
+      "run": 45010074469
+    }
+  ],
+  "previousAcceptedCurrentComposition": {
+    "source": "5b48998592d677a9a8ab020e8972593fe697f70f",
+    "core": "1d627b36d81e53284a51455baca3e4c733a2b13a",
+    "workflowControl": "1626a6482d6e439d0b62bac96a3b667c6f6e5e74",
+    "run": 45009513105,
+    "job": 137168492230,
+    "artifact": 14749818775,
+    "bytes": 1954,
+    "sha256": "e94469673ef722bb9c37064e99f8ce6444b35c7c45d6d14e8d782e67afe84a7e",
+    "testsPassed": 3,
+    "web4Compiled": true,
+    "web5Compiled": true,
+    "dataWrites": 0,
+    "compositionAccepted": true,
+    "archiveSaved": false
+  },
+  "requiresCurrentGraphCompile": true,
+  "compositionRun": 45014425835,
+  "compositionArtifact": 14754211746,
+  "imageRun": 45014821002,
+  "imageDigest": "sha256:990809aaf471f28f9115c858afe04b8e1a81bfa104f50d3c43d11077e1768a9b",
+  "packageRun": 45021700914
+}

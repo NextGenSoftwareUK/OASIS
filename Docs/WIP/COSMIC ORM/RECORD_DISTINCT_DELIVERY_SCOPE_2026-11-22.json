@@ -1,0 +1,28 @@
+{
+  "producerSource": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
+  "developmentBase": "f29262d8b6df380e0d267228d92508e4da393561",
+  "coreBase": "32fbf1bfd1e990b3119423bc024e149162d76d3e",
+  "coreSource": "1f649cd707df50f6ef8f999583e1117054a43133",
+  "rootChangedFiles": 37,
+  "reviewedRuntimePaths": [
+    "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlCompositionV1Request.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlCompositionV1Compiler.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.Composition.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.CompositionCompiler.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.CompositionSql.cs"
+  ],
+  "reviewedCorePaths": [
+    "Queries/CosmicProjectedSetProof.cs",
+    "Queries/CosmicProjectionComposition.cs",
+    "Queries/CosmicProjectionCompositionPlanning.cs",
+    "Queries/CosmicScalarTupleEquality.cs",
+    "Queries/CosmicSelectedStageProofEvaluator.cs"
+  ],
+  "allOtherGitlinksPreserved": true,
+  "imageAccepted": false,
+  "packageAccepted": false,
+  "pushedToDevelopment": false,
+  "scope": "source delivery review only; image/package/deployed proof separate"
+}

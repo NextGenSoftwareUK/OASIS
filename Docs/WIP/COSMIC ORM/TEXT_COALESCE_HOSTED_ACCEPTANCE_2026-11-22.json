@@ -1,0 +1,160 @@
+{
+  "source": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+  "website": "dbc80e04171c1e7ee7cf499487ef991a7927a5ae",
+  "deployment": "10255aee-f198-4f67-b936-b3b9e4ae234d",
+  "providers": [
+    {
+      "provider": "MongoDBOASIS",
+      "accepted": true,
+      "rows": 1,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "accepted": true,
+      "rows": 1,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "accepted": true,
+      "rows": 1,
+      "exactCleanupVerified": true
+    }
+  ],
+  "calls": [
+    {
+      "path": "sandbox/session",
+      "status": 200,
+      "isError": false,
+      "operationId": "fc781e13-d552-468a-8f5a-9096cd01ad75",
+      "provider": null
+    },
+    {
+      "path": "data/query-cql/providers?examplesVersion=2",
+      "status": 200,
+      "isError": false,
+      "operationId": "045b023a-08db-4444-890a-0662cb1c6543",
+      "provider": null
+    },
+    {
+      "path": "data/query-cql",
+      "status": 200,
+      "isError": false,
+      "operationId": "8f086013-65b8-4390-8eab-78c367260a94",
+      "provider": "MongoDBOASIS"
+    },
+    {
+      "path": "data/save-holon",
+      "status": 200,
+      "isError": false,
+      "operationId": "fa38ec47-b3c9-4020-bedb-400ad971421f",
+      "provider": null
+    },
+    {
+      "path": "data/query-cql/projection",
+      "status": 200,
+      "isError": false,
+      "operationId": "93c6fb85-3aac-45ba-8072-5e589b5a1f58",
+      "provider": "MongoDBOASIS"
+    },
+    {
+      "path": "data/delete-holon",
+      "status": 200,
+      "isError": false,
+      "operationId": "c836652c-16f9-4d68-9c8e-b13795f4b738",
+      "provider": null
+    },
+    {
+      "path": "data/query-cql",
+      "status": 200,
+      "isError": false,
+      "operationId": "205e830a-4527-4967-8494-03bff1c4b172",
+      "provider": "MongoDBOASIS"
+    },
+    {
+      "path": "data/query-cql",
+      "status": 200,
+      "isError": false,
+      "operationId": "e1cf42c7-1177-4e27-8c56-ad06692bcd0a",
+      "provider": "SQLLiteDBOASIS"
+    },
+    {
+      "path": "data/save-holon",
+      "status": 200,
+      "isError": false,
+      "operationId": "08272469-1557-4c56-aea1-ac213ffd9848",
+      "provider": null
+    },
+    {
+      "path": "data/query-cql/projection",
+      "status": 200,
+      "isError": false,
+      "operationId": "120c3cf9-54c6-4508-abc6-ddb510dceebc",
+      "provider": "SQLLiteDBOASIS"
+    },
+    {
+      "path": "data/delete-holon",
+      "status": 200,
+      "isError": false,
+      "operationId": "f3f758ff-2e23-4a33-989f-9f3a63046879",
+      "provider": null
+    },
+    {
+      "path": "data/query-cql",
+      "status": 200,
+      "isError": false,
+      "operationId": "2b15ea51-aaf4-4a92-b0d0-b34192ed4823",
+      "provider": "SQLLiteDBOASIS"
+    },
+    {
+      "path": "data/query-cql",
+      "status": 200,
+      "isError": false,
+      "operationId": "1b4513e7-cf4c-40e6-b480-3cc1513bf941",
+      "provider": "Neo4jOASIS"
+    },
+    {
+      "path": "data/save-holon",
+      "status": 200,
+      "isError": false,
+      "operationId": "de481aca-12df-4289-b516-0dc53d1b164c",
+      "provider": null
+    },
+    {
+      "path": "data/query-cql/projection",
+      "status": 200,
+      "isError": false,
+      "operationId": "38dd6875-7654-414f-81c4-32ad782ed4a8",
+      "provider": "Neo4jOASIS"
+    },
+    {
+      "path": "data/delete-holon",
+      "status": 200,
+      "isError": false,
+      "operationId": "bcc8e3cb-a8a5-429f-844e-d49601288c59",
+      "provider": null
+    },
+    {
+      "path": "data/query-cql",
+      "status": 200,
+      "isError": false,
+      "operationId": "8388178b-45bc-4289-9f10-935831aecd41",
+      "provider": "Neo4jOASIS"
+    },
+    {
+      "path": "avatar/revoke-token",
+      "status": 200,
+      "isError": false,
+      "operationId": "c382eee2-aaa0-4bd9-adc6-7fec39d65beb",
+      "provider": null
+    }
+  ],
+  "holonWrites": 3,
+  "textCoalesce": true,
+  "sessionRevoked": true,
+  "credentialsRemoved": true,
+  "sharedPiperDataChanged": false,
+  "browserRenderedAccepted": false,
+  "realWeb6InferenceAccepted": false
+}

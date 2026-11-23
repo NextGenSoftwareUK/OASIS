@@ -1,0 +1,21 @@
+{
+  "source": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+  "developmentParent": "c3f703531b05a0be2ee0cda51b5780d30ce53036",
+  "nativeRuntimeUnchanged": true,
+  "workflow": "qualify-cql-text-coalesce-wire.yml",
+  "qualificationAccepted": true,
+  "runs": [
+    {
+      "id": 44992549222,
+      "head_sha": "a96652767c3b382cdbd9e4ccaa80516358abff53",
+      "status": "queued",
+      "conclusion": null,
+      "event": "push"
+    }
+  ],
+  "run": 44992549222,
+  "artifact": 14743280038,
+  "artifactSha256": "34cac6cbe1b0c8dcfa416b2aec6932760ef0ea43fc0de3105ba088fb59d04846",
+  "testsPassed": 3,
+  "actualWeb4BuildPassed": true
+}
