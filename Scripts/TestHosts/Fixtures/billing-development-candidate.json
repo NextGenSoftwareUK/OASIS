@@ -5,13 +5,14 @@
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
     "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
-    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Infrastructure/Serializers/MetaDataDictionarySerializer.cs"
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Infrastructure/Serializers/MetaDataDictionarySerializer.cs",
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv"
   ],
-  "status": "Actual Inventory quantity lost on native catalogue read; model fields now declared durable, Mongo lists/URIs preserve native JSON shape; current fluent CQL preserved",
+  "status": "Inventory model/native URI-list fix plus one reviewed expression-bodied metadata wrapper; current fluent mapping source preserved",
   "nativeMode": "storefront-browser",
   "nativeHost": "HotspotHttpNative",
   "portal": "71ea1255c7e7241cdc766179aaf4d4525865004a",
   "scope": "billing",
-  "tag": "qualification/inventory-fields-native-ui-20261123",
-  "candidate": "80f9d9e7dd91afebf7bc2fd41cb57dfd1d939a6d"
+  "tag": "qualification/inventory-fields-native-ui-reviewed-20261123",
+  "candidate": "21abed0bedfde0399f66eef1da62cff0d92d34b7"
 }
