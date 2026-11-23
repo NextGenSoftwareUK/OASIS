@@ -68,7 +68,7 @@ on:
         description: New popup journey only; reuses the exact shipping image without rebuilding
         required: false
         type: choice
-        options: [none, nft-messaging-data]
+        options: [none, nft, data, messaging, data-messaging, nft-messaging-data]
         default: none
       retained_waku:
         description: Verify the packaged native Waku runtime with the aged original archive

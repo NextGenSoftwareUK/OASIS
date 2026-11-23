@@ -87,7 +87,7 @@ def main():
     processes=ExitStack();web5_process=None
     web5_app=os.environ.get('OASIS_STARTUP_WEB5_APP', '')
     popup_group=os.environ.get('OASIS_STARTUP_POPUP_GROUP', '') or 'none'
-    if popup_group not in ('none', 'nft-messaging-data'):
+    if popup_group not in ('none', 'nft', 'data', 'messaging', 'data-messaging', 'nft-messaging-data'):
         raise ValueError('Unknown owned popup group.')
     popup_breadth=os.environ.get('OASIS_STARTUP_POPUP_BREADTH') == 'true'
     if popup_breadth and popup_group != 'none':
@@ -198,6 +198,19 @@ console.log(JSON.stringify(b));
                 web5_process=processes.enter_context(OwnedWeb5Process(web5_app, web5_dna, web5_environment))
                 browser_env['OASIS_STARTUP_WEB5_URL']=web5_process.url
             browser = run_owned_browser(['node', str(root / 'Scripts/TestHosts/Fixtures/portal-startup-browser.cjs')], browser_env)
+            popup_proof=re.search(r'PORTAL_STARTUP_POPUP_OUTCOMES:(\[[^\n]*\])', browser.stdout)
+            if popup_proof:
+                outcomes=json.loads(popup_proof.group(1))
+                assert isinstance(outcomes,list) and 1 <= len(outcomes) <= 3
+                for item in outcomes:
+                    assert set(item) <= {'name','passed','stage','closePassed'}
+                    assert item['name'] in ('NFT','Data','Messaging') and isinstance(item['passed'],bool)
+                    assert isinstance(item['closePassed'],bool)
+                    assert re.fullmatch(r'[A-Za-z0-9 /-]{1,80}',item['stage'])
+                portal_source=subprocess.check_output(['git','-C',portal_root,'rev-parse','HEAD'],text=True).strip()
+                assert re.fullmatch(r'[a-f0-9]{40}',portal_source)
+                (out/'portal-popup-outcomes.json').write_text(json.dumps({'source':package['source'],'image':image,'portal':portal_source,'group':popup_group,'outcomes':outcomes},indent=2))
+                print('PORTAL_STARTUP_POPUP_OUTCOMES:'+json.dumps(outcomes,separators=(',',':')),flush=True)
             if browser.returncode:
                 facts = re.search(r'PORTAL_STARTUP_HTTP_FACTS:(\[[^\n]*\])', browser.stderr)
                 if facts:

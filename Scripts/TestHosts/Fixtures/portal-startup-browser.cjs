@@ -9,7 +9,10 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','nft-messaging-data'].includes(popupGroup));
+ assert.ok(['none','nft','data','messaging','data-messaging','nft-messaging-data'].includes(popupGroup));
+ const selectedPopups=popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+  popupGroup==='data-messaging'?['Data','Messaging']:
+  popupGroup==='none'?[]:[{nft:'NFT',data:'Data',messaging:'Messaging'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
  let recipient,recipientToken,sentMessage=0,dataReads=0;
  if(api5){assert.equal(api5.hostname,'127.0.0.1');assert.equal(api5.protocol,'http:');}
@@ -50,10 +53,11 @@ async function main(){
    return signed.jwtToken;
   }
   if(api5)await admitFree(account);
-  if(popupGroup==='nft-messaging-data'){
-   assert.equal(api5,null,'WEB4-only popup journey');
-   recipient=await createOwnedAvatar(api.href);
-   await admitFree(account);recipientToken=await admitFree(recipient);
+  if(selectedPopups.length){
+   assert.equal(api5,null,'WEB4-only popup journey');await admitFree(account);
+   if(selectedPopups.includes('Messaging')){
+    recipient=await createOwnedAvatar(api.href);recipientToken=await admitFree(recipient);
+   }
   }
   browser=await chromium.launch({channel:'chrome',headless:true});
   context=await browser.newContext({serviceWorkers:'block',ignoreHTTPSErrors:true});
@@ -63,12 +67,12 @@ async function main(){
    if(url.origin==='https://api.web4.oasisomniverse.one'){
     const mutation=request.method()!=='GET'&&request.method()!=='OPTIONS';
     let ownedOperation=false;
-    if(popupGroup==='nft-messaging-data'&&request.method()==='POST'){
-     if(url.pathname==='/api/data/load-holons-for-parent'){
+    if(selectedPopups.length&&request.method()==='POST'){
+     if(selectedPopups.includes('Data')&&url.pathname==='/api/data/load-holons-for-parent'){
       assert.equal(++dataReads,1,'One actual Data browse');
       assert.deepEqual(request.postDataJSON(),{id:account.avatar.id,holonType:'All',loadChildren:false,recursive:false});
       ownedOperation=true;
-     }else if(url.pathname==='/api/messaging/send-message-to-avatar/'+recipient.avatar.id){
+     }else if(selectedPopups.includes('Messaging')&&url.pathname==='/api/messaging/send-message-to-avatar/'+recipient.avatar.id){
       assert.equal(++sentMessage,1,'One explicit owned message send');
       assert.equal(request.postDataJSON(),messageText);ownedOperation=true;
      }
@@ -111,7 +115,21 @@ async function main(){
   await page.waitForFunction(()=>localStorage.getItem('loggedIn')==='true');
   stage='dashboard';await page.locator('#dashboard').waitFor({state:'visible'});
   assert.equal(await page.locator('#dash-name').textContent(),account.username);
-  if(popupGroup==='nft-messaging-data'){
+  if(selectedPopups.length){
+   const outcomes=[];
+   async function checkPopup(name,closeSelector,work){
+    if(!selectedPopups.includes(name))return;
+    let passed=false,closePassed=true,observedStage=name;
+    try{await work();passed=true;observedStage=stage;}
+    catch{observedStage=stage;}
+    try{
+     if(await page.locator(closeSelector).isVisible()){
+      await page.locator(closeSelector).click();await page.waitForURL(url=>url.pathname==='/');
+     }
+    }catch{closePassed=false;passed=false;if(observedStage===name)observedStage=name+' close';}
+    outcomes.push({name,passed,stage:observedStage,closePassed});
+   }
+   await checkPopup('NFT','#nft-modal-close-btn',async()=>{
    stage='NFT catalogue';await page.locator('#dash-card-nfts').click();
    await page.waitForFunction(()=>['standard','geo','oland'].every(kind=>
     !document.getElementById('nft-empty-'+kind).hidden&&document.getElementById('nft-error-'+kind).hidden));
@@ -123,14 +141,17 @@ async function main(){
     await page.locator('#nft-modal-block [data-tab="'+tab+'"]').click();
     await page.locator('#nft-tab-'+tab).waitFor({state:'visible'});
    }
-   stage='NFT close';await page.locator('#nft-modal-close-btn').click();await page.waitForURL(url=>url.pathname==='/');
+   });
+   await checkPopup('Data','#data-modal-close-btn',async()=>{
    stage='Data browse';const dataRead=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/data/load-holons-for-parent');
    await page.locator('#dash-card-holons').click();
    const raw=await (await dataRead).json();assert.equal(raw.result.isError,false,'Real Data result');
    assert.ok(Array.isArray(raw.result.result),'Real Data list');
    await page.waitForFunction(n=>document.getElementById('data-modal-status').hidden&&
     document.querySelectorAll('#data-browse-grid .data-holon-card').length===n,raw.result.result.length);
-   await page.locator('#data-modal-close-btn').click();await page.waitForURL(url=>url.pathname==='/');
+   assert.equal(dataReads,1);
+   });
+   await checkPopup('Messaging','#messaging-modal-close-btn',async()=>{
    stage='Messaging send';await page.locator('#dash-card-messages').click();
    await page.waitForFunction(()=>document.getElementById('msg-conversations-list').textContent.includes('No conversations yet'));
    await page.locator('#messaging-modal-block [data-tab="send"]').click();
@@ -145,9 +166,12 @@ async function main(){
    stage='Messaging conversation';await page.locator('#messaging-modal-block [data-tab="conversations"]').click();
    await page.locator('[data-msg-open="'+recipient.avatar.id+'"]').click();
    await page.waitForFunction(content=>document.getElementById('msg-thread-messages')?.textContent.includes(content),messageText);
-   await page.locator('#messaging-modal-close-btn').click();await page.waitForURL(url=>url.pathname==='/');
-   assert.equal(sentMessage,1);assert.equal(dataReads,1);assert.deepEqual(errors,[]);
-   console.log('PORTAL_STARTUP_BROWSER_PROOF: actual NFT/GeoNFT/OLAND empty catalogue tabs/grouping, Data browse and one explicit message send plus native recipient readback and conversation rendering through shipping WEB4 Startup/owned Mongo. No external mint, paid Stripe, WEB6 or hosted claim.');
+   assert.equal(sentMessage,1);
+   });
+   if(errors.length)outcomes.forEach(outcome=>{outcome.passed=false;});
+   console.log('PORTAL_STARTUP_POPUP_OUTCOMES:'+JSON.stringify(outcomes));
+   assert.deepEqual(errors,[]);assert.ok(outcomes.every(outcome=>outcome.passed),'Every selected popup must pass');
+   console.log('PORTAL_STARTUP_BROWSER_PROOF: selected real NFT/Data/message journeys passed through shipping WEB4 Startup/owned Mongo; independent failures are retained and still fail qualification. No external mint, paid Stripe, WEB6 or hosted claim.');
    return;
   }
   if(process.env.OASIS_STARTUP_POPUP_BREADTH==='true'){
