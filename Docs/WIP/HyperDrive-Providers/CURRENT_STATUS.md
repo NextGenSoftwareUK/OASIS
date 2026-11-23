@@ -1,3 +1,31 @@
+## 2026-11-23 - Gifts current CQL composition ACCEPTED for scoped integration
+
+45105105606/job137464470175 SUCCESS WEB4compile0errors5m08.68 on d06a42ca/Core80400. ExactGifts16lineguard restores previouslyaccepted source; current5ea CQL preserved. Core Development fast-forwarded6df->80400; all8submodule branch policies and pairedpins pass. Native/browser45104328970 retained, not replayed. Parentpublication/actualdevrollout next; no hosted/fullportal claim or sharedbackend/auth/payment call.
+
+## 2026-11-23 - Gifts actual SDK/browser/HTTP/native journey ACCEPTED
+
+45104328970/job137462037424 SUCCESS, sourcea61af6a6/Cored73/Portal a85a0c5, build0errors4m13.31. Two avatars send/receive/open/history/logout and missing-recipient no-write passed; DB/DNA/container/browser runtime/cache absent. Current peer5ea/Core4c9 preserved in prepared d06a42ca/Core80400 with only exact16-line gift validation restored and pairedpin; compile-only45105105606 active, no native/browser replay or backend deployment. Public3changed scripts200 match source. Whole OPORTAL/hosted Stripe/permanent erasure remain open.
+
+## 2026-11-23 - Gifts real-browser qualification active; lost validation restored in candidate
+
+Run45104328970 on control05fca0cb active; candidatea61af6a6/Cored73ea6af restores exact previously accepted recipient guard absent from deployed6df/newer4c9, paired pins checked. Portal a85a0c5, one unknown-recipient no-write check plus actual two-avatar send/receive/open/history/logout. First2attempts stopped beforebuild on workflow guard issues, corrected; no functional acceptance or deployment yet. No old native cohort replay/shared Atlas/PIPER/local runtime/build/DB/download. Next observe exactrun, then scoped peer-preserving source composition only after acceptance. See GIFTS_BROWSER_2026-11-23.json.
+
+## 2026-11-23 - OPORTAL breadth: subscription renewal and Gifts sign-out fixed
+
+Portal dev f5283af updates visible MCP credentials after acknowledged session renewal and gives explicit checkout reopen guidance; a85a0c5 removes duplicate Gifts logout handler using undefined variables and resets send UI in the single current cleanup owner. Focused changed DOM/auth controls, syntax, endpoint drift and whitespace pass; full browser/backend Gifts and hosted Stripe/whole portal remain open. Prior native/backend/browser evidence retained, no cohort replay. Next: representative real Gifts browser/HTTP journey using existing isolated CI fixture, then remaining unaccepted screens. COSMIC status reviewed read-only; no provider overlap or shared Atlas/PIPER calls.
+
+## 2026-11-23 - Worker-status rollout source-equivalent runtime accepted
+
+All7 SUCCESS and running revisions checked. WEB5/6/7/8/10=bea1473a; WEB4/9=d74ceb6d after release back-merge. Both Git trees exactly70a805b9515a9c97f58f755e54a5f1dcd19522d7; no source regression or forced restarts. New WEB4 public Swagger field backgroundWorkersPauseConfigured is boolean;3selected running pause flags true. Existing7dev watch policies verified read-only, no setting change; optional skipped-build cache remains unaudited/not enabled. Normal CI still tracked separately; no hosted auth/data/payment operations.
+
+## 2026-11-23 - Worker-status rollout: five exact running revisions accepted
+
+WEB5/WEB6/WEB7/WEB8/WEB10 SUCCESS and in-containerbea1473a verified. WEB4/WEB9 BUILDING. BroadCI currently61success/5skipped/7running, no reported failures; not final acceptance. Real LocalFile status/auth fixture45098982294 remains accepted. No shared Atlas/auth/payment operations or configuration changes. Existing hosted Stripe owner step remains separate; no credentials copied into CI.
+
+## 2026-11-23 - Verified worker-status batch PUBLISHED
+
+Developmentbea1473a1bfa3c4260982728b4cdcdeed5570465 contains two controller changes, corrected real-session HTTP fixture, named evidence and only completed ResendH1 action section synchronized while preserving other owners. All8 branch policies/paired pins pass. Native45098982294 accepted1passed0failed; source pause configuration only, no setting/worker/DNA changes. New deployment handles in HYPERDRIVE_WORKER_STATUS_DEV_ROLLOUT_2026-11-23.json; running acceptance pending. Prior6bb seven-service runtime proof retained.
+
 ## 2026-11-23 - Configured worker-status and LocalFile HTTP correction ACCEPTED
 
 45098982294/job137445180377 SUCCESS on afbd5984, exactly1passed0failed4s. Actual native LocalFile persisted sign-in,3protected HTTP reads, status pause config matches real DI, native hard-delete then401/error/false. Shipping session enforcement unchanged. Mongo/browser setup skipped; fixture restores globals/deactivates native provider. Next one scoped Development batch contains only two controller source files, corrected test and named evidence/docs. Existing6bb seven-service running acceptance retained; next rollout not yet claimed.

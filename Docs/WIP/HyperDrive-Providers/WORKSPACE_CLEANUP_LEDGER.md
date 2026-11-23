@@ -2985,3 +2985,15 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 - 2026-11-23 worker-status candidate: .git-worker-status-index and lock removed in finally. Source/Node syntax/endpoint/diff only locally; no runtime/env/build/database/download/results. First focused run45097985487 used LocalFile; Mongo/browser setup excluded; corrected assertion replacement pending. Prior8038-byte blocked cache remains recorded.
 
 - 2026-11-23 run45098982294/job137445180377 SUCCESS1case: Mongo/browser preparation skipped, no such fixture created. Native avatar hard-deleted/provider deactivated/globals restored in fixture finally; directory absence not asserted, ephemeral CI workspace discarded by runner. Terminal logs RAM only; no local outputs/env/download/results. Prior8038-byte policy-blocked cache remains recorded.
+
+- 2026-11-23 worker-status publicationbea1473a: .git-worker-publish-index and lock removed in finally. Named docs/one completed H1 section/source Git objects retained. No local env/build/database/download/results. New remote rollout pending; prior policy-blocked8038byte cache remains separately recorded.
+
+- 2026-11-23 equivalent-source rollout: selected SSH revision/3pause flags, Swagger and read-only watch metadata processed in RAM; no local downloads/env/build/results. Policy runner uses Python-B; no bytecode created. Existing skipped-build feature untouched. Prior8038-byte blocked cache remains recorded.
+
+2026-11-23 OPORTAL breadth f5283af/a85a0c5: source, focused Node controls and compact tracked reports only. No runtime/install/download/database/build/test-result artifacts created. C: free observed26.74GB. Existing blocked8038-byte Python cache remains recorded and was not retried. Four unrelated dirty gitlinks untouched.
+
+2026-11-23 Gifts qualification: exact owned temp indexes oasis-gifts-core-compose-20261123.index and oasis-gifts-root-compose-20261123.index removed in finally, locks absent/removed. Retained only source Git objects/tags and compact report. No local build/runtime/env/database/download/results. Remote run45104328970 active with existing fixture/browser cleanup. Earlier8038-byte blockedcache untouched.
+
+2026-11-23 Gifts45104328970 accepted: owned remote DB/DNA/container/browser runtime/cache absence verified in terminal logs. Local shared-core/shared-root/shared-lf temporary indexes and locks removed in finally; no local build/runtime/env/download/database/results. Current45105105606 compile-only, native/browser disabled. Prior blocked8038-bytecache untouched.
+
+2026-11-23 compile45105105606 SUCCESS: native/browser disabled, no fixture/runtime created; logs processed in RAM. No local build/env/database/download/results. Parent publication uses one owned index removed in finally. Source/doc Git objects retained; dirtygitlinks untouched.
