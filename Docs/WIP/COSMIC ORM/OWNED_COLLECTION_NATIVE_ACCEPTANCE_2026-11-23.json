@@ -1,0 +1,105 @@
+{
+  "run": 45130169196,
+  "job": 137543612069,
+  "artifact": 14798236242,
+  "archiveBytes": 3427,
+  "archiveSha256": "9ac61c2690595b8a64c6418d36caebda2948b13dc57fcf8292fcca6014737d33",
+  "archiveSavedLocally": false,
+  "source": {
+    "core": "16d72a74626dfd391af2baae4de8fb651684abf1",
+    "source": "8c47e5f4d180722a1079fe45f05fdd1f693e083f",
+    "deployed": false,
+    "sharedDatabaseCalls": 0,
+    "actualWeb4Compiled": true,
+    "nativePassed": 3,
+    "ownedFixturesAbsent": true,
+    "ownedCollectionVerified": true
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 3,
+      "queryElapsedMilliseconds": {
+        "create-collections": 615,
+        "read-collections": 97,
+        "refuse-null-collection": 17,
+        "update-collections": 39,
+        "read-updated-collections": 5,
+        "empty-collections": 22,
+        "read-empty-collections": 3,
+        "foreign-collection-owner": 2
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "primitiveOrderDuplicatesAndExactInteger": true,
+        "plainValueCollectionRoundtrip": true,
+        "nestedEditsAndReorderAcknowledged": true,
+        "nullAndEmptyRemainDistinct": true,
+        "requiredCollectionRefusedBeforeWrite": true,
+        "immutableCollectionMapping": true,
+        "parentPermissionsEnforced": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 3,
+      "queryElapsedMilliseconds": {
+        "create-collections": 593,
+        "read-collections": 43,
+        "refuse-null-collection": 5,
+        "update-collections": 47,
+        "read-updated-collections": 5,
+        "empty-collections": 19,
+        "read-empty-collections": 4,
+        "foreign-collection-owner": 1
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "primitiveOrderDuplicatesAndExactInteger": true,
+        "plainValueCollectionRoundtrip": true,
+        "nestedEditsAndReorderAcknowledged": true,
+        "nullAndEmptyRemainDistinct": true,
+        "requiredCollectionRefusedBeforeWrite": true,
+        "immutableCollectionMapping": true,
+        "parentPermissionsEnforced": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 3,
+      "queryElapsedMilliseconds": {
+        "create-collections": 1034,
+        "read-collections": 574,
+        "refuse-null-collection": 7,
+        "update-collections": 55,
+        "read-updated-collections": 12,
+        "empty-collections": 38,
+        "read-empty-collections": 9,
+        "foreign-collection-owner": 8
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "primitiveOrderDuplicatesAndExactInteger": true,
+        "plainValueCollectionRoundtrip": true,
+        "nestedEditsAndReorderAcknowledged": true,
+        "nullAndEmptyRemainDistinct": true,
+        "requiredCollectionRefusedBeforeWrite": true,
+        "immutableCollectionMapping": true,
+        "parentPermissionsEnforced": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "fullParityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T07:27:28.308714+00:00"
+}
