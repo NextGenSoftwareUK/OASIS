@@ -121,5 +121,20 @@
     "pauseUsageReconciliation": true,
     "pauseApplicationMaintenance": false,
     "scope": "Selected live printenv values only; supersedes historical three-paused report. Changed by another session; left untouched. No shared database/auth/test requests."
+  },
+  "breadth": {
+    "status": "running",
+    "run": 45173584845,
+    "job": 137689017735,
+    "control": "75bd923f2a9a7e04afe78a4f5599f14e13cc14be",
+    "portal": "25e7dde",
+    "scope": [
+      "Holon Browser actual list and filters",
+      "Celestial Map actual spaces and bodies",
+      "Global Search actual avatar directory results and clear",
+      "normal close for each popup"
+    ],
+    "build": "One isolated cloud WEB5 publish under build lease; existing accepted WEB4 image reused",
+    "dispatchNote": "Direct unregistered reusable-workflow dispatch returned404 and created no run. Registered parent dispatch accepted; package/control jobs skipped as intended."
   }
 }
