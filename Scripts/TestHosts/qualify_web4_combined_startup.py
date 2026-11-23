@@ -87,7 +87,7 @@ def main():
     processes=ExitStack();web5_process=None
     web5_app=os.environ.get('OASIS_STARTUP_WEB5_APP', '')
     popup_group=os.environ.get('OASIS_STARTUP_POPUP_GROUP', '') or 'none'
-    if popup_group not in ('none', 'web5-depth', 'web5-catalogue', 'developer', 'tools-followup', 'tools', 'web5-breadth', 'community', 'storage', 'hyperdrive', 'eggs', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data'):
+    if popup_group not in ('none', 'profile', 'web5-depth', 'web5-catalogue', 'developer', 'tools-followup', 'tools', 'web5-breadth', 'community', 'storage', 'hyperdrive', 'eggs', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data'):
         raise ValueError('Unknown owned popup group.')
     popup_breadth=os.environ.get('OASIS_STARTUP_POPUP_BREADTH') == 'true'
     if popup_breadth and popup_group != 'none':
@@ -147,6 +147,11 @@ def main():
                              (('POST','/api/data/save-holon'),('DELETE','/api/data/delete-holon'))))]
                 if popup_group == 'web5-depth':
                     admission['routes'].append({'method':'POST','path':'/api/oapps','policy':dict(write_policy)})
+                if popup_group == 'profile':
+                    catalogue=admission['routes'][0]['policy']['pricingCatalogueVersion']
+                    admission['storageTariffs']=[{'provider':'MongoDBOASIS','operation':operation,'costUsd':0,'catalogueVersion':catalogue}
+                        for operation in ('LoadHolon','SaveHolon','SaveHolons','LoadHolonByProviderKey','DeleteHolon','ReadConditionalHolonWriteOutcome','ReadHolonWritePreparation','LoadAvatar','ApplyAvatarProfile')]
+                    admission['routes'].append({'method':'PATCH','path':'/api/avatar/profile','policy':dict(admission['routes'][0]['policy'],meterCategory='api.request',maximumProviderAttempts=512)})
                 fixture_env['PREPARED_STORAGE_ADMISSION_JSON']=json.dumps(admission,separators=(',', ':'))
             if web5_app:
                 fixture_env['SUBSCRIPTION_SERVICE_KEY_WEB5']=secrets.token_hex(32)
@@ -218,7 +223,7 @@ console.log(JSON.stringify(b));
                 assert isinstance(outcomes,list) and 1 <= len(outcomes) <= 3
                 for item in outcomes:
                     assert set(item) <= {'name','passed','stage','closePassed'}
-                    assert item['name'] in ('OappMap','Launcher','Competition','Designer','Developer','HolonBrowser','Celestial','GlobalSearch','Activity','Social','Chain','Storage','Eggs','NFT','Data','DataWrite','FilesWrite','MapRoute','Messaging','MessagingRead','Chat','DirectoryMessage','Clan','HyperDrive') and isinstance(item['passed'],bool)
+                    assert item['name'] in ('Profile','OappMap','Launcher','Competition','Designer','Developer','HolonBrowser','Celestial','GlobalSearch','Activity','Social','Chain','Storage','Eggs','NFT','Data','DataWrite','FilesWrite','MapRoute','Messaging','MessagingRead','Chat','DirectoryMessage','Clan','HyperDrive') and isinstance(item['passed'],bool)
                     assert isinstance(item['closePassed'],bool)
                     assert re.fullmatch(r'[A-Za-z0-9 /-]{1,80}',item['stage'])
                 portal_source=subprocess.check_output(['git','-C',portal_root,'rev-parse','HEAD'],text=True).strip()

@@ -14,14 +14,14 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','web5-depth','web5-catalogue','developer','tools-followup','tools','web5-breadth','community','storage','hyperdrive','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
+ assert.ok(['none','profile','web5-depth','web5-catalogue','developer','tools-followup','tools','web5-breadth','community','storage','hyperdrive','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
  const selectedPopups=popupGroup==='web5-depth'?['OappMap','Launcher']:popupGroup==='web5-catalogue'?['OappMap','Launcher','Competition']:popupGroup==='tools-followup'?['Developer','GlobalSearch']:popupGroup==='tools'?['Designer','Developer']:popupGroup==='web5-breadth'?['HolonBrowser','Celestial','GlobalSearch']:popupGroup==='community'?['Activity','Social','Chain']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
-  popupGroup==='none'?[]:[{developer:'Developer',storage:'Storage',hyperdrive:'HyperDrive',eggs:'Eggs',nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
+  popupGroup==='none'?[]:[{profile:'Profile',developer:'Developer',storage:'Storage',hyperdrive:'HyperDrive',eggs:'Eggs',nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
  let catalogueAppId,catalogueIdentity;const catalogueName='Owned depth catalogue';
  let storageWrites=0; const storageAppId=require('node:crypto').randomUUID();
- let routingSaves=0;
+ let routingSaves=0,profileWrites=0;
  let clanId,clanCreates=0,clanUpdates=0,clanMembers=0,clanDeletes=0;
  const clanName='Owned portal clan '+process.env.GITHUB_RUN_ID;
  let chatId,chatStarts=0,chatSends=0,chatEnds=0;
@@ -96,6 +96,11 @@ async function main(){
    if(url.origin==='https://api.web4.oasisomniverse.one'){
     const mutation=request.method()!=='GET'&&request.method()!=='OPTIONS';
     let ownedOperation=false;
+    if(selectedPopups.includes('Profile')&&request.method()==='PATCH'&&url.pathname==='/api/avatar/profile'){
+     assert.equal(++profileWrites,1,'One explicit profile save');const body=request.postDataJSON();
+     assert.deepEqual(body.changes,{firstName:'Owned profile page',address:'Owned page address'});
+     assert.equal(body.providerType,'MongoDBOASIS');assert.ok(body.avatarRevision.versionId);assert.ok(body.detailRevision.versionId);ownedOperation=true;
+    }
     if(selectedPopups.includes('Clan')){
      if(request.method()==='POST'&&url.pathname==='/api/clan'){
       assert.equal(++clanCreates,1);assert.deepEqual(request.postDataJSON(),{name:clanName,description:'Owned clan journey'});ownedOperation=true;
@@ -283,10 +288,24 @@ async function main(){
     }catch{closePassed=false;passed=false;if(observedStage===name)observedStage=name+' close';}
     outcomes.push({name,passed,stage:observedStage,closePassed});
    }
+   await checkPopup('Profile','#avatar-modal-close-btn',async()=>{
+    stage='Profile editable GET';const initialReply=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/avatar/profile'&&r.request().method()==='GET');
+    await page.locator('#dashboard .dash-hero-avatar').click();const initial=await (await initialReply).json();assert.equal(initial.isError,false);
+    const original=initial.result.profile;await page.locator('#av-firstName').waitFor({state:'visible'});
+    await page.waitForFunction(()=>!document.getElementById('av-firstName').disabled);
+    await page.locator('#av-firstName').fill('Owned profile page');await page.locator('#av-address').fill('Owned page address');
+    stage='Profile explicit save';const pending=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/avatar/profile'&&r.request().method()==='PATCH');
+    await page.locator('#avatar-modal-save-btn').click();const saved=await (await pending).json();assert.equal(saved.isError,false);assert.equal(saved.isSaved,true);assert.equal(profileWrites,1);
+    stage='Profile independent persisted read';const reply=await context.request.get(proxyOrigin+'/api/avatar/profile',{headers:{Authorization:'Bearer '+ownedToken,'Idempotency-Key':require('node:crypto').randomUUID()}});
+    const read=await reply.json();assert.equal(reply.status(),200);assert.equal(read.isError,false);const profile=read.result.profile;
+    assert.equal(profile.firstName,'Owned profile page');assert.equal(profile.address,'Owned page address');assert.equal(profile.username,original.username);assert.equal(profile.email,original.email);
+    assert.deepEqual(profile.avatarRevision,saved.result.profile.avatarRevision);assert.deepEqual(profile.detailRevision,saved.result.profile.detailRevision);
+    await page.waitForFunction(()=>document.getElementById('avatar-modal-status').classList.contains('avatar-inline-status--success'));
+   });
    await checkPopup('OappMap','#oapp-map-modal-close-btn',async()=>{
     stage='OAPP map explicit depth';const [response]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname.toLowerCase()==='/api/oapps'),page.evaluate(()=>window.openOappMapModal())]);
     assert.equal(new URL(response.url()).searchParams.get('loadChildren'),'true');const raw=await response.json();assert.equal(raw.isError,false);assert.ok(Array.isArray(raw.result));assert.equal(raw.result.length,popupGroup==='web5-depth'?1:0);
-    await page.waitForFunction(expected=>document.getElementById('oapp-map-status').textContent===expected,popupGroup==='web5-depth'?'1 OAPPs ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· returned relationships only':'No OAPPs found.');
+    await page.waitForFunction(expected=>document.getElementById('oapp-map-status').textContent===expected,popupGroup==='web5-depth'?'1 OAPPs \u00b7 returned relationships only':'No OAPPs found.');
     stage='OAPP map filters';await page.locator('#oapp-map-filter').fill('no matching OAPP');assert.equal(await page.locator('#oapp-map-detail').isHidden(),true);await page.locator('#oapp-map-reset-btn').click();
    });
    await checkPopup('Launcher','#oapp-launcher-modal-close-btn',async()=>{
@@ -334,7 +353,7 @@ async function main(){
    });
    await checkPopup('Celestial','#celestial-map-modal-close-btn',async()=>{
     stage='Celestial real lists';await page.evaluate(()=>window.openCelestialMapModal());
-    await page.waitForFunction(()=>document.getElementById('celestial-map-status').textContent==='0 spaces ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· 0 bodies ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· returned memberships only');
+    await page.waitForFunction(()=>document.getElementById('celestial-map-status').textContent==='0 spaces ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· 0 bodies ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· returned memberships only');
    });
    await checkPopup('GlobalSearch','#global-search-modal-close-btn',async()=>{
     stage='Global avatar search';await page.evaluate(()=>window.openGlobalSearchModal());await page.locator('#global-search-modal-block [data-type="Avatar"]').click();
@@ -342,7 +361,7 @@ async function main(){
     const raw=await response.json(),envelope=typeof raw.isError==='boolean'?raw:raw.result;assert.equal(envelope.isError,false);const records=envelope.result;assert.ok(Array.isArray(records));assert.equal(records.length,1);assert.equal(records[0].id,recipient.avatar.id);
     await page.waitForFunction(()=>document.getElementById('gs-status-bar').textContent==='1 result');
     assert.ok((await page.locator('#gs-results').textContent()).includes(records[0].name||records[0].username||records[0].id));
-    stage='Global clear';await page.locator('#gs-input').fill('');await page.waitForFunction(()=>document.getElementById('gs-results').textContent==='Start typing to search across the OASISÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦');
+    stage='Global clear';await page.locator('#gs-input').fill('');await page.waitForFunction(()=>document.getElementById('gs-results').textContent==='Start typing to search across the OASISÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦');
    });
    await checkPopup('Activity','#activity-feed-modal-close-btn',async()=>{
     stage='Activity read';const [response]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname==='/api/karma/activity'),page.evaluate(()=>window.openActivityFeedModal())]);
@@ -353,7 +372,7 @@ async function main(){
    });
    await checkPopup('Social','#social-graph-modal-close-btn',async()=>{
     stage='Social contacts';await page.evaluate(()=>window.openSocialGraphModal());
-    await page.waitForFunction(()=>document.getElementById('social-graph-status').textContent==='1 messaging contacts ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· 1 recent messages checked');
+    await page.waitForFunction(()=>document.getElementById('social-graph-status').textContent==='1 messaging contacts ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· 1 recent messages checked');
     assert.equal(await page.locator('#social-graph-svg circle').count(),2);assert.equal(await page.locator('#social-graph-svg line').count(),1);
     assert.equal(await page.locator('#social-graph-more-btn').isHidden(),true);
     stage='Social compose';await page.locator('#social-graph-svg [data-contact-id="'+recipient.avatar.id+'"]').press('Enter');
