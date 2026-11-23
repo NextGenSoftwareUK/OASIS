@@ -224,8 +224,15 @@
       "run": 45192295272,
       "job": 137753518133,
       "source": "e1cf13421bd8acd707d9cda49d2952b01240f2ab",
-      "status": "building"
+      "status": "success; exact source/digest read from terminal build summary",
+      "digest": "sha256:3f53e88890c5cc34c01f5db574e2ef604d1db239479d94055a0a0cd13456ae89"
     },
-    "next": "Qualify exact image/package and current real Startup profile popup; no replay of accepted provider/portrait matrices."
+    "next": "Qualify exact image/package and current real Startup profile popup; no replay of accepted provider/portrait matrices.",
+    "packagedStartupProfile": {
+      "run": 45196807788,
+      "status": "active",
+      "portal": "34e4d23ad3322a60db3c4ea019381c5ab0d50b31",
+      "scope": "Exact package hashes, real Startup register/verify/password auth, actual profile popup edit two fields/save/independent readback/revision preservation/close. No native provider/portrait matrix replay."
+    }
   }
 }
