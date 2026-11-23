@@ -575,5 +575,13 @@
     "sourceEquivalence": "Corecac5 complete tree627e equals already-qualified/deployed13ca; graph-only two-parent reconciliation. Exact image5442 compiled13ca; new running provenance must be verified separately.",
     "next": "Follow existing handles; do not repeat source pushes or previously accepted functional cohorts. Continue remaining popup write actions and map workflows while rollout runs."
   },
-  "nextBreadth": "Default-provider Data create/read/delete through the actual portal with explicit admitted free ordinary-write configuration; then recorded-map workflows. Existing native/component evidence remains retained, not whole-action acceptance."
+  "nextBreadth": "Default-provider Data create/read/delete through the actual portal with explicit admitted free ordinary-write configuration; then recorded-map workflows. Existing native/component evidence remains retained, not whole-action acceptance.",
+  "latestMapRouteAcceptance": {
+    "date": "2026-11-23",
+    "run": 45148541889,
+    "portal": "b255f18f95eac84e1b951991a58a61b28b664b70",
+    "scope": "Private GPX publish/native readback/rename/reopen/list/close through real portal and shipping API with owned Mongo.",
+    "evidence": "OPORTAL_MAP_ROUTE_HTTP_2026-11-23.json",
+    "overallComplete": false
+  }
 }
