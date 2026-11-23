@@ -1,11 +1,20 @@
 {
   "scope": "onode",
   "status": "actual-startup-bridge-and-pinned-popup-browser-prepared-not-accepted",
-  "candidate": "a0abf554f9ad6f3a6fa0811bdee633b47a44f51d",
-  "base": "6cce336bac3d0a1d7000fe95ec69802aa8d45b54",
-  "tag": "qualification/onode-loaded-view-reviewed-20261123",
+  "candidate": "c261e9f536ff5f155174ac892c69279a54e1cb16",
+  "base": "7cfc1fbc4e646ba689bb723d69a11f8c5753f4c6",
+  "tag": "qualification/onode-current-cql-browser-20261123",
   "allowedPaths": [
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv"
+    "Docker/oasis-dependency-versions.env",
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ONODEController.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Hubs/ONODEWebSocketHub.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/JwtMiddleware.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
+    "ONODE/ONODEManager",
+    "Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1",
+    "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
   ],
   "buildProjects": [
     "WEB4"
@@ -15,7 +24,7 @@
   },
   "onodeManager": "3ecf0f8ea9713412da9071a1c6d12f961b050c8e",
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
-  "remaining": "Await bridge run45236110787; next combined journey uses actual pinned Portal assets, SDK and password-issued API token. No applied-runtime/all-provider acceptance.",
+  "remaining": "Review current-Core inventory; native45236110787 compiled but actual password sign-in returned500. Owned runtime cleanup passed; sanitized failure diagnosis added. Browser pending.",
   "inventoryReview": {
     "run": 45233869564,
     "artifact": 14848451211,

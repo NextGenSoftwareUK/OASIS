@@ -3187,3 +3187,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 2026-11-23 Publicationb2: exact owned Temp index oasis-chat-dev-publication-20261123.index and lock removed in finally; no physical module switch/new worktree/local build/env/download/database/results. Five dev asset checks RAM-only200/source exact; selected Railway metadata/4safe runtime fields only. Actual compiled image retained remotely for evidence/reuse. New dev handles tracked; no duplicate deployment.
 
 2026-11-23 run45234623292: compile stopped before host runtime; cloud owned Mongo fixture container absence verified. No local runtime, downloads, test database or generated build outputs created.
+
+2026-11-23 run45236110787: actual Startup HTTP500 before bridge; owned API/supervisor/bridge stopped, native databases/DNA/generated token/directory removed, outer container absence verified. Temporary candidate indexes removed after both failed assertion and successful c261 composition. No local builds/downloads/envs.

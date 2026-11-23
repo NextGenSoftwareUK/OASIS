@@ -186,6 +186,18 @@ try
     {
         using var response = await http.PostAsJsonAsync("/api/avatar/authenticate",
             new { username = "owned-" + id.ToString("N"), password }, deadline.Token);
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            var diagnosticBody = await response.Content.ReadAsStringAsync(deadline.Token);
+            using var failure = JsonDocument.Parse(diagnosticBody);
+            var diagnostic = failure.RootElement.TryGetProperty("message", out var message)
+                ? message.GetString() ?? "No error message" : "No top-level error message";
+            diagnostic = diagnostic.Replace(password, "[password]").Replace(uri, "[owned-connection]");
+            diagnostic = System.Text.RegularExpressions.Regex.Replace(diagnostic, @"(?:https?|mongodb(?:\+srv)?)://\S+", "[address]");
+            diagnostic = System.Text.RegularExpressions.Regex.Replace(diagnostic, @"[A-Za-z0-9+/=_-]{32,}", "[opaque-value]");
+            diagnostic = System.Text.RegularExpressions.Regex.Replace(diagnostic, @"(?i)(password|secret|token|api[-_ ]?key)\s*[:=]\s*[^ ;]+", "$1=[redacted]");
+            Console.WriteLine("ONODE_AUTH_FAILURE: http=" + (int)response.StatusCode + "; message=" + diagnostic[..Math.Min(diagnostic.Length, 600)]);
+        }
         Check(response.StatusCode == HttpStatusCode.OK, "Real password authentication HTTP failed: " + (int)response.StatusCode);
         using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync(deadline.Token));
         var result = body.RootElement.GetProperty("result");
