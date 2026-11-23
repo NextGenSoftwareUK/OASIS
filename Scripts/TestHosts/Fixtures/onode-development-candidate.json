@@ -1,20 +1,11 @@
 {
   "scope": "onode",
   "status": "actual-startup-bridge-and-pinned-popup-browser-prepared-not-accepted",
-  "candidate": "c261e9f536ff5f155174ac892c69279a54e1cb16",
-  "base": "7cfc1fbc4e646ba689bb723d69a11f8c5753f4c6",
-  "tag": "qualification/onode-current-cql-browser-20261123",
+  "candidate": "75dad9fada3012452f693eece973decd08789386",
+  "base": "c261e9f536ff5f155174ac892c69279a54e1cb16",
+  "tag": "qualification/onode-current-cql-reviewed-20261123",
   "allowedPaths": [
-    "Docker/oasis-dependency-versions.env",
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ONODEController.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Hubs/ONODEWebSocketHub.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/JwtMiddleware.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
-    "ONODE/ONODEManager",
-    "Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1",
-    "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv"
   ],
   "buildProjects": [
     "WEB4"
@@ -26,12 +17,12 @@
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
   "remaining": "Review current-Core inventory; native45236110787 compiled but actual password sign-in returned500. Owned runtime cleanup passed; sanitized failure diagnosis added. Browser pending.",
   "inventoryReview": {
-    "run": 45233869564,
-    "artifact": 14848451211,
-    "bytes": 40406,
+    "run": 45237515982,
+    "artifact": 14849027990,
+    "bytes": 40080,
     "managerRecords": 938,
     "routeRecords": 835,
-    "scope": "Manager blob exact; all route records unchanged except source positions."
+    "scope": "No semantic changes; route exact blob; manager positions reviewed."
   },
   "pendingProviderTransport": {
     "candidate": "a03f6c902b816f831daeecf76e65265bab6f8c55",
