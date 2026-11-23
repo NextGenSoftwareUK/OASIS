@@ -1,11 +1,11 @@
 {
   "scope": "onode",
-  "status": "current-cql-real-bridge-host-ready",
-  "candidate": "034d2ba2b0f2e9eb9fc499736e27dd2e6c81152e",
-  "base": "aee5784191f90ada83886b94f61ace2e6645fc19",
-  "tag": "qualification/onode-bridge-reviewed-20261123",
+  "status": "reviewed-current-cql-manager-and-route-inventories-ready-for-native-bridge",
+  "candidate": "949a857c40ceb731171dd7c69f11b44937e679f2",
+  "base": "034d2ba2b0f2e9eb9fc499736e27dd2e6c81152e",
+  "tag": "qualification/onode-current-inventories-20261123",
   "allowedPaths": [
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv"
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv"
   ],
   "buildProjects": [
     "WEB4"
@@ -20,7 +20,8 @@
     "run": 45227491740,
     "artifact": 14843032392,
     "bytes": 40410,
-    "scope": "All835 records unchanged except source positions; current verified CQL preserved."
+    "scope": "All835 records unchanged except source positions; current verified CQL preserved.",
+    "managerReview": "938 records: exactly one added ExecuteSetCountQueryAsync from already-published Corebc; explicit V2 guard and real CosmicSetCountExecutor inspected. No removals or disposition changes; no CQL acceptance inferred or replayed."
   },
   "pendingProviderTransport": {
     "candidate": "a03f6c902b816f831daeecf76e65265bab6f8c55",
@@ -116,5 +117,13 @@
     "overlap": "Only ONODE CQL Models/Services changed; no ONODE controller/Hub/JWT/Startup or classifier overlap found."
   },
   "nativeHost": "OnodeBridgeNative",
-  "nativeMode": "onode-bridge"
+  "nativeMode": "onode-bridge",
+  "nativeBridgeAttempt": {
+    "run": 45230015672,
+    "job": 137886713480,
+    "status": "failed-before-runtime",
+    "cause": "Current Core has one new public set-count manager record absent from committed inventory; reviewed and retained from existing inventory artifact.",
+    "ownedMongoCreated": false,
+    "apiStarted": false
+  }
 }
