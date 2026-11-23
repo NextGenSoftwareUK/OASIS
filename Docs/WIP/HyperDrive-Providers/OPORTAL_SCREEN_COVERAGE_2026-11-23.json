@@ -90,12 +90,14 @@
     {
       "route": "developer",
       "open": "openDevPortalModal",
-      "status": "further evidence reconciliation or main journey required; not complete"
+      "status": "resource-stage failure; precise diagnostic running",
+      "run": 45175750287
     },
     {
       "route": "devportal",
       "open": "openDevPortalModal",
-      "status": "further evidence reconciliation or main journey required; not complete"
+      "status": "resource-stage failure; precise diagnostic running",
+      "run": 45175750287
     },
     {
       "route": "subscription",
@@ -189,8 +191,9 @@
     {
       "route": "celestial-map",
       "open": "openCelestialMapModal",
-      "status": "actual page qualification running",
-      "run": 45173584845
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45173584845,
+      "scope": "actual WEB5 empty spaces/bodies/close"
     },
     {
       "route": "social-graph",
@@ -219,7 +222,9 @@
     {
       "route": "holon-designer",
       "open": "openHolonDesignerModal",
-      "status": "further evidence reconciliation or main journey required; not complete"
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45174256363,
+      "scope": "schema add/export actual downloaded JSON/remove/close"
     },
     {
       "route": "holon-diff",
@@ -246,14 +251,16 @@
     {
       "route": "holon-browser",
       "open": "openHolonBrowserModal",
-      "status": "actual page qualification running",
-      "run": 45173584845
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45173584845,
+      "scope": "actual WEB5 empty list/filter/close"
     },
     {
       "route": "global-search",
       "open": "openGlobalSearchModal",
-      "status": "actual page qualification running",
-      "run": 45173584845
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45175138805,
+      "scope": "unique avatar search and clear/close only"
     },
     {
       "route": "provider-health",
