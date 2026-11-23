@@ -1,3 +1,7 @@
+## 2026-11-23 - Three running dev container revisions verified
+
+WEB7/WEB8/WEB9 deployment SUCCESS and selected in-container RAILWAY_GIT_COMMIT_SHA exactly6bbbae4b. Remaining deployment handles tracked in OPORTAL_BACKEND_DEV_ROLLOUT_2026-11-23.json. No application/auth/data/payment call. Worker pause env read on those3 yielded no values; their reviewed Program source does not register WEB4 hosted Mongo worker controls. WEB4 actual pause flags still require selected verification after its pending rollout; no global worker-state claim.
+
 ## 2026-11-23 - Exact Railway rollout handles recorded
 
 Development6bbbae4b dev rollout: WEB7/WEB8/WEB9 BUILDING; WEB4/WEB5/WEB6/WEB10 QUEUED. Exact seven deployment IDs recorded in OPORTAL_BACKEND_DEV_ROLLOUT_2026-11-23.json. Metadata only; no running/source/functional acceptance or configuration change. No shared auth/data/payment calls.

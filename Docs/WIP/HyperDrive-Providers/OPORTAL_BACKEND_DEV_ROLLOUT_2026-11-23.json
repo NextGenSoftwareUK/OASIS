@@ -1,27 +1,27 @@
 {
   "environment": "dev",
   "expectedCommit": "6bbbae4be199eef55856df32476db5684ee05073",
-  "status": "Queued/building; running acceptance pending",
+  "status": "Partial rollout; three running container revisions verified; remaining service acceptance pending",
   "services": [
     {
       "service": "WEB6 AI API",
       "serviceId": "1e6ee65f-df5d-42b1-972e-97f3a560f5d3",
       "deployment": "637f9134-8dfb-4043-b9d4-a29603e31232",
-      "status": "QUEUED",
+      "status": "BUILDING",
       "commit": "6bbbae4be199eef55856df32476db5684ee05073"
     },
     {
       "service": "WEB7 SYMBIOTIC API",
       "serviceId": "31bd0ff6-2d3d-4793-8197-eabcd3afcb75",
       "deployment": "2a2ac000-ac41-4eef-8a57-d16ef0377c67",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "commit": "6bbbae4be199eef55856df32476db5684ee05073"
     },
     {
       "service": "WEB9 SINGULARITIY API",
       "serviceId": "36eda15e-fd28-4fc6-a0c9-7fe454829554",
       "deployment": "a14a6c8e-cf37-4dd5-8c39-8cdf0f365d35",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "commit": "6bbbae4be199eef55856df32476db5684ee05073"
     },
     {
@@ -35,23 +35,29 @@
       "service": "WEB10 THE SOURCE API",
       "serviceId": "6f9e4f24-29be-49d7-914b-f1f9b42790d6",
       "deployment": "134d79c0-7f38-4eb2-a5b3-a9c5bb86c4d9",
-      "status": "QUEUED",
+      "status": "BUILDING",
       "commit": "6bbbae4be199eef55856df32476db5684ee05073"
     },
     {
       "service": "WEB8 IGN API",
       "serviceId": "95c937b9-b4e8-4fd3-866f-bd98d5420b2f",
       "deployment": "7a7998e1-bebd-4f3d-b696-673a8af71865",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "commit": "6bbbae4be199eef55856df32476db5684ee05073"
     },
     {
       "service": "WEB5 STAR API",
       "serviceId": "bb2c3e9a-ec96-44a5-9916-05e06d54b1f4",
       "deployment": "b3e108b6-a53b-4cca-814d-3d086970320f",
-      "status": "QUEUED",
+      "status": "BUILDING",
       "commit": "6bbbae4be199eef55856df32476db5684ee05073"
     }
   ],
-  "scope": "Railway metadata only, no shared auth/data/payment calls or configuration changes"
+  "scope": "Railway metadata only, no shared auth/data/payment calls or configuration changes",
+  "runningRevisionChecks": [
+    "WEB7",
+    "WEB8",
+    "WEB9"
+  ],
+  "runningRevisionEvidence": "Exact RAILWAY_GIT_COMMIT_SHA read inside each successful WEB7/WEB8/WEB9 container matches6bbbae4b; no full SSH output retained or data/auth requests."
 }
