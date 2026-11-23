@@ -1,0 +1,99 @@
+{
+  "run": 45129574750,
+  "job": 137541732167,
+  "artifact": 14796754061,
+  "archiveBytes": 3390,
+  "archiveSha256": "05fccbf1863b8ab93bfa58b6c754478fda700b0c47f961b326cc496ed5a063f0",
+  "archiveSavedLocally": false,
+  "source": {
+    "deployed": false,
+    "source": "60fbadf4ce361688c7d085d1be7d1ec585a8620a",
+    "modelQueryFilterVerified": true,
+    "core": "2da1cdaa309f3619d17ba6de34ab381b34a87706",
+    "sharedDatabaseCalls": 0,
+    "ownedFixturesAbsent": true,
+    "nativePassed": 3,
+    "actualWeb4Compiled": true
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 3,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create-filter-fixture": 603,
+        "read-filtered": 118,
+        "read-filtered-page": 6,
+        "read-explicit-bypass": 11,
+        "bypass-preserves-write-policy": 33,
+        "read-new-filter-snapshot": 5,
+        "bypass-preserves-caller-access": 3
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "mappedFilterCapturedOnce": true,
+        "filterBeforePaging": true,
+        "closedValuesFrozenPerModel": true,
+        "explicitBypassRetainsMapping": true,
+        "bypassPreservesReadOnlyPolicy": true,
+        "bypassPreservesCallerPermissions": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 3,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create-filter-fixture": 506,
+        "read-filtered": 40,
+        "read-filtered-page": 3,
+        "read-explicit-bypass": 11,
+        "bypass-preserves-write-policy": 2,
+        "read-new-filter-snapshot": 8,
+        "bypass-preserves-caller-access": 6
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "mappedFilterCapturedOnce": true,
+        "filterBeforePaging": true,
+        "closedValuesFrozenPerModel": true,
+        "explicitBypassRetainsMapping": true,
+        "bypassPreservesReadOnlyPolicy": true,
+        "bypassPreservesCallerPermissions": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 3,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create-filter-fixture": 906,
+        "read-filtered": 442,
+        "read-filtered-page": 11,
+        "read-explicit-bypass": 306,
+        "bypass-preserves-write-policy": 6,
+        "read-new-filter-snapshot": 315,
+        "bypass-preserves-caller-access": 459
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "mappedFilterCapturedOnce": true,
+        "filterBeforePaging": true,
+        "closedValuesFrozenPerModel": true,
+        "explicitBypassRetainsMapping": true,
+        "bypassPreservesReadOnlyPolicy": true,
+        "bypassPreservesCallerPermissions": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "fullParityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T07:20:17.908646+00:00"
+}

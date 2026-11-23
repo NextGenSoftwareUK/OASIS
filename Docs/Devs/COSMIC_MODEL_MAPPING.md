@@ -54,8 +54,7 @@ Intrinsic annotation names are cached with weak type keys. The cache contains
 immutable property/name information and no avatar, application, connection or
 permission state.
 
-Full fluent model configuration, converters, complex/owned types, inheritance,
-schema migrations, and unrestricted POCO mapping remain separate roadmap work.
+Fluent scalar configuration, application constraints, naming conventions, selected child-role graphs, per-model read-only policies and owned plain value objects are described below with their representative native evidence. Converters, general inheritance mapping, schema migrations and unrestricted POCO mapping remain open roadmap work.
 Full/virtual/hybrid source policies govern where data resides; this attribute
 defines a CLR property's Holon metadata key and does not introduce a new import
 or virtual-source lifecycle.
@@ -89,7 +88,7 @@ The declared entity currently derives from Holon and has a public parameterless 
 
 Build snapshots are independent: later builder edits do not affect an existing model. The same immutable model is bound before query expressions/windows and remains attached to session reads, source predicates/order/projections, scalar terminal captures, typed hydration and owned save preparation. Query/session model mismatch or model rebinding fails explicitly. There is no global per-type override or client-side query evaluation.
 
-This initial slice covers flat scalar roots. Explicit model graph expansion is now source-integrated through selected child-role bindings and awaits its own native qualification. Unrestricted POCOs, XML mappings, annotation override precedence, inheritance conventions, converters and the full fluent ORM feature family remain open. Other query shapes still require their independently admitted native contracts. Follow the source/native/live qualification status in [the COSMIC status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md); source presence alone is not parity or deployment acceptance.
+The scalar contract is also integrated with selected child-role graphs. The conventions/graph qualifier45115667791 passed six native journeys across MongoDB, SQLite and Neo4j, including graph identity, private-child exclusion and descendant validation. Unrestricted POCOs, XML mappings, annotation override precedence, inheritance conventions, converters and the full fluent ORM feature family remain open. Other query shapes still require their independently admitted native contracts. Follow the source/native/live qualification status in [the COSMIC status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md); source presence alone is not parity or deployment acceptance.
 
 
 ## Fluent application constraints
@@ -122,7 +121,7 @@ The convention applies to every public custom property in this flat scalar contr
 
 An explicit model now travels with an admitted WithChildren query through typed child-role hydration. Configure each child CLR contract in the same model and register its role with HolonChildRoleBinding. Configured role members use the existing model metadata codec before role callbacks; a separate local metadata factory is unnecessary. Unconfigured roles retain their registered factory contract.
 
-Root and child identities, parent links, committed revisions and stored role observations must remain unchanged. Native visibility and graph budgets still apply; omitted private members are not materialized and their complete stored relationship observation is retained. This source integration requires its new three-provider qualification before acceptance. It does not add unrestricted POCO relationships or make session writes implicitly save a graph.
+Root and child identities, parent links, committed revisions and stored role observations must remain unchanged. Native visibility and graph budgets still apply; omitted private members are not materialized and their complete stored relationship observation is retained. The conventions/graph qualifier45115667791 accepted the selected graph integration on all three native providers. It does not add unrestricted POCO relationships or make session writes implicitly save a graph.
 
 Model constraints cover every node selected by an owned graph save after authorization, not only the roots. This does not cause a session root-only save to select children implicitly.
 
@@ -130,7 +129,7 @@ Model constraints cover every node selected by an owned graph save after authori
 
 Each admitted join source retains its own immutable model, including when both sources use the same CLR contract with different metadata keys. Join scalar output capture and LINQ correlation keys now use those models; typed whole-entity results reuse the source query materializer. GroupJoin carrier scalar admission uses the left model, while matched right entities use their own source model.
 
-The representative qualifier covers scalar and typed Join, matched/unmatched GroupJoin and correlated SelectMany. This is source-integrated pending its native qualification, and does not imply unrestricted computed joined expressions or all post-join composition.
+The representative qualifier covers scalar and typed Join, matched/unmatched GroupJoin and correlated SelectMany. The independent-model join qualifier45115044812 accepted these representative paths on MongoDB, SQLite and Neo4j. Unrestricted computed joined expressions and all post-join composition remain open.
 
 ## Declaring annotation-only entity contracts
 
@@ -169,3 +168,53 @@ This initial contract accepts acyclic plain public classes with public parameter
 Capture freezes the alias and property chains without invoking getters. The final owned-value qualifier45124692924 passed all three representative native journeys and the WEB4 build, including null preservation. Deployment status remains separate in the COSMIC status.
 
 Plain value properties and custom model fields retain explicit nulls through canonical snapshots and hydration, so constructor initializers cannot replace a submitted null. Authoritative record/audit field compaction retains its established policy; explicit serializer overrides remain respected outside the plain owned contract. The owned qualifier includes null-required-component refusal and a null nested string with a non-null constructor default.
+
+## Current release boundary
+
+Development revision7700707e includes the annotation-only, read-only and owned-value batch, with Core7186c806 pinned in both the gitlink and deployment manifest. Native qualifiers45118868505,45119523112 and45124692924 passed the three-store journeys; the exact image45125287105 and package45126351817 gates passed. All seven original service deployments subsequently succeeded. Before/after startup reads and an authorized HyperDrive status check confirmed exact WEB4 source7700707e and enabled load balancing, failover and replication. The temporary session was revoked and credentials removed. This adds deployment/settings acceptance; new business-query/browser acceptance is separate. The full EF/NHibernate roadmap remains incomplete.
+
+## Ordered primitive and value-object collections
+
+```csharp
+builder.Entity<OrderHolon>().OwnsMany(row => row.Tags).HasMetadataKey("tags");
+builder.Entity<OrderHolon>().OwnsMany(row => row.Lines)
+    .IsRequired().HasMetadataKey("lines");
+```
+
+The declared property is a List<T> or one-dimensional T[]; elements are admitted scalar values or the same plain value-object shapes as OwnsOne. Collections are parent-owned values stored in canonical metadata arrays. Saving the parent persists list replacement, mutable nested changes, ordering and duplicate values atomically under its existing revision and permissions. A null collection and an empty collection remain distinct. IsRequired refuses null before dispatch, while an empty collection remains a valid non-null value.
+
+Collection elements do not acquire separate Holon identities or independent write lifecycles. This batch does not add native element predicates, indexes, array joins or whole-collection query projections; those need their native array-query contracts. The corrected collection qualifier45130169196 passed all three MongoDB/SQLite/Neo4j journeys and the actual WEB4 build, with exact owned cleanup. Deployment acceptance is separate. Full M15 and general converter/comparer mapping remain open.
+
+## Model-wide application query filters
+
+```csharp
+var minimumScore = 20;
+builder.Entity<ScoreHolon>().HasQueryFilter(row => row.Score >= minimumScore);
+var filteredModel = builder.Build();
+// For an explicit application-filter bypass, create a separately bound model:
+var unfilteredModel = filteredModel.Result.WithoutQueryFilters();
+```
+
+Build freezes captured literals and binds the predicate through the model's metadata aliases. Every query bound to that model's exact declared entity receives the application predicate before filtering/order/paging. Editing a closure or builder later does not alter an earlier model. To use different tenant/filter values, build an independent model snapshot; no global per-type or per-avatar mutable cache is installed.
+
+WithoutQueryFilters removes application filters only. It preserves the same mapping, validation and read-only policies, and cannot remove mandatory authenticated caller visibility. Bind the returned model to its own query/session; existing model-affinity checks still forbid replacing the model on a captured query. This is an application selection policy, not an authorization boundary or a write constraint. Named selective filter bypass and inherited/polymorphic filter contracts remain separate scope. Representative native qualifier45129574750 passed all three MongoDB/SQLite/Neo4j journeys and the actual WEB4 build, with owned fixtures removed. Deployment acceptance is separate; full Q62 remains open.
+
+Collection snapshots replace constructor-initialized custom/plain property values instead of appending their defaults. Explicit serialization overrides remain respected outside the plain owned contract; authoritative Holon fields retain their established policy. The first collection qualification exposed this shared issue; the corrected three-provider qualifier45130169196 verifies the replacement behavior alongside collection persistence.
+
+## NHibernate XML mapping import
+
+```csharp
+var admittedTypes = new Dictionary<string, Type> { ["Customer"] = typeof(CustomerHolon) };
+var imported = builder.ImportNHibernateXml(xml, admittedTypes);
+// Check imported.IsError, then call Build and check its result.
+```
+
+The hibernate-mapping root uses urn:nhibernate-mapping-2.2. A class name resolves only through the explicit allowlist to a concrete public IHolon contract with a public parameterless constructor; the importer never loads a type named by the XML. Import into unconfigured contracts, then add ordinary fluent configuration as needed. Import validates a separate complete builder before changing the destination, so unsupported or conflicting input leaves it unchanged.
+
+The current contract admits class name/mutable, scalar property name/column/type/not-null/length/precision/scale, an alternative single column child, and canonical Guid Id with an optional assigned generator. Property and column configuration cannot be split ambiguously. Scalar type names must agree with the CLR property; canonical identity/security fields cannot be renamed. Constraints and mutable=false use the existing application validation and read-only policy owners.
+
+XML is bounded to1,048,576 characters and64 explicit allowed contracts. DTDs/external resources are disabled. Tables/schema generation, arbitrary NHibernate types/assemblies, POCO adapters, generators beyond assigned Guid, inheritance, relationships, collections, formulas, lazy proxies and unsupported attributes/elements return errors. This is the supported metadata-model import contract, not a claim of complete NHibernate XML compatibility. Native qualification and deployment status remain in the COSMIC status.
+
+The XML syntax reference is the [official NHibernate mapping guide](https://nhibernate.info/doc/nhibernate-reference/mapping.html). This importer deliberately translates mutable=false to COSMIC explicit read-only persistence refusal, including inserts/deletes, rather than NHibernate immutable tracking behavior. That semantic difference is part of the current admission contract and prevents a full compatibility claim. Existing COSMIC UTC and numeric-domain rules continue to govern values.
+
+The XML qualifier45132975102 passed three MongoDB/SQLite/Neo4j journeys, one XML-admission control and the actual WEB4 build, with exact owned fixture cleanup. This accepts the declared import subset and explicit COSMIC policies; deployment and broader NHibernate compatibility remain separate.
