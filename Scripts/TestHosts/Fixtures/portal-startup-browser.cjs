@@ -70,6 +70,12 @@ async function main(){
    try{const body=await response.json(),result=typeof body.isError==='boolean'?body:body.result;
     fact.isError=result?.isError;const code=result?.errorCode;
     if(typeof code==='string'&&/^[A-Z0-9_]{1,80}$/.test(code))fact.errorCode=code;
+    if(code==='HYPERDRIVE_ROUTE_FAILED'&&typeof result.message==='string'){
+     const message=result.message.replace(/(?:https?|mongodb(?:\+srv)?):\/\/[^\s]+/gi,'[URI]')
+      .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,'[JWT]')
+      .replace(/[a-f0-9]{32,}/gi,'[identifier]').slice(0,320);
+     fact.routingMessage=/password|secret|credential|connectionstring|refresh.?token/i.test(message)?'[sensitive routing detail withheld]':message;
+    }
    }catch{fact.json=false;}
   });
   stage='page and Beam In';await page.goto(origin+'/',{waitUntil:'domcontentloaded'});
