@@ -1,10 +1,10 @@
 {
-  "source": "072c80688e7fafd481a0166006a3a1c29cf22a79",
+  "source": "721f33130849794856c546218dceb06ee1396c87",
   "producerSource": "294ee54e177f1b60665610d36937a48cc6ffcaf3",
   "qualifiedSource": "2b369e2c273dfe35ea715820484e289353ae97dc",
   "core": "048b02d54870e793de8f18439ff8f00950ad3547",
   "web6": "c214296e8b8cfde671466a5a82e24d5fc83f9509",
-  "baseDevelopment": "5fd4d4df91934d0ac9bfd3f890ccf780cc01787f",
+  "baseDevelopment": "09ca3749023f508b637646a625fdf65112b73892",
   "nativeAccepted": true,
   "contractAccepted": true,
   "compositionAccepted": true,
@@ -86,7 +86,63 @@
   ],
   "packageJob": 137413021317,
   "runtimeTreeEquivalentToQualifiedProducer": true,
-  "developmentPushed": false,
-  "phase": "prepared_waiting_normal_cadence",
-  "newerUnqualifiedMappedJoinCoreExcluded": "97ed8a080e0df7f1918b42a500d694e47e1d0026"
+  "developmentPushed": true,
+  "phase": "DevelopmentRolloutPending",
+  "newerUnqualifiedMappedJoinCoreExcluded": "97ed8a080e0df7f1918b42a500d694e47e1d0026",
+  "supersededPreparedSource": "072c80688e7fafd481a0166006a3a1c29cf22a79",
+  "preservedDevelopmentDocPaths": [
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv"
+  ],
+  "developmentPushPhase": "acknowledged",
+  "developmentPushRequestedAt": "2026-11-23T00:37:53.355967+00:00",
+  "peerSource": "2edf6d07d393eae4edfdabff3caf30c2b775c517",
+  "priorOwnPushElapsedMinutes": 60.3,
+  "priorRolloutObservation": {
+    "web6": {
+      "deployment": "a10bddbb-8d07-4f09-8ab0-cd7cf37e8fca",
+      "status": "SUCCESS",
+      "source": "09ca3749023f508b637646a625fdf65112b73892",
+      "imageDigest": "sha256:dd5e8aeea11a7dc256766d799497cb26b9d29d9bcc3ccf59958f08b86f3cd9a8"
+    },
+    "web7": {
+      "deployment": "17f7155f-2866-433a-aa67-db24935dd6f2",
+      "status": "SUCCESS",
+      "source": "09ca3749023f508b637646a625fdf65112b73892",
+      "imageDigest": "sha256:56704b2186a16b3d8b2cbec479cdf2179088fea57b85f363a03bd010dc62637a"
+    },
+    "web9": {
+      "deployment": "a562cee0-bc2e-4a86-97df-1b4e7e9a18db",
+      "status": "SUCCESS",
+      "source": "09ca3749023f508b637646a625fdf65112b73892",
+      "imageDigest": "sha256:56f249754298184c282b4771e2d0d57e292471bd5d79f971369736181b526f9f"
+    },
+    "web4": {
+      "deployment": "13e97b3f-f298-49af-aabd-09fd3faeec5e",
+      "status": "SUCCESS",
+      "source": "09ca3749023f508b637646a625fdf65112b73892",
+      "imageDigest": "sha256:f431a2556aee788d15134f4c5c1bb334279b920f08e41dd4d02bcf8324ab38b9"
+    },
+    "web10": {
+      "deployment": "730a6c18-c89a-4394-a58b-64940ec1fe0c",
+      "status": "SUCCESS",
+      "source": "09ca3749023f508b637646a625fdf65112b73892",
+      "imageDigest": "sha256:d2c77f43389da5df673d95c6b48194d0e69d779fdc0c242de1c085f64784b758"
+    },
+    "web8": {
+      "deployment": "e9ecbdda-2fe6-4ddf-98de-2d93ff20ae4e",
+      "status": "SUCCESS",
+      "source": "09ca3749023f508b637646a625fdf65112b73892",
+      "imageDigest": "sha256:0fd02787e60a92075683da9db0f2fd4fc19ccb4ab16ddbd8ed31fe6f219605cd"
+    },
+    "web5": {
+      "deployment": "e5f0cb5a-4b48-4828-a7c2-1045e65e1ecc",
+      "status": "SUCCESS",
+      "source": "09ca3749023f508b637646a625fdf65112b73892",
+      "imageDigest": "sha256:76d60d76e336347731d23d26cfd841b0ee9708738951e64bbe4e7f8943dd4b1d"
+    }
+  },
+  "cadenceException": null,
+  "developmentPushedAt": "2026-11-23T00:38:02.111233+00:00",
+  "observedDevelopmentAfterPush": "721f33130849794856c546218dceb06ee1396c87",
+  "liveAccepted": false
 }

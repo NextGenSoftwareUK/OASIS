@@ -1,6 +1,6 @@
 {
-  "source": "294ee54e177f1b60665610d36937a48cc6ffcaf3",
-  "developmentBase": "5fd4d4df91934d0ac9bfd3f890ccf780cc01787f",
+  "source": "721f33130849794856c546218dceb06ee1396c87",
+  "developmentBase": "09ca3749023f508b637646a625fdf65112b73892",
   "rootChangedPaths": [
     ".github/workflows/qualify-cql-model-metadata-alias-native.yml",
     "Docker/oasis-dependency-versions.env",
@@ -47,5 +47,10 @@
   "allOtherGitlinksPreserved": true,
   "manifestGatePassed": true,
   "newerMappedJoinIntegrationExcluded": "97ed8a080e0df7f1918b42a500d694e47e1d0026",
-  "deployed": false
+  "deployed": false,
+  "producerSource": "294ee54e177f1b60665610d36937a48cc6ffcaf3",
+  "preservedDevelopmentDocPaths": [
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv"
+  ],
+  "runtimeSourceEquivalentToQualifiedProducer": true
 }
