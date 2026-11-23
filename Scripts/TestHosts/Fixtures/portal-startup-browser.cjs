@@ -9,10 +9,10 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','nft','data','data-crud','map-route','messaging','data-messaging','nft-messaging-data'].includes(popupGroup));
+ assert.ok(['none','nft','data','data-crud','data-edit','map-route','messaging','data-messaging','nft-messaging-data'].includes(popupGroup));
  const selectedPopups=popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
-  popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','map-route':'MapRoute',messaging:'Messaging'}[popupGroup]];
+  popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','map-route':'MapRoute',messaging:'Messaging'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
  let recipient,recipientToken,sentMessage=0,dataReads=0;
  let routeId,routeCreates=0,routeUpdates=0;
@@ -84,18 +84,26 @@ async function main(){
       assert.equal(body.providerType,'MongoDBOASIS');assert.equal(Object.keys(body.expectedRevisions).length,2);ownedOperation=true;
      }
     }
-    if(popupGroup==='data-crud'){
+    if(['data-crud','data-edit'].includes(popupGroup)){
      if(request.method()==='POST'&&url.pathname==='/api/data/load-holons-for-parent'){
       assert.ok(++dataReads<=4,'Bounded actual Data browse');
       assert.deepEqual(request.postDataJSON(),{id:account.avatar.id,holonType:'All',loadChildren:false,recursive:false});ownedOperation=true;
      }else if(request.method()==='POST'&&url.pathname==='/api/data/save-holon'){
-      assert.equal(++holonSaves,1,'One explicit owned create');const body=request.postDataJSON();
-      assert.equal(body.holon.name,dataName);assert.equal(body.holon.description,'Owned create read delete journey');
+      ++holonSaves;const body=request.postDataJSON();
       assert.equal(body.holon.parentHolonId,account.avatar.id);assert.equal(body.saveChildren,false);
-      assert.ok(!body.providerType||body.providerType==='Default','Use actual default provider');
+      if(holonSaves===1){
+       assert.equal(body.holon.name,dataName);assert.equal(body.holon.description,'Owned create read delete journey');
+       assert.ok(!body.providerType||body.providerType==='Default','Use actual default provider');
+      }else{
+       assert.equal(popupGroup,'data-edit');assert.equal(holonSaves,2,'One explicit owned update');
+       assert.equal(body.holon.id,savedHolonId);assert.equal(body.holon.name,dataName+' edited');
+       assert.equal(body.holon.description,'Updated through detail form');assert.equal(body.providerType,'MongoDBOASIS');
+       assert.deepEqual(Object.keys(body.expectedRevisions),[savedHolonId]);assert.match(body.expectedRevisions[savedHolonId],/^[0-9a-f-]{36}$/i);
+       assert.equal(body.recursive,false);
+      }
       assert.match(body.operationId,/^[0-9a-f-]{36}$/i);ownedOperation=true;
      }else if(request.method()==='POST'&&url.pathname==='/api/data/load-holon'){
-      assert.equal(++pointReads,1,'One actual point read');assert.equal(request.postDataJSON().id,savedHolonId);ownedOperation=true;
+      assert.ok(++pointReads<=(popupGroup==='data-edit'?2:1),'Bounded actual point reads');assert.equal(request.postDataJSON().id,savedHolonId);ownedOperation=true;
      }else if(request.method()==='DELETE'&&url.pathname==='/api/data/delete-holon'){
       assert.equal(++holonDeletes,1,'One explicit owned deletion');const body=request.postDataJSON();
       assert.equal(body.id,savedHolonId);assert.equal(body.softDelete,false);
@@ -209,6 +217,18 @@ async function main(){
     await page.locator('#data-load-btn').click();const loaded=await (await point).json();
     assert.equal(loaded.result.isError,false);assert.equal(loaded.result.result.id,savedHolonId);assert.equal(loaded.result.result.description,'Owned create read delete journey');
     await page.locator('#data-load-result .data-holon-card').waitFor({state:'visible'});
+    if(popupGroup==='data-edit'){
+     stage='Data edit';await page.locator('#data-load-result .data-holon-card').click();
+     await page.locator('#data-detail-edit-name').fill(dataName+' edited');
+     await page.locator('#data-detail-edit-description').fill('Updated through detail form');
+     await page.locator('#data-detail-edit-save').click();
+     await page.waitForFunction(()=>document.getElementById('data-detail-edit-status')?.textContent==='Changes saved.');
+     await page.locator('#data-detail-back-btn').click();
+     stage='Data edited point read';const updatedRead=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/data/load-holon'&&r.request().method()==='POST');
+     await page.locator('#data-load-btn').click();const updated=await(await updatedRead).json();
+     assert.equal(updated.result.isError,false);assert.equal(updated.result.result.id,savedHolonId);
+     assert.equal(updated.result.result.name,dataName+' edited');assert.equal(updated.result.result.description,'Updated through detail form');
+    }
     stage='Data delete confirmation';await page.locator('#data-modal-block [data-tab="browse"]').click();
     await page.locator('#data-browse-grid .data-card-delete[data-id="'+savedHolonId+'"]').click();
     await page.locator('#data-confirm-overlay').waitFor({state:'visible'});
@@ -220,7 +240,7 @@ async function main(){
     assert.ok(!remaining.result.result.some(row=>row.id===savedHolonId));
     await page.waitForFunction(id=>document.getElementById('data-modal-status').hidden&&
      !document.querySelector('#data-browse-grid [data-holon-idx="'+id+'"]'),savedHolonId);
-    assert.equal(holonSaves,1);assert.equal(pointReads,1);assert.equal(holonDeletes,1);
+    assert.equal(holonSaves,popupGroup==='data-edit'?2:1);assert.equal(pointReads,popupGroup==='data-edit'?2:1);assert.equal(holonDeletes,1);
    });
    await checkPopup('MapRoute','#map-close-btn',async()=>{
     stage='Map routes open';await page.locator('#dashboard button.dash-panel-link').filter({hasText:'View Map'}).click();

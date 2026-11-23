@@ -87,7 +87,7 @@ def main():
     processes=ExitStack();web5_process=None
     web5_app=os.environ.get('OASIS_STARTUP_WEB5_APP', '')
     popup_group=os.environ.get('OASIS_STARTUP_POPUP_GROUP', '') or 'none'
-    if popup_group not in ('none', 'nft', 'data', 'data-crud', 'map-route', 'messaging', 'data-messaging', 'nft-messaging-data'):
+    if popup_group not in ('none', 'nft', 'data', 'data-crud', 'data-edit', 'map-route', 'messaging', 'data-messaging', 'nft-messaging-data'):
         raise ValueError('Unknown owned popup group.')
     popup_breadth=os.environ.get('OASIS_STARTUP_POPUP_BREADTH') == 'true'
     if popup_breadth and popup_group != 'none':
@@ -135,7 +135,7 @@ def main():
                 # This explicit new-image scenario needs collection authority under passive boot.
                 admission=json.loads(fixture_env['PREPARED_STORAGE_ADMISSION_JSON'])
                 admission['authoritativeProvider']='MongoDBOASIS'
-                if popup_group in ('data-crud', 'map-route'):
+                if popup_group in ('data-crud', 'data-edit', 'map-route'):
                     # Same free ordinary-operation tariff kinds as the admitted dev write profile.
                     catalogue=admission['routes'][0]['policy']['pricingCatalogueVersion']
                     admission['storageTariffs']=[{'provider':'MongoDBOASIS','operation':operation,'costUsd':0,'catalogueVersion':catalogue}
