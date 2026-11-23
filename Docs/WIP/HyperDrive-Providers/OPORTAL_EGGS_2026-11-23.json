@@ -1,6 +1,6 @@
 {
   "date": "2026-11-23",
-  "status": "qualification in progress",
+  "status": "accepted empty-list four-tab journey",
   "run": 45168591802,
   "control": "1408a572d1242d5a4d08846a0aae0e93c7f6c246",
   "portal": "24c0e9f4b4455cb2cf9c2f71cbcc651f474328bb",
@@ -23,5 +23,9 @@
     "Python AST",
     "git diff --check"
   ],
-  "cleanup": "No local downloads, builds, environments, databases or result artifacts created. Cloud cleanup pending terminal receipt."
+  "cleanup": "RAM-only artifact inspection/disposal; package container absent/dataWrites0; startup containers/network/database volumes absent, WEB5 stopped and DNA absent. No local downloads, builds, environments, databases or result artifacts.",
+  "artifact": 14814649834,
+  "artifactBytes": 4260,
+  "passed": true,
+  "closePassed": true
 }
