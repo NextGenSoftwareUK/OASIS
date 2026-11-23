@@ -226,8 +226,12 @@ console.log(JSON.stringify(b));
                 if facts:
                     selected = json.loads(facts.group(1))
                     assert isinstance(selected, list) and len(selected) <= 64
-                    assert all(set(item) <= {'path','status','isError','errorCode','json','routingMessage','resultShape','resultCount','routeShape','routePage'} for item in selected)
+                    assert all(set(item) <= {'path','status','isError','errorCode','json','routingMessage','resultShape','resultCount','routeShape','routePage','storageShape'} for item in selected)
                     for item in selected:
+                        if 'storageShape' in item:
+                            shape=item['storageShape']
+                            assert set(shape)=={'applicationId','avatarPolicy','applicationPolicy','effectivePolicy','memoryCacheSupported'}
+                            assert all(set(value)=={'present','type'} and isinstance(value['present'],bool) and value['type'] in ('undefined','null','object','string','boolean') for value in shape.values())
                         if 'routePage' in item:
                             assert set(item['routePage']) <= {'items','nextOffsetPresent','nextOffsetNull','nextOffsetInteger'}
                             assert all(isinstance(value,bool) for value in item['routePage'].values())
@@ -250,6 +254,11 @@ console.log(JSON.stringify(b));
                     assert isinstance(failure['path'],str) and len(failure['path'])<=200 and failure['path'].startswith('/api/') and '?' not in failure['path']
                     assert failure['errorType'] in ('AssertionError','TypeError','Error') and isinstance(failure['sourceLine'],int)
                     print('PORTAL_STARTUP_ADMISSION_FAILURE:'+json.dumps(failure,separators=(',',':')),flush=True)
+                storage_failure=re.search(r'PORTAL_STARTUP_STORAGE_FAILURE:(\{[^\n]*\})',browser.stderr)
+                if storage_failure:
+                    failure=json.loads(storage_failure.group(1))
+                    assert set(failure)=={'stage','feedback'} and all(isinstance(value,str) and len(value)<=160 for value in failure.values())
+                    print('PORTAL_STARTUP_STORAGE_FAILURE:'+json.dumps(failure,separators=(',',':')),flush=True)
                 clan_failure=re.search(r'PORTAL_STARTUP_CLAN_FAILURE:(\{[^\n]*\})',browser.stderr)
                 if clan_failure:
                     failure=json.loads(clan_failure.group(1))
