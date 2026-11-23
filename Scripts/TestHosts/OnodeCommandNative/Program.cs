@@ -78,6 +78,25 @@ try
         Require(root.GetProperty("oasisDna").GetProperty("timeouts").GetProperty("providerMethodCallTimeOutSeconds").GetInt32() == 7,
             "Saved timeout was not projected.");
     }
+    var savedUtf8 = await File.ReadAllBytesAsync(dna);
+    await File.WriteAllBytesAsync(dna, new byte[] { 0xef, 0xbb, 0xbf }.Concat(savedUtf8).ToArray());
+    var modernProviders = providers.GetProviders("failover");
+    Require(modernProviders.Count == 2 && modernProviders.All(item => item.Role == "failover"),
+        "Canonical modern provider view differs.");
+    var beforeRoleRevision = modernProviders[0].Revision;
+    Require(await providers.SetPriorityAsync("SQLLiteDBOASIS", 1, CancellationToken.None, "failover", beforeRoleRevision),
+        "Modern role order was not saved.");
+    Require(providers.GetProviders("failover").Single(item => item.ProviderType == "SQLLiteDBOASIS").Priority == 1,
+        "Modern role order did not persist.");
+    var modernAfterOrder = await File.ReadAllTextAsync(dna);
+    try
+    {
+        await providers.SetEnabledAsync("MongoDBOASIS", false, CancellationToken.None, "failover", beforeRoleRevision);
+        throw new InvalidOperationException("Stale routing edit was accepted.");
+    }
+    catch (InvalidOperationException ex) when (ex.Message.Contains("reload before editing", StringComparison.Ordinal)) { }
+    Require(await File.ReadAllTextAsync(dna) == modernAfterOrder, "Stale edit changed saved configuration.");
+    Require(modernAfterOrder.Contains(canary, StringComparison.Ordinal), "Role edit lost unrelated credential configuration.");
     var legacy = System.Text.Json.Nodes.JsonNode.Parse(await File.ReadAllTextAsync(dna))!;
     legacy["OASIS"]!["HyperDriveMode"] = NextGenSoftware.OASIS.API.DNA.HyperDriveModes.Legacy;
     legacy["OASIS"]!.AsObject().Remove("OASISHyperDriveConfig");
@@ -90,6 +109,20 @@ try
         Require(policy.GetProperty("settings").GetProperty("autoFailOverProviders")[1].GetString() == "SQLLiteDBOASIS",
             "Legacy provider order differs.");
     }
+    Require(await providers.SetPriorityAsync("SQLLiteDBOASIS", 1, CancellationToken.None, "failover"),
+        "Legacy order was not saved.");
+    Require(await providers.SetEnabledAsync("MongoDBOASIS", false, CancellationToken.None, "failover"),
+        "Legacy role membership was not saved.");
+    var legacyBeforeRejectedEdit = await File.ReadAllTextAsync(dna);
+    try
+    {
+        await providers.SetEnabledAsync("SQLLiteDBOASIS", false, CancellationToken.None, "failover");
+        throw new InvalidOperationException("An enabled feature lost its final provider.");
+    }
+    catch (InvalidOperationException ex) when (ex.Message.Contains("at least one provider", StringComparison.Ordinal)) { }
+    Require(await File.ReadAllTextAsync(dna) == legacyBeforeRejectedEdit, "Rejected empty policy changed configuration.");
+    Require(!Directory.EnumerateFiles(owned, "*.routing-*.tmp").Any(), "Owned routing temporary output remains.");
+    Console.WriteLine("ONODE_ROUTING_FILE: canonical modern/legacy membership/order persisted, stale revision and enabled-empty policy rejected, unrelated credential fields preserved; saved configuration only, no provider activation or applied-runtime acceptance.");
     Require(!JsonSerializer.Serialize(config).Contains(canary, StringComparison.Ordinal), "Runtime token was serialized.");
     command.Command = CommandType.GetMetrics;
     using (var document = JsonDocument.Parse((await executor.ExecuteAsync(command, CancellationToken.None))!))

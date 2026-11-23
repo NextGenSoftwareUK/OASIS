@@ -1,19 +1,12 @@
 {
   "scope": "onode",
-  "status": "current-shared-source-ready-for-shipping-image",
-  "candidate": "e6415c6578d7f4de5c04bd722b3c18cc1870dfc8",
-  "base": "52f9a287a67a558c8f687e2d701c7483be0a91c1",
-  "tag": "qualification/onode-current-shipping-normalized-20261123",
+  "status": "canonical-saved-role-editor-source-ready-for-component-check",
+  "candidate": "aa2001467167543e6f1bcbae793b358bac09d98e",
+  "base": "e6415c6578d7f4de5c04bd722b3c18cc1870dfc8",
+  "tag": "qualification/onode-routing-editor-root-20261123",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ONODEController.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Hubs/ONODEWebSocketHub.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/JwtMiddleware.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
-    "ONODE/ONODEManager",
-    "Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1",
-    "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
+    "ONODE/ONODEManager"
   ],
   "buildProjects": [
     "ONODESUPERVISOR"
@@ -21,9 +14,9 @@
   "core": {
     "candidate": "271603c32f13345cebd350b557f7c6bd10ab9d04"
   },
-  "onodeManager": "79d464b70af73f9b37a4b68ca4aa088622436d4e",
+  "onodeManager": "b03b884cc84b17a7033cb55e528ec87ed27278d8",
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
-  "remaining": "Build one shipping image; complete isolated real WEB4 bridge/browser and provider configuration schema. Preserve all accepted source/component checks.",
+  "remaining": "Verify saved modern/legacy membership/order, revision rejection, final-provider protection and preservation. Wire explicit role/revision through all API/commands/SDK/UI; saved-only edits require restart, not runtime activation. Existing e641 shipping image remains frozen.",
   "inventoryReview": {
     "run": 45213996648,
     "artifact": 14836649117,
