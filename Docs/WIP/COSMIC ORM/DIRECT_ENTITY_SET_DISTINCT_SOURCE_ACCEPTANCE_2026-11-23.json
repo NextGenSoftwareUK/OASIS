@@ -1,0 +1,43 @@
+{
+  "phase": "published-source-controls-accepted-preview-pending",
+  "base": "7cbc6d9845c61243be5e387bbfc5cba4bca23e1e",
+  "published": true,
+  "verified": true,
+  "newControls": 3,
+  "changedExistingControl": 1,
+  "backendProducer": "f9541a5c73c23ba9f0a86f3b5c432d4704227b30",
+  "backendCore": "ef05dbecb1428a91da53abdcfab39bf2d55aa51b",
+  "backendNativeRun": 45197249669,
+  "backendNativeAccepted": true,
+  "backendDevelopmentSource": "4b8d3923c7b5c2f51e434dbd8d2104ffa41dc68e",
+  "remaining": [
+    "Focused browser and deployment/runtime acceptance"
+  ],
+  "observedUtc": "2026-11-23T15:11:18.865553+00:00",
+  "qualifierInvariant": "Only a leading table qualifier is removed; metadata segments equal to that qualifier remain intact.",
+  "controlsPassed": 41,
+  "affectedTestFiles": [
+    "cql-direct-entity-set-distinct.test.cjs",
+    "cql-post-set-selection.test.cjs",
+    "cql-late-set-composition.test.cjs",
+    "cql-set-text.test.cjs",
+    "cql-cte-text.test.cjs",
+    "cql-parameters.test.cjs"
+  ],
+  "localOutputFilesCreated": false,
+  "verifiedUtc": "2026-11-23T15:12:44.538928+00:00",
+  "example": "SELECT DISTINCT Name AS Label FROM (\n  SELECT * FROM MongoDBOASIS WHERE IsActive = TRUE\n  UNION ALL\n  SELECT * FROM MongoDBOASIS WHERE Version = 2\n  ORDER BY Id LIMIT 25\n) AS records\nORDER BY Label LIMIT 5",
+  "askControlsPassed": 72,
+  "displayedExampleControlsPassed": 1,
+  "reviewControlsPassed": 73,
+  "reviewVerifiedUtc": "2026-11-23T15:16:04.193881+00:00",
+  "source": "6aa9403cd67ffce07a3c5611c95ae8408f56ad59",
+  "publicPromotion": false,
+  "preview": {
+    "source": "6aa9403cd67ffce07a3c5611c95ae8408f56ad59",
+    "deployment": "dpl_9K2Rp6ykQhYhTQXkTffbMrqQY8Jg",
+    "url": "https://web4-site-kfx6rkibg-oasis-team.vercel.app/web4-sandbox.html",
+    "readyState": "READY",
+    "publicPromotion": false
+  }
+}
