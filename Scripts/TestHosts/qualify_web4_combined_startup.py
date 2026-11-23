@@ -146,6 +146,7 @@ def main():
                             ((('POST','/api/files/upload-file'),) if popup_group == 'files-write' else
                              (('POST','/api/data/save-holon'),('DELETE','/api/data/delete-holon'))))]
                 if popup_group == 'web5-depth':
+                    admission['storageTariffs'].append({'provider':'MongoDBOASIS','operation':'LoadAvatar','costUsd':0,'catalogueVersion':catalogue})
                     admission['routes'].append({'method':'POST','path':'/api/oapps','policy':dict(write_policy)})
                 fixture_env['PREPARED_STORAGE_ADMISSION_JSON']=json.dumps(admission,separators=(',', ':'))
             if web5_app:

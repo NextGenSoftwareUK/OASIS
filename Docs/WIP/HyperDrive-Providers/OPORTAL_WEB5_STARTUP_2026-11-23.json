@@ -1,16 +1,16 @@
 {
-  "status": "current CQL image reused; OAPP explicit-depth WEB5 source prepared, not qualified",
-  "source": "fe414dfe0ec971b33280b0780ab418b0d5012a10",
+  "status": "category argument and fixture LoadAvatar tariff corrected; populated qualification pending",
+  "source": "e55d8132d7fe6b1d035e31f40d556107c8116c9c",
   "development": "90d75f04f606c29bea99bfafe073b5b26722ce88",
   "core": "a3c5ceef9d61b0057ecc8b21156bd0121754a223",
-  "star": "1e25b519c382a33d5160c02ca3b2a0de558449fc",
+  "star": "ffd7fe494e1aacec50315baadff38273c88b8a11",
   "image": "sha256:d0b2bacf91fbec5964f26ccabeded30ddb2eddb157296236934e4d17b148bcc0",
   "imageRun": 45117076250,
   "packageRun": 45173786800,
   "packageArtifact": 14818506061,
   "preservation": "Fetched Development; peer CQL composition preserves current Inventory annotations and Mongo writer. Core auth/Inventory paths unchanged from fc2470e; root Mongo serializer blob identical to21ab. STAR pinned531 source reviewed, physical STAR checkout1330 is unrelated and left untouched.",
   "prepared": "Explicit OAPP depth candidate fe414/STAR1e25 paired with current Core a3c5 and Development3ae. Existing accepted WEB4 image8f/d0b2 source receipt reused; actual WEB5 compile/HTTP qualification pending.",
-  "next": "Follow one web5-catalogue cloud run, then gather populated descendant evidence before deployment acceptance.",
+  "next": "Qualify populated depth/category/detail on e55 candidate, same accepted 8f WEB4 image. No backend deployment before acceptance.",
   "cleanup": "No new local env/download/runtime/build/database/results. Source/helper and compact descriptor only. Existing accepted WEB4/anonymous/provider cohorts retained, not replayed.",
   "active": {
     "run": 45128946718,
@@ -143,6 +143,7 @@
     "baseDevelopment": "3ae678ddcbd0624a19cc4f3ff662a89b27b13896",
     "star": "1e25b519c382a33d5160c02ca3b2a0de558449fc",
     "behavior": "OAPP API roots by default, descendants only with loadChildren=true; map opts in, launcher remains shallow",
-    "remaining": "actual cloud compile, empty catalogue UI and populated descendant proof; no deployment acceptance"
+    "remaining": "actual cloud compile, empty catalogue UI and populated descendant proof; no deployment acceptance",
+    "categoryArgumentSource": "e55d8132d7fe6b1d035e31f40d556107c8116c9c"
   }
 }

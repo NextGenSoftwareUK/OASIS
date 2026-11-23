@@ -58,13 +58,14 @@
     "failedArtifactBytes": 2453,
     "diagnosticRun": 45180587022,
     "diagnosticJob": 137713059704,
-    "failure": "Actual POST OAPP HTTP200/isErrortrue; no handcrafted DB seed substituted"
+    "failure": "Actual POST OAPP HTTP200/isErrortrue; no handcrafted DB seed substituted",
+    "diagnosis": "Actual LoadAvatar requires its own explicit physical-operation tariff; owned fixture listed holon operations only. Add only LoadAvatar to isolated pricing; no production pricing/admission change."
   },
   "categoryArgumentCandidate": {
     "star": "ffd7fe494e1aacec50315baadff38273c88b8a11",
     "root": "e55d8132d7fe6b1d035e31f40d556107c8116c9c",
     "portal": "34e4d23ad3322a60db3c4ea019381c5ab0d50b31",
-    "status": "source only; not qualifying until current diagnostic provides exact create failure",
+    "status": "source plus exact category/display assertions prepared; next qualification will use e55/STARffd and Portal34e4",
     "finding": "OAPP controller passed HolonType into manager configured for OAPPType; corrected to oapp.OAPPType. Launcher used wrong JSON category property casing; corrected to oappType.",
     "verification": "New native proof checks GeneratedCodeOnly category and launcher category display/filter. Manifest check-ref passed; no backend deployment."
   }
