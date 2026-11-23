@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><title>Owned ONODE browser verification</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/modals-new.css">
+  <link rel="stylesheet" href="/assets/css/oasis-advanced-modals.css">
+  <link rel="stylesheet" href="/assets/css/oasis-portal-extra.css">
+  <link rel="stylesheet" href="/assets/css/oasis-portal-extra2.css">
+</head>
+<body>
+  <button id="fixture-open-onode" type="button" disabled onclick="window.openONODEModal()">Open ONODE</button>
+  <div class="modal js-modal"></div>
+  <script src="/assets/js/oasis-web4-sdk.js"></script>
+  <script>
+    window.API_BASE=location.origin;window.apiUrl=location.origin;
+    window.oasisClient=new window.OASISClient({baseUrl:location.origin,persistSession:false});
+    const owner=JSON.parse(localStorage.getItem('avatar')||'null');
+    if(owner&&owner.jwtToken)window.oasisClient.setToken(owner.jwtToken,{avatarId:owner.id});
+  </script>
+  <script src="/assets/js/onode-modal.js"></script>
+  <script>
+    fetch('/assets/components/modals/onode.html').then(function(response){
+      if(!response.ok)throw new Error('Actual ONODE fragment could not be loaded.');
+      return response.text();
+    }).then(function(html){
+      document.querySelector('.js-modal').innerHTML=html;
+      window.dispatchEvent(new CustomEvent('portal-modal-ready',{detail:{route:'onode'}}));
+      document.getElementById('fixture-open-onode').disabled=!(owner&&owner.jwtToken);
+      window.__onodeFixtureReady=true;
+    });
+  </script>
+</body>
+</html>
