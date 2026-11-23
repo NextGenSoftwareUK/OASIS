@@ -1,13 +1,24 @@
 {
-  "run": 45119118175,
-  "control": "23af4f69fd54eac3abe4f1ee039fa5ab09dd266d",
+  "run": 45119608484,
+  "control": "a416d316fd6ebdd5dbc5408fff8af48e2b98e486",
   "portal": "f89b2ec160bab77ebcf05d7ba5d343f328c0b493",
   "source": "045206ea73cfd8cff587896c3baca32087051575",
   "image": "sha256:2db67297c729643caf5f4792039753910c346ca16c72fe7bdb6211cbf85b614e",
-  "status": "queued",
+  "status": "in_progress",
   "scope": "Actual portal.html/scripts/fragments and Beam In form against owned production WEB4 Program/Startup; native dashboard holon/inventory counts and current plan, subscription plans/list, authenticated deep-link refresh.",
-  "transport": "API image exposes random loopback-only port on owned internal network. Ephemeral localhost TLS proxy relays actual backend status/headers/body unchanged; no API replies synthesized. WEB5/WEB6 and all other external services blocked before dispatch; fonts allowed. Self-signed local TLS trust is fixture-only.",
+  "transport": "Owned labelled API container remains on internal Docker network with no published ports. Runner selects only that network private IPv4, opens owned loopback TCP bridge and ephemeral localhost TLS proxy; production API status/headers/body relayed unchanged. WEB5/6/shared API destinations blocked, no synthetic replies.",
   "realFix": "Email-only browser field rejected valid usernames; Portal55988cf/f89b2ec now supports email or username, native required validity retained. Public page/loader/login fragment exact HTTP200 source match.",
   "limits": "Pending runtime/browser acceptance; not hosted production performance, WEB5/6 SSO, Stripe or full portal acceptance. Existing source/image comparison remains auth/API-only; older Inventory declarations excluded.",
-  "cleanup": "No local builds/downloads/runtimes/envs/databases/results; cloud owned API/Mongo/network/volumes in finally, browser/static/TLS proxy in finally, exact runtime/npm cache/TLS directory always cleanup. Terminal cleanup pending."
+  "cleanup": "No local builds/downloads/runtimes/envs/databases/results; cloud owned API/Mongo/network/volumes in finally, browser/static/TLS proxy in finally, exact runtime/npm cache/TLS directory always cleanup. Terminal cleanup pending.",
+  "attempts": [
+    {
+      "run": 45119118175,
+      "job": 137508588763,
+      "conclusion": "failure",
+      "stage": "Docker internal network did not publish API port; before actual page/browser requests",
+      "cleanupArtifact": 14792901966,
+      "cleanup": "Owned containers/network/DB volumes absent; browser runtime/cache/TLS absence step verified",
+      "correction": "Removed published-port assumption; selected owned private IPv4 plus loopback-only bridge, retaining network isolation."
+    }
+  ]
 }
