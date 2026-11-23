@@ -1,0 +1,11 @@
+{
+  "run": 45117362822,
+  "control": "dd9268effcabf6fec79fdb7398548544057baeb3",
+  "portal": "81fc716d1dc37eeabdd70d501c2605c500f5d2f8",
+  "status": "in_progress",
+  "scope": "Actual portal.html, all normal scripts/fragments, anonymous Beam In/Sign Up navigation and deep-link refresh. Real static HTTP server; API requests blocked before dispatch, no API mocks.",
+  "excluded": "Authenticated dashboard, backend Startup/SSO, provider functionality and Stripe payments.",
+  "cost": "No .NET build or database; one pinned ephemeral cloud browser package using existing integrity pin.",
+  "cleanup": "Owned server/browser closed in finally; exact owned CI runtime/cache removed in always step. No local env/download/runtime/build/database/results created. C free23.89GiB observed.",
+  "dispatch": "New standalone workflow filename not registered (404); dispatched once through registered contract workflow with all backend jobs explicitly disabled."
+}
