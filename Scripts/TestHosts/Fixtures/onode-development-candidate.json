@@ -1,12 +1,11 @@
 {
   "scope": "onode",
-  "status": "helper-classification-repair-awaiting-regenerated-inventory",
-  "candidate": "693154e540bdc081fe58764014df4541a561eff4",
-  "base": "a03f6c902b816f831daeecf76e65265bab6f8c55",
-  "tag": "qualification/onode-helper-classification-20261123",
+  "status": "reviewed-ready-for-compile-and-real-command-probe",
+  "candidate": "ee4d0ab04fe962f781ffd2736711b8420076b2ae",
+  "base": "693154e540bdc081fe58764014df4541a561eff4",
+  "tag": "qualification/onode-authenticated-reviewed-20261123",
   "allowedPaths": [
-    "Scripts/verify_web4_hyperdrive_route_manifest.ps1",
-    "Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1"
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv"
   ],
   "buildProjects": [
     "WEB4",
@@ -19,9 +18,10 @@
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
   "remaining": "Regenerate/review new public-config route, compile changed API/service, wire popup through advertised capability and verify real bridge/public view/command/browser. Earlier a67 build remains its scoped evidence.",
   "inventoryReview": {
-    "run": 45213355740,
-    "artifact": 14836678695,
-    "status": "generation passed; review rejected three false local downgrades after helper extraction; classifier fixed, regenerate before compilation"
+    "run": 45213996648,
+    "artifact": 14836649117,
+    "bytes": 40375,
+    "scope": "No removed routes or new local downgrades; three ONODE transport helpers and existing NativeData SourcesAsync/Wallet SendTokenAsync now correctly classified delegated."
   },
   "pendingProviderTransport": {
     "candidate": "a03f6c902b816f831daeecf76e65265bab6f8c55",
