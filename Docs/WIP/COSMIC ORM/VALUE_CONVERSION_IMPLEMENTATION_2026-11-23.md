@@ -1,6 +1,6 @@
 # Custom value conversion implementation candidate
 
-23 November 2026. Qualification pending; no Development acceptance or full M12 certification.
+23 November 2026. Representative native3 and actual WEB4 build passed45228231194 on04dc4244/Corea76c659. Exact image/package/live acceptance and full M12/M13 certification remain open. See VALUE_CONVERSION_NATIVE_ACCEPTANCE_2026-11-23.json.
 
 The invariant is one explicit application conversion for stored metadata, captured native query parameters and typed returned values. Native providers compare/order their admitted storage scalars; queries never execute a conversion callback to filter source records in memory.
 

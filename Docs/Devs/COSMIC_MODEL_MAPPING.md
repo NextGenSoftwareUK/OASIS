@@ -402,3 +402,24 @@ The element family also applies to selected-tuple sets: selecting Version before
 Identity-set Count, LongCount, Any and All use a separately enrolled native reduction contract. Concat counts occurrences; Union/Intersect/Except use entity identity. All counts native counterexamples, so it is true for an acknowledged empty sequence. Predicates remain after earlier windows. The shared V2 attempt owner preserves caller policy and bounded native acknowledgements, and the providers validate protected source inputs before reducing, including Take(0). No typed entity construction or managed Enumerable count substitutes for native reduction. Identity-set cardinality passed representative three-provider qualification and the actual WEB4 build in45210297591. Selected-tuple/late-selected set reductions remain open; SQL/API transport has separate qualification gates.
 
 The existing WEB4 set route can describe a native scalar reduction using Reduction (Count, LongCount, Any or All) and optional ReductionWhere. All requires ReductionWhere; selected columns/stages and metadata expansion cannot be mixed with reduction mode. The final predicate applies after entity windows/stages. Responses use cql-scalar-v1, with exact Int64 wire encoding. Corrected sourceaa619/Core75c passed three compiler/capture controls, three real native JWT HTTP journeys and actual WEB4 in45213751045. SQL/Ask sourcec4e4804 passed its44/73+display1 controls. The peer-integrated745/Corebc and hosted flow have separate qualification gates; no live or full-parity claim is inferred.
+
+
+## Explicit value conversion
+
+Use an immutable model-owned converter when a CLR property and its native stored scalar have different representations:
+
+```csharp
+var units = new CosmicValueConverter<int,long>(
+    value => checked((long)value * 10),
+    value => value % 10 == 0 ? checked((int)(value / 10))
+        : throw new ArgumentException("Invalid stored units."),
+    CosmicValueConversionSemantics.Ordering);
+builder.Entity<Reading>().Property(row => row.Units)
+    .HasConversion(units).HasMetadataKey("stored_units");
+```
+
+The callbacks are trusted application model code and must be deterministic. Equality is the default declared native semantic contract; request Ordering only when the conversion preserves it. The native compiler admits the provider scalar domain. Nulls propagate without callbacks and must fit both domains; non-null values cannot silently convert to null.
+
+The existing metadata extraction and exact typed hydration owners apply the converter. Native predicates encode captured parameters into stored values; they do not run a callback over provider records to filter in memory. Projection proof stays in native scalar domains; selected values decode before DTO construction. Immutable model/filter-bypass copies retain converters. Set operands require the same application model and corresponding converter instances.
+
+Representative MongoDB/SQLite/Neo4j save/read/filter/order/projection/membership/set/update/caller-isolation evidence is recorded in [the native conversion receipt](../WIP/COSMIC%20ORM/VALUE_CONVERSION_NATIVE_ACCEPTANCE_2026-11-23.json). This does not certify full framework parity or live rollout. Converted arithmetic, computed string/date functions, selected extrema, custom comparer policies and arbitrary serialization contracts remain separate work; unsupported operations return explicit admission errors.
