@@ -7,6 +7,8 @@ public sealed class CosmicLateSetCompositionProofTests
     [Fact]
     public void NativeOccurrenceProofCannotPushFilterBeforeTake()
     {
+        Assert.Contains(typeof(CosmicSetProjectionPlanner).GetMethods(),
+            method=>method.Name=="Plan" && method.GetParameters().Length==5);
         var source=CosmicQuery<Holon>.Create().Result;
         var set=CosmicSetQuery<Holon>.Create(source,source,CosmicSetQueryKind.Concat).Result;
         var query=set.Select(row=>row.Name).Result.Take(1).Result.Where(value=>value=="a").Result;

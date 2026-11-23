@@ -6,6 +6,7 @@ on:
     paths:
       - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.LateSetComposition.cs"
       - ".github/workflows/qualify-cql-late-set-composition-native.yml"
+      - "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicLateSetCompositionProofTests.cs"
   workflow_dispatch:
 
 permissions:
