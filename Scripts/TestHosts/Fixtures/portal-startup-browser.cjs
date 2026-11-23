@@ -9,10 +9,10 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
+ assert.ok(['none','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
  const selectedPopups=popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
-  popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
+  popupGroup==='none'?[]:[{eggs:'Eggs',nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
  let clanId,clanCreates=0,clanUpdates=0,clanMembers=0,clanDeletes=0;
  const clanName='Owned portal clan '+process.env.GITHUB_RUN_ID;
@@ -241,6 +241,17 @@ async function main(){
     }catch{closePassed=false;passed=false;if(observedStage===name)observedStage=name+' close';}
     outcomes.push({name,passed,stage:observedStage,closePassed});
    }
+   await checkPopup('Eggs','#eggs-modal-close-btn',async()=>{
+    const tabs=[['my','my-eggs','my-grid','No eggs returned.'],['all','get-all-eggs','all-grid','No eggs returned.'],['quests','get-current-egg-quests','quests-list','No current egg quests returned.'],['leaderboard','get-current-egg-quest-leader-board','leaderboard-list','No egg quest leaderboard entries returned.']];
+    for(const [tab,path,target,empty] of tabs){
+     stage='Eggs '+tab;
+     const [response]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname==='/api/eggs/'+path&&r.request().method()==='GET'),
+      tab==='my'?page.evaluate(()=>window.openEggsModal()):page.locator('#eggs-modal-block [data-tab="'+tab+'"]').click()]);
+     assert.equal(response.status(),200);const reply=await response.json();assert.equal(reply.isError,false);assert.ok(Array.isArray(reply.result));assert.equal(reply.result.length,0);
+     await page.waitForFunction(({target,empty})=>document.getElementById('eggs-'+target)?.textContent.includes(empty),{target,empty});
+     assert.equal(await page.locator('#eggs-tab-'+tab).isVisible(),true);assert.equal(await page.locator('#eggs-status').isHidden(),true);
+    }
+   });
    await checkPopup('NFT','#nft-modal-close-btn',async()=>{
    stage='NFT catalogue';await page.locator('#dash-card-nfts').click();
    await page.waitForFunction(()=>['standard','geo','oland'].every(kind=>
