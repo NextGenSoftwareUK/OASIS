@@ -85,6 +85,14 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.AreEqual(1,changed.Result.Count);Assert.AreEqual(23,changed.Result[0].Score);
         Assert.IsTrue(changed.Result[0].MetaData.ContainsKey("score_value"));
         Assert.IsFalse(changed.Result[0].MetaData.ContainsKey(nameof(AliasedScoreHolon.Score)));
+        var groupRoot=CosmicLinq.Create(manager,adapter,changedQuery).Result;
+        var groups=await Timed("typed-mapped-groups",()=>groupRoot.GroupBy(row=>row.Score).ToCosmicListAsync());
+        Assert.IsFalse(groups.IsError,groups.Message+groups.Exception);
+        Assert.AreEqual(1,groups.Result.Count);Assert.AreEqual(23,groups.Result[0].Key);
+        Assert.AreEqual(1,groups.Result[0].Count());
+        Assert.AreEqual(modelId,groups.Result[0].Single().Id);
+        Assert.AreEqual(23,groups.Result[0].Single().Score);
+        Assert.AreNotSame(model,groups.Result[0].Single());
         CollidingAliasHolon.GetterCalls=0;ReservedAliasHolon.GetterCalls=0;
         var scope=CosmicQueryScope.Named(adapter.QueryProviderType).Result;
         var collision=CosmicQuery<CollidingAliasHolon>.Create(scope).Where(row=>row.First==1);
@@ -92,9 +100,9 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsTrue(collision.IsError);Assert.IsNull(collision.Result);
         Assert.IsTrue(reserved.IsError);Assert.IsNull(reserved.Result);
         Assert.AreEqual(0,CollidingAliasHolon.GetterCalls);Assert.AreEqual(0,ReservedAliasHolon.GetterCalls);
-        return new NativeFixtureJourneyProof(4,2,new Dictionary<string,bool>{
+        return new NativeFixtureJourneyProof(5,2,new Dictionary<string,bool>{
             ["aliasStoredWithoutClrKey"]=true,["freshTypedReadVerified"]=true,
-            ["nativePredicateProjectionVerified"]=true,["selectedUpdateVerified"]=true,
+            ["nativePredicateProjectionVerified"]=true,["selectedUpdateVerified"]=true,["typedIdentityGroupsVerified"]=true,
             ["collisionAndReservedRefusedBeforeGetters"]=true});
     }
 }
