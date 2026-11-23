@@ -1,0 +1,104 @@
+{
+  "run": 45140169734,
+  "job": 137575907862,
+  "artifact": 14801743944,
+  "archiveBytes": 3646,
+  "archiveSha256": "51cc93a417f2b56784a83d1f3df1471cd7873ef83408f69545722f1d7bf3bd59",
+  "archiveSavedLocally": false,
+  "source": {
+    "actualWeb4Compiled": true,
+    "source": "2f1d42db60e7ddd6de40a70b2510f999c4fe6ebe",
+    "deployed": false,
+    "nativePassed": 3,
+    "core": "6d545fba9cda4abb15235f8c9aa73a28e58f3b35",
+    "xmlShadowVerified": true,
+    "ownedFixturesAbsent": true,
+    "xmlShadowAdmissionControlsPassed": 1,
+    "sharedDatabaseCalls": 0
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-shadow-model": 746,
+        "read-shadow-model": 118,
+        "project-shadow-model": 84,
+        "refuse-missing-shadow": 23,
+        "update-shadow-model": 48,
+        "read-updated-shadow": 11,
+        "foreign-shadow-visibility": 3
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "xmlDynamicMetadataWithoutClrProperties": true,
+        "nativeLogicalNameFilterOrderProjection": true,
+        "shadowConstraintsBeforeWrite": true,
+        "trackedMetadataUpdateAcknowledged": true,
+        "immutableShadowAndBypassSnapshots": true,
+        "callerVisibilityAndEntryLifetime": true,
+        "existingClrMetadataDecoderPreserved": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-shadow-model": 658,
+        "read-shadow-model": 66,
+        "project-shadow-model": 14,
+        "refuse-missing-shadow": 7,
+        "update-shadow-model": 39,
+        "read-updated-shadow": 16,
+        "foreign-shadow-visibility": 32
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "xmlDynamicMetadataWithoutClrProperties": true,
+        "nativeLogicalNameFilterOrderProjection": true,
+        "shadowConstraintsBeforeWrite": true,
+        "trackedMetadataUpdateAcknowledged": true,
+        "immutableShadowAndBypassSnapshots": true,
+        "callerVisibilityAndEntryLifetime": true,
+        "existingClrMetadataDecoderPreserved": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-shadow-model": 1876,
+        "read-shadow-model": 2097,
+        "project-shadow-model": 1419,
+        "refuse-missing-shadow": 9,
+        "update-shadow-model": 54,
+        "read-updated-shadow": 1035,
+        "foreign-shadow-visibility": 546
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "xmlDynamicMetadataWithoutClrProperties": true,
+        "nativeLogicalNameFilterOrderProjection": true,
+        "shadowConstraintsBeforeWrite": true,
+        "trackedMetadataUpdateAcknowledged": true,
+        "immutableShadowAndBypassSnapshots": true,
+        "callerVisibilityAndEntryLifetime": true,
+        "existingClrMetadataDecoderPreserved": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "admissionControlAccepted": true,
+  "fullNHibernateCompatibilityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T08:47:36.347726+00:00"
+}

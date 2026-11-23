@@ -1,0 +1,21 @@
+{
+  "status": "NFT-empty-catalogue-shipping-accepted-ONODE-published-parent-ready",
+  "base": "3b81b74946b488f871bd550ce101e2bdb3b5e9d2",
+  "imageSource": "5442d4e9de89231a5a4bebe77c44374ab0920001",
+  "core": "13ca0e11c4320213485a19922a1f519736340ca1",
+  "onode": "8745c95ef2f6150fafb1417122a20c020784b338",
+  "image": "sha256:111cedaa725206875f2ef33d455bc4ea6f4dc241ed03c0753df5956152cf0893",
+  "imageRun": 45137303528,
+  "imageJob": 137566541727,
+  "qualificationRun": 45140498072,
+  "qualificationJob": 137577005852,
+  "artifact": 14801543271,
+  "archiveBytes": 4270,
+  "portal": "f5a1fd39f10fb8f2358150c4f5b142c9e0b38aeb",
+  "accepted": "Exact source/image package plus actual portal NFT/GeoNFT/OLAND empty catalogues, grouping, tabs and normal close through shipping WEB4/native isolated Mongo. NFT-only selected; Data/Messaging and other cohorts retained.",
+  "fix": "All3 shared Web3/Web4/GeoNFT decoders assign the actual decoded list after every successful provider collection read, including empty. Native failures stay errors. Enumeration occurs once; no records/results manufactured. UI distinguishes missing data from real empty list and supplies count1 for OLAND price.",
+  "publication": "Fast-forward ONODE8745 to Development completed; parent source is the verified5442 snapshot on current3b81 CQL/Core13ca.",
+  "cleanup": "4270B receipt inspected/disposed in RAM: package container absent/dataWrites0; all5 startup cleanup booleans true; browser/runtime/cache/TLS absence verified. No local build/download/env/database/results.",
+  "scopeLimits": "Empty catalogue/read/grouping only. Not NFT mint/transfer, populated NFT metadata interoperability, all UI actions, paid Stripe, WEB6, provider certification or whole portal100percent.",
+  "retained": "Data browse and actual message send/native recipient readback/conversation45136761604; Files/Wallet/Karma45132201881; WEB5 Games/OAPP45128946718; subscriptions/full page45120405171. No unchanged cohort replay."
+}
