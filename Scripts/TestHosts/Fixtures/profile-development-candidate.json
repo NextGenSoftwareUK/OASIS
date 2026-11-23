@@ -1,15 +1,15 @@
 {
   "scope": "profile",
-  "status": "current-published-CQL-composed-inventory-review",
-  "base": "3a247ab8f27a40bf2977491d7c31357bfa18cc65",
-  "candidate": "c367eb178946cad44c4dc3ce81881dba26a07f40",
-  "tag": "qualification/profile-route-review-root-20261123",
+  "status": "reviewed-current-composition-awaiting-profile-http",
+  "base": "c367eb178946cad44c4dc3ce81881dba26a07f40",
+  "candidate": "e1cf13421bd8acd707d9cda49d2952b01240f2ab",
+  "tag": "qualification/profile-reviewed-current-root-20261123",
   "buildProjects": [
     "WEB4"
   ],
   "allowedPaths": [
-    "Scripts/verify_web4_hyperdrive_route_manifest.ps1",
-    "Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1"
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv"
   ],
   "core": {
     "base": "def8cf76c73ed6495155dd16077a58030af33067",
