@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-23",
+  "run": 45210041080,
+  "source": "daf058b51c6f4251d99415c3a002691e36895e53",
+  "portal": "34e4d23ad3322a60db3c4ea019381c5ab0d50b31",
+  "imageDigest": "sha256:8dff46bf6a87554fa3b889ccd9e0be10cc571509ee9f2530f023187df283887b",
+  "accepted": [
+    "Real isolated Startup authentication and browser",
+    "Profile popup save and independent persisted read",
+    "Profile close"
+  ],
+  "cleanup": {
+    "web5DnaAbsent": true,
+    "ephemeralDatabaseVolumesRemoved": true,
+    "localDownloads": 0,
+    "ownedContainersAbsent": true,
+    "ownedNetworkAbsent": true,
+    "web5ProcessStopped": true
+  },
+  "liveDeployment": false,
+  "limitations": [
+    "Not full OPORTAL acceptance",
+    "Not hosted deployment acceptance",
+    "Container health acceptance not established"
+  ],
+  "next": "Publish scoped verified profile batch after current shared-source review; continue remaining popup breadth."
+}
