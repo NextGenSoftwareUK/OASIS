@@ -336,7 +336,7 @@ older chronological roadmap is supporting history, not the source of green statu
 |---|---|---|---|---|---|
 | M01 | Persist unrestricted POCO classes without IHolon/base-class dependency | ❌ | ❌ | ❌ | **DEFER UNTIL DEMO GREEN** — No proven unrestricted model adapter. |
 | M02 | Attribute-driven entity/property mapping equivalent to ORM annotations | ❌ | ❌ | ❌ | Explicit metadata-key attributes now pass save/read/native query/update, typed grouping and typed join journeys on all three stores; see [mapping guide](../../Devs/COSMIC_MODEL_MAPPING.md). Complete annotations/model conventions remain open. |
-| M03 | Fluent model configuration / mapping-by-code | ❌ | ❌ | ❌ | No proven public model builder. |
+| M03 | Fluent model configuration / mapping-by-code | ❌ | ❌ | ❌ | Immutable scalar builder and explicit query/session/read/write model context implemented; [mapping guide](../../Devs/COSMIC_MODEL_MAPPING.md). Three real-provider journeys and the final access-alias guard are accepted (45104280443/45105765740); combined image/package is pending. Flat roots only; full fluent mapping, graph/POCO/inheritance/converter/schema and annotation override contracts remain open. |
 | M04 | NHibernate XML mappings | ❌ | ❌ | ❌ | No compatible importer/mapper proof. |
 | M05 | Model conventions and configurable naming strategies | ❌ | ❌ | ❌ | No complete convention/override suite. |
 | M06 | Assigned single GUID primary keys | [✅][R] | [✅][R] | [✅][R] | Three-provider REST create/read/update fixtures retain assigned IDs. |

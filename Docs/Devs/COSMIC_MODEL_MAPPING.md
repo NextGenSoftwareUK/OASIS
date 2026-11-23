@@ -71,3 +71,22 @@ Mapped scalar keys can participate in native inner joins and GroupJoin. Selectin
 All native pair proofs and budgets are validated before application models are hydrated. Manager-bound entity joins use the same typed hydration/decryption/selection owner as flat and grouped reads. Repeated identities within an admitted source are materialized once for that result. Direct CosmicJoinExecutor calls retain their canonical detached-output contract; use HolonManager or a bound COSMIC query for application models.
 
 [The mapped-join native journey](../WIP/COSMIC%20ORM/MAPPED_JOIN_NATIVE_ACCEPTANCE_2026-11-23.json) passed on MongoDB, SQLite and Neo4j after an update to the mapped value. It covers an ordinary typed right-entity join, matched typed groups and unmatched groups without additional fixture writes. This is representative functional evidence, not unrestricted join composition, session tracking of nested carriers or full EF/NHibernate parity.
+
+
+## Fluent scalar models
+
+An immutable model can give a public scalar property its metadata key without an attribute:
+
+```csharp
+var builder = new CosmicModelBuilder();
+builder.Entity<ScoreHolon>().Property(row => row.Score).HasMetadataKey("score_value");
+var model = builder.Build();
+if (model.IsError) throw new InvalidOperationException(model.Message);
+using var session = CosmicSession.Create(manager, provider, access, model.Result).Result;
+```
+
+The declared entity currently derives from Holon and has a public parameterless constructor and public scalar getters/setters. Configure each property through its annotation or the fluent model. Existing annotated properties keep their annotation mapping; a fluent override of an annotated property is explicitly refused. Canonical holon identity, ownership and security fields cannot be renamed.
+
+Build snapshots are independent: later builder edits do not affect an existing model. The same immutable model is bound before query expressions/windows and remains attached to session reads, source predicates/order/projections, scalar terminal captures, typed hydration and owned save preparation. Query/session model mismatch or model rebinding fails explicitly. There is no global per-type override or client-side query evaluation.
+
+This initial slice covers flat scalar roots. Explicit model graph expansion, unrestricted POCOs, XML mappings, annotation override precedence, inheritance conventions, converters and the full fluent ORM feature family remain open. Other query shapes still require their independently admitted native contracts. Follow the source/native/live qualification status in [the COSMIC status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md); source presence alone is not parity or deployment acceptance.

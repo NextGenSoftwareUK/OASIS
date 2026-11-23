@@ -1,0 +1,20 @@
+{
+  "source": "b0d716c0f6c3389979ba60fef118fed582b71f39",
+  "base": "854b2b3129701b3a5162d49d55e7e8a86be4f6ef",
+  "files": [
+    "Queries/CosmicValidationModel.cs",
+    "Queries/CosmicModel.cs",
+    "Queries/CosmicModelBuilder.cs",
+    "Managers/HolonManager/HolonManager-OwnedBatchSave.cs"
+  ],
+  "existingValidationRuleOwnerReused": true,
+  "privateSnapshotAfterAuthorizationAndCallbacks": true,
+  "immutableModelRules": true,
+  "compiled": false,
+  "nativeAccepted": false,
+  "parentPinned": false,
+  "deployed": false,
+  "excludedFromCurrentReleaseCore": "854b2b3129701b3a5162d49d55e7e8a86be4f6ef",
+  "precedingImplementation": "1dcc77ea9847c8803e2cf7972775477aa0cf87be",
+  "sharedRuleAdmissionOwner": true
+}
