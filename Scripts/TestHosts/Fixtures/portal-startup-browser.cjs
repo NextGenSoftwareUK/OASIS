@@ -9,11 +9,13 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
+ assert.ok(['none','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
  const selectedPopups=popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
-  popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage'}[popupGroup]];
+  popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
+ let clanId,clanCreates=0,clanUpdates=0,clanMembers=0,clanDeletes=0;
+ const clanName='Owned portal clan '+process.env.GITHUB_RUN_ID;
  let chatId,chatStarts=0,chatSends=0,chatEnds=0;
  let recipient,recipientToken,ownedToken,incomingMessageId,incomingNotificationIds,markedMessages=0,markedNotifications=0,sentMessage=0,dataReads=0;
  const fileBytes=Buffer.from('Owned portal file roundtrip.\n','utf8');
@@ -61,7 +63,7 @@ async function main(){
   if(api5)await admitFree(account);
   if(selectedPopups.length){
    assert.equal(api5,null,'WEB4-only popup journey');ownedToken=await admitFree(account);
-   if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')||selectedPopups.includes('DirectoryMessage')){
+   if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')||selectedPopups.includes('DirectoryMessage')||selectedPopups.includes('Clan')){
     recipient=await createOwnedAvatar(api.href);recipientToken=await admitFree(recipient);
    }
   }
@@ -82,6 +84,14 @@ async function main(){
    if(url.origin==='https://api.web4.oasisomniverse.one'){
     const mutation=request.method()!=='GET'&&request.method()!=='OPTIONS';
     let ownedOperation=false;
+    if(popupGroup==='clan'){
+     if(request.method()==='POST'&&url.pathname==='/api/clan'){
+      assert.equal(++clanCreates,1);assert.deepEqual(request.postDataJSON(),{name:clanName,description:'Owned clan journey'});ownedOperation=true;
+     }else if(request.method()==='PUT'&&clanId&&url.pathname==='/api/clan/'+clanId){
+      assert.equal(++clanUpdates,1);assert.deepEqual(request.postDataJSON(),{name:clanName+' edited',description:'Edited clan journey'});ownedOperation=true;
+     }else if(request.method()==='POST'&&clanId&&url.pathname==='/api/clan/'+clanId+'/members/'+recipient.avatar.id){assert.equal(++clanMembers,1);ownedOperation=true;
+     }else if(request.method()==='DELETE'&&clanId&&url.pathname==='/api/clan/'+clanId){assert.equal(++clanDeletes,1);ownedOperation=true;}
+    }
     if(['chat','chat-directory','chat-hyperdrive'].includes(popupGroup)&&request.method()==='POST'){
      if(url.pathname==='/api/chat/start-new-chat-session'){
       assert.equal(++chatStarts,1);assert.deepEqual(request.postDataJSON(),[account.avatar.id,recipient.avatar.id]);ownedOperation=true;
@@ -275,6 +285,21 @@ async function main(){
     await page.waitForFunction(id=>document.getElementById('data-modal-status').hidden&&
      !document.querySelector('#data-browse-grid [data-holon-idx="'+id+'"]'),savedHolonId);
     assert.equal(holonSaves,popupGroup==='data-edit'?2:1);assert.equal(pointReads,popupGroup==='data-edit'?2:1);assert.equal(holonDeletes,1);
+   });
+   await checkPopup('Clan','#clan-close-btn',async()=>{
+    stage='Clan create form';await page.evaluate(()=>window.openClanModal());await page.waitForFunction(()=>document.getElementById('clan-browse-list').textContent.includes('No clans found.'));
+    await page.locator('#clan-modal-block [data-tab="create"]').click();await page.locator('#clan-create-name').fill(clanName);await page.locator('#clan-create-desc').fill('Owned clan journey');
+    stage='Clan create';const createResponse=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/clan'&&r.request().method()==='POST');await page.locator('#clan-create-btn').click();
+    const createdRaw=await(await createResponse).json(),created=typeof createdRaw.isError==='boolean'?createdRaw:createdRaw.result;assert.equal(created.isError,false);clanId=created.result.id;assert.match(clanId,/^[0-9a-f-]{36}$/i);
+    assert.equal(created.result.ownerAvatarId,account.avatar.id);assert.ok(created.result.memberIds.includes(account.avatar.id));
+    await page.locator('#clan-edit-form').waitFor({state:'attached'});await page.locator('#clan-detail-panel details summary').click();
+    stage='Clan edit';await page.locator('#clan-edit-name').fill(clanName+' edited');await page.locator('#clan-edit-description').fill('Edited clan journey');await page.locator('#clan-edit-form button').click();
+    await page.waitForFunction(name=>document.querySelector('#clan-detail-panel h3')?.textContent===name,clanName+' edited');
+    stage='Clan add member';await page.locator('#clan-add-username').fill(recipient.username);await page.locator('#clan-add-member-form button').click();
+    await page.locator('[data-clan-remove="'+recipient.avatar.id+'"]').waitFor({state:'visible'});
+    const native=await recipient.call('owned clan member readback','GET','/api/clan/'+clanId,undefined,recipientToken);assert.equal(native.name,clanName+' edited');assert.equal(native.description,'Edited clan journey');assert.ok(native.memberIds.includes(recipient.avatar.id));
+    stage='Clan delete';page.once('dialog',dialog=>dialog.accept());await page.locator('#clan-delete-btn').click();await page.waitForFunction(()=>document.getElementById('clan-browse-list').textContent.includes('No clans found.')&&document.getElementById('clan-stat-total').textContent==='0');
+    assert.equal(clanCreates,1);assert.equal(clanUpdates,1);assert.equal(clanMembers,1);assert.equal(clanDeletes,1);
    });
    await checkPopup('Chat','#messaging-modal-close-btn',async()=>{
     stage='Chat start';await page.locator('#dash-card-messages').click();await page.locator('#messaging-modal-block [data-tab="chat"]').click();
