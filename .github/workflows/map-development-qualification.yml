@@ -121,7 +121,7 @@ jobs:
           if ((git rev-parse HEAD) -ne $env:CANDIDATE_SHA) { throw 'Candidate source mismatch.' }
           if ((git rev-parse HEAD^) -ne $env:BASE_SHA) { throw 'Candidate parent mismatch.' }
           $actual = @(git diff --name-only $env:BASE_SHA HEAD)
-          if ($actual.Count -ne $candidate.allowedPaths.Count -or @(Compare-Object ($actual | Sort-Object) ($candidate.allowedPaths | Sort-Object)).Count) { throw 'Candidate includes unexpected source changes.' }
+          if ($actual.Count -ne $candidate.allowedPaths.Count -or [string]::Join("`n", @($actual | Sort-Object)) -cne [string]::Join("`n", @($candidate.allowedPaths | Sort-Object))) { throw 'Candidate includes unexpected source changes.' }
           $manifest = Get-Content Docker/oasis-dependency-versions.env
           foreach ($key in @('LIBRARIES_COMMIT','HOLOCHAIN_COMMIT')) {
             $lines = @($manifest | Where-Object { $_ -match "^${key}=" })

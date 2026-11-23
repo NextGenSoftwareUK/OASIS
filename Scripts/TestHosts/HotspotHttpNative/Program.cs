@@ -333,6 +333,14 @@ try
     }
     if (mode == "gifts-browser")
     {
+        var missingRecipient = Guid.NewGuid();
+        using (var denied = await http.PostAsJsonAsync("/api/gifts/send-gift/" + missingRecipient + "?giftType=Custom", new { }))
+        {
+            var body = JObject.Parse(await denied.Content.ReadAsStringAsync());
+            Require(body.Value<bool>("isError"), "Missing gift recipient was accepted.");
+            var missingInbox = await GiftsManager.Instance.GetAllGiftsAsync(missingRecipient);
+            Require(!missingInbox.IsError && missingInbox.Result.Count == 0, "Refused recipient received a durable gift.");
+        }
         var recipient = accounts.Single(account => account.Id != actor).Id;
         var recipientJwt = new JwtSecurityToken(claims: new[] { new Claim("sub", recipient.ToString("D")) },
             expires: DateTime.UtcNow.AddMinutes(5), signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));

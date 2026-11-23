@@ -5,9 +5,12 @@
   "portal": "a85a0c5f0fbe701adfd7e78d33f84084d5ce8479",
   "remaining": "Actual popup/SDK/HTTP/native Mongo send-receive-open-history and logout only; full Startup/SSO/hosted and whole portal remain open.",
   "scope": "billing",
-  "allowedPaths": [],
-  "status": "New Gifts browser journey only; prior native manager acceptance retained",
+  "allowedPaths": [
+    "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
+  ],
+  "status": "Restore exact accepted Gifts validation omitted by prior composition; new browser journey and missing-recipient no-write check",
   "nativeMode": "gifts-browser",
-  "candidate": "2f1b280e6e3e9a73d08515ab6a8a2450e34ef227",
-  "tag": "qualification/gifts-browser-20261123"
+  "candidate": "a61af6a6f361ed864ed32ccc6287ee69a159cdfd",
+  "tag": "qualification/gifts-validation-browser-20261123"
 }
