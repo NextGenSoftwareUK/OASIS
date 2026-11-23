@@ -3015,3 +3015,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 2026-11-23 detailed run45114577286 log read streamed in RAM (3874538 characters,7 selected lines), no downloaded log. Native database/DNA/container/browser runtime/cache absence markers verified. Portal58-script syntax check created no outputs; old blocked files untouched.
 
 2026-11-23 Portal17ed8e4 Inventory breadth: source-only rendering check, syntax/endpoint/diff, public static comparison in RAM; no backend repeats, dependencies, downloads, envs, build/test outputs or databases created. Public dev script exact; Railway21ab still QUEUED.
+
+2026-11-23 Portal81fc716 subscription routing: focused local source checks and existing JS suite only; no dependencies/env/download/build/database/results created. No native/shared backend cohort replay. Retained source/docs and exact published commit.
