@@ -253,6 +253,8 @@ try
         Check(!supervisorProcess.HasExited && state.StatusCode == HttpStatusCode.NotFound && attempt < 40, "Real node state was not pushed.");
         await Task.Delay(250, deadline.Token);
     }
+    if (!browserEnabled)
+    {
     stage = "immediate real command polling";
     var clock = Stopwatch.StartNew();
     using var commandResponse = await http.PostAsJsonAsync("/api/v1/onode/commands",
@@ -327,6 +329,7 @@ try
         Check(state.RootElement.GetProperty("nodeId").GetString() == marker, "Live state selected the wrong node.");
         await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Owned check complete", deadline.Token);
     }
+    }
     if (browserEnabled)
     {
         stage = "actual ONODE browser";
@@ -359,7 +362,7 @@ try
             await output; await error;
         }
     }
-    Console.WriteLine("ONODE_BRIDGE_NATIVE: real owned Mongo password-issued sessions and actual WEB4 Startup enforced anonymous/ordinary denial; actual supervisor pushed node state and polled/executed/acknowledged public-config command within configured cadence; real authenticated revision-aware local provider proxy and actual Startup WebSocket passed. No browser, applied-runtime or all-provider acceptance.");
+    if (!browserEnabled) Console.WriteLine("ONODE_BRIDGE_NATIVE: real owned Mongo password-issued sessions and actual WEB4 Startup enforced anonymous/ordinary denial; actual supervisor pushed node state and polled/executed/acknowledged public-config command within configured cadence; real authenticated revision-aware local provider proxy and actual Startup WebSocket passed. No browser, applied-runtime or all-provider acceptance.");
 }
 catch (Exception error)
 {

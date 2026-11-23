@@ -61,6 +61,7 @@ async function verify({baseUrl,token,avatarId,nodeId}){
   const providerActions=await mongoRow().locator('.onode-row-actions').boundingBox();
   assert.ok(providerName&&providerActions&&providerName.width>=80&&providerActions.x>=providerName.x+providerName.width);
   stage='routing roles';await page.locator('#onode-provider-role').selectOption('replication');
+  await mongoRow().getByRole('button',{name:'Remove',exact:true}).click();
   await mongoRow().getByRole('button',{name:'Include',exact:true}).waitFor();
   await page.locator('#onode-provider-role').selectOption('loadBalancing');
   await mongoRow().getByRole('button',{name:'Remove',exact:true}).waitFor();

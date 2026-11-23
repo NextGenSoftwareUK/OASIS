@@ -15,7 +15,7 @@
   },
   "onodeManager": "3ecf0f8ea9713412da9071a1c6d12f961b050c8e",
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
-  "remaining": "Actual Startup sign-in500 with empty response in45239339291. Enable exception-type/method-only server diagnostic, no browser runtime download until authentication passes. Pinned browser journey remains prepared.",
+  "remaining": "Run prepared pinned popup browser journey; standalone accepted native assertions skipped in browser mode. Applied runtime/provider/process action completeness remains open.",
   "inventoryReview": {
     "run": 45237515982,
     "artifact": 14849027990,
@@ -159,6 +159,13 @@
     "run": 45233869564,
     "status": "queued"
   },
-  "onodeBrowser": false,
-  "portal": "88d2f7adc10687845585460ebfea68bd4c9fc705"
+  "onodeBrowser": true,
+  "portal": "88d2f7adc10687845585460ebfea68bd4c9fc705",
+  "acceptedActualBridge": {
+    "run": 45242480184,
+    "job": 137930510870,
+    "source": "75dad9fada3012452f693eece973decd08789386",
+    "status": "success",
+    "scope": "Actual Startup issued native password sessions, authorization, separate shipping supervisor state/poll/command acknowledgement, revision-aware proxy, loaded public view and live socket; cleanup passed. No browser/applied-runtime/all-provider acceptance."
+  }
 }
