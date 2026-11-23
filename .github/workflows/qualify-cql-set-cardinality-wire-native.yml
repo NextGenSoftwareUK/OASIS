@@ -6,6 +6,8 @@ on:
     paths:
       - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.SetCardinalityWire.cs"
       - ".github/workflows/qualify-cql-set-cardinality-wire-native.yml"
+      - "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/NextGenSoftware.OASIS.API.Core.UnitTests.csproj"
+      - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests.csproj"
       - "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CqlSetReductionV1CompilerTests.cs"
   workflow_dispatch:
 

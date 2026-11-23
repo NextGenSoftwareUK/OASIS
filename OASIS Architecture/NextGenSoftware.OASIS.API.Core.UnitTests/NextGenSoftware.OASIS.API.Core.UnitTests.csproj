@@ -107,4 +107,8 @@
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectedSetV1Compiler.cs" Link="Production/CqlProjectedSetV1Compiler.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectedSetV1Endpoint.cs" Link="Production/CqlProjectedSetV1Endpoint.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetReductionV1Compiler.cs" Link="Production/CqlSetReductionV1Compiler.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetReductionV1Endpoint.cs" Link="Production/CqlSetReductionV1Endpoint.cs" />
+  </ItemGroup>
 </Project>
