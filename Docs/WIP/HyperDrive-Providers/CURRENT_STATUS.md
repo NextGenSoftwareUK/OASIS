@@ -1,3 +1,43 @@
+## 2026-11-23 - Configured worker-status and LocalFile HTTP correction ACCEPTED
+
+45098982294/job137445180377 SUCCESS on afbd5984, exactly1passed0failed4s. Actual native LocalFile persisted sign-in,3protected HTTP reads, status pause config matches real DI, native hard-delete then401/error/false. Shipping session enforcement unchanged. Mongo/browser setup skipped; fixture restores globals/deactivates native provider. Next one scoped Development batch contains only two controller source files, corrected test and named evidence/docs. Existing6bb seven-service running acceptance retained; next rollout not yet claimed.
+
+## 2026-11-23 - Configured background-worker status source and focused fixture
+
+Portal43cf6d6 displays operator pause configuration separately from routing switches; older APIs explicitly not-reported. API source adds backgroundWorkersPauseConfigured via DI configuration, not a worker-liveness assertion; not deployed. LocalFile45097985487 passed real sign-in and3protected reads, then failed obsolete INVALID_AVATAR text expectation after correct401. Fixed final error/false assertion and added status/config check to same existing request. Next candidateafbd5984e5a3b824080059e206331b727645c8de uses that one case only; no accepted cohorts/Mongo/browser.
+
+## 2026-11-23 - MCP session readiness source fix delivered
+
+Portal devf573156 (report6feabcd): MCP tab awaits the existing shared refresh readiness before reading/displaying its bearer/config, discards stale client/session results and reports readiness failure. No new API request/polling. Syntax/endpoint/diff passed; browser acceptance pending. Focused real LocalFile HTTP fixture45097985487/job137442005421 active. Previously accepted7dev rollouts/session/MFA/browser evidence retained; no extra Dev deployment.
+
+## 2026-11-23 - Seven dev deployments and account-review browser accepted
+
+All7 exact Railway dev deployments SUCCESS and in-container source6bbbae4b confirmed. WEB4 three selected worker-pause flags all true, unchanged. Live Swagger metadata833WEB4/640WEB5 includes new assessment/checkout routes; canonical portal catalogue refreshedf69a2f8. New review browser45096493185/job137437334269 SUCCESS,0errors5m31.31; real owned-app requirement, no browser mutations, native avatar unchanged/session active. Both remote cleanup steps SUCCESS. BroadCI integration45095683887 has one failed old subject-only-JWT fixture; f4ff99e source corrects it to actual persisted issuance, focused verification pending. No middleware weakening/shared backend calls. Permanent erasure/real hosted Stripe/whole OPORTAL remain incomplete.
+
+## 2026-11-23 - Pending rollout and bounded history check
+
+WEB4 exact deployment78ee234f still BUILDING; account-review45096493185/job137437334269 active. Six other dev containers already verified6bbbae4b. Read-only merge-tree back-sync reports no common ancestor in shallow repository, even after one bounded16commit fetch of the two named branches. No force/unrelated-history merge, branch switch, source checkout or submodule change performed. Future back-sync needs explicit history reconciliation; qualified source remains exact immutable refs/Development. This is agent-owned maintenance, not a user-access blocker.
+
+## 2026-11-23 - Six running container revisions accepted; WEB4 building
+
+WEB5/WEB6/WEB7/WEB8/WEB9/WEB10 SUCCESS and exact selected in-container source6bbbae4b verified. WEB4 remains BUILDING, not accepted. New account-review browser45096493185 queued on e4e3241, one real read-only Settings flow only; accepted sign-out assertions not replayed. No shared auth/data/payment probes, config changes or local outputs.
+
+## 2026-11-23 - New account-requirements browser check prepared
+
+Actual Settings review flow pins Portal145d58f and accepted combined backendb71528fb: one real login, explicit real assessment GET/owned-app requirement DOM, zero browser mutations, unchanged native avatar/version and active session. No accepted sign-out/billing/MFA/35case assertions replayed. Prepared only; no browser acceptance or deletion claim. Running Railway rollout remains separately tracked.
+
+## 2026-11-23 - Three running dev container revisions verified
+
+WEB7/WEB8/WEB9 deployment SUCCESS and selected in-container RAILWAY_GIT_COMMIT_SHA exactly6bbbae4b. Remaining deployment handles tracked in OPORTAL_BACKEND_DEV_ROLLOUT_2026-11-23.json. No application/auth/data/payment call. Worker pause env read on those3 yielded no values; their reviewed Program source does not register WEB4 hosted Mongo worker controls. WEB4 actual pause flags still require selected verification after its pending rollout; no global worker-state claim.
+
+## 2026-11-23 - Exact Railway rollout handles recorded
+
+Development6bbbae4b dev rollout: WEB7/WEB8/WEB9 BUILDING; WEB4/WEB5/WEB6/WEB10 QUEUED. Exact seven deployment IDs recorded in OPORTAL_BACKEND_DEV_ROLLOUT_2026-11-23.json. Metadata only; no running/source/functional acceptance or configuration change. No shared auth/data/payment calls.
+
+## 2026-11-23 - Verified backend batch PUBLISHED to Development
+
+Development6bbbae4be199eef55856df32476db5684ee05073 now contains qualified sourceb71528fb with current CQL mapping preserved, paired pins and updated scoped evidence. Core6df988c8/WEB678a27a29/STAR531c9897 fast-forwarded to their Development branches. All8 branch policies pass. Railway reports all7 dev API contexts pending at01:38UTC; no running/hosted acceptance or staging/production promotion claimed. No shared Mongo/login/payment calls; worker/DNA configuration unchanged.
+
 ## 2026-11-23 - Combined backend accepted; publishing one verified batch
 
 45094516900/job137431237720 SUCCESS on rootb71528fb/Core6df988c8/WEB678a27a29: all7API build0errors7m48.90, actual changed MFA HTTP/native issuance/challenge/recovery/refresh journey passed and initial status read creates no challenge/event collections. Native fixture removed SUCCESS. Accepted session45091356813 and Settings browser45093523946 retained, not replayed. Affected module Development refs fast-forwarded; all8 branch pins and paired manifest verified after stale-ref refresh. Parent Development rollout next, not yet running acceptance. Permanent deletion/hosted Stripe/full OPORTAL/provider and HyperDrive reliability remain open.
