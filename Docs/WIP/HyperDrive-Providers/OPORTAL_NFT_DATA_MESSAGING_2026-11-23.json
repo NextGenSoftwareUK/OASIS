@@ -1,5 +1,5 @@
 {
-  "status": "Data-and-Messaging-accepted-NFT-decoder-candidate-building",
+  "status": "Data-Messaging-and-NFT-empty-read-journeys-accepted-parent-publication-ready",
   "portal": "f5a1fd39f10fb8f2358150c4f5b142c9e0b38aeb",
   "accepted": {
     "run": 45136761604,
@@ -50,9 +50,13 @@
     "root": "5442d4e9de89231a5a4bebe77c44374ab0920001",
     "imageRun": 45137303528,
     "imageJob": 137566541727,
-    "status": "in_progress",
-    "qualification": "Source paired pins passed; immutable ONODE/root tags pushed. No compile/runtime acceptance of the new decoder yet.",
-    "preservation": "Current CQL source3b81/Core13ca retained; all three shared authority files identical to2356. Physical dirty submodules untouched."
+    "status": "image-and-NFT-only-startup-accepted",
+    "qualification": "Shipping image and exact package/native NFT-only portal check accepted; ONODE published. Parent publication/rollout pending.",
+    "preservation": "Current CQL source3b81/Core13ca retained; all three shared authority files identical to2356. Physical dirty submodules untouched.",
+    "image": "sha256:111cedaa725206875f2ef33d455bc4ea6f4dc241ed03c0753df5956152cf0893",
+    "qualificationRun": 45140498072,
+    "qualificationJob": 137577005852,
+    "artifact": 14801543271
   },
   "uiFixes": "Distinct loading/failed/empty NFT panels; grouping preserves catalogue state; positive count1 for real OLAND unit-price call. Four public dev assets HTTP200/source exact and canonical cache keys valid.",
   "delivery": {
@@ -63,7 +67,7 @@
     "fragment": "717fdbd2056edb0084685f8f003a67b49c1e4bf8f444e17a893f9ebddf6a0730",
     "scope": "Static source delivery only; four bounded memory-only requests, no shared database/auth/data request."
   },
-  "next": "Follow image45137303528 to terminal, then NFT-only actual Startup/browser check. Do not repeat accepted Data/Messaging/Files/Wallet/Karma/subscriptions/Games cohorts. Publish scoped decoder only after acceptance.",
+  "next": "Publish scoped verified NFT decoder on current Development with paired pin and branch gates; then continue remaining write actions and map workflows.",
   "remaining": "No NFT mint/transfer/Our World real-device/paid Stripe/WEB6/all popup actions/whole-portal or full-provider claim. Mint-wallet collection source still has explicit recursive loads and a sync metadata-key mismatch for later focused repair.",
   "cleanup": "No local build/env/download/runtime/database/results. Exact owned oasis-nft-empty-onode-20261123.index and oasis-nft-empty-root-20261123.index/locks removed in finally. Compact receipts RAM-only; source/Git objects and reports retained. C:27.07GiB observed."
 }

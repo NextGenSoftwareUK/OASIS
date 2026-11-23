@@ -58,7 +58,7 @@
     "collectionAuthority": "MongoDBOASIS saved and loaded after compatible binary. Existing ordinary Mongo/SQLite/Neo,104query-only and12routes preserved. WEB5 absent admission preserved; staging/production/source DNA unchanged."
   },
   "verification": "Metadata and selected environment fields only; no shared database/login/benchmark/API data calls.",
-  "remaining": "Follow existing aff21 successor and preserve authority/holds; decoder image45137303528 is a distinct unqualified candidate. No duplicate config roll/root push requested.",
+  "remaining": "Authority rollout/settings accepted at selected source/runtime scope. NFT decoder is a separate newly qualified batch; full hosted page/performance and whole-portal acceptance remain open.",
   "configurationRoll": {
     "deployment": "d8fd5b36-67ef-4e85-9bf1-04c1ca5f995c",
     "status": "SUCCESS",
@@ -75,8 +75,15 @@
     "source": "3b81b74946b488f871bd550ce101e2bdb3b5e9d2",
     "core": "13ca0e11c4320213485a19922a1f519736340ca1",
     "web4Deployment": "aff21e5a-b54c-4102-b4f4-c763bef3f5a7",
-    "web4Status": "BUILDING",
+    "web4Status": "SUCCESS",
     "otherSixLatestStatus": "SUCCESS",
-    "scope": "Other six prior ownbf14 handles are now REMOVED/superseded by CQL3b81, not failed. New Core preserves exact authority implementation; WEB4 running successor verification pending."
+    "scope": "WEB4 successor aff21 selected running fields verified. Other six successor deployments SUCCESS by metadata. No data/auth calls; source authority files identical to2356.",
+    "web4RunningRevision": "3b81b74946b488f871bd550ce101e2bdb3b5e9d2",
+    "runningAuthority": "MongoDBOASIS",
+    "runningHolds": [
+      true,
+      true,
+      true
+    ]
   }
 }

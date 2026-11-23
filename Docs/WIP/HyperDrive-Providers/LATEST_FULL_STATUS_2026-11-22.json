@@ -7,19 +7,15 @@
     "portalBranch": "dev",
     "portalHead": "f5a1fd39f10fb8f2358150c4f5b142c9e0b38aeb",
     "reviewedDevelopment": "3b81b74946b488f871bd550ce101e2bdb3b5e9d2",
-    "currentCore": "2356b0a8b4d8a425cf13a8abe45b0b4dfcd7defa",
+    "currentCore": "13ca0e11c4320213485a19922a1f519736340ca1",
     "currentWeb6": "78a27a295e74721358eb2b02399f79eff5b21633",
-    "scope": "Last direct WEB4 runtime bf14/Core2356 has loaded Mongo authority and all3holds true. Current source3b81/Core13ca preserves that implementation; six successor deployments SUCCESS, WEB4 successor building. NFT candidate5442/ONODE8745 is not yet compiled/accepted.",
+    "scope": "Current CQL3b81 dev WEB4 runtime verified: Mongo authority/all3holds true. ONODE8745 decoder fix passed exact shipping package/native portal; parent publication/rollout pending.",
     "currentQualification": {
-      "base": "3b81b74946b488f871bd550ce101e2bdb3b5e9d2",
+      "root": "5442d4e9de89231a5a4bebe77c44374ab0920001",
       "core": "13ca0e11c4320213485a19922a1f519736340ca1",
       "onode": "8745c95ef2f6150fafb1417122a20c020784b338",
-      "root": "5442d4e9de89231a5a4bebe77c44374ab0920001",
-      "imageRun": 45137303528,
-      "imageJob": 137566541727,
-      "status": "in_progress",
-      "qualification": "Source paired pins passed; immutable ONODE/root tags pushed. No compile/runtime acceptance of the new decoder yet.",
-      "preservation": "Current CQL source3b81/Core13ca retained; all three shared authority files identical to2356. Physical dirty submodules untouched."
+      "run": 45140498072,
+      "status": "NFT-only-shipping-accepted-ONODE-published-parent-ready"
     }
   },
   "web6": {
@@ -58,7 +54,8 @@
       "Gifts send/receive/open/history/logout browser/native45104328970",
       "Real WEB5 entry-point Games/OAPP full-page45128946718",
       "Shipping WEB4 full-page Files/Wallet/Karma45132201881",
-      "Full portal Data browse and one real message send/recipient inbox readback/conversation45136761604"
+      "Full portal Data browse and one real message send/recipient inbox readback/conversation45136761604",
+      "Actual full page NFT/GeoNFT/OLAND empty catalogues/grouping/tabs/close45140498072"
     ],
     "latestDeliveredFixes": [
       "Current subscription selection, retry states, real invoice/PDF links and exact-plan checkout activation confirmation",
@@ -71,7 +68,7 @@
       "Real username sign-in form fixed; actual authenticated WEB4 page slice45120405171 accepted."
     ],
     "remaining": [
-      "Remaining popup/action completeness and WEB6 full-host flows; NFT success-without-list bug identified and shared decoder fix awaiting shipping image/API acceptance.",
+      "Remaining popup write actions, mapping flows, WEB6 full-host flows and permanent account erasure; representative accepted read/delivery journeys do not prove every action.",
       "Hosted Stripe paid lifecycle and checkout recovery acceptance; existing owner action remains open",
       "Permanent account and all-data/provider/replica erasure lifecycle",
       "Current hosted dashboard/screen performance acceptance",
@@ -170,7 +167,7 @@
     "Permanent account/private-data/provider-replica erasure and Settings deletion remain unfinished.",
     "Whole-host DID/MFA frontend and WEB6 SSO acceptance remain open; existing changed-save/native45094516900 retained."
   ],
-  "lastUpdatedUtc": "2026-11-23T08:24:05.347154+00:00",
+  "lastUpdatedUtc": "2026-11-23T08:46:03.672176+00:00",
   "latestFocusedRun": {
     "id": 45091356813,
     "job": 137421421351,
@@ -372,7 +369,7 @@
       "collectionAuthority": "MongoDBOASIS saved and loaded after compatible binary. Existing ordinary Mongo/SQLite/Neo,104query-only and12routes preserved. WEB5 absent admission preserved; staging/production/source DNA unchanged."
     },
     "verification": "Metadata and selected environment fields only; no shared database/login/benchmark/API data calls.",
-    "remaining": "Follow existing aff21 successor and preserve authority/holds; decoder image45137303528 is a distinct unqualified candidate. No duplicate config roll/root push requested.",
+    "remaining": "Authority rollout/settings accepted at selected source/runtime scope. NFT decoder is a separate newly qualified batch; full hosted page/performance and whole-portal acceptance remain open.",
     "configurationRoll": {
       "deployment": "d8fd5b36-67ef-4e85-9bf1-04c1ca5f995c",
       "status": "SUCCESS",
@@ -389,13 +386,20 @@
       "source": "3b81b74946b488f871bd550ce101e2bdb3b5e9d2",
       "core": "13ca0e11c4320213485a19922a1f519736340ca1",
       "web4Deployment": "aff21e5a-b54c-4102-b4f4-c763bef3f5a7",
-      "web4Status": "BUILDING",
+      "web4Status": "SUCCESS",
       "otherSixLatestStatus": "SUCCESS",
-      "scope": "Other six prior ownbf14 handles are now REMOVED/superseded by CQL3b81, not failed. New Core preserves exact authority implementation; WEB4 running successor verification pending."
+      "scope": "WEB4 successor aff21 selected running fields verified. Other six successor deployments SUCCESS by metadata. No data/auth calls; source authority files identical to2356.",
+      "web4RunningRevision": "3b81b74946b488f871bd550ce101e2bdb3b5e9d2",
+      "runningAuthority": "MongoDBOASIS",
+      "runningHolds": [
+        true,
+        true,
+        true
+      ]
     }
   },
   "nftDataMessaging20261123": {
-    "status": "Data-and-Messaging-accepted-NFT-decoder-candidate-building",
+    "status": "Data-Messaging-and-NFT-empty-read-journeys-accepted-parent-publication-ready",
     "portal": "f5a1fd39f10fb8f2358150c4f5b142c9e0b38aeb",
     "accepted": {
       "run": 45136761604,
@@ -446,9 +450,13 @@
       "root": "5442d4e9de89231a5a4bebe77c44374ab0920001",
       "imageRun": 45137303528,
       "imageJob": 137566541727,
-      "status": "in_progress",
-      "qualification": "Source paired pins passed; immutable ONODE/root tags pushed. No compile/runtime acceptance of the new decoder yet.",
-      "preservation": "Current CQL source3b81/Core13ca retained; all three shared authority files identical to2356. Physical dirty submodules untouched."
+      "status": "image-and-NFT-only-startup-accepted",
+      "qualification": "Shipping image and exact package/native NFT-only portal check accepted; ONODE published. Parent publication/rollout pending.",
+      "preservation": "Current CQL source3b81/Core13ca retained; all three shared authority files identical to2356. Physical dirty submodules untouched.",
+      "image": "sha256:111cedaa725206875f2ef33d455bc4ea6f4dc241ed03c0753df5956152cf0893",
+      "qualificationRun": 45140498072,
+      "qualificationJob": 137577005852,
+      "artifact": 14801543271
     },
     "uiFixes": "Distinct loading/failed/empty NFT panels; grouping preserves catalogue state; positive count1 for real OLAND unit-price call. Four public dev assets HTTP200/source exact and canonical cache keys valid.",
     "delivery": {
@@ -459,8 +467,29 @@
       "fragment": "717fdbd2056edb0084685f8f003a67b49c1e4bf8f444e17a893f9ebddf6a0730",
       "scope": "Static source delivery only; four bounded memory-only requests, no shared database/auth/data request."
     },
-    "next": "Follow image45137303528 to terminal, then NFT-only actual Startup/browser check. Do not repeat accepted Data/Messaging/Files/Wallet/Karma/subscriptions/Games cohorts. Publish scoped decoder only after acceptance.",
+    "next": "Publish scoped verified NFT decoder on current Development with paired pin and branch gates; then continue remaining write actions and map workflows.",
     "remaining": "No NFT mint/transfer/Our World real-device/paid Stripe/WEB6/all popup actions/whole-portal or full-provider claim. Mint-wallet collection source still has explicit recursive loads and a sync metadata-key mismatch for later focused repair.",
     "cleanup": "No local build/env/download/runtime/database/results. Exact owned oasis-nft-empty-onode-20261123.index and oasis-nft-empty-root-20261123.index/locks removed in finally. Compact receipts RAM-only; source/Git objects and reports retained. C:27.07GiB observed."
+  },
+  "nftCollectionAcceptance20261123": {
+    "status": "NFT-empty-catalogue-shipping-accepted-ONODE-published-parent-ready",
+    "base": "3b81b74946b488f871bd550ce101e2bdb3b5e9d2",
+    "imageSource": "5442d4e9de89231a5a4bebe77c44374ab0920001",
+    "core": "13ca0e11c4320213485a19922a1f519736340ca1",
+    "onode": "8745c95ef2f6150fafb1417122a20c020784b338",
+    "image": "sha256:111cedaa725206875f2ef33d455bc4ea6f4dc241ed03c0753df5956152cf0893",
+    "imageRun": 45137303528,
+    "imageJob": 137566541727,
+    "qualificationRun": 45140498072,
+    "qualificationJob": 137577005852,
+    "artifact": 14801543271,
+    "archiveBytes": 4270,
+    "portal": "f5a1fd39f10fb8f2358150c4f5b142c9e0b38aeb",
+    "accepted": "Exact source/image package plus actual portal NFT/GeoNFT/OLAND empty catalogues, grouping, tabs and normal close through shipping WEB4/native isolated Mongo. NFT-only selected; Data/Messaging and other cohorts retained.",
+    "fix": "All3 shared Web3/Web4/GeoNFT decoders assign the actual decoded list after every successful provider collection read, including empty. Native failures stay errors. Enumeration occurs once; no records/results manufactured. UI distinguishes missing data from real empty list and supplies count1 for OLAND price.",
+    "publication": "Fast-forward ONODE8745 to Development completed; parent source is the verified5442 snapshot on current3b81 CQL/Core13ca.",
+    "cleanup": "4270B receipt inspected/disposed in RAM: package container absent/dataWrites0; all5 startup cleanup booleans true; browser/runtime/cache/TLS absence verified. No local build/download/env/database/results.",
+    "scopeLimits": "Empty catalogue/read/grouping only. Not NFT mint/transfer, populated NFT metadata interoperability, all UI actions, paid Stripe, WEB6, provider certification or whole portal100percent.",
+    "retained": "Data browse and actual message send/native recipient readback/conversation45136761604; Files/Wallet/Karma45132201881; WEB5 Games/OAPP45128946718; subscriptions/full page45120405171. No unchanged cohort replay."
   }
 }
