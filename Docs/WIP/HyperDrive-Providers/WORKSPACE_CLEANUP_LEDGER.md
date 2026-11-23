@@ -3205,3 +3205,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 2026-11-23 popup45247651340: owned supervisor/API stopped; exact metrics/token/DNA/databases/directory removed; cloud Mongo container/browser runtime/cache absence verified. No local builds/downloads/runtime/envs. Shipping image45247803014 remains cloud-only active.
 
 2026-11-23 popup45249781136: owned API/supervisor stopped; generated token/metrics/DNA/databases/directory removed; cloud Mongo container and browser runtime/cache absence verified. Source inventory14854822674 inspected in RAM only. Image45247803014 retained remotely as immutable older component evidence; no local image/download/env/build outputs.
+
+2026-11-23 run45251546061: WEB4 compile failed before host runtime; owned Mongo container and browser runtime/cache absence verified. No runtime database/DNA/token creation claim. One temporary git index for93418be removed. No shared queue/re-arm, local build/download/env.

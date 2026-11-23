@@ -1,12 +1,11 @@
 {
   "scope": "onode",
   "status": "actual-startup-bridge-and-pinned-popup-browser-prepared-not-accepted",
-  "candidate": "28c74fe49ee8dbe2b0f39c3aca67a99042d8608c",
-  "base": "f9420a96ef7f37c0ef5dd4aa92ba83b871d15099",
-  "tag": "qualification/onode-real-process-errors-20261123",
+  "candidate": "93418be81300e028877250b66085e6ef96c64b90",
+  "base": "28c74fe49ee8dbe2b0f39c3aca67a99042d8608c",
+  "tag": "qualification/onode-current-build-fix-20261123",
   "allowedPaths": [
-    "Docker/oasis-dependency-versions.env",
-    "ONODE/ONODEManager"
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/HyperDrive/HeldHeadRearmCommand.cs"
   ],
   "buildProjects": [
     "ONODESUPERVISOR"
@@ -16,7 +15,7 @@
   },
   "onodeManager": "23f15e935dae03f9e29a522d88c56e2af5b820a2",
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
-  "remaining": "Only changed real process error checks/service compile in next non-native batch. Prior bridge/component/browser slices retained; full published process lifecycle, configured port binding, platform launch and live popup remain open.",
+  "remaining": "Incoming held-head command failed WEB4 CS0117 before browser45251546061 ran; qualify System.IO.File at sole read call. Supervisor-only45252534030 remains frozen on28c. Await that result, then current combined browser without unchanged native replay; never execute re-arm against shared queues.",
   "inventoryReview": {
     "run": 45250072037,
     "artifact": 14854822674,
