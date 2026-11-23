@@ -34,9 +34,11 @@ public sealed partial class CqlV1Web4NativeTests
     private async Task RunGroupedDistinctNativeFixture(string providerName, bool primitiveDomains, bool mixedHttp = false,
         bool requiredDomains = false, bool singlePerformance = false, bool sharedInputs = false, bool guidDomains = false, bool mixedGuidHttp = false, bool guidRowsHttp = false, bool predicateCrossingHttp = false, bool guidFilterHttp = false, bool int32FilterNative = false, bool int32FilterHttp = false, bool utcDateFilterNative = false, bool sessionJourney = false, bool statelessJourney = false, bool statelessInsertJourney = false, bool parentReferenceJourney = false, bool childrenReferenceJourney = false, bool readOnlyJourney = false, bool findJourney = false, bool syncJourney = false, bool statelessLifetimeJourney = false, bool statelessLinqJourney = false, bool updateJourney = false, bool lifecycleJourney = false, bool inspectionJourney = false, bool whereJourney = false, bool unfilteredMappingHttp = false, bool dateKeysHttp = false, bool snapshotPreparation = false, bool rangeRegistration = false, bool statelessGetJourney = false, bool setJourney = false, bool setHttpJourney = false, bool projectedSetJourney = false, bool projectedSetHttpJourney = false, bool projectedSetLinqJourney = false, bool textCoalesceJourney = false, bool booleanTextCaseJourney = false, bool int32CoalesceJourney = false, bool mappedComputedJourney = false, bool tupleSetJourney = false, bool stagedSetHttpJourney = false,
         Func<IOASISStorageProvider,List<Guid>,Dictionary<string,long>,Task<NativeFixtureJourneyProof>>? nativeJourney=null,
-        string? nativeJourneySuffix=null)
+        string? nativeJourneySuffix=null,
+        Func<IOASISStorageProvider,string,string,MongoClient?,Dictionary<string,long>,List<Guid>,Task<NativeFixtureJourneyProof>>? nativeSourceJourney=null)
     {
-        if((nativeJourney==null)!=(nativeJourneySuffix==null)
+        if(nativeJourney!=null && nativeSourceJourney!=null ||
+            ((nativeJourney==null && nativeSourceJourney==null)!=(nativeJourneySuffix==null))
             || nativeJourneySuffix!=null && (nativeJourneySuffix.Length>80
                 || !System.Text.RegularExpressions.Regex.IsMatch(nativeJourneySuffix,@"^-[a-z0-9-]+\.json$")))
             throw new ArgumentException("A bounded owned journey suffix and callback must be supplied together.");
@@ -109,9 +111,11 @@ public sealed partial class CqlV1Web4NativeTests
                 return await CosmicGroupedExecutor.ExecuteAsync(planned.Result,
                     new[] { (ICosmicQueryStorageProvider)provider });
             }
-            if(nativeJourney!=null)
+            if(nativeJourney!=null || nativeSourceJourney!=null)
             {
-                journeyProof=await nativeJourney(provider,ids,queryElapsed);
+                journeyProof=nativeSourceJourney!=null
+                    ? await nativeSourceJourney(provider,work,database,mongo,queryElapsed,ids)
+                    : await nativeJourney!(provider,ids,queryElapsed);
                 checks=journeyProof.Checks;
             }
             else if(stagedSetHttpJourney)
