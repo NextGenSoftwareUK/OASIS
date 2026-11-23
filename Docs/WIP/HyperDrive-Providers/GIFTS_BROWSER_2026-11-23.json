@@ -1,0 +1,45 @@
+{
+  "core": "d73ea6afa3b62d64cb7ca39240e705fa232647a8",
+  "portal": "a85a0c5f0fbe701adfd7e78d33f84084d5ce8479",
+  "cleanup": "Core/root temporary Git indexes removed in finally; no local runtime/download/build/DB/results. First runner cleanup retained in actions; replacement has existing finally cleanup.",
+  "base": "d74ceb6d3e770691ef97b94a204adc4a3f96b855",
+  "status": "browser-native-accepted-current-composition-compiled",
+  "next": "Publish exact parent d06 with named evidence; observe actual dev revisions, no shared auth/data calls.",
+  "attempts": [
+    {
+      "run": 45103729816,
+      "status": "failed-before-build",
+      "reason": "Empty source list Compare-Object null binding; exact source comparison corrected"
+    },
+    {
+      "run": 45104074924,
+      "status": "failed-before-build",
+      "reason": "Second native-mode allowlist missed new Gifts mode; corrected. Cancellation attempt returned409 because already terminal; no cancellation occurred."
+    }
+  ],
+  "control": "05fca0cb84b558d8eb7bb393496e3bb89545f0c9",
+  "qualification": "45104328970/job137462037424 SUCCESS; actual two-avatar SDK/HTTP/native Gifts send/receive/open/history/logout plus missing-recipient/no-write. Build0errors4m13.31. Owned database/DNA/container/browser runtime/cache absence verified. Full Startup/SSO/hosted excluded.",
+  "scope": "One real unknown-recipient/no-write check plus two-avatar actual Gifts popup SDK/controller/native Mongo send-receive-open-history and logout. Prior native cohort not replayed.",
+  "rootCause": "Verified recipient-validation file from Core96f25cbf was absent from Core6df and observed newer Core4c9. Restored exact blob on accepted session base; no unrelated code changed.",
+  "run": 45104328970,
+  "source": "a61af6a6f361ed864ed32ccc6287ee69a159cdfd",
+  "currentDevelopmentComposition": {
+    "status": "compiled-WEB4-0errors5m08.68-Core-Development-published",
+    "preservation": "Current pinned4c9 GiftsManager blob identical to6df baseline. Combined Core80400 is a merge descendant of current4c9 and restored d73 with only16added gift-validation lines; all CQL source preserved.",
+    "base": "5ea9f8e3f9e1674516ceddcf3c9d16fd9ef4f8fa",
+    "candidate": "d06a42ca51d078d8d2248916ed7861e96974dbfc",
+    "core": "80400bb46dab74632a99d1f27bf6a0a6a94b7840",
+    "compileRun": 45105105606,
+    "compileJob": 137464470175
+  },
+  "staticDelivery": {
+    "http": 200,
+    "portal": "a85a0c5",
+    "scope": "Static LF-normalized source bytes only; no auth/data/payment requests.",
+    "matches": [
+      "assets/js/gifts-modal.js",
+      "assets/js/subscription-modal.js",
+      "assets/js/scripts.js"
+    ]
+  }
+}

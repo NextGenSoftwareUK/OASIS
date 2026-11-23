@@ -5,7 +5,7 @@
     "taskBranch": "work/hyperdrive-provider-completion",
     "taskWorktree": "C:/Source/OASIS2-hyperdrive",
     "portalBranch": "dev",
-    "portalHead": "43cf6d6",
+    "portalHead": "e70d2a3",
     "reviewedDevelopment": "721f33130849794856c546218dceb06ee1396c87",
     "currentCore": "27dae38da3f3212e360d939db642d02c01c8fc5f",
     "currentWeb6": "f9aa81c6dc3e27ac02677c985d41929b768c5969",
@@ -176,8 +176,8 @@
     "protectedDeliveries": "535/543 not replayed; audit543 unavailable, preserve hold."
   },
   "cleanup": {
-    "freeDiskGB": 28.97,
-    "thisTurn": "No local builds/downloads/environments/databases/results. All Core/root private indexes and locks, including unsuccessful preparation, removed. Shared merge uses Git objects only; physical modules preserved.45086300342 remote cleanup succeeded;45088151222 finalizers pending.",
+    "freeDiskGB": 25.92,
+    "thisTurn": "No local builds/downloads/environments/databases/results. Owned Core/root composition indexes and locks removed in finally; source Git objects/tags retained.45104328970 owned DB/DNA/container/browser runtime/cache absence verified. Existing policy-blocked8038-byte cache untouched.",
     "temporaryEmailSecrets": "Previously deleted and absence verified; not restaged."
   },
   "deliveryPolicy": "Finish remaining OPORTAL user flows breadth first; one representative end-to-end verification for changed behavior, reuse accepted evidence. A blocked backend flow must not stop independent screen work.",
@@ -225,7 +225,7 @@
     "Permanent account/private-data/provider-replica erasure and Settings deletion remain unfinished.",
     "Changed async DID/MFA session-save and sync/detail native acknowledgement paths require representative verification before full entry-point acceptance."
   ],
-  "lastUpdatedUtc": "2026-11-23T00:56:41Z",
+  "lastUpdatedUtc": "2026-11-23T03:22:50.6392430Z",
   "latestFocusedRun": {
     "id": 45091356813,
     "job": 137421421351,
@@ -234,13 +234,13 @@
     "scope": "general real Mongo/SQLite session native acceptance; browser/hosted and enabled MFA store acceptance remain open"
   },
   "latestPortalBreadth": {
-    "source": "a5a6a56",
+    "source": "a85a0c5",
+    "verification": "Gifts45104328970/job137462037424 SUCCESS actual SDK/browser/HTTP/native Mongo send-receive-open-history/logout and missing-recipient no-write; build0errors4m13.31; all owned fixture/runtime/cache cleanup success. Three changed static scripts HTTP200 match dev source.",
     "changes": [
-      "Orders retry",
-      "My subscriptions retry",
-      "No subscription no longer triggers plan-specific history reads"
+      "Subscription/MCP renewal notification and stale checkout guidance",
+      "Single Gifts logout handler; no undeclared-variable error"
     ],
-    "verification": "changed expression five cases and syntax/diff checks; browser pending"
+    "pending": "Current Development composition45105105606/job137464470175 SUCCESS WEB4compile0errors5m08.68 on d06a42ca/Core80400. Core Development fast-forwarded; all8submodule branch policies and pairedpins pass. Parent rollout next, not running acceptance."
   },
   "settingsBrowserPreparation": {
     "status": "accepted representative actual browser/native scope",
@@ -287,8 +287,10 @@
   "workerStatus": {
     "apiCandidate": "afbd5984e5a3b824080059e206331b727645c8de",
     "field": "backgroundWorkersPauseConfigured",
-    "status": "actual native/HTTP1case accepted; publication/rollout pending",
+    "status": "All7deployed/running-source checked;2use tree-identicald74, public metadata field boolean, WEB4 pauses true; authenticated hosted status/UI not probed",
     "portal": "43cf6d6",
-    "uiScope": "source/syntax checked, browser not newly accepted"
+    "uiScope": "source/syntax checked, browser not newly accepted",
+    "publishedCommit": "bea1473a1bfa3c4260982728b4cdcdeed5570465",
+    "equivalentCommit": "d74ceb6d3e770691ef97b94a204adc4a3f96b855"
   }
 }
