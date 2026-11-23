@@ -5,5 +5,7 @@
   "source": "Controller receives real IConfiguration through DI and reads the existing HostedMongoWorkerControl.PauseHyperDriveKey. No new worker, settings update or provider request.",
   "compatibility": "New additive boolean response field; Portal reports not-reported on older APIs. No parameterless controller callers found in published source.",
   "remaining": "Compile and actual HTTP status-field verification; current LocalFile fixture run remains independent.",
-  "cleanup": "Source only; no local builds/envs/downloads/databases/results."
+  "cleanup": "Source only; no local builds/envs/downloads/databases/results.",
+  "candidate": "afbd5984e5a3b824080059e206331b727645c8de",
+  "preparedVerification": "One existing actual LocalFile sign-in/protected HTTP case checks status against real DI IConfiguration, plus after-delete401/error/false. No new API calls inside the case, no Mongo/browser setup."
 }

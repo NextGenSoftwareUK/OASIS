@@ -1,3 +1,7 @@
+## 2026-11-23 - Configured background-worker status source and focused fixture
+
+Portal43cf6d6 displays operator pause configuration separately from routing switches; older APIs explicitly not-reported. API source adds backgroundWorkersPauseConfigured via DI configuration, not a worker-liveness assertion; not deployed. LocalFile45097985487 passed real sign-in and3protected reads, then failed obsolete INVALID_AVATAR text expectation after correct401. Fixed final error/false assertion and added status/config check to same existing request. Next candidateafbd5984e5a3b824080059e206331b727645c8de uses that one case only; no accepted cohorts/Mongo/browser.
+
 ## 2026-11-23 - MCP session readiness source fix delivered
 
 Portal devf573156 (report6feabcd): MCP tab awaits the existing shared refresh readiness before reading/displaying its bearer/config, discards stale client/session results and reports readiness failure. No new API request/polling. Syntax/endpoint/diff passed; browser acceptance pending. Focused real LocalFile HTTP fixture45097985487/job137442005421 active. Previously accepted7dev rollouts/session/MFA/browser evidence retained; no extra Dev deployment.

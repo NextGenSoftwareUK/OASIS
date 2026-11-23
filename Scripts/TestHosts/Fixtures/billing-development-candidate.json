@@ -1,10 +1,12 @@
 {
   "scope": "billing",
-  "status": "One corrected LocalFile protected HTTP integration case; no production code change",
+  "status": "One LocalFile actual HTTP fixture and new configured worker-pause status; stale-account401 contract retained",
   "base": "6bbbae4be199eef55856df32476db5684ee05073",
-  "candidate": "b9cfde77087723f477bc2144eee966e5e479a352",
-  "tag": "qualification/session-route-fixture-20261123",
+  "candidate": "afbd5984e5a3b824080059e206331b727645c8de",
+  "tag": "qualification/hyperdrive-worker-status-http-20261123",
   "allowedPaths": [
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/HyperDriveController.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/HyperDriveController.Status.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/Subscription/SubscriptionEndpointsTests.cs"
   ],
   "buildProjects": [

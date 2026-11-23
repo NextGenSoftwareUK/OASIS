@@ -2981,3 +2981,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 - 2026-11-23 focused HTTP fixture candidateb9cfde77: temporary .git-session-fixture-index and lock removed in finally; source-only prep, no local build/env/database/results. Upcoming CI case uses real owned LocalFile only, skips Mongo/browser creation.
 
 - 2026-11-23 MCP readiness: source/Node syntax/endpoint/diff only; no local runtime/env/database/build/download/results. One compact653byte source report retained. LocalFile regression45097985487 active remotely with Mongo/browser creation excluded. Prior8038-byte blocked cache unchanged.
+
+- 2026-11-23 worker-status candidate: .git-worker-status-index and lock removed in finally. Source/Node syntax/endpoint/diff only locally; no runtime/env/build/database/download/results. First focused run45097985487 used LocalFile; Mongo/browser setup excluded; corrected assertion replacement pending. Prior8038-byte blocked cache remains recorded.
