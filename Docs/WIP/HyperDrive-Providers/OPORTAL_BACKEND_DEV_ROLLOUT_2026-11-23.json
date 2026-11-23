@@ -1,13 +1,13 @@
 {
   "environment": "dev",
   "expectedCommit": "6bbbae4be199eef55856df32476db5684ee05073",
-  "status": "Partial rollout; three running container revisions verified; remaining service acceptance pending",
+  "status": "Six deployments and running revision checks accepted; WEB4 building",
   "services": [
     {
       "service": "WEB6 AI API",
       "serviceId": "1e6ee65f-df5d-42b1-972e-97f3a560f5d3",
       "deployment": "637f9134-8dfb-4043-b9d4-a29603e31232",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "commit": "6bbbae4be199eef55856df32476db5684ee05073"
     },
     {
@@ -28,14 +28,14 @@
       "service": "WEB4 OASIS API",
       "serviceId": "5123199a-43c4-4439-9921-e10e2aec7841",
       "deployment": "78ee234f-e3fd-48cb-8602-53661fdf56fc",
-      "status": "QUEUED",
+      "status": "BUILDING",
       "commit": "6bbbae4be199eef55856df32476db5684ee05073"
     },
     {
       "service": "WEB10 THE SOURCE API",
       "serviceId": "6f9e4f24-29be-49d7-914b-f1f9b42790d6",
       "deployment": "134d79c0-7f38-4eb2-a5b3-a9c5bb86c4d9",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "commit": "6bbbae4be199eef55856df32476db5684ee05073"
     },
     {
@@ -49,15 +49,18 @@
       "service": "WEB5 STAR API",
       "serviceId": "bb2c3e9a-ec96-44a5-9916-05e06d54b1f4",
       "deployment": "b3e108b6-a53b-4cca-814d-3d086970320f",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "commit": "6bbbae4be199eef55856df32476db5684ee05073"
     }
   ],
   "scope": "Railway metadata only, no shared auth/data/payment calls or configuration changes",
   "runningRevisionChecks": [
+    "WEB5",
+    "WEB6",
     "WEB7",
     "WEB8",
-    "WEB9"
+    "WEB9",
+    "WEB10"
   ],
-  "runningRevisionEvidence": "Exact RAILWAY_GIT_COMMIT_SHA read inside each successful WEB7/WEB8/WEB9 container matches6bbbae4b; no full SSH output retained or data/auth requests."
+  "runningRevisionEvidence": "Exact RAILWAY_GIT_COMMIT_SHA selected inside each of six successful containers matches6bbbae4b; no auth/data/payment request or full SSH output."
 }

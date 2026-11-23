@@ -251,15 +251,16 @@
   },
   "accountDeletionReview": {
     "source": "c856109",
-    "status": "read-only Settings review wired, syntax checked, browser pending",
+    "status": "read-only UI review queued; permanent erasure incomplete",
     "api": "GET api/avatar/account-closure/assessment",
-    "remaining": "Permanent deletion/data erasure coordinator remains incomplete; no mutation or deletion acceptance claimed"
+    "remaining": "Permanent deletion/data erasure coordinator remains incomplete; no mutation or deletion acceptance claimed",
+    "verificationRun": 45096493185
   },
   "sharedComposition": {
     "root": "b71528fb0c851ba4501444de4198a5ddc04d4f5b",
     "core": "6df988c8f802bc4fdfaebdc03f3dba8f9160c5f9",
     "web6": "78a27a295e74721358eb2b02399f79eff5b21633",
-    "status": "Published Development6bbbae4b; all seven dev deployment contexts pending, no running acceptance",
+    "status": "Development6bbbae4b: six services SUCCESS and in-container revision match; WEB4 building",
     "latestReviewedDevelopment": "721f33130849794856c546218dceb06ee1396c87",
     "publishedCommit": "6bbbae4be199eef55856df32476db5684ee05073"
   },

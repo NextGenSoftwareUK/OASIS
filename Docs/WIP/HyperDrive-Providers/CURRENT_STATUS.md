@@ -1,3 +1,7 @@
+## 2026-11-23 - Six running container revisions accepted; WEB4 building
+
+WEB5/WEB6/WEB7/WEB8/WEB9/WEB10 SUCCESS and exact selected in-container source6bbbae4b verified. WEB4 remains BUILDING, not accepted. New account-review browser45096493185 queued on e4e3241, one real read-only Settings flow only; accepted sign-out assertions not replayed. No shared auth/data/payment probes, config changes or local outputs.
+
 ## 2026-11-23 - New account-requirements browser check prepared
 
 Actual Settings review flow pins Portal145d58f and accepted combined backendb71528fb: one real login, explicit real assessment GET/owned-app requirement DOM, zero browser mutations, unchanged native avatar/version and active session. No accepted sign-out/billing/MFA/35case assertions replayed. Prepared only; no browser acceptance or deletion claim. Running Railway rollout remains separately tracked.
