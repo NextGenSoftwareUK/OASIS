@@ -54,7 +54,7 @@ async function main(){
    try{const body=await response.json(),result=typeof body.isError==='boolean'?body:body.result;
     fact.isError=result?.isError;const code=result?.errorCode;
     if(typeof code==='string'&&/^[A-Z0-9_]{1,80}$/.test(code))fact.errorCode=code;
-   }catch{}
+   }catch{fact.json=false;}
   });
   stage='page and Beam In';await page.goto(origin+'/',{waitUntil:'domcontentloaded'});
   await page.locator('.js-modal-trigger[data-signin="login"]:visible').first().click();
