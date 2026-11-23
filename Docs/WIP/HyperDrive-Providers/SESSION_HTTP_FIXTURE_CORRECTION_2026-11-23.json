@@ -1,0 +1,10 @@
+{
+  "status": "source correction; not compiled or functionally accepted",
+  "failedRun": 45095683887,
+  "failedJob": 137438374315,
+  "failedCase": "HyperDriveReadRoutesAcceptRealJwtAfterV2PersistedAvatarLookup(LocalFile)",
+  "rootCause": "Old test manually signs a subject-only JWT with no persisted session binding. Shipping middleware correctly refuses it401.",
+  "fix": "Seed active verified account with actual password hash, explicitly admit the fixture provider, use real AvatarManager.AuthenticateAsync issuance and native persisted credential before protected HTTP reads. Middleware enforcement unchanged.",
+  "remaining": "One focused changed LocalFile HTTP test, then normal integration gate in a scoped next batch; do not replay retained Sui/TRON chains or accepted native/browser cohorts.",
+  "cleanup": "Source review/edit only; no local build/runtime/download/environment/database/results."
+}
