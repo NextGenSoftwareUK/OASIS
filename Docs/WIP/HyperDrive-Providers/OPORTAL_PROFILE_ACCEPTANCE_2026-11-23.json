@@ -23,5 +23,19 @@
     "Not hosted deployment acceptance",
     "Container health acceptance not established"
   ],
-  "next": "Publish scoped verified profile batch after current shared-source review; continue remaining popup breadth."
+  "next": "Publish scoped verified profile batch after current shared-source review; continue remaining popup breadth.",
+  "devDelivery": {
+    "revision": "52f9a287a67a558c8f687e2d701c7483be0a91c1",
+    "web4Deployment": "10116560-0293-4aac-8f4b-c8fc8202283a",
+    "web4DeploymentStatus": "SUCCESS",
+    "web4RunningRevisionVerified": true,
+    "web5Deployment": "1de05712-451e-4394-9984-f659f30871ca",
+    "web5DeploymentStatus": "SUCCESS",
+    "holds": {
+      "hyperdrive": true,
+      "reconciliation": true,
+      "maintenance": true
+    },
+    "scope": "Selected WEB4 running environment fields and WEB4/WEB5 deployment metadata only; no shared database/auth traffic or hosted browser acceptance."
+  }
 }
