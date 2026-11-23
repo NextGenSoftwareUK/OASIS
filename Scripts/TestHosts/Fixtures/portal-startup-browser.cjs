@@ -131,9 +131,14 @@ async function main(){
    if(httpFacts.length<64)httpFacts.push(fact);
    try{const body=await response.json(),result=typeof body.isError==='boolean'?body:body.result;
     fact.isError=result?.isError;const code=result?.errorCode;
-    if(/^\/api\/(nft|oLand|data|messaging)\//i.test(url.pathname)){
+    if(/^\/api\/(nft|oLand|data|messaging|map)\//i.test(url.pathname)){
      const value=result?.result;fact.resultShape=Array.isArray(value)?'array':value===null?'null':typeof value;
      if(Array.isArray(value))fact.resultCount=value.length;
+    }
+    if(popupGroup==='map-route'&&url.pathname.startsWith('/api/map/routes/')&&result?.result){
+     const detail=result.result,header=detail.header,geometry=detail.geometry;
+     fact.routeShape={header:!!header,geometry:!!geometry,authority:typeof detail.authority==='string',revisions:detail.expectedRevisions?Object.keys(detail.expectedRevisions).length:0,headerIdMatches:header?.id===routeId,headerPayload:typeof header?.metaData?.payload,geometryPayload:typeof geometry?.metaData?.payload};
+     try{const summary=JSON.parse(header?.metaData?.payload),points=JSON.parse(geometry?.metaData?.payload)?.[0]?.[0];fact.routeShape.summaryPascal=typeof summary.SourceApp==='string';fact.routeShape.summaryCamel=typeof summary.sourceApp==='string';fact.routeShape.latitudePascal=typeof points?.Latitude==='number';fact.routeShape.latitudeCamel=typeof points?.latitude==='number';}catch{}
     }
     if(typeof code==='string'&&/^[A-Z0-9_]{1,80}$/.test(code))fact.errorCode=code;
     if(code==='HYPERDRIVE_ROUTE_FAILED'&&typeof result.message==='string'){
