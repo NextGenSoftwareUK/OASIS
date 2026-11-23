@@ -14,6 +14,10 @@ on:
       - '.github/workflows/hyperdrive-contract-validation.yml'
   workflow_dispatch:
     inputs:
+      portal_web5_startup:
+        description: Only real WEB4/WEB5 startup and portal SDK/browser; use portal_syntax_ref for exact portal source
+        type: boolean
+        default: false
       portal_page_check:
         description: Actual anonymous OPORTAL page only; uses portal_syntax_ref as immutable source; no backend build or calls
         type: boolean
@@ -101,15 +105,26 @@ on:
         default: 'FullyQualifiedName~HyperDrive'
         type: string
 
+permissions:
+  contents: read
+  packages: read
+  actions: read
+
 jobs:
+  portal-web5:
+    if: ${{ inputs.portal_web5_startup }}
+    uses: ./.github/workflows/oportal-web5-startup-qualification.yml
+    with:
+      portal: ${{ inputs.portal_syntax_ref }}
+    secrets: inherit
   portal-page:
-    if: ${{ inputs.portal_page_check }}
+    if: ${{ inputs.portal_page_check && !inputs.portal_web5_startup }}
     uses: ./.github/workflows/oportal-page-qualification.yml
     with:
       portal: ${{ inputs.portal_syntax_ref }}
     secrets: inherit
   map-development:
-    if: ${{ inputs.map_development_candidate && !inputs.portal_page_check }}
+    if: ${{ inputs.map_development_candidate && !inputs.portal_page_check && !inputs.portal_web5_startup }}
     uses: ./.github/workflows/map-development-qualification.yml
     with:
       native_check: ${{ inputs.map_development_native }}
@@ -117,7 +132,7 @@ jobs:
       candidate_scope: ${{ inputs.candidate_scope || 'map' }}
     secrets: inherit
   manifests-and-contracts:
-    if: ${{ !inputs.map_development_candidate && !inputs.portal_page_check }}
+    if: ${{ !inputs.map_development_candidate && !inputs.portal_page_check && !inputs.portal_web5_startup }}
     runs-on: ${{ (inputs.native_seal || inputs.build_only) && 'ubuntu-latest' || 'windows-latest' }}
     defaults:
       run:

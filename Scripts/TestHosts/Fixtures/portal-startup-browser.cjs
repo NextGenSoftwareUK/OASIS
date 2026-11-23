@@ -1,19 +1,14 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path');
-const net=require('node:net'),http=require('node:http'),https=require('node:https'),{execFileSync}=require('node:child_process');
+const http=require('node:http'),https=require('node:https'),{execFileSync}=require('node:child_process');
 const {createOwnedAvatar}=require('./startup-authentication.cjs');
 let stage='preparation';
 const httpFacts=[];
 async function main(){
  assert.equal(process.env.GITHUB_ACTIONS,'true');
- const privateIp=process.env.OASIS_STARTUP_API_IPV4;assert.equal(net.isIP(privateIp),4);
- const tunnels=new Set();let api;
- const bridge=net.createServer(socket=>{
-  const upstream=net.connect({host:privateIp,port:8080});tunnels.add(socket);tunnels.add(upstream);
-  socket.on('close',()=>tunnels.delete(socket));upstream.on('close',()=>tunnels.delete(upstream));
-  socket.on('error',()=>upstream.destroy());upstream.on('error',()=>socket.destroy());
-  socket.pipe(upstream).pipe(socket);
- });
+ const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
+ const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
+ if(api5){assert.equal(api5.hostname,'127.0.0.1');assert.equal(api5.protocol,'http:');}
  const root=await fs.realpath(process.env.OASIS_STARTUP_PORTAL_ROOT),owned=await fs.realpath(process.env.OASIS_PROFILE_BROWSER_RUNTIME);
  const {chromium}=require(path.join(owned,'node_modules/playwright-core'));
  const cert=path.join(owned,'owned-localhost.crt'),key=path.join(owned,'owned-localhost.key');
@@ -29,17 +24,26 @@ async function main(){
   }catch{res.writeHead(404);res.end();}
  });
  // Transparent transport proxy: production Startup supplies every API status, header and body.
- const proxy=https.createServer({key:await fs.readFile(key),cert:await fs.readFile(cert)},(req,res)=>{
-  const forward=http.request(new URL(req.url,api),{method:req.method,headers:{...req.headers,host:api.host}},upstream=>{
+ function createProxy(target){return https.createServer({key:keyBytes,cert:certBytes},(req,res)=>{
+  const forward=http.request(new URL(req.url,target),{method:req.method,headers:{...req.headers,host:target.host,'x-forwarded-proto':'https'}},upstream=>{
    res.writeHead(upstream.statusCode,upstream.headers);upstream.pipe(res);
   });forward.on('error',()=>res.destroy());req.pipe(forward);
- });
+ });}
+ const keyBytes=await fs.readFile(key),certBytes=await fs.readFile(cert);
+ const proxy=createProxy(api),proxy5=api5?createProxy(api5):null;
  let browser,context;
  try{
-  await new Promise(resolve=>bridge.listen(0,'127.0.0.1',resolve));api=new URL('http://127.0.0.1:'+bridge.address().port);
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));await new Promise(resolve=>proxy.listen(0,'127.0.0.1',resolve));
+  if(proxy5)await new Promise(resolve=>proxy5.listen(0,'127.0.0.1',resolve));
   const origin='http://127.0.0.1:'+server.address().port,proxyOrigin='https://127.0.0.1:'+proxy.address().port;
+  const proxy5Origin=proxy5?'https://127.0.0.1:'+proxy5.address().port:null;
   stage='owned registration';const account=await createOwnedAvatar(api.href);
+  if(api5){
+   const signed=await account.call('free account sign-in','POST','/api/avatar/authenticate',{username:account.username,password:account.password},undefined,true);
+   await account.call('free subscription','POST','/api/subscription/checkout/session',{planId:'free',successUrl:origin+'/subscription?tab=mysubs',cancelUrl:origin+'/'},signed.jwtToken);
+   const subs=await account.call('free readback','GET','/api/subscription/subscriptions/me',undefined,signed.jwtToken);
+   assert.ok(Array.isArray(subs)&&subs.some(s=>s.planId==='free'&&s.status==='active'),'Persisted free subscription');
+  }
   browser=await chromium.launch({channel:'chrome',headless:true});
   context=await browser.newContext({serviceWorkers:'block',ignoreHTTPSErrors:true});
   const errors=[],otherServices=[],reads=[];
@@ -50,6 +54,10 @@ async function main(){
     if(!url.pathname.startsWith('/api/')||(mutation&&!['/api/avatar/authenticate','/api/avatar/refresh-token'].includes(url.pathname)))
      throw new Error('Unadmitted browser API operation.');
     return route.continue({url:proxyOrigin+url.pathname+url.search});
+   }
+   if(api5&&url.origin==='https://api.starnet.oasisomniverse.one'){
+    if(request.method()!=='GET'&&request.method()!=='OPTIONS'){otherServices.push('unadmitted WEB5 mutation');return route.abort();}
+    return route.continue({url:proxy5Origin+url.pathname+url.search});
    }
    if(url.origin===origin||['data:','blob:'].includes(url.protocol)||['fonts.googleapis.com','fonts.gstatic.com'].includes(url.hostname))return route.continue();
    otherServices.push(request.method()+' '+url.origin+url.pathname);return route.abort();
@@ -71,6 +79,22 @@ async function main(){
   await page.waitForFunction(()=>localStorage.getItem('loggedIn')==='true');
   stage='dashboard';await page.locator('#dashboard').waitFor({state:'visible'});
   assert.equal(await page.locator('#dash-name').textContent(),account.username);
+  if(api5){
+   stage='WEB5 Games dashboard';await page.locator('#dash-card-games').scrollIntoViewIfNeeded();
+   await page.waitForFunction(()=>document.getElementById('dash-card-games').textContent==='0');
+   await page.locator('#dash-card-games').click();
+   await page.waitForFunction(()=>document.getElementById('games-stat-total').textContent==='0');
+   await page.locator('#games-modal-block [data-tab="mine"]').click();
+   await page.waitForFunction(()=>document.getElementById('games-stat-mine').textContent==='0');
+   await page.locator('#games-close-btn').click();await page.waitForURL(url=>url.pathname==='/');
+   stage='WEB5 OAPPs';await page.locator('#dashboard [onclick*="openOAPPsModal"]').first().click();
+   await page.waitForFunction(()=>document.getElementById('oapps-my-list').textContent.includes('no OAPPs'));
+   assert.deepEqual(errors,[]);
+   for(const endpoint of ['/api/games','/api/games/load-all-for-avatar','/api/oapps/load-all-for-avatar'])
+    assert.ok(reads.some(read=>read.path===endpoint&&read.status===200),'Actual WEB5 catalogue read');
+   console.log('PORTAL_STARTUP_BROWSER_PROOF: actual page Beam In and WEB5 Games/OAPPs through real shipping WEB5 entry point and enabled WEB4 usage ledger/native owned Mongo. Fresh empty catalogue scope; populated component evidence retained. Paid Stripe/WEB6/hosted excluded.');
+   return;
+  }
   await page.waitForFunction(()=>/^\d[\d,]*$/.test(document.getElementById('dash-card-holons').textContent)&&
    /^\d[\d,]*$/.test(document.getElementById('dash-card-inventory').textContent)&&
    document.getElementById('dash-card-plan').textContent==='No active plan');
@@ -100,8 +124,7 @@ async function main(){
  }finally{
   if(context)await context.close();if(browser)await browser.close();
   await Promise.all([new Promise(resolve=>server.close(resolve)),new Promise(resolve=>proxy.close(resolve))]);
-  for(const socket of tunnels)socket.destroy();
-  await new Promise(resolve=>bridge.close(resolve));
+  if(proxy5)await new Promise(resolve=>proxy5.close(resolve));
   await fs.rm(key,{force:true});await fs.rm(cert,{force:true});
   console.log('Owned portal browser, static/proxy listeners and temporary TLS files closed/removed.');
  }
