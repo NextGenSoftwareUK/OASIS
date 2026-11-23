@@ -1,3 +1,9 @@
+## WEB4 late entity-set selected stages — source implemented, qualification pending
+
+The existing /api/data/query-cql/set request accepts SelectedStages only with OutputColumns. EntityStages remain before selection; SelectedStages run afterwards and use the common selected comparison, ordering, window, Distinct, Reverse and visible-column reselection compiler. Source operand Columns/Stages cannot be mixed with this identity-set mode. Requests capture nested cells, ordering and binding arrays before dispatch. Response columns follow final visible aliases.
+
+Actual provider capabilities are revalidated, and the existing manager attempt and settlement owner executes the native selected set packet once. One combined native SDK/real-JWT HTTP cohort is pending; source presence is not live acceptance. SQL/Ask lowering remains open.
+
 ## Selected stages after entity identity sets — source implemented, qualification pending
 
 Late entity-set selection now captures selected Where, ordering/ThenBy, windows, Reverse and Distinct. Entity identity membership occurs first; selected-tuple equality is used only by an explicitly requested selected Distinct. Complete late cells validate before selected stages can hide a malformed value. Native stage proof uses bounded zero-based row occurrences so Concat duplicates remain distinct occurrences.

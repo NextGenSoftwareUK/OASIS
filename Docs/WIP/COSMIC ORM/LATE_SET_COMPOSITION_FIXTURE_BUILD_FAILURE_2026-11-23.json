@@ -1,0 +1,17 @@
+{
+  "run": 45192888590,
+  "source": "05d84ea5d581c69b41749b1bea01629ad5b64037",
+  "core": "bad62494072231aba9cbf5ceb5ea31cf44700387",
+  "conclusion": "failure",
+  "buildError": "CS1061",
+  "file": "CosmicLateSetCompositionProofTests.cs",
+  "line": 12,
+  "cause": "Boundary fixture treated CosmicQuery.Create, which returns a query, as an OASISResult. Core compiled; fixture compilation did not.",
+  "coreCompiled": true,
+  "nativeCasesExecuted": 0,
+  "boundaryCasesExecuted": 0,
+  "ownedMongoStopped": true,
+  "ownedMongoAbsenceVerified": true,
+  "ownedServiceContainersStopped": true,
+  "deployed": false
+}

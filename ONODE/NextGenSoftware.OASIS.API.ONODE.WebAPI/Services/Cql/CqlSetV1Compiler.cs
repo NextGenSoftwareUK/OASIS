@@ -12,8 +12,8 @@ public static partial class CqlV1Compiler
     public static CosmicSetQuery<Holon> CompileSet(CqlSetV1Request request, Guid actor,
         ProviderType? provider, CosmicQueryReadAccess access = null)
     {
-        if(request?.OutputColumns!=null)
-            throw new ArgumentException("Late output columns require the entity-set projection compiler.");
+        if(request?.OutputColumns!=null || request?.SelectedStages!=null)
+            throw new ArgumentException("Late output columns and selected stages require the entity-set projection compiler.");
         return CompileEntitySetSource(request,actor,provider,access);
     }
     private static CosmicSetQuery<Holon> CompileEntitySetSource(CqlSetV1Request request,Guid actor,

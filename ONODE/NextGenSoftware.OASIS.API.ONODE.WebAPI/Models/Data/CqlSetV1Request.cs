@@ -23,6 +23,9 @@ public sealed class CqlSetV1Request
     /// <summary>Selection after entity membership and output entity windows.
     /// Cannot be combined with selected columns/stages on either operand.</summary>
     public CqlProjectionV1Column[]? OutputColumns {get;set;}
+    /// <summary>Native selected-value stages after OutputColumns. Distinct compares
+    /// the currently visible selected tuple, after entity identity membership.</summary>
+    public CqlCompositionV1Stage[]? SelectedStages {get;set;}
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]

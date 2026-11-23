@@ -45,7 +45,8 @@ internal static class CqlRequestCapture
                         ?throw new ArgumentException("Missing entity stage ordering.")
                         :new CqlV1Ordering{Field=term.Field,Descending=term.Descending})
                 }),
-            OutputColumns=value.OutputColumns==null?null:CaptureColumns(value.OutputColumns)
+            OutputColumns=value.OutputColumns==null?null:CaptureColumns(value.OutputColumns),
+            SelectedStages=value.SelectedStages==null?null:CaptureSelectedStages(value.SelectedStages)
         };
     }
 

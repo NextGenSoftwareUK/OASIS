@@ -24,7 +24,9 @@ public static partial class CqlV1Endpoint
         var plan=CosmicSetProjectionPlanner.Plan(intent,selected,
             new CosmicProjectionTarget(selected,adapter.QueryCapabilities,adapter.ProjectionCapabilities),
             adapter.SetQueryCapabilities,new CosmicSetQueryOptions(request.MaximumLeftRows,
-                request.MaximumRightRows,MaximumResponseBytes,request.MaximumResults));
+                request.MaximumRightRows,MaximumResponseBytes,request.MaximumResults),
+            adapter is ICosmicQuerySetProjectionCompositionStorageProvider {SupportsSetProjectionComposition:true} composed
+                ?composed.CompositionCapabilities:null);
         if(plan.IsError)return Failure(400,plan.ErrorCode,"The provider does not support this late entity-set selection.");
         using var deadline=CancellationTokenSource.CreateLinkedTokenSource(http.RequestAborted);
         deadline.CancelAfter(TimeSpan.FromSeconds(5));
@@ -39,7 +41,7 @@ public static partial class CqlV1Endpoint
         if(output.Provider!=selected || intent.Source.Left.ReadAccess?.ActorId!=actor
             || intent.Source.Right.ReadAccess?.ActorId!=actor)
             return Failure(503,"CQL_VISIBILITY_VIOLATION","Late entity-set provenance or actor differs from its admitted scope.");
-        var columns=SelectedWireColumns(intent.Selection.Columns);
+        var columns=SelectedWireColumns(intent.Selection);
         var rows=SelectedWireRows(output.Rows,deadline.Token);
         deadline.Token.ThrowIfCancellationRequested();
         var response=JsonResponse(new OASISResult<object>(new{

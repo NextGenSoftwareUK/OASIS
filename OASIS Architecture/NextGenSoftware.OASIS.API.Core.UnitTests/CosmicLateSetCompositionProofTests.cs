@@ -9,7 +9,7 @@ public sealed class CosmicLateSetCompositionProofTests
     {
         Assert.Contains(typeof(CosmicSetProjectionPlanner).GetMethods(),
             method=>method.Name=="Plan" && method.GetParameters().Length==5);
-        var source=CosmicQuery<Holon>.Create().Result;
+        var source=CosmicQuery<Holon>.Create();
         var set=CosmicSetQuery<Holon>.Create(source,source,CosmicSetQueryKind.Concat).Result;
         var query=set.Select(row=>row.Name).Result.Take(1).Result.Where(value=>value=="a").Result;
         var baseSelection=CosmicProjectionCompositionExtensions.Copy(query.Selection,Array.Empty<CosmicSelectedStage>()).Result;

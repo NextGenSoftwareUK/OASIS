@@ -15,6 +15,8 @@ public static partial class CqlV1Compiler
         if(request?.OutputColumns==null || request.OutputColumns.Length is <1 or >32 || request.IncludeMetadata)
             throw new ArgumentException("Late set selection requires one to32 explicit output columns and no metadata expansion.");
         var source=CompileEntitySetSource(request,actor,provider,access);
-        return RequiredSet(source.SelectColumns(request.OutputColumns.Select(ProjectionColumn).ToArray()));
+        var selected=RequiredSet(source.SelectColumns(request.OutputColumns.Select(ProjectionColumn).ToArray()));
+        return request.SelectedStages==null?selected:RequiredSet(selected.WithSelectedPipeline(
+            ApplyCompositionStages(selected.Selection,request.SelectedStages)));
     }
 }
