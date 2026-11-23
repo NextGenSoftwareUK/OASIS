@@ -78,6 +78,9 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(record.IsError,record.Message+record.Exception);Assert.AreEqual("Zulu",record.Result!.Value);
         var set=await Timed("set-converted-extrema",()=>root.Union(root).Select(row=>row.Units).ToCosmicMaxAsync());
         Assert.IsFalse(set.IsError,set.Message+set.Exception);Assert.AreEqual(7,set.Result);
+        var syncSet=await Timed("sync-record-set-extrema",()=>Task.FromResult(
+            root.Union(root).Select(row=>new{row.Units,row.Code}).Max(row=>row.Units)));
+        Assert.AreEqual(7,syncSet);
         var empty=await Timed("empty-converted-extrema",()=>root.Take(0).ToCosmicMinAsync(row=>row.Code));
         Assert.IsFalse(empty.IsError,empty.Message+empty.Exception);Assert.IsNull(empty.Result);
         using var foreign=CosmicSession.Create(manager,adapter,

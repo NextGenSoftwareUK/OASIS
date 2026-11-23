@@ -1,0 +1,115 @@
+{
+  "retainedAt": "2026-11-23T19:55:40.101554+00:00",
+  "source": "52fe25d8042da0fd9553a8a04f9e0edb9e0f7310",
+  "core": "74cf0c77c1106e725155ae22ebe1ba4ca49b8474",
+  "run": 45251827668,
+  "job": 137963191454,
+  "wholeRunAccepted": false,
+  "runConclusion": "failure",
+  "backingNativeCasesPassed": 3,
+  "extremaNativeCasesFailed": 3,
+  "actualWeb4BuildGate": false,
+  "artifact": {
+    "id": 14857560842,
+    "sizeBytes": 4297,
+    "sha256": "5eb036cffb0a491eb875267eca669d254e49ebf8ad6e07f25e99827fff94cf98",
+    "inspectedInMemory": true,
+    "savedArchive": false
+  },
+  "reports": [
+    {
+      "provider": "MongoDBOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 4,
+      "queryElapsedMilliseconds": {
+        "create-fields": 668,
+        "read-fields": 107,
+        "project-fields": 73,
+        "read-null-field": 7,
+        "update-fields": 66,
+        "read-updated-fields": 7,
+        "reject-too-long-field": 4,
+        "update-fluent-field": 29,
+        "read-fluent-field": 5,
+        "foreign-fields": 2
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "declaredFieldRoundtrip": true,
+        "nativeFieldFilterOrderProjection": true,
+        "fieldSnapshotsRestoreWithoutGetter": true,
+        "acknowledgedFieldUpdates": true,
+        "optionalNullOverridesConstructorDefault": true,
+        "immutableFluentFieldAlias": true,
+        "constraintsUseFieldValues": true,
+        "callerFieldIsolation": true
+      },
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 4,
+      "queryElapsedMilliseconds": {
+        "create-fields": 877,
+        "read-fields": 82,
+        "project-fields": 20,
+        "read-null-field": 29,
+        "update-fields": 56,
+        "read-updated-fields": 18,
+        "reject-too-long-field": 6,
+        "update-fluent-field": 36,
+        "read-fluent-field": 20,
+        "foreign-fields": 3
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "declaredFieldRoundtrip": true,
+        "nativeFieldFilterOrderProjection": true,
+        "fieldSnapshotsRestoreWithoutGetter": true,
+        "acknowledgedFieldUpdates": true,
+        "optionalNullOverridesConstructorDefault": true,
+        "immutableFluentFieldAlias": true,
+        "constraintsUseFieldValues": true,
+        "callerFieldIsolation": true
+      },
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 4,
+      "queryElapsedMilliseconds": {
+        "create-fields": 1178,
+        "read-fields": 778,
+        "project-fields": 663,
+        "read-null-field": 349,
+        "update-fields": 614,
+        "read-updated-fields": 497,
+        "reject-too-long-field": 25,
+        "update-fluent-field": 96,
+        "read-fluent-field": 513,
+        "foreign-fields": 25
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "declaredFieldRoundtrip": true,
+        "nativeFieldFilterOrderProjection": true,
+        "fieldSnapshotsRestoreWithoutGetter": true,
+        "acknowledgedFieldUpdates": true,
+        "optionalNullOverridesConstructorDefault": true,
+        "immutableFluentFieldAlias": true,
+        "constraintsUseFieldValues": true,
+        "callerFieldIsolation": true
+      },
+      "exactCleanupVerified": true
+    }
+  ],
+  "ownedFixturesAbsent": true,
+  "ownedMongoContainerAbsent": true,
+  "ciServiceContainersStopped": true,
+  "remaining": "Changed set-extremum owner must pass all3 native extrema journeys plus actual WEB4 build. Backing cases need not rerun if their implementation/fixture dependencies remain unchanged."
+}
