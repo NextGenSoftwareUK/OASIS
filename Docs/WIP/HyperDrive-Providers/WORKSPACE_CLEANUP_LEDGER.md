@@ -3193,3 +3193,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 2026-11-23 combined45238041414: API/supervisor/bridge stopped, owned databases/DNA/token/directory removed; cloud Mongo container and geo browser runtime/cache absence verified. Local25.73GiB free, no onode temporary indexes remain. No local runtime/download/build generated.
 
 2026-11-23 run45239339291: owned processes/databases/DNA/token/directory removed, cloud Mongo container/browser runtime/cache absence verified. Next diagnostic omits unused browser download until auth works. No local builds/downloads/envs.
+
+2026-11-23 run45240663145: all owned runtime/database/DNA/token/directory/container cleanup acknowledged; browser runtime not downloaded. New isolated supervisor process owns only generated fixture token/metrics after explicit preexisting-file refusal; stop owned process before exact-file cleanup. Large shell source edit was rejected before execution; scoped file edits completed through patch tool. No local build/download/env created.

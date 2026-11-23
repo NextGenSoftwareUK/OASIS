@@ -6,7 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="$(OASISCandidateRoot)/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" />
-    <ProjectReference Include="$(OASISCandidateRoot)/ONODE/ONODEManager/NextGenSoftware.OASIS.ONODE.Service/NextGenSoftware.OASIS.ONODE.Service.csproj" />
     <ProjectReference Include="$(OASISCandidateRoot)/ONODE/ONODEManager/NextGenSoftware.OASIS.ONODE.Client/NextGenSoftware.OASIS.ONODE.Client.csproj" />
   </ItemGroup>
   <Target Name="RequireCandidateRoot" BeforeTargets="PrepareForBuild">

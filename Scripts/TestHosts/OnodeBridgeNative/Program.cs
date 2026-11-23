@@ -8,9 +8,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -21,9 +19,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
-using NextGenSoftware.OASIS.ONODE.Service.Services;
 using NextGenSoftware.Utilities;
-using SupervisorConfig = NextGenSoftware.OASIS.ONODE.Service.Models.SupervisorConfig;
 using Web4Startup = NextGenSoftware.OASIS.API.ONODE.WebAPI.Startup;
 
 const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -53,11 +49,13 @@ void SetEnvironment(string key, string value)
     Environment.SetEnvironmentVariable(key, value);
 }
 IHost? api = null;
-WebApplication? supervisorApp = null;
-HolonBridge? bridge = null;
+Process? supervisorProcess = null;
+Task<string>? supervisorOutput = null, supervisorError = null;
 MongoDBOASIS? provider = null;
 var tokenPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".oasis", "supervisor-token");
-bool ownsToken = false, databaseNamesValidated = false;
+bool ownsToken = false, ownsMetrics = false, databaseNamesValidated = false;
+var metricsPath = Path.Combine(Path.GetDirectoryName(tokenPath)!, "onode-metrics.db");
+var metricsFiles = new[] { metricsPath, metricsPath + "-wal", metricsPath + "-shm" };
 using var deadline = new CancellationTokenSource(TimeSpan.FromMinutes(2));
 try
 {
@@ -144,28 +142,9 @@ try
     NextGenSoftware.OASIS.OASISBootLoader.OASISBootLoader.OASISDNAPath = dnaPath;
     // The private SDK instance seeds only owned data. Actual Startup owns passive boot and admitted registration.
 
-    stage = "actual supervisor composition";
-    var nodeConfig = new SupervisorConfig { NodeId = marker, AvatarId = wizard.ToString("D"), OASISDNAPath = dnaPath,
-        TokenPath = tokenPath, HolonPushIntervalSeconds = 1, CommandPollIntervalSeconds = 1, Services = new() };
-    var options = Options.Create(nodeConfig);
-    var logs = new LogAggregator(10);
-    var processSupervisor = new ProcessSupervisor(options, logs, NullLogger<ProcessSupervisor>.Instance);
-    var metrics = new MetricsCollector(processSupervisor, options, NullLogger<MetricsCollector>.Instance);
-    var providers = new ProviderService(options, NullLogger<ProviderService>.Instance);
-    var executor = new CommandExecutor(processSupervisor, logs, providers, metrics, options, NullLogger<CommandExecutor>.Instance);
-    Check(!File.Exists(tokenPath), "Supervisor token appeared before owned initialization.");
-    var token = new TokenService(); ownsToken = true; token.Initialise(tokenPath);
-    var supervisorBuilder = WebApplication.CreateBuilder();
-    supervisorBuilder.Logging.ClearProviders();
-    supervisorBuilder.WebHost.ConfigureKestrel(server => server.Listen(IPAddress.Loopback, 0));
-    supervisorBuilder.Services.AddSingleton(options); supervisorBuilder.Services.AddSingleton(logs);
-    supervisorBuilder.Services.AddSingleton(processSupervisor); supervisorBuilder.Services.AddSingleton(metrics);
-    supervisorBuilder.Services.AddSingleton(providers); supervisorBuilder.Services.AddSingleton(token);
-    supervisorBuilder.Services.AddSingleton<MetricsHistoryService>();
-    supervisorBuilder.Services.AddControllers().AddApplicationPart(typeof(NextGenSoftware.OASIS.ONODE.Service.Api.SupervisorController).Assembly);
-    supervisorApp = supervisorBuilder.Build(); supervisorApp.MapControllers();
-    await supervisorApp.StartAsync(deadline.Token);
-    var supervisorOrigin = supervisorApp.Urls.Single();
+    // Separate shipping processes retain their independent OpenAPI dependency graphs.
+    var supervisorOrigin = "http://127.0.0.1:8765";
+    Check(metricsFiles.All(path => !File.Exists(path)), "Existing supervisor metrics must be preserved.");
 
     stage = "actual WEB4 Startup";
     api = Host.CreateDefaultBuilder()
@@ -231,9 +210,28 @@ try
     using (var denied = await http.GetAsync("/api/v1/onode/active-nodes", deadline.Token))
         Check(denied.StatusCode == HttpStatusCode.Forbidden, "Ordinary ONODE access was accepted.");
     http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", wizardJwt);
-    nodeConfig.Web4ApiBaseUrl = origin; nodeConfig.Web4AccessToken = wizardJwt;
-    bridge = new HolonBridge(processSupervisor, metrics, providers, options, executor, NullLogger<HolonBridge>.Instance);
-    await bridge.StartAsync(deadline.Token);
+    stage = "actual supervisor process";
+    var serviceDll = Path.Combine(candidateRoot, "ONODE/ONODEManager/NextGenSoftware.OASIS.ONODE.Service/bin/Release/net10.0/NextGenSoftware.OASIS.ONODE.Service.dll");
+    Check(File.Exists(serviceDll), "Separately built shipping supervisor missing.");
+    var serviceStart = new ProcessStartInfo("dotnet") { WorkingDirectory = owned,
+        RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false };
+    serviceStart.ArgumentList.Add(serviceDll);
+    serviceStart.Environment["Supervisor__Port"] = "8765";
+    serviceStart.Environment["Supervisor__NodeId"] = marker;
+    serviceStart.Environment["Supervisor__AvatarId"] = wizard.ToString("D");
+    serviceStart.Environment["Supervisor__OASISDNAPath"] = dnaPath;
+    serviceStart.Environment["Supervisor__TokenPath"] = tokenPath;
+    serviceStart.Environment["Supervisor__Web4ApiBaseUrl"] = origin;
+    serviceStart.Environment["Supervisor__Web4AccessToken"] = wizardJwt;
+    serviceStart.Environment["Supervisor__HolonPushIntervalSeconds"] = "1";
+    serviceStart.Environment["Supervisor__CommandPollIntervalSeconds"] = "1";
+    foreach (var service in new[] { "web4", "web5", "web6", "web7", "web8", "web9", "web10" })
+        serviceStart.Environment["Supervisor__Services__" + service + "__Enabled"] = "false";
+    Check(!File.Exists(tokenPath) && metricsFiles.All(path => !File.Exists(path)), "Owned supervisor files appeared before start.");
+    ownsToken = true; ownsMetrics = true;
+    supervisorProcess = Process.Start(serviceStart) ?? throw new InvalidOperationException("Actual supervisor did not start.");
+    supervisorOutput = supervisorProcess.StandardOutput.ReadToEndAsync();
+    supervisorError = supervisorProcess.StandardError.ReadToEndAsync();
     async Task<JsonDocument> Read(string path)
     {
         using var response = await http.GetAsync(path, deadline.Token);
@@ -252,7 +250,7 @@ try
                 "Live node capability was lost.");
             break;
         }
-        Check(state.StatusCode == HttpStatusCode.NotFound && attempt < 8, "Real node state was not pushed.");
+        Check(!supervisorProcess.HasExited && state.StatusCode == HttpStatusCode.NotFound && attempt < 40, "Real node state was not pushed.");
         await Task.Delay(250, deadline.Token);
     }
     stage = "immediate real command polling";
@@ -371,9 +369,15 @@ catch (Exception error)
 }
 finally
 {
-    if (bridge != null) { await bridge.StopAsync(CancellationToken.None); bridge.Dispose(); }
+    if (supervisorProcess != null)
+    {
+        if (!supervisorProcess.HasExited) { supervisorProcess.Kill(entireProcessTree: true); await supervisorProcess.WaitForExitAsync(); }
+        if (supervisorOutput != null) await supervisorOutput;
+        if (supervisorError != null) await supervisorError;
+        supervisorProcess.Dispose();
+    }
     if (api != null) { await api.StopAsync(CancellationToken.None); api.Dispose(); }
-    if (supervisorApp != null) { await supervisorApp.StopAsync(CancellationToken.None); await supervisorApp.DisposeAsync(); }
+    if (ownsMetrics) foreach (var path in metricsFiles) { if (File.Exists(path)) File.Delete(path); Check(!File.Exists(path), "Owned metrics remain."); }
     if (provider != null) await provider.DeActivateProviderAsync();
     if (databaseNamesValidated)
     {
