@@ -262,3 +262,17 @@ Import uses the same explicit CLR contract allowlist. A single dynamic-component
 An optional XML value-type field has a nullable CLR domain; not-null=true uses its non-nullable scalar domain and enforces presence. Reference-domain null handling follows the declared Required rule. Unsupported component targets, missing/unknown types, duplicate components/fields, reserved/colliding keys or non-scalar ordinary property declarations fail the complete import before destination mutation. Nested relationships/components and arbitrary CLR dictionaries/indexers remain separate contracts.
 
 The syntax reference is [NHibernate dynamic components](https://nhibernate.info/doc/nhibernate-reference/components.html#components-dynamic). COSMIC's admitted subset maps the canonical metadata dictionary and retains the documented read-only/identity/query differences. The XML dictionary qualifier45140169734 passed three native journeys, one admission control and the actual WEB4 build, with exact owned cleanup. Combined image/package and deployment acceptance remain separate.
+
+
+### Named application filters (qualification pending)
+Entity<T>().HasQueryFilter("active", row => row.IsActive) adds or replaces
+a case-sensitive named filter. Distinct names and the optional unnamed filter
+are combined with AND before source paging. Build freezes captured literals.
+model.WithoutQueryFilters("active") creates a separate immutable model removing
+only that active named filter. Chaining selective bypass preserves prior removals.
+Unknown, duplicate or invalid selections are refused. Names contain 1-128 letters,
+digits, underscores, dots or hyphens; at most 64 names per entity are admitted.
+WithoutQueryFilters() retains its existing explicit all-application-filter bypass.
+Neither bypass removes mandatory caller visibility, mapping, validation or read-only
+policy. These application filters are opt-in model rules, not provider-manager
+collection filters. Exact-contract matching remains; polymorphic filters are open.
