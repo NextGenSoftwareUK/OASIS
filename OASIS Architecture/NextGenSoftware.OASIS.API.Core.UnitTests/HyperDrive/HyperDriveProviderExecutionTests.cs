@@ -2384,6 +2384,7 @@ public sealed partial class HyperDriveProviderExecutionTests
                 IsError = true, ErrorCount = 1, ErrorCode = "GIFT_WRITE_REJECTED",
                 Message = "gift write rejected"
             });
+        ServeCurrentManagerReads(provider, new Dictionary<Guid, IHolon>());
         providerManager.RegisterProvider(provider.Object).Should().BeTrue();
         providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
 
@@ -2422,6 +2423,7 @@ public sealed partial class HyperDriveProviderExecutionTests
             .ReturnsAsync((string key, string value, HolonType _, bool _, bool _, int _, int _, bool _, bool _, int _) =>
                 new OASISResult<IEnumerable<IHolon>>(stored.Values.Where(h => h.MetaData != null &&
                     h.MetaData.TryGetValue(key, out var indexed) && indexed?.ToString() == value).ToList()));
+        ServeCurrentManagerReads(provider, stored);
         providerManager.RegisterProvider(provider.Object).Should().BeTrue();
         providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
 
@@ -2467,6 +2469,7 @@ public sealed partial class HyperDriveProviderExecutionTests
             .ReturnsAsync((string key, string value, HolonType _, bool _, bool _, int _, int _, bool _, bool _, int _) =>
                 new OASISResult<IEnumerable<IHolon>>(stored.Values.Where(h => h.MetaData != null &&
                     h.MetaData.TryGetValue(key, out var indexed) && indexed?.ToString() == value).ToList()));
+        ServeCurrentManagerReads(provider, stored);
         providerManager.RegisterProvider(provider.Object).Should().BeTrue();
         providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
         var send = await new GiftsManager(null, dna, providerManager)
@@ -3286,6 +3289,20 @@ public sealed partial class HyperDriveProviderExecutionTests
         active.Result.Should().BeEmpty();
     }
 
+    /// <summary>The managers now load a session by all of its metadata keys and validate a gift
+    /// recipient by loading the avatar; a fake provider must serve both reads.</summary>
+    private static void ServeCurrentManagerReads(Mock<IOASISStorageProvider> provider, IDictionary<Guid, IHolon> stored)
+    {
+        provider.Setup(x => x.LoadHolonsByMetaDataAsync(It.IsAny<Dictionary<string, string>>(),
+                MetaKeyValuePairMatchMode.All, It.IsAny<HolonType>(), It.IsAny<bool>(), It.IsAny<bool>(),
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()))
+            .ReturnsAsync((Dictionary<string, string> pairs, MetaKeyValuePairMatchMode _, HolonType _, bool _, bool _, int _, int _, bool _, bool _, int _) =>
+                new OASISResult<IEnumerable<IHolon>>(stored.Values.Where(h => h.MetaData != null &&
+                    pairs.All(pair => h.MetaData.TryGetValue(pair.Key, out var indexed) && indexed?.ToString() == pair.Value)).ToList()));
+        provider.Setup(x => x.LoadAvatarAsync(It.IsAny<Guid>(), It.IsAny<int>()))
+            .ReturnsAsync((Guid id, int _) => new OASISResult<IAvatar>(new Avatar { Id = id, Username = "u" + id.ToString("N") }) { IsLoaded = true });
+    }
+
     [Fact]
     public async Task ChatSessionMessagesAndTerminationSurviveManagerRestart()
     {
@@ -3296,7 +3313,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         var providerManager = new ProviderManager(null, dna);
         var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "durable-chat-runtime");
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
-        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>()))
             .ReturnsAsync((IHolon holon, bool _, bool _, int _, bool _, bool _) =>
             {
                 stored[holon.Id] = holon;
@@ -3308,6 +3325,7 @@ public sealed partial class HyperDriveProviderExecutionTests
             .ReturnsAsync((string key, string value, HolonType _, bool _, bool _, int _, int _, bool _, bool _, int _) =>
                 new OASISResult<IEnumerable<IHolon>>(stored.Values.Where(h => h.MetaData != null &&
                     h.MetaData.TryGetValue(key, out var indexed) && indexed?.ToString() == value).ToList()));
+        ServeCurrentManagerReads(provider, stored);
         providerManager.RegisterProvider(provider.Object).Should().BeTrue();
         providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
 
@@ -3350,7 +3368,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         var providerManager = new ProviderManager(null, dna);
         var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "rejected-chat-end-runtime");
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
-        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>()))
             .ReturnsAsync((IHolon holon, bool _, bool _, int _, bool _, bool _) =>
             {
                 stored[holon.Id] = holon;
@@ -3362,11 +3380,12 @@ public sealed partial class HyperDriveProviderExecutionTests
             .ReturnsAsync((string key, string value, HolonType _, bool _, bool _, int _, int _, bool _, bool _, int _) =>
                 new OASISResult<IEnumerable<IHolon>>(stored.Values.Where(h => h.MetaData != null &&
                     h.MetaData.TryGetValue(key, out var indexed) && indexed?.ToString() == value).ToList()));
+        ServeCurrentManagerReads(provider, stored);
         providerManager.RegisterProvider(provider.Object).Should().BeTrue();
         providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
         var start = await new ChatManager(null, dna, providerManager)
             .StartNewChatSessionAsync(new List<Guid> { participantId, Guid.NewGuid() });
-        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>()))
             .ReturnsAsync(new OASISResult<IHolon>
                 { IsError = true, ErrorCount = 1, Message = "chat termination rejected" });
 
@@ -4549,7 +4568,8 @@ public sealed partial class HyperDriveProviderExecutionTests
             DetailedMessage = "authoritative avatar save detail",
             InnerMessages = new List<string> { "secondary index pending" },
             MetaData = new Dictionary<string, string> { ["provider"] = "avatar-save-v2" },
-            SavedCount = 1
+            SavedCount = 1,
+            IsSaved = true
         };
         var selected = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "avatar-save-v2");
         selected.Setup(x => x.SaveAvatar(avatar))
@@ -5820,7 +5840,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         provider.Setup(x => x.LoadAvatarDetail(avatarId, 0))
             .Returns(new OASISResult<IAvatarDetail>(detail));
         provider.Setup(x => x.SaveAvatarDetail(detail))
-            .Returns(new OASISResult<IAvatarDetail>(detail));
+            .Returns(new OASISResult<IAvatarDetail>(detail) { IsSaved = true });
         var dna = CreateDna(HyperDriveModes.V2);
         var providerManager = new ProviderManager(null, dna);
         providerManager.RegisterProvider(provider.Object).Should().BeTrue();
@@ -5861,7 +5881,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         provider.Setup(x => x.LoadAvatarDetail(avatarId, 0))
             .Returns(new OASISResult<IAvatarDetail>(detail));
         provider.Setup(x => x.SaveAvatarDetail(detail))
-            .Returns(new OASISResult<IAvatarDetail>(detail));
+            .Returns(new OASISResult<IAvatarDetail>(detail) { IsSaved = true });
         var dna = CreateDna(HyperDriveModes.V2);
         var providerManager = new ProviderManager(null, dna);
         providerManager.RegisterProvider(provider.Object).Should().BeTrue();
