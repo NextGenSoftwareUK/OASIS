@@ -9,10 +9,10 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
- const selectedPopups=popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+ assert.ok(['none','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
+ const selectedPopups=popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
-  popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat'}[popupGroup]];
+  popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
  let chatId,chatStarts=0,chatSends=0,chatEnds=0;
  let recipient,recipientToken,ownedToken,incomingMessageId,incomingNotificationIds,markedMessages=0,markedNotifications=0,sentMessage=0,dataReads=0;
@@ -61,7 +61,7 @@ async function main(){
   if(api5)await admitFree(account);
   if(selectedPopups.length){
    assert.equal(api5,null,'WEB4-only popup journey');ownedToken=await admitFree(account);
-   if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')){
+   if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')||selectedPopups.includes('DirectoryMessage')){
     recipient=await createOwnedAvatar(api.href);recipientToken=await admitFree(recipient);
    }
   }
@@ -82,7 +82,7 @@ async function main(){
    if(url.origin==='https://api.web4.oasisomniverse.one'){
     const mutation=request.method()!=='GET'&&request.method()!=='OPTIONS';
     let ownedOperation=false;
-    if(['chat','chat-hyperdrive'].includes(popupGroup)&&request.method()==='POST'){
+    if(['chat','chat-directory','chat-hyperdrive'].includes(popupGroup)&&request.method()==='POST'){
      if(url.pathname==='/api/chat/start-new-chat-session'){
       assert.equal(++chatStarts,1);assert.deepEqual(request.postDataJSON(),[account.avatar.id,recipient.avatar.id]);ownedOperation=true;
      }else if(chatId&&url.pathname==='/api/chat/send-message/'+chatId){
@@ -150,7 +150,7 @@ async function main(){
       assert.equal(++dataReads,1,'One actual Data browse');
       assert.deepEqual(request.postDataJSON(),{id:account.avatar.id,holonType:'All',loadChildren:false,recursive:false});
       ownedOperation=true;
-     }else if(selectedPopups.includes('Messaging')&&url.pathname==='/api/messaging/send-message-to-avatar/'+recipient.avatar.id){
+     }else if((selectedPopups.includes('Messaging')||selectedPopups.includes('DirectoryMessage'))&&url.pathname==='/api/messaging/send-message-to-avatar/'+recipient.avatar.id){
       assert.equal(++sentMessage,1,'One explicit owned message send');
       assert.equal(request.postDataJSON(),messageText);ownedOperation=true;
      }
@@ -295,6 +295,20 @@ async function main(){
     await page.waitForFunction(()=>document.getElementById('msg-no-session').hidden===false&&document.getElementById('msg-active-sessions').textContent.includes('No active chats.'));
     const sessions=await recipient.call('participant ended sessions','GET','/api/chat/active-sessions',undefined,recipientToken);assert.ok(Array.isArray(sessions));assert.ok(!sessions.some(row=>row.id===chatId));
     assert.equal(chatStarts,1);assert.equal(chatSends,1);assert.equal(chatEnds,1);
+   });
+   await checkPopup('DirectoryMessage','#messaging-modal-close-btn',async()=>{
+    stage='Directory search';await page.locator('#dashboard button[onclick*="openSearchModal"]').click();
+    await page.locator('#search-avatar-input').fill(recipient.username);await page.locator('#search-avatar-btn').click();
+    await page.locator('[data-search-message="'+recipient.avatar.id+'"]').waitFor({state:'visible'});
+    stage='Directory compose';await page.locator('[data-search-message="'+recipient.avatar.id+'"]').click();
+    await page.locator('#messaging-tab-send').waitFor({state:'visible'});
+    assert.equal(await page.locator('#msg-to-avatar').inputValue(),recipient.avatar.id);assert.equal(sentMessage,0,'Directory handoff must not send');
+    await page.locator('#msg-body').fill(messageText);await page.locator('#msg-send-btn').click();
+    await page.waitForFunction(()=>document.getElementById('messaging-modal-status').textContent==='Message sent.');
+    stage='Directory recipient readback';const inbox=await recipient.call('directory recipient native inbox','GET','/api/messaging/messages?limit=50&offset=0',undefined,recipientToken);
+    assert.equal(inbox.filter(row=>row.content===messageText&&row.fromAvatarId===account.avatar.id&&row.toAvatarId===recipient.avatar.id).length,1);assert.equal(sentMessage,1);
+    stage='Directory return';await page.locator('#messaging-modal-close-btn').click();await page.waitForURL(url=>url.pathname==='/search');
+    await page.locator('#search-modal-close-btn').click();await page.waitForURL(url=>url.pathname==='/');
    });
    await checkPopup('HyperDrive','#hd-close-btn',async()=>{
     stage='HyperDrive status';const statusResponse=page.waitForResponse(r=>new URL(r.url()).pathname.toLowerCase()==='/api/hyperdrive/status');
