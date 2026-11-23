@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-23",
+  "status": "accepted scoped HyperDrive UI journey",
+  "run": 45169287524,
+  "job": 137674304706,
+  "control": "b3c32c58227cfe31255bf8f6893cb0ed0d506c2a",
+  "portal": "f6003b2955c086a87516564d43cb57246238dc51",
+  "producer": "f4ac6302cbeadf6b1af77cbd9c6cdf27cfec402b",
+  "image": "sha256:078cd7c8acbd7a14de653178e8f7aba5d030a191da519f6f8c37c3756eeea704",
+  "artifact": 14816765531,
+  "artifactBytes": 4279,
+  "accepted": [
+    "actual authenticated page",
+    "status and provider count",
+    "failover replication load-balancing panel navigation",
+    "one owned routing save",
+    "independent native persisted override and effective-settings readback",
+    "empty hosted delivery list",
+    "normal close"
+  ],
+  "remaining": [
+    "data storage policy tab",
+    "populated deliveries",
+    "whole-provider HA acceptance"
+  ],
+  "cleanup": {
+    "packageContainerAbsent": true,
+    "packageInspectionDataWrites": 0,
+    "startupContainersAbsent": true,
+    "networkAbsent": true,
+    "ephemeralDatabaseVolumesRemoved": true,
+    "web5ProcessStopped": true,
+    "web5DnaAbsent": true,
+    "runtimeCacheTlsAbsent": true
+  },
+  "sharedSettingsChanged": false,
+  "localBuildsDownloadsEnvironmentsResults": false
+}
