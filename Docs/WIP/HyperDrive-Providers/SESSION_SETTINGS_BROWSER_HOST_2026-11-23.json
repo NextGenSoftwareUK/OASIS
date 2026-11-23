@@ -1,0 +1,44 @@
+{
+  "date": "2026-11-23",
+  "status": "representative actual Settings browser and native revocation accepted; not hosted/full Startup or permanent deletion",
+  "scope": "Optional sessionBrowser descriptor flag enables exact pinned Portal assets and existing owned Chromium runtime. General native run remains unchanged unless opted in.",
+  "flow": [
+    "Issue two actual Mongo credentials through real password endpoint.",
+    "Click actual Settings selected-session button and confirm independent SID POST/current session preserved.",
+    "Click actual global sign-out and confirm SDK/local credential clearing and signed-out reload.",
+    "Native authority must refuse both originally issued credentials."
+  ],
+  "breadth": "Browser mode returns before previously qualified general global-session/billing assertions; no accepted cohort replay.",
+  "remaining": [
+    "Current native run45091356813 still active; no duplicate dispatch.",
+    "Pin exact Portal source and opt in only after current native result inspected.",
+    "Browser/host compilation and functional acceptance unproven."
+  ],
+  "cleanup": "No local browser/runtime install, build, database, generated result or environment. Existing CI cleanup contract retained.",
+  "firstRun": {
+    "id": 45092112547,
+    "job": 137423771196,
+    "conclusion": "failure before compilation",
+    "cause": "Two committed Settings browser fixture files omitted from qualification-control sparse checkout.",
+    "fix": "Explicitly include both fixtures in the existing limited checkout.",
+    "cleanup": "Owned native fixture removal and owned browser runtime/cache removal both SUCCESS."
+  },
+  "secondRun": {
+    "id": 45092519963,
+    "job": 137425049453,
+    "conclusion": "compile failure before native/browser execution",
+    "error": "CS1503: Login returns JToken; browser callback declared JObject",
+    "correction": "Use the actual JToken contract consistently in callback and SID helper.",
+    "cleanup": "Owned native fixture and browser runtime/cache removal both SUCCESS."
+  },
+  "acceptedRun": {
+    "id": 45093523946,
+    "job": 137428169979,
+    "conclusion": "success",
+    "source": "ca617d9ce583",
+    "portal": "282eb9a",
+    "build": "0 errors, 6m59.21s",
+    "proof": "Actual selected/global Settings buttons and SDK requests, current session preservation, signed-out reload and both issued credentials refused by native authority.",
+    "cleanup": "Owned SQLite absent/Mongo unpaused; both owned native fixture and browser runtime/cache removal SUCCESS."
+  }
+}
