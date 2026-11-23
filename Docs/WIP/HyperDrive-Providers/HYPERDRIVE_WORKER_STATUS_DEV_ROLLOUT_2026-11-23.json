@@ -1,7 +1,7 @@
 {
   "expectedCommit": "bea1473a1bfa3c4260982728b4cdcdeed5570465",
   "environment": "dev",
-  "status": "Five deployments and running container revisions accepted; WEB4/WEB9 building",
+  "status": "All seven deployments SUCCESS; running revisions checked; two use source-identical release back-merge",
   "services": [
     {
       "service": "WEB6 AI API",
@@ -20,16 +20,20 @@
     {
       "service": "WEB9 SINGULARITIY API",
       "serviceId": "36eda15e-fd28-4fc6-a0c9-7fe454829554",
-      "deployment": "f7211cb9-dfcf-43cd-addd-cc9aad1702e7",
-      "status": "BUILDING",
-      "commit": "bea1473a1bfa3c4260982728b4cdcdeed5570465"
+      "deployment": "6f09fe15-c9bb-401f-bdcb-9f19861d752e",
+      "status": "SUCCESS",
+      "commit": "d74ceb6d3e770691ef97b94a204adc4a3f96b855",
+      "supersededDeployment": "f7211cb9-dfcf-43cd-addd-cc9aad1702e7",
+      "supersededStatus": "REMOVED"
     },
     {
       "service": "WEB4 OASIS API",
       "serviceId": "5123199a-43c4-4439-9921-e10e2aec7841",
-      "deployment": "602ec5c3-bbb6-4bc2-9c52-f6170e01de10",
-      "status": "BUILDING",
-      "commit": "bea1473a1bfa3c4260982728b4cdcdeed5570465"
+      "deployment": "6ebb62f3-a48b-4afa-9d5e-f81495f80f1c",
+      "status": "SUCCESS",
+      "commit": "d74ceb6d3e770691ef97b94a204adc4a3f96b855",
+      "supersededDeployment": "602ec5c3-bbb6-4bc2-9c52-f6170e01de10",
+      "supersededStatus": "REMOVED"
     },
     {
       "service": "WEB10 THE SOURCE API",
@@ -56,11 +60,34 @@
   "priorAcceptedCommit": "6bbbae4be199eef55856df32476db5684ee05073",
   "workerSettingsChanged": false,
   "runningRevisionChecks": [
+    "WEB4",
     "WEB5",
     "WEB6",
     "WEB7",
     "WEB8",
+    "WEB9",
     "WEB10"
   ],
-  "verificationScope": "Selected RAILWAY_GIT_COMMIT_SHA matchesbea1473a inside each successful container; no auth/data/payment call"
+  "verificationScope": "Selected RAILWAY_GIT_COMMIT_SHA matchesbea1473a inside each successful container; no auth/data/payment call",
+  "acceptedTree": "70a805b9515a9c97f58f755e54a5f1dcd19522d7",
+  "equivalentCommits": [
+    "bea1473a1bfa3c4260982728b4cdcdeed5570465",
+    "d74ceb6d3e770691ef97b94a204adc4a3f96b855"
+  ],
+  "web4PauseFlagsAllTrue": true,
+  "publicSwaggerConfiguredPauseType": "boolean",
+  "watchPolicy": {
+    "mode": "read-only",
+    "allSevenMatchReviewedPolicy": true,
+    "settingsChanged": false,
+    "patterns": [
+      "**",
+      "!/The OASIS.sln"
+    ]
+  },
+  "buildReuse": {
+    "settingChanged": false,
+    "reason": "Optional feature is environment-sensitive; build-time input audit remains engineering work.",
+    "documentation": "https://docs.railway.com/builds/skipped-builds"
+  }
 }

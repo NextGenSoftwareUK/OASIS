@@ -1,3 +1,7 @@
+## 2026-11-23 - Worker-status rollout source-equivalent runtime accepted
+
+All7 SUCCESS and running revisions checked. WEB5/6/7/8/10=bea1473a; WEB4/9=d74ceb6d after release back-merge. Both Git trees exactly70a805b9515a9c97f58f755e54a5f1dcd19522d7; no source regression or forced restarts. New WEB4 public Swagger field backgroundWorkersPauseConfigured is boolean;3selected running pause flags true. Existing7dev watch policies verified read-only, no setting change; optional skipped-build cache remains unaudited/not enabled. Normal CI still tracked separately; no hosted auth/data/payment operations.
+
 ## 2026-11-23 - Worker-status rollout: five exact running revisions accepted
 
 WEB5/WEB6/WEB7/WEB8/WEB10 SUCCESS and in-containerbea1473a verified. WEB4/WEB9 BUILDING. BroadCI currently61success/5skipped/7running, no reported failures; not final acceptance. Real LocalFile status/auth fixture45098982294 remains accepted. No shared Atlas/auth/payment operations or configuration changes. Existing hosted Stripe owner step remains separate; no credentials copied into CI.

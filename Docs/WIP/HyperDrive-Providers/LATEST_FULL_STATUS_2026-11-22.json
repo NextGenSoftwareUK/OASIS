@@ -287,9 +287,10 @@
   "workerStatus": {
     "apiCandidate": "afbd5984e5a3b824080059e206331b727645c8de",
     "field": "backgroundWorkersPauseConfigured",
-    "status": "Publishedbea1473a; five exact running revisions verified, WEB4/WEB9 building; broader CI not final",
+    "status": "All7deployed/running-source checked;2use tree-identicald74, public metadata field boolean, WEB4 pauses true; authenticated hosted status/UI not probed",
     "portal": "43cf6d6",
     "uiScope": "source/syntax checked, browser not newly accepted",
-    "publishedCommit": "bea1473a1bfa3c4260982728b4cdcdeed5570465"
+    "publishedCommit": "bea1473a1bfa3c4260982728b4cdcdeed5570465",
+    "equivalentCommit": "d74ceb6d3e770691ef97b94a204adc4a3f96b855"
   }
 }
