@@ -1,0 +1,51 @@
+{
+  "status": "published-dev-rollout-pending",
+  "deployments": [
+    {
+      "id": "010f50d4-8f3a-4426-ba99-3c0ae1fb8a51",
+      "status": "QUEUED",
+      "service": "WEB4"
+    },
+    {
+      "id": "23a4ec3a-7715-4fd9-a981-8f556a342e42",
+      "status": "QUEUED",
+      "service": "WEB5"
+    },
+    {
+      "id": "b78f7a6d-3562-4bfa-8dd9-b386692e5e7d",
+      "status": "BUILDING",
+      "service": "WEB6"
+    },
+    {
+      "id": "00cee64e-b041-4387-87c9-f4d8cdf52353",
+      "status": "BUILDING",
+      "service": "WEB7"
+    },
+    {
+      "id": "864081b0-2650-4c58-9e0d-5b17b6fc2391",
+      "status": "QUEUED",
+      "service": "WEB8"
+    },
+    {
+      "id": "54e078fa-42b4-4616-af81-668d3020678c",
+      "status": "BUILDING",
+      "service": "WEB9"
+    },
+    {
+      "id": "a8ec30dc-423a-4e7e-a079-d3c85a264926",
+      "status": "QUEUED",
+      "service": "WEB10"
+    }
+  ],
+  "core": "80400bb46dab74632a99d1f27bf6a0a6a94b7840",
+  "observedUtc": "2026-11-23T03:24:18.1096140Z",
+  "remaining": "Verify terminal deployments and selected running source revisions; no whole-portal/hosted functional acceptance inferred.",
+  "source": "d06a42ca51d078d8d2248916ed7861e96974dbfc",
+  "published": "ae9d72651bdffefce8d2695f09f9060f052c8703",
+  "scope": "Only exact Gates-qualified Core Gifts16linevalidation plus pairedmanifest and named evidence. Current CQL5ea preserved. No DNA/environment/worker changes or shared auth/data/payment probes.",
+  "evidence": [
+    "45104328970/job137462037424 real Gifts SDK/browser/HTTP/native flow SUCCESS",
+    "45105105606/job137464470175 current composition WEB4compile0errors5m08.68",
+    "All8submodule Development policies and pairedpins pass"
+  ]
+}

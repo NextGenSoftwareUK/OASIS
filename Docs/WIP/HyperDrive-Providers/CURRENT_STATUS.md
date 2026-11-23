@@ -1,3 +1,11 @@
+## 2026-11-23 - Verified Gifts validation batch PUBLISHED
+
+Developmentae9d72651bdffefce8d2695f09f9060f052c8703 preserves currentCQL5ea and ships Core80400 exact16lineGiftsguard plus pairedmanifest/namedproofs. Eightbranchpolicies pass, browser/native45104328970 and currentcompile45105105606 accepted. Exact7Railway devdeploymentIDs in GIFTS_DEV_ROLLOUT_2026-11-23.json; queued/building, no runningacceptance yet. No sourceDNA/env/worker changes/sharedbackend calls. Fourdirtygitlinks untouched; publishindex removed.
+
+## 2026-11-23 - Gifts current CQL composition ACCEPTED for scoped integration
+
+45105105606/job137464470175 SUCCESS WEB4compile0errors5m08.68 on d06a42ca/Core80400. ExactGifts16lineguard restores previouslyaccepted source; current5ea CQL preserved. Core Development fast-forwarded6df->80400; all8submodule branch policies and pairedpins pass. Native/browser45104328970 retained, not replayed. Parentpublication/actualdevrollout next; no hosted/fullportal claim or sharedbackend/auth/payment call.
+
 ## 2026-11-23 - Gifts actual SDK/browser/HTTP/native journey ACCEPTED
 
 45104328970/job137462037424 SUCCESS, sourcea61af6a6/Cored73/Portal a85a0c5, build0errors4m13.31. Two avatars send/receive/open/history/logout and missing-recipient no-write passed; DB/DNA/container/browser runtime/cache absent. Current peer5ea/Core4c9 preserved in prepared d06a42ca/Core80400 with only exact16-line gift validation restored and pairedpin; compile-only45105105606 active, no native/browser replay or backend deployment. Public3changed scripts200 match source. Whole OPORTAL/hosted Stripe/permanent erasure remain open.

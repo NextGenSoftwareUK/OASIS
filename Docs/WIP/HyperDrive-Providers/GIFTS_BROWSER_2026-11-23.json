@@ -3,8 +3,8 @@
   "portal": "a85a0c5f0fbe701adfd7e78d33f84084d5ce8479",
   "cleanup": "Core/root temporary Git indexes removed in finally; no local runtime/download/build/DB/results. First runner cleanup retained in actions; replacement has existing finally cleanup.",
   "base": "d74ceb6d3e770691ef97b94a204adc4a3f96b855",
-  "status": "isolated-browser-and-native-accepted-current-composition-compile-pending",
-  "next": "Observe exact live run; fix actual failure if any. After acceptance compose scoped Core validation with current peer Development and pair manifest before deployment.",
+  "status": "accepted-and-published-dev-rollout-pending",
+  "next": "Observe exact seven ae9d7265 deployment IDs in GIFTS_DEV_ROLLOUT_2026-11-23.json; no hosted auth/data test.",
   "attempts": [
     {
       "run": 45103729816,
@@ -24,11 +24,14 @@
   "run": 45104328970,
   "source": "a61af6a6f361ed864ed32ccc6287ee69a159cdfd",
   "currentDevelopmentComposition": {
-    "status": "prepared-compile-only-no-native-replay",
+    "status": "compiled-WEB4-0errors5m08.68-Core-Development-published",
     "preservation": "Current pinned4c9 GiftsManager blob identical to6df baseline. Combined Core80400 is a merge descendant of current4c9 and restored d73 with only16added gift-validation lines; all CQL source preserved.",
     "base": "5ea9f8e3f9e1674516ceddcf3c9d16fd9ef4f8fa",
     "candidate": "d06a42ca51d078d8d2248916ed7861e96974dbfc",
-    "core": "80400bb46dab74632a99d1f27bf6a0a6a94b7840"
+    "core": "80400bb46dab74632a99d1f27bf6a0a6a94b7840",
+    "compileRun": 45105105606,
+    "compileJob": 137464470175,
+    "published": "ae9d72651bdffefce8d2695f09f9060f052c8703"
   },
   "staticDelivery": {
     "http": 200,

@@ -225,7 +225,7 @@
     "Permanent account/private-data/provider-replica erasure and Settings deletion remain unfinished.",
     "Changed async DID/MFA session-save and sync/detail native acknowledgement paths require representative verification before full entry-point acceptance."
   ],
-  "lastUpdatedUtc": "2026-11-23T03:15:46.3595110Z",
+  "lastUpdatedUtc": "2026-11-23T03:22:50.639243Z",
   "latestFocusedRun": {
     "id": 45091356813,
     "job": 137421421351,
@@ -240,7 +240,7 @@
       "Subscription/MCP renewal notification and stale checkout guidance",
       "Single Gifts logout handler; no undeclared-variable error"
     ],
-    "pending": "Current CQL composition compile45105105606 on d06a42ca/Core80400; no accepted browser replay, backend not deployed."
+    "pending": "Verified Gifts backend batch published Developmentae9d7265, Core80400 fast-forwarded. Seven exact Railway deployment IDs recorded; rollout pending. Whole OPORTAL/hosted Stripe/permanent erasure remain open."
   },
   "settingsBrowserPreparation": {
     "status": "accepted representative actual browser/native scope",
