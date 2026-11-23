@@ -1,4 +1,4 @@
-name: Qualify owned value objects on three native providers
+name: Qualify structured owned value objects on three native providers
 
 on:
   push:
