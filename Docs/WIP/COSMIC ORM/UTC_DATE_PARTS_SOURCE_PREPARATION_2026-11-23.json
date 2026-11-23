@@ -1,0 +1,25 @@
+{
+  "core": "dc88abf6a615fc5b5c06b6cd4871683d23e43081",
+  "base": "e7402f4f2f14e9a7f628026efde79180c376f815",
+  "captureImplemented": true,
+  "functions": [
+    "UtcYear",
+    "UtcMonth",
+    "UtcDay",
+    "UtcDayOfYear",
+    "UtcHour",
+    "UtcMinute",
+    "UtcSecond"
+  ],
+  "nativeTranslationImplemented": false,
+  "wireSqlAiImplemented": false,
+  "compiled": false,
+  "nativeAccepted": false,
+  "deployed": false,
+  "frozenMappedJoinImageCore": "e7402f4f2f14e9a7f628026efde79180c376f815",
+  "nativeRepresentationFindings": {
+    "MongoDB": "UTC metadata projection values are exact ticks, not BSON dates; calendar conversion must preserve integer day boundaries without floating epoch rounding.",
+    "SQLite": "Admitted UTC metadata values are calendar strings; component extraction must not round fractional seconds through a temporal parser.",
+    "Neo4j": "Admitted UTC metadata values normalize to fixed-width calendar strings; native temporal conversion must remain guard-bound."
+  }
+}
