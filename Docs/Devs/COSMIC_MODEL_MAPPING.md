@@ -423,3 +423,24 @@ The callbacks are trusted application model code and must be deterministic. Equa
 The existing metadata extraction and exact typed hydration owners apply the converter. Native predicates encode captured parameters into stored values; they do not run a callback over provider records to filter in memory. Projection proof stays in native scalar domains; selected values decode before DTO construction. Immutable model/filter-bypass copies retain converters. Set operands require the same application model and corresponding converter instances.
 
 Representative MongoDB/SQLite/Neo4j save/read/filter/order/projection/membership/set/update/caller-isolation evidence is recorded in [the native conversion receipt](../WIP/COSMIC%20ORM/VALUE_CONVERSION_NATIVE_ACCEPTANCE_2026-11-23.json). This does not certify full framework parity or live rollout. Converted arithmetic, computed string/date functions, selected extrema, custom comparer policies and arbitrary serialization contracts remain separate work; unsupported operations return explicit admission errors.
+
+
+## Explicit value comparison and snapshots
+
+Configure a custom mapped property's tracking policy with HasValueComparer:
+
+```csharp
+var comparer = new CosmicValueComparer<Code>(
+    (left, right) => StringComparer.OrdinalIgnoreCase.Equals(left.Value, right.Value),
+    value => StringComparer.OrdinalIgnoreCase.GetHashCode(value.Value),
+    value => new Code { Value = value.Value });
+builder.Entity<Reading>().Property(row => row.Code)
+    .HasValueComparer(comparer).HasConversion(codeConversion)
+    .HasMetadataKey("compared_code");
+```
+
+Callbacks are trusted deterministic application code. Equal detached snapshots must have equal hashes; null uses ordinary null equality. The immutable application model, including filter-bypass copies, retains the configured policy. A comparer controls tracking and selected persistence, not native query collation. Configure the conversion/provider collation separately when queries need normalization.
+
+One detached original/current comparison determines both session state and changed property paths. Compared values are atomic property roots. The existing selected-write owner preserves equivalent unselected values in the data store and on the caller; explicit property modification flags still force writes. Every initially selected root remains in authority authorization and model validation before callback-created no-ops can be omitted. Omitted roots keep their leases and identity checks and do not receive a write revision or false acknowledgement. The retained native write conditions have exactly the retained identity scope.
+
+[Representative native3 and WEB4 evidence](../WIP/COSMIC%20ORM/VALUE_COMPARER_NATIVE_ACCEPTANCE_2026-11-23.json) covers those behaviors, including a forbidden no-op rejecting the whole mixed batch. This is root-only session persistence over canonical stored snapshots. Recursive graph comparison writes, arbitrary serialization policies, broader key/cache integration and full framework certification remain separate work.
