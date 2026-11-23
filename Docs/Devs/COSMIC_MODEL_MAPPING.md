@@ -104,3 +104,16 @@ builder.Entity<InvoiceHolon>().Property(row => row.Amount)
 ```
 
 Unannotated custom properties need their metadata mapping before Build. Canonical or annotated properties can receive constraints without being renamed. Build freezes both aliases and rules; later builder edits leave existing sessions unchanged. Model constraints apply to the private authorized save snapshot after application callbacks, so replacing session callbacks cannot disable them. Failed validation dispatches no write. These are application constraints, not generated database columns, native schema constraints or a full validation/schema parity claim. Current verification and deployment scope remains in the COSMIC status.
+
+## Automatic custom scalar naming conventions
+
+Configure a whole flat model instead of writing an alias for every custom field:
+
+```csharp
+builder.Entity<Reading>()
+    .UsePropertyNamingConvention(CosmicPropertyNamingConvention.SnakeCase);
+```
+
+PropertyName preserves CLR spelling; SnakeCase maps ReadingValue to reading_value and HTTPStatus to http_status. Explicit fluent aliases and inherited property annotations take precedence. Canonical Holon fields retain their names. Each Build resolves a separate immutable snapshot, so changing the builder convention does not change existing queries or sessions.
+
+The convention applies to every public custom property in this flat scalar contract. A property outside the admitted scalar/public getter/setter contract, reserved key or collision makes Build return an error. Complex properties require their separately specified mapping support. Query, save and hydration use the same model map. Verification and deployment status remain in the COSMIC status; this does not establish full naming/model parity.
