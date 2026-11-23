@@ -1,28 +1,19 @@
 {
   "scope": "profile",
-  "status": "current-CQL-composed-source-inventory-pending",
-  "base": "181a340f4e5eca1897cb802a4c6240dde0f81cfa",
-  "candidate": "a7f63457a3d9ffb7bf2236231acbf1b815b06c63",
-  "tag": "qualification/profile-delivery-root-20261123",
+  "status": "current-published-CQL-composed-inventory-review",
+  "base": "3a247ab8f27a40bf2977491d7c31357bfa18cc65",
+  "candidate": "c367eb178946cad44c4dc3ce81881dba26a07f40",
+  "tag": "qualification/profile-route-review-root-20261123",
   "buildProjects": [
     "WEB4"
   ],
   "allowedPaths": [
-    "Docker/oasis-dependency-versions.env",
-    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SelfAvatarProfileController.cs",
-    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Profile.cs",
-    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/AvatarRepository.HistoryPatch.cs",
-    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/AvatarRepository.Profile.cs",
-    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.AvatarHistory.cs",
-    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Profile.cs",
-    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.ProfileSchema.cs",
-    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Schema.cs",
-    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Profile.cs"
+    "Scripts/verify_web4_hyperdrive_route_manifest.ps1",
+    "Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1"
   ],
   "core": {
-    "base": "117604427751726e4623a076c06cb91b84a01d6f",
-    "candidate": "ad83f7adb23111fb0aab913c5843bf2075419657"
+    "base": "def8cf76c73ed6495155dd16077a58030af33067",
+    "candidate": "cb1c50c24ac8520be6f328bca08e48e04737854b"
   },
   "remaining": "Review current-composition inventories, run existing profile HTTP composition proof, then qualify and deliver one shipping image. Preserve prior provider/browser matrix acceptance; do not repeat it.",
   "nativeHost": "HotspotHttpNative",
