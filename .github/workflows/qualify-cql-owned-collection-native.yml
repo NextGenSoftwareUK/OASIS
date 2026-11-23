@@ -1,4 +1,4 @@
-name: Qualify ordered primitive and value-object collections on three native providers
+name: Qualify exact owned collection snapshots on three native providers
 
 on:
   push:
