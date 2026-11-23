@@ -94,8 +94,8 @@ internal sealed partial class MongoCqlTranslator
             var output=Nullable.GetUnderlyingType(column.ValueType)??column.ValueType;
             if(column.Path.ValueType!=typeof(DateTime) || output!=typeof(int))
                 throw new NotSupportedException("UTC date parts require DateTime input and Int32 output.");
-            var name=prefix+"utcPart";
-            var cell="$$"+name;
+            var utcName=prefix+"utcPart";
+            var cell="$$"+utcName;
             var value=(BsonValue)(cell+".v");
             var ticks=column.Path.IsMetadata ? value
                 : Op("$add",Op("$multiply",new BsonDocument("$toLong",value),Literal(TimeSpan.TicksPerMillisecond)),
@@ -127,7 +127,7 @@ internal sealed partial class MongoCqlTranslator
                     _=>throw new NotSupportedException("UTC date part is not registered.") };
                 return new BsonDocument(operation,new BsonDocument{{"date",date},{"timezone","UTC"}});
             }
-            return SingleLet(name,ProjectionCell(column.Path,prefix+"utcSource"),new BsonDocument{
+            return SingleLet(utcName,ProjectionCell(column.Path,prefix+"utcSource"),new BsonDocument{
                 {"s",cell+".s"},{"v",Choose(Op("$eq",cell+".s",Literal(2)),Part(),Literal(BsonNull.Value))}});
         }
         if (column.Function == CosmicProjectionFunction.BooleanTextCase)

@@ -22,11 +22,17 @@
     "SQLite": "Admitted UTC metadata values are calendar strings; component extraction must not round fractional seconds through a temporal parser.",
     "Neo4j": "Admitted UTC metadata values normalize to fixed-width calendar strings; native temporal conversion must remain guard-bound."
   },
-  "qualificationPhase": "Queued",
+  "qualificationPhase": "CombinedNativeWireAndActualWeb4BuildPending",
   "source": "71468c6a8eea192230669f783706453e83e642ec",
   "nativeRun": 45091888466,
   "dependencyRun": 45091888415,
   "apiWireImplemented": true,
   "sqlAiImplemented": false,
-  "wireAccepted": false
+  "wireAccepted": false,
+  "wireSource": "15eb1ff59e631f32ecccf32b710d2d5139dfdcc7",
+  "priorNativeRun": 45091888466,
+  "priorWireRun": 45092220514,
+  "priorOutcome": "compilation_failed_before_acceptance",
+  "expectedNativeTests": 3,
+  "expectedWireTests": 2
 }

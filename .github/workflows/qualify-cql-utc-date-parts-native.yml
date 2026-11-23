@@ -91,11 +91,17 @@ jobs:
                 if ($e.evidence.$name -ne $true) { throw "Missing native proof $name" }
               }
             }
+            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlUtcDatePartsWireTests' --results-directory TestResults/Neo4jCurrent --logger 'trx;LogFileName=wire-native.trx'
+            if ($LASTEXITCODE) { throw 'UTC date-part transport controls failed' }
+            [xml]$wire=Get-Content TestResults/Neo4jCurrent/wire-native.trx
+            if ($wire.TestRun.ResultSummary.Counters.passed -ne '2' -or $wire.TestRun.ResultSummary.Counters.total -ne '2') { throw 'Both UTC date-part transport controls must pass' }
+            dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE) { throw 'Actual WEB4 date-part composition failed' }
           }
           $source=(git rev-parse HEAD).Trim()
           if($source -ne $env:GITHUB_SHA){throw 'Qualification source mismatch'}
           $core=(git -C "OASIS Architecture/NextGenSoftware.OASIS.API.Core" rev-parse HEAD).Trim()
-          @{source=$source;core=$core;nativePassed=3;utcDatePartsVerified=$true;ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content TestResults/Neo4jCurrent/source.json -Encoding utf8
+          @{source=$source;core=$core;nativePassed=3;utcDatePartsVerified=$true;wirePassed=2;actualWeb4Compiled=$true;ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content TestResults/Neo4jCurrent/source.json -Encoding utf8
       - name: Stop owned Mongo
         if: always()
         run: docker rm -f -v cql-where-mongo
@@ -110,6 +116,7 @@ jobs:
           name: cql-utc-date-parts-native
           path: |
             OASIS/TestResults/Neo4jCurrent/mapping-native.trx
+            OASIS/TestResults/Neo4jCurrent/wire-native.trx
             OASIS/TestResults/Neo4jCurrent/*-utc-date-parts-native.json
             OASIS/TestResults/Neo4jCurrent/source.json
           if-no-files-found: ignore
