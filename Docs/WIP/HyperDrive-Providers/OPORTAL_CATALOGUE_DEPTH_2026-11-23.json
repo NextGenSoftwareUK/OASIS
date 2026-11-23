@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-23",
+  "status": "implemented source; cloud compile and representative UI qualification running",
+  "root": "fe414dfe0ec971b33280b0780ab418b0d5012a10",
+  "baseDevelopment": "3ae678ddcbd0624a19cc4f3ff662a89b27b13896",
+  "core": "a3c5ceef9d61b0057ecc8b21156bd0121754a223",
+  "star": "1e25b519c382a33d5160c02ca3b2a0de558449fc",
+  "portal": "86350c406ec64bc7b395d0e50a7b664b6aa22443",
+  "rootCause": "GET OAPP catalogue always invokes recursive LoadAllAsync even for launcher root cards",
+  "invariant": "Catalogue reads are shallow unless a caller explicitly requests descendant relationships",
+  "implementation": [
+    "GET api/oapps defaults loadChildren=false using existing LoadAllShallowAsync",
+    "loadChildren=true invokes existing relationship loader",
+    "OAPP Map explicitly sends loadChildren=true; launcher retains default shallow request",
+    "STAR gitlink and manifest paired in immutable current-CQL candidate; sync --check-ref passed"
+  ],
+  "run": 45178110641,
+  "job": 137704548676,
+  "scope": [
+    "cloud actual WEB5 compilation",
+    "OAPP Map explicit-depth empty list/filter/close",
+    "OAPP Launcher default-shallow empty list/filter/close",
+    "Competition leaderboard/rank/tournaments empty reads/close"
+  ],
+  "remaining": [
+    "populated descendant behavior acceptance",
+    "performance measurement",
+    "backend Development publication/running acceptance"
+  ],
+  "web4Reuse": {
+    "source": "8f379886b8d89d1e134dd740a41af239e56f626f",
+    "image": "sha256:d0b2bacf91fbec5964f26ccabeded30ddb2eddb157296236934e4d17b148bcc0",
+    "imageRun": 45172252547,
+    "packageRun": 45173786800,
+    "packageArtifact": 14818506061,
+    "packageArtifactBytes": 774,
+    "checks": "Exact receipt source/image/profile and packagedSourceHashes/CQL runtime graph true; RAM-only inspection"
+  },
+  "cleanup": "Exact owned temporary STAR/root indexes and locks removed in finally. No physical submodule checkout/index changed. No local build/download/runtime/env/database/results; cloud run cleanup pending. No DNA/shared Railway settings or Atlas data/auth calls."
+}
