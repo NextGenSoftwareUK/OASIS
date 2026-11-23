@@ -353,10 +353,16 @@ try
         }
         var savedGame = await data.SaveHolonAsync<Game>(game, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);
         Require(!savedGame.IsError && savedGame.IsSaved, "Owned game seed failed: " + savedGame.Message);
+        var rawGame = await client.GetDatabase(database).GetCollection<MongoDB.Bson.BsonDocument>("Holon")
+            .Find(new MongoDB.Bson.BsonDocument("Name", game.Name)).SingleAsync();
+        var storedPlatforms = rawGame["MetaData"].AsBsonDocument["SupportedPlatforms"];
+        Require(storedPlatforms.IsBsonArray && storedPlatforms.AsBsonArray.Select(value => value.AsString).SequenceEqual(game.SupportedPlatforms),
+            "Game platforms were not persisted as a native BSON array.");
         var gameReadback = await data.LoadHolonAsync<Game>(game.Id, loadChildren: false, providerType: ProviderType.MongoDBOASIS);
         Require(!gameReadback.IsError && gameReadback.Result != null,
             "Owned typed Game readback failed: code=" + gameReadback.ErrorCode + "; cause=" +
             gameReadback.Exception?.GetBaseException().GetType().FullName + ": " + gameReadback.Exception?.GetBaseException().Message);
+        Require(gameReadback.Result.SupportedPlatforms.SequenceEqual(game.SupportedPlatforms), "Typed Game platforms changed after native readback.");
         var savedOapp = await data.SaveHolonAsync<OAPP>(oapp, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);
         Require(!savedOapp.IsError && savedOapp.IsSaved, "Owned OAPP seed failed: " + savedOapp.Message);
         var savedItem = await data.SaveHolonAsync<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>(item, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);

@@ -1,13 +1,15 @@
 {
-  "base": "ae9d72651bdffefce8d2695f09f9060f052c8703",
+  "base": "15798b127af2274aa811252ad6335cbfc8661a49",
   "buildProjects": [],
-  "remaining": "Actual SDK/HTTP/native Mongo populated catalogues, details, supplied launch targets, inventory empty ownership and logout; full Startup/SSO/hosted excluded.",
-  "allowedPaths": [],
-  "status": "New Games OAPPs Inventory browser breadth only; no accepted Gifts/session/provider replay",
+  "remaining": "Qualify native BSON array/readback and Games/OAPPs/Inventory browser. Existing legacy string-encoded lists require explicit assessment/migration; no silent read fallback.",
+  "allowedPaths": [
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Infrastructure/Serializers/MetaDataDictionarySerializer.cs"
+  ],
+  "status": "Fix observed Game native metadata list->string encoding at Mongo serializer; same browser breadth with raw BSON and typed readback invariant",
   "nativeMode": "storefront-browser",
   "nativeHost": "HotspotHttpNative",
   "portal": "4d60218ba247b106a8b3f24afdf0583694288f71",
   "scope": "billing",
-  "tag": "qualification/portal-storefront-browser-20261123",
-  "candidate": "18c06063e97a859f2acba080d20a6ad299fe3bb8"
+  "tag": "qualification/mongo-metadata-list-20261123",
+  "candidate": "d531a4d543f6bc9428372ab1454110b882ac493c"
 }
