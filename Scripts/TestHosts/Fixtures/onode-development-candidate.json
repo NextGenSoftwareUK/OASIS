@@ -1,21 +1,22 @@
 {
   "scope": "onode",
   "status": "actual-startup-bridge-and-pinned-popup-browser-prepared-not-accepted",
-  "candidate": "f9420a96ef7f37c0ef5dd4aa92ba83b871d15099",
-  "base": "53413a9d90b311471604a07061c2b7763345bfbe",
-  "tag": "qualification/onode-held-head-reviewed-20261123",
+  "candidate": "28c74fe49ee8dbe2b0f39c3aca67a99042d8608c",
+  "base": "f9420a96ef7f37c0ef5dd4aa92ba83b871d15099",
+  "tag": "qualification/onode-real-process-errors-20261123",
   "allowedPaths": [
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv"
+    "Docker/oasis-dependency-versions.env",
+    "ONODE/ONODEManager"
   ],
   "buildProjects": [
-    "WEB4"
+    "ONODESUPERVISOR"
   ],
   "core": {
     "candidate": "7546da7774be6948b040a6f37fea474c03976a95"
   },
-  "onodeManager": "3ecf0f8ea9713412da9071a1c6d12f961b050c8e",
+  "onodeManager": "23f15e935dae03f9e29a522d88c56e2af5b820a2",
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
-  "remaining": "Current source f942 inventory reviewed. Popup45249781136 passed replication/role/services/metrics and timed out at live frame observation. Subscribe to actual socket frames before connection begins; record only allowlisted visibility/checkbox/connection state if needed. Native bridge evidence retained, current-Core browser acceptance pending.",
+  "remaining": "Only changed real process error checks/service compile in next non-native batch. Prior bridge/component/browser slices retained; full published process lifecycle, configured port binding, platform launch and live popup remain open.",
   "inventoryReview": {
     "run": 45250072037,
     "artifact": 14854822674,
@@ -159,7 +160,7 @@
     "run": 45233869564,
     "status": "queued"
   },
-  "onodeBrowser": true,
+  "onodeBrowser": false,
   "portal": "aab87e12967e403df1d408f7f510deac93fedb70",
   "acceptedActualBridge": {
     "run": 45242480184,
@@ -167,5 +168,13 @@
     "source": "75dad9fada3012452f693eece973decd08789386",
     "status": "success",
     "scope": "Actual Startup issued native password sessions, authorization, separate shipping supervisor state/poll/command acknowledgement, revision-aware proxy, loaded public view and live socket; cleanup passed. No browser/applied-runtime/all-provider acceptance."
+  },
+  "onodeProcessControlCheck": true,
+  "previousPopupCandidate": {
+    "candidate": "f9420a96ef7f37c0ef5dd4aa92ba83b871d15099",
+    "run": 45251546061,
+    "job": 137962234713,
+    "module": "3ecf0f8ea9713412da9071a1c6d12f961b050c8e",
+    "status": "active-not-accepted"
   }
 }

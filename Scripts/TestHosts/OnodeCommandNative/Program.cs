@@ -15,6 +15,43 @@ static void Require(bool value, string invariant)
 {
     if (!value) throw new InvalidOperationException(invariant);
 }
+if (Environment.GetEnvironmentVariable("OASIS_ONODE_CONTROL_CHECK") == "true")
+{
+    var missing = Path.Combine(Path.GetTempPath(), "onode-missing-service-" + Guid.NewGuid().ToString("N"));
+    Require(!Directory.Exists(missing), "Missing target unexpectedly exists.");
+    var controlConfig = new SupervisorConfig {
+        NodeId = "owned-control-node", OASISRootPath = missing,
+        Services = new Dictionary<string, ServiceConfig> {
+            ["web4"] = new() { Enabled = false, OverridePath = missing, WindowMode = WindowMode.Hidden }
+        }
+    };
+    var controlOptions = Options.Create(controlConfig);
+    var controlLogs = new LogAggregator(10);
+    var controlSupervisor = new ProcessSupervisor(controlOptions, controlLogs, NullLogger<ProcessSupervisor>.Instance);
+    using var controlMetrics = new MetricsCollector(controlSupervisor, controlOptions, NullLogger<MetricsCollector>.Instance);
+    var controlProviders = new ProviderService(controlOptions, NullLogger<ProviderService>.Instance);
+    var controlExecutor = new CommandExecutor(controlSupervisor, controlLogs, controlProviders, controlMetrics,
+        controlOptions, NullLogger<CommandExecutor>.Instance);
+    async Task ExpectFailure<T>(Func<Task> action) where T : Exception
+    {
+        try { await action(); }
+        catch (T) { return; }
+        throw new InvalidOperationException("Service control falsely acknowledged an invalid target.");
+    }
+    await ExpectFailure<ArgumentException>(() => controlSupervisor.StartAsync("unknown"));
+    await ExpectFailure<ArgumentException>(() => controlSupervisor.StopAsync("unknown"));
+    await ExpectFailure<ArgumentException>(() => controlSupervisor.StartGroupAsync("unknown"));
+    await ExpectFailure<InvalidOperationException>(async () => {
+        await controlExecutor.ExecuteAsync(new CommandHolon {
+            TargetNodeId = controlConfig.NodeId, Command = CommandType.Start, Service = "web4"
+        }, CancellationToken.None);
+    });
+    Require(controlSupervisor.GetState("web4") is { Installed: false, Pid: null, Status: ServiceStatus.NotInstalled },
+        "Failed control changed actual process state.");
+    Require(!Directory.Exists(missing), "Control created the missing target.");
+    Console.WriteLine("ONODE_CONTROL_NATIVE: actual supervisor and command executor reject unknown start/stop/group and missing-service start; no process, database, DNA or fixture directory created. Published launch/port/platform lifecycle not accepted.");
+    return;
+}
 var owned = Path.Combine(Path.GetTempPath(), "oasis-onode-command-" + Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(owned);
 var dna = Path.Combine(owned, "OASISDNA.json");
