@@ -888,10 +888,12 @@
       "localBuildsDownloads": false
     },
     "browser": {
-      "run": 45243804259,
-      "status": "active-not-accepted",
-      "portal": "88d2f7adc10687845585460ebfea68bd4c9fc705",
-      "scope": "Prepared actual popup/SDK; accepted standalone native assertions skipped in browser mode."
+      "run": 45257965206,
+      "job": 137984688799,
+      "source": "961c871873a0f02f80404aafc6a646866cb00fbd",
+      "portal": "2626dfe1f67c9a86f0a507466f663cbbcb8df7e8",
+      "status": "representative-actual-browser-accepted",
+      "scope": "Selected public views, role edits/readback, services/metrics, real socket frame, loaded API view and close.11commands/11status reads/no429. Not complete process lifecycle or OPORTAL."
     }
   },
   "latestLoadedConfigurationWiring": {
@@ -908,5 +910,61 @@
       "mongoContainerAbsent": true,
       "scope": "Loaded public schema, selected mode owner and secret exclusion; not saved edits applied to live routing."
     }
+  },
+  "currentOnodeBrowserAcceptance20261123": {
+    "date": "2026-11-23",
+    "status": "accepted-representative-real-startup-browser-journey-not-complete-OPORTAL",
+    "run": 45257965206,
+    "job": 137984688799,
+    "source": "961c871873a0f02f80404aafc6a646866cb00fbd",
+    "baseDevelopment": "41d8876721d8f3c9cadd831b8fff1b79bb2ff035",
+    "core": "7546da7774be6948b040a6f37fea474c03976a95",
+    "onodeManager": "23f15e935dae03f9e29a522d88c56e2af5b820a2",
+    "portal": "2626dfe1f67c9a86f0a507466f663cbbcb8df7e8",
+    "builds": {
+      "supervisorErrors": 0,
+      "supervisorSeconds": 8.74,
+      "web4HostErrors": 0,
+      "web4HostSeconds": 283.93
+    },
+    "accepted": [
+      "actual WEB4 Startup with owned native Mongo and password-issued Wizard session",
+      "actual separate shipping supervisor process and actual WEB4 SDK/popup assets",
+      "registered public configuration and selected saved DNA",
+      "failover membership remove/include with independent readback",
+      "replication membership write and load-balancing role selection",
+      "provider layout and reported services/metrics",
+      "actual live WebSocket frame for selected node",
+      "API-managed loaded public configuration and normal closes"
+    ],
+    "requestEvidence": {
+      "commandPosts": 11,
+      "statusReads": 11,
+      "rateLimited": false,
+      "shippingCadence": true,
+      "globalRequestsPerWindow": 100,
+      "windowSeconds": 60,
+      "apiMocks": false
+    },
+    "cleanup": {
+      "ownedProcessesStopped": true,
+      "nativeDatabasesRemoved": true,
+      "ownedDnaTokenMetricsRemoved": true,
+      "ownedDirectoryRemoved": true,
+      "mongoContainerAbsent": true,
+      "browserRuntimeCacheAbsent": true,
+      "localRuntimeBuildDownloadCreated": false
+    },
+    "retained": {
+      "nativeBridge": 45242480184,
+      "processErrorPaths": 45252534030
+    },
+    "remaining": [
+      "published process start/restart/stop and configured port/platform lifecycle",
+      "individual registered peer inventory and management completeness",
+      "saved routing settings applied to running supervisor/runtime across other writers",
+      "package/release/deployment acceptance",
+      "remaining OPORTAL screen/action families, paid Stripe, all-provider and HyperDrive acceptance"
+    ]
   }
 }

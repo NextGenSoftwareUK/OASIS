@@ -92,9 +92,10 @@
     {
       "route": "onode",
       "open": "openONODEModal",
-      "status": "actual API/supervisor bridge accepted; popup browser active; incomplete",
-      "run": 45242480184,
-      "scope": "Actual Startup password sessions, authorization, separate shipping supervisor state/commands, local revision-aware proxy and real socket accepted; cleanup passed. Popup45243804259 active-not-accepted. Applied routing/process-control completeness remains open."
+      "status": "representative actual Startup/browser journey accepted; process lifecycle and complete management open",
+      "run": 45257965206,
+      "scope": "Actual popup/SDK against native Mongo, separate supervisor and shipping WEB4 Startup: registered public views, saved-role edits/readback, services/metrics, actual socket frame, loaded API view and close.11commands/11status reads/no429. Full process lifecycle, peers and runtime-applied routing remain open.",
+      "evidence": "Docs/WIP/HyperDrive-Providers/ONODE_CURRENT_BROWSER_ACCEPTANCE_2026-11-23.json"
     },
     {
       "route": "developer",
