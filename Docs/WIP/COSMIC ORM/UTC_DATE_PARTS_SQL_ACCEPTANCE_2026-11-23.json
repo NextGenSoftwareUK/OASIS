@@ -15,5 +15,8 @@
   "publicWebsitePromoted": false,
   "verificationScope": "three new UTC parser controls only; broad harness failures are not accepted or ignored",
   "broaderHarnessFailuresObserved": 25,
-  "broaderHarnessNeedsReconciliation": true
+  "broaderHarnessNeedsReconciliation": false,
+  "reconciledBySource": "85bfbba31882c1fd40c84a218d9b73689b39ffaf",
+  "sourceBoundParserTests": 163,
+  "sourceBoundParserFailures": 0
 }
