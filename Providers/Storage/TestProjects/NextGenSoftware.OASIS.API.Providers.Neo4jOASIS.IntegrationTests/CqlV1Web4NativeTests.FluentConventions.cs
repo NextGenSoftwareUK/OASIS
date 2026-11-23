@@ -63,7 +63,7 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(created.IsError,created.Message+created.Exception);Assert.IsTrue(created.IsSaved);
         Assert.IsTrue(entity.MetaData.ContainsKey("http_status"));
         Assert.IsTrue(entity.MetaData.ContainsKey("explicit_reading"));
-        Assert.IsTrue(entity.MetaData.ContainsKey("fixed_caption"));
+        Assert.IsTrue(entity.MetaData.ContainsKey("fixed_caption"),"Stored fixture keys: "+string.Join(",",entity.MetaData.Keys));
         Assert.IsFalse(entity.MetaData.ContainsKey("HTTPStatus"));
         Assert.IsFalse(entity.MetaData.ContainsKey("reading_value"));
         Assert.IsFalse(entity.MetaData.ContainsKey("caption"));

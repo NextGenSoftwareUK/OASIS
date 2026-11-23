@@ -1,11 +1,6 @@
 name: Qualify fluent model conventions on three native providers
 
 on:
-  push:
-    branches: [work/cosmic-cql-ton-public]
-    paths:
-      - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.FluentConventions.cs"
-      - ".github/workflows/qualify-cql-fluent-conventions-native.yml"
   workflow_dispatch:
 
 permissions:

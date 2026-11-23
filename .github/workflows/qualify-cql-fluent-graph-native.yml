@@ -79,10 +79,10 @@ jobs:
           $env:OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT=(Get-Location).Path
           New-Item -ItemType Directory TestResults/Neo4jCurrent | Out-Null
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-fluent-graph-native-ci -Operation {
-            dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~NativeFluentModelsHydrateSelectedTypedGraphs' --results-directory TestResults/Neo4jCurrent --logger 'trx;LogFileName=mapping-native.trx'
+            dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~NativeFluentModelsHydrateSelectedTypedGraphs|FullyQualifiedName~NativeFluentConventionsShareWriteReadAndQueryNames' --results-directory TestResults/Neo4jCurrent --logger 'trx;LogFileName=mapping-native.trx'
             if ($LASTEXITCODE) { throw 'Native fluent model qualification failed' }
             [xml]$report=Get-Content TestResults/Neo4jCurrent/mapping-native.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '3' -or $report.TestRun.ResultSummary.Counters.total -ne '3') { throw 'All three native selected-column HTTP journeys must pass' }
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '6' -or $report.TestRun.ResultSummary.Counters.total -ne '6') { throw 'All three native selected-column HTTP journeys must pass' }
             foreach ($store in 'MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS') {
               $e=Get-Content "TestResults/Neo4jCurrent/$store-fluent-graph-native.json" -Raw | ConvertFrom-Json
               if ($e.provider -ne $store -or $e.checks -ne 6 -or $e.ownedCleanupIds -ne 3 -or $e.successfulHolonWrites -ne 1 -or @($e.queryElapsedMilliseconds.PSObject.Properties).Count -ne 4) { throw 'Incomplete native report' }
@@ -91,13 +91,21 @@ jobs:
                 if ($e.evidence.$name -ne $true) { throw "Missing native proof $name" }
               }
             }
+            foreach ($store in 'MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS') {
+              $e=Get-Content "TestResults/Neo4jCurrent/$store-fluent-conventions-native.json" -Raw | ConvertFrom-Json
+              if ($e.provider -ne $store -or $e.checks -ne 5 -or $e.ownedCleanupIds -ne 1 -or $e.successfulHolonWrites -ne 2 -or @($e.queryElapsedMilliseconds.PSObject.Properties).Count -ne 4) { throw 'Incomplete convention report' }
+              if($e.nativeProviderVerified -ne $true -or $e.exactCleanupVerified -ne $true){throw 'Convention native fixture/cleanup acknowledgement missing'}
+              foreach ($name in 'conventionStoredAndQueried','explicitAliasPrecedence','inheritedAnnotationPrecedence','immutableConventionSnapshot','collisionBeforeGetters') {
+                if ($e.evidence.$name -ne $true) { throw "Missing convention proof $name" }
+              }
+            }
             dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI /m:2 /nr:false /p:UseSharedCompilation=false
             if ($LASTEXITCODE) { throw 'Actual WEB4 fluent model composition failed' }
           }
           $source=(git rev-parse HEAD).Trim()
           if($source -ne $env:GITHUB_SHA){throw 'Qualification source mismatch'}
           $core=(git -C "OASIS Architecture/NextGenSoftware.OASIS.API.Core" rev-parse HEAD).Trim()
-          @{source=$source;core=$core;nativePassed=3;fluentGraphVerified=$true;actualWeb4Compiled=$true;ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content TestResults/Neo4jCurrent/source.json -Encoding utf8
+          @{source=$source;core=$core;nativePassed=6;fluentConventionsVerified=$true;fluentGraphVerified=$true;actualWeb4Compiled=$true;ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content TestResults/Neo4jCurrent/source.json -Encoding utf8
       - name: Stop owned Mongo
         if: always()
         run: docker rm -f -v cql-where-mongo
@@ -113,6 +121,7 @@ jobs:
           path: |
             OASIS/TestResults/Neo4jCurrent/mapping-native.trx
             OASIS/TestResults/Neo4jCurrent/*-fluent-graph-native.json
+            OASIS/TestResults/Neo4jCurrent/*-fluent-conventions-native.json
             OASIS/TestResults/Neo4jCurrent/source.json
           if-no-files-found: ignore
           retention-days: 2
