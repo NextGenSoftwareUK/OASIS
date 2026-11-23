@@ -9,8 +9,8 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','web5-breadth','community','storage','hyperdrive','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
- const selectedPopups=popupGroup==='web5-breadth'?['HolonBrowser','Celestial','GlobalSearch']:popupGroup==='community'?['Activity','Social','Chain']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+ assert.ok(['none','tools','web5-breadth','community','storage','hyperdrive','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
+ const selectedPopups=popupGroup==='tools'?['Designer','Developer']:popupGroup==='web5-breadth'?['HolonBrowser','Celestial','GlobalSearch']:popupGroup==='community'?['Activity','Social','Chain']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
   popupGroup==='none'?[]:[{storage:'Storage',hyperdrive:'HyperDrive',eggs:'Eggs',nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
@@ -260,6 +260,23 @@ async function main(){
     }catch{closePassed=false;passed=false;if(observedStage===name)observedStage=name+' close';}
     outcomes.push({name,passed,stage:observedStage,closePassed});
    }
+   await checkPopup('Designer','#holon-designer-modal-close-btn',async()=>{
+    stage='Designer schema';await page.evaluate(()=>window.openHolonDesignerModal());
+    await page.locator('#holon-designer-name').fill('OwnedSchema');await page.locator('#holon-designer-field-name').fill('RouteLabel');await page.locator('#holon-designer-field-type').selectOption('string');await page.locator('#holon-designer-add-field-btn').click();
+    assert.equal(await page.locator('#holon-designer-fields-list .holon-designer-field-row').count(),5);
+    assert.ok((await page.locator('#holon-designer-canvas').textContent()).includes('RouteLabel'));
+    stage='Designer JSON export';const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#holon-designer-export-btn').click()]);
+    try{
+     assert.equal(download.suggestedFilename(),'OwnedSchema-schema.json');const stream=await download.createReadStream(),chunks=[];for await(const chunk of stream)chunks.push(chunk);
+     const schema=JSON.parse(Buffer.concat(chunks).toString('utf8'));assert.equal(schema.holonType,'OwnedSchema');assert.deepEqual(schema.fields.RouteLabel,{type:'string',required:false});assert.deepEqual(schema.fields.Id,{type:'Guid',required:true});assert.equal(Object.keys(schema.fields).length,5);
+    }finally{await download.delete();}
+    stage='Designer remove field';await page.locator('.holon-designer-field-row').filter({hasText:'RouteLabel'}).locator('button').click();assert.equal(await page.locator('#holon-designer-fields-list .holon-designer-field-row').count(),4);
+   });
+   await checkPopup('Developer','#dev-portal-close-btn',async()=>{
+    stage='Developer resources';await page.evaluate(()=>window.openDevPortalModal());await page.locator('#dev-portal-modal-block .dev-portal-link').first().waitFor({state:'visible'});
+    const links=await page.locator('#dev-portal-modal-block a[href]').evaluateAll(nodes=>nodes.map(node=>({href:node.href,target:node.target,rel:node.rel})));
+    assert.ok(links.length>0);assert.ok(links.every(link=>new URL(link.href).protocol==='https:'));assert.ok(links.filter(link=>link.target==='_blank').every(link=>link.rel.split(/\s+/).includes('noopener')));
+   });
    await checkPopup('HolonBrowser','#holon-browser-modal-close-btn',async()=>{
     stage='Holon Browser read';await page.evaluate(()=>window.openHolonBrowserModal());
     await page.waitForFunction(()=>document.getElementById('hbrow-status').textContent==='No STARNET holons yet.');
