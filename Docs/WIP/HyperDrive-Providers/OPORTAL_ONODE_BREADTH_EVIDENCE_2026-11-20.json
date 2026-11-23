@@ -295,5 +295,12 @@
       "mongoContainerAbsent": true,
       "scope": "Loaded public schema, selected mode owner and secret exclusion; not saved edits applied to live routing."
     }
+  },
+  "pendingProcessControlCandidate": {
+    "module": "1e1aa241df320707b3cd903100cd4583277a57f0",
+    "base": "3ecf0f8ea9713412da9071a1c6d12f961b050c8e",
+    "status": "source-only-not-in-current-browser-run",
+    "scope": "Real process launch/stop failures propagate instead of false Started/Stopped; configured PORT supplied to actual API executable. Separate process launch dependency graphs retained.",
+    "remaining": "Compile and representative actual control/command/UI failure and lifecycle verification; platform launch behavior and complete process control not accepted."
   }
 }
