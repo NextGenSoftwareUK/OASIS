@@ -1,0 +1,120 @@
+{
+  "source": "90d75f04f606c29bea99bfafe073b5b26722ce88",
+  "core": "c19f1153eddea491e0887bfd40f898983d6b3597",
+  "web4Deployment": "1886f9a8-b022-4f4e-80b2-122c0b548b38",
+  "web4ActualRailwayDigest": "sha256:052df900aa51b9efc1e4b2ba7ac050f062b5fc2c9e1a841a1b9c87e3dab8017e",
+  "qualifiedCiImageDigest": "sha256:762878caa9426f4e7e8c0e97062a7755fa0899cd86ae21fa1a1af72c6e739c77",
+  "digestScopesAreDistinct": true,
+  "allSevenOriginalDeploymentsSucceeded": true,
+  "rollout": {
+    "web4": {
+      "deployment": "1886f9a8-b022-4f4e-80b2-122c0b548b38",
+      "status": "SUCCESS",
+      "source": "90d75f04f606c29bea99bfafe073b5b26722ce88",
+      "imageDigest": "sha256:052df900aa51b9efc1e4b2ba7ac050f062b5fc2c9e1a841a1b9c87e3dab8017e"
+    },
+    "web5": {
+      "deployment": "02ea73f7-4dab-40d4-b482-42cbe60e1add",
+      "status": "SUCCESS",
+      "source": "90d75f04f606c29bea99bfafe073b5b26722ce88",
+      "imageDigest": "sha256:f66154262fb38611ef5724fd4f2ec6eb250ab38f92cfaf10db93b0eee0a63696"
+    },
+    "web6": {
+      "deployment": "f8ae1f0d-0de3-43ee-98d7-12e4fab6a9a1",
+      "status": "SUCCESS",
+      "source": "90d75f04f606c29bea99bfafe073b5b26722ce88",
+      "imageDigest": "sha256:f68079e2f2e824cda912d34650730936d75a70c70b0408e1296f627c58d290d3"
+    },
+    "web7": {
+      "deployment": "8f41f274-8328-42eb-9eb4-f0d255a4b889",
+      "status": "SUCCESS",
+      "source": "90d75f04f606c29bea99bfafe073b5b26722ce88",
+      "imageDigest": "sha256:4432d05cdcd3c48b9bcd727977bc1c5590662ba0c96bd77838faa65b8ce19773"
+    },
+    "web8": {
+      "deployment": "c63e3c83-b619-4f31-b82d-3d6f3699bfc8",
+      "status": "SUCCESS",
+      "source": "90d75f04f606c29bea99bfafe073b5b26722ce88",
+      "imageDigest": "sha256:9df92d8170779c8455ec2ce2f59b202508297e5fa1a24c7c9503a3595742ab27"
+    },
+    "web9": {
+      "deployment": "35857723-5d40-4f40-9d53-6713592b1c72",
+      "status": "SUCCESS",
+      "source": "90d75f04f606c29bea99bfafe073b5b26722ce88",
+      "imageDigest": "sha256:8dc02acf5548fad5225005969a5d16683271d85d240a9d5d0fe57b656685819e"
+    },
+    "web10": {
+      "deployment": "ece04174-6a12-43c3-99f5-1dcce254ff54",
+      "status": "SUCCESS",
+      "source": "90d75f04f606c29bea99bfafe073b5b26722ce88",
+      "imageDigest": "sha256:2b66ef42aedba4409a13e1daa6683409798b70a8929fdd51a30f1e69c9934630"
+    }
+  },
+  "startupSettings": {
+    "source": "90d75f04f606c29bea99bfafe073b5b26722ce88",
+    "startupDnaAutoLoadBalanceEnabled": true,
+    "startupDnaAutoFailOverEnabled": true,
+    "scope": "startup DNA file; not in-process manager attestation",
+    "observedUtc": "2026-11-23T05:45:10.275590+00:00"
+  },
+  "startupAfterSettings": {
+    "source": "90d75f04f606c29bea99bfafe073b5b26722ce88",
+    "startupDnaAutoLoadBalanceEnabled": true,
+    "startupDnaAutoFailOverEnabled": true,
+    "scope": "startup DNA file; not in-process manager attestation",
+    "observedUtc": "2026-11-23T05:45:46.248175+00:00"
+  },
+  "disposableCheckpointsAbsent": true,
+  "actualHttpRuntimeSettings": {
+    "mode": "OASISHyperDrive2",
+    "effectiveConfigurationSource": "OASIS.OASISHyperDriveConfig",
+    "effectiveConfigurationAppliedUtc": "2026-11-23T05:46:16.1411383Z",
+    "autoLoadBalancingEnabled": true,
+    "autoFailoverEnabled": true,
+    "autoReplicationEnabled": true,
+    "backgroundWorkersPauseConfigured": true
+  },
+  "statusProbeCalls": [
+    {
+      "route": "sandbox/session",
+      "method": "POST",
+      "status": 200,
+      "isError": false
+    },
+    {
+      "route": "hyperdrive/status",
+      "method": "GET",
+      "status": 200,
+      "isError": false
+    },
+    {
+      "route": "avatar/revoke-token",
+      "method": "POST",
+      "status": 200,
+      "isError": false
+    }
+  ],
+  "temporaryAvatarsIssued": 1,
+  "applicationHolonWrites": 0,
+  "sessionRevoked": true,
+  "credentialsRemoved": true,
+  "probeJournalRelativePath": "LocalState/COSMIC/HostedFluentModelGraphRuntime20261123/fixture.json",
+  "probeJournalSha256": "78321ce903f54b0e80ad34540a813f858ba1f70ff5b3ee0b83dd5bb87629a5ae",
+  "checkpointFilesRemoved": 8,
+  "checkpointBytesRemoved": 4825,
+  "finalReplayGuardRetained": true,
+  "nativeQueryProofs": [
+    "FLUENT_MODEL_COMBINED_NATIVE_ACCEPTANCE_2026-11-23.json",
+    "FLUENT_JOIN_NATIVE_ACCEPTANCE_2026-11-23.json"
+  ],
+  "futureAnnotationOnlyAndReadOnlyIntegrationExcluded": true,
+  "qualifiedProducerSource": "a32b0ca21aaa694edc3ad15c617055f105bba8d2",
+  "deploymentAccepted": true,
+  "runtimeSettingsAccepted": true,
+  "customerCollectionQueriesExecuted": false,
+  "realPiperBusinessAccountAcceptance": false,
+  "scope": "exact deployed source, seven successful original rollouts and actual authorized WEB4 HyperDrive status; changed query behavior covered by isolated real Mongo/SQLite/Neo native SDK fixtures; no new browser/data-query acceptance inferred",
+  "acceptanceBoundToOriginalDeploymentSource": true,
+  "stagingOrProductionTouched": false,
+  "observedUtc": "2026-11-23T05:45:47.524928+00:00"
+}

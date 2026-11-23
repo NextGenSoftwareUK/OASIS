@@ -142,7 +142,7 @@ builder.Entity<Reading>();
 var model = builder.Build();
 ```
 
-Explicit property mappings and naming conventions are optional for this declaration. Typed child-role materialization can use any contract declared in the same model, including an annotation-only contract. Build freezes the entity set; declaring additional types later does not change an existing model. This source change is under its separate native qualifier; consult current status before treating it as deployed.
+Explicit property mappings and naming conventions are optional for this declaration. Typed child-role materialization can use any contract declared in the same model, including an annotation-only contract. Build freezes the entity set; declaring additional types later does not change an existing model. The annotation-only qualifier45118868505 passed one native graph journey per MongoDB, SQLite and Neo4j store plus the WEB4 build. Its isolated fixtures were removed. Deployment acceptance is separate; consult current status before treating it as deployed.
 
 ## Per-model read-only entity contracts
 

@@ -1,0 +1,87 @@
+{
+  "run": 45118868505,
+  "job": 137507814644,
+  "artifact": 14793182529,
+  "archiveBytes": 3269,
+  "archiveSha256": "c26dc1e1a8d74c235e008a607012cd8a2b9517bcbcce2cd36297873002f8bf99",
+  "archiveSavedLocally": false,
+  "source": {
+    "actualWeb4Compiled": true,
+    "deployed": false,
+    "ownedFixturesAbsent": true,
+    "nativePassed": 3,
+    "core": "a4720f81db1b8c09674bfe1ac1c5780d1a72ca7d",
+    "sharedDatabaseCalls": 0,
+    "source": "5ae609b430513b61d0a124b1ac35d31dac9aa27a",
+    "annotationOnlyModelVerified": true
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 3,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create-graph": 525,
+        "read-graph": 109,
+        "foreign-selected-graph": 5
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "annotationOnlyDeclarationAndSnapshot": true,
+        "typedRootChildGrandchild": true,
+        "modelCodecWithoutLocalFactory": true,
+        "identityRevisionAndManifestPreserved": true,
+        "privateChildrenExcluded": true,
+        "selectedManifestRetained": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 3,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create-graph": 682,
+        "read-graph": 56,
+        "foreign-selected-graph": 12
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "annotationOnlyDeclarationAndSnapshot": true,
+        "typedRootChildGrandchild": true,
+        "modelCodecWithoutLocalFactory": true,
+        "identityRevisionAndManifestPreserved": true,
+        "privateChildrenExcluded": true,
+        "selectedManifestRetained": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 3,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create-graph": 1014,
+        "read-graph": 898,
+        "foreign-selected-graph": 249
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "annotationOnlyDeclarationAndSnapshot": true,
+        "typedRootChildGrandchild": true,
+        "modelCodecWithoutLocalFactory": true,
+        "identityRevisionAndManifestPreserved": true,
+        "privateChildrenExcluded": true,
+        "selectedManifestRetained": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "fullParityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T05:46:29.070779+00:00"
+}
