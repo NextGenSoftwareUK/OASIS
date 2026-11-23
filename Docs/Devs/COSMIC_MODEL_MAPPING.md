@@ -291,3 +291,20 @@ Normal acknowledged saves refresh originals and consume the captured modificatio
 intent. All operations recheck session availability and membership; detached or
 foreign-session entries cannot read or change these values. Required constraints
 remain enforced at save. Arbitrary CLR indexers and full M16 parity remain open.
+
+
+### Query tracking modes (qualification pending)
+CosmicSession.Linq<T>(CosmicQueryTrackingMode mode) and
+ReadAsync(query, CosmicQueryTrackingMode mode) admit Tracking, NoTracking and
+NoTrackingWithIdentityResolution. Existing Boolean tracking APIs keep their meaning.
+AsCosmicTracking(), AsCosmicNoTracking() and
+AsCosmicNoTrackingWithIdentityResolution() select the mode on session LINQ queries.
+Tracking uses the session identity map and retains pending local changes.
+NoTracking returns native detached rows. NoTrackingWithIdentityResolution coalesces
+repeated root identities within one result; those roots remain detached, and a fresh
+map is used for each execution. Scalar/DTO projections are not root tracking entries.
+Nested projected entity graphs are not recursively rewritten by this root contract.
+Stateless LINQ supports both untracked modes and continues to refuse session tracking.
+All modes use the same actor/authority-bound native reads and session operation/lifetime
+gates; identity resolution never substitutes for a new access check. Undefined modes
+are refused before execution. Full graph-wide ORM tracking parity remains open.
