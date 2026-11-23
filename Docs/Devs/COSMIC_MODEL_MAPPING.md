@@ -278,7 +278,7 @@ policy. These application filters are opt-in model rules, not provider-manager
 collection filters. Exact-contract matching remains; polymorphic filters are open.
 
 
-### Shadow entry comparison values and explicit flags (qualification pending)
+### Shadow entry comparison values and explicit flags (native-qualified; deployment pending)
 A session ShadowProperty<TValue> entry supports GetOriginalValue(), GetValues(),
 SetOriginalValue(value), RemoveOriginalValue(), and SetModified(bool).
 These delegate to the existing canonical change tracker; there is no second baseline.
