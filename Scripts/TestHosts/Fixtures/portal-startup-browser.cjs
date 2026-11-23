@@ -75,18 +75,25 @@ async function main(){
    /^\d[\d,]*$/.test(document.getElementById('dash-card-inventory').textContent)&&
    document.getElementById('dash-card-plan').textContent==='No active plan');
   stage='subscription plans';await page.locator('#dash-card-plan').click();
-  await page.locator('#sub-plans-list .sub-plan-card').first().waitFor({state:'visible'});
+  // This isolated image intentionally has no Stripe secrets/prices. Prove the real
+  // failure is visible, then continue independent account screens; no paid-plan acceptance.
+  await page.locator('#sub-plans-list [data-sub-plans-retry]').waitFor({state:'visible'});
+  assert.ok((await page.locator('#sub-plans-list').textContent()).includes('Could not load subscription plans'));
+  assert.ok(reads.some(read=>read.path==='/api/subscription/plans'&&read.status===503));
   stage='my subscription';await page.locator('#subscription-modal-block [data-tab="mysubs"]').click();
   await page.waitForFunction(()=>document.getElementById('sub-mysubs-list').textContent.includes('No active subscriptions'));
   assert.equal(new URL(page.url()).searchParams.get('tab'),'mysubs');
+  stage='orders';await page.locator('#subscription-modal-block [data-tab="orders"]').click();
+  await page.waitForFunction(()=>document.getElementById('sub-orders-list').textContent.includes('No orders found'));
+  await page.locator('#subscription-modal-block [data-tab="mysubs"]').click();
   stage='authenticated refresh';await page.reload({waitUntil:'domcontentloaded'});
   await page.locator('#subscription-modal-block.is-selected').waitFor({state:'visible'});
   await page.waitForFunction(()=>document.getElementById('sub-mysubs-list').textContent.includes('No active subscriptions'));
   assert.equal(await page.evaluate(()=>localStorage.getItem('loggedIn')),'true');
-  for(const endpoint of ['/api/avatar/authenticate','/api/avatar/refresh-token','/api/subscription/plans','/api/subscription/subscriptions/me'])
+  for(const endpoint of ['/api/avatar/authenticate','/api/avatar/refresh-token','/api/subscription/orders/me','/api/subscription/subscriptions/me'])
    assert.ok(reads.some(read=>read.path===endpoint&&read.status===200),'Acknowledged API '+endpoint);
   assert.deepEqual(errors,[]);
-  console.log('PORTAL_STARTUP_BROWSER_PROOF: actual page Beam In, native dashboard counts/plan, subscription plans/list and authenticated deep-link refresh passed through shipping WEB4 Startup. WEB5/WEB6 requests blocked; cross-service functionality and hosted Stripe excluded.');
+  console.log('PORTAL_STARTUP_BROWSER_PROOF: actual page Beam In, native dashboard counts/plan, explicit missing-Stripe Plans error, subscription list/orders and authenticated deep-link refresh passed through shipping WEB4 Startup. WEB5/WEB6 requests blocked; cross-service functionality, available paid catalogue and hosted Stripe excluded.');
   console.log('Other-service requests blocked before dispatch: '+otherServices.length);
  }finally{
   if(context)await context.close();if(browser)await browser.close();
