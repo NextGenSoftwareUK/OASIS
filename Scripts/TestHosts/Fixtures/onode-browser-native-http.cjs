@@ -48,8 +48,8 @@ async function verify({baseUrl,token,avatarId,nodeId}){
   assert.equal(savedDna.routingPolicy.source,'OASIS.OASISHyperDriveConfig');
   stage='provider membership';await tab('providers');
   await page.locator('#onode-provider-role').waitFor();
-  function mongoRow(){return page.locator('#onode-providers-grid .onode-svc-row').filter({
-   has:page.locator('button[data-provider="MongoDBOASIS"]')});}
+  function mongoRow(role){return page.locator('#onode-providers-grid .onode-svc-row').filter({
+   has:page.locator('button[data-provider="MongoDBOASIS"]'+(role?'[data-role="'+role+'"]':''))});}
   await mongoRow().getByRole('button',{name:'Remove',exact:true}).click();
   await mongoRow().getByRole('button',{name:'Include',exact:true}).waitFor();
   await page.waitForFunction(()=>document.getElementById('onode-modal-status').classList.contains('onode-status--success'));
@@ -60,11 +60,11 @@ async function verify({baseUrl,token,avatarId,nodeId}){
   const providerName=await mongoRow().locator('.onode-provider-id').boundingBox();
   const providerActions=await mongoRow().locator('.onode-row-actions').boundingBox();
   assert.ok(providerName&&providerActions&&providerName.width>=80&&providerActions.x>=providerName.x+providerName.width);
-  stage='routing roles';await page.locator('#onode-provider-role').selectOption('replication');
-  await mongoRow().getByRole('button',{name:'Remove',exact:true}).click();
-  await mongoRow().getByRole('button',{name:'Include',exact:true}).waitFor();
-  await page.locator('#onode-provider-role').selectOption('loadBalancing');
-  await mongoRow().getByRole('button',{name:'Remove',exact:true}).waitFor();
+  stage='replication role edit';await page.locator('#onode-provider-role').selectOption('replication');
+  await mongoRow('replication').getByRole('button',{name:'Remove',exact:true}).click();
+  await mongoRow('replication').getByRole('button',{name:'Include',exact:true}).waitFor();
+  stage='load balancing role read';await page.locator('#onode-provider-role').selectOption('loadBalancing');
+  await mongoRow('loadBalancing').getByRole('button',{name:'Remove',exact:true}).waitFor();
   stage='reported services';await tab('services');
   assert.ok((await page.locator('#onode-services-grid').textContent()).length>0);
   stage='reported metrics';await tab('metrics');

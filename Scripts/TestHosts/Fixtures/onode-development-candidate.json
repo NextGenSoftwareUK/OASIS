@@ -15,7 +15,7 @@
   },
   "onodeManager": "3ecf0f8ea9713412da9071a1c6d12f961b050c8e",
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
-  "remaining": "Popup45243804259 failed at browser stage; native bridge acceptance retained. Portal f6cbc1d fixes dropped tab refresh during busy read/action. Next focused journey exposes only allowlisted credential-free browser stage on failure; no standalone native replay.",
+  "remaining": "Popup45245427898 reached routing roles after config/DNA and failover membership/readback; timed out there. Portal aab87e1 removes stale rows immediately on role change; fixture requires explicit selected-role row. Native bridge acceptance retained; full browser pending.",
   "inventoryReview": {
     "run": 45237515982,
     "artifact": 14849027990,
@@ -160,7 +160,7 @@
     "status": "queued"
   },
   "onodeBrowser": true,
-  "portal": "f6cbc1dd917239f762566b71fc62f6d588bafd8a",
+  "portal": "aab87e12967e403df1d408f7f510deac93fedb70",
   "acceptedActualBridge": {
     "run": 45242480184,
     "job": 137930510870,
