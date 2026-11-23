@@ -1,3 +1,9 @@
+## Explicitly mapped private setters — source implemented; native qualification pending
+
+Fluent and allowlisted XML scalar mappings may select a public getter with a non-public setter. A domain method can change that property while COSMIC handles its metadata alias, snapshot tracking, validation and typed native query binding. V2 hydration invokes a non-public setter only when the immutable application model explicitly maps that property; unconfigured legacy hydration retains its existing public-setter admission. Getter-only properties remain unsupported.
+
+The same model must accompany reads, queries and writes. This does not implement arbitrary backing fields, constructor injection or general immutable entity construction. Three-provider save/read/query/update, XML, validation and caller-scope qualification is pending; full M17 is not certified.
+
 # COSMIC model mapping
 
 ## Explicit metadata storage keys
