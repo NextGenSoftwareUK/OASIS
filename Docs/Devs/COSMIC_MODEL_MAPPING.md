@@ -1,3 +1,11 @@
+## Native asynchronous element APIs — source implemented; native qualification pending
+
+Use ToCosmicFirstAsync, ToCosmicSingleAsync, ToCosmicLastAsync and ToCosmicElementAtAsync on a COSMIC IQueryable. OrDefault forms preserve empty-sequence results and caller-provided defaults; typed predicates and Int32/System.Index overloads use the corresponding native terminal contract. Results are OASISResult<T>, and LoadedCount distinguishes a returned null/default value from an empty native sequence.
+
+Execution reuses the existing element planners, cardinality checks and hydration owner. Cancellation reaches the native manager call; no thread-pool wrapper or local sequence evaluation is used. Async session reads retain lifetime/concurrency admission and identity publication through the existing owner. Caller defaults are not native records and remain detached.
+
+Source supports root, selected and entity-stage sources plus session/stateless wrappers. Other set/join/indexed query shapes require their own enrollment. Representative three-provider native qualification and one local-provider/cancellation boundary control are pending. No full async/EF parity or deployment acceptance is claimed.
+
 ## Ordered entity-set stages — deployed on Development3ae678dd
 
 The existing set request can carry EntityStages: one to16 ordered Where, OrderBy, Skip, Take or Reverse operations after the request's existing combined window and before OutputColumns. Where uses the shared typed predicate tree and cumulative predicate bounds. Ordering uses declared entity fields and stable Id tie-breaking. No operation is moved across an earlier window. Input selected-column sets reject this entity contract, preserving tuple equality.

@@ -499,7 +499,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | Q64 | Async streaming / IAsyncEnumerable with bounded cancellation | ❌ | ❌ | ❌ | Buffered async execution is separate. |
 | Q65 | Compiled queries and parameterized plan caching | ❌ | ❌ | ❌ | No public cache identity/invalidation proof. |
 | Q66 | Query tags / native query explain / command inspection | ❌ | ❌ | ❌ | Internal compiler inspection is not a complete public feature. |
-| Q67 | Async query execution with cancellation propagation | ❌ | ❌ | ❌ | Healthy async calls pass; complete cancellation matrix needs explicit proof links. |
+| Q67 | Async query execution with cancellation propagation | ❌ | ❌ | ❌ | Healthy async list calls pass.22 acknowledged native async First/Single/Last/ElementAt overloads are source implemented, sharing existing planners, cancellation and session publication; one boundary control and three-provider native journey qualification pending. Set/join/indexed enrollment and the complete cancellation/platform matrix remain open. |
 | Q68 | Selected-value composition: filter, order and page projected rows | [✅][D32] | [✅][D32] | [✅][D32] | V1 examples 32–34; separate source and selected-result windows. |
 
 ## Transactions, caching, operations and tooling
