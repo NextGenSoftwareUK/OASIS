@@ -153,4 +153,17 @@ var readModel = builder.Build();
 
 Queries and typed hydration remain available. SaveChanges refuses inserts, updates and deletions of a configured read-only contract with COSMIC_MODEL_READ_ONLY_ENTITY. A policy on a base contract includes its runtime subtypes. Application edits and removal intents can still be staged; a prohibited persistence request returns an explicit error.
 
-Policy belongs to the immutable model snapshot. Building another writable model for the same CLR type does not alter this model, and changing the builder later does not unlock existing sessions. Mandatory provider/caller permissions still apply. This is a persistence mapping policy; general immutable-object construction, keyless views and full M18 parity remain separate scope. Native qualification and deployment status are recorded in the COSMIC status.
+Policy belongs to the immutable model snapshot. Building another writable model for the same CLR type does not alter this model, and changing the builder later does not unlock existing sessions. Mandatory provider/caller permissions still apply. This is a persistence mapping policy; general immutable-object construction, keyless views and full M18 parity remain separate scope. The read-only qualifier45119523112 passed three native journeys and the WEB4 build; deployment status remains in the COSMIC status.
+
+## Owned value objects
+
+```csharp
+builder.Entity<CustomerHolon>().OwnsOne(row => row.Address)
+    .IsRequired().HasMetadataKey("mailing_address");
+```
+
+The complete value object is stored atomically in its parent's metadata. Its scalar CLR leaf chains bind to native metadata paths, so Address.City and Address.Region.Code can participate in admitted filters, ordering and scalar DTO projections. Root snapshot tracking detects nested value edits; saving the parent replaces the component value through the existing owned write pipeline. The parent's permissions govern the value.
+
+This initial contract accepts acyclic plain public classes with public parameterless constructors and public non-indexed property getters/setters. Components can contain scalar leaves and recursively plain components. It rejects Holon/navigation/collection types, public fields and custom JSON/data-contract/type-converter mapping attributes. Shape limits are sixteen metadata segments, 256 scalar leaves and 1,024 shape nodes. It does not create separate component holon identities, schemas or custom serializers. Whole-component selected projections and broader owned/collection mappings require separate query contracts.
+
+Capture freezes the alias and property chains without invoking getters. The new three-provider qualifier must pass before source presence is treated as functional acceptance; deployment status remains in the COSMIC status.
