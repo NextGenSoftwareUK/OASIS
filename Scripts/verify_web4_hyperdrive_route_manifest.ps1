@@ -30,11 +30,11 @@ function Get-ModeAwareManagerMembers([string]$source) {
 
 function Get-InjectedStorageMembers([string]$source) {
     $names = @([regex]::Matches($source,
-        '(?m)^\s*(?:private|protected|internal|public)\s+(?:(?:readonly|static)\s+)*[A-Za-z_][\w.]*(?:Service|Repository|Client)\??\s+(?<name>_[A-Za-z_]\w*)\s*[;=]') |
+        '(?m)^\s*(?:private|protected|internal|public)\s+(?:(?:readonly|static)\s+)*[A-Za-z_][\w.]*(?:Service|Repository|Client|Reader|Journal)\??\s+(?<name>_[A-Za-z_]\w*)\s*[;=]') |
         ForEach-Object { $_.Groups['name'].Value })
     foreach ($constructor in [regex]::Matches($source, '\bclass\s+[A-Za-z_]\w*(?:\s*<[^>]+>)?\s*\((?<parameters>[^()]*)\)\s*(?::|\{)')) {
         $names += @([regex]::Matches($constructor.Groups['parameters'].Value,
-            '(?:^|,)\s*[A-Za-z_][\w.]*(?:Service|Repository|Client)\??\s+(?<name>[A-Za-z_]\w*)\s*(?:=[^,]*)?(?=,|$)') |
+            '(?:^|,)\s*[A-Za-z_][\w.]*(?:Service|Repository|Client|Reader|Journal)\??\s+(?<name>[A-Za-z_]\w*)\s*(?:=[^,]*)?(?=,|$)') |
             ForEach-Object { $_.Groups['name'].Value })
     }
     @($names | Sort-Object -Unique)
@@ -63,7 +63,7 @@ function Get-Disposition([string]$body, [string]$methodName, [string]$controller
             return 'DirectModeAwareManagerBoundary'
         }
     }
-    if ($body -match '\[FromServices\]' -or $body -match '\b_[a-zA-Z0-9_]*(?:Service|Repository|Client)\b') {
+    if ($body -match '\[FromServices\]' -or $body -match '\b_[a-zA-Z0-9_]*(?:Service|Repository|Client|Reader|Journal)\b') {
         return 'InjectedServiceRepositoryOrClient'
     }
     foreach ($member in $injectedMembers) {
@@ -79,6 +79,9 @@ function Get-Disposition([string]$body, [string]$methodName, [string]$controller
     }
     if ($body -match '\b(?:HttpClient|SendAsync|PostAsync|GetAsync|SmtpClient)\b') {
         return 'ExplicitExternalTransport'
+    }
+    if ($body -match '\breturn\s+await\s+[A-Za-z_]\w*\s*\(') {
+        return 'ControllerActionDelegation'
     }
     return 'LocalOrNonStorageEndpoint'
 }
