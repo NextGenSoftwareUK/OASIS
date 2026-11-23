@@ -30,11 +30,11 @@ function Get-ModeAwareManagerMembers([string]$source) {
 
 function Get-InjectedStorageMembers([string]$source) {
     $names = @([regex]::Matches($source,
-        '(?m)^\s*(?:private|protected|internal|public)\s+(?:(?:readonly|static)\s+)*[A-Za-z_][\w.]*(?:Service|Repository|Client)\??\s+(?<name>_[A-Za-z_]\w*)\s*[;=]') |
+        '(?m)^\s*(?:private|protected|internal|public)\s+(?:(?:readonly|static)\s+)*[A-Za-z_][\w.]*(?:Service|Repository|Client|Reader|Journal)\??\s+(?<name>_[A-Za-z_]\w*)\s*[;=]') |
         ForEach-Object { $_.Groups['name'].Value })
     foreach ($constructor in [regex]::Matches($source, '\bclass\s+[A-Za-z_]\w*(?:\s*<[^>]+>)?\s*\((?<parameters>[^()]*)\)\s*(?::|\{)')) {
         $names += @([regex]::Matches($constructor.Groups['parameters'].Value,
-            '(?:^|,)\s*[A-Za-z_][\w.]*(?:Service|Repository|Client)\??\s+(?<name>[A-Za-z_]\w*)\s*(?:=[^,]*)?(?=,|$)') |
+            '(?:^|,)\s*[A-Za-z_][\w.]*(?:Service|Repository|Client|Reader|Journal)\??\s+(?<name>[A-Za-z_]\w*)\s*(?:=[^,]*)?(?=,|$)') |
             ForEach-Object { $_.Groups['name'].Value })
     }
     @($names | Sort-Object -Unique)
@@ -46,7 +46,8 @@ function Get-Disposition([string]$body, [string]$methodName, [string]$controller
     if ($controllerName -in @('HyperDriveController', 'HyperDriveSyncController', 'ProviderController')) {
         return 'HyperDriveOrProviderControlPlane'
     }
-    if ($body -match ('\breturn\s+(?:await\s+)?' + [regex]::Escape($methodName) + '\s*\(')) {
+    if ($body -match ('\breturn\s+(?:await\s+)?' + [regex]::Escape($methodName) + '\s*\(') -or
+        $body -match '\breturn\s+await\s+[A-Za-z_]\w*\s*\(') {
         return 'ControllerActionDelegation'
     }
     if ($body -match '\b(?:AvatarManager|HolonManager|SearchManager|WalletManager)\b') {
@@ -63,7 +64,7 @@ function Get-Disposition([string]$body, [string]$methodName, [string]$controller
             return 'DirectModeAwareManagerBoundary'
         }
     }
-    if ($body -match '\[FromServices\]' -or $body -match '\b_[a-zA-Z0-9_]*(?:Service|Repository|Client)\b') {
+    if ($body -match '\[FromServices\]' -or $body -match '\b_[a-zA-Z0-9_]*(?:Service|Repository|Client|Reader|Journal)\b') {
         return 'InjectedServiceRepositoryOrClient'
     }
     foreach ($member in $injectedMembers) {
