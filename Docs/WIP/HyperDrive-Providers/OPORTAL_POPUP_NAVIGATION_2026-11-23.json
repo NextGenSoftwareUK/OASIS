@@ -1,0 +1,75 @@
+{
+  "date": "2026-11-23",
+  "status": "navigation-root-fixes-pushed-real-browser-acceptance-pending",
+  "portal": "387812546a860120943259c72918ad4d5e142b73",
+  "findings": [
+    "Delayed addAuthPopup callback closed whichever modal was active after900ms, rather than the completed login view.",
+    "Sign-in history remained below a popup opened immediately after authentication; closing it reopened login.",
+    "Beta banner used z-index2000 while modal overlay uses15, allowing the banner to cover popup controls."
+  ],
+  "changes": [
+    "Authentication closes its own completed login view synchronously; delayed generic cleanup removed.",
+    "Router owns oasis-login navigation: replace completed sign-in URL with home, resume protected deep link or its existing pending-mount state, preserve pending route from close observer.",
+    "Banner uses overlay-minus-one layer, above page chrome and below modals; cache stamping helper supports stylesheet hrefs via the same content-derived path."
+  ],
+  "sourceChecks": "scripts/router syntax, endpoint drift and whitespace passed; content-derived script/style cache keys updated.",
+  "failures": [
+    {
+      "run": 45159789471,
+      "artifact": 14809568885,
+      "archiveBytes": 3416,
+      "finding": "Unreported browser exit; no acceptance",
+      "cleanupVerified": true
+    },
+    {
+      "run": 45160485782,
+      "artifact": 14809799983,
+      "archiveBytes": 3860,
+      "finding": "Clan create blocked; no API create observed",
+      "cleanupVerified": true
+    },
+    {
+      "run": 45161346113,
+      "artifact": 14812650109,
+      "archiveBytes": 3417,
+      "finding": "Combined browser unreported exit; no acceptance",
+      "cleanupVerified": true
+    },
+    {
+      "run": 45162099780,
+      "artifact": 14812965855,
+      "archiveBytes": 3958,
+      "finding": "Valid/bound Clan form but action timed out; subsequent popups blocked",
+      "cleanupVerified": true
+    },
+    {
+      "run": 45163076390,
+      "artifact": 14812756915,
+      "archiveBytes": 3863,
+      "finding": "Form valid/bound, hit beta-banner; delayed authentication closed newly opened view",
+      "cleanupVerified": true
+    },
+    {
+      "run": 45163548150,
+      "artifact": 14814576083,
+      "archiveBytes": 3963,
+      "finding": "After scoped login timer fix, real Clan create/edit/add succeed; native helper used wrong HTTP envelope",
+      "cleanupVerified": true
+    },
+    {
+      "run": 45164695272,
+      "artifact": 14814227125,
+      "archiveBytes": 3956,
+      "finding": "Clan create/edit/member native readback/delete completes; close/back reopens sign-in, preventing subsequent screens",
+      "cleanupVerified": true
+    }
+  ],
+  "harnessCorrections": [
+    "Join Clan response and click promises so timeout cannot escape as orphaned rejection.",
+    "Use the declared OASISHttpResponseMessage envelope for independent native Clan GET.",
+    "Keep controlled network admission failure reporting; selected failure UI state contains only static IDs/classes, validity and bounded sanitized status."
+  ],
+  "scope": "Source fixes plus partial actual Clan create/edit/member readback/delete observations; no full Clan/Chat/Directory/popup-navigation acceptance yet.",
+  "next": "Latest portal-breadth run at Portal3878125 on exact corrected API rootf4ac/image078cd7; bind exact run and retain each of three outcomes independently.",
+  "cleanup": "Every listed compact artifact inspected in RAM; package container absent and all five startup cleanup booleans true. Terminal runtime/cache/TLS absence verified. No local downloads/env/build/database/results."
+}

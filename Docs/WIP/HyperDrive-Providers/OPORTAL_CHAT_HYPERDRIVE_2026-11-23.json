@@ -46,7 +46,7 @@
     "buildConclusion": "success"
   },
   "cleanup": "Both Chat failure artifacts4021B/3982B RAM-inspected: package container absent and all five startup cleanup booleans true; terminal runtime/cache/TLS absence verified. Both exact owned temporary Git indexes/locks removed in finally. No local downloads/env/build/database/test-results; new cloud build pending cleanup/acceptance.",
-  "next": "Follow image45158527267 for sourcef4ac6302; bind exact terminal source/digest then chat-only actual Startup journey. Do not repeat accepted HyperDrive. Publish private Core/root only after functional acceptance/fresh gates/current rollout/cadence.",
+  "next": "Bind latest portal-breadth run using Portal3878125 and exact rootf4ac/image078cd7. Chat and Directory have not yet been accepted on the corrected image because earlier navigation interfered. Retain accepted HyperDrive outcome; do not replay it.",
   "staticDelivery20261123": {
     "origin": "https://dev.oportal.oasisomniverse.one",
     "scope": "Four static scripts only, HTTP200/source exact after LF normalization. No hosted authentication/data/performance request.",
@@ -85,14 +85,18 @@
     "rootTag": "qualification/chat-termination-root-20261123",
     "scope": "One Core manager: termination saveChildren/recursive false; session header lookups require both session ID and entity type to exclude messages. Root normal two-parent composition preserves current CQL and earlier authenticated Chat controller change; Core gitlink/manifest paired.",
     "imageRun": 45158527267,
-    "status": "in-progress-not-accepted-not-deployed",
+    "status": "image-built-popup-navigation-interference-fixed-browser-verification-pending",
     "sourceValidation": "Exact paired manifest check passed; no physical module switch or gitlink staging. Fresh shared branch gate/publication remains after candidate acceptance.",
-    "history": "Both original sourcee372 and current Developmentdf5 parents retained; no forced/shared history rewrite."
+    "history": "Both original sourcee372 and current Developmentdf5 parents retained; no forced/shared history rewrite.",
+    "imageJob": 137637597655,
+    "image": "sha256:078cd7c8acbd7a14de653178e8f7aba5d030a191da519f6f8c37c3756eeea704",
+    "buildConclusion": "success"
   },
   "directoryMessage": {
     "portal": "0bbe7e942b6e4ea3b59e692c0699ccf127e1be75",
     "status": "implemented-syntax-and-endpoint-checks-only-not-browser-accepted",
     "scope": "Directory results validate public avatar IDs and offer Message. Existing message opener accepts recipient ID, selects send tab and prefills recipient, with no automatic send. Existing route wrapper preserves lazy-load opener arguments. Search result handler is bound to current search/session.",
     "next": "Use chat-directory group on corrected image45158527267: two independent outcomes, one existing image/native environment. Directory lookup -> compose -> explicit send -> recipient native readback -> return navigation. No accepted HyperDrive replay."
-  }
+  },
+  "popupNavigation": "OPORTAL_POPUP_NAVIGATION_2026-11-23.json"
 }
