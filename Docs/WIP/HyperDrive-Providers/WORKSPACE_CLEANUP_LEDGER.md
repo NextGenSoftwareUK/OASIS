@@ -3203,3 +3203,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 2026-11-23 popup45245427898: owned processes stopped, exact generated token/metrics/DNA/databases/directory removed; cloud Mongo container and browser runtime/cache absence verified. No local build/runtime/download/env created.
 
 2026-11-23 popup45247651340: owned supervisor/API stopped; exact metrics/token/DNA/databases/directory removed; cloud Mongo container/browser runtime/cache absence verified. No local builds/downloads/runtime/envs. Shipping image45247803014 remains cloud-only active.
+
+2026-11-23 popup45249781136: owned API/supervisor stopped; generated token/metrics/DNA/databases/directory removed; cloud Mongo container and browser runtime/cache absence verified. Source inventory14854822674 inspected in RAM only. Image45247803014 retained remotely as immutable older component evidence; no local image/download/env/build outputs.

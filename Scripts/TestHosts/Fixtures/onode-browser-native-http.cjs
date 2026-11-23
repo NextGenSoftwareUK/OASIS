@@ -7,7 +7,8 @@ async function verify({baseUrl,token,avatarId,nodeId}){
  const browser=await chromium.launch({channel:'chrome',headless:true});
  const context=await browser.newContext({serviceWorkers:'block',viewport:{width:1280,height:900}});
  const errors=[],unexpected=[],requests=[];
- let stage='preparation';
+ let stage='preparation',socketCount=0,frameCount=0,resolveLiveFrame;
+ const receivedLiveFrame=new Promise(resolve=>{resolveLiveFrame=resolve;});
  try{
   await context.route('**/*',async route=>{
    const request=route.request(),url=new URL(request.url());
@@ -28,6 +29,14 @@ async function verify({baseUrl,token,avatarId,nodeId}){
   },{token,avatarId});
   const page=await context.newPage();page.setDefaultTimeout(20000);
   page.on('pageerror',error=>errors.push(error.name));
+  // Subscribe before any connection starts, including an initial frame sent with the handshake.
+  page.on('websocket',socket=>{
+   if(new URL(socket.url()).pathname!=='/ws/onode/'+nodeId)return;
+   socketCount++;
+   socket.on('framereceived',frame=>{
+    try{if(JSON.parse(String(frame.payload)).nodeId===nodeId){frameCount++;resolveLiveFrame();}}catch{}
+   });
+  });
   stage='actual popup';await page.goto(base.origin+'/__onode_browser');
   await page.waitForFunction(()=>window.__onodeFixtureReady===true);
   await page.locator('#fixture-open-onode').click();
@@ -70,9 +79,13 @@ async function verify({baseUrl,token,avatarId,nodeId}){
   stage='reported metrics';await tab('metrics');
   assert.ok((await page.locator('#onode-metrics-grid').textContent()).includes('Peers connected'));
   stage='live updates';
-  const liveFrame=page.waitForEvent('websocket',{predicate:socket=>new URL(socket.url()).pathname==='/ws/onode/'+nodeId})
-   .then(socket=>socket.waitForEvent('framereceived',{predicate:frame=>{try{return JSON.parse(String(frame.payload)).nodeId===nodeId;}catch{return false;}}}));
-  await page.locator('#onode-live-updates').check();await liveFrame;
+  let liveDeadline;
+  try{
+   await page.locator('#onode-live-updates').check();
+   await Promise.race([receivedLiveFrame,new Promise((_,reject)=>{
+    liveDeadline=setTimeout(()=>{const failure=new Error('Live frame deadline');failure.name='TimeoutError';reject(failure);},20000);
+   })]);
+  }finally{clearTimeout(liveDeadline);}
   await page.waitForFunction(()=>document.getElementById('onode-status-label').textContent==='REGISTERED NODE');
   stage='close';await page.locator('#onode-close-btn').click();
   assert.equal(await page.locator('.js-modal.is-visible').count(),0);
@@ -100,13 +113,14 @@ async function verify({baseUrl,token,avatarId,nodeId}){
    const reason=/revision|selection changed/i.test(message)?'revision':
     /unconfirmed/i.test(message)?'unconfirmed':/at least one provider/i.test(message)?'last provider':
     /invalid|inconsistent|did not return/i.test(message)?'contract':/failed|HTTP|acknowledge/i.test(message)?'transport':'unknown';
-   return {selected:roles.includes(selected)?selected:'unknown',row:roles.includes(rowRole)?rowRole:'missing',
+   return {visibility:document.hidden?'hidden':'visible',checked:document.getElementById('onode-live-updates')?.checked?'yes':'no',selected:roles.includes(selected)?selected:'unknown',row:roles.includes(rowRole)?rowRole:'missing',
     disabled:button?.disabled?'yes':'no',status:status?.classList.contains('onode-status--error')?'error':
      status?.classList.contains('onode-status--loading')?'loading':status?.classList.contains('onode-status--success')?'success':'idle',reason};
   }).catch(()=>null);
   const detail=observation?' selected '+observation.selected+' row '+observation.row+' disabled '+observation.disabled+
-   ' status '+observation.status+' reason '+observation.reason:'';
-  throw new Error('Owned ONODE browser failed at '+stage+detail+'; type='+error.name+'; credential-bearing detail withheld.');
+   ' status '+observation.status+' reason '+observation.reason+' visibility '+observation.visibility+' checked '+observation.checked:'';
+  const connection=' socket '+(socketCount?'present':'missing')+' frame '+(frameCount?'present':'missing');
+  throw new Error('Owned ONODE browser failed at '+stage+detail+connection+'; type='+error.name+'; credential-bearing detail withheld.');
  }
  finally{await context.close();await browser.close();}
 }

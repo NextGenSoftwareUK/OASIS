@@ -267,17 +267,18 @@
       "localBuildsDownloads": false
     },
     "browser": {
-      "run": 45247651340,
-      "status": "active-not-accepted",
+      "run": 45249781136,
+      "status": "failed-live-frame-observation-no-full-acceptance",
       "portal": "aab87e12967e403df1d408f7f510deac93fedb70",
-      "scope": "Prepared actual popup/SDK; accepted standalone native assertions skipped in browser mode.",
-      "job": 137948572656
+      "scope": "Registered public views, failover membership write/readback, replication role write, load-balancing role read and services/metrics reached before live-frame timeout; owned cleanup passed.",
+      "job": 137956035270
     },
     "image": {
       "run": 45247803014,
       "source": "75dad9fada3012452f693eece973decd08789386",
-      "status": "active-not-deployed",
-      "scope": "One immutable shipping artifact from accepted backend; package/startup acceptance still pending."
+      "status": "built-older-component-not-for-current-deployment",
+      "scope": "One immutable shipping artifact from accepted backend; package/startup acceptance still pending.",
+      "digest": "sha256:6b60f869fa8dd20bbfe7dec4dcf4497b6c4234fd0a27f9359be57808a143419d"
     }
   },
   "latestLoadedConfigurationWiring": {
