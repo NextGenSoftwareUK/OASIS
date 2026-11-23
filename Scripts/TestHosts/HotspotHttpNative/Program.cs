@@ -353,6 +353,10 @@ try
         }
         var savedGame = await data.SaveHolonAsync<Game>(game, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);
         Require(!savedGame.IsError && savedGame.IsSaved, "Owned game seed failed: " + savedGame.Message);
+        var gameReadback = await data.LoadHolonAsync<Game>(game.Id, loadChildren: false, providerType: ProviderType.MongoDBOASIS);
+        Require(!gameReadback.IsError && gameReadback.Result != null,
+            "Owned typed Game readback failed: code=" + gameReadback.ErrorCode + "; cause=" +
+            gameReadback.Exception?.GetBaseException().GetType().FullName + ": " + gameReadback.Exception?.GetBaseException().Message);
         var savedOapp = await data.SaveHolonAsync<OAPP>(oapp, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);
         Require(!savedOapp.IsError && savedOapp.IsSaved, "Owned OAPP seed failed: " + savedOapp.Message);
         var savedItem = await data.SaveHolonAsync<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>(item, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);
