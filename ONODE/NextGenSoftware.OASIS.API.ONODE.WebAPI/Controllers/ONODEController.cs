@@ -308,23 +308,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         // Provider actions share the authenticated supervisor transport and preserve its acknowledgement.
         [HttpGet("providers")]
-        public Task<IActionResult> GetProviders()
-            => SendSupervisorProviderRequestAsync(System.Net.Http.HttpMethod.Get, "supervisor/providers");
+        public Task<IActionResult> GetProviders([FromQuery] string role = "failover")
+            => SendSupervisorProviderRequestAsync(System.Net.Http.HttpMethod.Get, "supervisor/providers?role=" + Uri.EscapeDataString(role));
 
         [HttpPut("providers/{providerType}/enable")]
-        public Task<IActionResult> EnableProvider(string providerType)
+        public Task<IActionResult> EnableProvider(string providerType, [FromQuery] string role = "failover",
+            [FromQuery] string? expectedRevision = null)
             => SendSupervisorProviderRequestAsync(System.Net.Http.HttpMethod.Put,
-                $"supervisor/providers/{Uri.EscapeDataString(providerType)}/enable");
+                $"supervisor/providers/{Uri.EscapeDataString(providerType)}/enable" + ProviderRoutingQuery(role, expectedRevision));
 
         [HttpPut("providers/{providerType}/disable")]
-        public Task<IActionResult> DisableProvider(string providerType)
+        public Task<IActionResult> DisableProvider(string providerType, [FromQuery] string role = "failover",
+            [FromQuery] string? expectedRevision = null)
             => SendSupervisorProviderRequestAsync(System.Net.Http.HttpMethod.Put,
-                $"supervisor/providers/{Uri.EscapeDataString(providerType)}/disable");
+                $"supervisor/providers/{Uri.EscapeDataString(providerType)}/disable" + ProviderRoutingQuery(role, expectedRevision));
 
         [HttpPut("providers/{providerType}/priority")]
-        public Task<IActionResult> SetProviderPriority(string providerType, [FromBody] JsonElement body)
+        public Task<IActionResult> SetProviderPriority(string providerType, [FromBody] JsonElement body,
+            [FromQuery] string role = "failover", [FromQuery] string? expectedRevision = null)
             => SendSupervisorProviderRequestAsync(System.Net.Http.HttpMethod.Put,
-                $"supervisor/providers/{Uri.EscapeDataString(providerType)}/priority", body.GetRawText());
+                $"supervisor/providers/{Uri.EscapeDataString(providerType)}/priority" + ProviderRoutingQuery(role, expectedRevision), body.GetRawText());
+
+        private static string ProviderRoutingQuery(string role, string? revision) =>
+            "?role=" + Uri.EscapeDataString(role) + "&expectedRevision=" + Uri.EscapeDataString(revision ?? "");
 
         private async Task<IActionResult> SendSupervisorProviderRequestAsync(
             System.Net.Http.HttpMethod method, string path, string? body = null)
