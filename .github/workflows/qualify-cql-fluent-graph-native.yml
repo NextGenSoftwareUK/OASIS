@@ -1,4 +1,4 @@
-name: Qualify explicit model graph hydration on three native providers
+name: Qualify model convention and graph integration on three native providers
 
 on:
   push:
