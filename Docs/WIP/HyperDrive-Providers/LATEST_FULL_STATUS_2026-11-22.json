@@ -58,14 +58,15 @@
       "Read-only account closure requirements review; permanent erasure still unavailable",
       "MCP readiness and renewal event; stale checkout actions give explicit reopen guidance",
       "Gifts duplicate logout handler removed; complete representative real popup flow accepted",
-      "Games actual Game/STARNETDNA details and supplied web launch links served; native catalogue conversion failure remains under diagnosis"
+      "Games/OAPPs/Inventory combined native/browser45114577286 accepted and backend21abed0b published; running rollout pending.",
+      "Inventory linked NFT/GeoNFT IDs, stack, dates and custom properties now rendered from existing response; Portal17ed8e4 script served exact, focused rendering check passed."
     ],
     "remaining": [
-      "Inventory quantity/details/assets current-source native/browser verification; legacy list/missing-field assessment",
       "Full portal page/navigation and real Startup/SSO browser acceptance across all screens",
       "Hosted Stripe paid lifecycle and checkout recovery acceptance; existing owner action remains open",
       "Permanent account and all-data/provider/replica erasure lifecycle",
-      "Current hosted dashboard/screen performance acceptance"
+      "Current hosted dashboard/screen performance acceptance",
+      "Explicit assessment/migration of legacy string-encoded lists and previously omitted Inventory fields."
     ]
   },
   "sessions": {
@@ -234,5 +235,12 @@
     "portal": "71ea1255c7e7241cdc766179aaf4d4525865004a",
     "scope": "Combined Games/OAPPs/Inventory native browser accepted; published source, running Railway acceptance pending. Earlier candidate-pending fields are historical.",
     "remaining": "Full page Startup/SSO, hosted Stripe, permanent deletion, existing catalogue migration and remaining portal breadth."
+  },
+  "inventoryUi20261123": {
+    "portal": "17ed8e4",
+    "publicDevScript": "HTTP200 canonical LF exact match",
+    "checks": "Rendering, syntax, endpoint drift and diff passed",
+    "scope": "New fields rendering only; no repeat native/browser cohort",
+    "backendDeployment": "0e9725b4-13cb-4bb0-92d1-4b1a902ee05c still QUEUED"
   }
 }
