@@ -1,11 +1,11 @@
 {
   "scope": "onode",
-  "status": "public-view-real-metrics-reviewed-ready-for-compile",
-  "candidate": "1d9c6e19cbc0e97a468d7781311e988c74cf5f43",
-  "base": "557ae2ad528738d5991fc8243bbe347a47e7fe9c",
-  "tag": "qualification/onode-public-reviewed-root-20261123",
+  "status": "provider-transport-source-inventory-pending",
+  "candidate": "a03f6c902b816f831daeecf76e65265bab6f8c55",
+  "base": "1d9c6e19cbc0e97a468d7781311e988c74cf5f43",
+  "tag": "qualification/onode-provider-transport-20261123",
   "allowedPaths": [
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv"
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ONODEController.cs"
   ],
   "buildProjects": [
     "WEB4",
@@ -23,17 +23,20 @@
     "bytes": 40376,
     "scope": "835 routes; exactly one new public-config non-storage route; zero removed or changed route contracts."
   },
-  "compileRun": {
-    "run": 45211702265,
-    "job": 137821953656,
-    "status": "queued",
-    "scope": "Actual WEB4 API and ONODE Supervisor builds only; runtime/browser acceptance remains open."
-  },
   "pendingProviderTransport": {
     "candidate": "a03f6c902b816f831daeecf76e65265bab6f8c55",
     "base": "1d9c6e19cbc0e97a468d7781311e988c74cf5f43",
     "tag": "qualification/onode-provider-transport-20261123",
     "scope": "One controller: common authenticated supervisor read/write transport, preserves status/content, disposes request/response and propagates cancellation; XML summary corrected.",
     "verification": "Source whitespace passed; build/runtime pending. Does not change the in-flight 45211702265 cohort."
-  }
+  },
+  "acceptedPublicViewCompile": {
+    "run": 45211702265,
+    "job": 137821953656,
+    "source": "1d9c6e19cbc0e97a468d7781311e988c74cf5f43",
+    "web4Errors": 0,
+    "supervisorErrors": 0,
+    "scope": "Actual API and service source compilation, not runtime acceptance."
+  },
+  "onodeCommandCheck": true
 }

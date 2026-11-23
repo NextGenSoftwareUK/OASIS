@@ -51,6 +51,7 @@ jobs:
             Scripts/TestHosts/HotspotDevelopmentNative
             Scripts/TestHosts/HotspotHttpNative
             Scripts/TestHosts/AwsSdkAbiProbe
+            Scripts/TestHosts/OnodeCommandNative
             Scripts/TestHosts/Fixtures/geo-assets-browser-host.html
             Scripts/TestHosts/Fixtures/geo-assets-browser-native-http.cjs
             Scripts/TestHosts/Fixtures/storefront-browser-host.html
@@ -213,6 +214,24 @@ jobs:
               }
               dotnet build $project --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
               if ($LASTEXITCODE) { throw "Combined Development $target API build failed." }
+              if ($target -eq 'ONODESUPERVISOR' -and $candidate.onodeCommandCheck -eq $true) {
+                $probeRoot = [IO.Path]::GetFullPath('../qualification-control/Scripts/TestHosts/OnodeCommandNative')
+                $controlRoot = [IO.Path]::GetFullPath('../qualification-control') + [IO.Path]::DirectorySeparatorChar
+                if (!$probeRoot.StartsWith($controlRoot, [StringComparison]::Ordinal)) { throw 'Probe cleanup escaped control checkout.' }
+                $probe = Join-Path $probeRoot 'OnodeCommandNative.csproj'
+                $serviceProject = [IO.Path]::GetFullPath($project)
+                try {
+                  dotnet build $probe --configuration Release "/p:OnodeServiceProject=$serviceProject" /m:2 /nr:false /p:UseSharedCompilation=false
+                  if ($LASTEXITCODE) { throw 'ONODE real command host build failed.' }
+                  dotnet (Join-Path $probeRoot 'bin/Release/net10.0/OnodeCommandNative.dll')
+                  if ($LASTEXITCODE) { throw 'ONODE real command qualification failed.' }
+                } finally {
+                  foreach ($output in @('bin','obj')) {
+                    $ownedOutput = Join-Path $probeRoot $output
+                    if (Test-Path -LiteralPath $ownedOutput) { Remove-Item -LiteralPath $ownedOutput -Recurse -Force }
+                  }
+                }
+              }
               if ($target -eq 'WEB6' -and $candidate.awsSdkAbiCheck -eq $true) {
                 $probe = '../qualification-control/Scripts/TestHosts/AwsSdkAbiProbe/AwsSdkAbiProbe.csproj'
                 dotnet build $probe --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
