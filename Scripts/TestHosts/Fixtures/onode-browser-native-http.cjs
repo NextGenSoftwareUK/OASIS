@@ -70,7 +70,7 @@ async function verify({baseUrl,token,avatarId,nodeId}){
   assert.ok((await page.locator('#onode-metrics-grid').textContent()).includes('Peers connected'));
   stage='live updates';
   const liveFrame=page.waitForEvent('websocket',{predicate:socket=>new URL(socket.url()).pathname==='/ws/onode/'+nodeId})
-   .then(socket=>socket.waitForEvent('framereceived',{predicate:frame=>{try{return JSON.parse(String(frame.payload)).nodeId===nodeId;}catch{return false;}}));
+   .then(socket=>socket.waitForEvent('framereceived',{predicate:frame=>{try{return JSON.parse(String(frame.payload)).nodeId===nodeId;}catch{return false;}}}));
   await page.locator('#onode-live-updates').check();await liveFrame;
   await page.waitForFunction(()=>document.getElementById('onode-status-label').textContent==='REGISTERED NODE');
   stage='close';await page.locator('#onode-close-btn').click();
