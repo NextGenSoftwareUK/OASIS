@@ -1,6 +1,6 @@
 {
-  "run": 45117941133,
-  "control": "f670bd726f18f2d3050e082f9d09da7dc15f1ef6",
+  "run": 45118119727,
+  "control": "0417902b09e0d37a64d613dce2710ac33b0dac41",
   "status": "in_progress",
   "source": "045206ea73cfd8cff587896c3baca32087051575",
   "core": "a0714bfa39ae0b94c11935f92c3bb189a12d89fa",
@@ -16,6 +16,14 @@
     "deployment": "0e9725b4-13cb-4bb0-92d1-4b1a902ee05c",
     "status": "SUCCESS",
     "runningCommit": "21abed0bedfde0399f66eef1da62cff0d92d34b7",
-    "verification": "Selected running RAILWAY_GIT_COMMIT_SHA field; no backend data/auth calls."
+    "verification": "Selected running RAILWAY_GIT_COMMIT_SHA field; no backend data/auth calls.",
+    "selectedWorkerPauseFlags": "All three selected HyperDrive/usage/application maintenance pause flags verified true in running WEB4."
+  },
+  "previousAttempt": {
+    "run": 45117941133,
+    "job": 137504964774,
+    "conclusion": "failure",
+    "stage": "Package-only profile guard, before image/container operations",
+    "correction": "Existing package-only behavior preserved by default; new explicit startup_authentication flag required to enter CQL image auth-only Startup check; retained Waku forbidden."
   }
 }
