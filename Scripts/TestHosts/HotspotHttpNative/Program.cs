@@ -261,13 +261,14 @@ try
     if (mode is "mfa-http" or "mfa-middleware-http" or "session-global-http" or "mfa-browser")
         AvatarManager.SecondFactorGate = NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa.MfaGate.Create(httpMfa!,
             app.Services.GetRequiredService<IHttpContextAccessor>());
-    if (mode is "browser" or "catalogue-browser" or "competition-browser" or "mfa-browser" or "billing-warning-browser")
+    var sessionBrowser = mode == "session-global-http" && Environment.GetEnvironmentVariable("OASIS_SESSION_SETTINGS_BROWSER") == "true";
+    if (sessionBrowser || (mode is "browser" or "catalogue-browser" or "competition-browser" or "mfa-browser" or "billing-warning-browser"))
     {
         var portal = Environment.GetEnvironmentVariable("OASIS_GEO_PORTAL_ROOT") ?? throw new InvalidOperationException("Pinned Portal root required.");
         var browserHost = Environment.GetEnvironmentVariable("OASIS_GEO_BROWSER_HOST") ?? throw new InvalidOperationException("Geo browser host required.");
-        Require(File.Exists(Path.Combine(portal, mode switch { "catalogue-browser" => "assets/js/missions-modal.js", "competition-browser" => "assets/js/competition-modal.js", "mfa-browser" => "assets/js/settings-modal.js", "billing-warning-browser" => "assets/js/usage-charts.js", _ => "assets/js/map-modal.js" })) && File.Exists(browserHost), "Actual Portal/browser assets missing.");
+        Require(File.Exists(Path.Combine(portal, mode switch { "session-global-http" => "assets/js/settings-modal.js", "catalogue-browser" => "assets/js/missions-modal.js", "competition-browser" => "assets/js/competition-modal.js", "mfa-browser" => "assets/js/settings-modal.js", "billing-warning-browser" => "assets/js/usage-charts.js", _ => "assets/js/map-modal.js" })) && File.Exists(browserHost), "Actual Portal/browser assets missing.");
         app.UseStaticFiles(new StaticFileOptions { FileProvider = new PhysicalFileProvider(Path.Combine(portal, "assets")), RequestPath = "/assets" });
-        app.MapGet(mode switch { "catalogue-browser" => "/__catalogue_browser", "competition-browser" => "/__competition_browser", "mfa-browser" => "/__mfa_settings_browser", "billing-warning-browser" => "/__warning_email_browser", _ => "/__geo_browser" }, () => Results.File(browserHost, "text/html"));
+        app.MapGet(mode switch { "session-global-http" => "/__session_settings_browser", "catalogue-browser" => "/__catalogue_browser", "competition-browser" => "/__competition_browser", "mfa-browser" => "/__mfa_settings_browser", "billing-warning-browser" => "/__warning_email_browser", _ => "/__geo_browser" }, () => Results.File(browserHost, "text/html"));
     }
     app.Use(async (context, next) => {
         using var authenticationTrace = mode == "session-global-http" && context.Request.Path == "/api/avatar/authenticate"
@@ -396,7 +397,13 @@ try
     else if (mode == "session-global-http")
     {
         await GlobalSessionHttpQualification.RunAsync(http, provider, dna, actor, accounts[0].Username, mfaPassword, billingRepository!, client.GetDatabase(database),
-            app.Services.GetRequiredService<AccountClosureAdmissionService>(), accounts[2].Id, verifyBillingAdmission: false);
+            app.Services.GetRequiredService<AccountClosureAdmissionService>(), accounts[2].Id, verifyBillingAdmission: false,
+            verifySessionBrowser: sessionBrowser ? async (current, independent) => {
+                string SessionId(Newtonsoft.Json.Linq.JObject credentials) => new JwtSecurityTokenHandler()
+                    .ReadJwtToken(credentials.Value<string>("jwtToken")).Claims.Single(claim => claim.Type == NextGenSoftware.OASIS.API.Core.Helpers.AvatarSessionIdentity.SessionClaim).Value;
+                await RunOwnedBrowserAsync(new { baseUrl = address, token = current.Value<string>("jwtToken"), avatarId = actor.ToString("D"),
+                    currentSessionId = SessionId(current), independentSessionId = SessionId(independent) }, "sessionSettingsBrowserVerified");
+            } : null);
     }
     else if (mode is "mfa-http" or "mfa-middleware-http" or "session-global-http")
     {

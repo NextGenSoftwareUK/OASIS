@@ -23,7 +23,8 @@ internal static class GlobalSessionHttpQualification
     public static async Task RunAsync(HttpClient http, MongoDBOASIS mongo, OASISDNA dna,
         Guid actor, string username, string password,
         NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionCheckoutJournal checkoutJournal, IMongoDatabase ownedDatabase,
-        AccountClosureAdmissionService closureService, Guid closureActor, bool verifyBillingAdmission = true)
+        AccountClosureAdmissionService closureService, Guid closureActor, bool verifyBillingAdmission = true,
+        Func<JObject, JObject, Task>? verifySessionBrowser = null)
     {
         const string ownedUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Check(Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") == ownedUri, "Exact owned Mongo fixture required.");
@@ -81,6 +82,8 @@ internal static class GlobalSessionHttpQualification
             Check(!ProviderManager.Instance.SetAndReplaceAutoFailOverListForProvidersForAvatarLogin("MongoDBOASIS,SQLLiteDBOASIS").IsError,
                 "Owned SSO authority policy failed.");
 
+            if (verifySessionBrowser == null)
+            {
             var noAccount = Guid.NewGuid();
             var noSessions = await AvatarManager.Instance.LogoutAllAvatarSessionsAsync(noAccount);
             Check(!noSessions.IsError && noSessions.IsSaved && noSessions.Result,
@@ -93,6 +96,8 @@ internal static class GlobalSessionHttpQualification
             var absentSqliteAfter = await sqlite.LoadAvatarAsync(noAccount);
             Check(!absentMongoAfter.IsError && absentMongoAfter.Result == null && !absentSqliteAfter.IsError && absentSqliteAfter.Result == null,
                 "Zero-session revocation created a native account or the absence verification failed.");
+
+            }
 
             async Task<JObject> Read(HttpResponseMessage response)
             {
@@ -203,6 +208,17 @@ internal static class GlobalSessionHttpQualification
             }
             Check(!(await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(ProviderType.MongoDBOASIS)).IsError,
                 "Owned Mongo selection failed.");
+            if (verifySessionBrowser != null)
+            {
+                var browserCurrent = await Login(ProviderType.MongoDBOASIS);
+                var browserIndependent = await Login(ProviderType.MongoDBOASIS);
+                await verifySessionBrowser(browserCurrent, browserIndependent);
+                await CheckAccess(browserCurrent, ProviderType.MongoDBOASIS, false);
+                await CheckAccess(browserIndependent, ProviderType.MongoDBOASIS, false);
+                Console.WriteLine("SESSION_SETTINGS_BROWSER_NATIVE_PROOF: actual Settings selected/global buttons and SDK requests; both actual issued credentials refused by native authority after sign-out.");
+                return;
+            }
+
             var missingBefore = await mongo.LoadAvatarByUsernameAsync("root");
             Check(!missingBefore.IsError && missingBefore.Result != null && missingBefore.Result.Password == null,
                 "Owned missing-password fixture must have no password.");
@@ -382,6 +398,7 @@ internal static class GlobalSessionHttpQualification
                 after.Result.Username == original.Result.Username && after.Result.RefreshTokens.All(token => !token.IsActive),
                 "Global revocation changed identity fields or lost acknowledged SQLite revocations.");
             Console.WriteLine("GLOBAL_SESSION_HTTP_NATIVE_PROOF: real password issuance and provenance at Mongo/SQLite, actor-bound capability and POST, access/refresh refusal, fresh login, and real paused-Mongo partial failure; no global success on incomplete authority.");
+
         }
         catch (Exception error) { failure = error; throw; }
         finally

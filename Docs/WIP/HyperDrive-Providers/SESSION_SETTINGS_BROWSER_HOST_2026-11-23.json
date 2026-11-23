@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-23",
+  "status": "host/workflow source wired; not compiled or run",
+  "scope": "Optional sessionBrowser descriptor flag enables exact pinned Portal assets and existing owned Chromium runtime. General native run remains unchanged unless opted in.",
+  "flow": [
+    "Issue two actual Mongo credentials through real password endpoint.",
+    "Click actual Settings selected-session button and confirm independent SID POST/current session preserved.",
+    "Click actual global sign-out and confirm SDK/local credential clearing and signed-out reload.",
+    "Native authority must refuse both originally issued credentials."
+  ],
+  "breadth": "Browser mode returns before previously qualified general global-session/billing assertions; no accepted cohort replay.",
+  "remaining": [
+    "Current native run45091356813 still active; no duplicate dispatch.",
+    "Pin exact Portal source and opt in only after current native result inspected.",
+    "Browser/host compilation and functional acceptance unproven."
+  ],
+  "cleanup": "No local browser/runtime install, build, database, generated result or environment. Existing CI cleanup contract retained."
+}

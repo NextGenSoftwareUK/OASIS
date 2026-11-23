@@ -82,7 +82,7 @@ jobs:
           if ($env:CANDIDATE_SCOPE -eq 'competition' -and '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -notin @('competition-browser','competition-publisher')) { throw 'Competition requires an explicit browser or publisher host.' }
           if ($env:CANDIDATE_SCOPE -eq 'profile' -and '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -ne 'profile-http') { throw 'Profile restoration requires its explicit HTTP host.' }
           "file=$file" >> $env:GITHUB_OUTPUT
-          $browser = '${{ inputs.native_check }}' -eq 'true' -and ($candidate.nativeMode -in @('browser','catalogue-browser','competition-browser','mfa-browser','billing-warning-browser'))
+          $browser = '${{ inputs.native_check }}' -eq 'true' -and (($candidate.nativeMode -in @('browser','catalogue-browser','competition-browser','mfa-browser','billing-warning-browser')) -or ($candidate.nativeMode -eq 'session-global-http' -and $candidate.sessionBrowser -eq $true))
           "browser=$($browser.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
           $warningProvider = '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -in @('billing-warning-provider','billing-warning-browser')
           "warning_provider=$($warningProvider.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
@@ -306,6 +306,10 @@ jobs:
             } elseif ($env:OASIS_HOTSPOT_HTTP_MODE -eq 'billing-warning-browser') {
               $env:OASIS_GEO_BROWSER_HOST = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/subscription-usage-browser-host.html).Path
               $env:OASIS_GEO_BROWSER_SCRIPT = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/warning-email-browser-native-http.cjs).Path
+            } elseif ($env:OASIS_HOTSPOT_HTTP_MODE -eq 'session-global-http' -and $candidate.sessionBrowser -eq $true) {
+              $env:OASIS_SESSION_SETTINGS_BROWSER = 'true'
+              $env:OASIS_GEO_BROWSER_HOST = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/session-settings-browser-host.html).Path
+              $env:OASIS_GEO_BROWSER_SCRIPT = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/session-settings-browser-native-http.cjs).Path
             } elseif ($env:OASIS_HOTSPOT_HTTP_MODE -eq 'mfa-browser') {
               $env:OASIS_GEO_BROWSER_HOST = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/mfa-settings-browser-host.html).Path
               $env:OASIS_GEO_BROWSER_SCRIPT = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/mfa-settings-browser-native-http.cjs).Path
