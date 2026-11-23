@@ -18,7 +18,7 @@ public sealed partial class MongoHolonReplicationOutbox
 
     /// <summary>Trusted operator capability, not an HTTP grant. Returns one exact
     /// held route head to Pending so the worker retries it. It changes nothing when
-    /// the row is not that reviewed head, still carries native reconciliation
+    /// the row is not that reviewed head, requires native reconciliation
     /// evidence, or an earlier unfinished entry exists on the same route.</summary>
     public Task<OASISResult<bool>> RearmHeldHeadAsync(Guid operatorId, long sequence, Guid operationId,
         string payloadDigest, string targetId, string errorCode, CancellationToken cancellationToken = default)
@@ -30,7 +30,7 @@ public sealed partial class MongoHolonReplicationOutbox
             var observed = ValidateRow(row);
             ValidatePayload(row, observed.Operation);
             if (observed.State != NextGenSoftware.OASIS.API.Core.Interfaces.HolonDeliveryState.ReconciliationRequired
-                || observed.Operation != operationId || observed.Evidence != null
+                || observed.Operation != operationId || observed.Evidence?.RequiresNativeReconciliation == true
                 || row["TargetId"].AsString != targetId || row["PayloadDigest"].AsString != payloadDigest
                 || NullableString(row, "LastErrorCode") != errorCode)
                 throw new InvalidDataException("The held obligation differs from the reviewed re-arm request.");
@@ -51,7 +51,7 @@ public sealed partial class MongoHolonReplicationOutbox
                 { "Rearm", new BsonDocument("$literal", new BsonDocument
                     {
                         { "Format", 1 }, { "OperatorId", operatorId.ToString("D") }, { "PreviousErrorCode", errorCode },
-                        { "AttemptCount", observed.Attempts }
+                        { "AttemptCount", observed.Attempts }, { "PreviousErrorMessage", NullableString(row, "LastErrorMessage") ?? "" }
                     }) },
                 { "RearmedAtUtcTicks", NowTicks() }
             };
