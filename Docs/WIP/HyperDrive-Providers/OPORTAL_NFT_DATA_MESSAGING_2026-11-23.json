@@ -1,0 +1,69 @@
+{
+  "status": "Data-and-Messaging-accepted-NFT-decoder-candidate-building",
+  "portal": "f5a1fd39f10fb8f2358150c4f5b142c9e0b38aeb",
+  "accepted": {
+    "run": 45136761604,
+    "job": 137564787594,
+    "control": "0d525153ca75562da9c3c8dced29591c9a3d99b1",
+    "imageSource": "121dcb0287e5eaa4816fbbdf01645030613d264f",
+    "image": "sha256:6c78a1fa6df21bec4c5d62ab431ce7507062e0aa6edbd7c57ee34c4f02910910",
+    "artifact": 14799708986,
+    "archiveBytes": 4372,
+    "outcomes": [
+      {
+        "name": "Data",
+        "passed": true,
+        "closePassed": true
+      },
+      {
+        "name": "Messaging",
+        "passed": true,
+        "closePassed": true
+      }
+    ],
+    "scope": "Actual full portal Data browse with shallow read body; one explicit UI message send, exactly one matching sender/recipient/content record through recipient native-backed GET, sender conversation render and normal close. Actual free accounts/password/JWT and owned Mongo; no synthetic responses.",
+    "cleanup": "Selected RAM receipt proves package container absent, all5 startup cleanup booleans true; runtime/cache/TLS removal verified."
+  },
+  "nftFailures": [
+    {
+      "run": 45134852192,
+      "job": 137558589045,
+      "artifact": 14798959105,
+      "bytes": 3454,
+      "stage": "NFT catalogue",
+      "finding": "NFT/GeoNFT HTTP200 IsErrorfalse, missing data suspected; OLAND price rejected missing count. Cleanup alltrue."
+    },
+    {
+      "run": 45135662091,
+      "job": 137561216754,
+      "artifact": 14799163756,
+      "bytes": 3420,
+      "stage": "NFT catalogue",
+      "finding": "NFT/GeoNFT resultShape undefined despite IsErrorfalse; OLAND real empty array and price number succeed after count1 fix. Cleanup alltrue."
+    }
+  ],
+  "nftRootCause": "Three shared ONODE collection decoders only assigned Result inside nonempty branch. Successful empty metadata reads left Result null/omitted. Source8745 assigns the decoded list on every successful read and enumerates once; actual failures remain failures.",
+  "candidate": {
+    "base": "3b81b74946b488f871bd550ce101e2bdb3b5e9d2",
+    "core": "13ca0e11c4320213485a19922a1f519736340ca1",
+    "onode": "8745c95ef2f6150fafb1417122a20c020784b338",
+    "root": "5442d4e9de89231a5a4bebe77c44374ab0920001",
+    "imageRun": 45137303528,
+    "imageJob": 137566541727,
+    "status": "in_progress",
+    "qualification": "Source paired pins passed; immutable ONODE/root tags pushed. No compile/runtime acceptance of the new decoder yet.",
+    "preservation": "Current CQL source3b81/Core13ca retained; all three shared authority files identical to2356. Physical dirty submodules untouched."
+  },
+  "uiFixes": "Distinct loading/failed/empty NFT panels; grouping preserves catalogue state; positive count1 for real OLAND unit-price call. Four public dev assets HTTP200/source exact and canonical cache keys valid.",
+  "delivery": {
+    "origin": "https://dev.oportal.oasisomniverse.one",
+    "portalHash": "e4c52cbdfddf774198586d951911ab562c7907c376eab73e099d6e4721346b57",
+    "nftScript": "0c0fec186c55a46cbd7154db92bf57fa581ddec392fef832bec50e38ed6ebe9c",
+    "loader": "5c6132c259913d3b8caffcc507f0172f058e464436c0d720aae37ea7b4dc45c9",
+    "fragment": "717fdbd2056edb0084685f8f003a67b49c1e4bf8f444e17a893f9ebddf6a0730",
+    "scope": "Static source delivery only; four bounded memory-only requests, no shared database/auth/data request."
+  },
+  "next": "Follow image45137303528 to terminal, then NFT-only actual Startup/browser check. Do not repeat accepted Data/Messaging/Files/Wallet/Karma/subscriptions/Games cohorts. Publish scoped decoder only after acceptance.",
+  "remaining": "No NFT mint/transfer/Our World real-device/paid Stripe/WEB6/all popup actions/whole-portal or full-provider claim. Mint-wallet collection source still has explicit recursive loads and a sync metadata-key mismatch for later focused repair.",
+  "cleanup": "No local build/env/download/runtime/database/results. Exact owned oasis-nft-empty-onode-20261123.index and oasis-nft-empty-root-20261123.index/locks removed in finally. Compact receipts RAM-only; source/Git objects and reports retained. C:27.07GiB observed."
+}

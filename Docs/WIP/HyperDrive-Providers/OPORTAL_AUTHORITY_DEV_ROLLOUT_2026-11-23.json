@@ -54,9 +54,29 @@
       "applicationMaintenance": true
     },
     "method": "Restored two saved holds with skip-deploys; saved all3 true verified. Standing shared-cluster hold remains applicable. No additional deployment requested.",
-    "runningHolds": "Pending; last observed770 runtime had false/true/false. Do not claim workers stopped yet.",
-    "collectionAuthority": "Not set yet; first verify compatible bf14 runtime, then update only admitted dev WEB4. Saved WEB5 admission is absent and is preserved."
+    "runningHolds": "Verified all3true on compatible runningbf14; not merely saved. Stand-down remains active.",
+    "collectionAuthority": "MongoDBOASIS saved and loaded after compatible binary. Existing ordinary Mongo/SQLite/Neo,104query-only and12routes preserved. WEB5 absent admission preserved; staging/production/source DNA unchanged."
   },
   "verification": "Metadata and selected environment fields only; no shared database/login/benchmark/API data calls.",
-  "remaining": "Follow these same handles; no duplicate root pushes/builds. If existing WEB4 deploy did not capture staged holds, combine required authority/hold rollout into one WEB4-only deployment after compatibility is verified."
+  "remaining": "Follow existing aff21 successor and preserve authority/holds; decoder image45137303528 is a distinct unqualified candidate. No duplicate config roll/root push requested.",
+  "configurationRoll": {
+    "deployment": "d8fd5b36-67ef-4e85-9bf1-04c1ca5f995c",
+    "status": "SUCCESS",
+    "runningCommit": "bf14ebc8f82abf1a7a3f345b4a6df32c842581b0",
+    "runningAuthority": "MongoDBOASIS",
+    "runningHolds": [
+      true,
+      true,
+      true
+    ],
+    "scope": "Selected SSH fields only; no whole environment/DNA output or database request."
+  },
+  "successor": {
+    "source": "3b81b74946b488f871bd550ce101e2bdb3b5e9d2",
+    "core": "13ca0e11c4320213485a19922a1f519736340ca1",
+    "web4Deployment": "aff21e5a-b54c-4102-b4f4-c763bef3f5a7",
+    "web4Status": "BUILDING",
+    "otherSixLatestStatus": "SUCCESS",
+    "scope": "Other six prior ownbf14 handles are now REMOVED/superseded by CQL3b81, not failed. New Core preserves exact authority implementation; WEB4 running successor verification pending."
+  }
 }
