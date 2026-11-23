@@ -865,7 +865,7 @@
     "onodeManager": "3ecf0f8ea9713412da9071a1c6d12f961b050c8e",
     "nativeRun": 45231243298,
     "nativeJob": 137891040788,
-    "status": "in_progress",
+    "status": "failed test-host compilation; corrected host/source pending inventory before retry",
     "scope": "Actual WEB4 Startup, real native Mongo password-issued Wizard/User sessions, real supervisor push/poll/execute/ack, local revision-aware proxy and live WebSocket. No browser/applied runtime/all-provider acceptance yet.",
     "performanceSource": [
       "Removed hard-coded ten-second initial command polling delay; configured cadence remains.",
@@ -878,6 +878,21 @@
       "managerRecords": 938,
       "routeRecords": 835,
       "review": "Exactly one published Core set-count manager boundary added; V2 guard and real executor inspected, no removals/disposition changes. Route positions only."
+    }
+  },
+  "latestLoadedConfigurationWiring": {
+    "source": "6cce336bac3d0a1d7000fe95ec69802aa8d45b54",
+    "portal": "79a9e28",
+    "status": "source-prepared-inventory-queued",
+    "inventoryRun": 45233869564,
+    "scope": "API-managed Config/DNA tabs use allowlisted loaded WEB4 public configuration; registered nodes retain saved-file view. Live routing explicitly distinguished from saved membership. Not browser/runtime acceptance.",
+    "nativeAttempt": {
+      "run": 45231243298,
+      "job": 137891040788,
+      "status": "failed-host-compilation",
+      "cause": "Native facade namespace not referenced by this host; removed dependency/manual preboot. Actual Startup now owns passive Warm/admitted initialization; new source has not run yet.",
+      "apiStarted": false,
+      "mongoContainerAbsent": true
     }
   }
 }

@@ -153,5 +153,9 @@
     "status": "failed-host-compilation",
     "cause": "Native facade namespace was not in the host reference closure; host now uses actual Startup for passive boot/admitted registration, no facade dependency.",
     "apiStarted": false
+  },
+  "loadedConfigurationInventoryRun": {
+    "run": 45233869564,
+    "status": "queued"
   }
 }
