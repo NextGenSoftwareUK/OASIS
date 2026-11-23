@@ -79,6 +79,10 @@ jobs:
           $env:OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT=(Get-Location).Path
           New-Item -ItemType Directory TestResults/Neo4jCurrent | Out-Null
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-private-setter-native-ci -Operation {
+            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~StoredRecordJsonPrivateSetterTests' --results-directory TestResults/Neo4jCurrent --logger 'trx;LogFileName=codec-controls.trx'
+            if ($LASTEXITCODE) { throw 'Canonical private-setter snapshot failed' }
+            [xml]$codec=Get-Content TestResults/Neo4jCurrent/codec-controls.trx
+            if ($codec.TestRun.ResultSummary.Counters.passed -ne '1' -or $codec.TestRun.ResultSummary.Counters.total -ne '1') { throw 'Canonical snapshot control must pass' }
             dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~NativeExplicitPrivateSettersHydrateTrackAndQuery' --results-directory TestResults/Neo4jCurrent --logger 'trx;LogFileName=mapping-native.trx'
             if ($LASTEXITCODE) { throw 'Native fluent model qualification failed' }
             [xml]$report=Get-Content TestResults/Neo4jCurrent/mapping-native.trx
@@ -97,7 +101,7 @@ jobs:
           $source=(git rev-parse HEAD).Trim()
           if($source -ne $env:GITHUB_SHA){throw 'Qualification source mismatch'}
           $core=(git -C "OASIS Architecture/NextGenSoftware.OASIS.API.Core" rev-parse HEAD).Trim()
-          @{source=$source;core=$core;nativePassed=3;privateSetterVerified=$true;actualWeb4Compiled=$true;ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content TestResults/Neo4jCurrent/source.json -Encoding utf8
+          @{source=$source;core=$core;nativePassed=3;codecControlsPassed=1;privateSetterVerified=$true;actualWeb4Compiled=$true;ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content TestResults/Neo4jCurrent/source.json -Encoding utf8
       - name: Stop owned Mongo
         if: always()
         run: docker rm -f -v cql-where-mongo
@@ -112,6 +116,7 @@ jobs:
           name: cql-private-setter-native
           path: |
             OASIS/TestResults/Neo4jCurrent/mapping-native.trx
+            OASIS/TestResults/Neo4jCurrent/codec-controls.trx
             OASIS/TestResults/Neo4jCurrent/*-private-setter-native.json
             OASIS/TestResults/Neo4jCurrent/source.json
           if-no-files-found: ignore

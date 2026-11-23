@@ -63,6 +63,8 @@ public sealed partial class CqlV1Web4NativeTests
         var created=await Timed("create-valid",()=>writer.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid())));
         Assert.IsFalse(created.IsError,created.Message+created.Exception);Assert.IsTrue(created.IsSaved);
         var version=entity.Version;
+        Assert.AreEqual(17,entity.Score,"Acknowledged snapshot must retain the submitted private slot.");
+        Assert.AreEqual("first",entity.Label);
         Assert.IsTrue(entity.MetaData.ContainsKey("private_score"));
         using var reader=CosmicSession.Create(manager,adapter,access,model.Result).Result;
         var query=reader.Query<PrivateSetterMappedHolon>().Result.Where(row=>row.Id==id&&row.Score==17).Result;
