@@ -1,3 +1,7 @@
+2026-11-23 CORE GRAPH RECONCILIATION CLEANUP. No local build/env/download/database/results. Git-only source-tree-equivalent merge; exact owned oasis-nft-core-reconcile-root-20261123.index/lock removed in finally. Accepted runtime/native cohorts retained without replay.
+
+2026-11-23 NFT RELEASE CLEANUP.4270B CI receipt14801543271 inspected/disposed in RAM; package container absent, all5startup cleanup booleans true, runtime/cache/TLS removed. No local build/env/download/runtime/database/results. Exact owned oasis-nft-publication-20261123.index/lock removed in finally after Git-only release preparation. Qualified image remains in GHCR for release, not downloaded locally.
+
 2026-11-23 SHIPPING IMAGE / THREE POPUPS CLEANUP. Image45129737094 completed on cloud only; package/new-popup45132201881 artifact14798516434 (4159B) inspected/disposed in RAM. Package owned container absent/dataWrites0; startup containers/network/ephemeral DB volumes absent, process graceful0, runtime/cache/TLS removed. No local build/download/runtime/env/database/results. Compact evidence and source/Git objects retained; no shared Atlas/PIPER calls.
 
 

@@ -210,3 +210,20 @@ A local success is necessary but does not complete deployment verification. Afte
 - Every affected web API publishes locally; shared changes require WEB4-WEB10.
 - Railway reaches a terminal success state in each intended environment.
 - Hosted endpoints expose and execute the expected contract.
+
+
+## Preserve private branch ancestry when composing snapshots
+
+A qualified source tree must also belong to the shared submodule branch before
+its parent pin is published. When composing changes with `git commit-tree`,
+record both the current shared branch and the donor as parents. Copying files
+from another commit preserves their contents but does not preserve ancestry.
+Run the branch check against freshly fetched remote refs; a local ref alone is
+not evidence that the shared branch was updated.
+
+If an already-qualified deployment snapshot lacks shared ancestry, use a normal
+two-parent merge and verify its complete tree against the accepted snapshot.
+Keep existing contributors' files and history. Pair the resulting private commit
+with its parent gitlink and dependency manifest, retain unchanged functional
+evidence, and run the required source/build/deployment gates. Record source-tree
+equivalence separately from build metadata and the revision actually running.
