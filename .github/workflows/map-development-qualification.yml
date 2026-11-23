@@ -231,7 +231,9 @@ jobs:
                   foreach ($output in @('bin','obj')) {
                     $ownedOutput = Join-Path $probeRoot $output
                     if (Test-Path -LiteralPath $ownedOutput) { Remove-Item -LiteralPath $ownedOutput -Recurse -Force }
+                    if (Test-Path -LiteralPath $ownedOutput) { throw 'Owned ONODE probe output remains.' }
                   }
+                  Write-Host 'ONODE_PROBE_OUTPUT_CLEANUP: owned bin/obj absent.'
                 }
               }
               if ($target -eq 'WEB6' -and $candidate.awsSdkAbiCheck -eq $true) {

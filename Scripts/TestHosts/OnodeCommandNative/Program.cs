@@ -130,9 +130,9 @@ try
                 Require(denied.StatusCode == HttpStatusCode.Unauthorized, "Anonymous public configuration was accepted.");
             using var client = new SupervisorClient(new Uri(origin).Port, tokenPath);
             Require(client.IsAvailable, "Real supervisor client could not authenticate status.");
-            var view = await client.GetPublicConfigurationAsync(deadline.Token);
-            Require(view.GetProperty("nodeId").GetString() == config.NodeId, "HTTP projection node differs.");
-            Require(!view.GetRawText().Contains(canary, StringComparison.Ordinal), "HTTP projection leaked excluded fields.");
+            var httpView = await client.GetPublicConfigurationAsync(deadline.Token);
+            Require(httpView.GetProperty("nodeId").GetString() == config.NodeId, "HTTP projection node differs.");
+            Require(!httpView.GetRawText().Contains(canary, StringComparison.Ordinal), "HTTP projection leaked excluded fields.");
             Require(await client.RotateTokenAsync(deadline.Token), "Acknowledged token rotation failed.");
             raw.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", oldToken.Trim());
             using (var rejected = await raw.GetAsync("/supervisor/public-config", deadline.Token))
