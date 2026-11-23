@@ -2991,3 +2991,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 - 2026-11-23 equivalent-source rollout: selected SSH revision/3pause flags, Swagger and read-only watch metadata processed in RAM; no local downloads/env/build/results. Policy runner uses Python-B; no bytecode created. Existing skipped-build feature untouched. Prior8038-byte blocked cache remains recorded.
 
 2026-11-23 OPORTAL breadth f5283af/a85a0c5: source, focused Node controls and compact tracked reports only. No runtime/install/download/database/build/test-result artifacts created. C: free observed26.74GB. Existing blocked8038-byte Python cache remains recorded and was not retried. Four unrelated dirty gitlinks untouched.
+
+2026-11-23 Gifts qualification: exact owned temp indexes oasis-gifts-core-compose-20261123.index and oasis-gifts-root-compose-20261123.index removed in finally, locks absent/removed. Retained only source Git objects/tags and compact report. No local build/runtime/env/database/download/results. Remote run45104328970 active with existing fixture/browser cleanup. Earlier8038-byte blockedcache untouched.

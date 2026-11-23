@@ -1,0 +1,26 @@
+{
+  "core": "d73ea6afa3b62d64cb7ca39240e705fa232647a8",
+  "portal": "a85a0c5f0fbe701adfd7e78d33f84084d5ce8479",
+  "cleanup": "Core/root temporary Git indexes removed in finally; no local runtime/download/build/DB/results. First runner cleanup retained in actions; replacement has existing finally cleanup.",
+  "base": "d74ceb6d3e770691ef97b94a204adc4a3f96b855",
+  "status": "qualification-in-progress-not-deployed",
+  "next": "Observe exact live run; fix actual failure if any. After acceptance compose scoped Core validation with current peer Development and pair manifest before deployment.",
+  "attempts": [
+    {
+      "run": 45103729816,
+      "status": "failed-before-build",
+      "reason": "Empty source list Compare-Object null binding; exact source comparison corrected"
+    },
+    {
+      "run": 45104074924,
+      "status": "failed-before-build",
+      "reason": "Second native-mode allowlist missed new Gifts mode; corrected. Cancellation attempt returned409 because already terminal; no cancellation occurred."
+    }
+  ],
+  "control": "05fca0cb84b558d8eb7bb393496e3bb89545f0c9",
+  "qualification": "Pinned source manifest check, browser JS syntax and whitespace passed. Native/browser results pending; no full Startup/SSO/hosted acceptance.",
+  "scope": "One real unknown-recipient/no-write check plus two-avatar actual Gifts popup SDK/controller/native Mongo send-receive-open-history and logout. Prior native cohort not replayed.",
+  "rootCause": "Verified recipient-validation file from Core96f25cbf was absent from Core6df and observed newer Core4c9. Restored exact blob on accepted session base; no unrelated code changed.",
+  "run": 45104328970,
+  "source": "a61af6a6f361ed864ed32ccc6287ee69a159cdfd"
+}

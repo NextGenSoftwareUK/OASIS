@@ -1,3 +1,7 @@
+## 2026-11-23 - Gifts real-browser qualification active; lost validation restored in candidate
+
+Run45104328970 on control05fca0cb active; candidatea61af6a6/Cored73ea6af restores exact previously accepted recipient guard absent from deployed6df/newer4c9, paired pins checked. Portal a85a0c5, one unknown-recipient no-write check plus actual two-avatar send/receive/open/history/logout. First2attempts stopped beforebuild on workflow guard issues, corrected; no functional acceptance or deployment yet. No old native cohort replay/shared Atlas/PIPER/local runtime/build/DB/download. Next observe exactrun, then scoped peer-preserving source composition only after acceptance. See GIFTS_BROWSER_2026-11-23.json.
+
 ## 2026-11-23 - OPORTAL breadth: subscription renewal and Gifts sign-out fixed
 
 Portal dev f5283af updates visible MCP credentials after acknowledged session renewal and gives explicit checkout reopen guidance; a85a0c5 removes duplicate Gifts logout handler using undefined variables and resets send UI in the single current cleanup owner. Focused changed DOM/auth controls, syntax, endpoint drift and whitespace pass; full browser/backend Gifts and hosted Stripe/whole portal remain open. Prior native/backend/browser evidence retained, no cohort replay. Next: representative real Gifts browser/HTTP journey using existing isolated CI fixture, then remaining unaccepted screens. COSMIC status reviewed read-only; no provider overlap or shared Atlas/PIPER calls.
