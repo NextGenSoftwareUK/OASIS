@@ -1,8 +1,12 @@
+## Async query family deployment
+
+Development91e3ad17/Coredef8cf76 carries the representative native-qualified element, cardinality and numeric async APIs. All seven service deployments succeeded. Running WEB4 revision and in-process HyperDrive V2 load balancing/failover/replication settings were verified with a three-call session/status/revoke check. This verifies deployment and settings, rather than a hosted async SDK application journey or full EF/NHibernate parity.
+
 ## Async numeric reductions — representative native qualification accepted
 
 The native async surface includes Sum, Average, Min and Max with direct selected values and typed selectors (26 overloads). Root selectors are normalized into the existing native Select planner; selected and entity-stage operations retain preceding windows. Session wrappers reuse the existing asynchronous lifetime boundary. Cancellation reaches native numeric and extremum execution. Standard Average result types are retained, including nullable domains. Unsupported shapes and domains return explicit errors; there is no local row reduction substitute.
 
-Count/LongCount/Any/All passed native MongoDB, SQLite and Neo4j qualification45181628686, with one boundary control and the actual WEB4 build. Numeric representative verification passed45183982238 on all three providers, plus one boundary control and the actual WEB4 build. Exact isolated cleanup was verified. Set/join/indexed async composition and full parity remain open; none of this new family is yet deployed to Development.
+Count/LongCount/Any/All passed native MongoDB, SQLite and Neo4j qualification45181628686, with one boundary control and the actual WEB4 build. Numeric representative verification passed45183982238 on all three providers, plus one boundary control and the actual WEB4 build. Exact isolated cleanup was verified. Set/join/indexed async composition and full parity remain open; this family is deployed on Development91e3ad17/Coredef8cf76 with source/settings acceptance. Hosted async application journeys remain separate.
 
 ## Native asynchronous cardinality — representative native qualification accepted
 
