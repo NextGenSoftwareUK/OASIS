@@ -2,7 +2,7 @@
 import argparse, ipaddress, json, os, re, secrets, subprocess, tempfile, time
 from pathlib import Path
 from contextlib import ExitStack
-from owned_web5_startup import OwnedApiBridge, OwnedWeb5Process
+from owned_web5_startup import OwnedApiBridge, OwnedWeb5Process, run_owned_browser
 from owned_docker_resources import missing_resource
 
 
@@ -183,8 +183,7 @@ console.log(JSON.stringify(b));
                 web5_environment.pop('OASIS_DNA_JSON', None)
                 web5_process=processes.enter_context(OwnedWeb5Process(web5_app, web5_dna, web5_environment))
                 browser_env['OASIS_STARTUP_WEB5_URL']=web5_process.url
-            browser = subprocess.run(['node', str(root / 'Scripts/TestHosts/Fixtures/portal-startup-browser.cjs')],
-                env=browser_env, capture_output=True, text=True, timeout=150)
+            browser = run_owned_browser(['node', str(root / 'Scripts/TestHosts/Fixtures/portal-startup-browser.cjs')], browser_env)
             if browser.returncode:
                 facts = re.search(r'PORTAL_STARTUP_HTTP_FACTS:(\[[^\n]*\])', browser.stderr)
                 if facts:

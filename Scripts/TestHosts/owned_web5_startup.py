@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import re
 import selectors
+import signal
 import socket
 import socketserver
 import subprocess
@@ -148,3 +149,29 @@ class OwnedWeb5Process:
                     self.process.stdout.close()
         finally:
             self.dna_path.unlink(missing_ok=True)
+
+
+def run_owned_browser(command, environment, timeout=150):
+    """Bound the owned browser process tree, including Chromium, on the cloud runner."""
+    if os.environ.get('GITHUB_ACTIONS') != 'true' or os.name != 'posix':
+        raise RuntimeError('Owned browser process-group execution requires the Linux cloud runner.')
+    process = subprocess.Popen(command, env=environment, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, text=True, start_new_session=True)
+    try:
+        stdout, stderr = process.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(process.pid, signal.SIGTERM)
+        except ProcessLookupError:
+            # The owned group already ended during the deadline observation.
+            process.wait(timeout=5)
+        try:
+            process.communicate(timeout=5)
+        except subprocess.TimeoutExpired:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                process.wait(timeout=5)
+            process.communicate(timeout=5)
+        raise RuntimeError('Owned portal browser exceeded its deadline; process group stopped.')
+    return subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
