@@ -290,8 +290,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                using var http = new System.Net.Http.HttpClient
-                { BaseAddress = new Uri("http://127.0.0.1:8765/"), Timeout = TimeSpan.FromSeconds(5) };
+                var tokenPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                    ".oasis", "supervisor-token");
+                if (!System.IO.File.Exists(tokenPath))
+                    return StatusCode(503, new { message = "ONODEService supervisor credential is unavailable." });
+                var token = (await System.IO.File.ReadAllTextAsync(tokenPath, HttpContext.RequestAborted)).Trim();
+                if (string.IsNullOrEmpty(token))
+                    return StatusCode(503, new { message = "ONODEService supervisor credential is unavailable." });
+                var factory = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions
+                    .GetRequiredService<System.Net.Http.IHttpClientFactory>(HttpContext.RequestServices);
+                using var http = factory.CreateClient("ONODESupervisor");
+                http.BaseAddress = new Uri("http://127.0.0.1:8765/");
+                http.Timeout = TimeSpan.FromSeconds(5);
+                http.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
                 using var response = await http.GetAsync("supervisor/providers", HttpContext.RequestAborted);
                 return new ContentResult
                 {
@@ -300,7 +312,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     Content = await response.Content.ReadAsStringAsync(HttpContext.RequestAborted)
                 };
             }
-            catch (Exception ex) when (ex is System.Net.Http.HttpRequestException || ex is TaskCanceledException)
+            catch (Exception ex) when (ex is System.Net.Http.HttpRequestException || ex is TaskCanceledException ||
+                                       ex is System.IO.IOException || ex is UnauthorizedAccessException)
             {
                 _logger.LogWarning("ONODEService provider configuration could not be read.");
                 return StatusCode(503, new { message = "ONODEService supervisor not reachable." });
