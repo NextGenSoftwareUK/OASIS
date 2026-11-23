@@ -135,6 +135,7 @@ async function main(){
      const value=result?.result;fact.resultShape=Array.isArray(value)?'array':value===null?'null':typeof value;
      if(Array.isArray(value))fact.resultCount=value.length;
     }
+    if(popupGroup==='map-route'&&url.pathname==='/api/map/routes'&&response.request().method()==='GET'){const value=result?.result;fact.routePage={items:Array.isArray(value?.items),nextOffsetPresent:Object.hasOwn(value||{},'nextOffset'),nextOffsetNull:value?.nextOffset===null,nextOffsetInteger:Number.isInteger(value?.nextOffset)};}
     if(popupGroup==='map-route'&&url.pathname.startsWith('/api/map/routes/')&&result?.result){
      const detail=result.result,header=detail.header,geometry=detail.geometry;
      fact.routeShape={header:!!header,geometry:!!geometry,authority:typeof detail.authority==='string',revisions:detail.expectedRevisions?Object.keys(detail.expectedRevisions).length:0,headerIdMatches:header?.id===routeId,headerPayload:typeof header?.metaData?.payload,geometryPayload:typeof geometry?.metaData?.payload};
