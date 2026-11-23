@@ -252,6 +252,11 @@ try
     else
         mvc.AddApplicationPart(typeof(GeoHotSpotsController).Assembly)
             .AddApplicationPart(typeof(NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.NftController).Assembly);
+    if (mode == "storefront-browser")
+    {
+        mvc.PartManager.FeatureProviders.Add(new StorefrontControllerSelection());
+        builder.Logging.AddProvider(new SanitizedHttpExceptionLogger());
+    }
     builder.Services.AddAuthorization();
     app = builder.Build();
     // Keep framework authorization after bearer authentication. With only an explicit
