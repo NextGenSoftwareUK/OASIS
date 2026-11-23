@@ -416,7 +416,7 @@
 "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/HolonManager/HolonManager.cs","635","public OASISResult<Dictionary<string, object>> GetAllSettings(Guid avatarId, string category)","True","ModeAwareLegacyAndV2Boundary"
 "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/HolonManager/HolonSavePlan.cs","95","public static HolonSavePlan Create(IEnumerable<IHolon> roots, bool children, bool recursive, int depth, Guid? operationId = null, int maximumNodes = int.MaxValue, bool conditionalIntent = false)","True","ModeAwareLegacyAndV2Boundary"
 "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/HolonManager/HolonSavePlan.cs","299","public void Publish(IEnumerable<IHolon> acknowledgements, Func<IHolon, OASISResult<bool>> decrypt, bool deleted = false)","True","ModeAwareLegacyAndV2Boundary"
-"OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/HolonManager/HolonSavePlan.cs","388","public void Dispose()","True","ModeAwareLegacyAndV2Boundary"
+"OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/HolonManager/HolonSavePlan.cs","391","public void Dispose()","True","ModeAwareLegacyAndV2Boundary"
 "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/KarmaManager.cs","66","public async Task<OASISResult<long>> GetKarmaAsync(Guid avatarId)","False","LocalOrchestration"
 "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/KarmaManager.cs","98","public OASISResult<long> GetKarma(Guid avatarId)","False","LocalOrchestration"
 "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/KarmaManager.cs","126","public Task<OASISResult<bool>> AddKarmaAsync(Guid avatarId, long amount, KarmaSourceType sourceType, string description = null, Guid? relatedEntityId = null)","True","CoveredManagerDelegation"
