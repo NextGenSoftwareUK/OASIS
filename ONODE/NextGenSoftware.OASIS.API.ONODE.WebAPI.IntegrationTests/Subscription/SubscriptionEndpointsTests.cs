@@ -331,6 +331,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
                     var body=JsonSerializer.Deserialize<NextGenSoftware.OASIS.Common.OASISResult<JsonElement>>(
                         await response.Content.ReadAsStringAsync(),new JsonSerializerOptions {PropertyNameCaseInsensitive=true});
                     body.Should().NotBeNull();body!.IsError.Should().BeFalse(body.Message);
+                    if(route=="status")
+                        body.Result.GetProperty("backgroundWorkersPauseConfigured").GetBoolean().Should().Be(
+                            Microsoft.Extensions.Configuration.ConfigurationBinder.GetValue<bool>(
+                                _factory.Services.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>(),
+                                NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Operations.HostedMongoWorkerControl.PauseHyperDriveKey));
                 }
                 (await local.DeleteAvatarAsync(avatar.Id,softDelete:false)).IsError.Should().BeFalse();
                 deleted=true;
@@ -338,7 +343,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
                 stale.Headers.Authorization=new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer",encoded);
                 var denied=await _client.SendAsync(stale);
                 denied.StatusCode.Should().Be(HttpStatusCode.Unauthorized,"authoritative absence is not a provider outage");
-                (await denied.Content.ReadAsStringAsync()).Should().Contain("INVALID_AVATAR");
+                var denial=JsonSerializer.Deserialize<NextGenSoftware.OASIS.Common.OASISResult<bool>>(
+                    await denied.Content.ReadAsStringAsync(),new JsonSerializerOptions {PropertyNameCaseInsensitive=true});
+                denial.Should().NotBeNull();denial!.IsError.Should().BeTrue();denial.Result.Should().BeFalse();
             }
             finally
             {

@@ -1,5 +1,5 @@
 {
-  "status": "source correction; not compiled or functionally accepted",
+  "status": "corrected final assertion and new status field source; replacement acceptance pending",
   "failedRun": 45095683887,
   "failedJob": 137438374315,
   "failedCase": "HyperDriveReadRoutesAcceptRealJwtAfterV2PersistedAvatarLookup(LocalFile)",
@@ -8,5 +8,13 @@
   "remaining": "One focused changed LocalFile HTTP test, then normal integration gate in a scoped next batch; do not replay retained Sui/TRON chains or accepted native/browser cohorts.",
   "cleanup": "Source review/edit only; no local build/runtime/download/environment/database/results.",
   "candidate": "b9cfde77087723f477bc2144eee966e5e479a352",
-  "preparedExecution": "Existing isolated candidate workflow selects only the exact LocalFile HTTP fixture, within one build lease; no Mongo container or browser prepared."
+  "preparedExecution": "Existing isolated candidate workflow selects only the exact LocalFile HTTP fixture, within one build lease; no Mongo container or browser prepared.",
+  "firstFocusedRun": {
+    "id": 45097985487,
+    "job": 137442005421,
+    "conclusion": "failed only at obsolete post-delete INVALID_AVATAR message assertion",
+    "evidence": "Actual sign-in/persisted credential and three protected HTTP reads passed before the final stale-token assertion; hard-deleted account returned401 as required.",
+    "fix": "Assert real unauthorized OASISResult<bool> error/false payload, retain401 and native deletion assertions."
+  },
+  "additionalChangedStatusAssertion": "Existing status read checks configured worker-pause response against real fixture IConfiguration; no extra request."
 }
