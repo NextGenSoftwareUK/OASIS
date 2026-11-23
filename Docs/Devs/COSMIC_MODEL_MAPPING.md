@@ -262,3 +262,49 @@ Import uses the same explicit CLR contract allowlist. A single dynamic-component
 An optional XML value-type field has a nullable CLR domain; not-null=true uses its non-nullable scalar domain and enforces presence. Reference-domain null handling follows the declared Required rule. Unsupported component targets, missing/unknown types, duplicate components/fields, reserved/colliding keys or non-scalar ordinary property declarations fail the complete import before destination mutation. Nested relationships/components and arbitrary CLR dictionaries/indexers remain separate contracts.
 
 The syntax reference is [NHibernate dynamic components](https://nhibernate.info/doc/nhibernate-reference/components.html#components-dynamic). COSMIC's admitted subset maps the canonical metadata dictionary and retains the documented read-only/identity/query differences. The XML dictionary qualifier45140169734 passed three native journeys, one admission control and the actual WEB4 build, with exact owned cleanup. Combined image/package and deployment acceptance remain separate.
+
+
+### Named application filters (native-qualified; deployment pending)
+Entity<T>().HasQueryFilter("active", row => row.IsActive) adds or replaces
+a case-sensitive named filter. Distinct names and the optional unnamed filter
+are combined with AND before source paging. Build freezes captured literals.
+model.WithoutQueryFilters("active") creates a separate immutable model removing
+only that active named filter. Chaining selective bypass preserves prior removals.
+Unknown, duplicate or invalid selections are refused. Names contain 1-128 letters,
+digits, underscores, dots or hyphens; at most 64 names per entity are admitted.
+WithoutQueryFilters() retains its existing explicit all-application-filter bypass.
+Neither bypass removes mandatory caller visibility, mapping, validation or read-only
+policy. These application filters are opt-in model rules, not provider-manager
+collection filters. Exact-contract matching remains; polymorphic filters are open.
+
+
+### Shadow entry comparison values and explicit flags (native-qualified; deployment pending)
+A session ShadowProperty<TValue> entry supports GetOriginalValue(), GetValues(),
+SetOriginalValue(value), RemoveOriginalValue(), and SetModified(bool).
+These delegate to the existing canonical change tracker; there is no second baseline.
+GetValues returns detached original/current JSON, separate existence flags, value
+modification and explicit modification status. Missing metadata remains distinct
+from JSON null; typed missing reads return COSMIC_SHADOW_VALUE_MISSING.
+SetOriginalValue changes local comparison state only, never native revision evidence.
+SetModified(false) restores current from that comparison original and clears its flag.
+Normal acknowledged saves refresh originals and consume the captured modification
+intent. All operations recheck session availability and membership; detached or
+foreign-session entries cannot read or change these values. Required constraints
+remain enforced at save. Arbitrary CLR indexers and full M16 parity remain open.
+
+
+### Query tracking modes (native-qualified; deployment pending)
+CosmicSession.Linq<T>(CosmicQueryTrackingMode mode) and
+ReadAsync(query, CosmicQueryTrackingMode mode) admit Tracking, NoTracking and
+NoTrackingWithIdentityResolution. Existing Boolean tracking APIs keep their meaning.
+AsCosmicTracking(), AsCosmicNoTracking() and
+AsCosmicNoTrackingWithIdentityResolution() select the mode on session LINQ queries.
+Tracking uses the session identity map and retains pending local changes.
+NoTracking returns native detached rows. NoTrackingWithIdentityResolution coalesces
+repeated root identities within one result; those roots remain detached, and a fresh
+map is used for each execution. Scalar/DTO projections are not root tracking entries.
+Nested projected entity graphs are not recursively rewritten by this root contract.
+Stateless LINQ supports both untracked modes and continues to refuse session tracking.
+All modes use the same actor/authority-bound native reads and session operation/lifetime
+gates; identity resolution never substitutes for a new access check. Undefined modes
+are refused before execution. Full graph-wide ORM tracking parity remains open.

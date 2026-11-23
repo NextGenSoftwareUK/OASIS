@@ -1,0 +1,33 @@
+{
+  "run": 45150764171,
+  "source": "31f581ef6548d29374a0a007d7c261da5013da13",
+  "core": "e6ff129e186f166c422aca697ff91e644d75642b",
+  "artifact": 14807445716,
+  "archiveBytes": 2528,
+  "archiveSha256": "014363dfc3e4f986de35d4e29b878b51110eeae4af67777ba4fab237644e9070",
+  "archiveSavedLocally": false,
+  "failures": [
+    {
+      "test": "NativeQueryTrackingModesKeepPerExecutionIdentityAndCallerBoundaries (Neo4jOASIS)",
+      "outcome": "Failed",
+      "message": "Test method NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests.CqlV1Web4NativeTests.NativeQueryTrackingModesKeepPerExecutionIdentityAndCallerBoundaries threw exception: \r\nNextGenSoftware.OASIS.API.Core.Queries.CosmicLinqException: A registered native set result and supported entity stage are required.",
+      "stackLocation": "TrackingMode.cs:75"
+    },
+    {
+      "test": "NativeQueryTrackingModesKeepPerExecutionIdentityAndCallerBoundaries (MongoDBOASIS)",
+      "outcome": "Failed",
+      "message": "Test method NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests.CqlV1Web4NativeTests.NativeQueryTrackingModesKeepPerExecutionIdentityAndCallerBoundaries threw exception: \r\nNextGenSoftware.OASIS.API.Core.Queries.CosmicLinqException: A registered native set result and supported entity stage are required.",
+      "stackLocation": "TrackingMode.cs:75"
+    },
+    {
+      "test": "NativeQueryTrackingModesKeepPerExecutionIdentityAndCallerBoundaries (SQLLiteDBOASIS)",
+      "outcome": "Failed",
+      "message": "Test method NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests.CqlV1Web4NativeTests.NativeQueryTrackingModesKeepPerExecutionIdentityAndCallerBoundaries threw exception: \r\nNextGenSoftware.OASIS.API.Core.Queries.CosmicLinqException: A registered native set result and supported entity stage are required.",
+      "stackLocation": "TrackingMode.cs:75"
+    }
+  ],
+  "ownedContainerCleanupStepsPassed": true,
+  "perStoreCleanupReceiptClaimed": false,
+  "cause": "Fixture used unsupported scalar Select after an entity set; mode assertions before line75 passed, full journey not accepted",
+  "nativeAccepted": false
+}

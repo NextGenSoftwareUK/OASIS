@@ -1,0 +1,96 @@
+{
+  "run": 45148486674,
+  "job": 137603582741,
+  "artifact": 14806280573,
+  "archiveBytes": 3404,
+  "archiveSha256": "5bc5aab17909f39a97cd72780f8dd4862723df6a5fcc4ee3f778b88c04f096c4",
+  "archiveSavedLocally": false,
+  "source": {
+    "deployed": false,
+    "sharedDatabaseCalls": 0,
+    "ownedFixturesAbsent": true,
+    "core": "81d37ec73752d49fae6161ae9588cec6e3c668c9",
+    "source": "c12f1aec551326001268803475186902ebdf44f6",
+    "actualWeb4Compiled": true,
+    "nativePassed": 3,
+    "shadowEntryVerified": true
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-shadow-entry": 458,
+        "required-shadow-entry-refused": 15,
+        "acknowledge-shadow-entry": 35,
+        "fresh-shadow-entry": 68,
+        "foreign-shadow-entry": 2
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "shadowOriginalsUseCanonicalBaseline": true,
+        "localOriginalEditsPreserveNativeRevision": true,
+        "explicitFlagsAndResetShareTrackingOwner": true,
+        "missingAndNullOriginalsRemainDistinct": true,
+        "requiredValidationBeforeWrite": true,
+        "acknowledgementRefreshesBaseline": true,
+        "callerAndEntryLifetimePreserved": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-shadow-entry": 394,
+        "required-shadow-entry-refused": 6,
+        "acknowledge-shadow-entry": 21,
+        "fresh-shadow-entry": 33,
+        "foreign-shadow-entry": 6
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "shadowOriginalsUseCanonicalBaseline": true,
+        "localOriginalEditsPreserveNativeRevision": true,
+        "explicitFlagsAndResetShareTrackingOwner": true,
+        "missingAndNullOriginalsRemainDistinct": true,
+        "requiredValidationBeforeWrite": true,
+        "acknowledgementRefreshesBaseline": true,
+        "callerAndEntryLifetimePreserved": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-shadow-entry": 966,
+        "required-shadow-entry-refused": 6,
+        "acknowledge-shadow-entry": 43,
+        "fresh-shadow-entry": 532,
+        "foreign-shadow-entry": 265
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "shadowOriginalsUseCanonicalBaseline": true,
+        "localOriginalEditsPreserveNativeRevision": true,
+        "explicitFlagsAndResetShareTrackingOwner": true,
+        "missingAndNullOriginalsRemainDistinct": true,
+        "requiredValidationBeforeWrite": true,
+        "acknowledgementRefreshesBaseline": true,
+        "callerAndEntryLifetimePreserved": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "fullParityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T09:42:06.327853+00:00"
+}
