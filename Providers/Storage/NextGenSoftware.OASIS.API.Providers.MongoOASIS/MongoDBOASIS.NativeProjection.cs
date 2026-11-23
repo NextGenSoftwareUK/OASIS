@@ -144,13 +144,13 @@ public partial class MongoDBOASIS : INativeDataProjectionQueryProvider
             var dateCell=MongoNativeUtcDate.Cell("$"+column.Field);
             if(!column.UtcDatePart.HasValue)return dateCell;
             const string name="nativeUtcDatePartCell";
-            const string value="$$"+name;
+            const string dateCellValue="$$"+name;
             return new BsonDocument("$let",new BsonDocument{
                 {"vars",new BsonDocument(name,dateCell)},
                 {"in",new BsonDocument{
-                    {"s",value+".s"},{"b",8},
-                    {"v",ProjectionCondition(ProjectionOperation("$eq",value+".s",2),
-                        MongoCqlTranslator.UtcDatePartFromTicks(column.UtcDatePart.Value,value+".v"),BsonNull.Value)}}}});
+                    {"s",dateCellValue+".s"},{"b",8},
+                    {"v",ProjectionCondition(ProjectionOperation("$eq",dateCellValue+".s",2),
+                        MongoCqlTranslator.UtcDatePartFromTicks(column.UtcDatePart.Value,dateCellValue+".v"),BsonNull.Value)}}}});
         }
         var expected = column.InputType == typeof(string) ? "string" : column.InputType == typeof(bool) ? "bool"
             : column.InputType == typeof(int) ? "int" : column.InputType == typeof(double) ? "double" : "long";
