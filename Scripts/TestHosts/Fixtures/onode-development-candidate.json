@@ -39,5 +39,10 @@
     "scope": "Actual API and service source compilation, not runtime acceptance."
   },
   "onodeCommandCheck": true,
-  "priorApiCompileRun": 45214519252
+  "priorApiCompileRun": 45214519252,
+  "canonicalModeRun": {
+    "run": 45215334828,
+    "status": "pending behind existing source compile",
+    "scope": "Changed supervisor plus command producer check only; retain API compile from45214519252 when terminal."
+  }
 }
