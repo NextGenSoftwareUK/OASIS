@@ -5,7 +5,7 @@
     "taskBranch": "work/hyperdrive-provider-completion",
     "taskWorktree": "C:/Source/OASIS2-hyperdrive",
     "portalBranch": "dev",
-    "portalHead": "fddabf3eca130423c96a28c026466888ee1d126f",
+    "portalHead": "c0957873b6cf98904e3e77675ee5c16231b53c8a",
     "reviewedDevelopment": "a9184e7b108dc10f126ec0d1e01cee1d93de740a",
     "currentCore": "f4a97400101657cb0cd2b71e7f5f94e0b926a5c6",
     "currentWeb6": "78a27a295e74721358eb2b02399f79eff5b21633",
@@ -61,7 +61,8 @@
       "Actual full page NFT/GeoNFT/OLAND empty catalogues/grouping/tabs/close45140498072",
       "Actual full page private GPX publish/rename/reopen/list45148541889",
       "Actual owner Data detail edit with native persisted readback45149458665",
-      "Actual Files upload/list/download byte equality/delete/close45150357293"
+      "Actual Files upload/list/download byte equality/delete/close45150357293",
+      "Actual incoming message/notification Mark All Read/native flags/dashboard refresh45151234976"
     ],
     "latestDeliveredFixes": [
       "Current subscription selection, retry states, real invoice/PDF links and exact-plan checkout activation confirmation",
@@ -73,7 +74,8 @@
       "Inventory linked NFT/GeoNFT IDs, stack, dates and custom properties now rendered from existing response; Portal17ed8e4 script served exact, focused rendering check passed.",
       "Real username sign-in form fixed; actual authenticated WEB4 page slice45120405171 accepted.",
       "Map saved-route and place-visit terminal pagination respects null-omitting WEB4 JSON; route flow45148541889 accepted.",
-      "Data owner name/description edit uses observed provider revision and existing save API; persisted readback45149458665 accepted."
+      "Data owner name/description edit uses observed provider revision and existing save API; persisted readback45149458665 accepted.",
+      "Dashboard message summary refreshes after acknowledged inbox changes; actual mark-read/native/dashboard flow45151234976 accepted."
     ],
     "remaining": [
       "Remaining popup write actions, mapping flows, WEB6 full-host flows and permanent account erasure; representative accepted read/delivery journeys do not prove every action.",
@@ -617,6 +619,13 @@
     "artifact": 14805258911,
     "archiveBytes": 4271,
     "evidence": "OPORTAL_FILES_WRITES_2026-11-23.json",
+    "cleanupVerified": true
+  },
+  "latestInboxRead": {
+    "run": 45151234976,
+    "status": "accepted-representative-native-read-flags-and-dashboard",
+    "artifact": 14806297696,
+    "evidence": "OPORTAL_INBOX_READ_2026-11-23.json",
     "cleanupVerified": true
   }
 }
