@@ -297,10 +297,12 @@
     }
   },
   "pendingProcessControlCandidate": {
-    "module": "1e1aa241df320707b3cd903100cd4583277a57f0",
+    "module": "23f15e935dae03f9e29a522d88c56e2af5b820a2",
     "base": "3ecf0f8ea9713412da9071a1c6d12f961b050c8e",
-    "status": "source-only-not-in-current-browser-run",
-    "scope": "Real process launch/stop failures propagate instead of false Started/Stopped; configured PORT supplied to actual API executable. Separate process launch dependency graphs retained.",
-    "remaining": "Compile and representative actual control/command/UI failure and lifecycle verification; platform launch behavior and complete process control not accepted."
+    "status": "actual service and executor error paths accepted; lifecycle open",
+    "scope": "Unknown start/stop/group and missing-service Start reject with real errors; no process/DB/DNA/fixture created. Published executable detection and PORT correction compile, actual lifecycle/port/platform not accepted.",
+    "remaining": "Compile and representative actual control/command/UI failure and lifecycle verification; platform launch behavior and complete process control not accepted.",
+    "run": 45252534030,
+    "job": 137965691163
   }
 }

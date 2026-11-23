@@ -8,14 +8,14 @@
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/HyperDrive/HeldHeadRearmCommand.cs"
   ],
   "buildProjects": [
-    "ONODESUPERVISOR"
+    "WEB4"
   ],
   "core": {
     "candidate": "7546da7774be6948b040a6f37fea474c03976a95"
   },
   "onodeManager": "23f15e935dae03f9e29a522d88c56e2af5b820a2",
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
-  "remaining": "Incoming held-head command failed WEB4 CS0117 before browser45251546061 ran; qualify System.IO.File at sole read call. Supervisor-only45252534030 remains frozen on28c. Await that result, then current combined browser without unchanged native replay; never execute re-arm against shared queues.",
+  "remaining": "Current combined browser93418 includes accepted module23f and one-call System.IO.File compile fix. Prior bridge/component/error tests retained; no standalone replay. Actual popup live frame, close and loaded API view still pending.",
   "inventoryReview": {
     "run": 45250072037,
     "artifact": 14854822674,
@@ -159,7 +159,7 @@
     "run": 45233869564,
     "status": "queued"
   },
-  "onodeBrowser": false,
+  "onodeBrowser": true,
   "portal": "aab87e12967e403df1d408f7f510deac93fedb70",
   "acceptedActualBridge": {
     "run": 45242480184,
@@ -168,12 +168,19 @@
     "status": "success",
     "scope": "Actual Startup issued native password sessions, authorization, separate shipping supervisor state/poll/command acknowledgement, revision-aware proxy, loaded public view and live socket; cleanup passed. No browser/applied-runtime/all-provider acceptance."
   },
-  "onodeProcessControlCheck": true,
+  "onodeProcessControlCheck": false,
   "previousPopupCandidate": {
     "candidate": "f9420a96ef7f37c0ef5dd4aa92ba83b871d15099",
     "run": 45251546061,
     "job": 137962234713,
     "module": "3ecf0f8ea9713412da9071a1c6d12f961b050c8e",
     "status": "active-not-accepted"
+  },
+  "acceptedProcessErrors": {
+    "run": 45252534030,
+    "job": 137965691163,
+    "source": "28c74fe49ee8dbe2b0f39c3aca67a99042d8608c",
+    "module": "23f15e935dae03f9e29a522d88c56e2af5b820a2",
+    "scope": "Actual supervisor/command executor unknown start/stop/group and missing-service refusal; zero errors11.11s+22.73s. Probe outputs absent; no process/DB/DNA/fixture created. Not published lifecycle/port/platform acceptance."
   }
 }
