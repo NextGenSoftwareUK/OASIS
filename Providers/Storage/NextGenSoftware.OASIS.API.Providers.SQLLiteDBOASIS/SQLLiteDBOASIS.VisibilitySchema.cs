@@ -81,12 +81,28 @@ public partial class SQLLiteDBOASIS
         using(var profileIdentity=connection.CreateCommand())
         {
             profileIdentity.Transaction=transaction.GetDbTransaction();
-            profileIdentity.CommandText="CREATE UNIQUE INDEX IF NOT EXISTS oasis_avatar_username_unique ON Avatar(Username COLLATE BINARY) WHERE typeof(Username)='text' AND Username<>''; "
+            profileIdentity.CommandText=RepairDuplicateAvatarIdentitiesSql+"CREATE UNIQUE INDEX IF NOT EXISTS oasis_avatar_username_unique ON Avatar(Username COLLATE BINARY) WHERE typeof(Username)='text' AND Username<>''; "
                 +"CREATE UNIQUE INDEX IF NOT EXISTS oasis_avatar_email_unique ON Avatar(Email COLLATE BINARY) WHERE typeof(Email)='text' AND Email<>'';";
             await profileIdentity.ExecuteNonQueryAsync().ConfigureAwait(false);
         }
         await transaction.CommitAsync().ConfigureAwait(false);
     }
+
+    // Databases written before the identity indexes existed can hold several avatars with the same
+    // Username or Email. The first registered row (lowest rowid) keeps the value; each later row gets a
+    // unique "<value>#legacy-<AvatarId>" value and its original is kept in CosmicAvatarIdentityRepair,
+    // so nothing is lost and the repair can be audited or reversed. It is idempotent.
+    internal static readonly string RepairDuplicateAvatarIdentitiesSql =
+        "CREATE TABLE IF NOT EXISTS CosmicAvatarIdentityRepair(AvatarId TEXT NOT NULL, Field TEXT NOT NULL, OriginalValue TEXT NOT NULL, RepairedValue TEXT NOT NULL, RepairedUtc TEXT NOT NULL, PRIMARY KEY(AvatarId,Field)); "
+        + DuplicateIdentityRepair("Username") + DuplicateIdentityRepair("Email");
+
+    private static string DuplicateIdentityRepair(string field) =>
+        $"INSERT OR IGNORE INTO CosmicAvatarIdentityRepair(AvatarId,Field,OriginalValue,RepairedValue,RepairedUtc) "
+        + $"SELECT a.Id,'{field}',a.{field},a.{field}||'#legacy-'||a.Id,strftime('%Y-%m-%dT%H:%M:%fZ','now') FROM Avatar a "
+        + $"WHERE typeof(a.{field})='text' AND a.{field}<>'' AND EXISTS(SELECT 1 FROM Avatar b WHERE b.{field}=a.{field} COLLATE BINARY AND b.rowid<a.rowid); "
+        + $"UPDATE Avatar SET {field}=(SELECT r.RepairedValue FROM CosmicAvatarIdentityRepair r WHERE r.AvatarId=Avatar.Id AND r.Field='{field}') "
+        + $"WHERE typeof({field})='text' AND {field}<>'' AND EXISTS(SELECT 1 FROM Avatar b WHERE b.{field}=Avatar.{field} COLLATE BINARY AND b.rowid<Avatar.rowid) "
+        + $"AND EXISTS(SELECT 1 FROM CosmicAvatarIdentityRepair r WHERE r.AvatarId=Avatar.Id AND r.Field='{field}'); ";
 
     private static async Task EnsureColumnsAsync(DbConnection connection,DbTransaction transaction,string table,Dictionary<string,string> columns)
     {
