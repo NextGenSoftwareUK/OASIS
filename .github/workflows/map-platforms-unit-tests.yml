@@ -1,0 +1,84 @@
+name: Map platform providers unit tests
+
+on:
+  push:
+    branches: [Development, master]
+    paths:
+      - '.github/workflows/map-platforms-unit-tests.yml'
+      - 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.Maps/**'
+      - 'Providers/Maps/NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS/**'
+      - 'Providers/Maps/NextGenSoftware.OASIS.API.Providers.HEREMapsOASIS/**'
+      - 'Providers/Maps/NextGenSoftware.OASIS.API.Providers.MapLibreOASIS/**'
+      - 'Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.MapPlatforms.UnitTests/**'
+      - 'Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.MapLibreOASIS.UnitTests/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Contracts/**'
+  pull_request:
+    branches: [Development, master]
+    paths:
+      - 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.Maps/**'
+      - 'Providers/Maps/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Contracts/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  platforms:
+    name: Shared maps, Google Maps and HERE (recorded vendor responses)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: OASIS
+          persist-credentials: false
+      - name: Read the pinned Libraries revision
+        id: dependency
+        working-directory: OASIS
+        run: grep -E '^LIBRARIES_COMMIT=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Test
+        working-directory: OASIS
+        run: >
+          dotnet test Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.MapPlatforms.UnitTests
+          /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+
+  maplibre:
+    name: MapLibre provider and scene (controlled tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Read the pinned Libraries revision
+        id: dependency
+        working-directory: OASIS
+        run: grep -E '^LIBRARIES_COMMIT=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Test
+        working-directory: OASIS
+        run: >
+          dotnet test Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.MapLibreOASIS.UnitTests
+          /m:2 /nr:false /p:UseSharedCompilation=false
+          --filter "TestCategory!=MapLibreStyleNative&TestCategory!=Live" --logger "console;verbosity=normal"
