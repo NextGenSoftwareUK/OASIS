@@ -37,7 +37,7 @@
     "packageArtifactBytes": 774,
     "checks": "Exact receipt source/image/profile and packagedSourceHashes/CQL runtime graph true; RAM-only inspection"
   },
-  "cleanup": "Exact owned temporary STAR/root indexes and locks removed in finally. No physical submodule checkout/index changed. No local build/download/runtime/env/database/results; cloud run cleanup pending. No DNA/shared Railway settings or Atlas data/auth calls.",
+  "cleanup": "Accepted empty-run all five startup assertions true and WEB5 publish/browser/cache/TLS outputs absent, terminal log verified. Compact receipt RAM-only/disposed. Populated run cleanup pending; no local build/download/runtime/env/database/results or shared data calls.",
   "artifact": 14820313295,
   "artifactBytes": 3414,
   "accepted": [
@@ -49,6 +49,9 @@
     "preparedControl": "109def7342c",
     "behavior": "Create one OAPP through actual WEB5 API, child through actual WEB4 API, compare independent shallow/deep responses, then populated Map/Launcher detail/browse",
     "backend": "isolated fresh native Mongo and actual issued SSO; no handcrafted stored documents, synthetic JWTs or response mocks",
-    "status": "prepared, not yet run"
+    "status": "running",
+    "run": 45179426793,
+    "job": 137709091271,
+    "control": "6a2c2baf4982603a8b981a93e4d4ee59b98bf44f"
   }
 }
