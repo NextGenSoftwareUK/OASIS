@@ -193,18 +193,39 @@
   },
   "currentDeliveryReview20261123": {
     "development": "91e3ad17428c524eff8cc990f95491ff0f4ecf6c",
-    "root": "c367eb178946cad44c4dc3ce81881dba26a07f40",
+    "root": "e1cf13421bd8acd707d9cda49d2952b01240f2ab",
     "core": "cb1c50c24ac8520be6f328bca08e48e04737854b",
     "star": "ffd7fe494e1aacec50315baadff38273c88b8a11",
-    "status": "source composed and pushed; current graph not built or deployed",
+    "status": "current composition native HTTP accepted; shipping image building; not deployed",
     "preservation": "Core current published async query family merged cleanly; six scoped profile/tariff files differ from def8cf76. Root source retains Development91e3 and pairs pins/manifest. Physical dirty submodule checkouts unchanged.",
     "inventoryReview": {
-      "run": 45189626536,
-      "artifact": 14825770744,
-      "bytes": 44442,
-      "decision": "profile rows correct; helper classification precedence required correction before accepting unrelated rows",
-      "next": "Source-only generation on c367 with corrected classifier; no native matrix replay."
+      "run": 45190132446,
+      "artifact": 14825921101,
+      "bytes": 44432,
+      "decision": "Reviewed current source inventories; no removed contracts or newly local storage paths; profile routes mode-aware. Checked in e1cf1342."
     },
-    "qualificationRequired": "Existing profile-http GET/PATCH/GET on new composition, exact shipping image/package/startup, then verified scoped Development delivery."
+    "qualificationRequired": "Existing profile-http GET/PATCH/GET on new composition, exact shipping image/package/startup, then verified scoped Development delivery.",
+    "nativeAcceptance": {
+      "run": 45190600949,
+      "job": 137747613185,
+      "conclusion": "success",
+      "buildErrors": 0,
+      "scope": "Actual MVC/manager/router/native Mongo GET-PATCH-GET saved firstName and address, retained username/email and acknowledged exact native account/detail revisions.",
+      "cleanup": "Terminal database/DNA/container absence verified.",
+      "excludes": [
+        "full Startup",
+        "paid admission",
+        "SSO",
+        "hosted deployment",
+        "new browser profile proof"
+      ]
+    },
+    "shippingImage": {
+      "run": 45192295272,
+      "job": 137753518133,
+      "source": "e1cf13421bd8acd707d9cda49d2952b01240f2ab",
+      "status": "building"
+    },
+    "next": "Qualify exact image/package and current real Startup profile popup; no replay of accepted provider/portrait matrices."
   }
 }
