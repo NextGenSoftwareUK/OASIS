@@ -184,7 +184,7 @@ async function main(){
      try{const summary=JSON.parse(header?.metaData?.payload),points=JSON.parse(geometry?.metaData?.payload)?.[0]?.[0];fact.routeShape.summaryPascal=typeof summary.SourceApp==='string';fact.routeShape.summaryCamel=typeof summary.sourceApp==='string';fact.routeShape.latitudePascal=typeof points?.Latitude==='number';fact.routeShape.latitudeCamel=typeof points?.latitude==='number';}catch{}
     }
     if(typeof code==='string'&&/^[A-Z0-9_]{1,80}$/.test(code))fact.errorCode=code;
-    if(code==='HYPERDRIVE_ROUTE_FAILED'&&typeof result.message==='string'){
+    if((code==='HYPERDRIVE_ROUTE_FAILED'||popupGroup==='chat'&&url.pathname.startsWith('/api/chat/end-chat-session/')&&result?.isError===true)&&typeof result.message==='string'){
      const message=result.message.replace(/(?:https?|mongodb(?:\+srv)?):\/\/[^\s]+/gi,'[URI]')
       .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,'[JWT]')
       .replace(/[a-f0-9]{32,}/gi,'[identifier]').slice(0,320);
@@ -290,7 +290,8 @@ async function main(){
     assert.ok(Array.isArray(history));assert.equal(history.filter(row=>row.message===messageText||row.content===messageText).length,1);
     stage='Chat resume';await page.locator('#msg-chat-choose-btn').click();await page.locator('[data-chat-resume="'+chatId+'"]').click();
     await page.waitForFunction(value=>document.getElementById('msg-chat-messages').textContent.includes(value),messageText);
-    stage='Chat end';await page.locator('#msg-end-session-btn').click();
+    stage='Chat end';const endResponse=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/chat/end-chat-session/'+chatId);await page.locator('#msg-end-session-btn').click();
+    const endRaw=await(await endResponse).json(),ended=typeof endRaw.isError==='boolean'?endRaw:endRaw.result;assert.equal(ended.isError,false);assert.equal(ended.result,true);
     await page.waitForFunction(()=>document.getElementById('msg-no-session').hidden===false&&document.getElementById('msg-active-sessions').textContent.includes('No active chats.'));
     const sessions=await recipient.call('participant ended sessions','GET','/api/chat/active-sessions',undefined,recipientToken);assert.ok(Array.isArray(sessions));assert.ok(!sessions.some(row=>row.id===chatId));
     assert.equal(chatStarts,1);assert.equal(chatSends,1);assert.equal(chatEnds,1);
