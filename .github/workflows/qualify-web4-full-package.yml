@@ -64,6 +64,12 @@ on:
         required: false
         type: boolean
         default: false
+      startup_popup_group:
+        description: New popup journey only; reuses the exact shipping image without rebuilding
+        required: false
+        type: choice
+        options: [none, nft-messaging-data]
+        default: none
       retained_waku:
         description: Verify the packaged native Waku runtime with the aged original archive
         required: false
@@ -111,7 +117,7 @@ jobs:
           STARTUP: ${{ inputs.combined_startup }}
         run: test "$AUTH" != true || test "$STARTUP" = true
       - name: Validate new popup breadth selection
-        if: inputs.startup_popup_breadth
+        if: inputs.startup_popup_breadth || (inputs.startup_popup_group != '' && inputs.startup_popup_group != 'none')
         env:
           AUTH: ${{ inputs.startup_authentication }}
           STARTUP: ${{ inputs.combined_startup }}
@@ -201,6 +207,7 @@ jobs:
           PACKAGE_PROFILE: ${{ inputs.package_profile }}
           OASIS_STARTUP_AUTHENTICATION: ${{ inputs.startup_authentication }}
           OASIS_STARTUP_POPUP_BREADTH: ${{ inputs.startup_popup_breadth }}
+          OASIS_STARTUP_POPUP_GROUP: ${{ inputs.startup_popup_group }}
           OASIS_STARTUP_PORTAL_ROOT: ${{ inputs.startup_portal != '' && format('{0}/oportal-startup-source', github.workspace) || '' }}
           OASIS_PROFILE_BROWSER_RUNTIME: ${{ github.workspace }}/portal-startup-owned/runtime
         run: python3 -B Scripts/TestHosts/qualify_web4_combined_startup.py --digest "$DIGEST" --profile "$PACKAGE_PROFILE"

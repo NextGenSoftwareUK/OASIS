@@ -8,6 +8,10 @@ async function main(){
  assert.equal(process.env.GITHUB_ACTIONS,'true');
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
+ const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
+ assert.ok(['none','nft-messaging-data'].includes(popupGroup));
+ const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
+ let recipient,recipientToken,sentMessage=0,dataReads=0;
  if(api5){assert.equal(api5.hostname,'127.0.0.1');assert.equal(api5.protocol,'http:');}
  const root=await fs.realpath(process.env.OASIS_STARTUP_PORTAL_ROOT),owned=await fs.realpath(process.env.OASIS_PROFILE_BROWSER_RUNTIME);
  const {chromium}=require(path.join(owned,'node_modules/playwright-core'));
@@ -38,11 +42,18 @@ async function main(){
   const origin='http://127.0.0.1:'+server.address().port,proxyOrigin='https://127.0.0.1:'+proxy.address().port;
   const proxy5Origin=proxy5?'https://127.0.0.1:'+proxy5.address().port:null;
   stage='owned registration';const account=await createOwnedAvatar(api.href);
-  if(api5){
-   const signed=await account.call('free account sign-in','POST','/api/avatar/authenticate',{username:account.username,password:account.password},undefined,true);
-   await account.call('free subscription','POST','/api/subscription/checkout/session',{planId:'free',successUrl:origin+'/subscription?tab=mysubs',cancelUrl:origin+'/'},signed.jwtToken);
-   const subs=await account.call('free readback','GET','/api/subscription/subscriptions/me',undefined,signed.jwtToken);
+  async function admitFree(owned){
+   const signed=await owned.call('free account sign-in','POST','/api/avatar/authenticate',{username:owned.username,password:owned.password},undefined,true);
+   await owned.call('free subscription','POST','/api/subscription/checkout/session',{planId:'free',successUrl:origin+'/subscription?tab=mysubs',cancelUrl:origin+'/'},signed.jwtToken);
+   const subs=await owned.call('free readback','GET','/api/subscription/subscriptions/me',undefined,signed.jwtToken);
    assert.ok(Array.isArray(subs)&&subs.some(s=>s.planId==='free'&&s.status==='active'),'Persisted free subscription');
+   return signed.jwtToken;
+  }
+  if(api5)await admitFree(account);
+  if(popupGroup==='nft-messaging-data'){
+   assert.equal(api5,null,'WEB4-only popup journey');
+   recipient=await createOwnedAvatar(api.href);
+   await admitFree(account);recipientToken=await admitFree(recipient);
   }
   browser=await chromium.launch({channel:'chrome',headless:true});
   context=await browser.newContext({serviceWorkers:'block',ignoreHTTPSErrors:true});
@@ -51,7 +62,18 @@ async function main(){
    const request=route.request(),url=new URL(request.url());
    if(url.origin==='https://api.web4.oasisomniverse.one'){
     const mutation=request.method()!=='GET'&&request.method()!=='OPTIONS';
-    if(!url.pathname.startsWith('/api/')||(mutation&&!['/api/avatar/authenticate','/api/avatar/refresh-token'].includes(url.pathname)))
+    let ownedOperation=false;
+    if(popupGroup==='nft-messaging-data'&&request.method()==='POST'){
+     if(url.pathname==='/api/data/load-holons-for-parent'){
+      assert.equal(++dataReads,1,'One actual Data browse');
+      assert.deepEqual(request.postDataJSON(),{id:account.avatar.id,holonType:'All',loadChildren:false,recursive:false});
+      ownedOperation=true;
+     }else if(url.pathname==='/api/messaging/send-message-to-avatar/'+recipient.avatar.id){
+      assert.equal(++sentMessage,1,'One explicit owned message send');
+      assert.equal(request.postDataJSON(),messageText);ownedOperation=true;
+     }
+    }
+    if(!url.pathname.startsWith('/api/')||(mutation&&!ownedOperation&&!['/api/avatar/authenticate','/api/avatar/refresh-token'].includes(url.pathname)))
      throw new Error('Unadmitted browser API operation.');
     return route.continue({url:proxyOrigin+url.pathname+url.search});
    }
@@ -85,6 +107,44 @@ async function main(){
   await page.waitForFunction(()=>localStorage.getItem('loggedIn')==='true');
   stage='dashboard';await page.locator('#dashboard').waitFor({state:'visible'});
   assert.equal(await page.locator('#dash-name').textContent(),account.username);
+  if(popupGroup==='nft-messaging-data'){
+   stage='NFT catalogue';await page.locator('#dash-card-nfts').click();
+   await page.waitForFunction(()=>['standard','geo','oland'].every(kind=>
+    !document.getElementById('nft-empty-'+kind).hidden&&document.getElementById('nft-error-'+kind).hidden));
+   await page.locator('#nft-group-by-collection').check();
+   assert.equal(await page.locator('#nft-empty-standard').isVisible(),true);
+   assert.equal(await page.locator('#nft-error-standard').isVisible(),false);
+   for(const tab of ['geo','oland']){
+    await page.locator('#nft-modal-block [data-tab="'+tab+'"]').click();
+    await page.locator('#nft-tab-'+tab).waitFor({state:'visible'});
+   }
+   await page.locator('#nft-modal-close-btn').click();await page.waitForURL(url=>url.pathname==='/');
+   stage='Data browse';const dataRead=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/data/load-holons-for-parent');
+   await page.locator('#dash-card-holons').click();
+   const raw=await (await dataRead).json();assert.equal(raw.result.isError,false,'Real Data result');
+   assert.ok(Array.isArray(raw.result.result),'Real Data list');
+   await page.waitForFunction(n=>document.getElementById('data-modal-status').hidden&&
+    document.querySelectorAll('#data-browse-grid .data-holon-card').length===n,raw.result.result.length);
+   await page.locator('#data-modal-close-btn').click();await page.waitForURL(url=>url.pathname==='/');
+   stage='Messaging send';await page.locator('#dash-card-messages').click();
+   await page.waitForFunction(()=>document.getElementById('msg-conversations-list').textContent.includes('No conversations yet'));
+   await page.locator('#messaging-modal-block [data-tab="send"]').click();
+   await page.locator('#msg-to-avatar').fill(recipient.avatar.id);await page.locator('#msg-body').fill(messageText);
+   await page.locator('#msg-send-btn').click();
+   await page.waitForFunction(()=>document.getElementById('messaging-modal-status').textContent==='Message sent.');
+   stage='Messaging recipient readback';
+   const inbox=await recipient.call('recipient inbox','GET','/api/messaging/messages?limit=50&offset=0',undefined,recipientToken);
+   assert.ok(Array.isArray(inbox));
+   const delivered=inbox.filter(m=>m.content===messageText&&m.fromAvatarId===account.avatar.id&&m.toAvatarId===recipient.avatar.id);
+   assert.equal(delivered.length,1,'Exactly one persisted recipient message');assert.ok(delivered[0].id);
+   stage='Messaging conversation';await page.locator('#messaging-modal-block [data-tab="conversations"]').click();
+   await page.locator('[data-msg-open="'+recipient.avatar.id+'"]').click();
+   await page.waitForFunction(content=>document.getElementById('msg-thread-messages')?.textContent.includes(content),messageText);
+   await page.locator('#messaging-modal-close-btn').click();await page.waitForURL(url=>url.pathname==='/');
+   assert.equal(sentMessage,1);assert.equal(dataReads,1);assert.deepEqual(errors,[]);
+   console.log('PORTAL_STARTUP_BROWSER_PROOF: actual NFT/GeoNFT/OLAND empty catalogue tabs/grouping, Data browse and one explicit message send plus native recipient readback and conversation rendering through shipping WEB4 Startup/owned Mongo. No external mint, paid Stripe, WEB6 or hosted claim.');
+   return;
+  }
   if(process.env.OASIS_STARTUP_POPUP_BREADTH==='true'){
    assert.equal(api5,null,'WEB4-only new-popup scenario');
    stage='Files popup';await page.locator('#dash-card-files').click();
