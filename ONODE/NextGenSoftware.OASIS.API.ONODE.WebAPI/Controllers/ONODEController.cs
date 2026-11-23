@@ -225,9 +225,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// Get node configuration
-        /// </summary>
         /// <summary>Public loaded configuration only; provider credentials and arbitrary node settings are excluded.</summary>
         [HttpGet("public-config")]
         public IActionResult GetPublicNodeConfig()
@@ -257,6 +254,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }));
         }
 
+        /// <summary>Get API-managed node configuration.</summary>
         [HttpGet("config")]
         public async Task<IActionResult> GetNodeConfig()
         {
@@ -308,14 +306,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        // ── Provider endpoints ────────────────────────────────────────────────────
-        // Read-only in local mode; OPORTAL reads directly. Writes go via supervisor.
-
-        /// <summary>
-        /// Returns configured OASIS storage providers and their enabled state from OASISDNA.json.
-        /// </summary>
+        // Provider actions share the authenticated supervisor transport and preserve its acknowledgement.
         [HttpGet("providers")]
-        public async Task<IActionResult> GetProviders()
+        public Task<IActionResult> GetProviders()
+            => SendSupervisorProviderRequestAsync(System.Net.Http.HttpMethod.Get, "supervisor/providers");
+
+        [HttpPut("providers/{providerType}/enable")]
+        public Task<IActionResult> EnableProvider(string providerType)
+            => SendSupervisorProviderRequestAsync(System.Net.Http.HttpMethod.Put,
+                $"supervisor/providers/{Uri.EscapeDataString(providerType)}/enable");
+
+        [HttpPut("providers/{providerType}/disable")]
+        public Task<IActionResult> DisableProvider(string providerType)
+            => SendSupervisorProviderRequestAsync(System.Net.Http.HttpMethod.Put,
+                $"supervisor/providers/{Uri.EscapeDataString(providerType)}/disable");
+
+        [HttpPut("providers/{providerType}/priority")]
+        public Task<IActionResult> SetProviderPriority(string providerType, [FromBody] JsonElement body)
+            => SendSupervisorProviderRequestAsync(System.Net.Http.HttpMethod.Put,
+                $"supervisor/providers/{Uri.EscapeDataString(providerType)}/priority", body.GetRawText());
+
+        private async Task<IActionResult> SendSupervisorProviderRequestAsync(
+            System.Net.Http.HttpMethod method, string path, string? body = null)
         {
             try
             {
@@ -329,9 +341,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 var factory = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions
                     .GetRequiredService<System.Net.Http.IHttpClientFactory>(HttpContext.RequestServices);
                 using var http = factory.CreateClient("ONODESupervisor");
-                http.DefaultRequestHeaders.Authorization =
-                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-                using var response = await http.GetAsync("supervisor/providers", HttpContext.RequestAborted);
+                using var request = new System.Net.Http.HttpRequestMessage(method, path);
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                if (body != null)
+                    request.Content = new System.Net.Http.StringContent(body, System.Text.Encoding.UTF8, "application/json");
+                using var response = await http.SendAsync(request, HttpContext.RequestAborted);
                 return new ContentResult
                 {
                     StatusCode = (int)response.StatusCode,
@@ -342,53 +356,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             catch (Exception ex) when (ex is System.Net.Http.HttpRequestException || ex is TaskCanceledException ||
                                        ex is System.IO.IOException || ex is UnauthorizedAccessException)
             {
-                _logger.LogWarning("ONODEService provider configuration could not be read.");
+                _logger.LogWarning("ONODEService provider request could not be completed.");
                 return StatusCode(503, new { message = "ONODEService supervisor not reachable." });
             }
-        }
-
-        /// <summary>
-        /// Proxies provider enable/disable/priority writes to ONODEService supervisor.
-        /// Called by OPORTAL in local mode (same machine). If supervisor unavailable, 404.
-        /// </summary>
-        [HttpPut("providers/{providerType}/enable")]
-        public async Task<IActionResult> EnableProvider(string providerType)
-        {
-            try
-            {
-                using var http = new System.Net.Http.HttpClient { BaseAddress = new Uri("http://127.0.0.1:8765/"), Timeout = TimeSpan.FromSeconds(5) };
-                var resp = await http.PutAsync($"supervisor/providers/{Uri.EscapeDataString(providerType)}/enable", null);
-                if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, await resp.Content.ReadAsStringAsync());
-                return Ok(new { message = $"{providerType} enabled. Restart service to apply." });
-            }
-            catch { return StatusCode(503, new { message = "ONODEService supervisor not reachable." }); }
-        }
-
-        [HttpPut("providers/{providerType}/disable")]
-        public async Task<IActionResult> DisableProvider(string providerType)
-        {
-            try
-            {
-                using var http = new System.Net.Http.HttpClient { BaseAddress = new Uri("http://127.0.0.1:8765/"), Timeout = TimeSpan.FromSeconds(5) };
-                var resp = await http.PutAsync($"supervisor/providers/{Uri.EscapeDataString(providerType)}/disable", null);
-                if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, await resp.Content.ReadAsStringAsync());
-                return Ok(new { message = $"{providerType} disabled." });
-            }
-            catch { return StatusCode(503, new { message = "ONODEService supervisor not reachable." }); }
-        }
-
-        [HttpPut("providers/{providerType}/priority")]
-        public async Task<IActionResult> SetProviderPriority(string providerType, [FromBody] JsonElement body)
-        {
-            try
-            {
-                using var http = new System.Net.Http.HttpClient { BaseAddress = new Uri("http://127.0.0.1:8765/"), Timeout = TimeSpan.FromSeconds(5) };
-                var content = new System.Net.Http.StringContent(body.GetRawText(), System.Text.Encoding.UTF8, "application/json");
-                var resp = await http.PutAsync($"supervisor/providers/{Uri.EscapeDataString(providerType)}/priority", content);
-                if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, await resp.Content.ReadAsStringAsync());
-                return Ok(new { message = $"{providerType} priority updated." });
-            }
-            catch { return StatusCode(503, new { message = "ONODEService supervisor not reachable." }); }
         }
 
         // ── Holon Bridge endpoints ────────────────────────────────────────────────
