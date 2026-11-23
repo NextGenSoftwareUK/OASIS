@@ -184,7 +184,7 @@ async function main(){
      try{const summary=JSON.parse(header?.metaData?.payload),points=JSON.parse(geometry?.metaData?.payload)?.[0]?.[0];fact.routeShape.summaryPascal=typeof summary.SourceApp==='string';fact.routeShape.summaryCamel=typeof summary.sourceApp==='string';fact.routeShape.latitudePascal=typeof points?.Latitude==='number';fact.routeShape.latitudeCamel=typeof points?.latitude==='number';}catch{}
     }
     if(typeof code==='string'&&/^[A-Z0-9_]{1,80}$/.test(code))fact.errorCode=code;
-    if((code==='HYPERDRIVE_ROUTE_FAILED'||popupGroup==='chat'&&url.pathname.startsWith('/api/chat/end-chat-session/')&&result?.isError===true)&&typeof result.message==='string'){
+    if((code==='HYPERDRIVE_ROUTE_FAILED'||selectedPopups.includes('Chat')&&url.pathname.startsWith('/api/chat/end-chat-session/')&&result?.isError===true)&&typeof result.message==='string'){
      const message=result.message.replace(/(?:https?|mongodb(?:\+srv)?):\/\/[^\s]+/gi,'[URI]')
       .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,'[JWT]')
       .replace(/[a-f0-9]{32,}/gi,'[identifier]').slice(0,320);

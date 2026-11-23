@@ -88,5 +88,11 @@
     "status": "in-progress-not-accepted-not-deployed",
     "sourceValidation": "Exact paired manifest check passed; no physical module switch or gitlink staging. Fresh shared branch gate/publication remains after candidate acceptance.",
     "history": "Both original sourcee372 and current Developmentdf5 parents retained; no forced/shared history rewrite."
+  },
+  "directoryMessage": {
+    "portal": "0bbe7e942b6e4ea3b59e692c0699ccf127e1be75",
+    "status": "implemented-syntax-and-endpoint-checks-only-not-browser-accepted",
+    "scope": "Directory results validate public avatar IDs and offer Message. Existing message opener accepts recipient ID, selects send tab and prefills recipient, with no automatic send. Existing route wrapper preserves lazy-load opener arguments. Search result handler is bound to current search/session.",
+    "next": "Use chat-directory group on corrected image45158527267: two independent outcomes, one existing image/native environment. Directory lookup -> compose -> explicit send -> recipient native readback -> return navigation. No accepted HyperDrive replay."
   }
 }

@@ -638,5 +638,11 @@
     "candidate": "f4ac6302cbeadf6b1af77cbd9c6cdf27cfec402b",
     "imageRun": 45158527267,
     "overallComplete": false
+  },
+  "latestDirectoryMessage": {
+    "portal": "0bbe7e942b6e4ea3b59e692c0699ccf127e1be75",
+    "status": "source-implemented-real-browser-acceptance-pending",
+    "evidence": "OPORTAL_CHAT_HYPERDRIVE_2026-11-23.json",
+    "nextGroup": "chat-directory"
   }
 }
