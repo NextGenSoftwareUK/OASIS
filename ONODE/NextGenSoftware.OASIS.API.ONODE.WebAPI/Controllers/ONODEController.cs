@@ -228,6 +228,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Get node configuration
         /// </summary>
+        /// <summary>Public loaded configuration only; provider credentials and arbitrary node settings are excluded.</summary>
+        [HttpGet("public-config")]
+        public IActionResult GetPublicNodeConfig()
+        {
+            var oasis = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS;
+            var storage = oasis?.StorageProviders;
+            if (oasis == null || storage == null)
+                return StatusCode(503, new { isError = true, message = "Loaded OASIS configuration is unavailable." });
+            return Ok(new OASISResult<object>(new
+            {
+                schemaVersion = "onode-public-config-v1",
+                sources = new { oasisDna = "Loaded WEB4 OASIS DNA" },
+                oasisDna = new
+                {
+                    hyperDriveMode = oasis.HyperDriveMode,
+                    storage = new
+                    {
+                        storage.AutoFailOverEnabled, storage.AutoReplicationEnabled,
+                        storage.AutoLoadBalanceEnabled, storage.AutoFailOverLocalProvidersEnabled
+                    },
+                    timeouts = new
+                    {
+                        storage.ProviderMethodCallTimeOutSeconds, storage.AvatarLoginTimeoutSeconds,
+                        storage.ActivateProviderTimeOutSeconds, storage.DectivateProviderTimeOutSeconds
+                    }
+                }
+            }));
+        }
+
         [HttpGet("config")]
         public async Task<IActionResult> GetNodeConfig()
         {
@@ -586,6 +615,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public string NodeId { get; set; } = "";
         public string AvatarId { get; set; } = "";
         public string Version { get; set; } = "";
+        public List<string> Capabilities { get; set; } = new();
         public DateTime LastSeen { get; set; }
         public List<HolonServiceStateDto> Services { get; set; } = new();
         public HolonMetricsDto? Metrics { get; set; }
