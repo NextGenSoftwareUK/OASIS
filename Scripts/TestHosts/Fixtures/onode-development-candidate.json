@@ -42,8 +42,10 @@
   "priorApiCompileRun": 45214519252,
   "canonicalModeRun": {
     "run": 45215334828,
-    "status": "pending behind existing source compile",
-    "scope": "Changed supervisor plus command producer check only; retain API compile from45214519252 when terminal."
+    "job": 137834861037,
+    "status": "success",
+    "source": "c89bee8891ad197e846faeec7ad12a14fbcfd217",
+    "scope": "Actual supervisor and command host against shipping DNA HyperDriveModes.V2; public exclusions/identity/settings/actual empty collector/wrong-node rejection accepted; no bridge/browser/provider controls."
   },
   "acceptedProviderTransportCompile": {
     "run": 45214519252,
@@ -52,5 +54,10 @@
     "web4Errors": 0,
     "supervisorErrors": 0,
     "commandProbe": "Secret exclusion, identity, saved legacy fields, actual empty collector and wrong-node rejection accepted; old fixture V2 literal did not prove canonical mode or mode-specific policy."
+  },
+  "modeRoutingRun": {
+    "run": 45216379653,
+    "status": "in_progress",
+    "scope": "Service-only source; deliberately different modern/legacy settings verify canonical routing owner."
   }
 }
