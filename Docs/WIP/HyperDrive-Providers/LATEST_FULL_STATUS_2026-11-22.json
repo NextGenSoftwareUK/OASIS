@@ -583,5 +583,13 @@
     "scope": "Private GPX publish/native readback/rename/reopen/list/close through real portal and shipping API with owned Mongo.",
     "evidence": "OPORTAL_MAP_ROUTE_HTTP_2026-11-23.json",
     "overallComplete": false
+  },
+  "latestDataEditAcceptance": {
+    "date": "2026-11-23",
+    "run": 45149458665,
+    "portal": "b1d85e9951edae4cf770f7c9295b1e4137e8f0fd",
+    "scope": "Actual owner name/description detail edit and native persisted readback; owned create/read/delete setup/cleanup.",
+    "evidence": "OPORTAL_DATA_EDIT_2026-11-23.json",
+    "overallComplete": false
   }
 }
