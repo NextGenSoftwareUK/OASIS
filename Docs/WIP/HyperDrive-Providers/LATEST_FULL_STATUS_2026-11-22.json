@@ -5,7 +5,7 @@
     "taskBranch": "work/hyperdrive-provider-completion",
     "taskWorktree": "C:/Source/OASIS2-hyperdrive",
     "portalBranch": "dev",
-    "portalHead": "4d60218ba247b106a8b3f24afdf0583694288f71",
+    "portalHead": "71ea1255c7e7241cdc766179aaf4d4525865004a",
     "reviewedDevelopment": "15798b127af2274aa811252ad6335cbfc8661a49",
     "currentCore": "80400bb46dab74632a99d1f27bf6a0a6a94b7840",
     "currentWeb6": "78a27a295e74721358eb2b02399f79eff5b21633",
@@ -55,7 +55,7 @@
       "Games actual Game/STARNETDNA details and supplied web launch links served; native catalogue conversion failure remains under diagnosis"
     ],
     "remaining": [
-      "Games COSMIC_METADATA_HYDRATION_FAILED; OAPP/Inventory paths not yet accepted in current cohort",
+      "Complete Games/OAPP/Inventory real browser flow after native list writer and popup viewport fixes; legacy string-encoded list assessment",
       "Full portal page/navigation and real Startup/SSO browser acceptance across all screens",
       "Hosted Stripe paid lifecycle and checkout recovery acceptance; existing owner action remains open",
       "Permanent account and all-data/provider/replica erasure lifecycle",
@@ -153,7 +153,7 @@
     "Permanent account/private-data/provider-replica erasure and Settings deletion remain unfinished.",
     "Changed async DID/MFA session-save and sync/detail native acknowledgement paths require representative verification before full entry-point acceptance."
   ],
-  "lastUpdatedUtc": "2026-11-23T04:04:30.3424301Z",
+  "lastUpdatedUtc": "2026-11-23T04:16:55.7622235Z",
   "latestFocusedRun": {
     "id": 45091356813,
     "job": 137421421351,
@@ -168,7 +168,7 @@
       "Subscription/MCP renewal notification and stale checkout guidance",
       "Single Gifts logout handler; no undeclared-variable error"
     ],
-    "pending": "Gifts seven running dev revisions accepted, WEB4three selected pauses true. Games list->string Mongo writer defect identified and fixed in candidate d531a4d5; raw BSON/typed read/browser qualification45109755916 active. Legacy-string migration assessment and OAPP/Inventory/full portal remain open."
+    "pending": "Native Mongo BSON-list write and typed Game readback passed within45109755916; browser rendered Games details then failed off-viewport tab. Shared7popup scrolling fixed Portal71ea125; same journey45110969977 active, backendd531 not deployed. Legacy metadata assessment still open."
   },
   "settingsBrowserPreparation": {
     "run": 45093523946,

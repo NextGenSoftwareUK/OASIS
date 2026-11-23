@@ -1,3 +1,7 @@
+## 2026-11-23 - Native Mongo list fix passed; real popup viewport bug source-fixed
+
+45109755916/job137479162945 compiled0errors5m39.11, rawSupportedPlatformsBSONarray/exacttypedGamepassed; browserGamesdetails/developer/platform/SSO/suppliedlaunchhref rendered thenMyGamescontroloutsideviewport. Shipping7popupwidthrule lackedheight/scroll. Portal71ea125 adds3sharedCSSlines; fixtureusesall6shippingstyles andclosespopupbeforenextopen. Samejourney45110969977 active on d531writerfix; no overallbrowseracceptance/backenddeploymentyet. Legacystringassessment remainsopen. All7Giftsruntimeproofs retained; no sharedbackend/localoutputs.
+
 ## 2026-11-23 - Mongo list writer root cause fixed in candidate; Gifts7runtime accepted
 
 45108587954/job137475488863 compiled0errors5m24.78 thennativeGamepointread proved String->List<string> failure; cleanupDB/DNA/container/browserruntime/cache verified. Mongo serializer handles arrays but routes IList/List<T> to complexJSONtext. Candidate d531a4d5 on current15798 changesonly6writerlines to native BSONarray; no readerfallback. Run45109755916 active withrawBSON/exacttypedread and samebrowserjourney. Legacystringassessment remainsopen. PeerCOSMICstatus reviewed; Mongo serializerunchangedbetweenfailed/currentbase, no coordinationoverlap. Giftsall7SUCCESS/running: WEB4=61b1d01d, others15798; Core80400/GiftsController preserved, WEB4threepauseflagstrue. No sharedbackend/localoutputs.

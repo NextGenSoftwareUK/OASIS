@@ -2,15 +2,15 @@
   "implementation": "Games now renders real Game/STARNETDNA details/capabilities and supplied absolute web launch target from already-fetched records. No new API fanout.",
   "scope": "One new real populated Games/OAPPs/Inventory SDK/browser/HTTP/native Mongo browse/detail/launch-link/logout journey; seven browser GETs, zero browser mutations. Existing accepted Gifts/session/provider cohorts not selected.",
   "base": "15798b127af2274aa811252ad6335cbfc8661a49",
-  "checks": "Same representative native/browser journey now checks raw BSON array + exact platforms and real typed readback before browser. Source syntax/diff and reviewed file identity passed; compile/native/browser pending.",
-  "status": "root-cause-list-writer-fix-in-qualification",
+  "checks": "Same representative browser journey rerun on exactd531writerfix and Portal71ea125; includes real inventory quantity display. No complete storefront/browser acceptance until terminal pass.",
+  "status": "native-list-write-and-Game-readback-passed-popup-viewport-fixed-source",
   "cleanup": "No local runtime/env/build/database/download/results. Same owned ephemeral CI Mongo/browser fixture; existing finally cleanup. No shared Atlas/PIPER calls.",
   "control": "42766fe7ebb9001e512bf52f80d5cbfc87343a26",
   "run": 45106635634,
-  "portal": "4d60218ba247b106a8b3f24afdf0583694288f71",
+  "portal": "71ea1255c7e7241cdc766179aaf4d4525865004a",
   "source": "d531a4d543f6bc9428372ab1454110b882ac493c",
-  "activeRun": 45109755916,
-  "activeControl": "f725558345bb79b4729fb78c73858dbe514edf1a",
+  "activeRun": 45110969977,
+  "activeControl": "5405725c20a5768eeeac9d127d6d130f16cb7aab",
   "attempts": [
     {
       "build": "0errors4m58.44",
@@ -41,9 +41,20 @@
       "run": 45108587954,
       "errorCode": "COSMIC_METADATA_HYDRATION_FAILED",
       "conclusion": "failure"
+    },
+    {
+      "rootCause": "Shipping shared popup rule limited width but not height/scroll. Fixture also must close current modal before opening next.",
+      "job": 137479162945,
+      "stage": "My Games click could not reach tab outside viewport after details expansion",
+      "conclusion": "failure",
+      "cleanup": "Owned DB/DNA/container/browser runtime/cache absence verified.",
+      "acceptedObservations": "Raw native SupportedPlatforms BSON array and exact typed Game readback passed; actual Games list and expanded developer/platform/SSO/launch details rendered.",
+      "build": "0errors5m39.11",
+      "run": 45109755916
     }
   ],
   "rootCause": "Mongo MetaDataDictionarySerializer handles CLR arrays but sends IList/List<T> to the complex JSON-text writer. Core correctly requires a declared list, so new Game SupportedPlatforms cannot hydrate.",
   "fix": "Six-line producer fix writes IList values as BSON arrays using existing element serializer; explicit strings/complex POCO JSON-text contracts stay unchanged. No read-time guessing/fallback.",
-  "legacyRemaining": "Already persisted JSON-text list metadata is not silently reinterpreted; assess explicit typed migration before claiming existing catalogue/full provider repaired. No shared Atlas inspection/mutation performed."
+  "legacyRemaining": "Already persisted JSON-text list metadata is not silently reinterpreted; assess explicit typed migration before claiming existing catalogue/full provider repaired. No shared Atlas inspection/mutation performed.",
+  "viewportFix": "Portal71ea125 bounds shared7popup height and enables vertical scrolling. Test host now uses all6shipping stylesheets and actual close controls between popup opens; no forced click or timeout increase."
 }
