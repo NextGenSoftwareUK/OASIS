@@ -72,9 +72,14 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsTrue(reader.Linq<Holon>((CosmicQueryTrackingMode)99).IsError);
         var invalid=await reader.ReadAsync(reader.Query<Holon>().Result,(CosmicQueryTrackingMode)99);
         Assert.IsTrue(invalid.IsError);Assert.AreEqual("COSMIC_QUERY_TRACKING_MODE_INVALID",invalid.ErrorCode);
-        var scalar=await Timed("mode-survives-scalar-composition",()=>resolvedQuery.Select(row=>row.Name).ToCosmicListAsync());
+        // Post-entity-set scalar selection is a separate, currently unregistered
+        // native stage. Preserve its explicit refusal rather than using client evaluation.
+        var unsupportedSelection=Assert.ThrowsException<CosmicLinqException>(()=>resolvedQuery.Select(row=>row.Name));
+        Assert.AreEqual("CQL_EXPRESSION_UNSUPPORTED",unsupportedSelection.Code);
+        var scalar=await Timed("mode-survives-scalar-composition",()=>source
+            .AsCosmicNoTrackingWithIdentityResolution().Select(row=>row.Name).ToCosmicListAsync());
         Assert.IsFalse(scalar.IsError,scalar.Message+scalar.Exception);
-        CollectionAssert.AreEqual(new[]{"tracking modes","tracking modes"},scalar.Result.ToArray());
+        CollectionAssert.AreEqual(new[]{"tracking modes"},scalar.Result.ToArray());
         using var stateless=CosmicStatelessSession.Create(manager,adapter,access).Result;
         var statelessSource=stateless.Linq<Holon>().Result.Where(row=>row.Id==id);
         var statelessQuery=statelessSource.Concat(statelessSource).AsCosmicNoTrackingWithIdentityResolution();
