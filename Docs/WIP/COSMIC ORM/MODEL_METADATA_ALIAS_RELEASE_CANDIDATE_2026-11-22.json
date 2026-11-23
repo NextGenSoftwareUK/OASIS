@@ -11,7 +11,7 @@
   "actualWeb4Compiled": true,
   "imagePhase": "accepted",
   "imageAccepted": true,
-  "packageAccepted": false,
+  "packageAccepted": true,
   "deployed": false,
   "nativeRun": 45083185178,
   "expectedNativeTests": 3,
@@ -57,7 +57,7 @@
   "imageRun": 45085992675,
   "imageJob": 137404629281,
   "digest": "sha256:365c7530f7e25017a69fbd4a919c968ae20a08276c4e37cdd85395c962c45916",
-  "packagePhase": "in_progress",
+  "packagePhase": "accepted",
   "packagePriorRuns": [
     45081971217,
     45077211754,
