@@ -302,8 +302,8 @@ async function main(){
    await checkPopup('Clan','#clan-close-btn',async()=>{
     stage='Clan create form';await page.evaluate(()=>window.openClanModal());await page.waitForFunction(()=>document.getElementById('clan-browse-list').textContent.includes('No clans found.'));
     await page.locator('#clan-modal-block [data-tab="create"]').click();await page.locator('#clan-create-name').fill(clanName);await page.locator('#clan-create-desc').fill('Owned clan journey');
-    stage='Clan create';const createResponse=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/clan'&&r.request().method()==='POST');await page.locator('#clan-create-btn').click();
-    const createdRaw=await(await createResponse).json(),created=typeof createdRaw.isError==='boolean'?createdRaw:createdRaw.result;assert.equal(created.isError,false);clanId=created.result.id;assert.match(clanId,/^[0-9a-f-]{36}$/i);
+    stage='Clan create';const [createResponse]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname==='/api/clan'&&r.request().method()==='POST'),page.locator('#clan-create-btn').click()]);
+    const createdRaw=await createResponse.json(),created=typeof createdRaw.isError==='boolean'?createdRaw:createdRaw.result;assert.equal(created.isError,false);clanId=created.result.id;assert.match(clanId,/^[0-9a-f-]{36}$/i);
     assert.equal(created.result.ownerAvatarId,account.avatar.id);assert.ok(created.result.memberIds.includes(account.avatar.id));
     await page.locator('#clan-edit-form').waitFor({state:'attached'});await page.locator('#clan-detail-panel details summary').click();
     stage='Clan edit';await page.locator('#clan-edit-name').fill(clanName+' edited');await page.locator('#clan-edit-description').fill('Edited clan journey');await page.locator('#clan-edit-form button').click();
