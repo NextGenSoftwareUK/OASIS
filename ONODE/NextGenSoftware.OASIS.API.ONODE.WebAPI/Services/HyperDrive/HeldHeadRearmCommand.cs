@@ -24,7 +24,7 @@ internal static class HeldHeadRearmCommand
         {
             if (args.Length != 2 || Environment.GetEnvironmentVariable("OASIS_SANDBOX") != "true")
                 throw new InvalidOperationException("Explicit demo shell context required.");
-            var bytes = await File.ReadAllBytesAsync(Path.GetFullPath(args[1]));
+            var bytes = await System.IO.File.ReadAllBytesAsync(Path.GetFullPath(args[1]));
             var request = Parse(bytes);
             var dna = Newtonsoft.Json.JsonConvert.DeserializeObject<OASISDNA>(Environment.GetEnvironmentVariable("OASIS_DNA_JSON")
                 ?? throw new InvalidOperationException("Configured DNA required."));
