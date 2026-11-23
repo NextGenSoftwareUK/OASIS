@@ -1,22 +1,22 @@
 {
   "scope": "onode",
-  "status": "reviewed-ready-for-compile-and-real-command-probe",
-  "candidate": "ee4d0ab04fe962f781ffd2736711b8420076b2ae",
-  "base": "693154e540bdc081fe58764014df4541a561eff4",
-  "tag": "qualification/onode-authenticated-reviewed-20261123",
+  "status": "canonical-mode-service-only-change-ready-for-command-probe",
+  "candidate": "c89bee8891ad197e846faeec7ad12a14fbcfd217",
+  "base": "ee4d0ab04fe962f781ffd2736711b8420076b2ae",
+  "tag": "qualification/onode-canonical-mode-root-20261123",
   "allowedPaths": [
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv"
+    "Docker/oasis-dependency-versions.env",
+    "ONODE/ONODEManager"
   ],
   "buildProjects": [
-    "WEB4",
     "ONODESUPERVISOR"
   ],
   "core": {
     "candidate": "271603c32f13345cebd350b557f7c6bd10ab9d04"
   },
-  "onodeManager": "458743e10b9eb1ce7c7fa10a58bd27e9c11b4af2",
+  "onodeManager": "8a8fcc11e8185947da1f277bc25e94c6cd525a84",
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
-  "remaining": "Regenerate/review new public-config route, compile changed API/service, wire popup through advertised capability and verify real bridge/public view/command/browser. Earlier a67 build remains its scoped evidence.",
+  "remaining": "Retain successful prior API compile once terminal; service-only canonical mode fix and independent shipping-DNA command probe required. Full HTTP bridge/browser/provider schema still open.",
   "inventoryReview": {
     "run": 45213996648,
     "artifact": 14836649117,
@@ -38,5 +38,6 @@
     "supervisorErrors": 0,
     "scope": "Actual API and service source compilation, not runtime acceptance."
   },
-  "onodeCommandCheck": true
+  "onodeCommandCheck": true,
+  "priorApiCompileRun": 45214519252
 }

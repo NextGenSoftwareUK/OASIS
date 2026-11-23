@@ -220,8 +220,9 @@ jobs:
                 if (!$probeRoot.StartsWith($controlRoot, [StringComparison]::Ordinal)) { throw 'Probe cleanup escaped control checkout.' }
                 $probe = Join-Path $probeRoot 'OnodeCommandNative.csproj'
                 $serviceProject = [IO.Path]::GetFullPath($project)
+                $dnaProject = [IO.Path]::GetFullPath("OASIS Architecture/NextGenSoftware.OASIS.API.DNA/NextGenSoftware.OASIS.API.DNA.csproj")
                 try {
-                  dotnet build $probe --configuration Release "/p:OnodeServiceProject=$serviceProject" /m:2 /nr:false /p:UseSharedCompilation=false
+                  dotnet build $probe --configuration Release "/p:OnodeServiceProject=$serviceProject" "/p:OasisDnaProject=$dnaProject" /m:2 /nr:false /p:UseSharedCompilation=false
                   if ($LASTEXITCODE) { throw 'ONODE real command host build failed.' }
                   dotnet (Join-Path $probeRoot 'bin/Release/net10.0/OnodeCommandNative.dll')
                   if ($LASTEXITCODE) { throw 'ONODE real command qualification failed.' }

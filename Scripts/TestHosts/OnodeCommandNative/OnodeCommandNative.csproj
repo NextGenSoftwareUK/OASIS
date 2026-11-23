@@ -7,8 +7,10 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="$(OnodeServiceProject)" />
+    <ProjectReference Include="$(OasisDnaProject)" />
   </ItemGroup>
   <Target Name="RequireServiceSource" BeforeTargets="PrepareForBuild">
     <Error Condition="'$(OnodeServiceProject)' == ''" Text="Exact candidate ONODE service project is required." />
+    <Error Condition="'$(OasisDnaProject)' == ''" Text="Exact candidate OASIS DNA project is required." />
   </Target>
 </Project>

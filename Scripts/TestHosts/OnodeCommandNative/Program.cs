@@ -20,7 +20,7 @@ try
     {
         OASIS = new
         {
-            HyperDriveMode = "V2",
+            HyperDriveMode = NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2,
             StorageProviders = new
             {
                 AutoFailOverEnabled = true, AutoReplicationEnabled = false,
@@ -52,6 +52,7 @@ try
         var root = document.RootElement;
         Require(root.GetProperty("schemaVersion").GetString() == "onode-public-config-v1", "Public schema differs.");
         Require(root.GetProperty("nodeId").GetString() == config.NodeId, "Public node identity differs.");
+        Require(root.GetProperty("oasisDna").GetProperty("hyperDriveMode").GetString() == NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2, "Public mode differs from shipping DNA contract.");
         Require(root.GetProperty("oasisDna").GetProperty("storage").GetProperty("autoFailOverEnabled").GetBoolean(),
             "Saved routing setting was not projected.");
         Require(root.GetProperty("oasisDna").GetProperty("timeouts").GetProperty("providerMethodCallTimeOutSeconds").GetInt32() == 7,
