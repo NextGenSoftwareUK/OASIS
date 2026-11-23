@@ -364,6 +364,8 @@ try
             using var result = JsonDocument.Parse(await output);
             Check(result.RootElement.GetProperty("actualOnodePopup").GetBoolean() &&
                 result.RootElement.GetProperty("realLiveFrame").GetBoolean(), "Actual popup/live result missing.");
+            Console.WriteLine("ONODE_BROWSER_REQUESTS: commandPosts=" + result.RootElement.GetProperty("commandPosts").GetInt32() +
+                "; statusReads=" + result.RootElement.GetProperty("statusReads").GetInt32() + "; rateLimited=" + result.RootElement.GetProperty("rateLimited").GetBoolean());
             Console.WriteLine("ONODE_BROWSER_NATIVE: actual pinned popup and SDK; registered public views, saved role readback, actual live frame, loaded API view and close passed; no API mocks.");
         }
         finally

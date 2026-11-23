@@ -101,9 +101,12 @@ async function verify({baseUrl,token,avatarId,nodeId}){
   assert.deepEqual(errors,[]);assert.deepEqual(unexpected,[]);assert.equal(rateLimited,false);
   assert.ok(requests.some(request=>request.path==='/api/v1/onode/commands'&&request.method==='POST'));
   assert.ok(requests.some(request=>request.path==='/api/v1/onode/public-config'));
+  const commandPosts=requests.filter(request=>request.path==='/api/v1/onode/commands'&&request.method==='POST').length;
+  const statusReads=requests.filter(request=>/^\/api\/v1\/onode\/commands\/[^/]+$/.test(request.path)&&request.method==='GET').length;
+  assert.ok(commandPosts>0&&statusReads<=commandPosts,'Completed commands must not require repeated status reads in this journey');
   return {actualOnodePopup:true,registeredPublicViews:true,savedRoleWriteReadback:true,
    roleSelection:true,providerLayout:true,reportedServicesMetrics:true,realLiveFrame:true,loadedApiView:true,closed:true,
-   apiMocks:false,errors:0};
+   commandPosts,statusReads,rateLimited,apiMocks:false,errors:0};
  }catch(error){
   const observation=await context.pages()[0]?.evaluate(()=>{
    const roles=['failover','replication','loadBalancing'];
