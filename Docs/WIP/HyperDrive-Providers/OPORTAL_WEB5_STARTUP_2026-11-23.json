@@ -1,5 +1,5 @@
 {
-  "status": "cloud-publish-passed-real-cross-service-runtime-in-progress",
+  "status": "isolated-WEB5-routing-failure-under-investigation",
   "source": "a32b0ca21aaa694edc3ad15c617055f105bba8d2",
   "development": "90d75f04f606c29bea99bfafe073b5b26722ce88",
   "core": "c19f1153eddea491e0887bfd40f898983d6b3597",
@@ -14,12 +14,25 @@
   "next": "Follow the existing run to terminal; diagnose any real entry-point, session, usage-ledger or portal error without disabling those layers.",
   "cleanup": "No new local env/download/runtime/build/database/results. Source/helper and compact descriptor only. Existing accepted WEB4/anonymous/provider cohorts retained, not replayed.",
   "active": {
-    "run": 45123029961,
-    "job": 137520949515,
-    "control": "b32f46c586a450174f7bff0cb5f6c04482d049be",
+    "run": 45124806419,
+    "control": "2d17e1ece10d065369efe344939fd362c4f28143",
     "portal": "f89b2ec160bab77ebcf05d7ba5d343f328c0b493",
-    "phase": "Actual portal and both shipping entry points",
-    "otherContractJobs": "skipped",
-    "scope": "Real username login, fresh persisted free subscription, WEB5 dashboard Games and Games/OAPPs lists through actual shipping WEB5 with enabled WEB4 native usage ledger. Empty catalogue slice; existing populated component evidence retained. Stripe/WEB6/whole portal excluded."
-  }
+    "phase": "Selected sanitized HyperDrive routing diagnostics; source/image/ledger unchanged",
+    "scope": "Real WEB5 entry point and enabled WEB4 ledger; no provider/admission/usage bypass or invented API replies."
+  },
+  "attempts": [
+    {
+      "run": 45123029961,
+      "job": 137520949515,
+      "control": "b32f46c586a450174f7bff0cb5f6c04482d049be",
+      "publish": "success",
+      "conclusion": "failure",
+      "observed": "Both real entry points reached browser; native free account and real login succeeded; WEB4 dashboard reads and usage alerts succeeded. WEB5 Games/Missions/Quests returned HYPERDRIVE_ROUTE_FAILED; Games dashboard did not load.",
+      "stage": "WEB5 Games dashboard",
+      "cause": "Unresolved; not yet classified as production code versus isolated configuration. No hosted behavior tested.",
+      "cleanupArtifact": 14794802291,
+      "archiveBytes": 2488,
+      "cleanup": "Selected RAM-read cleanup proves containers/network/database volumes absent, WEB5 process stopped and generated DNA absent; always step removes publish/browser/cache/TLS."
+    }
+  ]
 }
