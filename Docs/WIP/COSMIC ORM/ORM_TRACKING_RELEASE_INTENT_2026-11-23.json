@@ -8,7 +8,7 @@
   "nativeRuns": [
     45147280169,
     45148486674,
-    45150764171
+    45152902027
   ],
   "namedNativeAccepted": true,
   "shadowEntryNativeAccepted": true,
@@ -17,9 +17,16 @@
   "imageJob": 137616092958,
   "imageControlSource": "187f89120afc32d54332910790b619d5b36a444e",
   "imageSourceIsExplicitWorkflowInput": true,
-  "imagePhase": "in_progress",
+  "imagePhase": "built_native_gate_pending",
+  "imageBuilt": true,
+  "digest": "sha256:44ef8cbee8f878d3a0b0a65fd509f65f6fb5be7e0a743c556b0dd32921496ee8",
   "imageRequestedUtc": "2026-11-23T09:58:23.219127+00:00",
-  "packagePhase": "not_dispatched",
+  "packagePhase": "accepted",
+  "packageRun": 45154044671,
+  "packageControlSource": "0518d580865ebba1378f9129675603f7092f9a19",
+  "packageAccepted": true,
+  "trackingQualificationSource": "0518d580865ebba1378f9129675603f7092f9a19",
+  "failedTrackingRun": 45150764171,
   "priorQualifiedProducer": "c12f1aec551326001268803475186902ebdf44f6",
   "priorQualifiedImageRun": 45148985848,
   "priorQualifiedPackageRun": 45151833440,
