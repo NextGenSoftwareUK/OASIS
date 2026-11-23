@@ -1,10 +1,10 @@
 {
   "date": "2026-11-23",
-  "status": "initial load failure under diagnosis",
+  "status": "accepted real avatar/application policy lifecycle",
   "failedRun": 45169928276,
   "artifact": 14816033480,
   "artifactBytes": 3818,
-  "portal": "d1c92008398d4328d0e3295d243f97d743562e73",
+  "portal": "6f101bb312866ec5c80912a4a699815b4b19258f",
   "failure": "Storage load avatar: GET returned HTTP200/isErrorfalse but save never enabled; no policy write issued",
   "diagnosticRun": 45171051925,
   "control": "b94fd041acb6eb39f425b9d52f129e53bb71f37d",
@@ -15,7 +15,7 @@
     "independent backend readbacks",
     "normal close"
   ],
-  "cleanup": "Failed run package container absent/dataWrites0; all five startup cleanup assertions true; runtime/cache/TLS absence verified. RAM-only artifact. Diagnostic run cleanup pending. No local builds/downloads/envs/DB/results.",
+  "cleanup": "All failed/accepted receipts RAM-only; package container absent/dataWrites0; all five startup cleanup booleans true; runtime/cache/TLS absent. No local downloads/builds/envs/DB/results.",
   "diagnosticHistory": [
     {
       "run": 45170417051,
@@ -23,6 +23,32 @@
       "artifactBytes": 3834,
       "failure": "Agent-owned report validator omitted newly added bounded storageShape field; corrected before retry",
       "cleanup": "All package/startup container/network/database/process/DNA assertions true; runtime/cache/TLS absence verified"
+    },
+    {
+      "run": 45171051925,
+      "artifact": 14817965232,
+      "artifactBytes": 3815,
+      "finding": "All four unset optional response fields absent; memoryCacheSupported boolean present; editor different-scope error",
+      "cleanup": "All package/startup cleanup assertions true; runtime/cache/TLS absent"
     }
+  ],
+  "acceptedRun": 45171635902,
+  "acceptedArtifact": 14816837704,
+  "acceptedArtifactBytes": 4273,
+  "rootCause": "Shipping JSON omits unset optional scope/policy fields; editor required explicit null and rejected valid avatar scope",
+  "fix": "Normalize omitted optional fields to unset at editor response boundary; populated policy and required capability validation retained",
+  "accepted": [
+    "avatar Materialized policy save",
+    "app inherits avatar policy",
+    "app Virtual override save",
+    "clear app override restores avatar inheritance",
+    "clear avatar policy",
+    "independent native readback after every write",
+    "normal close"
+  ],
+  "remaining": [
+    "read-through memory cache capability",
+    "populated records/native import policy enforcement beyond prior separate evidence",
+    "whole portal acceptance"
   ]
 }

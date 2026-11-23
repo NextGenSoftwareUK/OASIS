@@ -658,5 +658,21 @@
     "evidence": "OPORTAL_POPUP_NAVIGATION_2026-11-23.json",
     "run": 45165837353,
     "artifact": 14814813455
+  },
+  "portalStorageUi20261123": {
+    "status": "accepted scoped avatar/app lifecycle",
+    "run": 45171635902,
+    "portal": "6f101bb312866ec5c80912a4a699815b4b19258f",
+    "remaining": "memory cache capability, other portal flows and whole-provider HA remain open"
+  },
+  "portalEggsUi20261123": {
+    "status": "four empty-list tabs and close accepted",
+    "run": 45168591802,
+    "remaining": "populated data and owned hatching"
+  },
+  "portalHyperdriveUi20261123": {
+    "status": "status/routing panels, owned preference save/readback, empty deliveries and close accepted",
+    "run": 45169287524,
+    "remaining": "populated delivery history and whole-provider HA"
   }
 }
