@@ -239,6 +239,9 @@ try
             ValidateIssuerSigningKey = true, IssuerSigningKey = key, ValidateLifetime = true, ClockSkew = TimeSpan.Zero };
     });
     var mvc = builder.Services.AddControllers();
+    if (mode == "gifts-browser")
+        mvc.AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter(allowIntegerValues: true)));
     if (mode is "mfa-http" or "mfa-middleware-http" or "session-global-http" or "mfa-browser" or "billing-warning-browser" or "billing-restoration-http" or "gifts-browser")
     {
         // WEB4 hosts authentication; WEB5's proxy has its own deployment and the same public URL.
