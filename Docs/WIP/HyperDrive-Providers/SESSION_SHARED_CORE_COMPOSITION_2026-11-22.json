@@ -1,0 +1,30 @@
+{
+  "status": "Prepared merge only; not built, accepted or deployed",
+  "core": "89d6d37c49044046a7938a692b1a6adaaad884fd",
+  "tag": "qualification/session-shared-core-20261122",
+  "ownParent": "904775d7ba575ddf3c5ad3dc51a08316c9ab3a99",
+  "sharedParent": "2051db6641cb60d654489a1af8841a58899dd667",
+  "merge": "Git merge-tree clean, no physical checkout/worktree changes and no forced update. Shared native-qualified grouping and its usage protocol tests preserved.",
+  "deltaFromSharedPaths": [
+    "Helpers/AvatarLoginReadBudget.cs",
+    "Helpers/AvatarSessionIdentity.cs",
+    "Helpers/SessionCredentialAuthority.cs",
+    "Managers/AvatarManager/AvatarLoginBreaker.cs",
+    "Managers/AvatarManager/AvatarManager-AccessSession.cs",
+    "Managers/AvatarManager/AvatarManager-Auth.cs",
+    "Managers/AvatarManager/AvatarManager-DeleteForProvider.cs",
+    "Managers/AvatarManager/AvatarManager-RefreshAuthority.cs",
+    "Managers/AvatarManager/AvatarManager-Save.cs",
+    "Managers/AvatarManager/AvatarManager-SaveUtils.cs",
+    "Managers/AvatarManager/AvatarManager-Session.cs",
+    "Managers/AvatarManager/AvatarManager-SessionAuthorityPolicy.cs",
+    "Managers/AvatarManager/AvatarManager-SessionRevocation.cs",
+    "Managers/AvatarManager/AvatarManager.cs",
+    "Managers/OASIS HyperDrive/OASISHyperDrive.cs",
+    "Objects/Avatar/AvatarSessionManagement.cs",
+    "Objects/RefreshToken.cs"
+  ],
+  "currentRun": "45086300342 remains pinned to earlier820b/Core904, not this merge. Keep acceptance source-bound.",
+  "next": "After current session result, compose shared parent/API/provider changes and verify only changed behavior plus required checks before integration.",
+  "cleanup": "Git objects and compact source report only, no environment/runtime/build/database/download."
+}
