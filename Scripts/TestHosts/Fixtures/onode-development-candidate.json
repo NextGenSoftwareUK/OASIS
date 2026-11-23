@@ -1,11 +1,11 @@
 {
   "scope": "onode",
   "status": "actual-startup-bridge-and-pinned-popup-browser-prepared-not-accepted",
-  "candidate": "196d22daffe9bfaffaab9afee161143612fb72e3",
-  "base": "93418be81300e028877250b66085e6ef96c64b90",
-  "tag": "qualification/onode-bounded-command-wait-20261123",
+  "candidate": "961c871873a0f02f80404aafc6a646866cb00fbd",
+  "base": "196d22daffe9bfaffaab9afee161143612fb72e3",
+  "tag": "qualification/onode-command-wait-reviewed-20261123",
   "allowedPaths": [
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ONODEController.cs"
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv"
   ],
   "buildProjects": [
     "WEB4"
@@ -17,12 +17,12 @@
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
   "remaining": "Shipping-cadence popup45255458012 confirmed429 and no live frame. Bounded async command status read reduces repeated requests without raising global quota; source inventory review and changed browser verification required.",
   "inventoryReview": {
-    "run": 45250072037,
-    "artifact": 14854822674,
-    "bytes": 40047,
+    "run": 45257384697,
+    "artifact": 14858368196,
+    "bytes": 40104,
     "managerRecords": 938,
     "routeRecords": 835,
-    "scope": "No semantic differences; exact route blob; manager line positions reviewed."
+    "scope": "Manager exact; route identities/classifications unchanged, positions updated. Explicit new bounded waitMilliseconds query contract manually reviewed separately; not inferred from CSV."
   },
   "pendingProviderTransport": {
     "candidate": "a03f6c902b816f831daeecf76e65265bab6f8c55",
