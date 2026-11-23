@@ -9,11 +9,12 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','data-messaging','nft-messaging-data'].includes(popupGroup));
- const selectedPopups=popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+ assert.ok(['none','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
+ const selectedPopups=popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
   popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
+ let chatId,chatStarts=0,chatSends=0,chatEnds=0;
  let recipient,recipientToken,ownedToken,incomingMessageId,incomingNotificationIds,markedMessages=0,markedNotifications=0,sentMessage=0,dataReads=0;
  const fileBytes=Buffer.from('Owned portal file roundtrip.\n','utf8');
  let fileId,fileUploads=0,fileDeletes=0;
@@ -60,7 +61,7 @@ async function main(){
   if(api5)await admitFree(account);
   if(selectedPopups.length){
    assert.equal(api5,null,'WEB4-only popup journey');ownedToken=await admitFree(account);
-   if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')){
+   if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')){
     recipient=await createOwnedAvatar(api.href);recipientToken=await admitFree(recipient);
    }
   }
@@ -81,6 +82,13 @@ async function main(){
    if(url.origin==='https://api.web4.oasisomniverse.one'){
     const mutation=request.method()!=='GET'&&request.method()!=='OPTIONS';
     let ownedOperation=false;
+    if(popupGroup==='chat-hyperdrive'&&request.method()==='POST'){
+     if(url.pathname==='/api/chat/start-new-chat-session'){
+      assert.equal(++chatStarts,1);assert.deepEqual(request.postDataJSON(),[account.avatar.id,recipient.avatar.id]);ownedOperation=true;
+     }else if(chatId&&url.pathname==='/api/chat/send-message/'+chatId){
+      assert.equal(++chatSends,1);assert.equal(request.postDataJSON(),messageText);ownedOperation=true;
+     }else if(chatId&&url.pathname==='/api/chat/end-chat-session/'+chatId){assert.equal(++chatEnds,1);ownedOperation=true;}
+    }
     if(popupGroup==='messaging-read'&&request.method()==='POST'){
      if(url.pathname==='/api/messaging/mark-messages-read'){
       assert.equal(++markedMessages,1);assert.deepEqual(request.postDataJSON(),[incomingMessageId]);ownedOperation=true;
@@ -267,6 +275,35 @@ async function main(){
     await page.waitForFunction(id=>document.getElementById('data-modal-status').hidden&&
      !document.querySelector('#data-browse-grid [data-holon-idx="'+id+'"]'),savedHolonId);
     assert.equal(holonSaves,popupGroup==='data-edit'?2:1);assert.equal(pointReads,popupGroup==='data-edit'?2:1);assert.equal(holonDeletes,1);
+   });
+   await checkPopup('Chat','#messaging-modal-close-btn',async()=>{
+    stage='Chat start';await page.locator('#dash-card-messages').click();await page.locator('#messaging-modal-block [data-tab="chat"]').click();
+    await page.waitForFunction(()=>document.getElementById('msg-active-sessions').textContent.includes('No active chats.'));
+    await page.locator('#msg-chat-recipient').fill(recipient.avatar.id);
+    const start=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/chat/start-new-chat-session');await page.locator('#msg-start-session-btn').click();
+    const startRaw=await(await start).json(),started=typeof startRaw.isError==='boolean'?startRaw:startRaw.result;
+    assert.equal(started.isError,false);chatId=started.result;assert.ok(typeof chatId==='string'&&chatId.length>0);
+    await page.locator('#msg-chat-session-wrap').waitFor({state:'visible'});
+    stage='Chat send';await page.locator('#msg-chat-input').fill(messageText);await page.locator('#msg-chat-send-btn').click();
+    await page.waitForFunction(value=>document.getElementById('msg-chat-messages').textContent.includes(value),messageText);
+    stage='Chat participant readback';const history=await recipient.call('participant history','GET','/api/chat/history/'+encodeURIComponent(chatId)+'?limit=50&offset=0',undefined,recipientToken);
+    assert.ok(Array.isArray(history));assert.equal(history.filter(row=>row.message===messageText||row.content===messageText).length,1);
+    stage='Chat resume';await page.locator('#msg-chat-choose-btn').click();await page.locator('[data-chat-resume="'+chatId+'"]').click();
+    await page.waitForFunction(value=>document.getElementById('msg-chat-messages').textContent.includes(value),messageText);
+    stage='Chat end';await page.locator('#msg-end-session-btn').click();
+    await page.waitForFunction(()=>document.getElementById('msg-no-session').hidden===false&&document.getElementById('msg-active-sessions').textContent.includes('No active chats.'));
+    const sessions=await recipient.call('participant ended sessions','GET','/api/chat/active-sessions',undefined,recipientToken);assert.ok(Array.isArray(sessions));assert.ok(!sessions.some(row=>row.id===chatId));
+    assert.equal(chatStarts,1);assert.equal(chatSends,1);assert.equal(chatEnds,1);
+   });
+   await checkPopup('HyperDrive','#hd-close-btn',async()=>{
+    stage='HyperDrive status';const statusResponse=page.waitForResponse(r=>new URL(r.url()).pathname.toLowerCase()==='/api/hyperdrive/status');
+    await page.locator('#dashboard .dash-qa-btn').filter({hasText:'HyperDrive'}).click();
+    const raw=await(await statusResponse).json(),response=typeof raw.isError==='boolean'?raw:raw.result;assert.equal(response.isError,false);
+    const status=response.result;assert.equal(typeof status.totalProviders,'number');
+    await page.waitForFunction(count=>document.getElementById('hd-stat-count').textContent===String(count),status.totalProviders);
+    stage='HyperDrive routing panels';for(const tab of ['failover','replication','loadbalance']){await page.locator('#hd-modal-block [data-tab="'+tab+'"]').click();assert.equal(await page.locator('#hd-tab-'+tab).isVisible(),true);}
+    stage='HyperDrive routing preferences';await page.locator('#hd-modal-block [data-tab="settings"]').click();await page.locator('#hd-settings-form').waitFor({state:'visible'});
+    assert.equal(await page.locator('#hd-settings-fields').isDisabled(),false);
    });
    await checkPopup('MessagingRead','#messaging-modal-close-btn',async()=>{
     stage='Inbox unread state';await page.waitForFunction(()=>document.getElementById('dash-card-messages').textContent==='1 unread');
