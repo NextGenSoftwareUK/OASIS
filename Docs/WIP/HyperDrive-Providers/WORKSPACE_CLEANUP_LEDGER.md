@@ -3063,3 +3063,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 2026-11-23 Data CRUD45144257374/45144864933: RAM-only selected artifacts3786B/4277B verified all five startup cleanup conditions true, including owned containers/network/ephemeral DB volumes absent and unused WEB5 stopped/DNA absent. No local runtime/download/env/build/database/test-result outputs created; only compact tracked evidence retained.
 
 2026-11-23 Portal3cdbd91 source-only Data/dashboard fix: in-memory changed-function check and syntax/endpoint checks; no local env/download/runtime/build/database/results. Compact portal report docs/WIP/DATA_DASHBOARD_REFRESH_2026-11-23.md retained.
+
+2026-11-23 Map45147149400 failed immutable portal input validation before browser preparation/startup; no artifact published. Corrected45147304137 reuses existing cloud image; owned runtime/container/database cleanup receipt pending terminal. No local downloads/env/build/database/test-results created. Our World checkout read only; unrelated dirty Unity/cache files untouched.

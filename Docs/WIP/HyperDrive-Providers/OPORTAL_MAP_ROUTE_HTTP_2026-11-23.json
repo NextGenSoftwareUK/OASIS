@@ -1,0 +1,17 @@
+{
+  "status": "running-not-accepted",
+  "run": 45147304137,
+  "job": 137599673686,
+  "control": "c7e040270326bca17ad753f4f469a22cc2cfabd6",
+  "portal": "3cdbd91f7a17a9f77d5762c7883732aaa7945923",
+  "source": "5442d4e9de89231a5a4bebe77c44374ab0920001",
+  "scope": "Actual portal GPX import with Our World reported identity and seven-digit time, private publication, native readback, rename, saved-route reopen/list and normal close. Existing immutable shipping image reused with owned cloud Mongo; no renderer/device/paid Stripe/shared-cluster claim.",
+  "launchError": {
+    "run": 45147149400,
+    "job": 137599156823,
+    "conclusion": "failure",
+    "stage": "Validate immutable portal browser selection",
+    "reason": "Agent supplied short portal SHA; corrected to full40. No browser scenario ran; no artifact exists."
+  },
+  "cleanup": "Current run pending terminal cleanup receipt. No local downloads, installs, environments, build outputs, databases or test results created."
+}

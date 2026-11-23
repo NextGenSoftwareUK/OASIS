@@ -50,5 +50,16 @@
   ],
   "verification": "Initial selected deployment metadata only. Running revision/authority/holds checks pending these same handles. No shared database/auth calls.",
   "sourceEquivalence": "Corecac5 complete tree627e equals already-qualified/deployed13ca; graph-only two-parent reconciliation. Exact image5442 compiled13ca; new running provenance must be verified separately.",
-  "next": "Follow existing handles; do not repeat source pushes or previously accepted functional cohorts. Continue remaining popup write actions and map workflows while rollout runs."
+  "next": "Follow existing handles; do not repeat source pushes or previously accepted functional cohorts. Continue remaining popup write actions and map workflows while rollout runs.",
+  "observation20261123": {
+    "runningWeb4": "a54956d1ffb3d45e699a9b0bd0a5f2a4c1e62c57",
+    "runtimeWorkerHolds": {
+      "hyperdrive": true,
+      "usageReconciliation": true,
+      "applicationMaintenance": true
+    },
+    "successor": "a9184e7b108dc10f126ec0d1e01cee1d93de740a",
+    "successorStatus": "Latest metadata WEB4/6/8 building, WEB5 queued, WEB7/9/10 success. Peer Development retains NFT decoder; no duplicate deployment requested.",
+    "scope": "Selected runtime revision/hold fields only; no shared Mongo/auth test. Other previous handles were not individually reread here."
+  }
 }
