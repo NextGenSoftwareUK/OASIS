@@ -1,0 +1,54 @@
+{
+  "source": "a54956d1ffb3d45e699a9b0bd0a5f2a4c1e62c57",
+  "core": "cac5dba4d026cc19dcfe4440737b9de50a8ed20d",
+  "onode": "8745c95ef2f6150fafb1417122a20c020784b338",
+  "environment": "dev",
+  "environmentId": "a31011a2-d047-4057-b5e8-57d52ebcfefe",
+  "services": [
+    {
+      "name": "WEB4",
+      "service": "5123199a-43c4-4439-9921-e10e2aec7841",
+      "deployment": "964a24b7-8c01-4713-a601-1da00cc356f6",
+      "status": "QUEUED"
+    },
+    {
+      "name": "WEB5",
+      "service": "bb2c3e9a-ec96-44a5-9916-05e06d54b1f4",
+      "deployment": "41f5fb43-c8dc-48ae-a332-a12683eb8c2e",
+      "status": "QUEUED"
+    },
+    {
+      "name": "WEB6",
+      "service": "1e6ee65f-df5d-42b1-972e-97f3a560f5d3",
+      "deployment": "8bab8162-cab1-42d0-86fd-42a028733b7e",
+      "status": "QUEUED"
+    },
+    {
+      "name": "WEB7",
+      "service": "31bd0ff6-2d3d-4793-8197-eabcd3afcb75",
+      "deployment": "fe61ea6e-2078-4ac0-a9c3-d202d16caa29",
+      "status": "DEPLOYING"
+    },
+    {
+      "name": "WEB8",
+      "service": "95c937b9-b4e8-4fd3-866f-bd98d5420b2f",
+      "deployment": "f518c79c-3ff2-4c9f-b9b9-8b4421178f57",
+      "status": "BUILDING"
+    },
+    {
+      "name": "WEB9",
+      "service": "36eda15e-fd28-4fc6-a0c9-7fe454829554",
+      "deployment": "d86942bf-5347-48c4-b31e-73ed5c475bbc",
+      "status": "BUILDING"
+    },
+    {
+      "name": "WEB10",
+      "service": "6f9e4f24-29be-49d7-914b-f1f9b42790d6",
+      "deployment": "fb272054-4331-4513-83fa-9f58787c7162",
+      "status": "SUCCESS"
+    }
+  ],
+  "verification": "Initial selected deployment metadata only. Running revision/authority/holds checks pending these same handles. No shared database/auth calls.",
+  "sourceEquivalence": "Corecac5 complete tree627e equals already-qualified/deployed13ca; graph-only two-parent reconciliation. Exact image5442 compiled13ca; new running provenance must be verified separately.",
+  "next": "Follow existing handles; do not repeat source pushes or previously accepted functional cohorts. Continue remaining popup write actions and map workflows while rollout runs."
+}
