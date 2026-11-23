@@ -276,3 +276,18 @@ WithoutQueryFilters() retains its existing explicit all-application-filter bypas
 Neither bypass removes mandatory caller visibility, mapping, validation or read-only
 policy. These application filters are opt-in model rules, not provider-manager
 collection filters. Exact-contract matching remains; polymorphic filters are open.
+
+
+### Shadow entry comparison values and explicit flags (qualification pending)
+A session ShadowProperty<TValue> entry supports GetOriginalValue(), GetValues(),
+SetOriginalValue(value), RemoveOriginalValue(), and SetModified(bool).
+These delegate to the existing canonical change tracker; there is no second baseline.
+GetValues returns detached original/current JSON, separate existence flags, value
+modification and explicit modification status. Missing metadata remains distinct
+from JSON null; typed missing reads return COSMIC_SHADOW_VALUE_MISSING.
+SetOriginalValue changes local comparison state only, never native revision evidence.
+SetModified(false) restores current from that comparison original and clears its flag.
+Normal acknowledged saves refresh originals and consume the captured modification
+intent. All operations recheck session availability and membership; detached or
+foreign-session entries cannot read or change these values. Required constraints
+remain enforced at save. Arbitrary CLR indexers and full M16 parity remain open.
