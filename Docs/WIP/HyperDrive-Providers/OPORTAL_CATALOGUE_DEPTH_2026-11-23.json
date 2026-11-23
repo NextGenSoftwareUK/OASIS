@@ -1,11 +1,11 @@
 {
   "date": "2026-11-23",
-  "status": "empty catalogue scopes accepted; corrected populated/category candidate qualifying",
-  "root": "fe414dfe0ec971b33280b0780ab418b0d5012a10",
-  "baseDevelopment": "3ae678ddcbd0624a19cc4f3ff662a89b27b13896",
-  "core": "a3c5ceef9d61b0057ecc8b21156bd0121754a223",
-  "star": "1e25b519c382a33d5160c02ca3b2a0de558449fc",
-  "portal": "86350c406ec64bc7b395d0e50a7b664b6aa22443",
+  "status": "populated catalogue depth/category/Map/Launcher scoped journey accepted; backend Development delivery pending",
+  "root": "e1cf13421bd8acd707d9cda49d2952b01240f2ab",
+  "baseDevelopment": "91e3ad17428c524eff8cc990f95491ff0f4ecf6c",
+  "core": "cb1c50c24ac8520be6f328bca08e48e04737854b",
+  "star": "ffd7fe494e1aacec50315baadff38273c88b8a11",
+  "portal": "34e4d23ad3322a60db3c4ea019381c5ab0d50b31",
   "rootCause": "GET OAPP catalogue always invokes recursive LoadAllAsync even for launcher root cards",
   "invariant": "Catalogue reads are shallow unless a caller explicitly requests descendant relationships",
   "implementation": [
@@ -14,8 +14,8 @@
     "OAPP Map explicitly sends loadChildren=true; launcher retains default shallow request",
     "STAR gitlink and manifest paired in immutable current-CQL candidate; sync --check-ref passed"
   ],
-  "run": 45178110641,
-  "job": 137704548676,
+  "run": 45196340465,
+  "job": 137767681330,
   "scope": [
     "cloud actual WEB5 compilation",
     "OAPP Map explicit-depth empty list/filter/close",
@@ -23,10 +23,10 @@
     "Competition leaderboard/rank/tournaments empty reads/close"
   ],
   "remaining": [
-    "populated shallow-versus-descendant behavior",
-    "populated launcher catalogue/detail/browse",
-    "measured performance",
-    "backend Development/running acceptance"
+    "Publish scoped verified backend batch and verify running revision",
+    "Existing persisted serialized graph relationship editing gap remains documented separately",
+    "Populated Zomes/typed-role expansion, native application launch and registration actions outside this journey",
+    "No measured hosted latency or whole-portal completion claim"
   ],
   "web4Reuse": {
     "source": "8f379886b8d89d1e134dd740a41af239e56f626f",
@@ -38,8 +38,8 @@
     "checks": "Exact receipt source/image/profile and packagedSourceHashes/CQL runtime graph true; RAM-only inspection"
   },
   "cleanup": "Accepted empty-run all five startup assertions true and WEB5 publish/browser/cache/TLS outputs absent, terminal log verified. Compact receipt RAM-only/disposed. Populated run cleanup pending; no local build/download/runtime/env/database/results or shared data calls.",
-  "artifact": 14820313295,
-  "artifactBytes": 3414,
+  "artifact": 14830060049,
+  "artifactBytes": 3379,
   "accepted": [
     "OAPP Map explicit loadChildren=true request/actual empty list/filter/close",
     "OAPP Launcher default-shallow request/actual empty list/filter/close",
@@ -87,5 +87,28 @@
     "job": 137725622755,
     "control": "7eac4067700b7643a6baa963c4814bb22a583771"
   },
-  "deploymentConfigurationObservation": "Selected dev WEB5 admission env read unavailable; no conclusion about its loaded pricing, no shared config/data change."
+  "deploymentConfigurationObservation": "Selected dev WEB5 admission env read unavailable; no conclusion about its loaded pricing, no shared config/data change.",
+  "currentPopulatedAcceptance": {
+    "conclusion": "success",
+    "creation": "Actual authenticated OAPP API creates one root with one real child through existing STARNETCreateOptions; correct GeneratedCodeOnly category.",
+    "depth": "Independent GET /api/oapps omits that descendant by default; loadChildren=true contains its persisted ID.",
+    "browser": [
+      "Map requests explicit depth, renders populated catalogue, filter/reset/close",
+      "Launcher uses default shallow list, shows/filters GeneratedCodeOnly category, opens actual catalogue identity detail, returns to browse, filters/closes"
+    ],
+    "outcomes": [
+      {
+        "name": "OappMap",
+        "passed": true,
+        "closePassed": true
+      },
+      {
+        "name": "Launcher",
+        "passed": true,
+        "closePassed": true
+      }
+    ],
+    "cleanup": "All five receipt booleans true; terminal publish/browser/cache/TLS absence verified; archive RAM-only.",
+    "sourceDistinction": "Actual WEB5 e1cf/Corecb1/STARffd; reused accepted WEB4 image8f/d0b2. New WEB4 image3f53 separately packaged/profile Startup remains unaccepted."
+  }
 }

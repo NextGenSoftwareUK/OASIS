@@ -12,9 +12,9 @@
     {
       "route": "avatar",
       "open": "openAvatarModal",
-      "status": "earlier native profile/portrait scopes retained; current Development profile delivery gap open",
-      "run": 44966844672,
-      "scope": "Earlier GET/PATCH/GET on bc159110/Core5a998cee accepted. Current source restoration a7f63457/Coread83f7ad pending composition/ship acceptance; earlier result does not establish delivery.",
+      "status": "current native profile HTTP accepted; packaged Startup form hydration fails; delivery open",
+      "run": 45190600949,
+      "scope": "Current e1cf/Corecb1 real MVC/manager/router/native Mongo GET/PATCH/GET passes. Packaged profile45196807788 GET200 but form cannot edit; same-image diagnostic45197652733 active. Earlier provider/portrait scopes retained.",
       "evidence": "Docs/WIP/HyperDrive-Providers/OPORTAL_PROFILE_DELIVERY_GAP_2026-11-21.json"
     },
     {
@@ -251,9 +251,9 @@
     {
       "route": "oapp-map",
       "open": "openOappMapModal",
-      "status": "scoped empty-list actual page journey accepted; wider actions remain open",
-      "run": 45178110641,
-      "scope": "Explicit Map depth/default Launcher shallow, filters and close; Competition empty leaderboard/no-rank/tournaments/close. Not populated relationships/launch/registration."
+      "status": "populated real creation/depth and scoped actual page journey accepted; backend delivery pending",
+      "run": 45196340465,
+      "scope": "Native OAPP+child creation and independent default-shallow/explicit-deep comparison; Map filter/reset/close and Launcher category/filter/detail/browse/close. Existing graph-edit and application launch actions remain open."
     },
     {
       "route": "karma-ledger",
@@ -290,9 +290,9 @@
     {
       "route": "oapp-launcher",
       "open": "openOappLauncherModal",
-      "status": "scoped empty-list actual page journey accepted; wider actions remain open",
-      "run": 45178110641,
-      "scope": "Explicit Map depth/default Launcher shallow, filters and close; Competition empty leaderboard/no-rank/tournaments/close. Not populated relationships/launch/registration."
+      "status": "populated real creation/depth and scoped actual page journey accepted; backend delivery pending",
+      "run": 45196340465,
+      "scope": "Native OAPP+child creation and independent default-shallow/explicit-deep comparison; Map filter/reset/close and Launcher category/filter/detail/browse/close. Existing graph-edit and application launch actions remain open."
     },
     {
       "route": "activity-feed",
