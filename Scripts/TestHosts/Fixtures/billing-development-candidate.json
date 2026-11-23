@@ -1,6 +1,6 @@
 {
   "scope": "billing",
-  "status": "MFA cancellation propagated; MFA reads no longer create indexes; native verification pending",
+  "status": "General session native acceptance45091356813 retained; actual Settings selected/global buttons next",
   "base": "aa6f1cb26d8b8a9393d8ca440bdd140c4162a239",
   "candidate": "ec097f7eeefc20248de3f95522f2efbc7d4f83cd",
   "tag": "qualification/session-mfa-cancellation-20261123",
@@ -64,5 +64,7 @@
   ],
   "nativeHost": "HotspotHttpNative",
   "nativeMode": "session-global-http",
-  "remaining": "Focused real Mongo/SQLite native HTTP journey only; no accepted35case replay or shared backend."
+  "remaining": "Changed Settings browser/native journey only; no general session/billing cohort replay.",
+  "sessionBrowser": true,
+  "portal": "282eb9a0c41ca36b8f7a903435cfeae845cb3706"
 }

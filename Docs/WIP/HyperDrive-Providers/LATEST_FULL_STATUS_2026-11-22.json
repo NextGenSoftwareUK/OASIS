@@ -229,9 +229,9 @@
   "latestFocusedRun": {
     "id": 45091356813,
     "job": 137421421351,
-    "status": "in_progress",
+    "status": "success",
     "candidate": "ec097f7eeefc20248de3f95522f2efbc7d4f83cd",
-    "scope": "MFA cancellation/index-read fix and general session native flow; not accepted or deployed"
+    "scope": "general real Mongo/SQLite session native acceptance; browser/hosted and enabled MFA store acceptance remain open"
   },
   "latestPortalBreadth": {
     "source": "282eb9a",
@@ -240,7 +240,7 @@
   },
   "settingsBrowserPreparation": {
     "source": "e3bbf646166",
-    "status": "actual browser/native host wiring prepared; not enabled/run",
+    "status": "enabled in next descriptor, pinned Portal 282eb9a0c41ca36b8f7a903435cfeae845cb3706; not yet run",
     "scope": "two real credentials; actual selected/global Settings controls; native access refusal afterward; no previous general cohort replay"
   }
 }

@@ -1,3 +1,7 @@
+## 2026-11-23 - General session real native acceptance
+
+Run45091356813/job137421421351 SUCCESS on ec097f7e/Core27dae38d: build0errors4m11.77; real Mongo/SQLite password issuance/provenance, actor session capability/global POST, access/refresh refusal, fresh login and explicit incomplete revocation during real paused Mongo. Owned SQLite absent/Mongo unpaused and fixture removal SUCCESS. Accepted billing assertions retained, not replayed. This is not enabled-MFA HA, actual browser/full Startup/hosted or full OPORTAL acceptance. Next descriptor pins Portal282eb9a for actual Settings selected/global button journey only.
+
 ## 2026-11-23 - Settings browser host wired; shared review current
 
 Host/workflow e3bbf646166 optionally verifies actual selected/global Settings buttons, two real issued credentials and native refusal after sign-out, without replaying the general cohort. Not enabled/run yet. Native run45091356813/job137421421351 remains active. Shared Development721f3313 reviewed with peer COSMIC status; own candidate not deployed/merged as unverified. OPORTAL dev282eb9a is latest source.

@@ -1,6 +1,6 @@
 {
   "date": "2026-11-23",
-  "status": "source prepared; not built or deployed",
+  "status": "build and general session native accepted; enabled MFA cancellation/write behavior not yet functionally qualified",
   "candidate": "ec097f7eeefc20248de3f95522f2efbc7d4f83cd",
   "previousRun": 45088151222,
   "previousConclusion": "failed: client timeout during forced-enabled MFA Mongo dependency",
@@ -22,6 +22,9 @@
   "verificationRun": {
     "id": 45091356813,
     "job": 137421421351,
-    "lastObserved": "in progress: Verify only the new combined candidate native invariant"
+    "conclusion": "success",
+    "build": "0 errors, 4m11.77s",
+    "proof": "GLOBAL_SESSION_HTTP_NATIVE_PROOF: real Mongo/SQLite password issuance/provenance; actor-scoped session listing/global POST; native access/refresh refusal; fresh login and paused-Mongo incomplete authority refusal",
+    "cleanup": "GLOBAL_SESSION_CLEANUP plus owned native fixture removal step success"
   }
 }
