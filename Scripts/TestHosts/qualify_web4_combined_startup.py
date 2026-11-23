@@ -1,11 +1,13 @@
 """Cloud-only combined WEB4/OpenVINO startup with fresh isolated accounting data."""
-import argparse, json, os, re, secrets, subprocess, tempfile, time
+import argparse, ipaddress, json, os, re, secrets, subprocess, tempfile, time
 from pathlib import Path
+from contextlib import ExitStack
+from owned_web5_startup import OwnedApiBridge, OwnedWeb5Process, run_owned_browser
 from owned_docker_resources import missing_resource
 
 
 def configuration(root, mongo, marker, profile='full'):
-    if profile not in ('full', 'tron-api', 'maplibre'):
+    if profile not in ('full', 'tron-api', 'maplibre', 'cql-api'):
         raise ValueError('Explicit known startup profile required.')
     dna = json.loads((root / 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/Default/OASIS_DNA.json').read_text(encoding='utf-8-sig'))
     oasis = dna['OASIS']; storage = oasis['StorageProviders']
@@ -28,6 +30,7 @@ def configuration(root, mongo, marker, profile='full'):
     oasis['OfflineSessionGrants']['Enabled'] = False
     oasis['Sandbox']['Enabled'] = True
     oasis['Logging']['LogToFile'] = False
+    oasis['Email']['DisableAllEmails'] = True
     policy = {'requiresProviderMeasurement':True,'meterCategory':'cql.package-startup','reservedUnits':1,'fixedCostUsd':0,
               'estimatedCostUsd':0,'maximumNativeFeeCostUsd':0,'maximumProviderAttempts':1,
               'pricingCatalogueVersion':'package-startup-v1'}
@@ -69,7 +72,7 @@ def image_health_ready(state):
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--digest',required=True);p.add_argument('--profile',choices=['full','tron-api','maplibre'],default='full');o=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--digest',required=True);p.add_argument('--profile',choices=['full','tron-api','maplibre','cql-api'],default='full');o=p.parse_args()
     assert os.environ.get('GITHUB_ACTIONS')=='true' and re.fullmatch('sha256:[a-f0-9]{64}',o.digest)
     root=Path(__file__).resolve().parents[2];out=root/'TestResults/Web4CombinedStartup';out.mkdir(parents=True,exist_ok=False)
     package=json.loads((root/'TestResults/Web4FullPackage/acknowledged.json').read_text())
@@ -81,6 +84,14 @@ def main():
     marker='oasis_startup_'+os.environ['GITHUB_RUN_ID']+'_'+os.environ['GITHUB_RUN_ATTEMPT']
     assert re.fullmatch('oasis_startup_[0-9]+_[0-9]+',marker)
     network=marker+'_net';mongo=marker+'_mongo';api=marker+'_api';created=[]
+    processes=ExitStack();web5_process=None
+    web5_app=os.environ.get('OASIS_STARTUP_WEB5_APP', '')
+    popup_group=os.environ.get('OASIS_STARTUP_POPUP_GROUP', '') or 'none'
+    if popup_group not in ('none', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data'):
+        raise ValueError('Unknown owned popup group.')
+    popup_breadth=os.environ.get('OASIS_STARTUP_POPUP_BREADTH') == 'true'
+    if popup_breadth and popup_group != 'none':
+        raise ValueError('Select one new popup journey, not both.')
     def docker(*args,check=True,timeout=60):
         r=subprocess.run(['docker',*args],capture_output=True,text=True,timeout=timeout)
         if check and r.returncode: raise RuntimeError('Owned startup operation failed: '+r.stderr[-1500:])
@@ -112,7 +123,33 @@ def main():
             if time.monotonic()>deadline: raise RuntimeError('Owned primary readiness deadline.')
             time.sleep(1)
         with tempfile.TemporaryDirectory(prefix='oasis-startup-',dir=os.environ['RUNNER_TEMP']) as tmp:
-            envfile=Path(tmp)/'environment';envfile.write_text(''.join(k+'='+v+'\n' for k,v in configuration(root,'mongodb://mongo:27017/?replicaSet=rs0',marker,o.profile).items()));envfile.chmod(0o600)
+            mongo_uri='mongodb://mongo:27017/?replicaSet=rs0'
+            if web5_app:
+                selected_mongo=json.loads(docker('inspect', mongo).stdout)[0]
+                assert selected_mongo['Config']['Labels']['oasis.startup.owner']==marker
+                selected_ip=selected_mongo['NetworkSettings']['Networks'][network]['IPAddress']
+                assert ipaddress.ip_address(selected_ip).version==4 and ipaddress.ip_address(selected_ip).is_private
+                mongo_uri='mongodb://'+selected_ip+':27017/?replicaSet=rs0&directConnection=true'
+            fixture_env=configuration(root,mongo_uri,marker,o.profile)
+            if popup_breadth or popup_group != 'none':
+                # This explicit new-image scenario needs collection authority under passive boot.
+                admission=json.loads(fixture_env['PREPARED_STORAGE_ADMISSION_JSON'])
+                admission['authoritativeProvider']='MongoDBOASIS'
+                if popup_group in ('data-crud', 'data-edit', 'files-write', 'map-route'):
+                    # Same free ordinary-operation tariff kinds as the admitted dev write profile.
+                    catalogue=admission['routes'][0]['policy']['pricingCatalogueVersion']
+                    admission['storageTariffs']=[{'provider':'MongoDBOASIS','operation':operation,'costUsd':0,'catalogueVersion':catalogue}
+                        for operation in ('LoadHolon','SaveHolon','SaveHolons','LoadHolonByProviderKey','DeleteHolon','ReadConditionalHolonWriteOutcome','ReadHolonWritePreparation')]
+                    write_policy=dict(admission['routes'][0]['policy'],meterCategory='api.request',maximumProviderAttempts=512)
+                    admission['routes'] += [{'method':method,'path':path,'policy':dict(write_policy)}
+                        for method,path in ((('POST','/api/map/routes'),) if popup_group == 'map-route' else
+                            ((('POST','/api/files/upload-file'),) if popup_group == 'files-write' else
+                             (('POST','/api/data/save-holon'),('DELETE','/api/data/delete-holon'))))]
+                fixture_env['PREPARED_STORAGE_ADMISSION_JSON']=json.dumps(admission,separators=(',', ':'))
+            if web5_app:
+                fixture_env['SUBSCRIPTION_SERVICE_KEY_WEB5']=secrets.token_hex(32)
+            envfile=Path(tmp)/'environment';envfile.write_text(''.join(k+'='+v+'\n' for k,v in fixture_env.items()));envfile.chmod(0o600)
+            portal_root = os.environ.get('OASIS_STARTUP_PORTAL_ROOT', '')
             docker('create','--name',api,'--label','oasis.startup.owner='+marker,'--network',network,
                 '--memory','3g','--cpus','2','--env-file',str(envfile),image);created.append(('container',api));docker('start',api)
         probe = r"""
@@ -141,13 +178,109 @@ console.log(JSON.stringify(b));
                 if time.monotonic() > deadline:
                     raise RuntimeError('Full image Docker health readiness deadline.')
                 time.sleep(2)
+        auth_checked = os.environ.get('OASIS_STARTUP_AUTHENTICATION') == 'true'
+        portal_checked = False
+        if portal_root:
+            assert auth_checked, 'Portal Startup browser requires explicit auth qualification.'
+            api_state = json.loads(docker('inspect', api).stdout)[0]
+            assert api_state['Config']['Labels']['oasis.startup.owner'] == marker
+            private_ip = api_state['NetworkSettings']['Networks'][network]['IPAddress']
+            parsed_ip = ipaddress.ip_address(private_ip)
+            assert parsed_ip.version == 4 and parsed_ip.is_private, 'Owned internal API IPv4 required.'
+            bridge=processes.enter_context(OwnedApiBridge(private_ip))
+            browser_env=dict(os.environ, OASIS_STARTUP_API_URL=bridge.url)
+            if web5_app:
+                mongo_state=json.loads(docker('inspect', mongo).stdout)[0]
+                assert mongo_state['Config']['Labels']['oasis.startup.owner']==marker
+                mongo_ip=mongo_state['NetworkSettings']['Networks'][network]['IPAddress']
+                assert ipaddress.ip_address(mongo_ip).version==4 and ipaddress.ip_address(mongo_ip).is_private
+                direct_mongo='mongodb://'+mongo_ip+':27017/?replicaSet=rs0&directConnection=true'
+                web5_dna=json.loads(fixture_env['OASIS_DNA_JSON'])
+                web5_dna['OASIS']['StorageProviders']['MongoDBOASIS']['ConnectionString']=direct_mongo
+                web5_environment=dict(fixture_env, WEB4_API_BASE_URL=bridge.url,
+                    SUBSCRIPTION_MONGODB_CONNECTION_STRING=direct_mongo,
+                    SUBSCRIPTION_OUTBOX_MONGO_CONNECTION_STRING=direct_mongo,
+                    SUBSCRIPTION_OUTBOX_DATABASE=marker+'_web5_outbox')
+                web5_admission=json.loads(web5_environment['PREPARED_STORAGE_ADMISSION_JSON'])
+                web5_admission['authoritativeProvider']='MongoDBOASIS'
+                web5_environment['PREPARED_STORAGE_ADMISSION_JSON']=json.dumps(web5_admission,separators=(',', ':'))
+                web5_environment.pop('OASIS_DNA_JSON', None)
+                web5_process=processes.enter_context(OwnedWeb5Process(web5_app, web5_dna, web5_environment))
+                browser_env['OASIS_STARTUP_WEB5_URL']=web5_process.url
+            browser = run_owned_browser(['node', str(root / 'Scripts/TestHosts/Fixtures/portal-startup-browser.cjs')], browser_env)
+            popup_proof=re.search(r'PORTAL_STARTUP_POPUP_OUTCOMES:(\[[^\n]*\])', browser.stdout)
+            if popup_proof:
+                outcomes=json.loads(popup_proof.group(1))
+                assert isinstance(outcomes,list) and 1 <= len(outcomes) <= 3
+                for item in outcomes:
+                    assert set(item) <= {'name','passed','stage','closePassed'}
+                    assert item['name'] in ('NFT','Data','DataWrite','FilesWrite','MapRoute','Messaging','MessagingRead','Chat','DirectoryMessage','Clan','HyperDrive') and isinstance(item['passed'],bool)
+                    assert isinstance(item['closePassed'],bool)
+                    assert re.fullmatch(r'[A-Za-z0-9 /-]{1,80}',item['stage'])
+                portal_source=subprocess.check_output(['git','-C',portal_root,'rev-parse','HEAD'],text=True).strip()
+                assert re.fullmatch(r'[a-f0-9]{40}',portal_source)
+                (out/'portal-popup-outcomes.json').write_text(json.dumps({'source':package['source'],'image':image,'portal':portal_source,'group':popup_group,'outcomes':outcomes},indent=2))
+                print('PORTAL_STARTUP_POPUP_OUTCOMES:'+json.dumps(outcomes,separators=(',',':')),flush=True)
+            if browser.returncode:
+                facts = re.search(r'PORTAL_STARTUP_HTTP_FACTS:(\[[^\n]*\])', browser.stderr)
+                if facts:
+                    selected = json.loads(facts.group(1))
+                    assert isinstance(selected, list) and len(selected) <= 64
+                    assert all(set(item) <= {'path','status','isError','errorCode','json','routingMessage','resultShape','resultCount','routeShape','routePage'} for item in selected)
+                    for item in selected:
+                        if 'routePage' in item:
+                            assert set(item['routePage']) <= {'items','nextOffsetPresent','nextOffsetNull','nextOffsetInteger'}
+                            assert all(isinstance(value,bool) for value in item['routePage'].values())
+                        if 'routeShape' in item:
+                            shape=item['routeShape']
+                            assert set(shape) <= {'header','geometry','authority','revisions','headerIdMatches','headerPayload','geometryPayload','summaryPascal','summaryCamel','latitudePascal','latitudeCamel'}
+                            for key,value in shape.items():
+                                if key in ('headerPayload','geometryPayload'):
+                                    assert value in ('undefined','string','object')
+                                elif key == 'revisions':
+                                    assert isinstance(value,int) and 0 <= value <= 2
+                                else:
+                                    assert isinstance(value,bool)
+                    print('PORTAL_STARTUP_HTTP_FACTS:' + json.dumps(selected, separators=(',', ':')), flush=True)
+                admission_failure=re.search(r'PORTAL_STARTUP_ADMISSION_FAILURE:(\{[^\n]*\})',browser.stderr)
+                if admission_failure:
+                    failure=json.loads(admission_failure.group(1))
+                    assert set(failure)=={'stage','path','errorType','sourceLine'}
+                    assert re.fullmatch(r'[A-Za-z0-9 /-]{1,80}',failure['stage'])
+                    assert isinstance(failure['path'],str) and len(failure['path'])<=200 and failure['path'].startswith('/api/') and '?' not in failure['path']
+                    assert failure['errorType'] in ('AssertionError','TypeError','Error') and isinstance(failure['sourceLine'],int)
+                    print('PORTAL_STARTUP_ADMISSION_FAILURE:'+json.dumps(failure,separators=(',',':')),flush=True)
+                clan_failure=re.search(r'PORTAL_STARTUP_CLAN_FAILURE:(\{[^\n]*\})',browser.stderr)
+                if clan_failure:
+                    failure=json.loads(clan_failure.group(1))
+                    assert set(failure)<= {'errorType','sourceLine','status','nameLength','buttonDisabled','activeTab','unavailable','operation','formOwner','formValid','invalidFields','bound','hit'}
+                    assert isinstance(failure.get('status',''),str) and len(failure.get('status',''))<=320
+                    print('PORTAL_STARTUP_CLAN_FAILURE:'+json.dumps(failure,separators=(',',':')),flush=True)
+                safe_stage = re.search(r'PORTAL_STARTUP_BROWSER_FAILURE stage=([^;\n]+)', browser.stderr)
+                raise RuntimeError('Owned portal Startup browser failed at ' + (safe_stage.group(1) if safe_stage else 'unreported stage'))
+            assert 'PORTAL_STARTUP_BROWSER_PROOF:' in browser.stdout
+            scenario = 'WEB5 Games/OAPPs' if web5_process else (popup_group if popup_group != 'none' else ('Files/Wallet/Karma' if popup_breadth else 'dashboard/subscriptions/refresh'))
+            print('PORTAL_STARTUP_BROWSER_PROOF: actual page sign-in/' + scenario + ' passed through isolated shipping Startup.', flush=True)
+            portal_checked = True
+        elif auth_checked:
+            auth_script = root / 'Scripts/TestHosts/Fixtures/startup-authentication.cjs'
+            docker('exec', api, 'node', '-e', auth_script.read_text(encoding='utf-8'), timeout=120)
+            print('STARTUP_AUTH_PROOF: shipping registration/verification/password/session/subscription journey passed; owned Mongo only.', flush=True)
+        processes.close()
+        if web5_process and web5_process.graceful_exit!=0:
+            raise RuntimeError('Owned WEB5 did not exit gracefully.')
         native="const x=require('/app/host-sandbox-openvino.cjs');x.verifyNative(require('/app/openvino-model-server-pins.json'),AbortSignal.timeout(10000)).then(()=>console.log('native-metadata-verified')).catch(e=>{console.error(e);process.exit(1)})"
         if o.profile == 'full':
             docker('exec',api,'node','-e',native,timeout=20)
         docker('stop','--time','20',api,timeout=30)
         state=json.loads(docker('inspect',api).stdout)[0];assert state['State']['ExitCode']==0 and not state['State']['OOMKilled']
-        (out/'acknowledged.json').write_text(json.dumps({'source':package['source'],'image':image,'apiHealth':True,'dockerHealthVerified':o.profile in ('full', 'maplibre'),'nativeMetadata':o.profile == 'full','gracefulExit':0,'internalNetwork':True,'liveDeployment':False,'cqlAcceptance':False},indent=2))
+        (out/'acknowledged.json').write_text(json.dumps({'source':package['source'],'image':image,'apiHealth':True,'dockerHealthVerified':o.profile in ('full', 'maplibre'),'nativeMetadata':o.profile == 'full','gracefulExit':0,'authentication':auth_checked,'portalBrowser':portal_checked,'portalWeb5Browser':bool(web5_process),'portalPopupBreadth':portal_checked and (popup_breadth or popup_group != 'none'),'portalPopupGroup':popup_group,'web5GracefulExit':web5_process.graceful_exit if web5_process else None,'internalNetwork':True,'liveDeployment':False,'cqlAcceptance':False},indent=2))
     finally:
+        shutdown_error=None
+        try:
+            processes.close()
+        except Exception as cause:
+            shutdown_error=type(cause).__name__
         if ('container',api) in created:
             observed=json.loads(docker('inspect',api).stdout)[0]
             assert observed['Config']['Labels']['oasis.startup.owner']==marker
@@ -168,6 +301,8 @@ console.log(JSON.stringify(b));
                     assert absent('volume',volume), 'Owned anonymous database volume remains.'
             else: docker('network','rm',name)
             assert absent(kind,name)
-        (out/'cleanup.json').write_text(json.dumps({'ownedContainersAbsent':True,'ownedNetworkAbsent':True,'ephemeralDatabaseVolumesRemoved':True}))
+        (out/'cleanup.json').write_text(json.dumps({'ownedContainersAbsent':True,'ownedNetworkAbsent':True,'ephemeralDatabaseVolumesRemoved':True,'web5ProcessStopped':web5_process is None or web5_process.process.poll() is not None,'web5DnaAbsent':web5_process is None or not web5_process.dna_path.exists()}))
+        if shutdown_error:
+            raise RuntimeError('Owned process cleanup failed ('+shutdown_error+').')
 
 if __name__=='__main__':main()

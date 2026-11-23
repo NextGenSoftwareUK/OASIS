@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-23",
+  "status": "file-upload-download-delete-accepted",
+  "run": 45150357293,
+  "job": 137609920095,
+  "control": "02572f3dd273068fc978eeb376e26f6056bb3ab9",
+  "portal": "b1d85e9951edae4cf770f7c9295b1e4137e8f0fd",
+  "imageSource": "5442d4e9de89231a5a4bebe77c44374ab0920001",
+  "image": "sha256:111cedaa725206875f2ef33d455bc4ea6f4dc241ed03c0753df5956152cf0893",
+  "artifact": 14805258911,
+  "archiveBytes": 4271,
+  "scope": "Actual portal login/free owned account and shipping WEB4/native Mongo: one tiny text upload with description, persisted list/description, actual browser download with exact filename and byte comparison, confirmed delete/list empty/normal close. Download explicitly deleted in finally.",
+  "result": "Passed first new journey; no product workaround or fix required. Prior unrelated accepted screens not replayed.",
+  "cleanup": "RAM-only selected receipt proves package container absent, all five startup cleanup conditions true. Terminal log verifies runtime/cache/TLS absence. No local env/download/build/database/test result outputs.",
+  "limits": "Representative one-file journey; no large-file/load/security matrix, all-provider storage, hosted performance, paid Stripe or whole-portal acceptance."
+}

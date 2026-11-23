@@ -1,0 +1,47 @@
+{
+  "status": "private-publish-rename-reopen-list-accepted",
+  "run": 45147304137,
+  "job": 137599673686,
+  "control": "c7e040270326bca17ad753f4f469a22cc2cfabd6",
+  "portal": "3cdbd91f7a17a9f77d5762c7883732aaa7945923",
+  "source": "5442d4e9de89231a5a4bebe77c44374ab0920001",
+  "scope": "Actual portal GPX import with Our World reported identity and seven-digit time, private publication, native readback, rename, saved-route reopen/list and normal close. Existing immutable shipping image reused with owned cloud Mongo; no renderer/device/paid Stripe/shared-cluster claim.",
+  "launchError": {
+    "run": 45147149400,
+    "job": 137599156823,
+    "conclusion": "failure",
+    "stage": "Validate immutable portal browser selection",
+    "reason": "Agent supplied short portal SHA; corrected to full40. No browser scenario ran; no artifact exists."
+  },
+  "cleanup": "All three selected RAM artifact receipts verified package container absence and all five startup cleanup conditions true. Final log verifies owned browser runtime/cache/TLS absence. No local downloads/env/build/database/results; free disk observed26.84GiB.",
+  "firstFailure": {
+    "run": 45147304137,
+    "job": 137599673686,
+    "artifact": 14805131364,
+    "archiveBytes": 3898,
+    "finding": "Actual create/detail/list HTTP success; UI failed at publish. Startup omits null JSON properties while saved-route reader required explicit null continuation. Both route and visit readers corrected. All cleanup verified."
+  },
+  "diagnostic": {
+    "run": 45148041026,
+    "job": 137602115418,
+    "artifact": 14805476017,
+    "archiveBytes": 3897,
+    "finding": "Original UI still failed at publish; receipt validator rejected added bounded shape fields before printing. Validator corrected. All cleanup verified."
+  },
+  "accepted": {
+    "run": 45148541889,
+    "job": 137603780876,
+    "control": "6a46422374a8382b7e2cdf45ca992a9886fdca0b",
+    "portal": "b255f18f95eac84e1b951991a58a61b28b664b70",
+    "artifact": 14805581611,
+    "archiveBytes": 4374,
+    "outcome": {
+      "name": "MapRoute",
+      "passed": true,
+      "stage": "Map saved-route reopen",
+      "closePassed": true
+    },
+    "scope": "Actual full page GPX with Our World reported source/seven-digit UTC; one private create, native detail read, one rename, clear/reopen/list and normal close. No synthetic API responses.",
+    "limits": "No renderer, GPS device, authenticated app provenance, reward award, public sharing, deletion, whole portal or HyperDrive acceptance."
+  }
+}
