@@ -1,6 +1,6 @@
 {
   "scope": "onode",
-  "status": "loaded-view-and-actual-startup-bridge-ready-for-native-check",
+  "status": "actual-startup-bridge-and-pinned-popup-browser-prepared-not-accepted",
   "candidate": "a0abf554f9ad6f3a6fa0811bdee633b47a44f51d",
   "base": "6cce336bac3d0a1d7000fe95ec69802aa8d45b54",
   "tag": "qualification/onode-loaded-view-reviewed-20261123",
@@ -15,7 +15,7 @@
   },
   "onodeManager": "3ecf0f8ea9713412da9071a1c6d12f961b050c8e",
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
-  "remaining": "Review regenerated route positions. Run one actual Startup/JWT/native Mongo/supervisor bridge/proxy/live-socket journey, including first-command cadence. Browser and applied runtime remain separate.",
+  "remaining": "Await bridge run45236110787; next combined journey uses actual pinned Portal assets, SDK and password-issued API token. No applied-runtime/all-provider acceptance.",
   "inventoryReview": {
     "run": 45233869564,
     "artifact": 14848451211,
@@ -158,5 +158,7 @@
   "loadedConfigurationInventoryRun": {
     "run": 45233869564,
     "status": "queued"
-  }
+  },
+  "onodeBrowser": true,
+  "portal": "88d2f7adc10687845585460ebfea68bd4c9fc705"
 }

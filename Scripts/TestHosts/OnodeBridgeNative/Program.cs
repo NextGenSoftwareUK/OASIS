@@ -9,6 +9,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Newtonsoft.Json;
@@ -29,6 +30,7 @@ const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&server
 if (Environment.GetEnvironmentVariable("GITHUB_ACTIONS") != "true" ||
     Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != uri)
     throw new InvalidOperationException("Only the owned cloud loopback fixture may be used.");
+var browserEnabled = Environment.GetEnvironmentVariable("OASIS_ONODE_BROWSER") == "true";
 var stage = "preparation";
 string invariant = "";
 void Check(bool value, string message)
@@ -170,8 +172,11 @@ try
         .ConfigureLogging(logging => logging.ClearProviders())
         .ConfigureWebHostDefaults(web => web.UseSetting(WebHostDefaults.ApplicationKey, typeof(Web4Startup).Assembly.FullName)
             .UseStartup<Web4Startup>().ConfigureKestrel(server => server.Listen(IPAddress.Loopback, 0)))
-        .ConfigureServices(services => services.PostConfigure<Microsoft.Extensions.Http.HttpClientFactoryOptions>("ONODESupervisor",
-            settings => settings.HttpClientActions.Add(client => { client.BaseAddress = new Uri(supervisorOrigin); client.Timeout = TimeSpan.FromSeconds(5); })))
+        .ConfigureServices(services => {
+            services.PostConfigure<Microsoft.Extensions.Http.HttpClientFactoryOptions>("ONODESupervisor",
+                settings => settings.HttpClientActions.Add(client => { client.BaseAddress = new Uri(supervisorOrigin); client.Timeout = TimeSpan.FromSeconds(5); }));
+            if (browserEnabled) services.AddTransient<IStartupFilter, OwnedOnodeBrowserAssets>();
+        })
         .Build();
     await api.StartAsync(deadline.Token);
     var origin = api.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
@@ -306,6 +311,38 @@ try
         Check(state.RootElement.GetProperty("nodeId").GetString() == marker, "Live state selected the wrong node.");
         await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Owned check complete", deadline.Token);
     }
+    if (browserEnabled)
+    {
+        stage = "actual ONODE browser";
+        var script = Environment.GetEnvironmentVariable("OASIS_GEO_BROWSER_SCRIPT")
+            ?? throw new InvalidOperationException("Pinned browser script required.");
+        Check(File.Exists(script), "Owned browser script missing.");
+        var start = new ProcessStartInfo("node") { RedirectStandardInput = true, RedirectStandardOutput = true,
+            RedirectStandardError = true, UseShellExecute = false };
+        start.ArgumentList.Add("-e");
+        start.ArgumentList.Add("const fs=require('node:fs');require(process.argv[1]).verify(JSON.parse(fs.readFileSync(0,'utf8'))).then(x=>console.log(JSON.stringify(x))).catch(e=>{console.error(e.message);process.exitCode=1;});");
+        start.ArgumentList.Add(script);
+        using var browser = Process.Start(start) ?? throw new InvalidOperationException("Owned browser did not start.");
+        var output = browser.StandardOutput.ReadToEndAsync();
+        var error = browser.StandardError.ReadToEndAsync();
+        try
+        {
+            await browser.StandardInput.WriteAsync(System.Text.Json.JsonSerializer.Serialize(new {
+                baseUrl = origin, token = wizardJwt, avatarId = wizard.ToString("D"), nodeId = marker }));
+            browser.StandardInput.Close();
+            await browser.WaitForExitAsync(deadline.Token);
+            Check(browser.ExitCode == 0, "Actual popup journey failed; credential-bearing browser details withheld.");
+            using var result = JsonDocument.Parse(await output);
+            Check(result.RootElement.GetProperty("actualOnodePopup").GetBoolean() &&
+                result.RootElement.GetProperty("realLiveFrame").GetBoolean(), "Actual popup/live result missing.");
+            Console.WriteLine("ONODE_BROWSER_NATIVE: actual pinned popup and SDK; registered public views, saved role readback, actual live frame, loaded API view and close passed; no API mocks.");
+        }
+        finally
+        {
+            if (!browser.HasExited) { browser.Kill(entireProcessTree: true); await browser.WaitForExitAsync(); }
+            await output; await error;
+        }
+    }
     Console.WriteLine("ONODE_BRIDGE_NATIVE: real owned Mongo password-issued sessions and actual WEB4 Startup enforced anonymous/ordinary denial; actual supervisor pushed node state and polled/executed/acknowledged public-config command within configured cadence; real authenticated revision-aware local provider proxy and actual Startup WebSocket passed. No browser, applied-runtime or all-provider acceptance.");
 }
 catch (Exception error)
@@ -337,4 +374,27 @@ finally
     Console.WriteLine(databaseNamesValidated
         ? "ONODE_BRIDGE_CLEANUP: owned API/supervisor/bridge stopped; databases, DNA, generated token and owned directory removed."
         : "ONODE_BRIDGE_CLEANUP: no database ownership claim; existing data preserved, owned resources stopped/removed.");
+}
+
+// Adds only owned static assets ahead of the actual shipping Startup pipeline.
+sealed class OwnedOnodeBrowserAssets : IStartupFilter
+{
+    public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next) => app =>
+    {
+        var portal = Environment.GetEnvironmentVariable("OASIS_GEO_PORTAL_ROOT")
+            ?? throw new InvalidOperationException("Pinned Portal root required.");
+        var host = Environment.GetEnvironmentVariable("OASIS_GEO_BROWSER_HOST")
+            ?? throw new InvalidOperationException("Owned browser host required.");
+        if (!File.Exists(host) || !File.Exists(Path.Combine(portal, "assets/js/onode-modal.js")))
+            throw new InvalidOperationException("Actual ONODE assets unavailable.");
+        app.UseStaticFiles(new StaticFileOptions {
+            FileProvider = new PhysicalFileProvider(Path.Combine(portal, "assets")), RequestPath = "/assets" });
+        app.Use(async (context, following) => {
+            if (context.Request.Path == "/__onode_browser") {
+                context.Response.ContentType = "text/html";
+                await context.Response.SendFileAsync(host, context.RequestAborted);
+            } else await following();
+        });
+        next(app);
+    };
 }

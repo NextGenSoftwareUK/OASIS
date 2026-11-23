@@ -47,6 +47,8 @@ jobs:
             Scripts/TestHosts/Fixtures/profile-development-candidate.json
             Scripts/TestHosts/Fixtures/billing-development-candidate.json
             Scripts/TestHosts/Fixtures/onode-development-candidate.json
+            Scripts/TestHosts/Fixtures/onode-browser-host.html
+            Scripts/TestHosts/Fixtures/onode-browser-native-http.cjs
             Scripts/TestHosts/MapDevelopmentNative
             Scripts/TestHosts/HotspotDevelopmentNative
             Scripts/TestHosts/HotspotHttpNative
@@ -94,7 +96,7 @@ jobs:
           if ($candidate.nativeHost -eq 'Web4IntegrationTests' -and $candidate.nativeMode -ne 'session-route-fixture') { throw 'Only the reviewed session HTTP fixture is supported.' }
           "native_host=$($candidate.nativeHost)" >> $env:GITHUB_OUTPUT
           "file=$file" >> $env:GITHUB_OUTPUT
-          $browser = '${{ inputs.native_check }}' -eq 'true' -and (($candidate.nativeMode -in @('browser','catalogue-browser','competition-browser','mfa-browser','billing-warning-browser','gifts-browser','storefront-browser')) -or ($candidate.nativeMode -eq 'session-global-http' -and $candidate.sessionBrowser -eq $true))
+          $browser = '${{ inputs.native_check }}' -eq 'true' -and (($candidate.nativeMode -in @('browser','catalogue-browser','competition-browser','mfa-browser','billing-warning-browser','gifts-browser','storefront-browser')) -or ($candidate.nativeMode -eq 'session-global-http' -and $candidate.sessionBrowser -eq $true) -or ($candidate.nativeMode -eq 'onode-bridge' -and $candidate.onodeBrowser -eq $true))
           "browser=$($browser.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
           $warningProvider = '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -in @('billing-warning-provider','billing-warning-browser')
           "warning_provider=$($warningProvider.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
@@ -332,7 +334,14 @@ jobs:
           $candidate = Get-Content (Join-Path ../qualification-control $env:CANDIDATE_FILE) -Raw | ConvertFrom-Json
           $hostName = if ($env:CANDIDATE_SCOPE -eq 'map') { 'MapDevelopmentNative' } else { if ($candidate.nativeHost) { $candidate.nativeHost } else { 'HotspotDevelopmentNative' } }
           if ($hostName -notin @('MapDevelopmentNative','HotspotDevelopmentNative','HotspotHttpNative','Web4IntegrationTests','OnodeBridgeNative')) { throw 'Unsupported native qualification host.' }
-          if ($hostName -eq 'OnodeBridgeNative') { $env:OASIS_ONODE_CANDIDATE_ROOT = (Get-Location).Path }
+          if ($hostName -eq 'OnodeBridgeNative') {
+            $env:OASIS_ONODE_CANDIDATE_ROOT = (Get-Location).Path
+            if ($candidate.onodeBrowser -eq $true) {
+              $env:OASIS_ONODE_BROWSER = 'true'
+              $env:OASIS_GEO_BROWSER_HOST = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/onode-browser-host.html).Path
+              $env:OASIS_GEO_BROWSER_SCRIPT = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/onode-browser-native-http.cjs).Path
+            }
+          }
           if ($hostName -eq 'HotspotHttpNative') {
             $env:OASIS_HOTSPOT_HTTP_MODE = if ($candidate.nativeMode) { $candidate.nativeMode } else { 'binding' }
             if ($env:OASIS_HOTSPOT_HTTP_MODE -notin @('binding','populated','browser','quest-empty','catalogue','catalogue-browser','competition-browser','competition-publisher','profile-http','billing-http','billing-admin-http','billing-warning-store','billing-warning-http','billing-warning-provider','session-list-http','mfa-native','mfa-http','mfa-middleware-http','session-global-http','mfa-browser','billing-warning-browser','billing-restoration-http','gifts-browser','storefront-browser')) { throw 'Unsupported hotspot HTTP check mode.' }
