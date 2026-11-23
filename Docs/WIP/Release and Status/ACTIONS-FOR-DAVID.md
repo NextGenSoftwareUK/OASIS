@@ -1128,3 +1128,11 @@ Owner steps:
 Also seen in that run's log: `digest-mismatch: error` during staging preflight; the owning session should check it after the credential is in place.
 
 Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
+
+## Google Maps and HERE API keys for the map providers
+
+- Open 2026-11-22. GoogleMapsOASIS and HEREMapsOASIS now call the real vendor APIs. They are verified against recorded vendor responses in `map-platforms-unit-tests.yml`, but not yet live.
+- Google: in a Google Cloud project with billing, enable the Routes API, Places API (New) and Geocoding API, create one API key restricted to those three APIs, and store it privately as `OASIS_GOOGLE_ROUTES_API_KEY` wherever the providers run (Railway WEB4 service variables, and the GitHub Actions secret for the live routing test). [Routes API](https://developers.google.com/maps/documentation/routes/compute_route_directions) · [Places Text Search (New)](https://developers.google.com/maps/documentation/places/web-service/text-search) · [Geocoding API](https://developers.google.com/maps/documentation/geocoding/requests-geocoding)
+- HERE: in the HERE platform portal, create an API key for an app with Routing v8 and Geocoding & Search v1, and store it privately as `OASIS_HERE_ROUTING_API_KEY` in the same places. [Routing v8](https://docs.here.com/routing/docs/routing-v8-get-started) · [Discover](https://docs.here.com/geocoding-and-search/docs/code-discover-place)
+- MapLibre needs no key. It defaults to the public OSRM demo and Nominatim servers, which are limited to one request per second and not for production. For production volume, decide whether to self-host OSRM and Nominatim and pass their URLs.
+- Never put the keys in Git or chat. Engineering runs the opt-in live tests once the keys exist.
