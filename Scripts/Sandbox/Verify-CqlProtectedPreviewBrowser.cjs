@@ -53,7 +53,7 @@ async function run(){
   }
   const live=process.env.CQL_BROWSER_LIVE_FLOW==='1';
   const reviewFamily=process.env.CQL_BROWSER_REVIEW_FAMILY||'advanced';
-  if(!['advanced','utc-date-parts'].includes(reviewFamily))throw Error('Unknown reviewed browser feature family');
+  if(!['advanced','utc-date-parts','late-entity-selection'].includes(reviewFamily))throw Error('Unknown reviewed browser feature family');
   if(live&&reviewFamily!=='advanced')throw Error('This browser family admits static source review only');
 
   const client=require(path.join(site,'cql-playground.js'));
@@ -206,6 +206,28 @@ async function run(){
     }
     report.advancedExampleControlsRendered=true;
 
+    }else if(reviewFamily==='late-entity-selection'){
+      const visible=await evaluate("(()=>{const b=document.getElementById('cql-load-entity-set-selection-example');b.closest('details').open=true;document.getElementById('cql-virtual-mapping').value='20000000-0000-0000-0000-000000000000';b.click();return b.getClientRects().length>0&&document.getElementById('cql-text').getClientRects().length>0&&!document.getElementById('cql-virtual-mapping').value;})()");
+      if(!visible)throw Error('Real combined-record example did not load visibly and clear the prior mapping');
+      report.lateEntitySetCompilerCaptures=[];
+      for(const identity of ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']){
+        const capture=await evaluate("window.CqlText.compile(document.getElementById('cql-text').value.replaceAll('MongoDBOASIS',"+JSON.stringify(identity)+"))");
+        const body=capture?.body;
+        if(capture?.path!=='data/query-cql/set'||body?.provider!==identity||body.kind!=='Union'||
+           body.take!==5||body.left.columns!==undefined||body.right.columns!==undefined||
+           !isDeepStrictEqual(body.outputColumns,[{field:'Name',alias:'Label'},{field:'Id',alias:'Id'}])||
+           !isDeepStrictEqual(body.ordering,[{field:'Id',descending:false}]))
+          throw Error('Real editor changed entity identity, late selection or its combined window');
+        report.lateEntitySetCompilerCaptures.push({provider:identity,kind:body.kind,take:body.take,outputColumns:body.outputColumns});
+      }
+      await evaluate("document.querySelector('button[data-tab=ask]').click();true");
+      const ask=await evaluate("(()=>{const q=document.getElementById('ask-question');q.value='Combine active or version2 records, retaining different records with equal names, then show Name and Id.';return {visible:q.getClientRects().length>0,initialized:!!window.cqlAsk}})()");
+      if(!ask.visible||!ask.initialized)throw Error('Real Ask question controls are not initialized and visible');
+      report.visibleSqlEditorVerified=true;
+      report.visibleAskQuestionVerified=true;
+      report.web6DraftRequested=false;
+      report.staticLateEntitySelectionVerified=true;
+      report.advancedExamplesReplayed=false;
     }else{
       const names=['YEAR','MONTH','DAY','DAYOFYEAR','HOUR','MINUTE','SECOND'];
       const expected=['UtcYear','UtcMonth','UtcDay','UtcDayOfYear','UtcHour','UtcMinute','UtcSecond'];

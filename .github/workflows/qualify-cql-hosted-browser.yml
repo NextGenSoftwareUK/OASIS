@@ -15,7 +15,7 @@ on:
         required: false
         type: choice
         default: advanced
-        options: [advanced, utc-date-parts]
+        options: [advanced, utc-date-parts, late-entity-selection]
       live_read:
         description: One paced public HoloOASIS SQL read with a temporary demo session
         required: true
