@@ -35,7 +35,17 @@ internal static class CqlRequestCapture
             Ordering=value.Ordering==null?null:Array(value.Ordering,4,term=>term==null
                 ?throw new ArgumentException("Missing set ordering.")
                 :new CqlV1Ordering {Field=term.Field,Descending=term.Descending}),
-            Reverse=value.Reverse,IncludeMetadata=value.IncludeMetadata
+            Reverse=value.Reverse,IncludeMetadata=value.IncludeMetadata,
+            EntityStages=value.EntityStages==null?null:Array(value.EntityStages,16,stage=>stage==null
+                ?throw new ArgumentException("Missing entity set stage.")
+                :new CqlSetV1EntityStage {
+                    Operation=stage.Operation,Count=stage.Count,
+                    Where=stage.Where==null?null:Capture(new CqlV1Request{Where=stage.Where}).Where,
+                    Ordering=stage.Ordering==null?null:Array(stage.Ordering,4,term=>term==null
+                        ?throw new ArgumentException("Missing entity stage ordering.")
+                        :new CqlV1Ordering{Field=term.Field,Descending=term.Descending})
+                }),
+            OutputColumns=value.OutputColumns==null?null:CaptureColumns(value.OutputColumns)
         };
     }
 

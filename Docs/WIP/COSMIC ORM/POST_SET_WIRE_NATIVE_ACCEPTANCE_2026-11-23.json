@@ -1,0 +1,79 @@
+{
+  "run": 45164719387,
+  "job": 137658589476,
+  "artifact": 14814382400,
+  "archiveBytes": 4799,
+  "archiveSha256": "4379d31383b7edcb077faac9a65f51c33f1d8a5842083085f628b9ae8e9cdf76",
+  "archiveSavedLocally": false,
+  "source": {
+    "postSetWireVerified": true,
+    "deployed": false,
+    "actualWeb4Compiled": true,
+    "core": "be316431cd7c605526c305942e33101a9dd3ae07",
+    "source": "563bdf2625dcf1bfd55453e079850de44a671bc7",
+    "ownedFixturesAbsent": true,
+    "sharedDatabaseCalls": 0,
+    "nativePassed": 3,
+    "compilerControlsPassed": 3
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 3,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "owner-http": 466,
+        "foreign-http": 25,
+        "anonymous-http": 7
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "lateNativeColumnsUseIdentitySetRoute": true,
+        "ownerForeignAndAnonymousPolicyPreserved": true,
+        "oneSettledPhysicalAttemptPerAuthenticatedRequest": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 3,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "owner-http": 62,
+        "foreign-http": 32,
+        "anonymous-http": 1
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "lateNativeColumnsUseIdentitySetRoute": true,
+        "ownerForeignAndAnonymousPolicyPreserved": true,
+        "oneSettledPhysicalAttemptPerAuthenticatedRequest": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 3,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "owner-http": 1318,
+        "foreign-http": 38,
+        "anonymous-http": 1
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "lateNativeColumnsUseIdentitySetRoute": true,
+        "ownerForeignAndAnonymousPolicyPreserved": true,
+        "oneSettledPhysicalAttemptPerAuthenticatedRequest": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "fullParityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T11:30:21.632224+00:00"
+}

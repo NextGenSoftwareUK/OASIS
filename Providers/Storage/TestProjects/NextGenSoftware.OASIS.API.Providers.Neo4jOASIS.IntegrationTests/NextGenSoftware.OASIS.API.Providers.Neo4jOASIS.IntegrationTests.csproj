@@ -112,6 +112,8 @@
   <ItemGroup>
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlSetV1Request.cs" Link="Web4/CqlSetV1Request.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetV1Compiler.cs" Link="Web4/CqlSetV1Compiler.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetProjectionV1Compiler.cs" Link="Web4/CqlSetProjectionV1Compiler.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetProjectionV1Endpoint.cs" Link="Web4/CqlSetProjectionV1Endpoint.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetV1Endpoint.cs" Link="Web4/CqlSetV1Endpoint.cs" />
   </ItemGroup>
   <ItemGroup>

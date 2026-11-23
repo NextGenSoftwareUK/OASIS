@@ -22,7 +22,7 @@ public sealed partial class CqlV1Web4NativeTests
     public Task NativeSetHttpPreservesOccurrencesPermissionsAndMetering(string providerName)
         =>RunGroupedDistinctNativeFixture(providerName,false,setHttpJourney:true);
     private static async Task<int> VerifyNativeSetHttpJourney(IOASISStorageProvider provider,
-        List<Guid> owned,Dictionary<string,long> timings,bool selectedColumns=false,bool stagedInputs=false)
+        List<Guid> owned,Dictionary<string,long> timings,bool selectedColumns=false,bool stagedInputs=false,bool lateSelection=false,bool entityStages=false)
     {
         var type=provider.ProviderType.Value;var actor=Guid.NewGuid();var outsider=Guid.NewGuid();
         var row=new Holon {Id=Guid.NewGuid(),Name="native-set-http",CreatedByAvatarId=actor,IsPublic=false,IsActive=true,IsNewHolon=true};
@@ -55,6 +55,21 @@ public sealed partial class CqlV1Web4NativeTests
                     body.Left.Columns=new[]{new CqlProjectionV1Column{Field="Name",Alias="label"}};
                     body.Right.Columns=new[]{new CqlProjectionV1Column{Field="Name",Alias="other"}};
                 }
+                if(lateSelection)
+                {
+                    Assert.IsFalse(selectedColumns);Assert.IsFalse(stagedInputs);
+                    body.OutputColumns=new[]{new CqlProjectionV1Column{Field="Name",Alias="label"}};
+                }
+                if(entityStages)
+                {
+                    Assert.IsTrue(lateSelection);Assert.IsFalse(selectedColumns);Assert.IsFalse(stagedInputs);
+                    body.Take=2;
+                    body.EntityStages=new[]{
+                        new CqlSetV1EntityStage{Operation="Where",Where=new(){Kind="Filter",Filter=filter}},
+                        new CqlSetV1EntityStage{Operation="OrderBy",Ordering=new[]{new CqlV1Ordering{Field="Name",Descending=true}}},
+                        new CqlSetV1EntityStage{Operation="Skip",Count=1},
+                        new CqlSetV1EntityStage{Operation="Take",Count=1}};
+                }
                 if(stagedInputs)
                 {
                     Assert.IsTrue(selectedColumns);
@@ -86,9 +101,9 @@ public sealed partial class CqlV1Web4NativeTests
                     Assert.AreEqual(HttpStatusCode.OK,response.StatusCode,text);
                     using var json=JsonDocument.Parse(text);var result=json.RootElement.GetProperty("result");
                     var rows=result.GetProperty("rows");Assert.AreEqual(expected,rows.GetArrayLength());
-                    if(selectedColumns)
+                    if(selectedColumns || lateSelection)
                     {
-                        Assert.AreEqual("cql-projected-set-v1",result.GetProperty("version").GetString());
+                        Assert.AreEqual(lateSelection?"cql-set-projection-v1":"cql-projected-set-v1",result.GetProperty("version").GetString());
                         var columns=result.GetProperty("columns");Assert.AreEqual(1,columns.GetArrayLength());
                         Assert.AreEqual("label",columns[0].GetProperty("alias").GetString());
                         foreach(var item in rows.EnumerateArray())
@@ -102,7 +117,7 @@ public sealed partial class CqlV1Web4NativeTests
                     Assert.AreEqual(1,operation.ProviderAttempts.Count);Assert.AreEqual(1,operation.Receipts.Count);
                     Assert.AreEqual(0.002m,authority.Settlements[operation.Id].ActualCostUsd);
                 }
-                await Send(ownerToken,stagedInputs?1:2);await Send(otherToken,0);await Send(null,0);
+                await Send(ownerToken,stagedInputs||entityStages?1:2);await Send(otherToken,0);await Send(null,0);
                 Assert.AreEqual(2,authority.Started.Count);Assert.AreEqual(2,authority.Settlements.Count);
             }
             finally{await app.StopAsync();}

@@ -26,6 +26,8 @@ public static partial class CqlV1Endpoint
             var policy=CaptureReadPolicy(http,actor,requested,providers,admission);
             if(!TryResolveEligible(providers,requested,admission,out var storage,out var rowAdapter,out var selected,policy))
                 return Failure(403,"CQL_PROVIDER_NOT_ELIGIBLE","The provider is not eligible for this admitted set.");
+            if(request.OutputColumns!=null)
+                return await ExecuteSetProjectionAsync(http,request,providers,actor,selected,policy?.Access,storage,rowAdapter);
             if(request.Left.Columns!=null || request.Right.Columns!=null)
                 return await ExecuteProjectedSetAsync(http,request,providers,actor,selected,policy?.Access,storage,rowAdapter);
             if(rowAdapter is not ICosmicSetQueryStorageProvider adapter)

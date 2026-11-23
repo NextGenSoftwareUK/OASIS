@@ -9,7 +9,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
-public partial class SQLLiteDBOASIS : ICosmicQueryEntityProjectionStorageProvider
+public partial class SQLLiteDBOASIS : ICosmicQueryEntityProjectionStorageProvider,ICosmicQuerySetProjectionStorageProvider
 {
     public static CosmicProjectionCapabilities CqlProjectionCapabilities { get; } = new CosmicProjectionCapabilities(
         SqliteCqlContract.Fields.Values.Select(field => new CosmicProjectionFieldCapability(field.Name, field.ValueType)).ToArray(),
@@ -17,6 +17,16 @@ public partial class SQLLiteDBOASIS : ICosmicQueryEntityProjectionStorageProvide
     public CosmicProjectionCapabilities ProjectionCapabilities => CqlProjectionCapabilities;
 
     public bool SupportsEntityProjection => true;
+    public bool SupportsSetProjection => true;
+
+    public Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteCosmicSetProjectionAsync<T,TResult>(
+        CosmicSetProjectionPlan<T,TResult> plan,int maximumResults=100,
+        int maximumPayloadBytes=CosmicProjectionResults.MaximumPayloadLimit,CancellationToken cancellationToken=default) where T:IHolon
+        =>!IsProviderActivated || _holonRepository is not HolonRepository repository
+            ?Task.FromResult(new OASISResult<IReadOnlyList<CosmicProjectionRow>>{IsError=true,ErrorCount=1,
+                ErrorCode="CQL_PROVIDER_NOT_READY",Message="Activate SQLite before late set projection."})
+            :repository.ExecuteCosmicSetProjectionAsync(plan,maximumResults,maximumPayloadBytes,cancellationToken);
+
 
     public Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteCosmicEntityProjectionAsync<T,TResult>(
         CosmicEntityProjectionPlan<T,TResult> plan,int maximumResults=100,

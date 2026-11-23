@@ -13,7 +13,7 @@ public static partial class CqlV1Compiler
         CqlSetV1Request request,Guid actor,ProviderType? provider,CosmicQueryReadAccess access=null)
     {
         var kind=ValidateSetRequest(request);
-        if(request.Left.Columns==null || request.Right.Columns==null || request.IncludeMetadata)
+        if(request.OutputColumns!=null || request.EntityStages!=null || request.Left.Columns==null || request.Right.Columns==null || request.IncludeMetadata)
             throw new ArgumentException("Selected sets require explicit columns on both inputs and no entity metadata expansion.");
         CosmicProjectionQuery<Holon,CosmicProjectionRecord> Selection(CqlSetV1Source source)
         {

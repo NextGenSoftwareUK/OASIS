@@ -1,0 +1,32 @@
+{
+  "source": "c168a52e15e7424484c25582c190807a8e2d2806",
+  "requiredCi": [
+    {
+      "run": 45160691801,
+      "source": "c168a52e15e7424484c25582c190807a8e2d2806",
+      "workflow": "Qualify native Neo4j selected-value sets",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 137645033533,
+          "name": "read-activation",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 45160691947,
+      "source": "c168a52e15e7424484c25582c190807a8e2d2806",
+      "workflow": "Qualify native SQLite native set operations",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 137645034428,
+          "name": "read-activation",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "allRequiredAffectedCompilerChecksPassed": true
+}

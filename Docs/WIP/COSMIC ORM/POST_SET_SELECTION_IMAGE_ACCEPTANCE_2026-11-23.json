@@ -1,0 +1,29 @@
+{
+  "source": "c168a52e15e7424484c25582c190807a8e2d2806",
+  "core": "f339a3c24542c5232823f1d119393e71f195ccfd",
+  "web6": "78a27a295e74721358eb2b02399f79eff5b21633",
+  "onode": "8745c95ef2f6150fafb1417122a20c020784b338",
+  "run": 45162193600,
+  "job": 137650134907,
+  "controlSource": "cf54b603a079decabd2ced067a86ac0325065f47",
+  "explicitSourceInputAttested": true,
+  "digest": "sha256:d298c7e20df74b08b910f136d79368a3dbdae579b4840401e2312dd6a38b3830",
+  "teachingSidecars": false,
+  "exactPrivatePinsVerified": true,
+  "incomingDevelopmentPreserved": "df5b838278bec4f58690bf5e600f5009552886c2",
+  "nativeRuns": [
+    45160691758,
+    45160691551
+  ],
+  "requiredRegressionRuns": [
+    45160691801,
+    45160691947
+  ],
+  "completeCoreMatchesNativeJourneys": true,
+  "retainedUnchangedCohortsReplayed": false,
+  "imageAccepted": true,
+  "combinedCoreCompiled": true,
+  "imageDownloadedLocally": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T11:27:11.049564+00:00"
+}

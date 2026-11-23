@@ -18,6 +18,11 @@ public sealed class CqlSetV1Request
     public CqlV1Ordering[]? Ordering { get; set; }
     public bool Reverse { get; set; }
     public bool IncludeMetadata { get; set; }
+    /// <summary>Ordered entity operations after the combined window and before OutputColumns.</summary>
+    public CqlSetV1EntityStage[]? EntityStages {get;set;}
+    /// <summary>Selection after entity membership and output entity windows.
+    /// Cannot be combined with selected columns/stages on either operand.</summary>
+    public CqlProjectionV1Column[]? OutputColumns {get;set;}
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
@@ -36,4 +41,13 @@ public sealed class CqlSetV1Source
     /// <summary>Native selected stages after this input window, before set equality.</summary>
     public CqlCompositionV1Stage[]? Stages {get;set;}
     public CqlV1Graph? Graph { get; set; }
+}
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class CqlSetV1EntityStage
+{
+    public string? Operation {get;set;}
+    public CqlWhereV1Predicate? Where {get;set;}
+    public CqlV1Ordering[]? Ordering {get;set;}
+    public int? Count {get;set;}
 }

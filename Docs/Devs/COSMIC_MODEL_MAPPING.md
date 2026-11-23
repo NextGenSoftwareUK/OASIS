@@ -1,3 +1,15 @@
+## Ordered entity-set stages — native qualified; Development deployment pending
+
+The existing set request can carry EntityStages: one to16 ordered Where, OrderBy, Skip, Take or Reverse operations after the request's existing combined window and before OutputColumns. Where uses the shared typed predicate tree and cumulative predicate bounds. Ordering uses declared entity fields and stable Id tie-breaking. No operation is moved across an earlier window. Input selected-column sets reject this entity contract, preserving tuple equality.
+
+The implementation delegates to existing immutable Core entity composition and the shipping providers. Source capture/compiler3 controls and three-provider authenticated native HTTP journeys passed45170792856, plus the actual WEB4 build. Websitec8a2b8c client checks and real-browser45171784641 preserve earlier25-row membership before later filtering/order/take5. The exact combined image is building; live/API/model acceptance remains pending. SQL/Ask integration and live acceptance remain separate gates. This does not certify arbitrary selected-result stages or full SQL/ORM parity.
+
+## Explicitly mapped private setters — native qualified; Development deployment pending
+
+Fluent and allowlisted XML scalar mappings may select a public getter with a non-public setter. A domain method can change that property while COSMIC handles its metadata alias, snapshot tracking, validation and typed native query binding. V2 hydration invokes a non-public setter only when the immutable application model explicitly maps that property; unconfigured legacy hydration retains its existing public-setter admission. Getter-only properties remain unsupported.
+
+The same model must accompany reads, queries and writes. This does not implement arbitrary backing fields, constructor injection or general immutable entity construction. Three-provider save/read/query/update, XML, validation and caller-scope journeys passed45169727540 plus one canonical snapshot control and actual WEB4 build. Canonical snapshots restore custom public-getter/private-setter storage slots through the existing serializer; explicit model admission separately governs metadata hydration. Getter-only/navigation exclusions remain. Deployment and full M17 are not certified.
+
 # COSMIC model mapping
 
 ## Explicit metadata storage keys
@@ -264,7 +276,7 @@ An optional XML value-type field has a nullable CLR domain; not-null=true uses i
 The syntax reference is [NHibernate dynamic components](https://nhibernate.info/doc/nhibernate-reference/components.html#components-dynamic). COSMIC's admitted subset maps the canonical metadata dictionary and retains the documented read-only/identity/query differences. The XML dictionary qualifier45140169734 passed three native journeys, one admission control and the actual WEB4 build, with exact owned cleanup. Combined image/package and deployment acceptance remain separate.
 
 
-### Named application filters (native-qualified; deployment pending)
+### Named application filters (Development deployed)
 Entity<T>().HasQueryFilter("active", row => row.IsActive) adds or replaces
 a case-sensitive named filter. Distinct names and the optional unnamed filter
 are combined with AND before source paging. Build freezes captured literals.
@@ -278,7 +290,7 @@ policy. These application filters are opt-in model rules, not provider-manager
 collection filters. Exact-contract matching remains; polymorphic filters are open.
 
 
-### Shadow entry comparison values and explicit flags (native-qualified; deployment pending)
+### Shadow entry comparison values and explicit flags (Development deployed)
 A session ShadowProperty<TValue> entry supports GetOriginalValue(), GetValues(),
 SetOriginalValue(value), RemoveOriginalValue(), and SetModified(bool).
 These delegate to the existing canonical change tracker; there is no second baseline.
@@ -293,7 +305,7 @@ foreign-session entries cannot read or change these values. Required constraints
 remain enforced at save. Arbitrary CLR indexers and full M16 parity remain open.
 
 
-### Query tracking modes (native-qualified; deployment pending)
+### Query tracking modes (Development deployed)
 CosmicSession.Linq<T>(CosmicQueryTrackingMode mode) and
 ReadAsync(query, CosmicQueryTrackingMode mode) admit Tracking, NoTracking and
 NoTrackingWithIdentityResolution. Existing Boolean tracking APIs keep their meaning.
@@ -308,3 +320,33 @@ Stateless LINQ supports both untracked modes and continues to refuse session tra
 All modes use the same actor/authority-bound native reads and session operation/lifetime
 gates; identity resolution never substitutes for a new access check. Undefined modes
 are refused before execution. Full graph-wide ORM tracking parity remains open.
+
+
+### Native selection after identity-based entity sets (native-qualified; deployment and SQL/Ask transport pending)
+Union/Concat/Intersect/Except over entities can be followed by scalar, anonymous or
+DTO Select and detached shape reselection. Entity equality stays based on stored
+identity: different entities with equal Name values remain separate after entity
+Union, and Concat preserves occurrences. Each operand keeps its own source window;
+post-set entity filtering/order/paging stays before the selection. Metadata cell
+domains are decoded only for retained selected rows. Discarded malformed typed
+metadata must not fail the later selection; retained malformed required values fail
+atomically. Selection, both input guards and entity stages share one provider-owned
+read snapshot. This is independently enrolled on shipping MongoDB, SQLite and Neo4j.
+Ordinary selected-tuple sets retain their distinct value-equality contract.
+Mappings must give the selected columns identical physical meaning on both operands;
+genuinely different bindings are refused. Subsequent selected filters/order/pages,
+terminals and HTTP/SQL/Ask transport need further native integration. Full parity is open.
+
+Development df5b8382/Coree6ff has exact source, seven original rollout and authorized runtime-setting acceptance for the three deployed sections above. The newer native post-set selection section remains on Coref339 with image/package/deployment and HTTP/SQL/Ask acceptance separate.
+
+
+### Late set projection request transport (qualification pending)
+POST /api/data/query-cql/set admits OutputColumns on entity-set requests. They
+are evaluated after identity membership and top-level entity ordering/windowing.
+Input Columns/Stages select a different, value-tuple contract and cannot be mixed
+with OutputColumns. IncludeMetadata expansion is refused on a detached selection.
+The response version is cql-set-projection-v1 with explicit columns and scalar
+row arrays, using the existing exact-number/UTC wire rules. Actor policy is
+server-selected for both operands; one physical-attempt owner covers execution.
+Request capture copies late column paths. No caller-provided actor or permissions
+are accepted. Later selected stages and SQL/Ask client integration remain separate.

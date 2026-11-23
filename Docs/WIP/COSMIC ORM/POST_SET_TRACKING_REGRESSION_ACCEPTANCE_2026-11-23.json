@@ -1,0 +1,126 @@
+{
+  "run": 45160691551,
+  "job": 137645033085,
+  "artifact": 14812475241,
+  "archiveBytes": 3779,
+  "archiveSha256": "4b75e948b6cadf518657f9ff11206781923035320a41734b4678ce9f44de7caa",
+  "archiveSavedLocally": false,
+  "source": {
+    "source": "c168a52e15e7424484c25582c190807a8e2d2806",
+    "actualWeb4Compiled": true,
+    "nativePassed": 3,
+    "deployed": false,
+    "ownedFixturesAbsent": true,
+    "trackingModeVerified": true,
+    "sharedDatabaseCalls": 0,
+    "core": "f339a3c24542c5232823f1d119393e71f195ccfd"
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create-tracking-mode": 396,
+        "tracking-shares-session-identity": 74,
+        "tracking-preserves-local-edit": 11,
+        "no-tracking-separate-rows": 11,
+        "no-tracking-fresh-execution": 11,
+        "per-read-identity-resolution": 12,
+        "identity-map-not-retained": 10,
+        "explicit-cql-mode": 9,
+        "mode-survives-scalar-composition": 44,
+        "stateless-per-read-identity": 9,
+        "stateless-map-not-retained": 8,
+        "stateless-explicit-no-tracking": 8,
+        "per-read-mode-preserves-access": 6,
+        "per-read-mode-preserves-lifetime": 0
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "trackingRetainsSessionIdentityAndLocalEdits": true,
+        "noTrackingUsesFreshRows": true,
+        "identityResolutionIsPerExecutionOnly": true,
+        "resolvedRootsRemainDetached": true,
+        "explicitCqlAndLinqModesAgree": true,
+        "statelessModesPreserveNoTrackingContract": true,
+        "scalarCompositionAndInvalidModeAdmission": true,
+        "callerAndSessionLifetimePreserved": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create-tracking-mode": 386,
+        "tracking-shares-session-identity": 47,
+        "tracking-preserves-local-edit": 6,
+        "no-tracking-separate-rows": 5,
+        "no-tracking-fresh-execution": 5,
+        "per-read-identity-resolution": 5,
+        "identity-map-not-retained": 5,
+        "explicit-cql-mode": 7,
+        "mode-survives-scalar-composition": 13,
+        "stateless-per-read-identity": 5,
+        "stateless-map-not-retained": 5,
+        "stateless-explicit-no-tracking": 5,
+        "per-read-mode-preserves-access": 2,
+        "per-read-mode-preserves-lifetime": 0
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "trackingRetainsSessionIdentityAndLocalEdits": true,
+        "noTrackingUsesFreshRows": true,
+        "identityResolutionIsPerExecutionOnly": true,
+        "resolvedRootsRemainDetached": true,
+        "explicitCqlAndLinqModesAgree": true,
+        "statelessModesPreserveNoTrackingContract": true,
+        "scalarCompositionAndInvalidModeAdmission": true,
+        "callerAndSessionLifetimePreserved": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create-tracking-mode": 732,
+        "tracking-shares-session-identity": 844,
+        "tracking-preserves-local-edit": 12,
+        "no-tracking-separate-rows": 10,
+        "no-tracking-fresh-execution": 9,
+        "per-read-identity-resolution": 9,
+        "identity-map-not-retained": 10,
+        "explicit-cql-mode": 269,
+        "mode-survives-scalar-composition": 627,
+        "stateless-per-read-identity": 18,
+        "stateless-map-not-retained": 8,
+        "stateless-explicit-no-tracking": 7,
+        "per-read-mode-preserves-access": 6,
+        "per-read-mode-preserves-lifetime": 0
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "trackingRetainsSessionIdentityAndLocalEdits": true,
+        "noTrackingUsesFreshRows": true,
+        "identityResolutionIsPerExecutionOnly": true,
+        "resolvedRootsRemainDetached": true,
+        "explicitCqlAndLinqModesAgree": true,
+        "statelessModesPreserveNoTrackingContract": true,
+        "scalarCompositionAndInvalidModeAdmission": true,
+        "callerAndSessionLifetimePreserved": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "fullParityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T11:03:25.697813+00:00"
+}
