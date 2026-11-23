@@ -460,7 +460,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | Q28 | Exact Int64 values beyond JavaScript Number precision | [✅][D3] | [✅][D3] | [✅][D3] | V1 example3, supported scalar/wire domain. |
 | Q29 | UTC DateTime predicates, projection and group keys | [✅][D20] | [✅][D20] | [✅][D20] | V1 examples20/21. |
 | Q30 | DateOnly/TimeOnly/DateTimeOffset/TimeSpan translation | ❌ | ❌ | ❌ | UTC DateTime is not these distinct CLR domains. |
-| Q31 | Date arithmetic and date-part functions | ❌ | ❌ | ❌ | No complete provider translation proof. |
+| Q31 | Date arithmetic and date-part functions | ❌ | ❌ | ❌ | Seven UTC DateTime row components (year/month/day/day-of-year/hour/minute/second) are native-qualified on all three stores for stored and mixed full/virtual metadata projections: [native3/wire1/actual WEB4 build](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45098868422). SQL capture and mocked Ask review preserve the selected mapping. Exact 100ns boundary/null/caller/source-preservation checks retained. Date arithmetic, computed grouping/aggregates, real WEB6 and hosted/browser acceptance remain open; no full-row credit. |
 | Q32 | Exact UInt64 predicates/selections/aggregates | [✅][D22] | [✅][D22] | [✅][D22] | V1 examples22/23/35-37. |
 | Q33 | Exact Decimal predicates/selections/aggregates | [✅][D24] | [✅][D24] | [✅][D24] | V1 examples24/25/38-40. |
 | Q34 | Single predicates/selections/Sum/Average | [✅][D28] | [✅][D28] | [✅][D28] | V1 examples28/29/44-46; explicit finite arithmetic domains. |
