@@ -71,6 +71,13 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(maxCode.IsError,maxCode.Message+maxCode.Exception);Assert.AreEqual("Zulu",maxCode.Result!.Value);
         var paged=await Timed("paged-extrema",()=>root.OrderByDescending(row=>row.Units).Take(1).ToCosmicMinAsync(row=>row.Units));
         Assert.IsFalse(paged.IsError,paged.Message+paged.Exception);Assert.AreEqual(7,paged.Result);
+        var selected=await Timed("selected-converted-extrema",()=>root.Select(row=>row.Units).ToCosmicMinAsync());
+        Assert.IsFalse(selected.IsError,selected.Message+selected.Exception);Assert.AreEqual(2,selected.Result);
+        var record=await Timed("record-converted-extrema",()=>root.Select(row=>new{row.Units,row.Code})
+            .OrderBy(row=>row.Units).Skip(1).ToCosmicMaxAsync(row=>row.Code));
+        Assert.IsFalse(record.IsError,record.Message+record.Exception);Assert.AreEqual("Zulu",record.Result!.Value);
+        var set=await Timed("set-converted-extrema",()=>root.Union(root).Select(row=>row.Units).ToCosmicMaxAsync());
+        Assert.IsFalse(set.IsError,set.Message+set.Exception);Assert.AreEqual(7,set.Result);
         var empty=await Timed("empty-converted-extrema",()=>root.Take(0).ToCosmicMinAsync(row=>row.Code));
         Assert.IsFalse(empty.IsError,empty.Message+empty.Exception);Assert.IsNull(empty.Result);
         using var foreign=CosmicSession.Create(manager,adapter,
@@ -91,7 +98,8 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.AreEqual("CQL_SCALAR_SELECTION_UNSUPPORTED",rejected.ErrorCode);
         var invalidNumeric=source.Result.Sum(row=>row.Units);
         Assert.IsTrue(invalidNumeric.IsError,"Ordering does not authorize sums over a changed representation.");
-        return new NativeFixtureJourneyProof(6,2,new Dictionary<string,bool>{
+        return new NativeFixtureJourneyProof(8,2,new Dictionary<string,bool>{
+            ["selectedConvertedExtrema"]=true,["recordAndSetConvertedExtrema"]=true,
             ["nativeConvertedNumericExtrema"]=true,["nativeConvertedObjectExtrema"]=true,
             ["convertedExtremaAfterSourceWindow"]=true,["emptyAndCallerScopedExtrema"]=true,
             ["equalityOnlyExtremaRefused"]=true,["nonHomomorphicNumericReductionRefused"]=true});

@@ -460,6 +460,12 @@ existing empty-sequence contract. No row collection is downloaded to calculate
 an extremum. Equality-only conversions are refused; ordering preservation does
 not imply that a converter preserves sums or averages.
 
+The same contract supports selected scalar queries, anonymous/DTO selected
+members with intervening filters and windows, and selections over entity sets.
+For example, query.Select(row => new { row.Units, row.Code })
+.OrderBy(row => row.Units).Skip(1).ToCosmicMaxAsync(row => row.Code)
+reduces the selected native sequence without constructing the enclosing DTO.
+
 This addition is source-implemented and awaiting its representative native
-qualification. It does not claim converted arithmetic, projected-stage extrema,
-general NHibernate custom-type parity or hosted application acceptance.
+qualification. It does not claim converted arithmetic, general NHibernate
+custom-type parity or hosted application acceptance.
