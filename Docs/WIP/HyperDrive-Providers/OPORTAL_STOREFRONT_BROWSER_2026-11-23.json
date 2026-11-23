@@ -94,6 +94,14 @@
     "conclusion": "success",
     "source": "21abed0bedfde0399f66eef1da62cff0d92d34b7",
     "publication": "Published Development 21abed0bedfde0399f66eef1da62cff0d92d34b7 and Core Development fc2470e77afa41e0a35850dbb2ce3c3f9e23b6dd; all eight branch gates and paired manifest passed. Running Railway revision not yet verified.",
-    "cleanup": "GitHub owned native fixture and browser runtime/cache cleanup steps SUCCESS. No local downloads/build/env/database created."
+    "cleanup": "Detailed streamed log verified database/DNA/container/browser runtime/cache absence markers; all corresponding steps SUCCESS. No local generated outputs."
+  },
+  "detailedSuccess": {
+    "buildErrors": 0,
+    "buildElapsed": "00:07:02.47",
+    "browserProof": "Actual Games/OAPPs/Inventory SDK/browser/HTTP/native Mongo browse/details and supplied launch links; zero browser mutations. Full Startup/SSO/hosted excluded.",
+    "logRead": "Streaming memory-only; selected seven lines retained from 3874538 characters; no log download.",
+    "portalSyntax": "58 top-level assets/js scripts checked, zero syntax errors; not functional acceptance.",
+    "railway": "WEB4 deployment 0e9725b4-13cb-4bb0-92d1-4b1a902ee05c QUEUED at observation; prior aa257b03 runtime SUCCESS."
   }
 }
