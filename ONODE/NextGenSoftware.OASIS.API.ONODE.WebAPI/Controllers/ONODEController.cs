@@ -300,8 +300,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 var factory = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions
                     .GetRequiredService<System.Net.Http.IHttpClientFactory>(HttpContext.RequestServices);
                 using var http = factory.CreateClient("ONODESupervisor");
-                http.BaseAddress = new Uri("http://127.0.0.1:8765/");
-                http.Timeout = TimeSpan.FromSeconds(5);
                 http.DefaultRequestHeaders.Authorization =
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
                 using var response = await http.GetAsync("supervisor/providers", HttpContext.RequestAborted);

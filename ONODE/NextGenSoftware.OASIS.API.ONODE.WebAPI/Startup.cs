@@ -119,6 +119,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             // services.AddMvc();
 
             // services.AddDbContext<DataContext>();
+            services.AddHttpClient("ONODESupervisor", client =>
+            {
+                client.BaseAddress = new Uri("http://127.0.0.1:8765/");
+                client.Timeout = TimeSpan.FromSeconds(5);
+            });
             services.AddCors();
             // Add exception filter with configuration
             services.AddControllers(x =>
