@@ -9,12 +9,14 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','nft','data','data-crud','data-edit','map-route','messaging','data-messaging','nft-messaging-data'].includes(popupGroup));
+ assert.ok(['none','nft','data','data-crud','data-edit','files-write','map-route','messaging','data-messaging','nft-messaging-data'].includes(popupGroup));
  const selectedPopups=popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
-  popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','map-route':'MapRoute',messaging:'Messaging'}[popupGroup]];
+  popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
  let recipient,recipientToken,sentMessage=0,dataReads=0;
+ const fileBytes=Buffer.from('Owned portal file roundtrip.\n','utf8');
+ let fileId,fileUploads=0,fileDeletes=0;
  let routeId,routeCreates=0,routeUpdates=0;
  let savedHolonId,holonSaves=0,holonDeletes=0,pointReads=0;
  const dataName='Owned portal record '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
@@ -70,6 +72,14 @@ async function main(){
    if(url.origin==='https://api.web4.oasisomniverse.one'){
     const mutation=request.method()!=='GET'&&request.method()!=='OPTIONS';
     let ownedOperation=false;
+    if(popupGroup==='files-write'){
+     if(request.method()==='POST'&&url.pathname==='/api/files/upload-file'){
+      assert.equal(++fileUploads,1,'One explicit owned upload');assert.equal(request.postDataJSON(),fileBytes.toString('base64'));
+      assert.equal(url.searchParams.get('fileName'),'owned-roundtrip.txt');assert.equal(url.searchParams.get('description'),'Owned file roundtrip');ownedOperation=true;
+     }else if(request.method()==='DELETE'&&fileId&&url.pathname==='/api/files/delete-file/'+fileId){
+      assert.equal(++fileDeletes,1,'One explicit owned file delete');ownedOperation=true;
+     }
+    }
     if(popupGroup==='map-route'){
      if(request.method()==='POST'&&url.pathname==='/api/map/routes'){
       assert.equal(++routeCreates,1,'One explicit owned GPX publication');const body=request.postDataJSON();
@@ -241,6 +251,24 @@ async function main(){
     await page.waitForFunction(id=>document.getElementById('data-modal-status').hidden&&
      !document.querySelector('#data-browse-grid [data-holon-idx="'+id+'"]'),savedHolonId);
     assert.equal(holonSaves,popupGroup==='data-edit'?2:1);assert.equal(pointReads,popupGroup==='data-edit'?2:1);assert.equal(holonDeletes,1);
+   });
+   await checkPopup('FilesWrite','#files-close-btn',async()=>{
+    stage='Files upload form';await page.locator('#dash-card-files').click();
+    await page.waitForFunction(()=>document.getElementById('files-stat-count').textContent==='0');
+    await page.locator('#files-modal-block [data-tab="upload"]').click();
+    await page.locator('#files-upload-input').setInputFiles({name:'owned-roundtrip.txt',mimeType:'text/plain',buffer:fileBytes});
+    await page.locator('#files-upload-desc').fill('Owned file roundtrip');
+    stage='Files upload';const uploadResponse=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/files/upload-file');
+    await page.locator('#files-upload-btn').click();const raw=await(await uploadResponse).json(),upload=typeof raw.isError==='boolean'?raw:raw.result;
+    assert.equal(upload.isError,false,'Actual file upload');fileId=upload.result.id;assert.match(fileId,/^[0-9a-f-]{36}$/i);
+    await page.locator('[data-file-download="'+fileId+'"]').waitFor({state:'visible'});
+    assert.ok((await page.locator('#files-list').textContent()).includes('Owned file roundtrip'));
+    stage='Files download';const downloadEvent=page.waitForEvent('download');await page.locator('[data-file-download="'+fileId+'"]').click();
+    const download=await downloadEvent;
+    try{assert.equal(download.suggestedFilename(),'owned-roundtrip.txt');const stream=await download.createReadStream();const chunks=[];for await(const chunk of stream)chunks.push(chunk);assert.deepEqual(Buffer.concat(chunks),fileBytes);}finally{await download.delete();}
+    stage='Files delete';page.once('dialog',dialog=>dialog.accept());await page.locator('[data-file-delete="'+fileId+'"]').click();
+    await page.waitForFunction(()=>document.getElementById('files-stat-count').textContent==='0'&&document.getElementById('files-list').textContent.includes('No files stored yet'));
+    assert.equal(fileUploads,1);assert.equal(fileDeletes,1);
    });
    await checkPopup('MapRoute','#map-close-btn',async()=>{
     stage='Map routes open';await page.locator('#dashboard button.dash-panel-link').filter({hasText:'View Map'}).click();
