@@ -1,3 +1,9 @@
+## Async numeric reductions — source implemented, native qualification pending
+
+The native async surface includes Sum, Average, Min and Max with direct selected values and typed selectors (26 overloads). Root selectors are normalized into the existing native Select planner; selected and entity-stage operations retain preceding windows. Session wrappers reuse the existing asynchronous lifetime boundary. Cancellation reaches native numeric and extremum execution. Standard Average result types are retained, including nullable domains. Unsupported shapes and domains return explicit errors; there is no local row reduction substitute.
+
+Count/LongCount/Any/All passed native MongoDB, SQLite and Neo4j qualification45181628686, with one boundary control and the actual WEB4 build. Numeric representative verification is pending. Set/join/indexed async composition and full parity remain open; none of this new family is yet deployed to Development.
+
 ## Native asynchronous cardinality — source implemented; native qualification pending
 
 ToCosmicCountAsync, ToCosmicLongCountAsync, ToCosmicAnyAsync and ToCosmicAllAsync use the existing native scalar/cardinality planners. Predicate overloads retain their position after an earlier source or selected window. Token propagation reaches native scalar, indexed scalar, selected cardinality/projected All and entity-stage count owners. Session/stateless wrappers retain the existing asynchronous lifetime boundary; scalar values are not entity tracking entries.
