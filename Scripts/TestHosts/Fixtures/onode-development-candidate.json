@@ -1,16 +1,12 @@
 {
   "scope": "onode",
-  "status": "reviewed-current-CQL-source-awaiting-combined-compile",
-  "candidate": "a67b910f5f8d7c43339615485af031967d112f2e",
-  "base": "daf058b51c6f4251d99415c3a002691e36895e53",
-  "tag": "qualification/onode-current-cql-reviewed-root-20261123",
+  "status": "public-view-and-real-metrics-source-prepared-inventory-pending",
+  "candidate": "557ae2ad528738d5991fc8243bbe347a47e7fe9c",
+  "base": "a67b910f5f8d7c43339615485af031967d112f2e",
+  "tag": "qualification/onode-public-view-root-20261123",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ONODEController.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Hubs/ONODEWebSocketHub.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/JwtMiddleware.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
     "ONODE/ONODEManager"
   ],
   "buildProjects": [
@@ -20,9 +16,9 @@
   "core": {
     "candidate": "271603c32f13345cebd350b557f7c6bd10ab9d04"
   },
-  "onodeManager": "072b0a819fed609d9f0a0cab94650e1b61d5b4a6",
+  "onodeManager": "458743e10b9eb1ce7c7fa10a58bd27e9c11b4af2",
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
-  "remaining": "Review source inventories; compile changed API/service together; qualify actual protected browser/API/bridge/command flow before acceptance. No native success inferred from this build.",
+  "remaining": "Regenerate/review new public-config route, compile changed API/service, wire popup through advertised capability and verify real bridge/public view/command/browser. Earlier a67 build remains its scoped evidence.",
   "inventoryReview": {
     "run": 45204381673,
     "artifact": 14833515324,
