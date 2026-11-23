@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-23",
+  "status": "open; serialized conditional graph membership edit rejected before native write",
+  "run": 45194278381,
+  "job": 137760460450,
+  "root": "e1cf13421bd8acd707d9cda49d2952b01240f2ab",
+  "core": "cb1c50c24ac8520be6f328bca08e48e04737854b",
+  "web4ImageSource": "8f379886b8d89d1e134dd740a41af239e56f626f",
+  "acceptedWithinFailedRun": [
+    "actual OAPP creation and GeneratedCodeOnly category",
+    "native child save",
+    "native parent authority read"
+  ],
+  "failed": {
+    "path": "/api/data/save-holon",
+    "status": 503,
+    "errorCode": "HOLON_SAVE_PREPARATION_FAILED",
+    "reason": "Conditional membership differs from the complete stored role observation.",
+    "stage": "persist explicit child membership",
+    "writeAcceptance": false
+  },
+  "unchangedGuard": {
+    "path": "Holons/HolonChildRoleObservation.cs",
+    "blob": "bc3f197ef6a76e5cf21c5dfe97b0b05de697542a",
+    "sameIn": [
+      "a3c5ceef9d61b0057ecc8b21156bd0121754a223",
+      "cb1c50c24ac8520be6f328bca08e48e04737854b"
+    ],
+    "invariant": "A serialized conditional graph may not silently acquire complete role observation authority or overwrite unobserved membership."
+  },
+  "next": "Define and implement the canonical API boundary for explicit relationship edits with original native revisions and complete original membership evidence, preserving partial-view rejection. Do not forge/strip stored role manifests, bypass native writes, weaken the guard or replace this proof with an empty graph. Continue independent profile shipping and other main popup journeys.",
+  "acceptanceRemaining": [
+    "conditional parent-child relationship persistence",
+    "populated explicit descendant catalogue read",
+    "populated Map/Launcher detail and browse"
+  ],
+  "localArtifacts": false
+}
