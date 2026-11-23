@@ -1,3 +1,7 @@
+## 2026-11-23 - Games/OAPP browser paths observed; Inventory fixture route fixed
+
+45110969977/job137482995228 compiled0errors6m58.00; nativeBSON/typedGame plus Gamesall/mine/filter/details/link and OAPPown/all/search/details/link/normalnavigation passed. FirstAvatarInventoryGET500: combinedfixture registeredbothrealWEB4 routeandWEB5proxy underoneorigin. Fixture nowselectsactualWEB4controller withoutprod/auth/storagechanges;45112267754 active. OwnedDB/DNA/container/browserruntime/cache absenceverified. NewscrollCSS/page served200 exact71ea125. d531Mongo6linewritefixnotdeployed; legacyassessment/fullStartup/wholeportalremainopen. Prioracceptedcohortsnotselected.
+
 ## 2026-11-23 - Native Mongo list fix passed; real popup viewport bug source-fixed
 
 45109755916/job137479162945 compiled0errors5m39.11, rawSupportedPlatformsBSONarray/exacttypedGamepassed; browserGamesdetails/developer/platform/SSO/suppliedlaunchhref rendered thenMyGamescontroloutsideviewport. Shipping7popupwidthrule lackedheight/scroll. Portal71ea125 adds3sharedCSSlines; fixtureusesall6shippingstyles andclosespopupbeforenextopen. Samejourney45110969977 active on d531writerfix; no overallbrowseracceptance/backenddeploymentyet. Legacystringassessment remainsopen. All7Giftsruntimeproofs retained; no sharedbackend/localoutputs.
