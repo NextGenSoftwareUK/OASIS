@@ -1,19 +1,14 @@
 name: OPORTAL real WEB5 startup
 on:
-  workflow_dispatch:
-    inputs:
-      portal:
-        required: true
-        type: string
-      popup_group:
-        type: choice
-        default: web5-breadth
-        options: [none, web5-breadth]
   workflow_call:
     inputs:
       portal:
         required: true
         type: string
+      popup_group:
+        required: false
+        type: string
+        default: none
     secrets:
       PRIVATE_SUBMODULE_PAT:
         required: true
