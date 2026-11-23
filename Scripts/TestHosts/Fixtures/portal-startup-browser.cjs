@@ -9,12 +9,14 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','nft','data','messaging','data-messaging','nft-messaging-data'].includes(popupGroup));
+ assert.ok(['none','nft','data','data-crud','messaging','data-messaging','nft-messaging-data'].includes(popupGroup));
  const selectedPopups=popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
-  popupGroup==='none'?[]:[{nft:'NFT',data:'Data',messaging:'Messaging'}[popupGroup]];
+  popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite',messaging:'Messaging'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
  let recipient,recipientToken,sentMessage=0,dataReads=0;
+ let savedHolonId,holonSaves=0,holonDeletes=0,pointReads=0;
+ const dataName='Owned portal record '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
  if(api5){assert.equal(api5.hostname,'127.0.0.1');assert.equal(api5.protocol,'http:');}
  const root=await fs.realpath(process.env.OASIS_STARTUP_PORTAL_ROOT),owned=await fs.realpath(process.env.OASIS_PROFILE_BROWSER_RUNTIME);
  const {chromium}=require(path.join(owned,'node_modules/playwright-core'));
@@ -67,6 +69,25 @@ async function main(){
    if(url.origin==='https://api.web4.oasisomniverse.one'){
     const mutation=request.method()!=='GET'&&request.method()!=='OPTIONS';
     let ownedOperation=false;
+    if(popupGroup==='data-crud'){
+     if(request.method()==='POST'&&url.pathname==='/api/data/load-holons-for-parent'){
+      assert.ok(++dataReads<=4,'Bounded actual Data browse');
+      assert.deepEqual(request.postDataJSON(),{id:account.avatar.id,holonType:'All',loadChildren:false,recursive:false});ownedOperation=true;
+     }else if(request.method()==='POST'&&url.pathname==='/api/data/save-holon'){
+      assert.equal(++holonSaves,1,'One explicit owned create');const body=request.postDataJSON();
+      assert.equal(body.holon.name,dataName);assert.equal(body.holon.description,'Owned create read delete journey');
+      assert.equal(body.holon.parentHolonId,account.avatar.id);assert.equal(body.saveChildren,false);
+      assert.ok(!body.providerType||body.providerType==='Default','Use actual default provider');
+      assert.match(body.operationId,/^[0-9a-f-]{36}$/i);ownedOperation=true;
+     }else if(request.method()==='POST'&&url.pathname==='/api/data/load-holon'){
+      assert.equal(++pointReads,1,'One actual point read');assert.equal(request.postDataJSON().id,savedHolonId);ownedOperation=true;
+     }else if(request.method()==='DELETE'&&url.pathname==='/api/data/delete-holon'){
+      assert.equal(++holonDeletes,1,'One explicit owned deletion');const body=request.postDataJSON();
+      assert.equal(body.id,savedHolonId);assert.equal(body.softDelete,false);
+      assert.equal(body.providerType,'MongoDBOASIS');assert.deepEqual(Object.keys(body.expectedRevisions),[savedHolonId]);
+      assert.match(body.expectedRevisions[savedHolonId],/^[0-9a-f-]{36}$/i);ownedOperation=true;
+     }
+    }
     if(selectedPopups.length&&request.method()==='POST'){
      if(selectedPopups.includes('Data')&&url.pathname==='/api/data/load-holons-for-parent'){
       assert.equal(++dataReads,1,'One actual Data browse');
@@ -150,6 +171,35 @@ async function main(){
    await page.waitForFunction(n=>document.getElementById('data-modal-status').hidden&&
     document.querySelectorAll('#data-browse-grid .data-holon-card').length===n,raw.result.result.length);
    assert.equal(dataReads,1);
+   });
+   await checkPopup('DataWrite','#data-modal-close-btn',async()=>{
+    stage='Data create form';await page.locator('#dash-card-holons').click();
+    await page.waitForFunction(()=>document.getElementById('data-modal-status').hidden);
+    await page.locator('#data-modal-block [data-tab="save"]').click();
+    await page.locator('#data-save-name').fill(dataName);await page.locator('#data-save-desc').fill('Owned create read delete journey');
+    assert.equal(await page.locator('#data-save-provider').inputValue(),'','Keep default provider selection');
+    stage='Data create';const create=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/data/save-holon'&&r.request().method()==='POST');
+    await page.locator('#data-save-btn').click();const created=await (await create).json();
+    assert.equal(created.result.isError,false,'Real conditional create');savedHolonId=created.result.result.id;
+    assert.match(savedHolonId,/^[0-9a-f-]{36}$/i);assert.equal(created.result.result.name,dataName);
+    stage='Data point read';await page.locator('#data-modal-block [data-tab="load"]').click();
+    await page.locator('#data-load-id').fill(savedHolonId);
+    const point=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/data/load-holon'&&r.request().method()==='POST');
+    await page.locator('#data-load-btn').click();const loaded=await (await point).json();
+    assert.equal(loaded.result.isError,false);assert.equal(loaded.result.result.id,savedHolonId);assert.equal(loaded.result.result.description,'Owned create read delete journey');
+    await page.locator('#data-load-result .data-holon-card').waitFor({state:'visible'});
+    stage='Data delete confirmation';await page.locator('#data-modal-block [data-tab="browse"]').click();
+    await page.locator('#data-browse-grid .data-card-delete[data-id="'+savedHolonId+'"]').click();
+    await page.locator('#data-confirm-overlay').waitFor({state:'visible'});
+    const deletion=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/data/delete-holon'&&r.request().method()==='DELETE');
+    const after=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/data/load-holons-for-parent'&&r.request().method()==='POST');
+    stage='Data delete';await page.locator('#data-confirm-delete-btn').click();const deleted=await (await deletion).json();
+    assert.equal(deleted.result.isError,false);assert.equal(deleted.result.result,true,'Acknowledged native deletion');
+    const remaining=await (await after).json();assert.equal(remaining.result.isError,false);assert.ok(Array.isArray(remaining.result.result));
+    assert.ok(!remaining.result.result.some(row=>row.id===savedHolonId));
+    await page.waitForFunction(id=>document.getElementById('data-modal-status').hidden&&
+     !document.querySelector('#data-browse-grid [data-holon-idx="'+id+'"]'),savedHolonId);
+    assert.equal(holonSaves,1);assert.equal(pointReads,1);assert.equal(holonDeletes,1);
    });
    await checkPopup('Messaging','#messaging-modal-close-btn',async()=>{
    stage='Messaging send';await page.locator('#dash-card-messages').click();
