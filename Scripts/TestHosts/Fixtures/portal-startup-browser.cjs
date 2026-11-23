@@ -206,6 +206,7 @@ async function main(){
    if(httpFacts.length<64)httpFacts.push(fact);
    try{const body=await response.json(),result=typeof body.isError==='boolean'?body:body.result;
     fact.isError=result?.isError;const code=result?.errorCode;
+    if(popupGroup==='storage'&&url.pathname==='/api/settings/holon-storage-policy'){const value=result?.result;fact.storageShape=Object.fromEntries(['applicationId','avatarPolicy','applicationPolicy','effectivePolicy','memoryCacheSupported'].map(key=>[key,{present:Object.hasOwn(value||{},key),type:value?.[key]===null?'null':typeof value?.[key]}]));}
     if(/^\/api\/(nft|oLand|data|messaging|map)\//i.test(url.pathname)){
      const value=result?.result;fact.resultShape=Array.isArray(value)?'array':value===null?'null':typeof value;
      if(Array.isArray(value))fact.resultCount=value.length;
@@ -238,7 +239,7 @@ async function main(){
     if(!selectedPopups.includes(name))return;
     let passed=false,closePassed=true,observedStage=name;
     try{await work();passed=true;observedStage=stage;}
-    catch(error){observedStage=stage;if(name==='Clan'){
+    catch(error){observedStage=stage;if(name==='Storage'){const feedback=await page.locator('#hd-storage-feedback').textContent();console.error('PORTAL_STARTUP_STORAGE_FAILURE:'+JSON.stringify({stage,feedback:/^(WEB4 returned|The saved policy|Load this scope|Loading storage settings)/.test(feedback||'')?feedback:'Unclassified storage error'}));}if(name==='Clan'){
      const state=await page.evaluate(()=>({status:document.getElementById('clan-status')?.textContent||'',nameLength:document.getElementById('clan-create-name')?.value.length||0,buttonDisabled:document.getElementById('clan-create-btn')?.disabled===true,activeTab:document.querySelector('#clan-modal-block .map-tab.is-active')?.dataset.tab||'unknown',
       formOwner:document.getElementById('clan-create-btn')?.form?.id||'none',
       formValid:document.getElementById('clan-create-form')?.matches(':valid')===true,
