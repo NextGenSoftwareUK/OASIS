@@ -46,8 +46,8 @@
       "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs"
     ],
     "preparedCurrentSource": {
-      "root": "103b3da3d7d47405c2612a02cbb3fa2d03fe6a3e",
-      "base": "c2cc1430b31d63f0e4981600e97c19db4d020fe1",
+      "root": "a67b910f5f8d7c43339615485af031967d112f2e",
+      "base": "daf058b51c6f4251d99415c3a002691e36895e53",
       "donor": "9fe17097d0c65f964da7d38a2b6b28fe4fd78590",
       "merge": "All four source files three-way clean; newer JWT/session/Startup context retained.",
       "restored": [
@@ -57,7 +57,7 @@
         "awaited broadcasts and owned live-socket removal"
       ],
       "newRepair": "Local provider read uses one named managed HTTP client registered unconditionally and authenticates from the same existing .oasis/supervisor-token store as the shipping SupervisorClient. Missing/empty/unreadable credential and unavailable service produce visible failure; no secret copied to source/DNA/logs.",
-      "status": "source prepared and pushed; current composition inventories/build/real supervisor/browser acceptance pending",
+      "status": "inventory reviewed; combined current API/supervisor compile active, no runtime or deployment acceptance",
       "remaining": [
         "Compile and qualify changed API/service source against real endpoints",
         "Non-secret remote configuration and individual peers",
@@ -80,6 +80,28 @@
         "credentials": "Supervisor Web4AccessToken is runtime secret configuration only and JsonIgnore excludes JSON snapshots. No credential was read/generated/copied into source/DNA/logs.",
         "knownRemaining": "Operator reconnect/restart after expired/rejected token; full account connection UI/refresh lifecycle and real protected API/supervisor/browser proof still required.",
         "unchanged": "No OASIS DNA setting changed; source defaults leave an unconnected node without a bearer, not a fabricated connection."
+      },
+      "combinedCompile": {
+        "run": 45206323897,
+        "job": 137802937839,
+        "targets": [
+          "WEB4",
+          "ONODESUPERVISOR"
+        ],
+        "status": "active",
+        "limits": "one provider build lease, m:2, no node reuse/shared compilation, no local environment or runtime test"
+      },
+      "inventoryReview": {
+        "run": 45204381673,
+        "artifact": 14833515324,
+        "bytes": 40247,
+        "managerRows": 937,
+        "routeRows": 834,
+        "changedSourceFiles": [
+          "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ONODEController.cs"
+        ],
+        "proof": "Fresh profile/current CQL route CSV and classifier equal original reviewed inputs; only ONODEController rows changed. Full official source gates revalidate current composition before compile.",
+        "routeBlob": "f8a45cceffc5b3ceaa38263737e8ea6de28037de"
       }
     }
   }
