@@ -9,11 +9,12 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','hyperdrive','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
+ assert.ok(['none','storage','hyperdrive','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
  const selectedPopups=popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
-  popupGroup==='none'?[]:[{hyperdrive:'HyperDrive',eggs:'Eggs',nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
+  popupGroup==='none'?[]:[{storage:'Storage',hyperdrive:'HyperDrive',eggs:'Eggs',nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
+ let storageWrites=0; const storageAppId=require('node:crypto').randomUUID();
  let routingSaves=0;
  let clanId,clanCreates=0,clanUpdates=0,clanMembers=0,clanDeletes=0;
  const clanName='Owned portal clan '+process.env.GITHUB_RUN_ID;
@@ -156,6 +157,13 @@ async function main(){
       assert.equal(body.providerType,'MongoDBOASIS');assert.deepEqual(Object.keys(body.expectedRevisions),[savedHolonId]);
       assert.match(body.expectedRevisions[savedHolonId],/^[0-9a-f-]{36}$/i);ownedOperation=true;
      }
+    }
+    if(popupGroup==='storage'&&['PUT','DELETE'].includes(request.method())&&url.pathname==='/api/settings/holon-storage-policy'){
+     ++storageWrites;assert.ok(storageWrites<=4,'Bounded avatar/app policy writes');
+     assert.equal(url.searchParams.get('applicationId'),storageWrites===2||storageWrites===3?storageAppId:null);
+     assert.equal(request.method(),storageWrites<=2?'PUT':'DELETE');
+     if(request.method()==='PUT')assert.deepEqual(request.postDataJSON(),{schemaVersion:1,mode:storageWrites===1?'Materialized':'Virtual',readCache:'None',maximumCacheBytes:0,maximumCacheAgeSeconds:0,materializeOnExplicitSave:storageWrites===1});
+     ownedOperation=true;
     }
     if(popupGroup==='hyperdrive'&&request.method()==='PUT'&&url.pathname==='/api/settings/hyperdrive-settings'){
      assert.equal(++routingSaves,1,'One explicit owned routing preference save');
@@ -370,6 +378,28 @@ async function main(){
     assert.equal(inbox.filter(row=>row.content===messageText&&row.fromAvatarId===account.avatar.id&&row.toAvatarId===recipient.avatar.id).length,1);assert.equal(sentMessage,1);
     stage='Directory return';await page.locator('#messaging-modal-close-btn').click();await page.waitForURL(url=>url.pathname==='/search');
     await page.locator('#search-modal-close-btn').click();await page.waitForURL(url=>url.pathname==='/');
+   });
+   await checkPopup('Storage','#hd-close-btn',async()=>{
+    stage='Storage load avatar';await page.evaluate(()=>window.openHyperdriveModal('storage'));
+    await page.waitForFunction(()=>!document.getElementById('hd-storage-save').disabled);
+    const field=name=>page.locator('#hd-storage-form [name="'+name+'"]');
+    const savedText='Storage settings saved. Existing records have not been moved or hidden.';
+    async function savePolicy(mode,applicationId){
+     await field('mode').selectOption(mode);await page.locator('#hd-storage-save').click();
+     await page.waitForFunction(expected=>document.getElementById('hd-storage-feedback').textContent===expected,savedText);
+     return account.call('owned storage readback','GET','/api/settings/holon-storage-policy'+(applicationId?'?applicationId='+applicationId:''),undefined,ownedToken);
+    }
+    stage='Storage save avatar';let snapshot=await savePolicy('Materialized');
+    assert.equal(snapshot.avatarPolicy.mode,'Materialized');assert.equal(snapshot.effectivePolicy.mode,'Materialized');
+    stage='Storage application inheritance';await field('scope').selectOption('application');await field('applicationId').fill(storageAppId);await page.locator('#hd-storage-load').click();
+    await page.waitForFunction(()=>!document.getElementById('hd-storage-save').disabled&&document.getElementById('hd-storage-effective').textContent.includes('inherited'));
+    stage='Storage save application';snapshot=await savePolicy('Virtual',storageAppId);
+    assert.equal(snapshot.applicationId,storageAppId);assert.equal(snapshot.avatarPolicy.mode,'Materialized');assert.equal(snapshot.applicationPolicy.mode,'Virtual');assert.equal(snapshot.effectivePolicy.mode,'Virtual');
+    stage='Storage clear application';snapshot=await savePolicy('',storageAppId);
+    assert.equal(snapshot.applicationPolicy,null);assert.equal(snapshot.effectivePolicy.mode,'Materialized');
+    stage='Storage reload avatar';await field('scope').selectOption('avatar');await page.locator('#hd-storage-load').click();
+    await page.waitForFunction(()=>!document.getElementById('hd-storage-save').disabled&&document.querySelector('#hd-storage-form [name="mode"]').value==='Materialized');
+    stage='Storage clear avatar';snapshot=await savePolicy('');assert.equal(snapshot.avatarPolicy,null);assert.equal(snapshot.effectivePolicy,null);assert.equal(storageWrites,4);
    });
    await checkPopup('HyperDrive','#hd-close-btn',async()=>{
     stage='HyperDrive status';const statusResponse=page.waitForResponse(r=>new URL(r.url()).pathname.toLowerCase()==='/api/hyperdrive/status');
