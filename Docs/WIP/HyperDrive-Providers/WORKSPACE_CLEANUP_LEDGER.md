@@ -3025,3 +3025,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 2026-11-23 startup auth45117941133: existing immutable remote image reused; cloud-only owned internal-network Mongo/API containers and volumes. Existing cleanup finally retained; terminal cleanup pending. Local Node syntax/Python -B startup controls8pass create no retained runtime/build/env/download/database/results. No shared cluster operations or local image pull.
 
 2026-11-23 first auth45117941133 failed before image/container operations at existing package-only guard; no resources created there. Corrected explicit auth45118119727 in progress; cleanup terminal pending. Running WEB4 selected revision/pause flags only inspected, no backend data operations.
+
+2026-11-23 auth45118119727/job137505522533 SUCCESS. Selected3616-byte ZIP14792607082 read in RAM only: actual Startup authtrue, APIhealthtrue, gracefulexit0; owned containers/network absent, ephemeral DB volumes removed. No local image/download/build/env/database/results. Remote existing image reused, compact artifact retained30days by existing workflow.

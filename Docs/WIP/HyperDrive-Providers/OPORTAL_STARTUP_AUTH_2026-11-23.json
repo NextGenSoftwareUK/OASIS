@@ -1,7 +1,7 @@
 {
   "run": 45118119727,
   "control": "0417902b09e0d37a64d613dce2710ac33b0dac41",
-  "status": "in_progress",
+  "status": "success",
   "source": "045206ea73cfd8cff587896c3baca32087051575",
   "core": "a0714bfa39ae0b94c11935f92c3bb189a12d89fa",
   "image": "sha256:2db67297c729643caf5f4792039753910c346ca16c72fe7bdb6211cbf85b614e",
@@ -10,8 +10,8 @@
   "profile": "cql-api",
   "scope": "Real shipping Program/Startup registration, token verification, password issuance, protected session and subscription list reads against fresh owned internal-network Mongo. No synthetic JWT or shared/Stripe calls.",
   "comparison": "WEB4 API tree identical to deployed21abed0b; Core Managers/AvatarManager identical to fc2470e. Image omits later Inventory declarations; no current Inventory/image/full-tree equivalence claim.",
-  "remaining": "Not accepted until terminal runtime evidence. Full portal authenticated browser and hosted Stripe remain open.",
-  "cleanup": "Cloud image reused, no image rebuild; owned network/containers/anonymous volumes cleaned in existing finally; local source checks only with Python -B, no runtime/env/build/download/database/results. Prior package verifiers reused from peer e39a3da0 preserving cql-api scope.",
+  "remaining": "Authenticated full portal browser, WEB5/WEB6 cross-service startup/SSO and hosted Stripe remain open. API source identical for qualified auth paths; older Inventory declarations excluded.",
+  "cleanup": "Selected artifact cleanup proves owned API/Mongo containers and internal network absent, ephemeral database volumes removed. No local image/env/runtime/build/download/database/results.",
   "liveWeb4": {
     "deployment": "0e9725b4-13cb-4bb0-92d1-4b1a902ee05c",
     "status": "SUCCESS",
@@ -25,5 +25,19 @@
     "conclusion": "failure",
     "stage": "Package-only profile guard, before image/container operations",
     "correction": "Existing package-only behavior preserved by default; new explicit startup_authentication flag required to enter CQL image auth-only Startup check; retained Waku forbidden."
+  },
+  "job": 137505522533,
+  "proofArtifact": {
+    "id": 14792607082,
+    "bytes": 3616,
+    "read": "RAM-only ZIP selected acknowledged/cleanup entries",
+    "authentication": true,
+    "apiHealth": true,
+    "internalNetwork": true,
+    "gracefulExit": 0,
+    "dockerHealthVerified": false,
+    "nativeMetadata": false,
+    "liveDeployment": false,
+    "cqlAcceptance": false
   }
 }

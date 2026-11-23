@@ -62,7 +62,7 @@
       "Inventory linked NFT/GeoNFT IDs, stack, dates and custom properties now rendered from existing response; Portal17ed8e4 script served exact, focused rendering check passed."
     ],
     "remaining": [
-      "Full portal page/navigation and real Startup/SSO browser acceptance across all screens",
+      "Authenticated full portal page/navigation and WEB5/WEB6 SSO/browser acceptance; isolated WEB4 shipping Startup auth accepted45118119727.",
       "Hosted Stripe paid lifecycle and checkout recovery acceptance; existing owner action remains open",
       "Permanent account and all-data/provider/replica erasure lifecycle",
       "Current hosted dashboard/screen performance acceptance",
@@ -251,5 +251,15 @@
     "scope": "Actual portal page anonymous navigation and signup refresh; zero API traffic/page errors/missing local assets",
     "excluded": "Authenticated dashboard/full backend Startup/SSO/Stripe",
     "cleanup": "Verified server/browser closed and runtime/cache absent"
+  },
+  "shippingStartupAuth20261123": {
+    "run": 45118119727,
+    "job": 137505522533,
+    "source": "045206ea73cfd8cff587896c3baca32087051575",
+    "conclusion": "success",
+    "scope": "Production Program/Startup actual register/verify/password/session/subscription through owned native Mongo. WEB4 API/Core auth identical to deployed21ab/fc; image older Inventory excluded.",
+    "proofArtifact": 14792607082,
+    "cleanup": "Containers/network/DB volumes absent, graceful exit0",
+    "remaining": "Full authenticated portal browser, WEB5/6 SSO and Stripe"
   }
 }
