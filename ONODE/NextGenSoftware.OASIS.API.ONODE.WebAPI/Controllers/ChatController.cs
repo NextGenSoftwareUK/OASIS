@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Starts a new chat session. PREVIEW - COMING SOON...
+        /// Starts a persisted chat session for the authenticated participant.
         /// </summary>
         /// <returns></returns>
         [Authorize]
@@ -37,6 +37,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!participantIds.Contains(Avatar.Id))
                 return new OASISResult<string> { IsError = true, ErrorCode = "CHAT_SESSION_FORBIDDEN",
                     Message = "The authenticated avatar must be a participant in the new chat session." };
+            // ChatManager attributes the creation write to its first participant.
+            participantIds.Remove(Avatar.Id);
+            participantIds.Insert(0, Avatar.Id);
             return await ChatManager.Instance.StartNewChatSessionAsync(participantIds, sessionName);
         }
 
@@ -55,6 +58,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // Use ChatManager for business logic
             return await ChatManager.Instance.SendMessageAsync(sessionId, Avatar.Id, message);
         }
+
+        /// <summary>Gets persisted active sessions for the authenticated participant.</summary>
+        [Authorize]
+        [HttpGet("active-sessions")]
+        public Task<OASISResult<List<ChatSession>>> GetActiveSessions() =>
+            ChatManager.Instance.GetActiveSessionsAsync(Avatar.Id);
 
         /// <summary>End a persisted chat session as an authenticated participant.</summary>
         [Authorize]
