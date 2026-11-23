@@ -81,13 +81,13 @@ jobs:
           New-Item -ItemType Directory TestResults/Neo4jCurrent | Out-Null
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-late-set-composition-native-ci -Operation {
             dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmicLateSetCompositionProofTests' --results-directory TestResults/Neo4jCurrent --logger 'trx;LogFileName=boundary-controls.trx'
-            if ($LASTEXITCODE) { throw 'Async reduction boundary control failed' }
+            if ($LASTEXITCODE) { throw 'Late set occurrence boundary control failed' }
             [xml]$codec=Get-Content TestResults/Neo4jCurrent/boundary-controls.trx
-            if ($codec.TestRun.ResultSummary.Counters.passed -ne '1' -or $codec.TestRun.ResultSummary.Counters.total -ne '1') { throw 'Async reduction boundary control must pass' }
+            if ($codec.TestRun.ResultSummary.Counters.passed -ne '1' -or $codec.TestRun.ResultSummary.Counters.total -ne '1') { throw 'Late set occurrence boundary control must pass' }
             dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~NativeLateSetCompositionPreservesOccurrencesDomainsAndWindows' --results-directory TestResults/Neo4jCurrent --logger 'trx;LogFileName=mapping-native.trx'
-            if ($LASTEXITCODE) { throw 'Native async reduction qualification failed' }
+            if ($LASTEXITCODE) { throw 'Native late set composition qualification failed' }
             [xml]$report=Get-Content TestResults/Neo4jCurrent/mapping-native.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '3' -or $report.TestRun.ResultSummary.Counters.total -ne '3') { throw 'All three native reduction journeys must pass' }
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '3' -or $report.TestRun.ResultSummary.Counters.total -ne '3') { throw 'All three native selected set journeys must pass' }
             foreach ($store in 'MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS') {
               $e=Get-Content "TestResults/Neo4jCurrent/$store-late-set-composition-native.json" -Raw | ConvertFrom-Json
               if ($e.provider -ne $store -or $e.checks -ne 8 -or $e.ownedCleanupIds -ne 4 -or $e.successfulHolonWrites -ne 1 -or @($e.queryElapsedMilliseconds.PSObject.Properties).Count -ne 15) { throw 'Incomplete native report' }
@@ -97,7 +97,7 @@ jobs:
               }
             }
             dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI /m:2 /nr:false /p:UseSharedCompilation=false
-            if ($LASTEXITCODE) { throw 'Actual WEB4 async reduction composition failed' }
+            if ($LASTEXITCODE) { throw 'Actual WEB4 selected set composition failed' }
           }
           $source=(git rev-parse HEAD).Trim()
           if($source -ne $env:GITHUB_SHA){throw 'Qualification source mismatch'}

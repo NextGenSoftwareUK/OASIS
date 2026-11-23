@@ -1,0 +1,17 @@
+{
+  "run": 45192102361,
+  "source": "8955db301ee59374c3cf1ba9984d01bd976a290d",
+  "core": "421fd023b13cb1b1f17e50e525304c3e66bfd1da",
+  "conclusion": "failure",
+  "buildError": "CS0026",
+  "file": "Queries/CosmicLinq.Projections.cs",
+  "line": 141,
+  "cause": "Static Sort reflection invocation retained the instance this receiver after shared parser extraction.",
+  "nativeCasesExecuted": 0,
+  "boundaryCasesExecuted": 0,
+  "ownedMongoStopped": true,
+  "ownedMongoAbsenceVerified": true,
+  "ownedServiceContainersStopped": true,
+  "deployed": false,
+  "observedUtc": "2026-11-23T14:16:10.923039+00:00"
+}
