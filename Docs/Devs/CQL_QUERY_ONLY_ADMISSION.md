@@ -75,6 +75,30 @@ profiles; this setting does not automatically enable every provider enum.
 
 See [ActivityPub host configuration](ACTIVITYPUB_HOST_CONFIGURATION.md).
 
+## Collection authority on admitted hosts
+
+Passive admitted boot registers providers without selecting an active storage
+provider. Hosts that serve default-provider holon collection reads must declare
+an authority independently of activation. In `PREPARED_STORAGE_ADMISSION_JSON`,
+set `authoritativeProvider` to the intended member of `ordinaryProviders` or a
+configured native storage binding, for example `"authoritativeProvider":
+"MongoDBOASIS"` when Mongo is the host's admitted primary. Query-only providers
+cannot be collection authority.
+
+The shared admitted-host middleware binds this declaration to the request;
+synchronous and asynchronous HyperDrive selection use the same binding. It does
+not activate a provider, modify the global active provider, enroll a replica,
+change explicit provider requests or bypass subscription/admission checks. The
+scope is restored when the request finishes. Collection reads without a declared
+or already active authority still fail explicitly.
+
+This optional field requires a Core version containing `StorageCollectionAuthority`.
+Older hosts reject unknown configuration fields: deploy the compatible binary
+before saving this field and rolling the host. Keep existing routes, tariffs,
+provider enrollment and environment secrets intact. An absent declaration does
+not infer authority from the query-only or replication lists. Source/runtime
+acceptance and each deployed environment remain separately recorded in WIP status.
+
 ## Source enrollment and discovery
 
 The WEB4 host registers explicitly query-only sources in the background, without
