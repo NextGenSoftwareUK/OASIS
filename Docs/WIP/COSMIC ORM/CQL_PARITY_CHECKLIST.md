@@ -494,7 +494,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | Q59 | Stored procedures/functions including returned/out values | ❌ | ❌ | ❌ | No portable/shared contract and provider evidence. |
 | Q60 | NHibernate HQL language compatibility | ❌ | ❌ | ❌ | CQL DTO/fluent syntax is not HQL. |
 | Q61 | NHibernate Criteria/QueryOver compatibility | ❌ | ❌ | ❌ | No equivalent adapter proof. |
-| Q62 | Dynamic filters / global tenant filters and explicit bypass | ❌ | ❌ | ❌ | HasQueryFilter immutable exact-entity model application filter and explicit WithoutQueryFilters model are source-integrated. Native3 qualifier pending for mapped native predicates/paging, frozen literals and bypass retaining mandatory caller visibility/read-only policies. Named selective and polymorphic filter contracts remain open; no source-only certification credit. |
+| Q62 | Dynamic filters / global tenant filters and explicit bypass | ❌ | ❌ | ❌ | HasQueryFilter immutable exact-entity model application filter and explicit WithoutQueryFilters model passed native3 plus WEB4 build in45129574750. Mapped native predicates/paging, frozen literals and bypass retaining mandatory caller visibility/read-only policies verified; owned fixtures removed. Not deployed; named selective and polymorphic filter contracts remain open. Full parent row stays uncredited. |
 | Q63 | Tracking/no-tracking/identity-resolution query modes | ❌ | ❌ | ❌ | Detached copies alone do not implement all three modes. |
 | Q64 | Async streaming / IAsyncEnumerable with bounded cancellation | ❌ | ❌ | ❌ | Buffered async execution is separate. |
 | Q65 | Compiled queries and parameterized plan caching | ❌ | ❌ | ❌ | No public cache identity/invalidation proof. |
