@@ -1,3 +1,7 @@
+## 2026-11-23 - Account-deletion preparatory UI wired
+
+Portal devc856109 replaces inert Coming Soon action with explicit real read-only account-dependency review, timestamp, billing/ownership requirements and subscription/usage navigation. No startup request or mutation. Captured actor/client/bearer/revision guards, login/logout private-state clearing. Syntax/diff checks only; new browser flow pending. Permanent account/data erasure remains incomplete. Settings sign-out run45092519963/job137425049453 is active on pinned Portal282eb9a and cannot certify this later review action.
+
 ## 2026-11-23 - Settings browser checkout correction
 
 45092112547/job137423771196 failed before compilation: committed fixture HTML/script were omitted from limited control checkout. Added both exact paths; no product failure or browser acceptance inferred. Native fixture and browser runtime/cache removal steps both SUCCESS. Earlier general session acceptance45091356813 retained. Replacement will run only the same unaccepted Settings journey.
