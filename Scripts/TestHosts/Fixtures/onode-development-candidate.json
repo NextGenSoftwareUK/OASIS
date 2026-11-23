@@ -1,11 +1,11 @@
 {
   "scope": "onode",
-  "status": "loaded-api-managed-configuration-source-inventory-pending",
-  "candidate": "6cce336bac3d0a1d7000fe95ec69802aa8d45b54",
-  "base": "949a857c40ceb731171dd7c69f11b44937e679f2",
-  "tag": "qualification/onode-loaded-routing-view-20261123",
+  "status": "loaded-view-and-actual-startup-bridge-ready-for-native-check",
+  "candidate": "a0abf554f9ad6f3a6fa0811bdee633b47a44f51d",
+  "base": "6cce336bac3d0a1d7000fe95ec69802aa8d45b54",
+  "tag": "qualification/onode-loaded-view-reviewed-20261123",
   "allowedPaths": [
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ONODEController.cs"
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv"
   ],
   "buildProjects": [
     "WEB4"
@@ -17,11 +17,12 @@
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
   "remaining": "Review regenerated route positions. Run one actual Startup/JWT/native Mongo/supervisor bridge/proxy/live-socket journey, including first-command cadence. Browser and applied runtime remain separate.",
   "inventoryReview": {
-    "run": 45227491740,
-    "artifact": 14843032392,
-    "bytes": 40410,
-    "scope": "All835 records unchanged except source positions; current verified CQL preserved.",
-    "managerReview": "938 records: exactly one added ExecuteSetCountQueryAsync from already-published Corebc; explicit V2 guard and real CosmicSetCountExecutor inspected. No removals or disposition changes; no CQL acceptance inferred or replayed."
+    "run": 45233869564,
+    "artifact": 14848451211,
+    "bytes": 40406,
+    "managerRecords": 938,
+    "routeRecords": 835,
+    "scope": "Manager blob exact; all route records unchanged except source positions."
   },
   "pendingProviderTransport": {
     "candidate": "a03f6c902b816f831daeecf76e65265bab6f8c55",
