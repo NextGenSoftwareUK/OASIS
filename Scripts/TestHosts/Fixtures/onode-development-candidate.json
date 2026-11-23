@@ -1,21 +1,29 @@
 {
   "scope": "onode",
-  "status": "reviewed-role-proxy-ready-for-web4-only-compile",
-  "candidate": "80183c02c1fbfaaf063462345f20a8882beb782b",
-  "base": "8ef461ffa37e0c465cc395ce25622f3af23cf3f1",
-  "tag": "qualification/onode-role-proxy-reviewed-20261123",
+  "status": "fresh-cql-real-bridge-source-inventory-pending",
+  "candidate": "aee5784191f90ada83886b94f61ace2e6645fc19",
+  "base": "75a6769d2814f1347a1f2b42f687d494d96b2b11",
+  "tag": "qualification/onode-current-bridge-source-20261123",
   "allowedPaths": [
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv"
+    "Docker/oasis-dependency-versions.env",
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ONODEController.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Hubs/ONODEWebSocketHub.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/JwtMiddleware.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
+    "ONODE/ONODEManager",
+    "Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1",
+    "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
   ],
   "buildProjects": [
     "WEB4"
   ],
   "core": {
-    "candidate": "271603c32f13345cebd350b557f7c6bd10ab9d04"
+    "candidate": "bc574ddec918f18924a3f77d9214af08a9e5ed8c"
   },
-  "onodeManager": "dbfd109918f7875a7a299c258f2a9b6e31a5a6d0",
+  "onodeManager": "3ecf0f8ea9713412da9071a1c6d12f961b050c8e",
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
-  "remaining": "Review regenerated route positions; compile changed WEB4 only. Preserve service/SDK/command acceptance once current run terminates. Actual WEB4 bridge/browser, applied runtime and cross-writer concurrency remain open.",
+  "remaining": "Review regenerated route positions. Run one actual Startup/JWT/native Mongo/supervisor bridge/proxy/live-socket journey, including first-command cadence. Browser and applied runtime remain separate.",
   "inventoryReview": {
     "run": 45222196877,
     "artifact": 14841566904,
@@ -108,5 +116,7 @@
     "core": "bc574ddec918f18924a3f77d9214af08a9e5ed8c",
     "peerReport": "All7 dev deployments SUCCESS; source/deployment evidence only. Profile/OAPP retained. Preserve verified new CQL batch in next shipping composition.",
     "overlap": "Only ONODE CQL Models/Services changed; no ONODE controller/Hub/JWT/Startup or classifier overlap found."
-  }
+  },
+  "nativeHost": "OnodeBridgeNative",
+  "nativeMode": "onode-bridge"
 }

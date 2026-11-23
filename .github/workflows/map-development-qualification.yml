@@ -52,6 +52,7 @@ jobs:
             Scripts/TestHosts/HotspotHttpNative
             Scripts/TestHosts/AwsSdkAbiProbe
             Scripts/TestHosts/OnodeCommandNative
+            Scripts/TestHosts/OnodeBridgeNative
             Scripts/TestHosts/Fixtures/geo-assets-browser-host.html
             Scripts/TestHosts/Fixtures/geo-assets-browser-native-http.cjs
             Scripts/TestHosts/Fixtures/storefront-browser-host.html
@@ -88,7 +89,7 @@ jobs:
           $candidate = Get-Content $file -Raw | ConvertFrom-Json
           if ($env:CANDIDATE_SCOPE -eq 'billing' -and '${{ inputs.native_check }}' -eq 'true' -and (($candidate.nativeHost -ne 'HotspotHttpNative' -and $candidate.nativeHost -ne 'Web4IntegrationTests') -or $candidate.nativeMode -notin @('billing-http','billing-admin-http','billing-warning-store','billing-warning-http','billing-warning-provider','session-list-http','mfa-native','mfa-http','mfa-middleware-http','session-global-http','mfa-browser','billing-warning-browser','billing-restoration-http','session-route-fixture','gifts-browser','storefront-browser'))) { throw 'Billing requires an explicitly reviewed HTTP host mode.' }
           if ($env:CANDIDATE_SCOPE -eq 'competition' -and '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -notin @('competition-browser','competition-publisher')) { throw 'Competition requires an explicit browser or publisher host.' }
-          if ($env:CANDIDATE_SCOPE -eq 'onode' -and '${{ inputs.native_check }}' -eq 'true') { throw 'ONODE native acceptance requires its complete real bridge host; this source batch supports inventory and compilation only.' }
+          if ($env:CANDIDATE_SCOPE -eq 'onode' -and '${{ inputs.native_check }}' -eq 'true' -and ($candidate.nativeHost -ne 'OnodeBridgeNative' -or $candidate.nativeMode -ne 'onode-bridge')) { throw 'ONODE requires its explicit real Startup/session/bridge host.' }
           if ($env:CANDIDATE_SCOPE -eq 'profile' -and '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -ne 'profile-http') { throw 'Profile restoration requires its explicit HTTP host.' }
           if ($candidate.nativeHost -eq 'Web4IntegrationTests' -and $candidate.nativeMode -ne 'session-route-fixture') { throw 'Only the reviewed session HTTP fixture is supported.' }
           "native_host=$($candidate.nativeHost)" >> $env:GITHUB_OUTPUT
@@ -330,7 +331,8 @@ jobs:
         run: |
           $candidate = Get-Content (Join-Path ../qualification-control $env:CANDIDATE_FILE) -Raw | ConvertFrom-Json
           $hostName = if ($env:CANDIDATE_SCOPE -eq 'map') { 'MapDevelopmentNative' } else { if ($candidate.nativeHost) { $candidate.nativeHost } else { 'HotspotDevelopmentNative' } }
-          if ($hostName -notin @('MapDevelopmentNative','HotspotDevelopmentNative','HotspotHttpNative','Web4IntegrationTests')) { throw 'Unsupported native qualification host.' }
+          if ($hostName -notin @('MapDevelopmentNative','HotspotDevelopmentNative','HotspotHttpNative','Web4IntegrationTests','OnodeBridgeNative')) { throw 'Unsupported native qualification host.' }
+          if ($hostName -eq 'OnodeBridgeNative') { $env:OASIS_ONODE_CANDIDATE_ROOT = (Get-Location).Path }
           if ($hostName -eq 'HotspotHttpNative') {
             $env:OASIS_HOTSPOT_HTTP_MODE = if ($candidate.nativeMode) { $candidate.nativeMode } else { 'binding' }
             if ($env:OASIS_HOTSPOT_HTTP_MODE -notin @('binding','populated','browser','quest-empty','catalogue','catalogue-browser','competition-browser','competition-publisher','profile-http','billing-http','billing-admin-http','billing-warning-store','billing-warning-http','billing-warning-provider','session-list-http','mfa-native','mfa-http','mfa-middleware-http','session-global-http','mfa-browser','billing-warning-browser','billing-restoration-http','gifts-browser','storefront-browser')) { throw 'Unsupported hotspot HTTP check mode.' }

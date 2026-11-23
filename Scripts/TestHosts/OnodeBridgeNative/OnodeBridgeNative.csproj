@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(OASISCandidateRoot)/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" />
+    <ProjectReference Include="$(OASISCandidateRoot)/ONODE/ONODEManager/NextGenSoftware.OASIS.ONODE.Service/NextGenSoftware.OASIS.ONODE.Service.csproj" />
+    <ProjectReference Include="$(OASISCandidateRoot)/ONODE/ONODEManager/NextGenSoftware.OASIS.ONODE.Client/NextGenSoftware.OASIS.ONODE.Client.csproj" />
+  </ItemGroup>
+  <Target Name="RequireCandidateRoot" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(OASISCandidateRoot)' == ''" Text="Exact isolated candidate source is required." />
+  </Target>
+</Project>
