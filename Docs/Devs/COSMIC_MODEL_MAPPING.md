@@ -293,7 +293,7 @@ foreign-session entries cannot read or change these values. Required constraints
 remain enforced at save. Arbitrary CLR indexers and full M16 parity remain open.
 
 
-### Query tracking modes (qualification pending)
+### Query tracking modes (native-qualified; deployment pending)
 CosmicSession.Linq<T>(CosmicQueryTrackingMode mode) and
 ReadAsync(query, CosmicQueryTrackingMode mode) admit Tracking, NoTracking and
 NoTrackingWithIdentityResolution. Existing Boolean tracking APIs keep their meaning.
