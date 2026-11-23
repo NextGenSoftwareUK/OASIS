@@ -12,7 +12,10 @@
     {
       "route": "avatar",
       "open": "openAvatarModal",
-      "status": "further evidence reconciliation or main journey required; not complete"
+      "status": "earlier native profile/portrait scopes retained; current Development profile delivery gap open",
+      "run": 44966844672,
+      "scope": "Earlier GET/PATCH/GET on bc159110/Core5a998cee accepted. Current source restoration a7f63457/Coread83f7ad pending composition/ship acceptance; earlier result does not establish delivery.",
+      "evidence": "Docs/WIP/HyperDrive-Providers/OPORTAL_PROFILE_DELIVERY_GAP_2026-11-21.json"
     },
     {
       "route": "wallet",
@@ -216,7 +219,10 @@
     {
       "route": "karma-ledger",
       "open": "openKarmaLedgerModal",
-      "status": "further evidence reconciliation or main journey required; not complete"
+      "status": "retained populated native/browser journey accepted; hosted completeness not established",
+      "run": 44857792612,
+      "scope": "51 stored signed/zero events, older paging, account switch, anonymous denial; unchanged script blob a2f85ef4f46cb99371a07b5dbb65d581f55460ef; do not repeat an empty-list test",
+      "evidence": "C:/Source/OPORTAL-JS/Docs/WIP/KARMA_LEDGER_BREADTH_STATUS_2026-11-20.md"
     },
     {
       "route": "chain-explorer",
