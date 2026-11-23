@@ -632,8 +632,11 @@
   "latestChatHyperDrive": {
     "run": 45152168295,
     "HyperDrive": "accepted-status-tabs-preference-read-close",
-    "Chat": "404-active-route-scoped-sourcee372-image45152795368-pending",
+    "Chat": "active endpoint fixed; actual start/send/readback/resume succeed, end child-selecting-save failed; corrected Coref7/rootf4ac image45158527267 qualifying",
     "evidence": "OPORTAL_CHAT_HYPERDRIVE_2026-11-23.json",
-    "cleanupVerified": true
+    "cleanupVerified": true,
+    "candidate": "f4ac6302cbeadf6b1af77cbd9c6cdf27cfec402b",
+    "imageRun": 45158527267,
+    "overallComplete": false
   }
 }
