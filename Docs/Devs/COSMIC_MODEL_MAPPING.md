@@ -1,10 +1,16 @@
-## Native asynchronous element APIs — source implemented; native qualification pending
+## Native asynchronous cardinality — source implemented; native qualification pending
+
+ToCosmicCountAsync, ToCosmicLongCountAsync, ToCosmicAnyAsync and ToCosmicAllAsync use the existing native scalar/cardinality planners. Predicate overloads retain their position after an earlier source or selected window. Token propagation reaches native scalar, indexed scalar, selected cardinality/projected All and entity-stage count owners. Session/stateless wrappers retain the existing asynchronous lifetime boundary; scalar values are not entity tracking entries.
+
+The current surface has seven overloads across root, selected and entity-stage sources plus session wrappers. Other set/join shapes and general numeric async reductions remain open. One boundary control and three-store native qualification are pending. No local Enumerable reduction or thread-pool substitute is used. This source is separate from the accepted Development3ae release.
+
+## Native asynchronous element APIs — native qualified; Development deployment pending
 
 Use ToCosmicFirstAsync, ToCosmicSingleAsync, ToCosmicLastAsync and ToCosmicElementAtAsync on a COSMIC IQueryable. OrDefault forms preserve empty-sequence results and caller-provided defaults; typed predicates and Int32/System.Index overloads use the corresponding native terminal contract. Results are OASISResult<T>, and LoadedCount distinguishes a returned null/default value from an empty native sequence.
 
 Execution reuses the existing element planners, cardinality checks and hydration owner. Cancellation reaches the native manager call; no thread-pool wrapper or local sequence evaluation is used. Async session reads retain lifetime/concurrency admission and identity publication through the existing owner. Caller defaults are not native records and remain detached.
 
-Source supports root, selected and entity-stage sources plus session/stateless wrappers. Other set/join/indexed query shapes require their own enrollment. Representative three-provider native qualification and one local-provider/cancellation boundary control are pending. No full async/EF parity or deployment acceptance is claimed.
+Source supports root, selected and entity-stage sources plus session/stateless wrappers. Other set/join/indexed query shapes require their own enrollment. Representative three-provider native journeys, one local-provider/cancellation boundary control and the actual WEB4 build passed45178767147. Exact owned cleanup verified; source Core398e7699. Other query-shape and mid-flight cancellation depth remain open. No full async/EF parity or deployment acceptance is claimed.
 
 ## Ordered entity-set stages — deployed on Development3ae678dd
 
