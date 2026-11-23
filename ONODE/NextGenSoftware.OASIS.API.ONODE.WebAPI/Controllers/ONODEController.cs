@@ -539,23 +539,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!_commands.TryGetValue(commandId, out var cmd))
                 return NotFound(new { message = "Command not found." });
 
-            cmd.Status = update.Status;
             cmd.Result = update.Result;
+            cmd.Status = update.Status;
             if (update.Status is "Done" or "Error")
             {
                 cmd.CompletedAt = DateTime.UtcNow;
                 AppendAudit(cmd.TargetNodeId, cmd.IssuedByAvatarId,
                     $"CommandResult:{cmd.Command}:{update.Status}", update.Result);
+                cmd.Completion.TrySetResult(true);
             }
 
             return Ok(cmd);
         }
 
         [HttpGet("commands/{commandId}")]
-        public IActionResult GetCommand(string commandId)
+        public async Task<IActionResult> GetCommand(string commandId, [FromQuery] int waitMilliseconds = 0)
         {
+            if (waitMilliseconds < 0 || waitMilliseconds > 10000)
+                return BadRequest(new { message = "Command wait must be between zero and 10000 milliseconds." });
             if (!_commands.TryGetValue(commandId, out var cmd))
                 return NotFound(new { message = "Command not found." });
+            if (waitMilliseconds > 0 && cmd.Status is "Pending" or "Executing")
+            {
+                try
+                {
+                    await cmd.Completion.Task.WaitAsync(TimeSpan.FromMilliseconds(waitMilliseconds), HttpContext.RequestAborted);
+                }
+                catch (TimeoutException) { } // The bounded read returns the actual still-pending status.
+            }
             return Ok(cmd);
         }
 
@@ -641,6 +652,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
     public class CommandHolonDto
     {
+        internal TaskCompletionSource<bool> Completion { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public string Id { get; set; } = "";
         public string TargetNodeId { get; set; } = "";
         public string IssuedByAvatarId { get; set; } = "";
