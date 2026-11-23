@@ -256,6 +256,20 @@
       "imageRun": 45199130351,
       "status": "source prepared and tags pushed, manifest verified, image queued; compilation/changed Startup acceptance pending",
       "preserved": "native profile45190600949 and populated OAPP45196340465 retained; no unchanged native matrices repeated"
+    },
+    "selectedSetReconciliation": {
+      "development": "4b8d3923c7b5c2f51e434dbd8d2104ffa41dc68e",
+      "publishedCore": "ef05dbecb1428a91da53abdcfab39bf2d55aa51b",
+      "core": "271603c32f13345cebd350b557f7c6bd10ab9d04",
+      "root": "3b07071ead4daf7309b64737014bd8359add0e93",
+      "merge": "clean, six scoped Core profile/tariff files only; no Queries files differ from newly published CQL. Root source three-way merges preserve current selected-stage API/providers/dependency pins.",
+      "status": "source pushed; fresh route inventory requested before exact new image build",
+      "supersededImage": {
+        "run": 45199130351,
+        "action": "cancellation requested while active",
+        "reason": "Verified shared Development advanced to4b8/ef05. Replace old91e-based artifact with fresh combined source, not an observation-timeout restart."
+      },
+      "acceptanceRetained": "Native profile451906 and populated OAPP451963 remain their immutable scoped evidence; nullable HTTP contract Startup acceptance remains pending."
     }
   }
 }
