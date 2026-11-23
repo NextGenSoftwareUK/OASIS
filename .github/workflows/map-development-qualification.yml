@@ -52,6 +52,8 @@ jobs:
             Scripts/TestHosts/AwsSdkAbiProbe
             Scripts/TestHosts/Fixtures/geo-assets-browser-host.html
             Scripts/TestHosts/Fixtures/geo-assets-browser-native-http.cjs
+            Scripts/TestHosts/Fixtures/gifts-browser-host.html
+            Scripts/TestHosts/Fixtures/gifts-browser-native-http.cjs
             Scripts/TestHosts/Fixtures/catalogue-browser-host.html
             Scripts/TestHosts/Fixtures/catalogue-browser-native-http.cjs
             Scripts/TestHosts/Fixtures/competition-browser-host.html
@@ -80,13 +82,13 @@ jobs:
           $files = @{ map='Scripts/TestHosts/Fixtures/map-development-candidate.json'; hotspot='Scripts/TestHosts/Fixtures/hotspot-development-candidate.json'; quest='Scripts/TestHosts/Fixtures/quest-authoritative-candidate.json'; competition='Scripts/TestHosts/Fixtures/competition-development-candidate.json'; profile='Scripts/TestHosts/Fixtures/profile-development-candidate.json'; billing='Scripts/TestHosts/Fixtures/billing-development-candidate.json' }
           $file = $files[$env:CANDIDATE_SCOPE]
           $candidate = Get-Content $file -Raw | ConvertFrom-Json
-          if ($env:CANDIDATE_SCOPE -eq 'billing' -and '${{ inputs.native_check }}' -eq 'true' -and (($candidate.nativeHost -ne 'HotspotHttpNative' -and $candidate.nativeHost -ne 'Web4IntegrationTests') -or $candidate.nativeMode -notin @('billing-http','billing-admin-http','billing-warning-store','billing-warning-http','billing-warning-provider','session-list-http','mfa-native','mfa-http','mfa-middleware-http','session-global-http','mfa-browser','billing-warning-browser','billing-restoration-http','session-route-fixture'))) { throw 'Billing requires an explicitly reviewed HTTP host mode.' }
+          if ($env:CANDIDATE_SCOPE -eq 'billing' -and '${{ inputs.native_check }}' -eq 'true' -and (($candidate.nativeHost -ne 'HotspotHttpNative' -and $candidate.nativeHost -ne 'Web4IntegrationTests') -or $candidate.nativeMode -notin @('billing-http','billing-admin-http','billing-warning-store','billing-warning-http','billing-warning-provider','session-list-http','mfa-native','mfa-http','mfa-middleware-http','session-global-http','mfa-browser','billing-warning-browser','billing-restoration-http','session-route-fixture','gifts-browser'))) { throw 'Billing requires an explicitly reviewed HTTP host mode.' }
           if ($env:CANDIDATE_SCOPE -eq 'competition' -and '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -notin @('competition-browser','competition-publisher')) { throw 'Competition requires an explicit browser or publisher host.' }
           if ($env:CANDIDATE_SCOPE -eq 'profile' -and '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -ne 'profile-http') { throw 'Profile restoration requires its explicit HTTP host.' }
           if ($candidate.nativeHost -eq 'Web4IntegrationTests' -and $candidate.nativeMode -ne 'session-route-fixture') { throw 'Only the reviewed session HTTP fixture is supported.' }
           "native_host=$($candidate.nativeHost)" >> $env:GITHUB_OUTPUT
           "file=$file" >> $env:GITHUB_OUTPUT
-          $browser = '${{ inputs.native_check }}' -eq 'true' -and (($candidate.nativeMode -in @('browser','catalogue-browser','competition-browser','mfa-browser','billing-warning-browser')) -or ($candidate.nativeMode -eq 'session-global-http' -and $candidate.sessionBrowser -eq $true))
+          $browser = '${{ inputs.native_check }}' -eq 'true' -and (($candidate.nativeMode -in @('browser','catalogue-browser','competition-browser','mfa-browser','billing-warning-browser','gifts-browser')) -or ($candidate.nativeMode -eq 'session-global-http' -and $candidate.sessionBrowser -eq $true))
           "browser=$($browser.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
           $warningProvider = '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -in @('billing-warning-provider','billing-warning-browser')
           "warning_provider=$($warningProvider.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
@@ -307,6 +309,9 @@ jobs:
             if ($env:OASIS_HOTSPOT_HTTP_MODE -eq 'catalogue-browser') {
               $env:OASIS_GEO_BROWSER_HOST = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/catalogue-browser-host.html).Path
               $env:OASIS_GEO_BROWSER_SCRIPT = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/catalogue-browser-native-http.cjs).Path
+            } elseif ($env:OASIS_HOTSPOT_HTTP_MODE -eq 'gifts-browser') {
+              $env:OASIS_GEO_BROWSER_HOST = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/gifts-browser-host.html).Path
+              $env:OASIS_GEO_BROWSER_SCRIPT = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/gifts-browser-native-http.cjs).Path
             } elseif ($env:OASIS_HOTSPOT_HTTP_MODE -eq 'billing-warning-browser') {
               $env:OASIS_GEO_BROWSER_HOST = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/subscription-usage-browser-host.html).Path
               $env:OASIS_GEO_BROWSER_SCRIPT = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/warning-email-browser-native-http.cjs).Path

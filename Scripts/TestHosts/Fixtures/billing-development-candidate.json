@@ -1,18 +1,13 @@
 {
+  "nativeHost": "HotspotHttpNative",
+  "base": "d74ceb6d3e770691ef97b94a204adc4a3f96b855",
+  "buildProjects": [],
+  "portal": "a85a0c5f0fbe701adfd7e78d33f84084d5ce8479",
+  "remaining": "Actual popup/SDK/HTTP/native Mongo send-receive-open-history and logout only; full Startup/SSO/hosted and whole portal remain open.",
   "scope": "billing",
-  "status": "One LocalFile actual HTTP fixture and new configured worker-pause status; stale-account401 contract retained",
-  "base": "6bbbae4be199eef55856df32476db5684ee05073",
-  "candidate": "afbd5984e5a3b824080059e206331b727645c8de",
-  "tag": "qualification/hyperdrive-worker-status-http-20261123",
-  "allowedPaths": [
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/HyperDriveController.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/HyperDriveController.Status.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/Subscription/SubscriptionEndpointsTests.cs"
-  ],
-  "buildProjects": [
-    "WEB4"
-  ],
-  "nativeHost": "Web4IntegrationTests",
-  "nativeMode": "session-route-fixture",
-  "remaining": "Focused actual LocalFile/HTTP test only; no Mongo container, retained chain tests or accepted cohort replay."
+  "allowedPaths": [],
+  "status": "New Gifts browser journey only; prior native manager acceptance retained",
+  "nativeMode": "gifts-browser",
+  "candidate": "2f1b280e6e3e9a73d08515ab6a8a2450e34ef227",
+  "tag": "qualification/gifts-browser-20261123"
 }

@@ -1,0 +1,15 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Owned Gifts browser check</title>
+<link rel="stylesheet" href="/assets/css/style.css"><link rel="stylesheet" href="/assets/css/modals-new.css">
+<link rel="stylesheet" href="/assets/css/oasis-portal-extra.css"><link rel="stylesheet" href="/assets/css/oasis-portal-extra2.css">
+</head><body><button id="fixture-open" onclick="window.openGiftsModal()">Gifts</button><div class="modal js-modal"></div>
+<script src="/assets/js/oasis-web4-sdk.js"></script><script>
+window.user=JSON.parse(localStorage.getItem('avatar'));
+window.oasisClient=new window.OASISClient({baseUrl:location.origin,persistSession:false});
+window.oasisClient.setToken(sessionStorage.getItem('ownedGiftsBearer'),{avatarId:window.user.id});
+sessionStorage.removeItem('ownedGiftsBearer');window.jwtReadyPromise=Promise.resolve();
+</script><script src="/assets/js/gifts-modal.js"></script><script>
+fetch('/assets/components/modals/gifts.html').then(async function(response){
+if(!response.ok)throw new Error('Actual Gifts fragment unavailable');
+document.querySelector('.js-modal').innerHTML=await response.text();
+window.dispatchEvent(new CustomEvent('portal-modal-ready',{detail:{route:'gifts'}}));window.__giftsReady=true;
+});</script></body></html>
