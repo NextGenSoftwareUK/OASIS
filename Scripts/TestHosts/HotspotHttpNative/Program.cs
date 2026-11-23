@@ -419,7 +419,7 @@ try
             middlewareProbe = (stage, credentials, active) => SessionMiddlewareHttpQualification.ProbeAsync(http, stage, credentials, active, actor, dna);
 #endif
         await MfaHttpQualification.RunAsync(http, provider, httpMfa!, () => mfaNow,
-            () => mfaNow = mfaNow.AddSeconds(30), dna, actor, accounts[0].Username, mfaPassword, middlewareProbe);
+            () => mfaNow = mfaNow.AddSeconds(30), dna, actor, accounts[0].Username, mfaPassword, middlewareProbe, ownedDatabase: client.GetDatabase(database));
 #if OASIS_SESSION_MIDDLEWARE_CHECK
         if (mode == "mfa-middleware-http") SessionMiddlewareHttpQualification.VerifyComplete();
 #endif

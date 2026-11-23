@@ -324,7 +324,7 @@ jobs:
             if ($env:OASIS_HOTSPOT_HTTP_MODE -eq 'mfa-middleware-http') {
               & ../qualification-control/Scripts/TestHosts/Test-SessionMiddlewareOrdering.ps1 -CandidateRoot (Get-Location).Path
             }
-            [string[]]$qualificationArguments = if ($env:OASIS_HOTSPOT_HTTP_MODE -eq 'mfa-middleware-http') { @('/p:OASISSessionMiddlewareCheck=true') } else { @() }
+            [string[]]$qualificationArguments = if ($env:OASIS_HOTSPOT_HTTP_MODE -eq 'mfa-middleware-http' -or $candidate.compileSessionMiddleware -eq $true) { @('/p:OASISSessionMiddlewareCheck=true') } else { @() }
             dotnet build "../qualification-control/Scripts/TestHosts/$hostName/$hostName.csproj" --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false "/p:OASISCandidateRoot=$((Get-Location).Path)" @qualificationArguments
             if ($LASTEXITCODE) { throw "Combined Development native $hostName host build failed." }
             dotnet "../qualification-control/Scripts/TestHosts/$hostName/bin/Release/net10.0/$hostName.dll"

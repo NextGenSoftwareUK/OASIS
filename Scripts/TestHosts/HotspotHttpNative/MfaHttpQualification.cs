@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using MongoDB.Driver;
 using System.Security.Claims;
 using System.Net.Http.Headers;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -15,7 +16,7 @@ internal static class MfaHttpQualification
 {
     public static async Task RunAsync(HttpClient http, MongoDBOASIS provider, MfaService service,
         Func<DateTime> clock, Action advanceStep, OASISDNA dna, Guid actor, string username, string password,
-        Func<string, JToken, bool, Task>? middlewareProbe = null)
+        Func<string, JToken, bool, Task>? middlewareProbe = null, IMongoDatabase? ownedDatabase = null)
     {
         async Task<JObject> Read(HttpResponseMessage response, string stage, bool errorExpected = false)
         {
@@ -35,6 +36,14 @@ internal static class MfaHttpQualification
             => await Read(await http.PostAsJsonAsync(path, body), stage, errorExpected);
         var status = (await Read(await http.GetAsync("/api/avatar/mfa/status"), "initial-status"))["result"]!;
         Check(status.Value<bool>("nodeEnabled") && !status.Value<bool>("enabled"), "Owned MFA HTTP actor already enrolled or node disabled.");
+        if (ownedDatabase != null)
+        {
+            using var collections = await ownedDatabase.ListCollectionNamesAsync();
+            var names = await collections.ToListAsync();
+            Check(!names.Contains("AvatarMfaChallenges") && !names.Contains("AvatarMfaEvents"),
+                "An initial MFA status read created challenge/event collections or indexes.");
+            Console.WriteLine("MFA_STATUS_READ_ONLY_NATIVE_PROOF: initial real HTTP status read created no challenge/event collections.");
+        }
         var enrolment = (await Post("/api/avatar/mfa/enrol", new { }, "enrol"))["result"]!;
         var secret = Totp.Base32Decode(enrolment.Value<string>("secret")!);
         try
