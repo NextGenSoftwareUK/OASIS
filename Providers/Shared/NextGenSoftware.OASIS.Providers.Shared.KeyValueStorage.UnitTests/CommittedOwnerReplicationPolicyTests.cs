@@ -33,14 +33,18 @@ public class CommittedOwnerReplicationPolicyTests
     [DataRow("emptyActor", false)]
     [DataRow("foreignRoot", false)]
     [DataRow("foreignChild", false)]
+    [DataRow("sharedEditorRoot", true)]
+    [DataRow("sharedEditorChildOnlyRoot", false)]
     [DataRow("unselectedChild", true)]
     [DataRow("depthExcludedGrandchild", true)]
     public async Task DefaultPolicyValidatesOnlyTheCompleteSelectedCommittedGraph(string scenario, bool allowed)
     {
         var actor = Guid.NewGuid();
         Holon Record(Guid owner) => new() { Id = Guid.NewGuid(), CreatedByAvatarId = owner, Version = 1, VersionId = Guid.NewGuid() };
-        var root = Record(scenario == "foreignRoot" ? Guid.NewGuid() : actor);
+        var root = Record(scenario is "foreignRoot" or "sharedEditorRoot" or "sharedEditorChildOnlyRoot" ? Guid.NewGuid() : actor);
+        if (scenario == "sharedEditorRoot") root.ModifiedByAvatarId = actor;
         var child = Record(scenario is "foreignChild" or "unselectedChild" ? Guid.NewGuid() : actor);
+        if (scenario == "sharedEditorChildOnlyRoot") child.ModifiedByAvatarId = actor;
         child.ParentHolonId = root.Id;
         root.Children.Add(child);
         if (scenario == "depthExcludedGrandchild")
