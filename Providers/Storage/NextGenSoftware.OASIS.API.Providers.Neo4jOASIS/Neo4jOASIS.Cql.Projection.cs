@@ -44,7 +44,8 @@ public partial class Neo4jOASIS : ICosmicQueryEntityProjectionStorageProvider,IC
     private async Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteProjectionReadAsync<T,TResult>(
         CosmicProjectionPlan<T,TResult> plan,int maximumResults,int maximumPayloadBytes,CancellationToken cancellationToken,
         CosmicEntityProjectionPlan<T,TResult> entityProjection=null,
-        CosmicSetProjectionPlan<T,TResult> setProjection=null) where T:IHolon
+        CosmicSetProjectionPlan<T,TResult> setProjection=null,
+        Func<IAsyncTransaction,NeoCqlReadBudget,IReadOnlyList<CosmicProjectionRow>,IReadOnlyList<object>,Task> selectedContinuation=null) where T:IHolon
     {
         NeoCqlReadBudget readBudget = null;
         try
@@ -128,6 +129,7 @@ public partial class Neo4jOASIS : ICosmicQueryEntityProjectionStorageProvider,IC
             budget.Check();
             var cursor = await transaction.RunAsync(query, translator.Parameters).ConfigureAwait(false);
             var rows = new List<CosmicProjectionRow>();
+            var nativeRows=selectedContinuation==null?null:new List<object>();
             var entityOptions=entityProjection?.Source.Options??(setProjection==null?null:
                 new CosmicEntityCompositionOptions(Math.Max(setProjection.Source.Options.MaximumLeftInputRows,
                     setProjection.Source.Options.MaximumRightInputRows),setProjection.Source.Options.MaximumInputPayloadBytes));
@@ -150,8 +152,15 @@ public partial class Neo4jOASIS : ICosmicQueryEntityProjectionStorageProvider,IC
                 var row = ReadNativeProjectionRow(native, plan.Query.Columns);
                 budget.ReserveProjection(row.Values);
                 rows.Add(row);
+                nativeRows?.Add(new Dictionary<string,object>{{"values",native}});
             }
             budget.Check();
+            if(selectedContinuation!=null)
+            {
+                if(setProjection==null)throw new InvalidDataException("Selected set continuation requires its admitted native set read owner.");
+                await selectedContinuation(transaction,budget,rows.AsReadOnly(),nativeRows.AsReadOnly()).ConfigureAwait(false);
+                budget.Check();
+            }
             await transaction.CommitAsync().ConfigureAwait(false);
             budget.Check();
             return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(rows.AsReadOnly()) { IsLoaded = true };

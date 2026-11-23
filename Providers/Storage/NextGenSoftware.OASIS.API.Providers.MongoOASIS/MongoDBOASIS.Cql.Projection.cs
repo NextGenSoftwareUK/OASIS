@@ -43,7 +43,8 @@ public partial class MongoDBOASIS : ICosmicQueryEntityProjectionStorageProvider,
     private async Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteProjectionReadAsync<T,TResult>(
         CosmicProjectionPlan<T,TResult> plan,int maximumResults,int maximumPayloadBytes,CancellationToken cancellationToken,
         CosmicEntityProjectionPlan<T,TResult> entityProjection=null,
-        CosmicSetProjectionPlan<T,TResult> setProjection=null) where T:IHolon
+        CosmicSetProjectionPlan<T,TResult> setProjection=null,
+        Func<IClientSessionHandle,Func<AggregateOptions>,IReadOnlyList<CosmicProjectionRow>,CancellationToken,Task> selectedContinuation=null) where T:IHolon
     {
         try
         {
@@ -78,7 +79,7 @@ public partial class MongoDBOASIS : ICosmicQueryEntityProjectionStorageProvider,
                 :translator.CompileProjection(plan.Query,maximumResults);
             if (!IsProviderActivated || _holonRepository is not HolonRepository repository)
                 return ProjectionCqlFailure("CQL_PROVIDER_NOT_READY", "Activate MongoDB before native projection execution.");
-            var rows = await repository.ExecuteNativeCqlProjectionAsync(command, plan.Query.Columns, maximumResults, maximumPayloadBytes, cancellationToken).ConfigureAwait(false);
+            var rows = await repository.ExecuteNativeCqlProjectionAsync(command, plan.Query.Columns, maximumResults, maximumPayloadBytes, cancellationToken,selectedContinuation).ConfigureAwait(false);
             return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(rows) { IsLoaded = true };
         }
         catch (System.IO.InvalidDataException cause) { return ProjectionCqlFailure("CQL_DATA_INVALID", cause.Message, cause); }

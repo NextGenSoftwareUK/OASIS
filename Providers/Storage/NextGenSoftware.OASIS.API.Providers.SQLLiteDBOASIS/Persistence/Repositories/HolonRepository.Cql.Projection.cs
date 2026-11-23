@@ -41,7 +41,8 @@ public partial class HolonRepository
     private async Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteProjectionReadAsync<T,TResult>(
         CosmicProjectionPlan<T,TResult> plan,int maximumResults,int maximumPayloadBytes,CancellationToken cancellationToken,
         CosmicEntityCompositionPlan<T> composition=null,
-        CosmicSetProjectionPlan<T,TResult> setProjection=null) where T:IHolon
+        CosmicSetProjectionPlan<T,TResult> setProjection=null,
+        Func<SqliteConnection,SqliteCqlReadBudget,SqliteCqlTraversalGuard,IReadOnlyList<CosmicProjectionRow>,Task> selectedContinuation=null) where T:IHolon
     {
         try
         {
@@ -149,7 +150,14 @@ public partial class HolonRepository
                             rows.Add(new CosmicProjectionRow(cells));
                         }
                     }
-                    budget.Check(); traversal?.Check(); transaction?.Commit(); budget.Check();
+                    budget.Check(); traversal?.Check();
+                    if(selectedContinuation!=null)
+                    {
+                        if(setSql==null)throw new InvalidDataException("Selected set continuation requires its admitted native set read owner.");
+                        await selectedContinuation(connection,budget,traversal,rows.AsReadOnly()).ConfigureAwait(false);
+                        budget.Check();traversal?.Check();
+                    }
+                    transaction?.Commit(); budget.Check();
                     return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(rows.AsReadOnly()) { IsLoaded = true };
                 }
                 catch (SqliteException cause) when (cause.SqliteErrorCode == 9) { budget.Check(); throw; }

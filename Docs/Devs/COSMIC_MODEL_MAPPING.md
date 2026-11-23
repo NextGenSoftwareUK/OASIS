@@ -1,3 +1,11 @@
+## Selected stages after entity identity sets — source implemented, qualification pending
+
+Late entity-set selection now captures selected Where, ordering/ThenBy, windows, Reverse and Distinct. Entity identity membership occurs first; selected-tuple equality is used only by an explicitly requested selected Distinct. Complete late cells validate before selected stages can hide a malformed value. Native stage proof uses bounded zero-based row occurrences so Concat duplicates remain distinct occurrences.
+
+Independent provider enrollment is required. MongoDB and SQLite retain their existing snapshot/read owner; Neo4j stages consume the captured native cells under the existing read transaction and deadline, without a second MATCH or a repeatable-snapshot guarantee. Native ordinals choose validated output cells; no managed filter/order/expression substitute runs. Input, stage work, proof and output limits remain explicit. The shared proof verifier checks every native stage before application value construction.
+
+Representative three-provider qualification and one altered-occurrence proof control are pending. SQL/WEB4 selected-stage transport, async set terminals, nested set trees and full parity remain open. This source is not deployed.
+
 ## Async query family deployment
 
 Development91e3ad17/Coredef8cf76 carries the representative native-qualified element, cardinality and numeric async APIs. All seven service deployments succeeded. Running WEB4 revision and in-process HyperDrive V2 load balancing/failover/replication settings were verified with a three-call session/status/revoke check. This verifies deployment and settings, rather than a hosted async SDK application journey or full EF/NHibernate parity.
