@@ -1,58 +1,66 @@
 {
   "expectedCommit": "bea1473a1bfa3c4260982728b4cdcdeed5570465",
   "environment": "dev",
-  "status": "Verified source published; new deployment running acceptance pending",
+  "status": "Five deployments and running container revisions accepted; WEB4/WEB9 building",
   "services": [
     {
       "service": "WEB6 AI API",
       "serviceId": "1e6ee65f-df5d-42b1-972e-97f3a560f5d3",
       "deployment": "ae8cfa3a-b2c8-44ee-8445-6b45c694e15d",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "commit": "bea1473a1bfa3c4260982728b4cdcdeed5570465"
     },
     {
       "service": "WEB7 SYMBIOTIC API",
       "serviceId": "31bd0ff6-2d3d-4793-8197-eabcd3afcb75",
       "deployment": "837e6605-b35a-4231-a78d-64e6dcc4f2bb",
-      "status": "QUEUED",
+      "status": "SUCCESS",
       "commit": "bea1473a1bfa3c4260982728b4cdcdeed5570465"
     },
     {
       "service": "WEB9 SINGULARITIY API",
       "serviceId": "36eda15e-fd28-4fc6-a0c9-7fe454829554",
       "deployment": "f7211cb9-dfcf-43cd-addd-cc9aad1702e7",
-      "status": "QUEUED",
+      "status": "BUILDING",
       "commit": "bea1473a1bfa3c4260982728b4cdcdeed5570465"
     },
     {
       "service": "WEB4 OASIS API",
       "serviceId": "5123199a-43c4-4439-9921-e10e2aec7841",
       "deployment": "602ec5c3-bbb6-4bc2-9c52-f6170e01de10",
-      "status": "QUEUED",
+      "status": "BUILDING",
       "commit": "bea1473a1bfa3c4260982728b4cdcdeed5570465"
     },
     {
       "service": "WEB10 THE SOURCE API",
       "serviceId": "6f9e4f24-29be-49d7-914b-f1f9b42790d6",
       "deployment": "206c7f4c-6798-484f-893e-7c792a967dd7",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "commit": "bea1473a1bfa3c4260982728b4cdcdeed5570465"
     },
     {
       "service": "WEB8 IGN API",
       "serviceId": "95c937b9-b4e8-4fd3-866f-bd98d5420b2f",
       "deployment": "9f193b1b-292e-418d-9d99-5ad30fc3f90d",
-      "status": "QUEUED",
+      "status": "SUCCESS",
       "commit": "bea1473a1bfa3c4260982728b4cdcdeed5570465"
     },
     {
       "service": "WEB5 STAR API",
       "serviceId": "bb2c3e9a-ec96-44a5-9916-05e06d54b1f4",
       "deployment": "923b2f43-73d8-43fc-949a-0f6334636b17",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "commit": "bea1473a1bfa3c4260982728b4cdcdeed5570465"
     }
   ],
   "priorAcceptedCommit": "6bbbae4be199eef55856df32476db5684ee05073",
-  "workerSettingsChanged": false
+  "workerSettingsChanged": false,
+  "runningRevisionChecks": [
+    "WEB5",
+    "WEB6",
+    "WEB7",
+    "WEB8",
+    "WEB10"
+  ],
+  "verificationScope": "Selected RAILWAY_GIT_COMMIT_SHA matchesbea1473a inside each successful container; no auth/data/payment call"
 }
