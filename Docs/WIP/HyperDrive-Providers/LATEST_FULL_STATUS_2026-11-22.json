@@ -15,8 +15,11 @@
       "core": "cb1c50c24ac8520be6f328bca08e48e04737854b",
       "star": "ffd7fe494e1aacec50315baadff38273c88b8a11",
       "run": 45190600949,
-      "status": "focused native profile HTTP composition passed; shipping image45192295272 building; no new deployment",
-      "job": 137747613185
+      "status": "native profile HTTP and exact shipping package accepted; packaged profile form hydration failed, diagnostic45198313230 active",
+      "job": 137747613185,
+      "imageRun": 45192295272,
+      "image": "sha256:3f53e88890c5cc34c01f5db574e2ef604d1db239479d94055a0a0cd13456ae89",
+      "packageRun": 45196807788
     },
     "retainedNftQualification": {
       "root": "5442d4e9de89231a5a4bebe77c44374ab0920001",
@@ -701,8 +704,8 @@
     "remaining": "All named wider portal/action/provider/paid Stripe work remains open"
   },
   "currentDeliveryGaps20261123": {
-    "profile": "Current restoration e1cf1342/Corecb1 passed real native MVC GET/PATCH/GET45190600949. Exact shipping image45192295272 building; packaged Startup profile UI check prepared. Not yet delivered to Development.",
-    "oapp": "Current populated fixture45194278381 creates OAPP/child and reads parent, then serialized conditional graph save rejects changed membership before writing (HOLON_SAVE_PREPARATION_FAILED). Existing role-observation guard is byte-identical in old/new Core. Canonical relationship-edit API contract remains open; do not replace with an empty passing fixture. No further depth run until addressed. See OPORTAL_CATALOGUE_RELATIONSHIP_GAP_2026-11-23.json.",
+    "profile": "New exact image/package source hashes and 5 assemblies verified45196807788. Real Startup sign-in/profile GET200 succeeds but form hydration failed before edit. Same-image diagnostic45198313230 active with bounded status/field-name/revision flags, no API rebuild. Native451906 GET/PATCH/GET retained; no Development delivery yet.",
+    "oapp": "Populated canonical OAPP+child creation, independent default-shallow/explicit-deep selection and Map/Launcher filter/detail/browse/close passed45196340465/artifact14830060049. Existing persisted serialized graph relationship edits remain open. New backend source not published to Development yet.",
     "breadth": "Admin seven source-specific native/browser scopes and unchanged 51-event Karma Ledger evidence retained in screen matrix. No duplicate unchanged matrices. Whole portal/paid Stripe/provider/HyperDrive completion remains unproven."
   }
 }
