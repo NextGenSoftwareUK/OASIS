@@ -169,7 +169,7 @@ try
 
     stage = "actual WEB4 Startup";
     api = Host.CreateDefaultBuilder()
-        .ConfigureLogging(logging => logging.ClearProviders())
+        .ConfigureLogging(logging => { logging.ClearProviders(); logging.AddProvider(new OwnedServerExceptionLogger()); })
         .ConfigureWebHostDefaults(web => web.UseSetting(WebHostDefaults.ApplicationKey, typeof(Web4Startup).Assembly.FullName)
             .UseStartup<Web4Startup>().ConfigureKestrel(server => server.Listen(IPAddress.Loopback, 0)))
         .ConfigureServices(services => {
@@ -415,4 +415,28 @@ sealed class OwnedOnodeBrowserAssets : IStartupFilter
         });
         next(app);
     };
+}
+
+// Emit exception identities and code locations only; never format log state or exception messages.
+sealed class OwnedServerExceptionLogger : ILoggerProvider
+{
+    public ILogger CreateLogger(string categoryName) => new ExceptionLogger();
+    public void Dispose() { }
+    sealed class ExceptionLogger : ILogger
+    {
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        public bool IsEnabled(LogLevel level) => level >= LogLevel.Error;
+        public void Log<TState>(LogLevel level, EventId eventId, TState state, Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            if (level < LogLevel.Error || exception == null) return;
+            var root = exception.GetBaseException();
+            var methods = new StackTrace(root, false).GetFrames()?.Take(8).Select(frame => {
+                var method = frame.GetMethod();
+                return method?.DeclaringType?.FullName + "." + method?.Name;
+            }) ?? Array.Empty<string>();
+            Console.WriteLine("ONODE_SERVER_EXCEPTION: type=" + exception.GetType().FullName +
+                "; base=" + root.GetType().FullName + "; methods=" + string.Join(" | ", methods));
+        }
+    }
 }

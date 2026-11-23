@@ -3191,3 +3191,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 2026-11-23 run45236110787: actual Startup HTTP500 before bridge; owned API/supervisor/bridge stopped, native databases/DNA/generated token/directory removed, outer container absence verified. Temporary candidate indexes removed after both failed assertion and successful c261 composition. No local builds/downloads/envs.
 
 2026-11-23 combined45238041414: API/supervisor/bridge stopped, owned databases/DNA/token/directory removed; cloud Mongo container and geo browser runtime/cache absence verified. Local25.73GiB free, no onode temporary indexes remain. No local runtime/download/build generated.
+
+2026-11-23 run45239339291: owned processes/databases/DNA/token/directory removed, cloud Mongo container/browser runtime/cache absence verified. Next diagnostic omits unused browser download until auth works. No local builds/downloads/envs.

@@ -15,7 +15,7 @@
   },
   "onodeManager": "3ecf0f8ea9713412da9071a1c6d12f961b050c8e",
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
-  "remaining": "Review current-Core inventory; native45236110787 compiled but actual password sign-in returned500. Owned runtime cleanup passed; sanitized failure diagnosis added. Browser pending.",
+  "remaining": "Actual Startup sign-in500 with empty response in45239339291. Enable exception-type/method-only server diagnostic, no browser runtime download until authentication passes. Pinned browser journey remains prepared.",
   "inventoryReview": {
     "run": 45237515982,
     "artifact": 14849027990,
@@ -159,6 +159,6 @@
     "run": 45233869564,
     "status": "queued"
   },
-  "onodeBrowser": true,
+  "onodeBrowser": false,
   "portal": "88d2f7adc10687845585460ebfea68bd4c9fc705"
 }
