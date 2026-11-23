@@ -83,14 +83,18 @@
     {
       "route": "onet",
       "open": "openONETModal",
-      "status": "further evidence reconciliation or main journey required; not complete"
+      "status": "further evidence reconciliation or main journey required; not complete",
+      "latestSourceFix": {
+        "portalCommit": "1000597",
+        "scope": "Preserve zero peer counts and remove duplicate connection handler; syntax/asset stamp/whitespace passed. Functional network/browser acceptance remains open."
+      }
     },
     {
       "route": "onode",
       "open": "openONODEModal",
-      "status": "source and component API/SDK/command scopes accepted; actual Startup authentication500 unresolved; combined browser pending",
-      "run": 45238041414,
-      "scope": "Current CQL source inventory accepted45237515982. Prior actual supervisor HTTP/SDK/role command evidence retained45221661443. Bridge45236110787 compiled but sign-in500 stopped journey; all owned cleanup acknowledged. Combined real Startup/pinned Portal run active, no browser/applied-runtime acceptance."
+      "status": "component API/SDK/commands accepted; corrected isolated-process bridge qualification active",
+      "run": 45242480184,
+      "scope": "Prior empty500 traced45240663145 to test host mixing WEB4 Swagger6.4 with supervisor10.2.3. Corrected host uses actual separate supervisor process; no shipping auth change. Prior accepted component evidence retained. Authentication/bridge/browser not yet accepted."
     },
     {
       "route": "developer",
