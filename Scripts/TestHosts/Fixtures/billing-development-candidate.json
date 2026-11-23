@@ -1,15 +1,17 @@
 {
-  "base": "15798b127af2274aa811252ad6335cbfc8661a49",
+  "base": "aa257b03a0baae0175e7b47cd367a93fd139f55c",
   "buildProjects": [],
   "remaining": "Qualify native BSON array/readback and Games/OAPPs/Inventory browser. Existing legacy string-encoded lists require explicit assessment/migration; no silent read fallback.",
   "allowedPaths": [
+    "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
     "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Infrastructure/Serializers/MetaDataDictionarySerializer.cs"
   ],
-  "status": "Mongo list raw BSON/typed Game passed; real browser found unbounded popup height, now source-fixed; continue same breadth flow",
+  "status": "Actual Inventory quantity lost on native catalogue read; model fields now declared durable, Mongo lists/URIs preserve native JSON shape; current fluent CQL preserved",
   "nativeMode": "storefront-browser",
   "nativeHost": "HotspotHttpNative",
   "portal": "71ea1255c7e7241cdc766179aaf4d4525865004a",
   "scope": "billing",
-  "tag": "qualification/mongo-metadata-list-20261123",
-  "candidate": "d531a4d543f6bc9428372ab1454110b882ac493c"
+  "tag": "qualification/inventory-fields-native-ui-20261123",
+  "candidate": "80f9d9e7dd91afebf7bc2fd41cb57dfd1d939a6d"
 }

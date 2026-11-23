@@ -350,7 +350,9 @@ try
             STARNETDNA = new STARNETDNA { Id = Guid.NewGuid(), CreatedByAvatarId = actor, Version = "1.0.0", VersionSequence = 1,
                 LaunchTarget = "https://app.example/open" } };
         var item = new NextGenSoftware.OASIS.API.Core.Objects.InventoryItem { Id = Guid.NewGuid(), Name = "Owned storefront item", Quantity = 3,
-            GameSource = "Owned game", STARNETDNA = new STARNETDNA { Id = Guid.NewGuid(), CreatedByAvatarId = actor, Version = "1.0.0", VersionSequence = 1 } };
+            GameSource = "Owned game", Rarity = "Rare", MaxQuantity = 9, Weight = 1.5f, IsUsable = true, IsTradeable = true,
+            Image2DURI = new Uri(address + "/assets/img/loggedin.png"),
+            STARNETDNA = new STARNETDNA { Id = Guid.NewGuid(), CreatedByAvatarId = actor, Version = "1.0.0", VersionSequence = 1 } };
         foreach (var record in new NextGenSoftware.OASIS.API.Core.Interfaces.IHolon[] { game, oapp, item })
         {
             record.MetaData["STARNETHolonId"] = ((NextGenSoftware.OASIS.API.Core.Interfaces.STAR.ISTARNETHolon)record).STARNETDNA.Id.ToString();
@@ -372,6 +374,14 @@ try
         Require(!savedOapp.IsError && savedOapp.IsSaved, "Owned OAPP seed failed: " + savedOapp.Message);
         var savedItem = await data.SaveHolonAsync<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>(item, actor, saveChildren: false, providerType: ProviderType.MongoDBOASIS);
         Require(!savedItem.IsError && savedItem.IsSaved, "Owned inventory item seed failed: " + savedItem.Message);
+        var itemReadback = await data.LoadHolonAsync<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>(item.Id,
+            loadChildren: false, providerType: ProviderType.MongoDBOASIS);
+        Require(!itemReadback.IsError && itemReadback.Result != null,
+            "Owned typed inventory readback failed: " + itemReadback.ErrorCode + "; " + itemReadback.Exception?.GetBaseException().Message);
+        Require(itemReadback.Result.Quantity == 3 && itemReadback.Result.GameSource == "Owned game" &&
+            itemReadback.Result.Rarity == "Rare" && itemReadback.Result.MaxQuantity == 9 && itemReadback.Result.Weight == 1.5f &&
+            itemReadback.Result.IsUsable && itemReadback.Result.IsTradeable && itemReadback.Result.Image2DURI == item.Image2DURI,
+            "Inventory quantity/source/details/asset URI did not survive native typed persistence.");
         await RunOwnedBrowserAsync(new { baseUrl = address, token = new JwtSecurityTokenHandler().WriteToken(jwt), avatarId = actor,
             gameId = game.Id, oappId = oapp.Id, itemId = item.Id }, "storefrontBrowserVerified");
         Console.WriteLine("STOREFRONT_BROWSER_PROOF: actual Games/OAPPs/Inventory SDK/browser/HTTP/native Mongo browse/details and supplied launch links; zero browser mutations. Full Startup/SSO/hosted excluded.");

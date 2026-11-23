@@ -285,6 +285,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
             }
             else if (valueType == typeof(Guid))
                 writer.WriteString(((Guid)value).ToString());
+            else if (value is Uri uri)
+                writer.WriteString(uri.OriginalString);
             else if (value is byte[] bytes)
                 writer.WriteBinaryData(new BsonBinaryData(bytes));
             else if (valueType.IsArray)

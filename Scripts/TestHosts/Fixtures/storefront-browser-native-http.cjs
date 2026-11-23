@@ -54,6 +54,7 @@ async function verify({baseUrl,token,avatarId,gameId,oappId,itemId}) {
   await page.locator('#fixture-inventory').click();await page.waitForFunction(()=>document.getElementById('inv-mine-list').textContent.includes('empty'));
   await page.locator('#inventory-modal-block [data-tab="all"]').click();await page.locator('#inv-all-list article').waitFor();
   assert.match(await page.locator('#inv-all-list article').textContent(), /× 3/, 'Stored inventory quantity must survive the real catalogue read.');
+  await page.waitForFunction(()=>{const image=document.querySelector('#inv-all-list img');return image?.complete&&image.naturalWidth>0;});
   await page.locator('#inv-all-list [data-inv-item]').click();await page.locator('#inv-detail').waitFor({state:'visible'});
   assert.ok((await page.locator('#inv-detail-body').textContent()).includes(itemId));
   await page.locator('#inv-detail-close').click();assert.equal(await page.locator('#inv-detail').isHidden(),true);
