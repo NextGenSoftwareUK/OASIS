@@ -1,0 +1,19 @@
+{
+  "source": "338861825e50dbcd67216d3f8f4078c10c4df641",
+  "core": "854b2b3129701b3a5162d49d55e7e8a86be4f6ef",
+  "web6": "78a27a295e74721358eb2b02399f79eff5b21633",
+  "run": 45106599100,
+  "job": 137469213235,
+  "controlSource": "338861825e50dbcd67216d3f8f4078c10c4df641",
+  "digest": "sha256:ae2a51fbe7b62a42b3c01eb0e071b83ee2bf9de33abfa6835d74370987a64539",
+  "teachingSidecars": false,
+  "exactPrivatePinsVerified": true,
+  "incomingDevelopmentPreserved": "ae9d72651bdffefce8d2695f09f9060f052c8703",
+  "nativeRun": 45104280443,
+  "aliasGuardRun": 45105765740,
+  "incomingGiftsRun": 45105105606,
+  "imageAccepted": true,
+  "combinedCoreCompiled": true,
+  "imageDownloadedLocally": false,
+  "deployed": false
+}
