@@ -1,3 +1,21 @@
+## Current delivery checkpoint — 2026-11-23 07:58 UTC
+
+The full goal remains active and incomplete. Work uses only work/cosmic-cql-ton-public. This checkpoint supersedes pending statements in the retained history below.
+
+| New functional family | Representative native evidence | Live Development |
+| --- | --- | --- |
+| Owned primitive/value-object collections | MongoDB/SQLite/Neo4j passed45130169196; atomic values, order/duplicates, null/empty, exact numbers, nested edits and parent visibility | Pending new release |
+| Model-wide application filters and explicit bypass | MongoDB/SQLite/Neo4j passed45129574750; paging/frozen values, mandatory access and read-only policy preserved | Pending new release |
+| Explicit NHibernate XML import subset | MongoDB/SQLite/Neo4j plus one admission control passed45132975102; shared mapping/validation, atomic rejection, documented compatibility limits | Pending new release |
+
+All10 selected cases and the corresponding actual WEB4 builds passed; exact owned fixture cleanup was acknowledged. These are functional/native proofs, not full EF/NHibernate certification. Certified baseline remains61/168 plus4/13 extensions; all outstanding provider/SQL/AI/virtual/hardening requirements remain in scope.
+
+The current frozen combined producer is e081218aac789aa4b444545f4803c19324611284, Core13ca0e11c4320213485a19922a1f519736340ca1. It preserves Developmentbf14ebc8 and the peer's exact2356 authority-routing files. Image45133798003 is the original running build; package verification and new deployment/runtime acceptance remain mandatory. Older7fb image/package proofs are retained but must not replace the newer authority fix.
+
+The latest observed Developmentbf14 rollout had all7 services SUCCESS. Its previous annotation/read-only/OwnsOne model code remains preserved; the three families above are not yet claimed live. Website public promotion, real WEB6 inference and full browser/data-query acceptance remain separately scoped.
+
+No new branch/worktree/local environment/database/image/archive/build output was created. No PIPER/customer collection queries. Keep compact receipts and replay guards; do not repeat accepted native cohorts. Current native proof files: OWNED_COLLECTION_NATIVE_ACCEPTANCE_2026-11-23.json, MODEL_QUERY_FILTER_NATIVE_ACCEPTANCE_2026-11-23.json and NHIBERNATE_XML_NATIVE_ACCEPTANCE_2026-11-23.json.
+
 2026-11-23 07:51 UTC — NHIBERNATE XML SUBSET NATIVE ACCEPTED. Run45132975102/job137552501441 passed three real MongoDB/SQLite/Neo4j journeys plus one XML-admission control and the actual WEB4 build ondfc5fcbb/Core9a22d0e2. Six representative checks/store cover XML metadata aliases with typed save/read/native filter/DTO projection/update, assigned identity/revision, required-value refusal before write, read-only policy and immutable model snapshots. Admission control verifies unsupported bag/DTD/unallowed class/reserved alias refusal without partial builder mutation and duplicate import conflict. One owned ID/store, two save acknowledgements, eight timed operations; exact owned cleanup verified. Strict five-entry3513-byte artifact14799236778 SHA9861cc878e1c2b5bb9d18b035f7a03d73c5cd3d3fd8e513a7a1ce4a24ef54a52 RAM-inspected, archive not saved. No full NHibernate XML/M04/POCO/table/schema compatibility claim; intentional mutable=false translation remains documented.
 
 CURRENT COMPOSITION: all three new functional families have representative native acceptance. Image45133798003/sourcee081/Core13ca remains the original combined build including exact verified peer2356 authority files; XML/model source is unchanged by that three-file authority merge. Current exact package and source/settings/runtime deployment gates remain open. No accepted cohort replay, local build/env/runtime/database/image/archive/download, shared Atlas/PIPER call or Development push.
