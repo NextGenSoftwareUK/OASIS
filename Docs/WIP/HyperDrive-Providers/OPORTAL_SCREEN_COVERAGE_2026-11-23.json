@@ -159,7 +159,9 @@
     {
       "route": "competition",
       "open": "openCompetitionModal",
-      "status": "further evidence reconciliation or main journey required; not complete"
+      "status": "scoped empty-list actual page journey accepted; wider actions remain open",
+      "run": 45178110641,
+      "scope": "Explicit Map depth/default Launcher shallow, filters and close; Competition empty leaderboard/no-rank/tournaments/close. Not populated relationships/launch/registration."
     },
     {
       "route": "clan",
@@ -207,7 +209,9 @@
     {
       "route": "oapp-map",
       "open": "openOappMapModal",
-      "status": "further evidence reconciliation or main journey required; not complete"
+      "status": "scoped empty-list actual page journey accepted; wider actions remain open",
+      "run": 45178110641,
+      "scope": "Explicit Map depth/default Launcher shallow, filters and close; Competition empty leaderboard/no-rank/tournaments/close. Not populated relationships/launch/registration."
     },
     {
       "route": "karma-ledger",
@@ -241,7 +245,9 @@
     {
       "route": "oapp-launcher",
       "open": "openOappLauncherModal",
-      "status": "further evidence reconciliation or main journey required; not complete"
+      "status": "scoped empty-list actual page journey accepted; wider actions remain open",
+      "run": 45178110641,
+      "scope": "Explicit Map depth/default Launcher shallow, filters and close; Competition empty leaderboard/no-rank/tournaments/close. Not populated relationships/launch/registration."
     },
     {
       "route": "activity-feed",

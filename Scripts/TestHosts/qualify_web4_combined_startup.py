@@ -277,7 +277,7 @@ console.log(JSON.stringify(b));
                 safe_stage = re.search(r'PORTAL_STARTUP_BROWSER_FAILURE stage=([^;\n]+)', browser.stderr)
                 raise RuntimeError('Owned portal Startup browser failed at ' + (safe_stage.group(1) if safe_stage else 'unreported stage'))
             assert 'PORTAL_STARTUP_BROWSER_PROOF:' in browser.stdout
-            scenario = 'WEB5 Games/OAPPs' if web5_process else (popup_group if popup_group != 'none' else ('Files/Wallet/Karma' if popup_breadth else 'dashboard/subscriptions/refresh'))
+            scenario = popup_group if popup_group != 'none' else ('WEB5 Games/OAPPs' if web5_process else ('Files/Wallet/Karma' if popup_breadth else 'dashboard/subscriptions/refresh'))
             print('PORTAL_STARTUP_BROWSER_PROOF: actual page sign-in/' + scenario + ' passed through isolated shipping Startup.', flush=True)
             portal_checked = True
         elif auth_checked:

@@ -1,6 +1,6 @@
 {
   "date": "2026-11-23",
-  "status": "implemented source; cloud compile and representative UI qualification running",
+  "status": "actual WEB5 compile and three empty catalogue UI journeys accepted; populated proof prepared",
   "root": "fe414dfe0ec971b33280b0780ab418b0d5012a10",
   "baseDevelopment": "3ae678ddcbd0624a19cc4f3ff662a89b27b13896",
   "core": "a3c5ceef9d61b0057ecc8b21156bd0121754a223",
@@ -23,9 +23,10 @@
     "Competition leaderboard/rank/tournaments empty reads/close"
   ],
   "remaining": [
-    "populated descendant behavior acceptance",
-    "performance measurement",
-    "backend Development publication/running acceptance"
+    "populated shallow-versus-descendant behavior",
+    "populated launcher catalogue/detail/browse",
+    "measured performance",
+    "backend Development/running acceptance"
   ],
   "web4Reuse": {
     "source": "8f379886b8d89d1e134dd740a41af239e56f626f",
@@ -36,5 +37,18 @@
     "packageArtifactBytes": 774,
     "checks": "Exact receipt source/image/profile and packagedSourceHashes/CQL runtime graph true; RAM-only inspection"
   },
-  "cleanup": "Exact owned temporary STAR/root indexes and locks removed in finally. No physical submodule checkout/index changed. No local build/download/runtime/env/database/results; cloud run cleanup pending. No DNA/shared Railway settings or Atlas data/auth calls."
+  "cleanup": "Exact owned temporary STAR/root indexes and locks removed in finally. No physical submodule checkout/index changed. No local build/download/runtime/env/database/results; cloud run cleanup pending. No DNA/shared Railway settings or Atlas data/auth calls.",
+  "artifact": 14820313295,
+  "artifactBytes": 3414,
+  "accepted": [
+    "OAPP Map explicit loadChildren=true request/actual empty list/filter/close",
+    "OAPP Launcher default-shallow request/actual empty list/filter/close",
+    "Competition actual empty leaderboard, no-rank stats and tournaments/close"
+  ],
+  "populatedProof": {
+    "preparedControl": "109def7342c",
+    "behavior": "Create one OAPP through actual WEB5 API, child through actual WEB4 API, compare independent shallow/deep responses, then populated Map/Launcher detail/browse",
+    "backend": "isolated fresh native Mongo and actual issued SSO; no handcrafted stored documents, synthetic JWTs or response mocks",
+    "status": "prepared, not yet run"
+  }
 }
