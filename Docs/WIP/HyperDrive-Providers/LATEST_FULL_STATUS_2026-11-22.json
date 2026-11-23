@@ -5,17 +5,17 @@
     "taskBranch": "work/hyperdrive-provider-completion",
     "taskWorktree": "C:/Source/OASIS2-hyperdrive",
     "portalBranch": "dev",
-    "portalHead": "f5a1fd39f10fb8f2358150c4f5b142c9e0b38aeb",
-    "reviewedDevelopment": "3b81b74946b488f871bd550ce101e2bdb3b5e9d2",
-    "currentCore": "13ca0e11c4320213485a19922a1f519736340ca1",
+    "portalHead": "fddabf3eca130423c96a28c026466888ee1d126f",
+    "reviewedDevelopment": "a9184e7b108dc10f126ec0d1e01cee1d93de740a",
+    "currentCore": "f4a97400101657cb0cd2b71e7f5f94e0b926a5c6",
     "currentWeb6": "78a27a295e74721358eb2b02399f79eff5b21633",
-    "scope": "Current CQL3b81 dev WEB4 runtime verified: Mongo authority/all3holds true. ONODE8745 decoder fix passed exact shipping package/native portal; parent publication/rollout pending.",
+    "scope": "Developmenta918 retains accepted NFT decoder and CQL metadata. Latest selected running WEB4 observationa549/all3holds true; a918 successor rollout metadata observed separately. Current portal source includes accepted map pagination and owned detail editing; no whole-portal claim.",
     "currentQualification": {
       "root": "5442d4e9de89231a5a4bebe77c44374ab0920001",
       "core": "cac5dba4d026cc19dcfe4440737b9de50a8ed20d",
       "onode": "8745c95ef2f6150fafb1417122a20c020784b338",
       "run": 45140498072,
-      "status": "published-a549-dev-rollout-pending",
+      "status": "published-a549-running-Web4-verified-successor-a918-observed",
       "compiledCore": "13ca0e11c4320213485a19922a1f519736340ca1",
       "coreSourceTree": "627e83871010638971aad96078e58843048233b6",
       "publication": "a54956d1ffb3d45e699a9b0bd0a5f2a4c1e62c57"
@@ -58,7 +58,10 @@
       "Real WEB5 entry-point Games/OAPP full-page45128946718",
       "Shipping WEB4 full-page Files/Wallet/Karma45132201881",
       "Full portal Data browse and one real message send/recipient inbox readback/conversation45136761604",
-      "Actual full page NFT/GeoNFT/OLAND empty catalogues/grouping/tabs/close45140498072"
+      "Actual full page NFT/GeoNFT/OLAND empty catalogues/grouping/tabs/close45140498072",
+      "Actual full page private GPX publish/rename/reopen/list45148541889",
+      "Actual owner Data detail edit with native persisted readback45149458665",
+      "Actual Files upload/list/download byte equality/delete/close45150357293"
     ],
     "latestDeliveredFixes": [
       "Current subscription selection, retry states, real invoice/PDF links and exact-plan checkout activation confirmation",
@@ -68,7 +71,9 @@
       "Gifts duplicate logout handler removed; complete representative real popup flow accepted",
       "Games/OAPPs/Inventory combined native/browser45114577286 accepted and backend21abed0b published; later running WEB4 revision770 includes21ab source.",
       "Inventory linked NFT/GeoNFT IDs, stack, dates and custom properties now rendered from existing response; Portal17ed8e4 script served exact, focused rendering check passed.",
-      "Real username sign-in form fixed; actual authenticated WEB4 page slice45120405171 accepted."
+      "Real username sign-in form fixed; actual authenticated WEB4 page slice45120405171 accepted.",
+      "Map saved-route and place-visit terminal pagination respects null-omitting WEB4 JSON; route flow45148541889 accepted.",
+      "Data owner name/description edit uses observed provider revision and existing save API; persisted readback45149458665 accepted."
     ],
     "remaining": [
       "Remaining popup write actions, mapping flows, WEB6 full-host flows and permanent account erasure; representative accepted read/delivery journeys do not prove every action.",
@@ -402,7 +407,7 @@
     }
   },
   "nftDataMessaging20261123": {
-    "status": "Data-Messaging-and-NFT-empty-read-journeys-accepted-parent-publication-ready",
+    "status": "accepted-scoped-journeys-decoder-published-running-Web4-verified",
     "portal": "f5a1fd39f10fb8f2358150c4f5b142c9e0b38aeb",
     "accepted": {
       "run": 45136761604,
@@ -470,12 +475,12 @@
       "fragment": "717fdbd2056edb0084685f8f003a67b49c1e4bf8f444e17a893f9ebddf6a0730",
       "scope": "Static source delivery only; four bounded memory-only requests, no shared database/auth/data request."
     },
-    "next": "Publish scoped verified NFT decoder on current Development with paired pin and branch gates; then continue remaining write actions and map workflows.",
+    "next": "Continue unfinished popup actions; accepted map routes and Data detail edits are recorded separately. Mint-wallet key/depth source gap remains for later scoped repair.",
     "remaining": "No NFT mint/transfer/Our World real-device/paid Stripe/WEB6/all popup actions/whole-portal or full-provider claim. Mint-wallet collection source still has explicit recursive loads and a sync metadata-key mismatch for later focused repair.",
     "cleanup": "No local build/env/download/runtime/database/results. Exact owned oasis-nft-empty-onode-20261123.index and oasis-nft-empty-root-20261123.index/locks removed in finally. Compact receipts RAM-only; source/Git objects and reports retained. C:27.07GiB observed."
   },
   "nftCollectionAcceptance20261123": {
-    "status": "published-Development-running-rollout-pending",
+    "status": "published-running-Web4-a549-verified-successor-a918-observed",
     "base": "3b81b74946b488f871bd550ce101e2bdb3b5e9d2",
     "imageSource": "5442d4e9de89231a5a4bebe77c44374ab0920001",
     "core": "13ca0e11c4320213485a19922a1f519736340ca1",
@@ -573,7 +578,18 @@
     ],
     "verification": "Initial selected deployment metadata only. Running revision/authority/holds checks pending these same handles. No shared database/auth calls.",
     "sourceEquivalence": "Corecac5 complete tree627e equals already-qualified/deployed13ca; graph-only two-parent reconciliation. Exact image5442 compiled13ca; new running provenance must be verified separately.",
-    "next": "Follow existing handles; do not repeat source pushes or previously accepted functional cohorts. Continue remaining popup write actions and map workflows while rollout runs."
+    "next": "Follow existing handles; do not repeat source pushes or previously accepted functional cohorts. Continue remaining popup write actions and map workflows while rollout runs.",
+    "observation": {
+      "runningWeb4": "a54956d1ffb3d45e699a9b0bd0a5f2a4c1e62c57",
+      "runtimeWorkerHolds": {
+        "hyperdrive": true,
+        "usageReconciliation": true,
+        "applicationMaintenance": true
+      },
+      "successor": "a9184e7b108dc10f126ec0d1e01cee1d93de740a",
+      "successorStatus": "Latest metadata WEB4/6/8 building, WEB5 queued, WEB7/9/10 success. Peer Development retains NFT decoder; no duplicate deployment requested.",
+      "scope": "Selected runtime revision/hold fields only; no shared Mongo/auth test. Other previous handles were not individually reread here."
+    }
   },
   "nextBreadth": "Default-provider Data create/read/delete through the actual portal with explicit admitted free ordinary-write configuration; then recorded-map workflows. Existing native/component evidence remains retained, not whole-action acceptance.",
   "latestMapRouteAcceptance": {
@@ -591,5 +607,16 @@
     "scope": "Actual owner name/description detail edit and native persisted readback; owned create/read/delete setup/cleanup.",
     "evidence": "OPORTAL_DATA_EDIT_2026-11-23.json",
     "overallComplete": false
+  },
+  "latestFilesWrite": {
+    "run": 45150357293,
+    "status": "accepted-representative-upload-download-delete",
+    "scope": "One tiny owned upload/download-byte-verification/delete through actual portal/HTTP, reused API image; no shared cluster test.",
+    "portal": "b1d85e9951edae4cf770f7c9295b1e4137e8f0fd",
+    "job": 137609920095,
+    "artifact": 14805258911,
+    "archiveBytes": 4271,
+    "evidence": "OPORTAL_FILES_WRITES_2026-11-23.json",
+    "cleanupVerified": true
   }
 }
