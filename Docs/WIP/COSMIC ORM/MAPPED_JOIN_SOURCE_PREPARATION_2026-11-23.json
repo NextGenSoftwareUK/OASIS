@@ -1,6 +1,6 @@
 {
   "base": "048b02d54870e793de8f18439ff8f00950ad3547",
-  "core": "97ed8a080e0df7f1918b42a500d694e47e1d0026",
+  "core": "e7402f4f2f14e9a7f628026efde79180c376f815",
   "sourceImplemented": true,
   "compiled": false,
   "nativeAccepted": false,
@@ -13,8 +13,13 @@
   ],
   "requiresRepresentativeNativeJoins": true,
   "source": "9839f4b25dbc14a91d30e02fc5b0bf5e1b661008",
-  "qualificationPhase": "NativeRunning",
+  "qualificationPhase": "AwaitingManualDispatch",
   "expectedNativeTests": 3,
   "nativeRun": 45088635438,
-  "nativeJob": 137412885983
+  "nativeJob": 137412885983,
+  "priorCore": "97ed8a080e0df7f1918b42a500d694e47e1d0026",
+  "priorRun": 45088635438,
+  "priorOutcome": "compiled_then_three_capture_refusals",
+  "priorOwnedMongoStopped": true,
+  "priorCleanupFinallyExecuted": true
 }
