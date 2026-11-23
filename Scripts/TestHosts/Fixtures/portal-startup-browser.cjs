@@ -9,11 +9,12 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
+ assert.ok(['none','hyperdrive','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
  const selectedPopups=popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
-  popupGroup==='none'?[]:[{eggs:'Eggs',nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
+  popupGroup==='none'?[]:[{hyperdrive:'HyperDrive',eggs:'Eggs',nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
+ let routingSaves=0;
  let clanId,clanCreates=0,clanUpdates=0,clanMembers=0,clanDeletes=0;
  const clanName='Owned portal clan '+process.env.GITHUB_RUN_ID;
  let chatId,chatStarts=0,chatSends=0,chatEnds=0;
@@ -155,6 +156,12 @@ async function main(){
       assert.equal(body.providerType,'MongoDBOASIS');assert.deepEqual(Object.keys(body.expectedRevisions),[savedHolonId]);
       assert.match(body.expectedRevisions[savedHolonId],/^[0-9a-f-]{36}$/i);ownedOperation=true;
      }
+    }
+    if(popupGroup==='hyperdrive'&&request.method()==='PUT'&&url.pathname==='/api/settings/hyperdrive-settings'){
+     assert.equal(++routingSaves,1,'One explicit owned routing preference save');
+     const body=request.postDataJSON();for(const flag of ['autoFailoverEnabled','autoReplicationEnabled','autoLoadBalancingEnabled'])assert.equal(body[flag],false);
+     for(const field of ['autoFailoverProviders','autoReplicationProviders','loadBalancingProviders'])assert.equal(body[field],null);
+     ownedOperation=true;
     }
     if(selectedPopups.length&&request.method()==='POST'){
      if(selectedPopups.includes('Data')&&url.pathname==='/api/data/load-holons-for-parent'){
@@ -373,6 +380,19 @@ async function main(){
     stage='HyperDrive routing panels';for(const tab of ['failover','replication','loadbalance']){await page.locator('#hd-modal-block [data-tab="'+tab+'"]').click();assert.equal(await page.locator('#hd-tab-'+tab).isVisible(),true);}
     stage='HyperDrive routing preferences';await page.locator('#hd-modal-block [data-tab="settings"]').click();await page.locator('#hd-settings-form').waitFor({state:'visible'});
     assert.equal(await page.locator('#hd-settings-fields').isDisabled(),false);
+    if(popupGroup==='hyperdrive'){
+     stage='HyperDrive save preferences';
+     for(const flag of ['autoFailoverEnabled','autoReplicationEnabled','autoLoadBalancingEnabled'])await page.locator('#hd-settings-form [name="'+flag+'"]').selectOption('false');
+     for(const field of ['autoFailoverProviders','autoReplicationProviders','loadBalancingProviders'])await page.locator('#hd-settings-form [name="'+field+'"]').fill('');
+     await page.locator('#hd-settings-form button[type="submit"]').click();
+     await page.waitForFunction(()=>document.getElementById('hd-settings-feedback').textContent==='Routing preferences saved.');
+     const persisted=await account.call('owned routing readback','GET','/api/settings/hyperdrive-settings',undefined,ownedToken);
+     for(const flag of ['autoFailoverEnabled','autoReplicationEnabled','autoLoadBalancingEnabled']){assert.equal(persisted.avatarOverrides[flag],false);assert.equal(persisted.effective[flag],false);}
+     assert.equal(routingSaves,1);
+     stage='HyperDrive deliveries';await page.locator('#hd-modal-block [data-tab="deliveries"]').click();
+     await page.waitForFunction(()=>document.getElementById('hd-deliveries-status').textContent==='No hosted deliveries yet.');
+    }
+
    });
    await checkPopup('MessagingRead','#messaging-modal-close-btn',async()=>{
     stage='Inbox unread state';await page.waitForFunction(()=>document.getElementById('dash-card-messages').textContent==='1 unread');
