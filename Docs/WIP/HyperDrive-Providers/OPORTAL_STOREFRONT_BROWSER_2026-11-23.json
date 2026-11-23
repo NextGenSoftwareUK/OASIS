@@ -2,8 +2,8 @@
   "implementation": "Games now renders real Game/STARNETDNA details/capabilities and supplied absolute web launch target from already-fetched records. No new API fanout.",
   "scope": "One new real populated Games/OAPPs/Inventory SDK/browser/HTTP/native Mongo browse/detail/launch-link/logout journey; seven browser GETs, zero browser mutations. Existing accepted Gifts/session/provider cohorts not selected.",
   "base": "aa257b03a0baae0175e7b47cd367a93fd139f55c",
-  "checks": "Packed native item readback checks quantity/source/rarity/max/weight/flags/URI; actual browser loads existing thumbnail and item detail. Static JS/diff/paired pins pass; native/browser pending.",
-  "status": "Inventory-model-fields-source-fixed-current-CQL-qualification-active",
+  "checks": "GitHub job 137494371969 completed SUCCESS for run 45114577286. Combined native/browser job accepted; terminal log extraction unavailable on this observation. No claim of full production Startup, hosted Stripe, or legacy catalogue migration acceptance.",
+  "status": "combined-cloud-job-passed-publication-pending",
   "cleanup": "No local runtime/env/build/database/download/results. Same owned ephemeral CI Mongo/browser fixture; existing finally cleanup. No shared Atlas/PIPER calls.",
   "control": "42766fe7ebb9001e512bf52f80d5cbfc87343a26",
   "run": 45106635634,
@@ -87,5 +87,13 @@
     "delta": "InventoryItem19lines only; verified fluent mapping source preserved; physical module checkout untouched",
     "currentDevelopment": "854b2b3129701b3a5162d49d55e7e8a86be4f6ef",
     "combined": "fc2470e77afa41e0a35850dbb2ce3c3f9e23b6dd"
+  },
+  "latestObservation": {
+    "run": 45114577286,
+    "job": 137494371969,
+    "conclusion": "success",
+    "source": "21abed0bedfde0399f66eef1da62cff0d92d34b7",
+    "publication": "pending scoped integration",
+    "cleanup": "Workflow success observed; terminal cleanup markers not independently extracted in this observation."
   }
 }
