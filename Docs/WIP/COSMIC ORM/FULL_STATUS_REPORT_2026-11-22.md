@@ -1,3 +1,5 @@
+23 November 2026 — CUSTOM VALUE CONVERSION CANDIDATE PUBLISHED TO THE EXISTING FEATURE BRANCH; NATIVE QUALIFICATION PENDING. Shared Core now binds explicit converters through metadata extraction, exact typed hydration, native literal/membership comparisons, ordered conversions and post-validation projection construction. Set output retains its immutable model and rejects incompatible model/converter operands. One representative journey per MongoDB/SQLite/Neo4j is prepared, including converted storage/typed roundtrip, native filters/projections/membership/set composition, caller exclusion and tracked mutable updates. This is unverified source, not Development acceptance or completed M12/full parity. The accepted live75a/Corebc remains unchanged. No new local runtime, database, build, image or downloads; no shared Atlas/PIPER calls.
+
 # COSMIC / CQL / HyperDrive full status
 
 Updated 23 November 2026. The filename is retained as the existing report entry point. Full programme completion is not claimed.
