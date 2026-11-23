@@ -28,5 +28,12 @@
     "job": 137821953656,
     "status": "queued",
     "scope": "Actual WEB4 API and ONODE Supervisor builds only; runtime/browser acceptance remains open."
+  },
+  "pendingProviderTransport": {
+    "candidate": "a03f6c902b816f831daeecf76e65265bab6f8c55",
+    "base": "1d9c6e19cbc0e97a468d7781311e988c74cf5f43",
+    "tag": "qualification/onode-provider-transport-20261123",
+    "scope": "One controller: common authenticated supervisor read/write transport, preserves status/content, disposes request/response and propagates cancellation; XML summary corrected.",
+    "verification": "Source whitespace passed; build/runtime pending. Does not change the in-flight 45211702265 cohort."
   }
 }
