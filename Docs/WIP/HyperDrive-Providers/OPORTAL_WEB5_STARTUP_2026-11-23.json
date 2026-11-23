@@ -1,5 +1,5 @@
 {
-  "status": "async-and-sync-authority-candidate-awaiting-runtime-check",
+  "status": "real-WEB5-entrypoint-portal-slice-accepted-current-composition-image-in-progress",
   "source": "fa8c885ffee940a8da98c79fc9c027af456bbf47",
   "development": "90d75f04f606c29bea99bfafe073b5b26722ce88",
   "core": "a208265e764496a75e0cf25ea0e5dcfd9c873196",
@@ -11,19 +11,17 @@
   "packageArchiveSha256": "6eb42c9de6421a1a13646fc8b1b44905c876276fe8882167e6533ad686e9fd29",
   "preservation": "Fetched Development; peer CQL composition preserves current Inventory annotations and Mongo writer. Core auth/Inventory paths unchanged from fc2470e; root Mongo serializer blob identical to21ab. STAR pinned531 source reviewed, physical STAR checkout1330 is unrelated and left untouched.",
   "prepared": "Actual WEB5 publish completed under provider build lease with m:2/nr:false/shared compilation disabled. Both real entry points and portal browser runtime check in progress; no acceptance yet.",
-  "next": "Run the changed real WEB5 dashboard flow using corrected shared selector; retain prior WEB4 and populated-storefront evidence.",
+  "next": "Follow image45129737094; qualify exact package, then publish scoped verified batch with branch gates. Operator authority configuration/live adoption remains explicit.",
   "cleanup": "No new local env/download/runtime/build/database/results. Source/helper and compact descriptor only. Existing accepted WEB4/anonymous/provider cohorts retained, not replayed.",
   "active": {
-    "run": 45127935792,
-    "job": 137536520037,
-    "control": "2497ddabda2ca2c0ebc6c3ee1650a79a7c3445bc",
-    "conclusion": "failure",
+    "run": 45128946718,
+    "job": 137539728475,
+    "control": "7e0a2d927ff84681a1a8baaed45928603d09035d",
+    "conclusion": "success",
     "publish": "success",
-    "routingMessage": "No authoritative storage provider is configured for this request.",
-    "cause": "Candidate changed synchronous selector only; asynchronous selector still read unset global provider.",
-    "cleanupArtifact": 14796711615,
-    "archiveBytes": 2487,
-    "cleanup": "All five cleanup assertions true; RAM read only."
+    "cleanupArtifact": 14797101485,
+    "archiveBytes": 2879,
+    "cleanup": "All five cleanup booleans true, WEB4 and WEB5 graceful exit0; RAM-only receipt inspection."
   },
   "attempts": [
     {
@@ -48,6 +46,18 @@
       "cleanupArtifact": 14795004211,
       "archiveBytes": 2486,
       "cleanup": "Containers/network/database volumes absent; WEB5 process stopped and generated DNA absent."
+    },
+    {
+      "run": 45127935792,
+      "job": 137536520037,
+      "control": "2497ddabda2ca2c0ebc6c3ee1650a79a7c3445bc",
+      "conclusion": "failure",
+      "publish": "success",
+      "routingMessage": "No authoritative storage provider is configured for this request.",
+      "cause": "Candidate changed synchronous selector only; asynchronous selector still read unset global provider.",
+      "cleanupArtifact": 14796711615,
+      "archiveBytes": 2487,
+      "cleanup": "All five cleanup assertions true; RAM read only."
     }
   ],
   "cause": {
@@ -65,6 +75,16 @@
     "parent": "90d75f04f606c29bea99bfafe073b5b26722ce88",
     "changes": "Both sync and async selectors use one GetAuthoritativeStorageProvider helper; declared request authority precedes current active provider. Explicit provider, subscription filtering and missing-authority rejection remain intact.",
     "fixture": "Only new WEB5 runtime declares Mongo authority. Existing WEB4 image/config stays at accepted a32/Corec19 and is reused for real auth/ledger; no new field passed to older strict configuration parser.",
-    "limits": "Corrected candidate not yet runtime accepted or deployed. WEB4 image remains accepted a32/Corec19; no shared environment settings changed."
+    "limits": "Corrected a208 source compiled and real WEB5 flow passed. Current CQL composition2356 preserves exact three authority files; new WEB4 image/build acceptance pending. No deployed service environment changed."
+  },
+  "accepted": "Actual full portal username form sign-in; real WEB4 free subscription/ledger; actual shipping WEB5 Games dashboard/all/mine, normal close, OAPP owned empty list. No fake responses or synthetic JWT. Fresh empty catalogue scope; populated component evidence retained.",
+  "notAccepted": "Hosted adoption, all other popup actions, paid Stripe, WEB6, whole-portal completion, full provider/resilience programme.",
+  "publicationCandidate": {
+    "development": "7700707e60d1798a1f9f5310901fd7109cc56658",
+    "core": "2356b0a8b4d8a425cf13a8abe45b0b4dfcd7defa",
+    "root": "121dcb0287e5eaa4816fbbdf01645030613d264f",
+    "imageRun": 45129737094,
+    "status": "in_progress",
+    "scope": "Only Core gitlink/paired manifest on exact current Development; actual shared authority files identical to accepted a208; peer CQL model changes preserved."
   }
 }
