@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-23",
+  "status": "HyperDrive-popup-accepted-Chat-route-candidate-building",
+  "firstRun": {
+    "run": 45152168295,
+    "job": 137616017020,
+    "control": "031afbbffaf08658891f69f75f7af4615577aa01",
+    "portal": "31a693bf445ab2d87ab8e53bbd6dd5a2f489fad8",
+    "imageSource": "5442d4e9de89231a5a4bebe77c44374ab0920001",
+    "artifact": 14806557649,
+    "archiveBytes": 3922,
+    "outcomes": [
+      {
+        "name": "Chat",
+        "passed": false,
+        "stage": "Chat start",
+        "closePassed": true
+      },
+      {
+        "name": "HyperDrive",
+        "passed": true,
+        "stage": "HyperDrive routing preferences",
+        "closePassed": true
+      }
+    ]
+  },
+  "HyperDriveScope": "Actual page/shipping API status and registered count, routing tabs, personal-preference form read and normal close. Source fixes all named start tabs and legacy named management links; default active side-nav still opens overview. No routing mutation/worker resumption/engine HA claim.",
+  "chatFinding": "HTTP404 for active-sessions. Frozen shipping source5442 and current Developmenta918 lack ChatController active-session action; its Core reader already exists. Task branch endpoint had not been published.",
+  "candidate": {
+    "base": "a9184e7b108dc10f126ec0d1e01cee1d93de740a",
+    "source": "e3720dad440a01a4f684ccbede0a988ad7e0617d",
+    "tag": "qualification/chat-active-sessions-20261123",
+    "scope": "One controller only: expose authenticated persisted active-session read, attribute session creation to authenticated first participant, remove preview comment. Ten additions/one removal, all current CQL/NFT pins preserved.",
+    "manifest": "Exact source paired-pin validation passed; no gitlinks changed.",
+    "imageRun": 45152795368,
+    "state": "pending-behind-existing-image45152186051",
+    "deployment": "Not published to Development; compile/native chat acceptance pending."
+  },
+  "cleanup": "First run selected RAM artifact verifies package container absent/all five startup cleanup booleans true; terminal runtime/cache/TLS absence verified. Candidate exact owned Temp index/lock removed in finally. No local build/runtime/download/environment/database/test results.",
+  "next": "Follow image45152795368; bind its terminal source/digest then chat-only actual Startup journey. Retain accepted HyperDrive outcome; do not repeat it. Normal scoped Development publication only after acceptance/current gates/cadence."
+}

@@ -62,7 +62,8 @@
       "Actual full page private GPX publish/rename/reopen/list45148541889",
       "Actual owner Data detail edit with native persisted readback45149458665",
       "Actual Files upload/list/download byte equality/delete/close45150357293",
-      "Actual incoming message/notification Mark All Read/native flags/dashboard refresh45151234976"
+      "Actual incoming message/notification Mark All Read/native flags/dashboard refresh45151234976",
+      "Actual HyperDrive popup status/count/routing tabs/preferences read/close45152168295 (Chat failed separately)"
     ],
     "latestDeliveredFixes": [
       "Current subscription selection, retry states, real invoice/PDF links and exact-plan checkout activation confirmation",
@@ -626,6 +627,13 @@
     "status": "accepted-representative-native-read-flags-and-dashboard",
     "artifact": 14806297696,
     "evidence": "OPORTAL_INBOX_READ_2026-11-23.json",
+    "cleanupVerified": true
+  },
+  "latestChatHyperDrive": {
+    "run": 45152168295,
+    "HyperDrive": "accepted-status-tabs-preference-read-close",
+    "Chat": "404-active-route-scoped-sourcee372-image45152795368-pending",
+    "evidence": "OPORTAL_CHAT_HYPERDRIVE_2026-11-23.json",
     "cleanupVerified": true
   }
 }
