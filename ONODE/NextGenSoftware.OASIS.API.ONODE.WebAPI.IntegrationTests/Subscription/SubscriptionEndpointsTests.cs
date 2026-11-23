@@ -294,7 +294,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
                 {IsAutoFailOverEnabled=false,IsAutoReplicationEnabled=false,IsAutoLoadBalanceEnabled=false};
             providers.RegisterProvider(local);
             providers.SetAndActivateCurrentStorageProvider(local).IsError.Should().BeFalse();
-            var avatar=new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=Guid.Parse("d9b133dc-4a57-4fa1-9bba-8d123ea580a3"),Username="jwt-http-local-avatar",Email="jwt-http@example.invalid"};
+            providers.SetAndReplaceAutoFailOverListForProvidersForAvatarLogin(providerType.ToString()).IsError.Should().BeFalse();
+            const string password="public-local-session-fixture-password";
+            var avatar=new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=Guid.Parse("d9b133dc-4a57-4fa1-9bba-8d123ea580a3"),Username="jwt-http-local-avatar",Email="jwt-http@example.invalid",
+                IsActive=true,Verified=DateTime.UtcNow,Password=BCrypt.Net.BCrypt.HashPassword(password)};
             var managerField=typeof(Program).GetField("_avatarManager",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!;
             var priorManager=managerField.GetValue(null);
             var priorDna=NextGenSoftware.OASIS.OASISBootLoader.OASISBootLoader.OASISDNA;
@@ -304,12 +307,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
                 (await local.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
                 var constructor=typeof(NextGenSoftware.OASIS.API.Core.Managers.AvatarManager).GetConstructors(System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)
                     .Single(item=>item.GetParameters().Length==3);
-                managerField.SetValue(null,constructor.Invoke(new object[] {local,dna,providers}));
+                var manager=(NextGenSoftware.OASIS.API.Core.Managers.AvatarManager)constructor.Invoke(new object[] {local,dna,providers});
+                managerField.SetValue(null,manager);
                 NextGenSoftware.OASIS.OASISBootLoader.OASISBootLoader.OASISDNA=dna;
-                var claims=new[] {new Claim("sub",avatar.Id.ToString()),new Claim("id",avatar.Id.ToString())};
-                var token=new System.IdentityModel.Tokens.Jwt.JwtSecurityToken("OASIS","OASIS",claims,DateTime.UtcNow.AddMinutes(-1),DateTime.UtcNow.AddMinutes(5),
-                    new Microsoft.IdentityModel.Tokens.SigningCredentials(new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(Encoding.ASCII.GetBytes(secret)),Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha256));
-                var encoded=new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().WriteToken(token);
+                var signedIn=await manager.AuthenticateAsync(avatar.Username,password,"127.0.0.1");
+                signedIn.IsError.Should().BeFalse(signedIn.Message);
+                signedIn.Result.Should().NotBeNull();
+                var encoded=signedIn.Result.JwtToken;
+                encoded.Should().NotBeNullOrWhiteSpace();
+                var principal=new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().ReadJwtToken(encoded);
+                principal.Claims.Should().Contain(claim=>claim.Type==NextGenSoftware.OASIS.API.Core.Helpers.AvatarSessionIdentity.SessionClaim);
+                var persisted=await local.LoadAvatarAsync(avatar.Id);
+                persisted.IsError.Should().BeFalse(persisted.Message);
+                persisted.Result.RefreshTokens.Should().Contain(credential=>credential.IsActive&&credential.AuthorityProvider==providerType.ToString());
                 foreach(var route in new[] {"mode","config","status"})
                 {
                     var before=providers.PerformanceMonitor.GetMetrics(providerType)?.TotalRequests??0;
