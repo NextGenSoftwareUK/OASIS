@@ -34,5 +34,13 @@
     "populated explicit descendant catalogue read",
     "populated Map/Launcher detail and browse"
   ],
-  "localArtifacts": false
+  "localArtifacts": false,
+  "canonicalCreationReview": {
+    "controller": "STAR WebAPI OAPPsController.CreateOAPP passes STARNETCreateOptions.STARNETHolon=oapp",
+    "manager": "ONODE Core STARNETManagerBase.Create.CRUD.cs67-72 preserves the supplied graph/root ID and initially saves it with children/recursion at line190",
+    "json": "STAR IHolonJsonConverter reads nested Children as concrete Holon",
+    "fixture": "e8225416647 now creates root+child together through actual authenticated OAPP API, then independently compares shallow/deep reads and exercises populated Map/Launcher. Same requested descendant proof, not an empty replacement.",
+    "status": "dispatched; native/browser acceptance pending",
+    "separateRemaining": "Editing relationships of an already persisted serialized graph remains open; original failure/evidence and guard invariant retained."
+  }
 }
