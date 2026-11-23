@@ -978,6 +978,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             // WebSocket support — used by OPORTAL in local mode for real-time state push
             app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(30) });
 
+            // WebSocket endpoint: GET /ws/messaging?ticket=... (real-time messaging push)
+            app.UseMiddleware<NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware.MessagingWebSocketMiddleware>();
+
             app.UseRouting();
             //app.UseSession();
 

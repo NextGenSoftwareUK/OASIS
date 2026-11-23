@@ -72,6 +72,7 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 8 | **Add two DNS records so the new HoloNET docs and learn sites go live** (NameSilo) | E1 |
 | 9 | Rotate the Arbitrum testnet key and the block-explorer API key that were committed to git (removed from files, still in history) | E2 |
 | 7 | Older items: phone tests, WSL disk, Vercel branch check, oasisweb4 site decision, iOS runtime script, Git LFS budget, upstream Holochain PRs | D |
+| 11 | Messaging programme: review and push the `work/oasis-messaging` branches (parent, API.Core, STAR ODK, 7 npm repos), publish the npm packages, physical-device Bluetooth tests, HerzApp/Our World wiring decisions | G |
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 
 ---
@@ -1168,3 +1169,32 @@ H1 corrected verification: root SDK lifecycle fix frozen fbe6c724;44985151774/co
 H1 completed: corrected44985151774/job137093990560 SUCCESS,0error4m17.55 build; real controlled-sink SDK submission+identical provider-ID replay/native acknowledgement passed. Both temporary CI secrets deleted and exact-name404absence verified after run. No deployment credential changed. Inbox delivery, enabled OPORTAL browser and hosted acceptance remain separate engineering work. No David action remains for H1.
 
 H1 enabled-button follow-up (22 November):44990168013/job137109268095 SUCCESS on6de38f50. Actual Portal SDK/fragment/button accepted one controlled-recipient warning and second click reported previously accepted; one native provider acknowledgement, unchanged avatar/quota. Both temporary CI secrets removed and exact-name GET404 absence verified after terminal; CI DB/tempDNA/container/browser runtime/cache absent. H1 remains complete; no David action. Current Development integration/full Startup/hosted are agent-owned open work.
+
+---
+
+## Part G — Messaging, Edge nearby sync, HerzApp and Our World (added 2026-11-19)
+
+### G1. Messaging branches
+
+- **Status (2026-11-23)** Done. `work/oasis-messaging` is merged into Development in OASIS, OASIS-API-Core and STAR ODK, with gitlinks and `Docker/oasis-dependency-versions.env` repinned.
+
+### G3. Publish the messaging npm packages and push the branches
+
+- **Status (2026-11-19)** Open. Committed locally on branch `work/oasis-messaging` in each repo, nothing pushed or published: `OASIS-API-Javascipt-Package-WEB4` (becomes `@oasisomniverse/web4-api` 2.1.0, adds `/messaging`), the six UI libraries `OASIS-{React,Vue,Angular,Svelte,NextJS,JS}-UI-Component-Library` (1.3.0), and the STAR ODK submodule (DevKit downloads; STAR ODK is now merged).
+- **David action** After review: tell Claude to push the branches; publish `@oasisomniverse/web4-api@2.1.0` first, then the six UI libraries (they depend on `>=2.1.0`). Publishing needs your npm 2FA (same as A1/A2).
+- **Reason** npm publish needs your account and 2FA; repo policy forbids push without your review.
+- **Context** [Messaging component](../../Devs/OASIS_MESSAGING_COMPONENT.md).
+
+### G4. Our World Unity package and HerzApp wiring
+
+- **Status (2026-11-19)** Open. HerzApp does not exist as a repository yet; the integration is documented (HerzID login, then `OASISChatWidget`). The Our World integration is documented; the two new Edge assemblies are not yet in the Unity package build.
+- **David action** Decide where HerzApp lives so the wiring can be added; approve adding `Edge.NearbySync` and `Edge.Messaging` to the Edge release packaging (the global release takes about 2 hours, so it should ride the next real release, not a separate dry run).
+- **Reason** Needs your decision on the HerzApp repository and a release slot.
+
+### G2. Physical-device Bluetooth and mesh acceptance
+
+- **Status (2026-11-19)** Open once the Android/iOS GATT shims exist. The shared stack is verified only with an in-memory radio and real TCP sockets.
+- **David action** Provide two Android phones (and one iPhone for cross-platform) for a test: send a message with Wi-Fi/mobile data off, relay through a third phone, then reconnect and confirm it converges on the server with no duplicate.
+- **Reason** Radios, MTU negotiation and background restrictions cannot be proven in software.
+- **Context** [Edge offline messaging](../../Devs/EDGE_OFFLINE_MESSAGING.md).
+
