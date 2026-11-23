@@ -267,10 +267,17 @@
       "localBuildsDownloads": false
     },
     "browser": {
-      "run": 45243804259,
+      "run": 45247651340,
       "status": "active-not-accepted",
-      "portal": "88d2f7adc10687845585460ebfea68bd4c9fc705",
-      "scope": "Prepared actual popup/SDK; accepted standalone native assertions skipped in browser mode."
+      "portal": "aab87e12967e403df1d408f7f510deac93fedb70",
+      "scope": "Prepared actual popup/SDK; accepted standalone native assertions skipped in browser mode.",
+      "job": 137948572656
+    },
+    "image": {
+      "run": 45247803014,
+      "source": "75dad9fada3012452f693eece973decd08789386",
+      "status": "active-not-deployed",
+      "scope": "One immutable shipping artifact from accepted backend; package/startup acceptance still pending."
     }
   },
   "latestLoadedConfigurationWiring": {
