@@ -1,0 +1,31 @@
+{
+  "source": "e097b5c809599968c5e83c71d959344d2f4683b4",
+  "core": "dc88abf6a615fc5b5c06b6cd4871683d23e43081",
+  "web6": "c214296e8b8cfde671466a5a82e24d5fc83f9509",
+  "onodeCore": "1b28ed0436173b827e58b75a3bb5a99c1bb661ec",
+  "run": 45095468158,
+  "job": 137434200789,
+  "digest": "sha256:6e0868fec12af726a791c92cc9082e151bf20b4936409ec494432c4c66a05208",
+  "teachingSidecars": false,
+  "exactPrivatePinsVerified": true,
+  "contractQualifiedSource": "45be96d1556a48ee3235d230cc2ccfd9494c9743",
+  "contractRun": 45092822579,
+  "reviewedQualifiedSourceDelta": [
+    ".github/workflows/qualify-cql-utc-date-parts-wire.yml",
+    "Docs/WIP/COSMIC ORM/CURRENT_STATUS.md",
+    "Docs/WIP/COSMIC ORM/FULL_STATUS_REPORT_2026-11-22.md",
+    "Docs/WIP/COSMIC ORM/MAPPED_JOIN_DELIVERY_SCOPE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/MAPPED_JOIN_DEVELOPMENT_CANDIDATE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/MAPPED_JOIN_IMAGE_ACCEPTANCE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/MAPPED_JOIN_PACKAGE_ACCEPTANCE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md",
+    "Docs/WIP/COSMIC ORM/SQL_PARSER_SOURCE_BOUND_RECONCILIATION_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/UTC_DATE_PARTS_NATIVE_ACCEPTANCE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/UTC_DATE_PARTS_SOURCE_PREPARATION_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/UTC_DATE_PARTS_SQL_ACCEPTANCE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/UTC_DATE_PARTS_VIRTUAL_SOURCE_PREPARATION_2026-11-23.json",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicJoinResultsTests.cs"
+  ],
+  "deployed": false,
+  "imageDownloadedLocally": false
+}
