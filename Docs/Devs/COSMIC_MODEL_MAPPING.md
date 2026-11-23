@@ -466,6 +466,8 @@ For example, query.Select(row => new { row.Units, row.Code })
 .OrderBy(row => row.Units).Skip(1).ToCosmicMaxAsync(row => row.Code)
 reduces the selected native sequence without constructing the enclosing DTO.
 
-This addition is source-implemented and awaiting its representative native
-qualification. It does not claim converted arithmetic, general NHibernate
-custom-type parity or hosted application acceptance.
+This direct, selected, record and synchronous/async entity-set family passed
+representative native checks on MongoDB, SQLite and Neo4j in run45254618972,
+including the actual WEB4 build and exact owned-fixture/container cleanup.
+Image/package and hosted acceptance remain separate. This does not claim
+converted arithmetic or general NHibernate custom-type parity.

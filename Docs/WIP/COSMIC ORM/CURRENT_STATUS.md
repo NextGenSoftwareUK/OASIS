@@ -1,3 +1,5 @@
+23 November2026 — CONVERTED EXTREMA NATIVE3 AND ACTUAL WEB4 BUILD ACCEPTED. Exact45254618972/job137973053837 SUCCESS oncf32603f7e8bf40c1b4b144d8f549d54ee1c1d64/Corec644b071a77ccfca2fabd4a9fd5d222e1f1bf83f. Artifact14858716837/3448bytes/hash854d63a1f52f56e2f0a866dc1ce05b859b8a7c74feac32f1b7f846a5ee04720a inspected in RAM:3passed,0failed,8featuregroups/store,2ownedIDs/store,2acknowledgedwrites/store,12timings/store. Direct numeric/object, source-window, selected scalar, record-selected and async/synchronous late-set extrema passed alongside empty/foreign and semantics-refusal cases. Allfixtures/Mongo/service containers cleaned. Backing3 retained from45251827668 with unchanged8-file implementation and native fixture; that old whole run remains failed. Full M12/M17/EF and hosted acceptance stay open;61/168+4/13 unchanged. Next one combined image/package; no local env/build/DB/download/results or shared/PIPER calls.
+
 # COSMIC / CQL current handoff
 
 Updated 23 November 2026. Current implementation, representative native verification,
@@ -11,7 +13,7 @@ in Git; do not rerun accepted unchanged cohorts.
 | One feature branch | work/cosmic-cql-ton-public in OASIS and private Core; no new branch/worktree |
 | Current qualification producer | cf32603f7e8bf40c1b4b144d8f549d54ee1c1d64 |
 | Current Core candidate | c644b071a77ccfca2fabd4a9fd5d222e1f1bf83f |
-| Current targeted CI |45254618972/job137973053837:3 changed extrema journeys plus actual WEB4 build, running at this checkpoint |
+| Current targeted CI |45254618972/job137973053837 SUCCESS:3 extrema journeys plus actual WEB4 build, exact cleanup verified |
 | Retained backing-field native proof |45251827668/job137963191454:3 backing cases passed; all8 groups/store and exact cleanup retained in COMBINED_MODEL_BREADTH_RETAINED_BACKING_NATIVE_2026-11-23.json. The overall run failed3 extrema cases; it is not a successful release gate |
 | Current Development branch |41d8876721d8f3c9cadd831b8fff1b79bb2ff035; Core7546da7774be6948b040a6f37fea474c03976a95 |
 | Latest WEB4 deployment attempt |f96ba207-06b7-42f6-8ecb-8191bae4a1a5 on41d88767 FAILED, metadata observed19:48:57UTC. This is not a current running-health assessment |
@@ -33,15 +35,15 @@ in Git; do not rerun accepted unchanged cohorts.
   Corec644 connects synchronous and async set selectors to the existing native
   selected-stage read; shared lowering enforces ordering/capability admission,
   native null filtering/order/Take(1), complete proof and model decoding.
-  The replacement journey includes the synchronous record-set selector and
-  checks8 groups,2 owned IDs,2 acknowledged writes and12 timings per store.
+  The replacement journey passed the synchronous record-set selector and
+  all8 groups,2 owned IDs,2 acknowledged writes and12 timings per store.
 - **Incoming Development preserved:** shared-editor replication and reviewed
   held-head re-arm changes, SQLite binding-error handling and bundled-fixture
   deletion are retained. SQLite's catch-pattern name collision and the command's
   ambiguous File reference were corrected without changing authority/guard
   semantics. No held-head repair command or PIPER write was executed.
-- **Release next:** follow existing run45254618972, inspect exact result/archive
-  and cleanup acknowledgements, then one exact-source image and cql-api package
+- **Release next:** native45254618972 and its exact archive/cleanup are accepted;
+  build one exact-source image and cql-api package
   for the batch. Refresh all8 dependency tips and incoming Development before
   publishing. Keep scoped verified normal Development pushes at most hourly;
   the last own push was19:00:42UTC. No empty synchronization push or unverified

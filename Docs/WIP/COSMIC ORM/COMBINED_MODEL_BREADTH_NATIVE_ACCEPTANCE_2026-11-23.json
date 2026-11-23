@@ -1,0 +1,136 @@
+{
+  "acceptedAt": "2026-11-23T20:09:26.159897+00:00",
+  "source": "cf32603f7e8bf40c1b4b144d8f549d54ee1c1d64",
+  "core": "c644b071a77ccfca2fabd4a9fd5d222e1f1bf83f",
+  "run": 45254618972,
+  "job": 137973053837,
+  "runUrl": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45254618972",
+  "conclusion": "success",
+  "artifact": {
+    "id": 14858716837,
+    "sizeBytes": 3448,
+    "sha256": "854d63a1f52f56e2f0a866dc1ce05b859b8a7c74feac32f1b7f846a5ee04720a",
+    "inspectedInMemory": true,
+    "expectedFiles": [
+      "MongoDBOASIS-converted-extrema-native.json",
+      "Neo4jOASIS-converted-extrema-native.json",
+      "SQLLiteDBOASIS-converted-extrema-native.json",
+      "mapping-native.trx",
+      "source.json"
+    ]
+  },
+  "nativePassed": 3,
+  "retainedBackingNativeCases": 3,
+  "actualWeb4Compiled": true,
+  "ownedFixturesAbsent": true,
+  "ownedMongoContainerAbsent": true,
+  "ciServiceContainersStopped": true,
+  "sharedDatabaseCalls": 0,
+  "reports": [
+    {
+      "provider": "MongoDBOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-extrema": 782,
+        "min-units": 218,
+        "max-units": 9,
+        "min-code": 40,
+        "max-code": 14,
+        "paged-extrema": 19,
+        "selected-converted-extrema": 11,
+        "record-converted-extrema": 162,
+        "set-converted-extrema": 180,
+        "sync-record-set-extrema": 90,
+        "empty-converted-extrema": 2,
+        "foreign-extrema": 6
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "selectedConvertedExtrema": true,
+        "recordAndSetConvertedExtrema": true,
+        "nativeConvertedNumericExtrema": true,
+        "nativeConvertedObjectExtrema": true,
+        "convertedExtremaAfterSourceWindow": true,
+        "emptyAndCallerScopedExtrema": true,
+        "equalityOnlyExtremaRefused": true,
+        "nonHomomorphicNumericReductionRefused": true
+      },
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-extrema": 687,
+        "min-units": 23,
+        "max-units": 2,
+        "min-code": 11,
+        "max-code": 1,
+        "paged-extrema": 2,
+        "selected-converted-extrema": 1,
+        "record-converted-extrema": 29,
+        "set-converted-extrema": 65,
+        "sync-record-set-extrema": 13,
+        "empty-converted-extrema": 0,
+        "foreign-extrema": 1
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "selectedConvertedExtrema": true,
+        "recordAndSetConvertedExtrema": true,
+        "nativeConvertedNumericExtrema": true,
+        "nativeConvertedObjectExtrema": true,
+        "convertedExtremaAfterSourceWindow": true,
+        "emptyAndCallerScopedExtrema": true,
+        "equalityOnlyExtremaRefused": true,
+        "nonHomomorphicNumericReductionRefused": true
+      },
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-extrema": 1840,
+        "min-units": 691,
+        "max-units": 397,
+        "min-code": 365,
+        "max-code": 366,
+        "paged-extrema": 374,
+        "selected-converted-extrema": 12,
+        "record-converted-extrema": 1351,
+        "set-converted-extrema": 1062,
+        "sync-record-set-extrema": 728,
+        "empty-converted-extrema": 0,
+        "foreign-extrema": 17
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "selectedConvertedExtrema": true,
+        "recordAndSetConvertedExtrema": true,
+        "nativeConvertedNumericExtrema": true,
+        "nativeConvertedObjectExtrema": true,
+        "convertedExtremaAfterSourceWindow": true,
+        "emptyAndCallerScopedExtrema": true,
+        "equalityOnlyExtremaRefused": true,
+        "nonHomomorphicNumericReductionRefused": true
+      },
+      "exactCleanupVerified": true
+    }
+  ],
+  "scope": "Exact-source extrema3 and actual WEB4 build; backing3 retained from45251827668 with unchanged field mapping implementation/fixture. Not full M12/M17/EF parity or live acceptance.",
+  "retainedBackingEvidence": {
+    "run": 45251827668,
+    "source": "52fe25d8042da0fd9553a8a04f9e0edb9e0f7310",
+    "core": "74cf0c77c1106e725155ae22ebe1ba4ca49b8474",
+    "nativePassed": 3,
+    "wholeOldRunAccepted": false,
+    "implementationAndFixtureUnchanged": true
+  }
+}
