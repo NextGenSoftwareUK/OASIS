@@ -1,5 +1,5 @@
 {
-  "status": "queued",
+  "status": "actual browser/SDK/controller/native representative acceptance",
   "portal": "145d58ff2b24706e0cc9f834d3afb58884bdc992",
   "backend": "b71528fb0c851ba4501444de4198a5ddc04d4f5b",
   "flow": [
@@ -8,7 +8,11 @@
     "No browser mutations; native avatar version unchanged and current session remains active."
   ],
   "scope": "This is not account deletion, Stripe customer acceptance, full Startup or hosted PIPER acceptance. Existing session/MFA/billing evidence retained without repeated assertions.",
-  "cleanup": "Source/Node syntax/diff checks only; no local environment/runtime/download/build/database/results.",
+  "cleanup": "Owned native fixture and browser runtime/cache removed SUCCESS; SQLite absent and Mongo unpaused.",
   "run": 45096493185,
-  "controlSource": "e4e3241232f0"
+  "controlSource": "e4e3241232f0",
+  "job": 137437334269,
+  "build": "0errors5m31.31",
+  "conclusion": "success",
+  "proof": "ACCOUNT_REVIEW_BROWSER_NATIVE_PROOF: actual review/owned-app requirement, no browser mutation, unchanged native avatar and active session."
 }

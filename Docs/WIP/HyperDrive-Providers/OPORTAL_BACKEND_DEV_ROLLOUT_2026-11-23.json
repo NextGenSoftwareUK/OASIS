@@ -1,7 +1,7 @@
 {
   "environment": "dev",
   "expectedCommit": "6bbbae4be199eef55856df32476db5684ee05073",
-  "status": "Six deployments and running revision checks accepted; WEB4 building",
+  "status": "All seven dev deployments SUCCESS and exact running revision checked; full portal/hosted business acceptance remains open",
   "services": [
     {
       "service": "WEB6 AI API",
@@ -28,7 +28,7 @@
       "service": "WEB4 OASIS API",
       "serviceId": "5123199a-43c4-4439-9921-e10e2aec7841",
       "deployment": "78ee234f-e3fd-48cb-8602-53661fdf56fc",
-      "status": "BUILDING",
+      "status": "SUCCESS",
       "commit": "6bbbae4be199eef55856df32476db5684ee05073"
     },
     {
@@ -55,6 +55,7 @@
   ],
   "scope": "Railway metadata only, no shared auth/data/payment calls or configuration changes",
   "runningRevisionChecks": [
+    "WEB4",
     "WEB5",
     "WEB6",
     "WEB7",
@@ -62,5 +63,18 @@
     "WEB9",
     "WEB10"
   ],
-  "runningRevisionEvidence": "Exact RAILWAY_GIT_COMMIT_SHA selected inside each of six successful containers matches6bbbae4b; no auth/data/payment request or full SSH output."
+  "runningRevisionEvidence": "Selected in-container RAILWAY_GIT_COMMIT_SHA on all seven equals6bbbae4b; no full SSH/environment listing printed.",
+  "web4WorkerPauseVerification": {
+    "source": "three selected running-container environment variables",
+    "hyperDrive": true,
+    "usageReconciliation": true,
+    "applicationMaintenance": true,
+    "configurationChanged": false
+  },
+  "metadataAcceptance": {
+    "web4SwaggerOperations": 833,
+    "web5SwaggerOperations": 640,
+    "accountAssessmentRoutePresent": true,
+    "scope": "Deployed route metadata only; no authenticated customer or billing operation."
+  }
 }

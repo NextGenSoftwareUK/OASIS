@@ -1,3 +1,7 @@
+## 2026-11-23 - Seven dev deployments and account-review browser accepted
+
+All7 exact Railway dev deployments SUCCESS and in-container source6bbbae4b confirmed. WEB4 three selected worker-pause flags all true, unchanged. Live Swagger metadata833WEB4/640WEB5 includes new assessment/checkout routes; canonical portal catalogue refreshedf69a2f8. New review browser45096493185/job137437334269 SUCCESS,0errors5m31.31; real owned-app requirement, no browser mutations, native avatar unchanged/session active. Both remote cleanup steps SUCCESS. BroadCI integration45095683887 has one failed old subject-only-JWT fixture; f4ff99e source corrects it to actual persisted issuance, focused verification pending. No middleware weakening/shared backend calls. Permanent erasure/real hosted Stripe/whole OPORTAL remain incomplete.
+
 ## 2026-11-23 - Pending rollout and bounded history check
 
 WEB4 exact deployment78ee234f still BUILDING; account-review45096493185/job137437334269 active. Six other dev containers already verified6bbbae4b. Read-only merge-tree back-sync reports no common ancestor in shallow repository, even after one bounded16commit fetch of the two named branches. No force/unrelated-history merge, branch switch, source checkout or submodule change performed. Future back-sync needs explicit history reconciliation; qualified source remains exact immutable refs/Development. This is agent-owned maintenance, not a user-access blocker.
