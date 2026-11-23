@@ -9093,3 +9093,6 @@ Exact mapped image producer45014821002 queued remotely on sourcec25ce0b7. Local 
 ### 23 November 2026 — mapping-guide evidence reconciliation
 
 Corrected stale pending-qualification prose using already accepted graph/convention and independent-model join receipts; no accepted cohort was rerun. Read-only Railway metadata confirms the original7700707e WEB4 deployment remains BUILDING and the other six original deployments are SUCCESS. No local build, runtime, image, archive, database or new environment created. Retained only the existing compact rollout journal; temporary alternate publication index is removed by the publisher. No PIPER or shared database calls, deployment restart or extra Development push.
+
+
+23 November 2026 — XML contract documentation reconciled with the official NHibernate mapping reference. Corrected the input bound to characters and recorded the intentional mutable=false/COSMIC write-refusal difference. No source/runtime change, test replay, local download, environment or generated build output. Original XML qualifier45132975102 and frozen image45131197027 remain the same runs.
