@@ -49,9 +49,23 @@
     "preparedControl": "109def7342c",
     "behavior": "Create one OAPP through actual WEB5 API, child through actual WEB4 API, compare independent shallow/deep responses, then populated Map/Launcher detail/browse",
     "backend": "isolated fresh native Mongo and actual issued SSO; no handcrafted stored documents, synthetic JWTs or response mocks",
-    "status": "running",
+    "status": "failed at actual OAPP creation before child creation; reason diagnostic running",
     "run": 45179426793,
     "job": 137709091271,
-    "control": "6a2c2baf4982603a8b981a93e4d4ee59b98bf44f"
+    "control": "6a2c2baf4982603a8b981a93e4d4ee59b98bf44f",
+    "failedRun": 45179426793,
+    "failedArtifact": 14821645623,
+    "failedArtifactBytes": 2453,
+    "diagnosticRun": 45180587022,
+    "diagnosticJob": 137713059704,
+    "failure": "Actual POST OAPP HTTP200/isErrortrue; no handcrafted DB seed substituted"
+  },
+  "categoryArgumentCandidate": {
+    "star": "ffd7fe494e1aacec50315baadff38273c88b8a11",
+    "root": "e55d8132d7fe6b1d035e31f40d556107c8116c9c",
+    "portal": "34e4d23ad3322a60db3c4ea019381c5ab0d50b31",
+    "status": "source only; not qualifying until current diagnostic provides exact create failure",
+    "finding": "OAPP controller passed HolonType into manager configured for OAPPType; corrected to oapp.OAPPType. Launcher used wrong JSON category property casing; corrected to oappType.",
+    "verification": "New native proof checks GeneratedCodeOnly category and launcher category display/filter. Manifest check-ref passed; no backend deployment."
   }
 }
