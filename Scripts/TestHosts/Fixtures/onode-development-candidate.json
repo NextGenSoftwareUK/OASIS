@@ -1,21 +1,30 @@
 {
   "scope": "onode",
   "status": "actual-startup-bridge-and-pinned-popup-browser-prepared-not-accepted",
-  "candidate": "75dad9fada3012452f693eece973decd08789386",
-  "base": "c261e9f536ff5f155174ac892c69279a54e1cb16",
-  "tag": "qualification/onode-current-cql-reviewed-20261123",
+  "candidate": "53413a9d90b311471604a07061c2b7763345bfbe",
+  "base": "41d8876721d8f3c9cadd831b8fff1b79bb2ff035",
+  "tag": "qualification/onode-comparer-held-head-20261123",
   "allowedPaths": [
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv"
+    "Docker/oasis-dependency-versions.env",
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ONODEController.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Hubs/ONODEWebSocketHub.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/JwtMiddleware.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
+    "ONODE/ONODEManager",
+    "Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1",
+    "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
   ],
   "buildProjects": [
     "WEB4"
   ],
   "core": {
-    "candidate": "bc574ddec918f18924a3f77d9214af08a9e5ed8c"
+    "candidate": "7546da7774be6948b040a6f37fea474c03976a95"
   },
   "onodeManager": "3ecf0f8ea9713412da9071a1c6d12f961b050c8e",
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
-  "remaining": "Popup45245427898 reached routing roles after config/DNA and failover membership/readback; timed out there. Portal aab87e1 removes stale rows immediately on role change; fixture requires explicit selected-role row. Native bridge acceptance retained; full browser pending.",
+  "remaining": "Review current comparer/held-head composition inventory; ongoing browser45249781136 remains frozen on earlier accepted source. Preserve accepted bridge proof; qualify changed current graph before publication.",
   "inventoryReview": {
     "run": 45237515982,
     "artifact": 14849027990,
