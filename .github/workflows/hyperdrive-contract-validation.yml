@@ -14,6 +14,10 @@ on:
       - '.github/workflows/hyperdrive-contract-validation.yml'
   workflow_dispatch:
     inputs:
+      portal_page_check:
+        description: Actual anonymous OPORTAL page only; uses portal_syntax_ref as immutable source; no backend build or calls
+        type: boolean
+        default: false
       map_development_candidate:
         description: Compile only the immutable scoped Map candidate on current Development
         type: boolean
@@ -98,8 +102,14 @@ on:
         type: string
 
 jobs:
+  portal-page:
+    if: ${{ inputs.portal_page_check }}
+    uses: ./.github/workflows/oportal-page-qualification.yml
+    with:
+      portal: ${{ inputs.portal_syntax_ref }}
+    secrets: inherit
   map-development:
-    if: ${{ inputs.map_development_candidate }}
+    if: ${{ inputs.map_development_candidate && !inputs.portal_page_check }}
     uses: ./.github/workflows/map-development-qualification.yml
     with:
       native_check: ${{ inputs.map_development_native }}
@@ -107,7 +117,7 @@ jobs:
       candidate_scope: ${{ inputs.candidate_scope || 'map' }}
     secrets: inherit
   manifests-and-contracts:
-    if: ${{ !inputs.map_development_candidate }}
+    if: ${{ !inputs.map_development_candidate && !inputs.portal_page_check }}
     runs-on: ${{ (inputs.native_seal || inputs.build_only) && 'ubuntu-latest' || 'windows-latest' }}
     defaults:
       run:

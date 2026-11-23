@@ -1,5 +1,13 @@
 name: OPORTAL actual page navigation
 on:
+  workflow_call:
+    inputs:
+      portal:
+        required: true
+        type: string
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
   workflow_dispatch:
     inputs:
       portal:
