@@ -19,7 +19,7 @@ public partial class Neo4jOASIS:ICosmicSetQueryStorageProvider
 
     private static string CompileCqlSet<T>(NeoCqlSource left,CosmicSetQueryPlan<T> plan,int maximumResults,
         IReadOnlyList<CosmicProjectionColumn> projection=null,
-        int maximumProjectionBytes=CosmicProjectionResults.MaximumPayloadLimit) where T:IHolon
+        int maximumProjectionBytes=CosmicProjectionResults.MaximumPayloadLimit,bool countOnly=false) where T:IHolon
     {
         var translator=left.Translator;var parameters=translator.Parameters;
         var right=CompileCqlSource(plan.Query.Right,parameters);
@@ -50,7 +50,7 @@ public partial class Neo4jOASIS:ICosmicSetQueryStorageProvider
         }
         const string invalid="null AS id,null AS revision,false AS valid,null AS snapshot,";
         var positionName=projection==null?"setEntryPosition":"entityPosition";
-        var fields="id,revision,valid,snapshot,traversalCycle,traversalLimit,entityInput,"+positionName
+        var fields="id,revision,valid,snapshot,traversalCycle,traversalLimit,entityInput"+(countOnly?",entityCount":"")+","+positionName
             +(projection==null?"":",payloadLimit,cells");
         var prefix="CALL { "+left.Source+"WHERE NOT valid WITH h LIMIT 1 RETURN count(h)>0 AS setSchemaInvalid } "+
             Input(left,plan.Query.Left,"setLeft",plan.Options.MaximumLeftInputRows)+
@@ -77,11 +77,11 @@ public partial class Neo4jOASIS:ICosmicSetQueryStorageProvider
             "WITH leftInput+rightInput AS entitySource,selected,false AS entityCycle,"+
             "size(leftInput)>$setLeftBound OR size(rightInput)>$setRightBound AS entityLimit,0 AS entityWork ");
         AppendCqlEntityStages(text,plan.Query.Output.Source,plan.Query.Output.Stages,translator);
-        AppendCqlEntityPublication(text,false,projection,maximumProjectionBytes,translator,orderedOccurrences:true);
+        AppendCqlEntityPublication(text,countOnly,projection,maximumProjectionBytes,translator,orderedOccurrences:true);
         return prefix+"CALL { WITH leftInput,rightInput WITH leftInput,rightInput "+
             "WHERE any(item IN leftInput+rightInput WHERE NOT item.valid) RETURN "+invalid+
             "any(item IN leftInput+rightInput WHERE item.cycle) AS traversalCycle,"+
-            "any(item IN leftInput+rightInput WHERE item.limit) AS traversalLimit,false AS entityInput,-1 AS "+positionName+
+            "any(item IN leftInput+rightInput WHERE item.limit) AS traversalLimit,false AS entityInput,"+(countOnly?"null AS entityCount,":"")+"-1 AS "+positionName+
             (projection==null?" ":",false AS payloadLimit,[] AS cells ")+
             "UNION ALL WITH leftInput,rightInput "+text+" } RETURN "+fields+" ORDER BY "+positionName;
     }
