@@ -1,0 +1,264 @@
+{
+  "date": "2026-11-23",
+  "basis": "current OPORTAL router inventory; accepted scopes refer to immutable recorded runs, not current hosted completeness",
+  "routeCount": 41,
+  "distinctScreenOpenFunctions": 40,
+  "aliases": {
+    "devportal": "developer"
+  },
+  "overall": "Incomplete; no percentage inferred from source presence or narrow journeys",
+  "priority": "remaining main screen/action families before hardening; subscriptions first where owner-independent",
+  "screens": [
+    {
+      "route": "avatar",
+      "open": "openAvatarModal",
+      "status": "further evidence reconciliation or main journey required; not complete"
+    },
+    {
+      "route": "wallet",
+      "open": "openWalletModal",
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45132201881,
+      "scope": "empty wallet summary/list"
+    },
+    {
+      "route": "nft",
+      "open": "openNftModal",
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45140498072,
+      "scope": "empty catalogue tabs/grouping"
+    },
+    {
+      "route": "karma",
+      "open": "openKarmaModal",
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45132201881,
+      "scope": "empty records/statistics tab"
+    },
+    {
+      "route": "messages",
+      "open": "openMessagingModal",
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45165837353,
+      "scope": "chat create/send/participant readback/resume/end; inbox read45151234976 and directory send separately accepted"
+    },
+    {
+      "route": "search",
+      "open": "openSearchModal",
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45165837353,
+      "scope": "directory search, compose, explicit send/recipient readback and return"
+    },
+    {
+      "route": "settings",
+      "open": "openSettingsModal",
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45093523946,
+      "scope": "settings browser slice; permanent deletion incomplete"
+    },
+    {
+      "route": "map",
+      "open": "openMapModal",
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45148541889,
+      "scope": "private GPX publish/read/rename/reopen"
+    },
+    {
+      "route": "data",
+      "open": "openDataModal",
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45149458665,
+      "scope": "owned create/read/edit/delete"
+    },
+    {
+      "route": "hyperdrive",
+      "open": "openHyperdriveModal",
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45171635902,
+      "scope": "storage avatar/app lifecycle; routing settings45169287524"
+    },
+    {
+      "route": "onet",
+      "open": "openONETModal",
+      "status": "further evidence reconciliation or main journey required; not complete"
+    },
+    {
+      "route": "onode",
+      "open": "openONODEModal",
+      "status": "further evidence reconciliation or main journey required; not complete"
+    },
+    {
+      "route": "developer",
+      "open": "openDevPortalModal",
+      "status": "further evidence reconciliation or main journey required; not complete"
+    },
+    {
+      "route": "devportal",
+      "open": "openDevPortalModal",
+      "status": "further evidence reconciliation or main journey required; not complete"
+    },
+    {
+      "route": "subscription",
+      "open": "openSubscriptionModal",
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45120405171,
+      "scope": "actual page free/missing-paid-config views/orders/deep link/renewal; hosted paid Stripe pending"
+    },
+    {
+      "route": "admin",
+      "open": "openSubscriptionAdminModal",
+      "status": "further evidence reconciliation or main journey required; not complete"
+    },
+    {
+      "route": "oapps",
+      "open": "openOAPPsModal",
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45128946718,
+      "scope": "WEB5 empty owned catalogue; populated earlier component scope separate"
+    },
+    {
+      "route": "quests",
+      "open": "openQuestsModal",
+      "status": "prior native/component evidence retained; full page scope to reconcile",
+      "run": 44960991377
+    },
+    {
+      "route": "missions",
+      "open": "openMissionsModal",
+      "status": "prior native/component evidence retained; full page scope to reconcile",
+      "run": 44960991377
+    },
+    {
+      "route": "provider-migration",
+      "open": "openProviderMigrationModal",
+      "status": "further evidence reconciliation or main journey required; not complete"
+    },
+    {
+      "route": "ai",
+      "open": "openAiModal",
+      "status": "further evidence reconciliation or main journey required; not complete"
+    },
+    {
+      "route": "eggs",
+      "open": "openEggsModal",
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45168591802,
+      "scope": "four empty list tabs; hatch/populated pending"
+    },
+    {
+      "route": "files",
+      "open": "openFilesModal",
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45150357293,
+      "scope": "upload/list/download exact bytes/delete"
+    },
+    {
+      "route": "competition",
+      "open": "openCompetitionModal",
+      "status": "further evidence reconciliation or main journey required; not complete"
+    },
+    {
+      "route": "clan",
+      "open": "openClanModal",
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45165837353,
+      "scope": "create/edit/member add/native readback/delete"
+    },
+    {
+      "route": "gifts",
+      "open": "openGiftsModal",
+      "status": "prior native/browser component evidence retained; scope to reconcile",
+      "runs": [
+        45104328970,
+        45105105606
+      ]
+    },
+    {
+      "route": "games",
+      "open": "openGamesModal",
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45128946718,
+      "scope": "WEB5 empty catalogue tabs"
+    },
+    {
+      "route": "inventory",
+      "open": "openInventoryModal",
+      "status": "prior populated component/native evidence retained; full page scope to reconcile",
+      "run": 45114577286
+    },
+    {
+      "route": "celestial-map",
+      "open": "openCelestialMapModal",
+      "status": "actual page qualification running",
+      "run": 45173584845
+    },
+    {
+      "route": "social-graph",
+      "open": "openSocialGraphModal",
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45172482199,
+      "scope": "real messaging contact nodes/edge; keyboard composer handoff/return"
+    },
+    {
+      "route": "oapp-map",
+      "open": "openOappMapModal",
+      "status": "further evidence reconciliation or main journey required; not complete"
+    },
+    {
+      "route": "karma-ledger",
+      "open": "openKarmaLedgerModal",
+      "status": "further evidence reconciliation or main journey required; not complete"
+    },
+    {
+      "route": "chain-explorer",
+      "open": "openChainExplorerModal",
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45172482199,
+      "scope": "empty recorded activity/filter/pagination controls"
+    },
+    {
+      "route": "holon-designer",
+      "open": "openHolonDesignerModal",
+      "status": "further evidence reconciliation or main journey required; not complete"
+    },
+    {
+      "route": "holon-diff",
+      "open": "openHolonDiffModal",
+      "status": "further evidence reconciliation or main journey required; not complete"
+    },
+    {
+      "route": "provider-benchmark",
+      "open": "openProviderBenchmarkModal",
+      "status": "further evidence reconciliation or main journey required; not complete"
+    },
+    {
+      "route": "oapp-launcher",
+      "open": "openOappLauncherModal",
+      "status": "further evidence reconciliation or main journey required; not complete"
+    },
+    {
+      "route": "activity-feed",
+      "open": "openActivityFeedModal",
+      "status": "scoped actual page journey accepted; not all actions",
+      "run": 45172482199,
+      "scope": "empty activity/filter; polling not accepted"
+    },
+    {
+      "route": "holon-browser",
+      "open": "openHolonBrowserModal",
+      "status": "actual page qualification running",
+      "run": 45173584845
+    },
+    {
+      "route": "global-search",
+      "open": "openGlobalSearchModal",
+      "status": "actual page qualification running",
+      "run": 45173584845
+    },
+    {
+      "route": "provider-health",
+      "open": "openProviderHealthModal",
+      "status": "further evidence reconciliation or main journey required; not complete"
+    }
+  ]
+}
