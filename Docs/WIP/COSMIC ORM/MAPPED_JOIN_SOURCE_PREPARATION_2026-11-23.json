@@ -2,8 +2,8 @@
   "base": "048b02d54870e793de8f18439ff8f00950ad3547",
   "core": "e7402f4f2f14e9a7f628026efde79180c376f815",
   "sourceImplemented": true,
-  "compiled": false,
-  "nativeAccepted": false,
+  "compiled": true,
+  "nativeAccepted": true,
   "deployed": false,
   "changedFiles": [
     "Queries/CosmicJoinResults.cs",
@@ -13,7 +13,7 @@
   ],
   "requiresRepresentativeNativeJoins": true,
   "source": "ed9a5f064d05be25336fed3ad6ddae914ed2e056",
-  "qualificationPhase": "NativeRunning",
+  "qualificationPhase": "NativeAccepted",
   "expectedNativeTests": 3,
   "nativeRun": 45089665626,
   "nativeJob": 137416127653,
@@ -22,5 +22,6 @@
   "priorOutcome": "compiled_then_three_capture_refusals",
   "priorOwnedMongoStopped": true,
   "priorCleanupFinallyExecuted": true,
-  "requestedUtc": "2026-11-23T00:33:01.044727+00:00"
+  "requestedUtc": "2026-11-23T00:33:01.044727+00:00",
+  "nativeProof": "mapped-join-native-acceptance.json"
 }

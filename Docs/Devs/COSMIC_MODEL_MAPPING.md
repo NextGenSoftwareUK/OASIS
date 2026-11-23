@@ -63,3 +63,11 @@ or virtual-source lifecycle.
 ## Typed identity groups
 
 Mapped scalar properties also work as grouping keys. Group members are hydrated through the same typed materialization pipeline as flat queries, preserving metadata aliases and session identity observation. The three native provider journeys verify this integration after a tracked mapped-field update. This does not claim full fluent-model or unrestricted grouping parity.
+
+## Typed join results and grouped matches
+
+Mapped scalar keys can participate in native inner joins and GroupJoin. Selecting the right entity from an ordinary inner join uses its admitted right source; parent ancestry is required only when the source is an actual child-navigation join. GroupJoin can return the typed left model, complete typed matches, mapped scalar carrier fields and Count/LongCount/Any summaries. An unmatched group preserves its left model and an empty matching collection.
+
+All native pair proofs and budgets are validated before application models are hydrated. Manager-bound entity joins use the same typed hydration/decryption/selection owner as flat and grouped reads. Repeated identities within an admitted source are materialized once for that result. Direct CosmicJoinExecutor calls retain their canonical detached-output contract; use HolonManager or a bound COSMIC query for application models.
+
+[The mapped-join native journey](../WIP/COSMIC%20ORM/MAPPED_JOIN_NATIVE_ACCEPTANCE_2026-11-23.json) passed on MongoDB, SQLite and Neo4j after an update to the mapped value. It covers an ordinary typed right-entity join, matched typed groups and unmatched groups without additional fixture writes. This is representative functional evidence, not unrestricted join composition, session tracking of nested carriers or full EF/NHibernate parity.
