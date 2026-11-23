@@ -1,5 +1,14 @@
 name: OPORTAL real WEB5 startup
 on:
+  workflow_dispatch:
+    inputs:
+      portal:
+        required: true
+        type: string
+      popup_group:
+        type: choice
+        default: web5-breadth
+        options: [none, web5-breadth]
   workflow_call:
     inputs:
       portal:
@@ -121,7 +130,8 @@ jobs:
           import json, os, shutil
           from pathlib import Path
           candidates=list(Path('accepted-receipt').rglob('acknowledged.json'))
-          assert len(candidates)==1, 'One original package receipt required.'
+          candidates=[path for path in candidates if json.loads(path.read_text()).get('checks',{}).get('packagedSourceHashes') is True]
+          assert len(candidates)==1, 'One exact original package receipt required.'
           receipt=json.loads(candidates[0].read_text())
           assert receipt['source']==os.environ['SOURCE']
           assert receipt['image']=='ghcr.io/nextgensoftwareuk/oasis-web4@'+os.environ['DIGEST']
@@ -157,6 +167,7 @@ jobs:
         working-directory: OASIS
         env:
           DIGEST: ${{ steps.source.outputs.image }}
+          OASIS_STARTUP_POPUP_GROUP: ${{ inputs.popup_group || 'none' }}
           OASIS_STARTUP_AUTHENTICATION: 'true'
           OASIS_STARTUP_PORTAL_ROOT: ${{ github.workspace }}/oportal-source
           OASIS_STARTUP_WEB5_APP: ${{ github.workspace }}/portal-web5-owned/app

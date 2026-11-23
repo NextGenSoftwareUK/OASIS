@@ -9,8 +9,8 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','community','storage','hyperdrive','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
- const selectedPopups=popupGroup==='community'?['Activity','Social','Chain']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+ assert.ok(['none','web5-breadth','community','storage','hyperdrive','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
+ const selectedPopups=popupGroup==='web5-breadth'?['HolonBrowser','Celestial','GlobalSearch']:popupGroup==='community'?['Activity','Social','Chain']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
   popupGroup==='none'?[]:[{storage:'Storage',hyperdrive:'HyperDrive',eggs:'Eggs',nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
@@ -62,10 +62,10 @@ async function main(){
    assert.ok(Array.isArray(subs)&&subs.some(s=>s.planId==='free'&&s.status==='active'),'Persisted free subscription');
    return signed.jwtToken;
   }
-  if(api5)await admitFree(account);
+  if(api5&&!selectedPopups.length)await admitFree(account);
   if(selectedPopups.length){
-   assert.equal(api5,null,'WEB4-only popup journey');ownedToken=await admitFree(account);
-   if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')||selectedPopups.includes('DirectoryMessage')||selectedPopups.includes('Clan')||selectedPopups.includes('Social')){
+   assert.equal(!!api5,popupGroup==='web5-breadth','Explicit matching backend selection');ownedToken=await admitFree(account);
+   if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')||selectedPopups.includes('DirectoryMessage')||selectedPopups.includes('Clan')||selectedPopups.includes('Social')||selectedPopups.includes('GlobalSearch')){
     recipient=await createOwnedAvatar(api.href);recipientToken=await admitFree(recipient);
    }
   }
@@ -260,6 +260,23 @@ async function main(){
     }catch{closePassed=false;passed=false;if(observedStage===name)observedStage=name+' close';}
     outcomes.push({name,passed,stage:observedStage,closePassed});
    }
+   await checkPopup('HolonBrowser','#holon-browser-modal-close-btn',async()=>{
+    stage='Holon Browser read';await page.evaluate(()=>window.openHolonBrowserModal());
+    await page.waitForFunction(()=>document.getElementById('hbrow-status').textContent==='No STARNET holons yet.');
+    stage='Holon Browser filters';await page.locator('#hbrow-search').fill('no matching holons');await page.locator('#hbrow-sort-sel').selectOption('name-asc');
+    assert.ok((await page.locator('#hbrow-list').textContent()).includes('No holons match.'));
+   });
+   await checkPopup('Celestial','#celestial-map-modal-close-btn',async()=>{
+    stage='Celestial real lists';await page.evaluate(()=>window.openCelestialMapModal());
+    await page.waitForFunction(()=>document.getElementById('celestial-map-status').textContent==='0 spaces · 0 bodies · returned memberships only');
+   });
+   await checkPopup('GlobalSearch','#global-search-modal-close-btn',async()=>{
+    stage='Global avatar search';await page.evaluate(()=>window.openGlobalSearchModal());await page.locator('#global-search-modal-block [data-type="Avatar"]').click();
+    await page.locator('#gs-input').fill(recipient.username);
+    await page.waitForFunction(()=>document.getElementById('gs-status-bar').textContent==='1 result');
+    assert.ok((await page.locator('#gs-results').textContent()).includes(recipient.username));
+    stage='Global clear';await page.locator('#gs-input').fill('');await page.waitForFunction(()=>document.getElementById('gs-results').textContent==='Start typing to search across the OASIS…');
+   });
    await checkPopup('Activity','#activity-feed-modal-close-btn',async()=>{
     stage='Activity read';const [response]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname==='/api/karma/activity'),page.evaluate(()=>window.openActivityFeedModal())]);
     const reply=await response.json();assert.equal(reply.isError,false);assert.ok(Array.isArray(reply.result));assert.equal(reply.result.length,0);
