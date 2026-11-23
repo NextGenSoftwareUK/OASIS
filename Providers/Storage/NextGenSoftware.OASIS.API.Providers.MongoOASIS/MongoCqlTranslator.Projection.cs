@@ -85,6 +85,34 @@ internal sealed partial class MongoCqlTranslator
         return page;
     }
 
+    internal static BsonValue UtcDatePartFromTicks(CosmicProjectionFunction function,BsonValue ticks)
+    {
+                var unit=function switch {
+                    CosmicProjectionFunction.UtcHour=>TimeSpan.TicksPerHour,
+                    CosmicProjectionFunction.UtcMinute=>TimeSpan.TicksPerMinute,
+                    CosmicProjectionFunction.UtcSecond=>TimeSpan.TicksPerSecond,
+                    _=>TimeSpan.TicksPerDay };
+                if(unit!=TimeSpan.TicksPerDay)
+                {
+                    var span=function==CosmicProjectionFunction.UtcHour ? TimeSpan.TicksPerDay
+                        : function==CosmicProjectionFunction.UtcMinute ? TimeSpan.TicksPerHour : TimeSpan.TicksPerMinute;
+                    var remainder=Op("$mod",ticks,Literal(span));
+                    // Divide an exactly divisible bounded integer, never floating epoch ticks.
+                    return new BsonDocument("$toInt",Op("$divide",
+                        Op("$subtract",remainder,Op("$mod",remainder,Literal(unit))),Literal(unit)));
+                }
+                var days=new BsonDocument("$toLong",Op("$divide",
+                    Op("$subtract",ticks,Op("$mod",ticks,Literal(TimeSpan.TicksPerDay))),Literal(TimeSpan.TicksPerDay)));
+                var date=new BsonDocument("$toDate",Op("$multiply",
+                    Op("$subtract",days,Literal(DateTime.UnixEpoch.Ticks/TimeSpan.TicksPerDay)),
+                    Literal((long)86400000)));
+                var operation=function switch {
+                    CosmicProjectionFunction.UtcYear=>"$year",CosmicProjectionFunction.UtcMonth=>"$month",
+                    CosmicProjectionFunction.UtcDay=>"$dayOfMonth",CosmicProjectionFunction.UtcDayOfYear=>"$dayOfYear",
+                    _=>throw new NotSupportedException("UTC date part is not registered.") };
+                return new BsonDocument(operation,new BsonDocument{{"date",date},{"timezone","UTC"}});
+                }
+
     private static BsonValue ProjectionCell(CosmicProjectionColumn column, string prefix)
     {
         if (column == null) throw new ArgumentNullException(nameof(column));
@@ -100,35 +128,9 @@ internal sealed partial class MongoCqlTranslator
             var ticks=column.Path.IsMetadata ? value
                 : Op("$add",Op("$multiply",new BsonDocument("$toLong",value),Literal(TimeSpan.TicksPerMillisecond)),
                     Literal(DateTime.UnixEpoch.Ticks));
-            BsonValue Part()
-            {
-                var unit=column.Function switch {
-                    CosmicProjectionFunction.UtcHour=>TimeSpan.TicksPerHour,
-                    CosmicProjectionFunction.UtcMinute=>TimeSpan.TicksPerMinute,
-                    CosmicProjectionFunction.UtcSecond=>TimeSpan.TicksPerSecond,
-                    _=>TimeSpan.TicksPerDay };
-                if(unit!=TimeSpan.TicksPerDay)
-                {
-                    var span=column.Function==CosmicProjectionFunction.UtcHour ? TimeSpan.TicksPerDay
-                        : column.Function==CosmicProjectionFunction.UtcMinute ? TimeSpan.TicksPerHour : TimeSpan.TicksPerMinute;
-                    var remainder=Op("$mod",ticks,Literal(span));
-                    // Divide an exactly divisible bounded integer, never floating epoch ticks.
-                    return new BsonDocument("$toInt",Op("$divide",
-                        Op("$subtract",remainder,Op("$mod",remainder,Literal(unit))),Literal(unit)));
-                }
-                var days=new BsonDocument("$toLong",Op("$divide",
-                    Op("$subtract",ticks,Op("$mod",ticks,Literal(TimeSpan.TicksPerDay))),Literal(TimeSpan.TicksPerDay)));
-                var date=new BsonDocument("$toDate",Op("$multiply",
-                    Op("$subtract",days,Literal(DateTime.UnixEpoch.Ticks/TimeSpan.TicksPerDay)),
-                    Literal((long)86400000)));
-                var operation=column.Function switch {
-                    CosmicProjectionFunction.UtcYear=>"$year",CosmicProjectionFunction.UtcMonth=>"$month",
-                    CosmicProjectionFunction.UtcDay=>"$dayOfMonth",CosmicProjectionFunction.UtcDayOfYear=>"$dayOfYear",
-                    _=>throw new NotSupportedException("UTC date part is not registered.") };
-                return new BsonDocument(operation,new BsonDocument{{"date",date},{"timezone","UTC"}});
-            }
+
             return SingleLet(utcName,ProjectionCell(column.Path,prefix+"utcSource"),new BsonDocument{
-                {"s",cell+".s"},{"v",Choose(Op("$eq",cell+".s",Literal(2)),Part(),Literal(BsonNull.Value))}});
+                {"s",cell+".s"},{"v",Choose(Op("$eq",cell+".s",Literal(2)),UtcDatePartFromTicks(column.Function,ticks),Literal(BsonNull.Value))}});
         }
         if (column.Function == CosmicProjectionFunction.BooleanTextCase)
         {

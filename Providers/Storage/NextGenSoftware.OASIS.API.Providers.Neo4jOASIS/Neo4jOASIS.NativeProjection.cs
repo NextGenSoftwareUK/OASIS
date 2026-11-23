@@ -67,7 +67,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 var property = "raw" + fieldIndex;
                 if (column.InputType == typeof(DateTime))
                 {
-                    cells.Add(NeoCqlDate.NativeCell(property, value => BindNativeUtcParameter(parameters, value)) + $" AS c{index}");
+                    var dateCell=column.UtcDatePart.HasValue
+                        ? NeoCqlDate.NativePartCell(property,column.UtcDatePart.Value,value=>BindNativeUtcParameter(parameters,value))
+                        : NeoCqlDate.NativeCell(property,value=>BindNativeUtcParameter(parameters,value));
+                    cells.Add(dateCell+$" AS c{index}");
                     continue;
                 }
                 var type = column.InputType == typeof(string) || column.InputType == typeof(Guid) ? "STRING" : column.InputType == typeof(bool) ? "BOOLEAN" : column.InputType == typeof(double) ? "FLOAT" : "INTEGER";

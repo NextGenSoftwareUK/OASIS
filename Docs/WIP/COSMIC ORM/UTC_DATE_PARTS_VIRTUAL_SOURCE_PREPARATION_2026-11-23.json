@@ -3,9 +3,22 @@
   "base": "dc88abf6a615fc5b5c06b6cd4871683d23e43081",
   "nativeProjectionContractImplemented": true,
   "mixedProjectionBridgeImplemented": true,
-  "shippingProviderNativeTranslationImplemented": false,
+  "shippingProviderNativeTranslationImplemented": true,
   "compiled": false,
   "nativeAccepted": false,
   "deployed": false,
-  "basicDatePartsCore": "dc88abf6a615fc5b5c06b6cd4871683d23e43081"
+  "basicDatePartsCore": "dc88abf6a615fc5b5c06b6cd4871683d23e43081",
+  "apiVirtualBridgeImplemented": true,
+  "changedRootFiles": [
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.Projection.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.NativeProjection.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/SqliteCqlUtcDateParts.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.ProjectionSql.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.NativeProjection.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/NeoCqlUtcDateParts.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/NeoCqlTranslator.Projection.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/NeoCqlDate.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.NativeProjection.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlVirtualProjectionV1Compiler.cs"
+  ]
 }

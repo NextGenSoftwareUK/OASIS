@@ -24,13 +24,8 @@ internal sealed partial class NeoCqlTranslator
             if(column.Path.ValueType!=typeof(System.DateTime) || (System.Nullable.GetUnderlyingType(column.ValueType)??column.ValueType)!=typeof(int))
                 throw new System.NotSupportedException("UTC date parts require DateTime input and Int32 output.");
             var utcSource=TranslateProjectionPath(column.Path);
-            var part=column.Function switch {
-                CosmicProjectionFunction.UtcYear=>"year",CosmicProjectionFunction.UtcMonth=>"month",
-                CosmicProjectionFunction.UtcDay=>"day",CosmicProjectionFunction.UtcDayOfYear=>"ordinalDay",
-                CosmicProjectionFunction.UtcHour=>"hour",CosmicProjectionFunction.UtcMinute=>"minute",
-                CosmicProjectionFunction.UtcSecond=>"second",
-                _=>throw new System.NotSupportedException("UTC date part is not registered.") };
-            return (utcSource.State,"CASE WHEN ("+utcSource.State+")=2 THEN datetime("+utcSource.Value+")."+part+" ELSE null END");
+            return (utcSource.State,"CASE WHEN ("+utcSource.State+")=2 THEN "+
+                NeoCqlUtcDateParts.Value(column.Function,"datetime("+utcSource.Value+")")+" ELSE null END");
         }
         if (column.Function == CosmicProjectionFunction.BooleanTextCase)
         {

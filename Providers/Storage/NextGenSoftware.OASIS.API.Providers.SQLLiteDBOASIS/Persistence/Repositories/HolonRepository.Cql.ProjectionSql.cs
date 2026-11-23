@@ -20,18 +20,8 @@ public partial class HolonRepository
                 if(column.Path.ValueType!=typeof(DateTime) || (Nullable.GetUnderlyingType(column.ValueType)??column.ValueType)!=typeof(int))
                     throw new NotSupportedException("UTC date parts require DateTime input and Int32 output.");
                 var utcSource=ProjectionOperand(column.Path,prefix+"utc");
-                var component=column.Function switch {
-                    CosmicProjectionFunction.UtcYear=>"substr("+utcSource.Value+",1,4)",
-                    CosmicProjectionFunction.UtcMonth=>"substr("+utcSource.Value+",6,2)",
-                    CosmicProjectionFunction.UtcDay=>"substr("+utcSource.Value+",9,2)",
-                    CosmicProjectionFunction.UtcDayOfYear=>"strftime('%j',substr("+utcSource.Value+",1,10))",
-                    CosmicProjectionFunction.UtcHour=>"substr("+utcSource.Value+",12,2)",
-                    CosmicProjectionFunction.UtcMinute=>"substr("+utcSource.Value+",15,2)",
-                    CosmicProjectionFunction.UtcSecond=>"substr("+utcSource.Value+",18,2)",
-                    _=>throw new NotSupportedException("UTC date part is not registered.") };
-                // Source guards establish UTC calendar text; do not round fractional
-                // seconds through SQLite's temporal parser before selecting a part.
-                return (utcSource.State,"CASE WHEN ("+utcSource.State+")=2 THEN CAST("+component+" AS INTEGER) ELSE NULL END");
+                return (utcSource.State,"CASE WHEN ("+utcSource.State+")=2 THEN "+
+                    SqliteCqlUtcDateParts.Value(column.Function,utcSource.Value)+" ELSE NULL END");
             }
             if (column.Function == CosmicProjectionFunction.BooleanTextCase)
             {
