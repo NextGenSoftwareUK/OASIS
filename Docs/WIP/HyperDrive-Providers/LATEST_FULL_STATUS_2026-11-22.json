@@ -9,13 +9,15 @@
     "reviewedDevelopment": "3b81b74946b488f871bd550ce101e2bdb3b5e9d2",
     "currentCore": "13ca0e11c4320213485a19922a1f519736340ca1",
     "currentWeb6": "78a27a295e74721358eb2b02399f79eff5b21633",
-    "scope": "Current3b81 dev WEB4 authority/holds verified. This release snapshot adds independently accepted NFT decoder8745; its running rollout is not yet verified.",
+    "scope": "Current CQL3b81 dev WEB4 runtime verified: Mongo authority/all3holds true. ONODE8745 decoder fix passed exact shipping package/native portal; parent publication/rollout pending.",
     "currentQualification": {
       "root": "5442d4e9de89231a5a4bebe77c44374ab0920001",
-      "core": "13ca0e11c4320213485a19922a1f519736340ca1",
+      "core": "cac5dba4d026cc19dcfe4440737b9de50a8ed20d",
       "onode": "8745c95ef2f6150fafb1417122a20c020784b338",
       "run": 45140498072,
-      "status": "verified-NFT-release-snapshot-runtime-pending"
+      "status": "verified-NFT-release-snapshot-source-equivalent-Core-runtime-pending",
+      "compiledCore": "13ca0e11c4320213485a19922a1f519736340ca1",
+      "coreSourceTree": "627e83871010638971aad96078e58843048233b6"
     }
   },
   "web6": {
@@ -491,5 +493,17 @@
     "cleanup": "4270B receipt inspected/disposed in RAM: package container absent/dataWrites0; all5 startup cleanup booleans true; browser/runtime/cache/TLS absence verified. No local build/download/env/database/results.",
     "scopeLimits": "Empty catalogue/read/grouping only. Not NFT mint/transfer, populated NFT metadata interoperability, all UI actions, paid Stripe, WEB6, provider certification or whole portal100percent.",
     "retained": "Data browse and actual message send/native recipient readback/conversation45136761604; Files/Wallet/Karma45132201881; WEB5 Games/OAPP45128946718; subscriptions/full page45120405171. No unchanged cohort replay."
+  },
+  "coreSourceEquivalence20261123": {
+    "compiledCore": "13ca0e11c4320213485a19922a1f519736340ca1",
+    "publishedCore": "cac5dba4d026cc19dcfe4440737b9de50a8ed20d",
+    "sourceTree": "627e83871010638971aad96078e58843048233b6",
+    "byteIdentical": true,
+    "parents": [
+      "2356b0a8b4d8a425cf13a8abe45b0b4dfcd7defa",
+      "13ca0e11c4320213485a19922a1f519736340ca1"
+    ],
+    "reason": "The already-deployed CQL snapshot copied the authority files without preserving shared Development ancestry. A normal two-parent merge is source-tree-identical to qualified13ca and advances shared Development without rewriting history.",
+    "verification": "git merge-tree output and resulting commit tree both equal13ca tree627e; git diff13ca..cac5 empty; fast-forward push completed. Retain functional evidence for unchanged source; verify new build/deployment provenance separately."
   }
 }
