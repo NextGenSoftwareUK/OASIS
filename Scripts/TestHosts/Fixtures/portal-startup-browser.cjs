@@ -243,7 +243,7 @@ async function main(){
    stage='Catalogue create actual OAPP';const operationId=require('node:crypto').randomUUID();
    const native=await context.request.post(proxy5Origin+'/api/oapps',{headers:{Authorization:'Bearer '+ownedToken,'X-COSMIC-Operation-Id':operationId,'Idempotency-Key':operationId},data:{name:catalogueName,description:'Owned populated depth proof',holonType:'OAPP',oappType:'GeneratedCodeOnly'}});
    const created=await native.json();httpFacts.push({path:'/api/oapps',status:native.status(),isError:created.isError,...(created.isError?{routingMessage:safeRoutingMessage(created.message)}:{})});assert.equal(native.status(),200);assert.equal(created.isError,false);catalogueAppId=created.result.id;catalogueIdentity=created.result.starnetdna.id;assert.equal(created.result.starnetdna.starnetCategory,'GeneratedCodeOnly','OAPP category is not the general record kind');assert.match(catalogueAppId,/^[0-9a-f-]{36}$/i);assert.match(catalogueIdentity,/^[0-9a-f-]{36}$/i);
-   stage='Catalogue create actual child';const child=await account.call('owned catalogue child','POST','/api/data/save-holon',{holon:{parentHolonId:catalogueAppId,name:'Owned catalogue child',description:'Actual descendant'},saveChildren:false,recursive:false,operationId:require('node:crypto').randomUUID()},ownedToken);
+   stage='Catalogue create actual child';const child=await account.call('owned catalogue child','POST','/api/data/save-holon',{holon:{parentHolonId:catalogueAppId,name:'Owned catalogue child',description:'Actual descendant'},saveChildren:false,recursive:false,operationId:require('node:crypto').randomUUID()},ownedToken,true);
    assert.match(child.id,/^[0-9a-f-]{36}$/i);
    stage='Catalogue native depth comparison';
    for(const deep of [false,true]){
