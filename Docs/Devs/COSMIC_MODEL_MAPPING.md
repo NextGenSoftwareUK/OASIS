@@ -1,14 +1,14 @@
-## Async numeric reductions — source implemented, native qualification pending
+## Async numeric reductions — representative native qualification accepted
 
 The native async surface includes Sum, Average, Min and Max with direct selected values and typed selectors (26 overloads). Root selectors are normalized into the existing native Select planner; selected and entity-stage operations retain preceding windows. Session wrappers reuse the existing asynchronous lifetime boundary. Cancellation reaches native numeric and extremum execution. Standard Average result types are retained, including nullable domains. Unsupported shapes and domains return explicit errors; there is no local row reduction substitute.
 
-Count/LongCount/Any/All passed native MongoDB, SQLite and Neo4j qualification45181628686, with one boundary control and the actual WEB4 build. Numeric representative verification is pending. Set/join/indexed async composition and full parity remain open; none of this new family is yet deployed to Development.
+Count/LongCount/Any/All passed native MongoDB, SQLite and Neo4j qualification45181628686, with one boundary control and the actual WEB4 build. Numeric representative verification passed45183982238 on all three providers, plus one boundary control and the actual WEB4 build. Exact isolated cleanup was verified. Set/join/indexed async composition and full parity remain open; none of this new family is yet deployed to Development.
 
-## Native asynchronous cardinality — source implemented; native qualification pending
+## Native asynchronous cardinality — representative native qualification accepted
 
 ToCosmicCountAsync, ToCosmicLongCountAsync, ToCosmicAnyAsync and ToCosmicAllAsync use the existing native scalar/cardinality planners. Predicate overloads retain their position after an earlier source or selected window. Token propagation reaches native scalar, indexed scalar, selected cardinality/projected All and entity-stage count owners. Session/stateless wrappers retain the existing asynchronous lifetime boundary; scalar values are not entity tracking entries.
 
-The current surface has seven overloads across root, selected and entity-stage sources plus session wrappers. Other set/join shapes and general numeric async reductions remain open. One boundary control and three-store native qualification are pending. No local Enumerable reduction or thread-pool substitute is used. This source is separate from the accepted Development3ae release.
+The current surface has seven overloads across root, selected and entity-stage sources plus session wrappers. Other set/join shapes and general numeric async reductions remain open. One boundary control, three-store native qualification and the actual WEB4 build passed45181628686, with exact isolated cleanup. No local Enumerable reduction or thread-pool substitute is used. This source is separate from the accepted Development3ae release.
 
 ## Native asynchronous element APIs — native qualified; Development deployment pending
 
