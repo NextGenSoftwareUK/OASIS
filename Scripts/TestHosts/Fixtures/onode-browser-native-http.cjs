@@ -7,7 +7,7 @@ async function verify({baseUrl,token,avatarId,nodeId}){
  const browser=await chromium.launch({channel:'chrome',headless:true});
  const context=await browser.newContext({serviceWorkers:'block',viewport:{width:1280,height:900}});
  const errors=[],unexpected=[],requests=[];
- let stage='preparation',socketCount=0,frameCount=0,resolveLiveFrame;
+ let stage='preparation',socketCount=0,frameCount=0,rateLimited=false,resolveLiveFrame;
  const receivedLiveFrame=new Promise(resolve=>{resolveLiveFrame=resolve;});
  try{
   await context.route('**/*',async route=>{
@@ -19,6 +19,7 @@ async function verify({baseUrl,token,avatarId,nodeId}){
     }
     return route.continue();
    }
+   if(url.protocol==='ws:'&&url.hostname===base.hostname&&url.port===base.port&&url.pathname==='/ws/onode/'+nodeId&&!url.search&&!url.hash)return route.continue();
    if(['data:','blob:'].includes(url.protocol)||
       ['https://fonts.googleapis.com','https://fonts.gstatic.com'].includes(url.origin))return route.continue();
    unexpected.push(url.origin+url.pathname);return route.abort();
@@ -29,6 +30,7 @@ async function verify({baseUrl,token,avatarId,nodeId}){
   },{token,avatarId});
   const page=await context.newPage();page.setDefaultTimeout(20000);
   page.on('pageerror',error=>errors.push(error.name));
+  page.on('response',response=>{if(new URL(response.url()).origin===base.origin&&response.status()===429)rateLimited=true;});
   // Subscribe before any connection starts, including an initial frame sent with the handshake.
   page.on('websocket',socket=>{
    if(new URL(socket.url()).pathname!=='/ws/onode/'+nodeId)return;
@@ -96,7 +98,7 @@ async function verify({baseUrl,token,avatarId,nodeId}){
   assert.equal(loadedDna.routingPolicy.source,'OASIS.OASISHyperDriveConfig');
   await page.locator('#onode-close-btn').click();
   assert.equal(await page.locator('.js-modal.is-visible').count(),0);
-  assert.deepEqual(errors,[]);assert.deepEqual(unexpected,[]);
+  assert.deepEqual(errors,[]);assert.deepEqual(unexpected,[]);assert.equal(rateLimited,false);
   assert.ok(requests.some(request=>request.path==='/api/v1/onode/commands'&&request.method==='POST'));
   assert.ok(requests.some(request=>request.path==='/api/v1/onode/public-config'));
   return {actualOnodePopup:true,registeredPublicViews:true,savedRoleWriteReadback:true,
@@ -119,7 +121,7 @@ async function verify({baseUrl,token,avatarId,nodeId}){
   }).catch(()=>null);
   const detail=observation?' selected '+observation.selected+' row '+observation.row+' disabled '+observation.disabled+
    ' status '+observation.status+' reason '+observation.reason+' visibility '+observation.visibility+' checked '+observation.checked:'';
-  const connection=' socket '+(socketCount?'present':'missing')+' frame '+(frameCount?'present':'missing');
+  const connection=' socket '+(socketCount?'present':'missing')+' frame '+(frameCount?'present':'missing')+' rate limited '+(rateLimited?'yes':'no');
   throw new Error('Owned ONODE browser failed at '+stage+detail+connection+'; type='+error.name+'; credential-bearing detail withheld.');
  }
  finally{await context.close();await browser.close();}

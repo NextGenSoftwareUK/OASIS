@@ -3209,3 +3209,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 2026-11-23 run45251546061: WEB4 compile failed before host runtime; owned Mongo container and browser runtime/cache absence verified. No runtime database/DNA/token creation claim. One temporary git index for93418be removed. No shared queue/re-arm, local build/download/env.
 
 2026-11-23 successful45252534030: error-path-only actual supervisor test created no process/DB/DNA/fixture directory; owned probe bin/obj absence verified. Module/source temporary indexes removed, no local build/runtime/download/env.
+
+2026-11-23 popup45253587003: owned API/supervisor stopped; exact generated metrics/token/DNA/databases/directory removed; cloud Mongo container and browser runtime/cache absence verified. No local runtime/build/download/env. Fixture browser cadence now matches shipping defaults to avoid needless background request load.

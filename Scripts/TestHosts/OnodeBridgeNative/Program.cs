@@ -223,8 +223,11 @@ try
     serviceStart.Environment["Supervisor__TokenPath"] = tokenPath;
     serviceStart.Environment["Supervisor__Web4ApiBaseUrl"] = origin;
     serviceStart.Environment["Supervisor__Web4AccessToken"] = wizardJwt;
-    serviceStart.Environment["Supervisor__HolonPushIntervalSeconds"] = "1";
-    serviceStart.Environment["Supervisor__CommandPollIntervalSeconds"] = "1";
+    if (!browserEnabled)
+    {
+        serviceStart.Environment["Supervisor__HolonPushIntervalSeconds"] = "1";
+        serviceStart.Environment["Supervisor__CommandPollIntervalSeconds"] = "1";
+    }
     foreach (var service in new[] { "web4", "web5", "web6", "web7", "web8", "web9", "web10" })
         serviceStart.Environment["Supervisor__Services__" + service + "__Enabled"] = "false";
     Check(!File.Exists(tokenPath) && metricsFiles.All(path => !File.Exists(path)), "Owned supervisor files appeared before start.");
