@@ -63,7 +63,10 @@
       "Actual owner Data detail edit with native persisted readback45149458665",
       "Actual Files upload/list/download byte equality/delete/close45150357293",
       "Actual incoming message/notification Mark All Read/native flags/dashboard refresh45151234976",
-      "Actual HyperDrive popup status/count/routing tabs/preferences read/close45152168295 (Chat failed separately)"
+      "Actual HyperDrive popup status/count/routing tabs/preferences read/close45152168295 (Chat failed separately)",
+      "Actual Clan create/edit/member native readback/delete/close45165837353",
+      "Actual chat start/send/participant history/resume/end/close45165837353",
+      "Actual directory search/composer/send/recipient readback/return45165837353"
     ],
     "latestDeliveredFixes": [
       "Current subscription selection, retry states, real invoice/PDF links and exact-plan checkout activation confirmation",
@@ -632,22 +635,26 @@
   "latestChatHyperDrive": {
     "run": 45152168295,
     "HyperDrive": "accepted-status-tabs-preference-read-close",
-    "Chat": "Corrected API image built; earlier browser attempts interfered by cross-popup navigation, fixed in Portal3878125; new verification pending.",
+    "Chat": "accepted-actual-session-lifecycle45165837353",
     "evidence": "OPORTAL_CHAT_HYPERDRIVE_2026-11-23.json",
     "cleanupVerified": true,
     "candidate": "f4ac6302cbeadf6b1af77cbd9c6cdf27cfec402b",
     "imageRun": 45158527267,
-    "overallComplete": false
+    "overallComplete": false,
+    "status": "qualified-backend-publication-ready"
   },
   "latestDirectoryMessage": {
     "portal": "0bbe7e942b6e4ea3b59e692c0699ccf127e1be75",
-    "status": "source-implemented-real-browser-acceptance-pending",
+    "status": "accepted-real-directory-send-recipient-readback-navigation",
     "evidence": "OPORTAL_CHAT_HYPERDRIVE_2026-11-23.json",
-    "nextGroup": "chat-directory"
+    "nextGroup": "chat-directory",
+    "run": 45165837353
   },
   "latestPopupNavigation": {
-    "status": "source-fixed-real-browser-verification-pending",
+    "status": "three-real-journeys-and-navigation-accepted",
     "portal": "387812546a860120943259c72918ad4d5e142b73",
-    "evidence": "OPORTAL_POPUP_NAVIGATION_2026-11-23.json"
+    "evidence": "OPORTAL_POPUP_NAVIGATION_2026-11-23.json",
+    "run": 45165837353,
+    "artifact": 14814813455
   }
 }

@@ -1,6 +1,6 @@
 {
   "date": "2026-11-23",
-  "status": "navigation-root-fixes-pushed-real-browser-acceptance-pending",
+  "status": "three-real-popup-journeys-accepted-backend-publication-ready",
   "portal": "387812546a860120943259c72918ad4d5e142b73",
   "findings": [
     "Delayed addAuthPopup callback closed whichever modal was active after900ms, rather than the completed login view.",
@@ -70,6 +70,40 @@
     "Keep controlled network admission failure reporting; selected failure UI state contains only static IDs/classes, validity and bounded sanitized status."
   ],
   "scope": "Source fixes plus partial actual Clan create/edit/member readback/delete observations; no full Clan/Chat/Directory/popup-navigation acceptance yet.",
-  "next": "Latest portal-breadth run at Portal3878125 on exact corrected API rootf4ac/image078cd7; bind exact run and retain each of three outcomes independently.",
-  "cleanup": "Every listed compact artifact inspected in RAM; package container absent and all five startup cleanup booleans true. Terminal runtime/cache/TLS absence verified. No local downloads/env/build/database/results."
+  "next": "Publish qualified Coref7 and scoped rootf4ac on current Development after fresh branch/pin/current rollout/cadence gates; retain all accepted cohorts. No unchanged full test pass.",
+  "cleanup": "Every listed compact artifact inspected in RAM; package container absent and all five startup cleanup booleans true. Terminal runtime/cache/TLS absence verified. No local downloads/env/build/database/results.",
+  "acceptance": {
+    "run": 45165837353,
+    "job": 137662439100,
+    "control": "c16ff5a1088169a2004871eae8947a5b5b69e6cc",
+    "portal": "387812546a860120943259c72918ad4d5e142b73",
+    "source": "f4ac6302cbeadf6b1af77cbd9c6cdf27cfec402b",
+    "core": "f7fbd77b9cd4d8f50a3fd1ee17487d4d33159f82",
+    "image": "sha256:078cd7c8acbd7a14de653178e8f7aba5d030a191da519f6f8c37c3756eeea704",
+    "artifact": 14814813455,
+    "archiveBytes": 4379,
+    "outcomes": [
+      {
+        "name": "Clan",
+        "passed": true,
+        "stage": "Clan delete",
+        "closePassed": true
+      },
+      {
+        "name": "Chat",
+        "passed": true,
+        "stage": "Chat end",
+        "closePassed": true
+      },
+      {
+        "name": "DirectoryMessage",
+        "passed": true,
+        "stage": "Directory return",
+        "closePassed": true
+      }
+    ],
+    "scope": "Actual page and shipping Startup/native owned Mongo. Clan create/edit/add member, independent participant GET persisted fields/membership, delete/list empty/close; Chat start/send/participant history/resume/end/participant active-list absence/close; directory search/composer prefill/no automatic send/one explicit send/recipient native inbox/return to search/home.",
+    "cleanup": "RAM-inspected package container absent and all five startup cleanup conditions true; terminal runtime/cache/TLS absence verified. No local env/download/build/database/results.",
+    "limits": "Representative journeys only. No every Clan role/leave/remove/treasury, every chat case, paid Stripe, all providers, hosted latency or whole-portal completion."
+  }
 }

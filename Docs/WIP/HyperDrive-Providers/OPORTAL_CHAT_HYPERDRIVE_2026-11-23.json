@@ -1,6 +1,6 @@
 {
   "date": "2026-11-23",
-  "status": "HyperDrive-accepted-Chat-end-child-selection-root-cause-fixed-qualifying",
+  "status": "three-real-popup-journeys-accepted-backend-publication-ready",
   "firstRun": {
     "run": 45152168295,
     "job": 137616017020,
@@ -46,7 +46,7 @@
     "buildConclusion": "success"
   },
   "cleanup": "Both Chat failure artifacts4021B/3982B RAM-inspected: package container absent and all five startup cleanup booleans true; terminal runtime/cache/TLS absence verified. Both exact owned temporary Git indexes/locks removed in finally. No local downloads/env/build/database/test-results; new cloud build pending cleanup/acceptance.",
-  "next": "Bind latest portal-breadth run using Portal3878125 and exact rootf4ac/image078cd7. Chat and Directory have not yet been accepted on the corrected image because earlier navigation interfered. Retain accepted HyperDrive outcome; do not replay it.",
+  "next": "Publish qualified Coref7 and scoped rootf4ac on current Development after fresh branch/pin/current rollout/cadence gates; retain all accepted cohorts. No unchanged full test pass.",
   "staticDelivery20261123": {
     "origin": "https://dev.oportal.oasisomniverse.one",
     "scope": "Four static scripts only, HTTP200/source exact after LF normalization. No hosted authentication/data/performance request.",
@@ -85,7 +85,7 @@
     "rootTag": "qualification/chat-termination-root-20261123",
     "scope": "One Core manager: termination saveChildren/recursive false; session header lookups require both session ID and entity type to exclude messages. Root normal two-parent composition preserves current CQL and earlier authenticated Chat controller change; Core gitlink/manifest paired.",
     "imageRun": 45158527267,
-    "status": "image-built-popup-navigation-interference-fixed-browser-verification-pending",
+    "status": "exact-image-native-portal-accepted-private-Core-and-parent-publication-pending",
     "sourceValidation": "Exact paired manifest check passed; no physical module switch or gitlink staging. Fresh shared branch gate/publication remains after candidate acceptance.",
     "history": "Both original sourcee372 and current Developmentdf5 parents retained; no forced/shared history rewrite.",
     "imageJob": 137637597655,
@@ -98,5 +98,39 @@
     "scope": "Directory results validate public avatar IDs and offer Message. Existing message opener accepts recipient ID, selects send tab and prefills recipient, with no automatic send. Existing route wrapper preserves lazy-load opener arguments. Search result handler is bound to current search/session.",
     "next": "Use chat-directory group on corrected image45158527267: two independent outcomes, one existing image/native environment. Directory lookup -> compose -> explicit send -> recipient native readback -> return navigation. No accepted HyperDrive replay."
   },
-  "popupNavigation": "OPORTAL_POPUP_NAVIGATION_2026-11-23.json"
+  "popupNavigation": "OPORTAL_POPUP_NAVIGATION_2026-11-23.json",
+  "acceptance": {
+    "run": 45165837353,
+    "job": 137662439100,
+    "control": "c16ff5a1088169a2004871eae8947a5b5b69e6cc",
+    "portal": "387812546a860120943259c72918ad4d5e142b73",
+    "source": "f4ac6302cbeadf6b1af77cbd9c6cdf27cfec402b",
+    "core": "f7fbd77b9cd4d8f50a3fd1ee17487d4d33159f82",
+    "image": "sha256:078cd7c8acbd7a14de653178e8f7aba5d030a191da519f6f8c37c3756eeea704",
+    "artifact": 14814813455,
+    "archiveBytes": 4379,
+    "outcomes": [
+      {
+        "name": "Clan",
+        "passed": true,
+        "stage": "Clan delete",
+        "closePassed": true
+      },
+      {
+        "name": "Chat",
+        "passed": true,
+        "stage": "Chat end",
+        "closePassed": true
+      },
+      {
+        "name": "DirectoryMessage",
+        "passed": true,
+        "stage": "Directory return",
+        "closePassed": true
+      }
+    ],
+    "scope": "Actual page and shipping Startup/native owned Mongo. Clan create/edit/add member, independent participant GET persisted fields/membership, delete/list empty/close; Chat start/send/participant history/resume/end/participant active-list absence/close; directory search/composer prefill/no automatic send/one explicit send/recipient native inbox/return to search/home.",
+    "cleanup": "RAM-inspected package container absent and all five startup cleanup conditions true; terminal runtime/cache/TLS absence verified. No local env/download/build/database/results.",
+    "limits": "Representative journeys only. No every Clan role/leave/remove/treasury, every chat case, paid Stripe, all providers, hosted latency or whole-portal completion."
+  }
 }
