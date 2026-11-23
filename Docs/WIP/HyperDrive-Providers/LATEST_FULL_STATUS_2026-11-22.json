@@ -828,5 +828,35 @@
       "Applied runtime/restart acceptance and full bridge/browser",
       "Complete concurrency ownership across other DNA writers"
     ]
+  },
+  "latestRoutingTransportAcceptance": {
+    "run": 45221661443,
+    "job": 137857250439,
+    "status": "success",
+    "source": "3a0794006f9e85bd95fdaf804a18b5467e5e5f09",
+    "onodeManager": "dbfd109918f7875a7a299c258f2a9b6e31a5a6d0",
+    "accepted": [
+      "Actual MVC and shipping SDK save all three routing roles",
+      "Failover ordering and stale revision409",
+      "Independent-role preservation and reload-required acknowledgement",
+      "Actual executor selected-role read and edit",
+      "Owned DNA/token/directory/probe outputs removed"
+    ],
+    "scope": "Saved configuration, not applied runtime, full WEB4 bridge or browser.",
+    "portalSource": "c4b4acc",
+    "portalVerification": "Syntax and cache stamp only; no new browser acceptance.",
+    "web4Proxy": {
+      "source": "80183c02c1fbfaaf063462345f20a8882beb782b",
+      "inventoryRun": 45222196877,
+      "records": 835,
+      "compileRun": 45222638062,
+      "status": "in_progress"
+    },
+    "sharedReview": {
+      "development": "75a6769d2814f1347a1f2b42f687d494d96b2b11",
+      "core": "bc574ddec918f18924a3f77d9214af08a9e5ed8c",
+      "peerReport": "All7 dev deployments SUCCESS; source/deployment evidence only. Profile/OAPP retained. Preserve verified new CQL batch in next shipping composition.",
+      "overlap": "Only ONODE CQL Models/Services changed; no ONODE controller/Hub/JWT/Startup or classifier overlap found."
+    }
   }
 }
