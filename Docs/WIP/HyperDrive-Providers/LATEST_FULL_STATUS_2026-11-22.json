@@ -5,12 +5,19 @@
     "taskBranch": "work/hyperdrive-provider-completion",
     "taskWorktree": "C:/Source/OASIS2-hyperdrive",
     "portalBranch": "dev",
-    "portalHead": "387812546a860120943259c72918ad4d5e142b73",
-    "reviewedDevelopment": "b2c4e4473c0b1afebfc6c92b09ca23ac6137fd11",
-    "currentCore": "f7fbd77b9cd4d8f50a3fd1ee17487d4d33159f82",
+    "portalHead": "61b7c77d94660e1934dd6b590cc37ccb1bfd7546",
+    "reviewedDevelopment": "91e3ad17428c524eff8cc990f95491ff0f4ecf6c",
+    "currentCore": "def8cf76c73ed6495155dd16077a58030af33067",
     "currentWeb6": "78a27a295e74721358eb2b02399f79eff5b21633",
-    "scope": "Developmenta918 retains accepted NFT decoder and CQL metadata. Latest selected running WEB4 observationa549/all3holds true; a918 successor rollout metadata observed separately. Current portal source includes accepted map pagination and owned detail editing; no whole-portal claim.",
+    "scope": "Latest selected source review, not current running deployment acceptance. Peer CQL Development91e3 preserved in candidate; last independent selected WEB4 SSH observation was b2/all3holds true. No shared auth/data probes.",
     "currentQualification": {
+      "root": "e1cf13421bd8acd707d9cda49d2952b01240f2ab",
+      "core": "cb1c50c24ac8520be6f328bca08e48e04737854b",
+      "star": "ffd7fe494e1aacec50315baadff38273c88b8a11",
+      "run": 45190600949,
+      "status": "focused native profile HTTP composition active; not new shipping image or deployment acceptance"
+    },
+    "retainedNftQualification": {
       "root": "5442d4e9de89231a5a4bebe77c44374ab0920001",
       "core": "cac5dba4d026cc19dcfe4440737b9de50a8ed20d",
       "onode": "8745c95ef2f6150fafb1417122a20c020784b338",
@@ -181,7 +188,7 @@
     "Permanent account/private-data/provider-replica erasure and Settings deletion remain unfinished.",
     "Whole-host DID/MFA frontend and WEB6 SSO acceptance remain open; existing changed-save/native45094516900 retained."
   ],
-  "lastUpdatedUtc": "2026-11-23T08:57:49.910200+00:00",
+  "lastUpdatedUtc": "2026-11-23T14:08:43.336426+00:00",
   "latestFocusedRun": {
     "id": 45091356813,
     "job": 137421421351,
@@ -691,5 +698,10 @@
     "scope": "Recorded narrow journeys; empty WEB5 lists, designer export/remove, unique avatar search/clear and developer resources/link validation/close. Not whole-screen/all-actions or all external links.",
     "liveStaticDeveloper": "577b2a8 script/fragment source matches dev HTTP200",
     "remaining": "All named wider portal/action/provider/paid Stripe work remains open"
+  },
+  "currentDeliveryGaps20261123": {
+    "profile": "Canonical profile source absent from published Development; current CQL-preserving restoration prepared and native HTTP check active. Earlier449668 acceptance never proved delivery.",
+    "oapp": "Shallow-by-default catalogue and explicit map depth candidate prepared; subtype/category fixed. Actual OAPP creation passed; child fixture omitted mandatory idempotency headers and is corrected. Current populated journey45191161736 pending.",
+    "breadth": "Admin seven source-specific native/browser scopes and unchanged 51-event Karma Ledger evidence retained in screen matrix. No duplicate unchanged matrices. Whole portal/paid Stripe/provider/HyperDrive completion remains unproven."
   }
 }

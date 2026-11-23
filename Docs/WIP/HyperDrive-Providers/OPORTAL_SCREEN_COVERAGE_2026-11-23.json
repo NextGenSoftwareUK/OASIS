@@ -114,7 +114,46 @@
     {
       "route": "admin",
       "open": "openSubscriptionAdminModal",
-      "status": "further evidence reconciliation or main journey required; not complete"
+      "status": "retained native API/SDK/browser action scopes accepted; current hosted/Stripe/full-startup acceptance open",
+      "scope": "Six read tabs, grants, accounts, outbox, catalogue, owner assignment and usage all have native/browser evidence; admin script unchanged since accepted 5ebe7010. Do not repeat these accepted scopes merely to fill the matrix.",
+      "retainedEvidence": [
+        {
+          "document": "OPORTAL_ADMIN_ACCOUNTS_EVIDENCE_2026-11-19.json",
+          "run": 44549547233,
+          "status": "native-browser-accepted-full-usage-admission-hosted-and-other-admin-open"
+        },
+        {
+          "document": "OPORTAL_ADMIN_BROWSER_EVIDENCE_2026-11-19.json",
+          "run": 44544931572,
+          "status": "read-session-native-browser-accepted-grant-and-other-actions-open"
+        },
+        {
+          "document": "OPORTAL_ADMIN_CATALOGUE_EVIDENCE_2026-11-19.json",
+          "run": 44576879488,
+          "status": "accepted-single-host-catalogue-only"
+        },
+        {
+          "document": "OPORTAL_ADMIN_GRANT_EVIDENCE_2026-11-19.json",
+          "run": 44546346337,
+          "status": "grant-native-browser-accepted-other-admin-and-hosted-open"
+        },
+        {
+          "document": "OPORTAL_ADMIN_OUTBOX_EVIDENCE_2026-11-19.json",
+          "run": 44554360492,
+          "status": "service-native-api-browser-accepted-shared-worker-hosted-and-full-admin-open"
+        },
+        {
+          "document": "OPORTAL_ADMIN_OWNER_EVIDENCE_2026-11-19.json",
+          "run": 44582265031,
+          "status": "accepted-scoped-owner-assignment-api-sdk-browser-native-audit"
+        },
+        {
+          "document": "OPORTAL_ADMIN_USAGE_EVIDENCE_2026-11-19.json",
+          "run": 44590697379,
+          "status": "accepted-scoped-admin-usage-and-historical-today-counts"
+        }
+      ],
+      "limitations": "Original source-specific acceptance retained. This does not establish current deployment, paid inference, multi-host catalogue or Stripe completion."
     },
     {
       "route": "oapps",
