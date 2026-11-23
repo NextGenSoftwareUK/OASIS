@@ -16,7 +16,7 @@ public class QuestMetadataHydrationContractTests
         var hotspot = new GeoHotSpot { MetaData = new() { ["Lat"] = new Newtonsoft.Json.Linq.JRaw(json) } };
         var hydrate = typeof(HolonManager).GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
             .Single(m => m.Name == "MapV2MetaData" && m.IsGenericMethodDefinition).MakeGenericMethod(typeof(GeoHotSpot));
-        hydrate.Invoke(null, new object[] { hotspot });
+        hydrate.Invoke(null, new object[] { hotspot, null });
         using var document = System.Text.Json.JsonDocument.Parse(json);
         Assert.Equal(BitConverter.DoubleToInt64Bits(document.RootElement.GetDouble()), BitConverter.DoubleToInt64Bits(hotspot.Lat));
     }
@@ -27,7 +27,7 @@ public class QuestMetadataHydrationContractTests
         var hotspot = new GeoHotSpot { MetaData = new() { ["Lat"] = new Newtonsoft.Json.Linq.JRaw("1.000000000000000000000000001") } };
         var hydrate = typeof(HolonManager).GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
             .Single(m => m.Name == "MapV2MetaData" && m.IsGenericMethodDefinition).MakeGenericMethod(typeof(GeoHotSpot));
-        var error = Assert.Throws<TargetInvocationException>(() => hydrate.Invoke(null, new object[] { hotspot }));
+        var error = Assert.Throws<TargetInvocationException>(() => hydrate.Invoke(null, new object[] { hotspot, null }));
         Assert.IsType<System.IO.InvalidDataException>(error.InnerException);
         Assert.Equal(0d, hotspot.Lat);
     }
@@ -38,7 +38,7 @@ public class QuestMetadataHydrationContractTests
         var quest = new Quest { MetaData = new() { ["Requirements"] = "[\"visit portal\"]", ["Quests"] = "[]" } };
         var hydrate = typeof(HolonManager).GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
             .Single(m => m.Name == "MapV2MetaData" && m.IsGenericMethodDefinition).MakeGenericMethod(typeof(Quest));
-        hydrate.Invoke(null, new object[] { quest });
+        hydrate.Invoke(null, new object[] { quest, null });
         Assert.Equal(new[] { "visit portal" }, quest.Requirements);
         Assert.Empty(quest.Quests);
     }
@@ -49,7 +49,7 @@ public class QuestMetadataHydrationContractTests
         var hotspot = new GeoHotSpot { MetaData = new() { ["RewardIds"] = "[\"reward-one\"]" } };
         var hydrate = typeof(HolonManager).GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
             .Single(m => m.Name == "MapV2MetaData" && m.IsGenericMethodDefinition).MakeGenericMethod(typeof(GeoHotSpot));
-        hydrate.Invoke(null, new object[] { hotspot });
+        hydrate.Invoke(null, new object[] { hotspot, null });
         Assert.Equal(new[] { "reward-one" }, hotspot.RewardIds);
     }
 }
