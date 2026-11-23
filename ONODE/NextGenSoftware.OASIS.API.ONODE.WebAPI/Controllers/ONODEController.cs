@@ -286,48 +286,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// Returns configured OASIS storage providers and their enabled state from OASISDNA.json.
         /// </summary>
         [HttpGet("providers")]
-        public IActionResult GetProviders()
+        public async Task<IActionResult> GetProviders()
         {
             try
             {
-                var path = OASISBootLoader.OASISBootLoader.OASISDNA != null
-                    ? (Environment.GetEnvironmentVariable("OASISDNA_PATH") ?? "OASISDNA.json")
-                    : "OASISDNA.json";
-
-                // Resolve the actual path used by OASIS
-                var resolved = Environment.GetEnvironmentVariable("OASISDNA_PATH")
-                    ?? Path.Combine(AppContext.BaseDirectory, "OASISDNA.json");
-
-                if (!System.IO.File.Exists(resolved))
-                    return Ok(new List<object>());
-
-                var json = System.IO.File.ReadAllText(resolved);
-                using var doc = System.Text.Json.JsonDocument.Parse(json);
-                var root = doc.RootElement;
-
-                System.Text.Json.JsonElement providersEl = default;
-                bool found = root.TryGetProperty("OASISDNA", out var oasisdna)
-                    ? (oasisdna.TryGetProperty("StorageProviders", out var sp) && sp.TryGetProperty("Providers", out providersEl))
-                    : (root.TryGetProperty("StorageProviders", out var sp2) && sp2.TryGetProperty("Providers", out providersEl));
-
-                if (!found) return Ok(new List<object>());
-
-                var list = new List<object>();
-                foreach (var p in providersEl.EnumerateArray())
+                var tokenPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                    ".oasis", "supervisor-token");
+                if (!System.IO.File.Exists(tokenPath))
+                    return StatusCode(503, new { message = "ONODEService supervisor credential is unavailable." });
+                var token = (await System.IO.File.ReadAllTextAsync(tokenPath, HttpContext.RequestAborted)).Trim();
+                if (string.IsNullOrEmpty(token))
+                    return StatusCode(503, new { message = "ONODEService supervisor credential is unavailable." });
+                var factory = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions
+                    .GetRequiredService<System.Net.Http.IHttpClientFactory>(HttpContext.RequestServices);
+                using var http = factory.CreateClient("ONODESupervisor");
+                http.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                using var response = await http.GetAsync("supervisor/providers", HttpContext.RequestAborted);
+                return new ContentResult
                 {
-                    list.Add(new
-                    {
-                        providerType = p.TryGetProperty("ProviderType", out var pt) ? pt.GetString() : "",
-                        isEnabled    = p.TryGetProperty("IsEnabled",    out var ie) && ie.GetBoolean(),
-                        priority     = p.TryGetProperty("Priority",     out var pr) ? pr.GetInt32() : 0,
-                    });
-                }
-                return Ok(list);
+                    StatusCode = (int)response.StatusCode,
+                    ContentType = response.Content.Headers.ContentType?.ToString() ?? "application/json",
+                    Content = await response.Content.ReadAsStringAsync(HttpContext.RequestAborted)
+                };
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is System.Net.Http.HttpRequestException || ex is TaskCanceledException ||
+                                       ex is System.IO.IOException || ex is UnauthorizedAccessException)
             {
-                _logger.LogError(ex, "Error reading providers");
-                return StatusCode(500, new { message = "Error reading providers", error = ex.Message });
+                _logger.LogWarning("ONODEService provider configuration could not be read.");
+                return StatusCode(503, new { message = "ONODEService supervisor not reachable." });
             }
         }
 
@@ -422,7 +409,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// ONODEService pushes current aggregate node state every ~5 seconds.
         /// </summary>
         [HttpPut("node-state/{nodeId}")]
-        public IActionResult PushNodeState(string nodeId, [FromBody] AvatarNodeStateHolonDto state)
+        public async Task<IActionResult> PushNodeState(string nodeId, [FromBody] AvatarNodeStateHolonDto state)
         {
             if (string.IsNullOrWhiteSpace(nodeId) || state == null)
                 return BadRequest(new { message = "nodeId and state body are required." });
@@ -432,9 +419,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             _nodeStates[nodeId] = state;
 
             // Push to any OPORTAL browser clients watching this nodeId via WebSocket (local mode)
-            _ = Hubs.ONODEWebSocketHub.BroadcastAsync(nodeId, state);
-
-            return Ok(new { message = "Node state received." });
+            var delivery = await Hubs.ONODEWebSocketHub.BroadcastAsync(nodeId, state);
+            return Ok(new { message = "Node state received.", deliveredSubscribers = delivery.Result,
+                isWarning = delivery.IsWarning, warning = delivery.IsWarning ? delivery.Message : null });
         }
 
         /// <summary>
@@ -468,6 +455,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             cmd.Id = string.IsNullOrWhiteSpace(cmd.Id) ? Guid.NewGuid().ToString() : cmd.Id;
             cmd.Status = "Pending";
             cmd.IssuedAt = DateTime.UtcNow;
+            cmd.IssuedByAvatarId = Avatar.Id.ToString();
             _commands[cmd.Id] = cmd;
 
             AppendAudit(cmd.TargetNodeId, cmd.IssuedByAvatarId, $"Command:{cmd.Command}", cmd.Service ?? cmd.Payload);
@@ -573,6 +561,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public int Port { get; set; }
         public double UptimeSeconds { get; set; }
         public int? Pid { get; set; }
+        public string WindowMode { get; set; } = "";
+        public List<HolonProviderStateDto> Providers { get; set; } = new();
+    }
+
+    public class HolonProviderStateDto
+    {
+        public string ProviderType { get; set; } = "";
+        public bool IsEnabled { get; set; }
+        public int Priority { get; set; }
     }
 
     public class HolonMetricsDto
@@ -581,6 +578,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public long BytesReadPerSec { get; set; }
         public long BytesWrittenPerSec { get; set; }
         public double RequestsPerSec { get; set; }
+        public double AvgLatencyMs { get; set; }
     }
 
     public class AvatarNodeStateHolonDto
