@@ -4,6 +4,7 @@ const assert=require('node:assert/strict'),crypto=require('node:crypto');
 let stage='preparation';
 async function createOwnedAvatar(base){
  const url=new URL(base);assert.equal(url.hostname,'127.0.0.1');assert.equal(url.protocol,'http:');
+ assert.equal(url.pathname,'/');base=url.origin;
  const password='Owned!'+crypto.randomBytes(24).toString('hex');
  const username='startup_'+crypto.randomBytes(10).toString('hex');
  async function call(label,method,endpoint,body,token,wrapped=false){
