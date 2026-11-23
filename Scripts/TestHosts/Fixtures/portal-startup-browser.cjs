@@ -9,12 +9,12 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','nft','data','data-crud','data-edit','files-write','map-route','messaging','data-messaging','nft-messaging-data'].includes(popupGroup));
+ assert.ok(['none','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','data-messaging','nft-messaging-data'].includes(popupGroup));
  const selectedPopups=popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
-  popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging'}[popupGroup]];
+  popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
- let recipient,recipientToken,sentMessage=0,dataReads=0;
+ let recipient,recipientToken,ownedToken,incomingMessageId,incomingNotificationIds,markedMessages=0,markedNotifications=0,sentMessage=0,dataReads=0;
  const fileBytes=Buffer.from('Owned portal file roundtrip.\n','utf8');
  let fileId,fileUploads=0,fileDeletes=0;
  let routeId,routeCreates=0,routeUpdates=0;
@@ -59,10 +59,19 @@ async function main(){
   }
   if(api5)await admitFree(account);
   if(selectedPopups.length){
-   assert.equal(api5,null,'WEB4-only popup journey');await admitFree(account);
-   if(selectedPopups.includes('Messaging')){
+   assert.equal(api5,null,'WEB4-only popup journey');ownedToken=await admitFree(account);
+   if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')){
     recipient=await createOwnedAvatar(api.href);recipientToken=await admitFree(recipient);
    }
+  }
+  if(popupGroup==='messaging-read'){
+   assert.equal(await recipient.call('owned incoming message','POST','/api/messaging/send-message-to-avatar/'+account.avatar.id,messageText,recipientToken),true);
+   const messages=await account.call('owned incoming read','GET','/api/messaging/messages?limit=50&offset=0',undefined,ownedToken);
+   const matches=messages.filter(row=>row.content===messageText&&row.fromAvatarId===recipient.avatar.id&&row.toAvatarId===account.avatar.id);
+   assert.equal(matches.length,1);assert.equal(matches[0].isRead,false);incomingMessageId=matches[0].id;
+   const notifications=await account.call('owned notifications read','GET','/api/messaging/notifications?limit=20&offset=0',undefined,ownedToken);
+   incomingNotificationIds=notifications.filter(row=>row.avatarId===account.avatar.id&&row.isRead===false).map(row=>row.id);
+   assert.ok(incomingNotificationIds.length>0);
   }
   browser=await chromium.launch({channel:'chrome',headless:true});
   context=await browser.newContext({serviceWorkers:'block',ignoreHTTPSErrors:true});
@@ -72,6 +81,13 @@ async function main(){
    if(url.origin==='https://api.web4.oasisomniverse.one'){
     const mutation=request.method()!=='GET'&&request.method()!=='OPTIONS';
     let ownedOperation=false;
+    if(popupGroup==='messaging-read'&&request.method()==='POST'){
+     if(url.pathname==='/api/messaging/mark-messages-read'){
+      assert.equal(++markedMessages,1);assert.deepEqual(request.postDataJSON(),[incomingMessageId]);ownedOperation=true;
+     }else if(url.pathname==='/api/messaging/mark-notifications-read'){
+      assert.equal(++markedNotifications,1);assert.deepEqual([...request.postDataJSON()].sort(),[...incomingNotificationIds].sort());ownedOperation=true;
+     }
+    }
     if(popupGroup==='files-write'){
      if(request.method()==='POST'&&url.pathname==='/api/files/upload-file'){
       assert.equal(++fileUploads,1,'One explicit owned upload');assert.equal(request.postDataJSON(),fileBytes.toString('base64'));
@@ -251,6 +267,22 @@ async function main(){
     await page.waitForFunction(id=>document.getElementById('data-modal-status').hidden&&
      !document.querySelector('#data-browse-grid [data-holon-idx="'+id+'"]'),savedHolonId);
     assert.equal(holonSaves,popupGroup==='data-edit'?2:1);assert.equal(pointReads,popupGroup==='data-edit'?2:1);assert.equal(holonDeletes,1);
+   });
+   await checkPopup('MessagingRead','#messaging-modal-close-btn',async()=>{
+    stage='Inbox unread state';await page.waitForFunction(()=>document.getElementById('dash-card-messages').textContent==='1 unread');
+    await page.locator('#dash-card-messages').click();
+    await page.locator('#messaging-modal-block [data-tab="notifications"]').click();
+    await page.locator('#msg-notifications-list .msg-notification-row:not(.msg-notification-row--read)').first().waitFor({state:'visible'});
+    stage='Inbox mark read';await page.locator('#msg-mark-read-btn').click();
+    await page.waitForFunction(()=>document.getElementById('messaging-modal-status').textContent==='Inbox marked as read.');
+    await page.waitForFunction(()=>document.querySelectorAll('#msg-notifications-list .msg-notification-row--read').length>0&&!document.querySelector('#msg-notifications-list .msg-notification-row:not(.msg-notification-row--read)'));
+    stage='Inbox persisted readback';
+    const messages=await account.call('marked native messages','GET','/api/messaging/messages?limit=50&offset=0',undefined,ownedToken);
+    assert.equal(messages.find(row=>row.id===incomingMessageId)?.isRead,true);
+    const notifications=await account.call('marked native notifications','GET','/api/messaging/notifications?limit=20&offset=0',undefined,ownedToken);
+    assert.ok(incomingNotificationIds.every(id=>notifications.some(row=>row.id===id&&row.isRead===true)));
+    stage='Inbox dashboard refresh';await page.waitForFunction(()=>document.getElementById('dash-card-messages').textContent==='1');
+    assert.equal(markedMessages,1);assert.equal(markedNotifications,1);
    });
    await checkPopup('FilesWrite','#files-close-btn',async()=>{
     stage='Files upload form';await page.locator('#dash-card-files').click();
