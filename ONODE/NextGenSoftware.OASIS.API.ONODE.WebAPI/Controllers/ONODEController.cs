@@ -233,13 +233,49 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             var storage = oasis?.StorageProviders;
             if (oasis == null || storage == null)
                 return StatusCode(503, new { isError = true, message = "Loaded OASIS configuration is unavailable." });
+            var mode = oasis.HyperDriveMode;
+            if (mode != NextGenSoftware.OASIS.API.DNA.HyperDriveModes.Legacy &&
+                mode != NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2)
+                return StatusCode(503, new { isError = true, message = "Loaded HyperDrive mode is invalid." });
+            var routingSettings = new Dictionary<string, object>();
+            var routingSource = "OASIS.StorageProviders";
+            if (mode == NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2)
+            {
+                var hyperdrive = oasis.OASISHyperDriveConfig;
+                if (hyperdrive == null)
+                    return StatusCode(503, new { isError = true, message = "Loaded HyperDrive routing configuration is unavailable." });
+                routingSource = "OASIS.OASISHyperDriveConfig";
+                routingSettings["isEnabled"] = hyperdrive.IsEnabled;
+                routingSettings["autoFailoverEnabled"] = hyperdrive.AutoFailoverEnabled;
+                routingSettings["autoReplicationEnabled"] = hyperdrive.AutoReplicationEnabled;
+                routingSettings["autoLoadBalancingEnabled"] = hyperdrive.AutoLoadBalancingEnabled;
+                routingSettings["enabledProviders"] = hyperdrive.EnabledProviders?.ToArray() ?? Array.Empty<string>();
+                routingSettings["autoFailoverProviders"] = hyperdrive.AutoFailoverProviders?.ToArray() ?? Array.Empty<string>();
+                routingSettings["autoReplicationProviders"] = hyperdrive.AutoReplicationProviders?.ToArray() ?? Array.Empty<string>();
+                routingSettings["loadBalancingProviders"] = hyperdrive.LoadBalancingProviders?.ToArray() ?? Array.Empty<string>();
+            }
+            else
+            {
+                string[] Providers(string value) => (value ?? "").Split(',',
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                routingSettings["autoFailOverEnabled"] = storage.AutoFailOverEnabled;
+                routingSettings["autoReplicationEnabled"] = storage.AutoReplicationEnabled;
+                routingSettings["autoLoadBalanceEnabled"] = storage.AutoLoadBalanceEnabled;
+                routingSettings["autoFailOverLocalProvidersEnabled"] = storage.AutoFailOverLocalProvidersEnabled;
+                routingSettings["autoFailOverProviders"] = Providers(storage.AutoFailOverProviders);
+                routingSettings["autoReplicationProviders"] = Providers(storage.AutoReplicationProviders);
+                routingSettings["autoLoadBalanceProviders"] = Providers(storage.AutoLoadBalanceProviders);
+                routingSettings["autoFailOverLocalProviders"] = Providers(storage.AutoFailOverLocalProviders);
+                routingSettings["autoFailOverProvidersForAvatarLogin"] = Providers(storage.AutoFailOverProvidersForAvatarLogin);
+            }
             return Ok(new OASISResult<object>(new
             {
                 schemaVersion = "onode-public-config-v1",
                 sources = new { oasisDna = "Loaded WEB4 OASIS DNA" },
                 oasisDna = new
                 {
-                    hyperDriveMode = oasis.HyperDriveMode,
+                    hyperDriveMode = mode,
+                    routingPolicy = new { source = routingSource, settings = routingSettings },
                     storage = new
                     {
                         storage.AutoFailOverEnabled, storage.AutoReplicationEnabled,
