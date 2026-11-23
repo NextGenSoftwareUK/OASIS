@@ -5,16 +5,16 @@
     "taskBranch": "work/hyperdrive-provider-completion",
     "taskWorktree": "C:/Source/OASIS2-hyperdrive",
     "portalBranch": "dev",
-    "portalHead": "71ea1255c7e7241cdc766179aaf4d4525865004a",
-    "reviewedDevelopment": "aa257b03a0baae0175e7b47cd367a93fd139f55c",
-    "currentCore": "80400bb46dab74632a99d1f27bf6a0a6a94b7840",
+    "portalHead": "55db5be",
+    "reviewedDevelopment": "9307d04330616f96982a01fd11b7497d08fc7aeb",
+    "currentCore": "7186c8065e5423c44a5998ae858ac4c33a52b584",
     "currentWeb6": "78a27a295e74721358eb2b02399f79eff5b21633",
-    "scope": "currentCore/currentWeb6 retain last verified Gifts runtime snapshot. Current Development aa257/Core854 fluent mapping preserved in Inventory21ab/Corefc qualification. Full portal acceptance remains open.",
+    "scope": "Latest observed dev WEB4 runtime770/Core718, followed by source-only9307 sandbox-script update. Authority Core2356 now published; parent/rollout remain pending.",
     "currentQualification": {
-      "root": "21abed0bedfde0399f66eef1da62cff0d92d34b7",
-      "core": "fc2470e77afa41e0a35850dbb2ce3c3f9e23b6dd",
-      "run": 45114577286,
-      "status": "active-not-accepted-or-deployed"
+      "root": "121dcb0287e5eaa4816fbbdf01645030613d264f",
+      "core": "2356b0a8b4d8a425cf13a8abe45b0b4dfcd7defa",
+      "run": 45132201881,
+      "status": "image-package-and-three-new-popups-accepted-core-published-parent-pending"
     }
   },
   "web6": {
@@ -50,7 +50,9 @@
       "Settings selected/global sign-out browser45093523946",
       "Changed MFA issuance/challenge/recovery/refresh45094516900",
       "Read-only account-deletion requirements browser45096493185",
-      "Gifts send/receive/open/history/logout browser/native45104328970"
+      "Gifts send/receive/open/history/logout browser/native45104328970",
+      "Real WEB5 entry-point Games/OAPP full-page45128946718",
+      "Shipping WEB4 full-page Files/Wallet/Karma45132201881"
     ],
     "latestDeliveredFixes": [
       "Current subscription selection, retry states, real invoice/PDF links and exact-plan checkout activation confirmation",
@@ -58,12 +60,12 @@
       "Read-only account closure requirements review; permanent erasure still unavailable",
       "MCP readiness and renewal event; stale checkout actions give explicit reopen guidance",
       "Gifts duplicate logout handler removed; complete representative real popup flow accepted",
-      "Games/OAPPs/Inventory combined native/browser45114577286 accepted and backend21abed0b published; running rollout pending.",
+      "Games/OAPPs/Inventory combined native/browser45114577286 accepted and backend21abed0b published; later running WEB4 revision770 includes21ab source.",
       "Inventory linked NFT/GeoNFT IDs, stack, dates and custom properties now rendered from existing response; Portal17ed8e4 script served exact, focused rendering check passed.",
       "Real username sign-in form fixed; actual authenticated WEB4 page slice45120405171 accepted."
     ],
     "remaining": [
-      "Authenticated full portal page/navigation and WEB5/WEB6 SSO/browser acceptance; isolated WEB4 shipping Startup auth accepted45118119727.",
+      "Remaining full-page popup/action coverage and WEB6 SSO/browser; WEB4 authenticated page451204 and WEB5 Games/OAPP451289 slices accepted.",
       "Hosted Stripe paid lifecycle and checkout recovery acceptance; existing owner action remains open",
       "Permanent account and all-data/provider/replica erasure lifecycle",
       "Current hosted dashboard/screen performance acceptance",
@@ -112,8 +114,8 @@
     "protectedDeliveries": "535/543 not replayed; audit543 unavailable, preserve hold."
   },
   "cleanup": {
-    "freeDiskGB": 23.93,
-    "thisTurn": "No local builds/downloads/environments/databases/results. Owned Core/root composition indexes and locks removed in finally; source Git objects/tags retained.45104328970 owned DB/DNA/container/browser runtime/cache absence verified. Existing policy-blocked8038-byte cache untouched.",
+    "freeDiskGB": 27.16,
+    "thisTurn": "RAM-only selected4159B artifact; package container absent/dataWrites0; runtime hosts exited0; owned containers/network/database volumes absent, generated WEB5 DNA absent/not used; runtime/cache/TLS removal verified. No local builds/downloads/env/database/results.",
     "temporaryEmailSecrets": "Previously deleted and absence verified; not restaged."
   },
   "deliveryPolicy": "Finish remaining OPORTAL user flows breadth first; one representative end-to-end verification for changed behavior, reuse accepted evidence. A blocked backend flow must not stop independent screen work.",
@@ -159,9 +161,9 @@
   "engineeringRemaining": [
     "General V2 avatar-save per-call replication mode/completion semantics still need review; session issuance now has its own existing pinned authority contract.",
     "Permanent account/private-data/provider-replica erasure and Settings deletion remain unfinished.",
-    "Changed async DID/MFA session-save and sync/detail native acknowledgement paths require representative verification before full entry-point acceptance."
+    "Whole-host DID/MFA frontend and WEB6 SSO acceptance remain open; existing changed-save/native45094516900 retained."
   ],
-  "lastUpdatedUtc": "2026-11-23T04:54:56.7642562Z",
+  "lastUpdatedUtc": "2026-11-23T07:37:09.391634+00:00",
   "latestFocusedRun": {
     "id": 45091356813,
     "job": 137421421351,
@@ -273,5 +275,32 @@
     "artifact": 14793447648,
     "cleanup": "Containers/network/database volumes/runtime/cache/TLS absent",
     "excluded": "Paid catalogue/checkout, WEB5/6 cards/SSO, hosted latency, all other popups and whole portal"
+  },
+  "web5FullEntryPoint20261123": {
+    "run": 45128946718,
+    "job": 137539728475,
+    "accepted": "Actual portal sign-in/free ledger/Games dashboard/all/mine and owned OAPP empty list",
+    "notAccepted": "Hosted/paid Stripe/WEB6/full portal"
+  },
+  "shippingPopupBreadth20261123": {
+    "status": "verified-source-image-and-new-popup-slice-core-published-parent-ready",
+    "base": "9307d04330616f96982a01fd11b7497d08fc7aeb",
+    "core": "2356b0a8b4d8a425cf13a8abe45b0b4dfcd7defa",
+    "imageSource": "121dcb0287e5eaa4816fbbdf01645030613d264f",
+    "image": "sha256:6c78a1fa6df21bec4c5d62ab431ce7507062e0aa6edbd7c57ee34c4f02910910",
+    "imageRun": 45129737094,
+    "imageJob": 137542256591,
+    "packageAndPopupRun": 45132201881,
+    "packageAndPopupJob": 137550036297,
+    "artifact": 14798516434,
+    "archiveBytes": 4159,
+    "portal": "f89b2ec160bab77ebcf05d7ba5d343f328c0b493",
+    "accepted": "Exact CQL image package/source pins; actual full portal sign-in, Files empty list/count, Wallet empty list/count, Karma empty records/four stats and Stats tab, normal close controls through shipping WEB4 Program/Startup and isolated native Mongo.",
+    "retained": "Real WEB5 Games/OAPP full-entry-point45128946718 on authority sourcea208; current Core2356 preserves exact authority files plus accepted CQL718. Existing subscription/Gifts/Settings/populated catalogue cohorts retained, not replayed.",
+    "fix": "Explicit request collection authority, validated against admitted ordinary/native providers; shared async/sync selector, no global mutation or passive-boot activation.",
+    "corePublication": "Fast-forward2356 to Core Development completed; preserves already-pinned718 CQL work.",
+    "parentScope": "Current9307 sandbox script preserved; only paired Core pin, admission guide and named evidence/status are added. No unrelated dirty gitlinks staged.",
+    "cleanup": "RAM-only selected4159B artifact; package container absent/dataWrites0; runtime hosts exited0; owned containers/network/database volumes absent, generated WEB5 DNA absent/not used; runtime/cache/TLS removal verified. No local builds/downloads/env/database/results.",
+    "remaining": "Parent publication/rollout, compatible runtime then explicit dev WEB4 authority setting and saved/running verification. No hosted login/database test. Paid Stripe/WEB6/permanent account erasure/all other popup actions/providers/HyperDrive full programme remain open."
   }
 }

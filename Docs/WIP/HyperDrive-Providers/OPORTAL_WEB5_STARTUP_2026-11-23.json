@@ -84,8 +84,15 @@
     "core": "2356b0a8b4d8a425cf13a8abe45b0b4dfcd7defa",
     "root": "121dcb0287e5eaa4816fbbdf01645030613d264f",
     "imageRun": 45129737094,
-    "status": "in_progress",
-    "scope": "Only Core gitlink/paired manifest on exact current Development; actual shared authority files identical to accepted a208; peer CQL model changes preserved."
+    "status": "Core-published-parent-publication-ready",
+    "scope": "Only Core gitlink/paired manifest on exact current Development; actual shared authority files identical to accepted a208; peer CQL model changes preserved.",
+    "imageStatus": "success",
+    "imageJob": 137542256591,
+    "image": "sha256:6c78a1fa6df21bec4c5d62ab431ce7507062e0aa6edbd7c57ee34c4f02910910",
+    "packageAndPopupRun": 45132201881,
+    "packageAndPopupJob": 137550036297,
+    "packageStatus": "success",
+    "artifact": 14798516434
   },
   "savedDevConfiguration": {
     "web4": {
