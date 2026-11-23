@@ -2955,3 +2955,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 - 2026-11-23 Settings browser host integration: source/Node syntax/diff checks only; no local generated outputs or environments. Remote run45091356813 remains active; no new dispatch.
 
 - 2026-11-23 run45091356813/job137421421351 SUCCESS: native marker confirms owned Mongo unpaused and SQLite directory absent; remote Remove only the owned native fixture step SUCCESS. Logs inspected in RAM, no archive/results saved locally.
+
+- 2026-11-23 Portala5a6a56: in-memory five-case changed-expression check and syntax/diff only; no installs/builds/downloads/databases/results. Settings browser run45092112547 now remote; do not claim cleanup until terminal evidence.
