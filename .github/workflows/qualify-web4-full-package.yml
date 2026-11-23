@@ -84,13 +84,16 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Validate package-only scope before image operations
+      - name: Validate explicit CQL image scope before image operations
         if: inputs.package_profile == 'cql-api'
         env:
           COMBINED_STARTUP: ${{ inputs.combined_startup }}
           RETAINED_WAKU: ${{ inputs.retained_waku }}
+          STARTUP_AUTH: ${{ inputs.startup_authentication }}
         run: |
-          test "$COMBINED_STARTUP" != true
+          # Existing CQL package mode stays inspection-only. The new explicit mode
+          # qualifies isolated auth Startup, never CQL query/runtime acceptance.
+          test "$COMBINED_STARTUP" != true || test "$STARTUP_AUTH" = true
           test "$RETAINED_WAKU" != true
       - name: Validate startup authentication selection
         env:
