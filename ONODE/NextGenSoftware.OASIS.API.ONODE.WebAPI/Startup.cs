@@ -119,6 +119,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             // services.AddMvc();
 
             // services.AddDbContext<DataContext>();
+            services.AddHttpClient("ONODESupervisor", client =>
+            {
+                client.BaseAddress = new Uri("http://127.0.0.1:8765/");
+                client.Timeout = TimeSpan.FromSeconds(5);
+            });
             services.AddCors();
             // Add exception filter with configuration
             services.AddControllers(x =>
@@ -973,38 +978,6 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             // WebSocket support — used by OPORTAL in local mode for real-time state push
             app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(30) });
 
-            // WebSocket endpoint: GET /ws/onode/{nodeId}
-            app.Use(async (context, next) =>
-            {
-                if (context.Request.Path.StartsWithSegments("/ws/onode", out var remainder)
-                    && context.WebSockets.IsWebSocketRequest)
-                {
-                    var nodeId = remainder.Value?.TrimStart('/') ?? "";
-                    if (string.IsNullOrEmpty(nodeId)) { context.Response.StatusCode = 400; return; }
-
-                    var ws = await context.WebSockets.AcceptWebSocketAsync();
-                    NextGenSoftware.OASIS.API.ONODE.WebAPI.Hubs.ONODEWebSocketHub.Register(nodeId, ws);
-
-                    // Keep alive — read until client closes
-                    var buffer = new byte[128];
-                    while (ws.State == System.Net.WebSockets.WebSocketState.Open)
-                    {
-                        try
-                        {
-                            var result = await ws.ReceiveAsync(buffer, CancellationToken.None);
-                            if (result.MessageType == System.Net.WebSockets.WebSocketMessageType.Close)
-                            {
-                                await ws.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure,
-                                    "Closed by client", CancellationToken.None);
-                            }
-                        }
-                        catch { break; }
-                    }
-                    return;
-                }
-                await next();
-            });
-
             app.UseRouting();
             //app.UseSession();
 
@@ -1038,6 +1011,42 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseMiddleware<JwtMiddleware>();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            // Browser subscriptions authenticate through JwtMiddleware before acceptance.
+            app.Use(async (context, next) =>
+            {
+                if (!context.Request.Path.StartsWithSegments("/ws/onode", out var remainder)
+                    || !context.WebSockets.IsWebSocketRequest)
+                { await next(); return; }
+                if (context.Items["Avatar"] is not NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar avatar)
+                { context.Response.StatusCode = StatusCodes.Status401Unauthorized; return; }
+                if (avatar.AvatarType?.Value != NextGenSoftware.OASIS.API.Core.Enums.AvatarType.Wizard)
+                { context.Response.StatusCode = StatusCodes.Status403Forbidden; return; }
+                if (!context.WebSockets.WebSocketRequestedProtocols.Contains("oasis-onode-v1"))
+                { context.Response.StatusCode = StatusCodes.Status400BadRequest; return; }
+                var nodeId = remainder.Value?.TrimStart('/') ?? "";
+                if (string.IsNullOrWhiteSpace(nodeId))
+                { context.Response.StatusCode = StatusCodes.Status400BadRequest; return; }
+                using var socket = await context.WebSockets.AcceptWebSocketAsync("oasis-onode-v1");
+                Hubs.ONODEWebSocketHub.Register(nodeId, socket);
+                try
+                {
+                    var buffer = new byte[128];
+                    while (socket.State == System.Net.WebSockets.WebSocketState.Open)
+                    {
+                        var received = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), context.RequestAborted);
+                        if (received.MessageType == System.Net.WebSockets.WebSocketMessageType.Close)
+                        {
+                            await socket.CloseOutputAsync(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure,
+                                "Closed by client", context.RequestAborted);
+                            break;
+                        }
+                    }
+                }
+                catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested) { }
+                catch (System.Net.WebSockets.WebSocketException) { }
+                finally { Hubs.ONODEWebSocketHub.Unregister(nodeId, socket); }
+            });
 
             if(Configuration["PREPARED_STORAGE_ADMISSION_JSON"]!=null)
             {
