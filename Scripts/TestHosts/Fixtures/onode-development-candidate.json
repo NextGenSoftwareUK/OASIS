@@ -1,11 +1,11 @@
 {
   "scope": "onode",
-  "status": "web4-role-revision-proxy-source-inventory-pending",
-  "candidate": "8ef461ffa37e0c465cc395ce25622f3af23cf3f1",
-  "base": "3a0794006f9e85bd95fdaf804a18b5467e5e5f09",
-  "tag": "qualification/onode-web4-role-proxy-20261123",
+  "status": "reviewed-role-proxy-ready-for-web4-only-compile",
+  "candidate": "80183c02c1fbfaaf063462345f20a8882beb782b",
+  "base": "8ef461ffa37e0c465cc395ce25622f3af23cf3f1",
+  "tag": "qualification/onode-role-proxy-reviewed-20261123",
   "allowedPaths": [
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ONODEController.cs"
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv"
   ],
   "buildProjects": [
     "WEB4"
@@ -17,10 +17,10 @@
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
   "remaining": "Review regenerated route positions; compile changed WEB4 only. Preserve service/SDK/command acceptance once current run terminates. Actual WEB4 bridge/browser, applied runtime and cross-writer concurrency remain open.",
   "inventoryReview": {
-    "run": 45213996648,
-    "artifact": 14836649117,
-    "bytes": 40375,
-    "scope": "No removed routes or new local downgrades; three ONODE transport helpers and existing NativeData SourcesAsync/Wallet SendTokenAsync now correctly classified delegated."
+    "run": 45222196877,
+    "artifact": 14841566904,
+    "bytes": 40271,
+    "scope": "All835 route records unchanged except source positions; no removed contracts or local downgrades."
   },
   "pendingProviderTransport": {
     "candidate": "a03f6c902b816f831daeecf76e65265bab6f8c55",
@@ -86,5 +86,12 @@
       "Complete concurrency ownership across other DNA writers"
     ],
     "job": 137854071744
+  },
+  "routingTransportRun": {
+    "run": 45221661443,
+    "job": 137857250439,
+    "status": "success",
+    "source": "3a0794006f9e85bd95fdaf804a18b5467e5e5f09",
+    "scope": "Actual MVC/shippingSDK all three saved roles, failover order, stale409, independent role preservation/reload acknowledgement, actual executor role read/edit; no WEB4 bridge/browser/applied runtime."
   }
 }
