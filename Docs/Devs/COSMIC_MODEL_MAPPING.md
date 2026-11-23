@@ -131,3 +131,15 @@ Model constraints cover every node selected by an owned graph save after authori
 Each admitted join source retains its own immutable model, including when both sources use the same CLR contract with different metadata keys. Join scalar output capture and LINQ correlation keys now use those models; typed whole-entity results reuse the source query materializer. GroupJoin carrier scalar admission uses the left model, while matched right entities use their own source model.
 
 The representative qualifier covers scalar and typed Join, matched/unmatched GroupJoin and correlated SelectMany. This is source-integrated pending its native qualification, and does not imply unrestricted computed joined expressions or all post-join composition.
+
+## Declaring annotation-only entity contracts
+
+Entity<T>() declares a contract in an explicit model even when its properties already have CustomOASISProperty annotations or use only canonical Holon fields:
+
+```csharp
+var builder = new CosmicModelBuilder();
+builder.Entity<Reading>();
+var model = builder.Build();
+```
+
+Explicit property mappings and naming conventions are optional for this declaration. Typed child-role materialization can use any contract declared in the same model, including an annotation-only contract. Build freezes the entity set; declaring additional types later does not change an existing model. This source change is under its separate native qualifier; consult current status before treating it as deployed.
