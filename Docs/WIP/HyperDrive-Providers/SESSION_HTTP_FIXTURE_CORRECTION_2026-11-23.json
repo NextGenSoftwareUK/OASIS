@@ -1,5 +1,5 @@
 {
-  "status": "corrected final assertion and new status field source; replacement acceptance pending",
+  "status": "Actual LocalFile/protected HTTP acceptance:1passed0failed; Development publication pending",
   "failedRun": 45095683887,
   "failedJob": 137438374315,
   "failedCase": "HyperDriveReadRoutesAcceptRealJwtAfterV2PersistedAvatarLookup(LocalFile)",
@@ -16,5 +16,15 @@
     "evidence": "Actual sign-in/persisted credential and three protected HTTP reads passed before the final stale-token assertion; hard-deleted account returned401 as required.",
     "fix": "Assert real unauthorized OASISResult<bool> error/false payload, retain401 and native deletion assertions."
   },
-  "additionalChangedStatusAssertion": "Existing status read checks configured worker-pause response against real fixture IConfiguration; no extra request."
+  "additionalChangedStatusAssertion": "Existing status read checks configured worker-pause response against real fixture IConfiguration; no extra request.",
+  "acceptedRun": {
+    "id": 45098982294,
+    "job": 137445180377,
+    "candidate": "afbd5984e5a3b824080059e206331b727645c8de",
+    "passed": 1,
+    "failed": 0,
+    "caseSeconds": 4,
+    "scope": "Actual persisted sign-in, three protected HyperDrive reads, configured-pause field matches real DI configuration, hard delete and canonical401/error/false. No shipping auth weakening.",
+    "resources": "Mongo and browser setup skipped; provider/global state restored through fixture finally; no local outputs."
+  }
 }

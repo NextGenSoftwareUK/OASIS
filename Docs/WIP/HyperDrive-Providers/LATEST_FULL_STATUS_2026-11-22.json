@@ -5,7 +5,7 @@
     "taskBranch": "work/hyperdrive-provider-completion",
     "taskWorktree": "C:/Source/OASIS2-hyperdrive",
     "portalBranch": "dev",
-    "portalHead": "6feabcd",
+    "portalHead": "43cf6d6",
     "reviewedDevelopment": "721f33130849794856c546218dceb06ee1396c87",
     "currentCore": "27dae38da3f3212e360d939db642d02c01c8fc5f",
     "currentWeb6": "f9aa81c6dc3e27ac02677c985d41929b768c5969",
@@ -276,12 +276,19 @@
     "failedJob": 137438374315,
     "reason": "Old LocalFile HTTP fixture minted JWT with no persisted binding",
     "sourceCorrection": "f4ff99ed8fa",
-    "status": "corrected real LocalFile HTTP case running; no other accepted cohort replay",
-    "focusedRun": 45097985487
+    "status": "focused correction accepted1passed0failed; complete normal integration gate pending next scoped Development batch",
+    "focusedRun": 45098982294
   },
   "mcpReadiness": {
     "source": "f573156",
     "status": "await shared session readiness; source/syntax checked, browser pending",
     "newRequests": 0
+  },
+  "workerStatus": {
+    "apiCandidate": "afbd5984e5a3b824080059e206331b727645c8de",
+    "field": "backgroundWorkersPauseConfigured",
+    "status": "actual native/HTTP1case accepted; publication/rollout pending",
+    "portal": "43cf6d6",
+    "uiScope": "source/syntax checked, browser not newly accepted"
   }
 }

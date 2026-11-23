@@ -1,3 +1,7 @@
+## 2026-11-23 - Configured worker-status and LocalFile HTTP correction ACCEPTED
+
+45098982294/job137445180377 SUCCESS on afbd5984, exactly1passed0failed4s. Actual native LocalFile persisted sign-in,3protected HTTP reads, status pause config matches real DI, native hard-delete then401/error/false. Shipping session enforcement unchanged. Mongo/browser setup skipped; fixture restores globals/deactivates native provider. Next one scoped Development batch contains only two controller source files, corrected test and named evidence/docs. Existing6bb seven-service running acceptance retained; next rollout not yet claimed.
+
 ## 2026-11-23 - Configured background-worker status source and focused fixture
 
 Portal43cf6d6 displays operator pause configuration separately from routing switches; older APIs explicitly not-reported. API source adds backgroundWorkersPauseConfigured via DI configuration, not a worker-liveness assertion; not deployed. LocalFile45097985487 passed real sign-in and3protected reads, then failed obsolete INVALID_AVATAR text expectation after correct401. Fixed final error/false assertion and added status/config check to same existing request. Next candidateafbd5984e5a3b824080059e206331b727645c8de uses that one case only; no accepted cohorts/Mongo/browser.

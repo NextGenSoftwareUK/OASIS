@@ -2983,3 +2983,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 - 2026-11-23 MCP readiness: source/Node syntax/endpoint/diff only; no local runtime/env/database/build/download/results. One compact653byte source report retained. LocalFile regression45097985487 active remotely with Mongo/browser creation excluded. Prior8038-byte blocked cache unchanged.
 
 - 2026-11-23 worker-status candidate: .git-worker-status-index and lock removed in finally. Source/Node syntax/endpoint/diff only locally; no runtime/env/build/database/download/results. First focused run45097985487 used LocalFile; Mongo/browser setup excluded; corrected assertion replacement pending. Prior8038-byte blocked cache remains recorded.
+
+- 2026-11-23 run45098982294/job137445180377 SUCCESS1case: Mongo/browser preparation skipped, no such fixture created. Native avatar hard-deleted/provider deactivated/globals restored in fixture finally; directory absence not asserted, ephemeral CI workspace discarded by runner. Terminal logs RAM only; no local outputs/env/download/results. Prior8038-byte policy-blocked cache remains recorded.
