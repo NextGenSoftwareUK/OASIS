@@ -264,7 +264,7 @@ An optional XML value-type field has a nullable CLR domain; not-null=true uses i
 The syntax reference is [NHibernate dynamic components](https://nhibernate.info/doc/nhibernate-reference/components.html#components-dynamic). COSMIC's admitted subset maps the canonical metadata dictionary and retains the documented read-only/identity/query differences. The XML dictionary qualifier45140169734 passed three native journeys, one admission control and the actual WEB4 build, with exact owned cleanup. Combined image/package and deployment acceptance remain separate.
 
 
-### Named application filters (native-qualified; deployment pending)
+### Named application filters (Development deployed)
 Entity<T>().HasQueryFilter("active", row => row.IsActive) adds or replaces
 a case-sensitive named filter. Distinct names and the optional unnamed filter
 are combined with AND before source paging. Build freezes captured literals.
@@ -278,7 +278,7 @@ policy. These application filters are opt-in model rules, not provider-manager
 collection filters. Exact-contract matching remains; polymorphic filters are open.
 
 
-### Shadow entry comparison values and explicit flags (native-qualified; deployment pending)
+### Shadow entry comparison values and explicit flags (Development deployed)
 A session ShadowProperty<TValue> entry supports GetOriginalValue(), GetValues(),
 SetOriginalValue(value), RemoveOriginalValue(), and SetModified(bool).
 These delegate to the existing canonical change tracker; there is no second baseline.
@@ -293,7 +293,7 @@ foreign-session entries cannot read or change these values. Required constraints
 remain enforced at save. Arbitrary CLR indexers and full M16 parity remain open.
 
 
-### Query tracking modes (native-qualified; deployment pending)
+### Query tracking modes (Development deployed)
 CosmicSession.Linq<T>(CosmicQueryTrackingMode mode) and
 ReadAsync(query, CosmicQueryTrackingMode mode) admit Tracking, NoTracking and
 NoTrackingWithIdentityResolution. Existing Boolean tracking APIs keep their meaning.
@@ -324,3 +324,5 @@ Ordinary selected-tuple sets retain their distinct value-equality contract.
 Mappings must give the selected columns identical physical meaning on both operands;
 genuinely different bindings are refused. Subsequent selected filters/order/pages,
 terminals and HTTP/SQL/Ask transport need further native integration. Full parity is open.
+
+Development df5b8382/Coree6ff has exact source, seven original rollout and authorized runtime-setting acceptance for the three deployed sections above. The newer native post-set selection section remains on Coref339 with image/package/deployment and HTTP/SQL/Ask acceptance separate.
