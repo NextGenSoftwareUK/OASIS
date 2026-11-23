@@ -17,7 +17,6 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
-using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
@@ -76,7 +75,7 @@ try
         if (property.Name.StartsWith("Auto", StringComparison.Ordinal) && property.Value.Type == JTokenType.Boolean) property.Value = false;
         if (property.Name.StartsWith("Auto", StringComparison.Ordinal) && property.Value.Type == JTokenType.String) property.Value = "MongoDBOASIS";
     }
-    storage["OASISProviderBootType"] = "Cold";
+    storage["OASISProviderBootType"] = "Warm";
     storage["MongoDBOASIS"] = JObject.FromObject(new { ConnectionString = uri, DBName = marker, NativeImportDBName = marker });
     oasis["HyperDriveMode"] = HyperDriveModes.V2;
     var hyperdrive = (JObject)oasis["OASISHyperDriveConfig"]!;
@@ -141,12 +140,7 @@ try
         Check(!detail.IsError, "Native detail seed failed.");
     }
     NextGenSoftware.OASIS.OASISBootLoader.OASISBootLoader.OASISDNAPath = dnaPath;
-    ProviderManager.Instance.OASISDNA = dna;
-    Check(ProviderManager.Instance.RegisterProvider(provider), "Owned provider registration failed.");
-    var selected = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(ProviderType.MongoDBOASIS);
-    Check(!selected.IsError, "Owned provider selection failed.");
-    var boot = await new OASISAPI().BootOASISAsync(dna, startApolloServer: false);
-    Check(!boot.IsError && boot.Result, "Owned runtime boot failed.");
+    // The private SDK instance seeds only owned data. Actual Startup owns passive boot and admitted registration.
 
     stage = "actual supervisor composition";
     var nodeConfig = new SupervisorConfig { NodeId = marker, AvatarId = wizard.ToString("D"), OASISDNAPath = dnaPath,
@@ -266,6 +260,16 @@ try
         var rows = routing.RootElement;
         Check(rows.ValueKind == JsonValueKind.Array && rows.GetArrayLength() > 0, "WEB4 proxy lost routing rows.");
         Check(rows.EnumerateArray().All(row => row.GetProperty("role").GetString() == "failover"), "WEB4 proxy lost selected role.");
+    }
+    stage = "loaded WEB4 public configuration";
+    using (var loaded = await Read("/api/v1/onode/public-config"))
+    {
+        Check(!loaded.RootElement.GetProperty("isError").GetBoolean(), "Loaded public view returned an error.");
+        var view = loaded.RootElement.GetProperty("result");
+        Check(view.GetProperty("schemaVersion").GetString() == "onode-public-config-v1", "Loaded public schema differs.");
+        Check(view.GetProperty("oasisDna").GetProperty("routingPolicy").GetProperty("source").GetString() ==
+            "OASIS.OASISHyperDriveConfig", "Loaded public view selected the wrong routing owner.");
+        Check(!view.GetRawText().Contains(wizardJwt, StringComparison.Ordinal), "Loaded public view leaked a runtime token.");
     }
     stage = "real WEB4 revision-aware local write";
     using (var routing = await Read("/api/v1/onode/providers?role=replication"))

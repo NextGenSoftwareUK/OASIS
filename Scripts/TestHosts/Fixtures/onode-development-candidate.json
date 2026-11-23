@@ -1,11 +1,11 @@
 {
   "scope": "onode",
-  "status": "reviewed-current-cql-manager-and-route-inventories-ready-for-native-bridge",
-  "candidate": "949a857c40ceb731171dd7c69f11b44937e679f2",
-  "base": "034d2ba2b0f2e9eb9fc499736e27dd2e6c81152e",
-  "tag": "qualification/onode-current-inventories-20261123",
+  "status": "loaded-api-managed-configuration-source-inventory-pending",
+  "candidate": "6cce336bac3d0a1d7000fe95ec69802aa8d45b54",
+  "base": "949a857c40ceb731171dd7c69f11b44937e679f2",
+  "tag": "qualification/onode-loaded-routing-view-20261123",
   "allowedPaths": [
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv"
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ONODEController.cs"
   ],
   "buildProjects": [
     "WEB4"
@@ -146,5 +146,12 @@
       "routeRecords": 835,
       "review": "Exactly one published Core set-count manager boundary added; V2 guard and real executor inspected, no removals/disposition changes. Route positions only."
     }
+  },
+  "nativeBridgeAttempt2": {
+    "run": 45231243298,
+    "job": 137891040788,
+    "status": "failed-host-compilation",
+    "cause": "Native facade namespace was not in the host reference closure; host now uses actual Startup for passive boot/admitted registration, no facade dependency.",
+    "apiStarted": false
   }
 }
