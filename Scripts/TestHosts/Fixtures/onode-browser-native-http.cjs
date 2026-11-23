@@ -35,15 +35,15 @@ async function verify({baseUrl,token,avatarId,nodeId}){
   await page.locator('#onode-target').selectOption(nodeId);
   await page.waitForFunction(id=>document.getElementById('onode-info-grid').textContent.includes(id),nodeId);
   async function tab(name){await page.locator('.onode-tab[data-tab="'+name+'"]').click();}
-  async function publicView(id){
-   await page.waitForFunction(id=>{try{return !!JSON.parse(document.getElementById(id).textContent);}catch{return false;}},id);
+  async function publicView(id,source){
+   await page.waitForFunction(({id,source})=>{try{const value=JSON.parse(document.getElementById(id).textContent);return !!value&&(!source||value.source===source);}catch{return false;}},{id,source});
    const value=JSON.parse(await page.locator('#'+id).textContent());
    assert.ok(!JSON.stringify(value).includes(token));return value;
   }
   stage='registered configuration';await tab('config');
   assert.equal((await publicView('onode-config')).nodeId,nodeId);
   stage='saved DNA';await tab('oasisdna');
-  const savedDna=await publicView('onode-oasisdna');
+  const savedDna=await publicView('onode-oasisdna','Saved node OASIS DNA');
   assert.equal(savedDna.source,'Saved node OASIS DNA');
   assert.equal(savedDna.routingPolicy.source,'OASIS.OASISHyperDriveConfig');
   stage='provider membership';await tab('providers');
@@ -68,13 +68,16 @@ async function verify({baseUrl,token,avatarId,nodeId}){
   assert.ok((await page.locator('#onode-services-grid').textContent()).length>0);
   stage='reported metrics';await tab('metrics');
   assert.ok((await page.locator('#onode-metrics-grid').textContent()).includes('Peers connected'));
-  stage='live updates';await page.locator('#onode-live-updates').check();
+  stage='live updates';
+  const liveFrame=page.waitForEvent('websocket',{predicate:socket=>new URL(socket.url()).pathname==='/ws/onode/'+nodeId})
+   .then(socket=>socket.waitForEvent('framereceived',{predicate:frame=>{try{return JSON.parse(String(frame.payload)).nodeId===nodeId;}catch{return false;}}));
+  await page.locator('#onode-live-updates').check();await liveFrame;
   await page.waitForFunction(()=>document.getElementById('onode-status-label').textContent==='REGISTERED NODE');
   stage='close';await page.locator('#onode-close-btn').click();
   assert.equal(await page.locator('.js-modal.is-visible').count(),0);
   stage='API-managed loaded configuration';await page.locator('#fixture-open-onode').click();
   await page.locator('#onode-target').selectOption('');
-  await tab('oasisdna');const loadedDna=await publicView('onode-oasisdna');
+  await tab('oasisdna');const loadedDna=await publicView('onode-oasisdna','Loaded WEB4 OASIS DNA');
   assert.equal(loadedDna.source,'Loaded WEB4 OASIS DNA');
   assert.equal(loadedDna.routingPolicy.source,'OASIS.OASISHyperDriveConfig');
   await page.locator('#onode-close-btn').click();
@@ -83,7 +86,7 @@ async function verify({baseUrl,token,avatarId,nodeId}){
   assert.ok(requests.some(request=>request.path==='/api/v1/onode/commands'&&request.method==='POST'));
   assert.ok(requests.some(request=>request.path==='/api/v1/onode/public-config'));
   return {actualOnodePopup:true,registeredPublicViews:true,savedRoleWriteReadback:true,
-   roleSelection:true,providerLayout:true,reportedServicesMetrics:true,loadedApiView:true,closed:true,
+   roleSelection:true,providerLayout:true,reportedServicesMetrics:true,realLiveFrame:true,loadedApiView:true,closed:true,
    apiMocks:false,errors:0};
  }catch(error){throw new Error('Owned ONODE browser failed at '+stage+'; type='+error.name+'; credential-bearing detail withheld.');}
  finally{await context.close();await browser.close();}
