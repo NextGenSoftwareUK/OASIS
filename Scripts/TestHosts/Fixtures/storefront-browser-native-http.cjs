@@ -17,7 +17,19 @@ async function verify({baseUrl,token,avatarId,gameId,oappId,itemId}) {
   await context.addInitScript(({token,avatarId})=>{localStorage.setItem('avatar',JSON.stringify({id:avatarId}));sessionStorage.setItem('ownedCatalogueBearer',token);},{token,avatarId});
   const page=await context.newPage();page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));
   await page.goto(baseUrl+'/__storefront_browser');await page.waitForFunction(()=>window.__storefrontReady===true);
-  await page.locator('#fixture-games').click();await page.locator('#games-all-list article').waitFor();
+  const gamesResponse=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/games');
+  await page.locator('#fixture-games').click();
+  const gamesHttp=await gamesResponse;
+  const gamesBody=await gamesHttp.json();
+  const safeMessage=value=>String(value||'').replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,'[redacted]').replace(/[a-z]+:\/\/\S+/gi,'[endpoint]').slice(0,300);
+  const facts={http:gamesHttp.status(),isError:gamesBody.isError,errorCode:gamesBody.errorCode,
+   message:/secret|password|token|connectionstring|credential/i.test(gamesBody.message||'')?'[redacted]':safeMessage(gamesBody.message),
+   resultArray:Array.isArray(gamesBody.result),count:Array.isArray(gamesBody.result)?gamesBody.result.length:null,
+   firstId:Array.isArray(gamesBody.result)?gamesBody.result[0]?.id:null};
+  assert.equal(gamesHttp.ok(),true,JSON.stringify(facts));
+  assert.equal(gamesBody.isError,false,JSON.stringify(facts));
+  assert.ok(Array.isArray(gamesBody.result)&&gamesBody.result.some(row=>row.id===gameId),JSON.stringify(facts));
+  await page.locator('#games-all-list article').waitFor();
   await page.locator('#games-all-list summary').click();const game=await page.locator('#games-all-list article').textContent();
   for(const text of [gameId,'Owned developer','Owned publisher','Windows, Linux','Avatar SSO'])assert.ok(game.includes(text),text);
   assert.equal(await page.locator('#games-all-list a').getAttribute('href'),'https://game.example/play');
