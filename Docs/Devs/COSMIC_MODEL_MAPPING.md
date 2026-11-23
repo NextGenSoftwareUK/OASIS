@@ -117,3 +117,9 @@ builder.Entity<Reading>()
 PropertyName preserves CLR spelling; SnakeCase maps ReadingValue to reading_value and HTTPStatus to http_status. Explicit fluent aliases and inherited property annotations take precedence. Canonical Holon fields retain their names. Each Build resolves a separate immutable snapshot, so changing the builder convention does not change existing queries or sessions.
 
 The convention applies to every public custom property in this flat scalar contract. A property outside the admitted scalar/public getter/setter contract, reserved key or collision makes Build return an error. Complex properties require their separately specified mapping support. Query, save and hydration use the same model map. Verification and deployment status remain in the COSMIC status; this does not establish full naming/model parity.
+
+## Explicit models and selected child roles
+
+An explicit model now travels with an admitted WithChildren query through typed child-role hydration. Configure each child CLR contract in the same model and register its role with HolonChildRoleBinding. Configured role members use the existing model metadata codec before role callbacks; a separate local metadata factory is unnecessary. Unconfigured roles retain their registered factory contract.
+
+Root and child identities, parent links, committed revisions and stored role observations must remain unchanged. Native visibility and graph budgets still apply; omitted private members are not materialized and their complete stored relationship observation is retained. This source integration requires its new three-provider qualification before acceptance. It does not add unrestricted POCO relationships or make session writes implicitly save a graph.
