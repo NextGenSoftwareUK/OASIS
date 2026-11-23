@@ -92,9 +92,9 @@
     {
       "route": "onode",
       "open": "openONODEModal",
-      "status": "component API/SDK/commands accepted; corrected isolated-process bridge qualification active",
+      "status": "actual API/supervisor bridge accepted; popup browser active; incomplete",
       "run": 45242480184,
-      "scope": "Prior empty500 traced45240663145 to test host mixing WEB4 Swagger6.4 with supervisor10.2.3. Corrected host uses actual separate supervisor process; no shipping auth change. Prior accepted component evidence retained. Authentication/bridge/browser not yet accepted."
+      "scope": "Actual Startup password sessions, authorization, separate shipping supervisor state/commands, local revision-aware proxy and real socket accepted; cleanup passed. Popup45243804259 active-not-accepted. Applied routing/process-control completeness remains open."
     },
     {
       "route": "developer",

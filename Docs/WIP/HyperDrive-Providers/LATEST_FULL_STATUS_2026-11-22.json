@@ -860,39 +860,53 @@
     }
   },
   "currentOnodeBridge20261123": {
-    "source": "949a857c40ceb731171dd7c69f11b44937e679f2",
-    "core": "bc574ddec918f18924a3f77d9214af08a9e5ed8c",
+    "source": "75dad9fada3012452f693eece973decd08789386",
+    "core": "a76c6593152730fb336b68253698abc34a245c85",
     "onodeManager": "3ecf0f8ea9713412da9071a1c6d12f961b050c8e",
-    "nativeRun": 45231243298,
-    "nativeJob": 137891040788,
-    "status": "failed test-host compilation; corrected host/source pending inventory before retry",
-    "scope": "Actual WEB4 Startup, real native Mongo password-issued Wizard/User sessions, real supervisor push/poll/execute/ack, local revision-aware proxy and live WebSocket. No browser/applied runtime/all-provider acceptance yet.",
+    "nativeRun": 45242480184,
+    "nativeJob": 137930510870,
+    "status": "accepted actual separate shipping process bridge; browser pending",
+    "scope": "Actual WEB4 Startup, native Mongo password-issued Wizard/User sessions and authorization, actual separate shipping supervisor push/poll/execute/ack, revision-aware local proxy, loaded public configuration and real WebSocket passed. Not applied runtime/all-provider/process-control completeness.",
     "performanceSource": [
       "Removed hard-coded ten-second initial command polling delay; configured cadence remains.",
       "Separated bounded read command budget60/min from unchanged write budget10/min; atomic counter update.",
       "Popup requires the authenticated SDK HTTP transport it actually uses, not unused wrapper presence."
     ],
     "inventories": {
-      "run": 45227491740,
-      "artifact": 14843032392,
+      "run": 45237515982,
+      "artifact": 14849027990,
       "managerRecords": 938,
       "routeRecords": 835,
-      "review": "Exactly one published Core set-count manager boundary added; V2 guard and real executor inspected, no removals/disposition changes. Route positions only."
+      "review": "Current conversion Core source; no semantic differences, route exact, manager source positions only."
+    },
+    "cleanup": {
+      "ownedProcessesStopped": true,
+      "databasesRemoved": true,
+      "dnaTokenMetricsRemoved": true,
+      "ownedDirectoryRemoved": true,
+      "mongoContainerAbsent": true,
+      "localBuildsDownloads": false
+    },
+    "browser": {
+      "run": 45243804259,
+      "status": "active-not-accepted",
+      "portal": "88d2f7adc10687845585460ebfea68bd4c9fc705",
+      "scope": "Prepared actual popup/SDK; accepted standalone native assertions skipped in browser mode."
     }
   },
   "latestLoadedConfigurationWiring": {
-    "source": "6cce336bac3d0a1d7000fe95ec69802aa8d45b54",
-    "portal": "79a9e28",
-    "status": "source-prepared-inventory-queued",
-    "inventoryRun": 45233869564,
+    "source": "75dad9fada3012452f693eece973decd08789386",
+    "portal": "88d2f7adc10687845585460ebfea68bd4c9fc705",
+    "status": "actual loaded API view accepted; popup browser pending",
+    "inventoryRun": 45237515982,
     "scope": "API-managed Config/DNA tabs use allowlisted loaded WEB4 public configuration; registered nodes retain saved-file view. Live routing explicitly distinguished from saved membership. Not browser/runtime acceptance.",
     "nativeAttempt": {
-      "run": 45231243298,
-      "job": 137891040788,
-      "status": "failed-host-compilation",
-      "cause": "Native facade namespace not referenced by this host; removed dependency/manual preboot. Actual Startup now owns passive Warm/admitted initialization; new source has not run yet.",
-      "apiStarted": false,
-      "mongoContainerAbsent": true
+      "run": 45242480184,
+      "job": 137930510870,
+      "status": "success",
+      "apiStarted": true,
+      "mongoContainerAbsent": true,
+      "scope": "Loaded public schema, selected mode owner and secret exclusion; not saved edits applied to live routing."
     }
   }
 }
