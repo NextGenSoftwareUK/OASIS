@@ -350,6 +350,13 @@ try
                 baseUrl = origin, token = wizardJwt, avatarId = wizard.ToString("D"), nodeId = marker }));
             browser.StandardInput.Close();
             await browser.WaitForExitAsync(deadline.Token);
+            if (browser.ExitCode != 0)
+            {
+                var safeStage = (await error).Split('\n').Select(line => line.Trim()).FirstOrDefault(line =>
+                    System.Text.RegularExpressions.Regex.IsMatch(line,
+                        @"^Owned ONODE browser failed at [A-Za-z -]+; type=[A-Za-z]+; credential-bearing detail withheld\.$"));
+                if (safeStage != null) Console.WriteLine("ONODE_BROWSER_FAILURE: " + safeStage);
+            }
             Check(browser.ExitCode == 0, "Actual popup journey failed; credential-bearing browser details withheld.");
             using var result = JsonDocument.Parse(await output);
             Check(result.RootElement.GetProperty("actualOnodePopup").GetBoolean() &&
