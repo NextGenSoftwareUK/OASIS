@@ -1,0 +1,13 @@
+{
+  "observedAt": "2026-11-22T09:18:53.106029+00:00",
+  "holoAvailable": true,
+  "queryAccepted": true,
+  "rowsReturned": 1,
+  "sessionRevoked": true,
+  "completed": true,
+  "holonWrites": 0,
+  "piperAccess": false,
+  "calls": 4,
+  "credentialsRemoved": true,
+  "exactRunningSourceVerified": false
+}

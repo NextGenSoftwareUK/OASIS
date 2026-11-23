@@ -1,0 +1,16 @@
+{
+  "source": "384a808776acf3dfd632ad33a0e3c61d6cbceb8a",
+  "deployment": "dpl_5A2iYXeaqQHSs72gpNxcWF7gRg2q",
+  "url": "https://web4-site-rfb6hcqmy-oasis-team.vercel.app/web4-sandbox.html",
+  "htmlSha256": "c5a63936f092c29dcadb9d6418d6ad57b13ee82612f7cc52328ba3f35800cf9c",
+  "htmlOnlyTransformation": "Exact appended Vercel feedback script with matching deployment id",
+  "exactScriptHashes": {
+    "cql-text.js": "9d5f5174792db5e232f3bc447e108752e7cc7a17116057e4502a0dd021ff833d",
+    "cql-playground.js": "bc202b05b3dfb6e0d051c8f89390bdc5eb8256126f4c34b0953bcfb84c828935",
+    "cql-ask.js": "8bfe4b6a4c856eb6d38891b32f0ced12b8fd5c92ea6b5c48a82b8040ea93c4b8"
+  },
+  "renderedBrowserVerified": false,
+  "realModelVerified": false,
+  "dataCalls": 0,
+  "savedAssets": false
+}

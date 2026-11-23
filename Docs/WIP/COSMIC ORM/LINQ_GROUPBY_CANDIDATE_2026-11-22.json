@@ -1,0 +1,41 @@
+{
+  "source": "9377df3eca7b01ef129458b22c10874d8e8cba6b",
+  "core": "6b227830bfb0e81f352207a02aa255379ed881c3",
+  "run": 45063783244,
+  "job": 137335321932,
+  "phase": "native_accepted",
+  "nativeAccepted": true,
+  "deployed": false,
+  "retainedGroupJoinRun": 45062660975,
+  "retainedGroupJoinNativeAccepted": true,
+  "dependencyRun": 45063783187,
+  "unrelatedOwnedRunsTerminalCancelled": [
+    45063783095,
+    45063783084,
+    45063783019,
+    45063783168,
+    45063782905,
+    45063783075,
+    45063783058,
+    45063782957,
+    45063783113,
+    45063782975,
+    45063783090,
+    45063783124,
+    45063783171,
+    45063783127,
+    45063782988,
+    45063782990,
+    45063783144,
+    45063783118,
+    45063782993
+  ],
+  "sharedBackendCalls": 0,
+  "localBuildsOrEnvironments": false,
+  "remaining": [
+    "entity IGrouping collections",
+    "LINQ integer Average result domain",
+    "from-end grouped pages",
+    "reselection after HAVING"
+  ]
+}

@@ -7,8 +7,6 @@ on:
       - '.github/workflows/qualify-gomap-web4.yml'
       - 'Providers/Maps/NextGenSoftware.OASIS.API.Providers.GOMapOASIS/**'
       - 'Scripts/TestHosts/gomap_web4_mongo.py'
-      - 'Docker/oasis-dependency-versions.env'
-      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlGOMapRouteHostedConfigurationTests.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlGOMapRouteHttpTests.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/ReviewedPublicMongoHttpFixture.cs'

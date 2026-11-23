@@ -63,7 +63,7 @@ public sealed partial class CqlV1Web4NativeTests
     internal static async Task VerifyMappedNativeHttpAsync(IOASISStorageProvider provider,
         VirtualHolonMapping mapping, VirtualHolonRead original, bool groupedDistinctOnly = false,
         Action<Guid>? createdObserver = null, bool guidDistinct = false,
-        Dictionary<string, long>? queryTimings = null, Guid? virtualOnlyId = null, bool guidRows = false, bool predicateCrossing = false, bool guidFilters = false, bool int32Http = false, bool unfiltered = false, bool dateKeys = false)
+        Dictionary<string, long>? queryTimings = null, Guid? virtualOnlyId = null, bool guidRows = false, bool predicateCrossing = false, bool guidFilters = false, bool int32Http = false, bool unfiltered = false, bool dateKeys = false, CqlProjectionV1Column[]? computedColumns = null)
     {
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -107,6 +107,12 @@ public sealed partial class CqlV1Web4NativeTests
             snapshot.MetaData["occurredAlias"]=new DateTime(2001,1,1,0,0,0,DateTimeKind.Utc);
             important.MetaData["occurredAlias"]=MixedDate(MixedDateFirst);
             longer.MetaData["occurredAlias"]=MixedDate(MixedDateSecond);
+        }
+        if (computedColumns != null)
+        {
+            snapshot.MetaData["stockAlias"]=99; snapshot.MetaData["flagAlias"]=false;
+            important.MetaData["stockAlias"]=0; important.MetaData["flagAlias"]=false; important.MetaData["keyAlias"]="owned";
+            longer.MetaData["stockAlias"]=5; longer.MetaData["flagAlias"]=false; longer.MetaData["keyAlias"]="longer";
         }
         var created = new List<Guid>();
         var authority = new Authority();
@@ -172,6 +178,54 @@ public sealed partial class CqlV1Web4NativeTests
                 var response = await http.SendAsync(request);
                 if (watch != null) queryTimings!.Add("request" + queryTimings.Count, watch.ElapsedMilliseconds);
                 return response;
+            }
+            if (computedColumns != null)
+            {
+                Assert.IsTrue(virtualOnlyId.HasValue);
+                body.Columns=computedColumns;
+                body.Filters=new[] {new CqlV1Filter { MetadataPath=new[] {"keyAlias"},Scalar=CqlV1Scalar.String,
+                    Operator=CqlV1Operator.NotEqual,Value=JsonSerializer.SerializeToElement("bad") }};
+                body.OrderBy="None";
+                body.SelectedOrder=new[] {new CqlGroupedV1Ordering {Alias="Stock",Descending=true},
+                    new CqlGroupedV1Ordering {Alias="Id"}};
+                body.Take=10;
+                async Task<JsonElement> ReadComputed()
+                {
+                    using var response=await Send(ownerToken);
+                    var content=await response.Content.ReadAsStringAsync();
+                    Assert.AreEqual(HttpStatusCode.OK,response.StatusCode,content);
+                    Assert.AreEqual("settled",response.Headers.GetValues("X-OASIS-Usage-Settlement").Single());
+                    using var parsed=JsonDocument.Parse(content);
+                    return parsed.RootElement.GetProperty("result").Clone();
+                }
+                var combined=await ReadComputed();
+                var rows=combined.GetProperty("rows").EnumerateArray().ToArray();
+                CollectionAssert.AreEquivalent(new[] {original.Id,virtualOnlyId.Value,important.Id,longer.Id},
+                    rows.Select(row=>row[0].GetGuid()).ToArray());
+                CollectionAssert.AreEqual(new[] {7,5,0,0},rows.Select(row=>row[4].GetInt32()).ToArray());
+                var live=rows.Single(row=>row[0].GetGuid()==original.Id);
+                Assert.AreEqual("$literal",live[1].GetString());Assert.AreEqual("other",live[2].GetString());
+                Assert.AreEqual("yes",live[3].GetString());
+                var empty=rows.Single(row=>row[0].GetGuid()==virtualOnlyId.Value);
+                Assert.AreEqual("",empty[1].GetString());Assert.AreEqual("",empty[2].GetString());
+                Assert.AreEqual("no",empty[3].GetString());
+                foreach(var full in rows.Where(row=>row[0].GetGuid()==important.Id || row[0].GetGuid()==longer.Id))
+                    Assert.AreEqual("no",full[3].GetString());
+                var liveIndex=Array.FindIndex(rows,row=>row[0].GetGuid()==original.Id);
+                var provenance=combined.GetProperty("provenance")[liveIndex];
+                Assert.AreEqual("Virtual",provenance.GetProperty("representation").GetString());
+                Assert.IsTrue(provenance.GetProperty("alsoMaterialized").GetBoolean());
+                body.Skip=1;body.Take=1;
+                var page=(await ReadComputed()).GetProperty("rows").EnumerateArray().Single();
+                Assert.AreEqual(longer.Id,page[0].GetGuid());Assert.AreEqual(5,page[4].GetInt32());
+                using(var response=await Send(otherToken))
+                    Assert.AreEqual(HttpStatusCode.NotFound,response.StatusCode,await response.Content.ReadAsStringAsync());
+                var preserved=await provider.LoadHolonAsync(snapshot.Id);Assert.IsNotNull(preserved.Result);
+                Assert.AreEqual(99,JsonSerializer.SerializeToElement(preserved.Result.MetaData["stockAlias"]).GetInt32());
+                Assert.AreEqual("zz",JsonSerializer.SerializeToElement(preserved.Result.MetaData["textAlias"]).GetString());
+                Assert.IsNull((await provider.LoadHolonAsync(virtualOnlyId.Value)).Result);
+                Assert.AreEqual(3,authority.Settlements.Count);
+                await app.StopAsync();return;
             }
             if(dateKeys)
             {

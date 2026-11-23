@@ -79,31 +79,58 @@ public partial class Neo4jOASIS : ICosmicQueryProjectedAllStorageProvider, ICosm
     private sealed class NeoSelectedResult
     {
         internal CosmicProjectionCompositionPacket Proof;
+        internal CosmicProjectedSetPacket SetProof;
         internal long? Counterexamples;
     }
 
     private async Task<OASISResult<NeoSelectedResult>> ExecuteSelectedSnapshotAsync<T,TResult>(
         CosmicProjectionCompositionPlan<T,TResult> plan, CosmicProjectedAllPlan<T,TResult> all,
-        CosmicProjectionCompositionExecutionLimits limits, CancellationToken cancellationToken, bool entity=false) where T:IHolon
+        CosmicProjectionCompositionExecutionLimits limits, CancellationToken cancellationToken, bool entity=false,
+        CosmicProjectedSetPlan<T,TResult> selectedSet=null,CosmicProjectedSetExecutionLimits setLimits=null) where T:IHolon
     {
         NeoCqlReadBudget readBudget=null;
         try
         {
+            if(selectedSet!=null)
+            {
+                var actual=CosmicProjectedSetPlanner.Plan(selectedSet.Query,Core.Enums.ProviderType.Neo4jOASIS,
+                    new CosmicProjectionCompositionTarget(Core.Enums.ProviderType.Neo4jOASIS,CqlCapabilities,
+                        CqlProjectionCapabilities,CqlCompositionCapabilities),ProjectedSetCapabilities,selectedSet.Options);
+                if(actual.IsError)return CompositionCqlFailure(actual.ErrorCode,actual.Message,actual.Exception);
+                selectedSet=actual.Result;
+            }
+            else
+            {
             var admitted=entity ? (all==null ? CosmicProjectionCompositionPlanner.AdmitEntityExecution(plan,this,limits)
                 : CosmicProjectedAllPlanner.AdmitEntityExecution(all,this,limits)) : all == null ? CosmicProjectionCompositionPlanner.AdmitExecution(plan,Core.Enums.ProviderType.Neo4jOASIS,
                 CqlCapabilities,CqlProjectionCapabilities,CqlCompositionCapabilities,limits)
                 : CosmicProjectedAllPlanner.AdmitExecution(all,Core.Enums.ProviderType.Neo4jOASIS,
                     CqlCapabilities,CqlProjectionCapabilities,CqlCompositionCapabilities,limits);
             if(admitted.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,NeoSelectedResult>(admitted);
+            }
             var query=all == null ? plan.Query : all.Query.Projection;
-            var command=all == null ? CompileCqlComposition(plan,limits) : CompileCqlProjectedAll(all,limits);
-            using var budget=readBudget=new NeoCqlReadBudget(limits.MaximumPayloadBytes,cancellationToken);
+            var command=selectedSet!=null ? CompileCqlProjectedSet(selectedSet,setLimits)
+                : all == null ? CompileCqlComposition(plan,limits) : CompileCqlProjectedAll(all,limits);
+            using var budget=readBudget=new NeoCqlReadBudget(setLimits?.MaximumPayloadBytes??limits.MaximumPayloadBytes,cancellationToken);
             budget.Check();
             await using var readOwner=await LeaseCqlReadAsync(budget.Token).ConfigureAwait(false);
             using var session=readOwner.Driver.AsyncSession(config=>config.WithDefaultAccessMode(AccessMode.Read).WithFetchSize(1));
             using var transaction=await session.BeginTransactionAsync(config=>config.WithTimeout(TimeSpan.FromSeconds(30))).ConfigureAwait(false);
             budget.Check();
             var cursor=await transaction.RunAsync(command.Text,command.Parameters).ConfigureAwait(false);
+            if(selectedSet!=null)
+            {
+                var setDecoder=new NeoCqlProjectedSetDecoder<T,TResult>(selectedSet,setLimits,budget.Check);
+                while(true)
+                {
+                    budget.Check();
+                    if(!await cursor.FetchAsync().ConfigureAwait(false))break;
+                    budget.Check();setDecoder.Add(cursor.Current.Values);
+                }
+                var setPacket=setDecoder.Complete();budget.Check();
+                await transaction.CommitAsync().ConfigureAwait(false);budget.Check();
+                return new OASISResult<NeoSelectedResult>(new NeoSelectedResult{SetProof=setPacket}){IsLoaded=true};
+            }
             var decoder=new NeoCqlCompositionDecoder<T,TResult>(query,limits,budget.Check,terminal:all != null, cardinality:plan?.RequestsCardinality == true, numeric:plan?.NumericReduction);
             var entityProof=entity ? new NeoCqlEntityInputProof((plan?.EntitySource??all?.EntitySource).Options) : null;
             long observedEntity=0;long? expectedEntity=null;var selectedStarted=false;

@@ -1,0 +1,19 @@
+{
+  "source": "3a972d83a91ad3191a2614e5b02d57d088e8ea41",
+  "core": "f8fc9bb795fc4d1f966b63c2b724741dce7bc62f",
+  "run": 45019120717,
+  "job": 137197874230,
+  "artifact": 14755495804,
+  "bytes": 4394,
+  "sha256": "0ca31722e91d81c93e3f0abe503afb86d4cff0446097888bd044e008e57f5f4c",
+  "checkoutSourceAndCoreLogVerified": true,
+  "coreControlsPassed": 5,
+  "mongoWholeLeftNativePassed": true,
+  "groupJoinNativePassed": false,
+  "failure": "Fixture StartsWith omitted the required explicit ordinal comparison; refused during query capture.",
+  "sqliteExecuted": false,
+  "neo4jExecuted": false,
+  "ownedMongoStopped": true,
+  "archiveSaved": false,
+  "deployed": false
+}

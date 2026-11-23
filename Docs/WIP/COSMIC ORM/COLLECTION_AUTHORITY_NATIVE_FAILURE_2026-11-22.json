@@ -1,0 +1,14 @@
+{
+  "run": 45058425820,
+  "job": 137318735889,
+  "conclusion": "failure",
+  "artifact": 14768477639,
+  "archiveBytes": 2017,
+  "archiveSha256": "4be0e321f98bd023e47951998d91a2ccec4f6e1c8e77ff8fc8e81771a5015204",
+  "cause": "fixture database name has64 ASCII bytes; MongoDB command rejects length above63",
+  "nativeAcceptance": false,
+  "ownedMongoContainerStopped": true,
+  "shippingSourceChangeNeeded": false,
+  "sharedAtlasOrPiperAccess": false,
+  "archiveSavedLocally": false
+}

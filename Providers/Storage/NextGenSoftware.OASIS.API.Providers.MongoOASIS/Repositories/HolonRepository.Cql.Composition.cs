@@ -28,31 +28,47 @@ public partial class HolonRepository
         return new CosmicProjectedAllPacket(result.Proof, result.Counterexamples.Value);
     }
 
-    private async Task<(CosmicProjectionCompositionPacket Proof, long? Counterexamples)> ExecuteNativeSelectedSnapshotAsync<T, TResult>(
-        MongoCqlCompositionCommand command, CosmicProjectionQuery<T, TResult> query,
-        CosmicProjectionCompositionExecutionLimits limits, CancellationToken cancellationToken) where T : IHolon
+    private Task<(CosmicProjectionCompositionPacket Proof,long? Counterexamples)> ExecuteNativeSelectedSnapshotAsync<T,TResult>(
+        MongoCqlCompositionCommand command,CosmicProjectionQuery<T,TResult> query,
+        CosmicProjectionCompositionExecutionLimits limits,CancellationToken cancellationToken) where T:IHolon
+        =>ExecuteSelectedSnapshotOwnerAsync((session,options,token)=>
+            ReadNativeSelectedPacketAsync(command,query,limits,session,options,token),cancellationToken);
+
+    private async Task<TRead> ExecuteSelectedSnapshotOwnerAsync<TRead>(
+        Func<IClientSessionHandle,Func<AggregateOptions>,CancellationToken,Task<TRead>> read,CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        using var deadline=CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(30));
-        var elapsed = System.Diagnostics.Stopwatch.StartNew();
+        var elapsed=System.Diagnostics.Stopwatch.StartNew();
         AggregateOptions Options()
         {
             deadline.Token.ThrowIfCancellationRequested();
-            var remaining = TimeSpan.FromSeconds(30) - elapsed.Elapsed;
-            if (remaining <= TimeSpan.Zero) throw new MongoCqlGraphTimeoutException();
-            return new AggregateOptions { Collation = Collation.Simple, AllowDiskUse = false, BatchSize = 1,
-                MaxTime = TimeSpan.FromMilliseconds(Math.Ceiling(remaining.TotalMilliseconds)) };
+            var remaining=TimeSpan.FromSeconds(30)-elapsed.Elapsed;
+            if(remaining<=TimeSpan.Zero)throw new MongoCqlGraphTimeoutException();
+            return new AggregateOptions{Collation=Collation.Simple,AllowDiskUse=false,BatchSize=1,
+                MaxTime=TimeSpan.FromMilliseconds(Math.Ceiling(remaining.TotalMilliseconds))};
         }
         try
         {
-            using var session = await _dbContext.MongoClient.StartSessionAsync(
-                new ClientSessionOptions { Snapshot = true, CausalConsistency = false }, deadline.Token).ConfigureAwait(false);
+            using var session=await _dbContext.MongoClient.StartSessionAsync(
+                new ClientSessionOptions{Snapshot=true,CausalConsistency=false},deadline.Token).ConfigureAwait(false);
+            return await read(session,Options,deadline.Token).ConfigureAwait(false);
+        }
+        catch(OperationCanceledException) when(!cancellationToken.IsCancellationRequested && deadline.IsCancellationRequested)
+        {throw new MongoCqlGraphTimeoutException();}
+    }
+
+    private async Task<(CosmicProjectionCompositionPacket Proof,long? Counterexamples)> ReadNativeSelectedPacketAsync<T,TResult>(
+        MongoCqlCompositionCommand command,CosmicProjectionQuery<T,TResult> query,
+        CosmicProjectionCompositionExecutionLimits limits,IClientSessionHandle session,Func<AggregateOptions> Options,
+        CancellationToken token) where T:IHolon
+    {
             if (command.Source.RequiresMembership)
-                await ValidateCqlMembershipAsync(session, Options, deadline.Token).ConfigureAwait(false);
+                await ValidateCqlMembershipAsync(session, Options, token).ConfigureAwait(false);
 
             if(command.Source.EntityComposition!=null)
-                await ValidateNativeEntityStagesAsync(command.Source.EntityComposition,session,Options,deadline.Token).ConfigureAwait(false);
+                await ValidateNativeEntityStagesAsync(command.Source.EntityComposition,session,Options,token).ConfigureAwait(false);
 
             // Read and validate the entire source before a later filter/window can
             // hide a malformed required cell, access violation or overflow row.
@@ -60,11 +76,11 @@ public partial class HolonRepository
             var byId = new Dictionary<Guid, CosmicProjectionInputRow>();
             long inputBytes = 0, sourceCount = 0;
             using (var cursor = await _dbContext.Holon.AggregateAsync<BsonDocument>(session, command.Source.Pipeline,
-                Options(), deadline.Token).ConfigureAwait(false))
-                while (await cursor.MoveNextAsync(deadline.Token).ConfigureAwait(false))
+                Options(), token).ConfigureAwait(false))
+                while (await cursor.MoveNextAsync(token).ConfigureAwait(false))
                     foreach (var document in cursor.Current)
                     {
-                        deadline.Token.ThrowIfCancellationRequested();
+                        token.ThrowIfCancellationRequested();
                         var data = UnwrapNativeSelectedScalar(document, command.Source.HasTraversalEnvelope);
                         var count = CompositionCount(data, "nativeCount");
                         if (count > limits.MaximumInputRows || input.Count >= limits.MaximumInputRows) throw new MongoCqlLimitException();
@@ -94,7 +110,7 @@ public partial class HolonRepository
                             var result = new object[domains.Length]; states = new int[domains.Length];
                             for (var index = 0; index < result.Length; index++)
                             {
-                                deadline.Token.ThrowIfCancellationRequested();
+                                token.ThrowIfCancellationRequested();
                                 if (!array[index].IsBsonDocument) throw new InvalidDataException("Composition proof cell is invalid.");
                                 var cell = array[index].AsBsonDocument;
                                 if (cell.ElementCount != 2 || !cell.TryGetValue("s", out var state) || !state.IsInt32
@@ -120,17 +136,17 @@ public partial class HolonRepository
             long work = 0, proofBytes = 0;
             foreach (var pipeline in command.Stages)
             {
-                deadline.Token.ThrowIfCancellationRequested();
+                token.ThrowIfCancellationRequested();
                 work = checked(work + current.Count);
                 if (work > limits.MaximumStageRows) throw new MongoCqlLimitException();
                 var next = new List<Guid>(); var seen = new HashSet<Guid>();
                 long count = 0, priorRank = 0;
                 using var cursor = await _dbContext.Holon.AggregateAsync<BsonDocument>(session, pipeline,
-                    Options(), deadline.Token).ConfigureAwait(false);
-                while (await cursor.MoveNextAsync(deadline.Token).ConfigureAwait(false))
+                    Options(), token).ConfigureAwait(false);
+                while (await cursor.MoveNextAsync(token).ConfigureAwait(false))
                     foreach (var data in cursor.Current)
                     {
-                        deadline.Token.ThrowIfCancellationRequested();
+                        token.ThrowIfCancellationRequested();
                         var reported = CompositionCount(data, "stageCount");
                         if (data.ElementCount != 3 || !data.TryGetValue("id", out var rawId))
                             throw new InvalidDataException("Composition stage proof shape is invalid.");
@@ -151,7 +167,7 @@ public partial class HolonRepository
             var output = new List<CosmicProjectionCompositionRow>();
             foreach (var id in current)
             {
-                deadline.Token.ThrowIfCancellationRequested();
+                token.ThrowIfCancellationRequested();
                 if (command.Reduction != null || command.Cardinality != null || command.Numeric != null) outputBytes = checked(outputBytes + 16);
                 var values = byId[id].Values.ToArray();
                 foreach (var value in values) ReserveJoinCell(value, ref outputBytes, limits.MaximumPayloadBytes);
@@ -165,11 +181,11 @@ public partial class HolonRepository
                     throw new MongoCqlLimitException();
                 var seen = false; long count = 0;
                 using var cursor = await _dbContext.Holon.AggregateAsync<BsonDocument>(session, command.Reduction,
-                    Options(), deadline.Token).ConfigureAwait(false);
-                while (await cursor.MoveNextAsync(deadline.Token).ConfigureAwait(false))
+                    Options(), token).ConfigureAwait(false);
+                while (await cursor.MoveNextAsync(token).ConfigureAwait(false))
                     foreach (var document in cursor.Current)
                     {
-                        deadline.Token.ThrowIfCancellationRequested();
+                        token.ThrowIfCancellationRequested();
                         if (seen || document.ElementCount != 3 || !document.TryGetValue("_id", out var key) || !key.IsBsonNull
                             || !document.TryGetValue("selectedCount", out var selected) || !(selected.IsInt32 || selected.IsInt64)
                             || selected.ToInt64() != current.Count
@@ -181,7 +197,7 @@ public partial class HolonRepository
                 if (!seen && current.Count != 0) throw new InvalidDataException("Native All reduction is incomplete.");
                 counterexamples = count;
             }
-            deadline.Token.ThrowIfCancellationRequested();
+            token.ThrowIfCancellationRequested();
             long? nativeSelectedCount = null;
             if (command.Cardinality != null)
             {
@@ -189,11 +205,11 @@ public partial class HolonRepository
                     || checked(proofBytes + outputBytes) > limits.MaximumProofPayloadBytes)
                     throw new MongoCqlLimitException();
                 using var countCursor = await _dbContext.Holon.AggregateAsync<BsonDocument>(session, command.Cardinality,
-                    Options(), deadline.Token).ConfigureAwait(false);
-                while (await countCursor.MoveNextAsync(deadline.Token).ConfigureAwait(false))
+                    Options(), token).ConfigureAwait(false);
+                while (await countCursor.MoveNextAsync(token).ConfigureAwait(false))
                     foreach (var document in countCursor.Current)
                     {
-                        deadline.Token.ThrowIfCancellationRequested();
+                        token.ThrowIfCancellationRequested();
                         if (nativeSelectedCount.HasValue || document.ElementCount != 1)
                             throw new InvalidDataException("Native cardinality requires one exact acknowledgement.");
                         nativeSelectedCount = CompositionCount(document, "selectedCount", allowZero: true);
@@ -208,20 +224,17 @@ public partial class HolonRepository
                     || checked(proofBytes + outputBytes + 9 + 8 * MongoCqlTranslator.SelectedNumericWidth(command.NumericIntent.InputType)) > limits.MaximumProofPayloadBytes)
                     throw new MongoCqlLimitException();
                 using var numericCursor = await _dbContext.Holon.AggregateAsync<BsonDocument>(session, command.Numeric,
-                    Options(), deadline.Token).ConfigureAwait(false);
-                while (await numericCursor.MoveNextAsync(deadline.Token).ConfigureAwait(false))
+                    Options(), token).ConfigureAwait(false);
+                while (await numericCursor.MoveNextAsync(token).ConfigureAwait(false))
                     foreach (var document in numericCursor.Current)
                     {
-                        deadline.Token.ThrowIfCancellationRequested();
+                        token.ThrowIfCancellationRequested();
                         if (nativeNumeric != null) throw new InvalidDataException("Selected numeric reduction returned multiple acknowledgements.");
                         nativeNumeric = ReadNativeCqlSelectedNumeric(document, command.NumericIntent);
                     }
                 if (nativeNumeric == null) throw new InvalidDataException("Selected numeric reduction acknowledgement is missing.");
             }
             return (new CosmicProjectionCompositionPacket(input, stages, output, sourceCount, work, nativeSelectedCount, nativeNumeric), counterexamples);
-        }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && deadline.IsCancellationRequested)
-        { throw new MongoCqlGraphTimeoutException(); }
     }
 
     private static long CompositionCount(BsonDocument data, string name, bool allowZero = false)

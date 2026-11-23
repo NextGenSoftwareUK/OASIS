@@ -1,0 +1,25 @@
+{
+  "backendSource": "c1fa19550bd356babdee5ef0303996516f671249",
+  "nativeFixtureSource": "f7eb7579e6b0d01d8cce52fcab4ca7de67bb2a89",
+  "websiteCompiler": "85b5965e57c0328ef27651b4af8dcd854481f96a",
+  "websiteAskGrounding": "dc9af11d856047fdb297985d407fcd273b105784",
+  "focusedSqlControlsPassed": 2,
+  "providerCaptures": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "contractRun": 45037860576,
+  "nativeRun": 45038000464,
+  "qualificationPending": false,
+  "liveAccepted": false,
+  "developmentUnchanged": "3cc752dfc4dad196db2053049602a095d3e9cb1f",
+  "sharedClusterCalls": 0,
+  "localEnvironmentsCreated": 0,
+  "localBuildOutputsCreated": 0,
+  "cancelledRedundantRun": 45038000419,
+  "contractAccepted": true,
+  "nativeRepresentativeAccepted": true,
+  "combinedSource": "319f0f762fa76d48ec7f8ff828313a8ad72e9a94",
+  "combinedImageRun": 45038846333
+}

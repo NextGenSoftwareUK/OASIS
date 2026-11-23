@@ -511,6 +511,13 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddSingleton<Services.Subscription.IDelegatedUsageGrantRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.IAppAccountRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISubscriptionService, Services.Subscription.SubscriptionService>();
+            services.AddSingleton<Services.Subscription.UsageWarningReader>();
+            services.AddHttpClient("UsageWarningEmail", client => client.Timeout = TimeSpan.FromSeconds(15));
+            services.AddTransient<Services.Subscription.UsageWarningEmailGateway>(sp =>
+                new Services.Subscription.UsageWarningEmailGateway(
+                    sp.GetRequiredService<System.Net.Http.IHttpClientFactory>().CreateClient("UsageWarningEmail"), TimeProvider.System));
+            services.AddTransient<Services.Subscription.UsageWarningEmailDispatcher>();
+            services.AddTransient<Services.Subscription.UsageWarningEmailService>();
             services.AddSingleton<Services.Subscription.ISubscriptionPlanPriceReader, Services.Subscription.StripeSubscriptionPlanPriceReader>();
             services.AddSingleton<Services.Subscription.SubscriptionPlanCatalogue>();
             services.AddSingleton<Services.Subscription.ISubscriptionBillingPortal, Services.Subscription.StripeSubscriptionBillingPortal>();
@@ -779,7 +786,6 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             {
                 Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Subscription.SubscriptionUsageExpiryWorker>(services, Configuration);
                 Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Subscription.PaidOverageBillingWorker>(services, Configuration);
-                Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Subscription.AppOverageStatementWorker>(services, Configuration);
                 NextGenSoftware.OASIS.API.Core.Services.Subscriptions.SubscriptionTelemetryRegistration.AddSubscriptionUsageTelemetry(services, Configuration, "WEB4");
             }
             Services.SubscriptionReconciliation.UsageReconciliationRegistration.AddUsageReconciliation(services,

@@ -1,0 +1,65 @@
+{
+  "source": "09d61416ea4ed2926bf044e211fc73502ab4adbe",
+  "coreSource": "3696bd32ff84ee49db4b189dfcea946da7172dbd",
+  "startupDnaChecks": [
+    {
+      "service": "WEB6 AI API",
+      "deployment": "71b73123-4a8d-4f31-b79a-86340079be3e",
+      "source": "09d61416ea4ed2926bf044e211fc73502ab4adbe",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB9 SINGULARITIY API",
+      "deployment": "b12784be-920f-4571-bcab-2458e543212a",
+      "source": "09d61416ea4ed2926bf044e211fc73502ab4adbe",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB8 IGN API",
+      "deployment": "4865317d-7796-4882-8948-a66ae726dfa7",
+      "source": "09d61416ea4ed2926bf044e211fc73502ab4adbe",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB4 OASIS API",
+      "deployment": "53ba48e5-1242-48e3-81d6-311ac0ae71d3",
+      "source": "09d61416ea4ed2926bf044e211fc73502ab4adbe",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB7 SYMBIOTIC API",
+      "deployment": "9d10ebf9-9010-438d-b61a-f7352b5d1297",
+      "source": "09d61416ea4ed2926bf044e211fc73502ab4adbe",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB10 THE SOURCE API",
+      "deployment": "65477d65-99dc-49ec-bba5-dd14c7b1abf0",
+      "source": "09d61416ea4ed2926bf044e211fc73502ab4adbe",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB5 STAR API",
+      "deployment": "64dd61fc-34a9-440b-b592-ca3df0989553",
+      "source": "09d61416ea4ed2926bf044e211fc73502ab4adbe",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    }
+  ],
+  "allSevenRuntimeVerified": true,
+  "settingsWrites": 0,
+  "dataQueries": 0
+}

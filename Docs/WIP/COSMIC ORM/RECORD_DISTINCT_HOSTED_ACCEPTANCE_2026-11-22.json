@@ -1,0 +1,87 @@
+{
+  "source": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
+  "website": "7c002846b2e95654b5c2261f6c13a703acc6c9d2",
+  "deployment": "0bdcd21c-9ba4-4cd4-a9f9-4483791a46b5",
+  "journalRelativePath": "LocalState/COSMIC/HostedOwnedProjectedSetDistinct20261122/fixture.json",
+  "journalSha256": "abadf001098440615ba1b54702561bbe083b0b274ee8f980e025822dae84013c",
+  "providers": [
+    {
+      "provider": "MongoDBOASIS",
+      "accepted": true,
+      "exactCleanupVerified": true,
+      "cases": [
+        {
+          "case": "distinct-cte-tuple",
+          "rows": 1,
+          "path": "data/query-cql/composition"
+        }
+      ],
+      "returnedRows": 1
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "accepted": true,
+      "exactCleanupVerified": true,
+      "cases": [
+        {
+          "case": "distinct-cte-tuple",
+          "rows": 1,
+          "path": "data/query-cql/composition"
+        }
+      ],
+      "returnedRows": 1
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "accepted": true,
+      "exactCleanupVerified": true,
+      "cases": [
+        {
+          "case": "distinct-cte-tuple",
+          "rows": 1,
+          "path": "data/query-cql/composition"
+        }
+      ],
+      "returnedRows": 1
+    }
+  ],
+  "queries": [
+    {
+      "provider": "MongoDBOASIS",
+      "httpStatus": 200,
+      "elapsedMilliseconds": 802.0
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "httpStatus": 200,
+      "elapsedMilliseconds": 502.4
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "httpStatus": 200,
+      "elapsedMilliseconds": 938.4
+    }
+  ],
+  "calls": 18,
+  "holonWrites": 3,
+  "allExactFixtureDeletionsAndAbsenceVerified": true,
+  "sessionRevoked": true,
+  "credentialsRemoved": true,
+  "finalRollout": {
+    "deployment": "0bdcd21c-9ba4-4cd4-a9f9-4483791a46b5",
+    "source": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
+    "status": "SUCCESS"
+  },
+  "accepted": true,
+  "scope": "three populated SQL-text/native HTTP tuple-distinct transport journeys, one owned row each; duplicate/null membership has separate native SDK evidence",
+  "complexStorageBrowserDataFlowAccepted": false,
+  "realModelInferenceAccepted": false,
+  "publicWebsitePromoted": false,
+  "piperDataAccessed": false,
+  "cleanup": {
+    "completedCheckpointFilesRemoved": 82,
+    "bytesRemoved": 368448,
+    "finalReplayGuardJournalRetained": true,
+    "otherFilesTouched": false
+  }
+}

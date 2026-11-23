@@ -1,0 +1,23 @@
+{
+  "source": "319f0f762fa76d48ec7f8ff828313a8ad72e9a94",
+  "core": "34848a57c2b165696bdeda91d26e0a7cddd273c8",
+  "web6": "d9e60ceaecef5513d1bcd6285cd668076bc77edf",
+  "onodeCore": "a0adedc620372a7b985d5d0942378877e49cc4af",
+  "run": 45038846333,
+  "job": 137258555137,
+  "digest": "sha256:5f4a7496ce29375f33fc5954d705326e5af4127d323c57ffad3d3fcb4faddb88",
+  "teachingSidecars": false,
+  "exactPrivatePinsVerified": true,
+  "nativeProofSource": "f7eb7579e6b0d01d8cce52fcab4ca7de67bb2a89",
+  "unchangedNativeCqlTrees": [
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI",
+    "Providers",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "WEB6",
+    "ONODE/ONODEManager"
+  ],
+  "deployed": false,
+  "nextFeatureSource": "52ad624187db53e1c018bb95e52279467e5a92c4",
+  "nextDependencyNotIncluded": "1b28ed0436173b827e58b75a3bb5a99c1bb661ec",
+  "noImageDownloaded": true
+}

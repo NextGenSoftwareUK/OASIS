@@ -1,0 +1,76 @@
+{
+  "source": "6ccc1a1fa2c6831c07d9d6c51651121f6161bf53",
+  "core": "eef9f1a1d6bca1041c0971fadf764c2664f64d26",
+  "run": 44989377193,
+  "job": 137106860877,
+  "artifact": {
+    "id": 14741801003,
+    "bytes": 2780,
+    "sha256": "f027b6bbcba6e090274892f1925dc180b9455153121d745b8829d4154858accb"
+  },
+  "cases": 3,
+  "nativeAccepted": true,
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 4,
+      "ownedCleanupIds": 5,
+      "successfulHolonWrites": 5,
+      "queryElapsedMilliseconds": {
+        "create-owned": 626,
+        "coalesced-values": 139,
+        "different-replacements": 23,
+        "invalid-domain": 21
+      },
+      "nativeProviderVerified": true,
+      "textCoalesceVerified": true,
+      "nullMissingEmptyVerified": true,
+      "differentReplacementsVerified": true,
+      "invalidStoredDomainRefused": true,
+      "executableReplacementRefused": true,
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 4,
+      "ownedCleanupIds": 5,
+      "successfulHolonWrites": 5,
+      "queryElapsedMilliseconds": {
+        "create-owned": 963,
+        "coalesced-values": 58,
+        "different-replacements": 10,
+        "invalid-domain": 11
+      },
+      "nativeProviderVerified": true,
+      "textCoalesceVerified": true,
+      "nullMissingEmptyVerified": true,
+      "differentReplacementsVerified": true,
+      "invalidStoredDomainRefused": true,
+      "executableReplacementRefused": true,
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 4,
+      "ownedCleanupIds": 5,
+      "successfulHolonWrites": 5,
+      "queryElapsedMilliseconds": {
+        "create-owned": 1224,
+        "coalesced-values": 1089,
+        "different-replacements": 1158,
+        "invalid-domain": 501
+      },
+      "nativeProviderVerified": true,
+      "textCoalesceVerified": true,
+      "nullMissingEmptyVerified": true,
+      "differentReplacementsVerified": true,
+      "invalidStoredDomainRefused": true,
+      "executableReplacementRefused": true,
+      "exactCleanupVerified": true
+    }
+  },
+  "ownedMongoStopped": true,
+  "ownedNeoStopped": true,
+  "sharedAtlasOperations": 0,
+  "developmentPushed": false
+}

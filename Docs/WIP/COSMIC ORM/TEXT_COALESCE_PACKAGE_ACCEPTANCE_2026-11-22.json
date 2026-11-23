@@ -1,0 +1,16 @@
+{
+  "source": "d32635b343956a44c548b6846b0c3fdbfc033f0a",
+  "run": 44991967776,
+  "artifact": 14741767977,
+  "artifactBytes": 773,
+  "sha256": "dc33168b58c031e79a625b018ef422f222b2617c16c536b9fded488bb7c8bbbd",
+  "accepted": true,
+  "profile": "cql-api",
+  "assemblies": 5,
+  "cqlRuntimeGraphVerified": true,
+  "apiQualified": false,
+  "ownedContainerAbsent": true,
+  "dataWrites": 0,
+  "archiveRetainedLocally": false,
+  "liveDeployment": false
+}

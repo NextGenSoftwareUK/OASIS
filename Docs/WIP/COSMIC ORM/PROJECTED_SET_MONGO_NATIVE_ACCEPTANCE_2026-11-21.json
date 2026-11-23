@@ -1,0 +1,49 @@
+{
+  "source": "352819a3d9bcbdab1c3376297d59c575fbe07e68",
+  "coreSource": "d22248d3cc99b7cfc447376974605d892637b284",
+  "workflow": "qualify-cql-mongo-projected-set-native.yml",
+  "status": "completed",
+  "nativeImplemented": true,
+  "nativeAccepted": true,
+  "compiled": true,
+  "developmentPushed": false,
+  "checks": 7,
+  "ownedRecords": 4,
+  "localBuild": false,
+  "priorSource": "ab5878a02a2de84cbcabe82db2ccbc60d351206d",
+  "run": 44975943926,
+  "conclusion": "success",
+  "artifact": {
+    "id": 14735583352,
+    "bytes": 1774,
+    "sha256": "29cfc7cf72d740f23a513128799efcd94aa114ffdf670920c80cf373e215a53c"
+  },
+  "report": {
+    "provider": "MongoDBOASIS",
+    "checks": 7,
+    "ownedCleanupIds": 4,
+    "successfulHolonWrites": 4,
+    "queryElapsedMilliseconds": {
+      "create-owned": 386,
+      "create-foreign": 14,
+      "union": 91,
+      "concat": 22,
+      "intersect": 32,
+      "except": 34,
+      "global-window": 55,
+      "bound-before-empty-page": 16,
+      "ordinary-selected-window": 27
+    },
+    "nativeProviderVerified": true,
+    "allFourSetOperationsVerified": true,
+    "concatMultiplicityVerified": true,
+    "independentWindowsVerified": true,
+    "selectedTupleEqualityVerified": true,
+    "hiddenInputColumnsExcludedVerified": true,
+    "foreignRowsHiddenVerified": true,
+    "inputLimitBeforeEmptyOutputVerified": true,
+    "ordinaryReadPreservedVerified": true,
+    "exactCleanupVerified": true
+  },
+  "job": 137065773406
+}

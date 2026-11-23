@@ -1,0 +1,87 @@
+{
+  "source": "01de83ad1705423bd7f60e9a8fdb35e2dbf033ed",
+  "core": "74d4f046b2f49893a19c40e161e73999772ab412",
+  "run": 44995661257,
+  "job": 137126021674,
+  "artifact": 14743729358,
+  "bytes": 2946,
+  "sha256": "93072da93961c5e19115fe6421875b7d7a2a40c08542df500b193d828bb4404e",
+  "nativeAccepted": true,
+  "testsPassed": 3,
+  "reports": [
+    {
+      "provider": "MongoDBOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 4,
+      "successfulHolonWrites": 4,
+      "queryElapsedMilliseconds": {
+        "create-owned": 571,
+        "create-foreign": 18,
+        "conditional-values": 116,
+        "different-branches": 16,
+        "metadata-branches": 13,
+        "invalid-metadata-domain": 20
+      },
+      "nativeProviderVerified": true,
+      "booleanTextCaseVerified": true,
+      "trueFalseBranchesVerified": true,
+      "differentBranchesVerified": true,
+      "foreignRowsHiddenVerified": true,
+      "executableBranchRefused": true,
+      "metadataConditionVerified": true,
+      "invalidMetadataDomainRefused": true,
+      "compoundConditionRefused": true,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 4,
+      "successfulHolonWrites": 4,
+      "queryElapsedMilliseconds": {
+        "create-owned": 470,
+        "create-foreign": 16,
+        "conditional-values": 32,
+        "different-branches": 5,
+        "metadata-branches": 3,
+        "invalid-metadata-domain": 5
+      },
+      "nativeProviderVerified": true,
+      "booleanTextCaseVerified": true,
+      "trueFalseBranchesVerified": true,
+      "differentBranchesVerified": true,
+      "foreignRowsHiddenVerified": true,
+      "executableBranchRefused": true,
+      "metadataConditionVerified": true,
+      "invalidMetadataDomainRefused": true,
+      "compoundConditionRefused": true,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 4,
+      "successfulHolonWrites": 4,
+      "queryElapsedMilliseconds": {
+        "create-owned": 1242,
+        "create-foreign": 663,
+        "conditional-values": 1249,
+        "different-branches": 590,
+        "metadata-branches": 516,
+        "invalid-metadata-domain": 327
+      },
+      "nativeProviderVerified": true,
+      "booleanTextCaseVerified": true,
+      "trueFalseBranchesVerified": true,
+      "differentBranchesVerified": true,
+      "foreignRowsHiddenVerified": true,
+      "executableBranchRefused": true,
+      "metadataConditionVerified": true,
+      "invalidMetadataDomainRefused": true,
+      "compoundConditionRefused": true,
+      "exactCleanupVerified": true
+    }
+  ],
+  "localArchiveRetained": false,
+  "liveAccepted": false
+}

@@ -89,6 +89,32 @@ internal sealed partial class MongoCqlTranslator
     {
         if (column == null) throw new ArgumentNullException(nameof(column));
         if (column.Function == CosmicProjectionFunction.None) return ProjectionCell(column.Path, prefix);
+        if (column.Function == CosmicProjectionFunction.BooleanTextCase)
+        {
+            if(column.Path.ValueType != typeof(bool) || column.ValueType != typeof(string)
+                || column.WhenTrue == null || column.WhenFalse == null)
+                throw new NotSupportedException("Native conditional text requires an exact Boolean path and captured literal branches.");
+            var conditionalName = prefix + "conditionalBoolean";
+            var valid = Op("$eq", "$$"+conditionalName+".s", Literal(2));
+            return SingleLet(conditionalName,ProjectionCell(column.Path,prefix+"source"),new BsonDocument {
+                {"s",Choose(valid,Literal(2),Literal(3))},
+                {"v",Choose(valid,Choose(Op("$eq","$$"+conditionalName+".v",Literal(true)),Literal(column.WhenTrue),Literal(column.WhenFalse)),BsonNull.Value)}
+            });
+        }
+        if ((column.Function == CosmicProjectionFunction.TextCoalesce || column.Function == CosmicProjectionFunction.Int32Coalesce))
+        {
+            var coalesceIsText=column.Function==CosmicProjectionFunction.TextCoalesce;
+              if(coalesceIsText
+                  ? column.Path.ValueType!=typeof(string) || column.ValueType!=typeof(string) || column.NullReplacement==null
+                  : column.Path.ValueType!=typeof(int?) || column.ValueType!=typeof(int) || !column.Int32Replacement.HasValue)
+                throw new NotSupportedException("Native coalescing requires exact source and captured replacement domains.");
+            var coalesced = prefix + "coalescedText";
+            var absent = Op("$lte", "$$" + coalesced + ".s", Literal(1));
+            return SingleLet(coalesced,ProjectionCell(column.Path,prefix+"source"),new BsonDocument {
+                {"s",Choose(absent,Literal(2),"$$"+coalesced+".s")},
+                {"v",Choose(absent,(coalesceIsText ? Literal(column.NullReplacement) : Literal(column.Int32Replacement.Value)),"$$"+coalesced+".v")}
+            });
+        }
         if (column.Function != CosmicProjectionFunction.Utf16Length ||
             column.Path.ValueType != typeof(string) ||
             (Nullable.GetUnderlyingType(column.ValueType) ?? column.ValueType) != typeof(int))

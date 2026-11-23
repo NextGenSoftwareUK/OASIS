@@ -1,0 +1,136 @@
+name: Qualify native GroupJoin summaries and composition
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/CosmicCqlNativeTests.GroupFields.cs"
+      - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests/CosmicCqlGroupFieldsTests.cs"
+      - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/Neo4jNativeCqlGroupFields.cs"
+      - ".github/workflows/qualify-cql-group-fields-native.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  read-activation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      OASIS_MONGO_REPLICA_SET_CONNECTION: mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000
+    services:
+      neo4j:
+        image: neo4j:5.26.0-community@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5
+        env:
+          NEO4J_AUTH: neo4j/oasis-local-test-only
+        ports:
+          - 17687:7687
+        options: >-
+          --health-cmd "cypher-shell -u neo4j -p oasis-local-test-only 'RETURN 1'"
+          --health-interval 5s --health-timeout 5s --health-retries 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Read reviewed dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Start one owned loopback Mongo replica
+        working-directory: OASIS
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run -d --name cql-where-mongo -p 127.0.0.1:27029:27029 mongo:8.0.15 --port 27029 --replSet oasisRecoveryRs --bind_ip_all
+          for attempt in $(seq 1 45); do
+            if docker exec cql-where-mongo mongosh --port 27029 --quiet --eval 'db.adminCommand({ping:1})' >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          docker exec cql-where-mongo mongosh --port 27029 --quiet --eval 'rs.initiate({_id:"oasisRecoveryRs",members:[{_id:0,host:"127.0.0.1:27029"}]})'
+          for attempt in $(seq 1 45); do
+            if docker exec cql-where-mongo mongosh --port 27029 --quiet --eval 'if(!db.hello().isWritablePrimary) quit(1)' >/dev/null 2>&1; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - name: Verify grouped summaries, reselection, complete groups and changed-materializer regression
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          $reportRoot=Join-Path (Get-Location).Path 'TestResults/GroupJoinCurrent'
+          $env:OASIS_OWNED_NEO4J_URI='bolt://127.0.0.1:17687'
+          $env:OASIS_OWNED_NEO4J_WORK=Join-Path $reportRoot 'NeoOwned'
+          $env:OASIS_SQLITE_TEST_FIXTURE_DIRECTORY=Join-Path $reportRoot 'SqliteOwned'
+          foreach($directory in @($reportRoot,$env:OASIS_OWNED_NEO4J_WORK,$env:OASIS_SQLITE_TEST_FIXTURE_DIRECTORY,'TestResults/SubscriptionUsageCurrent')) {
+            New-Item -ItemType Directory -Force $directory | Out-Null
+          }
+          function Verify-Report([string]$path,[int]$expected) {
+            [xml]$report=Get-Content -LiteralPath $path
+            $c=$report.TestRun.ResultSummary.Counters
+            if([int]$c.total -ne $expected -or [int]$c.executed -ne $expected -or [int]$c.passed -ne $expected -or [int]$c.failed -ne 0) {
+              throw "Exact changed-feature checks did not all pass: $path"
+            }
+          }
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-group-fields-native-ci -Operation {
+            # New declared-field journey per store; one old Mongo whole-parent regression covers the changed shared materializer.
+            $nativeFilter='FullyQualifiedName~NativeGroupJoinProjectsDeclaredOuterFieldsAndCompleteMatches'
+            $projects=@(
+              @{name='Mongo';path='Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests';expected=2},
+              @{name='SQLite';path='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests';expected=1},
+              @{name='Neo4j';path='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests';expected=1}
+            )
+            foreach($project in $projects) {
+              $filter=if($project.name -eq 'Mongo'){$nativeFilter+'|FullyQualifiedName~NativeGroupJoinPreservesLeftIdentityOrderedMatchesAndCompleteGroupPage'}else{$nativeFilter}
+              dotnet test $project.path /m:2 /nr:false /p:UseSharedCompilation=false --filter $filter --results-directory $reportRoot --logger "trx;LogFileName=$($project.name).trx"
+              if($LASTEXITCODE){throw "$($project.name) native grouping failed"}
+              Verify-Report (Join-Path $reportRoot "$($project.name).trx") $project.expected
+            }
+          }
+          foreach($leaf in 'integration-current.db','integration-current.db-wal','integration-current.db-shm') {
+            if(Test-Path -LiteralPath (Join-Path $env:OASIS_SQLITE_TEST_FIXTURE_DIRECTORY $leaf)){throw 'Owned SQLite fixture remains'}
+          }
+          if(Test-Path -LiteralPath (Join-Path $env:OASIS_OWNED_NEO4J_WORK 'cql-graph-fixture.json')){throw 'Owned graph intent remains'}
+          docker exec cql-where-mongo mongosh --port 27029 --quiet --eval 'if(db.getSiblingDB("cosmic_cql_fixture").getCollectionNames().length!==0) quit(1)'
+          if($LASTEXITCODE){throw 'Owned Mongo fixture remains'}
+          $source=(git rev-parse HEAD).Trim()
+          if($source -ne $env:GITHUB_SHA){throw 'Source checkout differs from exact workflow revision'}
+          $core=(git -C "OASIS Architecture/NextGenSoftware.OASIS.API.Core" rev-parse HEAD).Trim()
+          @{source=$source;core=$core;newNativePassed=3;changedMaterializerRegressionPassed=1;declaredLeftFieldsVerified=$true;completeOrderedMatchesVerified=$true;independentGroupsAndPagesVerified=$true;unsupportedExecutableSelectorsRefused=$true;groupCountLongCountAnyVerified=$true;anonymousReselectionAndPagingVerified=$true;providers=@('MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS');ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content (Join-Path $reportRoot 'source.json') -Encoding utf8
+      - name: Stop owned Mongo
+        if: always()
+        run: docker rm -f -v cql-where-mongo
+      - name: Verify owned Mongo stopped
+        if: always()
+        shell: bash
+        run: |
+          if docker inspect cql-where-mongo >/dev/null 2>&1; then echo 'Owned Mongo container remains'; exit 1; fi
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: cql-group-fields-native
+          path: |
+            OASIS/TestResults/GroupJoinCurrent/*.trx
+            OASIS/TestResults/GroupJoinCurrent/source.json
+          if-no-files-found: ignore
+          retention-days: 2

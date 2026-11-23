@@ -15,6 +15,7 @@ public sealed class CqlSetV1Request
     public int MaximumResults { get; set; } = 25;
     public int Skip { get; set; }
     public int? Take { get; set; }
+    public CqlV1Ordering[]? Ordering { get; set; }
     public bool Reverse { get; set; }
     public bool IncludeMetadata { get; set; }
 }
@@ -31,5 +32,8 @@ public sealed class CqlSetV1Source
     public bool Descending { get; set; }
     public int Skip { get; set; }
     public int? Take { get; set; }
+    public CqlProjectionV1Column[]? Columns {get;set;}
+    /// <summary>Native selected stages after this input window, before set equality.</summary>
+    public CqlCompositionV1Stage[]? Stages {get;set;}
     public CqlV1Graph? Graph { get; set; }
 }

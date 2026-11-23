@@ -1,0 +1,17 @@
+{
+  "source": "579ad8685b6366ac8d6203a2c7ae5bdfedafa3fd",
+  "core": "4343c083f4c31df916c5b8e19263f83d4875144d",
+  "run": 44984782877,
+  "job": 137092856873,
+  "artifact": {
+    "id": 14739810019,
+    "bytes": 2007,
+    "sha256": "60c8675f115e71768605acfda77733249f55794e5a832de960c228b0e3d8fa87"
+  },
+  "checks": 5,
+  "actualWeb4Build": true,
+  "buildErrors": 0,
+  "contractAccepted": true,
+  "nativeHttpAccepted": false,
+  "developmentPushed": false
+}

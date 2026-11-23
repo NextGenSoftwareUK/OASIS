@@ -21,6 +21,105 @@ public sealed partial class CosmicCqlNativeTests
         Assert.False(plan.IsError,plan.Message);return plan.Result;
     }
 
+    [Fact]
+    public Task NativeRecordReselectionKeepsHiddenInputsAndPublishesOnlyVisibleAliases()
+        =>WithMongoGraph(async fixture=>
+        {
+            var source=CosmicQuery<Holon>.Create().Where(h=>h.Description=="L").OrderBy(h=>h.Name).Take(10).Result;
+            var query=source.SelectColumns(new[]{
+                CosmicProjectionSelection<Holon>.Create("name",h=>h.Name).Result,
+                CosmicProjectionSelection<Holon>.Create("version",h=>h.Version).Result}).Result;
+            var shapeOnly=query.SelectOutputColumns(new[]{new CosmicProjectionOutputBinding("Display","name")}).Result;
+            var projection=(ICosmicQueryProjectionStorageProvider)fixture.Provider;
+            var shapePlan=CosmicProjectionPlanner.Plan(shapeOnly,projection.QueryProviderType,new[]{
+                new CosmicProjectionTarget(projection.QueryProviderType,projection.QueryCapabilities,projection.ProjectionCapabilities)});
+            Assert.False(shapePlan.IsError,shapePlan.Message);
+            var shapeRead=await Manager(fixture.Provider).ExecuteProjectionQueryAsync(shapePlan.Result,new[]{fixture.Provider},maximumResults:10);
+            Assert.False(shapeRead.IsError,shapeRead.Message+shapeRead.Exception);
+            var shapeRows=shapeRead.Result.Providers.Single().Rows;
+            Assert.Equal(new[]{"coffee","tea"},shapeRows.Select(row=>(string)row["Display"]));
+            Assert.All(shapeRows,row=>Assert.Equal(new[]{"Display"},row.Aliases));
+            query=query.OrderByDescending(row=>(string)row["name"]).Result.Take(1).Result;
+            query=query.SelectOutputColumns(new[]{new CosmicProjectionOutputBinding("Display","name")}).Result;
+            query=query.Where(row=>(string)row["Display"]=="tea").Result;
+            var adapter=(ICosmicQueryProjectionCompositionStorageProvider)fixture.Provider;
+            var planned=CosmicProjectionCompositionPlanner.Plan(query,adapter.QueryProviderType,new[]{
+                new CosmicProjectionCompositionTarget(adapter.QueryProviderType,adapter.QueryCapabilities,
+                    adapter.ProjectionCapabilities,adapter.CompositionCapabilities)});
+            Assert.False(planned.IsError,planned.Message);
+            var read=await Manager(fixture.Provider).ExecuteProjectionCompositionQueryAsync(
+                planned.Result,new[]{fixture.Provider},maximumResults:10);
+            Assert.False(read.IsError,read.Message+read.Exception);
+            var selectedRow=read.Result.Providers.Single().Rows.Single();
+            Assert.Equal(new[]{"Display"},selectedRow.Aliases);
+            Assert.Equal("tea",selectedRow["Display"]);
+        },configure:root=>
+        {
+            root.Name="coffee";root.Description="L";
+            foreach(var child in root.Children){child.Name="coffee";child.Description="R";}
+            var other=root.Children.First().Children.Single();other.Name="tea";other.Description="L";
+        });
+
+    [Fact]
+    public Task NativeGroupJoinPreservesLeftIdentityOrderedMatchesAndCompleteGroupPage()
+        =>WithMongoGraph(async fixture=>
+        {
+            var manager=Manager(fixture.Provider);
+            var source=CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.MongoDBOASIS).Result);
+            var root=CosmicLinq.Create(manager,fixture.Provider,source).Result;
+            var left=root.Where(h=>h.Name.StartsWith("L-",System.StringComparison.Ordinal)).OrderBy(h=>h.Name);
+            var right=root.Where(h=>h.Name.StartsWith("R-",System.StringComparison.Ordinal)).OrderByDescending(h=>h.Name);
+            var query=left.GroupJoin(right,l=>l.Description,r=>r.Description,(parent,matches)=>new{Parent=parent,Matches=matches});
+            var read=await query.ToCosmicListAsync();
+            Assert.False(read.IsError,read.Message+read.Exception);
+            var rows=read.Result;
+            Assert.Equal(new[]{"L-A","L-B","L-C"},rows.Select(row=>row.Parent.Name));
+            Assert.NotEqual(rows[0].Parent.Id,rows[1].Parent.Id);
+            foreach(var row in rows.Take(2)){Assert.Equal(new[]{"R-B","R-A"},row.Matches.Select(match=>match.Name));}
+            Assert.Empty(rows[2].Matches);
+            var page=await query.Skip(1).Take(1).ToCosmicListAsync();
+            Assert.False(page.IsError,page.Message+page.Exception);
+            Assert.Equal("L-B",Assert.Single(page.Result).Parent.Name);
+            Assert.Equal(new[]{"R-B","R-A"},page.Result.Single().Matches.Select(match=>match.Name));
+            var flattened=await query.SelectMany(group=>group.Matches,(group,match)=>new{Parent=group.Parent.Name,Match=match.Name}).ToCosmicListAsync();
+            Assert.False(flattened.IsError,flattened.Message+flattened.Exception);
+            Assert.Equal(4,flattened.Result.Count);
+        },configure:root=>
+        {
+            root.Name="L-A";root.Description="coffee";
+            var children=root.Children.ToArray();
+            children[0].Name="R-A";children[1].Name="R-B";
+            foreach(var child in children)child.Description="coffee";
+            var other=children[0].Children.Single();other.Name="L-B";other.Description="coffee";
+            root.Children.Add(new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,Name="L-C",Description="tea"});
+        });
+
+    [Fact]
+    public Task NativeJoinPublishesWholeLeftEntitiesWithMultiplicityAndIndependentPage()
+        =>WithMongoGraph(async fixture=>
+        {
+            var left=CosmicQuery<Holon>.Create().Where(h=>h.Description=="L").OrderBy(h=>h.Name);
+            var right=CosmicQuery<Holon>.Create().Where(h=>h.Description=="R");
+            var selected=left.LeftJoin(right,h=>h.Name,h=>h.Name).Select((l,r)=>l).Result;
+            var read=await Manager(fixture.Provider).ExecuteJoinQueryAsync(JoinPlan(selected),new[]{fixture.Provider});
+            Assert.False(read.IsError,read.Message+read.Exception);
+            var rows=read.Result.Providers.Single().Rows;
+            Assert.Equal(3,rows.Count);
+            Assert.Equal(new[]{"coffee","coffee","tea"},rows.Select(row=>row.Value.Name));
+            Assert.Equal(2,rows.Count(row=>row.HasRight));
+            Assert.NotSame(rows[0].Value,rows[1].Value);Assert.NotSame(fixture.Root,rows[0].Value);
+            var page=selected.PageOutput(1,1).Result;
+            var paged=await Manager(fixture.Provider).ExecuteJoinQueryAsync(JoinPlan(page),new[]{fixture.Provider});
+            Assert.False(paged.IsError,paged.Message+paged.Exception);
+            Assert.Single(paged.Result.Providers.Single().Rows);
+            Assert.Equal(rows[1].Value.Id,paged.Result.Providers.Single().Rows.Single().Value.Id);
+        },configure:root=>
+        {
+            root.Name="coffee";root.Description="L";
+            foreach(var child in root.Children){child.Name="coffee";child.Description="R";}
+            var other=root.Children.First().Children.Single();other.Name="tea";other.Description="L";
+        });
+
     [Theory]
     [InlineData(false)] [InlineData(true)]
     public Task NativeJoinPublishesFanoutAndUnmatchedPresence(bool outer)

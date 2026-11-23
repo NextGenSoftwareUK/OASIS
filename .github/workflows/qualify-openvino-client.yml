@@ -5,8 +5,6 @@ on:
     branches: [work/cosmic-cql-ton-public, work/cosmic-teaching-release-candidate]
     paths:
       - '.github/workflows/qualify-openvino-client.yml'
-      - 'Docker/oasis-dependency-versions.env'
-      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core'
       - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS/**'
       - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS.UnitTests/**'
       - 'Scripts/TestHosts/Qualify-OpenVinoModelServer.py'

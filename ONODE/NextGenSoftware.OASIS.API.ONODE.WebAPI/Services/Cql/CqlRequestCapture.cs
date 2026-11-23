@@ -23,15 +23,47 @@ internal static class CqlRequestCapture
             return new CqlSetV1Source {
                 Where=copy.Where,Filters=copy.Filters,AnyOf=copy.AnyOf,AnyChildren=copy.AnyChildren,
                 AnyDescendants=copy.AnyDescendants,OrderBy=copy.OrderBy,Descending=copy.Descending,
-                Skip=copy.Skip,Take=source.Take.HasValue?copy.Take:null
+                Skip=copy.Skip,Take=source.Take.HasValue?copy.Take:null,
+                Columns=source.Columns==null?null:CaptureColumns(source.Columns),
+                Stages=source.Stages==null?null:CaptureSelectedStages(source.Stages)
             };
         }
         return new CqlSetV1Request {
             Provider=value.Provider,Kind=value.Kind,Left=Source(value.Left),Right=Source(value.Right),
             MaximumLeftRows=value.MaximumLeftRows,MaximumRightRows=value.MaximumRightRows,
             MaximumResults=value.MaximumResults,Skip=value.Skip,Take=value.Take,
+            Ordering=value.Ordering==null?null:Array(value.Ordering,4,term=>term==null
+                ?throw new ArgumentException("Missing set ordering.")
+                :new CqlV1Ordering {Field=term.Field,Descending=term.Descending}),
             Reverse=value.Reverse,IncludeMetadata=value.IncludeMetadata
         };
+    }
+
+    private static CqlCompositionV1Stage[] CaptureSelectedStages(CqlCompositionV1Stage[] stages)
+    {
+        var comparisons=0;
+        CqlGroupedV1Filter Filter(CqlGroupedV1Filter value)
+        {
+            if(value==null || ++comparisons>32
+                || value.Value.ValueKind is JsonValueKind.Object or JsonValueKind.Array
+                || value.Value.ValueKind==JsonValueKind.String && value.Value.GetString()!.Length>512
+                || value.Value.ValueKind==JsonValueKind.Number && value.Value.GetRawText().Length>64)
+                throw new ArgumentException("Selected stage capture requires at most32 bounded scalar comparisons.");
+            return new CqlGroupedV1Filter {Alias=value.Alias,Operator=value.Operator,
+                Value=value.Value.ValueKind==JsonValueKind.Undefined ? default : value.Value.Clone()};
+        }
+        return Array(stages,16,stage=>stage==null ? throw new ArgumentException("Missing selected stage.")
+            : new CqlCompositionV1Stage {
+                Operation=stage.Operation,Count=stage.Count,
+                Filters=stage.Filters==null?null:Array(stage.Filters,32,Filter),
+                AnyOf=stage.AnyOf==null?null:Array(stage.AnyOf,32,Filter),
+                Order=stage.Order==null?null:Array(stage.Order,8,term=>term==null
+                    ?throw new ArgumentException("Missing selected ordering.")
+                    :new CqlGroupedV1Ordering {Alias=term.Alias,Descending=term.Descending}),
+                Columns=stage.Columns==null?null:Array(stage.Columns,32,column=>column==null
+                    ?throw new ArgumentException("Missing selected binding.")
+                    :new CqlCompositionV1Column {Alias=column.Alias,SourceAlias=column.SourceAlias})
+            });
     }
 
     internal static CqlFederationV1Request CaptureAndValidateFederation(CqlFederationV1Request value)
@@ -236,7 +268,44 @@ internal static class CqlRequestCapture
         if(columns.Length==0)throw new ArgumentException("Selected indexed intent requires at least one column.");
         return Array(columns,32,column=>column==null?throw new ArgumentException("Missing selected column."):
             new CqlProjectionV1Column{Alias=column.Alias,Field=column.Field,ValueType=column.ValueType,Nullable=column.Nullable,Function=column.Function,
+                Int32Replacement=CaptureInt32Replacement(column),NullReplacement=CaptureTextReplacement(column),WhenTrue=CaptureConditionalBranch(column,true),WhenFalse=CaptureConditionalBranch(column,false),
                 MetadataPath=column.MetadataPath==null?null:Array(column.MetadataPath,8,item=>item)});
+    }
+
+    private static string CaptureConditionalBranch(CqlProjectionV1Column column,bool whenTrue)
+    {
+        var value=whenTrue?column.WhenTrue:column.WhenFalse;
+        if(column.Function==CqlV1Function.BooleanTextCase)
+        {
+            if(value==null || value.Length>512)
+                throw new ArgumentException("Conditional text requires two literal branches of at most512 characters.");
+        }
+        else if(value!=null) throw new ArgumentException("Only conditional text accepts branch literals.");
+        return value;
+    }
+
+    private static int? CaptureInt32Replacement(CqlProjectionV1Column column)
+    {
+        if(column.Function==CqlV1Function.Int32Coalesce)
+        {
+            if(!column.Int32Replacement.HasValue)
+                throw new ArgumentException("Int32 coalescing requires a captured integer replacement.");
+        }
+        else if(column.Int32Replacement.HasValue)
+            throw new ArgumentException("Only Int32 coalescing accepts an integer replacement.");
+        return column.Int32Replacement;
+    }
+
+    private static string CaptureTextReplacement(CqlProjectionV1Column column)
+    {
+        if(column.Function==CqlV1Function.TextCoalesce)
+        {
+            if(column.NullReplacement==null || column.NullReplacement.Length>512)
+                throw new ArgumentException("Text coalescing needs a literal replacement of at most512 characters.");
+        }
+        else if(column.NullReplacement!=null)
+            throw new ArgumentException("Only text coalescing accepts a replacement.");
+        return column.NullReplacement;
     }
 
     private static TOutput[] Array<TInput, TOutput>(TInput[] values, int maximum, Func<TInput, TOutput> copy)

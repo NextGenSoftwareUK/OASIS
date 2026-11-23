@@ -1,0 +1,14 @@
+{
+  "environment": "dev",
+  "service": "WEB6 AI API",
+  "savedConfigurationOnly": true,
+  "dnaOpenRouterKeyPresent": false,
+  "envOpenRouterKeyPresent": false,
+  "effectiveOpenRouterKeyPresent": false,
+  "dedicatedGeminiFreeKeyPresent": false,
+  "ollamaUrlConfigured": false,
+  "ollamaModelConfigured": false,
+  "secretsPrinted": false,
+  "writes": 0,
+  "realModelVerified": false
+}

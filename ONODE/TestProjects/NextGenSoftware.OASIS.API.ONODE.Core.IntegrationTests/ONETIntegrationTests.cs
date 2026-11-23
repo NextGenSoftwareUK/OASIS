@@ -302,6 +302,68 @@ public class ONETIntegrationTests : IDisposable
         }
     }
 
+    [Fact]
+    public async Task ONETProtocol_ConnectDisconnectAndStop_RaiseNodeEventsOncePerChange()
+    {
+        var nodeA = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        var nodeB = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        var connected = new List<string>();
+        var disconnected = new List<(string NodeId, string Reason)>();
+        nodeA.NodeConnected += (_, e) => connected.Add(e.NodeId);
+        nodeA.NodeDisconnected += (_, e) => disconnected.Add((e.NodeId, e.Reason));
+
+        (await nodeA.StartNetworkAsync()).IsError.Should().BeFalse();
+        (await nodeB.StartNetworkAsync()).IsError.Should().BeFalse();
+        try
+        {
+            var address = $"127.0.0.1:{nodeB.ListenPort}";
+            (await nodeA.ConnectToNodeAsync("peer-b", address)).IsError.Should().BeFalse();
+            (await nodeA.ConnectToNodeAsync("peer-b", address)).IsError.Should().BeFalse();
+            connected.Should().Equal(new[] { "peer-b" }, "reconnecting an already-connected peer is not a new connection");
+
+            (await nodeA.DisconnectFromNodeAsync("peer-b")).IsError.Should().BeFalse();
+            disconnected.Should().ContainSingle(d => d.NodeId == "peer-b");
+
+            (await nodeA.ConnectToNodeAsync("peer-b", address)).IsError.Should().BeFalse();
+            await nodeA.StopNetworkAsync();
+            connected.Should().Equal(new[] { "peer-b", "peer-b" });
+            disconnected.Should().HaveCount(2).And.Contain(d => d.NodeId == "peer-b" && d.Reason == "ONET network stopped");
+        }
+        finally
+        {
+            await nodeA.StopNetworkAsync();
+            await nodeB.StopNetworkAsync();
+        }
+    }
+
+    [Fact]
+    public async Task InternalP2PProvider_Topology_ComesFromTheProtocolPeerTable()
+    {
+        var nodeA = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        var nodeB = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        var provider = new InternalP2PNetworkProvider(nodeA, new ONETConsensus(storageProvider: null),
+            new ONETRouting(storageProvider: null), new ONETSecurity(storageProvider: null),
+            new ONETDiscovery(storageProvider: null), new ONETAPIGateway(storageProvider: null));
+
+        (await nodeA.StartNetworkAsync()).IsError.Should().BeFalse();
+        (await nodeB.StartNetworkAsync()).IsError.Should().BeFalse();
+        try
+        {
+            // Connected through the protocol (as reconnect and peer exchange do), not through the provider.
+            (await nodeA.ConnectToNodeAsync("peer-b", $"127.0.0.1:{nodeB.ListenPort}")).IsError.Should().BeFalse();
+
+            var topology = (await provider.GetNetworkTopologyAsync()).Result;
+
+            topology.Nodes.Should().ContainSingle(n => n.Id == "peer-b");
+            topology.Connections.Should().ContainSingle(c => c.ToNodeId == "peer-b" && c.IsActive);
+        }
+        finally
+        {
+            await nodeA.StopNetworkAsync();
+            await nodeB.StopNetworkAsync();
+        }
+    }
+
     private static (string Id, string Public, string Private) NewNodeIdentity()
     {
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
@@ -473,6 +535,10 @@ public class ONETIntegrationTests : IDisposable
             mgr.RegisterNodePublicKey(peerId, peerPub);
 
             await mgr.StopNetworkAsync();
+
+            // Without provider persistence the node has exactly one peer store: the node-local known-peer file.
+            System.IO.File.Exists(System.IO.Path.Combine(dataDir, "onet-known-peers.json")).Should().BeTrue();
+            System.IO.File.Exists(System.IO.Path.Combine(dataDir, "onet-peers.json")).Should().BeFalse();
 
             // Fresh manager on same DataDirectory — file cache should survive.
             var dna2 = new OASISDNA();

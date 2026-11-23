@@ -1,0 +1,25 @@
+{
+  "source": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
+  "core": "9dcc856add106fa26b27ea5d26ef50b590bf92fd",
+  "web6": "d9e60ceaecef5513d1bcd6285cd668076bc77edf",
+  "onodeCore": "1b28ed0436173b827e58b75a3bb5a99c1bb661ec",
+  "run": 45057667019,
+  "job": 137316398646,
+  "digest": "sha256:deaad68bc6a73bbf3415a10c6e617e0d9831a5d2a7412626f327575708ae2c62",
+  "teachingSidecars": false,
+  "exactPrivatePinsVerified": true,
+  "contractQualifiedSource": "a6d7482446544c234f00de1227ea6af96a1ec290",
+  "contractRun": 45056435476,
+  "reviewedNonRuntimeDelta": [
+    "Docs/WIP/COSMIC ORM/COLLECTION_READ_AUTHORITY_CONTRACT_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/COLLECTION_READ_AUTHORITY_IMPLEMENTATION_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/CQL_PARITY_CHECKLIST.md",
+    "Docs/WIP/COSMIC ORM/CURRENT_STATUS.md",
+    "Docs/WIP/COSMIC ORM/FULL_PROGRESS_REPORT_2026-11-21.md",
+    "Docs/WIP/COSMIC ORM/RECORD_DISTINCT_DEVELOPMENT_CANDIDATE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECORD_DISTINCT_HOSTED_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md"
+  ],
+  "deployed": false,
+  "imageDownloadedLocally": false
+}

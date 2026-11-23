@@ -7,7 +7,6 @@ if (subscriptionUsageEnabled)
 {
     Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Subscription.SubscriptionUsageExpiryWorker>(services, Configuration);
     Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Subscription.PaidOverageBillingWorker>(services, Configuration);
-    Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Subscription.AppOverageStatementWorker>(services, Configuration);
     NextGenSoftware.OASIS.API.Core.Services.Subscriptions.SubscriptionTelemetryRegistration.AddSubscriptionUsageTelemetry(services, Configuration, "WEB4");
 }
 Services.SubscriptionReconciliation.UsageReconciliationRegistration.AddUsageReconciliation(services,
@@ -28,7 +27,7 @@ class Web4WorkerGateTests(unittest.TestCase):
         self.assertTrue(web4_worker_gate_errors(VALID.replace(" && ", " || ")))
 
     def test_every_maintenance_worker_requires_host_control(self):
-        for worker in ("SubscriptionUsageExpiryWorker", "PaidOverageBillingWorker", "AppOverageStatementWorker"):
+        for worker in ("SubscriptionUsageExpiryWorker", "PaidOverageBillingWorker"):
             with self.subTest(worker=worker):
                 source = VALID.replace("Services.Operations.HostedMongoWorkerControl.AddMaintenanceWorker<Services.Subscription." + worker + ">(services, Configuration)", "services.AddHostedService<Services.Subscription." + worker + ">()")
                 self.assertTrue(web4_worker_gate_errors(source))

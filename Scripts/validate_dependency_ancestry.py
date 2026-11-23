@@ -5,14 +5,22 @@ Read-only: never fetch, checkout, merge, stage or rewrite a dependency.
 import argparse
 import json
 import pathlib
+import os
 import subprocess
 
 class AncestryError(RuntimeError):
     pass
 
+# Git exports these to hooks (pre-push runs with GIT_DIR set to the parent repository). They would make every
+# command below answer from that repository instead of the one named by cwd, so a submodule's history would be
+# looked up in the parent's object store and reported unavailable.
+REPOSITORY_ENV=("GIT_DIR","GIT_WORK_TREE","GIT_INDEX_FILE","GIT_OBJECT_DIRECTORY","GIT_ALTERNATE_OBJECT_DIRECTORIES",
+    "GIT_COMMON_DIR","GIT_PREFIX","GIT_NAMESPACE")
+GIT_ENV={k:v for k,v in os.environ.items() if k not in REPOSITORY_ENV}
+
 def run_git(repo, *args):
     return subprocess.run(["git", "-c", "gc.auto=0", "-c", "maintenance.auto=false", *args],
-        cwd=repo, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        cwd=repo, env=GIT_ENV, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 def git(repo, *args):
     result=run_git(repo,*args)

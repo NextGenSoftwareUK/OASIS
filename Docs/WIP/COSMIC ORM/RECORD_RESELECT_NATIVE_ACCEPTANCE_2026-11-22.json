@@ -1,0 +1,45 @@
+{
+  "run": 45026011510,
+  "job": 137219081525,
+  "artifact": 14756101544,
+  "sha256": "4292e0d779d07343d37f16b53dbb7e476e33fa0b9253f0377003248dce2119c7",
+  "bytes": 6171,
+  "stamp": {
+    "ownedFixturesAbsent": true,
+    "core": "34848a57c2b165696bdeda91d26e0a7cddd273c8",
+    "deployed": false,
+    "corePassed": 4,
+    "nativePassed": 3,
+    "source": "34c228001f3713aabc3c988a967e55c0341447df",
+    "providers": [
+      "MongoDBOASIS",
+      "SQLLiteDBOASIS",
+      "Neo4jOASIS"
+    ],
+    "sharedDatabaseCalls": 0,
+    "web4Compiled": true
+  },
+  "methods": {
+    "core": [
+      "TypedCompositionResolvesCurrentAliasesAndKeepsEarlierSourceAndResultWindows",
+      "CompositionShapeOnlyReselectionUsesProjectionWithoutPipelineFallback",
+      "RuntimeReselectionRetainsHiddenNativeValidationAndCannotReintroduceDroppedAliases",
+      "CompositionRecordReselectionKeepsExactOutputAndOneReceipt"
+    ],
+    "Mongo": [
+      "NativeRecordReselectionKeepsHiddenInputsAndPublishesOnlyVisibleAliases"
+    ],
+    "SQLite": [
+      "NativeRecordReselectionKeepsHiddenInputsAndPublishesOnlyVisibleAliases"
+    ],
+    "Neo4j": [
+      "NativeRecordReselectionKeepsHiddenInputsAndPublishesOnlyVisibleAliases"
+    ]
+  },
+  "nativePassed": 3,
+  "corePassed": 4,
+  "web4Compiled": true,
+  "archiveSaved": false,
+  "fullEfParity": false,
+  "liveAccepted": false
+}

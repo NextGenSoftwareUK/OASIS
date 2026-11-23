@@ -1,0 +1,90 @@
+{
+  "controlSource": "08a796c537069fc4d79580247c1fb23b0e73441a",
+  "websiteSource": "7c002846b2e95654b5c2261f6c13a703acc6c9d2",
+  "declaredApiSource": "f29262d8b6df380e0d267228d92508e4da393561",
+  "run": 45054717428,
+  "job": 137307283907,
+  "artifact": 14766334028,
+  "artifactBytes": 251934,
+  "artifactSha256": "f01a4d6096848530ac974c28fbb99cc92ef3a3ab4dfe8ecf99fde0c6a7c672be",
+  "report": {
+    "websiteSource": "7c002846b2e95654b5c2261f6c13a703acc6c9d2",
+    "declaredApiSource": "f29262d8b6df380e0d267228d92508e4da393561",
+    "apiSourceVerifiedInsideRunner": false,
+    "approvedOrigin": "https://web4.oasisomniverse.one",
+    "provider": "HoloOASIS",
+    "liveRequested": false,
+    "publicWebsitePublicationVerified": false,
+    "modelCalls": 0,
+    "applicationHolonWrites": 0,
+    "apiRequests": {},
+    "blockedApi": [],
+    "scriptExceptions": [],
+    "assetHashes": {
+      "/web4-sandbox.html": "4c53031cd7d32feb81ba87396e2098f7978de21242bdb88710a1d92ff838d576",
+      "/web4-session.js": "a80650c080f0a5d97248cc6ff0866a5a2a4b15882d469ca6cc2f54dffb6b792f",
+      "/web4-tabs.js": "aec0dd8db831166964e1886ee30bee375e30a9f7ea18cfa2e5d4819b924da955",
+      "/cql-demo-preparation.js": "c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a",
+      "/cql-text.js": "5460a2ef0e717698789820e73767cd767c23c3dca70a7f7ebd0fe2b907e6834d",
+      "/lossless-metadata.js": "86dc43b8175a77db42fabbbf3363696a6d8593f50e3c26547ac60cf312789e7b",
+      "/cql-playground.js": "d92468dadf3a3040fd02f0d53da86e772ea118b8502a74d8c0900108e77e436a",
+      "/cql-ask.js": "034a72f27ccdb07213c67ad9a4544a44d24ddae8dbcc9c59d3177aaf9ceaa728"
+    },
+    "populatedReadVerified": false,
+    "fullBrowserDataFlowVerified": false,
+    "browserVersion": "Chrome/157.0.8103.78",
+    "renderedExamples": [
+      "derived",
+      "staged-set",
+      "tuple-distinct"
+    ],
+    "tupleDistinctCompilerCaptures": [
+      {
+        "provider": "MongoDBOASIS",
+        "path": "data/query-cql/composition",
+        "sourceTake": 25,
+        "operations": [
+          "Where",
+          "Select",
+          "Distinct",
+          "OrderBy",
+          "Take"
+        ]
+      },
+      {
+        "provider": "SQLLiteDBOASIS",
+        "path": "data/query-cql/composition",
+        "sourceTake": 25,
+        "operations": [
+          "Where",
+          "Select",
+          "Distinct",
+          "OrderBy",
+          "Take"
+        ]
+      },
+      {
+        "provider": "Neo4jOASIS",
+        "path": "data/query-cql/composition",
+        "sourceTake": 25,
+        "operations": [
+          "Where",
+          "Select",
+          "Distinct",
+          "OrderBy",
+          "Take"
+        ]
+      }
+    ],
+    "advancedExampleControlsRendered": true,
+    "screenshotSha256": "0b96a4eb4da02da7501848d083326aa6d171b7711586c82e473211da67e332b6",
+    "ownedBrowserStopped": true,
+    "profileAbsent": true,
+    "apiResponses": []
+  },
+  "allEightAssetsMatchFrozenGit": true,
+  "staticBrowserFlowAccepted": true,
+  "complexStorageDataFlowAccepted": false,
+  "realModelInferenceAccepted": false,
+  "localBrowserOrArtifactWritten": false
+}

@@ -1,0 +1,108 @@
+{
+  "controlSource": "abbf4abc3e004ed85b18e42a1073b4a75166c2ea",
+  "websiteSource": "89cb1473db6a7c5a246df1b43ea10fcb1274ee6b",
+  "apiSource": "f29262d8b6df380e0d267228d92508e4da393561",
+  "run": 45049728987,
+  "job": 137291986090,
+  "artifact": 14764883152,
+  "artifactBytes": 106612,
+  "artifactSha256": "e36aa1cc4128cac48964d69e5cdc78f936ece6426149b6967adbe0bfd7af654a",
+  "report": {
+    "websiteSource": "89cb1473db6a7c5a246df1b43ea10fcb1274ee6b",
+    "declaredApiSource": "f29262d8b6df380e0d267228d92508e4da393561",
+    "apiSourceVerifiedInsideRunner": false,
+    "approvedOrigin": "https://web4.oasisomniverse.one",
+    "provider": "HoloOASIS",
+    "liveRequested": true,
+    "publicWebsitePublicationVerified": false,
+    "modelCalls": 0,
+    "applicationHolonWrites": 0,
+    "apiRequests": {
+      "POST /api/sandbox/session": 1,
+      "GET /api/data/query-cql/providers": 1,
+      "POST /api/data/query-cql": 1,
+      "POST /api/avatar/revoke-token": 1
+    },
+    "blockedApi": [
+      "OPTIONS /api/hyperdrive/status",
+      "OPTIONS /api/hyperdrive/metrics",
+      "OPTIONS /api/hyperdrive/connections",
+      "OPTIONS /api/hyperdrive/best-provider",
+      "OPTIONS /api/sandbox/faults",
+      "OPTIONS /api/sandbox/faults"
+    ],
+    "scriptExceptions": [],
+    "assetHashes": {
+      "/web4-sandbox.html": "05aa62fbd3d4a983318db0cce63fa716da2b41eec7159e4c2507a1c5651325ef",
+      "/web4-session.js": "a80650c080f0a5d97248cc6ff0866a5a2a4b15882d469ca6cc2f54dffb6b792f",
+      "/web4-tabs.js": "aec0dd8db831166964e1886ee30bee375e30a9f7ea18cfa2e5d4819b924da955",
+      "/cql-demo-preparation.js": "c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a",
+      "/cql-text.js": "6136916deb45a0cc359c495d199fd66bbd0810af002bd6dfdb2c98ff962b9c08",
+      "/lossless-metadata.js": "86dc43b8175a77db42fabbbf3363696a6d8593f50e3c26547ac60cf312789e7b",
+      "/cql-playground.js": "3cdf11bb6bc7770629847b60d7da2f09b0a0a4264f77710e7a8c38680f43b482",
+      "/cql-ask.js": "bb8ee64a7a45e36df279ac269eaa775082fb24399e698783365e844ba9282834"
+    },
+    "populatedReadVerified": true,
+    "fullBrowserDataFlowVerified": true,
+    "browserVersion": "Chrome/157.0.8103.78",
+    "advancedExampleControlsRendered": true,
+    "reviewedScope": {
+      "path": "data/query-cql",
+      "provider": "HoloOASIS",
+      "keys": [
+        "provider",
+        "filters",
+        "orderBy",
+        "skip",
+        "take",
+        "includeMetadata",
+        "maximumDurationMilliseconds"
+      ],
+      "take": 25,
+      "maximumDurationMilliseconds": 30000
+    },
+    "queryElapsedMilliseconds": 2389.434930000003,
+    "returnedRows": 3,
+    "providerReturned": "HoloOASIS",
+    "screenshotSha256": "8ed8c079b0757704a1645a22aa5303f594c8557fad1d5f50806a933d76839224",
+    "demoSessionRevoked": true,
+    "ownedBrowserStopped": true,
+    "profileAbsent": true,
+    "apiResponses": [
+      {
+        "path": "/api/sandbox/session",
+        "status": 200,
+        "acknowledged": true
+      },
+      {
+        "path": "/api/data/query-cql",
+        "status": 200,
+        "acknowledged": true
+      },
+      {
+        "path": "/api/avatar/revoke-token",
+        "status": 200,
+        "acknowledged": true
+      }
+    ]
+  },
+  "beforeUtc": "2026-11-22T17:27:03.637753+00:00",
+  "afterUtc": "2026-11-22T17:30:04.470443+00:00",
+  "beforeRollout": {
+    "deployment": "c69553a2-6dd4-43c9-935d-8fd36e65cdf0",
+    "status": "SUCCESS",
+    "source": "f29262d8b6df380e0d267228d92508e4da393561",
+    "imageDigest": "sha256:23086f6ae04b188e717bc6488ede6a83926d82ee78b255e600b6d3f72295c5ff"
+  },
+  "afterRollout": {
+    "deployment": "c69553a2-6dd4-43c9-935d-8fd36e65cdf0",
+    "status": "SUCCESS",
+    "source": "f29262d8b6df380e0d267228d92508e4da393561",
+    "imageDigest": "sha256:23086f6ae04b188e717bc6488ede6a83926d82ee78b255e600b6d3f72295c5ff"
+  },
+  "apiSourceWindowVerifiedExternally": true,
+  "actualBrowserLivePublicReadAccepted": true,
+  "scope": "One temporary-session public HoloOASIS SQL query rendered by actual reviewed source at the approved WEB4 origin. Staged browser assets, no public website promotion, no model or application Holon writes.",
+  "archiveSaved": false,
+  "screenshotRetainedInCiOnly": true
+}

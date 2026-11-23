@@ -1,0 +1,17 @@
+{
+  "source": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
+  "core": "dcf11fe46181438b46eba57a88310f7172c89a61",
+  "run": 44986459609,
+  "job": 137097985964,
+  "artifact": {
+    "id": 14740066951,
+    "bytes": 2031,
+    "sha256": "aba142f8bab6e218c47dd92d390f1066da86c73db39ce2e7811526b97b5ee5d2"
+  },
+  "checks": 6,
+  "actualWeb4Build": true,
+  "buildErrors": 0,
+  "contractAccepted": true,
+  "nativeLinqPopulatedAccepted": false,
+  "developmentPushed": false
+}

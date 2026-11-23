@@ -1,0 +1,81 @@
+{
+  "source": "f26edeef1152961a2b46f2149a6c28c08188a09a",
+  "diagnostics": [
+    {
+      "deployment": "416cbaae-740e-42ff-9ef9-3cbb3f7a296b",
+      "source": "f26edeef1152961a2b46f2149a6c28c08188a09a",
+      "calls": [
+        {
+          "path": "sandbox/session",
+          "status": 200,
+          "isError": false
+        },
+        {
+          "path": "data/query-cql",
+          "status": 200,
+          "isError": false
+        },
+        {
+          "path": "avatar/revoke-token",
+          "status": 200,
+          "isError": false
+        }
+      ],
+      "pending": null,
+      "holonWrites": 0,
+      "queryKind": "NonexistentIdEquality",
+      "completed": true,
+      "queryOutcome": {
+        "status": 200,
+        "isError": false,
+        "errorCode": null,
+        "rows": 0
+      },
+      "sessionRevoked": true,
+      "sessionCredentialsRemoved": true
+    },
+    {
+      "deployment": "416cbaae-740e-42ff-9ef9-3cbb3f7a296b",
+      "source": "f26edeef1152961a2b46f2149a6c28c08188a09a",
+      "calls": [
+        {
+          "path": "sandbox/session",
+          "status": 200,
+          "isError": false
+        },
+        {
+          "path": "data/query-cql",
+          "status": 200,
+          "isError": false
+        },
+        {
+          "path": "avatar/revoke-token",
+          "status": 200,
+          "isError": false
+        }
+      ],
+      "pending": null,
+      "holonWrites": 0,
+      "queryKind": "OneInstrumentedBroadFailureReproduction",
+      "completed": true,
+      "queryOutcome": {
+        "status": 200,
+        "isError": false,
+        "errorCode": null,
+        "rows": 0
+      },
+      "sessionRevoked": true,
+      "sessionCredentialsRemoved": true
+    }
+  ],
+  "initial503Reproduced": false,
+  "initial503CauseProven": false,
+  "nativeSetPopulatedAcceptance": false,
+  "diagnosticCalls": 6,
+  "holonWrites": 0,
+  "successfulRawResponsesRemoved": [
+    "C:\\Source\\OASIS2\\LocalState\\COSMIC\\HostedNeoReadDiagnosticCurrent\\response-0037532a-9ab1-4c6d-a726-2624e1222615.dpapi",
+    "C:\\Source\\OASIS2\\LocalState\\COSMIC\\HostedNeoBrowseDiagnosticCurrent\\response-ae6e71ab-7451-44a7-9168-f095d911416d.dpapi"
+  ],
+  "credentialFilesRetained": 0
+}

@@ -1,0 +1,21 @@
+{
+  "source": "c1fa19550bd356babdee5ef0303996516f671249",
+  "run": 45037860576,
+  "job": 137255488408,
+  "artifact": 14760452995,
+  "artifactBytes": 1689,
+  "artifactSha256": "0b60b50730fbed7a91333043d8aafa9f6418f5d52f61d3ca920c3a45bdc3a373",
+  "files": [
+    "entry.trx"
+  ],
+  "passed": 3,
+  "cases": [
+    "NextGenSoftware.OASIS.API.Core.UnitTests.CqlStagedSetV1CompilerTests.EachSelectedInputKeepsItsStagesBeforeVisibleTupleEquality",
+    "NextGenSoftware.OASIS.API.Core.UnitTests.CqlStagedSetV1CompilerTests.CaptureDetachesEveryMutableSelectedStageDescriptor",
+    "NextGenSoftware.OASIS.API.Core.UnitTests.CqlStagedSetV1CompilerTests.HiddenAliasReentryOversizedStagesAndEntityStageLossAreRefused"
+  ],
+  "actualWeb4BuildPassed": true,
+  "nativeProviderVerified": false,
+  "liveAccepted": false,
+  "archiveSavedToDisk": false
+}

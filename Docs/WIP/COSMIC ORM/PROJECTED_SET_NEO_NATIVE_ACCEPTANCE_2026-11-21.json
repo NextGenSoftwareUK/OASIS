@@ -1,0 +1,48 @@
+{
+  "source": "47487f8c75c21eb9024507a02aa74a6c90241668",
+  "coreSource": "d22248d3cc99b7cfc447376974605d892637b284",
+  "workflow": "qualify-cql-neo-projected-set-native.yml",
+  "status": "completed",
+  "nativeImplemented": true,
+  "nativeAccepted": true,
+  "compiled": true,
+  "developmentPushed": false,
+  "checks": 7,
+  "ownedRecords": 4,
+  "localBuild": false,
+  "run": 44978080537,
+  "conclusion": "success",
+  "artifact": {
+    "id": 14736571656,
+    "bytes": 1780,
+    "sha256": "f95c99c8204116e375699d99723d15f9eeec9a64433cc32718d614597d2512e0"
+  },
+  "report": {
+    "provider": "Neo4jOASIS",
+    "checks": 7,
+    "ownedCleanupIds": 4,
+    "successfulHolonWrites": 4,
+    "queryElapsedMilliseconds": {
+      "create-owned": 1533,
+      "create-foreign": 597,
+      "union": 1835,
+      "concat": 1044,
+      "intersect": 1084,
+      "except": 235,
+      "global-window": 1027,
+      "bound-before-empty-page": 1178,
+      "ordinary-selected-window": 694
+    },
+    "nativeProviderVerified": true,
+    "allFourSetOperationsVerified": true,
+    "concatMultiplicityVerified": true,
+    "independentWindowsVerified": true,
+    "selectedTupleEqualityVerified": true,
+    "hiddenInputColumnsExcludedVerified": true,
+    "foreignRowsHiddenVerified": true,
+    "inputLimitBeforeEmptyOutputVerified": true,
+    "ordinaryReadPreservedVerified": true,
+    "exactCleanupVerified": true
+  },
+  "job": 137072334212
+}

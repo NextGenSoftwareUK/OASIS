@@ -1,0 +1,48 @@
+{
+  "observedUtc": "2026-11-22T17:42:40.894433+00:00",
+  "environment": "Development",
+  "apiSource": "f29262d8b6df380e0d267228d92508e4da393561",
+  "coreSource": "32fbf1bfd1e990b3119423bc024e149162d76d3e",
+  "savedConfigurationObservation": {
+    "observedUtc": "2026-11-22T17:39:46.805271+00:00",
+    "autoLoadBalanceEnabled": true,
+    "autoFailOverEnabled": true
+  },
+  "startupDnaObservation": {
+    "source": "f29262d8b6df380e0d267228d92508e4da393561",
+    "startupDnaAutoLoadBalanceEnabled": true,
+    "startupDnaAutoFailOverEnabled": true,
+    "scope": "startup DNA file; not in-process manager attestation",
+    "observedUtc": "2026-11-22T17:42:09.399223+00:00"
+  },
+  "sourceInvariant": {
+    "file": "Managers/OASIS HyperDrive/OASISHyperDrive.cs",
+    "sha256": "122643b26172b0da4b8284705a5e56b1a2f3357b2231e3b1df47e2e9d2f8bf8b",
+    "parentOperations": [
+      "LoadHolonsForParent",
+      "LoadHolonsForParentByProviderKey"
+    ],
+    "unqualifiedReplicaCannotServeParentCollection": true,
+    "evidenceKind": "deployed-source inspection; previously accepted regressions not replayed"
+  },
+  "conductor": {
+    "file": "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisDevelopmentConductor.cs",
+    "sha256": "a895fa2087aab7f1d08765cfb49ad304b6c5ba04611927086a670d01de15ad4a",
+    "readinessBudgetSeconds": 480
+  },
+  "realHoloBrowserProof": "HOSTED_BROWSER_LIVE_ACCEPTANCE_2026-11-22.json",
+  "scopeLimits": {
+    "inProcessProviderManagerAttested": false,
+    "generalColdStartReliabilityProved": false,
+    "piperRecordsAccessed": false,
+    "configurationChanged": false,
+    "redeployed": false,
+    "stagingOrProductionTouched": false
+  },
+  "cleanup": {
+    "newRuntimeOrEnvironmentInstalled": false,
+    "localBuildOrDatabaseCreated": false,
+    "fullDnaOrCredentialsRecorded": false,
+    "temporaryGitIndexRemovedByPublisher": true
+  }
+}

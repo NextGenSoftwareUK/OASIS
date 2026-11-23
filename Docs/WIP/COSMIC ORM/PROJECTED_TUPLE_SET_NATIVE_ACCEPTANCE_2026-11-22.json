@@ -1,0 +1,73 @@
+{
+  "source": "425df96c1fc0ddbe289e3c34482e287d9abe01b5",
+  "core": "34848a57c2b165696bdeda91d26e0a7cddd273c8",
+  "run": 45029053929,
+  "job": 137228359314,
+  "artifact": 14757545975,
+  "bytes": 2751,
+  "sha256": "be8a0fccb4bfaf69998ce379397997f8a7466495374dbab71fbf680706dd6585",
+  "journeysPassed": 3,
+  "operationsPerProvider": 4,
+  "reports": [
+    {
+      "provider": "MongoDBOASIS",
+      "checks": 4,
+      "ownedCleanupIds": 4,
+      "successfulHolonWrites": 4,
+      "queryElapsedMilliseconds": {
+        "Union": 61,
+        "Concat": 13,
+        "Intersect": 12,
+        "Except": 12
+      },
+      "nativeProviderVerified": true,
+      "allFourSetOperationsVerified": true,
+      "visibleTupleEqualityVerified": true,
+      "nullTupleCellVerified": true,
+      "concatMultiplicityVerified": true,
+      "foreignRowsHiddenVerified": true,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 4,
+      "ownedCleanupIds": 4,
+      "successfulHolonWrites": 4,
+      "queryElapsedMilliseconds": {
+        "Union": 29,
+        "Concat": 3,
+        "Intersect": 4,
+        "Except": 3
+      },
+      "nativeProviderVerified": true,
+      "allFourSetOperationsVerified": true,
+      "visibleTupleEqualityVerified": true,
+      "nullTupleCellVerified": true,
+      "concatMultiplicityVerified": true,
+      "foreignRowsHiddenVerified": true,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "checks": 4,
+      "ownedCleanupIds": 4,
+      "successfulHolonWrites": 4,
+      "queryElapsedMilliseconds": {
+        "Union": 1200,
+        "Concat": 830,
+        "Intersect": 791,
+        "Except": 178
+      },
+      "nativeProviderVerified": true,
+      "allFourSetOperationsVerified": true,
+      "visibleTupleEqualityVerified": true,
+      "nullTupleCellVerified": true,
+      "concatMultiplicityVerified": true,
+      "foreignRowsHiddenVerified": true,
+      "exactCleanupVerified": true
+    }
+  ],
+  "archiveSaved": false,
+  "liveAccepted": false,
+  "fullSetParity": false
+}

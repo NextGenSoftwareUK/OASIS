@@ -63,3 +63,5 @@ Examples/CosmicCqlDemo/
 # Manual live-verification harness: needs a real zkPass app id, secret and a
 # live network, so it is run by hand and is not part of any solution build.
 Providers/Identity/TestProjects/zkPassOASIS.LiveVerification/
+# Standalone ABI probe host that the AWS scripts build and run on their own; it is not part of any product solution.
+Scripts/TestHosts/AwsSdkAbiProbe/

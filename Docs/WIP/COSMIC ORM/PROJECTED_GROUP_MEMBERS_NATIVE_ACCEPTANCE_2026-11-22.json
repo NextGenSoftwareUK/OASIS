@@ -1,0 +1,43 @@
+{
+  "source": "0b2d34f32684befabaf2b43fe708b94b31e86a9f",
+  "core": "21a5966a12aa9c57109131cf7a519394d30e9a27",
+  "run": 45072884018,
+  "job": 137363581996,
+  "artifact": 14774073075,
+  "archiveBytes": 5777,
+  "archiveSha256": "cb03c976e92b2908f15b228e08afce25017d92d9f7132a9eba830dbee09bbe46",
+  "reports": {
+    "Mongo.trx": {
+      "passed": 1,
+      "failed": 0
+    },
+    "SQLite.trx": {
+      "passed": 1,
+      "failed": 0
+    },
+    "Neo4j.trx": {
+      "passed": 1,
+      "failed": 0
+    },
+    "ProjectionContract.trx": {
+      "passed": 1,
+      "failed": 0
+    }
+  },
+  "nativeAccepted": true,
+  "scope": [
+    "complete scalar/anonymous/DTO grouping collections",
+    "source/member/first-group order",
+    "source windows and empty result",
+    "group budget before application construction",
+    "whole entities explicitly unadmitted",
+    "cancellation",
+    "warning packets cannot construct or publish DTOs"
+  ],
+  "ownedFixturesAbsent": true,
+  "ownedMongoStopped": true,
+  "sharedDatabaseCalls": 0,
+  "deployed": false,
+  "fullIGroupingParity": false,
+  "artifactSavedToDisk": false
+}

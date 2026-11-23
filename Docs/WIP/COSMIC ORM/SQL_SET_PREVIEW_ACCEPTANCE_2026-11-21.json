@@ -1,0 +1,29 @@
+{
+  "websiteSource": "580d407b78d40dedda6a88c0c203e1f2b7fd1f87",
+  "deployment": "dpl_3mhkenN7G8hJpbyy1qYs8K6nRFQi",
+  "url": "https://web4-site-jvne1yjne-oasis-team.vercel.app/web4-sandbox.html",
+  "assets": [
+    {
+      "asset": "cql-text.js",
+      "bytes": 81378,
+      "sha256": "5d564a9e6347b55e91a6f16a4d122388bc6155076b3247dd82a7ef6022d64613",
+      "exactSourceMatch": true
+    },
+    {
+      "asset": "cql-playground.js",
+      "bytes": 32968,
+      "sha256": "9f8e6ad7023a80529a9d26cfb84aa63bbf2150bf6cf951cde1dae6e02c75aa3d",
+      "exactSourceMatch": true
+    },
+    {
+      "asset": "cql-ask.js",
+      "bytes": 36002,
+      "sha256": "d6d28c2cd478eac800b0fa905ad62eeeb8c5d8f8f9d813136e240a452e4fb4a7",
+      "exactSourceMatch": true
+    }
+  ],
+  "sqlHelpAndAssetVersionVerified": true,
+  "renderedBrowserVerified": false,
+  "publicPromoted": false,
+  "filesDownloaded": 0
+}

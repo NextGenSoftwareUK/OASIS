@@ -1,0 +1,38 @@
+{
+  "run": 45031220175,
+  "job": 137235034455,
+  "artifact": 14758127608,
+  "bytes": 395,
+  "sha256": "29300a8b3c19e2783b55fddf761cf0cdb896febabaafbc944d535e0764bf3982",
+  "stamp": {
+    "awsSdkAbiAccepted": true,
+    "core": "34848a57c2b165696bdeda91d26e0a7cddd273c8",
+    "deployed": false,
+    "web6": "d9e60ceaecef5513d1bcd6285cd668076bc77edf",
+    "dataWrites": 0,
+    "nativeProviderCalls": 0,
+    "compiledApis": [
+      "WEB4",
+      "WEB5",
+      "WEB6",
+      "WEB7",
+      "WEB8",
+      "WEB9",
+      "WEB10"
+    ],
+    "awsAssembliesLoaded": 4,
+    "source": "94d9966baaf80a72188040d80058f7104a94e87a",
+    "cloudCalls": 0
+  },
+  "sourceCheckoutVerified": true,
+  "awsMajor": 3,
+  "realAssemblyTypeCounts": {
+    "AWSSDK.Core": 924,
+    "AWSSDK.DynamoDBv2": 932,
+    "AWSSDK.S3": 978,
+    "AWSSDK.BedrockRuntime": 287
+  },
+  "compositionAccepted": true,
+  "liveAccepted": false,
+  "archiveSaved": false
+}

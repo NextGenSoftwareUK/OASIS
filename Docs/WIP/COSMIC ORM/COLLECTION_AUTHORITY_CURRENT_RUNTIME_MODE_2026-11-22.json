@@ -1,0 +1,8 @@
+{
+  "source": "2e646c1d1ef0c1d2c8a410da04f1f81fe8bd372d",
+  "hyperDriveMode": "OASISHyperDrive2",
+  "startupDnaAutoLoadBalanceEnabled": true,
+  "startupDnaAutoFailOverEnabled": true,
+  "scope": "startup DNA file; not in-process manager attestation",
+  "observedUtc": "2026-11-22T18:51:20.056200+00:00"
+}

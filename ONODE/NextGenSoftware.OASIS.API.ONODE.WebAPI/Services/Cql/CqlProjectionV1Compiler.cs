@@ -130,6 +130,43 @@ public static partial class CqlV1Compiler
         }
     }
 
+    private sealed class BooleanTextCaseSelectionConsumer<TResult>(ISelectionConsumer<TResult> consumer,string whenTrue,string whenFalse)
+        :ISelectionConsumer<TResult>
+    {
+        public TResult Bind<TValue>(string alias,Expression<Func<Holon,TValue>> selector)
+        {
+            if(typeof(TValue)!=typeof(bool))
+                throw new ArgumentException("Conditional text requires an exact Boolean input.");
+            return consumer.Bind(alias,Expression.Lambda<Func<Holon,string>>(
+                Expression.Condition(selector.Body,Expression.Constant(whenTrue,typeof(string)),
+                    Expression.Constant(whenFalse,typeof(string))),selector.Parameters));
+        }
+    }
+
+    private sealed class Int32CoalesceSelectionConsumer<TResult>(ISelectionConsumer<TResult> consumer,int replacement)
+        :ISelectionConsumer<TResult>
+    {
+        public TResult Bind<TValue>(string alias,Expression<Func<Holon,TValue>> selector)
+        {
+            if(typeof(TValue)!=typeof(int?))
+                throw new ArgumentException("Int32 coalescing requires an exact nullable Int32 input.");
+            return consumer.Bind(alias,Expression.Lambda<Func<Holon,int>>(
+                Expression.Coalesce(selector.Body,Expression.Constant(replacement,typeof(int))),selector.Parameters));
+        }
+    }
+
+    private sealed class TextCoalesceSelectionConsumer<TResult>(ISelectionConsumer<TResult> consumer,string replacement)
+        :ISelectionConsumer<TResult>
+    {
+        public TResult Bind<TValue>(string alias,Expression<Func<Holon,TValue>> selector)
+        {
+            if(typeof(TValue)!=typeof(string))
+                throw new ArgumentException("Text coalescing requires an exact String input.");
+            return consumer.Bind(alias,Expression.Lambda<Func<Holon,string>>(
+                Expression.Coalesce(selector.Body,Expression.Constant(replacement,typeof(string))),selector.Parameters));
+        }
+    }
+
     private sealed class ProjectionSelectionConsumer : ISelectionConsumer<CosmicProjectionSelection<Holon>>
     {
         public CosmicProjectionSelection<Holon> Bind<TValue>(string alias, Expression<Func<Holon, TValue>> selector)
@@ -146,6 +183,42 @@ public static partial class CqlV1Compiler
         if (column == null) throw new ArgumentException("A column is required.");
         ValidateSelectionAlias(column.Alias);
         var alias = column.Alias;
+        if(column.Function!=CqlV1Function.Int32Coalesce && column.Int32Replacement.HasValue)
+            throw new ArgumentException("Only Int32 coalescing accepts an integer replacement.");
+        if(column.Function!=CqlV1Function.BooleanTextCase && (column.WhenTrue!=null || column.WhenFalse!=null))
+            throw new ArgumentException("Only conditional text accepts branch literals.");
+        if(column.Function==CqlV1Function.BooleanTextCase)
+        {
+            if(column.WhenTrue==null || column.WhenFalse==null || column.WhenTrue.Length>512 || column.WhenFalse.Length>512
+                || column.Nullable==true || column.NullReplacement!=null)
+                throw new ArgumentException("Conditional text requires an exact nonnullable Boolean field and two bounded literal strings.");
+            var input=new CqlProjectionV1Column {
+                Alias=column.Alias,Field=column.Field,MetadataPath=column.MetadataPath,ValueType=column.ValueType,Nullable=column.Nullable
+            };
+            return CompileSelection(input,new BooleanTextCaseSelectionConsumer<TResult>(consumer,column.WhenTrue,column.WhenFalse));
+        }
+        if(column.Function!=CqlV1Function.TextCoalesce && column.NullReplacement!=null)
+            throw new ArgumentException("Only text coalescing accepts a replacement.");
+        if(column.Function==CqlV1Function.TextCoalesce)
+        {
+            if(column.NullReplacement==null || column.NullReplacement.Length>512)
+                throw new ArgumentException("Text coalescing needs a literal replacement of at most512 characters.");
+            var input=new CqlProjectionV1Column {
+                Alias=column.Alias,Field=column.Field,MetadataPath=column.MetadataPath,
+                ValueType=column.ValueType,Nullable=column.MetadataPath==null?null:true
+            };
+            return CompileSelection(input,new TextCoalesceSelectionConsumer<TResult>(consumer,column.NullReplacement));
+        }
+        if(column.Function==CqlV1Function.Int32Coalesce)
+        {
+            if(!column.Int32Replacement.HasValue || column.MetadataPath==null || column.Nullable!=true)
+                throw new ArgumentException("Int32 coalescing requires a typed nullable metadata path and captured replacement.");
+            var input=new CqlProjectionV1Column {
+                Alias=column.Alias,MetadataPath=column.MetadataPath,Field=column.Field,
+                ValueType=column.ValueType,Nullable=column.Nullable
+            };
+            return CompileSelection(input,new Int32CoalesceSelectionConsumer<TResult>(consumer,column.Int32Replacement.Value));
+        }
         if (column.Function.HasValue)
         {
             if (column.Function != CqlV1Function.Utf16Length)

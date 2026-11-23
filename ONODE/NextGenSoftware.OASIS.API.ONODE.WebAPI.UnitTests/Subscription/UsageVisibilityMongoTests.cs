@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -83,7 +84,7 @@ public sealed class UsageVisibilityMongoTests : IDisposable
     {
         OperationId = Guid.NewGuid().ToString("D"), UserId = user, ConsumingService = "WEB4", Endpoint = "GET /test", MeterCategory = "api.request",
         RequestedUnits = 1, RequestFingerprint = new string('a', 64), Status = "authorized", PlanId = "enterprise",
-        PooledAppId = "piper", PooledAppPlanId = "silver", AuthorizedAtUtc = DateTime.UtcNow, ExpiresAtUtc = DateTime.UtcNow.AddMinutes(5)
+        AppId = appId, AppPlanId = AppAccountRules.DefaultPerUserPlanId, PooledAppId = appId, PooledAppPlanId = "silver", AuthorizedAtUtc = DateTime.UtcNow, ExpiresAtUtc = DateTime.UtcNow.AddMinutes(5)
     };
 
     [MongoFact]
@@ -157,24 +158,60 @@ public sealed class UsageVisibilityMongoTests : IDisposable
         try
         {
             await NewApp(ledger);
-            await ledger.SetAppOverridesAsync("piper", null, true, false, "admin");
+            await ledger.SetAppOverridesAsync("piper", Patch("{\"ownerViewEnabled\":null,\"warningsEnabled\":true,\"accessLogEnabled\":false}"), Owner, administrator: true);
             var app = (await ledger.ListAppAccountsAsync()).Single();
             Assert.Null(app.Overrides.OwnerViewEnabled); Assert.True(app.Overrides.WarningsEnabled); Assert.False(app.Overrides.AccessLogEnabled);
         }
         finally { await Drop(client, scope); }
     }
 
-    private static async Task Consent(MongoClient client, string scope, MongoSubscriptionUsageRepository ledger, decimal cap, string customer = "cus_test", string subscription = "sub_test", string app = "piper")
+    private static AppUsageSettingsPatch Patch(string json) => new(JsonDocument.Parse(json).RootElement);
+
+    [MongoFact]
+    public async Task OnlyOwnersOrAdministratorsMayReadOrChangeAnApp()
     {
-        await client.GetDatabase(scope).GetCollection<SubscriptionRecord>("subscription_records").InsertOneAsync(new()
+        var (client, scope, ledger, _) = Make();
+        try
+        {
+            await NewApp(ledger);
+            await ledger.SetAppOwnersAsync("piper", new[] { Owner }, "admin", "test owner");
+            Assert.Equal("piper", (await ledger.GetAppForOwnerAsync("piper", Owner, false)).AppId);
+            Assert.Equal("piper", (await ledger.GetAppForOwnerAsync("piper", Reader, true)).AppId);
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => ledger.GetAppForOwnerAsync("piper", Reader, false));
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => ledger.SetAppOverridesAsync("piper", Patch("{\"warningsEnabled\":false}"), Reader, false));
+        }
+        finally { await Drop(client, scope); }
+    }
+
+    private static async Task Consent(MongoClient client, string scope, MongoSubscriptionUsageRepository ledger, Clock clock, decimal cap, string customer = "cus_test", string subscription = "sub_test", string app = "piper")
+    {
+        var payers = client.GetDatabase(scope).GetCollection<SubscriptionRecord>("subscription_records");
+        await payers.InsertOneAsync(new()
         { UserId = Owner, PlanId = "silver", Status = "active", StripeCustomerId = customer, StripeSubscriptionId = subscription, CurrentPeriodEnd = DateTime.UtcNow.AddMonths(1) });
-        await ledger.SetAppPaygAsync(app, true, cap, "app-overages-2026-11-13-v1", Owner);
+        await ledger.SetAppOwnersAsync(app, new[] { Owner }, "admin", "test owner");
+        var prices = AppOveragePrices.Load();
+        var payer = await payers.Find(x => x.UserId == Owner).FirstAsync();
+        await ledger.SetAppPaygAsync(app, new AppPaygConsentRequest { Enabled = true, MonthlyCapUsd = cap, PricingVersion = prices.Version, PricingSha256 = prices.PricingSha256, Consent = true },
+            Owner, false, AppBillingPayerSnapshot.AfterVerification(payer, clock.GetUtcNow().UtcDateTime));
+    }
+
+    /// <summary>Authorizes and settles one pooled request, so any charge beyond the pool is a settled app overage.</summary>
+    private static async Task Use(MongoSubscriptionUsageRepository ledger, string app = "piper")
+    {
+        var request = Request(app, Reader);
+        await ledger.AuthorizeAsync(request, 0, default);
+        await ledger.StartAsync(new() { OperationId = request.OperationId, UserId = Reader, ConsumingService = "WEB4" }, default);
+        await ledger.SettleAsync(Reader, new UsageSettlementRequest { OperationId = request.OperationId, UserId = Reader, ConsumingService = "WEB4", Outcome = "succeeded",
+            Provider = "isolated-fixture", Model = "test-model", ProviderRequestId = request.OperationId, PromptTokens = 1, ActualCostUsd = 0, EstimatedCostUsd = 0, Units = 1,
+            CostSource = "isolated-test-measurement", PricingCatalogueVersion = "fixture-v1",
+            ProviderReceipts = new() { new() { Provider = "isolated-fixture", Model = "test-model", ProviderRequestId = request.OperationId, PromptTokens = 1, Units = 1, ActualCostUsd = 0,
+                CostSource = "isolated-test-measurement", PricingCatalogueVersion = "fixture-v1" } } }, default);
     }
 
     [MongoFact]
     public async Task AppOverageIsRefusedWithoutConsentAndAdmittedUpToTheCapWithIt()
     {
-        var (client, scope, ledger, _) = Make();
+        var (client, scope, ledger, clock) = Make();
         try
         {
             await Subscriber(client, scope, Reader);
@@ -183,13 +220,11 @@ public sealed class UsageVisibilityMongoTests : IDisposable
             for (var i = 0; i < 10; i++) await ledger.AuthorizeAsync(Request("piper", Reader), 0, default);
             var refused = await Assert.ThrowsAsync<SubscriptionUsageLimitException>(() => ledger.AuthorizeAsync(Request("piper", Reader), 0, default));
             Assert.Equal("APP_MONTHLY_REQUEST_LIMIT_EXCEEDED", refused.Code);
-            // Consent with a cap of $0.001 (silver rate 0.0005): exactly two extra requests fit.
-            await Consent(client, scope, ledger, 0.50m);
-            await client.GetDatabase(scope).GetCollection<AppAccountRecord>("subscription_app_accounts").UpdateOneAsync(x => x.AppId == "piper", Builders<AppAccountRecord>.Update.Set(x => x.Payg.MonthlyCapUsd, 0.001m));
-            await ledger.AuthorizeAsync(Request("piper", Reader), 0, default);
-            await ledger.AuthorizeAsync(Request("piper", Reader), 0, default);
+            // Consent with the smallest cap, $0.50 at the silver rate of $0.0005: exactly 1,000 extra requests fit.
+            await Consent(client, scope, ledger, clock, 0.50m);
+            for (var i = 0; i < 1000; i++) await ledger.AuthorizeAsync(Request("piper", Reader), 0, default);
             var capped = await Assert.ThrowsAsync<SubscriptionUsageLimitException>(() => ledger.AuthorizeAsync(Request("piper", Reader), 0, default));
-            Assert.Equal("APP_MONTHLY_REQUEST_LIMIT_EXCEEDED", capped.Code);
+            Assert.Equal("APP_OVERAGE_SPENDING_CAP_EXCEEDED", capped.Code);
         }
         finally { await Drop(client, scope); }
     }
@@ -197,12 +232,12 @@ public sealed class UsageVisibilityMongoTests : IDisposable
     [MongoFact]
     public async Task AFailedOwnerPaymentStopsAdmittingOverage()
     {
-        var (client, scope, ledger, _) = Make();
+        var (client, scope, ledger, clock) = Make();
         try
         {
             await Subscriber(client, scope, Reader);
             await NewApp(ledger);
-            await Consent(client, scope, ledger, 50m);
+            await Consent(client, scope, ledger, clock, 50m);
             for (var i = 0; i < 10; i++) await ledger.AuthorizeAsync(Request("piper", Reader), 0, default);
             await ledger.AuthorizeAsync(Request("piper", Reader), 0, default); // admitted as billable overage
             await client.GetDatabase(scope).GetCollection<PaidOverageStatement>("subscription_overage_statements").InsertOneAsync(new()
@@ -212,42 +247,41 @@ public sealed class UsageVisibilityMongoTests : IDisposable
         finally { await Drop(client, scope); }
     }
 
-    private static string LastMonth() => DateTime.UtcNow.AddMonths(-1).ToString("yyyy-MM");
-
-    private static Task PoolMonth(MongoClient client, string scope, long requests, string app = "piper") =>
-        client.GetDatabase(scope).GetCollection<SubscriptionUsageBucket>("subscription_usage_buckets").InsertOneAsync(new()
-        { Id = "app:" + app + ":month:" + LastMonth(), UserId = "app:" + app, PeriodType = "month", Period = LastMonth(), Requests = requests });
+    private static string ThisMonth() => DateTime.UtcNow.ToString("yyyy-MM");
 
     [MongoFact]
-    public async Task MonthlyStatementIsCreatedOnceWithTheCappedAmount()
+    public async Task OwnerPreparedStatementBillsTheSettledOverageOnce()
     {
         var (client, scope, ledger, clock) = Make();
         try
         {
+            await Subscriber(client, scope, Reader);
             await NewApp(ledger);
-            await Consent(client, scope, ledger, 50m);
-            await PoolMonth(client, scope, 10 + 30_000); // 30,000 over x $0.0005 = $15.00
-            Assert.True(await ledger.PrepareAppStatementAsync("piper", LastMonth(), clock.GetUtcNow().UtcDateTime, default));
-            Assert.False(await ledger.PrepareAppStatementAsync("piper", LastMonth(), clock.GetUtcNow().UtcDateTime, default)); // idempotent
-            var statement = Assert.Single(await ledger.GetAppStatementsAsync("piper", default));
-            Assert.Equal(1500, statement.AmountMinorUsd); Assert.Equal("app:piper", statement.UserId); Assert.Equal("cus_test", statement.StripeCustomerId);
+            await Consent(client, scope, ledger, clock, 50m);
+            for (var i = 0; i < 10 + 20; i++) await Use(ledger); // 20 over the pool of 10 x $0.0005 = $0.01
+            var key = Guid.NewGuid().ToString("D");
+            var statement = await ledger.PrepareAppStatementForOwnerAsync("piper", ThisMonth(), key, Owner, false);
+            Assert.NotNull(statement);
+            Assert.Equal(1, statement.AmountMinorUsd); Assert.Equal("app:piper", statement.UserId); Assert.Equal("cus_test", statement.StripeCustomerId);
+            Assert.Equal(statement.Id, (await ledger.PrepareAppStatementForOwnerAsync("piper", ThisMonth(), key, Owner, false)).Id); // same request key replays
+            Assert.Null(await ledger.PrepareAppStatementForOwnerAsync("piper", ThisMonth(), Guid.NewGuid().ToString("D"), Owner, false)); // nothing left to bill
+            Assert.Equal(statement.Id, (await ledger.GetAppStatementForOwnerAsync("piper", statement.Id, Owner, false)).Id);
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => ledger.PrepareAppStatementForOwnerAsync("piper", ThisMonth(), Guid.NewGuid().ToString("D"), Reader, false));
         }
         finally { await Drop(client, scope); }
     }
 
     [MongoFact]
-    public async Task NoStatementWhenWithinTheAllowanceOrWithoutConsent()
+    public async Task NoStatementWithinTheAllowanceOrWithoutConsent()
     {
         var (client, scope, ledger, clock) = Make();
         try
         {
+            await Subscriber(client, scope, Reader);
             await NewApp(ledger);
-            await PoolMonth(client, scope, 10 + 30_000);
-            Assert.False(await ledger.PrepareAppStatementAsync("piper", LastMonth(), clock.GetUtcNow().UtcDateTime, default)); // no consent
-            await Consent(client, scope, ledger, 50m);
-            await client.GetDatabase(scope).GetCollection<SubscriptionUsageBucket>("subscription_usage_buckets").UpdateOneAsync(x => x.UserId == "app:piper", Builders<SubscriptionUsageBucket>.Update.Set(x => x.Requests, 8));
-            Assert.False(await ledger.PrepareAppStatementAsync("piper", LastMonth(), clock.GetUtcNow().UtcDateTime, default)); // within allowance
-            Assert.Empty(await ledger.GetAppStatementsAsync("piper", default));
+            await ledger.SetAppOwnersAsync("piper", new[] { Owner }, "admin", "test owner");
+            for (var i = 0; i < 8; i++) await Use(ledger); // within the pool of 10
+            Assert.Null(await ledger.PrepareAppStatementForOwnerAsync("piper", ThisMonth(), Guid.NewGuid().ToString("D"), Owner, false));
         }
         finally { await Drop(client, scope); }
     }
@@ -262,10 +296,11 @@ public sealed class UsageVisibilityMongoTests : IDisposable
         {
             var app = "t" + Guid.NewGuid().ToString("N")[..10];
             await NewApp(ledger, app);
-            await Consent(client, scope, ledger, 50m, customer, subscription, app);
-            await PoolMonth(client, scope, 10 + 30_000, app);
-            Assert.True(await ledger.PrepareAppStatementAsync(app, LastMonth(), clock.GetUtcNow().UtcDateTime, default));
-            var statement = Assert.Single(await ledger.GetAppStatementsAsync(app, default));
+            await Subscriber(client, scope, Reader);
+            await Consent(client, scope, ledger, clock, 50m, customer, subscription, app);
+            for (var i = 0; i < 10 + 20; i++) await Use(ledger, app);
+            var statement = await ledger.PrepareAppStatementForOwnerAsync(app, ThisMonth(), Guid.NewGuid().ToString("D"), Owner, false);
+            Assert.NotNull(statement);
             var gateway = new StripePaidOverageGateway(new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string> { { "STRIPE_SECRET_KEY", key } }).Build());
             var billing = new PaidOverageBillingService(ledger, gateway, NullLogger<PaidOverageBillingService>.Instance, clock);
             var paid = await billing.CollectAsync(statement, default);
@@ -273,7 +308,7 @@ public sealed class UsageVisibilityMongoTests : IDisposable
             Assert.Equal(paid.StripeInvoiceId, (await billing.CollectAsync(statement, default)).StripeInvoiceId); // collecting again does not create a second invoice
             var stripe = new StripeClient(key);
             var invoice = await new InvoiceService(stripe).GetAsync(paid.StripeInvoiceId);
-            Assert.False(invoice.Livemode); Assert.Equal("usd", invoice.Currency); Assert.Equal(1500, invoice.Subtotal); Assert.Equal(1500, invoice.AmountPaid);
+            Assert.False(invoice.Livemode); Assert.Equal("usd", invoice.Currency); Assert.Equal(statement.AmountMinorUsd, invoice.Subtotal); Assert.Equal(statement.AmountMinorUsd, invoice.AmountPaid);
             Assert.Equal("app:" + app, invoice.Metadata["oasis_avatar_id"]);
             var matching = (await new InvoiceService(stripe).ListAsync(new() { Customer = customer, Limit = 100 })).Data.Where(x => x.Metadata?.GetValueOrDefault("oasis_overage_statement_id") == statement.Id);
             Assert.Single(matching);

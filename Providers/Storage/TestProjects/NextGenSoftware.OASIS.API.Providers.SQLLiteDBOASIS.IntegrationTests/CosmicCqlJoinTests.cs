@@ -22,6 +22,103 @@ public partial class SQLLiteDBOASISIntegrationTests
         return plan.Result;
     }
 
+    [Fact]
+    public async Task NativeRecordReselectionKeepsHiddenInputsAndPublishesOnlyVisibleAliases()
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var seed=new[]{new Holon{Name="coffee",Description="left",IsPublic=true},
+            new Holon{Name="tea",Description="left",IsPublic=true}};
+        (await provider.SaveHolonsAsync(seed,saveChildren:false)).IsError.Should().BeFalse();
+        var source=CosmicQuery<Holon>.Create().Where(h=>h.Description=="left").OrderBy(h=>h.Name).Take(10).Result;
+        var query=source.SelectColumns(new[]{
+            CosmicProjectionSelection<Holon>.Create("name",h=>h.Name).Result,
+            CosmicProjectionSelection<Holon>.Create("version",h=>h.Version).Result}).Result;
+        var shapeOnly=query.SelectOutputColumns(new[]{new CosmicProjectionOutputBinding("Display","name")}).Result;
+        var projection=(ICosmicQueryProjectionStorageProvider)provider;
+        var shapePlan=CosmicProjectionPlanner.Plan(shapeOnly,projection.QueryProviderType,new[]{
+            new CosmicProjectionTarget(projection.QueryProviderType,projection.QueryCapabilities,projection.ProjectionCapabilities)});
+        shapePlan.IsError.Should().BeFalse(shapePlan.Message);
+        var shapeRead=await CosmicManager(provider,true).ExecuteProjectionQueryAsync(shapePlan.Result,new[]{provider},maximumResults:10);
+        shapeRead.IsError.Should().BeFalse(shapeRead.Message+shapeRead.Exception);
+        var shapeRows=shapeRead.Result.Providers.Single().Rows;
+        shapeRows.Select(row=>(string)row["Display"]).Should().Equal("coffee","tea");
+        foreach(var shapeRow in shapeRows)shapeRow.Aliases.Should().Equal("Display");
+        query=query.OrderByDescending(row=>(string)row["name"]).Result.Take(1).Result;
+        query=query.SelectOutputColumns(new[]{new CosmicProjectionOutputBinding("Display","name")}).Result;
+        query=query.Where(row=>(string)row["Display"]=="tea").Result;
+        var adapter=(ICosmicQueryProjectionCompositionStorageProvider)provider;
+        var planned=CosmicProjectionCompositionPlanner.Plan(query,adapter.QueryProviderType,new[]{
+            new CosmicProjectionCompositionTarget(adapter.QueryProviderType,adapter.QueryCapabilities,
+                adapter.ProjectionCapabilities,adapter.CompositionCapabilities)});
+        planned.IsError.Should().BeFalse(planned.Message);
+        var read=await CosmicManager(provider,true).ExecuteProjectionCompositionQueryAsync(
+            planned.Result,new[]{provider},maximumResults:10);
+        read.IsError.Should().BeFalse(read.Message+read.Exception);
+        var selectedRow=read.Result.Providers.Single().Rows.Single();
+        selectedRow.Aliases.Should().Equal("Display");
+        selectedRow["Display"].Should().Be("tea");
+    }
+
+    [Fact]
+    public async Task NativeGroupJoinPreservesLeftIdentityOrderedMatchesAndCompleteGroupPage()
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var seed=new[]{
+            new Holon{Name="L-A",Description="coffee",IsPublic=true},
+            new Holon{Name="L-B",Description="coffee",IsPublic=true},
+            new Holon{Name="L-C",Description="tea",IsPublic=true},
+            new Holon{Name="R-A",Description="coffee",IsPublic=true},
+            new Holon{Name="R-B",Description="coffee",IsPublic=true}};
+        (await provider.SaveHolonsAsync(seed,saveChildren:false)).IsError.Should().BeFalse();
+        var source=CosmicQuery<Holon>.Create(CosmicQueryScope.Named(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS).Result);
+        var root=CosmicLinq.Create(CosmicManager(provider,true),provider,source).Result;
+        var left=root.Where(h=>h.Name.StartsWith("L-",System.StringComparison.Ordinal)).OrderBy(h=>h.Name);
+        var right=root.Where(h=>h.Name.StartsWith("R-",System.StringComparison.Ordinal)).OrderByDescending(h=>h.Name);
+        var query=left.GroupJoin(right,l=>l.Description,r=>r.Description,(parent,matches)=>new{Parent=parent,Matches=matches});
+        var read=await query.ToCosmicListAsync();
+        read.IsError.Should().BeFalse(read.Message+read.Exception);
+        read.Result.Select(row=>row.Parent.Name).Should().Equal("L-A","L-B","L-C");
+        read.Result[0].Parent.Id.Should().NotBe(read.Result[1].Parent.Id);
+        foreach(var row in read.Result.Take(2))row.Matches.Select(match=>match.Name).Should().Equal("R-B","R-A");
+        read.Result[2].Matches.Should().BeEmpty();
+        var page=await query.Skip(1).Take(1).ToCosmicListAsync();
+        page.IsError.Should().BeFalse(page.Message+page.Exception);
+        page.Result.Should().ContainSingle().Which.Parent.Name.Should().Be("L-B");
+        page.Result.Single().Matches.Select(match=>match.Name).Should().Equal("R-B","R-A");
+        var flattened=await query.SelectMany(group=>group.Matches,(group,match)=>new{Parent=group.Parent.Name,Match=match.Name}).ToCosmicListAsync();
+        flattened.IsError.Should().BeFalse(flattened.Message+flattened.Exception);
+        flattened.Result.Should().HaveCount(4);
+    }
+
+    [Fact]
+    public async Task NativeJoinPublishesWholeLeftEntitiesWithMultiplicityAndIndependentPage()
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var seed=new[]{
+            new Holon{Name="coffee",Description="left",IsPublic=true},
+            new Holon{Name="tea",Description="left",IsPublic=true},
+            new Holon{Name="coffee",Description="right",IsPublic=true},
+            new Holon{Name="coffee",Description="right",IsPublic=true}};
+        (await provider.SaveHolonsAsync(seed,saveChildren:false)).IsError.Should().BeFalse();
+        var left=CosmicQuery<Holon>.Create().Where(h=>h.Description=="left").OrderBy(h=>h.Name);
+        var right=CosmicQuery<Holon>.Create().Where(h=>h.Description=="right");
+        var query=left.LeftJoin(right,h=>h.Name,h=>h.Name).Select((l,r)=>l).Result;
+        var read=await CosmicManager(provider,true).ExecuteJoinQueryAsync(JoinPlan(provider,query),new[]{provider});
+        read.IsError.Should().BeFalse(read.Message+read.Exception);
+        var rows=read.Result.Providers.Single().Rows;
+        rows.Select(row=>row.Value.Name).Should().Equal("coffee","coffee","tea");
+        rows.Count(row=>row.HasRight).Should().Be(2);
+        rows[0].Value.Should().NotBeSameAs(rows[1].Value);
+        rows[0].Value.Should().NotBeSameAs(seed[0]);
+        var page=query.PageOutput(1,1).Result;
+        var paged=await CosmicManager(provider,true).ExecuteJoinQueryAsync(JoinPlan(provider,page),new[]{provider});
+        paged.IsError.Should().BeFalse(paged.Message+paged.Exception);
+        paged.Result.Providers.Single().Rows.Should().ContainSingle().Which.Value.Id.Should().Be(rows[1].Value.Id);
+    }
+
     [Theory]
     [InlineData(false)] [InlineData(true)]
     public async Task NativeJoinPublishesDetachedFanoutAndUnmatchedPresence(bool outer)

@@ -1,0 +1,39 @@
+{
+  "source": "d2c0547f64aef8013b4ce91be5585622a8fbd963",
+  "core": "9dcc856add106fa26b27ea5d26ef50b590bf92fd",
+  "imageProducerSource": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
+  "run": 45059118248,
+  "job": 137320845937,
+  "artifact": 14768762362,
+  "archiveBytes": 1424,
+  "archiveSha256": "430ea37b7ae879b424cde90e9c53bb6a86a7c0d5495c70ecce553584d0aeb489",
+  "testSourcePath": "OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/MongoSqliteRealProviderRoutingTests.CollectionAuthority.cs",
+  "testSourceSha256": "343436a28d632ba83819cc8d8141e617a5052f71aa783c21cc63a13095bdbc16",
+  "test": "NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.MongoSqliteRealProviderRoutingTests.CollectionAuthorityPreservesThreeNativeActorScopesAgainstPartialReplica",
+  "passed": 1,
+  "failed": 0,
+  "duration": "00:00:02.8307546",
+  "nativeStores": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS"
+  ],
+  "verifiedAssertionScopes": {
+    "ownerAWithPublic": 4,
+    "ownerBMetadataWithPublic": 3,
+    "serviceMetadataPairsPublicOnly": 2,
+    "ownerAPrivateOnly": 2,
+    "partialReplicaRows": 1
+  },
+  "countsEvidence": "assertions in the exact source of the passed native test; no separate query telemetry artifact",
+  "foreignPrivateExcluded": true,
+  "authorityNamespaceDroppedAndAbsenceAsserted": true,
+  "sqliteOwnedDirectoryRemovalAsserted": true,
+  "ownedMongoContainerStopPassed": true,
+  "acceptedParentAndManagedTestsReplayed": false,
+  "sharedAtlasOrPiperAccess": false,
+  "realPiperBusinessAccountAcceptance": false,
+  "nativeAccepted": true,
+  "deployed": false,
+  "archiveSavedLocally": false,
+  "priorFailurePreserved": 45058425820
+}

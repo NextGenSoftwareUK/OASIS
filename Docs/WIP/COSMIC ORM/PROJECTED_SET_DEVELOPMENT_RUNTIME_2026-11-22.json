@@ -1,0 +1,65 @@
+{
+  "source": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
+  "developmentPushed": true,
+  "runtimeChecks": [
+    {
+      "service": "WEB6 AI API",
+      "deployment": "e14f6cab-8f14-40da-bc1f-1cc1ed4abac7",
+      "source": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB7 SYMBIOTIC API",
+      "deployment": "523a89c4-178b-4622-8862-111548a6e431",
+      "source": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB10 THE SOURCE API",
+      "deployment": "d19d1f68-c212-4d9c-913b-c3d015e504b8",
+      "source": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB8 IGN API",
+      "deployment": "5891476f-d161-4602-907c-699a449ce067",
+      "source": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB5 STAR API",
+      "deployment": "fcc9f101-0d6c-4f9f-ad44-e4f552dd0e7c",
+      "source": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB9 SINGULARITIY API",
+      "deployment": "c48e2d00-6add-4e41-bc02-995e8d6d84b7",
+      "source": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    },
+    {
+      "service": "WEB4 OASIS API",
+      "deployment": "5379fa31-02e0-4b54-b1c9-62399d5c03a5",
+      "source": "8e6ef35098ff7732ea884ef555140c048eb6f92f",
+      "loadedAutoLoadBalanceEnabled": true,
+      "exitCode": 0,
+      "verified": true
+    }
+  ],
+  "allSevenRuntimeVerified": true,
+  "hostedSelectedQueryAccepted": true,
+  "settingsWrites": 0
+}

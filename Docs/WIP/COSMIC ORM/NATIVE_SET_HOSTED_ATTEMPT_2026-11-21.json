@@ -1,0 +1,96 @@
+{
+  "source": "f26edeef1152961a2b46f2149a6c28c08188a09a",
+  "deployment": "416cbaae-740e-42ff-9ef9-3cbb3f7a296b",
+  "website": "580d407b78d40dedda6a88c0c203e1f2b7fd1f87",
+  "accepted": false,
+  "initialCalls": [
+    {
+      "path": "sandbox/session",
+      "status": 200,
+      "isError": false,
+      "operationId": "bd733929-4dcc-458f-8895-916b1e0d7799"
+    },
+    {
+      "path": "data/query-cql",
+      "status": 200,
+      "isError": false,
+      "operationId": "e2824055-9a37-4cb3-83b2-984e8259649f"
+    },
+    {
+      "path": "data/query-cql",
+      "status": 200,
+      "isError": false,
+      "operationId": "8f7b3f49-8a74-42c5-98b6-413855f7c799"
+    },
+    {
+      "path": "data/query-cql",
+      "status": 503,
+      "isError": true,
+      "operationId": "74941499-beae-40ac-8246-2b8b7efeb23c"
+    }
+  ],
+  "providers": [
+    {
+      "provider": "MongoDBOASIS",
+      "accepted": false,
+      "reason": "No visible existing row; no fixture seeded"
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "accepted": false,
+      "reason": "No visible existing row; no fixture seeded"
+    }
+  ],
+  "readiness": {
+    "status": 200,
+    "sources": [
+      {
+        "provider": "MongoDBOASIS",
+        "available": true,
+        "errorCode": null,
+        "activationGeneration": 0,
+        "activationHostInstance": "c87100d9-87af-4c74-b11e-240f42db5e1c"
+      },
+      {
+        "provider": "SQLLiteDBOASIS",
+        "available": true,
+        "errorCode": null,
+        "activationGeneration": 0,
+        "activationHostInstance": "c87100d9-87af-4c74-b11e-240f42db5e1c"
+      },
+      {
+        "provider": "Neo4jOASIS",
+        "available": true,
+        "errorCode": null,
+        "activationGeneration": 1,
+        "activationHostInstance": "c87100d9-87af-4c74-b11e-240f42db5e1c"
+      },
+      {
+        "provider": "HoloOASIS",
+        "available": true,
+        "errorCode": null,
+        "activationGeneration": 1,
+        "activationHostInstance": "c87100d9-87af-4c74-b11e-240f42db5e1c"
+      }
+    ],
+    "dataQueryRetried": false
+  },
+  "cleanup": {
+    "sessionRevoked": true,
+    "credentialsRemoved": true,
+    "queriesAccepted": false,
+    "holonWrites": 0,
+    "calls": 6,
+    "priorFailurePreserved": true
+  },
+  "totalCalls": 6,
+  "extraCalls": [
+    "GET data/query-cql/providers?examplesVersion=2",
+    "POST avatar/revoke-token"
+  ],
+  "holonWrites": 0,
+  "neo503CauseIdentified": false,
+  "firstFailureCodeNotCaptured": true,
+  "futureFailureCaptureSource": "23f551c30ba3fdf01814c9f0d608a64d3bdfe365",
+  "dataQueryRetried": false
+}

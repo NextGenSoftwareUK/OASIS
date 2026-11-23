@@ -1,0 +1,15 @@
+{
+  "source": "47487f8c75c21eb9024507a02aa74a6c90241668",
+  "coreSource": "d22248d3cc99b7cfc447376974605d892637b284",
+  "workflow": "qualify-cql-neo-projected-set-native.yml",
+  "status": "in_progress",
+  "nativeImplemented": true,
+  "nativeAccepted": false,
+  "compiled": false,
+  "developmentPushed": false,
+  "checks": 7,
+  "ownedRecords": 4,
+  "localBuild": false,
+  "run": 44978080537,
+  "conclusion": null
+}

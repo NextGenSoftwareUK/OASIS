@@ -1,0 +1,23 @@
+{
+  "provider": "HoloOASIS",
+  "source": "5633710e7c4b983053351ad3e88438558352cbef",
+  "deployment": "483be539-a4ed-4f47-8b18-d37eca5ccf72",
+  "timeoutSeconds": 480,
+  "available": true,
+  "queryAccepted": true,
+  "holonWrites": 0,
+  "piperDataTouched": false,
+  "sessionRevoked": true,
+  "intermittentJoinRootCauseResolved": false,
+  "activationGeneration": 1,
+  "activationHostInstance": "06be18fe-aeed-473f-8c63-dbaafa97b25d",
+  "errorCode": null,
+  "exampleId": "public-subset",
+  "rows": 2,
+  "shippingHoloProvider": true,
+  "protectedCredentialsRemoved": true,
+  "calls": 4,
+  "failureKind": null,
+  "requiresReconciliation": false,
+  "verificationScope": "One exact Development startup and authenticated native public subset query; no general uptime claim."
+}

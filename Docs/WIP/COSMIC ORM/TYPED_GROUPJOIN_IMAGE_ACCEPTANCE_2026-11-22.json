@@ -1,0 +1,29 @@
+{
+  "source": "786e35fca5b29492c2029aeac24e4a339eadcd84",
+  "core": "80fe68caa2193134ff16947e4b67cd43035b2771",
+  "web6": "d9e60ceaecef5513d1bcd6285cd668076bc77edf",
+  "onodeCore": "1b28ed0436173b827e58b75a3bb5a99c1bb661ec",
+  "run": 45067659261,
+  "job": 137347338982,
+  "digest": "sha256:aedee1ba81d5ab4534a205c328f275c34fefb89519b6df4c5a3540f54b691387",
+  "teachingSidecars": false,
+  "exactPrivatePinsVerified": true,
+  "contractQualifiedSource": "0dc8fc02210ece159aef00e7d0516d7c00e82736",
+  "contractRun": 45065501150,
+  "reviewedNonRuntimeDelta": [
+    "Docs/Devs/COSMIC_LINQ_GROUPING.md",
+    "Docs/WIP/COSMIC ORM/CQL_PARITY_CHECKLIST.md",
+    "Docs/WIP/COSMIC ORM/CURRENT_STATUS.md",
+    "Docs/WIP/COSMIC ORM/FULL_STATUS_REPORT_2026-11-22.md",
+    "Docs/WIP/COSMIC ORM/NATIVE_GROUPING_DELIVERY_SCOPE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/NATIVE_GROUPING_DEVELOPMENT_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/NATIVE_GROUPING_IMAGE_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/NATIVE_GROUPING_PACKAGE_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/NATIVE_GROUPING_RELEASE_CANDIDATE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md",
+    "Docs/WIP/COSMIC ORM/TYPED_GROUPJOIN_CANDIDATE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/TYPED_GROUPJOIN_NATIVE_ACCEPTANCE_2026-11-22.json"
+  ],
+  "deployed": false,
+  "imageDownloadedLocally": false
+}

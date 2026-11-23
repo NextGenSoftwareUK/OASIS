@@ -1,0 +1,15 @@
+{
+  "source": "c889ff1c6609b79626b582b871e05bb94a080f01",
+  "compiled": false,
+  "accepted": false,
+  "sharedNativeOrderingOwner": true,
+  "developmentPushed": false,
+  "currentReleaseUnchanged": "f26edeef1152961a2b46f2149a6c28c08188a09a",
+  "qualificationSource": "de19c94ff213815f94af00b7a104ca7ea99bf606",
+  "workflow": "qualify-cql-set-ordering.yml",
+  "cases": 3,
+  "automaticRunExpected": true,
+  "run": 44969350932,
+  "status": "queued",
+  "conclusion": null
+}

@@ -1,0 +1,61 @@
+{
+  "source": "5d39eeddbc29f168d81e6a26af355f6531251605",
+  "core": "5240d3bd34d003407fe8b08070203e8d4efb5e1a",
+  "run": 45004657247,
+  "job": 137153438592,
+  "artifact": 14747698752,
+  "bytes": 3349,
+  "sha256": "3057a4daa6c54ebd6a39afa0ba015114235f437eea658fd46240bfef1f23d16f",
+  "acceptedProviders": [
+    {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 7,
+      "successfulHolonWrites": 4,
+      "rawNativeRecords": 3,
+      "queryElapsedMilliseconds": {
+        "computed": 21,
+        "request1": 520,
+        "request2": 34,
+        "request3": 22
+      },
+      "nativeProviderVerified": true,
+      "literalIdentityVerified": true,
+      "nullEmptyZeroVerified": true,
+      "invalidDomainPreserved": true,
+      "ownerRefusalVerified": true,
+      "noMaterializationVerified": true,
+      "nativeSourceUnchanged": true,
+      "mixedHttpVerified": true,
+      "staleCacheReconciled": true,
+      "computedGlobalPaging": true,
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "checks": 7,
+      "successfulHolonWrites": 4,
+      "rawNativeRecords": 3,
+      "queryElapsedMilliseconds": {
+        "computed": 444,
+        "request1": 1603,
+        "request2": 78,
+        "request3": 41
+      },
+      "nativeProviderVerified": true,
+      "literalIdentityVerified": true,
+      "nullEmptyZeroVerified": true,
+      "invalidDomainPreserved": true,
+      "ownerRefusalVerified": true,
+      "noMaterializationVerified": true,
+      "nativeSourceUnchanged": true,
+      "mixedHttpVerified": true,
+      "staleCacheReconciled": true,
+      "computedGlobalPaging": true,
+      "exactCleanupVerified": true
+    }
+  ],
+  "mongoAccepted": false,
+  "mongoFailure": "Owned native database name was 64 characters; maximum is 63.",
+  "archiveSaved": false,
+  "liveAccepted": false
+}
