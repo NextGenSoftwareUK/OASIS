@@ -1,8 +1,8 @@
 {
-  "status": "explicit-authority-source-candidate-not-compiled-or-runtime-accepted",
-  "source": "6b9a2a1ac94cc0202a1579d6d03237b5d71f7634",
+  "status": "async-and-sync-authority-candidate-awaiting-runtime-check",
+  "source": "fa8c885ffee940a8da98c79fc9c027af456bbf47",
   "development": "90d75f04f606c29bea99bfafe073b5b26722ce88",
-  "core": "1780fa8ab8d588dd8dfa3a3db0944cce9ce42f95",
+  "core": "a208265e764496a75e0cf25ea0e5dcfd9c873196",
   "star": "531c98973164a295c39e5c2bdcf1a4b1bc4ba789",
   "image": "sha256:762878caa9426f4e7e8c0e97062a7755fa0899cd86ae21fa1a1af72c6e739c77",
   "imageRun": 45117076250,
@@ -11,17 +11,19 @@
   "packageArchiveSha256": "6eb42c9de6421a1a13646fc8b1b44905c876276fe8882167e6533ad686e9fd29",
   "preservation": "Fetched Development; peer CQL composition preserves current Inventory annotations and Mongo writer. Core auth/Inventory paths unchanged from fc2470e; root Mongo serializer blob identical to21ab. STAR pinned531 source reviewed, physical STAR checkout1330 is unrelated and left untouched.",
   "prepared": "Actual WEB5 publish completed under provider build lease with m:2/nr:false/shared compilation disabled. Both real entry points and portal browser runtime check in progress; no acceptance yet.",
-  "next": "Follow the existing run to terminal; diagnose any real entry-point, session, usage-ledger or portal error without disabling those layers.",
+  "next": "Run the changed real WEB5 dashboard flow using corrected shared selector; retain prior WEB4 and populated-storefront evidence.",
   "cleanup": "No new local env/download/runtime/build/database/results. Source/helper and compact descriptor only. Existing accepted WEB4/anonymous/provider cohorts retained, not replayed.",
   "active": {
-    "run": 45124806419,
-    "job": 137526605952,
-    "control": "2d17e1ece10d065369efe344939fd362c4f28143",
+    "run": 45127935792,
+    "job": 137536520037,
+    "control": "2497ddabda2ca2c0ebc6c3ee1650a79a7c3445bc",
     "conclusion": "failure",
-    "routingMessage": "Request routing failed: No authoritative storage provider is configured for this request.",
-    "cleanupArtifact": 14795004211,
-    "archiveBytes": 2486,
-    "cleanup": "Containers/network/database volumes absent; WEB5 process stopped and generated DNA absent."
+    "publish": "success",
+    "routingMessage": "No authoritative storage provider is configured for this request.",
+    "cause": "Candidate changed synchronous selector only; asynchronous selector still read unset global provider.",
+    "cleanupArtifact": 14796711615,
+    "archiveBytes": 2487,
+    "cleanup": "All five cleanup assertions true; RAM read only."
   },
   "attempts": [
     {
@@ -36,6 +38,16 @@
       "cleanupArtifact": 14794802291,
       "archiveBytes": 2488,
       "cleanup": "Selected RAM-read cleanup proves containers/network/database volumes absent, WEB5 process stopped and generated DNA absent; always step removes publish/browser/cache/TLS."
+    },
+    {
+      "run": 45124806419,
+      "job": 137526605952,
+      "control": "2d17e1ece10d065369efe344939fd362c4f28143",
+      "conclusion": "failure",
+      "routingMessage": "Request routing failed: No authoritative storage provider is configured for this request.",
+      "cleanupArtifact": 14795004211,
+      "archiveBytes": 2486,
+      "cleanup": "Containers/network/database volumes absent; WEB5 process stopped and generated DNA absent."
     }
   ],
   "cause": {
@@ -48,11 +60,11 @@
   },
   "imageSource": "a32b0ca21aaa694edc3ad15c617055f105bba8d2",
   "candidateFix": {
-    "core": "1780fa8ab8d588dd8dfa3a3db0944cce9ce42f95",
-    "root": "6b9a2a1ac94cc0202a1579d6d03237b5d71f7634",
+    "core": "a208265e764496a75e0cf25ea0e5dcfd9c873196",
+    "root": "fa8c885ffee940a8da98c79fc9c027af456bbf47",
     "parent": "90d75f04f606c29bea99bfafe073b5b26722ce88",
-    "changes": "Optional operator authoritativeProvider in admitted-host configuration, validated against admitted native/ordinary providers; immutable request-scoped selection consumed by canonical sync/async provider selector. No activation/global active-provider mutation. Existing missing-authority guard retained.",
+    "changes": "Both sync and async selectors use one GetAuthoritativeStorageProvider helper; declared request authority precedes current active provider. Explicit provider, subscription filtering and missing-authority rejection remain intact.",
     "fixture": "Only new WEB5 runtime declares Mongo authority. Existing WEB4 image/config stays at accepted a32/Corec19 and is reused for real auth/ledger; no new field passed to older strict configuration parser.",
-    "limits": "Candidate not yet compiled/runtime accepted; WEB4 typed collection fix/image adoption remains separate. Source DNA settings and deployed service environments unchanged."
+    "limits": "Corrected candidate not yet runtime accepted or deployed. WEB4 image remains accepted a32/Corec19; no shared environment settings changed."
   }
 }

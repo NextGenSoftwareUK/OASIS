@@ -1,3 +1,5 @@
+2026-11-23 ASYNC AUTHORITY CANDIDATE CLEANUP. No local build/download/install/environment/database/results. Exact owned temporary indexes C:/Users/David/AppData/Local/Temp/oasis-authority-async-core-20261123.index and oasis-authority-async-root-20261123.index (and locks) removed in finally. Earlier authority-core/root-20261123 indexes also removed in finally. Run45127935792 artifact14796711615 RAM-only read: containers/network/database volumes absent, WEB5 stopped and generated DNA absent. Compact source/evidence/Git objects retained; shared Atlas untouched.
+
 
 ## 2026-11-22 native session authority/acknowledgement
 No local build/download/install/environment/database/results. Core/root private indexes and locks, including unsuccessful preparation, removed in finally. Shared Core merge prepared as Git objects without checkout/worktree changes.45086300342 native fixture removal succeeded;45088151222 remote finalizers pending. Source/tags and compact evidence retained; shared Atlas untouched.
