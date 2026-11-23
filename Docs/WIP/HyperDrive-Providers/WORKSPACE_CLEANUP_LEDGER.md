@@ -2977,3 +2977,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 - 2026-11-23 branch-history inspection: one bounded16commit fetch of Development/task branches; Git source/history objects retained as required. No worktree/env/build/download archive/database/results or checkout change. Four pre-existing dirty gitlinks preserved. Prior policy-blocked8038-byte cache remains separately recorded.
 
 - 2026-11-23 account-review45096493185/job137437334269 SUCCESS: native fixture and browser runtime/cache removed SUCCESS; SQLite absent/Mongo unpaused. SSH selected SHA/3pause flags and2Swagger metadata bodies RAM only. Portal canonical generated endpoint JS retained as shipping source; no disposable local env/build/archive/results. Prior8038-byte policy-blocked cache remains separately recorded.
+
+- 2026-11-23 focused HTTP fixture candidateb9cfde77: temporary .git-session-fixture-index and lock removed in finally; source-only prep, no local build/env/database/results. Upcoming CI case uses real owned LocalFile only, skips Mongo/browser creation.

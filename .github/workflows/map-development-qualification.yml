@@ -80,9 +80,11 @@ jobs:
           $files = @{ map='Scripts/TestHosts/Fixtures/map-development-candidate.json'; hotspot='Scripts/TestHosts/Fixtures/hotspot-development-candidate.json'; quest='Scripts/TestHosts/Fixtures/quest-authoritative-candidate.json'; competition='Scripts/TestHosts/Fixtures/competition-development-candidate.json'; profile='Scripts/TestHosts/Fixtures/profile-development-candidate.json'; billing='Scripts/TestHosts/Fixtures/billing-development-candidate.json' }
           $file = $files[$env:CANDIDATE_SCOPE]
           $candidate = Get-Content $file -Raw | ConvertFrom-Json
-          if ($env:CANDIDATE_SCOPE -eq 'billing' -and '${{ inputs.native_check }}' -eq 'true' -and ($candidate.nativeHost -ne 'HotspotHttpNative' -or $candidate.nativeMode -notin @('billing-http','billing-admin-http','billing-warning-store','billing-warning-http','billing-warning-provider','session-list-http','mfa-native','mfa-http','mfa-middleware-http','session-global-http','mfa-browser','billing-warning-browser','billing-restoration-http'))) { throw 'Billing requires an explicitly reviewed HTTP host mode.' }
+          if ($env:CANDIDATE_SCOPE -eq 'billing' -and '${{ inputs.native_check }}' -eq 'true' -and (($candidate.nativeHost -ne 'HotspotHttpNative' -and $candidate.nativeHost -ne 'Web4IntegrationTests') -or $candidate.nativeMode -notin @('billing-http','billing-admin-http','billing-warning-store','billing-warning-http','billing-warning-provider','session-list-http','mfa-native','mfa-http','mfa-middleware-http','session-global-http','mfa-browser','billing-warning-browser','billing-restoration-http','session-route-fixture'))) { throw 'Billing requires an explicitly reviewed HTTP host mode.' }
           if ($env:CANDIDATE_SCOPE -eq 'competition' -and '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -notin @('competition-browser','competition-publisher')) { throw 'Competition requires an explicit browser or publisher host.' }
           if ($env:CANDIDATE_SCOPE -eq 'profile' -and '${{ inputs.native_check }}' -eq 'true' -and $candidate.nativeMode -ne 'profile-http') { throw 'Profile restoration requires its explicit HTTP host.' }
+          if ($candidate.nativeHost -eq 'Web4IntegrationTests' -and $candidate.nativeMode -ne 'session-route-fixture') { throw 'Only the reviewed session HTTP fixture is supported.' }
+          "native_host=$($candidate.nativeHost)" >> $env:GITHUB_OUTPUT
           "file=$file" >> $env:GITHUB_OUTPUT
           $browser = '${{ inputs.native_check }}' -eq 'true' -and (($candidate.nativeMode -in @('browser','catalogue-browser','competition-browser','mfa-browser','billing-warning-browser')) -or ($candidate.nativeMode -eq 'session-global-http' -and $candidate.sessionBrowser -eq $true))
           "browser=$($browser.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
@@ -266,7 +268,7 @@ jobs:
           retention-days: 3
           if-no-files-found: error
       - name: Start owned Mongo for the new combined-source check
-        if: ${{ inputs.native_check }}
+        if: ${{ inputs.native_check && steps.candidate.outputs.native_host != 'Web4IntegrationTests' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -298,7 +300,7 @@ jobs:
         run: |
           $candidate = Get-Content (Join-Path ../qualification-control $env:CANDIDATE_FILE) -Raw | ConvertFrom-Json
           $hostName = if ($env:CANDIDATE_SCOPE -eq 'map') { 'MapDevelopmentNative' } else { if ($candidate.nativeHost) { $candidate.nativeHost } else { 'HotspotDevelopmentNative' } }
-          if ($hostName -notin @('MapDevelopmentNative','HotspotDevelopmentNative','HotspotHttpNative')) { throw 'Unsupported native qualification host.' }
+          if ($hostName -notin @('MapDevelopmentNative','HotspotDevelopmentNative','HotspotHttpNative','Web4IntegrationTests')) { throw 'Unsupported native qualification host.' }
           if ($hostName -eq 'HotspotHttpNative') {
             $env:OASIS_HOTSPOT_HTTP_MODE = if ($candidate.nativeMode) { $candidate.nativeMode } else { 'binding' }
             if ($env:OASIS_HOTSPOT_HTTP_MODE -notin @('binding','populated','browser','quest-empty','catalogue','catalogue-browser','competition-browser','competition-publisher','profile-http','billing-http','billing-admin-http','billing-warning-store','billing-warning-http','billing-warning-provider','session-list-http','mfa-native','mfa-http','mfa-middleware-http','session-global-http','mfa-browser','billing-warning-browser','billing-restoration-http')) { throw 'Unsupported hotspot HTTP check mode.' }
@@ -322,6 +324,11 @@ jobs:
             }
           }
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner map-development-native-ci -Operation {
+            if ($hostName -eq 'Web4IntegrationTests') {
+              dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.csproj --configuration Release --filter 'FullyQualifiedName=NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription.SubscriptionEndpointsTests.HyperDriveReadRoutesAcceptRealJwtAfterV2PersistedAvatarLookup' --logger 'console;verbosity=normal' /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE) { throw 'Focused real LocalFile session HTTP fixture failed.' }
+              return
+            }
             if ($env:OASIS_HOTSPOT_HTTP_MODE -eq 'mfa-middleware-http') {
               & ../qualification-control/Scripts/TestHosts/Test-SessionMiddlewareOrdering.ps1 -CandidateRoot (Get-Location).Path
             }
@@ -336,7 +343,7 @@ jobs:
             }
           }
       - name: Remove only the owned native fixture
-        if: ${{ always() && inputs.native_check }}
+        if: ${{ always() && inputs.native_check && steps.candidate.outputs.native_host != 'Web4IntegrationTests' }}
         shell: bash
         run: |
           set -euo pipefail
