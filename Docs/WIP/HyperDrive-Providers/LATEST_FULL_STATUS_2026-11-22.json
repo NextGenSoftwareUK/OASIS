@@ -5,8 +5,8 @@
     "taskBranch": "work/hyperdrive-provider-completion",
     "taskWorktree": "C:/Source/OASIS2-hyperdrive",
     "portalBranch": "dev",
-    "portalHead": "5adca39",
-    "reviewedDevelopment": "5fd4d4df91934d0ac9bfd3f890ccf780cc01787f",
+    "portalHead": "282eb9a",
+    "reviewedDevelopment": "721f33130849794856c546218dceb06ee1396c87",
     "currentCore": "27dae38da3f3212e360d939db642d02c01c8fc5f",
     "currentWeb6": "f9aa81c6dc3e27ac02677c985d41929b768c5969",
     "scope": "Core/WEB6 identify current isolated qualification candidate, not live or newest shared Development. Shared b82 peer status reviewed; no unverified rollout."
@@ -224,5 +224,23 @@
     "General V2 avatar-save per-call replication mode/completion semantics still need review; session issuance now has its own existing pinned authority contract.",
     "Permanent account/private-data/provider-replica erasure and Settings deletion remain unfinished.",
     "Changed async DID/MFA session-save and sync/detail native acknowledgement paths require representative verification before full entry-point acceptance."
-  ]
+  ],
+  "lastUpdatedUtc": "2026-11-23T00:56:41Z",
+  "latestFocusedRun": {
+    "id": 45091356813,
+    "job": 137421421351,
+    "status": "in_progress",
+    "candidate": "ec097f7eeefc20248de3f95522f2efbc7d4f83cd",
+    "scope": "MFA cancellation/index-read fix and general session native flow; not accepted or deployed"
+  },
+  "latestPortalBreadth": {
+    "source": "282eb9a",
+    "change": "Orders explicit retry after readiness/read failures",
+    "verification": "syntax/diff only; browser pending"
+  },
+  "settingsBrowserPreparation": {
+    "source": "e3bbf646166",
+    "status": "actual browser/native host wiring prepared; not enabled/run",
+    "scope": "two real credentials; actual selected/global Settings controls; native access refusal afterward; no previous general cohort replay"
+  }
 }

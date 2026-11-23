@@ -1,3 +1,7 @@
+## 2026-11-23 - Settings browser host wired; shared review current
+
+Host/workflow e3bbf646166 optionally verifies actual selected/global Settings buttons, two real issued credentials and native refusal after sign-out, without replaying the general cohort. Not enabled/run yet. Native run45091356813/job137421421351 remains active. Shared Development721f3313 reviewed with peer COSMIC status; own candidate not deployed/merged as unverified. OPORTAL dev282eb9a is latest source.
+
 ## 2026-11-23 - OPORTAL Orders recovery delivered to dev source
 
 OPORTAL dev 282eb9a adds explicit Retry orders after readiness/read errors, using the existing SDK and current-session guards. Syntax/diff checks passed; browser/live acceptance pending. MFA source candidate run45091356813/job137421421351 is running the native invariant step. No duplicate run dispatched.
