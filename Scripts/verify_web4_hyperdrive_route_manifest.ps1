@@ -80,7 +80,8 @@ function Get-Disposition([string]$body, [string]$methodName, [string]$controller
     if ($body -match '\b(?:HttpClient|SendAsync|PostAsync|GetAsync|SmtpClient)\b') {
         return 'ExplicitExternalTransport'
     }
-    if ($body -match '\breturn\s+await\s+[A-Za-z_]\w*\s*\(') {
+    if ($body -match '\breturn\s+await\s+[A-Za-z_]\w*\s*\(' -or
+        $body -match '(?:\breturn\s+|=>\s*)(?:await\s+)?[A-Za-z_]\w*Async\s*\(') {
         return 'ControllerActionDelegation'
     }
     return 'LocalOrNonStorageEndpoint'
