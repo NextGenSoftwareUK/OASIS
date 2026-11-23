@@ -19,5 +19,6 @@
   "featureMergeConflicts": [
     "Docker/oasis-dependency-versions.env",
     "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
-  ]
+  ],
+  "featureRootPublished": "ced53621e4f6c070eb1b5ecc68f4a3c1f7a3831b"
 }

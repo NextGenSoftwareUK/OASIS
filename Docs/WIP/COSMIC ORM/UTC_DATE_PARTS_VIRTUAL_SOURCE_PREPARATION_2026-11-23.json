@@ -21,13 +21,15 @@
     "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.NativeProjection.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlVirtualProjectionV1Compiler.cs"
   ],
-  "source": "d1f65c2708f3b4bbf3d85081e8797bf5d95bf023",
+  "source": "2d05c1ea25ae1161bd1b834ecaaefe3b17ac8a8a",
   "mixedJourneyImplemented": true,
-  "qualificationPhase": "ReplacementManualRunRequiredAfterComposition",
+  "qualificationPhase": "ComposedReplacementQueued",
   "expectedNativeTests": 3,
   "expectedWireTests": 1,
   "applicationHolonWritesPerProvider": 2,
   "nativeRawFixtureRowsPerProvider": 4,
   "priorRun": 45095953782,
-  "priorOutcome": "native Mongo projection compilation failed on local variable shadowing"
+  "priorOutcome": "native Mongo projection compilation failed on local variable shadowing",
+  "dispatchRequestedUtc": "2026-11-23T01:52:36.282631+00:00",
+  "nativeRun": 45097224513
 }
