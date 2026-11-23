@@ -36,6 +36,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     IsEnabled = mode == HyperDriveModes.Legacy || config.IsEnabled,
                     AutoFailoverEnabled = _providerManager.IsAutoFailOverEnabled,
                     AutoReplicationEnabled = _providerManager.IsAutoReplicationEnabled,
+                    BackgroundWorkersPauseConfigured = _configuration.GetValue<bool>(Services.Operations.HostedMongoWorkerControl.PauseHyperDriveKey),
                     AutoLoadBalancingEnabled = _providerManager.IsAutoLoadBalanceEnabled,
                     DefaultStrategy = Enum.TryParse<LoadBalancingStrategy>(config.DefaultStrategy, out var defaultStrategy) ? defaultStrategy : LoadBalancingStrategy.RoundRobin,
                     EnabledProviders = registeredProviders.Select(x => x.ProviderType.Value).ToList(),

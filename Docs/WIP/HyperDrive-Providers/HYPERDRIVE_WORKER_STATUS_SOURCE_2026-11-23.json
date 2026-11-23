@@ -1,0 +1,9 @@
+{
+  "status": "API/UI source implemented; API not built or deployed",
+  "apiField": "backgroundWorkersPauseConfigured",
+  "invariant": "Status reports the operator pause configuration separately from routing policy flags; it does not claim worker-process liveness or successful delivery.",
+  "source": "Controller receives real IConfiguration through DI and reads the existing HostedMongoWorkerControl.PauseHyperDriveKey. No new worker, settings update or provider request.",
+  "compatibility": "New additive boolean response field; Portal reports not-reported on older APIs. No parameterless controller callers found in published source.",
+  "remaining": "Compile and actual HTTP status-field verification; current LocalFile fixture run remains independent.",
+  "cleanup": "Source only; no local builds/envs/downloads/databases/results."
+}
