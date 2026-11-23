@@ -1,9 +1,9 @@
 {
   "scope": "onode",
-  "status": "canonical-mode-service-only-change-ready-for-command-probe",
-  "candidate": "c89bee8891ad197e846faeec7ad12a14fbcfd217",
-  "base": "ee4d0ab04fe962f781ffd2736711b8420076b2ae",
-  "tag": "qualification/onode-canonical-mode-root-20261123",
+  "status": "mode-specific-routing-service-only-source-ready",
+  "candidate": "5f1152f1028ee8e12d6aec3f2202016bdda7320c",
+  "base": "c89bee8891ad197e846faeec7ad12a14fbcfd217",
+  "tag": "qualification/onode-mode-routing-root-20261123",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
     "ONODE/ONODEManager"
@@ -14,7 +14,7 @@
   "core": {
     "candidate": "271603c32f13345cebd350b557f7c6bd10ab9d04"
   },
-  "onodeManager": "8a8fcc11e8185947da1f277bc25e94c6cd525a84",
+  "onodeManager": "76f2a6f249a8fa7e4844b1c9616ed2ed0b5dd011",
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
   "remaining": "Retain successful prior API compile once terminal; service-only canonical mode fix and independent shipping-DNA command probe required. Full HTTP bridge/browser/provider schema still open.",
   "inventoryReview": {
@@ -44,5 +44,13 @@
     "run": 45215334828,
     "status": "pending behind existing source compile",
     "scope": "Changed supervisor plus command producer check only; retain API compile from45214519252 when terminal."
+  },
+  "acceptedProviderTransportCompile": {
+    "run": 45214519252,
+    "job": 137831947969,
+    "source": "ee4d0ab04fe962f781ffd2736711b8420076b2ae",
+    "web4Errors": 0,
+    "supervisorErrors": 0,
+    "commandProbe": "Secret exclusion, identity, saved legacy fields, actual empty collector and wrong-node rejection accepted; old fixture V2 literal did not prove canonical mode or mode-specific policy."
   }
 }

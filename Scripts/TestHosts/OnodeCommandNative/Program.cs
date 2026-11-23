@@ -21,9 +21,15 @@ try
         OASIS = new
         {
             HyperDriveMode = NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2,
+            OASISHyperDriveConfig = new NextGenSoftware.OASIS.API.Core.Configuration.OASISHyperDriveConfig
+            {
+                AutoFailoverEnabled = false, AutoReplicationEnabled = true,
+                AutoLoadBalancingEnabled = false,
+                AutoFailoverProviders = new List<string> { "MongoDBOASIS", "SQLLiteDBOASIS" }
+            },
             StorageProviders = new
             {
-                AutoFailOverEnabled = true, AutoReplicationEnabled = false,
+                AutoFailOverEnabled = true, AutoFailOverProviders = "MongoDBOASIS,SQLLiteDBOASIS", AutoReplicationEnabled = false,
                 AutoLoadBalanceEnabled = true, AutoFailOverLocalProvidersEnabled = false,
                 ProviderMethodCallTimeOutSeconds = 7,
                 MongoDBOASIS = new { ConnectionString = canary }
@@ -53,10 +59,28 @@ try
         Require(root.GetProperty("schemaVersion").GetString() == "onode-public-config-v1", "Public schema differs.");
         Require(root.GetProperty("nodeId").GetString() == config.NodeId, "Public node identity differs.");
         Require(root.GetProperty("oasisDna").GetProperty("hyperDriveMode").GetString() == NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2, "Public mode differs from shipping DNA contract.");
+        var policy = root.GetProperty("oasisDna").GetProperty("routingPolicy");
+        Require(policy.GetProperty("source").GetString() == "OASIS.OASISHyperDriveConfig", "Modern routing owner differs.");
+        Require(!policy.GetProperty("settings").GetProperty("autoFailoverEnabled").GetBoolean(),
+            "Modern view incorrectly used the legacy switch.");
+        Require(policy.GetProperty("settings").GetProperty("autoFailoverProviders")[1].GetString() == "SQLLiteDBOASIS",
+            "Modern routing provider order differs.");
         Require(root.GetProperty("oasisDna").GetProperty("storage").GetProperty("autoFailOverEnabled").GetBoolean(),
             "Saved routing setting was not projected.");
         Require(root.GetProperty("oasisDna").GetProperty("timeouts").GetProperty("providerMethodCallTimeOutSeconds").GetInt32() == 7,
             "Saved timeout was not projected.");
+    }
+    var legacy = System.Text.Json.Nodes.JsonNode.Parse(await File.ReadAllTextAsync(dna))!;
+    legacy["OASIS"]!["HyperDriveMode"] = NextGenSoftware.OASIS.API.DNA.HyperDriveModes.Legacy;
+    legacy["OASIS"]!.AsObject().Remove("OASISHyperDriveConfig");
+    await File.WriteAllTextAsync(dna, legacy.ToJsonString());
+    using (var document = JsonDocument.Parse((await executor.ExecuteAsync(command, CancellationToken.None))!))
+    {
+        var policy = document.RootElement.GetProperty("oasisDna").GetProperty("routingPolicy");
+        Require(policy.GetProperty("source").GetString() == "OASIS.StorageProviders", "Legacy routing owner differs.");
+        Require(policy.GetProperty("settings").GetProperty("autoFailOverEnabled").GetBoolean(), "Legacy switch differs.");
+        Require(policy.GetProperty("settings").GetProperty("autoFailOverProviders")[1].GetString() == "SQLLiteDBOASIS",
+            "Legacy provider order differs.");
     }
     Require(!JsonSerializer.Serialize(config).Contains(canary, StringComparison.Ordinal), "Runtime token was serialized.");
     command.Command = CommandType.GetMetrics;
