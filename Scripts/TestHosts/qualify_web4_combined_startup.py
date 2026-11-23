@@ -87,7 +87,7 @@ def main():
     processes=ExitStack();web5_process=None
     web5_app=os.environ.get('OASIS_STARTUP_WEB5_APP', '')
     popup_group=os.environ.get('OASIS_STARTUP_POPUP_GROUP', '') or 'none'
-    if popup_group not in ('none', 'tools-followup', 'tools', 'web5-breadth', 'community', 'storage', 'hyperdrive', 'eggs', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data'):
+    if popup_group not in ('none', 'developer', 'tools-followup', 'tools', 'web5-breadth', 'community', 'storage', 'hyperdrive', 'eggs', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data'):
         raise ValueError('Unknown owned popup group.')
     popup_breadth=os.environ.get('OASIS_STARTUP_POPUP_BREADTH') == 'true'
     if popup_breadth and popup_group != 'none':
@@ -259,6 +259,13 @@ console.log(JSON.stringify(b));
                     failure=json.loads(storage_failure.group(1))
                     assert set(failure)=={'stage','feedback'} and all(isinstance(value,str) and len(value)<=160 for value in failure.values())
                     print('PORTAL_STARTUP_STORAGE_FAILURE:'+json.dumps(failure,separators=(',',':')),flush=True)
+                developer_failure=re.search(r'PORTAL_STARTUP_DEVELOPER_FAILURE:(\{[^\n]*\})',browser.stderr)
+                if developer_failure:
+                    failure=json.loads(developer_failure.group(1))
+                    assert set(failure)=={'selected','modalVisible','loading','resourceCount','sourceLine'}
+                    assert all(isinstance(failure[key],bool) for key in ('selected','modalVisible','loading'))
+                    assert all(isinstance(failure[key],int) and failure[key]>=0 for key in ('resourceCount','sourceLine'))
+                    print('PORTAL_STARTUP_DEVELOPER_FAILURE:'+json.dumps(failure,separators=(',',':')),flush=True)
                 clan_failure=re.search(r'PORTAL_STARTUP_CLAN_FAILURE:(\{[^\n]*\})',browser.stderr)
                 if clan_failure:
                     failure=json.loads(clan_failure.group(1))

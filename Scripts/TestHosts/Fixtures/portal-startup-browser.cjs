@@ -9,10 +9,10 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','tools-followup','tools','web5-breadth','community','storage','hyperdrive','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
+ assert.ok(['none','developer','tools-followup','tools','web5-breadth','community','storage','hyperdrive','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
  const selectedPopups=popupGroup==='tools-followup'?['Developer','GlobalSearch']:popupGroup==='tools'?['Designer','Developer']:popupGroup==='web5-breadth'?['HolonBrowser','Celestial','GlobalSearch']:popupGroup==='community'?['Activity','Social','Chain']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
-  popupGroup==='none'?[]:[{storage:'Storage',hyperdrive:'HyperDrive',eggs:'Eggs',nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
+  popupGroup==='none'?[]:[{developer:'Developer',storage:'Storage',hyperdrive:'HyperDrive',eggs:'Eggs',nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
  let storageWrites=0; const storageAppId=require('node:crypto').randomUUID();
  let routingSaves=0;
@@ -242,7 +242,7 @@ async function main(){
     if(!selectedPopups.includes(name))return;
     let passed=false,closePassed=true,observedStage=name;
     try{await work();passed=true;observedStage=stage;}
-    catch(error){observedStage=stage;if(name==='Storage'){const feedback=await page.locator('#hd-storage-feedback').textContent();console.error('PORTAL_STARTUP_STORAGE_FAILURE:'+JSON.stringify({stage,feedback:/^(WEB4 returned|The saved policy|Load this scope|Loading storage settings)/.test(feedback||'')?feedback:'Unclassified storage error'}));}if(name==='Clan'){
+    catch(error){observedStage=stage;if(name==='Developer'){const state=await page.evaluate(()=>({selected:document.getElementById('dev-portal-modal-block')?.classList.contains('is-selected')===true,modalVisible:document.querySelector('.js-modal')?.classList.contains('is-visible')===true,loading:document.getElementById('dev-portal-modal-block')?.dataset.loadingPanel==='true',resourceCount:document.querySelectorAll('#dev-portal-modal-block a[href]').length}));const match=String(error.stack||'').match(/portal-startup-browser\.cjs:(\d+):/);state.sourceLine=match?Number(match[1]):0;console.error('PORTAL_STARTUP_DEVELOPER_FAILURE:'+JSON.stringify(state));}if(name==='Storage'){const feedback=await page.locator('#hd-storage-feedback').textContent();console.error('PORTAL_STARTUP_STORAGE_FAILURE:'+JSON.stringify({stage,feedback:/^(WEB4 returned|The saved policy|Load this scope|Loading storage settings)/.test(feedback||'')?feedback:'Unclassified storage error'}));}if(name==='Clan'){
      const state=await page.evaluate(()=>({status:document.getElementById('clan-status')?.textContent||'',nameLength:document.getElementById('clan-create-name')?.value.length||0,buttonDisabled:document.getElementById('clan-create-btn')?.disabled===true,activeTab:document.querySelector('#clan-modal-block .map-tab.is-active')?.dataset.tab||'unknown',
       formOwner:document.getElementById('clan-create-btn')?.form?.id||'none',
       formValid:document.getElementById('clan-create-form')?.matches(':valid')===true,
@@ -273,7 +273,8 @@ async function main(){
     stage='Designer remove field';await page.locator('.holon-designer-field-row').filter({hasText:'RouteLabel'}).locator('button').click();assert.equal(await page.locator('#holon-designer-fields-list .holon-designer-field-row').count(),4);
    });
    await checkPopup('Developer','#dev-portal-close-btn',async()=>{
-    stage='Developer resources';await page.evaluate(()=>window.openDevPortalModal());await page.locator('#dev-portal-modal-block .dev-portal-link').first().waitFor({state:'visible'});
+    stage='Developer load';await page.evaluate(()=>window.openDevPortalModal());await page.locator('#dev-portal-modal-block .dev-portal-link').first().waitFor({state:'visible'});
+    stage='Developer link validation';
     const links=await page.locator('#dev-portal-modal-block a[href]').evaluateAll(nodes=>nodes.map(node=>({href:node.href,target:node.target,rel:node.rel})));
     assert.ok(links.length>0);assert.ok(links.every(link=>new URL(link.href).origin===origin||['https:','mailto:'].includes(new URL(link.href).protocol)));assert.ok(links.filter(link=>link.target==='_blank').every(link=>link.rel.split(/\s+/).includes('noopener')));
    });
