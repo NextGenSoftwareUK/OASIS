@@ -1,3 +1,5 @@
+23 November2026 — VERIFIED PEER ONODE RUNTIME INTEGRATED; NEW COMBINED IMAGE REQUIRED. IncomingDevelopment94fc39ff contains peer popup45257965206 (real separate supervisor and WEB4 host,11commands/11status reads,no429,actual authenticated live frame, exact owned cleanup) and ONODEManager23f15e. Feature merge preserves all12 incoming paths, with the manifest combining reviewed Corec644 and supervisor23f pins. Core/private mapping and shipping Mongo/SQLite/Neo source/CQL endpoint code are unchanged from native-qualified producercf32603f; retain native45254618972 and backing3 from45251827668. The added JWT path applies only to ONODE WebSockets; ordinary bearer parsing tail is byte-identical. Old cf image45257020203/package45259304397 remain valid component provenance, not acceptance for this larger composition. Qualify ONE new exact combined image and package; no unchanged native/provider matrix replay. Current incoming rollout94fc is queued behind the earlier04d correction; no own Development push or queue cancellation. No local build/env/runtime/database/image/download/results or shared/PIPER calls; alternate index/source payloads removed.
+
 23 November2026 — IDENTICAL INCOMING COMPILE FIX INTEGRATED. Development04d1625b25ac45051f04b92d3c8836f4157080a4 adds only the same System.IO.File.ReadAllBytesAsync qualification already present byte-for-byte in qualified producercf32603f. Feature ancestry now includes that commit; every runtime path and all dependency pins remain identical to the accepted producer. Retain native45254618972, image45257020203/digestsha256:3f65ddbc54a2559151ad039f125aeb3c72e5216d779b89293567b680b7e5e1f3 and package45259304397; no unchanged cohort/image replay. Existing incoming rollout must settle before this batch is published to Development. New Corec644 remains feature-only; no current application/runtime acceptance is inferred.0shared/PIPER calls; alternate index removed, no local environment/build/download/results.
 
 23 November2026 — CONVERTED EXTREMA NATIVE3 AND ACTUAL WEB4 BUILD ACCEPTED. Exact45254618972/job137973053837 SUCCESS oncf32603f7e8bf40c1b4b144d8f549d54ee1c1d64/Corec644b071a77ccfca2fabd4a9fd5d222e1f1bf83f. Artifact14858716837/3448bytes/hash854d63a1f52f56e2f0a866dc1ce05b859b8a7c74feac32f1b7f846a5ee04720a inspected in RAM:3passed,0failed,8featuregroups/store,2ownedIDs/store,2acknowledgedwrites/store,12timings/store. Direct numeric/object, source-window, selected scalar, record-selected and async/synchronous late-set extrema passed alongside empty/foreign and semantics-refusal cases. Allfixtures/Mongo/service containers cleaned. Backing3 retained from45251827668 with unchanged8-file implementation and native fixture; that old whole run remains failed. Full M12/M17/EF and hosted acceptance stay open;61/168+4/13 unchanged. Next one combined image/package; no local env/build/DB/download/results or shared/PIPER calls.
@@ -13,11 +15,11 @@ in Git; do not rerun accepted unchanged cohorts.
 | Item | Current evidence |
 |---|---|
 | One feature branch | work/cosmic-cql-ton-public in OASIS and private Core; no new branch/worktree |
-| Current qualification producer | cf32603f7e8bf40c1b4b144d8f549d54ee1c1d64 |
+| Native-qualified model producer | cf32603f7e8bf40c1b4b144d8f549d54ee1c1d64 |
 | Current Core candidate | c644b071a77ccfca2fabd4a9fd5d222e1f1bf83f |
 | Current targeted CI |45254618972/job137973053837 SUCCESS:3 extrema journeys plus actual WEB4 build, exact cleanup verified |
 | Retained backing-field native proof |45251827668/job137963191454:3 backing cases passed; all8 groups/store and exact cleanup retained in COMBINED_MODEL_BREADTH_RETAINED_BACKING_NATIVE_2026-11-23.json. The overall run failed3 extrema cases; it is not a successful release gate |
-| Current Development branch |04d1625b25ac45051f04b92d3c8836f4157080a4; Core7546da7774be6948b040a6f37fea474c03976a95 |
+| Current Development branch |94fc39ff58ce7bd53e5df081625941086ec77ce1; Core7546da7774be6948b040a6f37fea474c03976a95 |
 | Prior WEB4 deployment attempt |f96ba207-06b7-42f6-8ecb-8191bae4a1a5 on41d88767 FAILED, metadata observed19:48:57UTC. This is not a current running-health assessment |
 | Last accepted running WEB4 revision |5c1da3c0e191f1b16612fc57aac27802d4ce392b/Core7546, observed19:14:19UTC:source/startup/packaged comparer presence only |
 | Last accepted seven-service rollout |All7 original WEB4–WEB10 deployments succeeded on5c1da3c0. No newer all-service acceptance inferred |
@@ -45,7 +47,7 @@ in Git; do not rerun accepted unchanged cohorts.
   ambiguous File reference were corrected without changing authority/guard
   semantics. No held-head repair command or PIPER write was executed.
 - **Release next:** native45254618972 and its exact archive/cleanup are accepted;
-  build one exact-source image and cql-api package
+  build one combined peer/runtime image and cql-api package
   for the batch. Refresh all8 dependency tips and incoming Development before
   publishing. Keep scoped verified normal Development pushes at most hourly;
   the last own push was19:00:42UTC. No empty synchronization push or unverified
