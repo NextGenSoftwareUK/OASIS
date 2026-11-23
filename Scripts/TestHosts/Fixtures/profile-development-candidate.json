@@ -1,28 +1,14 @@
 {
   "scope": "profile",
-  "status": "verified-selected-set-CQL-composed-nullable-profile-inventory-pending",
-  "base": "4b8d3923c7b5c2f51e434dbd8d2104ffa41dc68e",
-  "candidate": "3b07071ead4daf7309b64737014bd8359add0e93",
-  "tag": "qualification/profile-selected-set-root-20261123",
+  "status": "reviewed-selected-set-profile-source-ready-for-shipping-image",
+  "base": "3b07071ead4daf7309b64737014bd8359add0e93",
+  "candidate": "daf058b51c6f4251d99415c3a002691e36895e53",
+  "tag": "qualification/profile-selected-set-reviewed-root-20261123",
   "buildProjects": [
     "WEB4"
   ],
   "allowedPaths": [
-    "Docker/oasis-dependency-versions.env",
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
-    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SelfAvatarProfileController.cs",
-    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Profile.cs",
-    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/AvatarRepository.HistoryPatch.cs",
-    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/AvatarRepository.Profile.cs",
-    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.AvatarHistory.cs",
-    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Profile.cs",
-    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.ProfileSchema.cs",
-    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Schema.cs",
-    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Profile.cs",
-    "STAR ODK",
-    "Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1",
-    "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv"
   ],
   "core": {
     "base": "ef05dbecb1428a91da53abdcfab39bf2d55aa51b",
