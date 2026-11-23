@@ -1,15 +1,15 @@
 {
-  "status": "category argument and fixture LoadAvatar tariff corrected; populated qualification pending",
-  "source": "e55d8132d7fe6b1d035e31f40d556107c8116c9c",
+  "status": "explicit LoadAvatar tariff Core contract candidate prepared; backward-compatible WEB4 image retained",
+  "source": "181a340f4e5eca1897cb802a4c6240dde0f81cfa",
   "development": "90d75f04f606c29bea99bfafe073b5b26722ce88",
-  "core": "a3c5ceef9d61b0057ecc8b21156bd0121754a223",
+  "core": "117604427751726e4623a076c06cb91b84a01d6f",
   "star": "ffd7fe494e1aacec50315baadff38273c88b8a11",
   "image": "sha256:d0b2bacf91fbec5964f26ccabeded30ddb2eddb157296236934e4d17b148bcc0",
   "imageRun": 45117076250,
   "packageRun": 45173786800,
   "packageArtifact": 14818506061,
   "preservation": "Fetched Development; peer CQL composition preserves current Inventory annotations and Mongo writer. Core auth/Inventory paths unchanged from fc2470e; root Mongo serializer blob identical to21ab. STAR pinned531 source reviewed, physical STAR checkout1330 is unrelated and left untouched.",
-  "prepared": "Explicit OAPP depth candidate fe414/STAR1e25 paired with current Core a3c5 and Development3ae. Existing accepted WEB4 image8f/d0b2 source receipt reused; actual WEB5 compile/HTTP qualification pending.",
+  "prepared": "Core117 adds one supported LoadAvatar price key; no provider/price/catalogue/duplicate restriction relaxed. WEB5 host declares the extra tariff; old accepted WEB4 host retains supported holon tariffs. This intentionally tests new WEB5/current accepted WEB4 together; it is not a new WEB4 image acceptance.",
   "next": "Qualify populated depth/category/detail on e55 candidate, same accepted 8f WEB4 image. No backend deployment before acceptance.",
   "cleanup": "No new local env/download/runtime/build/database/results. Source/helper and compact descriptor only. Existing accepted WEB4/anonymous/provider cohorts retained, not replayed.",
   "active": {
@@ -144,6 +144,7 @@
     "star": "1e25b519c382a33d5160c02ca3b2a0de558449fc",
     "behavior": "OAPP API roots by default, descendants only with loadChildren=true; map opts in, launcher remains shallow",
     "remaining": "actual cloud compile, empty catalogue UI and populated descendant proof; no deployment acceptance",
-    "categoryArgumentSource": "e55d8132d7fe6b1d035e31f40d556107c8116c9c"
+    "categoryArgumentSource": "e55d8132d7fe6b1d035e31f40d556107c8116c9c",
+    "avatarReadTariffSource": "181a340f4e5eca1897cb802a4c6240dde0f81cfa"
   }
 }

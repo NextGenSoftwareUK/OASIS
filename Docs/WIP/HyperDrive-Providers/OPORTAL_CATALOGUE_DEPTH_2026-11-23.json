@@ -49,7 +49,7 @@
     "preparedControl": "109def7342c",
     "behavior": "Create one OAPP through actual WEB5 API, child through actual WEB4 API, compare independent shallow/deep responses, then populated Map/Launcher detail/browse",
     "backend": "isolated fresh native Mongo and actual issued SSO; no handcrafted stored documents, synthetic JWTs or response mocks",
-    "status": "exact isolated LoadAvatar tariff corrected; populated/category candidate running",
+    "status": "corrected fixture exposed real tariff allowlist mismatch; Core candidate prepared",
     "run": 45182126611,
     "job": 137718312154,
     "control": "9433abda05057f5b54849f19ec0a19622302e907",
@@ -58,10 +58,11 @@
     "failedArtifactBytes": 2453,
     "diagnosticRun": 45180587022,
     "diagnosticJob": 137713059704,
-    "failure": "Actual POST OAPP HTTP200/isErrortrue; no handcrafted DB seed substituted",
+    "failure": "Old API image exited before readiness when fixture declared LoadAvatar: SupportedOperations excludes the operation routed by AvatarManager/HyperDrive. Earlier missing-tariff result was not safely configurable.",
     "diagnosis": "Actual LoadAvatar requires its own explicit physical-operation tariff; owned fixture listed holon operations only. Add only LoadAvatar to isolated pricing; no production pricing/admission change.",
     "diagnosticArtifact": 14820672993,
-    "diagnosticArtifactBytes": 2459
+    "diagnosticArtifactBytes": 2459,
+    "failedReadinessRun": 45182126611
   },
   "categoryArgumentCandidate": {
     "star": "ffd7fe494e1aacec50315baadff38273c88b8a11",
@@ -71,5 +72,14 @@
     "finding": "OAPP controller passed HolonType into manager configured for OAPPType; corrected to oapp.OAPPType. Launcher used wrong JSON category property casing; corrected to oappType.",
     "verification": "New native proof checks GeneratedCodeOnly category and launcher category display/filter. Manifest check-ref passed; no backend deployment.",
     "run": 45182126611
+  },
+  "avatarReadTariffCandidate": {
+    "root": "181a340f4e5eca1897cb802a4c6240dde0f81cfa",
+    "core": "117604427751726e4623a076c06cb91b84a01d6f",
+    "star": "ffd7fe494e1aacec50315baadff38273c88b8a11",
+    "status": "source only; next real flow qualification required",
+    "invariant": "Every admitted physical LoadAvatar can be explicitly priced; tariff configuration still restricts provider, price, catalogue and duplicate keys",
+    "change": "Add only LoadAvatar to existing supported operations. Test declares it only on new WEB5 host executing the read; accepted old WEB4 billing host keeps supported tariffs. No production configuration change.",
+    "remaining": "Actual new Core/Web5 compile, provider read/creation/depth flow; new WEB4 shipping image/package before release"
   }
 }

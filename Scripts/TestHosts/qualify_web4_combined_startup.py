@@ -146,7 +146,6 @@ def main():
                             ((('POST','/api/files/upload-file'),) if popup_group == 'files-write' else
                              (('POST','/api/data/save-holon'),('DELETE','/api/data/delete-holon'))))]
                 if popup_group == 'web5-depth':
-                    admission['storageTariffs'].append({'provider':'MongoDBOASIS','operation':'LoadAvatar','costUsd':0,'catalogueVersion':catalogue})
                     admission['routes'].append({'method':'POST','path':'/api/oapps','policy':dict(write_policy)})
                 fixture_env['PREPARED_STORAGE_ADMISSION_JSON']=json.dumps(admission,separators=(',', ':'))
             if web5_app:
@@ -206,6 +205,8 @@ console.log(JSON.stringify(b));
                     SUBSCRIPTION_OUTBOX_DATABASE=marker+'_web5_outbox')
                 web5_admission=json.loads(web5_environment['PREPARED_STORAGE_ADMISSION_JSON'])
                 web5_admission['authoritativeProvider']='MongoDBOASIS'
+                if popup_group == 'web5-depth':
+                    web5_admission['storageTariffs'].append({'provider':'MongoDBOASIS','operation':'LoadAvatar','costUsd':0,'catalogueVersion':web5_admission['routes'][0]['policy']['pricingCatalogueVersion']})
                 web5_environment['PREPARED_STORAGE_ADMISSION_JSON']=json.dumps(web5_admission,separators=(',', ':'))
                 web5_environment.pop('OASIS_DNA_JSON', None)
                 web5_process=processes.enter_context(OwnedWeb5Process(web5_app, web5_dna, web5_environment))
