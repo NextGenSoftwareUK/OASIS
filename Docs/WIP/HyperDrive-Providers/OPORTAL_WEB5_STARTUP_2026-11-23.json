@@ -1,17 +1,16 @@
 {
-  "status": "prior Games/OAPP evidence retained; current source WEB5 breadth preparation",
-  "source": "f4ac6302cbeadf6b1af77cbd9c6cdf27cfec402b",
+  "status": "current CQL image reused; OAPP explicit-depth WEB5 source prepared, not qualified",
+  "source": "fe414dfe0ec971b33280b0780ab418b0d5012a10",
   "development": "90d75f04f606c29bea99bfafe073b5b26722ce88",
-  "core": "f7fbd77b9cd4d8f50a3fd1ee17487d4d33159f82",
-  "star": "531c98973164a295c39e5c2bdcf1a4b1bc4ba789",
-  "image": "sha256:078cd7c8acbd7a14de653178e8f7aba5d030a191da519f6f8c37c3756eeea704",
+  "core": "a3c5ceef9d61b0057ecc8b21156bd0121754a223",
+  "star": "1e25b519c382a33d5160c02ca3b2a0de558449fc",
+  "image": "sha256:d0b2bacf91fbec5964f26ccabeded30ddb2eddb157296236934e4d17b148bcc0",
   "imageRun": 45117076250,
-  "packageRun": 45165837353,
-  "packageArtifact": 14814813455,
-  "packageArchiveSha256": "6eb42c9de6421a1a13646fc8b1b44905c876276fe8882167e6533ad686e9fd29",
+  "packageRun": 45173786800,
+  "packageArtifact": 14818506061,
   "preservation": "Fetched Development; peer CQL composition preserves current Inventory annotations and Mongo writer. Core auth/Inventory paths unchanged from fc2470e; root Mongo serializer blob identical to21ab. STAR pinned531 source reviewed, physical STAR checkout1330 is unrelated and left untouched.",
-  "prepared": "Corrected authority source compiled and actual WEB5 full-entry-point portal slice accepted by45128946718. Current CQL composition image45129737094 remains in progress.",
-  "next": "Qualify Holon Browser, Celestial Map and Global Search on exact current accepted WEB4 image; actual WEB5 compilation/Startup required.",
+  "prepared": "Explicit OAPP depth candidate fe414/STAR1e25 paired with current Core a3c5 and Development3ae. Existing accepted WEB4 image8f/d0b2 source receipt reused; actual WEB5 compile/HTTP qualification pending.",
+  "next": "Follow one web5-catalogue cloud run, then gather populated descendant evidence before deployment acceptance.",
   "cleanup": "No new local env/download/runtime/build/database/results. Source/helper and compact descriptor only. Existing accepted WEB4/anonymous/provider cohorts retained, not replayed.",
   "active": {
     "run": 45128946718,
@@ -68,7 +67,7 @@
     "next": "Async/sync shared selector correction is accepted in isolation; finish current composition package and scoped publication.",
     "scope": "No hosted availability failure or completed fix claimed."
   },
-  "imageSource": "f4ac6302cbeadf6b1af77cbd9c6cdf27cfec402b",
+  "imageSource": "8f379886b8d89d1e134dd740a41af239e56f626f",
   "candidateFix": {
     "core": "a208265e764496a75e0cf25ea0e5dcfd9c873196",
     "root": "fa8c885ffee940a8da98c79fc9c027af456bbf47",
@@ -138,5 +137,12 @@
     "dispatchNote": "Direct unregistered reusable-workflow dispatch returned404 and created no run. Registered parent dispatch accepted; package/control jobs skipped as intended.",
     "artifact": 14816639859,
     "artifactBytes": 2999
+  },
+  "catalogueDepth": {
+    "root": "fe414dfe0ec971b33280b0780ab418b0d5012a10",
+    "baseDevelopment": "3ae678ddcbd0624a19cc4f3ff662a89b27b13896",
+    "star": "1e25b519c382a33d5160c02ca3b2a0de558449fc",
+    "behavior": "OAPP API roots by default, descendants only with loadChildren=true; map opts in, launcher remains shallow",
+    "remaining": "actual cloud compile, empty catalogue UI and populated descendant proof; no deployment acceptance"
   }
 }

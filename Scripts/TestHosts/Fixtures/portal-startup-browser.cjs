@@ -9,8 +9,8 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','developer','tools-followup','tools','web5-breadth','community','storage','hyperdrive','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
- const selectedPopups=popupGroup==='tools-followup'?['Developer','GlobalSearch']:popupGroup==='tools'?['Designer','Developer']:popupGroup==='web5-breadth'?['HolonBrowser','Celestial','GlobalSearch']:popupGroup==='community'?['Activity','Social','Chain']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+ assert.ok(['none','web5-catalogue','developer','tools-followup','tools','web5-breadth','community','storage','hyperdrive','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
+ const selectedPopups=popupGroup==='web5-catalogue'?['OappMap','Launcher','Competition']:popupGroup==='tools-followup'?['Developer','GlobalSearch']:popupGroup==='tools'?['Designer','Developer']:popupGroup==='web5-breadth'?['HolonBrowser','Celestial','GlobalSearch']:popupGroup==='community'?['Activity','Social','Chain']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
   popupGroup==='none'?[]:[{developer:'Developer',storage:'Storage',hyperdrive:'HyperDrive',eggs:'Eggs',nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
@@ -64,7 +64,7 @@ async function main(){
   }
   if(api5&&!selectedPopups.length)await admitFree(account);
   if(selectedPopups.length){
-   assert.equal(!!api5,popupGroup==='web5-breadth','Explicit matching backend selection');ownedToken=await admitFree(account);
+   assert.equal(!!api5,['web5-breadth','web5-catalogue'].includes(popupGroup),'Explicit matching backend selection');ownedToken=await admitFree(account);
    if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')||selectedPopups.includes('DirectoryMessage')||selectedPopups.includes('Clan')||selectedPopups.includes('Social')||selectedPopups.includes('GlobalSearch')){
     recipient=await createOwnedAvatar(api.href);recipientToken=await admitFree(recipient);
    }
@@ -260,6 +260,26 @@ async function main(){
     }catch{closePassed=false;passed=false;if(observedStage===name)observedStage=name+' close';}
     outcomes.push({name,passed,stage:observedStage,closePassed});
    }
+   await checkPopup('OappMap','#oapp-map-modal-close-btn',async()=>{
+    stage='OAPP map explicit depth';const [response]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname.toLowerCase()==='/api/oapps'),page.evaluate(()=>window.openOappMapModal())]);
+    assert.equal(new URL(response.url()).searchParams.get('loadChildren'),'true');const raw=await response.json();assert.equal(raw.isError,false);assert.ok(Array.isArray(raw.result));assert.equal(raw.result.length,0);
+    await page.waitForFunction(()=>document.getElementById('oapp-map-status').textContent==='No OAPPs found.');
+    stage='OAPP map filters';await page.locator('#oapp-map-filter').fill('no matching OAPP');assert.equal(await page.locator('#oapp-map-detail').isHidden(),true);await page.locator('#oapp-map-reset-btn').click();
+   });
+   await checkPopup('Launcher','#oapp-launcher-modal-close-btn',async()=>{
+    stage='OAPP launcher shallow catalogue';const [response]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname.toLowerCase()==='/api/oapps'),page.evaluate(()=>window.openOappLauncherModal())]);
+    assert.equal(new URL(response.url()).searchParams.get('loadChildren'),null);const raw=await response.json();assert.equal(raw.isError,false);assert.ok(Array.isArray(raw.result));assert.equal(raw.result.length,0);
+    await page.waitForFunction(()=>document.getElementById('oapp-launcher-status').textContent==='0 OAPPs');
+    stage='OAPP launcher filter';await page.locator('#oapp-launcher-search').fill('no matching OAPP');assert.equal(await page.locator('#oapp-launcher-browse-btn').isHidden(),true);
+   });
+   await checkPopup('Competition','#competition-close-btn',async()=>{
+    stage='Competition leaderboard';await page.evaluate(()=>window.openCompetitionModal());
+    await page.waitForFunction(()=>document.getElementById('comp-leaderboard-list').textContent.includes('No ranked entries for this competition and season.'));
+    assert.equal(await page.locator('#comp-more-btn').isHidden(),true);
+    stage='Competition my rank';await page.locator('#competition-modal-block [data-tab="myrank"]').click();await page.waitForFunction(()=>document.getElementById('comp-myrank-panel').textContent.includes('No ranked entry yet'));
+    stage='Competition tournaments';await page.locator('#competition-modal-block [data-tab="tournaments"]').click();await page.waitForFunction(()=>document.getElementById('comp-tournaments-list').textContent.includes('No active tournaments for this competition.'));
+    assert.equal(await page.locator('#comp-stat-tournaments').textContent(),'0');assert.equal(await page.locator('#competition-status').isHidden(),true);
+   });
    await checkPopup('Designer','#holon-designer-modal-close-btn',async()=>{
     stage='Designer schema';await page.evaluate(()=>window.openHolonDesignerModal());
     await page.locator('#holon-designer-name').fill('OwnedSchema');await page.locator('#holon-designer-field-name').fill('RouteLabel');await page.locator('#holon-designer-field-type').selectOption('string');await page.locator('#holon-designer-add-field-btn').click();

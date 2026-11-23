@@ -87,7 +87,7 @@ def main():
     processes=ExitStack();web5_process=None
     web5_app=os.environ.get('OASIS_STARTUP_WEB5_APP', '')
     popup_group=os.environ.get('OASIS_STARTUP_POPUP_GROUP', '') or 'none'
-    if popup_group not in ('none', 'developer', 'tools-followup', 'tools', 'web5-breadth', 'community', 'storage', 'hyperdrive', 'eggs', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data'):
+    if popup_group not in ('none', 'web5-catalogue', 'developer', 'tools-followup', 'tools', 'web5-breadth', 'community', 'storage', 'hyperdrive', 'eggs', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data'):
         raise ValueError('Unknown owned popup group.')
     popup_breadth=os.environ.get('OASIS_STARTUP_POPUP_BREADTH') == 'true'
     if popup_breadth and popup_group != 'none':
@@ -214,12 +214,12 @@ console.log(JSON.stringify(b));
                 assert isinstance(outcomes,list) and 1 <= len(outcomes) <= 3
                 for item in outcomes:
                     assert set(item) <= {'name','passed','stage','closePassed'}
-                    assert item['name'] in ('Designer','Developer','HolonBrowser','Celestial','GlobalSearch','Activity','Social','Chain','Storage','Eggs','NFT','Data','DataWrite','FilesWrite','MapRoute','Messaging','MessagingRead','Chat','DirectoryMessage','Clan','HyperDrive') and isinstance(item['passed'],bool)
+                    assert item['name'] in ('OappMap','Launcher','Competition','Designer','Developer','HolonBrowser','Celestial','GlobalSearch','Activity','Social','Chain','Storage','Eggs','NFT','Data','DataWrite','FilesWrite','MapRoute','Messaging','MessagingRead','Chat','DirectoryMessage','Clan','HyperDrive') and isinstance(item['passed'],bool)
                     assert isinstance(item['closePassed'],bool)
                     assert re.fullmatch(r'[A-Za-z0-9 /-]{1,80}',item['stage'])
                 portal_source=subprocess.check_output(['git','-C',portal_root,'rev-parse','HEAD'],text=True).strip()
                 assert re.fullmatch(r'[a-f0-9]{40}',portal_source)
-                (out/'portal-popup-outcomes.json').write_text(json.dumps({'source':package['source'],'image':image,'portal':portal_source,'group':popup_group,'outcomes':outcomes},indent=2))
+                (out/'portal-popup-outcomes.json').write_text(json.dumps({'source':package['source'],'image':image,'web5Source':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip() if web5_process else None,'portal':portal_source,'group':popup_group,'outcomes':outcomes},indent=2))
                 print('PORTAL_STARTUP_POPUP_OUTCOMES:'+json.dumps(outcomes,separators=(',',':')),flush=True)
             if browser.returncode:
                 facts = re.search(r'PORTAL_STARTUP_HTTP_FACTS:(\[[^\n]*\])', browser.stderr)
