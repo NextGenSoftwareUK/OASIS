@@ -393,3 +393,5 @@ are accepted. Later selected stages and SQL/Ask client integration remain separa
 ## Combined-query element terminals
 
 Identity sets and their late selected results lower First, Single, Last, ElementAt and optional/default variants into the same bounded native occurrence pipeline. Predicate overloads append after earlier windows. Tail reads require explicit ordering; Single admits at most two native occurrences and rejects ambiguity. A selected null is a present row, distinct from an empty result; caller defaults never replace native errors. Both standard Queryable terminals and ToCosmic...Async use the same query owner and cancellation-aware native manager path. Source implementation is awaiting its representative three-provider native qualification; no hosted or full query-shape parity is inferred.
+
+The element family also applies to selected-tuple sets: selecting Version before Union compares Version values, while Union before selecting Version compares entity IDs. These remain separate native contracts and retain their respective equality and caller visibility. Representative native qualification is pending for the selected-tuple path.
