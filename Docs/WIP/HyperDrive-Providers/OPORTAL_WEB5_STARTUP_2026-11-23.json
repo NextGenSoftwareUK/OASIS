@@ -1,8 +1,8 @@
 {
-  "status": "cause-located-authoritative-provider-selection-missing",
-  "source": "a32b0ca21aaa694edc3ad15c617055f105bba8d2",
+  "status": "explicit-authority-source-candidate-not-compiled-or-runtime-accepted",
+  "source": "6b9a2a1ac94cc0202a1579d6d03237b5d71f7634",
   "development": "90d75f04f606c29bea99bfafe073b5b26722ce88",
-  "core": "c19f1153eddea491e0887bfd40f898983d6b3597",
+  "core": "1780fa8ab8d588dd8dfa3a3db0944cce9ce42f95",
   "star": "531c98973164a295c39e5c2bdcf1a4b1bc4ba789",
   "image": "sha256:762878caa9426f4e7e8c0e97062a7755fa0899cd86ae21fa1a1af72c6e739c77",
   "imageRun": 45117076250,
@@ -45,5 +45,14 @@
     "invariant": "Admitted hosting must declare collection authority independently of provider activation. Do not weaken collection authority, activate during passive boot, disable admission/ledger, infer a replica as authoritative, or add retries.",
     "next": "Implement explicit authoritative-provider binding through the shared admitted-host configuration/routing layer, then verify the changed real WEB5 flow.",
     "scope": "No hosted availability failure or completed fix claimed."
+  },
+  "imageSource": "a32b0ca21aaa694edc3ad15c617055f105bba8d2",
+  "candidateFix": {
+    "core": "1780fa8ab8d588dd8dfa3a3db0944cce9ce42f95",
+    "root": "6b9a2a1ac94cc0202a1579d6d03237b5d71f7634",
+    "parent": "90d75f04f606c29bea99bfafe073b5b26722ce88",
+    "changes": "Optional operator authoritativeProvider in admitted-host configuration, validated against admitted native/ordinary providers; immutable request-scoped selection consumed by canonical sync/async provider selector. No activation/global active-provider mutation. Existing missing-authority guard retained.",
+    "fixture": "Only new WEB5 runtime declares Mongo authority. Existing WEB4 image/config stays at accepted a32/Corec19 and is reused for real auth/ledger; no new field passed to older strict configuration parser.",
+    "limits": "Candidate not yet compiled/runtime accepted; WEB4 typed collection fix/image adoption remains separate. Source DNA settings and deployed service environments unchanged."
   }
 }

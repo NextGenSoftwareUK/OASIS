@@ -180,6 +180,9 @@ console.log(JSON.stringify(b));
                     SUBSCRIPTION_MONGODB_CONNECTION_STRING=direct_mongo,
                     SUBSCRIPTION_OUTBOX_MONGO_CONNECTION_STRING=direct_mongo,
                     SUBSCRIPTION_OUTBOX_DATABASE=marker+'_web5_outbox')
+                web5_admission=json.loads(web5_environment['PREPARED_STORAGE_ADMISSION_JSON'])
+                web5_admission['authoritativeProvider']='MongoDBOASIS'
+                web5_environment['PREPARED_STORAGE_ADMISSION_JSON']=json.dumps(web5_admission,separators=(',', ':'))
                 web5_environment.pop('OASIS_DNA_JSON', None)
                 web5_process=processes.enter_context(OwnedWeb5Process(web5_app, web5_dna, web5_environment))
                 browser_env['OASIS_STARTUP_WEB5_URL']=web5_process.url
