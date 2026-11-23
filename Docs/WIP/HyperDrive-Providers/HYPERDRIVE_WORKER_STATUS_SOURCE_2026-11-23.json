@@ -1,0 +1,21 @@
+{
+  "status": "Actual LocalFile/protected HTTP acceptance:1passed0failed; Development publication pending",
+  "apiField": "backgroundWorkersPauseConfigured",
+  "invariant": "Status reports the operator pause configuration separately from routing policy flags; it does not claim worker-process liveness or successful delivery.",
+  "source": "Controller receives real IConfiguration through DI and reads the existing HostedMongoWorkerControl.PauseHyperDriveKey. No new worker, settings update or provider request.",
+  "compatibility": "New additive boolean response field; Portal reports not-reported on older APIs. No parameterless controller callers found in published source.",
+  "remaining": "Compile and actual HTTP status-field verification; current LocalFile fixture run remains independent.",
+  "cleanup": "Source only; no local builds/envs/downloads/databases/results.",
+  "candidate": "afbd5984e5a3b824080059e206331b727645c8de",
+  "preparedVerification": "One existing actual LocalFile sign-in/protected HTTP case checks status against real DI IConfiguration, plus after-delete401/error/false. No new API calls inside the case, no Mongo/browser setup.",
+  "acceptedRun": {
+    "id": 45098982294,
+    "job": 137445180377,
+    "candidate": "afbd5984e5a3b824080059e206331b727645c8de",
+    "passed": 1,
+    "failed": 0,
+    "caseSeconds": 4,
+    "scope": "Actual persisted sign-in, three protected HyperDrive reads, configured-pause field matches real DI configuration, hard delete and canonical401/error/false. No shipping auth weakening.",
+    "resources": "Mongo and browser setup skipped; provider/global state restored through fixture finally; no local outputs."
+  }
+}
