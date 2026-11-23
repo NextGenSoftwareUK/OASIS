@@ -200,3 +200,17 @@ Build freezes captured literals and binds the predicate through the model's meta
 WithoutQueryFilters removes application filters only. It preserves the same mapping, validation and read-only policies, and cannot remove mandatory authenticated caller visibility. Bind the returned model to its own query/session; existing model-affinity checks still forbid replacing the model on a captured query. This is an application selection policy, not an authorization boundary or a write constraint. Named selective filter bypass and inherited/polymorphic filter contracts remain separate scope. Representative native qualifier45129574750 passed all three MongoDB/SQLite/Neo4j journeys and the actual WEB4 build, with owned fixtures removed. Deployment acceptance is separate; full Q62 remains open.
 
 Collection snapshots replace constructor-initialized custom/plain property values instead of appending their defaults. Explicit serialization overrides remain respected outside the plain owned contract; authoritative Holon fields retain their established policy. The first collection qualification exposed this shared issue; the corrected three-provider qualifier45130169196 verifies the replacement behavior alongside collection persistence.
+
+## NHibernate XML mapping import
+
+```csharp
+var admittedTypes = new Dictionary<string, Type> { ["Customer"] = typeof(CustomerHolon) };
+var imported = builder.ImportNHibernateXml(xml, admittedTypes);
+// Check imported.IsError, then call Build and check its result.
+```
+
+The hibernate-mapping root uses urn:nhibernate-mapping-2.2. A class name resolves only through the explicit allowlist to a concrete public IHolon contract with a public parameterless constructor; the importer never loads a type named by the XML. Import into unconfigured contracts, then add ordinary fluent configuration as needed. Import validates a separate complete builder before changing the destination, so unsupported or conflicting input leaves it unchanged.
+
+The current contract admits class name/mutable, scalar property name/column/type/not-null/length/precision/scale, an alternative single column child, and canonical Guid Id with an optional assigned generator. Property and column configuration cannot be split ambiguously. Scalar type names must agree with the CLR property; canonical identity/security fields cannot be renamed. Constraints and mutable=false use the existing application validation and read-only policy owners.
+
+XML is bounded to1MiB and64 explicit allowed contracts. DTDs/external resources are disabled. Tables/schema generation, arbitrary NHibernate types/assemblies, POCO adapters, generators beyond assigned Guid, inheritance, relationships, collections, formulas, lazy proxies and unsupported attributes/elements return errors. This is the supported metadata-model import contract, not a claim of complete NHibernate XML compatibility. Native qualification and deployment status remain in the COSMIC status.
