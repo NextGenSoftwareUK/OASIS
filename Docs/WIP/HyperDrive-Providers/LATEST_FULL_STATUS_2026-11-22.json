@@ -176,8 +176,8 @@
     "protectedDeliveries": "535/543 not replayed; audit543 unavailable, preserve hold."
   },
   "cleanup": {
-    "freeDiskGB": 28.97,
-    "thisTurn": "No local builds/downloads/environments/databases/results. All Core/root private indexes and locks, including unsuccessful preparation, removed. Shared merge uses Git objects only; physical modules preserved.45086300342 remote cleanup succeeded;45088151222 finalizers pending.",
+    "freeDiskGB": 25.92,
+    "thisTurn": "No local builds/downloads/environments/databases/results. Owned Core/root composition indexes and locks removed in finally; source Git objects/tags retained.45104328970 owned DB/DNA/container/browser runtime/cache absence verified. Existing policy-blocked8038-byte cache untouched.",
     "temporaryEmailSecrets": "Previously deleted and absence verified; not restaged."
   },
   "deliveryPolicy": "Finish remaining OPORTAL user flows breadth first; one representative end-to-end verification for changed behavior, reuse accepted evidence. A blocked backend flow must not stop independent screen work.",
@@ -225,7 +225,7 @@
     "Permanent account/private-data/provider-replica erasure and Settings deletion remain unfinished.",
     "Changed async DID/MFA session-save and sync/detail native acknowledgement paths require representative verification before full entry-point acceptance."
   ],
-  "lastUpdatedUtc": "2026-11-23T00:56:41Z",
+  "lastUpdatedUtc": "2026-11-23T03:15:46.3595110Z",
   "latestFocusedRun": {
     "id": 45091356813,
     "job": 137421421351,
@@ -234,13 +234,13 @@
     "scope": "general real Mongo/SQLite session native acceptance; browser/hosted and enabled MFA store acceptance remain open"
   },
   "latestPortalBreadth": {
-    "source": "a5a6a56",
+    "source": "a85a0c5",
+    "verification": "Gifts45104328970/job137462037424 SUCCESS actual SDK/browser/HTTP/native Mongo send-receive-open-history/logout and missing-recipient no-write; build0errors4m13.31; all owned fixture/runtime/cache cleanup success. Three changed static scripts HTTP200 match dev source.",
     "changes": [
-      "Orders retry",
-      "My subscriptions retry",
-      "No subscription no longer triggers plan-specific history reads"
+      "Subscription/MCP renewal notification and stale checkout guidance",
+      "Single Gifts logout handler; no undeclared-variable error"
     ],
-    "verification": "changed expression five cases and syntax/diff checks; browser pending"
+    "pending": "Current CQL composition compile45105105606 on d06a42ca/Core80400; no accepted browser replay, backend not deployed."
   },
   "settingsBrowserPreparation": {
     "status": "accepted representative actual browser/native scope",

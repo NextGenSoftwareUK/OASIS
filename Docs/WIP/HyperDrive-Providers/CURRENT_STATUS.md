@@ -1,3 +1,7 @@
+## 2026-11-23 - Gifts actual SDK/browser/HTTP/native journey ACCEPTED
+
+45104328970/job137462037424 SUCCESS, sourcea61af6a6/Cored73/Portal a85a0c5, build0errors4m13.31. Two avatars send/receive/open/history/logout and missing-recipient no-write passed; DB/DNA/container/browser runtime/cache absent. Current peer5ea/Core4c9 preserved in prepared d06a42ca/Core80400 with only exact16-line gift validation restored and pairedpin; compile-only45105105606 active, no native/browser replay or backend deployment. Public3changed scripts200 match source. Whole OPORTAL/hosted Stripe/permanent erasure remain open.
+
 ## 2026-11-23 - Gifts real-browser qualification active; lost validation restored in candidate
 
 Run45104328970 on control05fca0cb active; candidatea61af6a6/Cored73ea6af restores exact previously accepted recipient guard absent from deployed6df/newer4c9, paired pins checked. Portal a85a0c5, one unknown-recipient no-write check plus actual two-avatar send/receive/open/history/logout. First2attempts stopped beforebuild on workflow guard issues, corrected; no functional acceptance or deployment yet. No old native cohort replay/shared Atlas/PIPER/local runtime/build/DB/download. Next observe exactrun, then scoped peer-preserving source composition only after acceptance. See GIFTS_BROWSER_2026-11-23.json.
