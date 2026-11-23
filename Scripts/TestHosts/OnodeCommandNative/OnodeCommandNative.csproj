@@ -8,9 +8,12 @@
   <ItemGroup>
     <ProjectReference Include="$(OnodeServiceProject)" />
     <ProjectReference Include="$(OasisDnaProject)" />
+    <ProjectReference Include="$(OnodeClientProject)" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <Target Name="RequireServiceSource" BeforeTargets="PrepareForBuild">
     <Error Condition="'$(OnodeServiceProject)' == ''" Text="Exact candidate ONODE service project is required." />
     <Error Condition="'$(OasisDnaProject)' == ''" Text="Exact candidate OASIS DNA project is required." />
+    <Error Condition="'$(OnodeClientProject)' == ''" Text="Exact candidate supervisor client project is required." />
   </Target>
 </Project>

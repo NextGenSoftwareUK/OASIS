@@ -1,3 +1,10 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System.Net;
+using NextGenSoftware.OASIS.ONODE.Service.Api;
+using NextGenSoftware.OASIS.ONODE.Client;
 using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -11,6 +18,7 @@ static void Require(bool value, string invariant)
 var owned = Path.Combine(Path.GetTempPath(), "oasis-onode-command-" + Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(owned);
 var dna = Path.Combine(owned, "OASISDNA.json");
+var tokenPath = Path.Combine(owned, "supervisor-token");
 var priorPath = Environment.GetEnvironmentVariable("OASISDNA_PATH");
 const string canary = "owned-public-view-exclusion-canary";
 try
@@ -94,12 +102,60 @@ try
         throw new InvalidOperationException("Wrong-node command was accepted.");
     }
     catch (UnauthorizedAccessException) { }
+    // Real MVC routes over a real loopback socket, with shipping authentication/client and no background workers.
+    var tokenService = new TokenService();
+    tokenService.Initialise(tokenPath);
+    var oldToken = await File.ReadAllTextAsync(tokenPath);
+    var builder = WebApplication.CreateBuilder();
+    builder.Logging.ClearProviders();
+    builder.WebHost.ConfigureKestrel(server => server.Listen(IPAddress.Loopback, 0));
+    builder.Services.AddSingleton(options);
+    builder.Services.AddSingleton(logs);
+    builder.Services.AddSingleton(supervisor);
+    builder.Services.AddSingleton(metrics);
+    builder.Services.AddSingleton(providers);
+    builder.Services.AddSingleton(tokenService);
+    builder.Services.AddSingleton<MetricsHistoryService>();
+    builder.Services.AddControllers().AddApplicationPart(typeof(SupervisorController).Assembly);
+    await using (var app = builder.Build())
+    {
+        app.MapControllers();
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        await app.StartAsync(deadline.Token);
+        try
+        {
+            var origin = app.Urls.Single();
+            using var raw = new HttpClient { BaseAddress = new Uri(origin), Timeout = TimeSpan.FromSeconds(5) };
+            using (var denied = await raw.GetAsync("/supervisor/public-config", deadline.Token))
+                Require(denied.StatusCode == HttpStatusCode.Unauthorized, "Anonymous public configuration was accepted.");
+            using var client = new SupervisorClient(new Uri(origin).Port, tokenPath);
+            Require(client.IsAvailable, "Real supervisor client could not authenticate status.");
+            var view = await client.GetPublicConfigurationAsync(deadline.Token);
+            Require(view.GetProperty("nodeId").GetString() == config.NodeId, "HTTP projection node differs.");
+            Require(!view.GetRawText().Contains(canary, StringComparison.Ordinal), "HTTP projection leaked excluded fields.");
+            Require(await client.RotateTokenAsync(deadline.Token), "Acknowledged token rotation failed.");
+            raw.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", oldToken.Trim());
+            using (var rejected = await raw.GetAsync("/supervisor/public-config", deadline.Token))
+                Require(rejected.StatusCode == HttpStatusCode.Unauthorized, "Old token survived acknowledged rotation.");
+            await client.GetPublicConfigurationAsync(deadline.Token);
+            await File.WriteAllTextAsync(dna, "{", deadline.Token);
+            try
+            {
+                await client.GetPublicConfigurationAsync(deadline.Token);
+                throw new InvalidOperationException("Malformed saved configuration returned success.");
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.ServiceUnavailable) { }
+            Console.WriteLine("ONODE_PUBLIC_HTTP: real MVC/loopback/client authenticated projection, anonymous denial, credential exclusion, acknowledged rotation, old-token denial and malformed-config error passed; no WEB4 bridge/browser/provider acceptance inferred.");
+        }
+        finally { await app.StopAsync(CancellationToken.None); }
+    }
     Console.WriteLine("ONODE_COMMAND_NATIVE: public configuration exclusion, identity, saved routing/timeout, runtime-token exclusion, actual collector and wrong-node rejection passed; no HTTP/browser/provider acceptance inferred.");
 }
 finally
 {
     Environment.SetEnvironmentVariable("OASISDNA_PATH", priorPath);
     if (File.Exists(dna)) File.Delete(dna);
+    if (File.Exists(tokenPath)) File.Delete(tokenPath);
     Directory.Delete(owned);
-    Console.WriteLine("ONODE_COMMAND_CLEANUP: owned DNA and directory absent.");
+    Console.WriteLine("ONODE_COMMAND_CLEANUP: owned DNA, token and directory absent.");
 }

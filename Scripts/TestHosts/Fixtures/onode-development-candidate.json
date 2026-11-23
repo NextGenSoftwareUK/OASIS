@@ -1,9 +1,9 @@
 {
   "scope": "onode",
-  "status": "mode-specific-routing-service-only-source-ready",
-  "candidate": "5f1152f1028ee8e12d6aec3f2202016bdda7320c",
-  "base": "c89bee8891ad197e846faeec7ad12a14fbcfd217",
-  "tag": "qualification/onode-mode-routing-root-20261123",
+  "status": "authenticated-public-http-client-source-and-real-socket-check-ready",
+  "candidate": "40d0574d5e27273bd3f907ff8513f6560ff3245b",
+  "base": "5f1152f1028ee8e12d6aec3f2202016bdda7320c",
+  "tag": "qualification/onode-public-http-root-20261123",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
     "ONODE/ONODEManager"
@@ -14,9 +14,9 @@
   "core": {
     "candidate": "271603c32f13345cebd350b557f7c6bd10ab9d04"
   },
-  "onodeManager": "76f2a6f249a8fa7e4844b1c9616ed2ed0b5dd011",
+  "onodeManager": "79d464b70af73f9b37a4b68ca4aa088622436d4e",
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
-  "remaining": "Retain successful prior API compile once terminal; service-only canonical mode fix and independent shipping-DNA command probe required. Full HTTP bridge/browser/provider schema still open.",
+  "remaining": "Run actual supervisor/client HTTP projection, auth denial/rotation and malformed-file error; then complete real WEB4 bridge/browser and provider configuration schema. Prior WEB4 compile unchanged and retained.",
   "inventoryReview": {
     "run": 45213996648,
     "artifact": 14836649117,
@@ -57,7 +57,9 @@
   },
   "modeRoutingRun": {
     "run": 45216379653,
-    "status": "in_progress",
-    "scope": "Service-only source; deliberately different modern/legacy settings verify canonical routing owner."
+    "status": "success",
+    "scope": "Service-only source; deliberately different modern/legacy settings verify canonical routing owner.",
+    "job": 137838543842,
+    "source": "5f1152f1028ee8e12d6aec3f2202016bdda7320c"
   }
 }
