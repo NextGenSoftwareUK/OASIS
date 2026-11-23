@@ -23,6 +23,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
             if (headers.Count != 1 || !AuthenticationHeaderValue.TryParse(headers[0], out var header) ||
                 !string.Equals(header.Scheme, "Bearer", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(header.Parameter))
             { await Reject(context, 401, "INVALID_AUTHORIZATION_HEADER", "A single Bearer authorization value is required."); return; }
+            context.User = new ClaimsPrincipal(new ClaimsIdentity());
+            context.Items.Remove(ValidatedPrincipalKey);
+            context.Items.Remove(AuthenticationErrorItemKey);
+            context.Items.Remove("Avatar");
+            context.Items.Remove("AvatarId");
+            OASISRequestContext.CurrentAvatar = null;
+            OASISRequestContext.CurrentAvatarId = null;
+            OASISRequestContext.AvatarRoutingOverrides = null;
             ClaimsPrincipal principal;
             try
             {
@@ -39,12 +47,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
                 return;
             }
             var id = Guid.Parse(principal.FindFirst("sub").Value);
+            if (!AvatarSessionIdentity.TryReadBinding(principal, out var sessionId, out var authority))
+            {
+                context.Items[AuthenticationErrorItemKey] = "The access token has no valid session binding.";
+                await _next(context);
+                return;
+            }
             RequestTimingMiddleware.Mark(context, RequestTimingMiddleware.Phase.AvatarLookup);
-            var avatar = await Program.AvatarManager.LoadAvatarAsync(id);
+            var avatar = await Program.AvatarManager.LoadAvatarForAccessSessionAsync(id, sessionId, authority);
             if (avatar.IsError)
-            { await Reject(context, 503, "AVATAR_LOOKUP_UNAVAILABLE", "The authenticated avatar could not be loaded."); return; }
-            if (avatar.Result == null || avatar.Result.Id != id)
-            { await Reject(context, 401, "INVALID_AVATAR", "The authenticated avatar no longer exists."); return; }
+            {
+                if (avatar.ErrorCode == "ACCESS_SESSION_AUTHORITY_UNAVAILABLE" || avatar.ErrorCode == "ACCESS_SESSION_MODE_UNSUPPORTED")
+                    await Reject(context, 503, avatar.ErrorCode, avatar.Message);
+                else
+                {
+                    // Bearer-only filters refuse the unauthenticated request. Signed offline-grant
+                    // exchange retains its separately specified endpoint authentication policy.
+                    context.Items[AuthenticationErrorItemKey] = avatar.Message;
+                    await _next(context);
+                }
+                return;
+            }
             context.User = principal;
             context.Items[ValidatedPrincipalKey] = principal;
             context.Items["Avatar"] = avatar.Result;

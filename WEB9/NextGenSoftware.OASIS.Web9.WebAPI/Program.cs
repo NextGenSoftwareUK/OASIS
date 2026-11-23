@@ -104,8 +104,8 @@ if (!string.Equals(app.Environment.EnvironmentName, "Testing", StringComparison.
 app.UseCors("AllowAll");
 app.UseRateLimiter();
 app.UseRouting();
-app.UseAuthorization();
 app.UseMiddleware<NextGenSoftware.OASIS.Web9.WebAPI.Middleware.JwtMiddleware>();
+app.UseAuthorization();
 app.UseMiddleware<NextGenSoftware.OASIS.Web9.WebAPI.Middleware.ApiKeyMiddleware>();
 if (subscriptionUsageEnabled)
 {

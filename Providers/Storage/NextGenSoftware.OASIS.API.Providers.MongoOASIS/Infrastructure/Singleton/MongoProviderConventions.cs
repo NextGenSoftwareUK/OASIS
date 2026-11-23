@@ -25,7 +25,8 @@ internal static class MongoProviderConventions
         },type=>type.Namespace?.StartsWith("NextGenSoftware.",StringComparison.Ordinal)==true);
         ConventionRegistry.Register("OASIS.MongoDB.CoreRecordNavigation",new ConventionPack {
             new CoreRecordNavigationConvention()
-        },type=>typeof(IAuditBase).IsAssignableFrom(type)
+        },type=>(typeof(IAuditBase).IsAssignableFrom(type)
+                || type==typeof(NextGenSoftware.OASIS.API.Core.Objects.RefreshToken))
             && type.Namespace?.StartsWith("NextGenSoftware.OASIS.API.Core.",StringComparison.Ordinal)==true);
         ConventionRegistry.Register("OASIS.MongoDB.DictionaryRepresentation",new ConventionPack {
             new DictionaryRepresentationConvention(DictionaryRepresentation.ArrayOfArrays)

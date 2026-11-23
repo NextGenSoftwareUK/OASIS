@@ -30,6 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         IsLoaded = false,
                         IsError = false,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
                         Message = "No Avatar found"
                     };
 
@@ -67,6 +68,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         IsLoaded = false,
                         IsError = false,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
                         Message = "No Avatar found"
                     };
 
@@ -104,6 +106,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         IsLoaded = false,
                         IsError = false,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
                         Message = "No Avatar found"
                     };
 
@@ -141,6 +144,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         IsLoaded = false,
                         IsError = false,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
                         Message = "No Avatar found"
                     };
 
@@ -178,6 +182,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         IsLoaded = false,
                         IsError = false,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
                         Message = "No Avatar found"
                     };
 
@@ -403,9 +408,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             var persistenceEntered = false;
             try
             {
+                using var transaction=_dbContext.Database.BeginTransaction();
                 avatarEntity = AddOrUpdateAvatar(CreateAvatarModel(avatar));
                 persistenceEntered = true;
                 _dbContext.SaveChanges();
+                transaction.Commit();
                 avatar.Id=Guid.Parse(avatarEntity.Id);
                 return new OASISResult<IAvatar>
                 {
@@ -424,7 +431,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsSaved = false,
                     IsError = true,
                     Exception = ex,
-                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity
+                        : ex is StorageLifecycleConflictException ? StorageLifecycleConflictException.ErrorCode : null,
                     Message = ex.ToString()
                 };
             }
@@ -436,9 +444,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             var persistenceEntered = false;
             try
             {
+                using var transaction=await _dbContext.Database.BeginTransactionAsync();
                 avatarEntity = AddOrUpdateAvatar(CreateAvatarModel(avatar));
                 persistenceEntered = true;
                 await _dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
                 avatar.Id=Guid.Parse(avatarEntity.Id);
                 //return Avatar;
                 return new OASISResult<IAvatar>
@@ -458,7 +468,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsSaved = false,
                     IsError = true,
                     Exception = ex,
-                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity
+                        : ex is StorageLifecycleConflictException ? StorageLifecycleConflictException.ErrorCode : null,
                     Message = ex.ToString()
                 };
             }
@@ -500,6 +511,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return incoming;
             }
             incoming.CreatedProviderType = existing.CreatedProviderType;
+            NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.AccountSaveRevision.RequireDeclaredSuccessor(
+                existing.Version,existing.VersionId,incoming.Version,incoming.VersionId,incoming.PreviousVersionId);
             incoming.HasCreatedProviderType = existing.HasCreatedProviderType;
             incoming.CreatedOASISType = existing.CreatedOASISType;
             incoming.HasCreatedOASISType = existing.HasCreatedOASISType;
@@ -536,7 +549,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 ProviderKeysJson = System.Text.Json.JsonSerializer.Serialize(keys),
                 ProviderWalletsJson = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(avatar.ProviderWallets ?? new Dictionary<ProviderType,List<IProviderWallet>>()),
                 ParentHolonId = avatar.ParentHolonId,
-                MetaDataJson = System.Text.Json.JsonSerializer.Serialize(avatar.MetaData ?? new Dictionary<string,object>()),
+                MetaDataJson = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(avatar.MetaData ?? new Dictionary<string,object>()),
                 Version = avatar.Version,
                 IsActive = avatar.IsActive,
                 IsPublic = avatar.IsPublic,
