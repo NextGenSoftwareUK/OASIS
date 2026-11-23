@@ -30,3 +30,12 @@ $primary = @(Get-InjectedStorageMembers 'public sealed class ExampleController(M
 if ($primary.Count -ne 1 -or $primary[0] -ne 'repository') { throw 'Primary constructor repository extraction failed.' }
 if ((Get-Disposition 'return repository.GetOwnedAppsAsync(actor);' 'Apps' 'ExampleController' $primary) -ne 'InjectedServiceRepositoryOrClient') { throw 'Primary constructor repository was classified as local.' }
 if ((Get-Disposition 'return repository.GetOwnedAppsAsync(actor);' 'Apps' 'ExampleController') -ne 'LocalOrNonStorageEndpoint') { throw 'Undeclared repository acquired storage classification.' }
+
+$typedReads = @(Get-InjectedStorageMembers "private readonly AccountClosurePrerequisiteReader _reader;`nprivate readonly ISubscriptionCheckoutJournal _checkoutJournal;")
+if ($typedReads.Count -ne 2) { throw 'Typed storage reader/journal extraction failed.' }
+foreach ($member in $typedReads) {
+    if ((Get-Disposition ("return " + $member + ".ReadAsync();") 'Read' 'ExampleController' $typedReads) -ne 'InjectedServiceRepositoryOrClient') { throw 'Storage reader/journal was classified as local.' }
+}
+if ((Get-Disposition 'return await ReadCheckoutSessionStatusAsync(actor, id);' 'GetCheckoutSessionStatus' 'ExampleController') -ne 'ControllerActionDelegation') { throw 'Awaited controller helper delegation was classified as local.' }
+if ((Get-Disposition 'return await Task.FromResult(Ok());' 'Get' 'ExampleController') -ne 'LocalOrNonStorageEndpoint') { throw 'Qualified local async work acquired a controller delegation classification.' }
+Write-Host 'Storage reader/journal and awaited unqualified helper classifications passed; no runtime calls.'
