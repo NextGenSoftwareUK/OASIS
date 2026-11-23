@@ -68,7 +68,7 @@ on:
         description: New popup journey only; reuses the exact shipping image without rebuilding
         required: false
         type: choice
-        options: [none, nft, data, data-crud, data-edit, files-write, map-route, messaging, messaging-read, chat, chat-directory, directory-message, clan, chat-hyperdrive, data-messaging, nft-messaging-data]
+        options: [none, nft, data, data-crud, data-edit, files-write, map-route, messaging, messaging-read, chat, chat-directory, directory-message, clan, portal-breadth, chat-hyperdrive, data-messaging, nft-messaging-data]
         default: none
       retained_waku:
         description: Verify the packaged native Waku runtime with the aged original archive

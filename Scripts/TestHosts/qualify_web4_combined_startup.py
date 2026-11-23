@@ -87,7 +87,7 @@ def main():
     processes=ExitStack();web5_process=None
     web5_app=os.environ.get('OASIS_STARTUP_WEB5_APP', '')
     popup_group=os.environ.get('OASIS_STARTUP_POPUP_GROUP', '') or 'none'
-    if popup_group not in ('none', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data'):
+    if popup_group not in ('none', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data'):
         raise ValueError('Unknown owned popup group.')
     popup_breadth=os.environ.get('OASIS_STARTUP_POPUP_BREADTH') == 'true'
     if popup_breadth and popup_group != 'none':
@@ -250,6 +250,12 @@ console.log(JSON.stringify(b));
                     assert isinstance(failure['path'],str) and len(failure['path'])<=200 and failure['path'].startswith('/api/') and '?' not in failure['path']
                     assert failure['errorType'] in ('AssertionError','TypeError','Error') and isinstance(failure['sourceLine'],int)
                     print('PORTAL_STARTUP_ADMISSION_FAILURE:'+json.dumps(failure,separators=(',',':')),flush=True)
+                clan_failure=re.search(r'PORTAL_STARTUP_CLAN_FAILURE:(\{[^\n]*\})',browser.stderr)
+                if clan_failure:
+                    failure=json.loads(clan_failure.group(1))
+                    assert set(failure)<= {'errorType','sourceLine','status','nameLength','buttonDisabled','activeTab','unavailable'}
+                    assert isinstance(failure.get('status',''),str) and len(failure.get('status',''))<=320
+                    print('PORTAL_STARTUP_CLAN_FAILURE:'+json.dumps(failure,separators=(',',':')),flush=True)
                 safe_stage = re.search(r'PORTAL_STARTUP_BROWSER_FAILURE stage=([^;\n]+)', browser.stderr)
                 raise RuntimeError('Owned portal Startup browser failed at ' + (safe_stage.group(1) if safe_stage else 'unreported stage'))
             assert 'PORTAL_STARTUP_BROWSER_PROOF:' in browser.stdout

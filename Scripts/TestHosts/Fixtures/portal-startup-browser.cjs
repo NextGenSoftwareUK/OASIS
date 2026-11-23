@@ -9,8 +9,8 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
- const selectedPopups=popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+ assert.ok(['none','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
+ const selectedPopups=popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
   popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
@@ -85,7 +85,7 @@ async function main(){
    if(url.origin==='https://api.web4.oasisomniverse.one'){
     const mutation=request.method()!=='GET'&&request.method()!=='OPTIONS';
     let ownedOperation=false;
-    if(popupGroup==='clan'){
+    if(selectedPopups.includes('Clan')){
      if(request.method()==='POST'&&url.pathname==='/api/clan'){
       assert.equal(++clanCreates,1);assert.deepEqual(request.postDataJSON(),{name:clanName,description:'Owned clan journey'});ownedOperation=true;
      }else if(request.method()==='PUT'&&clanId&&url.pathname==='/api/clan/'+clanId){
@@ -93,7 +93,7 @@ async function main(){
      }else if(request.method()==='POST'&&clanId&&url.pathname==='/api/clan/'+clanId+'/members/'+recipient.avatar.id){assert.equal(++clanMembers,1);ownedOperation=true;
      }else if(request.method()==='DELETE'&&clanId&&url.pathname==='/api/clan/'+clanId){assert.equal(++clanDeletes,1);ownedOperation=true;}
     }
-    if(['chat','chat-directory','chat-hyperdrive'].includes(popupGroup)&&request.method()==='POST'){
+    if(selectedPopups.includes('Chat')&&request.method()==='POST'){
      if(url.pathname==='/api/chat/start-new-chat-session'){
       assert.equal(++chatStarts,1);assert.deepEqual(request.postDataJSON(),[account.avatar.id,recipient.avatar.id]);ownedOperation=true;
      }else if(chatId&&url.pathname==='/api/chat/send-message/'+chatId){
@@ -223,7 +223,12 @@ async function main(){
     if(!selectedPopups.includes(name))return;
     let passed=false,closePassed=true,observedStage=name;
     try{await work();passed=true;observedStage=stage;}
-    catch{observedStage=stage;}
+    catch(error){observedStage=stage;if(name==='Clan'){
+     const state=await page.evaluate(()=>({status:document.getElementById('clan-status')?.textContent||'',nameLength:document.getElementById('clan-create-name')?.value.length||0,buttonDisabled:document.getElementById('clan-create-btn')?.disabled===true,activeTab:document.querySelector('#clan-modal-block .map-tab.is-active')?.dataset.tab||'unknown'})).catch(()=>({unavailable:true}));
+     if(state.status){state.status=state.status.replace(/(?:https?|mongodb(?:\+srv)?):\/\/[^\s]+/gi,'[URI]').replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,'[JWT]').slice(0,320);if(/password|secret|credential|connectionstring|refresh.?token/i.test(state.status))state.status='Sensitive detail withheld';}
+     const match=String(error.stack||'').match(/portal-startup-browser\.cjs:(\d+):/);state.errorType=['AssertionError','TimeoutError','TypeError','Error'].includes(error.name)?error.name:'Error';state.sourceLine=match?Number(match[1]):0;
+     console.error('PORTAL_STARTUP_CLAN_FAILURE:'+JSON.stringify(state));
+    }}
     try{
      if(await page.locator(closeSelector).isVisible()){
       await page.locator(closeSelector).click();await page.waitForURL(url=>url.pathname==='/');
