@@ -1,0 +1,12 @@
+{
+  "status": "prepared; not executed",
+  "portal": "145d58ff2b24706e0cc9f834d3afb58884bdc992",
+  "backend": "b71528fb0c851ba4501444de4198a5ddc04d4f5b",
+  "flow": [
+    "Issue one actual credential to owned fixture actor.",
+    "Click actual Settings review and inspect real owned-app dependency response/DOM.",
+    "No browser mutations; native avatar version unchanged and current session remains active."
+  ],
+  "scope": "This is not account deletion, Stripe customer acceptance, full Startup or hosted PIPER acceptance. Existing session/MFA/billing evidence retained without repeated assertions.",
+  "cleanup": "Source/Node syntax/diff checks only; no local environment/runtime/download/build/database/results."
+}

@@ -1,6 +1,6 @@
 {
   "scope": "billing",
-  "status": "Combined shared candidate: compile seven APIs and changed MFA store journey; not deployed",
+  "status": "New account-requirements review browser/native journey against accepted combined backend",
   "base": "721f33130849794856c546218dceb06ee1396c87",
   "candidate": "b71528fb0c851ba4501444de4198a5ddc04d4f5b",
   "tag": "qualification/session-shared-development-20261123",
@@ -63,8 +63,10 @@
     "WEB5"
   ],
   "nativeHost": "HotspotHttpNative",
-  "nativeMode": "mfa-http",
-  "remaining": "No accepted35case/session/billing replay; new combined composition and changed MFA implementation only.",
-  "sessionBrowser": false,
-  "compileSessionMiddleware": true
+  "nativeMode": "session-global-http",
+  "remaining": "No selected/global sign-out, billing or accepted35case assertions replayed. One real login, explicit read-only assessment action, no browser writes and unchanged native avatar/session.",
+  "sessionBrowser": true,
+  "compileSessionMiddleware": false,
+  "settingsReviewBrowser": true,
+  "portal": "145d58ff2b24706e0cc9f834d3afb58884bdc992"
 }

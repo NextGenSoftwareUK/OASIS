@@ -310,6 +310,7 @@ jobs:
               $env:OASIS_GEO_BROWSER_SCRIPT = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/warning-email-browser-native-http.cjs).Path
             } elseif ($env:OASIS_HOTSPOT_HTTP_MODE -eq 'session-global-http' -and $candidate.sessionBrowser -eq $true) {
               $env:OASIS_SESSION_SETTINGS_BROWSER = 'true'
+              if ($candidate.settingsReviewBrowser -eq $true) { $env:OASIS_ACCOUNT_REVIEW_BROWSER = 'true' }
               $env:OASIS_GEO_BROWSER_HOST = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/session-settings-browser-host.html).Path
               $env:OASIS_GEO_BROWSER_SCRIPT = (Resolve-Path ../qualification-control/Scripts/TestHosts/Fixtures/session-settings-browser-native-http.cjs).Path
             } elseif ($env:OASIS_HOTSPOT_HTTP_MODE -eq 'mfa-browser') {

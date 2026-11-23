@@ -1,11 +1,11 @@
 "use strict";
 const assert=require("node:assert/strict"),path=require("node:path");
-async function verify({baseUrl,token,avatarId,currentSessionId,independentSessionId}) {
+async function verify({baseUrl,token,avatarId,currentSessionId,independentSessionId,reviewOnly=false}) {
  const base=new URL(baseUrl);assert.equal(base.hostname,"127.0.0.1");assert.equal(base.protocol,"http:");
- assert.match(avatarId,/^[0-9a-f-]{36}$/i);assert.match(independentSessionId,/^[0-9a-f]{64}$/);assert.match(currentSessionId,/^[0-9a-f]{64}$/);assert.notEqual(currentSessionId,independentSessionId);
+ assert.match(avatarId,/^[0-9a-f-]{36}$/i);assert.match(independentSessionId,/^[0-9a-f]{64}$/);assert.match(currentSessionId,/^[0-9a-f]{64}$/);if(!reviewOnly)assert.notEqual(currentSessionId,independentSessionId);
  const {chromium}=require(path.join(process.env.OASIS_PROFILE_BROWSER_RUNTIME,"node_modules/playwright-core"));
  const browser=await chromium.launch({channel:"chrome",headless:true}),context=await browser.newContext({serviceWorkers:"block"});
- const reads=["/api/avatar/mfa/status","/api/avatar/"+avatarId+"/sessions","/api/avatar/holon-seal","/api/avatar/version-purge"];
+ const reads=["/api/avatar/account-closure/assessment","/api/avatar/mfa/status","/api/avatar/"+avatarId+"/sessions","/api/avatar/holon-seal","/api/avatar/version-purge"];
  const selected="/api/avatar/"+avatarId+"/sessions/logout",global="/api/avatar/"+avatarId+"/sessions/logout-all";
  const writes=[],unexpected=[],errors=[];let stage="setup";
  try {
@@ -32,6 +32,23 @@ async function verify({baseUrl,token,avatarId,currentSessionId,independentSessio
   page.on("pageerror",error=>errors.push(error.name));page.on("dialog",dialog=>dialog.accept());
   await page.goto(baseUrl+"/__session_settings_browser",{waitUntil:"domcontentloaded"});
   await page.locator("#fixture-open-settings").click();
+  if(reviewOnly){
+   stage="account requirements review";
+   const assessmentReply=page.waitForResponse(response=>new URL(response.url()).pathname==="/api/avatar/account-closure/assessment"&&response.request().method()==="GET");
+   await page.locator("#settings-closure-review").click();
+   const response=await assessmentReply;assert.equal(response.status(),200);
+   const envelope=await response.json();assert.equal(envelope.isError,false);
+   assert.equal(envelope.result.hasOwnedApplications,true);
+   for(const field of ["subscriptionRequiresCancellation","hasOpenStripeInvoices","hasPendingStripeCheckouts","hasUnsettledUsage","hasUnbilledCharges","hasUnresolvedStatements"])
+    assert.equal(envelope.result[field],false);
+   await page.waitForFunction(()=>document.getElementById("settings-closure-status").textContent.includes("This does not authorize or perform deletion"));
+   assert.match(await page.locator("#settings-closure-requirements").innerText(),/Transfer or close applications/);
+   assert.equal(await page.locator("#settings-closure-requirements li").count(),1);
+   assert.equal(await page.locator("#settings-closure-review").isEnabled(),true);
+   assert.equal(await page.evaluate(()=>localStorage.getItem("loggedIn")),"true");
+   assert.deepEqual(writes,[]);assert.deepEqual(unexpected,[]);assert.deepEqual(errors,[]);
+   return {accountReviewBrowserVerified:true,ownedApplicationRequirement:true,noMutations:true,sessionPreserved:true};
+  }
   await page.waitForFunction(()=>document.getElementById("settings-sessions-status").textContent.startsWith("2 active /"));
   stage="selected sign-out";
   // The independent credential is issued last; the real API orders records newest first.

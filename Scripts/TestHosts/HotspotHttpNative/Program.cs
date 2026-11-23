@@ -261,6 +261,7 @@ try
     if (mode is "mfa-http" or "mfa-middleware-http" or "session-global-http" or "mfa-browser")
         AvatarManager.SecondFactorGate = NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa.MfaGate.Create(httpMfa!,
             app.Services.GetRequiredService<IHttpContextAccessor>());
+    var accountReviewBrowser = Environment.GetEnvironmentVariable("OASIS_ACCOUNT_REVIEW_BROWSER") == "true";
     var sessionBrowser = mode == "session-global-http" && Environment.GetEnvironmentVariable("OASIS_SESSION_SETTINGS_BROWSER") == "true";
     if (sessionBrowser || (mode is "browser" or "catalogue-browser" or "competition-browser" or "mfa-browser" or "billing-warning-browser"))
     {
@@ -402,8 +403,9 @@ try
                 string SessionId(Newtonsoft.Json.Linq.JToken credentials) => new JwtSecurityTokenHandler()
                     .ReadJwtToken(credentials.Value<string>("jwtToken")).Claims.Single(claim => claim.Type == NextGenSoftware.OASIS.API.Core.Helpers.AvatarSessionIdentity.SessionClaim).Value;
                 await RunOwnedBrowserAsync(new { baseUrl = address, token = current.Value<string>("jwtToken"), avatarId = actor.ToString("D"),
-                    currentSessionId = SessionId(current), independentSessionId = SessionId(independent) }, "sessionSettingsBrowserVerified");
-            } : null);
+                    currentSessionId = SessionId(current), independentSessionId = SessionId(independent), reviewOnly = accountReviewBrowser },
+                    accountReviewBrowser ? "accountReviewBrowserVerified" : "sessionSettingsBrowserVerified");
+            } : null, browserReadOnly: accountReviewBrowser);
     }
     else if (mode is "mfa-http" or "mfa-middleware-http" or "session-global-http")
     {

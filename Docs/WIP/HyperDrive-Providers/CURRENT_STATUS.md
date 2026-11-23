@@ -1,3 +1,7 @@
+## 2026-11-23 - New account-requirements browser check prepared
+
+Actual Settings review flow pins Portal145d58f and accepted combined backendb71528fb: one real login, explicit real assessment GET/owned-app requirement DOM, zero browser mutations, unchanged native avatar/version and active session. No accepted sign-out/billing/MFA/35case assertions replayed. Prepared only; no browser acceptance or deletion claim. Running Railway rollout remains separately tracked.
+
 ## 2026-11-23 - Three running dev container revisions verified
 
 WEB7/WEB8/WEB9 deployment SUCCESS and selected in-container RAILWAY_GIT_COMMIT_SHA exactly6bbbae4b. Remaining deployment handles tracked in OPORTAL_BACKEND_DEV_ROLLOUT_2026-11-23.json. No application/auth/data/payment call. Worker pause env read on those3 yielded no values; their reviewed Program source does not register WEB4 hosted Mongo worker controls. WEB4 actual pause flags still require selected verification after its pending rollout; no global worker-state claim.

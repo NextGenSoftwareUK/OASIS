@@ -24,7 +24,7 @@ internal static class GlobalSessionHttpQualification
         Guid actor, string username, string password,
         NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionCheckoutJournal checkoutJournal, IMongoDatabase ownedDatabase,
         AccountClosureAdmissionService closureService, Guid closureActor, bool verifyBillingAdmission = true,
-        Func<JToken, JToken, Task>? verifySessionBrowser = null)
+        Func<JToken, JToken, Task>? verifySessionBrowser = null, bool browserReadOnly = false)
     {
         const string ownedUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Check(Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") == ownedUri, "Exact owned Mongo fixture required.");
@@ -211,10 +211,20 @@ internal static class GlobalSessionHttpQualification
             if (verifySessionBrowser != null)
             {
                 var browserCurrent = await Login(ProviderType.MongoDBOASIS);
-                var browserIndependent = await Login(ProviderType.MongoDBOASIS);
+                var browserIndependent = browserReadOnly ? browserCurrent : await Login(ProviderType.MongoDBOASIS);
+                var beforeBrowser = await mongo.LoadAvatarAsync(actor);
+                Check(!beforeBrowser.IsError && beforeBrowser.Result != null, "Browser baseline account unavailable.");
                 await verifySessionBrowser(browserCurrent, browserIndependent);
-                await CheckAccess(browserCurrent, ProviderType.MongoDBOASIS, false);
-                await CheckAccess(browserIndependent, ProviderType.MongoDBOASIS, false);
+                await CheckAccess(browserCurrent, ProviderType.MongoDBOASIS, browserReadOnly);
+                if (!browserReadOnly) await CheckAccess(browserIndependent, ProviderType.MongoDBOASIS, false);
+                if (browserReadOnly)
+                {
+                    var afterBrowser = await mongo.LoadAvatarAsync(actor);
+                    Check(!afterBrowser.IsError && afterBrowser.Result.VersionId == beforeBrowser.Result.VersionId,
+                        "Read-only account review changed the native avatar.");
+                    Console.WriteLine("ACCOUNT_REVIEW_BROWSER_NATIVE_PROOF: actual Settings review button and SDK/controller dependency read, owned application displayed, no browser mutation and unchanged native avatar/current session active.");
+                    return;
+                }
                 Console.WriteLine("SESSION_SETTINGS_BROWSER_NATIVE_PROOF: actual Settings selected/global buttons and SDK requests; both actual issued credentials refused by native authority after sign-out.");
                 return;
             }
