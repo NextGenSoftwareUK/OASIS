@@ -1,12 +1,19 @@
 {
   "scope": "onode",
-  "status": "authenticated-public-http-client-source-and-real-socket-check-ready",
-  "candidate": "40d0574d5e27273bd3f907ff8513f6560ff3245b",
-  "base": "5f1152f1028ee8e12d6aec3f2202016bdda7320c",
-  "tag": "qualification/onode-public-http-root-20261123",
+  "status": "current-shared-source-ready-for-shipping-image",
+  "candidate": "e6415c6578d7f4de5c04bd722b3c18cc1870dfc8",
+  "base": "52f9a287a67a558c8f687e2d701c7483be0a91c1",
+  "tag": "qualification/onode-current-shipping-normalized-20261123",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
-    "ONODE/ONODEManager"
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ONODEController.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Hubs/ONODEWebSocketHub.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/JwtMiddleware.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
+    "ONODE/ONODEManager",
+    "Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1",
+    "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
   ],
   "buildProjects": [
     "ONODESUPERVISOR"
@@ -16,7 +23,7 @@
   },
   "onodeManager": "79d464b70af73f9b37a4b68ca4aa088622436d4e",
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
-  "remaining": "Run actual supervisor/client HTTP projection, auth denial/rotation and malformed-file error; then complete real WEB4 bridge/browser and provider configuration schema. Prior WEB4 compile unchanged and retained.",
+  "remaining": "Build one shipping image; complete isolated real WEB4 bridge/browser and provider configuration schema. Preserve all accepted source/component checks.",
   "inventoryReview": {
     "run": 45213996648,
     "artifact": 14836649117,
@@ -64,9 +71,14 @@
   },
   "publicHttpRun": {
     "run": 45217891546,
-    "status": "in_progress",
-    "previousRun": 45217372769,
-    "previousFailure": "Test host CS0136 local view shadowing; actual supervisor compiled zero errors; no HTTP execution. Host renamed httpView and retry uses same production source.",
-    "scope": "Real supervisor MVC/socket/client, auth denial/rotation, secret exclusion and malformed-config error."
+    "job": 137843899096,
+    "status": "success",
+    "source": "40d0574d5e27273bd3f907ff8513f6560ff3245b",
+    "scope": "Actual MVC loopback/client projection, anonymous denial, secret exclusion, acknowledged rotation/old-token denial and malformed-file error; owned DNA/token/directory and probe bin/obj absent. Not WEB4 bridge/browser/provider controls."
+  },
+  "shippingImageRun": {
+    "run": 45218443408,
+    "source": "e6415c6578d7f4de5c04bd722b3c18cc1870dfc8",
+    "status": "queued"
   }
 }

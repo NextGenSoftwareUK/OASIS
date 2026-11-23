@@ -761,17 +761,59 @@
       "scope": "Actual supervisor/command executor; distinct modern/legacy switch values and ordered provider lists from canonical mode owner; cleanup acknowledged."
     },
     "publicHttpRun": {
-      "run": 45217372769,
-      "job": 137842078963,
-      "status": "in_progress",
+      "run": 45217891546,
+      "job": 137843899096,
       "source": "40d0574d5e27273bd3f907ff8513f6560ff3245b",
-      "onodeManager": "79d464b70af73f9b37a4b68ca4aa088622436d4e",
-      "scope": "Actual MVC loopback server and shipping SupervisorClient, authenticated public projection, denial, acknowledged rotation and malformed-config error."
+      "status": "success",
+      "accepted": [
+        "Actual MVC loopback HTTP and shipping SupervisorClient",
+        "Authenticated public projection and anonymous denial",
+        "Credential exclusion",
+        "Acknowledged persisted token rotation and old-token denial",
+        "Malformed configuration returns503, propagated by client",
+        "Mode-specific command executor checks"
+      ],
+      "cleanup": {
+        "ownedDnaAbsent": true,
+        "ownedTokenAbsent": true,
+        "ownedDirectoryAbsent": true,
+        "probeBinObjAbsent": true
+      },
+      "excluded": [
+        "Actual WEB4 bridge and browser",
+        "Canonical provider-control schema",
+        "Full ONODE/Oportal acceptance"
+      ]
     },
     "remaining": [
       "Real WEB4 bridge/command polling and browser",
       "Canonical provider-control schema and actual saved-versus-applied behavior",
       "Full ONODE and OPORTAL acceptance"
+    ]
+  },
+  "latestOnodePublicHttp20261123": {
+    "run": 45217891546,
+    "job": 137843899096,
+    "source": "40d0574d5e27273bd3f907ff8513f6560ff3245b",
+    "status": "success",
+    "accepted": [
+      "Actual MVC loopback HTTP and shipping SupervisorClient",
+      "Authenticated public projection and anonymous denial",
+      "Credential exclusion",
+      "Acknowledged persisted token rotation and old-token denial",
+      "Malformed configuration returns503, propagated by client",
+      "Mode-specific command executor checks"
+    ],
+    "cleanup": {
+      "ownedDnaAbsent": true,
+      "ownedTokenAbsent": true,
+      "ownedDirectoryAbsent": true,
+      "probeBinObjAbsent": true
+    },
+    "excluded": [
+      "Actual WEB4 bridge and browser",
+      "Canonical provider-control schema",
+      "Full ONODE/Oportal acceptance"
     ]
   }
 }
