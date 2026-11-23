@@ -1,32 +1,60 @@
-2026-11-23 SET EXTREMUM OWNER FIXED, NATIVE REQUALIFICATION PENDING:45251827668/job137963191454 compiled and ran6 native cases: backing3passed; extrema3failed at the same missing async late-set owner, after direct numeric/object extrema, paging, selected scalar and record extrema assertions succeeded. No full run/WEB4 build-gate acceptance. Strict RAM4297byte artifact retained backing3 exact cleanup and all8groups/store; owned Mongo absence and CI-service cleanup passed. Core c644b071a77ccfca2fabd4a9fd5d222e1f1bf83f connects async and synchronous late-set extrema to the existing guarded native selected-stage owner using shared extrema lowering: exact capability enrollment, null filter/order/Take(1) execute natively, complete proof precedes one scalar materialization. No Enumerable aggregate or fallback. New representative synchronous record-set selector added to the same journey; replacement runs ONLY3 extrema cases plus actual WEB4 build, retaining unchanged backing3. Full parity/live remain open;61/168+4/13 unchanged. No shared/PIPER calls/local env/build/DB/image/download/results; raw logs/artifact remained RAM, source arrays removed after publication.
-
-2026-11-23 COMBINED MODEL BREADTH QUALIFICATION: Incoming Development held-head command failed actual WEB4 compilation in45249952024: unqualified File resolved to an OASIS project type instead of System.IO.File. Fix precisely qualifies System.IO.File.ReadAllBytesAsync; command behavior, authority and source guards unchanged. Prior SQLite local-variable collision is already corrected. Failed build ran no backing tests; Mongo stopped/absence and service-container cleanup succeeded, logs inspected RAM only. Superseded extrema45251473263 cancellation requested for this known build blocker; confirm cleanup before replacement. Existing converter workflow now selects only the TWO changed families together:6 native cases,3 stores, backing8+extrema8 feature groups per store and actual WEB4 build. No other accepted cohorts rerun. Core74cf includes full current backing+direct/projected/record/set extrema scope. Source uncompiled, qualification and image/package/release still open;61/168+4/13 unchanged. No local env/build/DB/download/results or shared/PIPER calls.
-
-2026-11-23 CONVERTED EXTREMA BREADTH BATCH: Core 74cf0c77c1106e725155ae22ebe1ba4ca49b8474 now extends direct, selected-scalar, record-selected and entity-set-selected Min/Max through the existing native proof owners. Storage domains alone control provider capability admission/null filtering, explicit converter ordering is required, and model decoding occurs only after complete native proof validation. Representative new cohort:3 stores,8 feature groups,2 owned IDs,2 acknowledged writes,11 timed operations per store. Source uncompiled/native qualification pending; full M12/M17/EF and live acceptance remain open. Superseded narrow45250987526 was cancelled while queued: completed cancelled with zero job steps, no containers started; replacement targets this coherent wider source. Preserve combined backing run45249952024 and earlier accepted evidence, do not rerun unchanged completed families. Batch image/package/release only after both scoped gates. No shared database/live/PIPER calls or local build/env/results/downloads.
-
-2026-11-23 CONVERTED EXTREMA IMPLEMENTED, QUALIFICATION PENDING: Core 58e28f318d4a3336d4990cb5250a6cd732f9cb4b extends the existing native scalar owner for explicit ordering-preserving conversion: Min/Max reduce the stored domain, validate the exact bounded cell, then decode once to the application domain. Equality-only conversions and unproven Sum/Average semantics remain refused before provider dispatch. New representative Mongo/SQLite/Neo cohort uses two owned IDs, two acknowledged writes and eight timed operations per store; checks numeric/object results, source paging, empty/caller scope and refusal. No full M12/M17 parity or live acceptance claimed; certification remains61/168+4/13. Combined backing source192c qualification45249952024 remains independent and active; prior backing native45246760122 retained. Batch both families into one subsequent image/package/release after passing gates. No local build/env/database/download/image/results or shared backend/PIPER calls.
-
-23 November 2026 — BACKING-FIELD COMPOSITION WITH INCOMING DEVELOPMENT41d88767. Native3/actual-WEB4 backing-field producerbf0f/Corefcf72 passed45246760122, with exact owned cleanup. Incoming Development changed shared-editor replication, held-head re-arm, SQLite binding errors and bundled-fixture packaging. The combined candidate preserves all incoming changes and the8 backing-field Core files. A conflicting SQLite catch-pattern variable was renamed to identityError without changing behavior. Because the incoming SQLite conditional-write path changed, one exact combined native3/actual-WEB4 run is required before image qualification. No unchanged all-provider matrix, live-data repair or second deployment was started.
-
-23 November 2026 — COMPARER SOURCE/STARTUP/PACKAGED PRESENCE ACCEPTED ON DEVELOPMENT. All7 original deployments succeeded on5c1da3c0/Core7546da77. Selected WEB4 read matched5c1da3c0 and found the packaged comparer type, change-decision/write-binding and fluent API; startup-DNA load balancing/failover/replication and legacy load balancing were true. Scope is source/startup/packaged presence, not current in-process manager flags or a hosted typed-model journey.0 shared-database calls,0 application writes,0 sessions issued. Functional comparer proof remains native3/actual WEB4 build45239964649; image45241873904/package45243975852 accepted. Backing-field sourcebf0f1b28/Corefcf72efb is only a candidate in native CI45246760122/job137945432491, not deployed. Full parity remains open.
-
 # COSMIC / CQL current handoff
 
-Updated 23 November 2026. This is the current checkpoint; earlier chronological notes remain in Git history.
+Updated 23 November 2026. Current implementation, representative native verification,
+deployment and full certification are separate below. Historical checkpoints remain
+in Git; do not rerun accepted unchanged cohorts.
 
-## Current source and live Development
+## Current source and running evidence
 
-| Item | Evidence / status |
+| Item | Current evidence |
 |---|---|
-| Existing feature branch | work/cosmic-cql-ton-public; no additional branch or worktree |
-| Qualified converter producer |04dc4244bebb0280e06a556496202befc3e2dd4d |
-| Deployed Core / comparer candidate |7546da7774be6948b040a6f37fea474c03976a95 /fcf72efb84c8868d12b7cc0ce6fb37daef67bc23 (backing fields, CI pending) |
-| Running Development |5c1da3c0e191f1b16612fc57aac27802d4ce392b, Core7546da7774be6948b040a6f37fea474c03976a95; source/startup/packaged presence accepted, hosted typed-model journey open |
-| Development rollout observation | All seven original WEB4-WEB10 deployments SUCCESS on5c1da3c0; this is deployment/source evidence, not a fresh all-provider health audit |
-| Latest website preview |94fca0f137eefa26863ab75c7ef97c3c70ae94bd, READY; not publicly promoted |
-| Strict framework certification |61/168 rows each for MongoDB/SQLite/Neo4j, plus4/13 separate extensions; full parity remains open |
+| One feature branch | work/cosmic-cql-ton-public in OASIS and private Core; no new branch/worktree |
+| Current qualification producer | cf32603f7e8bf40c1b4b144d8f549d54ee1c1d64 |
+| Current Core candidate | c644b071a77ccfca2fabd4a9fd5d222e1f1bf83f |
+| Current targeted CI |45254618972/job137973053837:3 changed extrema journeys plus actual WEB4 build, running at this checkpoint |
+| Retained backing-field native proof |45251827668/job137963191454:3 backing cases passed; all8 groups/store and exact cleanup retained in COMBINED_MODEL_BREADTH_RETAINED_BACKING_NATIVE_2026-11-23.json. The overall run failed3 extrema cases; it is not a successful release gate |
+| Current Development branch |41d8876721d8f3c9cadd831b8fff1b79bb2ff035; Core7546da7774be6948b040a6f37fea474c03976a95 |
+| Latest WEB4 deployment attempt |f96ba207-06b7-42f6-8ecb-8191bae4a1a5 on41d88767 FAILED, metadata observed19:48:57UTC. This is not a current running-health assessment |
+| Last accepted running WEB4 revision |5c1da3c0e191f1b16612fc57aac27802d4ce392b/Core7546, observed19:14:19UTC:source/startup/packaged comparer presence only |
+| Last accepted seven-service rollout |All7 original WEB4–WEB10 deployments succeeded on5c1da3c0. No newer all-service acceptance inferred |
+| Latest website preview |94fca0f137eefa26863ab75c7ef97c3c70ae94bd, READY; no public promotion |
+| Strict framework certification |61/168 rows each for MongoDB/SQLite/Neo4j;4/13 separate extensions. Full parity remains open |
 
-Development52f9a287 contains the peer's verified profile/OAPP batch. It has been merged into the same COSMIC feature branch. The Core merge retained all nine query-family and six peer source files unchanged; only the parent Core reference/manifest conflicted. Official pins and gitlinks validate. Never replace this newer Development with the older accepted element image.
+## Current breadth batch and next action
+
+- **Backing fields:** explicit declared mutable fields use one slot for canonical
+  JSON, metadata, exact hydration, snapshots/reset, validation and acknowledged
+  updates. Native predicate/order/projection and caller isolation passed on all3.
+  The mapping implementation and its native fixture are unchanged by the current
+  set-extremum fix; retain that evidence.
+- **Converted extrema:** direct numeric/custom-object Min/Max, source windows,
+  selected scalar and record-selected results reached their assertions on all3
+  in45251827668. Its late entity-set case exposed a missing async reduction owner.
+  Corec644 connects synchronous and async set selectors to the existing native
+  selected-stage read; shared lowering enforces ordering/capability admission,
+  native null filtering/order/Take(1), complete proof and model decoding.
+  The replacement journey includes the synchronous record-set selector and
+  checks8 groups,2 owned IDs,2 acknowledged writes and12 timings per store.
+- **Incoming Development preserved:** shared-editor replication and reviewed
+  held-head re-arm changes, SQLite binding-error handling and bundled-fixture
+  deletion are retained. SQLite's catch-pattern name collision and the command's
+  ambiguous File reference were corrected without changing authority/guard
+  semantics. No held-head repair command or PIPER write was executed.
+- **Release next:** follow existing run45254618972, inspect exact result/archive
+  and cleanup acknowledgements, then one exact-source image and cql-api package
+  for the batch. Refresh all8 dependency tips and incoming Development before
+  publishing. Keep scoped verified normal Development pushes at most hourly;
+  the last own push was19:00:42UTC. No empty synchronization push or unverified
+  deployment. No staging, production or public-site promotion.
+- **Still open:** constructor/readonly-field/access-mode completeness, full custom
+  type/arithmetic/comparer graph contracts, full certification and hosted typed
+  application acceptance. Preserve the full breadth-first roadmap and provider
+  priorities; do not substitute package presence for a hosted query journey.
+- **Resources:** no local build/runtime install/database/container/image/archive
+  or generated test results for this batch. CI uses isolated loopback stores and
+  exact owned fixture/container cleanup. Source payload arrays and temporary
+  alternate index were removed; only compact journals/proofs remain locally.
+  No shared Atlas/API/PIPER application calls were made.
 
 ## Delivered breadth and evidence
 
