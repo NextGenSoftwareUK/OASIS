@@ -73,7 +73,7 @@ public enum CqlV1Scalar { String, Integer, Boolean, Guid, DateTime, UInt64, Deci
 public enum CqlV1Operator { Equal, NotEqual, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, Contains, StartsWith, EndsWith, Exists, IsNull, In, IsMissing, IsNotNull, NotContains, NotStartsWith, NotEndsWith }
 
 [JsonConverter(typeof(JsonStringEnumConverter<CqlV1Function>))]
-public enum CqlV1Function { Utf16Length, TextCoalesce, BooleanTextCase, Int32Coalesce }
+public enum CqlV1Function { Utf16Length, TextCoalesce, BooleanTextCase, Int32Coalesce, UtcYear, UtcMonth, UtcDay, UtcDayOfYear, UtcHour, UtcMinute, UtcSecond }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class CqlV1Filter
