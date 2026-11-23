@@ -90,3 +90,17 @@ The declared entity currently derives from Holon and has a public parameterless 
 Build snapshots are independent: later builder edits do not affect an existing model. The same immutable model is bound before query expressions/windows and remains attached to session reads, source predicates/order/projections, scalar terminal captures, typed hydration and owned save preparation. Query/session model mismatch or model rebinding fails explicitly. There is no global per-type override or client-side query evaluation.
 
 This initial slice covers flat scalar roots. Explicit model graph expansion, unrestricted POCOs, XML mappings, annotation override precedence, inheritance conventions, converters and the full fluent ORM feature family remain open. Other query shapes still require their independently admitted native contracts. Follow the source/native/live qualification status in [the COSMIC status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md); source presence alone is not parity or deployment acceptance.
+
+
+## Fluent application constraints
+
+Required values, maximum string/blob length and exact decimal precision/scale use the existing application validation rule owner:
+
+```csharp
+builder.Entity<InvoiceHolon>().Property(row => row.Caption)
+    .IsRequired().HasMaxLength(80).HasMetadataKey("caption");
+builder.Entity<InvoiceHolon>().Property(row => row.Amount)
+    .HasPrecision(10, 2).HasMetadataKey("amount");
+```
+
+Unannotated custom properties need their metadata mapping before Build. Canonical or annotated properties can receive constraints without being renamed. Build freezes both aliases and rules; later builder edits leave existing sessions unchanged. Model constraints apply to the private authorized save snapshot after application callbacks, so replacing session callbacks cannot disable them. Failed validation dispatches no write. These are application constraints, not generated database columns, native schema constraints or a full validation/schema parity claim. Current verification and deployment scope remains in the COSMIC status.
