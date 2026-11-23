@@ -189,9 +189,15 @@ try
         if (response.StatusCode != HttpStatusCode.OK)
         {
             var diagnosticBody = await response.Content.ReadAsStringAsync(deadline.Token);
-            using var failure = JsonDocument.Parse(diagnosticBody);
-            var diagnostic = failure.RootElement.TryGetProperty("message", out var message)
-                ? message.GetString() ?? "No error message" : "No top-level error message";
+            // Error responses may be plain text from hosting, before the API JSON middleware.
+            var diagnostic = diagnosticBody.Split('\n', 2)[0].Trim();
+            if (response.Content.Headers.ContentType?.MediaType == "application/json")
+            {
+                using var failure = JsonDocument.Parse(diagnosticBody);
+                diagnostic = failure.RootElement.TryGetProperty("message", out var message)
+                    ? message.GetString() ?? "No error message" : "No top-level error message";
+            }
+            if (diagnostic.Length == 0) diagnostic = "Empty error body";
             diagnostic = diagnostic.Replace(password, "[password]").Replace(uri, "[owned-connection]");
             diagnostic = System.Text.RegularExpressions.Regex.Replace(diagnostic, @"(?:https?|mongodb(?:\+srv)?)://\S+", "[address]");
             diagnostic = System.Text.RegularExpressions.Regex.Replace(diagnostic, @"[A-Za-z0-9+/=_-]{32,}", "[opaque-value]");
