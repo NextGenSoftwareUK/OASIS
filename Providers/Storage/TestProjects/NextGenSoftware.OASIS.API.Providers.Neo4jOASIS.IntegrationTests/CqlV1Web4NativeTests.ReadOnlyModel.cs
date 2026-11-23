@@ -40,7 +40,7 @@ public sealed partial class CqlV1Web4NativeTests
         ReadOnlyMappedHolon New(string name)=>new(){Id=Guid.NewGuid(),Name=name,Score=10,
             CreatedByAvatarId=actor,IsActive=true,IsPublic=false,IsNewHolon=true};
         var entity=New("model readonly");var denied=New("denied insert");
-        var id=entity.Id;owned.AddRange(new[]{id,denied.Id});
+        var id=entity.Id;var deniedId=denied.Id;owned.AddRange(new[]{id,deniedId});
         async Task<T> Timed<T>(string name,Func<Task<T>> action)
         {
             var clock=System.Diagnostics.Stopwatch.StartNew();
@@ -72,7 +72,7 @@ public sealed partial class CqlV1Web4NativeTests
         }
         using var allowed=CosmicSession.Create(manager,adapter,access,released.Result).Result;
         var authority=await Timed("read-unchanged",()=>allowed.ReadAsync(
-            allowed.Query<ReadOnlyMappedHolon>().Result.Where(row=>row.Id==id || row.Id==denied.Id).Result));
+            allowed.Query<ReadOnlyMappedHolon>().Result.Where(row=>row.Id==id || row.Id==deniedId).Result));
         Assert.IsFalse(authority.IsError,authority.Message+authority.Exception);Assert.AreEqual(1,authority.Result.Count);
         Assert.AreEqual(id,authority.Result[0].Id);Assert.AreEqual(10,authority.Result[0].Score);
         Assert.AreEqual(version,authority.Result[0].Version);
