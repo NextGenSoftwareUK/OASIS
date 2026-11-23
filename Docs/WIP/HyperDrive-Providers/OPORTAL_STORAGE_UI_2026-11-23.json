@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-23",
+  "status": "initial load failure under diagnosis",
+  "failedRun": 45169928276,
+  "artifact": 14816033480,
+  "artifactBytes": 3818,
+  "portal": "d1c92008398d4328d0e3295d243f97d743562e73",
+  "failure": "Storage load avatar: GET returned HTTP200/isErrorfalse but save never enabled; no policy write issued",
+  "diagnosticRun": 45170417051,
+  "control": "db0e1a064045075ac9671263e8d01271820f58d8",
+  "imageReused": true,
+  "scope": [
+    "avatar policy save and clear",
+    "application inheritance override and clear",
+    "independent backend readbacks",
+    "normal close"
+  ],
+  "cleanup": "Failed run package container absent/dataWrites0; all five startup cleanup assertions true; runtime/cache/TLS absence verified. RAM-only artifact. Diagnostic run cleanup pending. No local builds/downloads/envs/DB/results."
+}
