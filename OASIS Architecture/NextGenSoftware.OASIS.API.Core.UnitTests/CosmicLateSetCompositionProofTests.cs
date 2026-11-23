@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using Xunit;
@@ -9,8 +10,11 @@ public sealed class CosmicLateSetCompositionProofTests
     {
         Assert.Contains(typeof(CosmicSetProjectionPlanner).GetMethods(),
             method=>method.Name=="Plan" && method.GetParameters().Length==5);
-        var source=CosmicQuery<Holon>.Create();
-        var set=CosmicSetQuery<Holon>.Create(source,source,CosmicSetQueryKind.Concat).Result;
+        var source=CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.MongoDBOASIS).Result)
+            .WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result).Result;
+        var captured=CosmicSetQuery<Holon>.Create(source,source,CosmicSetQueryKind.Concat);
+        Assert.False(captured.IsError,captured.Message);
+        var set=captured.Result;
         var query=set.Select(row=>row.Name).Result.Take(1).Result.Where(value=>value=="a").Result;
         var baseSelection=CosmicProjectionCompositionExtensions.Copy(query.Selection,Array.Empty<CosmicSelectedStage>()).Result;
         var sourcePlan=new CosmicQueryPlan<Holon>(source,Array.Empty<CosmicQueryTarget>());
