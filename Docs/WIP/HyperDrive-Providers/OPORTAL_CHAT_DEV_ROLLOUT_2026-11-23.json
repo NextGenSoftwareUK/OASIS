@@ -1,0 +1,59 @@
+{
+  "source": "b2c4e4473c0b1afebfc6c92b09ca23ac6137fd11",
+  "producer": "f4ac6302cbeadf6b1af77cbd9c6cdf27cfec402b",
+  "core": "f7fbd77b9cd4d8f50a3fd1ee17487d4d33159f82",
+  "environment": "dev",
+  "environmentId": "a31011a2-d047-4057-b5e8-57d52ebcfefe",
+  "services": [
+    {
+      "name": "WEB4",
+      "service": "5123199a-43c4-4439-9921-e10e2aec7841",
+      "deployment": "469c0dc1-0e10-4a8d-a3ea-b99a8fb71d91",
+      "status": "QUEUED",
+      "source": "b2c4e4473c0b1afebfc6c92b09ca23ac6137fd11"
+    },
+    {
+      "name": "WEB5",
+      "service": "bb2c3e9a-ec96-44a5-9916-05e06d54b1f4",
+      "deployment": "6baea058-f6ae-4e0d-a6c9-f900f8050a3c",
+      "status": "QUEUED",
+      "source": "b2c4e4473c0b1afebfc6c92b09ca23ac6137fd11"
+    },
+    {
+      "name": "WEB6",
+      "service": "1e6ee65f-df5d-42b1-972e-97f3a560f5d3",
+      "deployment": "c9edb4cb-1a5d-461a-a3d6-cf9af28fbc24",
+      "status": "BUILDING",
+      "source": "b2c4e4473c0b1afebfc6c92b09ca23ac6137fd11"
+    },
+    {
+      "name": "WEB7",
+      "service": "31bd0ff6-2d3d-4793-8197-eabcd3afcb75",
+      "deployment": "78619e9e-ab66-4f77-a79c-1b8a545e0502",
+      "status": "QUEUED",
+      "source": "b2c4e4473c0b1afebfc6c92b09ca23ac6137fd11"
+    },
+    {
+      "name": "WEB8",
+      "service": "95c937b9-b4e8-4fd3-866f-bd98d5420b2f",
+      "deployment": "afaf6eb0-43e4-4b2a-ac15-d3c527e6753b",
+      "status": "BUILDING",
+      "source": "b2c4e4473c0b1afebfc6c92b09ca23ac6137fd11"
+    },
+    {
+      "name": "WEB9",
+      "service": "36eda15e-fd28-4fc6-a0c9-7fe454829554",
+      "deployment": "d70a3023-de05-4aaf-82e8-1f2e762dd9d5",
+      "status": "QUEUED",
+      "source": "b2c4e4473c0b1afebfc6c92b09ca23ac6137fd11"
+    },
+    {
+      "name": "WEB10",
+      "service": "6f9e4f24-29be-49d7-914b-f1f9b42790d6",
+      "deployment": "f9c9e816-690e-42df-a8a9-d005ed23c97d",
+      "status": "BUILDING",
+      "source": "b2c4e4473c0b1afebfc6c92b09ca23ac6137fd11"
+    }
+  ],
+  "verification": "Initial selected metadata only; source b2 running revision/authority/holds not accepted yet. No duplicate deploy or shared auth/data request."
+}

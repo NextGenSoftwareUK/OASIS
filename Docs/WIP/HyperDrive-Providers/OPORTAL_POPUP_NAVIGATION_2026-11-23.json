@@ -1,6 +1,6 @@
 {
   "date": "2026-11-23",
-  "status": "three-real-popup-journeys-accepted-backend-publication-ready",
+  "status": "qualified-source-published-Development-b2-dev-rollout-tracked",
   "portal": "387812546a860120943259c72918ad4d5e142b73",
   "findings": [
     "Delayed addAuthPopup callback closed whichever modal was active after900ms, rather than the completed login view.",
@@ -70,7 +70,7 @@
     "Keep controlled network admission failure reporting; selected failure UI state contains only static IDs/classes, validity and bounded sanitized status."
   ],
   "scope": "Source fixes plus partial actual Clan create/edit/member readback/delete observations; no full Clan/Chat/Directory/popup-navigation acceptance yet.",
-  "next": "Publish qualified Coref7 and scoped rootf4ac on current Development after fresh branch/pin/current rollout/cadence gates; retain all accepted cohorts. No unchanged full test pass.",
+  "next": "Follow seven existing dev deployment handles for b2; verify selected running revision/authority/worker holds after compatible rollout. No duplicate deployment, shared-cluster probe or accepted-journey rerun.",
   "cleanup": "Every listed compact artifact inspected in RAM; package container absent and all five startup cleanup booleans true. Terminal runtime/cache/TLS absence verified. No local downloads/env/build/database/results.",
   "acceptance": {
     "run": 45165837353,
@@ -105,5 +105,7 @@
     "scope": "Actual page and shipping Startup/native owned Mongo. Clan create/edit/add member, independent participant GET persisted fields/membership, delete/list empty/close; Chat start/send/participant history/resume/end/participant active-list absence/close; directory search/composer prefill/no automatic send/one explicit send/recipient native inbox/return to search/home.",
     "cleanup": "RAM-inspected package container absent and all five startup cleanup conditions true; terminal runtime/cache/TLS absence verified. No local env/download/build/database/results.",
     "limits": "Representative journeys only. No every Clan role/leave/remove/treasury, every chat case, paid Stripe, all providers, hosted latency or whole-portal completion."
-  }
+  },
+  "publication": "b2c4e4473c0b1afebfc6c92b09ca23ac6137fd11",
+  "rolloutRecord": "OPORTAL_CHAT_DEV_ROLLOUT_2026-11-23.json"
 }

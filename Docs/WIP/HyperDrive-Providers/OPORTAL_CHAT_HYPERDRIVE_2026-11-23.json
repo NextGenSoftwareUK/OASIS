@@ -1,6 +1,6 @@
 {
   "date": "2026-11-23",
-  "status": "three-real-popup-journeys-accepted-backend-publication-ready",
+  "status": "qualified-source-published-Development-b2-dev-rollout-tracked",
   "firstRun": {
     "run": 45152168295,
     "job": 137616017020,
@@ -39,14 +39,14 @@
       "freshSharedBranches": "All eight origin/Development references refreshed; official checker passes for exact candidatee3720dad.",
       "pairedPins": "sync_railway_dependency_manifest.py --check-ref e3720dad440a01a4f684ccbede0a988ad7e0617d passed.",
       "initialCheck": "First attempt used cached Core origin/cac5 and failed; fresh actual shared Coref4a matched the existing candidate. No source/history repair or gitlink change needed.",
-      "build": "45152795368 active job137621749663 Build and push; existing same handle followed, no duplicate."
+      "build": "Historical image45152795368 succeeded sourcee372; chat end subsequently failed and was corrected in f4ac/Coref7."
     },
     "imageJob": 137621749663,
     "image": "sha256:a8e85e249549760d3d60ad3753a4f447f100a98c5adc14e1c643c2f84709aa8d",
     "buildConclusion": "success"
   },
   "cleanup": "Both Chat failure artifacts4021B/3982B RAM-inspected: package container absent and all five startup cleanup booleans true; terminal runtime/cache/TLS absence verified. Both exact owned temporary Git indexes/locks removed in finally. No local downloads/env/build/database/test-results; new cloud build pending cleanup/acceptance.",
-  "next": "Publish qualified Coref7 and scoped rootf4ac on current Development after fresh branch/pin/current rollout/cadence gates; retain all accepted cohorts. No unchanged full test pass.",
+  "next": "Follow seven existing dev deployment handles for b2; verify selected running revision/authority/worker holds after compatible rollout. No duplicate deployment, shared-cluster probe or accepted-journey rerun.",
   "staticDelivery20261123": {
     "origin": "https://dev.oportal.oasisomniverse.one",
     "scope": "Four static scripts only, HTTP200/source exact after LF normalization. No hosted authentication/data/performance request.",
@@ -85,18 +85,21 @@
     "rootTag": "qualification/chat-termination-root-20261123",
     "scope": "One Core manager: termination saveChildren/recursive false; session header lookups require both session ID and entity type to exclude messages. Root normal two-parent composition preserves current CQL and earlier authenticated Chat controller change; Core gitlink/manifest paired.",
     "imageRun": 45158527267,
-    "status": "exact-image-native-portal-accepted-private-Core-and-parent-publication-pending",
+    "status": "published-Core-and-parent-new-dev-runtime-pending",
     "sourceValidation": "Exact paired manifest check passed; no physical module switch or gitlink staging. Fresh shared branch gate/publication remains after candidate acceptance.",
     "history": "Both original sourcee372 and current Developmentdf5 parents retained; no forced/shared history rewrite.",
     "imageJob": 137637597655,
     "image": "sha256:078cd7c8acbd7a14de653178e8f7aba5d030a191da519f6f8c37c3756eeea704",
-    "buildConclusion": "success"
+    "buildConclusion": "success",
+    "publication": "b2c4e4473c0b1afebfc6c92b09ca23ac6137fd11"
   },
   "directoryMessage": {
     "portal": "0bbe7e942b6e4ea3b59e692c0699ccf127e1be75",
-    "status": "implemented-syntax-and-endpoint-checks-only-not-browser-accepted",
+    "status": "actual-full-page-native-handoff-accepted",
     "scope": "Directory results validate public avatar IDs and offer Message. Existing message opener accepts recipient ID, selects send tab and prefills recipient, with no automatic send. Existing route wrapper preserves lazy-load opener arguments. Search result handler is bound to current search/session.",
-    "next": "Use chat-directory group on corrected image45158527267: two independent outcomes, one existing image/native environment. Directory lookup -> compose -> explicit send -> recipient native readback -> return navigation. No accepted HyperDrive replay."
+    "next": "Use chat-directory group on corrected image45158527267: two independent outcomes, one existing image/native environment. Directory lookup -> compose -> explicit send -> recipient native readback -> return navigation. No accepted HyperDrive replay.",
+    "acceptedPortal": "387812546a860120943259c72918ad4d5e142b73",
+    "run": 45165837353
   },
   "popupNavigation": "OPORTAL_POPUP_NAVIGATION_2026-11-23.json",
   "acceptance": {
@@ -132,5 +135,7 @@
     "scope": "Actual page and shipping Startup/native owned Mongo. Clan create/edit/add member, independent participant GET persisted fields/membership, delete/list empty/close; Chat start/send/participant history/resume/end/participant active-list absence/close; directory search/composer prefill/no automatic send/one explicit send/recipient native inbox/return to search/home.",
     "cleanup": "RAM-inspected package container absent and all five startup cleanup conditions true; terminal runtime/cache/TLS absence verified. No local env/download/build/database/results.",
     "limits": "Representative journeys only. No every Clan role/leave/remove/treasury, every chat case, paid Stripe, all providers, hosted latency or whole-portal completion."
-  }
+  },
+  "publication": "b2c4e4473c0b1afebfc6c92b09ca23ac6137fd11",
+  "rolloutRecord": "OPORTAL_CHAT_DEV_ROLLOUT_2026-11-23.json"
 }

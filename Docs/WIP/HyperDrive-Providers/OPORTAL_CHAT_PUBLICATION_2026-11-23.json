@@ -1,0 +1,20 @@
+{
+  "status": "qualified-source-published-runtime-rollout-pending",
+  "producer": "f4ac6302cbeadf6b1af77cbd9c6cdf27cfec402b",
+  "core": "f7fbd77b9cd4d8f50a3fd1ee17487d4d33159f82",
+  "previousDevelopment": "df5b838278bec4f58690bf5e600f5009552886c2",
+  "publicationRef": "qualification/portal-chat-dev-publication-20261123",
+  "qualificationRun": 45165837353,
+  "qualificationJob": 137662439100,
+  "artifact": 14814813455,
+  "portal": "387812546a860120943259c72918ad4d5e142b73",
+  "image": "sha256:078cd7c8acbd7a14de653178e8f7aba5d030a191da519f6f8c37c3756eeea704",
+  "scope": "Same compiled Chat endpoint/Core manager paths and exact pins as accepted producer; named accepted reports and exact executed cloud control closure only. Current CQLdf5 retained.",
+  "gates": "Native full-page three outcomes accepted; all eight freshly fetched shared Development tips match producer after normal Core publication; paired manifest passed; seven previous dev deployments SUCCESS/source df5 and running WEB4df5/all3holds true. More than one hour since previous df5 publication.",
+  "limits": "Source publication is not running-deployment acceptance. No shared backend/auth test, configuration/credential/DNA change, staging/production rollout or all-portal/provider/HyperDrive claim.",
+  "publication": "b2c4e4473c0b1afebfc6c92b09ca23ac6137fd11",
+  "rootPush": "normal fast-forward Developmentdf5 to b2 and immutable tag push succeeded",
+  "privateCorePush": "normal fast-forward Core Developmente6 to f7 succeeded",
+  "rolloutRecord": "OPORTAL_CHAT_DEV_ROLLOUT_2026-11-23.json",
+  "runtimeAcceptance": "Pending new deployment handles; previous running WEB4df5/all3holds true and all7previous deployments SUCCESS verified before publication."
+}
