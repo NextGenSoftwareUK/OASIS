@@ -275,6 +275,21 @@ console.log(JSON.stringify(b));
                     assert all(isinstance(failure[key],bool) for key in ('selected','modalVisible','loading'))
                     assert all(isinstance(failure[key],int) and failure[key]>=0 for key in ('resourceCount','sourceLine'))
                     print('PORTAL_STARTUP_DEVELOPER_FAILURE:'+json.dumps(failure,separators=(',',':')),flush=True)
+                profile_failure=re.search(r'PORTAL_STARTUP_PROFILE_FAILURE:(\{[^\n]*\})',browser.stderr)
+                if profile_failure:
+                    failure=json.loads(profile_failure.group(1))
+                    assert set(failure)<= {'status','inputDisabled','shape','errorType','sourceLine'}
+                    assert isinstance(failure['status'],str) and len(failure['status'])<=320
+                    assert isinstance(failure['inputDisabled'],bool)
+                    assert failure['errorType'] in ('Error','TypeError','AssertionError','TimeoutError')
+                    assert isinstance(failure['sourceLine'],int) and failure['sourceLine']>=0
+                    if 'shape' in failure:
+                        shape=failure['shape']
+                        assert set(shape)=={'documentKeys','profileKeys','avatarRevisionZero','detailRevisionZero'}
+                        assert set(shape['documentKeys'])<= {'profile','providerType'}
+                        assert set(shape['profileKeys'])<= {'avatarId','title','firstName','lastName','username','email','address','avatarRevision','detailRevision'}
+                        assert isinstance(shape['avatarRevisionZero'],bool) and isinstance(shape['detailRevisionZero'],bool)
+                    print('PORTAL_STARTUP_PROFILE_FAILURE:'+json.dumps(failure,separators=(',',':')),flush=True)
                 clan_failure=re.search(r'PORTAL_STARTUP_CLAN_FAILURE:(\{[^\n]*\})',browser.stderr)
                 if clan_failure:
                     failure=json.loads(clan_failure.group(1))
