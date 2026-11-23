@@ -9,8 +9,8 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','storage','hyperdrive','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
- const selectedPopups=popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+ assert.ok(['none','community','storage','hyperdrive','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
+ const selectedPopups=popupGroup==='community'?['Activity','Social','Chain']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
   popupGroup==='none'?[]:[{storage:'Storage',hyperdrive:'HyperDrive',eggs:'Eggs',nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
@@ -65,9 +65,12 @@ async function main(){
   if(api5)await admitFree(account);
   if(selectedPopups.length){
    assert.equal(api5,null,'WEB4-only popup journey');ownedToken=await admitFree(account);
-   if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')||selectedPopups.includes('DirectoryMessage')||selectedPopups.includes('Clan')){
+   if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')||selectedPopups.includes('DirectoryMessage')||selectedPopups.includes('Clan')||selectedPopups.includes('Social')){
     recipient=await createOwnedAvatar(api.href);recipientToken=await admitFree(recipient);
    }
+  }
+  if(popupGroup==='community'){
+   assert.equal(await recipient.call('owned social contact setup','POST','/api/messaging/send-message-to-avatar/'+account.avatar.id,messageText,recipientToken),true);
   }
   if(popupGroup==='messaging-read'){
    assert.equal(await recipient.call('owned incoming message','POST','/api/messaging/send-message-to-avatar/'+account.avatar.id,messageText,recipientToken),true);
@@ -257,6 +260,30 @@ async function main(){
     }catch{closePassed=false;passed=false;if(observedStage===name)observedStage=name+' close';}
     outcomes.push({name,passed,stage:observedStage,closePassed});
    }
+   await checkPopup('Activity','#activity-feed-modal-close-btn',async()=>{
+    stage='Activity read';const [response]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname==='/api/karma/activity'),page.evaluate(()=>window.openActivityFeedModal())]);
+    const reply=await response.json();assert.equal(reply.isError,false);assert.ok(Array.isArray(reply.result));assert.equal(reply.result.length,0);
+    await page.waitForFunction(()=>document.getElementById('activity-feed-status').textContent==='No activity yet.');
+    assert.equal(await page.locator('#activity-feed-live-btn').textContent(),'Start live updates');
+    stage='Activity filter';await page.locator('#activity-feed-search').fill('no matching events');assert.equal(await page.locator('#activity-feed-list .afeed-row').count(),0);
+   });
+   await checkPopup('Social','#social-graph-modal-close-btn',async()=>{
+    stage='Social contacts';await page.evaluate(()=>window.openSocialGraphModal());
+    await page.waitForFunction(()=>document.getElementById('social-graph-status').textContent==='1 messaging contacts · 1 recent messages checked');
+    assert.equal(await page.locator('#social-graph-svg circle').count(),2);assert.equal(await page.locator('#social-graph-svg line').count(),1);
+    assert.equal(await page.locator('#social-graph-more-btn').isHidden(),true);
+    stage='Social compose';await page.locator('#social-graph-svg [data-contact-id="'+recipient.avatar.id+'"]').press('Enter');
+    await page.locator('#msg-to-avatar').waitFor({state:'visible'});assert.equal(await page.locator('#msg-to-avatar').inputValue(),recipient.avatar.id);
+    assert.equal(reads.filter(r=>r.path.startsWith('/api/messaging/send-message-to-avatar/')).length,0,'Opening a contact does not send');
+    stage='Social return';await page.locator('#messaging-modal-close-btn').click();await page.locator('#social-graph-modal-close-btn').waitFor({state:'visible'});
+   });
+   await checkPopup('Chain','#chain-explorer-modal-close-btn',async()=>{
+    stage='Chain recorded activity';await page.evaluate(()=>window.openChainExplorerModal());
+    await page.waitForFunction(()=>document.getElementById('chain-explorer-status').textContent==='No provider activity yet.');
+    assert.ok((await page.locator('#chain-explorer-tbody').textContent()).includes('No matching recorded activity.'));
+    stage='Chain filter';await page.locator('#chain-explorer-filter').fill('no match');assert.equal(await page.locator('#chain-explorer-provider-select option').count(),1);
+    assert.equal(await page.locator('#chain-explorer-prev-btn').isDisabled(),true);assert.equal(await page.locator('#chain-explorer-next-btn').isDisabled(),true);
+   });
    await checkPopup('Eggs','#eggs-modal-close-btn',async()=>{
     const tabs=[['my','my-eggs','my-grid','No eggs returned.'],['all','get-all-eggs','all-grid','No eggs returned.'],['quests','get-current-egg-quests','quests-list','No current egg quests returned.'],['leaderboard','get-current-egg-quest-leader-board','leaderboard-list','No egg quest leaderboard entries returned.']];
     for(const [tab,path,target,empty] of tabs){
