@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-23",
+  "status": "accepted-create-read-delete-only",
+  "run": 45144864933,
+  "job": 137591534875,
+  "control": "fda0650f3635c19ace903f197ffa73dbd7094120",
+  "portal": "f5a1fd39f10fb8f2358150c4f5b142c9e0b38aeb",
+  "imageSource": "5442d4e9de89231a5a4bebe77c44374ab0920001",
+  "image": "sha256:111cedaa725206875f2ef33d455bc4ea6f4dc241ed03c0753df5956152cf0893",
+  "artifact": 14803343204,
+  "archiveBytes": 4277,
+  "scope": "Actual full-page Data create, native point read, owner hard-delete, subsequent parent-list absence, UI removal and normal close. Real owned Mongo and authentication. Update action and whole-portal completion not claimed.",
+  "initialAttempt": {
+    "run": 45144257374,
+    "artifact": 14802179643,
+    "archiveBytes": 3786,
+    "finding": "Fixture incorrectly expected boolean deletion response. Shipping API declares deleted IHolon. All observed CRUD HTTP operations succeeded; assertion corrected to returned identity without product workaround."
+  },
+  "cleanup": "Both selected RAM artifact receipts verified all five startup cleanup conditions true. No local downloads, environments, builds, databases or test result outputs created.",
+  "next": "Prioritise remaining functional screens/actions and map workflows; retain accepted evidence and check changed behavior only."
+}

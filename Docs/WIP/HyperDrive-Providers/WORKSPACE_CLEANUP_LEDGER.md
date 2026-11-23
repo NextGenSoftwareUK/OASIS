@@ -1,8 +1,16 @@
-2026-11-23 CORE GRAPH RECONCILIATION CLEANUP. No local build/env/download/database/results. Git-only source-tree-equivalent merge; exact owned oasis-nft-core-reconcile-root-20261123.index/lock removed in finally. Accepted runtime/native cohorts retained without replay.
+2026-11-23 NFT PUBLICATION / GRAPH REPAIR CLEANUP. Exact owned C:/Users/David/AppData/Local/Temp/oasis-nft-publication-20261123.index and oasis-nft-core-reconcile-root-20261123.index plus locks removed in finally. Core graph repair used merge-tree/commit-tree without checkout or environment creation; accepted source tree unchanged. Metadata-only8branch checks repeated solely to resolve the failing ancestry gate. No local build/runtime/env/download/database/results. No shared database/auth request; immutable image and compact evidence retained for release.
 
-2026-11-23 NFT RELEASE CLEANUP.4270B CI receipt14801543271 inspected/disposed in RAM; package container absent, all5startup cleanup booleans true, runtime/cache/TLS removed. No local build/env/download/runtime/database/results. Exact owned oasis-nft-publication-20261123.index/lock removed in finally after Git-only release preparation. Qualified image remains in GHCR for release, not downloaded locally.
+2026-11-23 NFT-ONLY ACCEPTANCE CLEANUP.45140498072 artifact14801543271 (4270B) inspected/disposed in RAM; package owned container absent/dataWrites0, all5startup cleanup assertions true and runtime/cache/TLS absence verified. Image5442 retained as immutable qualified release artifact in GHCR, never downloaded locally. No local build/runtime/env/download/database/results created; compact source/reports/Git objects retained. No shared database/auth test or protected queue replay.
+
+2026-11-23 NFT / DATA / MESSAGING CLEANUP. FailedNFT45134852192 (3454B artifact14798959105) and45135662091 (3420B14799163756), passedDataMessaging45136761604 (4372B14799708986): selected receipts RAM-only/disposed, package container absent/dataWrites0 and all5startup cleanup booleans true; runtime/cache/TLS absence verified. Exact C:/Users/David/AppData/Local/Temp/oasis-nft-empty-onode-20261123.index and oasis-nft-empty-root-20261123.index/locks removed in finally. Read-only mistaken root Git lookup session46937 stopped/exited; no env/build/download created. Four static portal assets memory-only. New45137303528 cloud image only; compact source/evidence retained. C:27.07GiB; no shared data requests.
+
+2026-11-23 PUBLICATION CLEANUP. Exact C:/Users/David/AppData/Local/Temp/oasis-authority-publication-20261123.index and lock removed in finally. Git-only branch/submodule refresh; no local build/download/runtime/env/database/results. Compact4KB cloud report RAM-only/disposed; owned runtime/cache/TLS/database/container cleanup verified. Published immutable shipping image is retained for the actual release, not downloaded locally. Stand-down holds staged via existing Railway config only; no shared data calls.
 
 2026-11-23 SHIPPING IMAGE / THREE POPUPS CLEANUP. Image45129737094 completed on cloud only; package/new-popup45132201881 artifact14798516434 (4159B) inspected/disposed in RAM. Package owned container absent/dataWrites0; startup containers/network/ephemeral DB volumes absent, process graceful0, runtime/cache/TLS removed. No local build/download/runtime/env/database/results. Compact evidence and source/Git objects retained; no shared Atlas/PIPER calls.
+
+2026-11-23 WEB5 AUTHORITY SUCCESS / CURRENT COMPOSITION.45128946718 receipt14797101485 RAM-only: owned containers/network/DB volumes absent; WEB5 stopped/DNA absent; both hosts exited0. Exact C:/Users/David/AppData/Local/Temp/oasis-authority-current-root-20261123.index and lock removed in finally. Core composition used Git merge-tree/commit-tree without checkout or temporary environment. No local build/download/install/runtime/database/test results; C:27.16GiB free observed. New image45129737094 cloud-only. Compact source/Git objects/evidence retained; shared Atlas untouched.
+
+2026-11-23 ASYNC AUTHORITY CANDIDATE CLEANUP. No local build/download/install/environment/database/results. Exact owned temporary indexes C:/Users/David/AppData/Local/Temp/oasis-authority-async-core-20261123.index and oasis-authority-async-root-20261123.index (and locks) removed in finally. Earlier authority-core/root-20261123 indexes also removed in finally. Run45127935792 artifact14796711615 RAM-only read: containers/network/database volumes absent, WEB5 stopped and generated DNA absent. Compact source/evidence/Git objects retained; shared Atlas untouched.
 
 
 ## 2026-11-22 native session authority/acknowledgement
@@ -3003,3 +3011,79 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 2026-11-23 Gifts45104328970 accepted: owned remote DB/DNA/container/browser runtime/cache absence verified in terminal logs. Local shared-core/shared-root/shared-lf temporary indexes and locks removed in finally; no local build/runtime/env/download/database/results. Current45105105606 compile-only, native/browser disabled. Prior blocked8038-bytecache untouched.
 
 2026-11-23 compile45105105606 SUCCESS: native/browser disabled, no fixture/runtime created; logs processed in RAM. No local build/env/database/download/results. Parent publication uses one owned index removed in finally. Source/doc Git objects retained; dirtygitlinks untouched.
+
+2026-11-23 Games breadth: renderer controls/metadata/Railway selectedrevisions processed in RAM. No local download/build/env/database/results. Source/compactreports/Gitcandidate retained. New45106635634 ownedCI fixture queued with existing finallycleanup; acceptedGifts fixture not rerun. Fourdirtygitlinks and blockedcache untouched.
+
+2026-11-23 storefront45106635634 FAILED at firstbrowserlist after successfulcompile/native seeds; terminal owned DB/DNA/container/browser runtime/cache absence verified. Logs/selected static delivery/rollout metadata RAMonly. Replacement45107657362 active, same ownedfixture finallycleanup. C: lastobserved23.58GB; no local installs/builds/downloads/env/DB/results. Blockedcache and unrelatedgitlinks untouched.
+
+2026-11-23 nativeGame45108587954 failedconversion; owned DB/DNA/container/browser runtime/cache absence verified. Mongo-list candidate index oasis-mongo-list-candidate-20261123.index and lock removed in finally. SourceGitobjects/reports retained; no local builds/downloads/env/DB/results. New45109755916 sameownedCI fixture withcleanup. Runtime7revisions/WEB4threepauses readselectedonly, RAMlogs. Existingblockedcache/dirtygitlinks untouched.
+
+2026-11-23 MongoList45109755916: rawBSON/typedGame passed, browserviewport failure; owned DB/DNA/container/browser runtime/cache absence verified. LogsRAMonly. PortalCSS/controlsource and compactreports only, no local runtime/env/build/download/database/results. Replacement45110969977 sameownedfixture; blockedcache/dirtygitlinks untouched.
+
+2026-11-23 storefront45110969977 failedInventoryHTTP500 after Games/OAPPpaths; actualDB/DNA/container/browserruntime/cache absence verified interminal logs andbothcleanup stepsSUCCESS. Staticstyle/page andselectedresponsefactsRAMonly. Fixture sourcecontrollerselection only; no local builds/env/DB/download/results. New45112267754 sameownedCIcleanup; fourdirtygitlinks/blockedcache untouched.
+
+2026-11-23 Inventory45112267754 failedquantity: DB/DNA/container/browser runtime/cache absence verified.45113881509 stoppedbeforebuild/fixture onreview gate. Owned inventory-fields-core/inventory-current-core/inventory-current-root/inventory-reviewed-root dated20261123 indexes and locks removed in finally with exactpathchecks; sourceobjects/tags retained. No local build/env/download/DB/results.45114577286 sameownedCIcleanup; blockedcache/dirtygitlinks untouched.
+
+2026-11-23 storefront publication: job137494371969 owned native fixture and browser runtime/cache cleanup steps SUCCESS. No local build/download/runtime/env/database/result created; only retained source and compact evidence. Existing policy-blocked paths remain unchanged. Development21abed0b/Corefc2470e published with paired manifest and8 branch gates; running deployment acceptance pending.
+
+2026-11-23 detailed run45114577286 log read streamed in RAM (3874538 characters,7 selected lines), no downloaded log. Native database/DNA/container/browser runtime/cache absence markers verified. Portal58-script syntax check created no outputs; old blocked files untouched.
+
+2026-11-23 Portal17ed8e4 Inventory breadth: source-only rendering check, syntax/endpoint/diff, public static comparison in RAM; no backend repeats, dependencies, downloads, envs, build/test outputs or databases created. Public dev script exact; Railway21ab still QUEUED.
+
+2026-11-23 Portal81fc716 subscription routing: focused local source checks and existing JS suite only; no dependencies/env/download/build/database/results created. No native/shared backend cohort replay. Retained source/docs and exact published commit.
+
+2026-11-23 page navigation45117362822: cloud-only pinned ephemeral browser/static server; no native build/database/sharedbackend. Local source and compact report only. C free23.89GiB; CI terminal cleanup pending.
+
+2026-11-23 page run45117362822/job137503148480 SUCCESS: streamed terminal log verifies static server/browser closed and owned cloud runtime/cache absent. Backend jobs skipped. No local generated outputs.
+
+2026-11-23 startup auth45117941133: existing immutable remote image reused; cloud-only owned internal-network Mongo/API containers and volumes. Existing cleanup finally retained; terminal cleanup pending. Local Node syntax/Python -B startup controls8pass create no retained runtime/build/env/download/database/results. No shared cluster operations or local image pull.
+
+2026-11-23 first auth45117941133 failed before image/container operations at existing package-only guard; no resources created there. Corrected explicit auth45118119727 in progress; cleanup terminal pending. Running WEB4 selected revision/pause flags only inspected, no backend data operations.
+
+2026-11-23 auth45118119727/job137505522533 SUCCESS. Selected3616-byte ZIP14792607082 read in RAM only: actual Startup authtrue, APIhealthtrue, gracefulexit0; owned containers/network absent, ephemeral DB volumes removed. No local image/download/build/env/database/results. Remote existing image reused, compact artifact retained30days by existing workflow.
+
+2026-11-23 authenticated page45119118175 queued: existing image reused, one owned cloud runtime/cache and ephemeral TLS key/cert inside runtime, loopback proxy/static server, owned API/Mongo/internal network/volumes; all explicit finally/always cleanup pending terminal. No local env/download/build/database/results. Public page/loader/login fragment compared in RAM exact f89b2ec.
+
+2026-11-23 page45119118175 terminalFAIL beforepage at internal Docker published-port assumption. Artifact14792901966 RAM-read proves owned containers/network/DB volumes absent; runtime/cache/TLS absence logverified. Corrected45119608484 uses owned selected privateIPv4/loopback bridge, no published ports, same immutableimage/Portal; cloud cleanup pending. No local outputs/env/download/build/database.
+
+2026-11-23 page45119608484 terminalFAIL at missing-Stripe positive catalogue expectation after actual login/dashboard. Artifact14793247211 RAM-read proves owned containers/network/volumes absent; runtime/cache/TLS absence verified. New45120078605 explicitly checks actual missing-config error then independent subscription screens. No new images/localenv/build/download/database/results; no shared cluster or Stripe calls.
+
+2026-11-23 page45120078605 terminalFAIL at fixture assumption that valid-JWT reload must rotate. Artifact14793496600 RAM-read proves owned containers/network/volumes absent; cloud runtime/cache/TLS absence verified. 45120405171 explicitly invokes real renewal after reload; shipping no-extra-refresh behavior retained. No local env/download/build/database/results.
+
+2026-11-23 page45120405171/job137512623138 SUCCESS. Selected3950-byte artifact14793447648 RAM-read verifies auth+portalBrowsertrue, gracefulexit0, containers/network/database volumes absent. Terminal runtime/cache/TLS absence marker verified. Existing remote image reused, no local env/build/download/database/results; compact proofs retained.
+
+2026-11-23 WEB5 integration preparation: fetched Development90d75f04, reused peer a32b0ca2/Corec19 image/package evidence. Added cloud process lifecycle source only and parsed syntax with Python -B; no process/env/runtime/download/build/database/results created. Existing physical STAR1330 checkout and four unrelated gitlinks untouched.
+
+2026-11-23 WEB5 run45123029961/job137520949515: source/pin checks and single real WEB5 publish under lease passed. Cloud owned app/browser/npm/TLS outputs, native API/Mongo/network/volumes and native WEB5 process lifecycle cleanup configured; terminal absence still pending. Original package receipt14793110502 reused, no repeated package acceptance. No local builds/env/download/database/results. Future-control d9745f4 adds browser process-group deadline ownership; it is not part of active b32 control evidence.
+
+2026-11-23 WEB5 45123029961/job137520949515 terminalFAIL at routed Games reads. Artifact14794802291 (2488bytes) RAM-read: containers/network/database volumes absent, WEB5 process stopped, generated DNA absent. Cloud publish/browser/cache/TLS removal step completed. New45124806419 retains sanitized routing cause for diagnosis with real ledger/admission unchanged; no local build/env/download/database/results.
+
+2026-11-23 diagnostic45124806419/job137526605952 terminalFAIL: exact authoritative-provider selection guard identified. Selected2486-byte artifact14795004211 RAM-read verifies containers/network/database volumes absent, WEB5 process stopped and generated DNA absent. No local builds/env/download/database/results. No replacement run started before the root configuration/routing fix.
+
+2026-11-23 Data CRUD45144257374/45144864933: RAM-only selected artifacts3786B/4277B verified all five startup cleanup conditions true, including owned containers/network/ephemeral DB volumes absent and unused WEB5 stopped/DNA absent. No local runtime/download/env/build/database/test-result outputs created; only compact tracked evidence retained.
+
+2026-11-23 Portal3cdbd91 source-only Data/dashboard fix: in-memory changed-function check and syntax/endpoint checks; no local env/download/runtime/build/database/results. Compact portal report docs/WIP/DATA_DASHBOARD_REFRESH_2026-11-23.md retained.
+
+2026-11-23 Map45147149400 failed immutable portal input validation before browser preparation/startup; no artifact published. Corrected45147304137 reuses existing cloud image; owned runtime/container/database cleanup receipt pending terminal. No local downloads/env/build/database/test-results created. Our World checkout read only; unrelated dirty Unity/cache files untouched.
+
+2026-11-23 Map45147304137 artifact14805131364/3898B, diagnostic45148041026 artifact14805476017/3897B, accepted45148541889 artifact14805581611/4374B: RAM-only selected receipts verify all five startup cleanup conditions true, package container absent. Final log verifies browser runtime/cache/TLS absence. No local env/runtime/download/build/database/result outputs; C free26.84GiB. Compact tracked evidence only.
+
+2026-11-23 Data edit45149458665/job137606879905 SUCCESS, artifact14804269930/4279B inspected in RAM only: package container absent/all five startup cleanup booleans true. Terminal browser runtime/cache/TLS absence verified. No new local downloads/runtime/env/build/database/results; compact tracked source/evidence retained.
+
+2026-11-23 Files45150357293/job137609920095 SUCCESS: browser download explicitly deleted in finally after RAM byte comparison; artifact14805258911/4271B inspected in RAM, package container absent/all five startup cleanup booleans true. Terminal runtime/cache/TLS absence verified. No local env/runtime/download/build/database/test results created.
+
+2026-11-23 Inbox45151234976/job137612860661 SUCCESS. RAM-only artifact14806297696/4355B verifies package container absent/all five startup cleanup conditions true. Terminal runtime/cache/TLS absence verified. Two owned cloud accounts/native data removed with ephemeral database volume; no local downloads/env/build/database/test-results.
+
+2026-11-23 Chat/HyperDrive45152168295 artifact14806557649/3922B inspected RAM-only: package container absent/all five startup cleanup booleans true; runtime/cache/TLS absence verified. Chat candidatee372 exact Temp index/lock removed in finally. New cloud image45152795368 pending, no local build/env/runtime/download/database/results or generated artifacts.
+
+2026-11-23 Chat candidatee372 source release checks: refreshed normal Git refs/objects for eight existing submodules only; no checkout switches/new worktree/env/runtime/build/download/database/results. Existing image45152795368 pending, no duplicate launched. Compact gate evidence retained in OPORTAL_CHAT_HYPERDRIVE_2026-11-23.json.
+
+2026-11-23 Current dev asset/source and SDK metadata checks used bounded RAM-only HTTP/Git metadata reads; no downloaded local files, installs/env/build/database/results. Four current scripts200/source exact. Existing cloud image45152795368 active; same handle, no duplicate.
+
+2026-11-23 Chat45157349521 artifact14808873068/4021B and diagnostic45158039607 artifact14809806824/3982B RAM-inspected: package container absent/all five startup cleanup booleans true, terminal runtime/cache/TLS absence verified. Exact Temp indexes oasis-chat-core-20261123.index and oasis-chat-termination-root-20261123.index plus locks removed in finally. No local env/runtime/download/build/database/results. New cloud image45158527267 active on rootf4ac6302/Coref7fbd77; source qualification only, no deployment.
+
+2026-11-23 Directory message handoff Portal0bbe7e9: source/syntax/endpoint/whitespace only. No install/download/local env/build/database/results; no extra cloud image or native environment. Existing image45158527267 continues; future combined chat-directory group prepared, not dispatched before image receipt.
+
+2026-11-23 Popup navigation diagnostic runs: 45159789471 artifact14809568885/3416B, 45160485782 artifact14809799983/3860B, 45161346113 artifact14812650109/3417B, 45162099780 artifact14812965855/3958B, 45163076390 artifact14812756915/3863B, 45163548150 artifact14814576083/3963B, 45164695272 artifact14814227125/3956B. All selected RAM receipts verify package container absent and all five startup cleanup booleans true; terminal runtime/cache/TLS absence verified. No local browser/download/env/build/database/results. Source files and compact tracked evidence retained; corrected image45158527267 is remote only.
+
+2026-11-23 Accepted combined45165837353/job137662439100 artifact14814813455/4379B RAM-only inspection: package container absent/all five startup cleanup conditions true; terminal runtime/cache/TLS absence verified. Real owned accounts/clan/chat/messages removed with ephemeral DB volume. No local installs/download/env/build/database/test-results. All accepted proof retained in compact tracked reports.

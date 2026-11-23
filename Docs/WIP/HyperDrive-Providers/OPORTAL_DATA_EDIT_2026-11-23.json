@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-23",
+  "status": "owned-name-description-edit-accepted",
+  "run": 45149458665,
+  "job": 137606879905,
+  "control": "ebdcb32aaa7fd4ab99cee8950097658a2fb01362",
+  "portal": "b1d85e9951edae4cf770f7c9295b1e4137e8f0fd",
+  "imageSource": "5442d4e9de89231a5a4bebe77c44374ab0920001",
+  "image": "sha256:111cedaa725206875f2ef33d455bc4ea6f4dc241ed03c0753df5956152cf0893",
+  "artifact": 14804269930,
+  "archiveBytes": 4279,
+  "scope": "Actual page password login with owned Mongo: one disposable create and initial point-read, owner detail name/description edit with observed Mongo revision, returned UI acknowledgement, second point-read asserts both persisted changed values and same identity, revision-bound delete/list absence/normal close. Two total saves and two point reads bounded in browser network admission.",
+  "implementation": "Existing save endpoint; serialized loaded record preserved with only name/description changed, children excluded, explicit authority/revision, stable unchanged retry identity and visible real errors. No automatic retry or synthetic API replies.",
+  "cleanup": "RAM-inspected selected artifact verifies package container absent and all five startup cleanup conditions true. Terminal log confirms owned runtime/cache/TLS absence. No local downloads/env/build/database/result outputs.",
+  "limits": "No all-provider generic editing, exhaustive stale-write/privacy matrix, paid Stripe or whole-portal acceptance. Previously accepted unchanged screens not repeated."
+}
