@@ -3,6 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=r
 const http=require('node:http'),https=require('node:https'),{execFileSync}=require('node:child_process');
 const {createOwnedAvatar}=require('./startup-authentication.cjs');
 let stage='preparation';
+const httpFacts=[];
 async function main(){
  assert.equal(process.env.GITHUB_ACTIONS,'true');
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
@@ -46,7 +47,15 @@ async function main(){
    otherServices.push(request.method()+' '+url.origin+url.pathname);return route.abort();
   });
   const page=await context.newPage();page.on('pageerror',()=>errors.push('page-error'));
-  page.on('response',response=>{const url=new URL(response.url());if(url.pathname.startsWith('/api/'))reads.push({path:url.pathname,status:response.status()});});
+  page.on('response',async response=>{
+   const url=new URL(response.url());if(!url.pathname.startsWith('/api/'))return;
+   const fact={path:url.pathname,status:response.status()};reads.push(fact);
+   if(httpFacts.length<64)httpFacts.push(fact);
+   try{const body=await response.json(),result=typeof body.isError==='boolean'?body:body.result;
+    fact.isError=result?.isError;const code=result?.errorCode;
+    if(typeof code==='string'&&/^[A-Z0-9_]{1,80}$/.test(code))fact.errorCode=code;
+   }catch{}
+  });
   stage='page and Beam In';await page.goto(origin+'/',{waitUntil:'domcontentloaded'});
   await page.locator('.js-modal-trigger[data-signin="login"]:visible').first().click();
   await page.locator('#login-email').fill(account.username);await page.locator('#login-password').fill(account.password);
@@ -78,4 +87,4 @@ async function main(){
   console.log('Owned portal browser, static/proxy listeners and temporary TLS files closed/removed.');
  }
 }
-main().catch(()=>{console.error('PORTAL_STARTUP_BROWSER_FAILURE stage='+stage+'; response bodies and credentials withheld.');process.exitCode=1;});
+main().catch(()=>{console.error('PORTAL_STARTUP_HTTP_FACTS:'+JSON.stringify(httpFacts));console.error('PORTAL_STARTUP_BROWSER_FAILURE stage='+stage+'; response bodies and credentials withheld.');process.exitCode=1;});

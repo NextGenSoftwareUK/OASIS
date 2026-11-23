@@ -154,6 +154,12 @@ console.log(JSON.stringify(b));
             browser = subprocess.run(['node', str(root / 'Scripts/TestHosts/Fixtures/portal-startup-browser.cjs')],
                 env=browser_env, capture_output=True, text=True, timeout=150)
             if browser.returncode:
+                facts = re.search(r'PORTAL_STARTUP_HTTP_FACTS:(\[[^\n]*\])', browser.stderr)
+                if facts:
+                    selected = json.loads(facts.group(1))
+                    assert isinstance(selected, list) and len(selected) <= 64
+                    assert all(set(item) <= {'path','status','isError','errorCode'} for item in selected)
+                    print('PORTAL_STARTUP_HTTP_FACTS:' + json.dumps(selected, separators=(',', ':')), flush=True)
                 safe_stage = re.search(r'PORTAL_STARTUP_BROWSER_FAILURE stage=([^;\n]+)', browser.stderr)
                 raise RuntimeError('Owned portal Startup browser failed at ' + (safe_stage.group(1) if safe_stage else 'unreported stage'))
             assert 'PORTAL_STARTUP_BROWSER_PROOF:' in browser.stdout
