@@ -1,0 +1,8 @@
+{
+  "status": "Fixture source prepared; not wired into runner, built or executed",
+  "scope": "One actual Settings UI journey: independently issued newest session revoked, current native session remains active, global sign-out clears actual SDK/local session and reloads signed out.",
+  "shippingSource": "Actual jquery, WEB4 SDK, scripts.js session cleanup/refresh and Settings fragment/script; real API calls only. Route observer continues allowed requests and aborts unexpected destinations, never substitutes responses.",
+  "checks": "Node syntax passed. Actual Core27 list source orders sessions newest first. Browser/server/native integration remains to wire only after current session contract passes. No old MFA/billing cohort replay.",
+  "nativeFollowup": "Host must issue distinct current/independent actual credentials and check both access-session states after browser global sign-out. Do not equate local cleanup with server revocation.",
+  "cleanup": "Source-only preparation; no browser install/run, environment, database, download, screenshots or generated result."
+}
