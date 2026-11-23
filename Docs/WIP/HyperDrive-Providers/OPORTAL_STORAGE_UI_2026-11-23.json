@@ -6,8 +6,8 @@
   "artifactBytes": 3818,
   "portal": "d1c92008398d4328d0e3295d243f97d743562e73",
   "failure": "Storage load avatar: GET returned HTTP200/isErrorfalse but save never enabled; no policy write issued",
-  "diagnosticRun": 45170417051,
-  "control": "db0e1a064045075ac9671263e8d01271820f58d8",
+  "diagnosticRun": 45171051925,
+  "control": "b94fd041acb6eb39f425b9d52f129e53bb71f37d",
   "imageReused": true,
   "scope": [
     "avatar policy save and clear",
@@ -15,5 +15,14 @@
     "independent backend readbacks",
     "normal close"
   ],
-  "cleanup": "Failed run package container absent/dataWrites0; all five startup cleanup assertions true; runtime/cache/TLS absence verified. RAM-only artifact. Diagnostic run cleanup pending. No local builds/downloads/envs/DB/results."
+  "cleanup": "Failed run package container absent/dataWrites0; all five startup cleanup assertions true; runtime/cache/TLS absence verified. RAM-only artifact. Diagnostic run cleanup pending. No local builds/downloads/envs/DB/results.",
+  "diagnosticHistory": [
+    {
+      "run": 45170417051,
+      "artifact": 14816761737,
+      "artifactBytes": 3834,
+      "failure": "Agent-owned report validator omitted newly added bounded storageShape field; corrected before retry",
+      "cleanup": "All package/startup container/network/database/process/DNA assertions true; runtime/cache/TLS absence verified"
+    }
+  ]
 }
