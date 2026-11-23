@@ -1,5 +1,5 @@
 {
-  "status": "Actor-scoped dependency HTTP/native read accepted at representative isolated scope; billing admission source implemented and qualifying. Permanent deletion and hosted/Stripe/browser acceptance remain incomplete.",
+  "status": "Dependency assessment/billing admission representative native accepted and published Development6bbbae4b; full erasure remains incomplete.",
   "implemented": [
     "One native Mongo snapshot of stored subscription, owned apps, unsettled usage, unbilled overages and unresolved statements",
     "Canonical Stripe subscription/customer ownership and open invoice read through real existing SDK/configuration",
@@ -10,7 +10,7 @@
   ],
   "limits": [
     "Dependency assessment remains informational, not permission to delete.",
-    "Billing admission now linearizes local subscription/checkout/ownership/usage gate; native acceptance pending45081933164.",
+    "Billing admission now linearizes local subscription/checkout/ownership/usage gate; native accepted45082762807; not permanent erasure.",
     "Canonical real Stripe customer/subscription/open invoice/open checkout checks implemented but unverified against Stripe in current scope.",
     "Durable checkout intent and atomic account reservation implemented and scoped native proof retained; Stripe create/resume/cancel/expiry journey remains pending.",
     "Identity/profile/private-data/provider-replica erasure orchestration and authenticated permanent-deletion UI remain unfinished.",
@@ -29,5 +29,16 @@
     "build": "0errors5m39.70",
     "marker": "ACCOUNT_DEPENDENCY_NATIVE_PROOF",
     "scope": "Real actor-bound controller and owned Mongo snapshot, owned-app flag, unresolved customerless checkout detection and terminal journal closure. No Stripe requests or full closure claim."
+  },
+  "deletionPrimitiveReview": {
+    "revision": "6bbbae4be199eef55856df32476db5684ee05073",
+    "finding": "Real avatar-detail deletion primitives already exist in Mongo, SQLite and shared key-value provider base. Do not add a duplicate provider interface or assume the IOASISStorageProvider default means every real provider lacks deletion.",
+    "paths": [
+      "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.AvatarDetailDelete.cs",
+      "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/AvatarDetailRepository.Delete.cs",
+      "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/KeyValueStorageProviderBase.cs"
+    ],
+    "nextLayer": "Complete durable account lifecycle orchestration, owned/private data and retained-version/replica handling, with acknowledged provider operations and protection from later replica resurrection. Existing tombstone contract explicitly preserves profile/inventory and is not erasure.",
+    "scope": "Source review only; no delete invoked or runtime erasure acceptance."
   }
 }
