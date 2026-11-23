@@ -1,3 +1,7 @@
+## 2026-11-23 - MFA dependency source fix prepared
+
+Candidate ec097f7e propagates sign-in cancellation through MFA and removes index DDL from MFA reads. General SSO fixture now honors owned DNA MFA setting. Prior run 45088151222 failed; no run currently claimed successful. Build/native verification pending. Enabled MFA remains Mongo-dependent; no bypass or availability claim. OPORTAL breadth remains the priority. See MFA_LOGIN_CANCELLATION_SOURCE_2026-11-23.json.
+
 ## 22 November: session issuance must not wait for generic replica fanout
 
 45086300342/job137405599176 built0errors7m03.39; SQLite save reached PrimaryConfirmation but HTTP exceeded15s and finished after Mongo unpause. Source general avatar save awaits replicas at this stage. Core27dae38d routes async password/DID/completed-second-factor credential writes through existing pinned authority owner, and centralizes real native save acknowledgement instead of inferring IsSaved from payload. Candidatea2a3e308/control88dc28ed, run45088151222 in progress with replication explicitly enabled and unchanged Mongo version assertion; unchanged accepted billing assertions skipped. No complete session/DID/MFA/browser/hosted/portal acceptance yet. Shared Development5fd4d4df/Core205 reviewed; clean prepared shared Coreaf05f042 not deployed or tested by current run. Ordinary avatar replication completion policy remains engineering follow-up, not claimed fixed. Prior native fixture removal succeeded; no local builds/downloads/envs/databases/shared Atlas changes.

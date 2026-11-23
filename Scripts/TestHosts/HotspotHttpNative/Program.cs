@@ -178,7 +178,7 @@ try
     var mfaNow = DateTime.UtcNow;
     if (mode is "mfa-http" or "mfa-middleware-http" or "session-global-http" or "mfa-browser")
     {
-        var settings = new MfaSettings { Enabled = true, CodeDigits = 6, TimeStepSeconds = 30, AllowedDriftSteps = 0 };
+        var settings = new MfaSettings { Enabled = mode == "session-global-http" ? dna.OASIS.Security.Mfa?.Enabled == true : true, CodeDigits = 6, TimeStepSeconds = 30, AllowedDriftSteps = 0 };
         var store = new NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa.MongoMfaStore(() => dna);
         httpMfa = new NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa.MfaService(() => settings, store,
             dna.OASIS.Security.SecretKey, () => mode == "mfa-browser" ? DateTime.UtcNow : mfaNow);

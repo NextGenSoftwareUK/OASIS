@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "Single-authority async session issuance, actual native save acknowledgement; replication enabled during connected-outage test",
+  "status": "MFA cancellation propagated; MFA reads no longer create indexes; native verification pending",
   "base": "aa6f1cb26d8b8a9393d8ca440bdd140c4162a239",
-  "candidate": "a2a3e3085daaacb3a5c8eb1ce918e31f4ab8c806",
-  "tag": "qualification/session-authority-native-20261122",
+  "candidate": "ec097f7eeefc20248de3f95522f2efbc7d4f83cd",
+  "tag": "qualification/session-mfa-cancellation-20261123",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
     "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
@@ -54,7 +54,9 @@
     "WEB8/NextGenSoftware.OASIS.Web8.WebAPI/Middleware/JwtMiddleware.cs",
     "WEB8/NextGenSoftware.OASIS.Web8.WebAPI/Program.cs",
     "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Middleware/JwtMiddleware.cs",
-    "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Program.cs"
+    "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Program.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Mfa/MfaGate.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Mfa/MongoMfaStore.cs"
   ],
   "buildProjects": [
     "WEB4",

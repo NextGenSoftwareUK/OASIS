@@ -2947,3 +2947,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 ### 2026-11-22 — canonical native contract candidate
 - Composed ee45a8ce using only three scoped provider patches, committed checkout code and exact previously accepted guard Git objects. Canonical source guard equality checked on the candidate itself; no physical checkout replacement. Owned temporary index removed in finally. Paired pins verified.
 - No local build, runtime, database, new worktree/environment, download/log archive or test results created. Prior45074820751 terminal cleanup verified; next dispatch only after publishing current control source.
+
+- 2026-11-23 MFA candidate: temporary .git-mfa-candidate-index and lock removed by finally; no runtime downloads/build outputs/databases created. Compact source report and Git objects retained.
