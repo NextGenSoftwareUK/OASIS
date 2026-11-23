@@ -184,3 +184,17 @@ builder.Entity<OrderHolon>().OwnsMany(row => row.Lines)
 The declared property is a List<T> or one-dimensional T[]; elements are admitted scalar values or the same plain value-object shapes as OwnsOne. Collections are parent-owned values stored in canonical metadata arrays. Saving the parent persists list replacement, mutable nested changes, ordering and duplicate values atomically under its existing revision and permissions. A null collection and an empty collection remain distinct. IsRequired refuses null before dispatch, while an empty collection remains a valid non-null value.
 
 Collection elements do not acquire separate Holon identities or independent write lifecycles. This batch does not add native element predicates, indexes, array joins or whole-collection query projections; those need their native array-query contracts. The new collection qualifier must pass before native acceptance or deployment. Full M15 and general converter/comparer mapping remain open.
+
+## Model-wide application query filters
+
+```csharp
+var minimumScore = 20;
+builder.Entity<ScoreHolon>().HasQueryFilter(row => row.Score >= minimumScore);
+var filteredModel = builder.Build();
+// For an explicit application-filter bypass, create a separately bound model:
+var unfilteredModel = filteredModel.Result.WithoutQueryFilters();
+```
+
+Build freezes captured literals and binds the predicate through the model's metadata aliases. Every query bound to that model's exact declared entity receives the application predicate before filtering/order/paging. Editing a closure or builder later does not alter an earlier model. To use different tenant/filter values, build an independent model snapshot; no global per-type or per-avatar mutable cache is installed.
+
+WithoutQueryFilters removes application filters only. It preserves the same mapping, validation and read-only policies, and cannot remove mandatory authenticated caller visibility. Bind the returned model to its own query/session; existing model-affinity checks still forbid replacing the model on a captured query. This is an application selection policy, not an authorization boundary or a write constraint. Named selective filter bypass and inherited/polymorphic filter contracts remain separate scope. Representative native qualification is pending; full Q62 remains open.
