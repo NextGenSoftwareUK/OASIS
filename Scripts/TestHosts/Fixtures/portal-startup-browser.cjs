@@ -315,7 +315,7 @@ async function main(){
     await page.waitForFunction(name=>document.querySelector('#clan-detail-panel h3')?.textContent===name,clanName+' edited');
     stage='Clan add member';await page.locator('#clan-add-username').fill(recipient.username);await page.locator('#clan-add-member-form button').click();
     await page.locator('[data-clan-remove="'+recipient.avatar.id+'"]').waitFor({state:'visible'});
-    const native=await recipient.call('owned clan member readback','GET','/api/clan/'+clanId,undefined,recipientToken);assert.equal(native.name,clanName+' edited');assert.equal(native.description,'Edited clan journey');assert.ok(native.memberIds.includes(recipient.avatar.id));
+    const native=await recipient.call('owned clan member readback','GET','/api/clan/'+clanId,undefined,recipientToken,true);assert.equal(native.name,clanName+' edited');assert.equal(native.description,'Edited clan journey');assert.ok(native.memberIds.includes(recipient.avatar.id));
     stage='Clan delete';page.once('dialog',dialog=>dialog.accept());await page.locator('#clan-delete-btn').click();await page.waitForFunction(()=>document.getElementById('clan-browse-list').textContent.includes('No clans found.')&&document.getElementById('clan-stat-total').textContent==='0');
     assert.equal(clanCreates,1);assert.equal(clanUpdates,1);assert.equal(clanMembers,1);assert.equal(clanDeletes,1);
    });
