@@ -70,8 +70,12 @@
   },
   "shippingImageRun": {
     "run": 45218443408,
+    "job": 137845839270,
     "source": "e6415c6578d7f4de5c04bd722b3c18cc1870dfc8",
-    "status": "queued"
+    "status": "success",
+    "digest": "sha256:fb9219fb67f8e3f6e6bc34031c1e1e954872376fdbf970c0d8b16008c76c1213",
+    "packageStartupRun": 45223419601,
+    "qualificationScope": "Package and actual Startup only; unchanged authentication/browser matrix not replayed. Older frozen source must not replace current Development75a."
   },
   "routingEditorRun": {
     "run": 45220758834,
