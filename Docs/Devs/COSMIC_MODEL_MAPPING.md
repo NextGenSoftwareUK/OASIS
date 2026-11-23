@@ -1,14 +1,14 @@
-## Ordered entity-set stages — API source implemented; native qualification pending
+## Ordered entity-set stages — native qualified; Development deployment pending
 
 The existing set request can carry EntityStages: one to16 ordered Where, OrderBy, Skip, Take or Reverse operations after the request's existing combined window and before OutputColumns. Where uses the shared typed predicate tree and cumulative predicate bounds. Ordering uses declared entity fields and stable Id tie-breaking. No operation is moved across an earlier window. Input selected-column sets reject this entity contract, preserving tuple equality.
 
-The implementation delegates to existing immutable Core entity composition and the shipping providers. Source capture, compiler and three-provider authenticated native HTTP qualification are pending. SQL/Ask integration and live acceptance remain separate gates. This does not certify arbitrary selected-result stages or full SQL/ORM parity.
+The implementation delegates to existing immutable Core entity composition and the shipping providers. Source capture/compiler3 controls and three-provider authenticated native HTTP journeys passed45170792856, plus the actual WEB4 build. Websitec8a2b8c client checks and real-browser45171784641 preserve earlier25-row membership before later filtering/order/take5. The exact combined image is building; live/API/model acceptance remains pending. SQL/Ask integration and live acceptance remain separate gates. This does not certify arbitrary selected-result stages or full SQL/ORM parity.
 
-## Explicitly mapped private setters — source implemented; native qualification pending
+## Explicitly mapped private setters — native qualified; Development deployment pending
 
 Fluent and allowlisted XML scalar mappings may select a public getter with a non-public setter. A domain method can change that property while COSMIC handles its metadata alias, snapshot tracking, validation and typed native query binding. V2 hydration invokes a non-public setter only when the immutable application model explicitly maps that property; unconfigured legacy hydration retains its existing public-setter admission. Getter-only properties remain unsupported.
 
-The same model must accompany reads, queries and writes. This does not implement arbitrary backing fields, constructor injection or general immutable entity construction. Three-provider save/read/query/update, XML, validation and caller-scope qualification is pending; full M17 is not certified.
+The same model must accompany reads, queries and writes. This does not implement arbitrary backing fields, constructor injection or general immutable entity construction. Three-provider save/read/query/update, XML, validation and caller-scope journeys passed45169727540 plus one canonical snapshot control and actual WEB4 build. Canonical snapshots restore custom public-getter/private-setter storage slots through the existing serializer; explicit model admission separately governs metadata hydration. Getter-only/navigation exclusions remain. Deployment and full M17 are not certified.
 
 # COSMIC model mapping
 

@@ -1,0 +1,181 @@
+{
+  "source": "c2fba811224514bbecef15efb97c1d9173c45ab8",
+  "websiteSource": "c8a2b8c5a7d639944873c18c008d6ffa7a79742e",
+  "declaredApiSource": "8f379886b8d89d1e134dd740a41af239e56f626f",
+  "run": 45171784641,
+  "job": 137682880598,
+  "artifact": 14817286478,
+  "archiveBytes": 115376,
+  "archiveSha256": "b577040479bccc5b2242a0874db02a166cff13394500bc92e977d268f7e69fa2",
+  "report": {
+    "websiteSource": "c8a2b8c5a7d639944873c18c008d6ffa7a79742e",
+    "declaredApiSource": "8f379886b8d89d1e134dd740a41af239e56f626f",
+    "apiSourceVerifiedInsideRunner": false,
+    "approvedOrigin": "https://web4.oasisomniverse.one",
+    "provider": "HoloOASIS",
+    "liveRequested": false,
+    "publicWebsitePublicationVerified": false,
+    "modelCalls": 0,
+    "applicationHolonWrites": 0,
+    "apiRequests": {},
+    "blockedApi": [],
+    "scriptExceptions": [],
+    "assetHashes": {
+      "/web4-sandbox.html": "71bb4077fd7d4cbca147ec12583dc1607e68fecb56c99b498203a9bd5c815768",
+      "/web4-session.js": "a80650c080f0a5d97248cc6ff0866a5a2a4b15882d469ca6cc2f54dffb6b792f",
+      "/web4-tabs.js": "aec0dd8db831166964e1886ee30bee375e30a9f7ea18cfa2e5d4819b924da955",
+      "/cql-demo-preparation.js": "c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a",
+      "/cql-text.js": "cb93724322944571d715e1cfe20d85110c76ca62d76cb3e10d40446247403dde",
+      "/lossless-metadata.js": "86dc43b8175a77db42fabbbf3363696a6d8593f50e3c26547ac60cf312789e7b",
+      "/cql-playground.js": "05a4fc2b839663a2de61c3f6e848cade573c962dcfab1ca285bcec36796c3ea5",
+      "/cql-ask.js": "251ffb2e03f66f1158631dfbec5cc22f730490f191d7206887e3113bb0ba887d"
+    },
+    "populatedReadVerified": false,
+    "fullBrowserDataFlowVerified": false,
+    "browserVersion": "Chrome/157.0.8103.78",
+    "reviewFamily": "late-entity-selection",
+    "lateEntitySetCompilerCaptures": [
+      {
+        "provider": "MongoDBOASIS",
+        "kind": "Union",
+        "take": 25,
+        "outputColumns": [
+          {
+            "field": "Name",
+            "alias": "Label"
+          },
+          {
+            "field": "Id",
+            "alias": "Id"
+          }
+        ],
+        "entityStages": [
+          {
+            "operation": "Where",
+            "where": {
+              "kind": "Filter",
+              "filter": {
+                "field": "Version",
+                "scalar": "Integer",
+                "operator": "GreaterThanOrEqual",
+                "value": 1
+              }
+            }
+          },
+          {
+            "operation": "OrderBy",
+            "ordering": [
+              {
+                "field": "Name",
+                "descending": true
+              }
+            ]
+          },
+          {
+            "operation": "Take",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "provider": "SQLLiteDBOASIS",
+        "kind": "Union",
+        "take": 25,
+        "outputColumns": [
+          {
+            "field": "Name",
+            "alias": "Label"
+          },
+          {
+            "field": "Id",
+            "alias": "Id"
+          }
+        ],
+        "entityStages": [
+          {
+            "operation": "Where",
+            "where": {
+              "kind": "Filter",
+              "filter": {
+                "field": "Version",
+                "scalar": "Integer",
+                "operator": "GreaterThanOrEqual",
+                "value": 1
+              }
+            }
+          },
+          {
+            "operation": "OrderBy",
+            "ordering": [
+              {
+                "field": "Name",
+                "descending": true
+              }
+            ]
+          },
+          {
+            "operation": "Take",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "provider": "Neo4jOASIS",
+        "kind": "Union",
+        "take": 25,
+        "outputColumns": [
+          {
+            "field": "Name",
+            "alias": "Label"
+          },
+          {
+            "field": "Id",
+            "alias": "Id"
+          }
+        ],
+        "entityStages": [
+          {
+            "operation": "Where",
+            "where": {
+              "kind": "Filter",
+              "filter": {
+                "field": "Version",
+                "scalar": "Integer",
+                "operator": "GreaterThanOrEqual",
+                "value": 1
+              }
+            }
+          },
+          {
+            "operation": "OrderBy",
+            "ordering": [
+              {
+                "field": "Name",
+                "descending": true
+              }
+            ]
+          },
+          {
+            "operation": "Take",
+            "count": 5
+          }
+        ]
+      }
+    ],
+    "visibleSqlEditorVerified": true,
+    "visibleAskQuestionVerified": true,
+    "web6DraftRequested": false,
+    "staticLateEntitySelectionVerified": true,
+    "staticOrderedEntitySetStagesVerified": true,
+    "advancedExamplesReplayed": false,
+    "screenshotSha256": "e81b17a2c6a3225defe345fcc2d4450f38435070ead89ade43bfd617c8842881",
+    "ownedBrowserStopped": true,
+    "profileAbsent": true,
+    "apiResponses": []
+  },
+  "browserSourceAccepted": true,
+  "realModelInferenceAccepted": false,
+  "liveApiFlowAccepted": false,
+  "archiveSavedLocally": false,
+  "observedUtc": "2026-11-23T12:09:40.251569+00:00"
+}

@@ -1,0 +1,106 @@
+{
+  "run": 45169727540,
+  "job": 137675790753,
+  "artifact": 14816288892,
+  "archiveBytes": 4740,
+  "archiveSha256": "be48987030e614a78563a14ad328a902ec95ecff89af46226509e9cc15be849b",
+  "archiveSavedLocally": false,
+  "source": {
+    "actualWeb4Compiled": true,
+    "sharedDatabaseCalls": 0,
+    "deployed": false,
+    "nativePassed": 3,
+    "core": "a3c5ceef9d61b0057ecc8b21156bd0121754a223",
+    "source": "e4cf1a6d8e5c4ce52bf58b165b679c5010e504ef",
+    "ownedFixturesAbsent": true,
+    "privateSetterVerified": true,
+    "codecControlsPassed": 1
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-valid": 897,
+        "read-fluent": 135,
+        "project-native": 93,
+        "save-update": 88,
+        "read-xml": 10,
+        "refuse-invalid": 5,
+        "read-foreign": 3,
+        "read-authority": 7
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "privateScalarAliasWriteRead": true,
+        "domainMethodTrackedUpdate": true,
+        "nativeMappedPredicateProjection": true,
+        "xmlExplicitPrivateSetter": true,
+        "privateSetterConstraints": true,
+        "foreignScopePreserved": true,
+        "getterOnlyMappingRefused": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-valid": 635,
+        "read-fluent": 51,
+        "project-native": 15,
+        "save-update": 40,
+        "read-xml": 8,
+        "refuse-invalid": 4,
+        "read-foreign": 10,
+        "read-authority": 22
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "privateScalarAliasWriteRead": true,
+        "domainMethodTrackedUpdate": true,
+        "nativeMappedPredicateProjection": true,
+        "xmlExplicitPrivateSetter": true,
+        "privateSetterConstraints": true,
+        "foreignScopePreserved": true,
+        "getterOnlyMappingRefused": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-valid": 2035,
+        "read-fluent": 985,
+        "project-native": 496,
+        "save-update": 62,
+        "read-xml": 12,
+        "refuse-invalid": 4,
+        "read-foreign": 479,
+        "read-authority": 17
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "privateScalarAliasWriteRead": true,
+        "domainMethodTrackedUpdate": true,
+        "nativeMappedPredicateProjection": true,
+        "xmlExplicitPrivateSetter": true,
+        "privateSetterConstraints": true,
+        "foreignScopePreserved": true,
+        "getterOnlyMappingRefused": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "fullParityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T12:07:56.764510+00:00"
+}
