@@ -259,7 +259,14 @@
     "root": "b71528fb0c851ba4501444de4198a5ddc04d4f5b",
     "core": "6df988c8f802bc4fdfaebdc03f3dba8f9160c5f9",
     "web6": "78a27a295e74721358eb2b02399f79eff5b21633",
-    "status": "selected for next qualification; not deployed",
+    "status": "combined seven-API compilation/MFA native accepted45094516900; module Development refs published; parent rollout pending",
     "latestReviewedDevelopment": "721f33130849794856c546218dceb06ee1396c87"
+  },
+  "latestCombinedRun": {
+    "id": 45094516900,
+    "job": 137431237720,
+    "conclusion": "success",
+    "build": "0errors7m48.90",
+    "cleanup": "owned native fixture removed"
   }
 }

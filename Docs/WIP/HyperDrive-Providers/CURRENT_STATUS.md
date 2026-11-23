@@ -1,3 +1,7 @@
+## 2026-11-23 - Combined backend accepted; publishing one verified batch
+
+45094516900/job137431237720 SUCCESS on rootb71528fb/Core6df988c8/WEB678a27a29: all7API build0errors7m48.90, actual changed MFA HTTP/native issuance/challenge/recovery/refresh journey passed and initial status read creates no challenge/event collections. Native fixture removed SUCCESS. Accepted session45091356813 and Settings browser45093523946 retained, not replayed. Affected module Development refs fast-forwarded; all8 branch pins and paired manifest verified after stale-ref refresh. Parent Development rollout next, not yet running acceptance. Permanent deletion/hosted Stripe/full OPORTAL/provider and HyperDrive reliability remain open.
+
 ## 2026-11-23 - Actual Settings selected/global sign-out ACCEPTED
 
 45093523946/job137428169979 SUCCESS, build0errors6m59.21 on controlca617d9/Portal282eb9a. Actual buttons/SDK selected and global POSTs, independent session selection/current session preserved, local credentials cleared/reload signed out, both issued credentials refused by native authority. Owned native fixture and browser runtime/cache removal SUCCESS; SQLite absent/Mongo unpaused marker. Scope excludes hosted/full Startup, later account review and permanent deletion. Next descriptor selects combinedb71528fb/Core6df988c8/WEB678a27a29, actual changed MFA store journey plus all7API compilation; accepted35/session/billing cohorts not replayed.
