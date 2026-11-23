@@ -9,11 +9,12 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','web5-catalogue','developer','tools-followup','tools','web5-breadth','community','storage','hyperdrive','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
- const selectedPopups=popupGroup==='web5-catalogue'?['OappMap','Launcher','Competition']:popupGroup==='tools-followup'?['Developer','GlobalSearch']:popupGroup==='tools'?['Designer','Developer']:popupGroup==='web5-breadth'?['HolonBrowser','Celestial','GlobalSearch']:popupGroup==='community'?['Activity','Social','Chain']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+ assert.ok(['none','web5-depth','web5-catalogue','developer','tools-followup','tools','web5-breadth','community','storage','hyperdrive','eggs','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
+ const selectedPopups=popupGroup==='web5-depth'?['OappMap','Launcher']:popupGroup==='web5-catalogue'?['OappMap','Launcher','Competition']:popupGroup==='tools-followup'?['Developer','GlobalSearch']:popupGroup==='tools'?['Designer','Developer']:popupGroup==='web5-breadth'?['HolonBrowser','Celestial','GlobalSearch']:popupGroup==='community'?['Activity','Social','Chain']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
   popupGroup==='none'?[]:[{developer:'Developer',storage:'Storage',hyperdrive:'HyperDrive',eggs:'Eggs',nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
+ let catalogueAppId,catalogueIdentity;const catalogueName='Owned depth catalogue';
  let storageWrites=0; const storageAppId=require('node:crypto').randomUUID();
  let routingSaves=0;
  let clanId,clanCreates=0,clanUpdates=0,clanMembers=0,clanDeletes=0;
@@ -64,7 +65,7 @@ async function main(){
   }
   if(api5&&!selectedPopups.length)await admitFree(account);
   if(selectedPopups.length){
-   assert.equal(!!api5,['web5-breadth','web5-catalogue'].includes(popupGroup),'Explicit matching backend selection');ownedToken=await admitFree(account);
+   assert.equal(!!api5,['web5-breadth','web5-catalogue','web5-depth'].includes(popupGroup),'Explicit matching backend selection');ownedToken=await admitFree(account);
    if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')||selectedPopups.includes('DirectoryMessage')||selectedPopups.includes('Clan')||selectedPopups.includes('Social')||selectedPopups.includes('GlobalSearch')){
     recipient=await createOwnedAvatar(api.href);recipientToken=await admitFree(recipient);
    }
@@ -236,6 +237,18 @@ async function main(){
   await page.waitForFunction(()=>localStorage.getItem('loggedIn')==='true');
   stage='dashboard';await page.locator('#dashboard').waitFor({state:'visible'});
   assert.equal(await page.locator('#dash-name').textContent(),account.username);
+  if(popupGroup==='web5-depth'){
+   stage='Catalogue create actual OAPP';const operationId=require('node:crypto').randomUUID();
+   const native=await context.request.post(proxy5Origin+'/api/oapps',{headers:{Authorization:'Bearer '+ownedToken,'X-COSMIC-Operation-Id':operationId,'Idempotency-Key':operationId},data:{name:catalogueName,description:'Owned populated depth proof',holonType:'OAPP'}});
+   const created=await native.json();httpFacts.push({path:'/api/oapps',status:native.status(),isError:created.isError});assert.equal(native.status(),200);assert.equal(created.isError,false);catalogueAppId=created.result.id;catalogueIdentity=created.result.starnetdna.id;assert.match(catalogueAppId,/^[0-9a-f-]{36}$/i);assert.match(catalogueIdentity,/^[0-9a-f-]{36}$/i);
+   stage='Catalogue create actual child';const child=await account.call('owned catalogue child','POST','/api/data/save-holon',{holon:{parentHolonId:catalogueAppId,name:'Owned catalogue child',description:'Actual descendant'},saveChildren:false,recursive:false,operationId:require('node:crypto').randomUUID()},ownedToken);
+   assert.match(child.id,/^[0-9a-f-]{36}$/i);
+   stage='Catalogue native depth comparison';
+   for(const deep of [false,true]){
+    const reply=await context.request.get(proxy5Origin+'/api/oapps'+(deep?'?loadChildren=true':''),{headers:{Authorization:'Bearer '+ownedToken}});assert.equal(reply.status(),200);const body=await reply.json();assert.equal(body.isError,false);assert.ok(Array.isArray(body.result));const app=body.result.find(row=>row.id===catalogueAppId);assert.ok(app);assert.ok(Array.isArray(app.children));assert.equal(app.children.some(row=>row.id===child.id),deep,'Actual descendant loading matches explicit request');
+   }
+  }
+
   if(selectedPopups.length){
    const outcomes=[];
    async function checkPopup(name,closeSelector,work){
@@ -262,14 +275,18 @@ async function main(){
    }
    await checkPopup('OappMap','#oapp-map-modal-close-btn',async()=>{
     stage='OAPP map explicit depth';const [response]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname.toLowerCase()==='/api/oapps'),page.evaluate(()=>window.openOappMapModal())]);
-    assert.equal(new URL(response.url()).searchParams.get('loadChildren'),'true');const raw=await response.json();assert.equal(raw.isError,false);assert.ok(Array.isArray(raw.result));assert.equal(raw.result.length,0);
-    await page.waitForFunction(()=>document.getElementById('oapp-map-status').textContent==='No OAPPs found.');
+    assert.equal(new URL(response.url()).searchParams.get('loadChildren'),'true');const raw=await response.json();assert.equal(raw.isError,false);assert.ok(Array.isArray(raw.result));assert.equal(raw.result.length,popupGroup==='web5-depth'?1:0);
+    await page.waitForFunction(expected=>document.getElementById('oapp-map-status').textContent===expected,popupGroup==='web5-depth'?'1 OAPPs · returned relationships only':'No OAPPs found.');
     stage='OAPP map filters';await page.locator('#oapp-map-filter').fill('no matching OAPP');assert.equal(await page.locator('#oapp-map-detail').isHidden(),true);await page.locator('#oapp-map-reset-btn').click();
    });
    await checkPopup('Launcher','#oapp-launcher-modal-close-btn',async()=>{
     stage='OAPP launcher shallow catalogue';const [response]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname.toLowerCase()==='/api/oapps'),page.evaluate(()=>window.openOappLauncherModal())]);
-    assert.equal(new URL(response.url()).searchParams.get('loadChildren'),null);const raw=await response.json();assert.equal(raw.isError,false);assert.ok(Array.isArray(raw.result));assert.equal(raw.result.length,0);
-    await page.waitForFunction(()=>document.getElementById('oapp-launcher-status').textContent==='0 OAPPs');
+    assert.equal(new URL(response.url()).searchParams.get('loadChildren'),null);const raw=await response.json();assert.equal(raw.isError,false);assert.ok(Array.isArray(raw.result));assert.equal(raw.result.length,popupGroup==='web5-depth'?1:0);
+    await page.waitForFunction(expected=>document.getElementById('oapp-launcher-status').textContent===expected,popupGroup==='web5-depth'?'1 OAPP':'0 OAPPs');
+    if(popupGroup==='web5-depth'){
+     stage='OAPP launcher actual detail';await page.evaluate(id=>window.openOappLauncherModal(id),catalogueIdentity);await page.waitForFunction(()=>document.getElementById('oapp-launcher-status').textContent==='OAPP details');assert.ok((await page.locator('#oapp-store-grid').textContent()).includes(catalogueName));
+     stage='OAPP launcher browse return';await page.locator('#oapp-launcher-browse-btn').click();await page.waitForFunction(()=>document.getElementById('oapp-launcher-status').textContent==='1 OAPP');
+    }
     stage='OAPP launcher filter';await page.locator('#oapp-launcher-search').fill('no matching OAPP');assert.equal(await page.locator('#oapp-launcher-browse-btn').isHidden(),true);
    });
    await checkPopup('Competition','#competition-close-btn',async()=>{
