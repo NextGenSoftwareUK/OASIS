@@ -397,10 +397,10 @@ async function main(){
     stage='Storage save application';snapshot=await savePolicy('Virtual',storageAppId);
     assert.equal(snapshot.applicationId,storageAppId);assert.equal(snapshot.avatarPolicy.mode,'Materialized');assert.equal(snapshot.applicationPolicy.mode,'Virtual');assert.equal(snapshot.effectivePolicy.mode,'Virtual');
     stage='Storage clear application';snapshot=await savePolicy('',storageAppId);
-    assert.equal(snapshot.applicationPolicy,null);assert.equal(snapshot.effectivePolicy.mode,'Materialized');
+    assert.equal(snapshot.applicationPolicy??null,null);assert.equal(snapshot.effectivePolicy.mode,'Materialized');
     stage='Storage reload avatar';await field('scope').selectOption('avatar');await page.locator('#hd-storage-load').click();
     await page.waitForFunction(()=>!document.getElementById('hd-storage-save').disabled&&document.querySelector('#hd-storage-form [name="mode"]').value==='Materialized');
-    stage='Storage clear avatar';snapshot=await savePolicy('');assert.equal(snapshot.avatarPolicy,null);assert.equal(snapshot.effectivePolicy,null);assert.equal(storageWrites,4);
+    stage='Storage clear avatar';snapshot=await savePolicy('');assert.equal(snapshot.avatarPolicy??null,null);assert.equal(snapshot.effectivePolicy??null,null);assert.equal(storageWrites,4);
    });
    await checkPopup('HyperDrive','#hd-close-btn',async()=>{
     stage='HyperDrive status';const statusResponse=page.waitForResponse(r=>new URL(r.url()).pathname.toLowerCase()==='/api/hyperdrive/status');
