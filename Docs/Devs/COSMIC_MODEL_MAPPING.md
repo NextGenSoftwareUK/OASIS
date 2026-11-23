@@ -264,7 +264,7 @@ An optional XML value-type field has a nullable CLR domain; not-null=true uses i
 The syntax reference is [NHibernate dynamic components](https://nhibernate.info/doc/nhibernate-reference/components.html#components-dynamic). COSMIC's admitted subset maps the canonical metadata dictionary and retains the documented read-only/identity/query differences. The XML dictionary qualifier45140169734 passed three native journeys, one admission control and the actual WEB4 build, with exact owned cleanup. Combined image/package and deployment acceptance remain separate.
 
 
-### Named application filters (qualification pending)
+### Named application filters (native-qualified; deployment pending)
 Entity<T>().HasQueryFilter("active", row => row.IsActive) adds or replaces
 a case-sensitive named filter. Distinct names and the optional unnamed filter
 are combined with AND before source paging. Build freezes captured literals.
