@@ -1,3 +1,5 @@
+23 November2026 — IDENTICAL INCOMING COMPILE FIX INTEGRATED. Development04d1625b25ac45051f04b92d3c8836f4157080a4 adds only the same System.IO.File.ReadAllBytesAsync qualification already present byte-for-byte in qualified producercf32603f. Feature ancestry now includes that commit; every runtime path and all dependency pins remain identical to the accepted producer. Retain native45254618972, image45257020203/digestsha256:3f65ddbc54a2559151ad039f125aeb3c72e5216d779b89293567b680b7e5e1f3 and package45259304397; no unchanged cohort/image replay. Existing incoming rollout must settle before this batch is published to Development. New Corec644 remains feature-only; no current application/runtime acceptance is inferred.0shared/PIPER calls; alternate index removed, no local environment/build/download/results.
+
 23 November2026 — CONVERTED EXTREMA NATIVE3 AND ACTUAL WEB4 BUILD ACCEPTED. Exact45254618972/job137973053837 SUCCESS oncf32603f7e8bf40c1b4b144d8f549d54ee1c1d64/Corec644b071a77ccfca2fabd4a9fd5d222e1f1bf83f. Artifact14858716837/3448bytes/hash854d63a1f52f56e2f0a866dc1ce05b859b8a7c74feac32f1b7f846a5ee04720a inspected in RAM:3passed,0failed,8featuregroups/store,2ownedIDs/store,2acknowledgedwrites/store,12timings/store. Direct numeric/object, source-window, selected scalar, record-selected and async/synchronous late-set extrema passed alongside empty/foreign and semantics-refusal cases. Allfixtures/Mongo/service containers cleaned. Backing3 retained from45251827668 with unchanged8-file implementation and native fixture; that old whole run remains failed. Full M12/M17/EF and hosted acceptance stay open;61/168+4/13 unchanged. Next one combined image/package; no local env/build/DB/download/results or shared/PIPER calls.
 
 # COSMIC / CQL current handoff
@@ -15,8 +17,8 @@ in Git; do not rerun accepted unchanged cohorts.
 | Current Core candidate | c644b071a77ccfca2fabd4a9fd5d222e1f1bf83f |
 | Current targeted CI |45254618972/job137973053837 SUCCESS:3 extrema journeys plus actual WEB4 build, exact cleanup verified |
 | Retained backing-field native proof |45251827668/job137963191454:3 backing cases passed; all8 groups/store and exact cleanup retained in COMBINED_MODEL_BREADTH_RETAINED_BACKING_NATIVE_2026-11-23.json. The overall run failed3 extrema cases; it is not a successful release gate |
-| Current Development branch |41d8876721d8f3c9cadd831b8fff1b79bb2ff035; Core7546da7774be6948b040a6f37fea474c03976a95 |
-| Latest WEB4 deployment attempt |f96ba207-06b7-42f6-8ecb-8191bae4a1a5 on41d88767 FAILED, metadata observed19:48:57UTC. This is not a current running-health assessment |
+| Current Development branch |04d1625b25ac45051f04b92d3c8836f4157080a4; Core7546da7774be6948b040a6f37fea474c03976a95 |
+| Prior WEB4 deployment attempt |f96ba207-06b7-42f6-8ecb-8191bae4a1a5 on41d88767 FAILED, metadata observed19:48:57UTC. This is not a current running-health assessment |
 | Last accepted running WEB4 revision |5c1da3c0e191f1b16612fc57aac27802d4ce392b/Core7546, observed19:14:19UTC:source/startup/packaged comparer presence only |
 | Last accepted seven-service rollout |All7 original WEB4–WEB10 deployments succeeded on5c1da3c0. No newer all-service acceptance inferred |
 | Latest website preview |94fca0f137eefa26863ab75c7ef97c3c70ae94bd, READY; no public promotion |
