@@ -34,7 +34,13 @@
     "manifest": "Exact source paired-pin validation passed; no gitlinks changed.",
     "imageRun": 45152795368,
     "state": "pending-behind-existing-image45152186051",
-    "deployment": "Not published to Development; compile/native chat acceptance pending."
+    "deployment": "Not published to Development; compile/native chat acceptance pending.",
+    "sourceGates": {
+      "freshSharedBranches": "All eight origin/Development references refreshed; official checker passes for exact candidatee3720dad.",
+      "pairedPins": "sync_railway_dependency_manifest.py --check-ref e3720dad440a01a4f684ccbede0a988ad7e0617d passed.",
+      "initialCheck": "First attempt used cached Core origin/cac5 and failed; fresh actual shared Coref4a matched the existing candidate. No source/history repair or gitlink change needed.",
+      "build": "45152795368 remains live pending behind active45152186051; checked2026-11-23T10:07Z. No duplicate/restart/deployment."
+    }
   },
   "cleanup": "First run selected RAM artifact verifies package container absent/all five startup cleanup booleans true; terminal runtime/cache/TLS absence verified. Candidate exact owned Temp index/lock removed in finally. No local build/runtime/download/environment/database/test results.",
   "next": "Follow image45152795368; bind its terminal source/digest then chat-only actual Startup journey. Retain accepted HyperDrive outcome; do not repeat it. Normal scoped Development publication only after acceptance/current gates/cadence."
