@@ -1,0 +1,53 @@
+{
+  "date": "2026-11-23",
+  "status": "implementation-open",
+  "source": {
+    "onodeManager": "79d464b70af73f9b37a4b68ca4aa088622436d4e",
+    "core": "271603c32f13345cebd350b557f7c6bd10ab9d04"
+  },
+  "brokenInvariant": "Provider controls must edit the actual named routing policy consumed by ProviderManager, and distinguish saved configuration from applied runtime state.",
+  "finding": {
+    "obsoleteServicePath": "OASISDNA.StorageProviders.Providers / StorageProviders.Providers / Providers",
+    "actualLegacy": "OASIS.StorageProviders",
+    "actualV2": "OASIS.OASISHyperDriveConfig",
+    "universalEnabledPriority": false,
+    "silentEmptyList": "ProviderService.GetProviders catches errors and returns an empty list, masking the schema mismatch.",
+    "v2EnabledProvidersCaution": "Do not substitute EnabledProviders/ProviderConfigs fields for the actual feature lists. Inspected ApplyHyperDriveConfiguration consumes AutoFailoverProviders, AutoReplicationProviders and LoadBalancingProviders."
+  },
+  "roles": [
+    {
+      "role": "failover",
+      "legacySwitch": "AutoFailOverEnabled",
+      "legacyList": "AutoFailOverProviders",
+      "v2Switch": "AutoFailoverEnabled",
+      "v2List": "AutoFailoverProviders"
+    },
+    {
+      "role": "replication",
+      "legacySwitch": "AutoReplicationEnabled",
+      "legacyList": "AutoReplicationProviders",
+      "v2Switch": "AutoReplicationEnabled",
+      "v2List": "AutoReplicationProviders"
+    },
+    {
+      "role": "loadBalancing",
+      "legacySwitch": "AutoLoadBalanceEnabled",
+      "legacyList": "AutoLoadBalanceProviders",
+      "v2Switch": "AutoLoadBalancingEnabled",
+      "v2List": "LoadBalancingProviders"
+    }
+  ],
+  "deliveryRequirements": [
+    "Replace generic enable/priority UI semantics with explicit role membership and ordered providers.",
+    "Use one canonical policy owner; do not fall back to obsolete Providers arrays.",
+    "Validate provider identities and nonempty lists for enabled features before acknowledging changes.",
+    "Separate saved DNA edits/restart-required state from actual applied runtime policy.",
+    "Preserve credentials, unrelated DNA sections, environment differences and current concurrent file revisions.",
+    "Keep API, supervisor commands and shipping client contract synchronized.",
+    "Verify one representative role edit/reorder/readback through real SDK and HTTP before rollout; preserve existing accepted evidence."
+  ],
+  "excludedAcceptance": [
+    "No provider-control implementation or runtime acceptance from this audit.",
+    "Current public configuration view is read-only and is not a substitute for completing controls."
+  ]
+}
