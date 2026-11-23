@@ -4,6 +4,11 @@ const http=require('node:http'),https=require('node:https'),{execFileSync}=requi
 const {createOwnedAvatar}=require('./startup-authentication.cjs');
 let stage='preparation';
 const httpFacts=[];
+function safeRoutingMessage(value){
+ const message=String(value||'').replace(/(?:https?|mongodb(?:\+srv)?):\/\/[^\s]+/gi,'[URI]').replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,'[JWT]').replace(/[a-f0-9]{32,}/gi,'[identifier]').slice(0,320);
+ return /password|secret|credential|connectionstring|refresh.?token|OASIS_DNA/i.test(message)?'[sensitive routing detail withheld]':message;
+}
+
 async function main(){
  assert.equal(process.env.GITHUB_ACTIONS,'true');
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
@@ -223,10 +228,7 @@ async function main(){
     }
     if(typeof code==='string'&&/^[A-Z0-9_]{1,80}$/.test(code))fact.errorCode=code;
     if((code==='HYPERDRIVE_ROUTE_FAILED'||selectedPopups.includes('Chat')&&url.pathname.startsWith('/api/chat/end-chat-session/')&&result?.isError===true)&&typeof result.message==='string'){
-     const message=result.message.replace(/(?:https?|mongodb(?:\+srv)?):\/\/[^\s]+/gi,'[URI]')
-      .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,'[JWT]')
-      .replace(/[a-f0-9]{32,}/gi,'[identifier]').slice(0,320);
-     fact.routingMessage=/password|secret|credential|connectionstring|refresh.?token/i.test(message)?'[sensitive routing detail withheld]':message;
+     fact.routingMessage=safeRoutingMessage(result.message);
     }
    }catch{fact.json=false;}
   });
@@ -240,7 +242,7 @@ async function main(){
   if(popupGroup==='web5-depth'){
    stage='Catalogue create actual OAPP';const operationId=require('node:crypto').randomUUID();
    const native=await context.request.post(proxy5Origin+'/api/oapps',{headers:{Authorization:'Bearer '+ownedToken,'X-COSMIC-Operation-Id':operationId,'Idempotency-Key':operationId},data:{name:catalogueName,description:'Owned populated depth proof',holonType:'OAPP'}});
-   const created=await native.json();httpFacts.push({path:'/api/oapps',status:native.status(),isError:created.isError});assert.equal(native.status(),200);assert.equal(created.isError,false);catalogueAppId=created.result.id;catalogueIdentity=created.result.starnetdna.id;assert.match(catalogueAppId,/^[0-9a-f-]{36}$/i);assert.match(catalogueIdentity,/^[0-9a-f-]{36}$/i);
+   const created=await native.json();httpFacts.push({path:'/api/oapps',status:native.status(),isError:created.isError,...(created.isError?{routingMessage:safeRoutingMessage(created.message)}:{})});assert.equal(native.status(),200);assert.equal(created.isError,false);catalogueAppId=created.result.id;catalogueIdentity=created.result.starnetdna.id;assert.match(catalogueAppId,/^[0-9a-f-]{36}$/i);assert.match(catalogueIdentity,/^[0-9a-f-]{36}$/i);
    stage='Catalogue create actual child';const child=await account.call('owned catalogue child','POST','/api/data/save-holon',{holon:{parentHolonId:catalogueAppId,name:'Owned catalogue child',description:'Actual descendant'},saveChildren:false,recursive:false,operationId:require('node:crypto').randomUUID()},ownedToken);
    assert.match(child.id,/^[0-9a-f-]{36}$/i);
    stage='Catalogue native depth comparison';
