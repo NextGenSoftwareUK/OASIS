@@ -1,6 +1,6 @@
 {
   "date": "2026-11-23",
-  "status": "callback contract corrected; browser acceptance pending",
+  "status": "representative actual Settings browser and native revocation accepted; not hosted/full Startup or permanent deletion",
   "scope": "Optional sessionBrowser descriptor flag enables exact pinned Portal assets and existing owned Chromium runtime. General native run remains unchanged unless opted in.",
   "flow": [
     "Issue two actual Mongo credentials through real password endpoint.",
@@ -30,5 +30,15 @@
     "error": "CS1503: Login returns JToken; browser callback declared JObject",
     "correction": "Use the actual JToken contract consistently in callback and SID helper.",
     "cleanup": "Owned native fixture and browser runtime/cache removal both SUCCESS."
+  },
+  "acceptedRun": {
+    "id": 45093523946,
+    "job": 137428169979,
+    "conclusion": "success",
+    "source": "ca617d9ce583",
+    "portal": "282eb9a",
+    "build": "0 errors, 6m59.21s",
+    "proof": "Actual selected/global Settings buttons and SDK requests, current session preservation, signed-out reload and both issued credentials refused by native authority.",
+    "cleanup": "Owned SQLite absent/Mongo unpaused; both owned native fixture and browser runtime/cache removal SUCCESS."
   }
 }

@@ -2965,3 +2965,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 - 2026-11-23 shared source composition: private .git-session-shared-index and lock removed in finally. Generated C:/Source/OASIS2-hyperdrive/Scripts/__pycache__/sync_railway_dependency_manifest.cpython-314.pyc (8038 bytes) remains: exact-file deletion rejected by automatic approval review (blocked by policy); not counted removed, no alternate deletion attempted. No runtime/env/build/database/results. Compact composition docs and Git objects retained.
 
 - 2026-11-23 browser45092519963/job137425049453 compile failure: native fixture removal and browser runtime/cache removal SUCCESS. Terminal logs and3static delivery responses inspected in RAM only; no local results/download/env. Earlier policy-blocked8038-byte Python cache remains recorded separately.
+
+- 2026-11-23 accepted browser45093523946/job137428169979: SQLite directory absent and owned Mongo unpaused; native fixture and browser runtime/cache removal both SUCCESS. Terminal logs RAM only; no local archive/results/build/download. Previously blocked8038-byte Python cache remains separately recorded.

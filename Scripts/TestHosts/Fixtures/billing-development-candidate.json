@@ -1,9 +1,9 @@
 {
   "scope": "billing",
-  "status": "General session native acceptance45091356813 retained; actual Settings selected/global buttons next",
-  "base": "aa6f1cb26d8b8a9393d8ca440bdd140c4162a239",
-  "candidate": "ec097f7eeefc20248de3f95522f2efbc7d4f83cd",
-  "tag": "qualification/session-mfa-cancellation-20261123",
+  "status": "Combined shared candidate: compile seven APIs and changed MFA store journey; not deployed",
+  "base": "721f33130849794856c546218dceb06ee1396c87",
+  "candidate": "b71528fb0c851ba4501444de4198a5ddc04d4f5b",
+  "tag": "qualification/session-shared-development-20261123",
   "allowedPaths": [
     "Docker/oasis-dependency-versions.env",
     "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv",
@@ -15,6 +15,8 @@
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/AvatarProfileController.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SubscriptionController.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/JwtMiddleware.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Mfa/MfaGate.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Mfa/MongoMfaStore.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AccountClosureAdmissionService.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AccountClosurePrerequisites.cs",
     "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppBillingConsent.cs",
@@ -54,17 +56,15 @@
     "WEB8/NextGenSoftware.OASIS.Web8.WebAPI/Middleware/JwtMiddleware.cs",
     "WEB8/NextGenSoftware.OASIS.Web8.WebAPI/Program.cs",
     "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Middleware/JwtMiddleware.cs",
-    "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Program.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Mfa/MfaGate.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Mfa/MongoMfaStore.cs"
+    "WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Program.cs"
   ],
   "buildProjects": [
     "WEB4",
     "WEB5"
   ],
   "nativeHost": "HotspotHttpNative",
-  "nativeMode": "session-global-http",
-  "remaining": "Changed Settings browser/native journey only; no general session/billing cohort replay.",
-  "sessionBrowser": true,
-  "portal": "282eb9a0c41ca36b8f7a903435cfeae845cb3706"
+  "nativeMode": "mfa-http",
+  "remaining": "No accepted35case/session/billing replay; new combined composition and changed MFA implementation only.",
+  "sessionBrowser": false,
+  "compileSessionMiddleware": true
 }

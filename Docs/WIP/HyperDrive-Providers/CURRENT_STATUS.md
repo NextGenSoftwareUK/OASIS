@@ -1,3 +1,7 @@
+## 2026-11-23 - Actual Settings selected/global sign-out ACCEPTED
+
+45093523946/job137428169979 SUCCESS, build0errors6m59.21 on controlca617d9/Portal282eb9a. Actual buttons/SDK selected and global POSTs, independent session selection/current session preserved, local credentials cleared/reload signed out, both issued credentials refused by native authority. Owned native fixture and browser runtime/cache removal SUCCESS; SQLite absent/Mongo unpaused marker. Scope excludes hosted/full Startup, later account review and permanent deletion. Next descriptor selects combinedb71528fb/Core6df988c8/WEB678a27a29, actual changed MFA store journey plus all7API compilation; accepted35/session/billing cohorts not replayed.
+
 ## 2026-11-23 - Settings host callback type corrected
 
 45092519963/job137425049453 failed compilation7m04.64: callback expected JObject but actual Login helper returns JToken. Corrected callback and SID reader to that actual contract. Both owned native fixture and browser runtime/cache cleanup steps SUCCESS. No browser/native claim; earlier general session acceptance45091356813 retained. Public dev Settings script contains the new assessment review; remote/local differ only CRLF normalization, not source content.

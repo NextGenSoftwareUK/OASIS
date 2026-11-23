@@ -243,16 +243,23 @@
     "verification": "changed expression five cases and syntax/diff checks; browser pending"
   },
   "settingsBrowserPreparation": {
-    "source": "e3bbf646166",
-    "status": "running after sparse-checkout correction, pinned Portal282eb9a; current new review action excluded from this proof",
-    "scope": "two real credentials; actual selected/global Settings controls; native access refusal afterward; no previous general cohort replay",
-    "run": 45092519963,
-    "job": 137425049453
+    "status": "accepted representative actual browser/native scope",
+    "run": 45093523946,
+    "job": 137428169979,
+    "portal": "282eb9a",
+    "excludes": "hosted/full Startup, later account review and permanent deletion"
   },
   "accountDeletionReview": {
     "source": "c856109",
     "status": "read-only Settings review wired, syntax checked, browser pending",
     "api": "GET api/avatar/account-closure/assessment",
     "remaining": "Permanent deletion/data erasure coordinator remains incomplete; no mutation or deletion acceptance claimed"
+  },
+  "sharedComposition": {
+    "root": "b71528fb0c851ba4501444de4198a5ddc04d4f5b",
+    "core": "6df988c8f802bc4fdfaebdc03f3dba8f9160c5f9",
+    "web6": "78a27a295e74721358eb2b02399f79eff5b21633",
+    "status": "selected for next qualification; not deployed",
+    "latestReviewedDevelopment": "721f33130849794856c546218dceb06ee1396c87"
   }
 }
