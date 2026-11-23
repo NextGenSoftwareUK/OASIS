@@ -319,7 +319,7 @@ finally
     if (bridge != null) { await bridge.StopAsync(CancellationToken.None); bridge.Dispose(); }
     if (api != null) { await api.StopAsync(CancellationToken.None); api.Dispose(); }
     if (supervisorApp != null) { await supervisorApp.StopAsync(CancellationToken.None); await supervisorApp.DisposeAsync(); }
-    if (provider != null) await provider.DeactivateProviderAsync();
+    if (provider != null) await provider.DeActivateProviderAsync();
     if (databaseNamesValidated)
     {
         foreach (var database in databases) await mongo.DropDatabaseAsync(database);

@@ -3185,3 +3185,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 2026-11-23 Accepted combined45165837353/job137662439100 artifact14814813455/4379B RAM-only inspection: package container absent/all five startup cleanup conditions true; terminal runtime/cache/TLS absence verified. Real owned accounts/clan/chat/messages removed with ephemeral DB volume. No local installs/download/env/build/database/test-results. All accepted proof retained in compact tracked reports.
 
 2026-11-23 Publicationb2: exact owned Temp index oasis-chat-dev-publication-20261123.index and lock removed in finally; no physical module switch/new worktree/local build/env/download/database/results. Five dev asset checks RAM-only200/source exact; selected Railway metadata/4safe runtime fields only. Actual compiled image retained remotely for evidence/reuse. New dev handles tracked; no duplicate deployment.
+
+2026-11-23 run45234623292: compile stopped before host runtime; cloud owned Mongo fixture container absence verified. No local runtime, downloads, test database or generated build outputs created.
