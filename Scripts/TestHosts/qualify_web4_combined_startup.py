@@ -1,5 +1,5 @@
 """Cloud-only combined WEB4/OpenVINO startup with fresh isolated accounting data."""
-import argparse, json, os, re, secrets, subprocess, tempfile, time
+import argparse, ipaddress, json, os, re, secrets, subprocess, tempfile, time
 from pathlib import Path
 from owned_docker_resources import missing_resource
 
@@ -115,8 +115,7 @@ def main():
         with tempfile.TemporaryDirectory(prefix='oasis-startup-',dir=os.environ['RUNNER_TEMP']) as tmp:
             envfile=Path(tmp)/'environment';envfile.write_text(''.join(k+'='+v+'\n' for k,v in configuration(root,'mongodb://mongo:27017/?replicaSet=rs0',marker,o.profile).items()));envfile.chmod(0o600)
             portal_root = os.environ.get('OASIS_STARTUP_PORTAL_ROOT', '')
-            published_port = ('--publish', '127.0.0.1::8080') if portal_root else ()
-            docker('create','--name',api,'--label','oasis.startup.owner='+marker,'--network',network,*published_port,
+            docker('create','--name',api,'--label','oasis.startup.owner='+marker,'--network',network,
                 '--memory','3g','--cpus','2','--env-file',str(envfile),image);created.append(('container',api));docker('start',api)
         probe = r"""
 (async()=>{
@@ -148,9 +147,12 @@ console.log(JSON.stringify(b));
         portal_checked = False
         if portal_root:
             assert auth_checked, 'Portal Startup browser requires explicit auth qualification.'
-            exposed = docker('port', api, '8080/tcp').stdout.strip()
-            assert re.fullmatch(r'127\.0\.0\.1:[0-9]+', exposed), 'Owned loopback API port required.'
-            browser_env = dict(os.environ, OASIS_STARTUP_API_URL='http://' + exposed)
+            api_state = json.loads(docker('inspect', api).stdout)[0]
+            assert api_state['Config']['Labels']['oasis.startup.owner'] == marker
+            private_ip = api_state['NetworkSettings']['Networks'][network]['IPAddress']
+            parsed_ip = ipaddress.ip_address(private_ip)
+            assert parsed_ip.version == 4 and parsed_ip.is_private, 'Owned internal API IPv4 required.'
+            browser_env = dict(os.environ, OASIS_STARTUP_API_IPV4=private_ip)
             browser = subprocess.run(['node', str(root / 'Scripts/TestHosts/Fixtures/portal-startup-browser.cjs')],
                 env=browser_env, capture_output=True, text=True, timeout=150)
             if browser.returncode:

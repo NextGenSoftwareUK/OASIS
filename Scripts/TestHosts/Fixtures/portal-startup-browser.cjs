@@ -1,12 +1,19 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path');
-const http=require('node:http'),https=require('node:https'),{execFileSync}=require('node:child_process');
+const net=require('node:net'),http=require('node:http'),https=require('node:https'),{execFileSync}=require('node:child_process');
 const {createOwnedAvatar}=require('./startup-authentication.cjs');
 let stage='preparation';
 const httpFacts=[];
 async function main(){
  assert.equal(process.env.GITHUB_ACTIONS,'true');
- const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
+ const privateIp=process.env.OASIS_STARTUP_API_IPV4;assert.equal(net.isIP(privateIp),4);
+ const tunnels=new Set();let api;
+ const bridge=net.createServer(socket=>{
+  const upstream=net.connect({host:privateIp,port:8080});tunnels.add(socket);tunnels.add(upstream);
+  socket.on('close',()=>tunnels.delete(socket));upstream.on('close',()=>tunnels.delete(upstream));
+  socket.on('error',()=>upstream.destroy());upstream.on('error',()=>socket.destroy());
+  socket.pipe(upstream).pipe(socket);
+ });
  const root=await fs.realpath(process.env.OASIS_STARTUP_PORTAL_ROOT),owned=await fs.realpath(process.env.OASIS_PROFILE_BROWSER_RUNTIME);
  const {chromium}=require(path.join(owned,'node_modules/playwright-core'));
  const cert=path.join(owned,'owned-localhost.crt'),key=path.join(owned,'owned-localhost.key');
@@ -29,6 +36,7 @@ async function main(){
  });
  let browser,context;
  try{
+  await new Promise(resolve=>bridge.listen(0,'127.0.0.1',resolve));api=new URL('http://127.0.0.1:'+bridge.address().port);
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));await new Promise(resolve=>proxy.listen(0,'127.0.0.1',resolve));
   const origin='http://127.0.0.1:'+server.address().port,proxyOrigin='https://127.0.0.1:'+proxy.address().port;
   stage='owned registration';const account=await createOwnedAvatar(api.href);
@@ -83,6 +91,8 @@ async function main(){
  }finally{
   if(context)await context.close();if(browser)await browser.close();
   await Promise.all([new Promise(resolve=>server.close(resolve)),new Promise(resolve=>proxy.close(resolve))]);
+  for(const socket of tunnels)socket.destroy();
+  await new Promise(resolve=>bridge.close(resolve));
   await fs.rm(key,{force:true});await fs.rm(cert,{force:true});
   console.log('Owned portal browser, static/proxy listeners and temporary TLS files closed/removed.');
  }
