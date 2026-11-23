@@ -1,8 +1,8 @@
 {
   "status": "Prepared merge only; not built, accepted or deployed",
-  "core": "89d6d37c49044046a7938a692b1a6adaaad884fd",
-  "tag": "qualification/session-shared-core-20261122",
-  "ownParent": "904775d7ba575ddf3c5ad3dc51a08316c9ab3a99",
+  "core": "af05f04219e57acbf382a2d7b0cc39e007fdb1e6",
+  "tag": "qualification/session-shared-authority-20261122",
+  "ownParent": "27dae38da3f3212e360d939db642d02c01c8fc5f",
   "sharedParent": "2051db6641cb60d654489a1af8841a58899dd667",
   "merge": "Git merge-tree clean, no physical checkout/worktree changes and no forced update. Shared native-qualified grouping and its usage protocol tests preserved.",
   "deltaFromSharedPaths": [
@@ -24,7 +24,9 @@
     "Objects/Avatar/AvatarSessionManagement.cs",
     "Objects/RefreshToken.cs"
   ],
-  "currentRun": "45086300342 remains pinned to earlier820b/Core904, not this merge. Keep acceptance source-bound.",
+  "currentRun": "Native session run on a2a3e308/Core27 remains separate, not this unverified merge.",
   "next": "After current session result, compose shared parent/API/provider changes and verify only changed behavior plus required checks before integration.",
-  "cleanup": "Git objects and compact source report only, no environment/runtime/build/database/download."
+  "cleanup": "Git objects and compact source report only, no environment/runtime/build/database/download.",
+  "reviewedDevelopment": "5fd4d4df91934d0ac9bfd3f890ccf780cc01787f",
+  "previousPreparation": "89d6d37c49044046a7938a692b1a6adaaad884fd retained as historical pre-authority-fix snapshot."
 }
