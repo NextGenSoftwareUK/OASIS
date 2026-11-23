@@ -287,8 +287,9 @@
   "workerStatus": {
     "apiCandidate": "afbd5984e5a3b824080059e206331b727645c8de",
     "field": "backgroundWorkersPauseConfigured",
-    "status": "actual native/HTTP1case accepted; publication/rollout pending",
+    "status": "Native/HTTP accepted and published Developmentbea1473a; new running acceptance pending",
     "portal": "43cf6d6",
-    "uiScope": "source/syntax checked, browser not newly accepted"
+    "uiScope": "source/syntax checked, browser not newly accepted",
+    "publishedCommit": "bea1473a1bfa3c4260982728b4cdcdeed5570465"
   }
 }

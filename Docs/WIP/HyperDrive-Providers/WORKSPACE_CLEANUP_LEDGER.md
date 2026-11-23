@@ -2985,3 +2985,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 - 2026-11-23 worker-status candidate: .git-worker-status-index and lock removed in finally. Source/Node syntax/endpoint/diff only locally; no runtime/env/build/database/download/results. First focused run45097985487 used LocalFile; Mongo/browser setup excluded; corrected assertion replacement pending. Prior8038-byte blocked cache remains recorded.
 
 - 2026-11-23 run45098982294/job137445180377 SUCCESS1case: Mongo/browser preparation skipped, no such fixture created. Native avatar hard-deleted/provider deactivated/globals restored in fixture finally; directory absence not asserted, ephemeral CI workspace discarded by runner. Terminal logs RAM only; no local outputs/env/download/results. Prior8038-byte policy-blocked cache remains recorded.
+
+- 2026-11-23 worker-status publicationbea1473a: .git-worker-publish-index and lock removed in finally. Named docs/one completed H1 section/source Git objects retained. No local env/build/database/download/results. New remote rollout pending; prior policy-blocked8038byte cache remains separately recorded.
