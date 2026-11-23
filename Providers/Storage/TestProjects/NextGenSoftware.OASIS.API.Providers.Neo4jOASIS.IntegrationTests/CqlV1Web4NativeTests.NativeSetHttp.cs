@@ -22,7 +22,7 @@ public sealed partial class CqlV1Web4NativeTests
     public Task NativeSetHttpPreservesOccurrencesPermissionsAndMetering(string providerName)
         =>RunGroupedDistinctNativeFixture(providerName,false,setHttpJourney:true);
     private static async Task<int> VerifyNativeSetHttpJourney(IOASISStorageProvider provider,
-        List<Guid> owned,Dictionary<string,long> timings,bool selectedColumns=false,bool stagedInputs=false,bool lateSelection=false,bool entityStages=false,bool selectedStages=false)
+        List<Guid> owned,Dictionary<string,long> timings,bool selectedColumns=false,bool stagedInputs=false,bool lateSelection=false,bool entityStages=false,bool selectedStages=false,bool setReduction=false)
     {
         var type=provider.ProviderType.Value;var actor=Guid.NewGuid();var outsider=Guid.NewGuid();
         var row=new Holon {Id=Guid.NewGuid(),Name="native-set-http",CreatedByAvatarId=actor,IsPublic=false,IsActive=true,IsNewHolon=true};
@@ -83,6 +83,14 @@ public sealed partial class CqlV1Web4NativeTests
                         new CqlCompositionV1Stage{Operation="Reverse"},
                         new CqlCompositionV1Stage{Operation="Select",Columns=new[]{new CqlCompositionV1Column{Alias="kept",SourceAlias="label"}}}};
                 }
+                if(setReduction)
+                {
+                    Assert.IsFalse(selectedColumns||stagedInputs||lateSelection||entityStages||selectedStages);
+                    body.Take=1;body.Reduction="LongCount";
+                    body.ReductionWhere=new CqlWhereV1Predicate{Kind="Filter",Filter=new CqlV1Filter{
+                        Field="Name",Scalar=CqlV1Scalar.String,Operator=CqlV1Operator.Equal,
+                        Value=JsonSerializer.SerializeToElement(row.Name)}};
+                }
                 if(stagedInputs)
                 {
                     Assert.IsTrue(selectedColumns);
@@ -113,6 +121,16 @@ public sealed partial class CqlV1Web4NativeTests
                     if(bearer==null){Assert.AreEqual(HttpStatusCode.Unauthorized,response.StatusCode,text);return;}
                     Assert.AreEqual(HttpStatusCode.OK,response.StatusCode,text);
                     using var json=JsonDocument.Parse(text);var result=json.RootElement.GetProperty("result");
+                    if(setReduction)
+                    {
+                        Assert.AreEqual("cql-scalar-v1",result.GetProperty("version").GetString());
+                        Assert.AreEqual("LongCount",result.GetProperty("operation").GetString());
+                        Assert.AreEqual("Int64",result.GetProperty("valueType").GetString());
+                        Assert.AreEqual(expected.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                            result.GetProperty("value").GetString());
+                    }
+                    else
+                    {
                     var rows=result.GetProperty("rows");Assert.AreEqual(expected,rows.GetArrayLength());
                     if(selectedColumns || lateSelection)
                     {
@@ -125,12 +143,13 @@ public sealed partial class CqlV1Web4NativeTests
                         }
                     }
                     else foreach(var item in rows.EnumerateArray())Assert.AreEqual(row.Id,item.GetProperty("id").GetGuid());
+                    }
                     var operation=await outbox.GetAsync(response.Headers.GetValues("X-OASIS-Operation-Id").Single(),CancellationToken.None);
                     Assert.AreEqual("settled",operation.State);
                     Assert.AreEqual(1,operation.ProviderAttempts.Count);Assert.AreEqual(1,operation.Receipts.Count);
                     Assert.AreEqual(0.002m,authority.Settlements[operation.Id].ActualCostUsd);
                 }
-                await Send(ownerToken,stagedInputs||entityStages||selectedStages?1:2);await Send(otherToken,0);await Send(null,0);
+                await Send(ownerToken,stagedInputs||entityStages||selectedStages||setReduction?1:2);await Send(otherToken,0);await Send(null,0);
                 Assert.AreEqual(2,authority.Started.Count);Assert.AreEqual(2,authority.Settlements.Count);
             }
             finally{await app.StopAsync();}

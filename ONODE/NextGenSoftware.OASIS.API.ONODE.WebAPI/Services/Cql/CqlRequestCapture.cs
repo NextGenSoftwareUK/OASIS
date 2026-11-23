@@ -30,6 +30,8 @@ internal static class CqlRequestCapture
         }
         return new CqlSetV1Request {
             Provider=value.Provider,Kind=value.Kind,Left=Source(value.Left),Right=Source(value.Right),
+            Reduction=value.Reduction,
+            ReductionWhere=value.ReductionWhere==null?null:Capture(new CqlV1Request{Where=value.ReductionWhere}).Where,
             MaximumLeftRows=value.MaximumLeftRows,MaximumRightRows=value.MaximumRightRows,
             MaximumResults=value.MaximumResults,Skip=value.Skip,Take=value.Take,
             Ordering=value.Ordering==null?null:Array(value.Ordering,4,term=>term==null

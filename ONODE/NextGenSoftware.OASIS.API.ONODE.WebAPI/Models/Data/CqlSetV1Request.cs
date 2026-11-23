@@ -8,6 +8,10 @@ public sealed class CqlSetV1Request
 {
     public string? Provider { get; set; }
     public string Kind { get; set; } = "Union";
+    /// <summary>Optional native scalar reduction after entity set windows/stages.
+    /// Count/LongCount/Any accept a final predicate; All requires one.</summary>
+    public string? Reduction {get;set;}
+    public CqlWhereV1Predicate? ReductionWhere {get;set;}
     public CqlSetV1Source Left { get; set; } = new();
     public CqlSetV1Source Right { get; set; } = new();
     public int MaximumLeftRows { get; set; } = 100;

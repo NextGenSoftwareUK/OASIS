@@ -17,9 +17,9 @@ public static partial class CqlV1Compiler
         return CompileEntitySetSource(request,actor,provider,access);
     }
     private static CosmicSetQuery<Holon> CompileEntitySetSource(CqlSetV1Request request,Guid actor,
-        ProviderType? provider,CosmicQueryReadAccess access)
+        ProviderType? provider,CosmicQueryReadAccess access,bool reduction=false)
     {
-        var kind=ValidateSetRequest(request);
+        var kind=ValidateSetRequest(request,reduction);
         if(request.Left.Columns!=null || request.Right.Columns!=null || request.Left.Stages!=null || request.Right.Stages!=null)
             throw new ArgumentException("Explicit selected columns require the selected-value set compiler.");
         var query=RequiredSet(CosmicSetQuery<Holon>.Create(SetSource(request.Left,actor,provider,access),SetSource(request.Right,actor,provider,access),kind));
@@ -84,8 +84,14 @@ public static partial class CqlV1Compiler
         }
         return query;
     }
-    private static CosmicSetQueryKind ValidateSetRequest(CqlSetV1Request request)
+    private static CosmicSetQueryKind ValidateSetRequest(CqlSetV1Request request,bool reduction=false)
     {
+        if(reduction!=(request?.Reduction!=null) || !reduction && request?.ReductionWhere!=null)
+            throw new ArgumentException("Scalar set reductions require their independent compiler.");
+        if(reduction && (request.Reduction is not ("Count" or "LongCount" or "Any" or "All")
+            || request.Reduction=="All" && request.ReductionWhere==null
+            || request.IncludeMetadata || request.OutputColumns!=null || request.SelectedStages!=null))
+            throw new ArgumentException("A native entity set reduction and unambiguous scalar output are required.");
         if(request?.Left==null || request.Right==null || request.Left.Graph!=null || request.Right.Graph!=null ||
             request.MaximumLeftRows is <1 or >1000 || request.MaximumRightRows is <1 or >1000 ||
             request.MaximumResults is <1 or >100 || request.Skip is <0 or >10000 ||
