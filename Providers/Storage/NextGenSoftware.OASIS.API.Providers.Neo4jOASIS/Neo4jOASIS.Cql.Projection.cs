@@ -17,7 +17,7 @@ public partial class Neo4jOASIS : ICosmicQueryEntityProjectionStorageProvider
 {
     public static CosmicProjectionCapabilities CqlProjectionCapabilities { get; } = new CosmicProjectionCapabilities(
         CqlCapabilities.CanonicalFields.Select(field => new CosmicProjectionFieldCapability(field.Name, field.ValueType)).ToArray(),
-        CqlCapabilities.MetadataTypes.Select(type => type.ValueType).ToArray()).WithFunctions(CosmicProjectionFunction.Utf16Length,CosmicProjectionFunction.TextCoalesce,CosmicProjectionFunction.BooleanTextCase,CosmicProjectionFunction.Int32Coalesce);
+        CqlCapabilities.MetadataTypes.Select(type => type.ValueType).ToArray()).WithFunctions(CosmicProjectionFunction.Utf16Length,CosmicProjectionFunction.TextCoalesce,CosmicProjectionFunction.BooleanTextCase,CosmicProjectionFunction.Int32Coalesce,CosmicProjectionFunction.UtcYear,CosmicProjectionFunction.UtcMonth,CosmicProjectionFunction.UtcDay,CosmicProjectionFunction.UtcDayOfYear,CosmicProjectionFunction.UtcHour,CosmicProjectionFunction.UtcMinute,CosmicProjectionFunction.UtcSecond);
     public CosmicProjectionCapabilities ProjectionCapabilities => CqlProjectionCapabilities;
     public bool SupportsEntityProjection=>true;
 
