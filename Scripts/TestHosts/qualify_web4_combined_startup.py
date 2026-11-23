@@ -5,7 +5,7 @@ from owned_docker_resources import missing_resource
 
 
 def configuration(root, mongo, marker, profile='full'):
-    if profile not in ('full', 'tron-api', 'maplibre'):
+    if profile not in ('full', 'tron-api', 'maplibre', 'cql-api'):
         raise ValueError('Explicit known startup profile required.')
     dna = json.loads((root / 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/Default/OASIS_DNA.json').read_text(encoding='utf-8-sig'))
     oasis = dna['OASIS']; storage = oasis['StorageProviders']
@@ -28,6 +28,7 @@ def configuration(root, mongo, marker, profile='full'):
     oasis['OfflineSessionGrants']['Enabled'] = False
     oasis['Sandbox']['Enabled'] = True
     oasis['Logging']['LogToFile'] = False
+    oasis['Email']['DisableAllEmails'] = True
     policy = {'requiresProviderMeasurement':True,'meterCategory':'cql.package-startup','reservedUnits':1,'fixedCostUsd':0,
               'estimatedCostUsd':0,'maximumNativeFeeCostUsd':0,'maximumProviderAttempts':1,
               'pricingCatalogueVersion':'package-startup-v1'}
@@ -69,7 +70,7 @@ def image_health_ready(state):
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--digest',required=True);p.add_argument('--profile',choices=['full','tron-api','maplibre'],default='full');o=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--digest',required=True);p.add_argument('--profile',choices=['full','tron-api','maplibre','cql-api'],default='full');o=p.parse_args()
     assert os.environ.get('GITHUB_ACTIONS')=='true' and re.fullmatch('sha256:[a-f0-9]{64}',o.digest)
     root=Path(__file__).resolve().parents[2];out=root/'TestResults/Web4CombinedStartup';out.mkdir(parents=True,exist_ok=False)
     package=json.loads((root/'TestResults/Web4FullPackage/acknowledged.json').read_text())
@@ -141,12 +142,17 @@ console.log(JSON.stringify(b));
                 if time.monotonic() > deadline:
                     raise RuntimeError('Full image Docker health readiness deadline.')
                 time.sleep(2)
+        auth_checked = os.environ.get('OASIS_STARTUP_AUTHENTICATION') == 'true'
+        if auth_checked:
+            auth_script = root / 'Scripts/TestHosts/Fixtures/startup-authentication.cjs'
+            docker('exec', api, 'node', '-e', auth_script.read_text(encoding='utf-8'), timeout=120)
+            print('STARTUP_AUTH_PROOF: shipping registration/verification/password/session/subscription journey passed; owned Mongo only.', flush=True)
         native="const x=require('/app/host-sandbox-openvino.cjs');x.verifyNative(require('/app/openvino-model-server-pins.json'),AbortSignal.timeout(10000)).then(()=>console.log('native-metadata-verified')).catch(e=>{console.error(e);process.exit(1)})"
         if o.profile == 'full':
             docker('exec',api,'node','-e',native,timeout=20)
         docker('stop','--time','20',api,timeout=30)
         state=json.loads(docker('inspect',api).stdout)[0];assert state['State']['ExitCode']==0 and not state['State']['OOMKilled']
-        (out/'acknowledged.json').write_text(json.dumps({'source':package['source'],'image':image,'apiHealth':True,'dockerHealthVerified':o.profile in ('full', 'maplibre'),'nativeMetadata':o.profile == 'full','gracefulExit':0,'internalNetwork':True,'liveDeployment':False,'cqlAcceptance':False},indent=2))
+        (out/'acknowledged.json').write_text(json.dumps({'source':package['source'],'image':image,'apiHealth':True,'dockerHealthVerified':o.profile in ('full', 'maplibre'),'nativeMetadata':o.profile == 'full','gracefulExit':0,'authentication':auth_checked,'internalNetwork':True,'liveDeployment':False,'cqlAcceptance':False},indent=2))
     finally:
         if ('container',api) in created:
             observed=json.loads(docker('inspect',api).stdout)[0]
