@@ -225,7 +225,21 @@ console.log(JSON.stringify(b));
                 if facts:
                     selected = json.loads(facts.group(1))
                     assert isinstance(selected, list) and len(selected) <= 64
-                    assert all(set(item) <= {'path','status','isError','errorCode','json','routingMessage','resultShape','resultCount'} for item in selected)
+                    assert all(set(item) <= {'path','status','isError','errorCode','json','routingMessage','resultShape','resultCount','routeShape','routePage'} for item in selected)
+                    for item in selected:
+                        if 'routePage' in item:
+                            assert set(item['routePage']) <= {'items','nextOffsetPresent','nextOffsetNull','nextOffsetInteger'}
+                            assert all(isinstance(value,bool) for value in item['routePage'].values())
+                        if 'routeShape' in item:
+                            shape=item['routeShape']
+                            assert set(shape) <= {'header','geometry','authority','revisions','headerIdMatches','headerPayload','geometryPayload','summaryPascal','summaryCamel','latitudePascal','latitudeCamel'}
+                            for key,value in shape.items():
+                                if key in ('headerPayload','geometryPayload'):
+                                    assert value in ('undefined','string','object')
+                                elif key == 'revisions':
+                                    assert isinstance(value,int) and 0 <= value <= 2
+                                else:
+                                    assert isinstance(value,bool)
                     print('PORTAL_STARTUP_HTTP_FACTS:' + json.dumps(selected, separators=(',', ':')), flush=True)
                 safe_stage = re.search(r'PORTAL_STARTUP_BROWSER_FAILURE stage=([^;\n]+)', browser.stderr)
                 raise RuntimeError('Owned portal Startup browser failed at ' + (safe_stage.group(1) if safe_stage else 'unreported stage'))
