@@ -296,6 +296,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                 }
                 writer.WriteEndArray();
             }
+            else if (value is System.Collections.IList list)
+            {
+                writer.WriteStartArray();
+                foreach (var item in list) SerializeValue(writer, item);
+                writer.WriteEndArray();
+            }
             else if (value is Dictionary<string, object> dict)
             {
                 writer.WriteStartDocument();
