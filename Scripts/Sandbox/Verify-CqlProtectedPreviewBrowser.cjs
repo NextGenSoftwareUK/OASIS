@@ -53,7 +53,7 @@ async function run(){
   }
   const live=process.env.CQL_BROWSER_LIVE_FLOW==='1';
   const reviewFamily=process.env.CQL_BROWSER_REVIEW_FAMILY||'advanced';
-  if(!['advanced','utc-date-parts','late-entity-selection'].includes(reviewFamily))throw Error('Unknown reviewed browser feature family');
+  if(!['advanced','utc-date-parts','late-entity-selection','late-set-composition'].includes(reviewFamily))throw Error('Unknown reviewed browser feature family');
   if(live&&reviewFamily!=='advanced')throw Error('This browser family admits static source review only');
 
   const client=require(path.join(site,'cql-playground.js'));
@@ -206,6 +206,31 @@ async function run(){
     }
     report.advancedExampleControlsRendered=true;
 
+    }else if(reviewFamily==='late-set-composition'){
+      const visible=await evaluate("(()=>{const b=document.getElementById('cql-load-late-set-composition-example');b.closest('details').open=true;document.getElementById('cql-virtual-mapping').value='20000000-0000-0000-0000-000000000000';document.getElementById('cql-saved-mapping').value='20000000-0000-0000-0000-000000000000';b.click();const t=document.getElementById('cql-text');return b.getClientRects().length>0&&t.getClientRects().length>0&&t.value.trim()===document.getElementById('cql-late-set-composition-example').textContent.trim()&&!document.getElementById('cql-virtual-mapping').value&&!document.getElementById('cql-saved-mapping').value;})()");
+      if(!visible)throw Error('Real selected combined-results example did not load visibly and clear mapping scope');
+      report.lateSetSelectedCompilerCaptures=[];
+      for(const identity of ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']){
+        const capture=await evaluate("window.CqlText.compile(document.getElementById('cql-text').value.replaceAll('MongoDBOASIS',"+JSON.stringify(identity)+"))");
+        const body=capture?.body,stages=body?.selectedStages;
+        if(capture?.path!=='data/query-cql/set'||body?.provider!==identity||body.kind!=='Union'||
+          body.take!==25||body.left.columns!==undefined||body.right.columns!==undefined||
+          !isDeepStrictEqual(body.entityStages,[{operation:'Take',count:20}])||
+          !isDeepStrictEqual(body.outputColumns,[{field:'Id',alias:'Id'},{field:'Name',alias:'Label'}])||
+          !isDeepStrictEqual(stages?.map(stage=>stage.operation),['Where','OrderBy','Take','Select','Distinct','OrderBy','Take'])||
+          !isDeepStrictEqual(stages[0].filters,[{alias:'Label',operator:'StartsWith',value:'a'}])||
+          !isDeepStrictEqual(stages[1].order,[{alias:'Label',descending:true}])||stages[2].count!==10||
+          !isDeepStrictEqual(stages[3].columns,[{alias:'Label',sourceAlias:'Label'}])||
+          !isDeepStrictEqual(stages[5].order,[{alias:'Label',descending:false}])||stages[6].count!==5)
+          throw Error('Real editor changed selected set membership, visible equality or earlier window boundaries');
+        report.lateSetSelectedCompilerCaptures.push({provider:identity,kind:body.kind,take:body.take,
+          entityStages:body.entityStages,outputColumns:body.outputColumns,selectedStages:stages});
+      }
+      await evaluate("document.querySelector('button[data-tab=ask]').click();true");
+      const ask=await evaluate("(()=>{const q=document.getElementById('ask-question');q.value='Combine records by identity, select a bounded group, then filter and show unique labels.';return {visible:q.getClientRects().length>0,initialized:!!window.cqlAsk}})()");
+      if(!ask.visible||!ask.initialized)throw Error('Real Ask controls are not initialized and visible');
+      report.visibleSqlEditorVerified=true;report.visibleAskQuestionVerified=true;
+      report.staticLateSetCompositionVerified=true;report.web6DraftRequested=false;report.advancedExamplesReplayed=false;
     }else if(reviewFamily==='late-entity-selection'){
       const visible=await evaluate("(()=>{const b=document.getElementById('cql-load-entity-set-selection-example');b.closest('details').open=true;document.getElementById('cql-virtual-mapping').value='20000000-0000-0000-0000-000000000000';b.click();return b.getClientRects().length>0&&document.getElementById('cql-text').getClientRects().length>0&&!document.getElementById('cql-virtual-mapping').value;})()");
       if(!visible)throw Error('Real combined-record example did not load visibly and clear the prior mapping');

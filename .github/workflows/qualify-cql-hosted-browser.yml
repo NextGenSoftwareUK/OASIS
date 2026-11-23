@@ -7,7 +7,7 @@ on:
         required: true
         type: string
       api_source:
-        description: API source bound by the operator's pre/post Railway observations
+        description: Exact API contract revision; live mode also requires operator pre/post Railway observations
         required: true
         type: string
       review_family:
@@ -15,7 +15,7 @@ on:
         required: false
         type: choice
         default: advanced
-        options: [advanced, utc-date-parts, late-entity-selection]
+        options: [advanced, utc-date-parts, late-entity-selection, late-set-composition]
       live_read:
         description: One paced public HoloOASIS SQL read with a temporary demo session
         required: true
