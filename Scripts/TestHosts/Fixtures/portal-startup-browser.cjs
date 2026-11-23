@@ -91,6 +91,10 @@ async function main(){
    if(httpFacts.length<64)httpFacts.push(fact);
    try{const body=await response.json(),result=typeof body.isError==='boolean'?body:body.result;
     fact.isError=result?.isError;const code=result?.errorCode;
+    if(/^\/api\/(nft|oLand|data|messaging)\//i.test(url.pathname)){
+     const value=result?.result;fact.resultShape=Array.isArray(value)?'array':value===null?'null':typeof value;
+     if(Array.isArray(value))fact.resultCount=value.length;
+    }
     if(typeof code==='string'&&/^[A-Z0-9_]{1,80}$/.test(code))fact.errorCode=code;
     if(code==='HYPERDRIVE_ROUTE_FAILED'&&typeof result.message==='string'){
      const message=result.message.replace(/(?:https?|mongodb(?:\+srv)?):\/\/[^\s]+/gi,'[URI]')
@@ -111,14 +115,15 @@ async function main(){
    stage='NFT catalogue';await page.locator('#dash-card-nfts').click();
    await page.waitForFunction(()=>['standard','geo','oland'].every(kind=>
     !document.getElementById('nft-empty-'+kind).hidden&&document.getElementById('nft-error-'+kind).hidden));
-   await page.locator('#nft-group-by-collection').check();
+   stage='NFT grouping';await page.locator('#nft-group-by-collection').check();
    assert.equal(await page.locator('#nft-empty-standard').isVisible(),true);
    assert.equal(await page.locator('#nft-error-standard').isVisible(),false);
+   stage='NFT tabs';
    for(const tab of ['geo','oland']){
     await page.locator('#nft-modal-block [data-tab="'+tab+'"]').click();
     await page.locator('#nft-tab-'+tab).waitFor({state:'visible'});
    }
-   await page.locator('#nft-modal-close-btn').click();await page.waitForURL(url=>url.pathname==='/');
+   stage='NFT close';await page.locator('#nft-modal-close-btn').click();await page.waitForURL(url=>url.pathname==='/');
    stage='Data browse';const dataRead=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/data/load-holons-for-parent');
    await page.locator('#dash-card-holons').click();
    const raw=await (await dataRead).json();assert.equal(raw.result.isError,false,'Real Data result');
