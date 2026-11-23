@@ -1,12 +1,12 @@
 {
   "baseCore": "e6ff129e186f166c422aca697ff91e644d75642b",
   "baseRoot": "df5b838278bec4f58690bf5e600f5009552886c2",
-  "phase": "qualification-running",
+  "phase": "native-accepted-image-running",
   "nativeProvidersImplemented": true,
   "linqTransportImplemented": true,
   "qualified": false,
   "published": true,
-  "next": "Observe the original native/required-regression jobs; address real failures, then qualify exact image/package and SQL/Ask transport.",
+  "next": "Finish exact image/package/source/pin gates and add HTTP/SQL/Ask transport; do not infer deployment or full parity.",
   "mongoNativeDrafted": true,
   "sqliteNativeDrafted": true,
   "neoNativeDrafted": true,
@@ -68,5 +68,42 @@
       "status": "in_progress"
     }
   },
-  "dependencyRun": 45160691714
+  "dependencyRun": 45160691714,
+  "nativeAccepted": true,
+  "nativeRuns": [
+    45160691758,
+    45160691551
+  ],
+  "requiredCi": [
+    {
+      "run": 45160691801,
+      "source": "c168a52e15e7424484c25582c190807a8e2d2806",
+      "workflow": "Qualify native Neo4j selected-value sets",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 137645033533,
+          "name": "read-activation",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 45160691947,
+      "source": "c168a52e15e7424484c25582c190807a8e2d2806",
+      "workflow": "Qualify native SQLite native set operations",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 137645034428,
+          "name": "read-activation",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "requiredRegressionsAccepted": true,
+  "imageRun": 45162193600,
+  "imagePhase": "in_progress",
+  "deployed": false
 }

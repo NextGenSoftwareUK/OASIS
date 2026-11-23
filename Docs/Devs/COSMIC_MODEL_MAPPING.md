@@ -310,7 +310,7 @@ gates; identity resolution never substitutes for a new access check. Undefined m
 are refused before execution. Full graph-wide ORM tracking parity remains open.
 
 
-### Native selection after identity-based entity sets (qualification pending)
+### Native selection after identity-based entity sets (native-qualified; deployment and SQL/Ask transport pending)
 Union/Concat/Intersect/Except over entities can be followed by scalar, anonymous or
 DTO Select and detached shape reselection. Entity equality stays based on stored
 identity: different entities with equal Name values remain separate after entity
