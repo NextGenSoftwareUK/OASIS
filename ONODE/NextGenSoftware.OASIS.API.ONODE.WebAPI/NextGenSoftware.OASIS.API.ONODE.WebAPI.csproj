@@ -86,9 +86,6 @@
   <ItemGroup>
     <Content Update="Configuration\subscription-overage-prices.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Update="Configuration\app-overage-prices.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
-    <Content Include="OASISSQLLiteDB.db">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <!--<PackageReference Include="BCrypt.Net-Next" Version="4.0.0" />-->

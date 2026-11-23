@@ -136,10 +136,24 @@ public partial class HolonRepository
             {
                 CosmicStorageIdentity actual;
                 try { actual = SqliteStorageIdentity.Read(connection, native); }
+                catch (SqliteException cause) when (cause.SqliteErrorCode is 5 or 6 or 10 or 14)
+                {
+                    // BUSY, LOCKED, IOERR and CANTOPEN are passing native conditions
+                    // (for example a volume remount during redeploy), not a bad
+                    // identity: report them as retryable so the route is not held.
+                    return ConditionalError(bindingCodePrefix+"_UNAVAILABLE",
+                        "The receiver identity could not be read (SQLite error "+cause.SqliteErrorCode+"/"+cause.SqliteExtendedErrorCode
+                        +"); no replica applied. Retry.", cause);
+                }
                 catch (Exception cause) when (cause is System.IO.InvalidDataException || cause is SqliteException)
                 {
+                    // The identity/SQLite messages carry no path or credentials; keep
+                    // the cause so a held route shows why it was held.
+                    var detail = cause is SqliteException identityError
+                        ? "SQLite error "+identityError.SqliteErrorCode+"/"+identityError.SqliteExtendedErrorCode
+                        : cause.Message;
                     return ConditionalError(bindingCodePrefix+"_INVALID",
-                        "The receiver identity is missing or invalid; no identity was initialized and no replica applied.", cause);
+                        "The receiver identity is missing or invalid ("+detail+"); no identity was initialized and no replica applied.", cause);
                 }
                 if (actual.BindingFingerprint != expectedStorage.BindingFingerprint)
                     return ConditionalError(bindingCodePrefix+"_MISMATCH",

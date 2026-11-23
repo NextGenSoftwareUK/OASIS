@@ -122,6 +122,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 Environment.ExitCode = await Services.HyperDrive.ReplicaBaselineRepairCommand.RunAsync(args);
                 return;
             }
+            if (args.Length > 0 && args[0] == "--cosmic-rearm-held-head")
+            {
+                Environment.ExitCode = await Services.HyperDrive.HeldHeadRearmCommand.RunAsync(args);
+                return;
+            }
             var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
             var conductor = Services.Cql.HoloOasisDevelopmentConductor.CreateIfEnabled(configuration);
             try
