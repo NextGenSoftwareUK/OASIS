@@ -1,5 +1,5 @@
 {
-  "status": "isolated-WEB5-routing-failure-under-investigation",
+  "status": "cause-located-authoritative-provider-selection-missing",
   "source": "a32b0ca21aaa694edc3ad15c617055f105bba8d2",
   "development": "90d75f04f606c29bea99bfafe073b5b26722ce88",
   "core": "c19f1153eddea491e0887bfd40f898983d6b3597",
@@ -15,10 +15,13 @@
   "cleanup": "No new local env/download/runtime/build/database/results. Source/helper and compact descriptor only. Existing accepted WEB4/anonymous/provider cohorts retained, not replayed.",
   "active": {
     "run": 45124806419,
+    "job": 137526605952,
     "control": "2d17e1ece10d065369efe344939fd362c4f28143",
-    "portal": "f89b2ec160bab77ebcf05d7ba5d343f328c0b493",
-    "phase": "Selected sanitized HyperDrive routing diagnostics; source/image/ledger unchanged",
-    "scope": "Real WEB5 entry point and enabled WEB4 ledger; no provider/admission/usage bypass or invented API replies."
+    "conclusion": "failure",
+    "routingMessage": "Request routing failed: No authoritative storage provider is configured for this request.",
+    "cleanupArtifact": 14795004211,
+    "archiveBytes": 2486,
+    "cleanup": "Containers/network/database volumes absent; WEB5 process stopped and generated DNA absent."
   },
   "attempts": [
     {
@@ -34,5 +37,13 @@
       "archiveBytes": 2488,
       "cleanup": "Selected RAM-read cleanup proves containers/network/database volumes absent, WEB5 process stopped and generated DNA absent; always step removes publish/browser/cache/TLS."
     }
-  ]
+  ],
+  "cause": {
+    "evidence": "Core c19 OASISHyperDrive.SelectOptimalProvider refuses authoritative collection reads when CurrentStorageProviderType is Default; ProviderManager initializes that property to Default.",
+    "bootContract": "BootOASISForAdmittedStorageAsync intentionally calls BootOASISAsync(dna,false,registrationOnly:true): passive registration, no activation or system-account provisioning.",
+    "finding": "The isolated full host has no declarative authoritative selection after passive registration. Real login/free ledger/native WEB4 reads succeed; WEB5 collection read fails before selecting a provider.",
+    "invariant": "Admitted hosting must declare collection authority independently of provider activation. Do not weaken collection authority, activate during passive boot, disable admission/ledger, infer a replica as authoritative, or add retries.",
+    "next": "Implement explicit authoritative-provider binding through the shared admitted-host configuration/routing layer, then verify the changed real WEB5 flow.",
+    "scope": "No hosted availability failure or completed fix claimed."
+  }
 }
