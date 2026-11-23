@@ -1,0 +1,56 @@
+{
+  "source": "721f33130849794856c546218dceb06ee1396c87",
+  "developmentBase": "09ca3749023f508b637646a625fdf65112b73892",
+  "rootChangedPaths": [
+    ".github/workflows/qualify-cql-model-metadata-alias-native.yml",
+    "Docker/oasis-dependency-versions.env",
+    "Docs/Devs/COSMIC_MODEL_MAPPING.md",
+    "Docs/WIP/COSMIC ORM/CURRENT_STATUS.md",
+    "Docs/WIP/COSMIC ORM/FULL_STATUS_REPORT_2026-11-22.md",
+    "Docs/WIP/COSMIC ORM/KEYED_ENTITY_COMPOSED_IMAGE_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/KEYED_ENTITY_COMPOSED_PACKAGE_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/KEYED_ENTITY_DELIVERY_SCOPE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/KEYED_ENTITY_DEVELOPMENT_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/KEYED_ENTITY_DEVELOPMENT_CANDIDATE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/KEYED_ENTITY_THREE_PROVIDER_RELEASE_CANDIDATE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/MODEL_METADATA_ALIAS_IMAGE_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/MODEL_METADATA_ALIAS_NATIVE_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/MODEL_METADATA_ALIAS_PACKAGE_ACCEPTANCE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/MODEL_METADATA_ALIAS_RELEASE_CANDIDATE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/MODEL_METADATA_ALIAS_SOURCE_PREPARATION_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md",
+    "Docs/WIP/COSMIC ORM/TYPED_MODEL_GROUP_NATIVE_ACCEPTANCE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/TYPED_MODEL_GROUP_SOURCE_PREPARATION_2026-11-22.json",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.GroupedDistinct.cs",
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.ModelMetadataAliases.cs"
+  ],
+  "runtimeRootPaths": [
+    "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
+  ],
+  "coreBase": "2051db6641cb60d654489a1af8841a58899dd667",
+  "coreSource": "048b02d54870e793de8f18439ff8f00950ad3547",
+  "changedCoreFiles": [
+    "Custom Attributes/CustomOASISProperty.cs",
+    "Helpers/HolonCustomPropertyNames.cs",
+    "Managers/HolonManager/HolonManager-Cql.V2.cs",
+    "Managers/HolonManager/HolonManager-Metadata.V2.cs",
+    "Managers/HolonManager/HolonManager-Private.Helpers.cs",
+    "Managers/HolonManager/HolonManager-Private.Replication.cs",
+    "Queries/CosmicKeyedEntitySource.cs",
+    "Queries/CosmicLinq.GroupedEntities.cs",
+    "Queries/CosmicQueryExpression.cs"
+  ],
+  "nativeSource": "2b369e2c273dfe35ea715820484e289353ae97dc",
+  "nativeRun": 45086766670,
+  "allOtherGitlinksPreserved": true,
+  "manifestGatePassed": true,
+  "newerMappedJoinIntegrationExcluded": "97ed8a080e0df7f1918b42a500d694e47e1d0026",
+  "deployed": false,
+  "producerSource": "294ee54e177f1b60665610d36937a48cc6ffcaf3",
+  "preservedDevelopmentDocPaths": [
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv"
+  ],
+  "runtimeSourceEquivalentToQualifiedProducer": true
+}

@@ -1,0 +1,22 @@
+{
+  "featureBase": "82b143f2520489cd6a87448e6c3524258809c964",
+  "incomingDevelopment": "d74ceb6d3e770691ef97b94a204adc4a3f96b855",
+  "incomingPaths": [
+    "Docs/WIP/HyperDrive-Providers/CURRENT_STATUS.md",
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WORKER_STATUS_SOURCE_2026-11-23.json",
+    "Docs/WIP/HyperDrive-Providers/LATEST_FULL_STATUS_2026-11-22.json",
+    "Docs/WIP/HyperDrive-Providers/SESSION_HTTP_FIXTURE_CORRECTION_2026-11-23.json",
+    "Docs/WIP/HyperDrive-Providers/WORKSPACE_CLEANUP_LEDGER.md",
+    "Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/Subscription/SubscriptionEndpointsTests.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/HyperDriveController.Status.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/HyperDriveController.cs"
+  ],
+  "incomingPathsBytePreserved": true,
+  "retainedNativeSource": "f9034c48148d96192fec80acf233d46816f3adde",
+  "nativeCqlCodeAndCoreUnchanged": true,
+  "statusRun": 45098982294,
+  "source": "6a72983a4471bef865c6f4d59fd6de118a4f4360",
+  "priorImage": 45100152027,
+  "developmentPushed": false
+}

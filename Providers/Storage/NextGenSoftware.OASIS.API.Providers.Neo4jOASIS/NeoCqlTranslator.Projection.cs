@@ -19,6 +19,14 @@ internal sealed partial class NeoCqlTranslator
     {
         if (column == null) throw new System.ArgumentNullException(nameof(column));
         if (column.Function == CosmicProjectionFunction.None) return TranslateProjectionPath(column.Path);
+        if(column.IsUtcDatePart)
+        {
+            if(column.Path.ValueType!=typeof(System.DateTime) || (System.Nullable.GetUnderlyingType(column.ValueType)??column.ValueType)!=typeof(int))
+                throw new System.NotSupportedException("UTC date parts require DateTime input and Int32 output.");
+            var utcSource=TranslateProjectionPath(column.Path);
+            return (utcSource.State,"CASE WHEN ("+utcSource.State+")=2 THEN "+
+                NeoCqlUtcDateParts.Value(column.Function,"datetime("+utcSource.Value+")")+" ELSE null END");
+        }
         if (column.Function == CosmicProjectionFunction.BooleanTextCase)
         {
             if(column.Path.ValueType != typeof(bool) || column.ValueType != typeof(string)

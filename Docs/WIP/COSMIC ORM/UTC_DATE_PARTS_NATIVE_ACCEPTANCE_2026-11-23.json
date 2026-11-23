@@ -1,0 +1,97 @@
+{
+  "source": "45be96d1556a48ee3235d230cc2ccfd9494c9743",
+  "core": "dc88abf6a615fc5b5c06b6cd4871683d23e43081",
+  "run": 45092822579,
+  "job": 137425988907,
+  "artifact": 14781829803,
+  "archiveBytes": 2902,
+  "archiveSha256": "610f6a0ee03560fc68f3e5b603c6f691ab4c90775882681224f85df13e8b0364",
+  "passed": 3,
+  "failed": 0,
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 4,
+      "ownedCleanupIds": 4,
+      "successfulHolonWrites": 4,
+      "queryElapsedMilliseconds": {
+        "create-owned-dates": 617,
+        "create-hidden-date": 29,
+        "date-part-family": 158,
+        "nullable-date-part": 11,
+        "selected-date-part": 141,
+        "required-missing-date": 27
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "datePartsVerified": true,
+        "submillisecondBoundaryPreserved": true,
+        "nullableMissingPreserved": true,
+        "selectedCompositionVerified": true,
+        "requiredMissingRefused": true,
+        "foreignRowsHidden": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 4,
+      "ownedCleanupIds": 4,
+      "successfulHolonWrites": 4,
+      "queryElapsedMilliseconds": {
+        "create-owned-dates": 920,
+        "create-hidden-date": 33,
+        "date-part-family": 43,
+        "nullable-date-part": 3,
+        "selected-date-part": 43,
+        "required-missing-date": 8
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "datePartsVerified": true,
+        "submillisecondBoundaryPreserved": true,
+        "nullableMissingPreserved": true,
+        "selectedCompositionVerified": true,
+        "requiredMissingRefused": true,
+        "foreignRowsHidden": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 4,
+      "ownedCleanupIds": 4,
+      "successfulHolonWrites": 4,
+      "queryElapsedMilliseconds": {
+        "create-owned-dates": 1182,
+        "create-hidden-date": 471,
+        "date-part-family": 7053,
+        "nullable-date-part": 848,
+        "selected-date-part": 1463,
+        "required-missing-date": 1122
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "datePartsVerified": true,
+        "submillisecondBoundaryPreserved": true,
+        "nullableMissingPreserved": true,
+        "selectedCompositionVerified": true,
+        "requiredMissingRefused": true,
+        "foreignRowsHidden": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "scopedNativeAccepted": true,
+  "fullWorkflowAccepted": false,
+  "wireAccepted": false,
+  "actualWeb4Compiled": false,
+  "sourceManifestGatePassed": true,
+  "sourceJsonAbsentBecauseLaterGateFailed": true,
+  "laterFailure": "root unit-test callers still used renamed SelectChildEntity helper",
+  "ownedFixturesAbsent": true,
+  "ownedMongoStopped": true,
+  "sharedDatabaseCalls": 0,
+  "archiveSavedToDisk": false,
+  "deployed": false
+}

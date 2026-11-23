@@ -42,6 +42,15 @@ internal static class NeoCqlDate
     // UTC text retains 100ns precision; a zoned native instant has an exact epoch.
     // Local datetimes have no UTC meaning and are not inferred from server locale.
     internal static string NativeTicks(string input, Func<object, string> bind)
+        => NativeValue(input,bind,instant=>{
+        // The decimal digits form integer ticks; no floating epoch conversion or
+        // integer division rule can discard the last representable fraction.
+        var fraction = "toInteger(substring(right('000000000'+toString(" + instant + ".nanosecond),9),0,7))";
+        var ticks = "(" + instant + ".epochSeconds*10000000+621355968000000000+" + fraction + ")";
+            return ticks;
+        });
+
+    private static string NativeValue(string input,Func<object,string> bind,Func<string,string> select)
     {
         const string source = "nativeUtcSource";
         const string instant = "nativeUtcInstant";
@@ -51,12 +60,20 @@ internal static class NeoCqlDate
             + " THEN datetime(" + source + ") ELSE null END ELSE null END";
         var domain = instant + " IS NOT NULL AND " + instant + ".epochSeconds >= -62135596800"
             + " AND " + instant + ".epochSeconds <= 253402300799 AND " + instant + ".nanosecond % 100 = 0";
-        // The decimal digits form integer ticks; no floating epoch conversion or
-        // integer division rule can discard the last representable fraction.
-        var fraction = "toInteger(substring(right('000000000'+toString(" + instant + ".nanosecond),9),0,7))";
-        var ticks = "(" + instant + ".epochSeconds*10000000+621355968000000000+" + fraction + ")";
+        var selected=select(instant);
         return "head([" + source + " IN [" + input + "] | head([" + instant + " IN [" + temporal
-            + "] | CASE WHEN " + domain + " THEN " + ticks + " ELSE null END])])";
+            + "] | CASE WHEN " + domain + " THEN " + selected + " ELSE null END])])";
+    }
+
+    internal static string NativePartCell(string input,Core.Queries.CosmicProjectionFunction function,Func<object,string> bind)
+    {
+        var selected=NativeValue(input,bind,instant=>{
+            var utc="datetime({epochSeconds:"+instant+".epochSeconds,nanosecond:"+instant+".nanosecond,timezone:'UTC'})";
+            return NeoCqlUtcDateParts.Value(function,utc);
+        });
+        return "head([nativeUtcOutputPart IN ["+selected+
+            "] | {s:CASE WHEN "+input+" IS NULL THEN 0 WHEN nativeUtcOutputPart IS NOT NULL THEN 2 ELSE 3 END,"+
+            "b:8,v:nativeUtcOutputPart}])";
     }
 
     internal static string NativeCell(string input, Func<object, string> bind)

@@ -1,0 +1,103 @@
+{
+  "source": "ed9a5f064d05be25336fed3ad6ddae914ed2e056",
+  "core": "e7402f4f2f14e9a7f628026efde79180c376f815",
+  "run": 45089665626,
+  "job": 137416127653,
+  "artifact": 14781131579,
+  "archiveBytes": 3439,
+  "archiveSha256": "a4f7d59d2f8f024492a5edaa43b95b7b0453819f91de44df82763b485060f811",
+  "passed": 3,
+  "failed": 0,
+  "reports": {
+    "MongoDBOASIS": {
+      "checks": 8,
+      "ownedIds": 1,
+      "writes": 2,
+      "evidence": {
+        "aliasStoredWithoutClrKey": true,
+        "freshTypedReadVerified": true,
+        "nativePredicateProjectionVerified": true,
+        "selectedUpdateVerified": true,
+        "typedIdentityGroupsVerified": true,
+        "typedJoinEntitiesVerified": true,
+        "typedMappedGroupJoinVerified": true,
+        "unmatchedTypedGroupVerified": true,
+        "collisionAndReservedRefusedBeforeGetters": true
+      },
+      "singleJourneyElapsedMilliseconds": {
+        "create-mapped": 561,
+        "load-mapped": 90,
+        "project-mapped": 59,
+        "update-mapped": 49,
+        "reload-mapped": 5,
+        "typed-mapped-groups": 60,
+        "typed-mapped-join": 94,
+        "typed-mapped-groupjoin": 37,
+        "typed-mapped-unmatched-group": 22
+      }
+    },
+    "SQLLiteDBOASIS": {
+      "checks": 8,
+      "ownedIds": 1,
+      "writes": 2,
+      "evidence": {
+        "aliasStoredWithoutClrKey": true,
+        "freshTypedReadVerified": true,
+        "nativePredicateProjectionVerified": true,
+        "selectedUpdateVerified": true,
+        "typedIdentityGroupsVerified": true,
+        "typedJoinEntitiesVerified": true,
+        "typedMappedGroupJoinVerified": true,
+        "unmatchedTypedGroupVerified": true,
+        "collisionAndReservedRefusedBeforeGetters": true
+      },
+      "singleJourneyElapsedMilliseconds": {
+        "create-mapped": 506,
+        "load-mapped": 45,
+        "project-mapped": 11,
+        "update-mapped": 30,
+        "reload-mapped": 5,
+        "typed-mapped-groups": 22,
+        "typed-mapped-join": 18,
+        "typed-mapped-groupjoin": 7,
+        "typed-mapped-unmatched-group": 5
+      }
+    },
+    "Neo4jOASIS": {
+      "checks": 8,
+      "ownedIds": 1,
+      "writes": 2,
+      "evidence": {
+        "aliasStoredWithoutClrKey": true,
+        "freshTypedReadVerified": true,
+        "nativePredicateProjectionVerified": true,
+        "selectedUpdateVerified": true,
+        "typedIdentityGroupsVerified": true,
+        "typedJoinEntitiesVerified": true,
+        "typedMappedGroupJoinVerified": true,
+        "unmatchedTypedGroupVerified": true,
+        "collisionAndReservedRefusedBeforeGetters": true
+      },
+      "singleJourneyElapsedMilliseconds": {
+        "create-mapped": 1586,
+        "load-mapped": 600,
+        "project-mapped": 428,
+        "update-mapped": 53,
+        "reload-mapped": 9,
+        "typed-mapped-groups": 583,
+        "typed-mapped-join": 1243,
+        "typed-mapped-groupjoin": 1111,
+        "typed-mapped-unmatched-group": 19
+      }
+    }
+  },
+  "compiled": true,
+  "nativeAccepted": true,
+  "ownedFixturesAbsent": true,
+  "ownedMongoStopped": true,
+  "sharedDatabaseCalls": 0,
+  "artifactSavedToDisk": false,
+  "deployed": false,
+  "fullModelMappingParity": false,
+  "fullFluentModelBuilderImplemented": false
+}

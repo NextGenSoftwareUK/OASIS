@@ -139,7 +139,19 @@ public partial class MongoDBOASIS : INativeDataProjectionQueryProvider
 
     private static BsonValue NativeProjectionCellExpression(NativeProjectionColumn column)
     {
-        if (column.InputType == typeof(DateTime)) return MongoNativeUtcDate.Cell("$" + column.Field);
+        if (column.InputType == typeof(DateTime))
+        {
+            var dateCell=MongoNativeUtcDate.Cell("$"+column.Field);
+            if(!column.UtcDatePart.HasValue)return dateCell;
+            const string name="nativeUtcDatePartCell";
+            const string dateCellValue="$$"+name;
+            return new BsonDocument("$let",new BsonDocument{
+                {"vars",new BsonDocument(name,dateCell)},
+                {"in",new BsonDocument{
+                    {"s",dateCellValue+".s"},{"b",8},
+                    {"v",ProjectionCondition(ProjectionOperation("$eq",dateCellValue+".s",2),
+                        MongoCqlTranslator.UtcDatePartFromTicks(column.UtcDatePart.Value,dateCellValue+".v"),BsonNull.Value)}}}});
+        }
         var expected = column.InputType == typeof(string) ? "string" : column.InputType == typeof(bool) ? "bool"
             : column.InputType == typeof(int) ? "int" : column.InputType == typeof(double) ? "double" : "long";
         BsonValue domain = column.InputType == typeof(Guid)

@@ -1,0 +1,26 @@
+{
+  "source": "294ee54e177f1b60665610d36937a48cc6ffcaf3",
+  "core": "048b02d54870e793de8f18439ff8f00950ad3547",
+  "web6": "c214296e8b8cfde671466a5a82e24d5fc83f9509",
+  "onodeCore": "1b28ed0436173b827e58b75a3bb5a99c1bb661ec",
+  "run": 45087879394,
+  "job": 137410514115,
+  "digest": "sha256:fd3f527700a5a570c618b84e164eda13c19657411c1261a67365de8a2f38fa2c",
+  "teachingSidecars": false,
+  "exactPrivatePinsVerified": true,
+  "contractQualifiedSource": "2b369e2c273dfe35ea715820484e289353ae97dc",
+  "contractRun": 45086766670,
+  "reviewedQualifiedSourceDelta": [
+    "Docs/Devs/COSMIC_MODEL_MAPPING.md",
+    "Docs/WIP/COSMIC ORM/CURRENT_STATUS.md",
+    "Docs/WIP/COSMIC ORM/FULL_STATUS_REPORT_2026-11-22.md",
+    "Docs/WIP/COSMIC ORM/MODEL_METADATA_ALIAS_IMAGE_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/MODEL_METADATA_ALIAS_PACKAGE_ACCEPTANCE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/MODEL_METADATA_ALIAS_RELEASE_CANDIDATE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md",
+    "Docs/WIP/COSMIC ORM/TYPED_MODEL_GROUP_NATIVE_ACCEPTANCE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/TYPED_MODEL_GROUP_SOURCE_PREPARATION_2026-11-22.json"
+  ],
+  "deployed": false,
+  "imageDownloadedLocally": false
+}

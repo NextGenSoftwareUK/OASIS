@@ -64,7 +64,7 @@ public sealed class CosmicJoinResultsTests
     public void ChildEntityMustMatchNativeSourceProof(string mismatch)
     {
         var source=CosmicQuery<Holon>.Create().WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(Actor).Result).Result;
-        var query=source.JoinChildren(source).Result.SelectChildEntity<Holon,Holon,Guid,Holon>().Result;
+        var query=source.JoinChildren(source).Result.SelectRightEntity<Holon,Holon,Guid,Holon>().Result;
         var child=new Holon
         {
             Id=mismatch=="identity" ? R2 : R1,
@@ -89,14 +89,14 @@ public sealed class CosmicJoinResultsTests
         var child=new Holon{Id=R1,ParentHolonId=L1,IsPublic=true,CreatedByAvatarId=Actor,Name=new string('x',256)};
         var packet=new CosmicJoinPacket(new[]{Input(L1,L1)},new[]{Input(R1,L1)},
             new[]{new CosmicJoinRow(L1,R1)},1,1,1,new[]{child});
-        var complete=source.JoinChildren(source).Result.SelectChildEntity<Holon,Holon,Guid,Holon>().Result;
+        var complete=source.JoinChildren(source).Result.SelectRightEntity<Holon,Holon,Guid,Holon>().Result;
         var detached=CosmicJoinResults.Materialize(complete,packet);
         detached.IsError.Should().BeFalse(detached.Message);
         detached.Result.Single().Value.Should().NotBeSameAs(child);
         detached.Result.Single().Value.Name.Should().Be(child.Name);
 
         var bounds=CosmicJoinOptions.Create(maximumPayloadBytes:128).Result;
-        var bounded=source.JoinChildren(source,bounds).Result.SelectChildEntity<Holon,Holon,Guid,Holon>().Result;
+        var bounded=source.JoinChildren(source,bounds).Result.SelectRightEntity<Holon,Holon,Guid,Holon>().Result;
         CosmicJoinResults.Materialize(bounded,packet).ErrorCode.Should().Be("CQL_RESULT_LIMIT");
     }
 

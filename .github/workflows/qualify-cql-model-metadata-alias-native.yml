@@ -85,9 +85,9 @@ jobs:
             if ($report.TestRun.ResultSummary.Counters.passed -ne '3' -or $report.TestRun.ResultSummary.Counters.total -ne '3') { throw 'All three native selected-column HTTP journeys must pass' }
             foreach ($store in 'MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS') {
               $e=Get-Content "TestResults/Neo4jCurrent/$store-model-metadata-alias-native.json" -Raw | ConvertFrom-Json
-              if ($e.provider -ne $store -or $e.checks -ne 5 -or $e.ownedCleanupIds -ne 1 -or $e.successfulHolonWrites -ne 2 -or @($e.queryElapsedMilliseconds.PSObject.Properties).Count -ne 6) { throw 'Incomplete native report' }
+              if ($e.provider -ne $store -or $e.checks -ne 8 -or $e.ownedCleanupIds -ne 1 -or $e.successfulHolonWrites -ne 2 -or @($e.queryElapsedMilliseconds.PSObject.Properties).Count -ne 9) { throw 'Incomplete native report' }
               if($e.nativeProviderVerified -ne $true -or $e.exactCleanupVerified -ne $true){throw 'Native fixture/cleanup acknowledgement missing'}
-              foreach ($name in 'aliasStoredWithoutClrKey','freshTypedReadVerified','nativePredicateProjectionVerified','selectedUpdateVerified','typedIdentityGroupsVerified','collisionAndReservedRefusedBeforeGetters') {
+              foreach ($name in 'aliasStoredWithoutClrKey','freshTypedReadVerified','nativePredicateProjectionVerified','selectedUpdateVerified','typedIdentityGroupsVerified','typedJoinEntitiesVerified','typedMappedGroupJoinVerified','unmatchedTypedGroupVerified','collisionAndReservedRefusedBeforeGetters') {
                 if ($e.evidence.$name -ne $true) { throw "Missing native proof $name" }
               }
             }
@@ -95,7 +95,7 @@ jobs:
           $source=(git rev-parse HEAD).Trim()
           if($source -ne $env:GITHUB_SHA){throw 'Qualification source mismatch'}
           $core=(git -C "OASIS Architecture/NextGenSoftware.OASIS.API.Core" rev-parse HEAD).Trim()
-          @{source=$source;core=$core;nativePassed=3;metadataAliasMappingVerified=$true;typedMappedGroupsVerified=$true;ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content TestResults/Neo4jCurrent/source.json -Encoding utf8
+          @{source=$source;core=$core;nativePassed=3;metadataAliasMappingVerified=$true;typedMappedGroupsVerified=$true;typedMappedJoinsVerified=$true;ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content TestResults/Neo4jCurrent/source.json -Encoding utf8
       - name: Stop owned Mongo
         if: always()
         run: docker rm -f -v cql-where-mongo
