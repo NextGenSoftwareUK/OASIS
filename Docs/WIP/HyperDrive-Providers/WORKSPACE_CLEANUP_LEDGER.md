@@ -2973,3 +2973,5 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 - 2026-11-23 parent publication6bbbae4b: private .git-oportal-publish-index and lock removed in finally, no new environments/builds/downloads/results. Remote seven dev rollouts pending. Exact prior8038byte cache remains policy-blocked. Immutable source/evidence retained.
 
 - 2026-11-23 account-review browser preparation: source/Node syntax/diff only, no local builds/envs/downloads/databases/results. Existing exact remote rollout handles retained; no service restart or configuration change.
+
+- 2026-11-23 branch-history inspection: one bounded16commit fetch of Development/task branches; Git source/history objects retained as required. No worktree/env/build/download archive/database/results or checkout change. Four pre-existing dirty gitlinks preserved. Prior policy-blocked8038-byte cache remains separately recorded.
