@@ -214,11 +214,16 @@ async function run(){
         const capture=await evaluate("window.CqlText.compile(document.getElementById('cql-text').value.replaceAll('MongoDBOASIS',"+JSON.stringify(identity)+"))");
         const body=capture?.body;
         if(capture?.path!=='data/query-cql/set'||body?.provider!==identity||body.kind!=='Union'||
-           body.take!==5||body.left.columns!==undefined||body.right.columns!==undefined||
+           body.take!==25||body.left.columns!==undefined||body.right.columns!==undefined||
            !isDeepStrictEqual(body.outputColumns,[{field:'Name',alias:'Label'},{field:'Id',alias:'Id'}])||
-           !isDeepStrictEqual(body.ordering,[{field:'Id',descending:false}]))
+           !isDeepStrictEqual(body.ordering,[{field:'Id',descending:false}])||
+           !isDeepStrictEqual(body.entityStages?.map(stage=>stage.operation),['Where','OrderBy','Take'])||
+           body.entityStages[0].where?.filter?.field!=='Version'||
+           body.entityStages[0].where.filter.value!==1||
+           !isDeepStrictEqual(body.entityStages[1].ordering,[{field:'Name',descending:true}])||
+           body.entityStages[2].count!==5)
           throw Error('Real editor changed entity identity, late selection or its combined window');
-        report.lateEntitySetCompilerCaptures.push({provider:identity,kind:body.kind,take:body.take,outputColumns:body.outputColumns});
+        report.lateEntitySetCompilerCaptures.push({provider:identity,kind:body.kind,take:body.take,outputColumns:body.outputColumns,entityStages:body.entityStages});
       }
       await evaluate("document.querySelector('button[data-tab=ask]').click();true");
       const ask=await evaluate("(()=>{const q=document.getElementById('ask-question');q.value='Combine active or version2 records, retaining different records with equal names, then show Name and Id.';return {visible:q.getClientRects().length>0,initialized:!!window.cqlAsk}})()");
@@ -227,6 +232,7 @@ async function run(){
       report.visibleAskQuestionVerified=true;
       report.web6DraftRequested=false;
       report.staticLateEntitySelectionVerified=true;
+      report.staticOrderedEntitySetStagesVerified=true;
       report.advancedExamplesReplayed=false;
     }else{
       const names=['YEAR','MONTH','DAY','DAYOFYEAR','HOUR','MINUTE','SECOND'];
