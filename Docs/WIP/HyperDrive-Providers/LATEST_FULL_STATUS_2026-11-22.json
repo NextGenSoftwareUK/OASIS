@@ -6,20 +6,19 @@
     "taskWorktree": "C:/Source/OASIS2-hyperdrive",
     "portalBranch": "dev",
     "portalHead": "61b7c77d94660e1934dd6b590cc37ccb1bfd7546",
-    "reviewedDevelopment": "91e3ad17428c524eff8cc990f95491ff0f4ecf6c",
-    "currentCore": "def8cf76c73ed6495155dd16077a58030af33067",
+    "reviewedDevelopment": "4b8d3923c7b5c2f51e434dbd8d2104ffa41dc68e",
+    "currentCore": "ef05dbecb1428a91da53abdcfab39bf2d55aa51b",
     "currentWeb6": "78a27a295e74721358eb2b02399f79eff5b21633",
-    "scope": "Latest selected source review, not current running deployment acceptance. Peer CQL Development91e3 preserved in candidate; last independent selected WEB4 SSH observation was b2/all3holds true. No shared auth/data probes.",
+    "scope": "Fresh verified CQL source preserved; source review does not claim current running deployment or new profile acceptance. No shared auth/data probes.",
     "currentQualification": {
-      "root": "e1cf13421bd8acd707d9cda49d2952b01240f2ab",
-      "core": "cb1c50c24ac8520be6f328bca08e48e04737854b",
+      "root": "daf058b51c6f4251d99415c3a002691e36895e53",
+      "core": "271603c32f13345cebd350b557f7c6bd10ab9d04",
       "star": "ffd7fe494e1aacec50315baadff38273c88b8a11",
-      "run": 45190600949,
-      "status": "native profile HTTP and exact shipping package accepted; packaged profile form hydration failed, diagnostic45198313230 active",
-      "job": 137747613185,
-      "imageRun": 45192295272,
-      "image": "sha256:3f53e88890c5cc34c01f5db574e2ef604d1db239479d94055a0a0cd13456ae89",
-      "packageRun": 45196807788
+      "status": "fresh source inventory accepted; exact image45205685460 active; changed nullable profile Startup pending",
+      "imageRun": 45205685460,
+      "sourceInventoryRun": 45205072942,
+      "retainedNativeProfileRun": 45190600949,
+      "retainedPopulatedCatalogueRun": 45196340465
     },
     "retainedNftQualification": {
       "root": "5442d4e9de89231a5a4bebe77c44374ab0920001",
@@ -704,7 +703,7 @@
     "remaining": "All named wider portal/action/provider/paid Stripe work remains open"
   },
   "currentDeliveryGaps20261123": {
-    "profile": "New exact image/package source hashes and 5 assemblies verified45196807788. Real Startup sign-in/profile GET200 succeeds but form hydration failed before edit. Same-image diagnostic45198313230 active with bounded status/field-name/revision flags, no API rebuild. Native451906 GET/PATCH/GET retained; no Development delivery yet.",
+    "profile": "Null address omission confirmed45198313230; snapshot HTTP serializer repair prepared. Newly published4b8/ef05 CQL merged cleanly into daf058/271603; source inventories reviewed, exact image45205685460 building. Older91e-based45199130351 cancelled as superseded. No new deployment or nullable Startup acceptance yet.",
     "oapp": "Populated canonical OAPP+child creation, independent default-shallow/explicit-deep selection and Map/Launcher filter/detail/browse/close passed45196340465/artifact14830060049. Existing persisted serialized graph relationship edits remain open. New backend source not published to Development yet.",
     "breadth": "Admin seven source-specific native/browser scopes and unchanged 51-event Karma Ledger evidence retained in screen matrix. No duplicate unchanged matrices. Whole portal/paid Stripe/provider/HyperDrive completion remains unproven."
   }
