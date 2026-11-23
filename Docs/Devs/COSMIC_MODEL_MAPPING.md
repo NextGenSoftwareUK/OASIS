@@ -59,3 +59,7 @@ schema migrations, and unrestricted POCO mapping remain separate roadmap work.
 Full/virtual/hybrid source policies govern where data resides; this attribute
 defines a CLR property's Holon metadata key and does not introduce a new import
 or virtual-source lifecycle.
+
+## Typed identity groups
+
+Mapped scalar properties also work as grouping keys. Group members are hydrated through the same typed materialization pipeline as flat queries, preserving metadata aliases and session identity observation. The three native provider journeys verify this integration after a tracked mapped-field update. This does not claim full fluent-model or unrestricted grouping parity.
