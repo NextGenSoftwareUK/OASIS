@@ -1,6 +1,6 @@
 {
   "date": "2026-11-20",
-  "status": "source and actual WEB4 build passed; browser/API/supervisor runtime acceptance pending",
+  "status": "current composed WEB4 and supervisor builds accepted; real bridge/browser/delivery pending",
   "portalCommit": "2243c787da227ceebfba780fe35326f2c421832c",
   "remoteExactFiles": 4,
   "nodeSyntax": "pass, stdin",
@@ -57,12 +57,12 @@
         "awaited broadcasts and owned live-socket removal"
       ],
       "newRepair": "Local provider read uses one named managed HTTP client registered unconditionally and authenticates from the same existing .oasis/supervisor-token store as the shipping SupervisorClient. Missing/empty/unreadable credential and unavailable service produce visible failure; no secret copied to source/DNA/logs.",
-      "status": "inventory reviewed; combined current API/supervisor compile active, no runtime or deployment acceptance",
+      "status": "current source inventory and both actual builds accepted; runtime/browser/deployment pending",
       "remaining": [
-        "Compile and qualify changed API/service source against real endpoints",
+        "Real protected API/supervisor/command/browser acceptance",
         "Non-secret remote configuration and individual peers",
         "Native provider DNA schema/source owner",
-        "Full user account connection/refresh lifecycle and deployment"
+        "Full account connection/refresh lifecycle and deployment"
       ],
       "commandWireRepair": {
         "module": "81d37fd8cb2046cededc07fed818f357845db578",
@@ -88,8 +88,13 @@
           "WEB4",
           "ONODESUPERVISOR"
         ],
-        "status": "active",
-        "limits": "one provider build lease, m:2, no node reuse/shared compilation, no local environment or runtime test"
+        "status": "success",
+        "limits": "one provider build lease, m:2, no node reuse/shared compilation, no local environment or runtime test",
+        "web4BuildErrors": 0,
+        "supervisorBuildErrors": 0,
+        "web4Elapsed": "00:06:11.96",
+        "supervisorElapsed": "00:00:04.87",
+        "scope": "Actual current WEB4 and ONODE Service projects compiled in one bounded lease. No mock/native/browser/shared-service or deployment acceptance inferred."
       },
       "inventoryReview": {
         "run": 45204381673,
