@@ -1,6 +1,6 @@
 {
   "date": "2026-11-23",
-  "status": "checkout source fixed; same browser journey pending replacement run",
+  "status": "callback contract corrected; browser acceptance pending",
   "scope": "Optional sessionBrowser descriptor flag enables exact pinned Portal assets and existing owned Chromium runtime. General native run remains unchanged unless opted in.",
   "flow": [
     "Issue two actual Mongo credentials through real password endpoint.",
@@ -22,5 +22,13 @@
     "cause": "Two committed Settings browser fixture files omitted from qualification-control sparse checkout.",
     "fix": "Explicitly include both fixtures in the existing limited checkout.",
     "cleanup": "Owned native fixture removal and owned browser runtime/cache removal both SUCCESS."
+  },
+  "secondRun": {
+    "id": 45092519963,
+    "job": 137425049453,
+    "conclusion": "compile failure before native/browser execution",
+    "error": "CS1503: Login returns JToken; browser callback declared JObject",
+    "correction": "Use the actual JToken contract consistently in callback and SID helper.",
+    "cleanup": "Owned native fixture and browser runtime/cache removal both SUCCESS."
   }
 }

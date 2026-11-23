@@ -24,7 +24,7 @@ internal static class GlobalSessionHttpQualification
         Guid actor, string username, string password,
         NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionCheckoutJournal checkoutJournal, IMongoDatabase ownedDatabase,
         AccountClosureAdmissionService closureService, Guid closureActor, bool verifyBillingAdmission = true,
-        Func<JObject, JObject, Task>? verifySessionBrowser = null)
+        Func<JToken, JToken, Task>? verifySessionBrowser = null)
     {
         const string ownedUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Check(Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") == ownedUri, "Exact owned Mongo fixture required.");

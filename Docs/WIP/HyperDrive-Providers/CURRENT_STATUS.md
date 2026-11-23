@@ -1,3 +1,7 @@
+## 2026-11-23 - Settings host callback type corrected
+
+45092519963/job137425049453 failed compilation7m04.64: callback expected JObject but actual Login helper returns JToken. Corrected callback and SID reader to that actual contract. Both owned native fixture and browser runtime/cache cleanup steps SUCCESS. No browser/native claim; earlier general session acceptance45091356813 retained. Public dev Settings script contains the new assessment review; remote/local differ only CRLF normalization, not source content.
+
 ## 2026-11-23 - Current shared source composed without checkout changes
 
 Prepared rootb71528fb/Core6df988c8/WEB678a27a29 preserves Development721f3313 mapped grouping and own session authority/MFA/provider source. Module source merges clean; root conflicts resolved only in those gitlinks and paired manifest, exact pins verified. Immutable tags pushed; not built/accepted/deployed or selected for active browser run45092519963. Physical checkouts unchanged.

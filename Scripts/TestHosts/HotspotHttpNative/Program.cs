@@ -399,7 +399,7 @@ try
         await GlobalSessionHttpQualification.RunAsync(http, provider, dna, actor, accounts[0].Username, mfaPassword, billingRepository!, client.GetDatabase(database),
             app.Services.GetRequiredService<AccountClosureAdmissionService>(), accounts[2].Id, verifyBillingAdmission: false,
             verifySessionBrowser: sessionBrowser ? async (current, independent) => {
-                string SessionId(Newtonsoft.Json.Linq.JObject credentials) => new JwtSecurityTokenHandler()
+                string SessionId(Newtonsoft.Json.Linq.JToken credentials) => new JwtSecurityTokenHandler()
                     .ReadJwtToken(credentials.Value<string>("jwtToken")).Claims.Single(claim => claim.Type == NextGenSoftware.OASIS.API.Core.Helpers.AvatarSessionIdentity.SessionClaim).Value;
                 await RunOwnedBrowserAsync(new { baseUrl = address, token = current.Value<string>("jwtToken"), avatarId = actor.ToString("D"),
                     currentSessionId = SessionId(current), independentSessionId = SessionId(independent) }, "sessionSettingsBrowserVerified");
