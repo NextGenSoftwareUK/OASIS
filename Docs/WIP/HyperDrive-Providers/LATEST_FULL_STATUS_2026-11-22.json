@@ -751,5 +751,27 @@
       "maintenance": true
     },
     "scope": "Selected WEB4 running environment fields and WEB4/WEB5 deployment metadata only; no shared database/auth traffic or hosted browser acceptance."
+  },
+  "latestOnodeTransport20261123": {
+    "modeRoutingRun": {
+      "run": 45216379653,
+      "job": 137838543842,
+      "status": "success",
+      "source": "5f1152f1028ee8e12d6aec3f2202016bdda7320c",
+      "scope": "Actual supervisor/command executor; distinct modern/legacy switch values and ordered provider lists from canonical mode owner; cleanup acknowledged."
+    },
+    "publicHttpRun": {
+      "run": 45217372769,
+      "job": 137842078963,
+      "status": "in_progress",
+      "source": "40d0574d5e27273bd3f907ff8513f6560ff3245b",
+      "onodeManager": "79d464b70af73f9b37a4b68ca4aa088622436d4e",
+      "scope": "Actual MVC loopback server and shipping SupervisorClient, authenticated public projection, denial, acknowledged rotation and malformed-config error."
+    },
+    "remaining": [
+      "Real WEB4 bridge/command polling and browser",
+      "Canonical provider-control schema and actual saved-versus-applied behavior",
+      "Full ONODE and OPORTAL acceptance"
+    ]
   }
 }
