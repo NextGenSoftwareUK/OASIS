@@ -1,0 +1,33 @@
+{
+  "source": "734f43904b2c60a78225991b1493532fb281445d",
+  "core": "def8cf76c73ed6495155dd16077a58030af33067",
+  "web6": "78a27a295e74721358eb2b02399f79eff5b21633",
+  "onode": "8745c95ef2f6150fafb1417122a20c020784b338",
+  "run": 45184591500,
+  "job": 137726794491,
+  "controlSource": "734f43904b2c60a78225991b1493532fb281445d",
+  "digest": "sha256:2b4d4abd96e201980624bed4f835d9301e77f3bdb2577c78d3c9916381ea6731",
+  "teachingSidecars": false,
+  "exactPrivatePinsVerified": true,
+  "numericNativeRun": 45183982238,
+  "retainedNativeFamilies": {
+    "async-element": {
+      "run": 45178767147,
+      "source": "d8b4d2e9fa3eced6817d09a7d2b1a95d672f2ee9",
+      "core": "398e76998160e3b95f000f639087da30f283a771",
+      "nativeAccepted": true
+    },
+    "async-cardinality": {
+      "run": 45181628686,
+      "source": "3786d21c88f74c0ca334c4c9e2a4e0448db4edae",
+      "core": "fb4a0821546143390e55cc44d2f23ac4a14ee4be",
+      "nativeAccepted": true
+    }
+  },
+  "dependencyRun": 45183981993,
+  "imageAccepted": true,
+  "combinedCoreCompiled": true,
+  "imageDownloadedLocally": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T13:41:39.134827+00:00"
+}

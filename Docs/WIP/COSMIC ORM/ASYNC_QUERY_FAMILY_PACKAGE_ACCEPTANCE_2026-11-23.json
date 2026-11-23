@@ -1,0 +1,38 @@
+{
+  "run": 45186886700,
+  "job": 137734732896,
+  "controlSource": "b0411e7730e5b0920abab55810d237d4c5f76021",
+  "artifact": 14824097038,
+  "archiveBytes": 774,
+  "archiveSha256": "12c1bdfba042822dd659503fc40c1e04205054fa5985337738ec1103a987d999",
+  "acknowledged": {
+    "source": "734f43904b2c60a78225991b1493532fb281445d",
+    "image": "ghcr.io/nextgensoftwareuk/oasis-web4@sha256:2b4d4abd96e201980624bed4f835d9301e77f3bdb2577c78d3c9916381ea6731",
+    "profile": "cql-api",
+    "tag": "ghcr.io/nextgensoftwareuk/oasis-web4:734f43904b2c60a78225991b1493532fb281445d",
+    "imageId": "sha256:2b4d4abd96e201980624bed4f835d9301e77f3bdb2577c78d3c9916381ea6731",
+    "expectedHashes": {
+      "/app/host-sandbox-ipfs.cjs": "5f34b462e6d1197e3fc53add782ee14f73d70a351bc45cfa1d6e8ca20e8064c2"
+    },
+    "checks": {
+      "packagedSourceHashes": true,
+      "assemblies": 5,
+      "tronReaderPackaged": false,
+      "urbitReaderPackaged": false,
+      "infuraReaderPackaged": false,
+      "modelVersions": [],
+      "modelHashes": false,
+      "cqlRuntimeGraphVerified": true,
+      "apiQualified": false
+    },
+    "liveDeployment": false
+  },
+  "cleanup": {
+    "ownedContainerAbsent": true,
+    "dataWrites": 0
+  },
+  "packageAccepted": true,
+  "startupAccepted": false,
+  "liveAccepted": false,
+  "archiveSaved": false
+}
