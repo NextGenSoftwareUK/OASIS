@@ -1,8 +1,8 @@
 ﻿// AvatarController.cs — ARCHIVED
 // The active endpoints have been moved to:
 //   AvatarAuthController.cs      — register, verify-email, authenticate, tokens, passwords
-//   AvatarProfileController.cs   — CRUD, portrait, detail, search, karma, update, delete, UMA, XP, quest
-//   AvatarAdminController.cs     — session management, inventory management
+//   AvatarProfileController.cs   — CRUD, portrait, detail, search, karma, update, delete, UMA, XP, quest, inventory
+//   AvatarSessionController.cs   — session management
 // This file retains only commented-out legacy code pending full removal.
 
         ///// <summary>
