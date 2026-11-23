@@ -1,0 +1,21 @@
+{
+  "source": "8127af04e98364b42134b3a139919c8b998a8a5e",
+  "core": "2fd96cc38209f9a388b977469399a966bde2173d",
+  "web6": "78a27a295e74721358eb2b02399f79eff5b21633",
+  "run": 45097119097,
+  "job": 137439289309,
+  "controlSource": "ced53621e4f6c070eb1b5ecc68f4a3c1f7a3831b",
+  "digest": "sha256:3b84a1cfd26fcc82a8c5c64bc4c47182bf2aba69175cd542bc91856330d93d99",
+  "teachingSidecars": false,
+  "exactPrivatePinsVerified": true,
+  "incomingDevelopmentPreserved": "6bbbae4be199eef55856df32476db5684ee05073",
+  "compositionCoreProof": "utc-session-core-composition.json",
+  "retainedNativeRun": 45092822579,
+  "retainedWireRun": 45094274338,
+  "incomingAuthRun": 45094516900,
+  "compositionNativeAccepted": false,
+  "imageAccepted": true,
+  "actualWeb4Compiled": true,
+  "imageDownloadedLocally": false,
+  "deployed": false
+}

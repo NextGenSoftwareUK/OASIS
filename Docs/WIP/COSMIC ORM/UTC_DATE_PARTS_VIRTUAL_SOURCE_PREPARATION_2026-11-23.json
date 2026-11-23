@@ -23,13 +23,15 @@
   ],
   "source": "2d05c1ea25ae1161bd1b834ecaaefe3b17ac8a8a",
   "mixedJourneyImplemented": true,
-  "qualificationPhase": "ComposedReplacementQueued",
+  "qualificationPhase": "PendingAutoReplacement",
   "expectedNativeTests": 3,
   "expectedWireTests": 1,
   "applicationHolonWritesPerProvider": 2,
   "nativeRawFixtureRowsPerProvider": 4,
-  "priorRun": 45095953782,
-  "priorOutcome": "native Mongo projection compilation failed on local variable shadowing",
+  "priorRun": 45097224513,
+  "priorOutcome": "compiled then all three journeys refused ordinary-route compilation of a mapping request",
   "dispatchRequestedUtc": "2026-11-23T01:52:36.282631+00:00",
-  "nativeRun": 45097224513
+  "nativeRun": 45097224513,
+  "fixtureNowUsesProductionMixedCompiler": true,
+  "fixtureSnapshotAuthorityProof": true
 }

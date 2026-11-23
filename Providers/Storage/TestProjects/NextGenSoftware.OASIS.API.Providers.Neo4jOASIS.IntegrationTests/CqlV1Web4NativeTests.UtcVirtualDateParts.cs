@@ -185,7 +185,10 @@ public sealed partial class CqlV1Web4NativeTests
             var saved=await Timed("save-full",()=>ownedSession.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid())));
             Assert.IsFalse(saved.IsError,saved.Message+saved.Exception);Assert.IsTrue(saved.IsSaved);
             var adapter=(ICosmicQueryProjectionStorageProvider)provider;
-            var query=CqlV1Compiler.CompileProjection(request,actor,adapter.QueryProviderType);
+            // Use the production mixed-route owner: exclude this mapping's
+            // stale cached values before evaluating the stored projection.
+            var query=CqlV1Compiler.CompileProjection(request,actor,adapter.QueryProviderType,
+                CosmicQueryReadAccess.OwnerOrPublic(actor).Result,CqlVirtualProjection.MaximumRows,mapping.Id);
             var planned=CosmicProjectionPlanner.Plan(query,adapter.QueryProviderType,new[]{
                 new CosmicProjectionTarget(adapter.QueryProviderType,adapter.QueryCapabilities,adapter.ProjectionCapabilities)});
             Assert.IsFalse(planned.IsError,planned.Message);
@@ -193,14 +196,25 @@ public sealed partial class CqlV1Web4NativeTests
                 planned.Result,new[]{(ICosmicQueryStorageProvider)adapter}));
             Assert.IsFalse(full.IsError,full.Message+full.Exception);
             var materialized=full.Result.Providers.Single().Rows;
-            Assert.AreEqual(2,materialized.Count);
-            Assert.AreEqual(2001,materialized.Single(row=>(Guid)row.Values[0]==snapshot.Id).Values[1]);
+            Assert.AreEqual(1,materialized.Count);
+            Assert.IsFalse(materialized.Any(row=>(Guid)row.Values[0]==snapshot.Id));
+            var snapshotQuery=CqlV1Compiler.CompileSnapshotIdentityProjection(actor,adapter.QueryProviderType,
+                query.Source.ReadAccess,mapping.Id,projected.Result.Select(row=>row.Id).ToArray());
+            var snapshotPlan=CosmicProjectionPlanner.Plan(snapshotQuery,adapter.QueryProviderType,new[]{
+                new CosmicProjectionTarget(adapter.QueryProviderType,adapter.QueryCapabilities,adapter.ProjectionCapabilities)});
+            Assert.IsFalse(snapshotPlan.IsError,snapshotPlan.Message);
+            var snapshotProof=await Timed("snapshot-identities",()=>manager.ExecuteProjectionQueryAsync(
+                snapshotPlan.Result,new[]{(ICosmicQueryStorageProvider)adapter}));
+            Assert.IsFalse(snapshotProof.IsError,snapshotProof.Message+snapshotProof.Exception);
+            var snapshotIds=snapshotProof.Result.Providers.Single().Rows.Select(row=>(Guid)row.Values[0]).ToHashSet();
+            Assert.AreEqual(1,snapshotIds.Count);Assert.IsTrue(snapshotIds.Contains(snapshot.Id));
             var mixed=await Timed("mixed-components",()=>Task.FromResult(CosmicMixedProjectionResults.Merge(
                 query,actor,mapping.Id,materialized,projected.Result,
                 new[]{new CosmicMixedProjectionOrdering("Year",true),new CosmicMixedProjectionOrdering("Id")},0,10)));
             Assert.IsFalse(mixed.IsError,mixed.Message+mixed.Exception);Assert.AreEqual(4,mixed.Result.Count);
             var cached=mixed.Result.Single(row=>row.Id==snapshot.Id);
-            Assert.IsTrue(cached.AlsoMaterialized);Assert.IsNotNull(cached.Virtual);
+            Assert.IsTrue(cached.AlsoMaterialized || snapshotIds.Contains(cached.Id));
+            Assert.IsNotNull(cached.Virtual);
             Assert.AreEqual(2024,cached.Record.Values[1]);
             Assert.AreEqual(important.Id,mixed.Result[0].Id);Assert.IsNull(mixed.Result[0].Virtual);
             Assert.AreEqual(2030,mixed.Result[0].Record.Values[1]);
