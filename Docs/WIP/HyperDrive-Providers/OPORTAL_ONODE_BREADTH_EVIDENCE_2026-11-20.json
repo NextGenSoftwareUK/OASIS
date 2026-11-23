@@ -33,10 +33,10 @@
     "status": "earlier API/browser contract batch not delivered in current root; supervisor transport still unverified",
     "preserve": "Current JWT/session/Startup changes must survive three-way reconciliation. Previous build44743831833 does not establish runtime or deployment acceptance.",
     "supervisorFindings": [
-      "HolonBridge hard-codes local WEB4 URL and creates HTTP clients without WEB4 bearer credentials for Wizard-protected /api/v1/onode operations.",
-      "HolonBridge JSON command deserialization lacks string-enum converter while controller command DTO is string.",
-      "CommandExecutor.GetConfig returns complete file contents; a non-secret producer projection is still needed before enabling that remote popup read.",
-      "Registered-node peer-list command/runtime path is still missing."
+      "Pinned ONODEManager0cf uses the configured local WEB4 port but supplies no WEB4 bearer for Wizard-protected routes. Earlier physical checkout7d had the older fixed localhost URL; it is not the candidate source.",
+      "Pinned command reader lacks a string-enum converter while WEB4 command/status DTOs use strings.",
+      "Pinned command status PATCH swallowed failures and command execution proceeded without acknowledged Executing status.",
+      "Non-secret configuration projection and registered-node peer read still need implementation."
     ],
     "next": "After independent profile delivery, reconcile existing ONODE source batch with current JWT/Startup, implement canonical authenticated bridge/command serialization and non-secret reads, then qualify actual browser/API/supervisor flows. No fake status, fabricated peer/config rows, silent legacy path or shared-cluster test.",
     "reconcilePaths": [
@@ -46,7 +46,7 @@
       "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs"
     ],
     "preparedCurrentSource": {
-      "root": "6d3495d4c02cdb135af8c5da0fe9c4ddd1071f84",
+      "root": "4301e20790e6fca4fca9daaab6e79faaed68c305",
       "base": "c2cc1430b31d63f0e4981600e97c19db4d020fe1",
       "donor": "9fe17097d0c65f964da7d38a2b6b28fe4fd78590",
       "merge": "All four source files three-way clean; newer JWT/session/Startup context retained.",
@@ -64,7 +64,14 @@
         "non-secret configuration projection",
         "individual peer read",
         "native browser/API/supervisor flow and delivery"
-      ]
+      ],
+      "commandWireRepair": {
+        "module": "81d37fd8cb2046cededc07fed818f357845db578",
+        "moduleBase": "0cf009958d9bf29664799d70a76f0fb6e596c7ae",
+        "path": "NextGenSoftware.OASIS.ONODE.Service/Services/HolonBridge.cs",
+        "scope": "Canonical camel-case/string-enum command transport (numeric enums rejected), required HTTP success for state/command status and Pending reads, no command execution before acknowledged Executing update, response/content disposal. Existing configured-port/shared-client behavior preserved.",
+        "status": "source-only, whitespace/paired-manifest checks passed; build/native/browser not accepted; no bearer transport claimed"
+      }
     }
   }
 }
