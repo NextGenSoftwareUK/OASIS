@@ -1,19 +1,11 @@
 {
   "scope": "onode",
-  "status": "fresh-cql-real-bridge-source-inventory-pending",
-  "candidate": "aee5784191f90ada83886b94f61ace2e6645fc19",
-  "base": "75a6769d2814f1347a1f2b42f687d494d96b2b11",
-  "tag": "qualification/onode-current-bridge-source-20261123",
+  "status": "current-cql-real-bridge-host-ready",
+  "candidate": "034d2ba2b0f2e9eb9fc499736e27dd2e6c81152e",
+  "base": "aee5784191f90ada83886b94f61ace2e6645fc19",
+  "tag": "qualification/onode-bridge-reviewed-20261123",
   "allowedPaths": [
-    "Docker/oasis-dependency-versions.env",
-    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ONODEController.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Hubs/ONODEWebSocketHub.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/JwtMiddleware.cs",
-    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs",
-    "ONODE/ONODEManager",
-    "Scripts/TestHosts/Test-Web4RouteStorageClassification.ps1",
-    "Scripts/verify_web4_hyperdrive_route_manifest.ps1"
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv"
   ],
   "buildProjects": [
     "WEB4"
@@ -25,10 +17,10 @@
   "compositionBase": "daf058b51c6f4251d99415c3a002691e36895e53",
   "remaining": "Review regenerated route positions. Run one actual Startup/JWT/native Mongo/supervisor bridge/proxy/live-socket journey, including first-command cadence. Browser and applied runtime remain separate.",
   "inventoryReview": {
-    "run": 45222196877,
-    "artifact": 14841566904,
-    "bytes": 40271,
-    "scope": "All835 route records unchanged except source positions; no removed contracts or local downgrades."
+    "run": 45227491740,
+    "artifact": 14843032392,
+    "bytes": 40410,
+    "scope": "All835 records unchanged except source positions; current verified CQL preserved."
   },
   "pendingProviderTransport": {
     "candidate": "a03f6c902b816f831daeecf76e65265bab6f8c55",
@@ -82,8 +74,11 @@
     "source": "e6415c6578d7f4de5c04bd722b3c18cc1870dfc8",
     "status": "success",
     "digest": "sha256:fb9219fb67f8e3f6e6bc34031c1e1e954872376fdbf970c0d8b16008c76c1213",
-    "packageStartupRun": 45223419601,
-    "qualificationScope": "Package and actual Startup only; unchanged authentication/browser matrix not replayed. Older frozen source must not replace current Development75a."
+    "packageStartupRun": 45223786860,
+    "qualificationScope": "Package and actual Startup only; unchanged authentication/browser matrix not replayed. Older frozen source must not replace current Development75a.",
+    "packageStartupStatus": "success",
+    "artifact": 14842651339,
+    "scope": "Actual packaged source/Startup/password auth; no browser/CQL/live deployment acceptance."
   },
   "routingEditorRun": {
     "run": 45220758834,
@@ -108,8 +103,11 @@
   },
   "web4ProxyCompileRun": {
     "run": 45222638062,
-    "status": "in_progress",
-    "scope": "Changed WEB4 only; accepted supervisor/SDK/command transport not rerun."
+    "status": "success",
+    "scope": "Changed WEB4 only; accepted supervisor/SDK/command transport not rerun.",
+    "job": 137860726944,
+    "errors": 0,
+    "elapsed": "4m46.11s"
   },
   "sharedReview": {
     "development": "75a6769d2814f1347a1f2b42f687d494d96b2b11",

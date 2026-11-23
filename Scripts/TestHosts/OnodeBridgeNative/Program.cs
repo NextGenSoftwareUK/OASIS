@@ -316,7 +316,12 @@ finally
     if (api != null) { await api.StopAsync(CancellationToken.None); api.Dispose(); }
     if (supervisorApp != null) { await supervisorApp.StopAsync(CancellationToken.None); await supervisorApp.DisposeAsync(); }
     if (provider != null) await provider.DeactivateProviderAsync();
-    if (databaseNamesValidated) foreach (var database in databases) await mongo.DropDatabaseAsync(database);
+    if (databaseNamesValidated)
+    {
+        foreach (var database in databases) await mongo.DropDatabaseAsync(database);
+        var remaining = await (await mongo.ListDatabaseNamesAsync()).ToListAsync();
+        if (databases.Any(remaining.Contains)) throw new InvalidOperationException("Owned database remains after cleanup.");
+    }
     if (ownsToken && File.Exists(tokenPath)) File.Delete(tokenPath);
     if (File.Exists(dnaPath)) File.Delete(dnaPath);
     var resolvedOwned = Path.GetFullPath(owned);
