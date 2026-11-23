@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-23",
+  "status": "qualification in progress",
+  "run": 45168591802,
+  "control": "1408a572d1242d5a4d08846a0aae0e93c7f6c246",
+  "portal": "24c0e9f4b4455cb2cf9c2f71cbcc651f474328bb",
+  "producer": "f4ac6302cbeadf6b1af77cbd9c6cdf27cfec402b",
+  "image": "sha256:078cd7c8acbd7a14de653178e8f7aba5d030a191da519f6f8c37c3756eeea704",
+  "scope": [
+    "My Eggs",
+    "All Eggs",
+    "Egg Quests",
+    "Leaderboard",
+    "normal close"
+  ],
+  "remaining": [
+    "populated records",
+    "owned egg hatching"
+  ],
+  "backend": "real existing shipping image and isolated ephemeral Mongo; no shared Atlas",
+  "localChecks": [
+    "JavaScript syntax",
+    "Python AST",
+    "git diff --check"
+  ],
+  "cleanup": "No local downloads, builds, environments, databases or result artifacts created. Cloud cleanup pending terminal receipt."
+}
