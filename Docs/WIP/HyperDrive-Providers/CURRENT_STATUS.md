@@ -1,3 +1,7 @@
+## 2026-11-23 - Exact Railway rollout handles recorded
+
+Development6bbbae4b dev rollout: WEB7/WEB8/WEB9 BUILDING; WEB4/WEB5/WEB6/WEB10 QUEUED. Exact seven deployment IDs recorded in OPORTAL_BACKEND_DEV_ROLLOUT_2026-11-23.json. Metadata only; no running/source/functional acceptance or configuration change. No shared auth/data/payment calls.
+
 ## 2026-11-23 - Verified backend batch PUBLISHED to Development
 
 Development6bbbae4be199eef55856df32476db5684ee05073 now contains qualified sourceb71528fb with current CQL mapping preserved, paired pins and updated scoped evidence. Core6df988c8/WEB678a27a29/STAR531c9897 fast-forwarded to their Development branches. All8 branch policies pass. Railway reports all7 dev API contexts pending at01:38UTC; no running/hosted acceptance or staging/production promotion claimed. No shared Mongo/login/payment calls; worker/DNA configuration unchanged.
