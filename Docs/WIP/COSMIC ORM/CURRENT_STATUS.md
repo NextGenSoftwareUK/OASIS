@@ -43,6 +43,12 @@ Each one was checked on all three real stores, in throwaway CI containers (never
 - **Integer sequences and HiLo ID blocks (M08).** Native and atomic on each store, and checked with 20 callers at once. Run 45427097545.
 - **Global query filters with an explicit bypass (Q62)**, for example a tenant rule on every query. A bypass never widens read access. Run 45430117947.
 - **Auto flush (S20).** A session can write its pending changes before each async query, so the query sees its own writes. Run 45430117947.
+- **Unique keys and lookup by key (M10).** A key is claimed in the same transaction as the save. A duplicate fails the whole save and writes nothing, and `FindByKeyAsync` looks records up by their key. Run 45435353282.
+- **Children fixes (A05/A06/A07/A12).** A new child added to a parent's `Children` is saved with the parent. A child removed from a loaded collection can be deleted automatically if you turn that on. Children can be counted or checked without loading them. Run 45440013839.
+- **Merge and statistics (S07/O13).** A disconnected copy can be merged onto the tracked record, and the session reports counts of queries and saves. Run 45437319138.
+- **In CI now:** tenant-bound sessions (O14), the save-failed callback (S21), cancellation (S13), async streaming (Q64) and batch fetch (A14).
+
+Checklist: 86 of 181 rows are still open, down from 107 this morning. Each remaining row now names its gap or blocker; the transaction rows (O02-O07) are blocked on session-held native transactions across reads and writes.
 
 Also: WEB4 did not compile, because the avatar-password JSON filter from cee7dc1d was never committed (its file name matched the repo's `*secret*` ignore rule). Development fixed this in b66e3d4e, and this branch now uses that fix.
 
