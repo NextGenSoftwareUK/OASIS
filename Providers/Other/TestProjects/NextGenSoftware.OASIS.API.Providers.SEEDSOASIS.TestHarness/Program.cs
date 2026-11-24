@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NextGenSoftware.OASIS.API.DNA;
+using System;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 
@@ -15,7 +16,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
             try
             {
                 // Initialize SEEDS provider
-                var seedsProvider = new SEEDSOASIS();
+                OASISDNA dna = OASISDNAManager.LoadDNA("OASIS_DNA.Development.json").Result;
+                var telos = dna.OASIS.StorageProviders.TelosOASIS;
+                var seedsProvider = new SEEDSOASIS(new NextGenSoftware.OASIS.API.Providers.TelosOASIS.TelosOASIS(telos.RpcEndpoint ?? telos.ConnectionString, telos.AccountName, telos.ChainId, telos.AccountPrivateKey));
                 
                 Console.WriteLine("✅ SEEDS Provider initialized successfully");
                 Console.WriteLine($"Provider Name: {seedsProvider.ProviderName}");

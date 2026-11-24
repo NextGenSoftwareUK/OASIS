@@ -409,7 +409,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
             }
 
             Console.WriteLine("Run_SoftAndHardDeleteHolonById-->DeleteHolonAsync()");
-            var hardDeleteResult = await eosioOasis.DeleteHolonAsync(entityId2, false);
+            var hardDeleteResult = await eosioOasis.DeleteHolonAsync(entityId2);
             if (!hardDeleteResult.IsSaved)
             {
                 Console.WriteLine(hardDeleteResult.Message);
@@ -431,11 +431,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
             Console.WriteLine("Run_SendNftAsync-->ActivateProvider()");
             eosioOasis.ActivateProvider();
 
-            var sendNftRequest = new NFTWalletTransactionRequest()
+            var sendNftRequest = new SendWeb3NFTRequest()
             {
                 Amount = 0.001m,
-                //Date = DateTime.Now,
-                FromProviderType = ProviderType.EOSIOOASIS,
                 FromWalletAddress = _oasisEosAccount,
                 ToWalletAddress = _oasisEosAccount2
             };
@@ -460,16 +458,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
             Console.WriteLine("Run_SendTransactionAsync-->ActivateProvider()");
             eosioOasis.ActivateProvider();
 
-            var walletTransaction = new WalletTransactionRequest()
-            {
-                Amount = 0.001m,
-               // Date = DateTime.Now,
-                FromProviderType = ProviderType.EOSIOOASIS,
-                FromWalletAddress = _oasisEosAccount,
-                ToWalletAddress = _oasisEosAccount2
-            };
             Console.WriteLine("Run_SendTransactionAsync-->SendTransactionAsync()-->Sending...");
-            var sendTransactionResult = await eosioOasis.SendTransactionAsync(walletTransaction);
+            var sendTransactionResult = await eosioOasis.SendTransactionAsync(_oasisEosAccount, _oasisEosAccount2, 0.001m, "OASIS EOSIO test harness transfer");
             if (sendTransactionResult.IsError)
             {
                 Console.WriteLine("Run_SendTransactionAsync-->SendTransactionAsync()-->Failed...");

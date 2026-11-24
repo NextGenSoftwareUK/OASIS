@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -21,10 +22,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.TestHarness
                 // Activate the provider
                 Console.WriteLine("🔌 Activating SOLID Provider...");
                 var result = await solidProvider.ActivateProviderAsync();
-                Console.WriteLine($"✅ Provider Activated: {result.IsSuccess}");
+                Console.WriteLine($"✅ Provider Activated: {!result.IsError}");
                 Console.WriteLine();
 
-                if (result.IsSuccess)
+                if (!result.IsError)
                 {
                     // Test Avatar operations
                     Console.WriteLine("👤 Testing Avatar Operations...");
@@ -41,15 +42,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.TestHarness
                     // Save avatar
                     Console.WriteLine("💾 Saving Avatar...");
                     var saveResult = await solidProvider.SaveAvatarAsync(avatar);
-                    Console.WriteLine($"✅ Avatar Saved: {saveResult.IsSuccess}");
-                    if (saveResult.IsSuccess)
+                    Console.WriteLine($"✅ Avatar Saved: {!saveResult.IsError}");
+                    if (!saveResult.IsError)
                         Console.WriteLine($"📝 Avatar ID: {saveResult.Result.Id}");
 
                     // Load avatar
                     Console.WriteLine("📖 Loading Avatar...");
                     var loadResult = await solidProvider.LoadAvatarAsync(avatar.Id);
-                    Console.WriteLine($"✅ Avatar Loaded: {loadResult.IsSuccess}");
-                    if (loadResult.IsSuccess)
+                    Console.WriteLine($"✅ Avatar Loaded: {!loadResult.IsError}");
+                    if (!loadResult.IsError)
                         Console.WriteLine($"👤 Username: {loadResult.Result.Username}");
 
                     // Test Holon operations
@@ -64,22 +65,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.TestHarness
                     // Save holon
                     Console.WriteLine("💾 Saving Holon...");
                     var saveHolonResult = await solidProvider.SaveHolonAsync(holon);
-                    Console.WriteLine($"✅ Holon Saved: {saveHolonResult.IsSuccess}");
-                    if (saveHolonResult.IsSuccess)
+                    Console.WriteLine($"✅ Holon Saved: {!saveHolonResult.IsError}");
+                    if (!saveHolonResult.IsError)
                         Console.WriteLine($"📝 Holon ID: {saveHolonResult.Result.Id}");
 
                     // Load holon
                     Console.WriteLine("📖 Loading Holon...");
                     var loadHolonResult = await solidProvider.LoadHolonAsync(holon.Id);
-                    Console.WriteLine($"✅ Holon Loaded: {loadHolonResult.IsSuccess}");
-                    if (loadHolonResult.IsSuccess)
+                    Console.WriteLine($"✅ Holon Loaded: {!loadHolonResult.IsError}");
+                    if (!loadHolonResult.IsError)
                         Console.WriteLine($"🔗 Holon Name: {loadHolonResult.Result.Name}");
                 }
 
                 // Deactivate provider
                 Console.WriteLine("🔌 Deactivating SOLID Provider...");
                 var deactivateResult = await solidProvider.DeActivateProviderAsync();
-                Console.WriteLine($"✅ Provider Deactivated: {deactivateResult.IsSuccess}");
+                Console.WriteLine($"✅ Provider Deactivated: {!deactivateResult.IsError}");
             }
             catch (Exception ex)
             {

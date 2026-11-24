@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.API.DNA;
 using System;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
@@ -15,14 +16,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.TestHarness
             try
             {
                 // Initialize ThreeFold provider
-                var threeFoldProvider = new ThreeFoldOASIS("https://grid.threefold.io");
+                OASISDNA dna = OASISDNAManager.LoadDNA("OASIS_DNA.Development.json").Result;
+                var threeFoldProvider = new ThreeFoldOASIS(dna.OASIS.StorageProviders.ThreeFoldOASIS.ConnectionString);
                 
                 Console.WriteLine("✅ ThreeFold Provider initialized successfully");
                 Console.WriteLine($"Provider Name: {threeFoldProvider.ProviderName}");
                 Console.WriteLine($"Provider Description: {threeFoldProvider.ProviderDescription}");
                 Console.WriteLine($"Provider Type: {threeFoldProvider.ProviderType}");
                 Console.WriteLine($"Provider Category: {threeFoldProvider.ProviderCategory}");
-                Console.WriteLine($"Host URI: {threeFoldProvider.HostUri}");
                 Console.WriteLine();
 
                 // Test provider activation
