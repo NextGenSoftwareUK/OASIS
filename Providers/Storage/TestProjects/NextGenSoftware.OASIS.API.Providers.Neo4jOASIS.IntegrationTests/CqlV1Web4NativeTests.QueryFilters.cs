@@ -100,11 +100,25 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsTrue(refused.IsError);Assert.AreEqual("COSMIC_TENANT_MISMATCH",refused.ErrorCode);
         }
         checks++;
+        // O11: a factory opens sessions that share configuration but not state.
+        var factory=new CosmicSessionFactory(manager,adapter,access,null,
+            opened=>opened.HasQueryFilter<Holon>(row=>row.Description=="tenant-a"),
+            opened=>opened.SetFlushMode(CosmicFlushMode.Auto));
+        using(var f1=factory.OpenSession().Result)
+        using(var f2=factory.OpenSession().Result)
+        {
+            Assert.AreEqual(CosmicFlushMode.Auto,f1.FlushMode);Assert.AreNotSame(f1,f2);
+            var viaFactory=await f1.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>ids.Contains(row.Id)).ToCosmicListAsync();
+            Assert.IsFalse(viaFactory.IsError,viaFactory.Message);Assert.AreEqual(2,viaFactory.Result.Count,"The factory filter applies.");
+            Assert.AreEqual(0,f2.Statistics.QueryCount,"Sessions share configuration, not state.");
+            Assert.AreEqual(2L,factory.OpenedCount);
+        }
+        checks++;
         var foreign=CosmicSession.Create(manager,adapter,CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result).Result;
         var hidden=await foreign.Linq<Holon>(CosmicQueryTrackingMode.NoTracking,100,ignoreQueryFilters:true).Result.Where(row=>ids.Contains(row.Id)).ToCosmicListAsync();
         Assert.IsFalse(hidden.IsError,hidden.Message);Assert.AreEqual(0,hidden.Result.Count,"Bypass never widens read access.");checks++;
         foreign.Dispose();
         return new NativeFixtureJourneyProof(checks,1,new Dictionary<string,bool>{
-            ["globalFilterVerified"]=true,["explicitBypassVerified"]=true,["accessNotWidenedVerified"]=true,["autoFlushVerified"]=true,["sessionStatisticsVerified"]=true,["disconnectedMergeVerified"]=true,["tenantIsolationVerified"]=true});
+            ["globalFilterVerified"]=true,["explicitBypassVerified"]=true,["accessNotWidenedVerified"]=true,["autoFlushVerified"]=true,["sessionStatisticsVerified"]=true,["disconnectedMergeVerified"]=true,["tenantIsolationVerified"]=true,["sessionFactoryVerified"]=true});
     }
 }

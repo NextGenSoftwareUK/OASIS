@@ -95,9 +95,12 @@ public sealed partial class CqlV1Web4NativeTests
             CollectionAssert.AreEquivalent(new[]{course1.Id,course2.Id},courses.Result.Select(row=>row.Id).ToArray());
             var students=await m2m.LoadManyToManyAsync<Holon,Holon>(course1,right,left);
             CollectionAssert.AreEquivalent(new[]{student.Id},students.Result.Select(row=>row.Id).ToArray());
+            // A01: a second one-to-many relationship through any foreign-key metadata key.
+            var dependents=await m2m.LoadDependentsAsync<Holon>(student,left);
+            Assert.IsFalse(dependents.IsError,dependents.ErrorCode+": "+dependents.Message);Assert.AreEqual(2,dependents.Result.Count);
         }
         checks++;
         return new NativeFixtureJourneyProof(checks,5,new Dictionary<string,bool>{
-            ["duplicateRefusedVerified"]=true,["keyMoveReleasesVerified"]=true,["deleteReleasesVerified"]=true,["findByKeyVerified"]=true,["oneToOneVerified"]=true,["manyToManyVerified"]=true});
+            ["duplicateRefusedVerified"]=true,["keyMoveReleasesVerified"]=true,["deleteReleasesVerified"]=true,["findByKeyVerified"]=true,["oneToOneVerified"]=true,["manyToManyVerified"]=true,["foreignKeyOneToManyVerified"]=true});
     }
 }
