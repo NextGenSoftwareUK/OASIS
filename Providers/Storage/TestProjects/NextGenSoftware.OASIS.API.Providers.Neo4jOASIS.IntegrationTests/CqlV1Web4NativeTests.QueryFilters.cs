@@ -100,11 +100,45 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsTrue(refused.IsError);Assert.AreEqual("COSMIC_TENANT_MISMATCH",refused.ErrorCode);
         }
         checks++;
+        // O11: a factory opens sessions that share configuration but not state.
+        var factory=new CosmicSessionFactory(manager,adapter,access,null,
+            opened=>opened.HasQueryFilter<Holon>(row=>row.Description=="tenant-a"),
+            opened=>opened.SetFlushMode(CosmicFlushMode.Auto));
+        using(var f1=factory.OpenSession().Result)
+        using(var f2=factory.OpenSession().Result)
+        {
+            Assert.AreEqual(CosmicFlushMode.Auto,f1.FlushMode);Assert.AreNotSame(f1,f2);
+            var viaFactory=await f1.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>ids.Contains(row.Id)).ToCosmicListAsync();
+            Assert.IsFalse(viaFactory.IsError,viaFactory.Message);Assert.AreEqual(2,viaFactory.Result.Count,"The factory filter applies.");
+            Assert.AreEqual(0,f2.Statistics.QueryCount,"Sessions share configuration, not state.");
+            Assert.AreEqual(2L,factory.OpenedCount);
+        }
+        checks++;
+        // O13: a query interceptor observes native reads and can veto them.
+        using(var observed=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var spy=new CountingInterceptor();Assert.IsFalse(observed.AddInterceptor(spy).IsError);
+            var seen=await observed.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>ids.Contains(row.Id)).ToCosmicListAsync();
+            Assert.IsFalse(seen.IsError,seen.Message);
+            Assert.AreEqual(1,spy.Executing);Assert.AreEqual(1,spy.Done.Count);Assert.AreEqual(seen.Result.Count,spy.Done[0].RowCount);
+            spy.Veto=true;
+            var vetoed=await observed.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>ids.Contains(row.Id)).ToCosmicListAsync();
+            Assert.IsTrue(vetoed.IsError);Assert.AreEqual("TEST_VETO",vetoed.ErrorCode);Assert.AreEqual(1,spy.Done.Count,"A vetoed query never runs.");
+        }
+        checks++;
         var foreign=CosmicSession.Create(manager,adapter,CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result).Result;
         var hidden=await foreign.Linq<Holon>(CosmicQueryTrackingMode.NoTracking,100,ignoreQueryFilters:true).Result.Where(row=>ids.Contains(row.Id)).ToCosmicListAsync();
         Assert.IsFalse(hidden.IsError,hidden.Message);Assert.AreEqual(0,hidden.Result.Count,"Bypass never widens read access.");checks++;
         foreign.Dispose();
         return new NativeFixtureJourneyProof(checks,1,new Dictionary<string,bool>{
-            ["globalFilterVerified"]=true,["explicitBypassVerified"]=true,["accessNotWidenedVerified"]=true,["autoFlushVerified"]=true,["sessionStatisticsVerified"]=true,["disconnectedMergeVerified"]=true,["tenantIsolationVerified"]=true});
+            ["globalFilterVerified"]=true,["explicitBypassVerified"]=true,["accessNotWidenedVerified"]=true,["autoFlushVerified"]=true,["sessionStatisticsVerified"]=true,["disconnectedMergeVerified"]=true,["tenantIsolationVerified"]=true,["sessionFactoryVerified"]=true,["queryInterceptorVerified"]=true});
+    }
+
+    private sealed class CountingInterceptor : ICosmicQueryInterceptor
+    {
+        public int Executing; public bool Veto; public List<CosmicQueryInterception> Done { get; } = new();
+        NextGenSoftware.OASIS.Common.OASISResult<bool> ICosmicQueryInterceptor.Executing(CosmicQueryInterception query)
+        { Executing++; return Veto ? new NextGenSoftware.OASIS.Common.OASISResult<bool>{IsError=true,ErrorCode="TEST_VETO",Message="vetoed"} : new NextGenSoftware.OASIS.Common.OASISResult<bool>(true); }
+        void ICosmicQueryInterceptor.Executed(CosmicQueryInterception query) => Done.Add(query);
     }
 }
