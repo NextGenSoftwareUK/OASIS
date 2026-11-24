@@ -160,7 +160,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
                 await using var client = await GetClientAsync();
                 var rec = new AvatarRecord { Id = SurrealDb.Net.Models.RecordId.From("oasis_avatars", avatar.Id.ToString()), Username = avatar.Username, Email = avatar.Email, IsDeleted = avatar.IsDeleted, DataJson = Ser(avatar) };
                 await client.Upsert(rec);
-                result.Result = avatar; result.IsError = false; result.Message = $"SurrealDBOASIS: Avatar '{avatar.Username}' saved.";
+                result.Result = avatar; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = $"SurrealDBOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: Error saving avatar: {ex.Message}"); }
             return result;
@@ -177,10 +177,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             {
                 await using var client = await GetClientAsync();
                 var rec = await client.Select<AvatarRecord>(RecordId.From("oasis_avatars", id.ToString("D")));
-                if (rec == null || rec.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No avatar for ID '{id}'."); return result; }
+                if (rec == null || rec.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No avatar for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 var avatar = Des<Avatar>(rec.DataJson);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: Failed to deserialise avatar '{id}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = "SurrealDBOASIS: Avatar loaded.";
+                result.Result = avatar; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SurrealDBOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
             return result;
@@ -202,8 +202,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             try
             {
                 var a = await ScanAvatarsAsync(r => r.Username == username);
-                if (a == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No avatar for username '{username}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "SurrealDBOASIS: Avatar loaded.";
+                if (a == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No avatar for username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SurrealDBOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
             return result;
@@ -217,8 +217,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             try
             {
                 var a = await ScanAvatarsAsync(r => r.Email == avatarEmail);
-                if (a == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No avatar for email '{avatarEmail}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "SurrealDBOASIS: Avatar loaded.";
+                if (a == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No avatar for email '{avatarEmail}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SurrealDBOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
             return result;
@@ -239,7 +239,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
                 await using var client = await GetClientAsync();
                 var all = await client.Select<AvatarRecord>("oasis_avatars");
                 var avatars = all.Where(r => !r.IsDeleted).Select(r => Des<Avatar>(r.DataJson)).Where(a => a != null).Cast<IAvatar>().ToList();
-                result.Result = avatars; result.IsError = false; result.Message = $"SurrealDBOASIS: Loaded {avatars.Count} avatar(s).";
+                result.Result = avatars; result.IsError = false; result.IsLoaded = true; result.LoadedCount = avatars.Count; result.Message = $"SurrealDBOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
             return result;
@@ -255,15 +255,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             try
             {
                 await using var client = await GetClientAsync();
+                var rec = await client.Select<AvatarRecord>(RecordId.From("oasis_avatars", id.ToString("D")));
+                if (rec == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: Avatar '{id}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 if (softDelete)
                 {
-                    var rec = await client.Select<AvatarRecord>(RecordId.From("oasis_avatars", id.ToString("D")));
-                    if (rec == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: Avatar '{id}' not found."); return result; }
-                    var av = Des<Avatar>(rec.DataJson); if (av != null) { av.DeletedDate = DateTime.UtcNow; await SaveAvatarAsync(av); }
-                    else { rec.IsDeleted = true; await client.Upsert(rec); }
+                    var av = Des<Avatar>(rec.DataJson) ?? throw new InvalidDataException($"Stored avatar '{id}' could not be read.");
+                    av.DeletedDate = DateTime.UtcNow;
+                    var saved = await SaveAvatarAsync(av);
+                    if (saved.IsError || !saved.IsSaved) { OASISErrorHandling.HandleError(ref result, saved.Message); return result; }
                 }
-                else { await client.Delete(RecordId.From("oasis_avatars", id.ToString("D"))); }
-                result.Result = true; result.IsError = false; result.Message = $"SurrealDBOASIS: Avatar '{id}' deleted.";
+                else
+                {
+                    await client.Delete(RecordId.From("oasis_avatars", id.ToString("D")));
+                    await client.Delete(RecordId.From("oasis_avatar_details", id.ToString("D")));
+                }
+                result.Result = true; result.IsError = false; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"SurrealDBOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
             return result;
@@ -289,7 +295,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
                 await using var client = await GetClientAsync();
                 var rec = new DetailRecord { Id = SurrealDb.Net.Models.RecordId.From("oasis_avatar_details", d.Id.ToString()), Username = d.Username, Email = d.Email, DataJson = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(d) };
                 await client.Upsert(rec);
-                result.Result = d; result.IsError = false; result.Message = "SurrealDBOASIS: AvatarDetail saved.";
+                result.Result = d; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = "SurrealDBOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
             return result;
@@ -304,9 +310,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             {
                 await using var client = await GetClientAsync();
                 var rec = await client.Select<DetailRecord>(RecordId.From("oasis_avatar_details", id.ToString("D")));
-                if (rec == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No detail for ID '{id}'."); return result; }
+                if (rec == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No detail for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 var d = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<AvatarDetail>(rec.DataJson); if (d == null) { OASISErrorHandling.HandleError(ref result, "SurrealDBOASIS: Deserialise failed."); return result; }
-                result.Result = d; result.IsError = false; result.Message = "SurrealDBOASIS: AvatarDetail loaded.";
+                result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SurrealDBOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
             return result;
@@ -325,7 +331,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            try { var d = await ScanDetailsAsync(r => r.Username == u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.Message = "SurrealDBOASIS: AvatarDetail loaded."; }
+            try { var d = await ScanDetailsAsync(r => r.Username == u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No detail for username '{u}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; } result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SurrealDBOASIS: loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -335,7 +341,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            try { var d = await ScanDetailsAsync(r => r.Email == e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.Message = "SurrealDBOASIS: AvatarDetail loaded."; }
+            try { var d = await ScanDetailsAsync(r => r.Email == e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No detail for email '{e}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; } result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SurrealDBOASIS: loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -350,7 +356,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
                 await using var client = await GetClientAsync();
                 var all = await client.Select<DetailRecord>("oasis_avatar_details");
                 var details = all.Select(r => NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<AvatarDetail>(r.DataJson)).Where(d => d != null).Cast<IAvatarDetail>().ToList();
-                result.Result = details; result.IsError = false; result.Message = $"SurrealDBOASIS: Loaded {details.Count} detail(s).";
+                result.Result = details; result.IsError = false; result.IsLoaded = true; result.LoadedCount = details.Count; result.Message = $"SurrealDBOASIS: Loaded {details.Count} detail(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
             return result;
@@ -394,9 +400,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
                 holon.Id = id;
                 holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SurrealDBOASIS] = id.ToString("D");
+                var savedCount = 1;
+                if (saveChildren && holon.Children != null)
+                {
+                    foreach (var child in holon.Children)
+                    {
+                        if (child == null) continue;
+                        child.ParentHolonId = id;
+                        var childResult = await SaveHolonAsync(child, recursive, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                        if (childResult.IsError || !childResult.IsSaved)
+                            throw new InvalidDataException($"Child holon {child.Id} was not saved: {childResult.Message}");
+                        savedCount += childResult.SavedCount;
+                    }
+                }
                 result.Result = holon;
                 result.IsSaved = true;
-                result.SavedCount = 1;
+                result.SavedCount = savedCount;
                 // HolonManager owns clean-state and revision publication.
 
             }
@@ -409,7 +428,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>(); var errors = new List<string>();
+            var saved = new List<IHolon>(); var errors = new List<string>(); var savedTotal = 0;
             foreach (var h in holons)
             {
                 var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
@@ -418,13 +437,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
                     errors.Add(r.Message ?? "Native holon save failed.");
                     if (!continueOnError) break;
                 }
-                else if (r.IsSaved && r.Result != null) saved.Add(r.Result);
+                else if (r.IsSaved && r.Result != null) { saved.Add(r.Result); savedTotal += r.SavedCount; }
             }
             result.Result = saved;
             result.IsError = errors.Count > 0;
             result.ErrorCount = errors.Count;
             result.IsSaved = saved.Count > 0;
-            result.SavedCount = saved.Count;
+            result.SavedCount = savedTotal;
             result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"SurrealDBOASIS: {saved.Count} holon(s) saved.";
 
             return result;
@@ -441,9 +460,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             {
                 await using var client = await GetClientAsync();
                 var rec = await client.Select<HolonRecord>(RecordId.From("oasis_holons", id.ToString("D")));
-                if (rec == null || rec.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No holon for ID '{id}'."); return result; }
+                if (rec == null || rec.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 var holon = Des<Holon>(rec.DataJson); if (holon == null) { OASISErrorHandling.HandleError(ref result, "SurrealDBOASIS: Deserialise failed."); return result; }
-                result.Result = holon; result.IsError = false; result.Message = "SurrealDBOASIS: Holon loaded.";
+                result.Result = holon; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SurrealDBOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
             return result;
@@ -464,7 +483,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
                 await using var client = await GetClientAsync();
                 var all = await client.Select<HolonRecord>("oasis_holons");
                 var holons = all.Where(r => !r.IsDeleted && (type == HolonType.All || r.HolonType == (int)type)).Select(r => Des<Holon>(r.DataJson)).Where(h => h != null).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"SurrealDBOASIS: Loaded {holons.Count} holon(s).";
+                result.Result = holons; result.IsError = false; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"SurrealDBOASIS: Loaded {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
             return result;
@@ -481,7 +500,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
                 var all = await client.Select<HolonRecord>("oasis_holons");
                 var parentStr = id.ToString();
                 var holons = all.Where(r => !r.IsDeleted && r.ParentHolonId == parentStr && (type == HolonType.All || r.HolonType == (int)type)).Select(r => Des<Holon>(r.DataJson)).Where(h => h != null).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"SurrealDBOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
+                result.Result = holons; result.IsError = false; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"SurrealDBOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
             return result;
@@ -501,15 +520,48 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var loaded = await LoadHolonAsync(id); if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: Holon '{id}' not found."); return result; }
-                var holon = (Holon)loaded.Result; holon.DeletedDate = DateTime.UtcNow; await SaveHolonAsync(holon);
-                result.Result = holon; result.IsError = false; result.Message = $"SurrealDBOASIS: Holon '{id}' soft-deleted.";
+                var (deleted, holon) = await DeleteNativeHolonAsync(id, true);
+                if (deleted.IsError || !deleted.IsDeleted) { OASISErrorHandling.HandleError(ref result, deleted.Message); result.ErrorCode = deleted.ErrorCode; return result; }
+                result.Result = holon; result.IsError = false; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"SurrealDBOASIS: Holon '{id}' soft-deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
             return result;
         }
 
         public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).Result;
+
+        /// <summary>Soft delete (tombstone) or hard delete of one native holon record.</summary>
+        public async Task<OASISResult<bool>> DeleteHolonSoftAsync(Guid id, bool softDelete = true) => (await DeleteNativeHolonAsync(id, softDelete)).Result;
+
+        private async Task<(OASISResult<bool> Result, IHolon? Holon)> DeleteNativeHolonAsync(Guid id, bool softDelete)
+        {
+            var result = new OASISResult<bool>();
+            Holon? holon = null;
+            try
+            {
+                await using var client = await GetClientAsync();
+                var recordId = RecordId.From("oasis_holons", id.ToString("D"));
+                var rec = await client.Select<HolonRecord>(recordId);
+                if (rec == null || (softDelete && rec.IsDeleted)) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return (result, null); }
+                holon = Des<Holon>(rec.DataJson) ?? throw new InvalidDataException($"Stored holon '{id}' could not be read.");
+                if (softDelete)
+                {
+                    holon.DeletedDate = DateTime.UtcNow;
+                    var saved = await SaveHolonAsync(holon, saveChildren: false);
+                    if (saved.IsError || !saved.IsSaved) { OASISErrorHandling.HandleError(ref result, saved.Message); return (result, null); }
+                }
+                else
+                {
+                    await client.Delete(recordId);
+                    if (await client.Select<HolonRecord>(recordId) != null) throw new InvalidDataException($"SurrealDB still holds holon '{id}' after delete.");
+                }
+                result.Result = true; result.IsDeleted = true; result.DeletedCount = 1;
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
+            return (result, holon);
+        }
+
+        public OASISResult<bool> DeleteHolonSoft(Guid id, bool softDelete = true) => DeleteHolonSoftAsync(id, softDelete).Result;
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string pk) { if (Guid.TryParse(pk, out Guid id)) return await DeleteHolonAsync(id); var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, $"SurrealDBOASIS: Invalid GUID '{pk}'."); return r; }
         public override OASISResult<IHolon> DeleteHolon(string pk) => DeleteHolonAsync(pk).Result;
 
@@ -526,22 +578,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var all = await LoadAllHolonsAsync(type); var holons = all.Result?.Where(h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var v) && v?.ToString() == metaValue).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"SurrealDBOASIS: {holons.Count} holon(s)." }; }
+        { var all = await LoadAllHolonsAsync(type); var holons = all.Result?.Where(h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var v) && v?.ToString() == metaValue).ToList() ?? new List<IHolon>(); if (all.IsError) { var failed = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref failed, all.Message); return failed; } return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, IsLoaded = true, LoadedCount = holons.Count, Message = $"SurrealDBOASIS: {holons.Count} holon(s)." }; }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKvp, MetaKeyValuePairMatchMode mode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var all = await LoadAllHolonsAsync(type); bool IsMatch(IHolon h) { if (h.MetaData == null) return false; var checks = metaKvp.Select(kvp => h.MetaData.TryGetValue(kvp.Key, out var v) && v?.ToString() == kvp.Value); return mode == MetaKeyValuePairMatchMode.Any ? checks.Any(c => c) : checks.All(c => c); } var holons = all.Result?.Where(IsMatch).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"SurrealDBOASIS: {holons.Count} holon(s)." }; }
+        { var all = await LoadAllHolonsAsync(type); bool IsMatch(IHolon h) { if (h.MetaData == null) return false; var checks = metaKvp.Select(kvp => h.MetaData.TryGetValue(kvp.Key, out var v) && v?.ToString() == kvp.Value); return mode == MetaKeyValuePairMatchMode.Any ? checks.Any(c => c) : checks.All(c => c); } var holons = all.Result?.Where(IsMatch).ToList() ?? new List<IHolon>(); if (all.IsError) { var failed = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref failed, all.Message); return failed; } return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, IsLoaded = true, LoadedCount = holons.Count, Message = $"SurrealDBOASIS: {holons.Count} holon(s)." }; }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKvp, MetaKeyValuePairMatchMode mode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKvp, mode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         // ─── Import / Export ──────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = !s.IsError, IsError = s.IsError, Message = s.Message }; }
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons, saveChildren: false, continueOnError: false); var ok = !s.IsError && s.IsSaved; return new OASISResult<bool> { Result = ok, IsError = !ok, IsSaved = ok, SavedCount = s.SavedCount, Message = s.Message }; }
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync();
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0) { var all = await LoadAllHolonsAsync(); var h = all.Result?.Where(x => x.CreatedByAvatarId == avatarId).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = h, IsError = false, Message = $"SurrealDBOASIS: {h.Count} holon(s)." }; }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0) { var all = await LoadAllHolonsAsync(); var h = all.Result?.Where(x => x.CreatedByAvatarId == avatarId).ToList() ?? new List<IHolon>(); if (all.IsError) { var failed = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref failed, all.Message); return failed; } return new OASISResult<IEnumerable<IHolon>> { Result = h, IsError = false, IsLoaded = true, LoadedCount = h.Count, Message = $"SurrealDBOASIS: {h.Count} holon(s)." }; }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string u, int version = 0) { var a = await LoadAvatarByUsernameAsync(u); if (a.IsError || a.Result == null) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "Not found."); return r; } return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version); }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string u, int version = 0) => ExportAllDataForAvatarByUsernameAsync(u, version).Result;

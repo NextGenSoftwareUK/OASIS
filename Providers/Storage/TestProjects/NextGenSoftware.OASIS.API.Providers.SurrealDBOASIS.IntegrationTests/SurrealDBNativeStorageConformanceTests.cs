@@ -28,6 +28,29 @@ public sealed class SurrealDBNativeStorageConformanceTests
             {
                 await File.WriteAllTextAsync(reportPath + ".next", JsonSerializer.Serialize(checkpoint));
                 File.Move(reportPath + ".next", reportPath, overwrite: true);
+            },
+            (id, sync) => sync ? Task.FromResult(provider.DeleteHolonSoft(id, false)) : provider.DeleteHolonSoftAsync(id, false),
+            expectedDefaultDeletion: "soft",
+            observeNativeTombstone: async (id, owner, name) =>
+            {
+                using var http = new HttpClient();
+                http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic",
+                    Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("root:" + Env("OASIS_NATIVE_PASSWORD"))));
+                http.DefaultRequestHeaders.Add("surreal-ns", "oasis");
+                http.DefaultRequestHeaders.Add("surreal-db", synchronous ? "oasis_sync" : "oasis_async");
+                http.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                using var response = await http.PostAsync("http://127.0.0.1:18000/sql",
+                    new StringContent($"SELECT * FROM type::thing('oasis_holons', '{id:D}');"));
+                response.EnsureSuccessStatusCode();
+                using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                var statement = doc.RootElement[0];
+                Assert.AreEqual("OK", statement.GetProperty("status").GetString());
+                var rows = statement.GetProperty("result");
+                if (rows.GetArrayLength() == 0) return false;
+                var raw = rows[0].GetRawText();
+                StringAssert.Contains(raw, name);
+                StringAssert.Contains(raw, owner.ToString("D"));
+                return true;
             });
 
         if (!report.Succeeded)
