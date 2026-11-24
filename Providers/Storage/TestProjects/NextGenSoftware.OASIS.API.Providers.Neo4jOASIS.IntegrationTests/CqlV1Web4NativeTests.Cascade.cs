@@ -55,11 +55,12 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(navSaved.IsError,navSaved.ErrorCode+": "+navSaved.Message);owned.Add(navChild.Id);
         var navStored=(await Stored(navChild.Id)).Single();Assert.AreEqual(root.Id,navStored.ParentHolonId);checks++;
         // A17: re-parenting a record under its own descendant is refused before dispatch.
+        var rootParent=root.ParentHolonId;
         root.ParentHolonId=grandchild.Id;
         var cyclic=await session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
         Assert.IsTrue(cyclic.IsError);Assert.AreEqual("COSMIC_PARENT_CYCLE",cyclic.ErrorCode,cyclic.Message);
-        root.ParentHolonId=Guid.Empty;
-        Assert.AreEqual(Guid.Empty,(await Stored(root.Id)).Single().ParentHolonId);checks++;
+        root.ParentHolonId=rootParent;
+        Assert.AreEqual(rootParent,(await Stored(root.Id)).Single().ParentHolonId,"The refused re-parenting wrote nothing.");checks++;
         using var deleter=CosmicSession.Create(manager,adapter,access).Result;
         var loaded=(await deleter.FindAsync<Holon>(root.Id)).Result;Assert.IsNotNull(loaded);
         // A10: explicit loading assigns tracked children without dirtying the parent.
