@@ -43,6 +43,20 @@ Each one was checked on all three real stores, in throwaway CI containers (never
 - **Integer sequences and HiLo ID blocks (M08).** Native and atomic on each store, and checked with 20 callers at once. Run 45427097545.
 - **Global query filters with an explicit bypass (Q62)**, for example a tenant rule on every query. A bypass never widens read access. Run 45430117947.
 - **Auto flush (S20).** A session can write its pending changes before each async query, so the query sees its own writes. Run 45430117947.
+- **Unique keys and lookup by key (M10).** A key is claimed in the same transaction as the save. A duplicate fails the whole save and writes nothing, and `FindByKeyAsync` looks records up by their key. Run 45435353282.
+- **Children fixes (A05/A06/A07/A12).** A new child added to a parent's `Children` is saved with the parent. A child removed from a loaded collection can be deleted automatically if you turn that on. Children can be counted or checked without loading them. Run 45440013839.
+- **Merge and statistics (S07/O13).** A disconnected copy can be merged onto the tracked record, and the session reports counts of queries and saves. Run 45437319138.
+- **Tenant-bound sessions (O14).** A tenant rule is applied to every query and cannot be bypassed, and writes to another tenant's records are refused. Run 45448347544.
+- **Save-failed callback (S21), cancellation (S13), async streaming (Q64).** Run 45443081733.
+- **Batch fetch (A14), filtered include (A09) and lazy loading (A11).** Runs 45443657726 and 45449694421.
+- **Synchronous forms of all of the above (S14).** Run 45450233980.
+- **Relationships (A01-A04).** One-to-many through any foreign-key metadata key, one-to-one (a unique key on the foreign key), and many-to-many through join records with a loader that skips the join rows. Runs 45452551451, 45455392584 and 45458370855.
+- **Insert from a query (S18) and a session factory (O11).** Runs 45458370896 and 45458371046.
+- **Seed data (M29), parent-cycle refusal (A17) and query interceptors (O13).** Runs 45461052081, 45463218586 and 45461718171.
+
+Development has these batches up to 4b9b0d70, and the docs are on master.
+
+Checklist: 64 of 181 rows are still open, down from 107 this morning. Each remaining row now names its gap or blocker; the transaction rows (O02-O07) are blocked on session-held native transactions across reads and writes.
 
 Also: WEB4 did not compile, because the avatar-password JSON filter from cee7dc1d was never committed (its file name matched the repo's `*secret*` ignore rule). Development fixed this in b66e3d4e, and this branch now uses that fix.
 

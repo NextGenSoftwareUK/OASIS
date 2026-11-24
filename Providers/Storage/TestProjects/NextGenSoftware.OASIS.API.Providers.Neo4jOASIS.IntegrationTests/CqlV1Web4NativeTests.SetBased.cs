@@ -55,7 +55,21 @@ public sealed partial class CqlV1Web4NativeTests
 
         var none=await session.ExecuteDeleteAsync(Matching(Guid.NewGuid()),new CosmicWriteOptions(Guid.NewGuid()));
         Assert.IsFalse(none.IsError,none.Message);Assert.AreEqual(0,none.Result);checks++;
+        // S14: synchronous forms share the async semantics.
+        var syncNone=session.ExecuteDelete(Matching(Guid.NewGuid()),new CosmicWriteOptions(Guid.NewGuid()));
+        Assert.IsFalse(syncNone.IsError,syncNone.Message);Assert.AreEqual(0,syncNone.Result);
+        var syncUpdated=session.ExecuteUpdate(Matching(ids[0]),row=>row.Description="set-sync",new CosmicWriteOptions(Guid.NewGuid()));
+        Assert.IsFalse(syncUpdated.IsError,syncUpdated.ErrorCode+": "+syncUpdated.Message);Assert.AreEqual(1,syncUpdated.Result);
+        Assert.AreEqual("set-sync",(await Stored()).Single().Description);checks++;
+        // S18 insert-select: one new record per matching row, inserted in one atomic batch.
+        var copyId=Guid.NewGuid();owned.Add(copyId);
+        var copied=await session.InsertFromQueryAsync(Matching(ids[0]),
+            src=>new Holon{Id=copyId,Name="copy-of-"+src.Name,Description=src.Description,CreatedByAvatarId=actor,IsActive=true,IsPublic=false,IsNewHolon=true},
+            new CosmicWriteOptions(Guid.NewGuid()));
+        Assert.IsFalse(copied.IsError,copied.ErrorCode+": "+copied.Message);Assert.AreEqual(1,copied.Result);
+        var copy=(await session.ReadAsync(Matching(copyId))).Result.Single();
+        Assert.AreEqual("copy-of-set-a",copy.Name);Assert.AreEqual("set-sync",copy.Description);checks++;
         return new NativeFixtureJourneyProof(checks,3,new Dictionary<string,bool>{
-            ["setUpdateVerified"]=true,["setDeleteVerified"]=true,["oversizedSetRefusedVerified"]=true,["emptySetNoOpVerified"]=true});
+            ["setUpdateVerified"]=true,["setDeleteVerified"]=true,["oversizedSetRefusedVerified"]=true,["emptySetNoOpVerified"]=true,["syncFormsVerified"]=true,["insertSelectVerified"]=true});
     }
 }

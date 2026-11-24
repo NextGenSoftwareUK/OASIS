@@ -39,6 +39,7 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsFalse(rows.IsError,rows.Message);return rows.Result.ToList();
         }
         var checks=0;
+        var seedIds=new[]{Guid.NewGuid(),Guid.NewGuid()};owned.AddRange(seedIds);
         using var session=CosmicSession.Create(manager,adapter,access).Result;
         var keep=New("uow-keep");var drop=New("uow-drop");
         Assert.IsFalse(session.Add(keep).IsError);Assert.IsFalse(session.Add(drop).IsError);
@@ -95,7 +96,31 @@ public sealed partial class CqlV1Web4NativeTests
         var unchanged=await Stored(keep.Id,added.Id);
         Assert.AreEqual(2,unchanged.Count,"The deletion must roll back with the stale update.");
         Assert.AreEqual("uow-rival",unchanged.Single(row=>row.Id==keep.Id).Name);checks++;
+        // Q64: async streaming page by page (page size 1) yields every row exactly once.
+        using(var streamer=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var wanted=new[]{keep.Id,added.Id};var streamed=new List<Guid>();
+            await foreach(var row in streamer.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>wanted.Contains(row.Id)).ToCosmicAsyncEnumerable(1))
+                streamed.Add(row.Id);
+            CollectionAssert.AreEquivalent(wanted,streamed.ToArray());Assert.AreEqual(2,streamed.Count);
+        }
+        checks++;
+        // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
+        Holon[] Seed()=>new[]{
+            new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
+            new Holon{Id=seedIds[1],Name="seed-two",CreatedByAvatarId=actor,IsActive=true,IsPublic=false}};
+        using(var seeder=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var seeded=await seeder.EnsureSeedDataAsync(Seed(),Guid.NewGuid());
+            Assert.IsFalse(seeded.IsError,seeded.ErrorCode+": "+seeded.Message);Assert.AreEqual(2,seeded.Result);
+        }
+        using(var reseeder=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var again=await reseeder.EnsureSeedDataAsync(Seed(),Guid.NewGuid());
+            Assert.IsFalse(again.IsError,again.Message);Assert.AreEqual(0,again.Result,"Seeding is idempotent.");
+        }
+        Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true});
     }
 }
