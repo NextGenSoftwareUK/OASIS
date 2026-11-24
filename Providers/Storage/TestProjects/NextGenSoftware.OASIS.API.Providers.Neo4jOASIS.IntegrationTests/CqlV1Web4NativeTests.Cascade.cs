@@ -54,6 +54,12 @@ public sealed partial class CqlV1Web4NativeTests
         var navSaved=await session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
         Assert.IsFalse(navSaved.IsError,navSaved.ErrorCode+": "+navSaved.Message);owned.Add(navChild.Id);
         var navStored=(await Stored(navChild.Id)).Single();Assert.AreEqual(root.Id,navStored.ParentHolonId);checks++;
+        // A17: re-parenting a record under its own descendant is refused before dispatch.
+        root.ParentHolonId=grandchild.Id;
+        var cyclic=await session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+        Assert.IsTrue(cyclic.IsError);Assert.AreEqual("COSMIC_PARENT_CYCLE",cyclic.ErrorCode,cyclic.Message);
+        root.ParentHolonId=Guid.Empty;
+        Assert.AreEqual(Guid.Empty,(await Stored(root.Id)).Single().ParentHolonId);checks++;
         using var deleter=CosmicSession.Create(manager,adapter,access).Result;
         var loaded=(await deleter.FindAsync<Holon>(root.Id)).Result;Assert.IsNotNull(loaded);
         // A10: explicit loading assigns tracked children without dirtying the parent.
@@ -129,6 +135,6 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(deleted.IsError,deleted.ErrorCode+": "+deleted.Message);checks++;
         CollectionAssert.AreEquivalent(new[]{other.Id},(await Stored(root.Id,child.Id,grandchild.Id,late.Id,navChild.Id,other.Id)).Select(row=>row.Id).ToArray());checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["cascadeDeleteVerified"]=true,["cascadeBoundRefusedVerified"]=true,["siblingPreservedVerified"]=true,["explicitChildLoadingVerified"]=true,["loadedCollectionFixUpVerified"]=true,["extraLazyCollectionVerified"]=true,["navigationCascadeInsertVerified"]=true,["deleteOrphanVerified"]=true,["batchFetchVerified"]=true,["lazyLoadingVerified"]=true,["filteredIncludeVerified"]=true});
+            ["cascadeDeleteVerified"]=true,["cascadeBoundRefusedVerified"]=true,["siblingPreservedVerified"]=true,["explicitChildLoadingVerified"]=true,["loadedCollectionFixUpVerified"]=true,["extraLazyCollectionVerified"]=true,["navigationCascadeInsertVerified"]=true,["deleteOrphanVerified"]=true,["batchFetchVerified"]=true,["lazyLoadingVerified"]=true,["filteredIncludeVerified"]=true,["parentCycleRefusedVerified"]=true});
     }
 }
