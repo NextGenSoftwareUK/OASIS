@@ -47,7 +47,7 @@ Not yet covered:
 
 There are 234 shipping provider projects: 178 storage or specialised storage, 56 non-storage.
 
-Done (76 pass the native core-storage-v2 suite 52/52 against their real backend; ActivityPub passes capability-v1 5/5):
+Done (85 pass the native core-storage-v2 suite 52/52 against their real backend; ActivityPub passes capability-v1 5/5):
 
 - Every priority provider is done: HoloOASIS, Solana, MongoDB, SQLite, Neo4j, Supabase, SQL Server, Oracle (OracleDB),
   AWS, IPFS, NEAR, Cosmos, Azure (CosmosDB + Storage), Google Cloud, Polkadot, ActivityPub, SOLID, Polygon, Arbitrum,
@@ -76,6 +76,13 @@ Done (76 pass the native core-storage-v2 suite 52/52 against their real backend;
   crypto-shredding: a tombstone lists the erased publications, their encrypted Kubo envelopes are unpinned and
   garbage-collected, and readers accept a missing envelope only when a tombstone records that erasure. Aptos now stores
   canonical record JSON (nested children previously failed to read) and reports exact acknowledgements.
+- Also on 2026-11-24: ArcadeDB, QuestDB and PouchDB in the CI matrix, and Abstract, Berachain, Fantom, Monad, Rootstock
+  and Sei in the local EVM suite (now 14 EVM providers, 28/28). Fixes: ArcadeDB built SQL by string concatenation
+  (quote-only escaping) and hid HTTP failures, so it now uses named parameters and surfaces errors; QuestDB writes are
+  acknowledged only after the WAL writer has applied them, and hard delete is a DEDUP erasure marker because QuestDB has
+  no row DELETE; PouchDB never checked write status and turned every read error into "not found"; Berachain and Sei had
+  no chain identity, which the EVM base requires for signing, so their writes failed on every network; PgVector and
+  ArcadeDB were missing ProviderName/Description.
 
 Partly done, with open items:
 - Turso: managed Turso and hosted WEB4 activation are still open.
@@ -92,6 +99,8 @@ Next, breadth first, in order of popularity (shared suite not yet run):
    - Stellar: a read-only Horizon wrapper; holon save is an explicit not-implemented error and there is no signing.
    - Cardano: transactions are built as JSON objects, but Cardano only accepts CBOR-encoded signed transactions.
    - Starknet: holon save falls back to HolonManager and calls a Cairo `create_holon` entry point that is not in the repo.
+   - Nostr: a read-mostly social provider; avatar save is an explicit refusal. Storage needs a NIP-78 (kind 30078) event
+     design with NIP-09 deletion.
 
 Blocked: nothing new is blocked. Hosted-account blockers are already tracked in `Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md`.
 
