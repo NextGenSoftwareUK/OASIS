@@ -60,6 +60,16 @@ internal sealed class CardanoEd25519Signer
         return (transaction.Encode(), Convert.ToHexString(id).ToLowerInvariant());
     }
 
+    /// <summary>NaCl-layout Ed25519 key pair from a 32-byte seed: 32-byte public key and 64-byte secret (seed || public key).</summary>
+    internal static void KeyPairFromSeed(byte[] publicKey, byte[] secretKey, byte[] seed)
+    {
+        if (seed is not { Length: 32 }) throw new ArgumentException("An Ed25519 seed is exactly 32 bytes.", nameof(seed));
+        var pub = new Ed25519PrivateKeyParameters(seed, 0).GeneratePublicKey().GetEncoded();
+        Buffer.BlockCopy(pub, 0, publicKey, 0, 32);
+        Buffer.BlockCopy(seed, 0, secretKey, 0, 32);
+        Buffer.BlockCopy(pub, 0, secretKey, 32, 32);
+    }
+
     internal static byte[] Blake2b(byte[] data, int size)
     {
         var digest = new Blake2bDigest(size * 8);
