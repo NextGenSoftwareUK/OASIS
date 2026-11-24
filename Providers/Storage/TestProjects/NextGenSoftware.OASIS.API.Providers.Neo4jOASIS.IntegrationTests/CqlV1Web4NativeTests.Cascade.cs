@@ -82,6 +82,19 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(orphaned.IsError,orphaned.ErrorCode+": "+orphaned.Message);
         Assert.AreEqual(0,(await Stored(late.Id)).Count,"The orphan is deleted.");
         Assert.AreEqual(1,(await Stored(root.Id)).Count,"The parent stays.");checks++;
+        // A14 batch fetch: one native query fills the Children of several parents.
+        using(var batch=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var p1=(await batch.FindAsync<Holon>(root.Id)).Result;var p2=(await batch.FindAsync<Holon>(child.Id)).Result;
+            var queriesBefore=batch.Statistics.QueryCount;
+            var fetched=await batch.LoadChildrenAsync<Holon>(new IHolon[]{p1,p2});
+            Assert.IsFalse(fetched.IsError,fetched.ErrorCode+": "+fetched.Message);Assert.AreEqual(3,fetched.Result);
+            CollectionAssert.AreEquivalent(new[]{child.Id,navChild.Id},p1.Children.Select(row=>row.Id).ToArray());
+            CollectionAssert.AreEquivalent(new[]{grandchild.Id},p2.Children.Select(row=>row.Id).ToArray());
+            Assert.AreSame(p2,p1.Children.Single(row=>row.Id==child.Id),"Batch-loaded rows join the identity map.");
+            Assert.AreEqual(queriesBefore+1,batch.Statistics.QueryCount,"Exactly one native query fetched both collections.");
+        }
+        checks++;
         var bounded=await deleter.RemoveCascadeAsync(loaded,softDelete:false,maximumDescendants:1);
         Assert.IsTrue(bounded.IsError);Assert.AreEqual("COSMIC_CASCADE_LIMIT_EXCEEDED",bounded.ErrorCode);checks++;
         var queued=await deleter.RemoveCascadeAsync(loaded,softDelete:false);
@@ -92,6 +105,6 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(deleted.IsError,deleted.ErrorCode+": "+deleted.Message);checks++;
         CollectionAssert.AreEquivalent(new[]{other.Id},(await Stored(root.Id,child.Id,grandchild.Id,late.Id,navChild.Id,other.Id)).Select(row=>row.Id).ToArray());checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["cascadeDeleteVerified"]=true,["cascadeBoundRefusedVerified"]=true,["siblingPreservedVerified"]=true,["explicitChildLoadingVerified"]=true,["loadedCollectionFixUpVerified"]=true,["extraLazyCollectionVerified"]=true,["navigationCascadeInsertVerified"]=true,["deleteOrphanVerified"]=true});
+            ["cascadeDeleteVerified"]=true,["cascadeBoundRefusedVerified"]=true,["siblingPreservedVerified"]=true,["explicitChildLoadingVerified"]=true,["loadedCollectionFixUpVerified"]=true,["extraLazyCollectionVerified"]=true,["navigationCascadeInsertVerified"]=true,["deleteOrphanVerified"]=true,["batchFetchVerified"]=true});
     }
 }
